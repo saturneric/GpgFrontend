@@ -23,12 +23,7 @@
 #define __KEYIMPORTDETAILSDIALOG_H__
 
 #include "gpgcontext.h"
-#include <gpgme.h>
 
-QT_BEGIN_NAMESPACE
-class QGridLayout;
-class QDialogButtonBox;
-QT_END_NAMESPACE
 
 class KeyImportDetailDialog : public QDialog
 {
@@ -39,7 +34,6 @@ public:
 
 private:
     void createGeneralInfoBox();
-    void createKeyInfoBox();
     void createKeysTable();
     void createButtonBox();
     QString getStatusString(int keyStatus);

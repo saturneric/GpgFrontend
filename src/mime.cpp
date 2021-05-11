@@ -150,7 +150,7 @@ Header Mime::getHeader(const QByteArray *message) {
     return parseHeader(&header);
 }
 
-bool Mime::isMultipart(QByteArray *message)
+[[maybe_unused]] bool Mime::isMultipart(QByteArray *message)
 {
     return message->startsWith("Content-Type: multipart/mixed;");
 }

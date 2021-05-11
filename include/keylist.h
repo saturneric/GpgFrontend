@@ -22,55 +22,59 @@
 #ifndef __KEYLIST_H__
 #define __KEYLIST_H__
 
-#include <include/GPG4USB.h>
-
 #include "gpgcontext.h"
 #include "keyimportdetaildialog.h"
 
-QT_BEGIN_NAMESPACE
-class QWidget;
-class QVBoxLayout;
-class QLabel;
-class QTableWidget;
-class QMenu;
-QT_END_NAMESPACE
 
-class KeyList : public QWidget
-{
-    Q_OBJECT
+class KeyList : public QWidget {
+Q_OBJECT
 
 public:
-    KeyList(GpgME::GpgContext *ctx, QWidget *parent = 0);
+    explicit KeyList(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
+
     void setColumnWidth(int row, int size);
+
     void addMenuAction(QAction *act);
 
     QStringList *getChecked();
+
     QStringList *getPrivateChecked();
+
     QStringList *getAllPrivateKeys();
 
     void setChecked(QStringList *keyIds);
+
     //QStringList *getPrivateChecked();
     QStringList *getSelected();
+
     void markKeys(QStringList *keyIds);
+
     bool containsPrivateKeys();
 
 public slots:
+
     void slotRefresh();
+
     void uploadKeyToServer(QByteArray *keys);
 
 private:
     void importKeys(QByteArray inBuffer);
+
     GpgME::GpgContext *mCtx;
     QTableWidget *mKeyList;
     QMenu *popupMenu;
     QNetworkAccessManager *qnam;
 
 private slots:
+
     void uploadFinished();
 
 protected:
-    void contextMenuEvent(QContextMenuEvent *event);
-    void dragEnterEvent(QDragEnterEvent *event);
-    void dropEvent(QDropEvent* event);};
+    void contextMenuEvent(QContextMenuEvent *event) override;
+
+    void dragEnterEvent(QDragEnterEvent *event) override;
+
+    void dropEvent(QDropEvent *event) override;
+};
 
 #endif // __KEYLIST_H__

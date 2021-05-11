@@ -22,28 +22,25 @@
 #ifndef __QUITDIALOG_H__
 #define __QUITDIALOG_H__
 
-#include <include/GPG4USB.h>
-#include <QtGui>
+#include <GPG4USB.h>
 
-QT_BEGIN_NAMESPACE
-class QTableWidget;
-QT_END_NAMESPACE
-
-class QuitDialog : public QDialog
-{
-    Q_OBJECT
+class QuitDialog : public QDialog {
+Q_OBJECT
 
 public:
-    QuitDialog(QWidget *parent,QHash<int, QString> unsavedDocs);
+    QuitDialog(QWidget *parent, QHash<int, QString> unsavedDocs);
+
     bool isDiscarded();
-    QList <int> getTabIdsToSave();
+
+    QList<int> getTabIdsToSave();
 
 private slots:
+
     void slotMyDiscard();
 
 private:
-    QAction *closeAct;
-    QLabel *nameLabel;
+    [[maybe_unused]] QAction *closeAct;
+    [[maybe_unused]] QLabel *nameLabel;
     bool discarded;
     QTableWidget *mFileList;
 };

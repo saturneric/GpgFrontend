@@ -23,34 +23,32 @@
 #define __KEYGENTHREAD_H__
 
 #include "gpgcontext.h"
-#include <qthread.h>
-#include <iostream>
-#include <string>
-#include <cmath>
-#include <QtGui>
+
 
 QT_BEGIN_NAMESPACE
 class QMessageBox;
+
 QT_END_NAMESPACE
 
-class KeyGenThread : public QThread
-{
-    Q_OBJECT
+class KeyGenThread : public QThread {
+Q_OBJECT
 
 public:
     KeyGenThread(QString keyGenParams, GpgME::GpgContext *ctx);
 
 signals:
+
     void signalKeyGenerated();
 
 private:
     QString keyGenParams;
     GpgME::GpgContext *mCtx;
-    bool abort;
+    [[maybe_unused]] bool abort;
     QMutex mutex;
 
 protected:
     void run();
 
 };
+
 #endif // __KEYGENTHREAD_H__

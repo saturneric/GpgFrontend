@@ -23,53 +23,42 @@
 #ifndef __KEYSERVERIMPORTDIALOG_H__
 #define __KEYSERVERIMPORTDIALOG_H__
 
-#include <include/GPG4USB.h>
-
 #include "gpgcontext.h"
 #include "keyimportdetaildialog.h"
 #include "keylist.h"
 
-QT_BEGIN_NAMESPACE
-class QDialog;
-class QDir;
-class QUrl;
-class QtGui;
-class QPixmap;
-class QNetworkReply;
-class QComboBox;
-class QLabel;
-class QPushButton;
-class QTableWidget;
-class QTableWidgetItem;
-class QLineEdit;
-class QPalette;
-class QTreeWidget;
-class QTreeWidgetItem;
-QT_END_NAMESPACE
 
-class KeyServerImportDialog : public QDialog
-{
-    Q_OBJECT
+class KeyServerImportDialog : public QDialog {
+Q_OBJECT
 
 public:
-    KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *keyList, QWidget *parent = 0);
+    KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *keyList, QWidget *parent = nullptr);
+
     void slotImport(QStringList keyIds);
+
     void slotImport(QStringList keyIds, QUrl keyserverUrl);
 
 private slots:
+
     void slotImport();
+
     void slotSearchFinished();
+
     void slotImportFinished();
+
     void slotSearch();
 
 private:
     void createKeysTable();
+
     void setMessage(const QString &text, bool error);
-    void close();
+
     void importKeys(QByteArray inBuffer);
 
     QPushButton *createButton(const QString &text, const char *member);
+
     QComboBox *createComboBox();
+
     GpgME::GpgContext *mCtx;
     KeyList *mKeyList;
     QLineEdit *searchLineEdit;
@@ -82,8 +71,9 @@ private:
     QPushButton *importButton;
     QPushButton *searchButton;
     QTableWidget *keysTable;
-    QUrl url;
+    [[maybe_unused]] QUrl url;
     QNetworkAccessManager *qnam;
 
 };
+
 #endif // __KEYSERVERIMPORTDIALOG_H__

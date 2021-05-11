@@ -24,15 +24,15 @@
 
 #include "editorpage.h"
 #include "verifykeydetailbox.h"
-#include <QDialog>
 
-class VerifyDetailsDialog : public QDialog
-{
-    Q_OBJECT
+class VerifyDetailsDialog : public QDialog {
+Q_OBJECT
 public:
-    explicit VerifyDetailsDialog(QWidget *parent, GpgME::GpgContext* ctx, KeyList* mKeyList, QByteArray* inputData, QByteArray* inputSignature = 0);
+    explicit VerifyDetailsDialog(QWidget *parent, GpgME::GpgContext *ctx, KeyList *mKeyList, QByteArray *inputData,
+                                 QByteArray *inputSignature = nullptr);
 
 private slots:
+
     void slotRefresh();
 
 private:
@@ -40,9 +40,9 @@ private:
     KeyList *mKeyList;
     QHBoxLayout *mainLayout;
     QWidget *mVbox;
-    QByteArray* mInputData; /** Data to be verified */
-    QByteArray* mInputSignature; /** Data to be verified */
-    QDialogButtonBox* buttonBox;
+    QByteArray *mInputData; /** Data to be verified */
+    QByteArray *mInputSignature; /** Data to be verified */
+    QDialogButtonBox *buttonBox;
 };
 
 #endif // __VERIFYDETAILSDIALOG_H__

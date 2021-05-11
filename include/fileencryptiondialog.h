@@ -26,27 +26,14 @@
 #include "keylist.h"
 #include "verifydetailsdialog.h"
 
-QT_BEGIN_NAMESPACE
-class QDialog;
-class QLineEdit;
-class QWidget;
-class QDialogButtonBox;
-class QLabel;
-class QPushButton;
-class QHBoxLayout;
-class QVBoxLayout;
-class QDebug;
-class QFileDialog;
-QT_END_NAMESPACE
 
 /**
  * @brief
  *
  * @class FileEncryptionDialog fileencryptiondialog.h "fileencryptiondialog.h"
  */
-class FileEncryptionDialog : public QDialog
-{
-    Q_OBJECT
+class FileEncryptionDialog : public QDialog {
+Q_OBJECT
 
 public:
 
@@ -65,38 +52,45 @@ public:
      * @param keyList
      * @param parent
      */
-    FileEncryptionDialog(GpgME::GpgContext *ctx, QStringList keyList,  DialogAction action, QWidget *parent = 0);
+    FileEncryptionDialog(GpgME::GpgContext *ctx, QStringList keyList, DialogAction action, QWidget *parent = nullptr);
+
 public slots:
+
     /**
      * @details
      *
      * @fn selectInputFile
      */
     void slotSelectInputFile();
+
     /**
      * @brief
      *
      * @fn selectOutputFile
      */
     void slotSelectOutputFile();
+
     /**
      * @brief
      *
      * @fn selectSignFile
      */
     void slotSelectSignFile();
+
     /**
      * @brief
      *
      * @fn executeAction
      */
     void slotExecuteAction();
+
     /**
      * @brief
      *
      * @fn hideKeyList
      */
     void slotHideKeyList();
+
     /**
      * @brief
      *
@@ -115,4 +109,5 @@ protected:
     KeyList *mKeyList; /**< TODO */
 
 };
+
 #endif // __FILEENCRYPTIONDIALOG_H__

@@ -22,51 +22,37 @@
 #ifndef __SGPGMEPP_CONTEXT_H__
 #define __SGPGMEPP_CONTEXT_H__
 
-#include <include/GPG4USB.h>
+#include <GPG4USB.h>
 
 #include "gpgconstants.h"
-#include <locale.h>
-#include <errno.h>
-#include <gpgme.h>
-#include <QLinkedList>
-#include <QtGui>
 
-QT_BEGIN_NAMESPACE
-class QMessageBox;
-class sstream;
-class QApplication;
-class QByteArray;
-class QString;
-QT_END_NAMESPACE
 
-class GpgKey
-{
+class GpgKey {
 public:
     GpgKey() {
         privkey = false;
     }
+
     QString id;
     QString name;
     QString email;
     QString fpr;
     bool privkey;
-    bool expired;
-    bool revoked;
+    bool expired{};
+    bool revoked{};
 };
 
-typedef QLinkedList< GpgKey > GpgKeyList;
+typedef QLinkedList<GpgKey> GpgKeyList;
 
-class GpgImportedKey
-{
+class GpgImportedKey {
 public:
     QString fpr;
     int importStatus;
 };
 
-typedef QLinkedList< GpgImportedKey > GpgImportedKeyList;
+typedef QLinkedList<GpgImportedKey> GpgImportedKeyList;
 
-class GpgImportInformation
-{
+class GpgImportInformation {
 public:
     GpgImportInformation() {
         considered = 0;
@@ -85,14 +71,14 @@ public:
     }
 
     int considered;
-    int no_user_id;
+    [[maybe_unused]] int no_user_id;
     int imported;
-    int imported_rsa;
+    [[maybe_unused]] int imported_rsa;
     int unchanged;
-    int new_user_ids;
-    int new_sub_keys;
-    int new_signatures;
-    int new_revocations;
+    [[maybe_unused]] int new_user_ids;
+    [[maybe_unused]] int new_sub_keys;
+    [[maybe_unused]] int new_signatures;
+    [[maybe_unused]] int new_revocations;
     int secret_read;
     int secret_imported;
     int secret_unchanged;
@@ -100,86 +86,108 @@ public:
     GpgImportedKeyList importedKeys;
 };
 
-namespace GpgME
-{
+namespace GpgME {
 
-class GpgContext : public QObject
-{
+    class GpgContext : public QObject {
     Q_OBJECT
 
-public:
-    GpgContext(); // Constructor
-    ~GpgContext(); // Destructor
-    GpgImportInformation importKey(QByteArray inBuffer);
-    bool exportKeys(QStringList *uidList, QByteArray *outBuffer);
-    void generateKey(QString *params);
-    GpgKeyList listKeys();
-    void deleteKeys(QStringList *uidList);
-    bool encrypt(QStringList *uidList, const QByteArray &inBuffer,
-                 QByteArray *outBuffer);
-    bool decrypt(const QByteArray &inBuffer, QByteArray *outBuffer);
-    void clearPasswordCache();
-    void exportSecretKey(QString uid, QByteArray *outBuffer);
-    gpgme_key_t getKeyDetails(QString uid);
-    gpgme_signature_t verify(QByteArray *inBuffer, QByteArray *sigBuffer = NULL);
+    public:
+        GpgContext(); // Constructor
+        ~GpgContext() override; // Destructor
+        GpgImportInformation importKey(QByteArray inBuffer);
+
+        bool exportKeys(QStringList *uidList, QByteArray *outBuffer);
+
+        void generateKey(QString *params);
+
+        GpgKeyList listKeys();
+
+        void deleteKeys(QStringList *uidList);
+
+        bool encrypt(QStringList *uidList, const QByteArray &inBuffer,
+                     QByteArray *outBuffer);
+
+        bool decrypt(const QByteArray &inBuffer, QByteArray *outBuffer);
+
+        void clearPasswordCache();
+
+        void exportSecretKey(QString uid, QByteArray *outBuffer);
+
+        gpgme_key_t getKeyDetails(QString uid);
+
+        gpgme_signature_t verify(QByteArray *inBuffer, QByteArray *sigBuffer = nullptr);
+
 //    void decryptVerify(QByteArray in);
-    bool sign(QStringList *uidList, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached = false);
-    /**
-     * @details If text contains PGP-message, put a linebreak before the message,
-     * so that gpgme can decrypt correctly
-     *
-     * @param in Pointer to the QBytearray to check.
-     */
-    void preventNoDataErr(QByteArray *in);
+        bool sign(QStringList *uidList, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached = false);
 
-    GpgKey getKeyByFpr(QString fpr);
-    GpgKey getKeyById(QString id);
+        /**
+         * @details If text contains PGP-message, put a linebreak before the message,
+         * so that gpgme can decrypt correctly
+         *
+         * @param in Pointer to the QBytearray to check.
+         */
+        void preventNoDataErr(QByteArray *in);
 
-    static QString gpgErrString(gpgme_error_t err);
-    static QString getGpgmeVersion();
+        GpgKey getKeyByFpr(QString fpr);
 
-    /**
-     * @brief
-     *
-     * @param text
-     * @return \li 2, if the text is completly signed,
-     *          \li 1, if the text is partially signed,
-     *          \li 0, if the text is not signed at all.
-     */
-    int textIsSigned(const QByteArray &text);
-    QString beautifyFingerprint(QString fingerprint);
+        GpgKey getKeyById(QString id);
 
-signals:
-    void signalKeyDBChanged();
+        static QString gpgErrString(gpgme_error_t err);
 
-private slots:
-    void slotRefreshKeyList();
+        static QString getGpgmeVersion();
 
-private:
-    gpgme_ctx_t mCtx;
-    gpgme_data_t in, out;
-    gpgme_error_t err;
-    gpgme_error_t readToBuffer(gpgme_data_t in, QByteArray *outBuffer);
-    QByteArray mPasswordCache;
-    QSettings settings;
-    bool debug;
-    GpgKeyList mKeyList;
-    int checkErr(gpgme_error_t err) const;
-    int checkErr(gpgme_error_t err, QString comment) const;
+        /**
+         * @brief
+         *
+         * @param text
+         * @return \li 2, if the text is completly signed,
+         *          \li 1, if the text is partially signed,
+         *          \li 0, if the text is not signed at all.
+         */
+        int textIsSigned(const QByteArray &text);
 
-    static gpgme_error_t passphraseCb(void *hook, const char *uid_hint,
-                                      const char *passphrase_info,
-                                      int last_was_bad, int fd);
-    gpgme_error_t passphrase(const char *uid_hint,
-                             const char *passphrase_info,
-                             int last_was_bad, int fd);
+        QString beautifyFingerprint(QString fingerprint);
 
-    void executeGpgCommand(QStringList arguments,
-                           QByteArray *stdOut,
-                           QByteArray *stdErr);
-    QString gpgBin;
-    QString gpgKeys;
-};
+    signals:
+
+        void signalKeyDBChanged();
+
+    private slots:
+
+        void slotRefreshKeyList();
+
+    private:
+        gpgme_ctx_t mCtx;
+        gpgme_data_t in;
+        [[maybe_unused]] gpgme_data_t out;
+        gpgme_error_t err;
+
+        gpgme_error_t readToBuffer(gpgme_data_t in, QByteArray *outBuffer);
+
+        QByteArray mPasswordCache;
+        QSettings settings;
+        [[maybe_unused]] bool debug;
+        GpgKeyList mKeyList;
+
+        [[nodiscard]] int checkErr(gpgme_error_t err) const;
+
+        [[nodiscard]] int checkErr(gpgme_error_t err, QString comment) const;
+
+        static gpgme_error_t passphraseCb(void *hook, const char *uid_hint,
+                                          const char *passphrase_info,
+                                          int last_was_bad, int fd);
+
+        gpgme_error_t passphrase(const char *uid_hint,
+                                 const char *passphrase_info,
+                                 int last_was_bad, int fd);
+
+        void executeGpgCommand(QStringList arguments,
+                               QByteArray *stdOut,
+                               QByteArray *stdErr);
+
+        QString gpgBin;
+        QString gpgKeys;
+    };
 } // namespace GpgME
 
 #endif // __SGPGMEPP_CONTEXT_H__
