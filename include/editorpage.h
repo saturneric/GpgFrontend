@@ -22,25 +22,28 @@
 #ifndef __EDITORPAGE_H__
 #define __EDITORPAGE_H__
 
-#include <include/GPG4USB.h>
+#include <GPG4USB.h>
 
 #include "gpgconstants.h"
 
 
 QT_BEGIN_NAMESPACE
 class QVBoxLayout;
+
 class QHBoxLayout;
+
 class QString;
+
 class QLabel;
+
 QT_END_NAMESPACE
 
 /**
  * @brief Class for handling a single tab of the tabwidget
  *
  */
-class EditorPage : public QWidget
-{
-    Q_OBJECT
+class EditorPage : public QWidget {
+Q_OBJECT
 
 public:
     /**
@@ -49,12 +52,12 @@ public:
      * @param filePath Path of the file handled in this tab
      * @param parent Pointer to the parent widget
      */
-    EditorPage(const QString &filePath = "", QWidget *parent = 0);
+    explicit EditorPage(const QString &filePath = "", QWidget *parent = nullptr);
 
     /**
      * @details Get the filepath of the currently activated tab.
      */
-    const QString& getFilePath() const;
+    const QString &getFilePath() const;
 
     /**
      * @details Set filepath of currently activated tab.
@@ -86,13 +89,14 @@ public:
 private:
     QTextEdit *textPage; /** The textedit of the tab */
     QVBoxLayout *mainLayout; /** The layout for the tab */
-    QWidget *notificationWidget; /** The notification widget shown at the buttom of the tab */
-    QMenu *verifyMenu; /** The menu in the notifiaction widget */
+    [[maybe_unused]] QWidget *notificationWidget; /** The notification widget shown at the buttom of the tab */
+    [[maybe_unused]] QMenu *verifyMenu; /** The menu in the notifiaction widget */
     QString fullFilePath; /** The path to the file handled in the tab */
-    QLabel *verifyLabel; /** The label of the verify-notification widget */
+    [[maybe_unused]] QLabel *verifyLabel; /** The label of the verify-notification widget */
     bool signMarked; /** true, if the signed header is marked, false if not */
 
 private slots:
+
     /**
       * @details Format the gpg header in another font-style
       */

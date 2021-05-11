@@ -23,84 +23,94 @@
 #ifndef WIZARD_H
 #define WIZARD_H
 
-#include <QWizard>
 #include "keygendialog.h"
 #include "keymgmt.h"
 #include "gpgconstants.h"
 #include "settingsdialog.h"
 
 class QCheckBox;
+
 class QLabel;
+
 class QLineEdit;
+
 class QRadioButton;
 
-class Wizard : public QWizard
-{
-    Q_OBJECT
+class Wizard : public QWizard {
+Q_OBJECT
     Q_ENUMS(WizardPages)
 
 public:
-    enum WizardPages { Page_Intro, Page_Choose, Page_ImportFromGpg4usb, Page_ImportFromGnupg, Page_GenKey,
-                Page_Conclusion };
+    enum WizardPages {
+        Page_Intro, Page_Choose, Page_ImportFromGpg4usb, Page_ImportFromGnupg, Page_GenKey,
+        Page_Conclusion
+    };
 
-    Wizard(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent = 0);
-    static bool importPubAndSecKeysFromDir(const QString dir, KeyMgmt *keyMgmt);
+    Wizard(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent = nullptr);
+
+    static bool importPubAndSecKeysFromDir(QString dir, KeyMgmt *keyMgmt);
 
 private:
     GpgME::GpgContext *mCtx;
     KeyMgmt *mKeyMgmt;
 
 private slots:
+
     void slotWizardAccepted();
 
 signals:
+
     void signalOpenHelp(QString page);
 };
 
-class IntroPage : public QWizardPage
-{
-    Q_OBJECT
+class IntroPage : public QWizardPage {
+Q_OBJECT
 
 public:
-    IntroPage(QWidget *parent = 0);
-    QHash<QString,QString> languages;
-    int nextId() const;
+    explicit IntroPage(QWidget *parent = nullptr);
+
+    QHash<QString, QString> languages;
+
+    [[nodiscard]] int nextId() const override;
 
 private slots:
+
     void slotLangChange(QString lang);
 };
 
-class ChoosePage : public QWizardPage
-{
-    Q_OBJECT
+class ChoosePage : public QWizardPage {
+Q_OBJECT
 
 public:
-    ChoosePage(QWidget *parent = 0);
+    explicit ChoosePage(QWidget *parent = nullptr);
 
 private slots:
-    void slotJumpPage(const QString& page);
+
+    void slotJumpPage(const QString &page);
 
 private:
-    int nextId() const;
+    [[nodiscard]] int nextId() const override;
+
     int nextPage;
 };
 
-class ImportFromGpg4usbPage : public QWizardPage
-{
-    Q_OBJECT
+class ImportFromGpg4usbPage : public QWizardPage {
+Q_OBJECT
 
 public:
-    ImportFromGpg4usbPage(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent = 0);
+    ImportFromGpg4usbPage(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent = nullptr);
 
 private slots:
+
     /**
       * @details  Import keys from gnupg-homedir, private or/and public depend on the checked boxes
       */
     void slotImportFromOlderGpg4usb();
+
     bool slotImportConfFromGpg4usb(QString dir);
 
 private:
-    int nextId() const;
+    [[nodiscard]] int nextId() const override;
 
     KeyMgmt *mKeyMgmt;
     GpgME::GpgContext *mCtx;
@@ -108,14 +118,14 @@ private:
     QCheckBox *gpg4usbConfigCheckBox;
 };
 
-class ImportFromGnupgPage : public QWizardPage
-{
-    Q_OBJECT
+class ImportFromGnupgPage : public QWizardPage {
+Q_OBJECT
 
 public:
-    ImportFromGnupgPage(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent = 0);
+    ImportFromGnupgPage(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent = nullptr);
 
 private slots:
+
     /**
       * @details  Import keys from gnupg-homedir, private or/and public depend on the checked boxes
       */
@@ -123,7 +133,8 @@ private slots:
 
 private:
     KeyMgmt *mKeyMgmt;
-    int nextId() const;
+
+    [[nodiscard]] int nextId() const override;
 
     /**
       * @details  String containing the gnupg-homedir
@@ -136,28 +147,29 @@ private:
     QPushButton *importFromGnupgButton;
 };
 
-class KeyGenPage : public QWizardPage
-{
-    Q_OBJECT
+class KeyGenPage : public QWizardPage {
+Q_OBJECT
 
 public:
-    KeyGenPage(GpgME::GpgContext *ctx, QWidget *parent = 0);
-    int nextId() const;
+    explicit KeyGenPage(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
+
+    [[nodiscard]] int nextId() const override;
 
 private slots:
+
     void slotGenerateKeyDialog();
 
 private:
     GpgME::GpgContext *mCtx;
 };
 
-class ConclusionPage : public QWizardPage
-{
-    Q_OBJECT
+class ConclusionPage : public QWizardPage {
+Q_OBJECT
 
 public:
-    ConclusionPage(QWidget *parent = 0);
-    int nextId() const;
+    explicit ConclusionPage(QWidget *parent = nullptr);
+
+    [[nodiscard]] int nextId() const override;
 
 private:
     QCheckBox *dontShowWizardCheckBox;

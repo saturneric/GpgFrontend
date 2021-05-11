@@ -28,46 +28,51 @@
 #include "keyimportdetaildialog.h"
 #include "keyserverimportdialog.h"
 #include "keygendialog.h"
-#include <QtGui>
 
-QT_BEGIN_NAMESPACE
-class QMainWindow;
-class iostream;
-class QFileDialog;
-class QIcon;
-class QAction;
-class QApplication;
-QT_END_NAMESPACE
 
-class KeyMgmt : public QMainWindow
-{
-    Q_OBJECT
+class KeyMgmt : public QMainWindow {
+Q_OBJECT
 
 public:
-    KeyMgmt(GpgME::GpgContext* ctx, QWidget *parent = 0);
+    explicit KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
+
     QAction *importKeyFromClipboardAct;
     QAction *importKeyFromFileAct;
     QAction *importKeyFromKeyServerAct;
 
 public slots:
+
     void slotImportKeyFromFile();
+
     void slotImportKeyFromClipboard();
+
     void slotImportKeyFromKeyServer();
+
     void slotImportKeys(QByteArray inBuffer);
+
     void slotExportKeyToFile();
+
     void slotExportKeyToClipboard();
+
     void slotDeleteSelectedKeys();
+
     void slotDeleteCheckedKeys();
+
     void slotGenerateKeyDialog();
+
     void slotShowKeyDetails();
 
 signals:
+
     void signalStatusBarChanged(QString);
 
 private:
     void createMenus();
+
     void createActions();
+
     void createToolBars();
+
     void deleteKeysWithWarning(QStringList *uidList);
 
     KeyList *mKeyList;
@@ -82,11 +87,11 @@ private:
     QAction *generateKeyDialogAct;
     QAction *closeAct;
     QAction *showKeyDetailsAct;
-    QMessageBox msgbox;
+    [[maybe_unused]] QMessageBox msgbox;
     KeyServerImportDialog *importDialog;
 
 protected:
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) override;
 };
 
 #endif // __KEYMGMT_H__

@@ -24,33 +24,33 @@
 
 #include "editorpage.h"
 #include "verifydetailsdialog.h"
-#include <gpgme.h>
-#include <QWidget>
 
 QT_BEGIN_NAMESPACE
 class QLabel;
+
 class QHBoxLayout;
+
 class QMenu;
+
 class QPushButton;
+
 QT_END_NAMESPACE
 
 /**
  * @details Enumeration for the status of Verifylabel
  */
-typedef enum
-{
+typedef enum {
     VERIFY_ERROR_OK = 0,
     VERIFY_ERROR_WARN = 1,
     VERIFY_ERROR_CRITICAL = 2,
-    VERIFY_ERROR_NEUTRAL =3,
-}  verify_label_status;
+    VERIFY_ERROR_NEUTRAL [[maybe_unused]] = 3,
+} verify_label_status;
 
 /**
  * @brief Class for handling the verifylabel shown at buttom of a textedit-page
  */
-class VerifyNotification : public QWidget
-{
-    Q_OBJECT
+class VerifyNotification : public QWidget {
+Q_OBJECT
 public:
     /**
      * @brief
@@ -58,7 +58,8 @@ public:
      * @param ctx The GPGme-Context
      * @param parent The parent widget
      */
-    explicit VerifyNotification(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList,QTextEdit *edit);
+    explicit VerifyNotification(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList, QTextEdit *edit);
+
     /**
      * @details Set the text and background-color of verify notification.
      *
@@ -77,6 +78,7 @@ public:
 
 
 public slots:
+
     /**
      * @details Import the keys contained in keysNotInList from keyserver
      *
@@ -102,8 +104,9 @@ private:
     GpgME::GpgContext *mCtx; /** GpgME Context */
     KeyList *mKeyList; /** Table holding the keys */
     QTextEdit *mTextpage; /** Textedit associated to the notification */
-    QVector<QString> verifyDetailStringVector; /** Vector containing the text for labels in verifydetaildialog */
-    QVector<verify_label_status> verifyDetailStatusVector; /** Vector containing the status for labels in verifydetaildialog */
+    [[maybe_unused]] QVector<QString> verifyDetailStringVector; /** Vector containing the text for labels in verifydetaildialog */
+    [[maybe_unused]] QVector<verify_label_status> verifyDetailStatusVector; /** Vector containing the status for labels in verifydetaildialog */
 
 };
+
 #endif // __VERIFYNOTIFICATION_H__

@@ -27,22 +27,30 @@
 
 QT_BEGIN_NAMESPACE
 class QDateTime;
+
 class QVBoxLayout;
+
 class QHBoxLayout;
+
 class QDialogButtonBox;
+
 class QDialog;
+
 class QGroupBox;
+
 class QLabel;
+
 class QGridLayout;
+
 class QPushButton;
+
 QT_END_NAMESPACE
 
-class KeyDetailsDialog : public QDialog
-{
-    Q_OBJECT
+class KeyDetailsDialog : public QDialog {
+Q_OBJECT
 
 public:
-    KeyDetailsDialog(GpgME::GpgContext* ctx, gpgme_key_t key, QWidget *parent = 0);
+    KeyDetailsDialog(GpgME::GpgContext *ctx, gpgme_key_t key, QWidget *parent = nullptr);
 
     /**
      * @details Return QString with a space inserted at every fourth character
@@ -52,6 +60,7 @@ public:
     static QString beautifyFingerprint(QString fingerprint);
 
 private slots:
+
     /**
      * @details Export the key to a file, which is choosen in a file dialog
      */

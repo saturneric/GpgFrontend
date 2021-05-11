@@ -22,8 +22,6 @@
 #ifndef __GPGWIN_H__
 #define __GPGWIN_H__
 
-#include <include/GPG4USB.h>
-
 #include "gpgconstants.h"
 #include "attachments.h"
 #include "keymgmt.h"
@@ -35,38 +33,13 @@
 #include "findwidget.h"
 #include "wizard.h"
 
-QT_BEGIN_NAMESPACE
-class QMainWindow;
-class QTextEdit;
-class QWidget;
-class QVBoxLayout;
-class QGridLayout;
-class iostream;
-class QtGui;
-class QString;
-class QFileDialog;
-class QStringList;
-class QIcon;
-class QMessageBox;
-class QVBoxLayout;
-class QAction;
-class QMenu;
-class QTextEdit;
-class QComboBox;
-class QPushButton;
-class QRadioButton;
-class QButtonGroup;
-class QApplication;
-class QDockWidget;
-QT_END_NAMESPACE
 
 /**
  * @brief
  *
  */
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
+class MainWindow : public QMainWindow {
+Q_OBJECT
 
 public:
     /**
@@ -74,7 +47,9 @@ public:
      *
      */
     MainWindow();
+
 public slots:
+
     void slotSetStatusBarText(QString text);
 
 protected:
@@ -82,9 +57,10 @@ protected:
      * @details Close event shows a save dialog, if there are unsaved documents on exit.
      * @param event
      */
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) override;
 
 private slots:
+
     /**
      * @details encrypt the text of currently active textedit-page
      * with the currently checked keys
@@ -117,7 +93,7 @@ private slots:
      * @details Refresh key information of selected keys from default keyserver
      */
     void refreshKeysFromKeyserver();
-    
+
     /**
       * @details upload the selected key to the keyserver
       */
@@ -197,7 +173,7 @@ private slots:
     /**
      * @details Open integrated help in new tab with the specified page.
      */
-    void slotOpenHelp(const QString page);
+    void slotOpenHelp(QString page);
 
     /**
      * @details Show a warn message in status bar, if there are files in attachment folder.
@@ -311,11 +287,11 @@ private:
     QToolBar *editToolBar; /** Toolbar holding edit actions */
     QToolBar *specialEditToolBar; /** Toolbar holding special edit actions */
     QToolBar *keyToolBar; /** Toolbar holding key operations */
-    QToolButton* importButton; /** Toolbutton for import dropdown menu in toolbar */
-    QToolButton* fileEncButton; /** Toolbutton for file cryption dropdown menu in toolbar */
+    QToolButton *importButton; /** Toolbutton for import dropdown menu in toolbar */
+    QToolButton *fileEncButton; /** Toolbutton for file cryption dropdown menu in toolbar */
     QDockWidget *keylistDock; /** Encrypt Dock*/
     QDockWidget *attachmentDock; /** Attachment Dock */
-    QDialog *genkeyDialog; /** Dialog for key generation */
+    [[maybe_unused]] QDialog *genkeyDialog; /** Dialog for key generation */
 
     QAction *newTabAct; /** Action to create new tab */
     QAction *switchTabUpAct; /** Action to switch tab up*/

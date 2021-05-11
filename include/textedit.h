@@ -26,28 +26,12 @@
 #include "helppage.h"
 #include "quitdialog.h"
 
-QT_BEGIN_NAMESPACE
-class QDebug;
-class QtGui;
-class QFileDialog;
-class QMessageBox;
-class QFileInfo;
-class QApplication;
-class QFile;
-class QTextEdit;
-class QFileDialog;
-class QMessageBox;
-class QWidget;
-class QString;
-class QTabWidget;
-QT_END_NAMESPACE
 
 /**
  * @brief TextEdit class
  */
-class TextEdit : public QWidget
-{
-    Q_OBJECT
+class TextEdit : public QWidget {
+Q_OBJECT
 public:
     /**
      * @brief
@@ -73,14 +57,15 @@ public:
     bool maybeSaveAnyTab();
 
     int tabCount();
+
     /**
      * @details textpage of the currently activated tab
      * @return \li reference to QTextEdit if tab has one
      *         \li 0 otherwise (e.g. if helppage)
      */
-    QTextEdit* curTextPage();
+    QTextEdit *curTextPage();
 
-    QTextBrowser* curHelpPage();
+    QTextBrowser *curHelpPage();
 
     /**
      * @details  List of currently unsaved tabs.
@@ -91,6 +76,7 @@ public:
     QTabWidget *tabWidget; /** Widget containing the tabs of the editor */
 
 public slots:
+
     /**
      * @details Return pointer to the currently activated tabpage.
      *
@@ -182,12 +168,6 @@ private:
     /**
      * @brief
      *
-     */
-    bool maybeSaveFile();
-
-    /**
-     * @brief
-     *
      * @param askToSave
      */
     bool maybeSaveCurrentTab(bool askToSave);
@@ -199,6 +179,7 @@ private:
     int countPage; /* TODO */
 
 private slots:
+
     /**
      * @details Remove the tab with given index
      *
@@ -240,6 +221,7 @@ private slots:
     void slotRedo();
 
     void slotZoomIn();
+
     void slotZoomOut();
     /****************************************************************************************
      * Name:                selectAll
@@ -272,4 +254,5 @@ protected:
      */
     bool saveFile(const QString &fileName);
 };
+
 #endif // __TEXTEDIT_H__

@@ -22,53 +22,41 @@
 #ifndef __ABOUTDIALOG_H__
 #define __ABOUTDIALOG_H__
 
-#include <include/GPG4USB.h>
-
-#include <QWidget>
-#include <QtGui>
+#include <GPG4USB.h>
 
 #include "gpgcontext.h"
-
-QT_BEGIN_NAMESPACE
-class QVBoxLayout;
-class QLabel;
-class QTabWidget;
-QT_END_NAMESPACE
 
 /**
  * @brief Class containing the main tab of about dialog
  *
  */
-class InfoTab : public QWidget
- {
-     Q_OBJECT
+class InfoTab : public QWidget {
+Q_OBJECT
 
- public:
-     InfoTab(QWidget *parent = 0);
- };
+public:
+    explicit InfoTab(QWidget *parent = nullptr);
+};
 
 /**
  * @brief Class containing the translator tab of about dialog
  *
  */
-class TranslatorsTab : public QWidget
- {
-     Q_OBJECT
-
- public:
-     TranslatorsTab(QWidget *parent = 0);
- };
-
- /**
-  * @brief Class for handling the about dialog
-  *
-  */
-class AboutDialog : public QDialog
-{
-    Q_OBJECT
+class TranslatorsTab : public QWidget {
+Q_OBJECT
 
 public:
-    AboutDialog(QWidget *parent = 0);
+    explicit TranslatorsTab(QWidget *parent = nullptr);
+};
+
+/**
+ * @brief Class for handling the about dialog
+ *
+ */
+class AboutDialog : public QDialog {
+Q_OBJECT
+
+public:
+    explicit AboutDialog(QWidget *parent = nullptr);
 };
 
 #endif  // __ABOUTDIALOG_H__

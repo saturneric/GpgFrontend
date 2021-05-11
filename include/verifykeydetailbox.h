@@ -24,22 +24,23 @@
 
 #include "keylist.h"
 #include "keyserverimportdialog.h"
-#include <QDialog>
-#include <QGroupBox>
 
-class VerifyKeyDetailBox: public QGroupBox
-{
-    Q_OBJECT
+class VerifyKeyDetailBox : public QGroupBox {
+Q_OBJECT
 public:
-    explicit VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext* ctx, KeyList* mKeyList,  gpgme_signature_t signature);
+    explicit VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext *ctx, KeyList *mKeyList,
+                                gpgme_signature_t signature);
 
 private slots:
+
     void slotImportFormKeyserver();
 
 private:
-    GpgME::GpgContext* mCtx;
-    KeyList* mKeyList;
+    GpgME::GpgContext *mCtx;
+    KeyList *mKeyList;
+
     QString beautifyFingerprint(QString fingerprint);
+
     QString fpr;
 };
 

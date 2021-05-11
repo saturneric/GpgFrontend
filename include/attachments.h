@@ -23,38 +23,26 @@
 #define __ATTACHMENTS_H__
 
 #include "attachmenttablemodel.h"
-#include <QtGui>
-#include <QWidget>
 
-QT_BEGIN_NAMESPACE
-class QTableView;
-class QHeaderView;
-class QVBoxLayout;
-class QMenu;
-class QMessageBox;
-class QContextMenuEvent;
-class QFileDialog;
-class QUrl;
-class QDesktopServices;
-class QSettings;
-class QApplication;
-QT_END_NAMESPACE
-
-class Attachments : public QWidget
-{
-    Q_OBJECT
+class Attachments : public QWidget {
+Q_OBJECT
 
 public slots:
+
     void slotSaveFile();
+
     void slotOpenFile();
 
 public:
-    Attachments(QWidget *parent = nullptr);
+    explicit Attachments(QWidget *parent = nullptr);
+
     void addMimePart(MimePart *mp);
 
 private:
     void createActions();
+
     void saveByteArrayToFile(QByteArray outBuffer, QString filename);
+
     QAction *saveFileAct;
     QAction *openFileAct;
     AttachmentTableModel *table;
@@ -62,7 +50,7 @@ private:
     QSettings settings;
 
 protected:
-    void contextMenuEvent(QContextMenuEvent *event);
+    void contextMenuEvent(QContextMenuEvent *event) override;
 };
 
 #endif // __ATTACHMENTS_H__

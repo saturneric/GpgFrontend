@@ -22,19 +22,11 @@
 #ifndef __MIME_H__
 #define __MIME_H__
 
-#include <include/GPG4USB.h>
+#include <GPG4USB.h>
 
-#include <QHashIterator>
-#include <QHash>
+#include <utility>
 
-QT_BEGIN_NAMESPACE
-class QByteArray;
-class QDebug;
-class QTextCodec;
-QT_END_NAMESPACE
-
-class HeadElem
-{
+class HeadElem {
 public:
     QString name;
     QString value;
@@ -47,54 +39,52 @@ public:
 
 };
 
-class Header
-{
+class Header {
 public:
     QList<HeadElem> headElems;
 
-    Header() {}
+    Header() = default;
 
-    Header(QList <HeadElem> heads) {
-        headElems = heads;
+    explicit Header(QList<HeadElem> heads) {
+        headElems = std::move(heads);
     }
 
-    void setHeader(QList <HeadElem> heads) {
-       headElems = heads;
+    [[maybe_unused]] void setHeader(QList<HeadElem> heads) {
+        headElems = std::move(heads);
     }
 
-    QString getValue(QString key) {
-        foreach(HeadElem tmp, headElems) {
-            //qDebug() << "gv: " << tmp.name << ":" << tmp.value;
-            if (tmp.name == key)
-                return tmp.value;
-        }
+    QString getValue(const QString &key) {
+                foreach(HeadElem tmp, headElems) {
+                //qDebug() << "gv: " << tmp.name << ":" << tmp.value;
+                if (tmp.name == key)
+                    return tmp.value;
+            }
         return "";
     }
 
-    QHash<QString, QString> getParams(QString key) {
-        foreach(HeadElem tmp, headElems) {
-            //qDebug() << "gv: " << tmp.name << ":" << tmp.value;
-            if (tmp.name == key)
-                //return tmp.value;
-                return tmp.params;
-        }
+    [[maybe_unused]] QHash<QString, QString> getParams(const QString &key) {
+                foreach(HeadElem tmp, headElems) {
+                //qDebug() << "gv: " << tmp.name << ":" << tmp.value;
+                if (tmp.name == key)
+                    //return tmp.value;
+                    return tmp.params;
+            }
         return *(new QHash<QString, QString>());
     }
 
-    QString getParam(QString key, QString pKey) {
-        foreach(HeadElem tmp, headElems) {
-            //qDebug() << "gv: " << tmp.name << ":" << tmp.value;
-            if (tmp.name == key)
-                return tmp.params.value(pKey);
-        }
+    QString getParam(const QString &key, const QString &pKey) {
+                foreach(HeadElem tmp, headElems) {
+                //qDebug() << "gv: " << tmp.name << ":" << tmp.value;
+                if (tmp.name == key)
+                    return tmp.params.value(pKey);
+            }
         return "";
     }
 
 
 };
 
-class MimePart
-{
+class MimePart {
 public:
     Header header;
     QByteArray body;
@@ -110,25 +100,30 @@ public:
         }*/
 };
 
-class Mime
-{
+class Mime {
 
 public:
-    Mime(QByteArray *message); // Constructor
+    explicit Mime(QByteArray *message); // Constructor
     ~Mime(); // Destructor
-    static bool isMultipart(QByteArray *message);
+    [[maybe_unused]] static bool isMultipart(QByteArray *message);
+
     static bool isMime(const QByteArray *message);
+
     QList<MimePart> parts() {
         return mPartList;
     }
+
     void splitParts(QByteArray *message);
+
     static Header getHeader(const QByteArray *message);
+
     static Header parseHeader(QByteArray *header);
-    static void quotedPrintableDecode(const QByteArray& in, QByteArray& out);
+
+    static void quotedPrintableDecode(const QByteArray &in, QByteArray &out);
 
 private:
-    QByteArray *mMessage;
-    QByteArray *mBoundary;
+    [[maybe_unused]] QByteArray *mMessage;
+    [[maybe_unused]] QByteArray *mBoundary;
     QList<MimePart> mPartList;
 
 };

@@ -24,192 +24,190 @@
 
 #include "keylist.h"
 
-#include <QHash>
-#include <QWidget>
-#include <QtGui>
+class GeneralTab : public QWidget {
+Q_OBJECT
 
-QT_BEGIN_NAMESPACE
-class QDialog;
-class QRadioButton;
-class QDialogButtonBox;
-class QHBoxLayout;
-class QVBoxLayout;
-class QComboBox;
-class QCheckBox;
-class QDebug;
-class QSettings;
-class QApplication;
-class QDir;
-class QTranslator;
-class QLabel;
-class QButtonGroup;
-class QGroupBox;
-class QFileInfo;
-class QTabWidget;
-QT_END_NAMESPACE
+public:
+    explicit GeneralTab(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
 
-class GeneralTab : public QWidget
- {
-     Q_OBJECT
+    void setSettings();
 
- public:
-     GeneralTab(GpgME::GpgContext *ctx, QWidget *parent = 0);
-     void setSettings();
-     void applySettings();
+    void applySettings();
 
- private:
-     QCheckBox *rememberPasswordCheckBox;
-     QCheckBox *importConfirmationcheckBox;
-     QCheckBox *saveCheckedKeysCheckBox;
-     QCheckBox *importConfirmationCheckBox;
-     QComboBox *langSelectBox;
-     QComboBox *ownKeySelectBox;
-     QHash<QString, QString> lang;
-     QHash<QString, QString> keyIds;
-     QString ownKeyId;
-     KeyList *mKeyList;
-     GpgME::GpgContext *mCtx; /** The current gpg context */
+private:
+    QCheckBox *rememberPasswordCheckBox;
+    [[maybe_unused]] QCheckBox *importConfirmationcheckBox;
+    QCheckBox *saveCheckedKeysCheckBox;
+    QCheckBox *importConfirmationCheckBox;
+    QComboBox *langSelectBox;
+    QComboBox *ownKeySelectBox;
+    QHash<QString, QString> lang;
+    QHash<QString, QString> keyIds;
+    QString ownKeyId;
+    KeyList *mKeyList;
+    GpgME::GpgContext *mCtx; /** The current gpg context */
 
 private slots:
+
     void slotOwnKeyIdChanged();
+
     void slotLanguageChanged();
 
 signals:
+
     void signalRestartNeeded(bool needed);
 
 };
 
- class MimeTab : public QWidget
- {
-     Q_OBJECT
+class MimeTab : public QWidget {
+Q_OBJECT
 
- public:
-     MimeTab(QWidget *parent = 0);
-     void setSettings();
-     void applySettings();
+public:
+    explicit MimeTab(QWidget *parent = nullptr);
 
- private:
-     QCheckBox *mimeParseCheckBox;
-     QCheckBox *mimeQPCheckBox;
-     QCheckBox *mimeOpenAttachmentCheckBox;
-
- signals:
-     void signalRestartNeeded(bool needed);
-
- };
-
- class AppearanceTab : public QWidget
- {
-     Q_OBJECT
-
- public:
-     //void setSettings();
-     AppearanceTab(QWidget *parent = 0);
-     void setSettings();
-     void applySettings();
-
- private:
-     QButtonGroup *iconStyleGroup;
-     QRadioButton *iconSizeSmall;
-     QRadioButton *iconSizeMedium;
-     QRadioButton *iconSizeLarge;
-     QButtonGroup *iconSizeGroup;
-     QRadioButton *iconTextButton;
-     QRadioButton *iconIconsButton;
-     QRadioButton *iconAllButton;
-     QCheckBox *windowSizeCheckBox;
-
- signals:
-     void signalRestartNeeded(bool needed);
-
- };
-
- class KeyserverTab : public QWidget
- {
-     Q_OBJECT
-
- public:
-    KeyserverTab(QWidget *parent = 0);
     void setSettings();
+
     void applySettings();
 
- private:
+private:
+    QCheckBox *mimeParseCheckBox;
+    QCheckBox *mimeQPCheckBox;
+    QCheckBox *mimeOpenAttachmentCheckBox;
+
+signals:
+
+    void signalRestartNeeded(bool needed);
+
+};
+
+class AppearanceTab : public QWidget {
+Q_OBJECT
+
+public:
+    //void setSettings();
+    explicit AppearanceTab(QWidget *parent = nullptr);
+
+    void setSettings();
+
+    void applySettings();
+
+private:
+    QButtonGroup *iconStyleGroup;
+    QRadioButton *iconSizeSmall;
+    QRadioButton *iconSizeMedium;
+    QRadioButton *iconSizeLarge;
+    QButtonGroup *iconSizeGroup;
+    QRadioButton *iconTextButton;
+    QRadioButton *iconIconsButton;
+    QRadioButton *iconAllButton;
+    QCheckBox *windowSizeCheckBox;
+
+signals:
+
+    void signalRestartNeeded(bool needed);
+
+};
+
+class KeyserverTab : public QWidget {
+Q_OBJECT
+
+public:
+    explicit KeyserverTab(QWidget *parent = nullptr);
+
+    void setSettings();
+
+    void applySettings();
+
+private:
     QComboBox *comboBox;
     QLineEdit *newKeyServerEdit;
 
- private slots:
+private slots:
+
     void addKeyServer();
 
- signals:
+signals:
+
     void signalRestartNeeded(bool needed);
 
- };
+};
 
- class AdvancedTab : public QWidget
- {
-     Q_OBJECT
+class AdvancedTab : public QWidget {
+Q_OBJECT
 
- public:
-     AdvancedTab(QWidget *parent = 0);
-     void setSettings();
-     void applySettings();
+public:
+    explicit AdvancedTab(QWidget *parent = nullptr);
 
- private:
-     QCheckBox *steganoCheckBox;
+    void setSettings();
 
- signals:
-     void signalRestartNeeded(bool needed);
-
- };
-
- class GpgPathsTab : public QWidget
- {
-     Q_OBJECT
- public:
-     GpgPathsTab(QWidget *parent = 0);
-     void applySettings();
+    void applySettings();
 
 private:
-    QString getRelativePath(const QString dir1,const QString dir2);
+    QCheckBox *steganoCheckBox;
+
+signals:
+
+    void signalRestartNeeded(bool needed);
+
+};
+
+class GpgPathsTab : public QWidget {
+Q_OBJECT
+public:
+    explicit GpgPathsTab(QWidget *parent = nullptr);
+
+    void applySettings();
+
+private:
+    QString getRelativePath(QString dir1, QString dir2);
+
     QString defKeydbPath; /** The default keydb path used by gpg4usb */
     QString accKeydbPath; /** The currently used keydb path */
     QLabel *keydbLabel;
+
     void setSettings();
 
- private slots:
-     QString chooseKeydbDir();
-     void setKeydbPathToDefault();
+private slots:
 
- };
+    QString chooseKeydbDir();
 
- class SettingsDialog : public QDialog
-{
-    Q_OBJECT
+    void setKeydbPathToDefault();
 
- public:
-    SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent = 0);
+};
+
+class SettingsDialog : public QDialog {
+Q_OBJECT
+
+public:
+    explicit SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
+
     GeneralTab *generalTab;
     MimeTab *mimeTab;
     AppearanceTab *appearanceTab;
     KeyserverTab *keyserverTab;
     AdvancedTab *advancedTab;
     GpgPathsTab *gpgPathsTab;
+
     static QHash<QString, QString> listLanguages();
 
- public slots:
+public slots:
+
     void slotAccept();
 
- signals:
+signals:
+
     void signalRestartNeeded(bool needed);
 
- private:
+private:
     QTabWidget *tabWidget;
     QDialogButtonBox *buttonBox;
     GpgME::GpgContext *mCtx; /** The current gpg context */
     bool restartNeeded;
+
     bool getRestartNeeded();
 
- private slots:
+private slots:
+
     void slotSetRestartNeeded(bool needed);
 
 };

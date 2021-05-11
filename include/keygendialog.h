@@ -24,18 +24,13 @@
 
 #include "keygenthread.h"
 #include "gpgcontext.h"
-#include <QtGui>
 
-QT_BEGIN_NAMESPACE
-class QDateTime;
-class QDialogButtonBox;
-class QDialog;
-class QGridLayout;
-QT_END_NAMESPACE
 
-class KeyGenDialog : public QDialog
-{
-    Q_OBJECT
+class KeyGenDialog : public QDialog {
+Q_OBJECT
+
+
+public:
 
     /**
      * @details Constructor of this class
@@ -44,8 +39,7 @@ class KeyGenDialog : public QDialog
      * @param key The key to show details of
      * @param parent The parent of this widget
      */
-     public:
-    KeyGenDialog(GpgME::GpgContext* ctx, QWidget *parent = 0);
+    explicit KeyGenDialog(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
 
 private:
     void generateKeyDialog();
@@ -58,8 +52,8 @@ private:
     int checkPassWordStrength();
 
     GpgME::GpgContext *mCtx; /** The current gpg context */
-    KeyGenThread *keyGenThread; /** Thread for key generation */
-    QStringList errorMessages; /** List of errors occuring when checking entries of lineedits */
+    __attribute__((unused)) KeyGenThread *keyGenThread; /** Thread for key generation */
+    __attribute__((unused)) QStringList errorMessages; /** List of errors occuring when checking entries of lineedits */
     QDialogButtonBox *buttonBox; /** Box for standardbuttons */
     QLabel *errorLabel; /** Label containing error message */
     QLineEdit *nameEdit; /** Lineedit for the keys name */
@@ -74,6 +68,7 @@ private:
     QSlider *pwStrengthSlider; /** Slider showing the password strength */
 
 private slots:
+
     /**
      * @details when expirebox was checked/unchecked, enable/disable the expiration date box
      */
@@ -90,4 +85,5 @@ private slots:
     void slotKeyGenAccept();
 
 };
+
 #endif // __KEYGENDIALOG_H__

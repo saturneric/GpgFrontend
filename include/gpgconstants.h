@@ -26,15 +26,14 @@ class QString;
 
 const int RESTART_CODE = 1000;
 
-class GpgConstants
-{
+class GpgConstants {
 public:
-    static const char* PGP_CRYPT_BEGIN;
-    static const char* PGP_CRYPT_END;
-    static const char* PGP_SIGNED_BEGIN;
-    static const char* PGP_SIGNED_END;
-    static const char* PGP_SIGNATURE_BEGIN;
-    static const char* PGP_SIGNATURE_END;
+    static const char *PGP_CRYPT_BEGIN;
+    static const char *PGP_CRYPT_END;
+    static const char *PGP_SIGNED_BEGIN;
+    static const char *PGP_SIGNED_END;
+    static const char *PGP_SIGNATURE_BEGIN;
+    static const char *PGP_SIGNATURE_END;
 };
 
 #endif // GPGCONSTANTS_H

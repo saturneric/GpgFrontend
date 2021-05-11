@@ -22,23 +22,19 @@
 #ifndef HELPPAGE_H
 #define HELPPAGE_H
 
-#include <QWidget>
-#include <QTextBrowser>
-#include <QVBoxLayout>
-#include <QSettings>
-#include <QFile>
-#include <QLocale>
+#include <GPG4USB.h>
 
-class HelpPage : public QWidget
-{
-    Q_OBJECT
+class HelpPage : public QWidget {
+Q_OBJECT
 public:
-    explicit HelpPage(const QString path, QWidget *parent = 0);
+    explicit HelpPage(QString path, QWidget *parent = nullptr);
+
     QTextBrowser *getBrowser();
 
 signals:
 
 public slots:
+
     void slotOpenUrl(QUrl url);
 
 private:
