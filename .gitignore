@@ -1,0 +1,9 @@
+mocfiles
+objectfiles
+qrc_gpg4usb.cpp
+release/conf
+release/gpg4usb
+Makefile
+release/keydb/pubring.gpg
+release/keydb/trustdb.gpg
+cmake-build-debug
