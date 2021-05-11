@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+
+<head>
+<title>gpg4usb - Documentation</title>
+<link rel="stylesheet" type="text/css" href="css/style.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="css/print.css" media="print" />
+</head>
+
+<body>
+
+<div style="width:800px;text-align:center;float:center">
+<a href="docu.html">Main</a> | Next: <a href="docu_keygen.html">Generating A Key</a>
+<hr/>
+
+<div id="content">
+
+<H2><A NAME="GPG-Minihowto-Concept"></A> <A NAME="s1">1.</A>Concepts</H2>
+<H2><A NAME="ss1.1">1.1</A> Public Key Encryption
+</H2>
+<P>Classic methods for encryption only use one key for encryption. The sender
+encrypts the message with this key. To be able to decrypt this the receiver
+needs to have this very same key. This key must have been given to the
+receiver in a way, that others won't have had the opportunity to obtain this
+key. If somebody else does have the key, this method of encryption is useless.</P>
+<P>The use of so-called Public Keys can solve this problem. Public Keys is a
+concept where two keys are involved. One key is a Public Key that can be
+spread through all sorts of media and may be obtained by anyone. The other
+key is the Private Key. This key is secret and cannot be spread. This key is
+only available to the owner. When the system is well implemented the secret
+key cannot be derived from the public key. Now the sender will crypt the
+message with the public key belonging to the receiver.
+Then decryption will be done with the secret key of the
+receiver.</P>
+<P>Crucial in this concept is that the secret key remains a secret and should
+not be given away or become available to anyone else but the owner of this
+key. YOU CANNOT SEND THIS KEY OVER THE INTERNET. Also it is very unwise to
+use GnuPG over <CODE>telnet</CODE> (you might consider never to use telnet based
+on the high security risks).</P>
+<H2><A NAME="ss1.2">1.2</A> Digital Signatures
+</H2>
+<P>In order to prove that a message was really sent by the alleged sender the
+concept of Digital Signatures was invented. As the name says a message is
+digitally signed by the sender. By using this signature you can check the
+authenticity of a message. Using this will reduce the risk for Trojan horses
+(a message that claims to be a patch to a certain problem but actually contains
+a virus or does something bad with data on your computer). Also information or
+data can be verified as coming from a legitimate source and thus be regarded
+as real.</P>
+<P>A digital signature is made through a combination of the secret key and the
+text. Using the senders public key the message can be verified. Not only will
+be checked if the correct sender is involved, also the content will be checked.
+So you know that the message comes from the sender and has not been changed
+during the transportation process.</P>
+<H2><A NAME="ss1.3">1.3</A> Web of trust
+</H2>
+<P>A weak point of the Public key algorithms is the spreading of the public keys.
+A user could bring a public key with false user ID in circulation. If with
+this particular key messages are made, the intruder can decode and read the
+messages. If the intruder passes it on then still with a genuine public key coded to the
+actual recipient, this attack is not noticeable.</P>
+<P>The PGP solution (and because of that automatically the GnuPG solution)
+exists in signing codes. A public key can be signed by other people. This
+signature acknowledges that the key used by the UID (User Identification)
+actually belongs to the person it claims to be. It is then up to the user of
+GnuPG how far the trust in the signature goes. You can consider a key as
+trustworthy when you trust the sender of the key and you know for sure that
+the key really belongs to that person. Only when you can trust the key of the
+signer, you can trust the signature. To be absolutely positive that the key is
+correct you have to compare the finger print over reliable channels before
+giving absolute trust.</P>
+<H2><A NAME="ss1.4">1.4</A> Boundaries to security
+</H2>
+<P>If you have data that you would like to remain confidential, there is more to
+it than just determining which encoding algorithm to use. You should be thinking
+about your system security in general. Basically we consider PGP to be secure
+and as I write this documents no incidents of PGP being cracked are known to me.
+But that doesn't mean that all encoding must be safe then (for instance the NSA
+wouldn't notify me if they cracked PGP somehow, neither would other people who
+crack for real malicious grounds). But even if the PGP is fully 'unhackable',
+other means can be used to attack the security. Early February 1999 a Trojan Horse had
+been found that searched for secret PGP keys on the hard disk and FTP-ed them
+away. If the password has been chosen badly the secret key can easily be
+cracked.</P>
+<P>Another technical possibility (although more difficult) is a Trojan Horse that
+broadcasts keyboard entries. Also possible (but very difficult) is to pass
+the content of a screen along. Then no cracking of scrambled messages needs to
+be done. For all these risks there need to be a good, well-thought security plan
+that is actually deployed.</P>
+<P>It is not a goal to create paranoia among people, but to point out that a lot
+needs to be done to be more secure. The most important thing is to realize that
+encryption is just one step to security and is not a total solution. Trojan
+horses as they appeared in the Melissa virus in March 1999 proved that many
+companies are not prepared for that.</P>
+
+
+<hr>
+
+<p>
+Disclaimer: this chapter originates from the <a href="http://www.gnupg.org/documentation/howtos.html">GnuPG MiniHOWTO</a>
+</p>
+<p>
+Copyright © 1999 Brenno J.S.A.A.F. de Winter (English version) Copyright © 1999
+Michael Fischer v. Mollard (original German version) Copyright © 2002 Arjen Baart
+(Dutch version) Copyright © 2004 Baris Cicek (Turkish version)
+</p><p>
+This document is free documentation you can redistribute it and/or modify it under
+the terms of the GNU Library General Public License as published by the Free
+Software Foundation; either version 2 of the License, or (at your option) any
+later version.
+</p><p>
+This library is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Library General Public License for more details.
+</p><p>
+You should have received a copy of the GNU Library General Public License along
+with this library; if not, write to the Free Software Foundation, Inc., 59 Temple
+Place - Suite 330, Boston, MA 02111-1307, USA.
+</p>
+</hr>
+
+</div>
+<hr/>
+<a href="docu.html">Main</a> | Next: <a href="docu_keygen.html">Generating A Key</a>
+</div>
+</body>
+</html>
+

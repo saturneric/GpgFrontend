@@ -1,0 +1,4 @@
+gpgcontext.cpp:
+- generateKey() should have parameters, not just a string
+- constructor should have app path as param (or path to gpg binary)
+  -- path for keydb should be configurable separatly, for using empty db for testing

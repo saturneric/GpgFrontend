@@ -1,0 +1,15 @@
+/* CSS for GUI, look e.g. at http://doc.qt.nokia.com/latest/stylesheet-examples.html */
+
+
+/* 
+ QLabel, QAbstractButton {
+    font: bold;
+}
+*/
+
+*[keyNotFound="true"] { background-color: yellow }
+*[keyFound="true"] { background-color: green }
+QLabel#warning { background-color: #ececba }
+QLabel#ok { background-color: #ccffcc }
+QLabel#critical { background-color: #ff8080 }
+

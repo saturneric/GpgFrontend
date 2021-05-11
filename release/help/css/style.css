@@ -1,0 +1,127 @@
+#menu {
+  list-style-type: none;
+  float: left;
+  border-right: 1px dotted #aaa;
+  background-color: #fff;
+  padding: 1.2em 0.5em;
+  width: 10em;
+  margin-left: 0.2em;
+  text-align:center;
+  height: 30em;
+}
+
+#menu li {
+  margin: 0.3em 0.2em;
+  padding: 0.2em;
+  /*border-top: 1px dotted;
+  border-bottom: 1px dotted;*/
+  background-color: #d9dfe8;
+  cursor: pointer;
+}
+
+#menu li:hover {
+  background-color: #b9c4d5;
+}
+
+#menu a {
+  font-family: arial, helvetica, sans-serif;
+  text-decoration: none;
+  color: #000;
+  width: 9em;
+}
+
+#menu li.active {
+  background-color: #7b90af;
+}
+
+#menu li.submenu {
+  margin: 0.2em 0.2em 0.2em 1.5em;
+  padding: 0.1em 0.4em;
+  text-align:right;
+  font-size: 0.9em;
+}
+
+#content {
+  font-family: arial, helvetica, sans-serif;
+  font-size: 1em;
+  margin-left: 0em;
+}
+
+#content li {
+  text-align:left;
+}
+
+#logo {
+  margin-left: 0.7em;
+}
+
+p {
+  text-align:justify;
+}
+
+h1 {
+  font-size:1.2em;
+}
+
+h2 {
+  font-size:1.0em;
+}
+
+h3 {
+  font-size:0.8em;
+  font-weight:normal;
+}
+
+h4 {
+  font-size:0.95em;
+}
+
+a {color:#214478; text-decoration:none;}
+a:hover {text-decoration:underline;}
+
+#lightbox{
+  background-color:#eee;
+  padding: 10px;
+  border-bottom: 2px solid #666;
+  border-right: 2px solid #666;
+  }
+#lightboxDetails{
+  font-size: 0.8em;
+  padding-top: 0.4em;
+  }
+#lightboxCaption{ float: left; }
+#keyboardMsg{ float: right; }
+
+#lightbox img{ border: none; }
+#overlay img{ border: none; }
+
+#overlay{ background-image: url(overlay.png); }
+
+.downloadTable { font-size: 0.95em; }
+.downloadTable th { 
+    border-bottom: 1px solid #000; 
+    border-left: 2em solid #fff; 
+    border-right: 2em solid #fff;}
+.downloadTable td { padding:  0.1em 0.5em; text-align: left;}
+.downloadTable tr:hover td { background-color: #eef; }
+
+.code {
+	font-family: monospace;
+}
+
+p.code {
+	border: 1px dashed;
+	margin: 0.5em;
+	padding: 0.5em;
+	background-color: #d9dfe8;
+	}
+
+.newsentry {
+	/* background: #f2f4f7; */
+	/*padding: 0.2em;*/
+	margin: 0.5em 0em;
+	padding: 0 0.5em;
+	border: 1px dotted #aaa;
+	background-color: #d9dfe8;
+}
+

@@ -1,0 +1,54 @@
+Compiler prerequisites:
+-----------------------
+on 64bit systems: 
+sudo apt-get install ia32-libs libc6-i386 libc6-dev-i386 lib32gcc1 lib32z1-dev g++-multilib
+
+for win-crosscompile:
+sudo apt-get install mingw32
+
+Libraries needed:
+------------------------------
+Get static qt-builds for windows from unetbootin and extract to winbuild/qt4.5
+http://launchpad.net/unetbootin/trunk/trunk/+download/qt4.5-win.7z
+
+Get static qt-builds for linux from unetbootin and extract to linbuild/qt4.5
+http://launchpad.net/unetbootin/trunk/trunk/+download/qt4.5-x11.7z
+
+Putting a symlink to libstdc++.a in linbuild/lib includes libstdc in the executable.
+
+Build:
+------
+comment out libs-line in gpg4usb.pro
+Build start_windows.exe
+make clean
+./qmake-windows.sh
+make
+
+make clean
+./qmake-linux.sh
+make
+
+Useful Links:
+---------------------
+http://sourceforge.net/apps/trac/unetbootin/wiki/compile
+http://www.trilithium.com/johan/2005/06/static-libstdc/
+
+Coding Style:
+-------------
+http://techbase.kde.org/Policies/Kdelibs_Coding_Style
+
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+
+Building qt yourself (see http://sourceforge.net/apps/trac/unetbootin/wiki/compile)
+Download Qt-Sources, untar and build static(for 32bit)
+http://get.qt.nokia.com/qt/source/qt-x11-opensource-src-4.5.2.tar.gz
+
+./configure -no-xrandr -no-xinerama -no-glib -no-sm -no-webkit -qt-zlib -qt-libpng -no-qt3support -no-phonon -no-phonon-backend -no-gtkstyle -static -nomake examples -nomake demos -nomake docs -opensource -prefix ~/qt-x11-opensource-src-4.5.2 -platform linux-g++-32 -no-exceptions -qt-libjpeg
+
+make && make install
+
+mv ~/qt-x11-opensource-src-4.5.2 linbuild/qt4.5
+
+

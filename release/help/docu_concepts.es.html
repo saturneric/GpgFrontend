@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+
+<head>
+<title>gpg4usb - Documentacion</title>
+<link rel="stylesheet" type="text/css" href="css/style.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="css/print.css" media="print" />
+</head>
+
+<body>
+
+<div style="width:800px;text-align:center;float:center">
+<a href="docu.html">Principal</a> | Siguiente: <a href="docu_keygen.html">Generando una Llave</a>
+<hr/>
+
+<div id="content">
+
+<H2><A NAME="GPG-Minihowto-Concept"></A> <A NAME="s1">1.</A>Conceptos</H2>
+<H2><A NAME="ss1.1">1.1</A> Cifrado con LLave Publica 
+</H2>
+<P>Los metodos clasicos de cifrado solo usan una llave para el cifrado. El
+remitente cifra el mensaje con esa llave. Para poder descifrarlo, el destinatario
+necesita tener esa misma llave. Esta llave se le debe dar al destinatario de forma
+que otras personas no puedan conseguirla. Si alguien consigue la llave, este metodo
+de cifrado es inutil.</P>
+<P>El uso de las llamadas LLaves Publicas puede resolver este problema. La LLave Publica
+es un concepto que utiliza dos llaves. Una llave es una LLave Publica que se puede
+difundir a traves de cualquier medio y que puede ser conseguida por cualquiera. La
+otra llave es la LLave Privada. Esta llave es secreta y no puede ser difundida. Esta
+llave solo esta disponible para el propietario que la ha creado. Cuando el sistema esta
+bien implementado, la llave secreta no puede averiguar desde la llave publica. Ahora,
+el remitente cifrara el mensaje con la llave publica del destinatario.
+El descifrado se hara con la llave secreta del destinatario.</P>
+<P>En este concepto, es crucial que la llave secreta permanezca secreta y no deberia
+darse o estar disponible para nadie, salvo el propietario de esta llave. NO ENVIE ESTA
+LLAVA POR INTERNET. También es muy aconsejable usar GnuPG con <CODE>telnet</CODE> 
+(usted deberia considerar no usar nunca telnet debido a los altos riesgos de seguridadad).</P>
+<H2><A NAME="ss1.2">1.2</A> Firmas Digitales
+</H2>
+<P>Con el fin de probar que un mensaje ha sido realmente enviado por su remitente, se 
+invento el concepto de Firmas Digitales. Como el nombre dice, un mensaje es firmado 
+digitalmente por el remitente. Con esta firma, usted puede comprobar la autenticidad de 
+un mensaje. Usando esto se reducira el riesgo de "Caballos de Troya" (un mensaje que dice ser 
+un parche para un cierto problema pero que realmente contiene un virus o hace algo perjudicial
+para los datos en su computador). Tambien se pueden verificar informaciones o datos como
+procedentes de una fuente legitima y, de esta forma, pueden ser considerados como verdaderos.
+</P>
+<P>Una firma digital se hace a traves de una combinacion de la llave secreta y el texto. Usando 
+la llave publica del remitente, se puede verificar el mensaje. No solo se podra comprobar si
+procede del remitente correcto sino tambien el texto enviado. Asi, usted sabe que el mensaje
+viene de su remitente y que no ha sido modificado durante el proceso de envio.
+</P>
+<H2><A NAME="ss1.3">1.3</A> Red de Confianza
+</H2>
+<P>Un punto debil de los algoritmos tipo Llave Publica es la difusion de las llaves publicas.
+Un usuario podria poner en circulacion una llave publica con una falsa ID de usuario. Si se
+escriben mensajes con esta llave particular, el intruso puede descifrar y leer esos mensajes.
+Si el intruso pasa despues ese mensaje codificado con una llave publica genuina al destinatario
+real, este ataque pasaria desapercibido.</P>
+<P>La solucion PGP (y por tanto la solucion GnuPG) estriba en firmar las llaves. Una llave
+publica puede ser firmada por otra persona. Esta firma asegura que la llave usada por el UID
+(Identificacion de Usuario) realmente pertenece a la persona que dice ser. Le corresponde
+entonces al usuario del GnuPG establecer en que medida confia en esa firma. Usted puede
+considerar una llave totalmente fiable cuando usted confia en el remitente de la llave y sabe con
+seguridad que la llave realmente pertenece a esa persona. Solo cuando usted confia en la llave
+del firmante, usted puede confiar en la firma. Para estar absolutamente seguros de que la llave
+es correcta, usted tiene que comparar la huella digital por medio de canales seguros antes de
+otorgar una certeza absoluta..</P>
+<H2><A NAME="ss1.4">1.4</A> Limites de la Seguridad
+</H2>
+<P>Si usted tiene datos que le gustaria que permanecieran confidenciales, esto es algo mas que
+simplemente determinar que algoritmo de cifrado hay que usar. Usted deberia pensar en su sistema
+de seguridad en general. Basicamente, consideramos que el PGP es seguro y, cuando escribo este 
+documento, no se conocen casos de ruptura del PGP. Pero eso no significa que todo su cifrado
+sea seguro (por ejemplo, la NSA no me notificaria si ellos han crakeado alguna vez el PGP, ni 
+tampoco otras personas que lo hayan hecho por motivos maliciosos). Pero, aun en el caso de que
+el PGP sea totalmente "inhackeable", se pueden usar otros medios para atacar la seguridad. A
+primeros de Febrero de 1999, se habia encontrado un "Caballo de Troya" que buscaba llaves secretas
+PGP en el disco duro y las enviaba fuera por FTP. Si la password se ha escogido mal, la llave 
+secreta se puede descifrar facilmente.</P>
+<P>Otra posibilidad tecnica (aunque mas dificil) de ruptura PGP es un "Caballo de Troya" que copie
+las pulsaciones del teclado. Tambien es posible (pero muy dificil) copiar el contenido de una 
+pantalla. En estos casos, no es necesario romper el codigo de mensajes cifrados. Por todos estos
+riesgos, se necesita tener un buen y bien pensado plan de seguridad que se ponga en practica..</P>
+<P>No se trata de crear una paranoia entre la gente, sino mostrar que hay que hacer mucho para 
+ser mas seguro. Lo mas importante es darse cuenta de que el cifrado es solo un paso de seguridad y 
+no la solucion total. Los "Caballos de Troya" que aparecieron en 1999 en los virus "Melissa" 
+demostraron que la mayoria de las empresas no estaban preparadas para esto.</P>
+
+<hr>
+
+<p>
+Renuncia de responsabilidad: el original de este capitulo esta en <a href="http://www.gnupg.org/documentation/howtos.html">GnuPG MiniHOWTO</a>
+</p>
+<p>
+Copyright © 1999 Brenno J.S.A.A.F. de Winter (version inglesa) Copyright © 1999
+Michael Fischer v. Mollard (version original alemana) Copyright © 2002 Arjen Baart
+(version holandesa) Copyright © 2004 Baris Cicek (version turca)
+</p><p>
+Este documento es una documentacion libre y usted puede distribuirla y/o modificarla bajo
+los terminos de la GNU Library General Public License, tal como la publica la Free Software 
+Foundation; tanto en su version 2 de Licencia o (en su opinion) cualquier version
+posterior.
+</p><p>
+Esta libreria se distribuye con la esperanza de que sera util, pero SIN NINGUNA GARANTIA;
+incluso sin la garantia implicita de COMERCIALIZACION o IDONEIDAD PARA UN PROPOSITO PARTICULAR.
+Vea la GNU Library General Public License para mas detalles.
+</p><p>
+Usted deberia haber recibido una copia de la GNU Library General Public License junto con esta
+libreria; si no la tiene, escriba a la Free Software Foundation, Inc., 59 Temple Place 
+- Suite 330, Boston, MA 02111-1307, USA.
+</p>
+</hr>
+
+</div>
+<hr/>
+<a href="docu.html">Principal</a> | Siguiente: <a href="docu_keygen.html">Generando una Llave</a>
+</div>
+</body>
+</html>
+
