@@ -52,20 +52,20 @@ private:
     int checkPassWordStrength();
 
     GpgME::GpgContext *mCtx; /** The current gpg context */
-    __attribute__((unused)) KeyGenThread *keyGenThread; /** Thread for key generation */
+    __attribute__((unused)) KeyGenThread *keyGenThread{}; /** Thread for key generation */
     __attribute__((unused)) QStringList errorMessages; /** List of errors occuring when checking entries of lineedits */
     QDialogButtonBox *buttonBox; /** Box for standardbuttons */
-    QLabel *errorLabel; /** Label containing error message */
-    QLineEdit *nameEdit; /** Lineedit for the keys name */
-    QLineEdit *emailEdit; /** Lineedit for the keys email */
-    QLineEdit *commentEdit; /** Lineedit for the keys comment */
-    QLineEdit *passwordEdit; /** Lineedit for the keys password */
-    QLineEdit *repeatpwEdit; /** Lineedit for the repetition of the keys password */
-    QSpinBox *keySizeSpinBox; /** Spinbox for the keys size (in bit) */
-    QComboBox *keyTypeComboBox; /** Combobox for Keytpe */
-    QDateTimeEdit *dateEdit; /** Dateedit for expiration date */
-    QCheckBox *expireCheckBox; /** Checkbox, if key should expire */
-    QSlider *pwStrengthSlider; /** Slider showing the password strength */
+    QLabel *errorLabel{}; /** Label containing error message */
+    QLineEdit *nameEdit{}; /** Lineedit for the keys name */
+    QLineEdit *emailEdit{}; /** Lineedit for the keys email */
+    QLineEdit *commentEdit{}; /** Lineedit for the keys comment */
+    QLineEdit *passwordEdit{}; /** Lineedit for the keys password */
+    QLineEdit *repeatpwEdit{}; /** Lineedit for the repetition of the keys password */
+    QSpinBox *keySizeSpinBox{}; /** Spinbox for the keys size (in bit) */
+    QComboBox *keyTypeComboBox{}; /** Combobox for Keytpe */
+    QDateTimeEdit *dateEdit{}; /** Dateedit for expiration date */
+    QCheckBox *expireCheckBox{}; /** Checkbox, if key should expire */
+    QSlider *pwStrengthSlider{}; /** Slider showing the password strength */
 
 private slots:
 

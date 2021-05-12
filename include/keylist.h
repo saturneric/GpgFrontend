@@ -47,9 +47,9 @@ public:
     //QStringList *getPrivateChecked();
     QStringList *getSelected();
 
-    void markKeys(QStringList *keyIds);
+    [[maybe_unused]] static void markKeys(QStringList *keyIds);
 
-    bool containsPrivateKeys();
+    [[maybe_unused]] bool containsPrivateKeys();
 
 public slots:
 
@@ -63,7 +63,7 @@ private:
     GpgME::GpgContext *mCtx;
     QTableWidget *mKeyList;
     QMenu *popupMenu;
-    QNetworkAccessManager *qnam;
+    QNetworkAccessManager *qnam{};
 
 private slots:
 

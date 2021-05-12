@@ -21,39 +21,36 @@
 
 #include "attachmenttablemodel.h"
 
+#include <utility>
+
 /** compare with http://doc.qt.nokia.com/4.6/itemviews-addressbook.html
  */
 
 AttachmentTableModel::AttachmentTableModel(QObject *parent) :
-        QAbstractTableModel(parent)
-{
+        QAbstractTableModel(parent) {
 }
 
 AttachmentTableModel::AttachmentTableModel(QList<MimePart> mimeparts, QObject *parent) :
-        QAbstractTableModel(parent)
-{
-    listOfMimeparts = mimeparts;
+        QAbstractTableModel(parent) {
+    listOfMimeparts = std::move(mimeparts);
 }
 
 
-void AttachmentTableModel::add(MimePart mp)
-{
+void AttachmentTableModel::add(const MimePart &mp) {
     listOfMimeparts.append(mp);
     //QModelIndex changedIndex0 = createIndex(listOfMimeparts.size(), 0);
     //QModelIndex changedIndex1 = createIndex(listOfMimeparts.size(), 1);
 
     //emit(dataChanged(changedIndex0, changedIndex1));
     // TODO: check the data-changed signal
-     // reset();
+    // reset();
 }
 
-MimePart AttachmentTableModel::getSelectedMimePart(QModelIndex index)
-{
+MimePart AttachmentTableModel::getSelectedMimePart(QModelIndex index) {
     return listOfMimeparts.at(index.row());
 }
 
-MimePart AttachmentTableModel::getMimePart(int index)
-{
+MimePart AttachmentTableModel::getMimePart(int index) {
     return listOfMimeparts.at(index);
 }
 
@@ -65,20 +62,17 @@ MimePart AttachmentTableModel::getMimePart(int index)
 
 }*/
 
-int AttachmentTableModel::rowCount(const QModelIndex &parent) const
-{
+int AttachmentTableModel::rowCount(const QModelIndex &parent) const {
     Q_UNUSED(parent);
     return listOfMimeparts.size();
 }
 
-int AttachmentTableModel::columnCount(const QModelIndex &parent) const
-{
+int AttachmentTableModel::columnCount(const QModelIndex &parent) const {
     Q_UNUSED(parent);
     return 2;
 }
 
-QVariant AttachmentTableModel::data(const QModelIndex &index, int role) const
-{
+QVariant AttachmentTableModel::data(const QModelIndex &index, int role) const {
 
     //qDebug() << "called, index: " << index.column();
 
@@ -116,22 +110,21 @@ QVariant AttachmentTableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-QVariant AttachmentTableModel::headerData(int section, Qt::Orientation orientation, int role) const
-{
+QVariant AttachmentTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
     //qDebug() << "called, section: " << section;
     if (role != Qt::DisplayRole)
         return QVariant();
 
     if (orientation == Qt::Horizontal) {
         switch (section) {
-        case 0:
-            return tr("Filename");
+            case 0:
+                return tr("Filename");
 
-        case 1:
-            return tr("Contenttype");
+            case 1:
+                return tr("Contenttype");
 
-        default:
-            return QVariant();
+            default:
+                return QVariant();
         }
     }
     return QVariant();

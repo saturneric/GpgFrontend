@@ -40,7 +40,7 @@ public:
 
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
-    void add(MimePart mp);
+    void add(const MimePart& mp);
 
     MimePart getSelectedMimePart(QModelIndex index);
 

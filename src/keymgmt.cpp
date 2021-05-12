@@ -22,6 +22,8 @@
 
 #include "keymgmt.h"
 
+#include <utility>
+
 KeyMgmt::KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent )  : QMainWindow(parent)
 {
     mCtx = ctx;
@@ -138,7 +140,7 @@ void KeyMgmt::createToolBars()
     keyToolBar->setObjectName("keytoolbar");
 
     // add button with popup menu for import
-    QToolButton* toolButton = new QToolButton(this);
+    auto* toolButton = new QToolButton(this);
     toolButton->setMenu(importKeyMenu);
     toolButton->setPopupMode(QToolButton::InstantPopup);
     toolButton->setIcon(QIcon(":key_import.png"));
@@ -157,7 +159,7 @@ void KeyMgmt::createToolBars()
 
 void KeyMgmt::slotImportKeys(QByteArray inBuffer)
 {
-    GpgImportInformation result = mCtx->importKey(inBuffer);
+    GpgImportInformation result = mCtx->importKey(std::move(inBuffer));
     new KeyImportDetailDialog(mCtx, result, this);
 
 }
@@ -242,7 +244,7 @@ void KeyMgmt::slotShowKeyDetails()
 
 void KeyMgmt::slotExportKeyToFile()
 {
-    QByteArray *keyArray = new QByteArray();
+    auto *keyArray = new QByteArray();
     if (!mCtx->exportKeys(mKeyList->getChecked(), keyArray)) {
         return;
     }
@@ -262,7 +264,7 @@ void KeyMgmt::slotExportKeyToFile()
 
 void KeyMgmt::slotExportKeyToClipboard()
 {
-    QByteArray *keyArray = new QByteArray();
+    auto *keyArray = new QByteArray();
     QClipboard *cb = QApplication::clipboard();
     if (!mCtx->exportKeys(mKeyList->getChecked(), keyArray)) {
         return;
@@ -273,7 +275,7 @@ void KeyMgmt::slotExportKeyToClipboard()
 
 void KeyMgmt::slotGenerateKeyDialog()
 {
-    KeyGenDialog *keyGenDialog = new KeyGenDialog(mCtx,this);
+    auto *keyGenDialog = new KeyGenDialog(mCtx,this);
     keyGenDialog->show();
 }
 

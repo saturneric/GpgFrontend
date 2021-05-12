@@ -39,7 +39,7 @@ private:
     GpgME::GpgContext *mCtx;
     KeyList *mKeyList;
 
-    QString beautifyFingerprint(QString fingerprint);
+    static QString beautifyFingerprint(QString fingerprint);
 
     QString fpr;
 };

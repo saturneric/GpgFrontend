@@ -21,18 +21,19 @@
 
 #include "editorpage.h"
 
-EditorPage::EditorPage(const QString &filePath, QWidget *parent) : QWidget(parent),
-                                                       fullFilePath(filePath)
-{
+#include <utility>
+
+EditorPage::EditorPage(QString filePath, QWidget *parent) : QWidget(parent),
+                                                                   fullFilePath(std::move(filePath)) {
     // Set the Textedit properties
-    textPage   = new QTextEdit();
+    textPage = new QTextEdit();
     textPage->setAcceptRichText(false);
 
     // Set the layout style
     mainLayout = new QVBoxLayout();
     mainLayout->setSpacing(0);
     mainLayout->addWidget(textPage);
-    mainLayout->setContentsMargins(0,0,0,0);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
     setLayout(mainLayout);
 
     setAttribute(Qt::WA_DeleteOnClose);
@@ -41,36 +42,30 @@ EditorPage::EditorPage(const QString &filePath, QWidget *parent) : QWidget(paren
     //connect(textPage, SIGNAL(textChanged()), this, SLOT(formatGpgHeader()));
 }
 
-const QString& EditorPage::getFilePath() const
-{
+const QString &EditorPage::getFilePath() const {
     return fullFilePath;
 }
 
-QTextEdit* EditorPage::getTextPage()
-{
+QTextEdit *EditorPage::getTextPage() {
     return textPage;
 }
 
-void EditorPage::setFilePath(const QString &filePath)
-{
+void EditorPage::setFilePath(const QString &filePath) {
     fullFilePath = filePath;
 }
 
-void EditorPage::showNotificationWidget(QWidget *widget, const char *className)
-{
-    widget->setProperty(className,true);
+void EditorPage::showNotificationWidget(QWidget *widget, const char *className) {
+    widget->setProperty(className, true);
     mainLayout->addWidget(widget);
 }
 
-void EditorPage::closeNoteByClass(const char *className)
-{
+void EditorPage::closeNoteByClass(const char *className) {
     QList<QWidget *> widgets = findChildren<QWidget *>();
-    foreach(QWidget * widget, widgets)
-    {
-        if (widget->property(className) == true) {
+            foreach(QWidget *widget, widgets) {
+            if (widget->property(className) == true) {
                 widget->close();
+            }
         }
-    }
 }
 
 void EditorPage::slotFormatGpgHeader() {
@@ -82,7 +77,7 @@ void EditorPage::slotFormatGpgHeader() {
     int startSig = content.indexOf(GpgConstants::PGP_SIGNATURE_BEGIN);
     int endSig = content.indexOf(GpgConstants::PGP_SIGNATURE_END);
 
-    if(start < 0 || startSig < 0 || endSig < 0 || signMarked) {
+    if (start < 0 || startSig < 0 || endSig < 0 || signMarked) {
         return;
     }
 
@@ -90,7 +85,7 @@ void EditorPage::slotFormatGpgHeader() {
 
     // Set the fontstyle for the header
     QTextCharFormat signFormat;
-    signFormat.setForeground(QBrush(QColor::fromRgb(80,80,80)));
+    signFormat.setForeground(QBrush(QColor::fromRgb(80, 80, 80)));
     signFormat.setFontPointSize(9);
 
     // set font style for the signature

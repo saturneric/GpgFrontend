@@ -11,6 +11,8 @@
 #include <clocale>
 #include <cerrno>
 
+#include <qglobal.h>
+
 #include <QtCore>
 #include <QtWidgets>
 #include <QtNetwork/QtNetwork>

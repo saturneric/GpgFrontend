@@ -6,11 +6,11 @@ FindWidget::FindWidget(QWidget *parent, QTextEdit *edit) :
 {
     mTextpage = edit;
     findEdit = new QLineEdit(this);
-    QPushButton *closeButton= new QPushButton(this->style()->standardIcon(QStyle::SP_TitleBarCloseButton),"",this);
-    QPushButton *nextButton= new QPushButton(QIcon(":button_next.png"), "");
-    QPushButton *previousButton= new QPushButton(QIcon(":button_previous.png"), "");
+    auto *closeButton= new QPushButton(this->style()->standardIcon(QStyle::SP_TitleBarCloseButton),"",this);
+    auto *nextButton= new QPushButton(QIcon(":button_next.png"), "");
+    auto *previousButton= new QPushButton(QIcon(":button_previous.png"), "");
 
-    QHBoxLayout *notificationWidgetLayout = new QHBoxLayout(this);
+    auto *notificationWidgetLayout = new QHBoxLayout(this);
     notificationWidgetLayout->setContentsMargins(10,0,0,0);
     notificationWidgetLayout->addWidget(new QLabel(tr("Find:")));
     notificationWidgetLayout->addWidget(findEdit,2);

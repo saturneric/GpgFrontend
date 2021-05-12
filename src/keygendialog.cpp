@@ -23,8 +23,7 @@
 #include "keygendialog.h"
 
 KeyGenDialog::KeyGenDialog(GpgME::GpgContext *ctx, QWidget *parent)
- : QDialog(parent)
-{
+        : QDialog(parent) {
     mCtx = ctx;
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
@@ -33,8 +32,7 @@ KeyGenDialog::KeyGenDialog(GpgME::GpgContext *ctx, QWidget *parent)
     generateKeyDialog();
 }
 
-void KeyGenDialog::generateKeyDialog()
-{
+void KeyGenDialog::generateKeyDialog() {
     errorLabel = new QLabel(tr(""));
     nameEdit = new QLineEdit(this);
     emailEdit = new QLineEdit(this);
@@ -72,7 +70,7 @@ void KeyGenDialog::generateKeyDialog()
     pwStrengthSlider->setToolTip(tr("Password Strength"));
     pwStrengthSlider->setTickPosition(QSlider::TicksBelow);
 
-    QGridLayout *vbox1 = new QGridLayout;
+    auto *vbox1 = new QGridLayout;
 
     vbox1->addWidget(new QLabel(tr("Name:")), 0, 0);
     vbox1->addWidget(new QLabel(tr("E-Mailaddress:")), 1, 0);
@@ -91,15 +89,15 @@ void KeyGenDialog::generateKeyDialog()
     vbox1->addWidget(dateEdit, 3, 1);
     vbox1->addWidget(expireCheckBox, 3, 2);
     vbox1->addWidget(keySizeSpinBox, 4, 1);
-    vbox1->addWidget(keyTypeComboBox,5, 1);
+    vbox1->addWidget(keyTypeComboBox, 5, 1);
     vbox1->addWidget(passwordEdit, 6, 1);
     vbox1->addWidget(repeatpwEdit, 7, 1);
     vbox1->addWidget(pwStrengthSlider, 7, 3);
 
-    QWidget *nameList = new QWidget(this);
+    auto *nameList = new QWidget(this);
     nameList->setLayout(vbox1);
 
-    QVBoxLayout *vbox2 = new QVBoxLayout();
+    auto *vbox2 = new QVBoxLayout();
     vbox2->addWidget(nameList);
     vbox2->addWidget(errorLabel);
     vbox2->addWidget(buttonBox);
@@ -114,10 +112,9 @@ void KeyGenDialog::generateKeyDialog()
     this->setLayout(vbox2);
 }
 
-void KeyGenDialog::slotKeyGenAccept()
-{
+void KeyGenDialog::slotKeyGenAccept() {
     QString errorString = "";
-    QString keyGenParams = "";
+    QString keyGenParams;
     /**
      * check for errors in keygen dialog input
      */
@@ -133,20 +130,22 @@ void KeyGenDialog::slotKeyGenAccept()
          * create the string for key generation
          */
 
-        if(keyTypeComboBox->currentText() == "RSA") {
+        if (keyTypeComboBox->currentText() == "RSA") {
             keyGenParams = "<GnupgKeyParms format=\"internal\">\n"
-                            "Key-Type: RSA\n"
-                            "Key-Usage: sign\n"
-                            "Key-Length: " + keySizeSpinBox->cleanText() + "\n"
-                            "Subkey-Type: RSA\n"
-                            "Subkey-Length: " + keySizeSpinBox->cleanText() + "\n"
-                            "Subkey-Usage: encrypt\n";
+                           "Key-Type: RSA\n"
+                           "Key-Usage: sign\n"
+                           "Key-Length: " + keySizeSpinBox->cleanText() + "\n"
+                                                                          "Subkey-Type: RSA\n"
+                                                                          "Subkey-Length: " +
+                           keySizeSpinBox->cleanText() + "\n"
+                                                         "Subkey-Usage: encrypt\n";
         } else {
             keyGenParams = "<GnupgKeyParms format=\"internal\">\n"
-                            "Key-Type: DSA\n"
-                            "Key-Length: " + keySizeSpinBox->cleanText() + "\n"
-                            "Subkey-Type: ELG-E\n"
-                            "Subkey-Length: " + keySizeSpinBox->cleanText() + "\n";
+                           "Key-Type: DSA\n"
+                           "Key-Length: " + keySizeSpinBox->cleanText() + "\n"
+                                                                          "Subkey-Type: ELG-E\n"
+                                                                          "Subkey-Length: " +
+                           keySizeSpinBox->cleanText() + "\n";
         }
 
         keyGenParams += "Name-Real: " + nameEdit->text().toUtf8() + "\n";
@@ -159,27 +158,30 @@ void KeyGenDialog::slotKeyGenAccept()
         if (expireCheckBox->checkState()) {
             keyGenParams += "Expire-Date: 0\n";
         } else {
-            keyGenParams += "Expire-Date: " + dateEdit->sectionText(QDateTimeEdit::YearSection) + "-" + dateEdit->sectionText(QDateTimeEdit::MonthSection) + "-" + dateEdit->sectionText(QDateTimeEdit::DaySection) + "\n";
+            keyGenParams += "Expire-Date: " + dateEdit->sectionText(QDateTimeEdit::YearSection) + "-" +
+                            dateEdit->sectionText(QDateTimeEdit::MonthSection) + "-" +
+                            dateEdit->sectionText(QDateTimeEdit::DaySection) + "\n";
         }
         if (!(passwordEdit->text().isEmpty())) {
             keyGenParams += "Passphrase: " + passwordEdit->text() + "\n";
         }
         keyGenParams += "</GnupgKeyParms>";
 
-        KeyGenThread *kg = new KeyGenThread(keyGenParams, mCtx);
+        auto *kg = new KeyGenThread(keyGenParams, mCtx);
         kg->start();
 
         this->accept();
 
-        QDialog *dialog = new QDialog(this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+        auto *dialog = new QDialog(this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
         dialog->setModal(true);
         dialog->setWindowTitle(tr("Generating Key..."));
 
-        QLabel *waitMessage = new QLabel(tr("Collecting random data for key generation.\n This may take a while.\n To speed up the process use your computer\n (e.g. browse the net, listen to music,...)"));
-        QProgressBar *pb = new QProgressBar();
+        auto *waitMessage = new QLabel(
+                tr("Collecting random data for key generation.\n This may take a while.\n To speed up the process use your computer\n (e.g. browse the net, listen to music,...)"));
+        auto *pb = new QProgressBar();
         pb->setRange(0, 0);
 
-        QVBoxLayout *layout = new QVBoxLayout(dialog);
+        auto *layout = new QVBoxLayout(dialog);
         layout->addWidget(waitMessage);
         layout->addWidget(pb);
         dialog->setLayout(layout);
@@ -191,7 +193,7 @@ void KeyGenDialog::slotKeyGenAccept()
         }
 
         dialog->close();
-        QMessageBox::information(0,tr("Success"),tr("New key created"));
+        QMessageBox::information(nullptr, tr("Success"), tr("New key created"));
     } else {
         /**
          * create error message
@@ -206,8 +208,7 @@ void KeyGenDialog::slotKeyGenAccept()
     }
 }
 
-void KeyGenDialog::slotExpireBoxChanged()
-{
+void KeyGenDialog::slotExpireBoxChanged() {
     if (expireCheckBox->checkState()) {
         dateEdit->setEnabled(false);
     } else {
@@ -215,14 +216,12 @@ void KeyGenDialog::slotExpireBoxChanged()
     }
 }
 
-void KeyGenDialog::slotPasswordEditChanged()
-{
+void KeyGenDialog::slotPasswordEditChanged() {
     pwStrengthSlider->setValue(checkPassWordStrength());
     update();
 }
 
-int KeyGenDialog::checkPassWordStrength()
-{
+int KeyGenDialog::checkPassWordStrength() {
     int strength = 0;
 
     // increase strength by two, if password has more than 7 characters

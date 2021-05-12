@@ -36,9 +36,10 @@
 
 #include "attachments.h"
 
+#include <utility>
+
 Attachments::Attachments(QWidget *parent)
-        : QWidget(parent)
-{
+        : QWidget(parent) {
     table = new AttachmentTableModel(this);
 
     tableView = new QTableView;
@@ -54,27 +55,25 @@ Attachments::Attachments(QWidget *parent)
     tableView->setColumnWidth(0, 300);
     tableView->horizontalHeader()->setStretchLastSection(true);
 
-    QVBoxLayout *layout = new QVBoxLayout;
+    auto *layout = new QVBoxLayout;
     layout->addWidget(tableView);
-    layout->setContentsMargins(0,0,0,0);
+    layout->setContentsMargins(0, 0, 0, 0);
     setLayout(layout);
     createActions();
 
 }
 
-void Attachments::contextMenuEvent(QContextMenuEvent *event)
-{
+void Attachments::contextMenuEvent(QContextMenuEvent *event) {
     QMenu menu(this);
     menu.addAction(saveFileAct);
     // enable open with only if allowed by user
-    if(settings.value("mime/openAttachment").toBool())
+    if (settings.value("mime/openAttachment").toBool())
         menu.addAction(openFileAct);
 
     menu.exec(event->globalPos());
 }
 
-void Attachments::createActions()
-{
+void Attachments::createActions() {
     saveFileAct = new QAction(tr("Save File"), this);
     saveFileAct->setToolTip(tr("Save this file"));
     saveFileAct->setIcon(QIcon(":filesave.png"));
@@ -87,12 +86,11 @@ void Attachments::createActions()
 
 }
 
-void Attachments::slotSaveFile()
-{
+void Attachments::slotSaveFile() {
 
     QModelIndexList indexes = tableView->selectionModel()->selection().indexes();
 
-    if (indexes.size() < 1) {
+    if (indexes.empty()) {
         return;
     }
 
@@ -107,11 +105,10 @@ void Attachments::slotSaveFile()
 
 }
 
-void  Attachments::saveByteArrayToFile(QByteArray outBuffer, QString filename)
-{
+void Attachments::saveByteArrayToFile(QByteArray outBuffer, QString filename) {
 
     //QString path="";
-    QString path = filename;
+    QString path = std::move(filename);
     QString outfileName = QFileDialog::getSaveFileName(this, tr("Save File"), path);
 
     if (outfileName.isEmpty()) return;
@@ -120,8 +117,8 @@ void  Attachments::saveByteArrayToFile(QByteArray outBuffer, QString filename)
     if (!outfile.open(QFile::WriteOnly)) {
         QMessageBox::warning(this, tr("File"),
                              tr("Cannot write file %1:\n%2.")
-                             .arg(outfileName)
-                             .arg(outfile.errorString()));
+                                     .arg(outfileName)
+                                     .arg(outfile.errorString()));
         return;
     }
 
@@ -141,7 +138,7 @@ void Attachments::slotOpenFile() {
     // TODO: make attachmentdir constant or configurable
     QString attachmentDir = qApp->applicationDirPath() + "/attachments/";
     //QDir p = QDir(qApp->applicationDirPath() + "/attachments/");
-    if(!QDir(attachmentDir).exists()) {
+    if (!QDir(attachmentDir).exists()) {
         QDir().mkpath(attachmentDir);
     }
 
@@ -157,7 +154,7 @@ void Attachments::slotOpenFile() {
     filename.remove(0, 1);
     filename.prepend(attachmentDir);
 
-  //  qDebug() << "file: " << filename;
+    //  qDebug() << "file: " << filename;
     QByteArray outBuffer = QByteArray::fromBase64(mp.body);
 
 
@@ -165,19 +162,18 @@ void Attachments::slotOpenFile() {
     if (!outfile.open(QFile::WriteOnly)) {
         QMessageBox::warning(this, tr("File"),
                              tr("Cannot write file %1:\n%2.")
-                             .arg(filename)
-                             .arg(outfile.errorString()));
+                                     .arg(filename)
+                                     .arg(outfile.errorString()));
         return;
     }
 
     QDataStream out(&outfile);
     out.writeRawData(outBuffer.data(), outBuffer.length());
     outfile.close();
-    QDesktopServices::openUrl(QUrl("file://"+filename, QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("file://" + filename, QUrl::TolerantMode));
 }
 
-void Attachments::addMimePart(MimePart *mp)
-{
+void Attachments::addMimePart(MimePart *mp) {
     table->add(*mp);
 }
 

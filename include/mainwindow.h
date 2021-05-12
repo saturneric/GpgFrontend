@@ -50,7 +50,7 @@ public:
 
 public slots:
 
-    void slotSetStatusBarText(QString text);
+    void slotSetStatusBarText(const QString& text);
 
 protected:
     /**
@@ -163,7 +163,7 @@ private slots:
     /**
      * @details Open online-tutorial in default browser.
      */
-    void slotOpenTutorial();
+    static void slotOpenTutorial();
 
     /**
      * @details Open integrated help in new tab.
@@ -173,7 +173,7 @@ private slots:
     /**
      * @details Open integrated help in new tab with the specified page.
      */
-    void slotOpenHelp(QString page);
+    void slotOpenHelp(const QString& page);
 
     /**
      * @details Show a warn message in status bar, if there are files in attachment folder.
@@ -183,7 +183,7 @@ private slots:
     /**
      * @details Open online translation tutorial in default browser.
      */
-    void slotOpenTranslate();
+    static void slotOpenTranslate();
 
     /**
      * @details Replace double linebreaks by single linebreaks in currently active tab.
@@ -270,7 +270,7 @@ private:
     /**
      * @brief return true, if restart is needed
      */
-    bool getRestartNeeded();
+    bool getRestartNeeded() const;
 
     TextEdit *edit; /** Tabwidget holding the edit-windows */
     QMenu *fileMenu; /** Submenu for file-operations*/

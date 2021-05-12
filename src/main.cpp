@@ -19,12 +19,10 @@
  *      along with gpg4usb.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include <QApplication>
 #include "mainwindow.h"
 #include "gpgconstants.h"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 
     Q_INIT_RESOURCE(gpg4usb);
 
@@ -33,11 +31,11 @@ int main(int argc, char *argv[])
     // get application path
     QString appPath = qApp->applicationDirPath();
 
-    app.setApplicationVersion("0.3.3");
-    app.setApplicationName("gpg4usb");
+    QApplication::setApplicationVersion("0.3.3");
+    QApplication::setApplicationName("gpg4usb");
 
     // dont show icons in menus
-    app.setAttribute(Qt::AA_DontShowIconsInMenus);
+    QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
 
     // unicode in source
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
@@ -46,23 +44,23 @@ int main(int argc, char *argv[])
     // TODO:
     //   - unsetenv on windows?
     //   - wputenv or wputenv_s on windows? http://msdn.microsoft.com/en-us/library/d6dtz42k(v=vs.80).aspx
-    #ifndef _WIN32
-        // do not use GPG_AGENTS like seahorse, because they may save
-        // a password an pc's not owned by user
-        unsetenv("GPG_AGENT_INFO");
-    #endif
+#ifndef _WIN32
+    // do not use GPG_AGENTS like seahorse, because they may save
+    // a password an pc's not owned by user
+    unsetenv("GPG_AGENT_INFO");
+#endif
 
 //        qDebug() << getenv("GNUPGHOME");
 
 #ifndef GPG4USB_NON_PORTABLE
     // take care of gpg not creating directorys on harddisk
     putenv(QString("GNUPGHOME=" + appPath + "/keydb").toUtf8().data());
-    
+
     // this may help with newer gpgme versions on windows
     //putenv(QString("GPGME_GPGPATH=" + appPath.replace("/", "\\") + "\\bin\\gpg.exe").toUtf8().data());
 
     // QSettings uses org-name for automatically setting path...
-    app.setOrganizationName("conf");
+    QApplication::setOrganizationName("conf");
 
     // specify default path & format for QSettings
     QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, appPath);
@@ -94,27 +92,27 @@ int main(int argc, char *argv[])
     int return_from_event_loop_code;
 
     do {
-        app.removeTranslator(&translator);
-        app.removeTranslator(&translator2);
+        QApplication::removeTranslator(&translator);
+        QApplication::removeTranslator(&translator2);
 
         QString lang = settings.value("int/lang", QLocale::system().name()).toString();
         if (lang.isEmpty()) {
             lang = QLocale::system().name();
         }
 
-        translator.load("ts/gpg4usb_" +  lang, appPath);
-        app.installTranslator(&translator);
+        translator.load("ts/gpg4usb_" + lang, appPath);
+        QApplication::installTranslator(&translator);
 
         // set qt translations
         translator2.load("ts/qt_" + lang, appPath);
-        app.installTranslator(&translator2);
+        QApplication::installTranslator(&translator2);
 
         MainWindow window;
-        return_from_event_loop_code = app.exec();
+        return_from_event_loop_code = QApplication::exec();
 
-    } while( return_from_event_loop_code == RESTART_CODE);
+    } while (return_from_event_loop_code == RESTART_CODE);
 
-    return  return_from_event_loop_code;
+    return return_from_event_loop_code;
 }
 
 

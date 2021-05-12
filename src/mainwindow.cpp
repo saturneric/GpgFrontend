@@ -21,8 +21,7 @@
 
 #include "mainwindow.h"
 
-MainWindow::MainWindow()
-{
+MainWindow::MainWindow() {
     mCtx = new GpgME::GpgContext();
 
     /* get path were app was started */
@@ -44,7 +43,7 @@ MainWindow::MainWindow()
     keyMgmt = new KeyMgmt(mCtx, this);
     keyMgmt->hide();
     /* test attachmentdir for files alll 15s */
-    QTimer *timer = new QTimer(this);
+    auto *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(slotCheckAttachmentFolder()));
     timer->start(5000);
 
@@ -54,7 +53,7 @@ MainWindow::MainWindow()
     createStatusBar();
     createDockWindows();
 
-    connect(edit->tabWidget,SIGNAL(currentChanged(int)),this,SLOT(slotDisableTabActions(int)));
+    connect(edit->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(slotDisableTabActions(int)));
 
     mKeyList->addMenuAction(appendSelectedKeysAct);
     mKeyList->addMenuAction(copyMailAddressToClipboardAct);
@@ -78,14 +77,13 @@ MainWindow::MainWindow()
 
     // Show wizard, if the don't show wizard message box wasn't checked
     // and keylist doesn't contain a private key
-    QSettings settings;
-    if (settings.value("wizard/showWizard",true).toBool() || !settings.value("wizard/nextPage").isNull()) {
+    QSettings qSettings;
+    if (qSettings.value("wizard/showWizard", true).toBool() || !qSettings.value("wizard/nextPage").isNull()) {
         slotStartWizard();
     }
 }
 
-void MainWindow::restoreSettings()
-{
+void MainWindow::restoreSettings() {
     // state sets pos & size of dock-widgets
     this->restoreState(settings.value("window/windowState").toByteArray());
 
@@ -120,7 +118,8 @@ void MainWindow::restoreSettings()
     settings.setValue("keyserver/defaultKeyServer", defaultKeyServer);
 
     // Iconstyle
-    Qt::ToolButtonStyle buttonStyle = static_cast<Qt::ToolButtonStyle>(settings.value("toolbar/iconstyle", Qt::ToolButtonTextUnderIcon).toUInt());
+    Qt::ToolButtonStyle buttonStyle = static_cast<Qt::ToolButtonStyle>(settings.value("toolbar/iconstyle",
+                                                                                      Qt::ToolButtonTextUnderIcon).toUInt());
     this->setToolButtonStyle(buttonStyle);
     importButton->setToolButtonStyle(buttonStyle);
     fileEncButton->setToolButtonStyle(buttonStyle);
@@ -132,8 +131,7 @@ void MainWindow::restoreSettings()
     }
 }
 
-void MainWindow::saveSettings()
-{
+void MainWindow::saveSettings() {
     // window position and size
     settings.setValue("window/windowState", saveState());
     settings.setValue("window/pos", pos());
@@ -147,20 +145,19 @@ void MainWindow::saveSettings()
         } else {
             settings.setValue("keys/keyList", "");
         }
-    } else  {
+    } else {
         settings.remove("keys/keyList");
     }
 }
 
-void MainWindow::createActions()
-{
+void MainWindow::createActions() {
     /* Main Menu
       */
     newTabAct = new QAction(tr("&New"), this);
     newTabAct->setIcon(QIcon(":misc_doc.png"));
     QList<QKeySequence> newTabActShortcutList;
-    newTabActShortcutList.append(QKeySequence (Qt::CTRL + Qt::Key_N));
-    newTabActShortcutList.append(QKeySequence (Qt::CTRL + Qt::Key_T));
+    newTabActShortcutList.append(QKeySequence(Qt::CTRL + Qt::Key_N));
+    newTabActShortcutList.append(QKeySequence(Qt::CTRL + Qt::Key_T));
     newTabAct->setShortcuts(newTabActShortcutList);
     newTabAct->setToolTip(tr("Open a new file"));
     connect(newTabAct, SIGNAL(triggered()), edit, SLOT(slotNewTab()));
@@ -177,7 +174,7 @@ void MainWindow::createActions()
     saveAct->setToolTip(tr("Save the current File"));
     connect(saveAct, SIGNAL(triggered()), edit, SLOT(slotSave()));
 
-    saveAsAct = new QAction(tr("Save &As")+"...", this);
+    saveAsAct = new QAction(tr("Save &As") + "...", this);
     saveAsAct->setIcon(QIcon(":filesaveas.png"));
     saveAsAct->setShortcut(QKeySequence::SaveAs);
     saveAsAct->setToolTip(tr("Save the current File as..."));
@@ -345,7 +342,7 @@ void MainWindow::createActions()
     openTranslateAct->setToolTip(tr("Translate gpg4usb yourself"));
     connect(openTranslateAct, SIGNAL(triggered()), this, SLOT(slotOpenTranslate()));
 
-    startWizardAct= new QAction(tr("Open &Wizard"), this);
+    startWizardAct = new QAction(tr("Open &Wizard"), this);
     startWizardAct->setToolTip(tr("Open the wizard"));
     connect(startWizardAct, SIGNAL(triggered()), this, SLOT(slotStartWizard()));
 
@@ -371,8 +368,8 @@ void MainWindow::createActions()
     uploadKeyToServerAct = new QAction(tr("Upload Key(s) To Server"), this);
     uploadKeyToServerAct->setToolTip(tr("Upload The Selected Keys To Server"));
     connect(uploadKeyToServerAct, SIGNAL(triggered()), this, SLOT(uploadKeyToServer()));
-     /* Key-Shortcuts for Tab-Switchung-Action
-     */
+    /* Key-Shortcuts for Tab-Switchung-Action
+    */
     switchTabUpAct = new QAction(this);
     switchTabUpAct->setShortcut(QKeySequence::NextChild);
     connect(switchTabUpAct, SIGNAL(triggered()), edit, SLOT(slotSwitchTabUp()));
@@ -390,14 +387,13 @@ void MainWindow::createActions()
     connect(addPgpHeaderAct, SIGNAL(triggered()), this, SLOT(slotAddPgpHeader()));
 }
 
-void MainWindow::slotDisableTabActions(int number)
-{
+void MainWindow::slotDisableTabActions(int number) {
     bool disable;
 
-    if (number == -1 ) {
+    if (number == -1) {
         disable = true;
     } else {
-        disable= false;
+        disable = false;
     }
     printAct->setDisabled(disable);
     saveAct->setDisabled(disable);
@@ -427,8 +423,7 @@ void MainWindow::slotDisableTabActions(int number)
     addPgpHeaderAct->setDisabled(disable);
 }
 
-void MainWindow::createMenus()
-{
+void MainWindow::createMenus() {
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(newTabAct);
     fileMenu->addAction(openAct);
@@ -489,7 +484,7 @@ void MainWindow::createMenus()
     steganoMenu->addAction(addPgpHeaderAct);
 
     // Hide menu, when steganography menu is disabled in settings
-    if(!settings.value("advanced/steganography").toBool()) {
+    if (!settings.value("advanced/steganography").toBool()) {
         this->menuBar()->removeAction(steganoMenu->menuAction());
     }
 
@@ -506,8 +501,7 @@ void MainWindow::createMenus()
 
 }
 
-void MainWindow::createToolBars()
-{
+void MainWindow::createToolBars() {
     fileToolBar = addToolBar(tr("File"));
     fileToolBar->setObjectName("fileToolBar");
     fileToolBar->addAction(newTabAct);
@@ -564,10 +558,9 @@ void MainWindow::createToolBars()
 
 }
 
-void MainWindow::createStatusBar()
-{
-    QWidget *statusBarBox = new QWidget();
-    QHBoxLayout *statusBarBoxLayout = new QHBoxLayout();
+void MainWindow::createStatusBar() {
+    auto *statusBarBox = new QWidget();
+    auto *statusBarBoxLayout = new QHBoxLayout();
     QPixmap *pixmap;
 
     // icon which should be shown if there are files in attachments-folder
@@ -576,14 +569,13 @@ void MainWindow::createStatusBar()
     statusBar()->addWidget(statusBarIcon);
 
     statusBarIcon->setPixmap(*pixmap);
-    statusBar()->insertPermanentWidget(0,statusBarIcon,0);
+    statusBar()->insertPermanentWidget(0, statusBarIcon, 0);
     statusBarIcon->hide();
-    statusBar()->showMessage(tr("Ready"),2000);
+    statusBar()->showMessage(tr("Ready"), 2000);
     statusBarBox->setLayout(statusBarBoxLayout);
 }
 
-void MainWindow::createDockWindows()
-{
+void MainWindow::createDockWindows() {
     /* KeyList-Dockwindow
      */
     keylistDock = new QDockWidget(tr("Encrypt for:"), this);
@@ -595,7 +587,7 @@ void MainWindow::createDockWindows()
 
     /* Attachments-Dockwindow
       */
-    if(settings.value("mime/parseMime").toBool()) {
+    if (settings.value("mime/parseMime").toBool()) {
         createAttachmentDock();
     }
 }
@@ -625,8 +617,7 @@ void MainWindow::closeAttachmentDock() {
     attachmentDockCreated = false;
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
-{
+void MainWindow::closeEvent(QCloseEvent *event) {
     /*
      * ask to save changes, if there are
      * modified documents in any tab
@@ -642,18 +633,15 @@ void MainWindow::closeEvent(QCloseEvent *event)
     mCtx->clearPasswordCache();
 }
 
-void MainWindow::slotAbout()
-{
+void MainWindow::slotAbout() {
     new AboutDialog(this);
 }
 
-void MainWindow::slotOpenTranslate()
-{
+void MainWindow::slotOpenTranslate() {
     QDesktopServices::openUrl(QUrl("http://gpg4usb.cpunk.de/docu_translate.html"));
 }
 
-void MainWindow::slotOpenTutorial()
-{
+void MainWindow::slotOpenTutorial() {
     QDesktopServices::openUrl(QUrl("http://gpg4usb.cpunk.de/docu.html"));
 }
 
@@ -661,19 +649,16 @@ void MainWindow::slotOpenHelp() {
     slotOpenHelp("docu.html");
 }
 
-void MainWindow::slotOpenHelp(const QString page)
-{
+void MainWindow::slotOpenHelp(const QString &page) {
     edit->slotNewHelpTab("help", "file:" + qApp->applicationDirPath() + "/help/" + page);
 }
 
-void MainWindow::slotSetStatusBarText(QString text)
-{
-    statusBar()->showMessage(text,20000);
+void MainWindow::slotSetStatusBarText(const QString &text) {
+    statusBar()->showMessage(text, 20000);
 }
 
-void MainWindow::slotStartWizard()
-{
-    Wizard *wizard = new Wizard(mCtx,keyMgmt,this);
+void MainWindow::slotStartWizard() {
+    auto *wizard = new Wizard(mCtx, keyMgmt, this);
     wizard->show();
     wizard->setModal(true);
 }
@@ -682,8 +667,7 @@ void MainWindow::slotStartWizard()
   * if this is mime, split text and attachments...
   * message contains only text afterwards
   */
-void MainWindow::parseMime(QByteArray *message)
-{
+void MainWindow::parseMime(QByteArray *message) {
     /*if (! Mime::isMultipart(message)) {
         qDebug() << "no multipart";
         return;
@@ -694,22 +678,22 @@ void MainWindow::parseMime(QByteArray *message)
     bool showmadock = false;
 
     Mime *mime = new Mime(message);
-    foreach(MimePart tmp, mime->parts()) {
-        if (tmp.header.getValue("Content-Type") == "text/plain"
+            foreach(MimePart tmp, mime->parts()) {
+            if (tmp.header.getValue("Content-Type") == "text/plain"
                 && tmp.header.getValue("Content-Transfer-Encoding") != "base64") {
 
-            QByteArray body;
-            if (tmp.header.getValue("Content-Transfer-Encoding") == "quoted-printable") {
-                Mime::quotedPrintableDecode(tmp.body, body);
+                QByteArray body;
+                if (tmp.header.getValue("Content-Transfer-Encoding") == "quoted-printable") {
+                    Mime::quotedPrintableDecode(tmp.body, body);
+                } else {
+                    body = tmp.body;
+                }
+                pText.append(QString(body));
             } else {
-                body = tmp.body;
+                (mAttachments->addMimePart(&tmp));
+                showmadock = true;
             }
-            pText.append(QString(body));
-        } else {
-            (mAttachments->addMimePart(&tmp));
-            showmadock = true;
         }
-    }
     *message = pText.toUtf8();
     if (showmadock) {
         attachmentDock->show();
@@ -718,19 +702,19 @@ void MainWindow::parseMime(QByteArray *message)
 
 void MainWindow::slotCheckAttachmentFolder() {
     // TODO: always check?
-    if(!settings.value("mime/parseMime").toBool()) {
+    if (!settings.value("mime/parseMime").toBool()) {
         return;
     }
 
     QString attachmentDir = qApp->applicationDirPath() + "/attachments/";
     // filenum minus . and ..
-    int filenum = QDir(attachmentDir).count() - 2 ;
-    if(filenum > 0) {
+    uint filenum = QDir(attachmentDir).count() - 2;
+    if (filenum > 0) {
         QString statusText;
-        if(filenum == 1) {
+        if (filenum == 1) {
             statusText = tr("There is one unencrypted file in attachment folder");
         } else {
-            statusText = tr("There are ") + QString::number(filenum) +  tr(" unencrypted files in attachment folder");
+            statusText = tr("There are ") + QString::number(filenum) + tr(" unencrypted files in attachment folder");
         }
         statusBarIcon->setStatusTip(statusText);
         statusBarIcon->show();
@@ -739,64 +723,59 @@ void MainWindow::slotCheckAttachmentFolder() {
     }
 }
 
-void MainWindow::slotImportKeyFromEdit()
-{
-    if (edit->tabCount()==0 || edit->slotCurPage() == 0) {
+void MainWindow::slotImportKeyFromEdit() {
+    if (edit->tabCount() == 0 || edit->slotCurPage() == 0) {
         return;
     }
 
     keyMgmt->slotImportKeys(edit->curTextPage()->toPlainText().toUtf8());
 }
 
-void MainWindow::slotOpenKeyManagement()
-{
+void MainWindow::slotOpenKeyManagement() {
     keyMgmt->show();
     keyMgmt->raise();
     keyMgmt->activateWindow();
 }
 
-void MainWindow::slotEncrypt()
-{
-    if (edit->tabCount()==0 || edit->slotCurPage() == 0) {
+void MainWindow::slotEncrypt() {
+    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
         return;
     }
 
     QStringList *uidList = mKeyList->getChecked();
 
-    QByteArray *tmp = new QByteArray();
+    auto *tmp = new QByteArray();
     if (mCtx->encrypt(uidList, edit->curTextPage()->toPlainText().toUtf8(), tmp)) {
-        QString *tmp2 = new QString(*tmp);
+        auto *tmp2 = new QString(*tmp);
         edit->slotFillTextEditWithText(*tmp2);
     }
 }
 
-void MainWindow::slotSign()
-{
-    if (edit->tabCount()==0 || edit->slotCurPage() == 0) {
+void MainWindow::slotSign() {
+    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
         return;
     }
 
     QStringList *uidList = mKeyList->getPrivateChecked();
 
-    QByteArray *tmp = new QByteArray();
+    auto *tmp = new QByteArray();
 
     if (mCtx->sign(uidList, edit->curTextPage()->toPlainText().toUtf8(), tmp)) {
         edit->slotFillTextEditWithText(QString::fromUtf8(*tmp));
     }
 }
 
-void MainWindow::slotDecrypt()
-{
-    if (edit->tabCount()== 0 || edit->slotCurPage() == 0) {
+void MainWindow::slotDecrypt() {
+    if (edit->tabCount() == 0 || edit->slotCurPage() == 0) {
         return;
     }
 
-    QByteArray *decrypted = new QByteArray();
-    QByteArray text = edit->curTextPage()->toPlainText().toUtf8(); // TODO: toUtf8() here?
-    mCtx->preventNoDataErr(&text);
+    auto *decrypted = new QByteArray();
+    QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
+    GpgME::GpgContext::preventNoDataErr(&text);
 
     // try decrypt, if fail do nothing, especially don't replace text
-    if(!mCtx->decrypt(text, decrypted)) {
+    if (!mCtx->decrypt(text, decrypted)) {
         return;
     }
 
@@ -805,16 +784,16 @@ void MainWindow::slotDecrypt()
          *   2) parse header
          *   2) choose action depending on content-type
          */
-    if(Mime::isMime(decrypted)) {
+    if (Mime::isMime(decrypted)) {
         Header header = Mime::getHeader(decrypted);
         // is it multipart, is multipart-parsing enabled
-        if(header.getValue("Content-Type") == "multipart/mixed"
-           && settings.value("mime/parseMime").toBool()) {
+        if (header.getValue("Content-Type") == "multipart/mixed"
+            && settings.value("mime/parseMime").toBool()) {
             parseMime(decrypted);
-        } else if(header.getValue("Content-Type") == "text/plain"
-                  && settings.value("mime/parseQP").toBool()){
+        } else if (header.getValue("Content-Type") == "text/plain"
+                   && settings.value("mime/parseQP").toBool()) {
             if (header.getValue("Content-Transfer-Encoding") == "quoted-printable") {
-                QByteArray *decoded = new QByteArray();
+                auto *decoded = new QByteArray();
                 Mime::quotedPrintableDecode(*decrypted, *decoded);
                 //TODO: remove header
                 decrypted = decoded;
@@ -824,23 +803,21 @@ void MainWindow::slotDecrypt()
     edit->slotFillTextEditWithText(QString::fromUtf8(*decrypted));
 }
 
-void MainWindow::slotFind()
-{
-    if (edit->tabCount()==0 || edit->curTextPage() == 0) {
+void MainWindow::slotFind() {
+    if (edit->tabCount() == 0 || edit->curTextPage() == nullptr) {
         return;
     }
 
     // At first close verifynotification, if existing
     edit->slotCurPage()->closeNoteByClass("findwidget");
 
-    FindWidget *fw = new FindWidget(this,edit->curTextPage());
+    auto *fw = new FindWidget(this, edit->curTextPage());
     edit->slotCurPage()->showNotificationWidget(fw, "findWidget");
 
 }
 
-void MainWindow::slotVerify()
-{
-    if (edit->tabCount()==0 || edit->slotCurPage() == 0) {
+void MainWindow::slotVerify() {
+    if (edit->tabCount() == 0 || edit->slotCurPage() == 0) {
         return;
     }
 
@@ -848,7 +825,7 @@ void MainWindow::slotVerify()
     edit->slotCurPage()->closeNoteByClass("verifyNotification");
 
     // create new verfiy notification
-    VerifyNotification *vn = new VerifyNotification(this, mCtx, mKeyList, edit->curTextPage());
+    auto *vn = new VerifyNotification(this, mCtx, mKeyList, edit->curTextPage());
 
     // if signing information is found, show the notification, otherwise close it
     if (vn->slotRefresh()) {
@@ -861,19 +838,17 @@ void MainWindow::slotVerify()
 /*
  * Append the selected (not checked!) Key(s) To Textedit
  */
-void MainWindow::slotAppendSelectedKeys()
-{
-    if (edit->tabCount()==0 || edit->slotCurPage() == 0) {
+void MainWindow::slotAppendSelectedKeys() {
+    if (edit->tabCount() == 0 || edit->slotCurPage() == 0) {
         return;
     }
 
-    QByteArray *keyArray = new QByteArray();
+    auto *keyArray = new QByteArray();
     mCtx->exportKeys(mKeyList->getSelected(), keyArray);
     edit->curTextPage()->append(*keyArray);
 }
 
-void MainWindow::slotCopyMailAddressToClipboard()
-{
+void MainWindow::slotCopyMailAddressToClipboard() {
     if (mKeyList->getSelected()->isEmpty()) {
         return;
     }
@@ -884,8 +859,7 @@ void MainWindow::slotCopyMailAddressToClipboard()
     cb->setText(mail);
 }
 
-void MainWindow::slotShowKeyDetails()
-{
+void MainWindow::slotShowKeyDetails() {
     if (mKeyList->getSelected()->isEmpty()) {
         return;
     }
@@ -895,55 +869,49 @@ void MainWindow::slotShowKeyDetails()
         new KeyDetailsDialog(mCtx, key, this);
     }
 }
-void MainWindow::refreshKeysFromKeyserver()
-{
+
+void MainWindow::refreshKeysFromKeyserver() {
     if (mKeyList->getSelected()->isEmpty()) {
         return;
     }
 
-    KeyServerImportDialog *ksid = new KeyServerImportDialog(mCtx,mKeyList,this);
+    auto *ksid = new KeyServerImportDialog(mCtx, mKeyList, this);
     ksid->slotImport(*mKeyList->getSelected());
 
 }
 
-void MainWindow::uploadKeyToServer()
-{
-    QByteArray *keyArray = new QByteArray();
+void MainWindow::uploadKeyToServer() {
+    auto *keyArray = new QByteArray();
     mCtx->exportKeys(mKeyList->getSelected(), keyArray);
 
     mKeyList->uploadKeyToServer(keyArray);
 }
 
-void MainWindow::slotFileEncrypt()
-{
-        QStringList *keyList;
-        keyList = mKeyList->getChecked();
-        new FileEncryptionDialog(mCtx, *keyList, FileEncryptionDialog::Encrypt, this);
+void MainWindow::slotFileEncrypt() {
+    QStringList *keyList;
+    keyList = mKeyList->getChecked();
+    new FileEncryptionDialog(mCtx, *keyList, FileEncryptionDialog::Encrypt, this);
 }
 
-void MainWindow::slotFileDecrypt()
-{
-        QStringList *keyList;
-        keyList = mKeyList->getChecked();
-        new FileEncryptionDialog(mCtx, *keyList, FileEncryptionDialog::Decrypt, this);
+void MainWindow::slotFileDecrypt() {
+    QStringList *keyList;
+    keyList = mKeyList->getChecked();
+    new FileEncryptionDialog(mCtx, *keyList, FileEncryptionDialog::Decrypt, this);
 }
 
-void MainWindow::slotFileSign()
-{
-        QStringList *keyList;
-        keyList = mKeyList->getChecked();
-        new FileEncryptionDialog(mCtx, *keyList, FileEncryptionDialog::Sign, this);
+void MainWindow::slotFileSign() {
+    QStringList *keyList;
+    keyList = mKeyList->getChecked();
+    new FileEncryptionDialog(mCtx, *keyList, FileEncryptionDialog::Sign, this);
 }
 
-void MainWindow::slotFileVerify()
-{
-        QStringList *keyList;
-        keyList = mKeyList->getChecked();
-        new FileEncryptionDialog(mCtx, *keyList, FileEncryptionDialog::Verify, this);
+void MainWindow::slotFileVerify() {
+    QStringList *keyList;
+    keyList = mKeyList->getChecked();
+    new FileEncryptionDialog(mCtx, *keyList, FileEncryptionDialog::Verify, this);
 }
 
-void MainWindow::slotOpenSettingsDialog()
-{
+void MainWindow::slotOpenSettingsDialog() {
 
     QString preLang = settings.value("int/lang").toString();
     QString preKeydbPath = settings.value("gpgpaths/keydbpath").toString();
@@ -956,28 +924,29 @@ void MainWindow::slotOpenSettingsDialog()
     fileEncButton->setIconSize(iconSize);
 
     // Iconstyle
-    Qt::ToolButtonStyle buttonStyle = static_cast<Qt::ToolButtonStyle>(settings.value("toolbar/iconstyle", Qt::ToolButtonTextUnderIcon).toUInt());
+    Qt::ToolButtonStyle buttonStyle = static_cast<Qt::ToolButtonStyle>(settings.value("toolbar/iconstyle",
+                                                                                      Qt::ToolButtonTextUnderIcon).toUInt());
     this->setToolButtonStyle(buttonStyle);
     importButton->setToolButtonStyle(buttonStyle);
     fileEncButton->setToolButtonStyle(buttonStyle);
 
     // Mime-settings
-    if(settings.value("mime/parseMime").toBool()) {
+    if (settings.value("mime/parseMime").toBool()) {
         createAttachmentDock();
-    } else if(attachmentDockCreated) {
+    } else if (attachmentDockCreated) {
         closeAttachmentDock();
     }
 
     // restart mainwindow if necessary
-    if(getRestartNeeded()) {
-        if(edit->maybeSaveAnyTab()) {
+    if (getRestartNeeded()) {
+        if (edit->maybeSaveAnyTab()) {
             saveSettings();
             qApp->exit(RESTART_CODE);
         }
     }
 
     // steganography hide/show
-    if(!settings.value("advanced/steganography").toBool()) {
+    if (!settings.value("advanced/steganography").toBool()) {
         this->menuBar()->removeAction(steganoMenu->menuAction());
     } else {
         this->menuBar()->insertAction(viewMenu->menuAction(), steganoMenu->menuAction());
@@ -985,9 +954,8 @@ void MainWindow::slotOpenSettingsDialog()
 
 }
 
-void MainWindow::slotCleanDoubleLinebreaks()
-{
-    if (edit->tabCount()==0 || edit->slotCurPage() == 0) {
+void MainWindow::slotCleanDoubleLinebreaks() {
+    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
         return;
     }
 
@@ -997,7 +965,7 @@ void MainWindow::slotCleanDoubleLinebreaks()
 }
 
 void MainWindow::slotAddPgpHeader() {
-    if (edit->tabCount()==0 || edit->slotCurPage() == 0) {
+    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
         return;
     }
 
@@ -1011,7 +979,7 @@ void MainWindow::slotAddPgpHeader() {
 
 void MainWindow::slotCutPgpHeader() {
 
-    if (edit->tabCount()==0 || edit->slotCurPage() == 0) {
+    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
         return;
     }
 
@@ -1019,13 +987,13 @@ void MainWindow::slotCutPgpHeader() {
     int start = content.indexOf(GpgConstants::PGP_CRYPT_BEGIN);
     int end = content.indexOf(GpgConstants::PGP_CRYPT_END);
 
-    if(start < 0 || end < 0) {
+    if (start < 0 || end < 0) {
         return;
     }
 
     // remove head
-    int headEnd = content.indexOf("\n\n", start) + 2 ;
-    content.remove(start, headEnd-start);
+    int headEnd = content.indexOf("\n\n", start) + 2;
+    content.remove(start, headEnd - start);
 
     // remove tail
     end = content.indexOf(GpgConstants::PGP_CRYPT_END);
@@ -1034,12 +1002,10 @@ void MainWindow::slotCutPgpHeader() {
     edit->slotFillTextEditWithText(content.trimmed());
 }
 
-void MainWindow::slotSetRestartNeeded(bool needed)
-{
+void MainWindow::slotSetRestartNeeded(bool needed) {
     this->restartNeeded = needed;
 }
 
-bool MainWindow::getRestartNeeded()
-{
+bool MainWindow::getRestartNeeded() const {
     return this->restartNeeded;
 }

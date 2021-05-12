@@ -21,9 +21,8 @@
 
 #include "keydetailsdialog.h"
 
-KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext* ctx, gpgme_key_t key, QWidget *parent)
-    : QDialog(parent)
-{
+KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext *ctx, gpgme_key_t key, QWidget *parent)
+        : QDialog(parent) {
     mCtx = ctx;
     keyid = new QString(key->subkeys->keyid);
 
@@ -57,7 +56,7 @@ KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext* ctx, gpgme_key_t key, QWid
 
     // have el-gamal key?
     if (key->subkeys->next) {
-        keySizeVal.sprintf("%d / %d",  int(key->subkeys->length), int(key->subkeys->next->length));
+        keySizeVal.sprintf("%d / %d", int(key->subkeys->length), int(key->subkeys->next->length));
         if (key->subkeys->next->expires == 0) {
             keyExpireVal += tr(" / Never");
         } else {
@@ -74,9 +73,9 @@ KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext* ctx, gpgme_key_t key, QWid
     createdVarLabel = new QLabel(keyCreatedVal);
     algorithmVarLabel = new QLabel(keyAlgoVal);
 
-    QVBoxLayout *mvbox = new QVBoxLayout();
-    QGridLayout *vboxKD = new QGridLayout();
-    QGridLayout *vboxOD = new QGridLayout();
+    auto *mvbox = new QVBoxLayout();
+    auto *vboxKD = new QGridLayout();
+    auto *vboxOD = new QGridLayout();
 
     vboxOD->addWidget(new QLabel(tr("Name:")), 0, 0);
     vboxOD->addWidget(new QLabel(tr("E-Mailaddress:")), 1, 0);
@@ -105,7 +104,7 @@ KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext* ctx, gpgme_key_t key, QWid
     fingerPrintVarLabel = new QLabel(beautifyFingerprint(key->subkeys->fpr));
     fingerPrintVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
     fingerPrintVarLabel->setStyleSheet("margin-left: 20; margin-right: 20;");
-    QHBoxLayout *hboxFP = new QHBoxLayout();
+    auto *hboxFP = new QHBoxLayout();
 
     hboxFP->addWidget(fingerPrintVarLabel);
     QIcon ico(":button_copy.png");
@@ -123,23 +122,24 @@ KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext* ctx, gpgme_key_t key, QWid
 
     // If key has more than primary uid, also show the other uids
     gpgme_user_id_t addUserIds = key->uids->next;
-    if (addUserIds !=NULL) {
-        QVBoxLayout *vboxUID = new QVBoxLayout();
-        while (addUserIds != NULL){
-            addUserIdsVarLabel = new QLabel(QString::fromUtf8(addUserIds->name)+ QString(" <")+addUserIds->email+">");
+    if (addUserIds != nullptr) {
+        auto *vboxUID = new QVBoxLayout();
+        while (addUserIds != nullptr) {
+            addUserIdsVarLabel = new QLabel(
+                    QString::fromUtf8(addUserIds->name) + QString(" <") + addUserIds->email + ">");
             addUserIdsVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
             vboxUID->addWidget(addUserIdsVarLabel);
-            addUserIds=addUserIds->next;
+            addUserIds = addUserIds->next;
         }
         additionalUidBox->setLayout(vboxUID);
         mvbox->addWidget(additionalUidBox);
     }
 
     if (key->secret) {
-        QGroupBox *privKeyBox = new QGroupBox(tr("Private Key"));
-        QVBoxLayout *vboxPK = new QVBoxLayout();
+        auto *privKeyBox = new QGroupBox(tr("Private Key"));
+        auto *vboxPK = new QVBoxLayout();
 
-        QPushButton *exportButton = new QPushButton(tr("Export Private Key"));
+        auto *exportButton = new QPushButton(tr("Export Private Key"));
         vboxPK->addWidget(exportButton);
         connect(exportButton, SIGNAL(clicked()), this, SLOT(slotExportPrivateKey()));
 
@@ -147,13 +147,13 @@ KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext* ctx, gpgme_key_t key, QWid
         mvbox->addWidget(privKeyBox);
     }
 
-    if((key->expired) || (key->revoked)) {
-        QHBoxLayout *expBox = new QHBoxLayout();
+    if ((key->expired) || (key->revoked)) {
+        auto *expBox = new QHBoxLayout();
         QIcon icon = QIcon::fromTheme("dialog-warning");
-        QPixmap pixmap = icon.pixmap(QSize(32,32),QIcon::Normal,QIcon::On);
+        QPixmap pixmap = icon.pixmap(QSize(32, 32), QIcon::Normal, QIcon::On);
 
-        QLabel *expLabel = new QLabel();
-        QLabel *iconLabel = new QLabel();
+        auto *expLabel = new QLabel();
+        auto *iconLabel = new QLabel();
         if (key->expired) {
             expLabel->setText(tr("Warning: Key expired"));
         }
@@ -180,8 +180,7 @@ KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext* ctx, gpgme_key_t key, QWid
     exec();
 }
 
-void KeyDetailsDialog::slotExportPrivateKey()
-{
+void KeyDetailsDialog::slotExportPrivateKey() {
     // Show a information box with explanation about private key
     int ret = QMessageBox::information(this, tr("Exporting private Key"),
                                        tr("You are about to export your private key.\n"
@@ -192,14 +191,16 @@ void KeyDetailsDialog::slotExportPrivateKey()
 
     // export key, if ok was clicked
     if (ret == QMessageBox::Ok) {
-        QByteArray *keyArray = new QByteArray();
+        auto *keyArray = new QByteArray();
         mCtx->exportSecretKey(*keyid, keyArray);
         gpgme_key_t key = mCtx->getKeyDetails(*keyid);
-        QString fileString = QString::fromUtf8(key->uids->name) + " " + QString::fromUtf8(key->uids->email) + "(" + QString(key->subkeys->keyid)+ ")_pub_sec.asc";
-        QString fileName = QFileDialog::getSaveFileName(this, tr("Export Key To File"), fileString, tr("Key Files") + " (*.asc *.txt);;All Files (*)");
+        QString fileString = QString::fromUtf8(key->uids->name) + " " + QString::fromUtf8(key->uids->email) + "(" +
+                             QString(key->subkeys->keyid) + ")_pub_sec.asc";
+        QString fileName = QFileDialog::getSaveFileName(this, tr("Export Key To File"), fileString,
+                                                        tr("Key Files") + " (*.asc *.txt);;All Files (*)");
         QFile file(fileName);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            QMessageBox::critical(0,tr("Export error"),tr("Couldn't open %1 for writing").arg(fileName));
+            QMessageBox::critical(nullptr, tr("Export error"), tr("Couldn't open %1 for writing").arg(fileName));
             return;
         }
         QTextStream stream(&file);
@@ -209,12 +210,11 @@ void KeyDetailsDialog::slotExportPrivateKey()
     }
 }
 
-QString KeyDetailsDialog::beautifyFingerprint(QString fingerprint)
-{
+QString KeyDetailsDialog::beautifyFingerprint(QString fingerprint) {
     uint len = fingerprint.length();
     if ((len > 0) && (len % 4 == 0))
-        for (uint n = 0; 4 *(n + 1) < len; ++n)
-            fingerprint.insert(5 * n + 4, ' ');
+        for (uint n = 0; 4 * (n + 1) < len; ++n)
+            fingerprint.insert(static_cast<int>(5u * n + 4u), ' ');
     return fingerprint;
 }
 
