@@ -10,8 +10,7 @@
 #include <cmath>
 #include <clocale>
 #include <cerrno>
-
-#include <qglobal.h>
+#include <utility>
 
 #include <QtCore>
 #include <QtWidgets>
