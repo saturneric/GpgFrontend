@@ -36,7 +36,7 @@ public:
 
 private:
     QCheckBox *rememberPasswordCheckBox;
-    [[maybe_unused]] QCheckBox *importConfirmationcheckBox;
+    [[maybe_unused]] QCheckBox *importConfirmationcheckBox{};
     QCheckBox *saveCheckedKeysCheckBox;
     QCheckBox *importConfirmationCheckBox;
     QComboBox *langSelectBox;
@@ -159,7 +159,7 @@ public:
     void applySettings();
 
 private:
-    QString getRelativePath(QString dir1, QString dir2);
+    static QString getRelativePath(const QString& dir1, const QString& dir2);
 
     QString defKeydbPath; /** The default keydb path used by gpg4usb */
     QString accKeydbPath; /** The currently used keydb path */
@@ -202,9 +202,9 @@ private:
     QTabWidget *tabWidget;
     QDialogButtonBox *buttonBox;
     GpgME::GpgContext *mCtx; /** The current gpg context */
-    bool restartNeeded;
+    bool restartNeeded{};
 
-    bool getRestartNeeded();
+    bool getRestartNeeded() const;
 
 private slots:
 

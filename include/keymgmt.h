@@ -36,9 +36,9 @@ Q_OBJECT
 public:
     explicit KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
 
-    QAction *importKeyFromClipboardAct;
-    QAction *importKeyFromFileAct;
-    QAction *importKeyFromKeyServerAct;
+    QAction *importKeyFromClipboardAct{};
+    QAction *importKeyFromFileAct{};
+    QAction *importKeyFromKeyServerAct{};
 
 public slots:
 
@@ -77,18 +77,18 @@ private:
 
     KeyList *mKeyList;
     GpgME::GpgContext *mCtx;
-    QMenu *fileMenu;
-    QMenu *keyMenu;
-    QMenu *importKeyMenu;
-    QAction *exportKeyToFileAct;
-    QAction *exportKeyToClipboardAct;
-    QAction *deleteCheckedKeysAct;
-    QAction *deleteSelectedKeysAct;
-    QAction *generateKeyDialogAct;
-    QAction *closeAct;
-    QAction *showKeyDetailsAct;
+    QMenu *fileMenu{};
+    QMenu *keyMenu{};
+    QMenu *importKeyMenu{};
+    QAction *exportKeyToFileAct{};
+    QAction *exportKeyToClipboardAct{};
+    QAction *deleteCheckedKeysAct{};
+    QAction *deleteSelectedKeysAct{};
+    QAction *generateKeyDialogAct{};
+    QAction *closeAct{};
+    QAction *showKeyDetailsAct{};
     [[maybe_unused]] QMessageBox msgbox;
-    KeyServerImportDialog *importDialog;
+    KeyServerImportDialog *importDialog{};
 
 protected:
     void closeEvent(QCloseEvent *event) override;

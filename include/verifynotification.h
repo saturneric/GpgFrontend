@@ -66,7 +66,7 @@ public:
      * @param text The text to be set.
      * @param verifyLabelStatus The status of label to set the specified color.
      */
-    void setVerifyLabel(QString text, verify_label_status verifyLabelStatus);
+    void setVerifyLabel(const QString& text, verify_label_status verifyLabelStatus);
 
     /**
      * @details Show the import from keyserver-action in detailsmenu.

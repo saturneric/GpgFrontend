@@ -111,9 +111,9 @@ namespace GpgME {
 
         void clearPasswordCache();
 
-        void exportSecretKey(QString uid, QByteArray *outBuffer);
+        void exportSecretKey(const QString& uid, QByteArray *outBuffer);
 
-        gpgme_key_t getKeyDetails(QString uid);
+        gpgme_key_t getKeyDetails(const QString& uid);
 
         gpgme_signature_t verify(QByteArray *inBuffer, QByteArray *sigBuffer = nullptr);
 
@@ -126,11 +126,11 @@ namespace GpgME {
          *
          * @param in Pointer to the QBytearray to check.
          */
-        void preventNoDataErr(QByteArray *in);
+        static void preventNoDataErr(QByteArray *in);
 
-        GpgKey getKeyByFpr(QString fpr);
+        GpgKey getKeyByFpr(const QString& fpr);
 
-        GpgKey getKeyById(QString id);
+        GpgKey getKeyById(const QString& id);
 
         static QString gpgErrString(gpgme_error_t err);
 
@@ -144,9 +144,9 @@ namespace GpgME {
          *          \li 1, if the text is partially signed,
          *          \li 0, if the text is not signed at all.
          */
-        int textIsSigned(const QByteArray &text);
+        static int textIsSigned(const QByteArray &text);
 
-        QString beautifyFingerprint(QString fingerprint);
+        static QString beautifyFingerprint(QString fingerprint);
 
     signals:
 
@@ -157,21 +157,21 @@ namespace GpgME {
         void slotRefreshKeyList();
 
     private:
-        gpgme_ctx_t mCtx;
-        gpgme_data_t in;
-        [[maybe_unused]] gpgme_data_t out;
+        gpgme_ctx_t mCtx{};
+        gpgme_data_t in{};
+        [[maybe_unused]] gpgme_data_t out{};
         gpgme_error_t err;
 
-        gpgme_error_t readToBuffer(gpgme_data_t in, QByteArray *outBuffer);
+        static gpgme_error_t readToBuffer(gpgme_data_t dataIn, QByteArray *outBuffer);
 
         QByteArray mPasswordCache;
         QSettings settings;
         [[maybe_unused]] bool debug;
         GpgKeyList mKeyList;
 
-        [[nodiscard]] int checkErr(gpgme_error_t err) const;
+        [[nodiscard]] static void checkErr(gpgme_error_t gpgmeError) ;
 
-        [[nodiscard]] int checkErr(gpgme_error_t err, QString comment) const;
+        [[nodiscard]] static void checkErr(gpgme_error_t gpgmeError, const QString& comment) ;
 
         static gpgme_error_t passphraseCb(void *hook, const char *uid_hint,
                                           const char *passphrase_info,
@@ -181,7 +181,7 @@ namespace GpgME {
                                  const char *passphrase_info,
                                  int last_was_bad, int fd);
 
-        void executeGpgCommand(QStringList arguments,
+        void executeGpgCommand(const QStringList& arguments,
                                QByteArray *stdOut,
                                QByteArray *stdErr);
 

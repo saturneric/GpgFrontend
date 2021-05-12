@@ -56,22 +56,22 @@ public:
      */
     bool maybeSaveAnyTab();
 
-    int tabCount();
+    int tabCount() const;
 
     /**
      * @details textpage of the currently activated tab
      * @return \li reference to QTextEdit if tab has one
      *         \li 0 otherwise (e.g. if helppage)
      */
-    QTextEdit *curTextPage();
+    QTextEdit *curTextPage() const;
 
-    QTextBrowser *curHelpPage();
+    QTextBrowser *curHelpPage() const;
 
     /**
      * @details  List of currently unsaved tabs.
      * @returns QHash<int, QString> Hash of tabindexes and title of unsaved tabs.
      */
-    QHash<int, QString> unsavedDocuments();
+    QHash<int, QString> unsavedDocuments() const;
 
     QTabWidget *tabWidget; /** Widget containing the tabs of the editor */
 
@@ -81,18 +81,18 @@ public slots:
      * @details Return pointer to the currently activated tabpage.
      *
      */
-    EditorPage *slotCurPage();
+    EditorPage *slotCurPage() const;
 
     /**
      * @details Insert a ">" at the begining of every line of current textedit.
      */
-    void slotQuote();
+    void slotQuote() const;
 
     /**
       * @details replace the text of currently active textedit with given text.
       * @param text to fill on.
       */
-    void slotFillTextEditWithText(QString text);
+    void slotFillTextEditWithText(const QString& text) const;
 
     /**
      * @details Saves the content of the current tab, if it has a filepath
@@ -131,12 +131,12 @@ public slots:
      * @param title title for the tab
      * @param path  path for html file to show
      */
-    void slotNewHelpTab(QString title, QString path);
+    void slotNewHelpTab(const QString& title, const QString& path) const;
 
     /**
      * @details put a * in front of current tabs title, if current textedit is modified
      */
-    void slotShowModified();
+    void slotShowModified() const;
 
     /**
      * @details close the current tab and decrease TabWidget->count by \a 1
@@ -148,13 +148,13 @@ public slots:
      * @details Switch to the next tab.
      *
      */
-    void slotSwitchTabUp();
+    void slotSwitchTabUp() const;
 
     /**
      * @details Switch to the previous tab.
      *
      */
-    void slotSwitchTabDown();
+    void slotSwitchTabDown() const;
 
 private:
     /**
@@ -163,7 +163,7 @@ private:
      * @param a filename path
      * @return QString containing the filename
      */
-    QString strippedName(const QString &fullFileName);
+    static QString strippedName(const QString &fullFileName);
 
     /**
      * @brief
@@ -190,23 +190,23 @@ private slots:
     /**
      * @details Cut selected text in current textpage.
      */
-    void slotCut();
+    void slotCut() const;
 
     /**
      * @details Copy selected text of current textpage to clipboard.
      */
-    void slotCopy();
+    void slotCopy() const;
 
     /**
      * @details Paste text from clipboard to current textpage.
      */
-    void slotPaste();
+    void slotPaste() const;
 
     /**
      * @details Undo last change in current textpage.
      *
      */
-    void slotUndo();
+    void slotUndo() const;
     /****************************************************************************************
      * Name:                redo
      * Description:         redo last change in current textpage
@@ -218,11 +218,11 @@ private slots:
      * @brief
      *
      */
-    void slotRedo();
+    void slotRedo() const;
 
-    void slotZoomIn();
+    void slotZoomIn() const;
 
-    void slotZoomOut();
+    void slotZoomOut() const;
     /****************************************************************************************
      * Name:                selectAll
      * Description:         select all in current textpage
@@ -234,7 +234,7 @@ private slots:
      * @brief
      *
      */
-    void slotSelectAll();
+    void slotSelectAll() const;
 
 protected:
     // void dragEnterEvent(QDragEnterEvent *event);

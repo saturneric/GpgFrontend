@@ -36,7 +36,7 @@ public:
 
     void slotImport(QStringList keyIds);
 
-    void slotImport(QStringList keyIds, QUrl keyserverUrl);
+    void slotImport(QStringList keyIds, const QUrl& keyserverUrl);
 
 private slots:
 
@@ -57,7 +57,7 @@ private:
 
     QPushButton *createButton(const QString &text, const char *member);
 
-    QComboBox *createComboBox();
+    static QComboBox *createComboBox();
 
     GpgME::GpgContext *mCtx;
     KeyList *mKeyList;
@@ -70,9 +70,9 @@ private:
     QPushButton *closeButton;
     QPushButton *importButton;
     QPushButton *searchButton;
-    QTableWidget *keysTable;
+    QTableWidget *keysTable{};
     [[maybe_unused]] QUrl url;
-    QNetworkAccessManager *qnam;
+    QNetworkAccessManager *qnam{};
 
 };
 

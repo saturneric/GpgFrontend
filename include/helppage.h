@@ -27,7 +27,7 @@
 class HelpPage : public QWidget {
 Q_OBJECT
 public:
-    explicit HelpPage(QString path, QWidget *parent = nullptr);
+    explicit HelpPage(const QString& path, QWidget *parent = nullptr);
 
     QTextBrowser *getBrowser();
 
@@ -35,11 +35,11 @@ signals:
 
 public slots:
 
-    void slotOpenUrl(QUrl url);
+    void slotOpenUrl(const QUrl& url);
 
 private:
     QTextBrowser *browser; /** The textbrowser of the tab */
-    QUrl localizedHelp(QUrl path);
+    QUrl localizedHelp(const QUrl& path);
 
 };
 

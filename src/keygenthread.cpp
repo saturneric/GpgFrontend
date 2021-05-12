@@ -21,14 +21,14 @@
 
 #include "keygenthread.h"
 
-KeyGenThread::KeyGenThread(QString keyGenParams, GpgME::GpgContext *ctx)
-{
-    this->keyGenParams = keyGenParams;
+#include <utility>
+
+KeyGenThread::KeyGenThread(QString keyGenParams, GpgME::GpgContext *ctx) {
+    this->keyGenParams = std::move(keyGenParams);
     this->mCtx = ctx;
     abort = false;
 }
 
-void KeyGenThread::run()
-{
+void KeyGenThread::run() {
     mCtx->generateKey(&keyGenParams);
 }

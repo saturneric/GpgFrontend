@@ -21,9 +21,9 @@
 
 #include "verifydetailsdialog.h"
 
-VerifyDetailsDialog::VerifyDetailsDialog(QWidget *parent, GpgME::GpgContext* ctx, KeyList* keyList, QByteArray* inputData, QByteArray* inputSignature) :
-    QDialog(parent)
-{
+VerifyDetailsDialog::VerifyDetailsDialog(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList,
+                                         QByteArray *inputData, QByteArray *inputSignature) :
+        QDialog(parent) {
     mCtx = ctx;
     mKeyList = keyList;
     //mTextpage = edit;
@@ -42,12 +42,11 @@ VerifyDetailsDialog::VerifyDetailsDialog(QWidget *parent, GpgME::GpgContext* ctx
     this->exec();
 }
 
-void VerifyDetailsDialog::slotRefresh()
-{
+void VerifyDetailsDialog::slotRefresh() {
     mVbox->close();
 
     mVbox = new QWidget();
-    QVBoxLayout *mVboxLayout = new QVBoxLayout(mVbox);
+    auto *mVboxLayout = new QVBoxLayout(mVbox);
     mainLayout->addWidget(mVbox);
 
     // Button Box for close button
@@ -58,16 +57,16 @@ void VerifyDetailsDialog::slotRefresh()
     //QByteArray text = mTextpage->toPlainText().toUtf8();
     //mCtx->preventNoDataErr(&text);
     gpgme_signature_t sign;
-    if(mInputSignature != 0) {
+    if (mInputSignature != nullptr) {
         sign = mCtx->verify(mInputData, mInputSignature);
     } else {
         sign = mCtx->verify(mInputData);
     }
 
-    if(sign==0) {
-       mVboxLayout->addWidget(new QLabel(tr("No valid input found")));
-       mVboxLayout->addWidget(buttonBox);
-       return;
+    if (sign == nullptr) {
+        mVboxLayout->addWidget(new QLabel(tr("No valid input found")));
+        mVboxLayout->addWidget(buttonBox);
+        return;
     }
 
     // Get timestamp of signature of current text
@@ -75,26 +74,28 @@ void VerifyDetailsDialog::slotRefresh()
     timestamp.setTime_t(sign->timestamp);
 
     // Set the title widget depending on sign status
-    if(gpg_err_code(sign->status) == GPG_ERR_BAD_SIGNATURE) {
+    if (gpg_err_code(sign->status) == GPG_ERR_BAD_SIGNATURE) {
         mVboxLayout->addWidget(new QLabel(tr("Error Validating signature")));
-    } else if (mInputSignature != 0) {
-        mVboxLayout->addWidget(new QLabel(tr("File was signed on <br/> %1 by:<br/>").arg(timestamp.toString(Qt::SystemLocaleLongDate))));
+    } else if (mInputSignature != nullptr) {
+        mVboxLayout->addWidget(new QLabel(
+                tr("File was signed on <br/> %1 by:<br/>").arg(timestamp.toString(Qt::SystemLocaleLongDate))));
     } else {
-        switch (mCtx->textIsSigned(*mInputData))
-        {
-            case 2:
-            {
-                mVboxLayout->addWidget(new QLabel(tr("Text was completely signed on <br/> %1 by:<br/>").arg(timestamp.toString(Qt::SystemLocaleLongDate))));                break;
+        switch (GpgME::GpgContext::textIsSigned(*mInputData)) {
+            case 2: {
+                mVboxLayout->addWidget(new QLabel(tr("Text was completely signed on <br/> %1 by:<br/>").arg(
+                        timestamp.toString(Qt::SystemLocaleLongDate))));
+                break;
             }
-            case 1:
-            {
-                mVboxLayout->addWidget(new QLabel(tr("Text was partially signed on <br/> %1 by:<br/>").arg(timestamp.toString(Qt::SystemLocaleLongDate))));                break;
+            case 1: {
+                mVboxLayout->addWidget(new QLabel(tr("Text was partially signed on <br/> %1 by:<br/>").arg(
+                        timestamp.toString(Qt::SystemLocaleLongDate))));
+                break;
             }
         }
     }
     // Add informationbox for every single key
     while (sign) {
-        VerifyKeyDetailBox *sbox = new VerifyKeyDetailBox(this,mCtx,mKeyList,sign);
+        auto *sbox = new VerifyKeyDetailBox(this, mCtx, mKeyList, sign);
         sign = sign->next;
         mVboxLayout->addWidget(sbox);
     }

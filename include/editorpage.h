@@ -52,7 +52,7 @@ public:
      * @param filePath Path of the file handled in this tab
      * @param parent Pointer to the parent widget
      */
-    explicit EditorPage(const QString &filePath = "", QWidget *parent = nullptr);
+    explicit EditorPage(QString filePath = "", QWidget *parent = nullptr);
 
     /**
      * @details Get the filepath of the currently activated tab.

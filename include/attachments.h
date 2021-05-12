@@ -43,8 +43,8 @@ private:
 
     void saveByteArrayToFile(QByteArray outBuffer, QString filename);
 
-    QAction *saveFileAct;
-    QAction *openFileAct;
+    QAction *saveFileAct{};
+    QAction *openFileAct{};
     AttachmentTableModel *table;
     QTableView *tableView;
     QSettings settings;

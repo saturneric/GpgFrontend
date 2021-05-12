@@ -36,13 +36,13 @@ private:
     void createGeneralInfoBox();
     void createKeysTable();
     void createButtonBox();
-    QString getStatusString(int keyStatus);
+    static QString getStatusString(int keyStatus);
 
-    QTableWidget *keysTable;
+    QTableWidget *keysTable{};
     GpgME::GpgContext *mCtx;
-    QGroupBox *generalInfoBox;
-    QGroupBox *keyInfoBox;
-    QDialogButtonBox *buttonBox;
+    QGroupBox *generalInfoBox{};
+    QGroupBox *keyInfoBox{};
+    QDialogButtonBox *buttonBox{};
     GpgImportInformation mResult;
 };
 

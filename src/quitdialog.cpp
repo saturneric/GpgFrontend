@@ -22,17 +22,16 @@
 
 #include "quitdialog.h"
 
-QuitDialog::QuitDialog(QWidget *parent, QHash<int, QString> unsavedDocs)
-    : QDialog(parent)
-{
+QuitDialog::QuitDialog(QWidget *parent, const QHash<int, QString>& unsavedDocs)
+        : QDialog(parent) {
     setWindowTitle(tr("Unsaved files"));
     setModal(true);
-    discarded =false;
+    discarded = false;
 
     /*
      * Table of unsaved documents
      */
-    QHashIterator<int, QString> i (unsavedDocs);
+    QHashIterator<int, QString> i(unsavedDocs);
     int row = 0;
     mFileList = new QTableWidget(this);
     mFileList->horizontalHeader()->hide();
@@ -43,61 +42,63 @@ QuitDialog::QuitDialog(QWidget *parent, QHash<int, QString> unsavedDocs)
     mFileList->setShowGrid(false);
     mFileList->setEditTriggers(QAbstractItemView::NoEditTriggers);
     mFileList->setFocusPolicy(Qt::NoFocus);
-    mFileList->horizontalHeader()->setStretchLastSection( true );
+    mFileList->horizontalHeader()->setStretchLastSection(true);
     // fill the table
     i.toBack(); //jump to the end of list to fill the table backwards
     while (i.hasPrevious()) {
         i.previous();
-        mFileList->setRowCount(mFileList->rowCount()+1);
+        mFileList->setRowCount(mFileList->rowCount() + 1);
 
         // checkbox in front of filename
-        QTableWidgetItem *tmp0 = new QTableWidgetItem();
-        tmp0->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled );
+        auto *tmp0 = new QTableWidgetItem();
+        tmp0->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
         tmp0->setCheckState(Qt::Checked);
         mFileList->setItem(row, 0, tmp0);
 
         // filename
-        QTableWidgetItem *tmp1 = new QTableWidgetItem(i.value());
+        auto *tmp1 = new QTableWidgetItem(i.value());
         mFileList->setItem(row, 1, tmp1);
 
         // tab-index in hidden column
-        QTableWidgetItem *tmp2 = new QTableWidgetItem(QString::number(i.key()));
+        auto *tmp2 = new QTableWidgetItem(QString::number(i.key()));
         mFileList->setItem(row, 2, tmp2);
         ++row;
     }
     /*
      *  Warnbox with icon and text
      */
-    QPixmap *pixmap = new QPixmap(":error.png");
-    QLabel *warnicon = new QLabel();
+    auto *pixmap = new QPixmap(":error.png");
+    auto *warnicon = new QLabel();
     warnicon->setPixmap(*pixmap);
-    QLabel *warnlabel = new QLabel(tr("<h3>%1 files contain unsaved information.<br/>Save the changes before closing?</h3>").arg(row));
-    QHBoxLayout *warnBoxLayout = new QHBoxLayout();
+    auto *warnlabel = new QLabel(
+            tr("<h3>%1 files contain unsaved information.<br/>Save the changes before closing?</h3>").arg(row));
+    auto *warnBoxLayout = new QHBoxLayout();
     warnBoxLayout->addWidget(warnicon);
     warnBoxLayout->addWidget(warnlabel);
     warnBoxLayout->setAlignment(Qt::AlignLeft);
-    QWidget *warnBox = new QWidget(this);
+    auto *warnBox = new QWidget(this);
     warnBox->setLayout(warnBoxLayout);
 
     /*
      *  Two labels on top and under the filelist
      */
-    QLabel *checkLabel = new QLabel(tr("Check the files you want to save:"));
-    QLabel *notelabel = new QLabel(tr("<b>Note:</b> If you don't save these files, all changes are lost.<br/>"));
+    auto *checkLabel = new QLabel(tr("Check the files you want to save:"));
+    auto *notelabel = new QLabel(tr("<b>Note:</b> If you don't save these files, all changes are lost.<br/>"));
 
     /*
      *  Buttonbox
      */
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Discard |QDialogButtonBox::Save | QDialogButtonBox::Cancel);
+    auto *buttonBox = new QDialogButtonBox(
+            QDialogButtonBox::Discard | QDialogButtonBox::Save | QDialogButtonBox::Cancel);
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
     connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
-    QPushButton* btnNoKey = buttonBox->button(QDialogButtonBox::Discard);
+    QPushButton *btnNoKey = buttonBox->button(QDialogButtonBox::Discard);
     connect(btnNoKey, SIGNAL(clicked()), SLOT(slotMyDiscard()));
 
     /*
      *  Set the layout
      */
-    QVBoxLayout *vbox = new QVBoxLayout();
+    auto *vbox = new QVBoxLayout();
     vbox->addWidget(warnBox);
     vbox->addWidget(checkLabel);
     vbox->addWidget(mFileList);
@@ -107,20 +108,17 @@ QuitDialog::QuitDialog(QWidget *parent, QHash<int, QString> unsavedDocs)
 }
 
 
-void QuitDialog::slotMyDiscard()
-{
-    discarded =true;
+void QuitDialog::slotMyDiscard() {
+    discarded = true;
     reject();
 }
 
-bool QuitDialog::isDiscarded()
-{
+bool QuitDialog::isDiscarded() const {
     return discarded;
 }
 
-QList <int> QuitDialog::getTabIdsToSave()
-{
-    QList <int> tabIdsToSave;
+QList<int> QuitDialog::getTabIdsToSave() {
+    QList<int> tabIdsToSave;
     for (int i = 0; i < mFileList->rowCount(); i++) {
         if (mFileList->item(i, 0)->checkState() == Qt::Checked) {
             tabIdsToSave << mFileList->item(i, 2)->text().toInt();

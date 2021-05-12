@@ -21,9 +21,8 @@
 
 #include "verifynotification.h"
 
-VerifyNotification::VerifyNotification(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList,QTextEdit *edit) :
-    QWidget(parent)
-{
+VerifyNotification::VerifyNotification(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList, QTextEdit *edit) :
+        QWidget(parent) {
     mCtx = ctx;
     mKeyList = keyList;
     mTextpage = edit;
@@ -44,109 +43,103 @@ VerifyNotification::VerifyNotification(QWidget *parent, GpgME::GpgContext *ctx, 
     importFromKeyserverAct->setVisible(false);
 
     keysNotInList = new QStringList();
-    detailsButton = new QPushButton(tr("Details"),this);
+    detailsButton = new QPushButton(tr("Details"), this);
     detailsButton->setMenu(detailMenu);
-    QHBoxLayout *notificationWidgetLayout = new QHBoxLayout(this);
-    notificationWidgetLayout->setContentsMargins(10,0,0,0);
-    notificationWidgetLayout->addWidget(verifyLabel,2);
+    auto *notificationWidgetLayout = new QHBoxLayout(this);
+    notificationWidgetLayout->setContentsMargins(10, 0, 0, 0);
+    notificationWidgetLayout->addWidget(verifyLabel, 2);
     notificationWidgetLayout->addWidget(detailsButton);
     this->setLayout(notificationWidgetLayout);
 }
 
-void VerifyNotification::slotImportFromKeyserver()
-{
-    KeyServerImportDialog *importDialog =new KeyServerImportDialog(mCtx,mKeyList, this);
+void VerifyNotification::slotImportFromKeyserver() {
+    auto *importDialog = new KeyServerImportDialog(mCtx, mKeyList, this);
     importDialog->slotImport(*keysNotInList);
 }
 
-void VerifyNotification::setVerifyLabel(QString text, verify_label_status verifyLabelStatus)
-{
+void VerifyNotification::setVerifyLabel(const QString &text, verify_label_status verifyLabelStatus) {
     QString color;
     verifyLabel->setText(text);
     switch (verifyLabelStatus) {
-    case VERIFY_ERROR_OK:       color="#ccffcc";
-                                break;
-    case VERIFY_ERROR_WARN:     color="#ececba";
-                                break;
-    case VERIFY_ERROR_CRITICAL: color="#ff8080";
-                                break;
-    default:
-                                break;
+        case VERIFY_ERROR_OK:
+            color = "#ccffcc";
+            break;
+        case VERIFY_ERROR_WARN:
+            color = "#ececba";
+            break;
+        case VERIFY_ERROR_CRITICAL:
+            color = "#ff8080";
+            break;
+        default:
+            break;
     }
 
     verifyLabel->setAutoFillBackground(true);
     QPalette status = verifyLabel->palette();
     status.setColor(QPalette::Background, color);
     verifyLabel->setPalette(status);
-}                    
+}
 
-void VerifyNotification::showImportAction(bool visible)
-{
+void VerifyNotification::showImportAction(bool visible) {
     importFromKeyserverAct->setVisible(visible);
 }
 
-void VerifyNotification::slotShowVerifyDetails()
-{
+void VerifyNotification::slotShowVerifyDetails() {
     QByteArray text = mTextpage->toPlainText().toUtf8();
-    mCtx->preventNoDataErr(&text);
+    GpgME::GpgContext::preventNoDataErr(&text);
     new VerifyDetailsDialog(this, mCtx, mKeyList, &text);
 }
 
-bool VerifyNotification::slotRefresh()
-{
-    verify_label_status verifyStatus=VERIFY_ERROR_OK;
+bool VerifyNotification::slotRefresh() {
+    verify_label_status verifyStatus = VERIFY_ERROR_OK;
 
     QByteArray text = mTextpage->toPlainText().toUtf8();
-    mCtx->preventNoDataErr(&text);
-    int textIsSigned = mCtx->textIsSigned(text);
+    GpgME::GpgContext::preventNoDataErr(&text);
+    int textIsSigned = GpgME::GpgContext::textIsSigned(text);
 
     gpgme_signature_t sign = mCtx->verify(&text);
 
-    if (sign == NULL) {
+    if (sign == nullptr) {
         return false;
     }
 
     QString verifyLabelText;
-    bool unknownKeyFound=false;
+    bool unknownKeyFound = false;
 
     while (sign) {
 
-        switch (gpg_err_code(sign->status))
-        {
-            case GPG_ERR_NO_PUBKEY:
-            {
-                verifyStatus=VERIFY_ERROR_WARN;
-                verifyLabelText.append(tr("Key not present with id 0x")+QString(sign->fpr));
+        switch (gpg_err_code(sign->status)) {
+            case GPG_ERR_NO_PUBKEY: {
+                verifyStatus = VERIFY_ERROR_WARN;
+                verifyLabelText.append(tr("Key not present with id 0x") + QString(sign->fpr));
                 this->keysNotInList->append(sign->fpr);
-                unknownKeyFound=true;
+                unknownKeyFound = true;
                 break;
             }
-            case GPG_ERR_NO_ERROR:
-            {
+            case GPG_ERR_NO_ERROR: {
                 GpgKey key = mCtx->getKeyByFpr(sign->fpr);
                 verifyLabelText.append(key.name);
                 if (!key.email.isEmpty()) {
-                    verifyLabelText.append("<"+key.email+">");
+                    verifyLabelText.append("<" + key.email + ">");
                 }
                 break;
             }
-            case GPG_ERR_BAD_SIGNATURE:
-            {
+            case GPG_ERR_BAD_SIGNATURE: {
                 textIsSigned = 3;
-                verifyStatus=VERIFY_ERROR_CRITICAL;
+                verifyStatus = VERIFY_ERROR_CRITICAL;
                 GpgKey key = mCtx->getKeyById(sign->fpr);
                 verifyLabelText.append(key.name);
                 if (!key.email.isEmpty()) {
-                    verifyLabelText.append("<"+key.email+">");
+                    verifyLabelText.append("<" + key.email + ">");
                 }
                 break;
             }
-            default:
-            {
+            default: {
                 //textIsSigned = 3;
-                verifyStatus=VERIFY_ERROR_WARN;
+                verifyStatus = VERIFY_ERROR_WARN;
                 //GpgKey key = mKeyList->getKeyByFpr(sign->fpr);
-                verifyLabelText.append(tr("Error for key with fingerprint ")+mCtx->beautifyFingerprint(QString(sign->fpr)));
+                verifyLabelText.append(tr("Error for key with fingerprint ") +
+                                       GpgME::GpgContext::beautifyFingerprint(QString(sign->fpr)));
                 break;
             }
         }
@@ -154,32 +147,28 @@ bool VerifyNotification::slotRefresh()
         sign = sign->next;
     }
 
-    switch (textIsSigned)
-    {
+    switch (textIsSigned) {
         case 3:
-            {
-                verifyLabelText.prepend(tr("Error validating signature by: "));
-                break;
-            }
+            verifyLabelText.prepend(tr("Error validating signature by: "));
+            break;
+
         case 2:
-            {
-                verifyLabelText.prepend(tr("Text was completely signed by: "));
-                break;
-            }
+            verifyLabelText.prepend(tr("Text was completely signed by: "));
+            break;
+
         case 1:
-            {
-                verifyLabelText.prepend(tr("Text was partially signed by: "));
-                break;
-            }
+            verifyLabelText.prepend(tr("Text was partially signed by: "));
+            break;
+
     }
 
     // If an unknown key is found, enable the importfromkeyserveraction
     this->showImportAction(unknownKeyFound);
 
     // Remove the last linebreak
-    verifyLabelText.remove(verifyLabelText.length()-1,1);
+    verifyLabelText.remove(verifyLabelText.length() - 1, 1);
 
-    this->setVerifyLabel(verifyLabelText,verifyStatus);
+    this->setVerifyLabel(verifyLabelText, verifyStatus);
 
     return true;
 }

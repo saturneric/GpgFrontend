@@ -21,6 +21,8 @@
 
 #include "keylist.h"
 
+#include <utility>
+
 KeyList::KeyList(GpgME::GpgContext *ctx, QWidget *parent)
         : QWidget(parent)
 {
@@ -51,7 +53,7 @@ KeyList::KeyList(GpgME::GpgContext *ctx, QWidget *parent)
     mKeyList->setHorizontalHeaderLabels(labels);
     mKeyList->horizontalHeader()->setStretchLastSection(true);
 
-    QVBoxLayout *layout = new QVBoxLayout;
+    auto *layout = new QVBoxLayout;
     layout->addWidget(mKeyList);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(3);
@@ -78,19 +80,19 @@ void KeyList::slotRefresh()
     GpgKeyList::iterator it = keys.begin();
     while (it != keys.end()) {
 
-        QTableWidgetItem *tmp0 = new QTableWidgetItem();
+        auto *tmp0 = new QTableWidgetItem();
         tmp0->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsSelectable);
         tmp0->setCheckState(Qt::Unchecked);
         mKeyList->setItem(row, 0, tmp0);
 
         if (it->privkey) {
-            QTableWidgetItem *tmp1 = new QTableWidgetItem(QIcon(":kgpg_key2.png"), "");
+            auto *tmp1 = new QTableWidgetItem(QIcon(":kgpg_key2.png"), "");
             mKeyList->setItem(row, 1, tmp1);
         }
-        QTableWidgetItem *tmp2 = new QTableWidgetItem(it->name);
+        auto *tmp2 = new QTableWidgetItem(it->name);
         tmp2->setToolTip(it->name);
         mKeyList->setItem(row, 2, tmp2);
-        QTableWidgetItem *tmp3 = new QTableWidgetItem(it->email);
+        auto *tmp3 = new QTableWidgetItem(it->email);
         tmp3->setToolTip(it->email);
         // strike out expired keys
         if(it->expired || it->revoked) {
@@ -100,9 +102,9 @@ void KeyList::slotRefresh()
             tmp3->setFont(strike);
         }
         mKeyList->setItem(row, 3, tmp3);
-        QTableWidgetItem *tmp4 = new QTableWidgetItem(it->id);
+        auto *tmp4 = new QTableWidgetItem(it->id);
         mKeyList->setItem(row, 4, tmp4);
-        QTableWidgetItem *tmp5 = new QTableWidgetItem(it->fpr);
+        auto *tmp5 = new QTableWidgetItem(it->fpr);
         mKeyList->setItem(row, 5, tmp5);
 
 
@@ -115,7 +117,7 @@ void KeyList::slotRefresh()
 
 QStringList *KeyList::getChecked()
 {
-    QStringList *ret = new QStringList();
+    auto *ret = new QStringList();
     for (int i = 0; i < mKeyList->rowCount(); i++) {
         if (mKeyList->item(i, 0)->checkState() == Qt::Checked) {
             *ret << mKeyList->item(i, 4)->text();
@@ -126,7 +128,7 @@ QStringList *KeyList::getChecked()
 
 QStringList *KeyList::getAllPrivateKeys()
 {
-    QStringList *ret = new QStringList();
+    auto *ret = new QStringList();
     for (int i = 0; i < mKeyList->rowCount(); i++) {
         if (mKeyList->item(i, 1)) {
             *ret << mKeyList->item(i, 4)->text();
@@ -137,7 +139,7 @@ QStringList *KeyList::getAllPrivateKeys()
 
 QStringList *KeyList::getPrivateChecked()
 {
-    QStringList *ret = new QStringList();
+    auto *ret = new QStringList();
     for (int i = 0; i < mKeyList->rowCount(); i++) {
         if ((mKeyList->item(i, 0)->checkState() == Qt::Checked) && (mKeyList->item(i, 1))) {
             *ret << mKeyList->item(i, 4)->text();
@@ -159,7 +161,7 @@ void KeyList::setChecked(QStringList *keyIds)
 
 QStringList *KeyList::getSelected()
 {
-    QStringList *ret = new QStringList();
+    auto *ret = new QStringList();
 
     for (int i = 0; i < mKeyList->rowCount(); i++) {
         if (mKeyList->item(i, 0)->isSelected() == 1) {
@@ -169,7 +171,7 @@ QStringList *KeyList::getSelected()
     return ret;
 }
 
-bool KeyList::containsPrivateKeys()
+[[maybe_unused]] bool KeyList::containsPrivateKeys()
 {
     for (int i = 0; i < mKeyList->rowCount(); i++) {
         if (mKeyList->item(i, 1)) {
@@ -199,22 +201,22 @@ void KeyList::dropEvent(QDropEvent* event)
 //    importKeyDialog();
     QSettings settings;
 
-    QDialog *dialog = new QDialog();
+    auto *dialog = new QDialog();
 
     dialog->setWindowTitle(tr("Import Keys"));
     QLabel *label;
     label = new QLabel(tr("You've dropped something on the keylist.\n gpg4usb will now try to import key(s).")+"\n");
 
     // "always import keys"-CheckBox
-    QCheckBox *checkBox = new QCheckBox(tr("Always import without bothering."));
+    auto *checkBox = new QCheckBox(tr("Always import without bothering."));
     if (settings.value("general/confirmImportKeys").toBool()) checkBox->setCheckState(Qt::Unchecked);
 
     // Buttons for ok and cancel
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     connect(buttonBox, SIGNAL(accepted()), dialog, SLOT(accept()));
     connect(buttonBox, SIGNAL(rejected()), dialog, SLOT(reject()));
 
-    QVBoxLayout *vbox = new QVBoxLayout();
+    auto *vbox = new QVBoxLayout();
     vbox->addWidget(label);
     vbox->addWidget(checkBox);
     vbox->addWidget(buttonBox);
@@ -262,7 +264,7 @@ void KeyList::dragEnterEvent(QDragEnterEvent *event)
 /** set background color for Keys and put them to top
  *
  */
-void KeyList::markKeys(QStringList *keyIds)
+[[maybe_unused]] void KeyList::markKeys(QStringList *keyIds)
 {
     foreach(QString id, *keyIds) {
         qDebug() << "marked: " << id;
@@ -271,7 +273,7 @@ void KeyList::markKeys(QStringList *keyIds)
 
 void KeyList::importKeys(QByteArray inBuffer)
 {
-    GpgImportInformation result = mCtx->importKey(inBuffer);
+    GpgImportInformation result = mCtx->importKey(std::move(inBuffer));
     new KeyImportDetailDialog(mCtx, result, this);
 }
 
@@ -308,7 +310,7 @@ void KeyList::uploadKeyToServer(QByteArray *keys)
 
 void KeyList::uploadFinished()
 {
-    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    auto *reply = qobject_cast<QNetworkReply *>(sender());
 
     QByteArray response = reply->readAll();
     qDebug() << "RESPNOSE: " << response.data();
@@ -322,5 +324,4 @@ void KeyList::uploadFinished()
     }
 
     reply->deleteLater();
-    reply = 0;
 }

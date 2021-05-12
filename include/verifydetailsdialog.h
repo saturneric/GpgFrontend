@@ -42,7 +42,7 @@ private:
     QWidget *mVbox;
     QByteArray *mInputData; /** Data to be verified */
     QByteArray *mInputSignature; /** Data to be verified */
-    QDialogButtonBox *buttonBox;
+    QDialogButtonBox *buttonBox{};
 };
 
 #endif // __VERIFYDETAILSDIALOG_H__

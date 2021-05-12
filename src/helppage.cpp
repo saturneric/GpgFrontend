@@ -21,15 +21,16 @@
 
 #include "helppage.h"
 
-HelpPage::HelpPage(const QString path, QWidget *parent) :
-    QWidget(parent)
-{
+#include <utility>
+
+HelpPage::HelpPage(const QString &path, QWidget *parent) :
+        QWidget(parent) {
 
     browser = new QTextBrowser();
-    QVBoxLayout* mainLayout = new QVBoxLayout();
+    auto *mainLayout = new QVBoxLayout();
     mainLayout->setSpacing(0);
     mainLayout->addWidget(browser);
-    mainLayout->setContentsMargins(0,0,0,0);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
     setLayout(mainLayout);
     //setAttribute(Qt::WA_DeleteOnClose);
     //browser->setSource(QUrl::fromLocalFile(path));
@@ -41,8 +42,8 @@ HelpPage::HelpPage(const QString path, QWidget *parent) :
 
 }
 
-void HelpPage::slotOpenUrl(QUrl url) {
-     browser->setSource(localizedHelp(url));
+void HelpPage::slotOpenUrl(const QUrl &url) {
+    browser->setSource(localizedHelp(url));
 };
 
 /**
@@ -53,10 +54,10 @@ void HelpPage::slotOpenUrl(QUrl url) {
  * @param url
  * @return
  */
-QUrl HelpPage::localizedHelp(QUrl url) {
+QUrl HelpPage::localizedHelp(const QUrl &url) {
     QString path = url.toLocalFile();
-    QString filename = path.mid(path.lastIndexOf("/") + 1 );
-    QString filepath = path.left(path.lastIndexOf("/") + 1 );
+    QString filename = path.mid(path.lastIndexOf("/") + 1);
+    QString filepath = path.left(path.lastIndexOf("/") + 1);
     QStringList fileparts = filename.split(".");
 
     //QSettings settings;
@@ -65,10 +66,10 @@ QUrl HelpPage::localizedHelp(QUrl url) {
         lang = QLocale::system().name();
     }
 
-    fileparts.insert(1,lang);
+    fileparts.insert(1, lang);
     QString langfile = filepath + fileparts.join(".");
 
-    if(QFile(QUrl(langfile).toLocalFile()).exists()) {
+    if (QFile(QUrl(langfile).toLocalFile()).exists()) {
         return langfile;
     } else {
         return path;
@@ -76,6 +77,6 @@ QUrl HelpPage::localizedHelp(QUrl url) {
 
 }
 
-QTextBrowser* HelpPage::getBrowser() {
+QTextBrowser *HelpPage::getBrowser() {
     return browser;
 }

@@ -22,21 +22,20 @@
 #include "aboutdialog.h"
 
 AboutDialog::AboutDialog(QWidget *parent)
-    : QDialog(parent)
-{
-    this->setWindowTitle(tr("About ")+ qApp->applicationName());
+        : QDialog(parent) {
+    this->setWindowTitle(tr("About ") + qApp->applicationName());
 
-    QTabWidget *tabWidget = new QTabWidget;
-    InfoTab *infoTab = new InfoTab;
-    TranslatorsTab *translatorsTab = new TranslatorsTab;
+    auto *tabWidget = new QTabWidget;
+    auto *infoTab = new InfoTab;
+    auto *translatorsTab = new TranslatorsTab;
 
     tabWidget->addTab(infoTab, tr("General"));
     tabWidget->addTab(translatorsTab, tr("Translators"));
 
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(close()));
 
-    QVBoxLayout *mainLayout = new QVBoxLayout;
+    auto *mainLayout = new QVBoxLayout;
     mainLayout->addWidget(tabWidget);
     mainLayout->addWidget(buttonBox);
     setLayout(mainLayout);
@@ -45,27 +44,27 @@ AboutDialog::AboutDialog(QWidget *parent)
 }
 
 InfoTab::InfoTab(QWidget *parent)
-    : QWidget(parent)
-{
-    QPixmap *pixmap = new QPixmap(":gpg4usb-logo.png");
-    QString *text = new QString("<center><h2>" + qApp->applicationName() + " "
-                                + qApp->applicationVersion() + "</h2></center>"
-                                + tr("<center>This application allows simple encryption <br>"
-                                     "and decryption of text messages or files.<br>"
-                                     "It's licensed under the GPL v3<br><br>"
-                                     "<b>Developer:</b><br>"
-                                     "Bene, Heimer, Juergen, Nils, Ubbo<br><br>"
-                                     "If you have any questions or suggestions have a look<br/>"
-                                     "at our <a href=\"http://gpg4usb.cpunk.de/contact.php\">"
-                                     "contact page</a> or send a mail to our<br/> mailing list at"
-                                     " <a href=\"mailto:gpg4usb@gzehn.de\">gpg4usb@gzehn.de</a>.") + tr("<br><br> Built with Qt ") + qVersion()
-                                + tr(" and GPGME ") + GpgME::GpgContext::getGpgmeVersion() +"</center>");
+        : QWidget(parent) {
+    auto *pixmap = new QPixmap(":gpg4usb-logo.png");
+    auto *text = new QString("<center><h2>" + qApp->applicationName() + " "
+                             + qApp->applicationVersion() + "</h2></center>"
+                             + tr("<center>This application allows simple encryption <br>"
+                                  "and decryption of text messages or files.<br>"
+                                  "It's licensed under the GPL v3<br><br>"
+                                  "<b>Developer:</b><br>"
+                                  "Bene, Heimer, Juergen, Nils, Ubbo<br><br>"
+                                  "If you have any questions or suggestions have a look<br/>"
+                                  "at our <a href=\"http://gpg4usb.cpunk.de/contact.php\">"
+                                  "contact page</a> or send a mail to our<br/> mailing list at"
+                                  " <a href=\"mailto:gpg4usb@gzehn.de\">gpg4usb@gzehn.de</a>.") +
+                             tr("<br><br> Built with Qt ") + qVersion()
+                             + tr(" and GPGME ") + GpgME::GpgContext::getGpgmeVersion() + "</center>");
 
-    QGridLayout *layout = new QGridLayout();
-    QLabel *pixmapLabel = new QLabel();
+    auto *layout = new QGridLayout();
+    auto *pixmapLabel = new QLabel();
     pixmapLabel->setPixmap(*pixmap);
     layout->addWidget(pixmapLabel, 0, 0, 1, -1, Qt::AlignCenter);
-    QLabel *aboutLabel = new QLabel();
+    auto *aboutLabel = new QLabel();
     aboutLabel->setText(*text);
     aboutLabel->setOpenExternalLinks(true);
     layout->addWidget(aboutLabel, 1, 0, 1, -1);
@@ -76,15 +75,14 @@ InfoTab::InfoTab(QWidget *parent)
 }
 
 TranslatorsTab::TranslatorsTab(QWidget *parent)
-    : QWidget(parent)
-{
+        : QWidget(parent) {
     QFile translatorsFile;
-    translatorsFile.setFileName(qApp->applicationDirPath()+"/TRANSLATORS");
+    translatorsFile.setFileName(qApp->applicationDirPath() + "/TRANSLATORS");
     translatorsFile.open(QIODevice::ReadOnly);
     QByteArray inBuffer = translatorsFile.readAll();
 
-    QLabel *label = new QLabel(inBuffer);
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    auto *label = new QLabel(inBuffer);
+    auto *mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(label);
 
     setLayout(mainLayout);

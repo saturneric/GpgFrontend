@@ -21,20 +21,18 @@
 
 #include "verifykeydetailbox.h"
 
-VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext* ctx, KeyList* keyList, gpgme_signature_t signature) :
-    QGroupBox(parent)
-{
+VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList,
+                                       gpgme_signature_t signature) :
+        QGroupBox(parent) {
     this->mCtx = ctx;
     this->mKeyList = keyList;
-    this->fpr=signature->fpr;
+    this->fpr = signature->fpr;
 
-    QGridLayout *grid = new QGridLayout();
+    auto *grid = new QGridLayout();
 
-    switch (gpg_err_code(signature->status))
-    {
-        case GPG_ERR_NO_PUBKEY:
-        {
-            QPushButton *importButton = new QPushButton(tr("Import from keyserver"));
+    switch (gpg_err_code(signature->status)) {
+        case GPG_ERR_NO_PUBKEY: {
+            auto *importButton = new QPushButton(tr("Import from keyserver"));
             connect(importButton, SIGNAL(clicked()), this, SLOT(slotImportFormKeyserver()));
 
             this->setTitle(tr("Key not present with id 0x") + signature->fpr);
@@ -43,11 +41,10 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext* ctx, 
             //grid->addWidget(new QLabel(tr("Fingerprint:")), 1, 0);
             grid->addWidget(new QLabel(tr("Key not present in keylist")), 0, 1);
             //grid->addWidget(new QLabel(signature->fpr), 1, 1);
-            grid->addWidget(importButton, 2,0,2,1);
+            grid->addWidget(importButton, 2, 0, 2, 1);
             break;
         }
-        case GPG_ERR_NO_ERROR:
-        {
+        case GPG_ERR_NO_ERROR: {
             GpgKey key = mCtx->getKeyByFpr(signature->fpr);
 
             this->setTitle(key.name);
@@ -63,8 +60,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext* ctx, 
 
             break;
         }
-        default:
-        {
+        default: {
             GpgKey key = mCtx->getKeyById(signature->fpr);
             this->setTitle(tr("Error for key with id 0x") + fpr);
             grid->addWidget(new QLabel(tr("Name:")), 0, 0);
@@ -83,17 +79,15 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext* ctx, 
     this->setLayout(grid);
 }
 
-void VerifyKeyDetailBox::slotImportFormKeyserver()
-{
-    KeyServerImportDialog *importDialog =new KeyServerImportDialog(mCtx,mKeyList,this);
+void VerifyKeyDetailBox::slotImportFormKeyserver() {
+    auto *importDialog = new KeyServerImportDialog(mCtx, mKeyList, this);
     importDialog->slotImport(QStringList(fpr));
 }
 
-QString VerifyKeyDetailBox::beautifyFingerprint(QString fingerprint)
-{
+QString VerifyKeyDetailBox::beautifyFingerprint(QString fingerprint) {
     uint len = fingerprint.length();
     if ((len > 0) && (len % 4 == 0))
-        for (uint n = 0; 4 *(n + 1) < len; ++n)
-            fingerprint.insert(5 * n + 4, ' ');
+        for (uint n = 0; 4 * (n + 1) < len; ++n)
+            fingerprint.insert(static_cast<int>(5u * n + 4u), ' ');
     return fingerprint;
 }

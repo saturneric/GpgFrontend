@@ -33,8 +33,7 @@
 
 #include "mime.h"
 
-Mime::Mime(QByteArray *message)
-{
+Mime::Mime(QByteArray *message) {
     splitParts(message);
     /*
     mMessage = message;
@@ -78,40 +77,36 @@ Mime::Mime(QByteArray *message)
 }
 
 Mime::~Mime()
-{
+= default;
 
-}
-
-void Mime::splitParts(QByteArray *message)
-{
+void Mime::splitParts(QByteArray *message) {
     int pos1, pos2, headEnd;
     MimePart p_tmp;
 
     // find the boundary
-    pos1 = message->indexOf("boundary=\"") + 10 ;
+    pos1 = message->indexOf("boundary=\"") + 10;
     pos2 = message->indexOf("\"\n", pos1);
     QByteArray boundary = message->mid(pos1, pos2 - pos1);
     //qDebug() << "boundary: " << boundary;
 
     while (pos2 > pos1) {
 
-        pos1 = message->indexOf(boundary, pos2) + boundary.length() + 1 ;
+        pos1 = message->indexOf(boundary, pos2) + boundary.length() + 1;
         headEnd = message->indexOf("\n\n", pos1);
         if (headEnd < 0)
             break;
-        QByteArray header = message->mid(pos1 , headEnd - pos1);
+        QByteArray header = message->mid(pos1, headEnd - pos1);
 
         p_tmp.header = parseHeader(&header);
 
         pos2 = message->indexOf(boundary, headEnd);
-        p_tmp.body = message->mid(headEnd , pos2 - headEnd);
+        p_tmp.body = message->mid(headEnd, pos2 - headEnd);
 
         mPartList.append(p_tmp);
     }
 }
 
-Header Mime::parseHeader(QByteArray *header)
-{
+Header Mime::parseHeader(QByteArray *header) {
 
     QList<HeadElem> ret;
 
@@ -122,25 +117,25 @@ Header Mime::parseHeader(QByteArray *header)
     header->replace("\n ", " ");
 
     //split header at newlines
-    foreach(QByteArray line , header->split(* "\n")) {
-        HeadElem elem;
-        //split lines at :
-        QList<QByteArray> tmp2 = line.split(* ":");
-        elem.name = tmp2[0].trimmed();
-        if (tmp2[1].contains(';')) {
-            // split lines at ;
-            // TODO: what if ; is inside ""
-            QList<QByteArray> tmp3 = tmp2[1].split(* ";");
-            elem.value = QString(tmp3.takeFirst().trimmed());
-            foreach(QByteArray tmp4, tmp3) {
-                QList<QByteArray> tmp5 = tmp4.split(* "=");
-                elem.params.insert(QString(tmp5[0].trimmed()), QString(tmp5[1].trimmed()));
+            foreach(QByteArray line, header->split(*"\n")) {
+            HeadElem elem;
+            //split lines at :
+            QList<QByteArray> tmp2 = line.split(*":");
+            elem.name = tmp2[0].trimmed();
+            if (tmp2[1].contains(';')) {
+                // split lines at ;
+                // TODO: what if ; is inside ""
+                QList<QByteArray> tmp3 = tmp2[1].split(*";");
+                elem.value = QString(tmp3.takeFirst().trimmed());
+                        foreach(QByteArray tmp4, tmp3) {
+                        QList<QByteArray> tmp5 = tmp4.split(*"=");
+                        elem.params.insert(QString(tmp5[0].trimmed()), QString(tmp5[1].trimmed()));
+                    }
+            } else {
+                elem.value = tmp2[1].trimmed();
             }
-        } else {
-            elem.value = tmp2[1].trimmed();
+            ret.append(elem);
         }
-        ret.append(elem);
-    }
     return Header(ret);
 }
 
@@ -150,8 +145,7 @@ Header Mime::getHeader(const QByteArray *message) {
     return parseHeader(&header);
 }
 
-[[maybe_unused]] bool Mime::isMultipart(QByteArray *message)
-{
+[[maybe_unused]] bool Mime::isMultipart(QByteArray *message) {
     return message->startsWith("Content-Type: multipart/mixed;");
 }
 
@@ -159,8 +153,7 @@ Header Mime::getHeader(const QByteArray *message) {
  * if Content-Type is specified, it should be mime
  *
  */
-bool Mime::isMime(const QByteArray *message)
-{
+bool Mime::isMime(const QByteArray *message) {
     return message->startsWith("Content-Type:");
 }
 
@@ -173,28 +166,30 @@ bool Mime::isMime(const QByteArray *message)
  */
 
 static const char hexChars[16] = {
-    '0', '1', '2', '3', '4', '5', '6', '7',
-    '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+        '0', '1', '2', '3', '4', '5', '6', '7',
+        '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 };
 
 /******************************** KCodecs ********************************/
 // strchr(3) for broken systems.
-static int rikFindChar(register const char * _s, const char c)
-{
-    register const char * s = _s;
+static int rikFindChar(const char *_s, const char c) {
+    const char *s = _s;
 
     while (true) {
-        if ((0 == *s) || (c == *s)) break; ++s;
-        if ((0 == *s) || (c == *s)) break; ++s;
-        if ((0 == *s) || (c == *s)) break; ++s;
-        if ((0 == *s) || (c == *s)) break; ++s;
+        if ((0 == *s) || (c == *s)) break;
+        ++s;
+        if ((0 == *s) || (c == *s)) break;
+        ++s;
+        if ((0 == *s) || (c == *s)) break;
+        ++s;
+        if ((0 == *s) || (c == *s)) break;
+        ++s;
     }
 
-    return s - _s;
+    return static_cast<int>(s - _s);
 }
 
-void Mime::quotedPrintableDecode(const QByteArray& in, QByteArray& out)
-{
+void Mime::quotedPrintableDecode(const QByteArray &in, QByteArray &out) {
     // clear out the output buffer
     out.resize(0);
     if (in.isEmpty())
@@ -202,10 +197,10 @@ void Mime::quotedPrintableDecode(const QByteArray& in, QByteArray& out)
 
     char *cursor;
     const char *data;
-    const unsigned int length = in.size();
+    const size_t length = in.size();
 
     data = in.data();
-    out.resize(length);
+    out.resize(static_cast<int>(length));
     cursor = out.data();
 
     for (unsigned int i = 0; i < length; i++) {
@@ -239,5 +234,5 @@ void Mime::quotedPrintableDecode(const QByteArray& in, QByteArray& out)
         }
     }
 
-    out.truncate(cursor - out.data());
+    out.truncate(static_cast<int>(cursor - out.data()));
 }

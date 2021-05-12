@@ -28,9 +28,9 @@ class QuitDialog : public QDialog {
 Q_OBJECT
 
 public:
-    QuitDialog(QWidget *parent, QHash<int, QString> unsavedDocs);
+    QuitDialog(QWidget *parent, const QHash<int, QString>& unsavedDocs);
 
-    bool isDiscarded();
+    bool isDiscarded() const;
 
     QList<int> getTabIdsToSave();
 
@@ -39,8 +39,8 @@ private slots:
     void slotMyDiscard();
 
 private:
-    [[maybe_unused]] QAction *closeAct;
-    [[maybe_unused]] QLabel *nameLabel;
+    [[maybe_unused]] QAction *closeAct{};
+    [[maybe_unused]] QLabel *nameLabel{};
     bool discarded;
     QTableWidget *mFileList;
 };

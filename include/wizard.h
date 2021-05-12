@@ -48,7 +48,7 @@ public:
 
     Wizard(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent = nullptr);
 
-    static bool importPubAndSecKeysFromDir(QString dir, KeyMgmt *keyMgmt);
+    static bool importPubAndSecKeysFromDir(const QString& dir, KeyMgmt *keyMgmt);
 
 private:
     GpgME::GpgContext *mCtx;
@@ -75,7 +75,7 @@ public:
 
 private slots:
 
-    void slotLangChange(QString lang);
+    void slotLangChange(const QString& lang);
 };
 
 class ChoosePage : public QWizardPage {
@@ -107,7 +107,7 @@ private slots:
       */
     void slotImportFromOlderGpg4usb();
 
-    bool slotImportConfFromGpg4usb(QString dir);
+    bool slotImportConfFromGpg4usb(const QString& dir);
 
 private:
     [[nodiscard]] int nextId() const override;
@@ -141,7 +141,7 @@ private:
       * @returns String containg the gnupg-homedir, but NULL, if the in windows registry entry
       * doesn't exist or in linux ~/.gnupg doesn't exist
       */
-    QString getGnuPGHome();
+    static QString getGnuPGHome();
 
     GpgME::GpgContext *mCtx;
     QPushButton *importFromGnupgButton;
