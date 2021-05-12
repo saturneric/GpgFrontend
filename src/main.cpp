@@ -19,8 +19,7 @@
  *      along with gpg4usb.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#include "mainwindow.h"
-#include "gpgconstants.h"
+#include "MainWindow.h"
 
 int main(int argc, char *argv[]) {
 
