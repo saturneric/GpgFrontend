@@ -34,14 +34,14 @@ class KeyGenThread : public QThread {
 Q_OBJECT
 
 public:
-    KeyGenThread(QString keyGenParams, GpgME::GpgContext *ctx);
+    KeyGenThread(GenKeyInfo keyGenParams, GpgME::GpgContext *ctx);
 
 signals:
 
     void signalKeyGenerated();
 
 private:
-    QString keyGenParams;
+    GenKeyInfo keyGenParams;
     GpgME::GpgContext *mCtx;
     [[maybe_unused]] bool abort;
     QMutex mutex;

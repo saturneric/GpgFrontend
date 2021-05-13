@@ -25,6 +25,7 @@
 #include <GPG4USB.h>
 
 #include "GpgConstants.h"
+#include "GpgGenKeyInfo.h"
 
 
 class GpgKey {
@@ -98,7 +99,7 @@ namespace GpgME {
 
         bool exportKeys(QStringList *uidList, QByteArray *outBuffer);
 
-        void generateKey(QString *params);
+        void generateKey(GenKeyInfo *params);
 
         GpgKeyList listKeys();
 
