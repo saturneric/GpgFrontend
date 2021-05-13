@@ -56,8 +56,8 @@ namespace GpgME {
 #endif
 
         err = gpgme_new(&mCtx);
-
         checkErr(err);
+
         /** here come the qSettings, instead of /usr/bin/gpg
          * a executable in the same path as app is used.
          * also lin/win must  be checked, for calling gpg.exe if needed
@@ -65,7 +65,7 @@ namespace GpgME {
 #ifdef _WIN32
         gpgBin = appPath + "/bin/gpg.exe";
 #else
-        gpgBin = appPath + "/bin/gpg";
+        gpgBin = "/usr/bin/gpg";
 #endif
 
         QSettings qSettings;
@@ -195,8 +195,33 @@ namespace GpgME {
 /** Generate New Key with values params
  *
  */
-    void GpgContext::generateKey(QString *params) {
-        err = gpgme_op_genkey(mCtx, params->toUtf8().data(), nullptr, nullptr);
+    void GpgContext::generateKey(GenKeyInfo *params) {
+        auto userid_utf8 = params->userid.toUtf8();
+        const char *userid = userid_utf8.constData();
+        auto algo_utf8 = (params->algo + QString::number(params->keySize)).toUtf8();
+        const char *algo = algo_utf8.constData();
+        unsigned long expires = params->expired.toTime_t();
+        unsigned int flags = 0;
+
+        if(!params->isSubKey) {
+            flags |= GPGME_CREATE_CERT;
+            flags |= GPGME_CREATE_ENCR;
+        } else {
+            if(params->allowEncryption) {
+                flags |= GPGME_CREATE_ENCR;
+            }
+        }
+
+        if(params->allowSigning) {
+            flags |= GPGME_CREATE_SIGN;
+        }
+
+        if(params->nonExpired) {
+            flags |= GPGME_CREATE_NOEXPIRE;
+        }
+
+        err = gpgme_op_createkey(mCtx, userid, algo, 0, expires, nullptr,  flags);
+
         checkErr(err);
         emit signalKeyDBChanged();
     }
@@ -547,7 +572,8 @@ namespace GpgME {
     void GpgContext::checkErr(gpgme_error_t gpgmeError) {
         //if (gpgmeError != GPG_ERR_NO_ERROR && gpgmeError != GPG_ERR_CANCELED) {
         if (gpgmeError != GPG_ERR_NO_ERROR) {
-            qDebug() << "[Error] Source: " << gpgme_strsource(gpgmeError) << " String: " << gpgErrString(gpgmeError);
+            qDebug() << "[Error "<< gpg_err_code(gpgmeError)
+            <<"] Source: " << gpgme_strsource(gpgmeError) << " Description: " << gpgErrString(gpgmeError);
         }
     }
 

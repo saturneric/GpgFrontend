@@ -40,13 +40,16 @@ void KeyGenDialog::generateKeyDialog() {
 
     keySizeSpinBox = new QSpinBox(this);
     keySizeSpinBox->setRange(1024, 4096);
-    keySizeSpinBox->setValue(2048);
+    keySizeSpinBox->setValue(3072);
 
     keySizeSpinBox->setSingleStep(1024);
 
     keyTypeComboBox = new QComboBox(this);
     keyTypeComboBox->addItem("RSA");
-    keyTypeComboBox->addItem("DSA/Elgamal");
+    keyTypeComboBox->addItem("DSA");
+    keyTypeComboBox->addItem("ELG");
+    keyTypeComboBox->addItem("ED25519");
+    keyTypeComboBox->addItem("CV25519");
     keyTypeComboBox->setCurrentIndex(0);
     dateEdit = new QDateEdit(QDate::currentDate().addYears(5), this);
     dateEdit->setMinimumDate(QDate::currentDate());
@@ -73,7 +76,7 @@ void KeyGenDialog::generateKeyDialog() {
     auto *vbox1 = new QGridLayout;
 
     vbox1->addWidget(new QLabel(tr("Name:")), 0, 0);
-    vbox1->addWidget(new QLabel(tr("E-Mailaddress:")), 1, 0);
+    vbox1->addWidget(new QLabel(tr("E-Mail:")), 1, 0);
     vbox1->addWidget(new QLabel(tr("Comment:")), 2, 0);
     vbox1->addWidget(new QLabel(tr("Expiration Date:")), 3, 0);
     vbox1->addWidget(new QLabel(tr("Never Expire")), 3, 3);
@@ -114,12 +117,16 @@ void KeyGenDialog::generateKeyDialog() {
 
 void KeyGenDialog::slotKeyGenAccept() {
     QString errorString = "";
-    QString keyGenParams;
+
+    GenKeyInfo genKeyInfo;
+
     /**
      * check for errors in keygen dialog input
      */
     if ((nameEdit->text()).size() < 5) {
         errorString.append(tr("  Name must contain at least five characters.  \n"));
+    } if(emailEdit->text().isEmpty()) {
+        errorString.append(tr("  Please give a email address.   \n"));
     }
     if (passwordEdit->text() != repeatpwEdit->text()) {
         errorString.append(tr("  Password and Repeat don't match.  "));
@@ -130,44 +137,22 @@ void KeyGenDialog::slotKeyGenAccept() {
          * create the string for key generation
          */
 
-        if (keyTypeComboBox->currentText() == "RSA") {
-            keyGenParams = "<GnupgKeyParms format=\"internal\">\n"
-                           "Key-Type: RSA\n"
-                           "Key-Usage: sign\n"
-                           "Key-Length: " + keySizeSpinBox->cleanText() + "\n"
-                                                                          "Subkey-Type: RSA\n"
-                                                                          "Subkey-Length: " +
-                           keySizeSpinBox->cleanText() + "\n"
-                                                         "Subkey-Usage: encrypt\n";
-        } else {
-            keyGenParams = "<GnupgKeyParms format=\"internal\">\n"
-                           "Key-Type: DSA\n"
-                           "Key-Length: " + keySizeSpinBox->cleanText() + "\n"
-                                                                          "Subkey-Type: ELG-E\n"
-                                                                          "Subkey-Length: " +
-                           keySizeSpinBox->cleanText() + "\n";
-        }
+        genKeyInfo.userid = QString("%1 <%2>").arg(nameEdit->text(), emailEdit->text());
 
-        keyGenParams += "Name-Real: " + nameEdit->text().toUtf8() + "\n";
-        if (!(commentEdit->text().isEmpty())) {
-            keyGenParams += "Name-Comment: " + commentEdit->text().toUtf8() + "\n";
-        }
-        if (!(emailEdit->text().isEmpty())) {
-            keyGenParams += "Name-Email: " + emailEdit->text().toUtf8() + "\n";
-        }
+        genKeyInfo.algo = keyTypeComboBox->currentText().toLower();
+
+        genKeyInfo.keySize = keySizeSpinBox->value();
+
+        genKeyInfo.passPhrase = passwordEdit->text();
+
         if (expireCheckBox->checkState()) {
-            keyGenParams += "Expire-Date: 0\n";
+            genKeyInfo.nonExpired = true;
+            genKeyInfo.expired = QDateTime(QDateTime::fromTime_t(0));
         } else {
-            keyGenParams += "Expire-Date: " + dateEdit->sectionText(QDateTimeEdit::YearSection) + "-" +
-                            dateEdit->sectionText(QDateTimeEdit::MonthSection) + "-" +
-                            dateEdit->sectionText(QDateTimeEdit::DaySection) + "\n";
+            genKeyInfo.expired = dateEdit->dateTime();
         }
-        if (!(passwordEdit->text().isEmpty())) {
-            keyGenParams += "Passphrase: " + passwordEdit->text() + "\n";
-        }
-        keyGenParams += "</GnupgKeyParms>";
 
-        auto *kg = new KeyGenThread(keyGenParams, mCtx);
+        auto *kg = new KeyGenThread(genKeyInfo, mCtx);
         kg->start();
 
         this->accept();

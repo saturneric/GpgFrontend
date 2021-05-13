@@ -23,7 +23,7 @@
 
 #include <utility>
 
-KeyGenThread::KeyGenThread(QString keyGenParams, GpgME::GpgContext *ctx) {
+KeyGenThread::KeyGenThread(GenKeyInfo keyGenParams, GpgME::GpgContext *ctx) {
     this->keyGenParams = std::move(keyGenParams);
     this->mCtx = ctx;
     abort = false;

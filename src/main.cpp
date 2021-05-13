@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     // get application path
     QString appPath = qApp->applicationDirPath();
 
-    QApplication::setApplicationVersion("0.3.3");
+    QApplication::setApplicationVersion("1.0.0");
     QApplication::setApplicationName("gpg4usb");
 
     // dont show icons in menus
