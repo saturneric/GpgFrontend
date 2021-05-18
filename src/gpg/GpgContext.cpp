@@ -20,11 +20,20 @@
  */
 
 #include "gpg/GpgContext.h"
+#include "ui/KeygenThread.h"
+
 #include <unistd.h>    /* contains read/write */
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
+
+const QVector<QString> GenKeyInfo::SupportedAlgo = {
+        "RSA",
+        "DSA",
+        "ELG"
+};
+
 namespace GpgME {
 
 /** Constructor
@@ -74,7 +83,7 @@ namespace GpgME {
 
         if (accKeydbPath != "") {
             if (!QDir(qGpgKeys).exists()) {
-                QMessageBox::critical(0, tr("keydb path"),
+                QMessageBox::critical(nullptr, tr("keydb path"),
                                       tr("Didn't find keydb directory. Switching to gpg4usb's default keydb directory for this session."));
                 qGpgKeys = appPath + "/keydb";
             }
@@ -122,7 +131,7 @@ namespace GpgME {
  */
     GpgContext::~GpgContext() {
         if (mCtx) gpgme_release(mCtx);
-        mCtx = 0;
+        mCtx = nullptr;
     }
 
 /** Import Key from QByteArray
@@ -195,35 +204,48 @@ namespace GpgME {
 /** Generate New Key with values params
  *
  */
-    void GpgContext::generateKey(GenKeyInfo *params) {
-        auto userid_utf8 = params->userid.toUtf8();
+    bool GpgContext::generateKey(GenKeyInfo *params) {
+
+        auto userid_utf8 = params->getUserid().toUtf8();
         const char *userid = userid_utf8.constData();
-        auto algo_utf8 = (params->algo + QString::number(params->keySize)).toUtf8();
+        auto algo_utf8 = (params->getAlgo() + QString::number(params->getKeySize())).toUtf8();
         const char *algo = algo_utf8.constData();
-        unsigned long expires = params->expired.toTime_t();
+        unsigned long expires = params->getExpired().toTime_t();
         unsigned int flags = 0;
 
-        if(!params->isSubKey) {
+        if(!params->isSubKey()) {
             flags |= GPGME_CREATE_CERT;
-            flags |= GPGME_CREATE_ENCR;
-        } else {
-            if(params->allowEncryption) {
-                flags |= GPGME_CREATE_ENCR;
-            }
         }
 
-        if(params->allowSigning) {
+        if(params->isAllowEncryption()) {
+            flags |= GPGME_CREATE_ENCR;
+        }
+
+        if(params->isAllowSigning()) {
             flags |= GPGME_CREATE_SIGN;
         }
 
-        if(params->nonExpired) {
+        if(params->isAllowAuthentication()) {
+            flags |= GPGME_CREATE_AUTH;
+        }
+
+        if(params->isNonExpired()) {
             flags |= GPGME_CREATE_NOEXPIRE;
+        }
+
+        if(params->isNoPassPhrase()) {
+            flags |= GPGME_CREATE_NOPASSWD;
         }
 
         err = gpgme_op_createkey(mCtx, userid, algo, 0, expires, nullptr,  flags);
 
-        checkErr(err);
-        emit signalKeyDBChanged();
+        if(err != GPG_ERR_NO_ERROR) {
+            checkErr(err);
+            return false;
+        } else {
+            emit signalKeyDBChanged();
+            return true;
+        }
     }
 
 /** Export Key to QByteArray
@@ -564,8 +586,8 @@ namespace GpgME {
     void GpgContext::checkErr(gpgme_error_t gpgmeError, const QString& comment) {
         //if (gpgmeError != GPG_ERR_NO_ERROR && gpgmeError != GPG_ERR_CANCELED) {
         if (gpgmeError != GPG_ERR_NO_ERROR) {
-            qDebug() << "[Error " << comment << "] Source: " << gpgme_strsource(gpgmeError) << " String: "
-                     << gpgErrString(gpgmeError);
+            qDebug() << "[Error "<< gpg_err_code(gpgmeError)
+                     <<"] Source: " << gpgme_strsource(gpgmeError) << " Description: " << gpgErrString(gpgmeError);
         }
     }
 
