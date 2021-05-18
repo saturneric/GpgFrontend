@@ -23,8 +23,7 @@
 #include "ui/KeygenDialog.h"
 
 KeyGenDialog::KeyGenDialog(GpgME::GpgContext *ctx, QWidget *parent)
-        : QDialog(parent) {
-    mCtx = ctx;
+        : QDialog(parent), mCtx(ctx) {
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
     this->setWindowTitle(tr("Generate Key"));
@@ -33,27 +32,29 @@ KeyGenDialog::KeyGenDialog(GpgME::GpgContext *ctx, QWidget *parent)
 }
 
 void KeyGenDialog::generateKeyDialog() {
+
+    keyUsageGroupBox = create_key_usage_group_box();
+
     errorLabel = new QLabel(tr(""));
     nameEdit = new QLineEdit(this);
     emailEdit = new QLineEdit(this);
     commentEdit = new QLineEdit(this);
-
     keySizeSpinBox = new QSpinBox(this);
-    keySizeSpinBox->setRange(1024, 4096);
-    keySizeSpinBox->setValue(3072);
-
-    keySizeSpinBox->setSingleStep(1024);
-
     keyTypeComboBox = new QComboBox(this);
-    keyTypeComboBox->addItem("RSA");
-    keyTypeComboBox->addItem("DSA");
-    keyTypeComboBox->addItem("ELG");
-    keyTypeComboBox->addItem("ED25519");
-    keyTypeComboBox->addItem("CV25519");
-    keyTypeComboBox->setCurrentIndex(0);
-    dateEdit = new QDateEdit(QDate::currentDate().addYears(5), this);
-    dateEdit->setMinimumDate(QDate::currentDate());
-    dateEdit->setDisplayFormat("dd/MM/yyyy");
+
+    for(auto &algo : GenKeyInfo::SupportedAlgo) {
+        keyTypeComboBox->addItem(algo);
+    }
+    if(!GenKeyInfo::SupportedAlgo.isEmpty()) {
+        keyTypeComboBox->setCurrentIndex(0);
+    }
+
+    QDateTime maxDateTime = QDateTime::currentDateTime().addYears(2);
+
+    dateEdit = new QDateTimeEdit(maxDateTime, this);
+    dateEdit->setMinimumDateTime(QDateTime::currentDateTime());
+    dateEdit->setMaximumDateTime(maxDateTime);
+    dateEdit->setDisplayFormat("dd/MM/yyyy hh:mm:ss");
     dateEdit->setCalendarPopup(true);
     dateEdit->setEnabled(true);
 
@@ -65,6 +66,9 @@ void KeyGenDialog::generateKeyDialog() {
 
     passwordEdit->setEchoMode(QLineEdit::Password);
     repeatpwEdit->setEchoMode(QLineEdit::Password);
+
+    noPassPhraseCheckBox = new QCheckBox(this);
+    noPassPhraseCheckBox->setCheckState(Qt::Unchecked);
 
     pwStrengthSlider = new QSlider(this);
     pwStrengthSlider->setOrientation(Qt::Horizontal);
@@ -82,54 +86,64 @@ void KeyGenDialog::generateKeyDialog() {
     vbox1->addWidget(new QLabel(tr("Never Expire")), 3, 3);
     vbox1->addWidget(new QLabel(tr("KeySize (in Bit):")), 4, 0);
     vbox1->addWidget(new QLabel(tr("Key Type:")), 5, 0);
-    vbox1->addWidget(new QLabel(tr("Password:")), 6, 0);
-    vbox1->addWidget(new QLabel(tr("Password: Strength\nWeak -> Strong")), 6, 3);
-    vbox1->addWidget(new QLabel(tr("Repeat Password:")), 7, 0);
+    vbox1->addWidget(new QLabel(tr("Non Pass Phrase")), 6, 3);
+    vbox1->addWidget(new QLabel(tr("Pass Phrase:")), 6, 0);
+    vbox1->addWidget(new QLabel(tr("Pass Phrase: Strength\nWeak -> Strong")), 7, 3);
+    vbox1->addWidget(new QLabel(tr("Repeat Pass Phrase:")), 7, 0);
 
-    vbox1->addWidget(nameEdit, 0, 1);
-    vbox1->addWidget(emailEdit, 1, 1);
-    vbox1->addWidget(commentEdit, 2, 1);
+    vbox1->addWidget(nameEdit, 0, 1, 1, 3);
+    vbox1->addWidget(emailEdit, 1, 1, 1, 3);
+    vbox1->addWidget(commentEdit, 2, 1, 1, 3);
     vbox1->addWidget(dateEdit, 3, 1);
     vbox1->addWidget(expireCheckBox, 3, 2);
     vbox1->addWidget(keySizeSpinBox, 4, 1);
     vbox1->addWidget(keyTypeComboBox, 5, 1);
+    vbox1->addWidget(noPassPhraseCheckBox, 6, 2);
     vbox1->addWidget(passwordEdit, 6, 1);
     vbox1->addWidget(repeatpwEdit, 7, 1);
-    vbox1->addWidget(pwStrengthSlider, 7, 3);
+    vbox1->addWidget(pwStrengthSlider, 8, 3);
+
+    auto *groupGrid = new QGridLayout(this);
+    groupGrid->addLayout(vbox1, 0, 0);
+    groupGrid->addWidget(keyUsageGroupBox, 1, 0);
 
     auto *nameList = new QWidget(this);
-    nameList->setLayout(vbox1);
+    nameList->setLayout(groupGrid);
 
     auto *vbox2 = new QVBoxLayout();
     vbox2->addWidget(nameList);
     vbox2->addWidget(errorLabel);
     vbox2->addWidget(buttonBox);
 
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slotKeyGenAccept()));
-    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
-
-    connect(expireCheckBox, SIGNAL(stateChanged(int)), this, SLOT(slotExpireBoxChanged()));
-    connect(passwordEdit, SIGNAL(textChanged(QString)), this, SLOT(slotPasswordEditChanged()));
-//    connect(keyTypeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slotKeyTypeChanged()));
-//    connect(keySizeSpinBox, SIGNAL(valueChanged(int)), this, SLOT(slotKeySizeChanged()));
     this->setLayout(vbox2);
+
+    set_signal_slot();
+
+    refresh_widgets_state();
+
 }
 
 void KeyGenDialog::slotKeyGenAccept() {
     QString errorString = "";
-
-    GenKeyInfo genKeyInfo;
 
     /**
      * check for errors in keygen dialog input
      */
     if ((nameEdit->text()).size() < 5) {
         errorString.append(tr("  Name must contain at least five characters.  \n"));
-    } if(emailEdit->text().isEmpty()) {
+    } if(emailEdit->text().isEmpty() || !check_email_address(emailEdit->text())) {
         errorString.append(tr("  Please give a email address.   \n"));
     }
     if (passwordEdit->text() != repeatpwEdit->text()) {
         errorString.append(tr("  Password and Repeat don't match.  "));
+    }
+
+    /**
+     * primary keys should have a reasonable expiration date (no more than 2 years in the future)
+     */
+    if(dateEdit->dateTime() > QDateTime::currentDateTime().addYears(2)) {
+
+        errorString.append(tr("  Expiration time no more than 2 years.  "));
     }
 
     if (errorString.isEmpty()) {
@@ -137,22 +151,20 @@ void KeyGenDialog::slotKeyGenAccept() {
          * create the string for key generation
          */
 
-        genKeyInfo.userid = QString("%1 <%2>").arg(nameEdit->text(), emailEdit->text());
+        genKeyInfo.setUserid(QString("%1 <%2>").arg(nameEdit->text(), emailEdit->text()));
 
-        genKeyInfo.algo = keyTypeComboBox->currentText().toLower();
+        genKeyInfo.setKeySize(keySizeSpinBox->value());
 
-        genKeyInfo.keySize = keySizeSpinBox->value();
-
-        genKeyInfo.passPhrase = passwordEdit->text();
+        genKeyInfo.setPassPhrase(passwordEdit->text());
 
         if (expireCheckBox->checkState()) {
-            genKeyInfo.nonExpired = true;
-            genKeyInfo.expired = QDateTime(QDateTime::fromTime_t(0));
+            genKeyInfo.setNonExpired(true);
         } else {
-            genKeyInfo.expired = dateEdit->dateTime();
+            genKeyInfo.setExpired(dateEdit->dateTime());
         }
 
-        auto *kg = new KeyGenThread(genKeyInfo, mCtx);
+        kg = new KeyGenThread(&genKeyInfo, mCtx);
+
         kg->start();
 
         this->accept();
@@ -177,8 +189,10 @@ void KeyGenDialog::slotKeyGenAccept() {
             QCoreApplication::processEvents();
         }
 
+        destroy(kg, true);
+
         dialog->close();
-        QMessageBox::information(nullptr, tr("Success"), tr("New key created"));
+
     } else {
         /**
          * create error message
@@ -235,5 +249,175 @@ int KeyGenDialog::checkPassWordStrength() {
     }
 
     return strength;
+}
+
+QGroupBox *KeyGenDialog::create_key_usage_group_box() {
+
+    auto *groupBox = new QGroupBox(this);
+    auto *grid = new QGridLayout(this);
+
+    groupBox->setTitle("Key Usage");
+
+    auto* encrypt = new QCheckBox(tr("Encryption"), groupBox);
+    encrypt->setTristate(false);
+
+    auto* sign = new QCheckBox(tr("Signing"),groupBox);
+    sign->setTristate(false);
+
+    auto* cert = new QCheckBox(tr("Certification"),groupBox);
+    cert->setTristate(false);
+
+    auto* auth = new QCheckBox(tr("Authentication"), groupBox);
+    auth->setTristate(false);
+
+    keyUsageCheckBoxes.push_back(encrypt);
+    keyUsageCheckBoxes.push_back(sign);
+    keyUsageCheckBoxes.push_back(cert);
+    keyUsageCheckBoxes.push_back(auth);
+
+    grid->addWidget(encrypt, 0, 0);
+    grid->addWidget(sign, 0, 1);
+    grid->addWidget(cert, 1, 0);
+    grid->addWidget(auth, 1, 1);
+
+    groupBox->setLayout(grid);
+
+    return groupBox;
+}
+
+void KeyGenDialog::slotEncryptionBoxChanged(int state) {
+    if(state == 0) {
+        genKeyInfo.setAllowEncryption(false);
+    } else {
+        genKeyInfo.setAllowEncryption(true);
+    }
+}
+
+void KeyGenDialog::slotSigningBoxChanged(int state) {
+    if(state == 0) {
+        genKeyInfo.setAllowSigning(false);
+    } else {
+        genKeyInfo.setAllowSigning(true);
+    }
+}
+
+void KeyGenDialog::slotCertificationBoxChanged(int state) {
+    if(state == 0) {
+        genKeyInfo.setAllowCertification(false);
+    } else {
+        genKeyInfo.setAllowCertification(true);
+    }
+}
+
+void KeyGenDialog::slotAuthenticationBoxChanged(int state) {
+    if(state == 0) {
+        genKeyInfo.setAllowAuthentication(false);
+    } else {
+        genKeyInfo.setAllowAuthentication(true);
+    }
+}
+
+void KeyGenDialog::slotActivatedKeyType(int index) {
+
+    qDebug() << "key type index changed " << index;
+
+    genKeyInfo.setAlgo(this->keyTypeComboBox->itemText(index));
+    refresh_widgets_state();
+}
+
+void KeyGenDialog::refresh_widgets_state() {
+
+    qDebug() << "refresh_widgets_state called";
+
+    if(genKeyInfo.isAllowEncryption())
+        keyUsageCheckBoxes[0]->setCheckState(Qt::CheckState::Checked);
+    else
+        keyUsageCheckBoxes[0]->setCheckState(Qt::CheckState::Unchecked);
+
+    if(genKeyInfo.isAllowChangeEncryption())
+        keyUsageCheckBoxes[0]->setDisabled(false);
+    else
+        keyUsageCheckBoxes[0]->setDisabled(true);
+
+
+    if(genKeyInfo.isAllowSigning())
+        keyUsageCheckBoxes[1]->setCheckState(Qt::CheckState::Checked);
+    else
+        keyUsageCheckBoxes[1]->setCheckState(Qt::CheckState::Unchecked);
+
+    if(genKeyInfo.isAllowChangeSigning())
+        keyUsageCheckBoxes[1]->setDisabled(false);
+    else
+        keyUsageCheckBoxes[1]->setDisabled(true);
+
+
+    if(genKeyInfo.isAllowCertification())
+        keyUsageCheckBoxes[2]->setCheckState(Qt::CheckState::Checked);
+    else
+        keyUsageCheckBoxes[2]->setCheckState(Qt::CheckState::Unchecked);
+
+    if(genKeyInfo.isAllowChangeCertification())
+        keyUsageCheckBoxes[2]->setDisabled(false);
+    else
+        keyUsageCheckBoxes[2]->setDisabled(true);
+
+
+    if(genKeyInfo.isAllowAuthentication())
+        keyUsageCheckBoxes[3]->setCheckState(Qt::CheckState::Checked);
+    else
+        keyUsageCheckBoxes[3]->setCheckState(Qt::CheckState::Unchecked);
+
+    if(genKeyInfo.isAllowChangeAuthentication())
+        keyUsageCheckBoxes[3]->setDisabled(false);
+    else
+        keyUsageCheckBoxes[3]->setDisabled(true);
+
+
+
+    if(genKeyInfo.isAllowNoPassPhrase())
+        noPassPhraseCheckBox->setDisabled(false);
+    else
+        noPassPhraseCheckBox->setDisabled(true);
+
+
+    keySizeSpinBox->setRange(genKeyInfo.getSuggestMinKeySize(), genKeyInfo.getSuggestMaxKeySize());
+    keySizeSpinBox->setValue(genKeyInfo.getKeySize());
+    keySizeSpinBox->setSingleStep(genKeyInfo.getSizeChangeStep());
+
+
+}
+
+void KeyGenDialog::set_signal_slot() {
+
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slotKeyGenAccept()));
+    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+
+    connect(expireCheckBox, SIGNAL(stateChanged(int)), this, SLOT(slotExpireBoxChanged()));
+    connect(passwordEdit, SIGNAL(textChanged(QString)), this, SLOT(slotPasswordEditChanged()));
+
+    connect(keyUsageCheckBoxes[0], SIGNAL(stateChanged(int)), this, SLOT(slotEncryptionBoxChanged(int)));
+    connect(keyUsageCheckBoxes[1], SIGNAL(stateChanged(int)), this, SLOT(slotSigningBoxChanged(int)));
+    connect(keyUsageCheckBoxes[2], SIGNAL(stateChanged(int)), this, SLOT(slotCertificationBoxChanged(int)));
+    connect(keyUsageCheckBoxes[3], SIGNAL(stateChanged(int)), this, SLOT(slotAuthenticationBoxChanged(int)));
+
+    connect(keyTypeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slotActivatedKeyType(int)));
+
+    connect(noPassPhraseCheckBox, &QCheckBox::stateChanged, this, [this](int state) -> void {
+        if(state == 0) {
+            genKeyInfo.setNonPassPhrase(false);
+            passwordEdit->setDisabled(false);
+            repeatpwEdit->setDisabled(false);
+        } else {
+            genKeyInfo.setNonPassPhrase(true);
+            passwordEdit->setDisabled(true);
+            repeatpwEdit->setDisabled(true);
+        }
+
+    });
+
+}
+
+bool KeyGenDialog::check_email_address(const QString &str) {
+    return re_email.match(str).hasMatch();
 }
 

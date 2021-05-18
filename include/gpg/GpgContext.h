@@ -99,7 +99,7 @@ namespace GpgME {
 
         bool exportKeys(QStringList *uidList, QByteArray *outBuffer);
 
-        void generateKey(GenKeyInfo *params);
+        bool generateKey(GenKeyInfo *params);
 
         GpgKeyList listKeys();
 
