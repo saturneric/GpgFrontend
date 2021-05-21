@@ -102,7 +102,7 @@ namespace GpgME {
 
         void exportSecretKey(const QString &uid, QByteArray *outBuffer);
 
-        gpgme_key_t getKeyDetails(const QString &uid);
+        void getKeyDetails(const QString &uid, GpgKey& key);
 
         gpgme_signature_t verify(QByteArray *inBuffer, QByteArray *sigBuffer = nullptr);
 

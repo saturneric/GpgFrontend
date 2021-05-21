@@ -31,12 +31,6 @@
 #include <windows.h>
 #endif
 
-const QVector<QString> GenKeyInfo::SupportedKeyAlgo = {
-        "RSA",
-        "DSA",
-        "ED25519"
-};
-
 namespace GpgME {
 
 /** Constructor
@@ -259,16 +253,17 @@ namespace GpgME {
         return true;
     }
 
-    gpgme_key_t GpgContext::getKeyDetails(const QString& uid) {
-        gpgme_key_t key;
+    void GpgContext::getKeyDetails(const QString& uid, GpgKey& key) {
+        gpgme_key_t gpgme_key;
 
         // try secret
-        gpgme_get_key(mCtx, uid.toUtf8().constData(), &key, 1);
+        gpgme_get_key(mCtx, uid.toUtf8().constData(), &gpgme_key, 1);
         // ok, its a public key
-        if (!key) {
-            gpgme_get_key(mCtx, uid.toUtf8().constData(), &key, 0);
+        if (!gpgme_key) {
+            gpgme_get_key(mCtx, uid.toUtf8().constData(), &gpgme_key, 0);
         }
-        return key;
+
+        key.parse(gpgme_key);
     }
 
 /** List all availabe Keys (VERY much like kgpgme)

@@ -48,7 +48,7 @@ KeyList::KeyList(GpgME::GpgContext *ctx, QWidget *parent)
     mKeyList->setAlternatingRowColors(true);
 
     QStringList labels;
-    labels << "" << tr("Type") << tr("Name") << tr("Email Address")
+    labels << tr("Select") << tr("Type") << tr("Name") << tr("Email Address")
         << tr("Usage") << tr("Validity") << tr("Finger Print");
     mKeyList->setHorizontalHeaderLabels(labels);
     mKeyList->horizontalHeader()->setStretchLastSection(true);
@@ -84,8 +84,9 @@ void KeyList::slotRefresh()
 
         buffered_keys.push_back(*it);
 
-        auto *tmp0 = new QTableWidgetItem();
+        auto *tmp0 = new QTableWidgetItem(QString::number(row));
         tmp0->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+        tmp0->setTextAlignment(Qt::AlignCenter);
         tmp0->setCheckState(Qt::Unchecked);
         mKeyList->setItem(row, 0, tmp0);
 
@@ -124,10 +125,16 @@ void KeyList::slotRefresh()
             usage_steam << "A";
 
         auto *temp_usage = new QTableWidgetItem(usage);
-        mKeyList->setToolTip(usage);
         temp_usage->setTextAlignment(Qt::AlignCenter);
         mKeyList->setItem(row, 4, temp_usage);
 
+        auto *temp_validity = new QTableWidgetItem(it->owner_trust);
+        temp_validity->setTextAlignment(Qt::AlignCenter);
+        mKeyList->setItem(row, 5, temp_validity);
+
+        auto *temp_fpr = new QTableWidgetItem(it->fpr);
+        temp_fpr->setTextAlignment(Qt::AlignCenter);
+        mKeyList->setItem(row, 6, temp_fpr);
 
         it++;
         ++row;
@@ -152,7 +159,7 @@ QStringList *KeyList::getAllPrivateKeys()
     auto *ret = new QStringList();
     for (int i = 0; i < mKeyList->rowCount(); i++) {
         if (mKeyList->item(i, 1)) {
-            *ret << mKeyList->item(i, 4)->text();
+            *ret << buffered_keys[i].id;
         }
     }
     return ret;
@@ -163,7 +170,7 @@ QStringList *KeyList::getPrivateChecked()
     auto *ret = new QStringList();
     for (int i = 0; i < mKeyList->rowCount(); i++) {
         if ((mKeyList->item(i, 0)->checkState() == Qt::Checked) && (mKeyList->item(i, 1))) {
-            *ret << mKeyList->item(i, 4)->text();
+            *ret << buffered_keys[i].id;
         }
     }
     return ret;
@@ -173,7 +180,7 @@ void KeyList::setChecked(QStringList *keyIds)
 {
     if (!keyIds->isEmpty()) {
         for (int i = 0; i < mKeyList->rowCount(); i++) {
-            if (keyIds->contains(mKeyList->item(i, 4)->text()))  {
+            if (keyIds->contains(buffered_keys[i].id))  {
                 mKeyList->item(i, 0)->setCheckState(Qt::Checked);
             }
         }
@@ -186,7 +193,7 @@ QStringList *KeyList::getSelected()
 
     for (int i = 0; i < mKeyList->rowCount(); i++) {
         if (mKeyList->item(i, 0)->isSelected() == 1) {
-            *ret << mKeyList->item(i, 4)->text();
+            *ret << buffered_keys[i].id;
         }
     }
     return ret;

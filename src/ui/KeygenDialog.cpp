@@ -69,7 +69,7 @@ void KeyGenDialog::generateKeyDialog() {
     auto *vbox1 = new QGridLayout;
 
     vbox1->addWidget(new QLabel(tr("Name:")), 0, 0);
-    vbox1->addWidget(new QLabel(tr("E-Mail:")), 1, 0);
+    vbox1->addWidget(new QLabel(tr("Email Address:")), 1, 0);
     vbox1->addWidget(new QLabel(tr("Comment:")), 2, 0);
     vbox1->addWidget(new QLabel(tr("Expiration Date:")), 3, 0);
     vbox1->addWidget(new QLabel(tr("Never Expire")), 3, 3);
