@@ -855,10 +855,10 @@ void MainWindow::slotCopyMailAddressToClipboard() {
     if (mKeyList->getSelected()->isEmpty()) {
         return;
     }
-
-    gpgme_key_t key = mCtx->getKeyDetails(mKeyList->getSelected()->first());
+    GpgKey key;
+    mCtx->getKeyDetails(mKeyList->getSelected()->first(), key);
     QClipboard *cb = QApplication::clipboard();
-    QString mail = key->uids->email;
+    QString mail = key.email;
     cb->setText(mail);
 }
 
@@ -866,9 +866,9 @@ void MainWindow::slotShowKeyDetails() {
     if (mKeyList->getSelected()->isEmpty()) {
         return;
     }
-
-    gpgme_key_t key = mCtx->getKeyDetails(mKeyList->getSelected()->first());
-    if (key) {
+    GpgKey key;
+    mCtx->getKeyDetails(mKeyList->getSelected()->first(), key);
+    if (key.good) {
         new KeyDetailsDialog(mCtx, key, this);
     }
 }

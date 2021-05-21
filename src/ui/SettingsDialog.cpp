@@ -183,18 +183,19 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
     // Fill the keyid hashmap
     keyIds.insert("", tr("<none>"));
 
-            foreach (QString keyid, *mKeyList->getAllPrivateKeys()) {
-            gpgme_key_t key = mCtx->getKeyDetails(keyid);
+    foreach (QString keyid, *mKeyList->getAllPrivateKeys()) {
+            GpgKey key;
+            mCtx->getKeyDetails(keyid, key);
             QString newKey = " (" + keyid + ")";
-            if (!QString(key->uids->email).isEmpty()) {
-                newKey.prepend(" <" + QString::fromUtf8(key->uids->email) + ">");
+            if (!QString(key.email).isEmpty()) {
+                newKey.prepend(" <" + key.email + ">");
             }
-            if (!QString(key->uids->name).isEmpty()) {
-                newKey.prepend(" " + QString::fromUtf8(key->uids->name));
+            if (!QString(key.name).isEmpty()) {
+                newKey.prepend(" " + key.name);
             }
-            keyIds.insert(key->uids->uid, newKey);
+            keyIds.insert(key.id, newKey);
         }
-            foreach(QString k, keyIds) {
+        foreach(QString k, keyIds) {
             ownKeySelectBox->addItem(k);
         }
     connect(ownKeySelectBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slotOwnKeyIdChanged()));
