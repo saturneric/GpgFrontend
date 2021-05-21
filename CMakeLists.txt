@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 
-project(gpg4usb VERSION 1.0.0 LANGUAGES CXX)
+project(GPGFrontend VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

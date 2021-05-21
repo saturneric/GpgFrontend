@@ -1,30 +1,25 @@
-/*
- *      mime.cpp
+/**
+ * This file is part of GPGFrontend.
  *
- *      Copyright 2008 gpg4usb-team <gpg4usb@cpunk.de>
+ * GPGFrontend is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *      This file is part of gpg4usb.
+ * Foobar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *      Gpg4usb is free software: you can redistribute it and/or modify
- *      it under the terms of the GNU General Public License as published by
- *      the Free Software Foundation, either version 3 of the License, or
- *      (at your option) any later version.
+ * You should have received a copy of the GNU General Public License
+ * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
  *
- *      Gpg4usb is distributed in the hope that it will be useful,
- *      but WITHOUT ANY WARRANTY; without even the implied warranty of
- *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *      GNU General Public License for more details.
+ * The initial version of the source code is inherited from gpg4usb-team.
+ * Their source code version also complies with GNU General Public License.
  *
- *      You should have received a copy of the GNU General Public License
- *      along with gpg4usb.  If not, see <http://www.gnu.org/licenses/>
- */
-
-/***
- * quotedPrintableDecode copied from KCodecs, where it is stated:
-
-   The quoted-printable codec as described in RFC 2045, section 6.7. is by
-   Rik Hemsley (C) 2001.
-
+ * The source code version of this software was modified and released
+ * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
  */
 
 /*    TODO: proper import / copyright statement

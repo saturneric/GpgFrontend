@@ -22,7 +22,7 @@
 #ifndef __QUITDIALOG_H__
 #define __QUITDIALOG_H__
 
-#include <GPG4USB.h>
+#include <GpgFrontend.h>
 
 class QuitDialog : public QDialog {
 Q_OBJECT
