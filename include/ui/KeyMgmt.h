@@ -43,7 +43,12 @@ public:
     QAction *importKeyFromFileAct{};
     QAction *importKeyFromKeyServerAct{};
 
+    QAction *generateKeyPairAct{};
+    QAction *generateSubKeyAct{};
+
 public slots:
+
+    void slotGenerateSubKey();
 
     void slotImportKeyFromFile();
 
@@ -82,6 +87,7 @@ private:
     GpgME::GpgContext *mCtx;
     QMenu *fileMenu{};
     QMenu *keyMenu{};
+    QMenu *generateKeyMenu{};
     QMenu *importKeyMenu{};
     QAction *exportKeyToFileAct{};
     QAction *exportKeyToClipboardAct{};

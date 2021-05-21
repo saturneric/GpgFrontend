@@ -32,16 +32,12 @@ KeyList::KeyList(GpgME::GpgContext *ctx, QWidget *parent)
     mCtx = ctx;
 
     mKeyList = new QTableWidget(this);
-    mKeyList->setColumnCount(6);
+    mKeyList->setColumnCount(7);
+    mKeyList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     mKeyList->verticalHeader()->hide();
     mKeyList->setShowGrid(false);
-    mKeyList->setColumnWidth(0, 24);
-    mKeyList->setColumnWidth(1, 20);
     mKeyList->sortByColumn(2, Qt::AscendingOrder);
     mKeyList->setSelectionBehavior(QAbstractItemView::SelectRows);
-    // hide id and fingerprint of key
-    mKeyList->setColumnHidden(4, true);
-    mKeyList->setColumnHidden(5, true);
 
     // tableitems not editable
     mKeyList->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -52,7 +48,8 @@ KeyList::KeyList(GpgME::GpgContext *ctx, QWidget *parent)
     mKeyList->setAlternatingRowColors(true);
 
     QStringList labels;
-    labels << "" << "" << tr("Name") << tr("EMail") << "id" << "fpr";
+    labels << "" << tr("Type") << tr("Name") << tr("Email Address")
+        << tr("Usage") << tr("Validity") << tr("Finger Print");
     mKeyList->setHorizontalHeaderLabels(labels);
     mKeyList->horizontalHeader()->setStretchLastSection(true);
 
@@ -81,17 +78,25 @@ void KeyList::slotRefresh()
 
     int row = 0;
     GpgKeyList::iterator it = keys.begin();
+    buffered_keys.clear();
+
     while (it != keys.end()) {
+
+        buffered_keys.push_back(*it);
 
         auto *tmp0 = new QTableWidgetItem();
         tmp0->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsSelectable);
         tmp0->setCheckState(Qt::Unchecked);
         mKeyList->setItem(row, 0, tmp0);
 
-        if (it->privkey) {
-            auto *tmp1 = new QTableWidgetItem(QIcon(":kgpg_key2.png"), "");
+        if (it->is_private_key) {
+            auto *tmp1 = new QTableWidgetItem("pub/sec");
+            mKeyList->setItem(row, 1, tmp1);
+        } else {
+            auto *tmp1 = new QTableWidgetItem("pub");
             mKeyList->setItem(row, 1, tmp1);
         }
+
         auto *tmp2 = new QTableWidgetItem(it->name);
         tmp2->setToolTip(it->name);
         mKeyList->setItem(row, 2, tmp2);
@@ -105,10 +110,23 @@ void KeyList::slotRefresh()
             tmp3->setFont(strike);
         }
         mKeyList->setItem(row, 3, tmp3);
-        auto *tmp4 = new QTableWidgetItem(it->id);
-        mKeyList->setItem(row, 4, tmp4);
-        auto *tmp5 = new QTableWidgetItem(it->fpr);
-        mKeyList->setItem(row, 5, tmp5);
+
+        QString usage;
+        QTextStream usage_steam(&usage);
+
+        if(it->can_certify)
+            usage_steam << "C";
+        if(it->can_encrypt)
+            usage_steam << "E";
+        if(it->can_sign)
+            usage_steam << "S";
+        if(it->can_authenticate)
+            usage_steam << "A";
+
+        auto *temp_usage = new QTableWidgetItem(usage);
+        mKeyList->setToolTip(usage);
+        temp_usage->setTextAlignment(Qt::AlignCenter);
+        mKeyList->setItem(row, 4, temp_usage);
 
 
         it++;
@@ -123,7 +141,7 @@ QStringList *KeyList::getChecked()
     auto *ret = new QStringList();
     for (int i = 0; i < mKeyList->rowCount(); i++) {
         if (mKeyList->item(i, 0)->checkState() == Qt::Checked) {
-            *ret << mKeyList->item(i, 4)->text();
+            *ret << buffered_keys[i].id;
         }
     }
     return ret;

@@ -44,10 +44,10 @@ void KeyGenDialog::generateKeyDialog() {
     keySizeSpinBox = new QSpinBox(this);
     keyTypeComboBox = new QComboBox(this);
 
-    for(auto &algo : GenKeyInfo::SupportedAlgo) {
+    for(auto &algo : GenKeyInfo::SupportedKeyAlgo) {
         keyTypeComboBox->addItem(algo);
     }
-    if(!GenKeyInfo::SupportedAlgo.isEmpty()) {
+    if(!GenKeyInfo::SupportedKeyAlgo.isEmpty()) {
         keyTypeComboBox->setCurrentIndex(0);
     }
 
@@ -63,21 +63,8 @@ void KeyGenDialog::generateKeyDialog() {
     expireCheckBox = new QCheckBox(this);
     expireCheckBox->setCheckState(Qt::Unchecked);
 
-    passwordEdit = new QLineEdit(this);
-    repeatpwEdit = new QLineEdit(this);
-
-    passwordEdit->setEchoMode(QLineEdit::Password);
-    repeatpwEdit->setEchoMode(QLineEdit::Password);
-
     noPassPhraseCheckBox = new QCheckBox(this);
     noPassPhraseCheckBox->setCheckState(Qt::Unchecked);
-
-    pwStrengthSlider = new QSlider(this);
-    pwStrengthSlider->setOrientation(Qt::Horizontal);
-    pwStrengthSlider->setMaximum(6);
-    pwStrengthSlider->setDisabled(true);
-    pwStrengthSlider->setToolTip(tr("Password Strength"));
-    pwStrengthSlider->setTickPosition(QSlider::TicksBelow);
 
     auto *vbox1 = new QGridLayout;
 
@@ -88,10 +75,7 @@ void KeyGenDialog::generateKeyDialog() {
     vbox1->addWidget(new QLabel(tr("Never Expire")), 3, 3);
     vbox1->addWidget(new QLabel(tr("KeySize (in Bit):")), 4, 0);
     vbox1->addWidget(new QLabel(tr("Key Type:")), 5, 0);
-    vbox1->addWidget(new QLabel(tr("Non Pass Phrase")), 6, 3);
-    vbox1->addWidget(new QLabel(tr("Pass Phrase:")), 6, 0);
-    vbox1->addWidget(new QLabel(tr("Pass Phrase: Strength\nWeak -> Strong")), 7, 3);
-    vbox1->addWidget(new QLabel(tr("Repeat Pass Phrase:")), 7, 0);
+    vbox1->addWidget(new QLabel(tr("Non Pass Phrase")), 6, 0);
 
     vbox1->addWidget(nameEdit, 0, 1, 1, 3);
     vbox1->addWidget(emailEdit, 1, 1, 1, 3);
@@ -100,10 +84,7 @@ void KeyGenDialog::generateKeyDialog() {
     vbox1->addWidget(expireCheckBox, 3, 2);
     vbox1->addWidget(keySizeSpinBox, 4, 1);
     vbox1->addWidget(keyTypeComboBox, 5, 1);
-    vbox1->addWidget(noPassPhraseCheckBox, 6, 2);
-    vbox1->addWidget(passwordEdit, 6, 1);
-    vbox1->addWidget(repeatpwEdit, 7, 1);
-    vbox1->addWidget(pwStrengthSlider, 8, 3);
+    vbox1->addWidget(noPassPhraseCheckBox, 6, 1);
 
     auto *groupGrid = new QGridLayout(this);
     groupGrid->addLayout(vbox1, 0, 0);
@@ -136,9 +117,6 @@ void KeyGenDialog::slotKeyGenAccept() {
     } if(emailEdit->text().isEmpty() || !check_email_address(emailEdit->text())) {
         errorString.append(tr("  Please give a email address.   \n"));
     }
-    if (passwordEdit->text() != repeatpwEdit->text()) {
-        errorString.append(tr("  Password and Repeat don't match.  "));
-    }
 
     /**
      * primary keys should have a reasonable expiration date (no more than 2 years in the future)
@@ -156,8 +134,6 @@ void KeyGenDialog::slotKeyGenAccept() {
         genKeyInfo.setUserid(QString("%1 <%2>").arg(nameEdit->text(), emailEdit->text()));
 
         genKeyInfo.setKeySize(keySizeSpinBox->value());
-
-        genKeyInfo.setPassPhrase(passwordEdit->text());
 
         if (expireCheckBox->checkState()) {
             genKeyInfo.setNonExpired(true);
@@ -215,42 +191,6 @@ void KeyGenDialog::slotExpireBoxChanged() {
     } else {
         dateEdit->setEnabled(true);
     }
-}
-
-void KeyGenDialog::slotPasswordEditChanged() {
-    pwStrengthSlider->setValue(checkPassWordStrength());
-    update();
-}
-
-int KeyGenDialog::checkPassWordStrength() {
-    int strength = 0;
-
-    // increase strength by two, if password has more than 7 characters
-    if ((passwordEdit->text()).length() > 7) {
-        strength = strength + 2;
-    }
-
-    // increase strength by one, if password contains a digit
-    if ((passwordEdit->text()).contains(QRegExp("\\d"))) {
-        strength++;
-    }
-
-    // increase strength by one, if password contains a lowercase character
-    if ((passwordEdit->text()).contains(QRegExp("[a-z]"))) {
-        strength++;
-    }
-
-    // increase strength by one, if password contains an uppercase character
-    if ((passwordEdit->text()).contains(QRegExp("[A-Z]"))) {
-        strength++;
-    }
-
-    // increase strength by one, if password contains a non-word character
-    if ((passwordEdit->text()).contains(QRegExp("\\W"))) {
-        strength++;
-    }
-
-    return strength;
 }
 
 QGroupBox *KeyGenDialog::create_key_usage_group_box() {
@@ -395,7 +335,6 @@ void KeyGenDialog::set_signal_slot() {
     connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
     connect(expireCheckBox, SIGNAL(stateChanged(int)), this, SLOT(slotExpireBoxChanged()));
-    connect(passwordEdit, SIGNAL(textChanged(QString)), this, SLOT(slotPasswordEditChanged()));
 
     connect(keyUsageCheckBoxes[0], SIGNAL(stateChanged(int)), this, SLOT(slotEncryptionBoxChanged(int)));
     connect(keyUsageCheckBoxes[1], SIGNAL(stateChanged(int)), this, SLOT(slotSigningBoxChanged(int)));
@@ -407,12 +346,8 @@ void KeyGenDialog::set_signal_slot() {
     connect(noPassPhraseCheckBox, &QCheckBox::stateChanged, this, [this](int state) -> void {
         if(state == 0) {
             genKeyInfo.setNonPassPhrase(false);
-            passwordEdit->setDisabled(false);
-            repeatpwEdit->setDisabled(false);
         } else {
             genKeyInfo.setNonPassPhrase(true);
-            passwordEdit->setDisabled(true);
-            repeatpwEdit->setDisabled(true);
         }
 
     });

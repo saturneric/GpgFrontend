@@ -31,10 +31,10 @@
 #include <windows.h>
 #endif
 
-const QVector<QString> GenKeyInfo::SupportedAlgo = {
+const QVector<QString> GenKeyInfo::SupportedKeyAlgo = {
         "RSA",
         "DSA",
-        "ELG"
+        "ED25519"
 };
 
 namespace GpgME {
@@ -190,7 +190,7 @@ namespace GpgME {
 
         auto userid_utf8 = params->getUserid().toUtf8();
         const char *userid = userid_utf8.constData();
-        auto algo_utf8 = (params->getAlgo() + QString::number(params->getKeySize())).toUtf8();
+        auto algo_utf8 = (params->getAlgo() + params->getKeySizeStr()).toUtf8();
         const char *algo = algo_utf8.constData();
         unsigned long expires = params->getExpired().toTime_t();
         unsigned int flags = 0;
@@ -280,24 +280,15 @@ namespace GpgME {
         GpgKeyList keys;
         //TODO dont run the loop more often than necessary
         // list all keys ( the 0 is for all )
+        gpgmeError = gpgme_set_keylist_mode(mCtx, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET);
+        checkErr(gpgmeError);
         gpgmeError = gpgme_op_keylist_start(mCtx, nullptr, 0);
         checkErr(gpgmeError);
         while (!(gpgmeError = gpgme_op_keylist_next(mCtx, &key))) {
-            GpgKey gpgkey;
-
             if (!key->subkeys)
                 continue;
 
-            gpgkey.id = key->subkeys->keyid;
-            gpgkey.fpr = key->subkeys->fpr;
-            gpgkey.expired = (key->expired != 0u);
-            gpgkey.revoked = (key->revoked != 0u);
-
-            if (key->uids) {
-                gpgkey.name = QString::fromUtf8(key->uids->name);
-                gpgkey.email = QString::fromUtf8(key->uids->email);
-            }
-            keys.append(gpgkey);
+            keys.append(GpgKey(key));
             gpgme_key_unref(key);
         }
         gpgme_op_keylist_end(mCtx);
@@ -311,7 +302,7 @@ namespace GpgME {
             GpgKeyList::iterator it = keys.begin();
             while (it != keys.end()) {
                 if (key->subkeys->keyid == it->id.toStdString())
-                    it->privkey = true;
+                    it->is_private_key = true;
                 it++;
             }
 
@@ -807,7 +798,7 @@ namespace GpgME {
     }
 
 /**
- * note: privkey status is not returned
+ * note: is_private_key status is not returned
  */
     GpgKey GpgContext::getKeyByFpr(const QString& fpr) {
 
@@ -822,7 +813,7 @@ namespace GpgME {
     }
 
 /**
- * note: privkey status is not returned
+ * note: is_private_key status is not returned
  */
     GpgKey GpgContext::getKeyById(const QString& id) {
 
