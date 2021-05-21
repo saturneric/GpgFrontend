@@ -29,22 +29,7 @@
 
 #include "GpgConstants.h"
 #include "GpgGenKeyInfo.h"
-
-
-class GpgKey {
-public:
-    GpgKey() {
-        privkey = false;
-    }
-
-    QString id;
-    QString name;
-    QString email;
-    QString fpr;
-    bool privkey;
-    bool expired{};
-    bool revoked{};
-};
+#include "GpgKey.h"
 
 typedef QLinkedList<GpgKey> GpgKeyList;
 

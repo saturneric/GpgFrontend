@@ -75,6 +75,16 @@ void KeyMgmt::createActions()
     closeAct->setToolTip(tr("Close Key Management"));
     connect(closeAct, SIGNAL(triggered()), this, SLOT(close()));
 
+    generateKeyPairAct = new QAction(tr("Generate KeyPair"), this);
+    generateKeyPairAct->setIcon(QIcon(":key_generate.png"));
+    generateKeyPairAct->setToolTip(tr("Generate KeyPair"));
+    connect(generateKeyPairAct, SIGNAL(triggered()), this, SLOT(slotGenerateKeyDialog()));
+
+    generateSubKeyAct = new QAction(tr("Generate SubKey"), this);
+    generateSubKeyAct->setIcon(QIcon(":key_generate.png"));
+    generateSubKeyAct->setToolTip(tr("Generate SubKey Of KeyPair"));
+    connect(generateSubKeyAct, SIGNAL(triggered()), this, SLOT(slotGenerateSubKey()));
+
     importKeyFromFileAct = new QAction(tr("&File"), this);
     importKeyFromFileAct->setIcon(QIcon(":import_key_from_file.png"));
     importKeyFromFileAct->setToolTip(tr("Import New Key From File"));
@@ -109,11 +119,6 @@ void KeyMgmt::createActions()
     deleteCheckedKeysAct->setIcon(QIcon(":button_cancel.png"));
     connect(deleteCheckedKeysAct, SIGNAL(triggered()), this, SLOT(slotDeleteCheckedKeys()));
 
-    generateKeyDialogAct = new QAction(tr("Generate Key"), this);
-    generateKeyDialogAct->setToolTip(tr("Generate New Key"));
-    generateKeyDialogAct->setIcon(QIcon(":key_generate.png"));
-    connect(generateKeyDialogAct, SIGNAL(triggered()), this, SLOT(slotGenerateKeyDialog()));
-
     showKeyDetailsAct = new QAction(tr("Show Keydetails"), this);
     showKeyDetailsAct->setToolTip(tr("Show Details for this Key"));
     connect(showKeyDetailsAct, SIGNAL(triggered()), this, SLOT(slotShowKeyDetails()));
@@ -125,6 +130,10 @@ void KeyMgmt::createMenus()
     fileMenu->addAction(closeAct);
 
     keyMenu = menuBar()->addMenu(tr("&Key"));
+    generateKeyMenu = keyMenu->addMenu(tr("&Generate Key"));
+    generateKeyMenu->addAction(generateKeyPairAct);
+    generateKeyMenu->addAction(generateSubKeyAct);
+
     importKeyMenu = keyMenu->addMenu(tr("&Import Key From..."));
     importKeyMenu->addAction(importKeyFromFileAct);
     importKeyMenu->addAction(importKeyFromClipboardAct);
@@ -133,13 +142,22 @@ void KeyMgmt::createMenus()
     keyMenu->addAction(exportKeyToClipboardAct);
     keyMenu->addSeparator();
     keyMenu->addAction(deleteCheckedKeysAct);
-    keyMenu->addAction(generateKeyDialogAct);
 }
 
 void KeyMgmt::createToolBars()
 {
     QToolBar *keyToolBar = addToolBar(tr("Key"));
     keyToolBar->setObjectName("keytoolbar");
+
+    // add button with popup menu for import
+    auto* generateToolButton = new QToolButton(this);
+    generateToolButton->setMenu(generateKeyMenu);
+    generateToolButton->setPopupMode(QToolButton::InstantPopup);
+    generateToolButton->setIcon(QIcon(":key_generate.png"));
+    generateToolButton->setToolTip(tr("Generate key"));
+    generateToolButton->setText(tr("Generate key"));
+    generateToolButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    keyToolBar->addWidget(generateToolButton);
 
     // add button with popup menu for import
     auto* toolButton = new QToolButton(this);
@@ -290,4 +308,8 @@ void KeyMgmt::closeEvent(QCloseEvent *event)
     settings.setValue("keymgmt/size", size());
 
     QMainWindow::closeEvent(event);
+}
+
+void KeyMgmt::slotGenerateSubKey() {
+
 }

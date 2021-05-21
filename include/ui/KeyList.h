@@ -68,6 +68,8 @@ private:
     QMenu *popupMenu;
     QNetworkAccessManager *qnam{};
 
+    QVector<GpgKey> buffered_keys;
+
 private slots:
 
     void uploadFinished();

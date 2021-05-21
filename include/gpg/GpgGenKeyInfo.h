@@ -48,7 +48,7 @@ class GenKeyInfo {
 
 public:
 
-    static const QVector<QString> SupportedAlgo;
+    static const QVector<QString> SupportedKeyAlgo;
 
     [[nodiscard]] bool isSubKey() const {
         return subKey;
@@ -103,32 +103,45 @@ public:
              */
             setAllowEncryption(false);
             allowChangeEncryption = false;
-            setAllowAuthentication(false);
-            allowChangeAuthentication = false;
 
             suggestMinKeySize = 1024;
             suggestMaxKeySize = 3072;
             suggestSizeAdditionStep = 1024;
             setKeySize(2048);
 
-        } else if (lower_algo == "elg") {
+        } else if (lower_algo == "ed25519") {
             /**
              * GnuPG supports the Elgamal asymmetric encryption algorithm in key lengths ranging from 1024 to 4096 bits.
              */
-            suggestMinKeySize = 1024;
-            suggestMaxKeySize = 4096;
-            suggestSizeAdditionStep = 1024;
-            setKeySize(2048);
+
+            setAllowEncryption(false);
+            allowChangeEncryption = false;
+
+            suggestMinKeySize = -1;
+            suggestMaxKeySize = -1;
+            suggestSizeAdditionStep = -1;
+            setKeySize(-1);
         }
         GenKeyInfo::algo = lower_algo;
     }
 
+    [[nodiscard]] QString getKeySizeStr() const {
+        if(keySize > 0) {
+            return QString::number(keySize);
+        }
+        else {
+            return QString();
+        }
+
+    }
+
     [[nodiscard]] int getKeySize() const {
         return keySize;
+
     }
 
     void setKeySize(int m_key_size) {
-        if (m_key_size < 0 || m_key_size > 8192) {
+        if (m_key_size < suggestMinKeySize || m_key_size > suggestMaxKeySize) {
             return;
         }
         GenKeyInfo::keySize = m_key_size;

@@ -61,14 +61,11 @@ private:
     QLineEdit *nameEdit{}; /** Lineedit for the keys name */
     QLineEdit *emailEdit{}; /** Lineedit for the keys email */
     QLineEdit *commentEdit{}; /** Lineedit for the keys comment */
-    QLineEdit *passwordEdit{}; /** Lineedit for the keys password */
-    QLineEdit *repeatpwEdit{}; /** Lineedit for the repetition of the keys password */
     QSpinBox *keySizeSpinBox{}; /** Spinbox for the keys size (in bit) */
     QComboBox *keyTypeComboBox{}; /** Combobox for Keytpe */
     QDateTimeEdit *dateEdit{}; /** Dateedit for expiration date */
     QCheckBox *expireCheckBox{}; /** Checkbox, if key should expire */
     QCheckBox *noPassPhraseCheckBox{};
-    QSlider *pwStrengthSlider{}; /** Slider showing the password strength */
 
     QGroupBox *keyUsageGroupBox{}; /** Group of Widgets detecting the usage of the Key **/
 
@@ -78,13 +75,6 @@ private:
     KeyGenThread *kg = nullptr;
 
     void generateKeyDialog();
-
-    /**
-     * @details Check the password strength of the text in the passwordEdit member
-     *
-     * @return digit between 0 and 6, the higher the more secure is the password
-     */
-    int checkPassWordStrength();
 
 
     /**
@@ -102,11 +92,6 @@ private slots:
      * @details when expirebox was checked/unchecked, enable/disable the expiration date box
      */
     void slotExpireBoxChanged();
-
-    /**
-     * @details When passwordedit changed, set new value for password strength slider
-     */
-    void slotPasswordEditChanged();
 
     /**
      * @details check all lineedits for false entries. Show error, when there is one, otherwise generate the key
