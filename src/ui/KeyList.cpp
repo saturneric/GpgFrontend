@@ -139,7 +139,7 @@ void KeyList::slotRefresh()
         it++;
         ++row;
     }
-    mKeyList->setSortingEnabled(true);
+    // mKeyList->setSortingEnabled(true);
     setChecked(keyList);
 }
 
@@ -216,7 +216,10 @@ void KeyList::setColumnWidth(int row, int size)
 
 void KeyList::contextMenuEvent(QContextMenuEvent *event)
 {
-    popupMenu->exec(event->globalPos());
+    if (mKeyList->selectedItems().length() > 0) {
+        popupMenu->exec(event->globalPos());
+    }
+
 }
 
 void KeyList::addMenuAction(QAction *act)
