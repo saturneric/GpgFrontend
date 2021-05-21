@@ -1,22 +1,25 @@
-/*
- *      aboutdialog.cpp
+/**
+ * This file is part of GPGFrontend.
  *
- *      Copyright 2008 gpg4usb-team <gpg4usb@cpunk.de>
+ * GPGFrontend is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *      This file is part of gpg4usb.
+ * Foobar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *      Gpg4usb is free software: you can redistribute it and/or modify
- *      it under the terms of the GNU General Public License as published by
- *      the Free Software Foundation, either version 3 of the License, or
- *      (at your option) any later version.
+ * You should have received a copy of the GNU General Public License
+ * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
  *
- *      Gpg4usb is distributed in the hope that it will be useful,
- *      but WITHOUT ANY WARRANTY; without even the implied warranty of
- *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *      GNU General Public License for more details.
+ * The initial version of the source code is inherited from gpg4usb-team.
+ * Their source code version also complies with GNU General Public License.
  *
- *      You should have received a copy of the GNU General Public License
- *      along with gpg4usb.  If not, see <http://www.gnu.org/licenses/>
+ * The source code version of this software was modified and released
+ * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
  */
 
 #include "ui/AboutDialog.h"
@@ -45,18 +48,18 @@ AboutDialog::AboutDialog(QWidget *parent)
 
 InfoTab::InfoTab(QWidget *parent)
         : QWidget(parent) {
-    auto *pixmap = new QPixmap(":gpg4usb-logo.png");
+    auto *pixmap = new QPixmap(":gpgfrontend-logo.png");
     auto *text = new QString("<center><h2>" + qApp->applicationName() + " "
                              + qApp->applicationVersion() + "</h2></center>"
                              + tr("<center>This application allows simple encryption <br>"
                                   "and decryption of text messages or files.<br>"
                                   "It's licensed under the GPL v3<br><br>"
                                   "<b>Developer:</b><br>"
-                                  "Bene, Heimer, Juergen, Nils, Ubbo<br><br>"
+                                  "Saturneric<br><br>"
                                   "If you have any questions or suggestions have a look<br/>"
-                                  "at our <a href=\"http://gpg4usb.cpunk.de/contact.php\">"
+                                  "at my <a href=\"https://bktus.com/%e8%81%94%e7%b3%bb%e4%b8%8e%e9%aa%8c%e8%af%81\">"
                                   "contact page</a> or send a mail to our<br/> mailing list at"
-                                  " <a href=\"mailto:gpg4usb@gzehn.de\">gpg4usb@gzehn.de</a>.") +
+                                  " <a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>.") +
                              tr("<br><br> Built with Qt ") + qVersion()
                              + tr(" and GPGME ") + GpgME::GpgContext::getGpgmeVersion() + "</center>");
 

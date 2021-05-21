@@ -21,36 +21,22 @@
  * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
-#ifndef __KEYGENTHREAD_H__
-#define __KEYGENTHREAD_H__
 
-#include "gpg/GpgContext.h"
+#ifndef GPG4USB_GPG4USB_H
+#define GPG4USB_GPG4USB_H
 
+#include <iostream>
+#include <string>
+#include <cmath>
+#include <clocale>
+#include <cerrno>
+#include <utility>
 
-QT_BEGIN_NAMESPACE
-class QMessageBox;
+#include <QtCore>
+#include <QtWidgets>
+#include <QtNetwork/QtNetwork>
+#include <QtPrintSupport/QtPrintSupport>
 
-QT_END_NAMESPACE
+#include <gpgme.h>
 
-class KeyGenThread : public QThread {
-Q_OBJECT
-
-public:
-    KeyGenThread(GenKeyInfo *keyGenParams, GpgME::GpgContext *ctx);
-
-signals:
-
-    void signalKeyGenerated(bool success);
-
-private:
-    GenKeyInfo *keyGenParams;
-    GpgME::GpgContext *mCtx;
-    [[maybe_unused]] bool abort;
-    QMutex mutex;
-
-protected:
-    void run();
-
-};
-
-#endif // __KEYGENTHREAD_H__
+#endif //GPG4USB_GPG4USB_H

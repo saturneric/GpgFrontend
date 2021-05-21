@@ -1,22 +1,25 @@
-/*
- *      gpgcontext.cpp
+/**
+ * This file is part of GPGFrontend.
  *
- *      Copyright 2008 gpg4usb-team <gpg4usb@cpunk.de>
+ * GPGFrontend is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *      This file is part of gpg4usb.
+ * Foobar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *      Gpg4usb is free software: you can redistribute it and/or modify
- *      it under the terms of the GNU General Public License as published by
- *      the Free Software Foundation, either version 3 of the License, or
- *      (at your option) any later version.
+ * You should have received a copy of the GNU General Public License
+ * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
  *
- *      Gpg4usb is distributed in the hope that it will be useful,
- *      but WITHOUT ANY WARRANTY; without even the implied warranty of
- *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *      GNU General Public License for more details.
+ * The initial version of the source code is inherited from gpg4usb-team.
+ * Their source code version also complies with GNU General Public License.
  *
- *      You should have received a copy of the GNU General Public License
- *      along with gpg4usb.  If not, see <http://www.gnu.org/licenses/>
+ * The source code version of this software was modified and released
+ * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
  */
 
 #include "gpg/GpgContext.h"
@@ -67,16 +70,6 @@ namespace GpgME {
         err = gpgme_new(&mCtx);
         checkErr(err);
 
-        /** here come the qSettings, instead of /usr/bin/gpg
-         * a executable in the same path as app is used.
-         * also lin/win must  be checked, for calling gpg.exe if needed
-         */
-#ifdef _WIN32
-        gpgBin = appPath + "/bin/gpg.exe";
-#else
-        gpgBin = "/usr/bin/gpg";
-#endif
-
         QSettings qSettings;
         QString accKeydbPath = qSettings.value("gpgpaths/keydbpath").toString();
         QString qGpgKeys = appPath + "/keydb/" + accKeydbPath;
@@ -89,19 +82,8 @@ namespace GpgME {
             }
         }
 
-        /*    err = gpgme_ctx_set_engine_info(mCtx, GPGME_PROTOCOL_OpenPGP,
-                                            gpgBin.toUtf8().constData(),
-                                            qGpgKeys.toUtf8().constData());*/
-#ifndef GPG4USB_NON_PORTABLE
-        err = gpgme_ctx_set_engine_info(mCtx, GPGME_PROTOCOL_OpenPGP,
-                                        gpgBin.toLocal8Bit().constData(),
-                                        qGpgKeys.toLocal8Bit().constData());
-        checkErr(err);
-#endif
-
         gpgme_engine_info_t engineInfo;
         engineInfo = gpgme_ctx_get_engine_info(mCtx);
-
 
         while (engineInfo != nullptr) {
             qDebug() << gpgme_get_protocol_name(engineInfo->protocol);

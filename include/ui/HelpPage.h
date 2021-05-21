@@ -22,7 +22,7 @@
 #ifndef HELPPAGE_H
 #define HELPPAGE_H
 
-#include <GPG4USB.h>
+#include <GpgFrontend.h>
 
 class HelpPage : public QWidget {
 Q_OBJECT
