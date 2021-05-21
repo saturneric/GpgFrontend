@@ -35,7 +35,7 @@ KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext *ctx, const GpgKey& key, QW
     mainLayout->addWidget(tabWidget);
 
     this->setLayout(mainLayout);
-    this->setWindowTitle(tr("Keydetails"));
+    this->setWindowTitle(tr("Key Details"));
     this->setModal(true);
     this->show();
 
