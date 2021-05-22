@@ -22,56 +22,46 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGKEY_H
-#define GPGFRONTEND_GPGKEY_H
+#ifndef GPGFRONTEND_SIGNATURE_H
+#define GPGFRONTEND_SIGNATURE_H
 
-#include "UID.h"
-#include "GpgSubKey.h"
+#include "GpgFrontend.h"
 
-class GpgKey {
-public:
+struct Signature {
 
-    QString id;
-    QString name;
-    QString email;
-    QString comment;
-    QString fpr;
-    QString protocol;
-    QString owner_trust;
+    bool revoked{};
+
+    bool expired{};
+
+    bool invalid{};
+
+    bool exportable{};
+
     QString pubkey_algo;
-    QDateTime last_update;
-    QDateTime expires;
+
     QDateTime create_time;
 
-    unsigned int length;
+    QDateTime expire_time;
 
-    bool can_encrypt{};
-    bool can_sign{};
-    bool can_certify{};
-    bool can_authenticate{};
+    QString uid;
 
+    QString name;
 
-    bool is_private_key{};
-    bool expired{};
-    bool revoked{};
-    bool disabled{};
+    QString email;
 
-    bool good = false;
+    QString comment;
 
-    QVector<GpgSubKey> subKeys;
+    Signature() = default;
 
-    QVector<UID> uids;
+    explicit Signature(gpgme_key_sig_t key_sig):
+        revoked(key_sig->revoked), expired(key_sig->expired), invalid(key_sig->invalid),
+        exportable(key_sig->exportable), pubkey_algo(gpgme_pubkey_algo_name(key_sig->pubkey_algo)),
+        name(key_sig->name), email(key_sig->email), comment(key_sig->comment),
+        create_time(QDateTime::fromTime_t(key_sig->timestamp)), expire_time(QDateTime::fromTime_t(key_sig->expires)){
 
-    explicit GpgKey(gpgme_key_t key) {
-       parse(key);
     }
 
-    GpgKey() {
-        is_private_key = false;
-    }
-
-    void parse(gpgme_key_t key);
 };
 
 
-#endif //GPGFRONTEND_GPGKEY_H
+#endif //GPGFRONTEND_SIGNATURE_H

@@ -22,56 +22,25 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGKEY_H
-#define GPGFRONTEND_GPGKEY_H
+#ifndef __KEYDETAILSDIALOG_H__
+#define __KEYDETAILSDIALOG_H__
 
-#include "UID.h"
-#include "GpgSubKey.h"
+#include "gpg/GpgContext.h"
+#include "KeyPairDetailTab.h"
+#include "KeyPairUIDTab.h"
+#include "KeyPairSubkeyTab.h"
 
-class GpgKey {
+class KeyDetailsDialog : public QDialog {
+Q_OBJECT
+
 public:
 
-    QString id;
-    QString name;
-    QString email;
-    QString comment;
-    QString fpr;
-    QString protocol;
-    QString owner_trust;
-    QString pubkey_algo;
-    QDateTime last_update;
-    QDateTime expires;
-    QDateTime create_time;
+    KeyDetailsDialog(GpgME::GpgContext *ctx, const GpgKey& key, QWidget *parent = nullptr);
 
-    unsigned int length;
+private:
 
-    bool can_encrypt{};
-    bool can_sign{};
-    bool can_certify{};
-    bool can_authenticate{};
+    QTabWidget *tabWidget{};
 
-
-    bool is_private_key{};
-    bool expired{};
-    bool revoked{};
-    bool disabled{};
-
-    bool good = false;
-
-    QVector<GpgSubKey> subKeys;
-
-    QVector<UID> uids;
-
-    explicit GpgKey(gpgme_key_t key) {
-       parse(key);
-    }
-
-    GpgKey() {
-        is_private_key = false;
-    }
-
-    void parse(gpgme_key_t key);
 };
 
-
-#endif //GPGFRONTEND_GPGKEY_H
+#endif // __KEYDETAILSDIALOG_H__

@@ -2,7 +2,7 @@
 // Created by eric on 2021/5/21.
 //
 
-#include "ui/KeyPairDetailTab.h"
+#include "ui/keypair_details/KeyPairDetailTab.h"
 
 KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent) : QWidget(parent) {
 

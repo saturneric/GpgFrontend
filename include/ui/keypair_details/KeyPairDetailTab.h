@@ -51,7 +51,6 @@ private:
     QLabel *algorithmVarLabel; /** Label containng the keys algorithm */
     QLabel *keyidVarLabel;  /** Label containng the keys keyid */
     QLabel *fingerPrintVarLabel; /** Label containng the keys fingerprint */
-    QLabel *addUserIdsVarLabel{}; /** Label containng info about keys additional uids */
     QLabel *usageVarLabel;
 
 public:

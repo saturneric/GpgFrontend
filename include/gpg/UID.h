@@ -22,56 +22,39 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGKEY_H
-#define GPGFRONTEND_GPGKEY_H
+#ifndef GPGFRONTEND_UID_H
+#define GPGFRONTEND_UID_H
 
-#include "UID.h"
-#include "GpgSubKey.h"
+#include <utility>
 
-class GpgKey {
-public:
+#include "GpgFrontend.h"
 
-    QString id;
-    QString name;
-    QString email;
-    QString comment;
-    QString fpr;
-    QString protocol;
-    QString owner_trust;
-    QString pubkey_algo;
-    QDateTime last_update;
-    QDateTime expires;
-    QDateTime create_time;
+#include "Signature.h"
 
-    unsigned int length;
+struct UID {
 
-    bool can_encrypt{};
-    bool can_sign{};
-    bool can_certify{};
-    bool can_authenticate{};
+    QString name{};
 
+    QString email{};
 
-    bool is_private_key{};
-    bool expired{};
-    bool revoked{};
-    bool disabled{};
+    QString comment{};
 
-    bool good = false;
+    QString uid{};
 
-    QVector<GpgSubKey> subKeys;
+    QVector<Signature> signatures;
 
-    QVector<UID> uids;
+    UID() = default;
 
-    explicit GpgKey(gpgme_key_t key) {
-       parse(key);
+    explicit UID(gpgme_user_id_t user_id):
+            uid(user_id->uid), name(user_id->name), email(user_id->email), comment(user_id->comment) {
+
+        auto sig = user_id->signatures;
+
+        while (sig != nullptr) {
+            signatures.push_back(Signature(sig));
+        }
+
     }
-
-    GpgKey() {
-        is_private_key = false;
-    }
-
-    void parse(gpgme_key_t key);
 };
 
-
-#endif //GPGFRONTEND_GPGKEY_H
+#endif //GPGFRONTEND_UID_H
