@@ -43,7 +43,7 @@ public:
     QDateTime expires;
     QDateTime create_time;
 
-    unsigned int length;
+    unsigned int length{};
 
     bool can_encrypt{};
     bool can_sign{};
@@ -62,13 +62,19 @@ public:
 
     QVector<UID> uids;
 
-    explicit GpgKey(gpgme_key_t key) {
-       parse(key);
-    }
+    gpgme_key_t key_refer = nullptr;
 
-    GpgKey() {
-        is_private_key = false;
-    }
+    explicit GpgKey(gpgme_key_t key = nullptr);
+
+    GpgKey(const GpgKey &k);
+
+    GpgKey(GpgKey &&k)  noexcept;
+
+    GpgKey& operator=(const GpgKey &k);
+
+    GpgKey& operator=(GpgKey &&k)  noexcept;
+
+    ~GpgKey();
 
     void parse(gpgme_key_t key);
 };

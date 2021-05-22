@@ -233,7 +233,7 @@ void KeyMgmt::deleteKeysWithWarning(QStringList *uidList)
         return;
     }
     QString keynames;
-    foreach (QString uid, *uidList) {
+    for (const auto &uid : *uidList) {
         GpgKey key;
         mCtx->getKeyDetails(uid, key);
         keynames.append(key.name);

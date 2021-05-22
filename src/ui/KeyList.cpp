@@ -73,7 +73,7 @@ void KeyList::slotRefresh()
     mKeyList->setSortingEnabled(false);
     mKeyList->clearContents();
 
-    GpgKeyList keys = mCtx->listKeys();
+    GpgKeyList keys = mCtx->getKeys();
     mKeyList->setRowCount(keys.size());
 
     int row = 0;

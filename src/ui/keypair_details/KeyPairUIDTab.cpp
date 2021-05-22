@@ -93,8 +93,10 @@ void KeyPairUIDTab::slotRefreshUIDList() {
 
     uidList->clearContents();
     uidList->setRowCount(key.uids.size());
+    uidList->setSelectionMode(QAbstractItemView::SingleSelection);
 
     for(const auto& uid : key.uids) {
+
         auto *tmp0 = new QTableWidgetItem(uid.name);
         uidList->setItem(row, 0, tmp0);
 
@@ -106,6 +108,8 @@ void KeyPairUIDTab::slotRefreshUIDList() {
 
         row++;
     }
+
+
 
 
 }
@@ -122,6 +126,11 @@ void KeyPairUIDTab::slotRefreshSigList() {
 
     row = 0;
     for(const auto& uid : key.uids) {
+
+        // Only Show Selected UID's Signatures
+        if(!uidList->item(row, 0)->isSelected())
+            continue;
+
         for(const auto &sig : uid.signatures) {
             auto *tmp0 = new QTableWidgetItem(sig.pubkey_algo);
             uidList->setItem(row, 0, tmp0);

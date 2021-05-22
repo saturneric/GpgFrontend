@@ -50,6 +50,8 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext *ctx, 
         case GPG_ERR_NO_ERROR: {
             GpgKey key = mCtx->getKeyByFpr(signature->fpr);
 
+            if(!key.good) break;
+
             this->setTitle(key.name);
             grid->addWidget(new QLabel(tr("Name:")), 0, 0);
             grid->addWidget(new QLabel(tr("EMail:")), 1, 0);
@@ -65,6 +67,9 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext *ctx, 
         }
         default: {
             GpgKey key = mCtx->getKeyById(signature->fpr);
+
+            if(!key.good) break;
+
             this->setTitle(tr("Error for key with id 0x") + fpr);
             grid->addWidget(new QLabel(tr("Name:")), 0, 0);
             grid->addWidget(new QLabel(tr("EMail:")), 1, 0);
