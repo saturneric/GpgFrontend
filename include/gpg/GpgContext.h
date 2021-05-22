@@ -31,7 +31,7 @@
 #include "GpgGenKeyInfo.h"
 #include "GpgKey.h"
 
-typedef QLinkedList<GpgKey> GpgKeyList;
+using GpgKeyList = QLinkedList<GpgKey>;
 
 class GpgImportedKey {
 public:
@@ -82,14 +82,16 @@ namespace GpgME {
 
     public:
         GpgContext(); // Constructor
+
         ~GpgContext() override; // Destructor
+
         GpgImportInformation importKey(QByteArray inBuffer);
+
+        const GpgKeyList &getKeys() const;
 
         bool exportKeys(QStringList *uidList, QByteArray *outBuffer);
 
         bool generateKey(GenKeyInfo *params);
-
-        GpgKeyList listKeys();
 
         void deleteKeys(QStringList *uidList);
 
@@ -104,9 +106,10 @@ namespace GpgME {
 
         void getKeyDetails(const QString &uid, GpgKey& key);
 
+        void signKey(const QVector<GpgKey> &signer, const GpgKey &target, const QString& uid);
+
         gpgme_signature_t verify(QByteArray *inBuffer, QByteArray *sigBuffer = nullptr);
 
-//    void decryptVerify(QByteArray in);
         bool sign(QStringList *uidList, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached = false);
 
         /**
@@ -157,6 +160,8 @@ namespace GpgME {
         QSettings settings;
         [[maybe_unused]] bool debug;
         GpgKeyList mKeyList;
+
+        void fetch_keys();
 
         static void checkErr(gpgme_error_t gpgmeError);
 

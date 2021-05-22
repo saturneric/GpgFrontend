@@ -50,31 +50,12 @@ struct GpgSubKey {
     QDateTime timestamp;
     QDateTime expires;
 
-    GpgSubKey() = default;
+    explicit GpgSubKey(gpgme_subkey_t key = nullptr);
 
-    explicit GpgSubKey(gpgme_subkey_t key) {
-
-        id = key->keyid;
-        pubkey_algo = gpgme_pubkey_algo_name(key->pubkey_algo);
-        fpr = key->fpr;
-
-        expired = (key->expired != 0u);
-        revoked = (key->revoked != 0u);
-
-        disabled = key->disabled;
-
-        length = key->length;
-
-        can_authenticate = key->can_authenticate;
-        can_certify = key->can_certify;
-        can_encrypt = key->can_encrypt;
-        can_sign = key->can_sign;
-        is_cardkey = key->is_cardkey;
-        is_private_key = key->secret;
-
-        timestamp = QDateTime::fromTime_t(key->timestamp);
-        expires = QDateTime::fromTime_t(key->expires);
-    }
+    GpgSubKey(GpgSubKey &&) noexcept = default;
+    GpgSubKey(const GpgSubKey &) = default;
+    GpgSubKey& operator=(GpgSubKey &&) noexcept = default;
+    GpgSubKey& operator=(const GpgSubKey &) = default;
 
 };
 

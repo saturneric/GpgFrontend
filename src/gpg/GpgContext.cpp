@@ -98,7 +98,7 @@ namespace GpgME {
             debug = false;
         }
 
-        connect(this, SIGNAL(signalKeyDBChanged()), this, SLOT(slotRefreshKeyList()));
+        connect(this, SIGNAL(signalKeyDBChanged()), this, SLOT(slotRefreshKeyList()), Qt::DirectConnection);
         slotRefreshKeyList();
     }
 
@@ -189,33 +189,33 @@ namespace GpgME {
         unsigned long expires = params->getExpired().toTime_t();
         unsigned int flags = 0;
 
-        if(!params->isSubKey()) {
+        if (!params->isSubKey()) {
             flags |= GPGME_CREATE_CERT;
         }
 
-        if(params->isAllowEncryption()) {
+        if (params->isAllowEncryption()) {
             flags |= GPGME_CREATE_ENCR;
         }
 
-        if(params->isAllowSigning()) {
+        if (params->isAllowSigning()) {
             flags |= GPGME_CREATE_SIGN;
         }
 
-        if(params->isAllowAuthentication()) {
+        if (params->isAllowAuthentication()) {
             flags |= GPGME_CREATE_AUTH;
         }
 
-        if(params->isNonExpired()) {
+        if (params->isNonExpired()) {
             flags |= GPGME_CREATE_NOEXPIRE;
         }
 
-        if(params->isNoPassPhrase()) {
+        if (params->isNoPassPhrase()) {
             flags |= GPGME_CREATE_NOPASSWD;
         }
 
-        err = gpgme_op_createkey(mCtx, userid, algo, 0, expires, nullptr,  flags);
+        err = gpgme_op_createkey(mCtx, userid, algo, 0, expires, nullptr, flags);
 
-        if(err != GPG_ERR_NO_ERROR) {
+        if (err != GPG_ERR_NO_ERROR) {
             checkErr(err);
             return false;
         } else {
@@ -253,7 +253,7 @@ namespace GpgME {
         return true;
     }
 
-    void GpgContext::getKeyDetails(const QString& uid, GpgKey& key) {
+    void GpgContext::getKeyDetails(const QString &uid, GpgKey &key) {
         gpgme_key_t gpgme_key;
 
         // try secret
@@ -266,31 +266,59 @@ namespace GpgME {
         key.parse(gpgme_key);
     }
 
-/** List all availabe Keys (VERY much like kgpgme)
- */
-    GpgKeyList GpgContext::listKeys() {
+    /**
+     * List all availabe Keys (VERY much like kgpgme)
+     */
+    void GpgContext::fetch_keys() {
+
         gpgme_error_t gpgmeError;
+
         gpgme_key_t key;
 
         GpgKeyList keys;
+
         //TODO dont run the loop more often than necessary
         // list all keys ( the 0 is for all )
         gpgmeError = gpgme_set_keylist_mode(mCtx, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET);
-        checkErr(gpgmeError);
+        if (gpgmeError != GPG_ERR_NO_ERROR) {
+            checkErr(gpgmeError);
+            return;
+        }
+
         gpgmeError = gpgme_op_keylist_start(mCtx, nullptr, 0);
-        checkErr(gpgmeError);
-        while (!(gpgmeError = gpgme_op_keylist_next(mCtx, &key))) {
+        if (gpgmeError != GPG_ERR_NO_ERROR) {
+            checkErr(gpgmeError);
+            return;
+        }
+
+        while ((gpgmeError = gpgme_op_keylist_next(mCtx, &key)) == GPG_ERR_NO_ERROR) {
             if (!key->subkeys)
                 continue;
 
             keys.append(GpgKey(key));
             gpgme_key_unref(key);
         }
-        gpgme_op_keylist_end(mCtx);
+
+
+//        if (gpgmeError != GPG_ERR_EOF) {
+//            checkErr(gpgmeError);
+//            return;
+//        }
+
+        gpgmeError = gpgme_op_keylist_end(mCtx);
+        if (gpgmeError != GPG_ERR_NO_ERROR) {
+            checkErr(gpgmeError);
+            return;
+        }
 
         // list only private keys ( the 1 does )
-        gpgme_op_keylist_start(mCtx, nullptr, 1);
-        while (!(gpgmeError = gpgme_op_keylist_next(mCtx, &key))) {
+        gpgmeError = gpgme_op_keylist_start(mCtx, nullptr, 1);
+        if (gpgmeError != GPG_ERR_NO_ERROR) {
+            checkErr(gpgmeError);
+            return;
+        }
+
+        while ((gpgmeError = gpgme_op_keylist_next(mCtx, &key)) == GPG_ERR_NO_ERROR) {
             if (!key->subkeys)
                 continue;
             // iterate keys, mark privates
@@ -300,27 +328,58 @@ namespace GpgME {
                     it->is_private_key = true;
                 it++;
             }
-
             gpgme_key_unref(key);
         }
-        gpgme_op_keylist_end(mCtx);
 
-        return keys;
+//        if (gpgmeError != GPG_ERR_EOF) {
+//            checkErr(gpgmeError);
+//            return;
+//        }
+
+        gpgmeError = gpgme_op_keylist_end(mCtx);
+        if (gpgmeError != GPG_ERR_NO_ERROR) {
+            checkErr(gpgmeError);
+            return;
+        }
+
+        mKeyList = keys;
     }
 
 /** Delete keys
  */
 
     void GpgContext::deleteKeys(QStringList *uidList) {
-        QString tmp;
+
+        gpgme_error_t error;
         gpgme_key_t key;
 
-                foreach(tmp, *uidList) {
-                gpgme_op_keylist_start(mCtx, tmp.toUtf8().constData(), 0);
-                gpgme_op_keylist_next(mCtx, &key);
-                gpgme_op_keylist_end(mCtx);
-                gpgme_op_delete(mCtx, key, 1);
+        for (const auto &tmp : *uidList) {
+
+            error = gpgme_op_keylist_start(mCtx, tmp.toUtf8().constData(), 0);
+            if (error != GPG_ERR_NO_ERROR) {
+                checkErr(error);
+                continue;
             }
+
+            error = gpgme_op_keylist_next(mCtx, &key);
+            if (error != GPG_ERR_NO_ERROR) {
+                checkErr(error);
+                continue;
+            }
+
+            error = gpgme_op_keylist_end(mCtx);
+            if (error != GPG_ERR_NO_ERROR) {
+                checkErr(error);
+                continue;
+            }
+
+            error = gpgme_op_delete(mCtx, key, 1);
+            if (error != GPG_ERR_NO_ERROR) {
+                checkErr(error);
+                continue;
+            }
+
+        }
         emit signalKeyDBChanged();
     }
 
@@ -405,7 +464,8 @@ namespace GpgME {
                         checkErr(result->recipients->status);
                         errorString.append(gpgErrString(result->recipients->status)).append("<br>");
                         errorString.append(
-                                tr("<br>No private key with id %1 present dataIn keyring").arg(result->recipients->keyid));
+                                tr("<br>No private key with id %1 present dataIn keyring").arg(
+                                        result->recipients->keyid));
                     } else {
                         errorString.append(gpgErrString(err)).append("<br>");
                     }
@@ -551,19 +611,19 @@ namespace GpgME {
     }
 
 // error-handling
-    void GpgContext::checkErr(gpgme_error_t gpgmeError, const QString& comment) {
+    void GpgContext::checkErr(gpgme_error_t gpgmeError, const QString &comment) {
         //if (gpgmeError != GPG_ERR_NO_ERROR && gpgmeError != GPG_ERR_CANCELED) {
         if (gpgmeError != GPG_ERR_NO_ERROR) {
-            qDebug() << "[Error "<< gpg_err_code(gpgmeError)
-                     <<"] Source: " << gpgme_strsource(gpgmeError) << " Description: " << gpgErrString(gpgmeError);
+            qDebug() << "[Error " << gpg_err_code(gpgmeError)
+                     << "] Source: " << gpgme_strsource(gpgmeError) << " Description: " << gpgErrString(gpgmeError);
         }
     }
 
     void GpgContext::checkErr(gpgme_error_t gpgmeError) {
         //if (gpgmeError != GPG_ERR_NO_ERROR && gpgmeError != GPG_ERR_CANCELED) {
         if (gpgmeError != GPG_ERR_NO_ERROR) {
-            qDebug() << "[Error "<< gpg_err_code(gpgmeError)
-            <<"] Source: " << gpgme_strsource(gpgmeError) << " Description: " << gpgErrString(gpgmeError);
+            qDebug() << "[Error " << gpg_err_code(gpgmeError)
+                     << "] Source: " << gpgme_strsource(gpgmeError) << " Description: " << gpgErrString(gpgmeError);
         }
     }
 
@@ -573,7 +633,7 @@ namespace GpgME {
 
 /** export private key, TODO errohandling, e.g. like in seahorse (seahorse-gpg-op.c) **/
 
-    void GpgContext::exportSecretKey(const QString& uid, QByteArray *outBuffer) {
+    void GpgContext::exportSecretKey(const QString &uid, QByteArray *outBuffer) {
         qDebug() << *outBuffer;
         // export private key to outBuffer
         QStringList arguments;
@@ -590,7 +650,7 @@ namespace GpgME {
     }
 
 /** return type should be gpgme_error_t*/
-    void GpgContext::executeGpgCommand(const QStringList& arguments, QByteArray *stdOut, QByteArray *stdErr) {
+    void GpgContext::executeGpgCommand(const QStringList &arguments, QByteArray *stdOut, QByteArray *stdErr) {
         QStringList args;
         args << "--homedir" << gpgKeys << "--batch" << arguments;
 
@@ -789,41 +849,46 @@ namespace GpgME {
     }
 
     void GpgContext::slotRefreshKeyList() {
-        mKeyList = this->listKeys();
+        this->fetch_keys();
     }
 
 /**
  * note: is_private_key status is not returned
  */
-    GpgKey GpgContext::getKeyByFpr(const QString& fpr) {
-
-        //GpgKeyList list = this->listKeys();
-                foreach  (GpgKey key, mKeyList) {
-                if (key.fpr == fpr) {
-                    return key;
-                }
+    GpgKey GpgContext::getKeyByFpr(const QString &fpr) {
+        for (const auto &key : mKeyList) {
+            if (key.fpr == fpr) {
+                return key;
             }
-
-        return GpgKey();
+        }
+        return GpgKey(nullptr);
     }
 
 /**
  * note: is_private_key status is not returned
  */
-    GpgKey GpgContext::getKeyById(const QString& id) {
+    GpgKey GpgContext::getKeyById(const QString &id) {
 
-        //GpgKeyList list = this->listKeys();
+        //GpgKeyList list = this->fetch_keys();
                 foreach  (GpgKey key, mKeyList) {
                 if (key.id == id) {
                     return key;
                 }
             }
 
-        return GpgKey();
+        return GpgKey(nullptr);
     }
 
     QString GpgContext::getGpgmeVersion() {
         return QString(gpgme_check_version(nullptr));
+    }
+
+    void GpgContext::signKey(const QVector<GpgKey> &signer, const GpgKey &target, const QString &uid) {
+
+    }
+
+    const GpgKeyList &GpgContext::getKeys() const {
+        return mKeyList;
     }
 
 }

@@ -45,16 +45,13 @@ struct UID {
 
     UID() = default;
 
-    explicit UID(gpgme_user_id_t user_id):
-            uid(user_id->uid), name(user_id->name), email(user_id->email), comment(user_id->comment) {
+    explicit UID(gpgme_user_id_t user_id);
 
-        auto sig = user_id->signatures;
+    UID(UID &&) noexcept = default;
+    UID(const UID &) = default;
+    UID& operator=(UID &&) noexcept = default;
+    UID& operator=(const UID &) = default;
 
-        while (sig != nullptr) {
-            signatures.push_back(Signature(sig));
-        }
-
-    }
 };
 
 #endif //GPGFRONTEND_UID_H

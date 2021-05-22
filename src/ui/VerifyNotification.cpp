@@ -131,6 +131,9 @@ bool VerifyNotification::slotRefresh() {
                 textIsSigned = 3;
                 verifyStatus = VERIFY_ERROR_CRITICAL;
                 GpgKey key = mCtx->getKeyById(sign->fpr);
+
+                if(!key.good) break;
+
                 verifyLabelText.append(key.name);
                 if (!key.email.isEmpty()) {
                     verifyLabelText.append("<" + key.email + ">");

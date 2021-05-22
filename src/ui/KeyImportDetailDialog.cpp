@@ -106,15 +106,16 @@ void KeyImportDetailDialog::createKeysTable() {
 
     keysTable->setHorizontalHeaderLabels(headerLabels);
     int row = 0;
-            foreach (GpgImportedKey impKey, mResult.importedKeys) {
-            keysTable->setRowCount(row + 1);
-            GpgKey key = mCtx->getKeyByFpr(impKey.fpr);
-            keysTable->setItem(row, 0, new QTableWidgetItem(key.name));
-            keysTable->setItem(row, 1, new QTableWidgetItem(key.email));
-            keysTable->setItem(row, 2, new QTableWidgetItem(getStatusString(impKey.importStatus)));
-            keysTable->setItem(row, 3, new QTableWidgetItem(impKey.fpr));
-            row++;
-        }
+    for (const auto &impKey : mResult.importedKeys) {
+        keysTable->setRowCount(row + 1);
+        GpgKey key = mCtx->getKeyByFpr(impKey.fpr);
+        if(!key.good) continue;
+        keysTable->setItem(row, 0, new QTableWidgetItem(key.name));
+        keysTable->setItem(row, 1, new QTableWidgetItem(key.email));
+        keysTable->setItem(row, 2, new QTableWidgetItem(getStatusString(impKey.importStatus)));
+        keysTable->setItem(row, 3, new QTableWidgetItem(impKey.fpr));
+        row++;
+    }
     keysTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     keysTable->horizontalHeader()->setStretchLastSection(true);
     keysTable->resizeColumnsToContents();
