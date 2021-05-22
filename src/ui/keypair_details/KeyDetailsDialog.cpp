@@ -22,14 +22,16 @@
  *
  */
 
-#include "ui/KeyDetailsDialog.h"
+#include "ui/keypair_details/KeyDetailsDialog.h"
 
 KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext *ctx, const GpgKey& key, QWidget *parent)
         : QDialog(parent) {
 
 
     tabWidget = new QTabWidget(this);
-    tabWidget->addTab(new KeyPairDetailTab(ctx, key, this), tr("KeyPair Details"));
+    tabWidget->addTab(new KeyPairDetailTab(ctx, key, this), tr("KeyPair"));
+    tabWidget->addTab(new KeyPairUIDTab(ctx, key, this), tr("UIDs"));
+    tabWidget->addTab(new KeyPairSubkeyTab(ctx, key, this), tr("Subkeys"));
 
     auto *mainLayout = new QVBoxLayout;
     mainLayout->addWidget(tabWidget);
@@ -38,6 +40,4 @@ KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext *ctx, const GpgKey& key, QW
     this->setWindowTitle(tr("Key Details"));
     this->setModal(true);
     this->show();
-
-    exec();
 }

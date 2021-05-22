@@ -109,9 +109,9 @@ bool Wizard::importPubAndSecKeysFromDir(const QString &dir, KeyMgmt *keyMgmt) {
 IntroPage::IntroPage(QWidget *parent)
         : QWizardPage(parent) {
     setTitle(tr("Getting started..."));
-    setSubTitle(tr("... with gpg4usb"));
+    setSubTitle(tr("... with GPGFrontend"));
 
-    auto *topLabel = new QLabel(tr("To use gpg4usb for decrypting and signing messages, you need a "
+    auto *topLabel = new QLabel(tr("To use GPGFrontend for decrypting and signing messages, you need a "
                                    "private key. The next page will help you with "
                                    "key generation or import.<br><br>"
                                    "For more information have a look at the <a href='docu_concepts.html'>concepts</a> "
@@ -161,17 +161,17 @@ int IntroPage::nextId() const {
 ChoosePage::ChoosePage(QWidget *parent)
         : QWizardPage(parent) {
     setTitle(tr("Choose your action..."));
-    setSubTitle(tr("...by clicking on the apropriate link."));
+    setSubTitle(tr("...by clicking on the appropriate link."));
 
-    auto *keygenLabel = new QLabel(tr("If you have never used gpg4usb before and also don't own a gpg key yet you "
+    auto *keygenLabel = new QLabel(tr("If you have never used GPGFrontend before and also don't own a gpg key yet you "
                                       "may possibly want to ") + "<a href=""Wizard::Page_GenKey"">"
                                    + tr("create a new keypair") + "</a><hr>");
     keygenLabel->setWordWrap(true);
     connect(keygenLabel, SIGNAL(linkActivated(QString)), this, SLOT(slotJumpPage(Qtring)));
 
-    auto *importGpg4usbLabel = new QLabel(tr("If you upgrade from an older version of gpg4usb you may want to ")
+    auto *importGpg4usbLabel = new QLabel(tr("If you upgrade from an older version of GPGFrontend you may want to ")
                                           + "<a href=""Wizard::Page_ImportFromGpg4usb"">"
-                                          + tr("import settings and/or keys from gpg4usb") + "</a>");
+                                          + tr("import settings and/or keys from GPGFrontend") + "</a>");
     importGpg4usbLabel->setWordWrap(true);
     connect(importGpg4usbLabel, SIGNAL(linkActivated(QString)), this, SLOT(slotJumpPage(QString)));
 
@@ -207,11 +207,11 @@ ImportFromGpg4usbPage::ImportFromGpg4usbPage(GpgME::GpgContext *ctx, KeyMgmt *ke
     mCtx = ctx;
     mKeyMgmt = keyMgmt;
     setTitle(tr("Import from..."));
-    setSubTitle(tr("...existing gpg4usb"));
+    setSubTitle(tr("...existing GPGFrontend"));
 
-    auto *topLabel = new QLabel(tr("You can import keys and/or settings from existing gpg4usb. <br><br>"
+    auto *topLabel = new QLabel(tr("You can import keys and/or settings from existing GPGFrontend. <br><br>"
                                    "Just check what you want to import, click the import button and choose "
-                                   "the directory of your other gpg4usb in the appearing file dialog."), this);
+                                   "the directory of your other GPGFrontend in the appearing file dialog."), this);
     topLabel->setWordWrap(true);
 
     gpg4usbKeyCheckBox = new QCheckBox();
@@ -222,7 +222,7 @@ ImportFromGpg4usbPage::ImportFromGpg4usbPage(GpgME::GpgContext *ctx, KeyMgmt *ke
     gpg4usbConfigCheckBox->setChecked(true);
     auto *configLabel = new QLabel(tr("Configuration"));
 
-    auto *importFromGpg4usbButton = new QPushButton(tr("Import from gpg4usb"));
+    auto *importFromGpg4usbButton = new QPushButton(tr("Import from GPGFrontend"));
     connect(importFromGpg4usbButton, SIGNAL(clicked()), this, SLOT(slotImportFromOlderGpg4usb()));
 
     auto *gpg4usbLayout = new QGridLayout();
@@ -237,7 +237,7 @@ ImportFromGpg4usbPage::ImportFromGpg4usbPage(GpgME::GpgContext *ctx, KeyMgmt *ke
 }
 
 void ImportFromGpg4usbPage::slotImportFromOlderGpg4usb() {
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Other gpg4usb directory"));
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Other GPGFrontend directory"));
 
     // Return, if cancel was hit
     if (dir.isEmpty()) {
@@ -258,7 +258,7 @@ void ImportFromGpg4usbPage::slotImportFromOlderGpg4usb() {
         QSettings settings;
         settings.setValue("wizard/nextPage", this->nextId());
         QMessageBox::information(nullptr, tr("Configuration Imported"),
-                                 tr("Imported Configuration from old gpg4usb.<br>"
+                                 tr("Imported Configuration from old GPGFrontend.<br>"
                                     "Will now restart to activate the configuration."));
         // TODO: edit->maybesave?
         qApp->exit(RESTART_CODE);
@@ -267,7 +267,7 @@ void ImportFromGpg4usbPage::slotImportFromOlderGpg4usb() {
 }
 
 bool ImportFromGpg4usbPage::slotImportConfFromGpg4usb(const QString &dir) {
-    QString path = dir + "/conf/gpg4usb.ini";
+    QString path = dir + "/conf/GPGFrontend.ini";
     QSettings oldconf(path, QSettings::IniFormat, this);
     QSettings actualConf;
             foreach(QString key, oldconf.allKeys()) {
@@ -389,10 +389,10 @@ void KeyGenPage::slotGenerateKeyDialog() {
 ConclusionPage::ConclusionPage(QWidget *parent)
         : QWizardPage(parent) {
     setTitle(tr("Ready."));
-    setSubTitle(tr("Have fun with gpg4usb!"));
+    setSubTitle(tr("Have fun with GPGFrontend!"));
 
-    auto *bottomLabel = new QLabel(tr("You are ready to use gpg4usb now.<br><br>"
-                                      "The offline help will get you started with gpg4usb. "
+    auto *bottomLabel = new QLabel(tr("You are ready to use GPGFrontend now.<br><br>"
+                                      "The offline help will get you started with GPGFrontend. "
                                       "It will open in the main window.<br>"));
     bottomLabel->setWordWrap(true);
 

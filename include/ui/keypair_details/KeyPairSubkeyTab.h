@@ -22,24 +22,35 @@
  *
  */
 
-#ifndef __KEYDETAILSDIALOG_H__
-#define __KEYDETAILSDIALOG_H__
+#ifndef GPGFRONTEND_KEYPAIRSUBKEYTAB_H
+#define GPGFRONTEND_KEYPAIRSUBKEYTAB_H
+
+#include "GpgFrontend.h"
 
 #include "gpg/GpgContext.h"
-#include "KeyPairDetailTab.h"
-#include <gpgme.h>
 
-class KeyDetailsDialog : public QDialog {
+class KeyPairSubkeyTab : public QWidget {
 Q_OBJECT
 
 public:
 
-    KeyDetailsDialog(GpgME::GpgContext *ctx, const GpgKey& key, QWidget *parent = nullptr);
+    KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent);
 
 private:
 
-    QTabWidget *tabWidget{};
+    void creatSubkeyList();
+
+    GpgME::GpgContext *mCtx;
+
+    const GpgKey &key;
+
+    QTableWidget *subkeyList;
+
+
+private slots:
+
 
 };
 
-#endif // __KEYDETAILSDIALOG_H__
+
+#endif //GPGFRONTEND_KEYPAIRSUBKEYTAB_H

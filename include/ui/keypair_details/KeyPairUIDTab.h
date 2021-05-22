@@ -22,56 +22,43 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGKEY_H
-#define GPGFRONTEND_GPGKEY_H
+#ifndef GPGFRONTEND_KEYPAIRUIDTAB_H
+#define GPGFRONTEND_KEYPAIRUIDTAB_H
 
-#include "UID.h"
-#include "GpgSubKey.h"
+#include "GpgFrontend.h"
+#include "gpg/GpgContext.h"
 
-class GpgKey {
+class KeyPairUIDTab : public QWidget {
+Q_OBJECT
+
 public:
 
-    QString id;
-    QString name;
-    QString email;
-    QString comment;
-    QString fpr;
-    QString protocol;
-    QString owner_trust;
-    QString pubkey_algo;
-    QDateTime last_update;
-    QDateTime expires;
-    QDateTime create_time;
+    KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey& key, QWidget *parent);
 
-    unsigned int length;
+private:
 
-    bool can_encrypt{};
-    bool can_sign{};
-    bool can_certify{};
-    bool can_authenticate{};
+    void createUIDList();
+
+    void createSignList();
+
+    GpgME::GpgContext *mCtx;
+
+    const GpgKey &key;
+
+    QTableWidget *uidList;
+
+    QTableWidget *sigList;
 
 
-    bool is_private_key{};
-    bool expired{};
-    bool revoked{};
-    bool disabled{};
 
-    bool good = false;
+private slots:
 
-    QVector<GpgSubKey> subKeys;
+    void slotRefreshUIDList();
 
-    QVector<UID> uids;
+    void slotRefreshSigList();
 
-    explicit GpgKey(gpgme_key_t key) {
-       parse(key);
-    }
 
-    GpgKey() {
-        is_private_key = false;
-    }
-
-    void parse(gpgme_key_t key);
 };
 
 
-#endif //GPGFRONTEND_GPGKEY_H
+#endif //GPGFRONTEND_KEYPAIRUIDTAB_H

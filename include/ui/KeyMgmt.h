@@ -27,7 +27,7 @@
 
 #include "KeyList.h"
 #include "KeygenThread.h"
-#include "KeyDetailsDialog.h"
+#include "ui/keypair_details/KeyDetailsDialog.h"
 #include "KeyImportDetailDialog.h"
 #include "KeyServerImportDialog.h"
 #include "KeygenDialog.h"
