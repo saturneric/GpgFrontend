@@ -22,12 +22,15 @@
  *
  */
 
-#include "ui/KeyList.h"
+#include "ui/widgets/KeyList.h"
 
 #include <utility>
 
-KeyList::KeyList(GpgME::GpgContext *ctx, QWidget *parent)
-        : QWidget(parent)
+KeyList::KeyList(GpgME::GpgContext *ctx,
+                 KeyListRow::KeyType selectType,
+                 KeyListColumn::InfoType infoType,
+                 QWidget *parent)
+        : QWidget(parent), mSelectType(selectType), mInfoType(infoType)
 {
     mCtx = ctx;
 
@@ -47,9 +50,30 @@ KeyList::KeyList(GpgME::GpgContext *ctx, QWidget *parent)
 
     mKeyList->setAlternatingRowColors(true);
 
+    // Hidden Column For Purpose
+    if(!(mInfoType & KeyListColumn::TYPE)) {
+        mKeyList->setColumnHidden(1, true);
+    }
+    if(!(mInfoType & KeyListColumn::NAME)) {
+        mKeyList->setColumnHidden(2, true);
+    }
+    if(!(mInfoType & KeyListColumn::EmailAddress)) {
+        mKeyList->setColumnHidden(3, true);
+    }
+    if(!(mInfoType & KeyListColumn::Usage)) {
+        mKeyList->setColumnHidden(4, true);
+    }
+    if(!(mInfoType & KeyListColumn::Validity)) {
+        mKeyList->setColumnHidden(5, true);
+    }
+    if(!(mInfoType & KeyListColumn::FingerPrint)) {
+        mKeyList->setColumnHidden(6, true);
+    }
+
     QStringList labels;
     labels << tr("Select") << tr("Type") << tr("Name") << tr("Email Address")
-        << tr("Usage") << tr("Validity") << tr("Finger Print");
+           << tr("Usage") << tr("Validity") << tr("Finger Print");
+
     mKeyList->setHorizontalHeaderLabels(labels);
     mKeyList->horizontalHeader()->setStretchLastSection(true);
 
@@ -81,6 +105,11 @@ void KeyList::slotRefresh()
     buffered_keys.clear();
 
     while (it != keys.end()) {
+
+        if(mSelectType == KeyListRow::ONLY_SECRET_KEY && !it->is_private_key) {
+            it++;
+            continue;
+        }
 
         buffered_keys.push_back(*it);
 

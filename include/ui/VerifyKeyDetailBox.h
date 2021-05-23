@@ -25,7 +25,7 @@
 #ifndef __VERIFYKEYDETAILBOX_H__
 #define __VERIFYKEYDETAILBOX_H__
 
-#include "ui/KeyList.h"
+#include "ui/widgets/KeyList.h"
 #include "ui/KeyServerImportDialog.h"
 
 class VerifyKeyDetailBox : public QGroupBox {

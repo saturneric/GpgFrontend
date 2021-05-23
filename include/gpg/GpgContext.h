@@ -60,14 +60,14 @@ public:
     }
 
     int considered;
-    [[maybe_unused]] int no_user_id;
+    int no_user_id;
     int imported;
-    [[maybe_unused]] int imported_rsa;
+    int imported_rsa;
     int unchanged;
-    [[maybe_unused]] int new_user_ids;
-    [[maybe_unused]] int new_sub_keys;
-    [[maybe_unused]] int new_signatures;
-    [[maybe_unused]] int new_revocations;
+    int new_user_ids;
+    int new_sub_keys;
+    int new_signatures;
+    int new_revocations;
     int secret_read;
     int secret_imported;
     int secret_unchanged;
@@ -81,13 +81,13 @@ namespace GpgME {
     Q_OBJECT
 
     public:
-        GpgContext(); // Constructor
+        GpgContext();
 
-        ~GpgContext() override; // Destructor
+        ~GpgContext() override;
 
         GpgImportInformation importKey(QByteArray inBuffer);
 
-        const GpgKeyList &getKeys() const;
+        [[nodiscard]] const GpgKeyList &getKeys() const;
 
         bool exportKeys(QStringList *uidList, QByteArray *outBuffer);
 
@@ -105,6 +105,8 @@ namespace GpgME {
         void exportSecretKey(const QString &uid, QByteArray *outBuffer);
 
         void getKeyDetails(const QString &uid, GpgKey& key);
+
+        void getSigners(QVector<GpgKey> &signer);
 
         void signKey(const QVector<GpgKey> &signer, const GpgKey &target, const QString& uid);
 
@@ -151,15 +153,16 @@ namespace GpgME {
     private:
         gpgme_ctx_t mCtx{};
         gpgme_data_t in{};
-        [[maybe_unused]] gpgme_data_t out{};
         gpgme_error_t err;
+        bool debug;
 
         static gpgme_error_t readToBuffer(gpgme_data_t dataIn, QByteArray *outBuffer);
 
         QByteArray mPasswordCache;
         QSettings settings;
-        [[maybe_unused]] bool debug;
         GpgKeyList mKeyList;
+
+        QMap<QString, GpgKey> mKeyMap;
 
         void fetch_keys();
 

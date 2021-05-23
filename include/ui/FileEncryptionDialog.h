@@ -26,7 +26,7 @@
 #define __FILEENCRYPTIONDIALOG_H__
 
 #include "gpg/GpgContext.h"
-#include "KeyList.h"
+#include "ui/widgets/KeyList.h"
 #include "VerifyDetailsDialog.h"
 
 

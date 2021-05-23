@@ -26,14 +26,42 @@
 #define __KEYLIST_H__
 
 #include "gpg/GpgContext.h"
-#include "KeyImportDetailDialog.h"
+#include "ui/KeyImportDetailDialog.h"
+
+
+struct KeyListRow {
+
+    using KeyType = unsigned int;
+
+    static const KeyType SECRET_OR_PUBLIC_KEY = 0;
+    static const KeyType ONLY_SECRET_KEY = 1;
+
+};
+
+struct KeyListColumn {
+
+    using InfoType = unsigned int;
+
+    static constexpr InfoType ALL = ~0;
+    static constexpr InfoType TYPE = 1 << 0;
+    static constexpr InfoType NAME = 1 << 1;
+    static constexpr InfoType EmailAddress = 1 << 2;
+    static constexpr InfoType Usage = 1 << 3;
+    static constexpr InfoType Validity = 1 << 4;
+    static constexpr InfoType FingerPrint = 1 << 5;
+
+};
 
 
 class KeyList : public QWidget {
 Q_OBJECT
 
 public:
-    explicit KeyList(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
+
+    explicit KeyList(GpgME::GpgContext *ctx,
+                     KeyListRow::KeyType selectType = KeyListRow::SECRET_OR_PUBLIC_KEY,
+                     KeyListColumn::InfoType infoType = KeyListColumn::ALL,
+                     QWidget *parent = nullptr);
 
     void setColumnWidth(int row, int size);
 
@@ -67,12 +95,15 @@ private:
     QTableWidget *mKeyList;
     QMenu *popupMenu;
     QNetworkAccessManager *qnam{};
-
     QVector<GpgKey> buffered_keys;
+    KeyListRow::KeyType mSelectType;
+    KeyListColumn::InfoType mInfoType;
+
 
 private slots:
 
     void uploadFinished();
+
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;

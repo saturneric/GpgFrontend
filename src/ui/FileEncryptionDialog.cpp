@@ -87,10 +87,7 @@ FileEncryptionDialog::FileEncryptionDialog(GpgME::GpgContext *ctx, QStringList k
     groupBox1->setLayout(gLayout);
 
     /*Setup KeyList*/
-    mKeyList = new KeyList(mCtx);
-    mKeyList->hide();
-    mKeyList->setColumnWidth(2, 150);
-    mKeyList->setColumnWidth(3, 150);
+    mKeyList = new KeyList(mCtx, KeyListRow::ONLY_SECRET_KEY, KeyListColumn::NAME | KeyListColumn::EmailAddress);
     mKeyList->setChecked(&keyList);
 
     statusLabel = new QLabel();
