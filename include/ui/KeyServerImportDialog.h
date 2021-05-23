@@ -27,7 +27,7 @@
 
 #include "gpg/GpgContext.h"
 #include "KeyImportDetailDialog.h"
-#include "KeyList.h"
+#include "ui/widgets/KeyList.h"
 
 
 class KeyServerImportDialog : public QDialog {

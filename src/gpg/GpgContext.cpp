@@ -275,18 +275,20 @@ namespace GpgME {
 
         gpgme_key_t key;
 
-        GpgKeyList keys;
+        mKeyList.clear();
+        mKeyMap.clear();
 
-        //TODO dont run the loop more often than necessary
-        // list all keys ( the 0 is for all )
+        auto &keys = mKeyList;
+        auto &keys_map = mKeyMap;
+
         gpgmeError = gpgme_set_keylist_mode(mCtx, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET);
-        if (gpgmeError != GPG_ERR_NO_ERROR) {
+        if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
             checkErr(gpgmeError);
             return;
         }
 
         gpgmeError = gpgme_op_keylist_start(mCtx, nullptr, 0);
-        if (gpgmeError != GPG_ERR_NO_ERROR) {
+        if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
             checkErr(gpgmeError);
             return;
         }
@@ -295,51 +297,54 @@ namespace GpgME {
             if (!key->subkeys)
                 continue;
 
-            keys.append(GpgKey(key));
+            GpgKey gpg_key(key);
+
+            keys_map.insert(gpg_key.id, gpg_key);
             gpgme_key_unref(key);
         }
 
 
-//        if (gpgmeError != GPG_ERR_EOF) {
+        if (gpg_err_code(gpgmeError) != GPG_ERR_EOF) {
+            checkErr(gpgmeError);
+            return;
+        }
+
+        gpgmeError = gpgme_op_keylist_end(mCtx);
+        if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
+            checkErr(gpgmeError);
+            return;
+        }
+
+//        list only private keys ( the 1 does )
+//        gpgmeError = gpgme_op_keylist_start(mCtx, nullptr, 1);
+//        if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
+//            checkErr(gpgmeError);
+//            return;
+//        }
+//
+//        while ((gpgmeError = gpgme_op_keylist_next(mCtx, &key)) == GPG_ERR_NO_ERROR) {
+//            if (key->subkeys) {
+//                auto it = keys_map.find(key->subkeys->keyid);
+//                if (it != keys_map.end()) {
+//                    it->is_private_key = true;
+//                }
+//            }
+//            gpgme_key_unref(key);
+//        }
+//
+//        if (gpg_err_code(gpgmeError) != GPG_ERR_EOF) {
 //            checkErr(gpgmeError);
 //            return;
 //        }
 
         gpgmeError = gpgme_op_keylist_end(mCtx);
-        if (gpgmeError != GPG_ERR_NO_ERROR) {
+        if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
             checkErr(gpgmeError);
             return;
         }
 
-        // list only private keys ( the 1 does )
-        gpgmeError = gpgme_op_keylist_start(mCtx, nullptr, 1);
-        if (gpgmeError != GPG_ERR_NO_ERROR) {
-            checkErr(gpgmeError);
-            return;
-        }
-
-        while ((gpgmeError = gpgme_op_keylist_next(mCtx, &key)) == GPG_ERR_NO_ERROR) {
-            if (!key->subkeys)
-                continue;
-            // iterate keys, mark privates
-            GpgKeyList::iterator it = keys.begin();
-            while (it != keys.end()) {
-                if (key->subkeys->keyid == it->id.toStdString())
-                    it->is_private_key = true;
-                it++;
-            }
-            gpgme_key_unref(key);
-        }
-
-//        if (gpgmeError != GPG_ERR_EOF) {
-//            checkErr(gpgmeError);
-//            return;
-//        }
-
-        gpgmeError = gpgme_op_keylist_end(mCtx);
-        if (gpgmeError != GPG_ERR_NO_ERROR) {
-            checkErr(gpgmeError);
-            return;
+        for(auto &gpg_key : keys_map) {
+            keys.append(gpg_key);
         }
 
         mKeyList = keys;
@@ -546,6 +551,7 @@ namespace GpgME {
         QString passwordDialogMessage;
         QString gpgHint = QString::fromUtf8(uid_hint);
         bool result;
+
 #ifdef _WIN32
         DWORD written;
         HANDLE hd = (HANDLE)fd;
@@ -807,11 +813,11 @@ namespace GpgME {
         return (gpgmeError == GPG_ERR_NO_ERROR);
     }
 
-/*
- * if there is no '\n' before the PGP-Begin-Block, but for example a whitespace,
- * GPGME doesn't recognise the Message as encrypted. This function adds '\n'
- * before the PGP-Begin-Block, if missing.
- */
+    /*
+     * if there is no '\n' before the PGP-Begin-Block, but for example a whitespace,
+     * GPGME doesn't recognise the Message as encrypted. This function adds '\n'
+     * before the PGP-Begin-Block, if missing.
+     */
     void GpgContext::preventNoDataErr(QByteArray *in) {
         int block_start = in->indexOf(GpgConstants::PGP_CRYPT_BEGIN);
         if (block_start > 0 && in->at(block_start - 1) != '\n') {
@@ -823,12 +829,12 @@ namespace GpgME {
         }
     }
 
-/*
-  * isSigned returns:
-  * - 0, if text isn't signed at all
-  * - 1, if text is partially signed
-  * - 2, if text is completly signed
-  */
+    /*
+      * isSigned returns:
+      * - 0, if text isn't signed at all
+      * - 1, if text is partially signed
+      * - 2, if text is completly signed
+      */
     int GpgContext::textIsSigned(const QByteArray &text) {
         if (text.trimmed().startsWith(GpgConstants::PGP_SIGNED_BEGIN) &&
             text.trimmed().endsWith(GpgConstants::PGP_SIGNED_END)) {
@@ -889,6 +895,20 @@ namespace GpgME {
 
     const GpgKeyList &GpgContext::getKeys() const {
         return mKeyList;
+    }
+
+    void GpgContext::getSigners(QVector<GpgKey> &signer) {
+        auto count = gpgme_signers_count(mCtx);
+        signer.clear();
+        for(auto i = 0; i < count; i++){
+            auto key = gpgme_signers_enum(mCtx, i);
+            auto it = mKeyMap.find(key->subkeys->keyid);
+            if(it == mKeyMap.end()) {
+                signer.push_back(GpgKey(key));
+            } else {
+                signer.push_back(*it);
+            }
+        }
     }
 
 }

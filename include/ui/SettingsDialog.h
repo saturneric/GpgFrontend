@@ -25,7 +25,7 @@
 #ifndef __SETTINGSDIALOG_H__
 #define __SETTINGSDIALOG_H__
 
-#include "ui/KeyList.h"
+#include "ui/widgets/KeyList.h"
 
 class GeneralTab : public QWidget {
 Q_OBJECT

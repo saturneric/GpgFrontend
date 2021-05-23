@@ -25,7 +25,7 @@
 #ifndef __KEYMGMT_H__
 #define __KEYMGMT_H__
 
-#include "KeyList.h"
+#include "ui/widgets/KeyList.h"
 #include "KeygenThread.h"
 #include "ui/keypair_details/KeyDetailsDialog.h"
 #include "KeyImportDetailDialog.h"
