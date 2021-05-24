@@ -175,8 +175,7 @@ void KeyPairDetailTab::slotExportPrivateKey() {
     if (ret == QMessageBox::Ok) {
         auto *keyArray = new QByteArray();
         mCtx->exportSecretKey(*keyid, keyArray);
-        GpgKey key;
-        mCtx->getKeyDetails(*keyid, key);
+        auto &key = mCtx->getKeyById(*keyid);
         QString fileString = key.name + " " +key.email + "(" +
                              key.id + ")_pub_sec.asc";
         QString fileName = QFileDialog::getSaveFileName(this, tr("Export Key To File"), fileString,

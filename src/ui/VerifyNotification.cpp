@@ -130,7 +130,7 @@ bool VerifyNotification::slotRefresh() {
             case GPG_ERR_BAD_SIGNATURE: {
                 textIsSigned = 3;
                 verifyStatus = VERIFY_ERROR_CRITICAL;
-                GpgKey key = mCtx->getKeyById(sign->fpr);
+                GpgKey key = mCtx->getKeyByFpr(sign->fpr);
 
                 if(!key.good) break;
 

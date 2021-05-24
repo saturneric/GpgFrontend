@@ -28,6 +28,8 @@ void GpgKey::parse(gpgme_key_t key) {
 
     if(key == nullptr) return;
 
+
+
     good = true;
     key_refer = key;
     gpgme_key_ref(key_refer);
@@ -68,6 +70,7 @@ void GpgKey::parse(gpgme_key_t key) {
             break;
     }
 
+    uids.clear();
     auto uid = key->uids;
 
     while (uid != nullptr) {
@@ -75,13 +78,13 @@ void GpgKey::parse(gpgme_key_t key) {
         uid = uid->next;
     }
 
-
     if (!uids.isEmpty()) {
         name = uids.first().name;
         email = uids.first().email;
         comment = uids.first().comment;
     }
 
+    subKeys.clear();
     auto next = key->subkeys;
 
     while (next != nullptr) {
@@ -169,6 +172,7 @@ GpgKey &GpgKey::operator=(const GpgKey &k) {
     good = k.good;
 
     subKeys = k.subKeys;
+    uids = k.uids;
 
     key_refer = k.key_refer;
     gpgme_key_ref(key_refer);
@@ -197,6 +201,7 @@ GpgKey::GpgKey(const GpgKey &k) :
     good = k.good;
 
     subKeys = k.subKeys;
+    uids = k.uids;
 
     key_refer = k.key_refer;
     gpgme_key_ref(key_refer);

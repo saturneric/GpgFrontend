@@ -104,11 +104,11 @@ namespace GpgME {
 
         void exportSecretKey(const QString &uid, QByteArray *outBuffer);
 
-        void getKeyDetails(const QString &uid, GpgKey& key);
-
         void getSigners(QVector<GpgKey> &signer);
 
-        void signKey(const QVector<GpgKey> &signer, const GpgKey &target, const QString& uid);
+        void setSigners(const QVector<GpgKey> &keys);
+
+        void signKey(const GpgKey &target, const QString& uid, const QDateTime *expires);
 
         gpgme_signature_t verify(QByteArray *inBuffer, QByteArray *sigBuffer = nullptr);
 
@@ -124,7 +124,7 @@ namespace GpgME {
 
         GpgKey getKeyByFpr(const QString &fpr);
 
-        GpgKey getKeyById(const QString &id);
+        const GpgKey & getKeyById(const QString &id);
 
         static QString gpgErrString(gpgme_error_t err);
 
@@ -146,9 +146,13 @@ namespace GpgME {
 
         void signalKeyDBChanged();
 
+        void signalKeyUpdated(const QString &key_id);
+
     private slots:
 
         void slotRefreshKeyList();
+
+        void slotUpdateKeyList(const QString &key_id);
 
     private:
         gpgme_ctx_t mCtx{};
@@ -162,7 +166,7 @@ namespace GpgME {
         QSettings settings;
         GpgKeyList mKeyList;
 
-        QMap<QString, GpgKey> mKeyMap;
+        QMap<QString, GpgKey *> mKeyMap;
 
         void fetch_keys();
 

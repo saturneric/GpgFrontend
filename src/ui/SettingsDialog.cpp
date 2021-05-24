@@ -184,8 +184,9 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
     keyIds.insert("", tr("<none>"));
 
     foreach (QString keyid, *mKeyList->getAllPrivateKeys()) {
-            GpgKey key;
-            mCtx->getKeyDetails(keyid, key);
+
+            auto &key = mCtx->getKeyById(keyid);
+
             QString newKey = " (" + keyid + ")";
             if (!QString(key.email).isEmpty()) {
                 newKey.prepend(" <" + key.email + ">");

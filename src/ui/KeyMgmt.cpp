@@ -234,8 +234,7 @@ void KeyMgmt::deleteKeysWithWarning(QStringList *uidList)
     }
     QString keynames;
     for (const auto &uid : *uidList) {
-        GpgKey key;
-        mCtx->getKeyDetails(uid, key);
+        auto &key = mCtx->getKeyById(uid);
         keynames.append(key.name);
         keynames.append("<i> &lt;");
         keynames.append(key.email);
@@ -258,9 +257,7 @@ void KeyMgmt::slotShowKeyDetails()
         return;
     }
 
-    GpgKey key;
-
-    mCtx->getKeyDetails(mKeyList->getSelected()->first(), key);
+    auto &key = mCtx->getKeyById(mKeyList->getSelected()->first());
 
     new KeyDetailsDialog(mCtx, key);
 }
@@ -271,8 +268,7 @@ void KeyMgmt::slotExportKeyToFile()
     if (!mCtx->exportKeys(mKeyList->getChecked(), keyArray)) {
         return;
     }
-    GpgKey key;
-    mCtx->getKeyDetails(mKeyList->getChecked()->first(), key);
+    auto &key = mCtx->getKeyById(mKeyList->getSelected()->first());
     QString fileString = key.name + " " + key.email+ "(" + key.id+ ")_pub.asc";
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Export Key To File"), fileString, tr("Key Files") + " (*.asc *.txt);;All Files (*)");
