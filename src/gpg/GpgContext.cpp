@@ -186,7 +186,7 @@ namespace GpgME {
         const char *userid = userid_utf8.constData();
         auto algo_utf8 = (params->getAlgo() + params->getKeySizeStr()).toUtf8();
         const char *algo = algo_utf8.constData();
-        unsigned long expires = params->getExpired().toTime_t();
+        unsigned long expires = QDateTime::currentDateTime().secsTo(params->getExpired());
         unsigned int flags = 0;
 
         if (!params->isSubKey()) {
@@ -253,19 +253,6 @@ namespace GpgME {
         return true;
     }
 
-    void GpgContext::getKeyDetails(const QString &uid, GpgKey &key) {
-        gpgme_key_t gpgme_key;
-
-        // try secret
-        gpgme_get_key(mCtx, uid.toUtf8().constData(), &gpgme_key, 1);
-        // ok, its a public key
-        if (!gpgme_key) {
-            gpgme_get_key(mCtx, uid.toUtf8().constData(), &gpgme_key, 0);
-        }
-
-        key.parse(gpgme_key);
-    }
-
     /**
      * List all availabe Keys (VERY much like kgpgme)
      */
@@ -297,9 +284,8 @@ namespace GpgME {
             if (!key->subkeys)
                 continue;
 
-            GpgKey gpg_key(key);
-
-            keys_map.insert(gpg_key.id, gpg_key);
+            keys.append(GpgKey(key));
+            keys_map.insert(keys.back().id, &keys.back());
             gpgme_key_unref(key);
         }
 
@@ -341,10 +327,6 @@ namespace GpgME {
         if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
             checkErr(gpgmeError);
             return;
-        }
-
-        for(auto &gpg_key : keys_map) {
-            keys.append(gpg_key);
         }
 
         mKeyList = keys;
@@ -855,6 +837,7 @@ namespace GpgME {
     }
 
     void GpgContext::slotRefreshKeyList() {
+        qDebug() << "Refreshing Keys";
         this->fetch_keys();
     }
 
@@ -870,27 +853,41 @@ namespace GpgME {
         return GpgKey(nullptr);
     }
 
-/**
- * note: is_private_key status is not returned
- */
-    GpgKey GpgContext::getKeyById(const QString &id) {
+    /**
+     * note: is_private_key status is not returned
+     */
+    const GpgKey &GpgContext::getKeyById(const QString &id) {
 
-        //GpgKeyList list = this->fetch_keys();
-                foreach  (GpgKey key, mKeyList) {
-                if (key.id == id) {
-                    return key;
-                }
-            }
+        auto it = mKeyMap.find(id);
 
-        return GpgKey(nullptr);
+        if(it != mKeyMap.end()) {
+            return *it.value();
+        }
+
+        throw std::runtime_error("key not found");
     }
 
     QString GpgContext::getGpgmeVersion() {
         return QString(gpgme_check_version(nullptr));
     }
 
-    void GpgContext::signKey(const QVector<GpgKey> &signer, const GpgKey &target, const QString &uid) {
+    void GpgContext::signKey(const GpgKey &target, const QString &uid, const QDateTime *expires) {
 
+        unsigned int flags = 0;
+
+        unsigned int expires_time_t = 0;
+        if (expires == nullptr) {
+            flags |= GPGME_KEYSIGN_NOEXPIRE;
+        } else {
+            expires_time_t = QDateTime::currentDateTime().secsTo(*expires);
+        }
+
+        auto gpgmeError =
+                gpgme_op_keysign(mCtx, target.key_refer, uid.toUtf8().constData(), expires_time_t, flags);
+
+        checkErr(gpgmeError);
+
+        emit signalKeyUpdated(target.id);
     }
 
     const GpgKeyList &GpgContext::getKeys() const {
@@ -900,14 +897,33 @@ namespace GpgME {
     void GpgContext::getSigners(QVector<GpgKey> &signer) {
         auto count = gpgme_signers_count(mCtx);
         signer.clear();
-        for(auto i = 0; i < count; i++){
+        for (auto i = 0; i < count; i++) {
             auto key = gpgme_signers_enum(mCtx, i);
             auto it = mKeyMap.find(key->subkeys->keyid);
-            if(it == mKeyMap.end()) {
+            if (it == mKeyMap.end()) {
+                qDebug() << "Inconsistent state";
                 signer.push_back(GpgKey(key));
             } else {
-                signer.push_back(*it);
+                signer.push_back(*it.value());
             }
+        }
+    }
+
+    void GpgContext::setSigners(const QVector<GpgKey> &keys) {
+        gpgme_signers_clear(mCtx);
+        unsigned int count = 0;
+        for (const auto &key : keys) {
+            count = gpgme_signers_add(mCtx, key.key_refer);
+        }
+        if (keys.length() != count) {
+            qDebug() << "Now All Keys Added";
+        }
+    }
+
+    void GpgContext::slotUpdateKeyList(const QString &key_id) {
+        auto it = mKeyMap.find(key_id);
+        if (it != mKeyMap.end()) {
+            it.value()->parse(it.value()->key_refer);
         }
     }
 

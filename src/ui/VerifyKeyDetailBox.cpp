@@ -66,7 +66,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext *ctx, 
             break;
         }
         default: {
-            GpgKey key = mCtx->getKeyById(signature->fpr);
+            GpgKey key = mCtx->getKeyByFpr(signature->fpr);
 
             if(!key.good) break;
 

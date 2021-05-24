@@ -385,3 +385,14 @@ void KeyList::uploadFinished()
 
     reply->deleteLater();
 }
+
+void KeyList::getCheckedKeys(QVector<GpgKey> &keys) {
+
+    keys.clear();
+
+    for (int i = 0; i < mKeyList->rowCount(); i++) {
+        if (mKeyList->item(i, 0)->isSelected() == 1) {
+            keys.push_back(buffered_keys[i]);
+        }
+    }
+}

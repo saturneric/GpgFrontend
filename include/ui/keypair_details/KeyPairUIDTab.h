@@ -28,12 +28,14 @@
 #include "GpgFrontend.h"
 #include "gpg/GpgContext.h"
 
+#include "KeySignDialog.h"
+
 class KeyPairUIDTab : public QWidget {
 Q_OBJECT
 
 public:
 
-    KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey& key, QWidget *parent);
+    KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent);
 
 private:
 
@@ -41,15 +43,15 @@ private:
 
     void createSignList();
 
+    void getUIDChecked(QVector<UID> &uids);
+
     GpgME::GpgContext *mCtx;
 
-    const GpgKey &key;
+    const GpgKey &mKey;
 
-    QTableWidget *uidList;
+    QTableWidget *uidList{};
 
-    QTableWidget *sigList;
-
-
+    QTableWidget *sigList{};
 
 private slots:
 
@@ -57,6 +59,7 @@ private slots:
 
     void slotRefreshSigList();
 
+    void slotAddSign();
 
 };
 
