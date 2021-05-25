@@ -99,6 +99,7 @@ namespace GpgME {
         }
 
         connect(this, SIGNAL(signalKeyDBChanged()), this, SLOT(slotRefreshKeyList()), Qt::DirectConnection);
+        connect(this, SIGNAL(signalKeyUpdated(QString)), this, SLOT(slotUpdateKeyList(QString)));
         slotRefreshKeyList();
     }
 
@@ -268,7 +269,12 @@ namespace GpgME {
         auto &keys = mKeyList;
         auto &keys_map = mKeyMap;
 
-        gpgmeError = gpgme_set_keylist_mode(mCtx, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET);
+        gpgmeError = gpgme_set_keylist_mode(mCtx,
+                                            GPGME_KEYLIST_MODE_LOCAL
+                                            | GPGME_KEYLIST_MODE_WITH_SECRET
+                                            | GPGME_KEYLIST_MODE_SIGS
+                                            | GPGME_KEYLIST_MODE_SIG_NOTATIONS
+                                            | GPGME_KEYLIST_MODE_WITH_TOFU);
         if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
             checkErr(gpgmeError);
             return;
@@ -871,7 +877,7 @@ namespace GpgME {
         return QString(gpgme_check_version(nullptr));
     }
 
-    void GpgContext::signKey(const GpgKey &target, const QString &uid, const QDateTime *expires) {
+    bool GpgContext::signKey(const GpgKey &target, const QString &uid, const QDateTime *expires) {
 
         unsigned int flags = 0;
 
@@ -885,9 +891,13 @@ namespace GpgME {
         auto gpgmeError =
                 gpgme_op_keysign(mCtx, target.key_refer, uid.toUtf8().constData(), expires_time_t, flags);
 
-        checkErr(gpgmeError);
-
-        emit signalKeyUpdated(target.id);
+        if(gpgmeError == GPG_ERR_NO_ERROR) {
+            emit signalKeyUpdated(target.id);
+            return true;
+        } else {
+            checkErr(gpgmeError);
+            return false;
+        }
     }
 
     const GpgKeyList &GpgContext::getKeys() const {
@@ -913,14 +923,16 @@ namespace GpgME {
         gpgme_signers_clear(mCtx);
         unsigned int count = 0;
         for (const auto &key : keys) {
-            count = gpgme_signers_add(mCtx, key.key_refer);
+            auto gpgmeError = gpgme_signers_add(mCtx, key.key_refer);
+            checkErr(gpgmeError);
+            gpgme_key_unref(key.key_refer);
         }
-        if (keys.length() != count) {
-            qDebug() << "Now All Keys Added";
+        if (keys.length() != gpgme_signers_count(mCtx)) {
+            qDebug() << "No All Keys Added";
         }
     }
 
-    void GpgContext::slotUpdateKeyList(const QString &key_id) {
+    void GpgContext::slotUpdateKeyList(QString key_id) {
         auto it = mKeyMap.find(key_id);
         if (it != mKeyMap.end()) {
             it.value()->parse(it.value()->key_refer);

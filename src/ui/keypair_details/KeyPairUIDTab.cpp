@@ -10,36 +10,38 @@ KeyPairUIDTab::KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget 
 
     createUIDList();
     createSignList();
+    createManageUIDMenu();
 
     auto uidButtonsLayout = new QGridLayout();
 
     auto addUIDButton = new QPushButton(tr("New UID"));
     auto manageUIDButton = new QPushButton(tr("Manage UID"));
 
+    manageUIDButton->setMenu(manageUIDMenu);
+
     uidButtonsLayout->addWidget(addUIDButton, 0, 1);
     uidButtonsLayout->addWidget(manageUIDButton, 0, 2);
 
 
-    auto sigButtonsLayout = new QGridLayout();
-
-    auto addSigButton = new QPushButton("New Signature");
-    auto manageSigButton = new QPushButton(tr("Manage Signature"));
-
-    sigButtonsLayout->addWidget(addSigButton, 0, 1);
-    sigButtonsLayout->addWidget(manageSigButton, 0, 2);
+//    auto sigButtonsLayout = new QGridLayout();
+//    auto manageSigButton = new QPushButton(tr("Manage Signature"));
+//
+//    sigButtonsLayout->addWidget(addSigButton, 0, 1);
+//    sigButtonsLayout->addWidget(manageSigButton, 0, 2);
 
     auto gridLayout = new QGridLayout();
     gridLayout->addWidget(uidList, 0, 0);
     gridLayout->addLayout(uidButtonsLayout, 1, 0);
 
     gridLayout->addWidget(sigList, 2, 0);
-    gridLayout->addLayout(sigButtonsLayout, 3, 0);
+//    gridLayout->addLayout(sigButtonsLayout, 3, 0);
 
     setLayout(gridLayout);
 
     connect(mCtx, SIGNAL(signalKeyDBChanged()), this, SLOT(slotRefreshUIDList()));
     connect(mCtx, SIGNAL(signalKeyDBChanged()), this, SLOT(slotRefreshSigList()));
-    connect(addSigButton, SIGNAL(clicked(bool)), this, SLOT(slotAddSign()));
+    connect(uidList, SIGNAL(itemSelectionChanged()), this, SLOT(slotRefreshSigList()));
+//    connect(addSigButton, SIGNAL(clicked(bool)), this, SLOT(slotAddSign()));
 
     slotRefreshUIDList();
     slotRefreshSigList();
@@ -52,6 +54,7 @@ void KeyPairUIDTab::createUIDList() {
     uidList->verticalHeader()->hide();
     uidList->setShowGrid(false);
     uidList->setSelectionBehavior(QAbstractItemView::SelectRows);
+    uidList->setSelectionMode( QAbstractItemView::SingleSelection );
 
     // tableitems not editable
     uidList->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -69,7 +72,7 @@ void KeyPairUIDTab::createUIDList() {
 
 void KeyPairUIDTab::createSignList() {
     sigList = new QTableWidget(this);
-    sigList->setColumnCount(5);
+    sigList->setColumnCount(4);
     sigList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     sigList->verticalHeader()->hide();
     sigList->setShowGrid(false);
@@ -84,7 +87,7 @@ void KeyPairUIDTab::createSignList() {
     sigList->setAlternatingRowColors(true);
 
     QStringList labels;
-    labels << tr("Type") << tr("Name") << tr("Pubkey Id") << tr("Create Time") << tr("Valid Time");
+    labels << tr("Type") << tr("Pubkey Id") << tr("Create Time") << tr("Valid Time");
     sigList->setHorizontalHeaderLabels(labels);
     sigList->horizontalHeader()->setStretchLastSection(true);
 
@@ -120,40 +123,36 @@ void KeyPairUIDTab::slotRefreshUIDList() {
 }
 
 void KeyPairUIDTab::slotRefreshSigList() {
-    int row = 0;
 
     sigList->clearContents();
 
-    for(const auto& uid : mKey.uids) {
-        row += uid.signatures.size();
-    }
-    sigList->setRowCount(row);
-
-    row = 0;
+    int row = 0;
     for(const auto& uid : mKey.uids) {
 
         // Only Show Selected UID's Signatures
         if(!uidList->item(row, 0)->isSelected())
             continue;
 
+        sigList->setRowCount(uid.signatures.size());
+
         for(const auto &sig : uid.signatures) {
             auto *tmp0 = new QTableWidgetItem(sig.pubkey_algo);
-            uidList->setItem(row, 0, tmp0);
-
-            auto *tmp1 = new QTableWidgetItem(sig.name);
-            uidList->setItem(row, 1, tmp1);
+            sigList->setItem(row, 0, tmp0);
 
             auto *tmp2 = new QTableWidgetItem(sig.uid);
-            uidList->setItem(row, 2, tmp2);
+            sigList->setItem(row, 1, tmp2);
 
             auto *tmp3 = new QTableWidgetItem(sig.create_time.toString());
-            uidList->setItem(row, 3, tmp3);
+            sigList->setItem(row, 2, tmp3);
 
             auto *tmp4 = new QTableWidgetItem(sig.expire_time.toString());
-            uidList->setItem(row, 4, tmp4);
+            sigList->setItem(row, 3, tmp4);
 
             row++;
         }
+
+        break;
+
     }
 }
 
@@ -162,6 +161,13 @@ void KeyPairUIDTab::slotAddSign() {
     QVector<UID> selected_uids;
 
     getUIDChecked(selected_uids);
+
+    if(selected_uids.isEmpty()) {
+        auto emptyUIDMsg = new QMessageBox();
+        emptyUIDMsg->setText("Please select one or more UIDs before doing this operation.");
+        emptyUIDMsg->exec();
+        return;
+    }
 
     auto keySignDialog = new KeySignDialog(mCtx, mKey, selected_uids, this);
     keySignDialog->show();
@@ -176,4 +182,14 @@ void KeyPairUIDTab::getUIDChecked(QVector<UID> &selected_uids) {
             selected_uids.push_back(uids[i]);
         }
     }
+}
+
+void KeyPairUIDTab::createManageUIDMenu() {
+
+    manageUIDMenu = new QMenu(this);
+
+    auto *signUIDAct = new QAction(tr("Sign Selected UID(s)"), this);
+    connect(signUIDAct, SIGNAL(triggered()), this, SLOT(slotAddSign()));
+
+    manageUIDMenu->addAction(signUIDAct);
 }

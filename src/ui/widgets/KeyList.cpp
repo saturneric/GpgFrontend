@@ -34,6 +34,7 @@ KeyList::KeyList(GpgME::GpgContext *ctx,
 {
     mCtx = ctx;
 
+
     mKeyList = new QTableWidget(this);
     mKeyList->setColumnCount(7);
     mKeyList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -98,38 +99,47 @@ void KeyList::slotRefresh()
     mKeyList->clearContents();
 
     GpgKeyList keys = mCtx->getKeys();
-    mKeyList->setRowCount(keys.size());
 
-    int row = 0;
-    GpgKeyList::iterator it = keys.begin();
+    auto it = keys.begin();
+
+    int row_count = 0;
+
+    while (it != keys.end()) {
+        if (mSelectType == KeyListRow::ONLY_SECRET_KEY && !it->is_private_key) {
+            it = keys.erase(it);
+            continue;
+        }
+        row_count++;
+        it++;
+    }
+
+    mKeyList->setRowCount(row_count);
+
+    int row_index = 0;
+    it = keys.begin();
     buffered_keys.clear();
 
     while (it != keys.end()) {
 
-        if(mSelectType == KeyListRow::ONLY_SECRET_KEY && !it->is_private_key) {
-            it++;
-            continue;
-        }
-
         buffered_keys.push_back(*it);
 
-        auto *tmp0 = new QTableWidgetItem(QString::number(row));
+        auto *tmp0 = new QTableWidgetItem(QString::number(row_index));
         tmp0->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsSelectable);
         tmp0->setTextAlignment(Qt::AlignCenter);
         tmp0->setCheckState(Qt::Unchecked);
-        mKeyList->setItem(row, 0, tmp0);
+        mKeyList->setItem(row_index, 0, tmp0);
 
         if (it->is_private_key) {
             auto *tmp1 = new QTableWidgetItem("pub/sec");
-            mKeyList->setItem(row, 1, tmp1);
+            mKeyList->setItem(row_index, 1, tmp1);
         } else {
             auto *tmp1 = new QTableWidgetItem("pub");
-            mKeyList->setItem(row, 1, tmp1);
+            mKeyList->setItem(row_index, 1, tmp1);
         }
 
         auto *tmp2 = new QTableWidgetItem(it->name);
         tmp2->setToolTip(it->name);
-        mKeyList->setItem(row, 2, tmp2);
+        mKeyList->setItem(row_index, 2, tmp2);
         auto *tmp3 = new QTableWidgetItem(it->email);
         tmp3->setToolTip(it->email);
         // strike out expired keys
@@ -139,7 +149,7 @@ void KeyList::slotRefresh()
             tmp2->setFont(strike);
             tmp3->setFont(strike);
         }
-        mKeyList->setItem(row, 3, tmp3);
+        mKeyList->setItem(row_index, 3, tmp3);
 
         QString usage;
         QTextStream usage_steam(&usage);
@@ -155,20 +165,21 @@ void KeyList::slotRefresh()
 
         auto *temp_usage = new QTableWidgetItem(usage);
         temp_usage->setTextAlignment(Qt::AlignCenter);
-        mKeyList->setItem(row, 4, temp_usage);
+        mKeyList->setItem(row_index, 4, temp_usage);
 
         auto *temp_validity = new QTableWidgetItem(it->owner_trust);
         temp_validity->setTextAlignment(Qt::AlignCenter);
-        mKeyList->setItem(row, 5, temp_validity);
+        mKeyList->setItem(row_index, 5, temp_validity);
 
         auto *temp_fpr = new QTableWidgetItem(it->fpr);
         temp_fpr->setTextAlignment(Qt::AlignCenter);
-        mKeyList->setItem(row, 6, temp_fpr);
+        mKeyList->setItem(row_index, 6, temp_fpr);
 
         it++;
-        ++row;
+        ++row_index;
     }
-    // mKeyList->setSortingEnabled(true);
+
+
     setChecked(keyList);
 }
 
@@ -391,7 +402,7 @@ void KeyList::getCheckedKeys(QVector<GpgKey> &keys) {
     keys.clear();
 
     for (int i = 0; i < mKeyList->rowCount(); i++) {
-        if (mKeyList->item(i, 0)->isSelected() == 1) {
+        if (mKeyList->item(i, 0)->checkState() == Qt::Checked) {
             keys.push_back(buffered_keys[i]);
         }
     }
