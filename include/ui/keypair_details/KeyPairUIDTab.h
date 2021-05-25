@@ -43,6 +43,8 @@ private:
 
     void createSignList();
 
+    void createManageUIDMenu();
+
     void getUIDChecked(QVector<UID> &uids);
 
     GpgME::GpgContext *mCtx;
@@ -52,6 +54,8 @@ private:
     QTableWidget *uidList{};
 
     QTableWidget *sigList{};
+
+    QMenu *manageUIDMenu;
 
 private slots:
 

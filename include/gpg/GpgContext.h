@@ -108,7 +108,7 @@ namespace GpgME {
 
         void setSigners(const QVector<GpgKey> &keys);
 
-        void signKey(const GpgKey &target, const QString& uid, const QDateTime *expires);
+        bool signKey(const GpgKey &target, const QString& uid, const QDateTime *expires);
 
         gpgme_signature_t verify(QByteArray *inBuffer, QByteArray *sigBuffer = nullptr);
 
@@ -146,13 +146,13 @@ namespace GpgME {
 
         void signalKeyDBChanged();
 
-        void signalKeyUpdated(const QString &key_id);
+        void signalKeyUpdated(QString key_id);
 
     private slots:
 
         void slotRefreshKeyList();
 
-        void slotUpdateKeyList(const QString &key_id);
+        void slotUpdateKeyList(QString key_id);
 
     private:
         gpgme_ctx_t mCtx{};

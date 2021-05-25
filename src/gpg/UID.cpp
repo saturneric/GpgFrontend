@@ -11,6 +11,7 @@ UID::UID(gpgme_user_id_t user_id) :
 
     while (sig != nullptr) {
         signatures.push_back(Signature(sig));
+        sig = sig->next;
     }
 
 }

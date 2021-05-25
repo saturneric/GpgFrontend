@@ -29,14 +29,14 @@ private:
 
     QCheckBox *nonExpireCheck;
 
-    const QVector<UID> &mUids;
+    const QVector<UID> mUids;
 
     const GpgKey &mKey;
 
 
 private slots:
 
-    void slotSignKey();
+    void slotSignKey(bool clicked);
 
 };
 
