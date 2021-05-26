@@ -32,9 +32,7 @@ KeyGenThread::KeyGenThread(GenKeyInfo* keyGenParams, GpgME::GpgContext *ctx) {
 
 void KeyGenThread::run() {
     bool success = mCtx->generateKey(keyGenParams);
-    if(success)
-        QMessageBox::information(nullptr, tr("Success"), tr("New key created"));
-    else
-        QMessageBox::critical(nullptr, tr("Failure"), tr("Key generation failed"));
+
+    emit signalKeyGenerated(success);
 
 }

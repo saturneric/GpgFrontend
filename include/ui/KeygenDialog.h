@@ -108,6 +108,8 @@ private slots:
 
     void slotActivatedKeyType(int index);
 
+    void slotKeyGenResult(bool success);
+
 };
 
 #endif // __KEYGENDIALOG_H__
