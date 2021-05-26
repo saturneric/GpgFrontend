@@ -26,6 +26,8 @@
 
 KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent) : mCtx(ctx), key(key), QWidget(parent) {
 
+    setAttribute(Qt::WA_DeleteOnClose, true);
+
 }
 
 void KeyPairSubkeyTab::creatSubkeyList() {

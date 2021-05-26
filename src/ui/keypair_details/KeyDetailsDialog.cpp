@@ -27,15 +27,15 @@
 KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext *ctx, const GpgKey& key, QWidget *parent)
         : QDialog(parent) {
 
-
-    tabWidget = new QTabWidget(this);
-    tabWidget->addTab(new KeyPairDetailTab(ctx, key, this), tr("KeyPair"));
-    tabWidget->addTab(new KeyPairUIDTab(ctx, key, this), tr("UIDs"));
-    tabWidget->addTab(new KeyPairSubkeyTab(ctx, key, this), tr("Subkeys"));
+    tabWidget = new QTabWidget();
+    tabWidget->addTab(new KeyPairDetailTab(ctx, key, tabWidget), tr("KeyPair"));
+    tabWidget->addTab(new KeyPairUIDTab(ctx, key, tabWidget), tr("UIDs"));
+    tabWidget->addTab(new KeyPairSubkeyTab(ctx, key, tabWidget), tr("Subkeys"));
 
     auto *mainLayout = new QVBoxLayout;
     mainLayout->addWidget(tabWidget);
 
+    this->setAttribute(Qt::WA_DeleteOnClose, true);
     this->setLayout(mainLayout);
     this->setWindowTitle(tr("Key Details"));
     this->setModal(true);

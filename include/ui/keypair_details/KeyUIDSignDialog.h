@@ -2,20 +2,20 @@
 // Created by eric on 2021/5/24.
 //
 
-#ifndef GPGFRONTEND_KEYSIGNDIALOG_H
-#define GPGFRONTEND_KEYSIGNDIALOG_H
+#ifndef GPGFRONTEND_KEYUIDSIGNDIALOG_H
+#define GPGFRONTEND_KEYUIDSIGNDIALOG_H
 
 #include "GpgFrontend.h"
 
 #include "gpg/GpgContext.h"
 #include "ui/widgets/KeyList.h"
 
-class KeySignDialog : public QDialog {
+class KeyUIDSignDialog : public QDialog {
     Q_OBJECT
 
 public:
 
-    explicit KeySignDialog(GpgME::GpgContext *ctx, const GpgKey &key, const QVector<UID> &uid, QWidget *parent = nullptr);
+    explicit KeyUIDSignDialog(GpgME::GpgContext *ctx, const GpgKey &key, const QVector<UID> &uid, QWidget *parent = nullptr);
 
 private:
 
@@ -41,4 +41,4 @@ private slots:
 };
 
 
-#endif //GPGFRONTEND_KEYSIGNDIALOG_H
+#endif //GPGFRONTEND_KEYUIDSIGNDIALOG_H

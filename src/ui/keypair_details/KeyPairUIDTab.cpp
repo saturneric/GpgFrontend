@@ -38,16 +38,14 @@ KeyPairUIDTab::KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget 
 
     setLayout(gridLayout);
 
-    connect(mCtx, SIGNAL(signalKeyDBChanged()), this, SLOT(slotRefreshUIDList()));
-    connect(mCtx, SIGNAL(signalKeyDBChanged()), this, SLOT(slotRefreshSigList()));
-
-    connect(mCtx, SIGNAL(signalKeyUpdated(QString)), this, SLOT(slotRefreshUIDList()));
-    connect(mCtx, SIGNAL(signalKeyUpdated(QString)), this, SLOT(slotRefreshSigList()));
+    connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefreshUIDList()));
+    connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefreshSigList()));
 
     connect(uidList, SIGNAL(itemSelectionChanged()), this, SLOT(slotRefreshSigList()));
-
     slotRefreshUIDList();
     slotRefreshSigList();
+
+    setAttribute(Qt::WA_DeleteOnClose, true);
 }
 
 void KeyPairUIDTab::createUIDList() {
@@ -172,7 +170,7 @@ void KeyPairUIDTab::slotAddSign() {
         return;
     }
 
-    auto keySignDialog = new KeySignDialog(mCtx, mKey, selected_uids, this);
+    auto keySignDialog = new KeyUIDSignDialog(mCtx, mKey, selected_uids, this);
     keySignDialog->show();
 }
 

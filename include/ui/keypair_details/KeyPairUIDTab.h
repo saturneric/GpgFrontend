@@ -28,7 +28,7 @@
 #include "GpgFrontend.h"
 #include "gpg/GpgContext.h"
 
-#include "KeySignDialog.h"
+#include "KeyUIDSignDialog.h"
 
 class KeyPairUIDTab : public QWidget {
 Q_OBJECT

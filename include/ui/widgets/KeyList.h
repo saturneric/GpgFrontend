@@ -63,6 +63,8 @@ public:
                      KeyListColumn::InfoType infoType = KeyListColumn::ALL,
                      QWidget *parent = nullptr);
 
+    void setExcludeKeys(std::initializer_list<QString> key_ids);
+
     void setColumnWidth(int row, int size);
 
     void addMenuAction(QAction *act);
@@ -100,6 +102,7 @@ private:
     QVector<GpgKey> buffered_keys;
     KeyListRow::KeyType mSelectType;
     KeyListColumn::InfoType mInfoType;
+    QVector<QString> excluded_key_ids;
 
 
 private slots:

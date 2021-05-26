@@ -24,15 +24,15 @@
 
 #include "ui/KeygenThread.h"
 
-KeyGenThread::KeyGenThread(GenKeyInfo* keyGenParams, GpgME::GpgContext *ctx) {
+KeyGenThread::KeyGenThread(GenKeyInfo* keyGenParams, GpgME::GpgContext *ctx): QThread(nullptr) {
     this->keyGenParams = keyGenParams;
     this->mCtx = ctx;
     abort = false;
+    connect(this, &KeyGenThread::finished, this, &KeyGenThread::deleteLater);
 }
 
 void KeyGenThread::run() {
     bool success = mCtx->generateKey(keyGenParams);
-
     emit signalKeyGenerated(success);
-
+    emit finished({});
 }

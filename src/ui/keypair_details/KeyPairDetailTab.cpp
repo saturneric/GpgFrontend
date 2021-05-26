@@ -159,6 +159,7 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
 
     mvbox->addWidget(buttonBox);
 
+    setAttribute(Qt::WA_DeleteOnClose, true);
     setLayout(mvbox);
 }
 

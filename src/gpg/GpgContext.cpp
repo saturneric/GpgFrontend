@@ -859,6 +859,7 @@ namespace GpgME {
     void GpgContext::slotRefreshKeyList() {
         qDebug() << "Refreshing Keys";
         this->fetch_keys();
+        emit signalKeyInfoChanged();
     }
 
 /**
@@ -881,7 +882,7 @@ namespace GpgME {
         auto it = mKeyMap.find(id);
 
         if(it != mKeyMap.end()) {
-            return *it.value();
+            return *(it.value());
         }
 
         throw std::runtime_error("key not found");
@@ -935,11 +936,9 @@ namespace GpgME {
 
     void GpgContext::setSigners(const QVector<GpgKey> &keys) {
         gpgme_signers_clear(mCtx);
-        unsigned int count = 0;
         for (const auto &key : keys) {
             auto gpgmeError = gpgme_signers_add(mCtx, key.key_refer);
             checkErr(gpgmeError);
-            gpgme_key_unref(key.key_refer);
         }
         if (keys.length() != gpgme_signers_count(mCtx)) {
             qDebug() << "No All Keys Added";
@@ -963,6 +962,7 @@ namespace GpgME {
 
             if(new_key_refer != nullptr) {
                 it.value()->swapKeyRefer(new_key_refer);
+                emit signalKeyInfoChanged();
             }
 
         }
