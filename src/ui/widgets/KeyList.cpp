@@ -85,7 +85,7 @@ KeyList::KeyList(GpgME::GpgContext *ctx,
     setLayout(layout);
 
     popupMenu = new QMenu(this);
-    connect(mCtx, SIGNAL(signalKeyDBChanged()), this, SLOT(slotRefresh()));
+    connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefresh()));
     setAcceptDrops(true);
     slotRefresh();
 }
@@ -105,6 +105,17 @@ void KeyList::slotRefresh()
     int row_count = 0;
 
     while (it != keys.end()) {
+        if(!excluded_key_ids.isEmpty()){
+            bool if_find = false;
+            for(const auto &key_id : excluded_key_ids) {
+                if(it->id == key_id) {
+                    it = keys.erase(it);
+                    if_find = true;
+                    break;
+                }
+            }
+            if(if_find) continue;
+        }
         if (mSelectType == KeyListRow::ONLY_SECRET_KEY && !it->is_private_key) {
             it = keys.erase(it);
             continue;
@@ -398,12 +409,17 @@ void KeyList::uploadFinished()
 }
 
 void KeyList::getCheckedKeys(QVector<GpgKey> &keys) {
-
     keys.clear();
-
     for (int i = 0; i < mKeyList->rowCount(); i++) {
         if (mKeyList->item(i, 0)->checkState() == Qt::Checked) {
             keys.push_back(buffered_keys[i]);
         }
+    }
+}
+
+void KeyList::setExcludeKeys(std::initializer_list<QString> key_ids) {
+    excluded_key_ids.clear();
+    for(auto &key_id : key_ids) {
+        excluded_key_ids.push_back(key_id);
     }
 }

@@ -2,15 +2,18 @@
 // Created by eric on 2021/5/24.
 //
 
-#include "ui/keypair_details/KeySignDialog.h"
+#include "ui/keypair_details/KeyUIDSignDialog.h"
 
-KeySignDialog::KeySignDialog(GpgME::GpgContext *ctx, const GpgKey &key, const QVector<UID> &uid, QWidget *parent) :
+KeyUIDSignDialog::KeyUIDSignDialog(GpgME::GpgContext *ctx, const GpgKey &key, const QVector<UID> &uid, QWidget *parent) :
         mKey(key), mCtx(ctx), mUids(uid), QDialog(parent) {
 
     mKeyList = new KeyList(ctx,
                            KeyListRow::ONLY_SECRET_KEY,
                            KeyListColumn::NAME | KeyListColumn::EmailAddress,
                            this);
+
+    mKeyList->setExcludeKeys({key.id});
+    mKeyList->slotRefresh();
 
     signKeyButton = new QPushButton("Sign");
 
@@ -53,24 +56,33 @@ KeySignDialog::KeySignDialog(GpgME::GpgContext *ctx, const GpgKey &key, const QV
     this->setModal(true);
     this->setWindowTitle(tr("Sign For Key's UID(s)"));
     this->adjustSize();
+
+    setAttribute(Qt::WA_DeleteOnClose, true);
 }
 
-void KeySignDialog::slotSignKey(bool clicked) {
+void KeyUIDSignDialog::slotSignKey(bool clicked) {
 
+    // Set Signers
     QVector<GpgKey> keys;
     mKeyList->getCheckedKeys(keys);
     mCtx->setSigners(keys);
+
     const auto expires = expiresEdit->dateTime();
 
     for(const auto &uid : mUids) {
-        for(const auto &key : keys) {
-            if (!mCtx->signKey(mKey, uid.uid, &expires)) {
-                auto msg = QMessageBox();
-                msg.setText(QString("%1 <%2> failed to sign.").arg(key.name, key.email));
-                msg.exec();
-            }
+        // Sign For mKey
+        if (!mCtx->signKey(mKey, uid.uid, &expires)) {
+            QMessageBox::critical(nullptr,
+                                  tr("Operation Unsuccessful"),
+                                  QString("%1 <%2>"+tr(" signature operation failed for UID ") + "%3")
+                                  .arg(mKey.name, mKey.email, uid.uid));
         }
+
     }
+
+    QMessageBox::information(nullptr,
+                             tr("Operation Complete"),
+                             tr("The signature operation of the UID is complete"));
 
     this->close();
 }

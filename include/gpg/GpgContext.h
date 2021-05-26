@@ -148,6 +148,8 @@ namespace GpgME {
 
         void signalKeyUpdated(QString key_id);
 
+        void signalKeyInfoChanged();
+
     private slots:
 
         void slotRefreshKeyList();

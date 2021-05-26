@@ -142,9 +142,7 @@ void KeyGenDialog::slotKeyGenAccept() {
         }
 
         kg = new KeyGenThread(&genKeyInfo, mCtx);
-
         connect(kg, SIGNAL(signalKeyGenerated(bool)), this, SLOT(slotKeyGenResult(bool)));
-
         kg->start();
 
         this->accept();
@@ -168,8 +166,6 @@ void KeyGenDialog::slotKeyGenAccept() {
         while (kg->isRunning()) {
             QCoreApplication::processEvents();
         }
-
-        destroy(kg, true);
 
         dialog->close();
 
