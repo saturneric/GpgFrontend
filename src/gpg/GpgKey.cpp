@@ -28,8 +28,6 @@ void GpgKey::parse(gpgme_key_t key) {
 
     if(key == nullptr) return;
 
-
-
     good = true;
     key_refer = key;
     gpgme_key_ref(key_refer);
@@ -255,5 +253,14 @@ GpgKey::~GpgKey() {
 }
 
 GpgKey::GpgKey(gpgme_key_t key) {
+    parse(key);
+}
+
+void GpgKey::swapKeyRefer(gpgme_key_t key) {
+
+    if(key == nullptr) return;
+
+    gpgme_key_unref(key_refer);
+    key_refer = nullptr;
     parse(key);
 }

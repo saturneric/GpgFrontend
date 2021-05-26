@@ -40,8 +40,11 @@ KeyPairUIDTab::KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget 
 
     connect(mCtx, SIGNAL(signalKeyDBChanged()), this, SLOT(slotRefreshUIDList()));
     connect(mCtx, SIGNAL(signalKeyDBChanged()), this, SLOT(slotRefreshSigList()));
+
+    connect(mCtx, SIGNAL(signalKeyUpdated(QString)), this, SLOT(slotRefreshUIDList()));
+    connect(mCtx, SIGNAL(signalKeyUpdated(QString)), this, SLOT(slotRefreshSigList()));
+
     connect(uidList, SIGNAL(itemSelectionChanged()), this, SLOT(slotRefreshSigList()));
-//    connect(addSigButton, SIGNAL(clicked(bool)), this, SLOT(slotAddSign()));
 
     slotRefreshUIDList();
     slotRefreshSigList();
