@@ -143,6 +143,8 @@ void KeyGenDialog::slotKeyGenAccept() {
 
         kg = new KeyGenThread(&genKeyInfo, mCtx);
 
+        connect(kg, SIGNAL(signalKeyGenerated(bool)), this, SLOT(slotKeyGenResult(bool)));
+
         kg->start();
 
         this->accept();
@@ -358,3 +360,9 @@ bool KeyGenDialog::check_email_address(const QString &str) {
     return re_email.match(str).hasMatch();
 }
 
+void  KeyGenDialog::slotKeyGenResult(bool success) {
+    if(success)
+        QMessageBox::information(nullptr, tr("Success"), tr("The new key pair has been generated."));
+    else
+        QMessageBox::critical(nullptr, tr("Failure"), tr("An error occurred during key generation."));
+}

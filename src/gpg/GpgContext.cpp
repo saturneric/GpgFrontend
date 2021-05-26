@@ -263,11 +263,15 @@ namespace GpgME {
 
         gpgme_key_t key;
 
+        qDebug() << "Clear List and Map";
+
         mKeyList.clear();
         mKeyMap.clear();
 
         auto &keys = mKeyList;
         auto &keys_map = mKeyMap;
+
+        qDebug() << "Set Keylist Mode";
 
         gpgmeError = gpgme_set_keylist_mode(mCtx,
                                             GPGME_KEYLIST_MODE_LOCAL
@@ -280,15 +284,21 @@ namespace GpgME {
             return;
         }
 
+        qDebug() << "Operate KeyList Start";
+
         gpgmeError = gpgme_op_keylist_start(mCtx, nullptr, 0);
         if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
             checkErr(gpgmeError);
             return;
         }
 
+        qDebug() << "Start Loop";
+
         while ((gpgmeError = gpgme_op_keylist_next(mCtx, &key)) == GPG_ERR_NO_ERROR) {
             if (!key->subkeys)
                 continue;
+
+            qDebug() << "Append Key" << key->subkeys->keyid;
 
             keys.append(GpgKey(key));
             keys_map.insert(keys.back().id, &keys.back());
@@ -300,6 +310,8 @@ namespace GpgME {
             checkErr(gpgmeError);
             return;
         }
+
+        qDebug() << "Operate KeyList End";
 
         gpgmeError = gpgme_op_keylist_end(mCtx);
         if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
