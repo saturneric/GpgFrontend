@@ -98,8 +98,10 @@ namespace GpgME {
             debug = false;
         }
 
-        connect(this, SIGNAL(signalKeyDBChanged()), this, SLOT(slotRefreshKeyList()), Qt::DirectConnection);
-        connect(this, SIGNAL(signalKeyUpdated(QString)), this, SLOT(slotUpdateKeyList(QString)));
+        connect(this, SIGNAL(signalKeyDBChanged()),
+                this, SLOT(slotRefreshKeyList()), Qt::DirectConnection);
+        connect(this, SIGNAL(signalKeyUpdated(QString)),
+                this, SLOT(slotUpdateKeyList(QString)), Qt::DirectConnection);
         slotRefreshKeyList();
     }
 
@@ -947,7 +949,22 @@ namespace GpgME {
     void GpgContext::slotUpdateKeyList(QString key_id) {
         auto it = mKeyMap.find(key_id);
         if (it != mKeyMap.end()) {
-            it.value()->parse(it.value()->key_refer);
+            gpgme_key_t new_key_refer;
+            auto gpgmeErr = gpgme_get_key(mCtx, key_id.toUtf8().constData(), &new_key_refer, 0);
+
+            if(gpgme_err_code(gpgmeErr) == GPG_ERR_EOF) {
+                gpgmeErr = gpgme_get_key(mCtx, key_id.toUtf8().constData(), &new_key_refer, 1);
+
+                if(gpgme_err_code(gpgmeErr) == GPG_ERR_EOF) {
+                    throw std::runtime_error("key_id not found in key database");
+                }
+
+            }
+
+            if(new_key_refer != nullptr) {
+                it.value()->swapKeyRefer(new_key_refer);
+            }
+
         }
     }
 

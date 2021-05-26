@@ -77,6 +77,8 @@ public:
     ~GpgKey();
 
     void parse(gpgme_key_t key);
+
+    void swapKeyRefer(gpgme_key_t key);
 };
 
 
