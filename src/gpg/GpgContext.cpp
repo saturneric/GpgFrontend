@@ -968,6 +968,20 @@ namespace GpgME {
         }
     }
 
+    bool GpgContext::addUID(const GpgKey &key, const UID &uid) {
+        QString userid = QString("%1 (%3) <%2>").arg(uid.name, uid.email, uid.comment);
+        auto gpgmeError = gpgme_op_adduid(mCtx, key.key_refer, userid.toUtf8().constData(), 0);
+        if(gpgmeError == GPG_ERR_NO_ERROR) {
+            emit signalKeyUpdated(key.id);
+            return true;
+        }
+        else {
+            checkErr(gpgmeError);
+            return false;
+        }
+
+    }
+
 }
 
 

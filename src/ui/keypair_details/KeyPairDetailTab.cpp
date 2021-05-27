@@ -13,8 +13,6 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     keyBox = new QGroupBox(tr("Key details"));
     fingerprintBox = new QGroupBox(tr("Fingerprint"));
     additionalUidBox = new QGroupBox(tr("Additional Uids"));
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
-    connect(buttonBox, SIGNAL(rejected()), this, SLOT(close()));
 
     nameVarLabel = new QLabel(key.name);
     nameVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
@@ -90,37 +88,20 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
 
     fingerPrintVarLabel = new QLabel(beautifyFingerprint(key.fpr));
     fingerPrintVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    fingerPrintVarLabel->setStyleSheet("margin-left: 20; margin-right: 20;");
+    fingerPrintVarLabel->setStyleSheet("margin-left: 5; margin-right: 5;");
     auto *hboxFP = new QHBoxLayout();
 
     hboxFP->addWidget(fingerPrintVarLabel);
-    QIcon ico(":button_copy.png");
 
-    QPushButton copyFingerprintButton(QIcon(ico.pixmap(12, 12)), "");
-    //copyFingerprintButton.setStyleSheet("QPushButton {border: 0px; } QPushButton:Pressed {}  ");
-    copyFingerprintButton.setFlat(true);
-    copyFingerprintButton.setToolTip(tr("copy fingerprint to clipboard"));
-    connect(&copyFingerprintButton, SIGNAL(clicked()), this, SLOT(slotCopyFingerprint()));
+    auto *copyFingerprintButton = new QPushButton(tr("Copy"));
+    copyFingerprintButton->setFlat(true);
+    copyFingerprintButton->setToolTip(tr("copy fingerprint to clipboard"));
+    connect(copyFingerprintButton, SIGNAL(clicked()), this, SLOT(slotCopyFingerprint()));
 
-    hboxFP->addWidget(&copyFingerprintButton);
+    hboxFP->addWidget(copyFingerprintButton);
 
     fingerprintBox->setLayout(hboxFP);
     mvbox->addWidget(fingerprintBox);
-
-    // If key has more than primary uid, also show the other uids
-//    gpgme_user_id_t addUserIds = key->uids->next;
-//    if (addUserIds != nullptr) {
-//        auto *vboxUID = new QVBoxLayout();
-//        while (addUserIds != nullptr) {
-//            addUserIdsVarLabel = new QLabel(
-//                    QString::fromUtf8(addUserIds->name) + QString(" <") + addUserIds->email + ">");
-//            addUserIdsVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-//            vboxUID->addWidget(addUserIdsVarLabel);
-//            addUserIds = addUserIds->next;
-//        }
-//        additionalUidBox->setLayout(vboxUID);
-//        mvbox->addWidget(additionalUidBox);
-//    }
 
     if (key.is_private_key) {
         auto *privKeyBox = new QGroupBox(tr("Private Key"));
@@ -156,8 +137,6 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
         expBox->addWidget(expLabel);
         mvbox->addLayout(expBox);
     }
-
-    mvbox->addWidget(buttonBox);
 
     setAttribute(Qt::WA_DeleteOnClose, true);
     setLayout(mvbox);

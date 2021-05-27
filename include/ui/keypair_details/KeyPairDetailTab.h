@@ -40,7 +40,6 @@ private:
     QGroupBox *keyBox; /** Groupbox containing key information */
     QGroupBox *fingerprintBox; /** Groupbox containing fingerprint information */
     QGroupBox *additionalUidBox; /** Groupbox containing information about additional uids */
-    QDialogButtonBox *buttonBox; /** Box containing the close button */
 
     QLabel *nameVarLabel; /** Label containng the keys name */
     QLabel *emailVarLabel; /** Label containng the keys email */
