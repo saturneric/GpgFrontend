@@ -29,6 +29,7 @@
 #include "gpg/GpgContext.h"
 
 #include "KeyUIDSignDialog.h"
+#include "KeyNewUIDDialog.h"
 
 class KeyPairUIDTab : public QWidget {
 Q_OBJECT
@@ -64,6 +65,10 @@ private slots:
     void slotRefreshSigList();
 
     void slotAddSign();
+
+    void slotAddUID();
+
+    static void slotAddUIDResult(int result);
 
 };
 

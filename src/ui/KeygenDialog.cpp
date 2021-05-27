@@ -26,6 +26,7 @@
 
 KeyGenDialog::KeyGenDialog(GpgME::GpgContext *ctx, QWidget *parent)
         : QDialog(parent), mCtx(ctx) {
+
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
     this->setWindowTitle(tr("Generate Key"));
@@ -37,57 +38,8 @@ void KeyGenDialog::generateKeyDialog() {
 
     keyUsageGroupBox = create_key_usage_group_box();
 
-    errorLabel = new QLabel(tr(""));
-    nameEdit = new QLineEdit(this);
-    emailEdit = new QLineEdit(this);
-    commentEdit = new QLineEdit(this);
-    keySizeSpinBox = new QSpinBox(this);
-    keyTypeComboBox = new QComboBox(this);
-
-    for(auto &algo : GenKeyInfo::SupportedKeyAlgo) {
-        keyTypeComboBox->addItem(algo);
-    }
-    if(!GenKeyInfo::SupportedKeyAlgo.isEmpty()) {
-        keyTypeComboBox->setCurrentIndex(0);
-    }
-
-    QDateTime maxDateTime = QDateTime::currentDateTime().addYears(2);
-
-    dateEdit = new QDateTimeEdit(maxDateTime, this);
-    dateEdit->setMinimumDateTime(QDateTime::currentDateTime());
-    dateEdit->setMaximumDateTime(maxDateTime);
-    dateEdit->setDisplayFormat("dd/MM/yyyy hh:mm:ss");
-    dateEdit->setCalendarPopup(true);
-    dateEdit->setEnabled(true);
-
-    expireCheckBox = new QCheckBox(this);
-    expireCheckBox->setCheckState(Qt::Unchecked);
-
-    noPassPhraseCheckBox = new QCheckBox(this);
-    noPassPhraseCheckBox->setCheckState(Qt::Unchecked);
-
-    auto *vbox1 = new QGridLayout;
-
-    vbox1->addWidget(new QLabel(tr("Name:")), 0, 0);
-    vbox1->addWidget(new QLabel(tr("Email Address:")), 1, 0);
-    vbox1->addWidget(new QLabel(tr("Comment:")), 2, 0);
-    vbox1->addWidget(new QLabel(tr("Expiration Date:")), 3, 0);
-    vbox1->addWidget(new QLabel(tr("Never Expire")), 3, 3);
-    vbox1->addWidget(new QLabel(tr("KeySize (in Bit):")), 4, 0);
-    vbox1->addWidget(new QLabel(tr("Key Type:")), 5, 0);
-    vbox1->addWidget(new QLabel(tr("Non Pass Phrase")), 6, 0);
-
-    vbox1->addWidget(nameEdit, 0, 1, 1, 3);
-    vbox1->addWidget(emailEdit, 1, 1, 1, 3);
-    vbox1->addWidget(commentEdit, 2, 1, 1, 3);
-    vbox1->addWidget(dateEdit, 3, 1);
-    vbox1->addWidget(expireCheckBox, 3, 2);
-    vbox1->addWidget(keySizeSpinBox, 4, 1);
-    vbox1->addWidget(keyTypeComboBox, 5, 1);
-    vbox1->addWidget(noPassPhraseCheckBox, 6, 1);
-
     auto *groupGrid = new QGridLayout(this);
-    groupGrid->addLayout(vbox1, 0, 0);
+    groupGrid->addWidget(create_basic_info_group_box(), 0, 0);
     groupGrid->addWidget(keyUsageGroupBox, 1, 0);
 
     auto *nameList = new QWidget(this);
@@ -131,7 +83,7 @@ void KeyGenDialog::slotKeyGenAccept() {
          * create the string for key generation
          */
 
-        genKeyInfo.setUserid(QString("%1 <%2>").arg(nameEdit->text(), emailEdit->text()));
+        genKeyInfo.setUserid(QString("%1 (%3) <%2>").arg(nameEdit->text(), emailEdit->text(), commentEdit->text()));
 
         genKeyInfo.setKeySize(keySizeSpinBox->value());
 
@@ -361,4 +313,62 @@ void  KeyGenDialog::slotKeyGenResult(bool success) {
         QMessageBox::information(nullptr, tr("Success"), tr("The new key pair has been generated."));
     else
         QMessageBox::critical(nullptr, tr("Failure"), tr("An error occurred during key generation."));
+}
+
+QGroupBox *KeyGenDialog::create_basic_info_group_box() {
+
+    errorLabel = new QLabel(tr(""));
+    nameEdit = new QLineEdit(this);
+    emailEdit = new QLineEdit(this);
+    commentEdit = new QLineEdit(this);
+    keySizeSpinBox = new QSpinBox(this);
+    keyTypeComboBox = new QComboBox(this);
+
+    for(auto &algo : GenKeyInfo::SupportedKeyAlgo) {
+        keyTypeComboBox->addItem(algo);
+    }
+    if(!GenKeyInfo::SupportedKeyAlgo.isEmpty()) {
+        keyTypeComboBox->setCurrentIndex(0);
+    }
+
+    QDateTime maxDateTime = QDateTime::currentDateTime().addYears(2);
+
+    dateEdit = new QDateTimeEdit(maxDateTime, this);
+    dateEdit->setMinimumDateTime(QDateTime::currentDateTime());
+    dateEdit->setMaximumDateTime(maxDateTime);
+    dateEdit->setDisplayFormat("dd/MM/yyyy hh:mm:ss");
+    dateEdit->setCalendarPopup(true);
+    dateEdit->setEnabled(true);
+
+    expireCheckBox = new QCheckBox(this);
+    expireCheckBox->setCheckState(Qt::Unchecked);
+
+    noPassPhraseCheckBox = new QCheckBox(this);
+    noPassPhraseCheckBox->setCheckState(Qt::Unchecked);
+
+    auto *vbox1 = new QGridLayout;
+
+    vbox1->addWidget(new QLabel(tr("Name:")), 0, 0);
+    vbox1->addWidget(new QLabel(tr("Email Address:")), 1, 0);
+    vbox1->addWidget(new QLabel(tr("Comment:")), 2, 0);
+    vbox1->addWidget(new QLabel(tr("Expiration Date:")), 3, 0);
+    vbox1->addWidget(new QLabel(tr("Never Expire")), 3, 3);
+    vbox1->addWidget(new QLabel(tr("KeySize (in Bit):")), 4, 0);
+    vbox1->addWidget(new QLabel(tr("Key Type:")), 5, 0);
+    vbox1->addWidget(new QLabel(tr("Non Pass Phrase")), 6, 0);
+
+    vbox1->addWidget(nameEdit, 0, 1, 1, 3);
+    vbox1->addWidget(emailEdit, 1, 1, 1, 3);
+    vbox1->addWidget(commentEdit, 2, 1, 1, 3);
+    vbox1->addWidget(dateEdit, 3, 1);
+    vbox1->addWidget(expireCheckBox, 3, 2);
+    vbox1->addWidget(keySizeSpinBox, 4, 1);
+    vbox1->addWidget(keyTypeComboBox, 5, 1);
+    vbox1->addWidget(noPassPhraseCheckBox, 6, 1);
+
+    auto basicInfoGroupBox = new QGroupBox();
+    basicInfoGroupBox->setLayout(vbox1);
+    basicInfoGroupBox->setTitle(tr("Basic Information"));
+
+    return basicInfoGroupBox;
 }

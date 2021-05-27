@@ -114,6 +114,8 @@ namespace GpgME {
 
         bool sign(QStringList *uidList, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached = false);
 
+        bool addUID(const GpgKey &key, const UID &uid);
+
         /**
          * @details If text contains PGP-message, put a linebreak before the message,
          * so that gpgme can decrypt correctly
