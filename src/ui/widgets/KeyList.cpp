@@ -42,6 +42,7 @@ KeyList::KeyList(GpgME::GpgContext *ctx,
     mKeyList->setShowGrid(false);
     mKeyList->sortByColumn(2, Qt::AscendingOrder);
     mKeyList->setSelectionBehavior(QAbstractItemView::SelectRows);
+    mKeyList->setSelectionMode( QAbstractItemView::SingleSelection );
 
     // tableitems not editable
     mKeyList->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -105,16 +106,24 @@ void KeyList::slotRefresh()
     int row_count = 0;
 
     while (it != keys.end()) {
-        if(!excluded_key_ids.isEmpty()){
-            bool if_find = false;
-            for(const auto &key_id : excluded_key_ids) {
-                if(it->id == key_id) {
-                    it = keys.erase(it);
-                    if_find = true;
-                    break;
-                }
+        if(mFilter != nullptr) {
+            if(!mFilter(*it)) {
+                it = keys.erase(it);
+                continue;
             }
-            if(if_find) continue;
+        }
+        if(!excluded_key_ids.isEmpty()){
+
+            auto iterator = std::find_if(excluded_key_ids.begin(), excluded_key_ids.end(),
+                                         [it] (const auto &key_id) -> bool {
+                if(it->id == key_id) return true;
+                else return false;
+            });
+
+            if(iterator != excluded_key_ids.end()) {
+                it = keys.erase(it);
+                continue;
+            }
         }
         if (mSelectType == KeyListRow::ONLY_SECRET_KEY && !it->is_private_key) {
             it = keys.erase(it);
@@ -422,4 +431,8 @@ void KeyList::setExcludeKeys(std::initializer_list<QString> key_ids) {
     for(auto &key_id : key_ids) {
         excluded_key_ids.push_back(key_id);
     }
+}
+
+void KeyList::setFilter(std::function<bool(const GpgKey &)> filter) {
+    this->mFilter = filter;
 }

@@ -11,13 +11,15 @@ KeyPairUIDTab::KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget 
     createUIDList();
     createSignList();
     createManageUIDMenu();
+    createUIDPopupMenu();
+    createSignPopupMenu();
 
     auto uidButtonsLayout = new QGridLayout();
 
     auto addUIDButton = new QPushButton(tr("New UID"));
     auto manageUIDButton = new QPushButton(tr("UID Management"));
 
-    manageUIDButton->setMenu(manageUIDMenu);
+    manageUIDButton->setMenu(manageSelectedUIDMenu);
 
     uidButtonsLayout->addWidget(addUIDButton, 0, 1);
     uidButtonsLayout->addWidget(manageUIDButton, 0, 2);
@@ -28,16 +30,14 @@ KeyPairUIDTab::KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget 
 
     gridLayout->addWidget(sigList, 2, 0);
 
-    setLayout(gridLayout);
-
     connect(addUIDButton, SIGNAL(clicked(bool)), this, SLOT(slotAddUID()));
-
     connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefreshUIDList()));
-
     connect(uidList, SIGNAL(itemSelectionChanged()), this, SLOT(slotRefreshSigList()));
-    slotRefreshUIDList();
 
+    setLayout(gridLayout);
     setAttribute(Qt::WA_DeleteOnClose, true);
+
+    slotRefreshUIDList();
 }
 
 void KeyPairUIDTab::createUIDList() {
@@ -73,16 +73,16 @@ void KeyPairUIDTab::createSignList() {
     sigList->setShowGrid(false);
     sigList->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    // tableitems not editable
+    // table items not editable
     sigList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-    // no focus (rectangle around tableitems)
+    // no focus (rectangle around table items)
     // may be it should focus on whole row
     sigList->setFocusPolicy(Qt::NoFocus);
     sigList->setAlternatingRowColors(true);
 
     QStringList labels;
-    labels << tr("Type") << tr("Name") << tr("Email") << tr("Create Time") << tr("Valid Time");
+    labels << tr("Key ID") << tr("Name") << tr("Email") << tr("Create Time") << tr("Valid Time");
     sigList->setHorizontalHeaderLabels(labels);
     sigList->horizontalHeader()->setStretchLastSection(true);
 
@@ -92,18 +92,28 @@ void KeyPairUIDTab::slotRefreshUIDList() {
 
     int row = 0;
 
-    uidList->setRowCount(mKey.uids.size());
     uidList->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    for(const auto& uid : mKey.uids) {
+    this->buffered_uids.clear();
 
-        auto *tmp0 = new QTableWidgetItem(uid.name);
+    for(const auto &uid : mKey.uids) {
+        if(uid.invalid || uid.revoked) {
+            continue;
+        }
+        this->buffered_uids.push_back(&uid);
+    }
+
+    uidList->setRowCount(buffered_uids.size());
+
+    for(const auto& uid : buffered_uids) {
+
+        auto *tmp0 = new QTableWidgetItem(uid->name);
         uidList->setItem(row, 1, tmp0);
 
-        auto *tmp1 = new QTableWidgetItem(uid.email);
+        auto *tmp1 = new QTableWidgetItem(uid->email);
         uidList->setItem(row, 2, tmp1);
 
-        auto *tmp2 = new QTableWidgetItem(uid.comment);
+        auto *tmp2 = new QTableWidgetItem(uid->comment);
         uidList->setItem(row, 3, tmp2);
 
         auto *tmp3 = new QTableWidgetItem(QString::number(row));
@@ -120,29 +130,47 @@ void KeyPairUIDTab::slotRefreshUIDList() {
 void KeyPairUIDTab::slotRefreshSigList() {
 
     int uidRow = 0, sigRow = 0;
-    for(const auto& uid : mKey.uids) {
+    for(const auto& uid : buffered_uids) {
 
-        // Only Show Selected UID's Signatures
+        // Only Show Selected UID Signatures
         if(!uidList->item(uidRow++, 0)->isSelected()) {
             continue;
         }
 
-        sigList->setRowCount(uid.signatures.size());
+        buffered_signatures.clear();
 
-        for(const auto &sig : uid.signatures) {
-            auto *tmp0 = new QTableWidgetItem(sig.pubkey_algo);
+        for(const auto &sig : uid->signatures) {
+            if(sig.invalid || sig.revoked) {
+                continue;
+            }
+            buffered_signatures.push_back(&sig);
+        }
+
+        sigList->setRowCount(buffered_signatures.size());
+
+        for(const auto &sig : buffered_signatures) {
+
+            auto *tmp0 = new QTableWidgetItem(sig->keyid);
             sigList->setItem(sigRow, 0, tmp0);
 
-            auto *tmp2 = new QTableWidgetItem(sig.name);
-            sigList->setItem(sigRow, 1, tmp2);
+            if(gpgme_err_code(sig->status) == GPG_ERR_NO_PUBKEY) {
+                auto *tmp2 = new QTableWidgetItem("<Unknown>");
+                sigList->setItem(sigRow, 1, tmp2);
 
-            auto *tmp3 = new QTableWidgetItem(sig.email);
-            sigList->setItem(sigRow, 2, tmp3);
+                auto *tmp3 = new QTableWidgetItem("<Unknown>");
+                sigList->setItem(sigRow, 2, tmp3);
+            } else {
+                auto *tmp2 = new QTableWidgetItem(sig->name);
+                sigList->setItem(sigRow, 1, tmp2);
 
-            auto *tmp4 = new QTableWidgetItem(sig.create_time.toString());
+                auto *tmp3 = new QTableWidgetItem(sig->email);
+                sigList->setItem(sigRow, 2, tmp3);
+            }
+
+            auto *tmp4 = new QTableWidgetItem(sig->create_time.toString());
             sigList->setItem(sigRow, 3, tmp4);
 
-            auto *tmp5 = new QTableWidgetItem(sig.expire_time.toString());
+            auto *tmp5 = new QTableWidgetItem(sig->expire_time.toString());
             sigList->setItem(sigRow, 4, tmp5);
 
             sigRow++;
@@ -155,13 +183,12 @@ void KeyPairUIDTab::slotRefreshSigList() {
 void KeyPairUIDTab::slotAddSign() {
 
     QVector<UID> selected_uids;
-
     getUIDChecked(selected_uids);
 
     if(selected_uids.isEmpty()) {
-        auto emptyUIDMsg = new QMessageBox();
-        emptyUIDMsg->setText("Please select one or more UIDs before doing this operation.");
-        emptyUIDMsg->exec();
+        QMessageBox::information(nullptr,
+                                 tr("Invalid Operation"),
+                                 tr("Please select one or more UIDs before doing this operation."));
         return;
     }
 
@@ -169,25 +196,30 @@ void KeyPairUIDTab::slotAddSign() {
     keySignDialog->show();
 }
 
+
+
 void KeyPairUIDTab::getUIDChecked(QVector<UID> &selected_uids) {
 
-    auto &uids = mKey.uids;
+    auto &uids = buffered_uids;
 
     for (int i = 0; i < uidList->rowCount(); i++) {
         if (uidList->item(i, 0)->checkState() == Qt::Checked) {
-            selected_uids.push_back(uids[i]);
+            selected_uids.push_back(*uids[i]);
         }
     }
 }
 
 void KeyPairUIDTab::createManageUIDMenu() {
 
-    manageUIDMenu = new QMenu(this);
+    manageSelectedUIDMenu = new QMenu(this);
 
     auto *signUIDAct = new QAction(tr("Sign Selected UID(s)"), this);
     connect(signUIDAct, SIGNAL(triggered()), this, SLOT(slotAddSign()));
+    auto *delUIDAct = new QAction(tr("Delete Selected UID(s)"), this);
+    connect(delUIDAct, SIGNAL(triggered()), this, SLOT(slotDelUID()));
 
-    manageUIDMenu->addAction(signUIDAct);
+    manageSelectedUIDMenu->addAction(signUIDAct);
+    manageSelectedUIDMenu->addAction(delUIDAct);
 }
 
 void KeyPairUIDTab::slotAddUID() {
@@ -198,13 +230,231 @@ void KeyPairUIDTab::slotAddUID() {
 }
 
 void KeyPairUIDTab::slotAddUIDResult(int result) {
-    if(result) {
+    if(result == 1) {
         QMessageBox::information(nullptr,
                                  tr("Successful Operation"),
                                  tr("Successfully added a new UID."));
-    } else {
+    } else if (result == -1) {
         QMessageBox::critical(nullptr,
                               tr("Operation Failed"),
                               tr("An error occurred during the operation."));
+    }
+}
+
+void KeyPairUIDTab::slotDelUID() {
+
+    QVector<UID> selected_uids;
+    getUIDChecked(selected_uids);
+
+    if(selected_uids.isEmpty()) {
+        QMessageBox::information(nullptr,
+                                 tr("Invalid Operation"),
+                                 tr("Please select one or more UIDs before doing this operation."));
+        return;
+    }
+
+    QString keynames;
+    for (const auto &uid : selected_uids) {
+        keynames.append(uid.name);
+        keynames.append("<i> &lt;");
+        keynames.append(uid.email);
+        keynames.append("&gt; </i><br/>");
+    }
+
+    int ret = QMessageBox::warning(this, tr("Deleting UIDs"),
+                                   "<b>"+tr("Are you sure that you want to delete the following uids?")+"</b><br/><br/>"+keynames+
+                                   +"<br/>"+tr("The action can not be undone."),
+                                   QMessageBox::No | QMessageBox::Yes);
+
+
+    bool if_success = true;
+
+    if (ret == QMessageBox::Yes) {
+        for(const auto &uid : selected_uids) {
+            if(!mCtx->revUID(mKey, uid)) {
+                if_success = false;
+            }
+        }
+
+        if(!if_success) {
+            QMessageBox::critical(nullptr,
+                                  tr("Operation Failed"),
+                                  tr("An error occurred during the operation."));
+        }
+
+    }
+}
+
+void KeyPairUIDTab::slotSetPrimaryUID() {
+
+    UID selected_uid;
+
+    if(!getUIDSelected(selected_uid)) {
+        auto emptyUIDMsg = new QMessageBox();
+        emptyUIDMsg->setText("Please select one UID before doing this operation.");
+        emptyUIDMsg->exec();
+        return;
+    }
+
+    QString keynames;
+
+    keynames.append(selected_uid.name);
+    keynames.append("<i> &lt;");
+    keynames.append(selected_uid.email);
+    keynames.append("&gt; </i><br/>");
+
+    int ret = QMessageBox::warning(this, tr("Set Primary UID"),
+                                   "<b>"+tr("Are you sure that you want to set the Primary UID to?")+"</b><br/><br/>"+keynames+
+                                   +"<br/>"+tr("The action can not be undone."),
+                                   QMessageBox::No | QMessageBox::Yes);
+
+    if (ret == QMessageBox::Yes) {
+        if(!mCtx->setPrimaryUID(mKey, selected_uid)) {
+            QMessageBox::critical(nullptr,
+                                  tr("Operation Failed"),
+                                  tr("An error occurred during the operation."));
+        }
+    }
+}
+
+bool KeyPairUIDTab::getUIDSelected(UID &uid) {
+    auto &uids = buffered_uids;
+    for (int i = 0; i < uidList->rowCount(); i++) {
+        if (uidList->item(i, 0)->isSelected()) {
+            uid = *uids[i];
+            return true;
+        }
+    }
+    return false;
+}
+
+bool KeyPairUIDTab::getSignSelected(Signature &signature) {
+    auto &signatures = buffered_signatures;
+    for (int i = 0; i < sigList->rowCount(); i++) {
+        if (sigList->item(i, 0)->isSelected()) {
+            signature = *signatures[i];
+            return true;
+        }
+    }
+    return false;
+}
+
+void KeyPairUIDTab::createUIDPopupMenu() {
+
+    uidPopupMenu = new QMenu(this);
+
+    auto *serPrimaryUIDAct = new QAction(tr("Set As Primary"), this);
+    connect(serPrimaryUIDAct, SIGNAL(triggered()), this, SLOT(slotSetPrimaryUID()));
+    auto *signUIDAct = new QAction(tr("Sign UID"), this);
+    connect(signUIDAct, SIGNAL(triggered()), this, SLOT(slotAddSignSingle()));
+    auto *delUIDAct = new QAction(tr("Delete UID"), this);
+    connect(delUIDAct, SIGNAL(triggered()), this, SLOT(slotDelUIDSingle()));
+
+    uidPopupMenu->addAction(serPrimaryUIDAct);
+    uidPopupMenu->addAction(signUIDAct);
+    uidPopupMenu->addAction(delUIDAct);
+}
+
+void KeyPairUIDTab::contextMenuEvent(QContextMenuEvent *event) {
+    if (uidList->selectedItems().length() > 0 && sigList->selectedItems().isEmpty()) {
+        uidPopupMenu->exec(event->globalPos());
+    }
+
+    if (!sigList->selectedItems().isEmpty()) {
+        signPopupMenu->exec(event->globalPos());
+    }
+}
+
+void KeyPairUIDTab::slotAddSignSingle() {
+
+    UID selected_uid;
+
+    if(!getUIDSelected(selected_uid)) {
+        QMessageBox::information(nullptr,
+                              tr("Invalid Operation"),
+                              tr("Please select one UID before doing this operation."));
+        return;
+    }
+
+    auto selected_uids = QVector<UID>({ selected_uid });
+    auto keySignDialog = new KeyUIDSignDialog(mCtx, mKey, selected_uids, this);
+    keySignDialog->show();
+}
+
+void KeyPairUIDTab::slotDelUIDSingle() {
+    UID selected_uid;
+
+    if(!getUIDSelected(selected_uid)) {
+        QMessageBox::information(nullptr,
+                                 tr("Invalid Operation"),
+                                 tr("Please select one UID before doing this operation."));
+        return;
+    }
+
+    QString keynames;
+
+    keynames.append(selected_uid.name);
+    keynames.append("<i> &lt;");
+    keynames.append(selected_uid.email);
+    keynames.append("&gt; </i><br/>");
+
+    int ret = QMessageBox::warning(this, tr("Deleting UID"),
+                                   "<b>"+tr("Are you sure that you want to delete the following uid?")+"</b><br/><br/>"+keynames+
+                                   +"<br/>"+tr("The action can not be undone."),
+                                   QMessageBox::No | QMessageBox::Yes);
+
+    if (ret == QMessageBox::Yes) {
+        if(!mCtx->revUID(mKey, selected_uid)) {
+            QMessageBox::critical(nullptr,
+                                  tr("Operation Failed"),
+                                  tr("An error occurred during the operation."));
+        }
+    }
+}
+
+void KeyPairUIDTab::createSignPopupMenu() {
+    signPopupMenu = new QMenu(this);
+
+    auto *delSignAct = new QAction(tr("Delete Signature"), this);
+    connect(delSignAct, SIGNAL(triggered()), this, SLOT(slotDelSign()));
+
+    signPopupMenu->addAction(delSignAct);
+}
+
+void KeyPairUIDTab::slotDelSign() {
+    Signature selected_sign;
+
+    if(!getSignSelected(selected_sign)) {
+        QMessageBox::information(nullptr,
+                                 tr("Invalid Operation"),
+                                 tr("Please select one Signature before doing this operation."));
+        return;
+    }
+
+    if(gpgme_err_code(selected_sign.status) == GPG_ERR_NO_PUBKEY) {
+        QMessageBox::critical(nullptr,
+                                 tr("Invalid Operation"),
+                                 tr("To delete the signature, you need to have its corresponding public key in the local database."));
+        return;
+    }
+
+    QString keynames;
+
+    keynames.append(selected_sign.name);
+    keynames.append("<i> &lt;");
+    keynames.append(selected_sign.email);
+    keynames.append("&gt; </i><br/>");
+
+    int ret = QMessageBox::warning(this, tr("Deleting Signature"),
+                                   "<b>"+tr("Are you sure that you want to delete the following signature?")+"</b><br/><br/>"+keynames+
+                                   +"<br/>"+tr("The action can not be undone."),
+                                   QMessageBox::No | QMessageBox::Yes);
+
+    if (ret == QMessageBox::Yes) {
+        if(!mCtx->revSign(mKey, selected_sign)) {
+            QMessageBox::critical(nullptr,
+                                  tr("Operation Failed"),
+                                  tr("An error occurred during the operation."));
+        }
     }
 }

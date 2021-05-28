@@ -65,6 +65,8 @@ public:
 
     void setExcludeKeys(std::initializer_list<QString> key_ids);
 
+    void setFilter(std::function<bool(const GpgKey&)> filter);
+
     void setColumnWidth(int row, int size);
 
     void addMenuAction(QAction *act);
@@ -93,6 +95,7 @@ public slots:
     void uploadKeyToServer(QByteArray *keys);
 
 private:
+
     void importKeys(QByteArray inBuffer);
 
     GpgME::GpgContext *mCtx;
@@ -104,6 +107,8 @@ private:
     KeyListColumn::InfoType mInfoType;
     QVector<QString> excluded_key_ids;
 
+    std::function<bool(const GpgKey &)> mFilter = nullptr;
+
 
 private slots:
 
@@ -111,6 +116,7 @@ private slots:
 
 
 protected:
+
     void contextMenuEvent(QContextMenuEvent *event) override;
 
     void dragEnterEvent(QDragEnterEvent *event) override;

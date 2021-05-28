@@ -12,6 +12,10 @@ KeyUIDSignDialog::KeyUIDSignDialog(GpgME::GpgContext *ctx, const GpgKey &key, co
                            KeyListColumn::NAME | KeyListColumn::EmailAddress,
                            this);
 
+    mKeyList->setFilter([](const GpgKey &key) -> bool {
+        if(key.disabled || !key.can_sign) return false;
+        else return true;
+    });
     mKeyList->setExcludeKeys({key.id});
     mKeyList->slotRefresh();
 
@@ -73,9 +77,9 @@ void KeyUIDSignDialog::slotSignKey(bool clicked) {
         // Sign For mKey
         if (!mCtx->signKey(mKey, uid.uid, &expires)) {
             QMessageBox::critical(nullptr,
-                                  tr("Operation Unsuccessful"),
-                                  QString("%1 <%2>"+tr(" signature operation failed for UID ") + "%3")
-                                  .arg(mKey.name, mKey.email, uid.uid));
+                                  tr("Unsuccessful Operation"),
+                                  QString(tr("Signature operation failed for UID ") + "%1")
+                                  .arg(uid.uid));
         }
 
     }

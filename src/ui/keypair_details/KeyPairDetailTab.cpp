@@ -67,18 +67,20 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     vboxOD->addWidget(emailVarLabel, 1, 1);
     vboxOD->addWidget(commentVarLabel, 2, 1);
 
-    vboxKD->addWidget(new QLabel(tr("Key size:")), 0, 0);
-    vboxKD->addWidget(new QLabel(tr("Expires on: ")), 1, 0);
-    vboxKD->addWidget(new QLabel(tr("Algorithm: ")), 3, 0);
-    vboxKD->addWidget(new QLabel(tr("Last Update: ")), 4, 0);
-    vboxKD->addWidget(new QLabel(tr("Key ID: ")), 5, 0);
-    vboxKD->addWidget(new QLabel(tr("Usage: ")), 6, 0);
-    vboxKD->addWidget(keySizeVarLabel, 0, 1);
-    vboxKD->addWidget(expireVarLabel, 1, 1);
-    vboxKD->addWidget(algorithmVarLabel, 3, 1);
-    vboxKD->addWidget(createdVarLabel, 4, 1);
-    vboxKD->addWidget(keyidVarLabel, 5, 1);
-    vboxKD->addWidget(usageVarLabel, 6, 1);
+    vboxKD->addWidget(new QLabel(tr("Key ID: ")), 0, 0);
+    vboxKD->addWidget(new QLabel(tr("Algorithm: ")), 1, 0);
+    vboxKD->addWidget(new QLabel(tr("Key size:")), 2, 0);
+    vboxKD->addWidget(new QLabel(tr("Usage: ")), 3, 0);
+    vboxKD->addWidget(new QLabel(tr("Expires on: ")), 4, 0);
+    vboxKD->addWidget(new QLabel(tr("Last Update: ")), 5, 0);
+
+
+    vboxKD->addWidget(keySizeVarLabel, 2, 1);
+    vboxKD->addWidget(expireVarLabel, 4, 1);
+    vboxKD->addWidget(algorithmVarLabel, 1, 1);
+    vboxKD->addWidget(createdVarLabel, 5, 1);
+    vboxKD->addWidget(keyidVarLabel, 0, 1);
+    vboxKD->addWidget(usageVarLabel, 3, 1);
 
     ownerBox->setLayout(vboxOD);
     mvbox->addWidget(ownerBox);
@@ -88,7 +90,7 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
 
     fingerPrintVarLabel = new QLabel(beautifyFingerprint(key.fpr));
     fingerPrintVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    fingerPrintVarLabel->setStyleSheet("margin-left: 5; margin-right: 5;");
+    fingerPrintVarLabel->setStyleSheet("margin-left: 0; margin-right: 5;");
     auto *hboxFP = new QHBoxLayout();
 
     hboxFP->addWidget(fingerPrintVarLabel);

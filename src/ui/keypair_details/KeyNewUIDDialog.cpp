@@ -60,7 +60,7 @@ void KeyNewUIDDialog::slotCreateNewUID() {
             emit finished(1);
 
         } else {
-            emit finished(0);
+            emit finished(-1);
         }
 
     } else {

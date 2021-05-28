@@ -982,6 +982,49 @@ namespace GpgME {
 
     }
 
+    bool GpgContext::revUID(const GpgKey &key, const UID &uid) {
+        auto gpgmeError = gpgme_op_revuid(mCtx, key.key_refer, uid.uid.toUtf8().constData(), 0);
+        if(gpgmeError == GPG_ERR_NO_ERROR) {
+            emit signalKeyUpdated(key.id);
+            return true;
+        }
+        else {
+            checkErr(gpgmeError);
+            return false;
+        }
+    }
+
+    bool GpgContext::setPrimaryUID(const GpgKey &key, const UID &uid) {
+        auto gpgmeError = gpgme_op_set_uid_flag(mCtx, key.key_refer,
+                                                uid.uid.toUtf8().constData(), "primary", nullptr);
+        if(gpgmeError == GPG_ERR_NO_ERROR) {
+            emit signalKeyUpdated(key.id);
+            return true;
+        }
+        else {
+            checkErr(gpgmeError);
+            return false;
+        }
+    }
+
+    bool GpgContext::revSign(const GpgKey &key, const Signature &signature) {
+
+        auto signing_key = getKeyById(signature.keyid);
+
+        auto gpgmeError = gpgme_op_revsig(mCtx, key.key_refer,
+                                                signing_key.key_refer,
+                                                signature.uid.toUtf8().constData(), 0);
+        if(gpgmeError == GPG_ERR_NO_ERROR) {
+            emit signalKeyUpdated(key.id);
+            return true;
+        }
+        else {
+            checkErr(gpgmeError);
+            return false;
+        }
+        return false;
+    }
+
 }
 
 

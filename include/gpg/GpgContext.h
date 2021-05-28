@@ -110,11 +110,17 @@ namespace GpgME {
 
         bool signKey(const GpgKey &target, const QString& uid, const QDateTime *expires);
 
+        bool revSign(const GpgKey &key, const Signature &signature);
+
         gpgme_signature_t verify(QByteArray *inBuffer, QByteArray *sigBuffer = nullptr);
 
         bool sign(QStringList *uidList, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached = false);
 
         bool addUID(const GpgKey &key, const UID &uid);
+
+        bool revUID(const GpgKey &key, const UID &uid);
+
+        bool setPrimaryUID(const GpgKey &key, const UID &uid);
 
         /**
          * @details If text contains PGP-message, put a linebreak before the message,
