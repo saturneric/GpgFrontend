@@ -46,17 +46,25 @@ private:
 
     void createManageUIDMenu();
 
+    void createUIDPopupMenu();
+
+    void createSignPopupMenu();
+
     void getUIDChecked(QVector<UID> &uids);
 
+    bool getUIDSelected(UID &uid);
+
+    bool getSignSelected(Signature &signature);
+
     GpgME::GpgContext *mCtx;
-
     const GpgKey &mKey;
-
     QTableWidget *uidList{};
-
     QTableWidget *sigList{};
-
-    QMenu *manageUIDMenu;
+    QMenu *manageSelectedUIDMenu;
+    QMenu *uidPopupMenu;
+    QMenu *signPopupMenu;
+    QVector<const UID *> buffered_uids;
+    QVector<const Signature *> buffered_signatures;
 
 private slots:
 
@@ -66,9 +74,23 @@ private slots:
 
     void slotAddSign();
 
+    void slotAddSignSingle();
+
     void slotAddUID();
 
+    void slotDelUID();
+
+    void slotDelUIDSingle();
+
+    void slotSetPrimaryUID();
+
+    void slotDelSign();
+
     static void slotAddUIDResult(int result);
+
+protected:
+
+    void contextMenuEvent(QContextMenuEvent *event) override;
 
 };
 

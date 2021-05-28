@@ -5,7 +5,8 @@
 #include "gpg/UID.h"
 
 UID::UID(gpgme_user_id_t user_id) :
-        uid(user_id->uid), name(user_id->name), email(user_id->email), comment(user_id->comment) {
+        uid(user_id->uid), name(user_id->name), email(user_id->email), comment(user_id->comment),
+        revoked(user_id->revoked), invalid(user_id->invalid) {
 
     auto sig = user_id->signatures;
 

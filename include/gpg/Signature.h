@@ -30,25 +30,21 @@
 struct Signature {
 
     bool revoked{};
-
     bool expired{};
-
     bool invalid{};
-
     bool exportable{};
 
+    gpgme_error_t status{};
+
+    QString keyid;
     QString pubkey_algo;
 
     QDateTime create_time;
-
     QDateTime expire_time;
 
     QString uid;
-
     QString name;
-
     QString email;
-
     QString comment;
 
     Signature() = default;

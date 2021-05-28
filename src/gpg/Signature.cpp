@@ -26,7 +26,8 @@
 
 Signature::Signature(gpgme_key_sig_t key_sig) :
         revoked(key_sig->revoked), expired(key_sig->expired), invalid(key_sig->invalid),
-        exportable(key_sig->exportable), pubkey_algo(gpgme_pubkey_algo_name(key_sig->pubkey_algo)),
+        exportable(key_sig->exportable), status(key_sig->status),
+        keyid(key_sig->keyid), pubkey_algo(gpgme_pubkey_algo_name(key_sig->pubkey_algo)),
         uid(key_sig->uid), name(key_sig->name), email(key_sig->email), comment(key_sig->comment),
         create_time(QDateTime::fromTime_t(key_sig->timestamp)), expire_time(QDateTime::fromTime_t(key_sig->expires)){
 

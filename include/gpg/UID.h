@@ -41,6 +41,10 @@ struct UID {
 
     QString uid{};
 
+    bool revoked;
+
+    bool invalid;
+
     QVector<Signature> signatures;
 
     UID() = default;
