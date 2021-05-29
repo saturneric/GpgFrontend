@@ -124,6 +124,11 @@ void KeyPairUIDTab::slotRefreshUIDList() {
 
         row++;
     }
+
+    if(uidList->rowCount() > 0) {
+        uidList->selectRow(0);
+    }
+
     slotRefreshSigList();
 }
 

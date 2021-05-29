@@ -67,6 +67,8 @@ public:
 
     void setFilter(std::function<bool(const GpgKey&)> filter);
 
+    void setDoubleClickedAction(std::function<void(const GpgKey&, QWidget *)> action);
+
     void setColumnWidth(int row, int size);
 
     void addMenuAction(QAction *act);
@@ -108,11 +110,14 @@ private:
     QVector<QString> excluded_key_ids;
 
     std::function<bool(const GpgKey &)> mFilter = nullptr;
+    std::function<void(const GpgKey &, QWidget *)> mAction = nullptr;
 
 
 private slots:
 
     void uploadFinished();
+
+    void slotDoubleClicked(const QModelIndex &index);
 
 
 protected:

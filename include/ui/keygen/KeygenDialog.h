@@ -76,7 +76,6 @@ private:
 
     void generateKeyDialog();
 
-
     /**
      * @details Refresh widgets state by GenKeyInfo
      */

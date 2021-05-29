@@ -30,6 +30,13 @@ const QVector<QString> GenKeyInfo::SupportedKeyAlgo = {
         "ED25519"
 };
 
+const QVector<QString> GenKeyInfo::SupportedSubkeyAlgo = {
+        "RSA",
+        "DSA",
+        "ED25519",
+        "ELG"
+};
+
 void GenKeyInfo::setAlgo(const QString &m_algo) {
 
     qDebug() << "set algo " << m_algo;
@@ -38,8 +45,11 @@ void GenKeyInfo::setAlgo(const QString &m_algo) {
 
     if (!this->subKey) {
         this->setAllowCertification(true);
-        this->allowChangeCertification = false;
+    } else {
+        this->setAllowCertification(false);
     }
+
+    this->allowChangeCertification = false;
 
     auto lower_algo = m_algo.toLower();
 
@@ -81,6 +91,21 @@ void GenKeyInfo::setAlgo(const QString &m_algo) {
         suggestMaxKeySize = -1;
         suggestSizeAdditionStep = -1;
         setKeySize(-1);
+    } else if (lower_algo == "elg") {
+        /**
+         * GnuPG supports the Elgamal asymmetric encryption algorithm in key lengths ranging from 1024 to 4096 bits.
+         */
+
+        setAllowAuthentication(false);
+        allowChangeAuthentication = false;
+
+        setAllowSigning(false);
+        allowChangeSigning = false;
+
+        suggestMinKeySize = 1024;
+        suggestMaxKeySize = 4096;
+        suggestSizeAdditionStep = 1024;
+        setKeySize(2048);
     }
     GenKeyInfo::algo = lower_algo;
 }

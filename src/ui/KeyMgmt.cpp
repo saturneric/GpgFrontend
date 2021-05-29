@@ -35,6 +35,9 @@ KeyMgmt::KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent )  : QMainWindow(parent
     mKeyList->setColumnWidth(2, 250);
     mKeyList->setColumnWidth(3, 250);
     setCentralWidget(mKeyList);
+    mKeyList->setDoubleClickedAction([this] (const GpgKey &key, QWidget *parent) {
+        new KeyDetailsDialog(mCtx, key, parent);
+    });
 
     createActions();
     createMenus();
@@ -62,7 +65,7 @@ KeyMgmt::KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent )  : QMainWindow(parent
         this->resize(QSize(800, 400));
     }
 
-    setWindowTitle(tr("Keymanagement"));
+    setWindowTitle(tr("KeyPairs Management"));
     mKeyList->addMenuAction(deleteSelectedKeysAct);
     mKeyList->addMenuAction(showKeyDetailsAct);
 }
@@ -80,9 +83,9 @@ void KeyMgmt::createActions()
     generateKeyPairAct->setToolTip(tr("Generate KeyPair"));
     connect(generateKeyPairAct, SIGNAL(triggered()), this, SLOT(slotGenerateKeyDialog()));
 
-    generateSubKeyAct = new QAction(tr("Generate SubKey"), this);
+    generateSubKeyAct = new QAction(tr("Generate Subkey For Selected"), this);
     generateSubKeyAct->setIcon(QIcon(":key_generate.png"));
-    generateSubKeyAct->setToolTip(tr("Generate SubKey Of KeyPair"));
+    generateSubKeyAct->setToolTip(tr("Generate Subkey For Selected KeyPair"));
     connect(generateSubKeyAct, SIGNAL(triggered()), this, SLOT(slotGenerateSubKey()));
 
     importKeyFromFileAct = new QAction(tr("&File"), this);
@@ -311,5 +314,21 @@ void KeyMgmt::closeEvent(QCloseEvent *event)
 }
 
 void KeyMgmt::slotGenerateSubKey() {
+    auto selectedList = mKeyList->getSelected();
+    if(selectedList->empty()) {
+        QMessageBox::information(nullptr,
+                                 tr("Invalid Operation"),
+                                 tr("Please select one KeyPair before doing this operation."));
+        return;
+    }
+    const auto &key = mCtx->getKeyById(selectedList->first());
+    if(!key.is_private_key) {
+        QMessageBox::critical(nullptr,
+                              tr("Invalid Operation"),
+                              tr("If a key pair does not have a private key then it will not be able to generate sub-keys."));
+        return;
+    }
 
+    auto dialog = new SubkeyGenerateDialog(mCtx, key, this);
+    dialog->show();
 }

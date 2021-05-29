@@ -93,6 +93,8 @@ namespace GpgME {
 
         bool generateKey(GenKeyInfo *params);
 
+        bool generateSubkey(const GpgKey &key, GenKeyInfo *params);
+
         void deleteKeys(QStringList *uidList);
 
         bool encrypt(QStringList *uidList, const QByteArray &inBuffer,

@@ -1,6 +1,7 @@
 aux_source_directory(. QTUI_SOURCE)
 aux_source_directory(./keypair_details QTUI_SOURCE)
 aux_source_directory(./widgets QTUI_SOURCE)
+aux_source_directory(./keygen QTUI_SOURCE)
 
 add_library(qtui STATIC ${QTUI_SOURCE} ${QTUI_KEYPAIR_DETAILS_SOURCE})
 

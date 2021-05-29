@@ -26,11 +26,11 @@
 #define __KEYMGMT_H__
 
 #include "ui/widgets/KeyList.h"
-#include "KeygenThread.h"
+#include "ui/keygen/KeygenThread.h"
 #include "ui/keypair_details/KeyDetailsDialog.h"
 #include "KeyImportDetailDialog.h"
 #include "KeyServerImportDialog.h"
-#include "KeygenDialog.h"
+#include "ui/keygen/KeygenDialog.h"
 
 
 class KeyMgmt : public QMainWindow {

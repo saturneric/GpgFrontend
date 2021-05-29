@@ -86,6 +86,9 @@ KeyList::KeyList(GpgME::GpgContext *ctx,
     setLayout(layout);
 
     popupMenu = new QMenu(this);
+
+    connect(mKeyList, SIGNAL(doubleClicked(const QModelIndex &)),
+            this, SLOT(slotDoubleClicked(const QModelIndex &)));
     connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefresh()));
     setAcceptDrops(true);
     slotRefresh();
@@ -434,5 +437,17 @@ void KeyList::setExcludeKeys(std::initializer_list<QString> key_ids) {
 }
 
 void KeyList::setFilter(std::function<bool(const GpgKey &)> filter) {
-    this->mFilter = filter;
+    this->mFilter = std::move(filter);
+}
+
+void KeyList::slotDoubleClicked(const QModelIndex &index) {
+    if(mAction != nullptr) {
+        const auto &key = mCtx->getKeyById(buffered_keys[index.row()].id);
+        mAction(key, this);
+    }
+
+}
+
+void KeyList::setDoubleClickedAction(std::function<void(const GpgKey &, QWidget *)> action) {
+    this->mAction = std::move(action);
 }
