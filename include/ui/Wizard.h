@@ -25,7 +25,7 @@
 #ifndef WIZARD_H
 #define WIZARD_H
 
-#include "ui/KeygenDialog.h"
+#include "ui/keygen/KeygenDialog.h"
 #include "ui/KeyMgmt.h"
 #include "gpg/GpgConstants.h"
 #include "SettingsDialog.h"

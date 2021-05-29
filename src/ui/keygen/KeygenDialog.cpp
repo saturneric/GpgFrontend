@@ -22,7 +22,7 @@
  *
  */
 
-#include "ui/KeygenDialog.h"
+#include "ui/keygen/KeygenDialog.h"
 
 KeyGenDialog::KeyGenDialog(GpgME::GpgContext *ctx, QWidget *parent)
         : QDialog(parent), mCtx(ctx) {

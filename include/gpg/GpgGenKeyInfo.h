@@ -49,6 +49,8 @@ public:
 
     static const QVector<QString> SupportedKeyAlgo;
 
+    static const QVector<QString> SupportedSubkeyAlgo;
+
     [[nodiscard]] bool isSubKey() const {
         return subKey;
     }

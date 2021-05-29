@@ -21,36 +21,16 @@
  * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
-#ifndef __KEYGENTHREAD_H__
-#define __KEYGENTHREAD_H__
 
-#include "gpg/GpgContext.h"
+#include "ui/keygen/KeygenThread.h"
 
+KeyGenThread::KeyGenThread(GenKeyInfo* keyGenParams, GpgME::GpgContext *ctx):
+mCtx(ctx), keyGenParams(keyGenParams), abort(false), QThread(nullptr) {
+    connect(this, &KeyGenThread::finished, this, &KeyGenThread::deleteLater);
+}
 
-QT_BEGIN_NAMESPACE
-class QMessageBox;
-
-QT_END_NAMESPACE
-
-class KeyGenThread : public QThread {
-Q_OBJECT
-
-public:
-    KeyGenThread(GenKeyInfo *keyGenParams, GpgME::GpgContext *ctx);
-
-signals:
-
-    void signalKeyGenerated(bool success);
-
-private:
-    GenKeyInfo *keyGenParams;
-    GpgME::GpgContext *mCtx;
-    [[maybe_unused]] bool abort;
-    QMutex mutex;
-
-protected:
-    void run();
-
-};
-
-#endif // __KEYGENTHREAD_H__
+void KeyGenThread::run() {
+    bool success = mCtx->generateKey(keyGenParams);
+    emit signalKeyGenerated(success);
+    emit finished({});
+}

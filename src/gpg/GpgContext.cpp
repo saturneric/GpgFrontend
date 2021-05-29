@@ -23,7 +23,7 @@
  */
 
 #include "gpg/GpgContext.h"
-#include "ui/KeygenThread.h"
+#include "ui/keygen/KeygenThread.h"
 
 #include <unistd.h>    /* contains read/write */
 
@@ -320,28 +320,6 @@ namespace GpgME {
             checkErr(gpgmeError);
             return;
         }
-
-//        list only private keys ( the 1 does )
-//        gpgmeError = gpgme_op_keylist_start(mCtx, nullptr, 1);
-//        if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
-//            checkErr(gpgmeError);
-//            return;
-//        }
-//
-//        while ((gpgmeError = gpgme_op_keylist_next(mCtx, &key)) == GPG_ERR_NO_ERROR) {
-//            if (key->subkeys) {
-//                auto it = keys_map.find(key->subkeys->keyid);
-//                if (it != keys_map.end()) {
-//                    it->is_private_key = true;
-//                }
-//            }
-//            gpgme_key_unref(key);
-//        }
-//
-//        if (gpg_err_code(gpgmeError) != GPG_ERR_EOF) {
-//            checkErr(gpgmeError);
-//            return;
-//        }
 
         gpgmeError = gpgme_op_keylist_end(mCtx);
         if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
@@ -1022,7 +1000,52 @@ namespace GpgME {
             checkErr(gpgmeError);
             return false;
         }
-        return false;
+    }
+
+    bool GpgContext::generateSubkey(const GpgKey &key, GenKeyInfo *params) {
+
+        if(!params->isSubKey()) {
+            return false;
+        }
+
+        auto algo_utf8 = (params->getAlgo() + params->getKeySizeStr()).toUtf8();
+        const char *algo = algo_utf8.constData();
+        unsigned long expires = QDateTime::currentDateTime().secsTo(params->getExpired());
+        unsigned int flags = 0;
+
+        if (!params->isSubKey()) {
+            flags |= GPGME_CREATE_CERT;
+        }
+
+        if (params->isAllowEncryption()) {
+            flags |= GPGME_CREATE_ENCR;
+        }
+
+        if (params->isAllowSigning()) {
+            flags |= GPGME_CREATE_SIGN;
+        }
+
+        if (params->isAllowAuthentication()) {
+            flags |= GPGME_CREATE_AUTH;
+        }
+
+        if (params->isNonExpired()) {
+            flags |= GPGME_CREATE_NOEXPIRE;
+        }
+
+        flags |= GPGME_CREATE_NOPASSWD;
+
+
+        auto gpgmeError = gpgme_op_createsubkey(mCtx, key.key_refer,
+                                                algo, 0, expires, flags);
+        if(gpgmeError == GPG_ERR_NO_ERROR) {
+            emit signalKeyUpdated(key.id);
+            return true;
+        }
+        else {
+            checkErr(gpgmeError);
+            return false;
+        }
     }
 
 }
