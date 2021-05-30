@@ -145,7 +145,7 @@ void KeyPairSubkeyTab::slotRefreshSubkeyList() {
         tmp3->setTextAlignment(Qt::AlignCenter);
         subkeyList->setItem(row, 3, tmp3);
 
-        auto *tmp4= new QTableWidgetItem(subkeys->expires.toString());
+        auto *tmp4= new QTableWidgetItem(subkeys->expires.toTime_t() == 0 ? "Never Expire"  : subkeys->expires.toString());
         tmp4->setTextAlignment(Qt::AlignCenter);
         subkeyList->setItem(row, 4, tmp4);
 
@@ -175,7 +175,7 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
 
     keyidVarLabel->setText(key->id);
     keySizeVarLabel->setText(QString::number(key->length));
-    expireVarLabel->setText(key->expires.toString());
+    expireVarLabel->setText(key->expires.toTime_t() == 0 ? "Never Expire"  : key->expires.toString());
     algorithmVarLabel->setText(key->pubkey_algo);
     createdVarLabel->setText(key->timestamp.toString());
 
