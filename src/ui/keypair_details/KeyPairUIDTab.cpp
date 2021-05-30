@@ -25,16 +25,30 @@ KeyPairUIDTab::KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget 
     uidButtonsLayout->addWidget(manageUIDButton, 0, 2);
 
     auto gridLayout = new QGridLayout();
+
     gridLayout->addWidget(uidList, 0, 0);
     gridLayout->addLayout(uidButtonsLayout, 1, 0);
 
-    gridLayout->addWidget(sigList, 2, 0);
+    auto uidGroupBox = new QGroupBox();
+    uidGroupBox->setLayout(gridLayout);
+    uidGroupBox->setTitle("UIDs");
+
+    auto signGridLayout = new QGridLayout();
+    signGridLayout->addWidget(sigList, 0, 0);
+
+    auto signGroupBox = new QGroupBox();
+    signGroupBox->setLayout(signGridLayout);
+    signGroupBox->setTitle("Signature of Selected UID");
+
+    auto vboxLayout = new QVBoxLayout();
+    vboxLayout->addWidget(uidGroupBox);
+    vboxLayout->addWidget(signGroupBox);
 
     connect(addUIDButton, SIGNAL(clicked(bool)), this, SLOT(slotAddUID()));
     connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefreshUIDList()));
     connect(uidList, SIGNAL(itemSelectionChanged()), this, SLOT(slotRefreshSigList()));
 
-    setLayout(gridLayout);
+    setLayout(vboxLayout);
     setAttribute(Qt::WA_DeleteOnClose, true);
 
     slotRefreshUIDList();
@@ -44,7 +58,7 @@ void KeyPairUIDTab::createUIDList() {
 
     uidList = new QTableWidget(this);
     uidList->setColumnCount(4);
-    uidList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    // uidList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     uidList->verticalHeader()->hide();
     uidList->setShowGrid(false);
     uidList->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -67,7 +81,7 @@ void KeyPairUIDTab::createUIDList() {
 void KeyPairUIDTab::createSignList() {
 
     sigList = new QTableWidget(this);
-    sigList->setColumnCount(5);
+    sigList->setColumnCount(4);
     sigList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     sigList->verticalHeader()->hide();
     sigList->setShowGrid(false);
@@ -82,7 +96,7 @@ void KeyPairUIDTab::createSignList() {
     sigList->setAlternatingRowColors(true);
 
     QStringList labels;
-    labels << tr("Key ID") << tr("Name") << tr("Email") << tr("Create Time") << tr("Valid Time");
+    labels << tr("Key ID") << tr("Name") << tr("Email") << tr("Create Date");
     sigList->setHorizontalHeaderLabels(labels);
     sigList->horizontalHeader()->setStretchLastSection(true);
 
@@ -175,8 +189,8 @@ void KeyPairUIDTab::slotRefreshSigList() {
             auto *tmp4 = new QTableWidgetItem(sig->create_time.toString());
             sigList->setItem(sigRow, 3, tmp4);
 
-            auto *tmp5 = new QTableWidgetItem(sig->expire_time.toString());
-            sigList->setItem(sigRow, 4, tmp5);
+//            auto *tmp5 = new QTableWidgetItem(sig->expire_time.toTime_t() == 0 ? "Never Expire"  : sig->expire_time.toString());
+//            sigList->setItem(sigRow, 4, tmp5);
 
             sigRow++;
         }

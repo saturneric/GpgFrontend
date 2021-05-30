@@ -43,7 +43,7 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     keySizeVal = QString::number(key.length);
 
     if (key.expires.toTime_t() == 0) {
-        keyExpireVal = tr("Never");
+        keyExpireVal = tr("Never Expired");
     } else {
         keyExpireVal = key.expires.toString();
     }
