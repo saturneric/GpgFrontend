@@ -21,6 +21,7 @@
  * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
+
 #ifndef __KEYGENTHREAD_H__
 #define __KEYGENTHREAD_H__
 
