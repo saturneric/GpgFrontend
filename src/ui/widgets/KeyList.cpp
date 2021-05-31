@@ -77,7 +77,7 @@ KeyList::KeyList(GpgME::GpgContext *ctx,
            << tr("Usage") << tr("Validity") << tr("Finger Print");
 
     mKeyList->setHorizontalHeaderLabels(labels);
-    mKeyList->horizontalHeader()->setStretchLastSection(true);
+    mKeyList->horizontalHeader()->setStretchLastSection(false);
 
     auto *layout = new QVBoxLayout;
     layout->addWidget(mKeyList);

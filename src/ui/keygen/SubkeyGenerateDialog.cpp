@@ -43,7 +43,7 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(GpgME::GpgContext *ctx, const GpgKey 
     vbox2->addWidget(errorLabel);
     vbox2->addWidget(buttonBox);
 
-    this->setWindowTitle(tr("Generate Subkey"));
+    this->setWindowTitle(tr("Generate New Subkey"));
 
     this->setLayout(vbox2);
     this->setModal(true);

@@ -104,7 +104,6 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
 
     ownerBox->setLayout(vboxOD);
     mvbox->addWidget(ownerBox);
-
     keyBox->setLayout(vboxKD);
     mvbox->addWidget(keyBox);
 
@@ -124,9 +123,10 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
 
     fingerprintBox->setLayout(hboxFP);
     mvbox->addWidget(fingerprintBox);
+    mvbox->addStretch();
 
     if (key.is_private_key) {
-        auto *privKeyBox = new QGroupBox(tr("Private Key"));
+        auto *privKeyBox = new QGroupBox(tr("Operations"));
         auto *vboxPK = new QVBoxLayout();
 
         auto *exportButton = new QPushButton(tr("Export Private Key"));

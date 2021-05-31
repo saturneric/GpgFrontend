@@ -39,5 +39,6 @@ KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext *ctx, const GpgKey& key, QW
     this->setLayout(mainLayout);
     this->setWindowTitle(tr("Key Details"));
     this->setModal(true);
+    this->setMinimumSize(380, 620);
     this->show();
 }

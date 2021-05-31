@@ -78,7 +78,7 @@ void KeyPairUIDTab::createUIDList() {
 
     uidList = new QTableWidget(this);
     uidList->setColumnCount(4);
-    // uidList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    uidList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     uidList->verticalHeader()->hide();
     uidList->setShowGrid(false);
     uidList->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -101,7 +101,7 @@ void KeyPairUIDTab::createUIDList() {
 void KeyPairUIDTab::createSignList() {
 
     sigList = new QTableWidget(this);
-    sigList->setColumnCount(4);
+    sigList->setColumnCount(5);
     sigList->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     sigList->verticalHeader()->hide();
     sigList->setShowGrid(false);
@@ -116,9 +116,9 @@ void KeyPairUIDTab::createSignList() {
     sigList->setAlternatingRowColors(true);
 
     QStringList labels;
-    labels << tr("Key ID") << tr("Name") << tr("Email") << tr("Create Date");
+    labels << tr("Key ID") << tr("Name") << tr("Email") << tr("Create Date") << tr("Expired Date");
     sigList->setHorizontalHeaderLabels(labels);
-    sigList->horizontalHeader()->setStretchLastSection(true);
+    sigList->horizontalHeader()->setStretchLastSection(false);
 
 }
 
@@ -209,8 +209,9 @@ void KeyPairUIDTab::slotRefreshSigList() {
             auto *tmp4 = new QTableWidgetItem(sig->create_time.toString());
             sigList->setItem(sigRow, 3, tmp4);
 
-//            auto *tmp5 = new QTableWidgetItem(sig->expire_time.toTime_t() == 0 ? "Never Expire"  : sig->expire_time.toString());
-//            sigList->setItem(sigRow, 4, tmp5);
+            auto *tmp5 = new QTableWidgetItem(sig->expire_time.toTime_t() == 0 ? tr("Never Expire")  : sig->expire_time.toString());
+            tmp5->setTextAlignment(Qt::AlignCenter);
+            sigList->setItem(sigRow, 4, tmp5);
 
             sigRow++;
         }
@@ -454,7 +455,7 @@ void KeyPairUIDTab::slotDelUIDSingle() {
 void KeyPairUIDTab::createSignPopupMenu() {
     signPopupMenu = new QMenu(this);
 
-    auto *delSignAct = new QAction(tr("Delete Signature"), this);
+    auto *delSignAct = new QAction(tr("Delete(Revoke) Signature"), this);
     connect(delSignAct, SIGNAL(triggered()), this, SLOT(slotDelSign()));
 
     signPopupMenu->addAction(delSignAct);

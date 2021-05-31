@@ -69,7 +69,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(GpgME::GpgContext *ctx, const GpgKey &key, co
 
     layout->addWidget(mKeyList, 0, 0);
     layout->addWidget(signKeyButton, 2, 0, Qt::AlignRight);
-    timeLayout->addWidget(new QLabel(tr("Expired Time")), 0, 0);
+    timeLayout->addWidget(new QLabel(tr("Expire Date")), 0, 0);
     timeLayout->addWidget(expiresEdit, 0, 1);
     timeLayout->addWidget(nonExpireCheck, 0, 2);
     layout->addLayout(timeLayout, 1, 0);
