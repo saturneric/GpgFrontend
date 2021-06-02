@@ -1048,6 +1048,31 @@ namespace GpgME {
         }
     }
 
+    bool GpgContext::setExpire(const GpgKey &key, const GpgSubKey *subkey, QDateTime *expires) {
+        unsigned long expires_time = 0;
+        if(expires != nullptr) {
+            qDebug() << "Expire Datetime" << expires->toString();
+            expires_time = QDateTime::currentDateTime().secsTo(*expires);
+        }
+
+        const char *subfprs = nullptr;
+
+        if(subkey != nullptr) {
+            subfprs = subkey->fpr.toUtf8().constData();
+        }
+
+        auto gpgmeError = gpgme_op_setexpire(mCtx, key.key_refer,
+                                             expires_time, subfprs, 0);
+        if(gpgmeError == GPG_ERR_NO_ERROR) {
+            emit signalKeyUpdated(key.id);
+            return true;
+        }
+        else {
+            checkErr(gpgmeError);
+            return false;
+        }
+    }
+
 }
 
 

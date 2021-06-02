@@ -39,7 +39,9 @@ public:
 
 private:
 
-    void creatSubkeyList();
+    void createSubkeyList();
+
+    void createSubkeyOperaMenu();
 
     GpgME::GpgContext *mCtx;
     const GpgKey &mKey;
@@ -48,6 +50,8 @@ private:
 
     QGroupBox *listBox;
     QGroupBox *detailBox;
+
+    QMenu *subkeyOperaMenu;
 
 
     QLabel *keySizeVarLabel; /** Label containng the keys keysize */
@@ -66,6 +70,10 @@ private slots:
     void slotRefreshSubkeyList();
 
     void slotRefreshSubkeyDetail();
+
+    void slotEditSubkey();
+
+    void slotRevokeSubkey();
 
 };
 

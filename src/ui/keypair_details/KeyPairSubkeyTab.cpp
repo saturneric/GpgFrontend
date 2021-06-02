@@ -26,7 +26,7 @@
 
 KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent) : mCtx(ctx), mKey(key), QWidget(parent) {
 
-    creatSubkeyList();
+    createSubkeyList();
 
     listBox = new QGroupBox("Subkey List");
     detailBox = new QGroupBox("Detail of Selected Subkey");
@@ -88,7 +88,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
 
 }
 
-void KeyPairSubkeyTab::creatSubkeyList() {
+void KeyPairSubkeyTab::createSubkeyList() {
     subkeyList = new QTableWidget(this);
 
     subkeyList->setColumnCount(5);
@@ -193,4 +193,21 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
         usage_steam << "Auth ";
 
     usageVarLabel->setText(usage);
+}
+
+void KeyPairSubkeyTab::createSubkeyOperaMenu() {
+    subkeyOperaMenu = new QMenu();
+    auto *revokeSubkeyAct = new QAction(tr("Revoke Subkey"));
+    auto *editSubkeyAct = new QAction(tr("Edit Subkey"));
+
+    subkeyOperaMenu->addAction(revokeSubkeyAct);
+    subkeyOperaMenu->addAction(editSubkeyAct);
+}
+
+void KeyPairSubkeyTab::slotEditSubkey() {
+
+}
+
+void KeyPairSubkeyTab::slotRevokeSubkey() {
+
 }

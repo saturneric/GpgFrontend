@@ -43,35 +43,21 @@ typedef QLinkedList<GpgImportedKey> GpgImportedKeyList;
 
 class GpgImportInformation {
 public:
-    GpgImportInformation() {
-        considered = 0;
-        no_user_id = 0;
-        imported = 0;
-        imported_rsa = 0;
-        unchanged = 0;
-        new_user_ids = 0;
-        new_sub_keys = 0;
-        new_signatures = 0;
-        new_revocations = 0;
-        secret_read = 0;
-        secret_imported = 0;
-        secret_unchanged = 0;
-        not_imported = 0;
-    }
+    GpgImportInformation() = default;
 
-    int considered;
-    int no_user_id;
-    int imported;
-    int imported_rsa;
-    int unchanged;
-    int new_user_ids;
-    int new_sub_keys;
-    int new_signatures;
-    int new_revocations;
-    int secret_read;
-    int secret_imported;
-    int secret_unchanged;
-    int not_imported;
+    int considered = 0;
+    int no_user_id = 0;
+    int imported = 0;
+    int imported_rsa = 0;
+    int unchanged = 0;
+    int new_user_ids = 0;
+    int new_sub_keys = 0;
+    int new_signatures = 0;
+    int new_revocations = 0;
+    int secret_read = 0;
+    int secret_imported = 0;
+    int secret_unchanged = 0;
+    int not_imported = 0;
     GpgImportedKeyList importedKeys;
 };
 
@@ -123,6 +109,8 @@ namespace GpgME {
         bool revUID(const GpgKey &key, const UID &uid);
 
         bool setPrimaryUID(const GpgKey &key, const UID &uid);
+
+        bool setExpire(const GpgKey &key, const GpgSubKey *subkey, QDateTime *expires);
 
         /**
          * @details If text contains PGP-message, put a linebreak before the message,
