@@ -24,52 +24,52 @@
 
 #include "ui/keypair_details/KeyPairDetailTab.h"
 
-KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent) : QWidget(parent) {
+KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, QWidget *parent) : mKey(mKey), QWidget(parent) {
 
     mCtx = ctx;
-    keyid = new QString(key.id);
+    keyid = new QString(mKey.id);
 
     ownerBox = new QGroupBox(tr("Owner details"));
     keyBox = new QGroupBox(tr("Key details"));
     fingerprintBox = new QGroupBox(tr("Fingerprint"));
     additionalUidBox = new QGroupBox(tr("Additional Uids"));
 
-    nameVarLabel = new QLabel(key.name);
+    nameVarLabel = new QLabel(mKey.name);
     nameVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    emailVarLabel = new QLabel(key.email);
+    emailVarLabel = new QLabel(mKey.email);
     emailVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
-    commentVarLabel = new QLabel(key.comment);
+    commentVarLabel = new QLabel(mKey.comment);
     commentVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    keyidVarLabel = new QLabel(key.id);
+    keyidVarLabel = new QLabel(mKey.id);
     keyidVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     QString usage;
     QTextStream usage_steam(&usage);
 
-    if(key.can_certify)
+    if(mKey.can_certify)
         usage_steam << "Cert ";
-    if(key.can_encrypt)
+    if(mKey.can_encrypt)
         usage_steam << "Encr ";
-    if(key.can_sign)
+    if(mKey.can_sign)
         usage_steam << "Sign ";
-    if(key.can_authenticate)
+    if(mKey.can_authenticate)
         usage_steam << "Auth ";
 
     usageVarLabel = new QLabel(usage);
 
     QString keySizeVal, keyExpireVal, keyCreateTimeVal, keyAlgoVal;
 
-    keySizeVal = QString::number(key.length);
+    keySizeVal = QString::number(mKey.length);
 
-    if (key.expires.toTime_t() == 0) {
+    if (mKey.expires.toTime_t() == 0) {
         keyExpireVal = tr("Never Expired");
     } else {
-        keyExpireVal = key.expires.toString();
+        keyExpireVal = mKey.expires.toString();
     }
 
-    keyAlgoVal = key.pubkey_algo;
-    keyCreateTimeVal = key.create_time.toString();
+    keyAlgoVal = mKey.pubkey_algo;
+    keyCreateTimeVal = mKey.create_time.toString();
 
     keySizeVarLabel = new QLabel(keySizeVal);
     expireVarLabel = new QLabel(keyExpireVal);
@@ -107,7 +107,7 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     keyBox->setLayout(vboxKD);
     mvbox->addWidget(keyBox);
 
-    fingerPrintVarLabel = new QLabel(beautifyFingerprint(key.fpr));
+    fingerPrintVarLabel = new QLabel(beautifyFingerprint(mKey.fpr));
     fingerPrintVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
     fingerPrintVarLabel->setStyleSheet("margin-left: 0; margin-right: 5;");
     auto *hboxFP = new QHBoxLayout();
@@ -125,7 +125,7 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     mvbox->addWidget(fingerprintBox);
     mvbox->addStretch();
 
-    if (key.is_private_key) {
+    if (mKey.is_private_key) {
         auto *privKeyBox = new QGroupBox(tr("Operations"));
         auto *vboxPK = new QVBoxLayout();
 
@@ -133,21 +133,27 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
         vboxPK->addWidget(exportButton);
         connect(exportButton, SIGNAL(clicked()), this, SLOT(slotExportPrivateKey()));
 
+        auto *editExpiresButton = new QPushButton(tr("Modify Expiration Datetime"));
+        vboxPK->addWidget(editExpiresButton);
+        connect(editExpiresButton, SIGNAL(clicked()), this, SLOT(slotModifyEditDatetime()));
+
         privKeyBox->setLayout(vboxPK);
         mvbox->addWidget(privKeyBox);
+
+
     }
 
-    if ((key.expired) || (key.revoked)) {
+    if ((mKey.expired) || (mKey.revoked)) {
         auto *expBox = new QHBoxLayout();
         QIcon icon = QIcon::fromTheme("dialog-warning");
         QPixmap pixmap = icon.pixmap(QSize(32, 32), QIcon::Normal, QIcon::On);
 
         auto *expLabel = new QLabel();
         auto *iconLabel = new QLabel();
-        if (key.expired) {
+        if (mKey.expired) {
             expLabel->setText(tr("Warning: Key expired"));
         }
-        if (key.revoked) {
+        if (mKey.revoked) {
             expLabel->setText(tr("Warning: Key revoked"));
         }
 
@@ -159,6 +165,8 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
         expBox->addWidget(expLabel);
         mvbox->addLayout(expBox);
     }
+
+    connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefreshKeyInfo()));
 
     setAttribute(Qt::WA_DeleteOnClose, true);
     setLayout(mvbox);
@@ -206,5 +214,54 @@ void KeyPairDetailTab::slotCopyFingerprint() {
     QString fpr = fingerPrintVarLabel->text().trimmed().replace(" ", "");
     QClipboard *cb = QApplication::clipboard();
     cb->setText(fpr);
+}
+
+void KeyPairDetailTab::slotModifyEditDatetime() {
+    auto dialog = new KeySetExpireDateDialog(mCtx, mKey, nullptr, this);
+    dialog->show();
+}
+
+void KeyPairDetailTab::slotRefreshKeyInfo() {
+
+    nameVarLabel->setText(mKey.name);
+    emailVarLabel->setText(mKey.email);
+
+    commentVarLabel->setText(mKey.comment);
+    keyidVarLabel->setText(mKey.id);
+
+    QString usage;
+    QTextStream usage_steam(&usage);
+
+    if(mKey.can_certify)
+        usage_steam << "Cert ";
+    if(mKey.can_encrypt)
+        usage_steam << "Encr ";
+    if(mKey.can_sign)
+        usage_steam << "Sign ";
+    if(mKey.can_authenticate)
+        usage_steam << "Auth ";
+
+    usageVarLabel->setText(usage);
+
+    QString keySizeVal, keyExpireVal, keyCreateTimeVal, keyAlgoVal;
+
+    keySizeVal = QString::number(mKey.length);
+
+    if (mKey.expires.toTime_t() == 0) {
+        keyExpireVal = tr("Never Expired");
+    } else {
+        keyExpireVal = mKey.expires.toString();
+    }
+
+    keyAlgoVal = mKey.pubkey_algo;
+    keyCreateTimeVal = mKey.create_time.toString();
+
+    keySizeVarLabel->setText(keySizeVal);
+    expireVarLabel->setText(keyExpireVal);
+    createdVarLabel->setText(keyCreateTimeVal);
+    algorithmVarLabel->setText(keyAlgoVal);
+
+    fingerPrintVarLabel->setText(beautifyFingerprint(mKey.fpr));
+
 }
 

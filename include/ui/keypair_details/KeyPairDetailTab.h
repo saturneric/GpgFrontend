@@ -27,6 +27,7 @@
 
 #include "GpgFrontend.h"
 #include "gpg/GpgContext.h"
+#include "KeySetExpireDateDialog.h"
 
 class KeyPairDetailTab : public QWidget {
     Q_OBJECT
@@ -50,11 +51,16 @@ private slots:
      */
     void slotCopyFingerprint();
 
+    void slotModifyEditDatetime();
+
+    void slotRefreshKeyInfo();
+
 private:
 
     QString *keyid; /** The id of the key the details should be shown for */
 
     GpgME::GpgContext *mCtx; /** The current gpg-context */
+    const GpgKey &mKey;
 
     QGroupBox *ownerBox; /** Groupbox containing owner information */
     QGroupBox *keyBox; /** Groupbox containing key information */
@@ -73,7 +79,7 @@ private:
     QLabel *usageVarLabel;
 
 public:
-    explicit KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey& key, QWidget *parent = nullptr);
+    explicit KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey& mKey, QWidget *parent = nullptr);
 };
 
 
