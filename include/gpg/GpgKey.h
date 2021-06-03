@@ -56,6 +56,8 @@ public:
     bool revoked{};
     bool disabled{};
 
+    bool has_master_key{};
+
     bool good = false;
 
     QVector<GpgSubKey> subKeys;

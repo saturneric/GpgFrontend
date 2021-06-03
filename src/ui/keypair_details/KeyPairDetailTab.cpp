@@ -63,10 +63,11 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
     keySizeVal = QString::number(mKey.length);
 
     if (mKey.expires.toTime_t() == 0) {
-        keyExpireVal = tr("Never Expired");
+        keyExpireVal = tr("Never Expires");
     } else {
         keyExpireVal = mKey.expires.toString();
     }
+
 
     keyAlgoVal = mKey.pubkey_algo;
     keyCreateTimeVal = mKey.create_time.toString();
@@ -75,6 +76,28 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
     expireVarLabel = new QLabel(keyExpireVal);
     createdVarLabel = new QLabel(keyCreateTimeVal);
     algorithmVarLabel = new QLabel(keyAlgoVal);
+
+    // Show the situation that master key not exists.
+    masterKeyExistVarLabel = new QLabel(mKey.has_master_key ? "Exists" : "Not Exists");
+    if(!mKey.has_master_key){
+        auto paletteExpired = masterKeyExistVarLabel->palette();
+        paletteExpired.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::red);
+        masterKeyExistVarLabel->setPalette(paletteExpired);
+    } else {
+        auto paletteValid = masterKeyExistVarLabel->palette();
+        paletteValid.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::darkGreen);
+        masterKeyExistVarLabel->setPalette(paletteValid);
+    }
+
+    if(mKey.expired){
+        auto paletteExpired = expireVarLabel->palette();
+        paletteExpired.setColor(expireVarLabel->foregroundRole(), Qt::red);
+        expireVarLabel->setPalette(paletteExpired);
+    } else {
+        auto paletteValid = expireVarLabel->palette();
+        paletteValid.setColor(expireVarLabel->foregroundRole(), Qt::darkGreen);
+        expireVarLabel->setPalette(paletteValid);
+    }
 
     auto *mvbox = new QVBoxLayout();
     auto *vboxKD = new QGridLayout();
@@ -93,6 +116,7 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
     vboxKD->addWidget(new QLabel(tr("Usage: ")), 3, 0);
     vboxKD->addWidget(new QLabel(tr("Expires on: ")), 4, 0);
     vboxKD->addWidget(new QLabel(tr("Last Update: ")), 5, 0);
+    vboxKD->addWidget(new QLabel(tr("Existence: ")), 6, 0);
 
 
     vboxKD->addWidget(keySizeVarLabel, 2, 1);
@@ -101,6 +125,7 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
     vboxKD->addWidget(createdVarLabel, 5, 1);
     vboxKD->addWidget(keyidVarLabel, 0, 1);
     vboxKD->addWidget(usageVarLabel, 3, 1);
+    vboxKD->addWidget(masterKeyExistVarLabel, 6, 1);
 
     ownerBox->setLayout(vboxOD);
     mvbox->addWidget(ownerBox);
@@ -151,16 +176,17 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
         auto *expLabel = new QLabel();
         auto *iconLabel = new QLabel();
         if (mKey.expired) {
-            expLabel->setText(tr("Warning: Key expired"));
+            expLabel->setText(tr("Warning: The master key of the key pair has expired."));
         }
         if (mKey.revoked) {
-            expLabel->setText(tr("Warning: Key revoked"));
+            expLabel->setText(tr("Warning: The master key of the key pair has been revoked"));
         }
 
         iconLabel->setPixmap(pixmap);
         QFont font = expLabel->font();
         font.setBold(true);
         expLabel->setFont(font);
+        expLabel->setAlignment(Qt::AlignCenter);
         expBox->addWidget(iconLabel);
         expBox->addWidget(expLabel);
         mvbox->addLayout(expBox);

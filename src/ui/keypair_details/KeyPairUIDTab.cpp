@@ -209,7 +209,7 @@ void KeyPairUIDTab::slotRefreshSigList() {
             auto *tmp4 = new QTableWidgetItem(sig->create_time.toString());
             sigList->setItem(sigRow, 3, tmp4);
 
-            auto *tmp5 = new QTableWidgetItem(sig->expire_time.toTime_t() == 0 ? tr("Never Expire")  : sig->expire_time.toString());
+            auto *tmp5 = new QTableWidgetItem(sig->expire_time.toTime_t() == 0 ? tr("Never Expires")  : sig->expire_time.toString());
             tmp5->setTextAlignment(Qt::AlignCenter);
             sigList->setItem(sigRow, 4, tmp5);
 

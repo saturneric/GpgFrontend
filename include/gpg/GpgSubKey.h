@@ -45,6 +45,7 @@ struct GpgSubKey {
     bool expired{};
     bool revoked{};
     bool disabled{};
+    bool secret{};
     bool is_cardkey{};
 
     QDateTime timestamp;

@@ -607,7 +607,7 @@ namespace GpgME {
 
     void GpgContext::checkErr(gpgme_error_t gpgmeError) {
         //if (gpgmeError != GPG_ERR_NO_ERROR && gpgmeError != GPG_ERR_CANCELED) {
-        if (gpgmeError != GPG_ERR_NO_ERROR) {
+        if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
             qDebug() << "[Error " << gpg_err_code(gpgmeError)
                      << "] Source: " << gpgme_strsource(gpgmeError) << " Description: " << gpgErrString(gpgmeError);
         }
@@ -992,7 +992,7 @@ namespace GpgME {
         auto gpgmeError = gpgme_op_revsig(mCtx, key.key_refer,
                                                 signing_key.key_refer,
                                                 signature.uid.toUtf8().constData(), 0);
-        if(gpgmeError == GPG_ERR_NO_ERROR) {
+        if(gpg_err_code(gpgmeError) == GPG_ERR_NO_ERROR) {
             emit signalKeyUpdated(key.id);
             return true;
         }
