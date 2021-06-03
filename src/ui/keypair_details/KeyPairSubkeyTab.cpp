@@ -27,6 +27,7 @@
 KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent) : mCtx(ctx), mKey(key), QWidget(parent) {
 
     createSubkeyList();
+    createSubkeyOperaMenu();
 
     listBox = new QGroupBox("Subkey List");
     detailBox = new QGroupBox("Detail of Selected Subkey");
@@ -55,6 +56,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     subkeyDetailLayout->addWidget(new QLabel(tr("Usage: ")), 3, 0);
     subkeyDetailLayout->addWidget(new QLabel(tr("Expires on: ")), 4, 0);
     subkeyDetailLayout->addWidget(new QLabel(tr("Last Update: ")), 5, 0);
+    subkeyDetailLayout->addWidget(new QLabel(tr("Existence: ")), 6, 0);
 
     keyidVarLabel = new QLabel();
     keySizeVarLabel = new QLabel();
@@ -62,6 +64,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     algorithmVarLabel = new QLabel();
     createdVarLabel = new QLabel();
     usageVarLabel = new QLabel();
+    masterKeyExistVarLabel = new QLabel();
 
     subkeyDetailLayout->addWidget(keyidVarLabel, 0, 1);
     subkeyDetailLayout->addWidget(keySizeVarLabel, 2, 1);
@@ -69,6 +72,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     subkeyDetailLayout->addWidget(algorithmVarLabel, 1, 1);
     subkeyDetailLayout->addWidget(createdVarLabel, 5, 1);
     subkeyDetailLayout->addWidget(usageVarLabel, 3, 1);
+    subkeyDetailLayout->addWidget(masterKeyExistVarLabel, 6, 1);
 
     listBox->setLayout(subkeyListLayout);
     detailBox->setLayout(subkeyDetailLayout);
@@ -165,18 +169,22 @@ void KeyPairSubkeyTab::slotAddSubkey() {
 
 void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
 
-    int row = 0;
-
-    for(int i = 0 ; i < subkeyList->rowCount(); i++) {
-        if(subkeyList->item(row, 0)->isSelected()) break;
-        row++;
-    }
-
-    auto key = buffered_subkeys[row];
+    auto key = getSelectedSubkey();
 
     keyidVarLabel->setText(key->id);
     keySizeVarLabel->setText(QString::number(key->length));
-    expireVarLabel->setText(key->expires.toTime_t() == 0 ? tr("Never Expire")  : key->expires.toString());
+
+    expireVarLabel->setText(key->expires.toTime_t() == 0 ? tr("Never Expires")  : key->expires.toString());
+    if(key->expires.toTime_t() != 0 && key->expires < QDateTime::currentDateTime()) {
+        auto paletteExpired = expireVarLabel->palette();
+        paletteExpired.setColor(expireVarLabel->foregroundRole(), Qt::red);
+        expireVarLabel->setPalette(paletteExpired);
+    } else {
+        auto paletteValid = expireVarLabel->palette();
+        paletteValid.setColor(expireVarLabel->foregroundRole(), Qt::darkGreen);
+        expireVarLabel->setPalette(paletteValid);
+    }
+
     algorithmVarLabel->setText(key->pubkey_algo);
     createdVarLabel->setText(key->timestamp.toString());
 
@@ -193,21 +201,56 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
         usage_steam << "Auth ";
 
     usageVarLabel->setText(usage);
+
+    // Show the situation that master key not exists.
+    masterKeyExistVarLabel->setText(key->secret ? "Exists" : "Not Exists");
+    if(!key->secret){
+        auto paletteExpired = masterKeyExistVarLabel->palette();
+        paletteExpired.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::red);
+        masterKeyExistVarLabel->setPalette(paletteExpired);
+    } else {
+        auto paletteValid = masterKeyExistVarLabel->palette();
+        paletteValid.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::darkGreen);
+        masterKeyExistVarLabel->setPalette(paletteValid);
+    }
 }
 
 void KeyPairSubkeyTab::createSubkeyOperaMenu() {
     subkeyOperaMenu = new QMenu();
-    auto *revokeSubkeyAct = new QAction(tr("Revoke Subkey"));
-    auto *editSubkeyAct = new QAction(tr("Edit Subkey"));
+    // auto *revokeSubkeyAct = new QAction(tr("Revoke Subkey"));
+    auto *editSubkeyAct = new QAction(tr("Edit Expire Date"));
+    connect(editSubkeyAct, SIGNAL(triggered(bool)), this, SLOT(slotEditSubkey()));
 
-    subkeyOperaMenu->addAction(revokeSubkeyAct);
+    // subkeyOperaMenu->addAction(revokeSubkeyAct);
     subkeyOperaMenu->addAction(editSubkeyAct);
 }
 
 void KeyPairSubkeyTab::slotEditSubkey() {
-
+    auto *subkey = getSelectedSubkey();
+    if(subkey == buffered_subkeys[0]) {
+        subkey = nullptr;
+    }
+    auto dialog = new KeySetExpireDateDialog(mCtx, mKey, subkey, this);
+    dialog->show();
 }
 
 void KeyPairSubkeyTab::slotRevokeSubkey() {
 
+}
+
+void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent *event) {
+    if (subkeyList->selectedItems().length() > 0) {
+        subkeyOperaMenu->exec(event->globalPos());
+    }
+}
+
+const GpgSubKey *KeyPairSubkeyTab::getSelectedSubkey() {
+    int row = 0;
+
+    for(int i = 0 ; i < subkeyList->rowCount(); i++) {
+        if(subkeyList->item(row, 0)->isSelected()) break;
+        row++;
+    }
+
+    return buffered_subkeys[row];
 }

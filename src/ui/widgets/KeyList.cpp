@@ -152,26 +152,25 @@ void KeyList::slotRefresh()
         tmp0->setCheckState(Qt::Unchecked);
         mKeyList->setItem(row_index, 0, tmp0);
 
+        QString type_str;
+        QTextStream type_steam(&type_str);
         if (it->is_private_key) {
-            auto *tmp1 = new QTableWidgetItem("pub/sec");
-            mKeyList->setItem(row_index, 1, tmp1);
+            type_steam << "pub/sec";
         } else {
-            auto *tmp1 = new QTableWidgetItem("pub");
-            mKeyList->setItem(row_index, 1, tmp1);
+            type_steam << "pub";
         }
+
+        if(it->is_private_key && !it->has_master_key) {
+            type_steam << "#";
+        }
+        auto* tmp1 = new QTableWidgetItem(type_str);
+        mKeyList->setItem(row_index, 1, tmp1);
 
         auto *tmp2 = new QTableWidgetItem(it->name);
         tmp2->setToolTip(it->name);
         mKeyList->setItem(row_index, 2, tmp2);
         auto *tmp3 = new QTableWidgetItem(it->email);
         tmp3->setToolTip(it->email);
-        // strike out expired keys
-        if(it->expired || it->revoked) {
-            QFont strike = tmp2->font();
-            strike.setStrikeOut(true);
-            tmp2->setFont(strike);
-            tmp3->setFont(strike);
-        }
         mKeyList->setItem(row_index, 3, tmp3);
 
         QString usage;
@@ -197,6 +196,19 @@ void KeyList::slotRefresh()
         auto *temp_fpr = new QTableWidgetItem(it->fpr);
         temp_fpr->setTextAlignment(Qt::AlignCenter);
         mKeyList->setItem(row_index, 6, temp_fpr);
+
+        // strike out expired keys
+        if(it->expired || it->revoked) {
+            QFont strike = tmp2->font();
+            strike.setStrikeOut(true);
+            tmp0->setFont(strike);
+            temp_usage->setFont(strike);
+            temp_fpr->setFont(strike);
+            temp_validity->setFont(strike);
+            tmp1->setFont(strike);
+            tmp2->setFont(strike);
+            tmp3->setFont(strike);
+        }
 
         it++;
         ++row_index;

@@ -31,8 +31,9 @@ GpgSubKey::GpgSubKey(gpgme_subkey_t key) {
     pubkey_algo = gpgme_pubkey_algo_name(key->pubkey_algo);
     fpr = key->fpr;
 
-    expired = (key->expired != 0u);
-    revoked = (key->revoked != 0u);
+    expired = key->expired;
+    revoked = key->revoked;
+    secret = key->secret;
 
     disabled = key->disabled;
 

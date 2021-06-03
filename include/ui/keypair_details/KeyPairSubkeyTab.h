@@ -29,6 +29,7 @@
 
 #include "gpg/GpgContext.h"
 #include "ui/keygen/SubkeyGenerateDialog.h"
+#include "KeySetExpireDateDialog.h"
 
 class KeyPairSubkeyTab : public QWidget {
 Q_OBJECT
@@ -42,6 +43,8 @@ private:
     void createSubkeyList();
 
     void createSubkeyOperaMenu();
+
+    const GpgSubKey *getSelectedSubkey();
 
     GpgME::GpgContext *mCtx;
     const GpgKey &mKey;
@@ -61,6 +64,7 @@ private:
     QLabel *keyidVarLabel;  /** Label containng the keys keyid */
     QLabel *fingerPrintVarLabel; /** Label containng the keys fingerprint */
     QLabel *usageVarLabel;
+    QLabel *masterKeyExistVarLabel;
 
 
 private slots:
@@ -74,6 +78,11 @@ private slots:
     void slotEditSubkey();
 
     void slotRevokeSubkey();
+
+protected:
+
+    void contextMenuEvent(QContextMenuEvent *event) override;
+
 
 };
 

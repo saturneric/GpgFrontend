@@ -96,6 +96,7 @@ void GpgKey::parse(gpgme_key_t key) {
         pubkey_algo = subKeys.first().pubkey_algo;
         create_time = subKeys.first().timestamp;
         length = subKeys.first().length;
+        has_master_key = subKeys.first().secret;
     } else {
         id = "";
     }
@@ -129,6 +130,7 @@ GpgKey::GpgKey(GpgKey &&k) noexcept {
     expired = k.expired;
     revoked = k.revoked;
     disabled = k.disabled;
+    k.has_master_key = k.has_master_key;
 
     good = k.good;
     k.good = false;
@@ -167,6 +169,8 @@ GpgKey &GpgKey::operator=(const GpgKey &k) {
     revoked = k.revoked;
     disabled = k.disabled;
 
+    has_master_key = k.has_master_key;
+
     good = k.good;
 
     subKeys = k.subKeys;
@@ -195,6 +199,8 @@ GpgKey::GpgKey(const GpgKey &k) :
     expired = k.expired;
     revoked = k.revoked;
     disabled = k.disabled;
+
+    has_master_key = k.has_master_key;
 
     good = k.good;
 
@@ -233,6 +239,8 @@ GpgKey &GpgKey::operator=(GpgKey &&k) noexcept {
     expired = k.expired;
     revoked = k.revoked;
     disabled = k.disabled;
+
+    has_master_key = k.has_master_key;
 
     good = k.good;
     k.good = false;

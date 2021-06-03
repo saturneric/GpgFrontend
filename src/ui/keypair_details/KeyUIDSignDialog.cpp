@@ -33,7 +33,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(GpgME::GpgContext *ctx, const GpgKey &key, co
                            this);
 
     mKeyList->setFilter([](const GpgKey &key) -> bool {
-        if(key.disabled || !key.can_sign) return false;
+        if(key.disabled || !key.can_certify || !key.has_master_key || key.expired || key.revoked) return false;
         else return true;
     });
     mKeyList->setExcludeKeys({key.id});

@@ -77,6 +77,7 @@ private:
     QLabel *keyidVarLabel;  /** Label containng the keys keyid */
     QLabel *fingerPrintVarLabel; /** Label containng the keys fingerprint */
     QLabel *usageVarLabel;
+    QLabel *masterKeyExistVarLabel;
 
 public:
     explicit KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey& mKey, QWidget *parent = nullptr);
