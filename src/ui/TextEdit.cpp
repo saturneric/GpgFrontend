@@ -37,6 +37,9 @@ TextEdit::TextEdit() {
     layout->setSpacing(0);
     setLayout(layout);
 
+    // Front in same width
+    this->setFont({"Courier"});
+
     connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(removeTab(int)));
     slotNewTab();
     setAcceptDrops(false);

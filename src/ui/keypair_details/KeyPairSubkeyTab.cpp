@@ -52,11 +52,13 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
 
     subkeyDetailLayout->addWidget(new QLabel(tr("Key ID: ")), 0, 0);
     subkeyDetailLayout->addWidget(new QLabel(tr("Algorithm: ")), 1, 0);
-    subkeyDetailLayout->addWidget(new QLabel(tr("Key size:")), 2, 0);
+    subkeyDetailLayout->addWidget(new QLabel(tr("Key Size:")), 2, 0);
     subkeyDetailLayout->addWidget(new QLabel(tr("Usage: ")), 3, 0);
-    subkeyDetailLayout->addWidget(new QLabel(tr("Expires on: ")), 4, 0);
+    subkeyDetailLayout->addWidget(new QLabel(tr("Expires On ")), 4, 0);
     subkeyDetailLayout->addWidget(new QLabel(tr("Last Update: ")), 5, 0);
     subkeyDetailLayout->addWidget(new QLabel(tr("Existence: ")), 6, 0);
+    subkeyDetailLayout->addWidget(new QLabel(tr("Fingerprint: ")), 7, 0);
+
 
     keyidVarLabel = new QLabel();
     keySizeVarLabel = new QLabel();
@@ -65,6 +67,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     createdVarLabel = new QLabel();
     usageVarLabel = new QLabel();
     masterKeyExistVarLabel = new QLabel();
+    fingerPrintVarLabel = new QLabel();
 
     subkeyDetailLayout->addWidget(keyidVarLabel, 0, 1);
     subkeyDetailLayout->addWidget(keySizeVarLabel, 2, 1);
@@ -73,6 +76,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     subkeyDetailLayout->addWidget(createdVarLabel, 5, 1);
     subkeyDetailLayout->addWidget(usageVarLabel, 3, 1);
     subkeyDetailLayout->addWidget(masterKeyExistVarLabel, 6, 1);
+    subkeyDetailLayout->addWidget(fingerPrintVarLabel, 7, 1);
 
     listBox->setLayout(subkeyListLayout);
     detailBox->setLayout(subkeyDetailLayout);
@@ -213,6 +217,8 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
         paletteValid.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::darkGreen);
         masterKeyExistVarLabel->setPalette(paletteValid);
     }
+
+    fingerPrintVarLabel->setText(key->fpr);
 }
 
 void KeyPairSubkeyTab::createSubkeyOperaMenu() {

@@ -35,7 +35,15 @@ MainWindow::MainWindow() {
     setCentralWidget(edit);
 
     /* the list of Keys available*/
-    mKeyList = new KeyList(mCtx);
+    mKeyList = new KeyList(mCtx,
+                           KeyListRow::SECRET_OR_PUBLIC_KEY,
+                           KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage | KeyListColumn::Validity,
+                           this);
+    mKeyList->setFilter([](const GpgKey &key) -> bool {
+        if(key.revoked || key.disabled || key.expired) return false;
+        else return true;
+    });
+    mKeyList->slotRefresh();
 
     /* List of binary Attachments */
     attachmentDockCreated = false;
@@ -75,6 +83,7 @@ MainWindow::MainWindow() {
         }
     }
     edit->curTextPage()->setFocus();
+    this->setMinimumSize(1200, 700);
     this->setWindowTitle(qApp->applicationName());
     this->show();
 
@@ -581,9 +590,10 @@ void MainWindow::createStatusBar() {
 void MainWindow::createDockWindows() {
     /* KeyList-Dockwindow
      */
-    keylistDock = new QDockWidget(tr("Encrypt for:"), this);
+    keylistDock = new QDockWidget(tr("Key ToolBox"), this);
     keylistDock->setObjectName("EncryptDock");
     keylistDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    keylistDock->setMinimumWidth(460);
     addDockWidget(Qt::RightDockWidgetArea, keylistDock);
     keylistDock->setWidget(mKeyList);
     viewMenu->addAction(keylistDock->toggleViewAction());
@@ -820,7 +830,7 @@ void MainWindow::slotFind() {
 }
 
 void MainWindow::slotVerify() {
-    if (edit->tabCount() == 0 || edit->slotCurPage() == 0) {
+    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
         return;
     }
 

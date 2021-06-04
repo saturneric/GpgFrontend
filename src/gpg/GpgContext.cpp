@@ -717,7 +717,7 @@ namespace GpgME {
         gpgme_sign_result_t result;
         gpgme_sig_mode_t mode;
 
-        if (uidList->count() == 0) {
+        if (uidList->isEmpty()) {
             QMessageBox::critical(nullptr, tr("Key Selection"), tr("No Private Key Selected"));
             return false;
         }
@@ -847,6 +847,12 @@ namespace GpgME {
         for (const auto &key : mKeyList) {
             if (key.fpr == fpr) {
                 return key;
+            } else {
+                for(auto &subkey : key.subKeys) {
+                    if(subkey.fpr == fpr) {
+                        return key;
+                    }
+                }
             }
         }
         return GpgKey(nullptr);

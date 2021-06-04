@@ -46,7 +46,7 @@ typedef enum {
     VERIFY_ERROR_OK = 0,
     VERIFY_ERROR_WARN = 1,
     VERIFY_ERROR_CRITICAL = 2,
-    VERIFY_ERROR_NEUTRAL [[maybe_unused]] = 3,
+    VERIFY_ERROR_NEUTRAL = 3,
 } verify_label_status;
 
 /**
@@ -109,6 +109,8 @@ private:
     QTextEdit *mTextpage; /** Textedit associated to the notification */
     [[maybe_unused]] QVector<QString> verifyDetailStringVector; /** Vector containing the text for labels in verifydetaildialog */
     [[maybe_unused]] QVector<verify_label_status> verifyDetailStatusVector; /** Vector containing the status for labels in verifydetaildialog */
+
+    bool printSigner(QTextStream &stream, gpgme_signature_t sign);
 
 };
 
