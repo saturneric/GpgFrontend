@@ -44,6 +44,8 @@ private:
 
     static QString beautifyFingerprint(QString fingerprint);
 
+    QGridLayout *createKeyInfoGrid(gpgme_signature_t &signature);
+
     QString fpr;
 };
 

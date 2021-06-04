@@ -107,66 +107,95 @@ bool VerifyNotification::slotRefresh() {
     }
 
     QString verifyLabelText;
+    QTextStream textSteam(&verifyLabelText);
     bool unknownKeyFound = false;
+    bool canContinue = true;
 
-    while (sign) {
+
+    textSteam << "Signed At " << QDateTime::fromTime_t(sign->timestamp).toString() << endl;
+
+    textSteam << endl << "It Contains:" << endl;
+
+    while (sign && canContinue) {
 
         switch (gpg_err_code(sign->status)) {
-            case GPG_ERR_NO_PUBKEY: {
-                verifyStatus = VERIFY_ERROR_WARN;
-                verifyLabelText.append(tr("Key not present with id 0x") + QString(sign->fpr));
-                this->keysNotInList->append(sign->fpr);
-                unknownKeyFound = true;
-                break;
-            }
-            case GPG_ERR_NO_ERROR: {
-                GpgKey key = mCtx->getKeyByFpr(sign->fpr);
-                verifyLabelText.append(key.name);
-                if (!key.email.isEmpty()) {
-                    verifyLabelText.append("<" + key.email + ">");
-                }
-                break;
-            }
-            case GPG_ERR_BAD_SIGNATURE: {
+            case GPG_ERR_BAD_SIGNATURE:
                 textIsSigned = 3;
                 verifyStatus = VERIFY_ERROR_CRITICAL;
-                GpgKey key = mCtx->getKeyByFpr(sign->fpr);
-
-                if(!key.good) break;
-
-                verifyLabelText.append(key.name);
-                if (!key.email.isEmpty()) {
-                    verifyLabelText.append("<" + key.email + ">");
+                textSteam << tr("One or More Bad Signatures.") << endl;
+                canContinue = false;
+                break;
+            case GPG_ERR_NO_ERROR:
+                textSteam << tr("A ");
+                if(sign->summary & GPGME_SIGSUM_GREEN) {
+                    textSteam << tr("Good ");
                 }
+                if(sign->summary & GPGME_SIGSUM_RED) {
+                    textSteam << tr("Bad ");
+                }
+                if(sign->summary & GPGME_SIGSUM_SIG_EXPIRED) {
+                    textSteam << tr("Expired ");
+                }
+                if(sign->summary & GPGME_SIGSUM_KEY_MISSING) {
+                    textSteam << tr("Missing Key's ");
+                }
+                if(sign->summary & GPGME_SIGSUM_KEY_REVOKED) {
+                    textSteam << tr("Revoked Key's ");
+                }
+                if(sign->summary & GPGME_SIGSUM_KEY_EXPIRED) {
+                    textSteam << tr("Expired Key's ");
+                }
+                if(sign->summary & GPGME_SIGSUM_CRL_MISSING) {
+                    textSteam << tr("Missing CRL's ");
+                }
+
+                if(sign->summary & GPGME_SIGSUM_VALID) {
+                    textSteam << tr("Signature Fully Valid.") << endl;
+                } else {
+                    textSteam << tr("Signature NOT Fully Valid.") << endl;
+                }
+
+                if(!(sign->status & GPGME_SIGSUM_KEY_MISSING)) {
+                   unknownKeyFound = printSigner(textSteam, sign);
+                } else {
+                    textSteam << tr("Key is NOT present with ID 0x") << QString(sign->fpr) << endl;
+                }
+
                 break;
-            }
-            default: {
-                //textIsSigned = 3;
+            case GPG_ERR_NO_PUBKEY:
                 verifyStatus = VERIFY_ERROR_WARN;
-                //GpgKey key = mKeyList->getKeyByFpr(sign->fpr);
-                verifyLabelText.append(tr("Error for key with fingerprint ") +
-                                       GpgME::GpgContext::beautifyFingerprint(QString(sign->fpr)));
+                textSteam << tr("A signature could NOT be verified due to a Missing Key\n");
+                unknownKeyFound = true;
                 break;
-            }
+            case GPG_ERR_CERT_REVOKED:
+                verifyStatus = VERIFY_ERROR_WARN;
+                textSteam << tr("A signature is valid but the key used to verify the signature has been revoked\n");
+                unknownKeyFound = printSigner(textSteam, sign);
+                break;
+            case GPG_ERR_SIG_EXPIRED:
+                verifyStatus = VERIFY_ERROR_WARN;
+                textSteam << tr("A signature is valid but expired\n");
+                unknownKeyFound = printSigner(textSteam, sign);
+                break;
+            case GPG_ERR_KEY_EXPIRED:
+                verifyStatus = VERIFY_ERROR_WARN;
+                textSteam << tr("A signature is valid but the key used to verify the signature has expired.\n");
+                unknownKeyFound = printSigner(textSteam, sign);
+                break;
+            case GPG_ERR_GENERAL:
+                verifyStatus = VERIFY_ERROR_CRITICAL;
+                textSteam << tr("There was some other error which prevented the signature verification.\n");
+                canContinue = false;
+                break;
+            default:
+                verifyStatus = VERIFY_ERROR_WARN;
+                textSteam << tr("Error for key with fingerprint ") <<
+                                       GpgME::GpgContext::beautifyFingerprint(QString(sign->fpr));
         }
-        verifyLabelText.append("\n");
+        textSteam << endl;
         sign = sign->next;
     }
 
-    switch (textIsSigned) {
-        case 3:
-            verifyLabelText.prepend(tr("Error validating signature by: "));
-            break;
-
-        case 2:
-            verifyLabelText.prepend(tr("Text was completely signed by: "));
-            break;
-
-        case 1:
-            verifyLabelText.prepend(tr("Text was partially signed by: "));
-            break;
-
-    }
 
     // If an unknown key is found, enable the importfromkeyserveraction
     this->showImportAction(unknownKeyFound);
@@ -177,4 +206,23 @@ bool VerifyNotification::slotRefresh() {
     this->setVerifyLabel(verifyLabelText, verifyStatus);
 
     return true;
+}
+
+bool VerifyNotification::printSigner(QTextStream &stream, gpgme_signature_t sign) {
+    bool keyFound = true;
+    stream << tr("Signed By: ");
+    auto key = mCtx->getKeyByFpr(sign->fpr);
+    if(!key.good) {
+        stream << "<Unknown>";
+        keyFound = false;
+    }
+    stream << key.name;
+    if (!key.email.isEmpty()) {
+        stream << "<" << key.email <<  ">";
+    }
+
+    stream << endl;
+
+    return keyFound;
+
 }
