@@ -25,13 +25,16 @@
 #include "ui/VerifyNotification.h"
 
 VerifyNotification::VerifyNotification(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList, QTextEdit *edit) :
-        QWidget(parent) {
-    mCtx = ctx;
-    mKeyList = keyList;
-    mTextpage = edit;
-    verifyLabel = new QLabel(this);
+        QWidget(parent), mCtx(ctx), mKeyList(keyList), mTextpage(edit) {
 
-    connect(mCtx, SIGNAL(keyDBChanged()), this, SLOT(slotRefresh()));
+    verifyLabel = new QLabel(this);
+    infoBoard = new QTextEdit(this);
+    infoBoard->setReadOnly(true);
+    infoBoard->setFixedHeight(160);
+
+    this->setFixedHeight(170);
+
+    connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefresh()));
     connect(edit, SIGNAL(textChanged()), this, SLOT(close()));
 
     importFromKeyserverAct = new QAction(tr("Import missing key from Keyserver"), this);
@@ -49,8 +52,7 @@ VerifyNotification::VerifyNotification(QWidget *parent, GpgME::GpgContext *ctx, 
     detailsButton = new QPushButton(tr("Details"), this);
     detailsButton->setMenu(detailMenu);
     auto *notificationWidgetLayout = new QHBoxLayout(this);
-    notificationWidgetLayout->setContentsMargins(10, 0, 0, 0);
-    notificationWidgetLayout->addWidget(verifyLabel, 2);
+    notificationWidgetLayout->addWidget(infoBoard);
     notificationWidgetLayout->addWidget(detailsButton);
     this->setLayout(notificationWidgetLayout);
 }
@@ -60,9 +62,9 @@ void VerifyNotification::slotImportFromKeyserver() {
     importDialog->slotImport(*keysNotInList);
 }
 
-void VerifyNotification::setVerifyLabel(const QString &text, verify_label_status verifyLabelStatus) {
+void VerifyNotification::setInfoBoard(const QString &text, verify_label_status verifyLabelStatus) {
     QString color;
-    verifyLabel->setText(text);
+    infoBoard->setText(text);
     switch (verifyLabelStatus) {
         case VERIFY_ERROR_OK:
             color = "#ccffcc";
@@ -77,10 +79,11 @@ void VerifyNotification::setVerifyLabel(const QString &text, verify_label_status
             break;
     }
 
-    verifyLabel->setAutoFillBackground(true);
-    QPalette status = verifyLabel->palette();
-    status.setColor(QPalette::Background, color);
-    verifyLabel->setPalette(status);
+    infoBoard->setAutoFillBackground(true);
+    QPalette status = infoBoard->palette();
+    status.setColor(QPalette::Text, color);
+    infoBoard->setPalette(status);
+    infoBoard->setFont(QFont("Times", 10, QFont::Bold));
 }
 
 void VerifyNotification::showImportAction(bool visible) {
@@ -203,7 +206,7 @@ bool VerifyNotification::slotRefresh() {
     // Remove the last linebreak
     verifyLabelText.remove(verifyLabelText.length() - 1, 1);
 
-    this->setVerifyLabel(verifyLabelText, verifyStatus);
+    setInfoBoard(verifyLabelText, verifyStatus);
 
     return true;
 }

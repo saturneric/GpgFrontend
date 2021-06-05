@@ -69,7 +69,7 @@ public:
      * @param text The text to be set.
      * @param verifyLabelStatus The status of label to set the specified color.
      */
-    void setVerifyLabel(const QString& text, verify_label_status verifyLabelStatus);
+    void setInfoBoard(const QString& text, verify_label_status verifyLabelStatus);
 
     /**
      * @details Show the import from keyserver-action in detailsmenu.
@@ -104,6 +104,7 @@ private:
     QAction *showVerifyDetailsAct; /** Action for showing verify detail dialog */
     QPushButton *detailsButton; /** Button shown in verifynotification */
     QLabel *verifyLabel; /** Label holding the text shown in verifyNotification */
+    QTextEdit *infoBoard;
     GpgME::GpgContext *mCtx; /** GpgME Context */
     KeyList *mKeyList; /** Table holding the keys */
     QTextEdit *mTextpage; /** Textedit associated to the notification */

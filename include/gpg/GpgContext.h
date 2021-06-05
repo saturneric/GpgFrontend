@@ -86,6 +86,9 @@ namespace GpgME {
         bool encrypt(QStringList *uidList, const QByteArray &inBuffer,
                      QByteArray *outBuffer);
 
+        bool encryptSign(QVector<GpgKey> &keys, const QByteArray &inBuffer,
+                     QByteArray *outBuffer);
+
         bool decrypt(const QByteArray &inBuffer, QByteArray *outBuffer);
 
         void clearPasswordCache();
@@ -102,7 +105,7 @@ namespace GpgME {
 
         gpgme_signature_t verify(QByteArray *inBuffer, QByteArray *sigBuffer = nullptr);
 
-        bool sign(QStringList *uidList, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached = false);
+        bool sign(QVector<GpgKey> keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached = false);
 
         bool addUID(const GpgKey &key, const UID &uid);
 
@@ -111,6 +114,11 @@ namespace GpgME {
         bool setPrimaryUID(const GpgKey &key, const UID &uid);
 
         bool setExpire(const GpgKey &key, const GpgSubKey *subkey, QDateTime *expires);
+
+        static bool checkIfKeyCanSign(const GpgKey &key);
+        static bool checkIfKeyCanCert(const GpgKey &key);
+        static bool checkIfKeyCanAuth(const GpgKey &key);
+        static bool checkIfKeyCanEncr(const GpgKey &key);
 
         /**
          * @details If text contains PGP-message, put a linebreak before the message,

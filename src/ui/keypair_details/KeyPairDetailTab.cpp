@@ -29,53 +29,28 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
     mCtx = ctx;
     keyid = new QString(mKey.id);
 
-    ownerBox = new QGroupBox(tr("Owner details"));
-    keyBox = new QGroupBox(tr("Key details"));
+    ownerBox = new QGroupBox(tr("Owner"));
+    keyBox = new QGroupBox(tr("Master Key"));
     fingerprintBox = new QGroupBox(tr("Fingerprint"));
-    additionalUidBox = new QGroupBox(tr("Additional Uids"));
+    additionalUidBox = new QGroupBox(tr("Additional UIDs"));
 
-    nameVarLabel = new QLabel(mKey.name);
+    nameVarLabel = new QLabel();
     nameVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    emailVarLabel = new QLabel(mKey.email);
+    emailVarLabel = new QLabel();
     emailVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
-    commentVarLabel = new QLabel(mKey.comment);
+    commentVarLabel = new QLabel();
     commentVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    keyidVarLabel = new QLabel(mKey.id);
+    keyidVarLabel = new QLabel();
     keyidVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
-    QString usage;
-    QTextStream usage_steam(&usage);
+    usageVarLabel = new QLabel();
+    actualUsageVarLabel = new QLabel();
 
-    if(mKey.can_certify)
-        usage_steam << "Cert ";
-    if(mKey.can_encrypt)
-        usage_steam << "Encr ";
-    if(mKey.can_sign)
-        usage_steam << "Sign ";
-    if(mKey.can_authenticate)
-        usage_steam << "Auth ";
-
-    usageVarLabel = new QLabel(usage);
-
-    QString keySizeVal, keyExpireVal, keyCreateTimeVal, keyAlgoVal;
-
-    keySizeVal = QString::number(mKey.length);
-
-    if (mKey.expires.toTime_t() == 0) {
-        keyExpireVal = tr("Never Expires");
-    } else {
-        keyExpireVal = mKey.expires.toString();
-    }
-
-
-    keyAlgoVal = mKey.pubkey_algo;
-    keyCreateTimeVal = mKey.create_time.toString();
-
-    keySizeVarLabel = new QLabel(keySizeVal);
-    expireVarLabel = new QLabel(keyExpireVal);
-    createdVarLabel = new QLabel(keyCreateTimeVal);
-    algorithmVarLabel = new QLabel(keyAlgoVal);
+    keySizeVarLabel = new QLabel();
+    expireVarLabel = new QLabel();
+    createdVarLabel = new QLabel();
+    algorithmVarLabel = new QLabel();
 
     // Show the situation that master key not exists.
     masterKeyExistVarLabel = new QLabel(mKey.has_master_key ? "Exists" : "Not Exists");
@@ -112,20 +87,22 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
 
     vboxKD->addWidget(new QLabel(tr("Key ID: ")), 0, 0);
     vboxKD->addWidget(new QLabel(tr("Algorithm: ")), 1, 0);
-    vboxKD->addWidget(new QLabel(tr("Key size:")), 2, 0);
-    vboxKD->addWidget(new QLabel(tr("Usage: ")), 3, 0);
-    vboxKD->addWidget(new QLabel(tr("Expires on: ")), 4, 0);
-    vboxKD->addWidget(new QLabel(tr("Last Update: ")), 5, 0);
-    vboxKD->addWidget(new QLabel(tr("Existence: ")), 6, 0);
+    vboxKD->addWidget(new QLabel(tr("Key Size:")), 2, 0);
+    vboxKD->addWidget(new QLabel(tr("Nominal Usage: ")), 3, 0);
+    vboxKD->addWidget(new QLabel(tr("Actual Usage: ")), 4, 0);
+    vboxKD->addWidget(new QLabel(tr("Expires on: ")), 5, 0);
+    vboxKD->addWidget(new QLabel(tr("Last Update: ")), 6, 0);
+    vboxKD->addWidget(new QLabel(tr("Secret Key Existence: ")), 7, 0);
 
 
     vboxKD->addWidget(keySizeVarLabel, 2, 1);
-    vboxKD->addWidget(expireVarLabel, 4, 1);
+    vboxKD->addWidget(expireVarLabel, 5, 1);
     vboxKD->addWidget(algorithmVarLabel, 1, 1);
-    vboxKD->addWidget(createdVarLabel, 5, 1);
+    vboxKD->addWidget(createdVarLabel, 6, 1);
     vboxKD->addWidget(keyidVarLabel, 0, 1);
     vboxKD->addWidget(usageVarLabel, 3, 1);
-    vboxKD->addWidget(masterKeyExistVarLabel, 6, 1);
+    vboxKD->addWidget(actualUsageVarLabel, 4, 1);
+    vboxKD->addWidget(masterKeyExistVarLabel, 7, 1);
 
     ownerBox->setLayout(vboxOD);
     mvbox->addWidget(ownerBox);
@@ -193,6 +170,8 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
     }
 
     connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefreshKeyInfo()));
+
+    slotRefreshKeyInfo();
 
     setAttribute(Qt::WA_DeleteOnClose, true);
     setLayout(mvbox);
@@ -269,12 +248,26 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
 
     usageVarLabel->setText(usage);
 
+    QString actualUsage;
+    QTextStream actual_usage_steam(&actualUsage);
+
+    if(GpgME::GpgContext::checkIfKeyCanCert(mKey))
+        actual_usage_steam << "Cert ";
+    if(GpgME::GpgContext::checkIfKeyCanEncr(mKey))
+        actual_usage_steam << "Encr ";
+    if(GpgME::GpgContext::checkIfKeyCanSign(mKey))
+        actual_usage_steam << "Sign ";
+    if(GpgME::GpgContext::checkIfKeyCanAuth(mKey))
+        actual_usage_steam << "Auth ";
+
+    actualUsageVarLabel->setText(actualUsage);
+
     QString keySizeVal, keyExpireVal, keyCreateTimeVal, keyAlgoVal;
 
     keySizeVal = QString::number(mKey.length);
 
     if (mKey.expires.toTime_t() == 0) {
-        keyExpireVal = tr("Never Expired");
+        keyExpireVal = tr("Never Expire");
     } else {
         keyExpireVal = mKey.expires.toString();
     }

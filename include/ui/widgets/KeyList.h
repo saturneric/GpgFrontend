@@ -79,6 +79,8 @@ public:
 
     QStringList *getPrivateChecked();
 
+    void getPrivateCheckedKeys(QVector<GpgKey> &keys);
+
     QStringList *getAllPrivateKeys();
 
     void setChecked(QStringList *keyIds);

@@ -710,35 +710,21 @@ namespace GpgME {
         verify_result = gpgme_op_verify_result (mCtx);
      */
     //}
-    bool GpgContext::sign(QStringList *uidList, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached) {
+    bool GpgContext::sign(QVector<GpgKey> keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached) {
 
         gpgme_error_t gpgmeError;
         gpgme_data_t dataIn, dataOut;
         gpgme_sign_result_t result;
         gpgme_sig_mode_t mode;
 
-        if (uidList->isEmpty()) {
+        if (keys.isEmpty()) {
             QMessageBox::critical(nullptr, tr("Key Selection"), tr("No Private Key Selected"));
             return false;
         }
 
         // at start or end?
-        gpgme_signers_clear(mCtx);
 
-        //gpgme_encrypt_result_t e_result;
-        gpgme_key_t signers[uidList->count() + 1];
-
-
-        // TODO: do we really need array? adding one key dataIn loop should be ok
-        for (int i = 0; i < uidList->count(); i++) {
-            // the last 0 is for public keys, 1 would return private keys
-            gpgme_op_keylist_start(mCtx, uidList->at(i).toUtf8().constData(), 0);
-            gpgme_op_keylist_next(mCtx, &signers[i]);
-            gpgme_op_keylist_end(mCtx);
-
-            gpgmeError = gpgme_signers_add(mCtx, signers[i]);
-            checkErr(gpgmeError);
-        }
+        setSigners(keys);
 
         gpgmeError = gpgme_data_new_from_mem(&dataIn, inBuffer.data(), inBuffer.size(), 1);
         checkErr(gpgmeError);
@@ -1077,6 +1063,79 @@ namespace GpgME {
             checkErr(gpgmeError);
             return false;
         }
+    }
+
+    bool GpgContext::checkIfKeyCanSign(const GpgKey &key) {
+        if(std::any_of(key.subKeys.begin(), key.subKeys.end(), [] (const GpgSubKey &subkey) -> bool {
+            return subkey.secret && subkey.can_sign && !subkey.disabled && !subkey.revoked && !subkey.expired;
+        })) return true;
+        return false;
+    }
+
+    bool GpgContext::checkIfKeyCanCert(const GpgKey &key) {
+        return key.has_master_key && !key.expired && !key.revoked && !key.disabled;
+    }
+
+    bool GpgContext::checkIfKeyCanAuth(const GpgKey &key) {
+        if(std::any_of(key.subKeys.begin(), key.subKeys.end(), [] (const GpgSubKey &subkey) -> bool {
+            return subkey.secret && subkey.can_authenticate && !subkey.disabled && !subkey.revoked && !subkey.expired;
+        })) return true;
+        return false;
+    }
+
+    bool GpgContext::checkIfKeyCanEncr(const GpgKey &key) {
+        if(std::any_of(key.subKeys.begin(), key.subKeys.end(), [] (const GpgSubKey &subkey) -> bool {
+            return subkey.can_encrypt && !subkey.disabled && !subkey.revoked && !subkey.expired;
+        })) return true;
+        return false;
+    }
+
+    bool GpgContext::encryptSign(QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer) {
+        gpgme_data_t dataIn = nullptr, dataOut = nullptr;
+        outBuffer->resize(0);
+
+        if (keys.count() == 0) {
+            QMessageBox::critical(nullptr, tr("No Key Selected"), tr("No Key Selected"));
+            return false;
+        }
+
+        setSigners(keys);
+
+        //gpgme_encrypt_result_t e_result;
+        gpgme_key_t recipients[keys.count() + 1];
+
+        /* set key for user */
+        int index = 0;
+        for(const auto &key : keys) {
+            recipients[index++] = key.key_refer;
+        }
+        //Last entry dataIn array has to be nullptr
+        recipients[keys.count()] = nullptr;
+
+        //If the last parameter isnt 0, a private copy of data is made
+        if (mCtx) {
+            err = gpgme_data_new_from_mem(&dataIn, inBuffer.data(), inBuffer.size(), 1);
+            checkErr(err);
+            if (!err) {
+                err = gpgme_data_new(&dataOut);
+                checkErr(err);
+                if (!err) {
+                    err = gpgme_op_encrypt_sign(mCtx, recipients, GPGME_ENCRYPT_ALWAYS_TRUST, dataIn, dataOut);
+                    checkErr(err);
+                    if (!err) {
+                        err = readToBuffer(dataOut, outBuffer);
+                        checkErr(err);
+                    }
+                }
+            }
+        }
+        if (dataIn) {
+            gpgme_data_release(dataIn);
+        }
+        if (dataOut) {
+            gpgme_data_release(dataOut);
+        }
+        return (err == GPG_ERR_NO_ERROR);
     }
 
 }
