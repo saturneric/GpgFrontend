@@ -26,21 +26,16 @@
 
 FileEncryptionDialog::FileEncryptionDialog(GpgME::GpgContext *ctx, QStringList keyList, DialogAction action,
                                            QWidget *parent)
-        : QDialog(parent) {
-    mAction = action;
-    mCtx = ctx;
+        : QDialog(parent), mAction(action), mCtx(ctx){
+
     if (mAction == Decrypt) {
         setWindowTitle(tr("Decrypt File"));
-        resize(500, 200);
     } else if (mAction == Encrypt) {
         setWindowTitle(tr("Encrypt File"));
-        resize(500, 400);
     } else if (mAction == Sign) {
         setWindowTitle(tr("Sign File"));
-        resize(500, 400);
     } else if (mAction == Verify) {
         setWindowTitle(tr("Verify File"));
-        resize(500, 200);
     }
 
     setModal(true);
@@ -49,19 +44,19 @@ FileEncryptionDialog::FileEncryptionDialog(GpgME::GpgContext *ctx, QStringList k
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slotExecuteAction()));
     connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
-    auto *groupBox1 = new QGroupBox(tr("File"));
+    auto *groupBox1 = new QGroupBox(tr("Input Parameters"));
 
     /* Setup input & Outputfileselection*/
     inputFileEdit = new QLineEdit();
-    auto *fb1 = new QPushButton("...");
+    auto *fb1 = new QPushButton("Select");
     connect(fb1, SIGNAL(clicked()), this, SLOT(slotSelectInputFile()));
-    auto *fl1 = new QLabel(tr("Input"));
+    auto *fl1 = new QLabel(tr("Target File"));
     fl1->setBuddy(inputFileEdit);
 
     outputFileEdit = new QLineEdit();
-    auto *fb2 = new QPushButton("...");
+    auto *fb2 = new QPushButton("Select");
     connect(fb2, SIGNAL(clicked()), this, SLOT(slotSelectOutputFile()));
-    auto *fl2 = new QLabel(tr("Output"));
+    auto *fl2 = new QLabel(tr("Output File"));
     fl2->setBuddy(outputFileEdit);
 
     auto *gLayout = new QGridLayout();
@@ -75,9 +70,9 @@ FileEncryptionDialog::FileEncryptionDialog(GpgME::GpgContext *ctx, QStringList k
         gLayout->addWidget(outputFileEdit, 1, 1);
         gLayout->addWidget(fb2, 1, 2);
     } else {
-        auto *sfb1 = new QPushButton("...");
+        auto *sfb1 = new QPushButton("Select");
         connect(sfb1, SIGNAL(clicked()), this, SLOT(slotSelectSignFile()));
-        auto *sfl1 = new QLabel(tr("Signature"));
+        auto *sfl1 = new QLabel(tr("Signature File(.sig) Path"));
         sfl1->setBuddy(signFileEdit);
 
         gLayout->addWidget(sfl1, 1, 0);
@@ -87,7 +82,30 @@ FileEncryptionDialog::FileEncryptionDialog(GpgME::GpgContext *ctx, QStringList k
     groupBox1->setLayout(gLayout);
 
     /*Setup KeyList*/
-    mKeyList = new KeyList(mCtx, KeyListRow::ONLY_SECRET_KEY, KeyListColumn::NAME | KeyListColumn::EmailAddress);
+    mKeyList = new KeyList(mCtx, KeyListRow::ONLY_SECRET_KEY,
+                           KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage);
+   if(mAction == Verify)
+        mKeyList->setFilter([](const GpgKey &key) -> bool {
+            if(key.disabled || key.expired || key.revoked) return false;
+            else return true;
+        });
+
+    if(mAction == Encrypt)
+        mKeyList->setFilter([](const GpgKey &key) -> bool {
+            if(!GpgME::GpgContext::checkIfKeyCanEncr(key)) return false;
+            else return true;
+        });
+
+    if(mAction == Sign)
+        mKeyList->setFilter([](const GpgKey &key) -> bool {
+            if(!GpgME::GpgContext::checkIfKeyCanSign(key)) return false;
+            else return true;
+        });
+
+    if(mAction == Decrypt)
+        mKeyList->setDisabled(true);
+
+    mKeyList->slotRefresh();
     mKeyList->setChecked(&keyList);
 
     statusLabel = new QLabel();
@@ -101,11 +119,9 @@ FileEncryptionDialog::FileEncryptionDialog(GpgME::GpgContext *ctx, QStringList k
     vbox2->addStretch(0);
     setLayout(vbox2);
 
-    if (action == Encrypt || action == Sign) {
-        slotShowKeyList();
-    }
+    this->setMinimumWidth(480);
+    this->show();
 
-    exec();
 }
 
 void FileEncryptionDialog::slotSelectInputFile() {
@@ -192,7 +208,10 @@ void FileEncryptionDialog::slotExecuteAction() {
     }
 
     if (mAction == Sign) {
-        if (!mCtx->sign(mKeyList->getChecked(), inBuffer, outBuffer, true)) return;
+        QVector<GpgKey> keys;
+        mKeyList->getCheckedKeys(keys);
+        if (!mCtx->sign(keys, inBuffer, outBuffer, true)) return;
+
     }
 
     if (mAction == Verify) {

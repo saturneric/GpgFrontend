@@ -62,7 +62,7 @@ KeyMgmt::KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent )  : QMainWindow(parent
         this->resize(size);
         this->move(pos);
     } else {
-        this->resize(QSize(800, 400));
+        this->resize(QSize(1000, 600));
     }
 
     setWindowTitle(tr("KeyPairs Management"));

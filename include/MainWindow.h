@@ -71,6 +71,12 @@ private slots:
     void slotEncrypt();
 
     /**
+     * @details encrypt and sign the text of currently active textedit-page
+     * with the currently checked keys
+     */
+    void slotEncryptSign();
+
+    /**
      * @details Show a passphrase dialog and decrypt the text of currently active tab.
      */
     void slotDecrypt();
@@ -306,6 +312,7 @@ private:
     QAction *closeTabAct; /** Action to print */
     QAction *quitAct; /** Action to quit application */
     QAction *encryptAct; /** Action to encrypt text */
+    QAction *encryptSignAct; /** Action to encrypt text */
     QAction *decryptAct; /** Action to decrypt text */
     QAction *signAct; /** Action to sign text */
     QAction *verifyAct; /** Action to verify text */

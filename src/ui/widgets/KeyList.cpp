@@ -176,13 +176,13 @@ void KeyList::slotRefresh()
         QString usage;
         QTextStream usage_steam(&usage);
 
-        if(it->can_certify)
+        if(GpgME::GpgContext::checkIfKeyCanCert(*it))
             usage_steam << "C";
-        if(it->can_encrypt)
+        if(GpgME::GpgContext::checkIfKeyCanEncr(*it))
             usage_steam << "E";
-        if(it->can_sign)
+        if(GpgME::GpgContext::checkIfKeyCanSign(*it))
             usage_steam << "S";
-        if(it->can_authenticate)
+        if(GpgME::GpgContext::checkIfKeyCanAuth(*it))
             usage_steam << "A";
 
         auto *temp_usage = new QTableWidgetItem(usage);
@@ -462,4 +462,13 @@ void KeyList::slotDoubleClicked(const QModelIndex &index) {
 
 void KeyList::setDoubleClickedAction(std::function<void(const GpgKey &, QWidget *)> action) {
     this->mAction = std::move(action);
+}
+
+void KeyList::getPrivateCheckedKeys(QVector<GpgKey> &keys) {
+    keys.clear();
+    for (int i = 0; i < mKeyList->rowCount(); i++) {
+        if (mKeyList->item(i, 0)->checkState() == Qt::Checked && buffered_keys[i].is_private_key) {
+            keys.push_back(buffered_keys[i]);
+        }
+    }
 }

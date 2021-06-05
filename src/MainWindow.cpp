@@ -284,6 +284,12 @@ void MainWindow::createActions() {
     encryptAct->setToolTip(tr("Encrypt Message"));
     connect(encryptAct, SIGNAL(triggered()), this, SLOT(slotEncrypt()));
 
+    encryptSignAct = new QAction(tr("&Encrypt Sign"), this);
+    encryptSignAct->setIcon(QIcon(":encrypted_signed.png"));
+    encryptSignAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E + Qt::Key_S));
+    encryptSignAct->setToolTip(tr("Encrypt And Sign Message"));
+    connect(encryptSignAct, SIGNAL(triggered()), this, SLOT(slotEncryptSign()));
+
     decryptAct = new QAction(tr("&Decrypt"), this);
     decryptAct->setIcon(QIcon(":decrypted.png"));
     decryptAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
@@ -474,6 +480,7 @@ void MainWindow::createMenus() {
 
     cryptMenu = menuBar()->addMenu(tr("&Crypt"));
     cryptMenu->addAction(encryptAct);
+    cryptMenu->addAction(encryptSignAct);
     cryptMenu->addAction(decryptAct);
     cryptMenu->addSeparator();
     cryptMenu->addAction(signAct);
@@ -525,6 +532,7 @@ void MainWindow::createToolBars() {
     cryptToolBar = addToolBar(tr("Crypt"));
     cryptToolBar->setObjectName("cryptToolBar");
     cryptToolBar->addAction(encryptAct);
+    cryptToolBar->addAction(encryptSignAct);
     cryptToolBar->addAction(decryptAct);
     cryptToolBar->addAction(signAct);
     cryptToolBar->addAction(verifyAct);
@@ -771,9 +779,23 @@ void MainWindow::slotSign() {
 
     QStringList *uidList = mKeyList->getPrivateChecked();
 
+    QVector<GpgKey> keys;
+
+    mKeyList->getPrivateCheckedKeys(keys);
+
+    for(const auto &key : keys) {
+        if(!GpgME::GpgContext::checkIfKeyCanSign(key)) {
+            QMessageBox::information(nullptr,
+                                     tr("Invalid Operation"),
+                                     tr("The selected key contains a key that does not actually have a signature function.<br/>")
+                                     + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
+            return;
+        }
+    }
+
     auto *tmp = new QByteArray();
 
-    if (mCtx->sign(uidList, edit->curTextPage()->toPlainText().toUtf8(), tmp)) {
+    if (mCtx->sign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp)) {
         edit->slotFillTextEditWithText(QString::fromUtf8(*tmp));
     }
 }
@@ -844,6 +866,7 @@ void MainWindow::slotVerify() {
     if (vn->slotRefresh()) {
         edit->slotCurPage()->showNotificationWidget(vn, "verifyNotification");
     } else {
+        QMessageBox::warning(nullptr, "Signature NOT Found", "The signature was not found in the target text");
         vn->close();
     }
 }
@@ -1019,4 +1042,30 @@ void MainWindow::slotSetRestartNeeded(bool needed) {
 
 bool MainWindow::getRestartNeeded() const {
     return this->restartNeeded;
+}
+
+void MainWindow::slotEncryptSign() {
+
+    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
+        return;
+    }
+
+    QVector<GpgKey> keys;
+    mKeyList->getCheckedKeys(keys);
+
+    for(const auto &key : keys) {
+        if(!GpgME::GpgContext::checkIfKeyCanSign(key) || !GpgME::GpgContext::checkIfKeyCanEncr(key)) {
+            QMessageBox::information(nullptr,
+                                     tr("Invalid Operation"),
+                                     tr("The selected key cannot be used for signing and encryption at the same time.<br/>")
+                                     + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
+            return;
+        }
+    }
+
+    auto *tmp = new QByteArray();
+    if (mCtx->encryptSign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp)) {
+        auto *tmp2 = new QString(*tmp);
+        edit->slotFillTextEditWithText(*tmp2);
+    }
 }

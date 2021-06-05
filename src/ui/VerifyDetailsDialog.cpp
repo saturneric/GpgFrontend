@@ -33,7 +33,7 @@ VerifyDetailsDialog::VerifyDetailsDialog(QWidget *parent, GpgME::GpgContext *ctx
     mInputData = inputData;
     mInputSignature = inputSignature;
 
-    this->setWindowTitle(tr("Signaturedetails"));
+    this->setWindowTitle(tr("Signature Details"));
 
     connect(mCtx, SIGNAL(keyDBChanged()), this, SLOT(slotRefresh()));
     mainLayout = new QHBoxLayout();
@@ -81,20 +81,10 @@ void VerifyDetailsDialog::slotRefresh() {
         mVboxLayout->addWidget(new QLabel(tr("Error Validating signature")));
     } else if (mInputSignature != nullptr) {
         mVboxLayout->addWidget(new QLabel(
-                tr("File was signed on <br/> %1 by:<br/>").arg(timestamp.toString(Qt::SystemLocaleLongDate))));
+                tr("File was signed on %1 <br/> It Contains:<br/>").arg(timestamp.toString(Qt::SystemLocaleLongDate))));
     } else {
-        switch (GpgME::GpgContext::textIsSigned(*mInputData)) {
-            case 2: {
-                mVboxLayout->addWidget(new QLabel(tr("Text was completely signed on <br/> %1 by:<br/>").arg(
-                        timestamp.toString(Qt::SystemLocaleLongDate))));
-                break;
-            }
-            case 1: {
-                mVboxLayout->addWidget(new QLabel(tr("Text was partially signed on <br/> %1 by:<br/>").arg(
-                        timestamp.toString(Qt::SystemLocaleLongDate))));
-                break;
-            }
-        }
+        mVboxLayout->addWidget(new QLabel(tr("Signed on %1 <br/> It Contains:<br/>").arg(
+                timestamp.toString(Qt::SystemLocaleLongDate))));
     }
     // Add informationbox for every single key
     while (sign) {

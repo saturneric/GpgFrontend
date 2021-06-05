@@ -77,6 +77,7 @@ private:
     QLabel *keyidVarLabel;  /** Label containng the keys keyid */
     QLabel *fingerPrintVarLabel; /** Label containng the keys fingerprint */
     QLabel *usageVarLabel;
+    QLabel *actualUsageVarLabel;
     QLabel *masterKeyExistVarLabel;
 
 public:
