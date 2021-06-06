@@ -51,7 +51,7 @@ private:
     void setBackground();
 
     QTextEdit *mTextpage; /** Textedit associated to the notification */
-    QLineEdit *findEdit; /** Label holding the text shown in verifyNotification */
+    QLineEdit *findEdit; /** Label holding the text shown in infoBoard */
     [[maybe_unused]] QTextCharFormat cursorFormat;
 
 private slots:

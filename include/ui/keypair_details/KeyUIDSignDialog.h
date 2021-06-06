@@ -35,7 +35,7 @@ class KeyUIDSignDialog : public QDialog {
 
 public:
 
-    explicit KeyUIDSignDialog(GpgME::GpgContext *ctx, const GpgKey &key, const QVector<UID> &uid, QWidget *parent = nullptr);
+    explicit KeyUIDSignDialog(GpgME::GpgContext *ctx, const GpgKey &key, const QVector<GpgUID> &uid, QWidget *parent = nullptr);
 
 private:
 
@@ -49,7 +49,7 @@ private:
 
     QCheckBox *nonExpireCheck;
 
-    const QVector<UID> mUids;
+    const QVector<GpgUID> mUids;
 
     const GpgKey &mKey;
 

@@ -25,7 +25,7 @@
 #ifndef GPGFRONTEND_GPGKEY_H
 #define GPGFRONTEND_GPGKEY_H
 
-#include "UID.h"
+#include "GpgUID.h"
 #include "GpgSubKey.h"
 
 class GpgKey {
@@ -62,7 +62,7 @@ public:
 
     QVector<GpgSubKey> subKeys;
 
-    QVector<UID> uids;
+    QVector<GpgUID> uids;
 
     gpgme_key_t key_refer = nullptr;
 

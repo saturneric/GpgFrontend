@@ -45,6 +45,8 @@ MainWindow::MainWindow() {
     });
     mKeyList->slotRefresh();
 
+    infoBoard = new InfoBoardWidget(this, mCtx, mKeyList);
+
     /* List of binary Attachments */
     attachmentDockCreated = false;
 
@@ -606,6 +608,14 @@ void MainWindow::createDockWindows() {
     keylistDock->setWidget(mKeyList);
     viewMenu->addAction(keylistDock->toggleViewAction());
 
+    infoBoardDock = new QDockWidget(tr("Information Board"), this);
+    infoBoardDock->setObjectName("Information Board");
+    infoBoardDock->setAllowedAreas(Qt::BottomDockWidgetArea);
+    addDockWidget(Qt::BottomDockWidgetArea, infoBoardDock);
+    infoBoardDock->setWidget(infoBoard);
+    infoBoardDock->widget()->layout()->setContentsMargins(0,0,0,0);
+    viewMenu->addAction(infoBoardDock->toggleViewAction());
+
     /* Attachments-Dockwindow
       */
     if (settings.value("mime/parseMime").toBool()) {
@@ -621,7 +631,7 @@ void MainWindow::createAttachmentDock() {
     attachmentDock = new QDockWidget(tr("Attached files:"), this);
     attachmentDock->setObjectName("AttachmentDock");
     attachmentDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
-    addDockWidget(Qt::BottomDockWidgetArea, attachmentDock);
+    addDockWidget(Qt::LeftDockWidgetArea, attachmentDock);
     attachmentDock->setWidget(mAttachments);
     // hide till attachment is decrypted
     viewMenu->addAction(attachmentDock->toggleViewAction());
@@ -857,25 +867,40 @@ void MainWindow::slotVerify() {
     }
 
     // At first close verifynotification, if existing
-    edit->slotCurPage()->closeNoteByClass("verifyNotification");
+    // edit->slotCurPage()->closeNoteByClass("infoBoard");
 
-    // create new verfiy notification
-    auto *vn = new VerifyNotification(this, mCtx, mKeyList, edit->curTextPage());
+    // If an unknown key is found, enable the importfromkeyserveraction
 
-    // if signing information is found, show the notification, otherwise close it
-    if (vn->slotRefresh()) {
-        edit->slotCurPage()->showNotificationWidget(vn, "verifyNotification");
-    } else {
-        QMessageBox::warning(nullptr, "Signature NOT Found", "The signature was not found in the target text");
-        vn->close();
+    QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
+    GpgME::GpgContext::preventNoDataErr(&text);
+
+    gpgme_signature_t sign = mCtx->verify(&text);
+
+    auto verify = new VerifyResultAnalyse(mCtx, sign);
+    infoBoard->associateTextEdit(edit->curTextPage());
+
+    auto &reportText = verify->getResultReport();
+    if(verify->getStatus() < 0)
+        infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
+    else if(verify->getStatus() > 0)
+        infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
+    else
+        infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+    if(verify->getStatus() >= 0) {
+        infoBoard->resetOptionActionsMenu();
+        infoBoard->addOptionalAction("Show Verify Details", [this, sign]() {
+            VerifyDetailsDialog(this, mCtx, mKeyList, sign);
+        });
     }
+
 }
 
 /*
  * Append the selected (not checked!) Key(s) To Textedit
  */
 void MainWindow::slotAppendSelectedKeys() {
-    if (edit->tabCount() == 0 || edit->slotCurPage() == 0) {
+    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
         return;
     }
 

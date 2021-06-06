@@ -32,7 +32,7 @@
 #include "ui/FileEncryptionDialog.h"
 #include "ui/SettingsDialog.h"
 #include "ui/AboutDialog.h"
-#include "ui/VerifyNotification.h"
+#include "ui/widgets/InfoBoardWidget.h"
 #include "ui/FindWidget.h"
 #include "ui/Wizard.h"
 
@@ -300,6 +300,7 @@ private:
     QToolButton *fileEncButton; /** Toolbutton for file cryption dropdown menu in toolbar */
     QDockWidget *keylistDock; /** Encrypt Dock*/
     QDockWidget *attachmentDock; /** Attachment Dock */
+    QDockWidget *infoBoardDock;
     [[maybe_unused]] QDialog *genkeyDialog; /** Dialog for key generation */
 
     QAction *newTabAct; /** Action to create new tab */
@@ -351,6 +352,7 @@ private:
     QLabel *statusBarIcon; /**< TODO */
     QSettings settings; /**< TODO */
     KeyList *mKeyList; /**< TODO */
+    InfoBoardWidget *infoBoard;
     Attachments *mAttachments; /**< TODO */
     GpgME::GpgContext *mCtx; /**< TODO */
     KeyMgmt *keyMgmt; /**< TODO */

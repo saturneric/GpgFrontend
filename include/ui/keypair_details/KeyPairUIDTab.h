@@ -50,11 +50,11 @@ private:
 
     void createSignPopupMenu();
 
-    void getUIDChecked(QVector<UID> &uids);
+    void getUIDChecked(QVector<GpgUID> &uids);
 
-    bool getUIDSelected(UID &uid);
+    bool getUIDSelected(GpgUID &uid);
 
-    bool getSignSelected(Signature &signature);
+    bool getSignSelected(GpgKeySignature &signature);
 
     GpgME::GpgContext *mCtx;
     const GpgKey &mKey;
@@ -63,8 +63,8 @@ private:
     QMenu *manageSelectedUIDMenu;
     QMenu *uidPopupMenu;
     QMenu *signPopupMenu;
-    QVector<const UID *> buffered_uids;
-    QVector<const Signature *> buffered_signatures;
+    QVector<const GpgUID *> buffered_uids;
+    QVector<const GpgKeySignature *> buffered_signatures;
 
 private slots:
 

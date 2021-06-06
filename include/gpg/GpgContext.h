@@ -101,17 +101,17 @@ namespace GpgME {
 
         bool signKey(const GpgKey &target, const QString& uid, const QDateTime *expires);
 
-        bool revSign(const GpgKey &key, const Signature &signature);
+        bool revSign(const GpgKey &key, const GpgKeySignature &signature);
 
         gpgme_signature_t verify(QByteArray *inBuffer, QByteArray *sigBuffer = nullptr);
 
         bool sign(QVector<GpgKey> keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached = false);
 
-        bool addUID(const GpgKey &key, const UID &uid);
+        bool addUID(const GpgKey &key, const GpgUID &uid);
 
-        bool revUID(const GpgKey &key, const UID &uid);
+        bool revUID(const GpgKey &key, const GpgUID &uid);
 
-        bool setPrimaryUID(const GpgKey &key, const UID &uid);
+        bool setPrimaryUID(const GpgKey &key, const GpgUID &uid);
 
         bool setExpire(const GpgKey &key, const GpgSubKey *subkey, QDateTime *expires);
 

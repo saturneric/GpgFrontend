@@ -25,28 +25,22 @@
 #include "ui/VerifyDetailsDialog.h"
 
 VerifyDetailsDialog::VerifyDetailsDialog(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList,
-                                         QByteArray *inputData, QByteArray *inputSignature) :
-        QDialog(parent) {
-    mCtx = ctx;
-    mKeyList = keyList;
-    //mTextpage = edit;
-    mInputData = inputData;
-    mInputSignature = inputSignature;
+                                         gpgme_signature_t signature) :
+        QDialog(parent), mCtx(ctx), mKeyList(keyList), sign(signature) {
+
 
     this->setWindowTitle(tr("Signature Details"));
 
-    connect(mCtx, SIGNAL(keyDBChanged()), this, SLOT(slotRefresh()));
+    connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefresh()));
     mainLayout = new QHBoxLayout();
     this->setLayout(mainLayout);
 
-    mVbox = new QWidget();
     slotRefresh();
 
     this->exec();
 }
 
 void VerifyDetailsDialog::slotRefresh() {
-    mVbox->close();
 
     mVbox = new QWidget();
     auto *mVboxLayout = new QVBoxLayout(mVbox);
@@ -55,16 +49,6 @@ void VerifyDetailsDialog::slotRefresh() {
     // Button Box for close button
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
     connect(buttonBox, SIGNAL(rejected()), this, SLOT(close()));
-
-    // Get signature information of current text
-    //QByteArray text = mTextpage->toPlainText().toUtf8();
-    //mCtx->preventNoDataErr(&text);
-    gpgme_signature_t sign;
-    if (mInputSignature != nullptr) {
-        sign = mCtx->verify(mInputData, mInputSignature);
-    } else {
-        sign = mCtx->verify(mInputData);
-    }
 
     if (sign == nullptr) {
         mVboxLayout->addWidget(new QLabel(tr("No valid input found")));

@@ -222,7 +222,7 @@ void KeyPairUIDTab::slotRefreshSigList() {
 
 void KeyPairUIDTab::slotAddSign() {
 
-    QVector<UID> selected_uids;
+    QVector<GpgUID> selected_uids;
     getUIDChecked(selected_uids);
 
     if(selected_uids.isEmpty()) {
@@ -238,7 +238,7 @@ void KeyPairUIDTab::slotAddSign() {
 
 
 
-void KeyPairUIDTab::getUIDChecked(QVector<UID> &selected_uids) {
+void KeyPairUIDTab::getUIDChecked(QVector<GpgUID> &selected_uids) {
 
     auto &uids = buffered_uids;
 
@@ -283,7 +283,7 @@ void KeyPairUIDTab::slotAddUIDResult(int result) {
 
 void KeyPairUIDTab::slotDelUID() {
 
-    QVector<UID> selected_uids;
+    QVector<GpgUID> selected_uids;
     getUIDChecked(selected_uids);
 
     if(selected_uids.isEmpty()) {
@@ -327,7 +327,7 @@ void KeyPairUIDTab::slotDelUID() {
 
 void KeyPairUIDTab::slotSetPrimaryUID() {
 
-    UID selected_uid;
+    GpgUID selected_uid;
 
     if(!getUIDSelected(selected_uid)) {
         auto emptyUIDMsg = new QMessageBox();
@@ -357,7 +357,7 @@ void KeyPairUIDTab::slotSetPrimaryUID() {
     }
 }
 
-bool KeyPairUIDTab::getUIDSelected(UID &uid) {
+bool KeyPairUIDTab::getUIDSelected(GpgUID &uid) {
     auto &uids = buffered_uids;
     for (int i = 0; i < uidList->rowCount(); i++) {
         if (uidList->item(i, 0)->isSelected()) {
@@ -368,7 +368,7 @@ bool KeyPairUIDTab::getUIDSelected(UID &uid) {
     return false;
 }
 
-bool KeyPairUIDTab::getSignSelected(Signature &signature) {
+bool KeyPairUIDTab::getSignSelected(GpgKeySignature &signature) {
     auto &signatures = buffered_signatures;
     for (int i = 0; i < sigList->rowCount(); i++) {
         if (sigList->item(i, 0)->isSelected()) {
@@ -407,7 +407,7 @@ void KeyPairUIDTab::contextMenuEvent(QContextMenuEvent *event) {
 
 void KeyPairUIDTab::slotAddSignSingle() {
 
-    UID selected_uid;
+    GpgUID selected_uid;
 
     if(!getUIDSelected(selected_uid)) {
         QMessageBox::information(nullptr,
@@ -416,13 +416,13 @@ void KeyPairUIDTab::slotAddSignSingle() {
         return;
     }
 
-    auto selected_uids = QVector<UID>({ selected_uid });
+    auto selected_uids = QVector<GpgUID>({selected_uid });
     auto keySignDialog = new KeyUIDSignDialog(mCtx, mKey, selected_uids, this);
     keySignDialog->show();
 }
 
 void KeyPairUIDTab::slotDelUIDSingle() {
-    UID selected_uid;
+    GpgUID selected_uid;
 
     if(!getUIDSelected(selected_uid)) {
         QMessageBox::information(nullptr,
@@ -455,19 +455,19 @@ void KeyPairUIDTab::slotDelUIDSingle() {
 void KeyPairUIDTab::createSignPopupMenu() {
     signPopupMenu = new QMenu(this);
 
-    auto *delSignAct = new QAction(tr("Delete(Revoke) Signature"), this);
+    auto *delSignAct = new QAction(tr("Delete(Revoke) Key Signature"), this);
     connect(delSignAct, SIGNAL(triggered()), this, SLOT(slotDelSign()));
 
     signPopupMenu->addAction(delSignAct);
 }
 
 void KeyPairUIDTab::slotDelSign() {
-    Signature selected_sign;
+    GpgKeySignature selected_sign;
 
     if(!getSignSelected(selected_sign)) {
         QMessageBox::information(nullptr,
                                  tr("Invalid Operation"),
-                                 tr("Please select one Signature before doing this operation."));
+                                 tr("Please select one Key Signature before doing this operation."));
         return;
     }
 
@@ -485,7 +485,7 @@ void KeyPairUIDTab::slotDelSign() {
     keynames.append(selected_sign.email);
     keynames.append("&gt; </i><br/>");
 
-    int ret = QMessageBox::warning(this, tr("Deleting Signature"),
+    int ret = QMessageBox::warning(this, tr("Deleting Key Signature"),
                                    "<b>"+tr("Are you sure that you want to delete the following signature?")+"</b><br/><br/>"+keynames+
                                    +"<br/>"+tr("The action can not be undone."),
                                    QMessageBox::No | QMessageBox::Yes);

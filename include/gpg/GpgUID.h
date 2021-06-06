@@ -22,16 +22,16 @@
  *
  */
 
-#ifndef GPGFRONTEND_UID_H
-#define GPGFRONTEND_UID_H
+#ifndef GPGFRONTEND_GPGUID_H
+#define GPGFRONTEND_GPGUID_H
 
 #include <utility>
 
 #include "GpgFrontend.h"
 
-#include "Signature.h"
+#include "GpgKeySignature.h"
 
-struct UID {
+struct GpgUID {
 
     QString name{};
 
@@ -45,17 +45,17 @@ struct UID {
 
     bool invalid;
 
-    QVector<Signature> signatures;
+    QVector<GpgKeySignature> signatures;
 
-    UID() = default;
+    GpgUID() = default;
 
-    explicit UID(gpgme_user_id_t user_id);
+    explicit GpgUID(gpgme_user_id_t user_id);
 
-    UID(UID &&) noexcept = default;
-    UID(const UID &) = default;
-    UID& operator=(UID &&) noexcept = default;
-    UID& operator=(const UID &) = default;
+    GpgUID(GpgUID &&) noexcept = default;
+    GpgUID(const GpgUID &) = default;
+    GpgUID& operator=(GpgUID &&) noexcept = default;
+    GpgUID& operator=(const GpgUID &) = default;
 
 };
 
-#endif //GPGFRONTEND_UID_H
+#endif //GPGFRONTEND_GPGUID_H

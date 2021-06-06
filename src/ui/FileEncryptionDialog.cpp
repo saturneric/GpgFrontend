@@ -222,8 +222,9 @@ void FileEncryptionDialog::slotExecuteAction() {
             signFileEdit->setStyleSheet("QLineEdit { background: yellow }");
             return;
         }
-        QByteArray signBuffer = signfile.readAll();
-        new VerifyDetailsDialog(this, mCtx, mKeyList, &inBuffer, &signBuffer);
+        auto signBuffer = signfile.readAll();
+        gpgme_signature_t sign = mCtx->verify(&inBuffer, &signBuffer);
+        new VerifyDetailsDialog(this, mCtx, mKeyList, sign);
         return;
     }
 

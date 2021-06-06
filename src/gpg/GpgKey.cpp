@@ -72,7 +72,7 @@ void GpgKey::parse(gpgme_key_t key) {
     auto uid = key->uids;
 
     while (uid != nullptr) {
-        uids.push_back(UID(uid));
+        uids.push_back(GpgUID(uid));
         uid = uid->next;
     }
 
