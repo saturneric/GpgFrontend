@@ -71,7 +71,7 @@ void KeyNewUIDDialog::slotCreateNewUID() {
     }
 
     if (errorString.isEmpty()) {
-        UID uid;
+        GpgUID uid;
         uid.name = name->text();
         uid.email = email->text();
         uid.comment = comment->text();

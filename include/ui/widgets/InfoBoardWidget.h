@@ -26,33 +26,23 @@
 #define __VERIFYNOTIFICATION_H__
 
 #include "ui/EditorPage.h"
-#include "VerifyDetailsDialog.h"
-
-QT_BEGIN_NAMESPACE
-class QLabel;
-
-class QHBoxLayout;
-
-class QMenu;
-
-class QPushButton;
-
-QT_END_NAMESPACE
+#include "ui/VerifyDetailsDialog.h"
+#include "gpg/result_analyse/VerifyResultAnalyse.h"
 
 /**
  * @details Enumeration for the status of Verifylabel
  */
 typedef enum {
-    VERIFY_ERROR_OK = 0,
-    VERIFY_ERROR_WARN = 1,
-    VERIFY_ERROR_CRITICAL = 2,
-    VERIFY_ERROR_NEUTRAL = 3,
-} verify_label_status;
+    INFO_ERROR_OK = 0,
+    INFO_ERROR_WARN = 1,
+    INFO_ERROR_CRITICAL = 2,
+    INFO_ERROR_NEUTRAL = 3,
+} InfoBoardStatus;
 
 /**
  * @brief Class for handling the verifylabel shown at buttom of a textedit-page
  */
-class VerifyNotification : public QWidget {
+class InfoBoardWidget : public QWidget {
 Q_OBJECT
 public:
     /**
@@ -61,7 +51,16 @@ public:
      * @param ctx The GPGme-Context
      * @param parent The parent widget
      */
-    explicit VerifyNotification(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList, QTextEdit *edit);
+    explicit InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList);
+
+
+    void associateTextEdit(QTextEdit *edit);
+
+    void addOptionalAction(const QString& name, const std::function<void()>& action);
+
+    void resetOptionActionsMenu();
+
+
 
     /**
      * @details Set the text and background-color of verify notification.
@@ -69,13 +68,8 @@ public:
      * @param text The text to be set.
      * @param verifyLabelStatus The status of label to set the specified color.
      */
-    void setInfoBoard(const QString& text, verify_label_status verifyLabelStatus);
+    void setInfoBoard(const QString& text, InfoBoardStatus verifyLabelStatus);
 
-    /**
-     * @details Show the import from keyserver-action in detailsmenu.
-     * @param visible show the action, if visible is true, otherwise hide it.
-     */
-    void showImportAction(bool visible);
 
     QStringList *keysNotInList; /** List with keys, which are in signature but not in keylist */
 
@@ -88,30 +82,24 @@ public slots:
      */
     void slotImportFromKeyserver();
 
-    /**
-     * @details Show a dialog with signing details.
-     */
-    void slotShowVerifyDetails();
+    void slotReset();
 
     /**
      * @details Refresh the contents of dialog.
      */
-    bool slotRefresh();
+    void slotRefresh(const QString &text, InfoBoardStatus status);
 
 private:
     QMenu *detailMenu; /** Menu for te Button in verfiyNotification */
     QAction *importFromKeyserverAct; /** Action for importing keys from keyserver which are notin keylist */
-    QAction *showVerifyDetailsAct; /** Action for showing verify detail dialog */
-    QPushButton *detailsButton; /** Button shown in verifynotification */
-    QLabel *verifyLabel; /** Label holding the text shown in verifyNotification */
     QTextEdit *infoBoard;
     GpgME::GpgContext *mCtx; /** GpgME Context */
     KeyList *mKeyList; /** Table holding the keys */
-    QTextEdit *mTextpage; /** Textedit associated to the notification */
+    QTextEdit *mTextPage{ nullptr }; /** Textedit associated to the notification */
+    QHBoxLayout *actionButtonLayout;
     [[maybe_unused]] QVector<QString> verifyDetailStringVector; /** Vector containing the text for labels in verifydetaildialog */
-    [[maybe_unused]] QVector<verify_label_status> verifyDetailStatusVector; /** Vector containing the status for labels in verifydetaildialog */
+    [[maybe_unused]] QVector<InfoBoardStatus> verifyDetailStatusVector; /** Vector containing the status for labels in verifydetaildialog */
 
-    bool printSigner(QTextStream &stream, gpgme_signature_t sign);
 
 };
 

@@ -938,7 +938,7 @@ namespace GpgME {
         }
     }
 
-    bool GpgContext::addUID(const GpgKey &key, const UID &uid) {
+    bool GpgContext::addUID(const GpgKey &key, const GpgUID &uid) {
         QString userid = QString("%1 (%3) <%2>").arg(uid.name, uid.email, uid.comment);
         auto gpgmeError = gpgme_op_adduid(mCtx, key.key_refer, userid.toUtf8().constData(), 0);
         if(gpgmeError == GPG_ERR_NO_ERROR) {
@@ -952,7 +952,7 @@ namespace GpgME {
 
     }
 
-    bool GpgContext::revUID(const GpgKey &key, const UID &uid) {
+    bool GpgContext::revUID(const GpgKey &key, const GpgUID &uid) {
         auto gpgmeError = gpgme_op_revuid(mCtx, key.key_refer, uid.uid.toUtf8().constData(), 0);
         if(gpgmeError == GPG_ERR_NO_ERROR) {
             emit signalKeyUpdated(key.id);
@@ -964,7 +964,7 @@ namespace GpgME {
         }
     }
 
-    bool GpgContext::setPrimaryUID(const GpgKey &key, const UID &uid) {
+    bool GpgContext::setPrimaryUID(const GpgKey &key, const GpgUID &uid) {
         auto gpgmeError = gpgme_op_set_uid_flag(mCtx, key.key_refer,
                                                 uid.uid.toUtf8().constData(), "primary", nullptr);
         if(gpgmeError == GPG_ERR_NO_ERROR) {
@@ -977,7 +977,7 @@ namespace GpgME {
         }
     }
 
-    bool GpgContext::revSign(const GpgKey &key, const Signature &signature) {
+    bool GpgContext::revSign(const GpgKey &key, const GpgKeySignature &signature) {
 
         auto signing_key = getKeyById(signature.keyid);
 

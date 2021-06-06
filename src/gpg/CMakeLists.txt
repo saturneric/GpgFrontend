@@ -1,3 +1,4 @@
+aux_source_directory(./result_analyse GPG_SOURCE)
 aux_source_directory(. GPG_SOURCE)
 
 add_library(gpg STATIC ${GPG_SOURCE})
