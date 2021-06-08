@@ -42,7 +42,7 @@ DecryptResultAnalyse::DecryptResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t
 
 bool DecryptResultAnalyse::printReci(QTextStream &stream, gpgme_recipient_t reci) {
     bool keyFound = true;
-    stream << QApplication::tr("Signed By: ");
+    stream << QApplication::tr(">Recipient: ");
 
     try {
         auto key = mCtx->getKeyById(reci->keyid);
@@ -57,6 +57,6 @@ bool DecryptResultAnalyse::printReci(QTextStream &stream, gpgme_recipient_t reci
     }
     stream << endl;
 
-    stream << "Public algo: " << gpgme_pubkey_algo_name(reci->pubkey_algo) << endl;
+    stream << "Public algo: " << gpgme_pubkey_algo_name(reci->pubkey_algo) << endl << endl;
     return keyFound;
 }

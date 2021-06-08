@@ -40,11 +40,11 @@ SignResultAnalyse::SignResultAnalyse(gpgme_error_t error, gpgme_sign_result_t re
         stream << "> A New Signature: " << endl;
 
         stream << "Sign mode: ";
-        if(new_sign->type & GPGME_SIG_MODE_NORMAL)
+        if(new_sign->type == GPGME_SIG_MODE_NORMAL)
             stream << "Normal";
-        else if(new_sign->type & GPGME_SIG_MODE_CLEAR)
+        else if(new_sign->type == GPGME_SIG_MODE_CLEAR)
             stream << "Clear";
-        else if(new_sign->type & GPGME_SIG_MODE_DETACH)
+        else if(new_sign->type == GPGME_SIG_MODE_DETACH)
             stream << "Detach";
 
         stream << endl;
