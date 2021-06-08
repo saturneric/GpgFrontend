@@ -31,8 +31,8 @@
 class VerifyDetailsDialog : public QDialog {
 Q_OBJECT
 public:
-    explicit VerifyDetailsDialog(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList,
-                                 gpgme_signature_t signature);
+    explicit VerifyDetailsDialog(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList, gpg_error_t error,
+                                 gpgme_verify_result_t result);
 
 private slots:
 
@@ -47,6 +47,7 @@ private:
     QByteArray *mInputSignature{}; /** Data to be verified */
     QDialogButtonBox *buttonBox{};
     gpgme_signature_t sign;
+    gpgme_error_t error;
 };
 
 #endif // __VERIFYDETAILSDIALOG_H__

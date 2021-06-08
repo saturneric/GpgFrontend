@@ -24,9 +24,9 @@
 
 #include "ui/VerifyDetailsDialog.h"
 
-VerifyDetailsDialog::VerifyDetailsDialog(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList,
-                                         gpgme_signature_t signature) :
-        QDialog(parent), mCtx(ctx), mKeyList(keyList), sign(signature) {
+VerifyDetailsDialog::VerifyDetailsDialog(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList, gpg_error_t error,
+                                         gpgme_verify_result_t result) :
+        QDialog(parent), mCtx(ctx), mKeyList(keyList), sign(result->signatures), error(error) {
 
 
     this->setWindowTitle(tr("Signature Details"));
@@ -49,6 +49,8 @@ void VerifyDetailsDialog::slotRefresh() {
     // Button Box for close button
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
     connect(buttonBox, SIGNAL(rejected()), this, SLOT(close()));
+
+    mVboxLayout->addWidget(new QLabel(tr("Status: ") + gpgme_strerror(error)));
 
     if (sign == nullptr) {
         mVboxLayout->addWidget(new QLabel(tr("No valid input found")));

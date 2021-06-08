@@ -199,19 +199,20 @@ void FileEncryptionDialog::slotExecuteAction() {
     QByteArray inBuffer = infile.readAll();
     auto *outBuffer = new QByteArray();
     infile.close();
+
+    QVector<GpgKey> keys;
+    mKeyList->getCheckedKeys(keys);
+
     if (mAction == Encrypt) {
-        if (!mCtx->encrypt(mKeyList->getChecked(), inBuffer, outBuffer)) return;
+        if (!mCtx->encrypt(keys, inBuffer, outBuffer, nullptr)) return;
     }
 
     if (mAction == Decrypt) {
-        if (!mCtx->decrypt(inBuffer, outBuffer)) return;
+        if (!mCtx->decrypt(inBuffer, outBuffer, nullptr)) return;
     }
 
     if (mAction == Sign) {
-        QVector<GpgKey> keys;
-        mKeyList->getCheckedKeys(keys);
-        if (!mCtx->sign(keys, inBuffer, outBuffer, true)) return;
-
+        if (gpgme_err_code(mCtx->sign(keys, inBuffer, outBuffer, true)) != GPG_ERR_NO_ERROR) return;
     }
 
     if (mAction == Verify) {
@@ -223,8 +224,9 @@ void FileEncryptionDialog::slotExecuteAction() {
             return;
         }
         auto signBuffer = signfile.readAll();
-        gpgme_signature_t sign = mCtx->verify(&inBuffer, &signBuffer);
-        new VerifyDetailsDialog(this, mCtx, mKeyList, sign);
+        gpgme_verify_result_t result;
+        auto error = mCtx->verify(&inBuffer, &signBuffer, &result);
+        new VerifyDetailsDialog(this, mCtx, mKeyList, error, result);
         return;
     }
 

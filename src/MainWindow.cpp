@@ -37,10 +37,11 @@ MainWindow::MainWindow() {
     /* the list of Keys available*/
     mKeyList = new KeyList(mCtx,
                            KeyListRow::SECRET_OR_PUBLIC_KEY,
-                           KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage | KeyListColumn::Validity,
+                           KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
+                           KeyListColumn::Usage | KeyListColumn::Validity,
                            this);
     mKeyList->setFilter([](const GpgKey &key) -> bool {
-        if(key.revoked || key.disabled || key.expired) return false;
+        if (key.revoked || key.disabled || key.expired) return false;
         else return true;
     });
     mKeyList->slotRefresh();
@@ -613,7 +614,7 @@ void MainWindow::createDockWindows() {
     infoBoardDock->setAllowedAreas(Qt::BottomDockWidgetArea);
     addDockWidget(Qt::BottomDockWidgetArea, infoBoardDock);
     infoBoardDock->setWidget(infoBoard);
-    infoBoardDock->widget()->layout()->setContentsMargins(0,0,0,0);
+    infoBoardDock->widget()->layout()->setContentsMargins(0, 0, 0, 0);
     viewMenu->addAction(infoBoardDock->toggleViewAction());
 
     /* Attachments-Dockwindow
@@ -773,13 +774,43 @@ void MainWindow::slotEncrypt() {
         return;
     }
 
-    QStringList *uidList = mKeyList->getChecked();
+    QVector<GpgKey> keys;
+    mKeyList->getCheckedKeys(keys);
+
+    if (keys.count() == 0) {
+        QMessageBox::critical(nullptr, tr("No Key Selected"), tr("No Key Selected"));
+        return;
+    }
+
+    for (const auto &key : keys) {
+        if (!GpgME::GpgContext::checkIfKeyCanEncr(key)) {
+            QMessageBox::information(nullptr,
+                                     tr("Invalid Operation"),
+                                     tr("The selected key contains a key that does not actually have a encrypt function.<br/>")
+                                     + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
+            return;
+
+        }
+    }
 
     auto *tmp = new QByteArray();
-    if (mCtx->encrypt(uidList, edit->curTextPage()->toPlainText().toUtf8(), tmp)) {
-        auto *tmp2 = new QString(*tmp);
-        edit->slotFillTextEditWithText(*tmp2);
-    }
+
+    gpgme_encrypt_result_t result = nullptr;
+    auto error = mCtx->encrypt(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &result);
+
+    auto resultAnalyse = new EncryptResultAnalyse(error, result);
+    auto &reportText = resultAnalyse->getResultReport();
+
+    auto *tmp2 = new QString(*tmp);
+    edit->slotFillTextEditWithText(*tmp2);
+    infoBoard->associateTextEdit(edit->curTextPage());
+
+    if (resultAnalyse->getStatus() < 0)
+        infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
+    else if (resultAnalyse->getStatus() > 0)
+        infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
+    else
+        infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
 }
 
 void MainWindow::slotSign() {
@@ -787,14 +818,17 @@ void MainWindow::slotSign() {
         return;
     }
 
-    QStringList *uidList = mKeyList->getPrivateChecked();
-
     QVector<GpgKey> keys;
 
     mKeyList->getPrivateCheckedKeys(keys);
 
-    for(const auto &key : keys) {
-        if(!GpgME::GpgContext::checkIfKeyCanSign(key)) {
+    if (keys.isEmpty()) {
+        QMessageBox::critical(nullptr, tr("No Key Selected"), tr("No Key Selected"));
+        return;
+    }
+
+    for (const auto &key : keys) {
+        if (!GpgME::GpgContext::checkIfKeyCanSign(key)) {
             QMessageBox::information(nullptr,
                                      tr("Invalid Operation"),
                                      tr("The selected key contains a key that does not actually have a signature function.<br/>")
@@ -805,13 +839,25 @@ void MainWindow::slotSign() {
 
     auto *tmp = new QByteArray();
 
-    if (mCtx->sign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp)) {
-        edit->slotFillTextEditWithText(QString::fromUtf8(*tmp));
-    }
+    gpgme_sign_result_t result = nullptr;
+
+    auto error = mCtx->sign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, false, &result);
+    infoBoard->associateTextEdit(edit->curTextPage());
+    edit->slotFillTextEditWithText(QString::fromUtf8(*tmp));
+
+    auto resultAnalyse = new SignResultAnalyse(error, result);
+
+    auto &reportText = resultAnalyse->getResultReport();
+    if (resultAnalyse->getStatus() < 0)
+        infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
+    else if (resultAnalyse->getStatus() > 0)
+        infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
+    else
+        infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
 }
 
 void MainWindow::slotDecrypt() {
-    if (edit->tabCount() == 0 || edit->slotCurPage() == 0) {
+    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
         return;
     }
 
@@ -819,10 +865,10 @@ void MainWindow::slotDecrypt() {
     QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
     GpgME::GpgContext::preventNoDataErr(&text);
 
+    gpgme_decrypt_result_t result = nullptr;
     // try decrypt, if fail do nothing, especially don't replace text
-    if (!mCtx->decrypt(text, decrypted)) {
-        return;
-    }
+    auto error = mCtx->decrypt(text, decrypted, &result);
+    infoBoard->associateTextEdit(edit->curTextPage());
 
     /*
          *   1) is it mime (content-type:)
@@ -846,6 +892,16 @@ void MainWindow::slotDecrypt() {
         }
     }
     edit->slotFillTextEditWithText(QString::fromUtf8(*decrypted));
+
+    auto resultAnalyse = new DecryptResultAnalyse(mCtx, error, result);
+
+    auto &reportText = resultAnalyse->getResultReport();
+    if (resultAnalyse->getStatus() < 0)
+        infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
+    else if (resultAnalyse->getStatus() > 0)
+        infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
+    else
+        infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
 }
 
 void MainWindow::slotFind() {
@@ -866,31 +922,31 @@ void MainWindow::slotVerify() {
         return;
     }
 
-    // At first close verifynotification, if existing
-    // edit->slotCurPage()->closeNoteByClass("infoBoard");
-
     // If an unknown key is found, enable the importfromkeyserveraction
 
     QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
     GpgME::GpgContext::preventNoDataErr(&text);
 
-    gpgme_signature_t sign = mCtx->verify(&text);
 
-    auto verify = new VerifyResultAnalyse(mCtx, sign);
+    gpgme_verify_result_t result;
+
+    auto error = mCtx->verify(&text, nullptr, &result);
+
+    auto resultAnalyse = new VerifyResultAnalyse(mCtx, error, result);
     infoBoard->associateTextEdit(edit->curTextPage());
 
-    auto &reportText = verify->getResultReport();
-    if(verify->getStatus() < 0)
+    auto &reportText = resultAnalyse->getResultReport();
+    if (resultAnalyse->getStatus() < 0)
         infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-    else if(verify->getStatus() > 0)
+    else if (resultAnalyse->getStatus() > 0)
         infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
     else
         infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
 
-    if(verify->getStatus() >= 0) {
+    if (resultAnalyse->getStatus() >= 0) {
         infoBoard->resetOptionActionsMenu();
-        infoBoard->addOptionalAction("Show Verify Details", [this, sign]() {
-            VerifyDetailsDialog(this, mCtx, mKeyList, sign);
+        infoBoard->addOptionalAction("Show Verify Details", [this, error, result]() {
+            VerifyDetailsDialog(this, mCtx, mKeyList, error, result);
         });
     }
 
@@ -1078,8 +1134,13 @@ void MainWindow::slotEncryptSign() {
     QVector<GpgKey> keys;
     mKeyList->getCheckedKeys(keys);
 
-    for(const auto &key : keys) {
-        if(!GpgME::GpgContext::checkIfKeyCanSign(key) || !GpgME::GpgContext::checkIfKeyCanEncr(key)) {
+    if (keys.empty()) {
+        QMessageBox::critical(nullptr, tr("No Key Selected"), tr("No Key Selected"));
+        return;
+    }
+
+    for (const auto &key : keys) {
+        if (!GpgME::GpgContext::checkIfKeyCanSign(key) || !GpgME::GpgContext::checkIfKeyCanEncr(key)) {
             QMessageBox::information(nullptr,
                                      tr("Invalid Operation"),
                                      tr("The selected key cannot be used for signing and encryption at the same time.<br/>")
@@ -1089,8 +1150,26 @@ void MainWindow::slotEncryptSign() {
     }
 
     auto *tmp = new QByteArray();
-    if (mCtx->encryptSign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp)) {
-        auto *tmp2 = new QString(*tmp);
-        edit->slotFillTextEditWithText(*tmp2);
-    }
+    gpgme_encrypt_result_t encr_result = nullptr;
+    gpgme_sign_result_t sign_result = nullptr;
+
+    auto error = mCtx->encryptSign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &encr_result, &sign_result);
+    auto *tmp2 = new QString(*tmp);
+    edit->slotFillTextEditWithText(*tmp2);
+
+    auto resultAnalyseEncr = new EncryptResultAnalyse(error, encr_result);
+    auto resultAnalyseSign = new SignResultAnalyse(error, sign_result);
+    int status = std::min(resultAnalyseEncr->getStatus(), resultAnalyseSign->getStatus());
+    auto reportText = resultAnalyseEncr->getResultReport() + resultAnalyseSign->getResultReport();
+
+    infoBoard->associateTextEdit(edit->curTextPage());
+
+    if (status < 0)
+        infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
+    else if (status > 0)
+        infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
+    else
+        infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+
 }

@@ -83,13 +83,13 @@ namespace GpgME {
 
         void deleteKeys(QStringList *uidList);
 
-        bool encrypt(QStringList *uidList, const QByteArray &inBuffer,
-                     QByteArray *outBuffer);
+        gpg_error_t encrypt(QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer,
+                            gpgme_encrypt_result_t *result);
 
-        bool encryptSign(QVector<GpgKey> &keys, const QByteArray &inBuffer,
-                     QByteArray *outBuffer);
+        gpgme_error_t encryptSign(QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer,
+                                  gpgme_encrypt_result_t *encr_result, gpgme_sign_result_t *sign_result);
 
-        bool decrypt(const QByteArray &inBuffer, QByteArray *outBuffer);
+        gpgme_error_t decrypt(const QByteArray &inBuffer, QByteArray *outBuffer, gpgme_decrypt_result_t *result);
 
         void clearPasswordCache();
 
@@ -99,13 +99,15 @@ namespace GpgME {
 
         void setSigners(const QVector<GpgKey> &keys);
 
-        bool signKey(const GpgKey &target, const QString& uid, const QDateTime *expires);
+        bool signKey(const GpgKey &target, const QString &uid, const QDateTime *expires);
 
         bool revSign(const GpgKey &key, const GpgKeySignature &signature);
 
-        gpgme_signature_t verify(QByteArray *inBuffer, QByteArray *sigBuffer = nullptr);
+        gpgme_error_t verify(QByteArray *inBuffer, QByteArray *sigBuffer, gpgme_verify_result_t *result);
 
-        bool sign(QVector<GpgKey> keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached = false);
+        gpg_error_t
+        sign(const QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached = false,
+             gpgme_sign_result_t* result = nullptr);
 
         bool addUID(const GpgKey &key, const GpgUID &uid);
 
@@ -116,8 +118,11 @@ namespace GpgME {
         bool setExpire(const GpgKey &key, const GpgSubKey *subkey, QDateTime *expires);
 
         static bool checkIfKeyCanSign(const GpgKey &key);
+
         static bool checkIfKeyCanCert(const GpgKey &key);
+
         static bool checkIfKeyCanAuth(const GpgKey &key);
+
         static bool checkIfKeyCanEncr(const GpgKey &key);
 
         /**

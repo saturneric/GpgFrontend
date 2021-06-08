@@ -371,28 +371,22 @@ namespace GpgME {
 /** Encrypt inBuffer for reciepients-uids, write
  *  result to outBuffer
  */
-    bool GpgContext::encrypt(QStringList *uidList, const QByteArray &inBuffer, QByteArray *outBuffer) {
+    gpg_error_t GpgContext::encrypt(QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer,
+                                    gpgme_encrypt_result_t *result) {
 
         gpgme_data_t dataIn = nullptr, dataOut = nullptr;
         outBuffer->resize(0);
 
-        if (uidList->count() == 0) {
-            QMessageBox::critical(nullptr, tr("No Key Selected"), tr("No Key Selected"));
-            return false;
-        }
-
         //gpgme_encrypt_result_t e_result;
-        gpgme_key_t recipients[uidList->count() + 1];
+        gpgme_key_t recipients[keys.count() + 1];
 
-        /* get key for user */
-        for (int i = 0; i < uidList->count(); i++) {
-            // the last 0 is for public keys, 1 would return private keys
-            gpgme_op_keylist_start(mCtx, uidList->at(i).toUtf8().constData(), 0);
-            gpgme_op_keylist_next(mCtx, &recipients[i]);
-            gpgme_op_keylist_end(mCtx);
+        int index = 0;
+        for(const auto& key : keys) {
+            recipients[index++] = key.key_refer;
         }
+
         //Last entry dataIn array has to be nullptr
-        recipients[uidList->count()] = nullptr;
+        recipients[keys.count()] = nullptr;
 
         //If the last parameter isnt 0, a private copy of data is made
         if (mCtx) {
@@ -411,25 +405,26 @@ namespace GpgME {
                 }
             }
         }
-        /* unref all keys */
-        for (int i = 0; i <= uidList->count(); i++) {
-            gpgme_key_unref(recipients[i]);
-        }
         if (dataIn) {
             gpgme_data_release(dataIn);
         }
         if (dataOut) {
             gpgme_data_release(dataOut);
         }
-        return (err == GPG_ERR_NO_ERROR);
+
+        if(result != nullptr) {
+            *result = gpgme_op_encrypt_result(mCtx);
+        }
+        return err;
     }
 
 /** Decrypt QByteAarray, return QByteArray
  *  mainly from http://basket.kde.org/ (kgpgme.cpp)
  */
-    bool GpgContext::decrypt(const QByteArray &inBuffer, QByteArray *outBuffer) {
+    gpgme_error_t
+    GpgContext::decrypt(const QByteArray &inBuffer, QByteArray *outBuffer, gpgme_decrypt_result_t *result) {
         gpgme_data_t dataIn = nullptr, dataOut = nullptr;
-        gpgme_decrypt_result_t result = nullptr;
+        gpgme_decrypt_result_t m_result = nullptr;
         QString errorString;
 
         outBuffer->resize(0);
@@ -445,20 +440,20 @@ namespace GpgME {
 
                     if (gpg_err_code(err) == GPG_ERR_DECRYPT_FAILED) {
                         errorString.append(gpgErrString(err)).append("<br>");
-                        result = gpgme_op_decrypt_result(mCtx);
-                        checkErr(result->recipients->status);
-                        errorString.append(gpgErrString(result->recipients->status)).append("<br>");
+                        m_result = gpgme_op_decrypt_result(mCtx);
+                        checkErr(m_result->recipients->status);
+                        errorString.append(gpgErrString(m_result->recipients->status)).append("<br>");
                         errorString.append(
                                 tr("<br>No private key with id %1 present dataIn keyring").arg(
-                                        result->recipients->keyid));
+                                        m_result->recipients->keyid));
                     } else {
                         errorString.append(gpgErrString(err)).append("<br>");
                     }
 
                     if (!err) {
-                        result = gpgme_op_decrypt_result(mCtx);
-                        if (result->unsupported_algorithm) {
-                            QMessageBox::critical(0, tr("Unsupported algorithm"), result->unsupported_algorithm);
+                        m_result = gpgme_op_decrypt_result(mCtx);
+                        if (m_result->unsupported_algorithm) {
+                            QMessageBox::critical(0, tr("Unsupported algorithm"), m_result->unsupported_algorithm);
                         } else {
                             err = readToBuffer(dataOut, outBuffer);
                             checkErr(err);
@@ -482,7 +477,11 @@ namespace GpgME {
         if (dataOut) {
             gpgme_data_release(dataOut);
         }
-        return (err == GPG_ERR_NO_ERROR);
+
+        if(result != nullptr) {
+            *result = m_result;
+        }
+        return err;
     }
 
 /**  Read gpgme-Data to QByteArray
@@ -660,12 +659,12 @@ namespace GpgME {
   * -> valid
   * -> errors
   */
-    gpgme_signature_t GpgContext::verify(QByteArray *inBuffer, QByteArray *sigBuffer) {
+    gpgme_error_t GpgContext::verify(QByteArray *inBuffer, QByteArray *sigBuffer, gpgme_verify_result_t *result) {
 
         gpgme_data_t dataIn;
         gpgme_error_t gpgmeError;
         gpgme_signature_t sign;
-        gpgme_verify_result_t result;
+        gpgme_verify_result_t m_result;
 
         gpgmeError = gpgme_data_new_from_mem(&dataIn, inBuffer->data(), inBuffer->size(), 1);
         checkErr(gpgmeError);
@@ -681,13 +680,13 @@ namespace GpgME {
 
         checkErr(gpgmeError);
 
-        if (gpgmeError != 0) {
-            return nullptr;
+        m_result = gpgme_op_verify_result(mCtx);
+
+        if(result != nullptr) {
+            *result = m_result;
         }
 
-        result = gpgme_op_verify_result(mCtx);
-        sign = result->signatures;
-        return sign;
+        return gpgmeError;
     }
 
     /***
@@ -710,11 +709,11 @@ namespace GpgME {
         verify_result = gpgme_op_verify_result (mCtx);
      */
     //}
-    bool GpgContext::sign(QVector<GpgKey> keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached) {
+    gpg_error_t GpgContext::sign(const QVector<GpgKey>& keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached, gpgme_sign_result_t *result) {
 
         gpgme_error_t gpgmeError;
         gpgme_data_t dataIn, dataOut;
-        gpgme_sign_result_t result;
+        gpgme_sign_result_t m_result;
         gpgme_sig_mode_t mode;
 
         if (keys.isEmpty()) {
@@ -762,9 +761,11 @@ namespace GpgME {
             return false;
         }
 
-        result = gpgme_op_sign_result(mCtx);
+        m_result = gpgme_op_sign_result(mCtx);
 
-        // TODO Handle the result
+        if(result != nullptr) {
+            *result = m_result;
+        }
 
         gpgmeError = readToBuffer(dataOut, outBuffer);
         checkErr(gpgmeError);
@@ -776,7 +777,7 @@ namespace GpgME {
             clearPasswordCache();
         }
 
-        return (gpgmeError == GPG_ERR_NO_ERROR);
+        return gpgmeError;
     }
 
     /*
@@ -847,12 +848,19 @@ namespace GpgME {
     /**
      * note: is_private_key status is not returned
      */
-    const GpgKey &GpgContext::getKeyById(const QString &id) {
+    const GpgKey & GpgContext::getKeyById(const QString &id) {
 
-        auto it = mKeyMap.find(id);
-
-        if(it != mKeyMap.end()) {
-            return *(it.value());
+        for(const auto &key : mKeyList) {
+            if (key.id == id) {
+                return key;
+            } else {
+                auto subkeys = key.subKeys;
+                for (const auto &subkey : subkeys) {
+                    if (subkey.id == id) {
+                        return key;
+                    }
+                }
+            }
         }
 
         throw std::runtime_error("key not found");
@@ -1090,7 +1098,8 @@ namespace GpgME {
         return false;
     }
 
-    bool GpgContext::encryptSign(QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer) {
+    gpgme_error_t GpgContext::encryptSign(QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer,
+                                          gpgme_encrypt_result_t *encr_result, gpgme_sign_result_t *sign_result) {
         gpgme_data_t dataIn = nullptr, dataOut = nullptr;
         outBuffer->resize(0);
 
@@ -1135,7 +1144,15 @@ namespace GpgME {
         if (dataOut) {
             gpgme_data_release(dataOut);
         }
-        return (err == GPG_ERR_NO_ERROR);
+
+        if(encr_result != nullptr) {
+            *encr_result = gpgme_op_encrypt_result(mCtx);
+        }
+        if(sign_result != nullptr) {
+            *sign_result = gpgme_op_sign_result(mCtx);
+        }
+
+        return err;
     }
 
 }
