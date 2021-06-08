@@ -43,7 +43,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyLis
 
     actionButtonLayout = new QHBoxLayout();
     auto label = new QLabel("Optional Actions Menu");
-    label->setMinimumHeight(25);
+    label->setMinimumHeight(16);
     actionButtonLayout->addWidget(label);
     actionButtonLayout->addStretch();
 
@@ -86,7 +86,7 @@ void InfoBoardWidget::setInfoBoard(const QString &text, InfoBoardStatus verifyLa
     QPalette status = infoBoard->palette();
     status.setColor(QPalette::Text, color);
     infoBoard->setPalette(status);
-    infoBoard->setFont(QFont("Times", 10, QFont::Bold));
+    infoBoard->setFont(QFont("Times", 12));
 }
 
 void InfoBoardWidget::slotRefresh(const QString &text, InfoBoardStatus status) {
