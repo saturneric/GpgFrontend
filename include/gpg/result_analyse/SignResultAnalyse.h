@@ -7,24 +7,14 @@
 
 #include "GpgFrontend.h"
 
-class SignResultAnalyse {
+#include "ResultAnalyse.h"
+
+class SignResultAnalyse : public ResultAnalyse{
 public:
-    SignResultAnalyse(gpgme_sign_result_t result);
+    explicit SignResultAnalyse(gpgme_error_t error, gpgme_sign_result_t result);
 
-    [[nodiscard]] const QString &getResultReport() const;
-
-    [[nodiscard]] int getStatus() const;
 
 private:
-    QString resultText;
-    QTextStream stream{&resultText};
-
-    int status = 1;
-
-    void setStatus(int mStatus) {
-        if(mStatus < status) status = mStatus;
-    }
-
 
 };
 

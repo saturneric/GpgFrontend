@@ -8,26 +8,18 @@
 #include "gpg/GpgContext.h"
 #include "gpg/GpgKeySignature.h"
 
-class VerifyResultAnalyse {
+#include "ResultAnalyse.h"
+
+class VerifyResultAnalyse : public ResultAnalyse{
 public:
 
-    explicit VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_signature_t signature);
-
-    [[nodiscard]] const QString &getResultReport() const;
-
-    [[nodiscard]] int getStatus() const;
+    explicit VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_verify_result_t result);
 
 private:
 
     GpgME::GpgContext *mCtx;
-    QString verifyLabelText;
-    QTextStream textSteam{&verifyLabelText};
-
-    int status = 1;
 
     bool printSigner(QTextStream &stream, gpgme_signature_t sign);
-
-    void setStatus(int mStatus);
 
 };
 
