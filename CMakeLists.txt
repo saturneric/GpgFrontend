@@ -13,6 +13,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
+set(CMAKE_CXX_FLAGS_DEBUG_INIT "-Wall")
+set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O2")
 
 if(APPLE)
 
@@ -20,7 +22,6 @@ if(APPLE)
 
     set(ENV{Qt5_DIR} /usr/local/opt/qt5/lib/cmake)
 
-    # for MacOS X or iOS, watchOS, tvOS (since 3.10.3)
     include_directories(
         include
         /usr/local/include

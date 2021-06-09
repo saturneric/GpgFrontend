@@ -1,54 +1,56 @@
-NOTE
+# GPG Frontend
+
+GPGFrontend is a modern, easy-to-use, compact, cross-platform, and installation-free gpg front-end tool. It visualizes
+most of the common operations of gpg commands. It aims to allow ordinary users to quickly use gpg and make professional
+users more convenient. Visit gpg. GPGFrontend supports some new features of OpenPGP.
+
+Before use, you only need to install gnupg in advance to make GPGFrontend run on Windows, Linux and MacOS.
+
+Purpose
 -----
-This software is not maintained anymore. please feel free to fork. The appropriate build environment is available at 
-https://github.com/gpg4usb/gpg4usb-docker
+The GPGFrontend project is inherited from a relatively mature but not maintained gpg4usb project. It inherits the
+stable, easy-to-use, compact, and installation-free features of gpg4usb, and plans to support some of the new features
+of OpenPGP based on it and continue to improve the ease of use of the software, so that the gpg tool can be used by more
+and more people use.
 
-ABOUT
------
-gpg4usb is an easy to use, small portable editor with the possibility
-to encrypt and decrypt any text-message or -file you want. For encryption it acts as
-a gpg-frontend (http://gnupg.org/). Its intend is to be used from an usb-stick,
-running on Windows(TM) and Linux. Providing a mac-binary is on our TODO-list.
+My personal strength is always limited. GPGFrontend welcomes volunteers to join. You can use the Github platform to file
+an issue, or submit a pull request.
 
-Our aim is, to give anyone the possibility to send and receive secure encrypted
-messages anywhere - on any computer out there, no matter if Microsoft Windows(TM)
-or Linux is running on it. Therefore it's usage should be self-describing, and the
-user-interface is kept as simple as possible.
+The GPGFrontend project is as open source as gpg4usb, and it also insists on using open source codes and libraries.
 
-Of course gpg4usb is open source, as are included libs and binaries.
 
-OBTAINING
+Obtaining
 ---------
-You can get prepacked zip-files from http://gpg4usb.cpunk.de/download.html .
-For retrieving the source checkout http://cpunk.de/svn/src/ .
+You can get the available binary files of the project and the compressed package of its dependent resources in the
+release, and double-click to use it after decompression.
 
-HOWTO USE
+How to Use it
 ---------
-1. Unzip gpg4usb.zip on your usb-stick.
-2. start programm with start_windows.exe or start_linux (depending on your os)
-3. import your private key and some public keys
-4. enjoy portable encryption ;-)
 
-CONTACT
+0. Install gnupg. To check if it is installed, you can enter gpg on the command line.
+1. Unzip gpgfrontend.zip. The compressed package can be downloaded in Release.
+2. Start GpgFrontend with gpgfrontend.exe or gpgfrontend (depending on your os).
+
+How to Build it
+---------
+
+The tutorial for building the software will be released shortly.
+
+Contract
 -------
-If you have any questions and/or suggestions contact us at
-gpg4usb@cpunk.de - or feel free to meet us at gpg4usb@conference.jabber.ccc.de
-
-Our homepage is located at http://gpg4usb.cpunk.de .
+If you have any questions, please open an issue. If you want to contact me individually, you can email eric@bktus.com.
 
 LICENSES
 --------
-gpg4usb itself is licensed under the GPLv3 (see COPYING).
+GpgFrontend itself is licensed under the GPLv3 (see COPYING).
 
-There are some libraries and the gpg-binary included in the zip-file / a static
-gpg-build which (may) have different licenses, for more information check
-their homepages. You can also obtain the sources from there.
+There are some libraries, and the gpg-binary included in the zip-file / a static gpg-build which (may) have different
+licenses, for more information check their homepages. You can also obtain the sources from there.
 
 GPG: http://gnupg.org/
 QT: http://trolltech.no/ , http://trolltech.no/downloads/opensource
 
-Iconset used is Nuvola (http://icon-king.com/?p=15), which has a LGPL License
+The icons of this software use materials from Alibaba vector icon library. The Alibaba vector icon library is free to
+use. The icons in the free library are not registered as trademarks. There is no copyright issue involved and can be
+used commercially.
 
-The key image in the wizard (keys12.jpg) is a croped version of 
-http://www.flickr.com/photos/laureenp/6141822934/, which is licensed cc by-nc-sa.
-Our derived work is also cc by-nc-sa
