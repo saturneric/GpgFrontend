@@ -13,11 +13,13 @@
         <file alias="button_cut.png">release/icons/button_cut.png</file>
         <file alias="button_ok.png">release/icons/button_ok.png</file>
         <file alias="button_paste.png">release/icons/button_paste.png</file>
+        <file alias="button_delete.png">release/icons/button_delete.png</file>
         <file alias="configure.png">release/icons/configure.png</file>
         <file alias="decrypted.png">release/icons/decrypted.png</file>
         <file alias="edit.png">release/icons/edit.png</file>
         <file alias="encrypted.png">release/icons/encrypted.png</file>
         <file alias="encrypted_signed.png">release/icons/encrypted_signed.png</file>
+        <file alias="decrypted_verified.png">release/icons/decrypted_verified.png</file>
         <file alias="exit.png">release/icons/exit.png</file>
         <file alias="export_key_to_file.png">release/icons/export_key_to_file.png</file>
         <file alias="fileencryption.png">release/icons/fileencrytion.png</file>

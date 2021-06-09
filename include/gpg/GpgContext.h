@@ -91,6 +91,10 @@ namespace GpgME {
 
         gpgme_error_t decrypt(const QByteArray &inBuffer, QByteArray *outBuffer, gpgme_decrypt_result_t *result);
 
+        gpgme_error_t
+        decryptVerify(const QByteArray &inBuffer, QByteArray *outBuffer, gpgme_decrypt_result_t *decrypt_result,
+                      gpgme_verify_result_t *verify_result);
+
         void clearPasswordCache();
 
         void exportSecretKey(const QString &uid, QByteArray *outBuffer);
@@ -165,7 +169,7 @@ namespace GpgME {
 
         void slotRefreshKeyList();
 
-        void slotUpdateKeyList(QString key_id);
+        void slotUpdateKeyList(const QString& key_id);
 
     private:
         gpgme_ctx_t mCtx{};

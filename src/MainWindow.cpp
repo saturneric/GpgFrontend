@@ -287,10 +287,10 @@ void MainWindow::createActions() {
     encryptAct->setToolTip(tr("Encrypt Message"));
     connect(encryptAct, SIGNAL(triggered()), this, SLOT(slotEncrypt()));
 
-    encryptSignAct = new QAction(tr("&Encrypt Sign"), this);
+    encryptSignAct = new QAction(tr("&Encrypt &Sign"), this);
     encryptSignAct->setIcon(QIcon(":encrypted_signed.png"));
-    encryptSignAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E + Qt::Key_S));
-    encryptSignAct->setToolTip(tr("Encrypt And Sign Message"));
+    encryptSignAct->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_E));
+    encryptSignAct->setToolTip(tr("Encrypt and Sign Message"));
     connect(encryptSignAct, SIGNAL(triggered()), this, SLOT(slotEncryptSign()));
 
     decryptAct = new QAction(tr("&Decrypt"), this);
@@ -298,6 +298,12 @@ void MainWindow::createActions() {
     decryptAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
     decryptAct->setToolTip(tr("Decrypt Message"));
     connect(decryptAct, SIGNAL(triggered()), this, SLOT(slotDecrypt()));
+
+    decryptVerifyAct = new QAction(tr("&Decrypt &Verify"), this);
+    decryptVerifyAct->setIcon(QIcon(":decrypted_verified.png"));
+    decryptVerifyAct->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
+    decryptVerifyAct->setToolTip(tr("Decrypt and Verify Message"));
+    connect(decryptVerifyAct, SIGNAL(triggered()), this, SLOT(slotDecryptVerify()));
 
     /*
      * File encryption submenu
@@ -485,6 +491,7 @@ void MainWindow::createMenus() {
     cryptMenu->addAction(encryptAct);
     cryptMenu->addAction(encryptSignAct);
     cryptMenu->addAction(decryptAct);
+    cryptMenu->addAction(decryptVerifyAct);
     cryptMenu->addSeparator();
     cryptMenu->addAction(signAct);
     cryptMenu->addAction(verifyAct);
@@ -537,6 +544,7 @@ void MainWindow::createToolBars() {
     cryptToolBar->addAction(encryptAct);
     cryptToolBar->addAction(encryptSignAct);
     cryptToolBar->addAction(decryptAct);
+    cryptToolBar->addAction(decryptVerifyAct);
     cryptToolBar->addAction(signAct);
     cryptToolBar->addAction(verifyAct);
     //cryptToolBar->addAction(fileEncryptionAct);
@@ -695,42 +703,6 @@ void MainWindow::slotStartWizard() {
     wizard->setModal(true);
 }
 
-/*
-  * if this is mime, split text and attachments...
-  * message contains only text afterwards
-  */
-void MainWindow::parseMime(QByteArray *message) {
-    /*if (! Mime::isMultipart(message)) {
-        qDebug() << "no multipart";
-        return;
-    }*/
-    //qDebug() << "multipart";
-
-    QString pText;
-    bool showmadock = false;
-
-    Mime *mime = new Mime(message);
-            foreach(MimePart tmp, mime->parts()) {
-            if (tmp.header.getValue("Content-Type") == "text/plain"
-                && tmp.header.getValue("Content-Transfer-Encoding") != "base64") {
-
-                QByteArray body;
-                if (tmp.header.getValue("Content-Transfer-Encoding") == "quoted-printable") {
-                    Mime::quotedPrintableDecode(tmp.body, body);
-                } else {
-                    body = tmp.body;
-                }
-                pText.append(QString(body));
-            } else {
-                (mAttachments->addMimePart(&tmp));
-                showmadock = true;
-            }
-        }
-    *message = pText.toUtf8();
-    if (showmadock) {
-        attachmentDock->show();
-    }
-}
 
 void MainWindow::slotCheckAttachmentFolder() {
     // TODO: always check?
@@ -811,6 +783,8 @@ void MainWindow::slotEncrypt() {
         infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
     else
         infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+    delete resultAnalyse;
 }
 
 void MainWindow::slotSign() {
@@ -854,6 +828,8 @@ void MainWindow::slotSign() {
         infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
     else
         infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+    delete resultAnalyse;
 }
 
 void MainWindow::slotDecrypt() {
@@ -870,28 +846,8 @@ void MainWindow::slotDecrypt() {
     auto error = mCtx->decrypt(text, decrypted, &result);
     infoBoard->associateTextEdit(edit->curTextPage());
 
-    /*
-         *   1) is it mime (content-type:)
-         *   2) parse header
-         *   2) choose action depending on content-type
-         */
-    if (Mime::isMime(decrypted)) {
-        Header header = Mime::getHeader(decrypted);
-        // is it multipart, is multipart-parsing enabled
-        if (header.getValue("Content-Type") == "multipart/mixed"
-            && settings.value("mime/parseMime").toBool()) {
-            parseMime(decrypted);
-        } else if (header.getValue("Content-Type") == "text/plain"
-                   && settings.value("mime/parseQP").toBool()) {
-            if (header.getValue("Content-Transfer-Encoding") == "quoted-printable") {
-                auto *decoded = new QByteArray();
-                Mime::quotedPrintableDecode(*decrypted, *decoded);
-                //TODO: remove header
-                decrypted = decoded;
-            }
-        }
-    }
-    edit->slotFillTextEditWithText(QString::fromUtf8(*decrypted));
+    if(gpgme_err_code(error) == GPG_ERR_NO_ERROR)
+        edit->slotFillTextEditWithText(QString::fromUtf8(*decrypted));
 
     auto resultAnalyse = new DecryptResultAnalyse(mCtx, error, result);
 
@@ -902,6 +858,8 @@ void MainWindow::slotDecrypt() {
         infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
     else
         infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+    delete resultAnalyse;
 }
 
 void MainWindow::slotFind() {
@@ -950,6 +908,7 @@ void MainWindow::slotVerify() {
         });
     }
 
+    delete resultAnalyse;
 }
 
 /*
@@ -1171,5 +1130,47 @@ void MainWindow::slotEncryptSign() {
     else
         infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
 
+    delete resultAnalyseEncr;
+    delete resultAnalyseSign;
+}
 
+void MainWindow::slotDecryptVerify() {
+
+    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
+        return;
+    }
+
+    auto *decrypted = new QByteArray();
+    QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
+    GpgME::GpgContext::preventNoDataErr(&text);
+
+    gpgme_decrypt_result_t d_result = nullptr;
+    gpgme_verify_result_t v_result = nullptr;
+    // try decrypt, if fail do nothing, especially don't replace text
+    auto error = mCtx->decryptVerify(text, decrypted, &d_result, &v_result);
+    infoBoard->associateTextEdit(edit->curTextPage());
+
+    if(gpgme_err_code(error) == GPG_ERR_NO_ERROR)
+        edit->slotFillTextEditWithText(QString::fromUtf8(*decrypted));
+
+    auto resultAnalyseDecrypt = new DecryptResultAnalyse(mCtx, error, d_result);
+    auto resultAnalyseVerify = new VerifyResultAnalyse(mCtx, error, v_result);
+
+    int status = std::min(resultAnalyseDecrypt->getStatus(), resultAnalyseVerify->getStatus());
+    auto &reportText = resultAnalyseDecrypt->getResultReport() + resultAnalyseVerify->getResultReport();
+    if (status < 0)
+        infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
+    else if (status > 0)
+        infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
+    else
+        infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+    if (resultAnalyseVerify->getStatus() >= 0) {
+        infoBoard->resetOptionActionsMenu();
+        infoBoard->addOptionalAction("Show Verify Details", [this, error, v_result]() {
+            VerifyDetailsDialog(this, mCtx, mKeyList, error, v_result);
+        });
+    }
+    delete resultAnalyseDecrypt;
+    delete resultAnalyseVerify;
 }

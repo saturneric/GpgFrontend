@@ -132,7 +132,7 @@ void KeyServerImportDialog::setMessage(const QString &text, bool error) {
 }
 
 void KeyServerImportDialog::slotSearch() {
-    QUrl urlFromRemote = keyServerComboBox->currentText() + ":11371/pks/lookup?search=" + searchLineEdit->text() +
+    QUrl urlFromRemote = keyServerComboBox->currentText() + "/pks/lookup?search=" + searchLineEdit->text() +
                          "&op=index&options=mr";
     qnam = new QNetworkAccessManager(this);
     QNetworkReply *reply = qnam->get(QNetworkRequest(urlFromRemote));
@@ -175,10 +175,10 @@ void KeyServerImportDialog::slotSearchFinished() {
         }
     } else {
         int row = 0;
-        char buff[1024];
         bool strikeout = false;
-        while (reply->readLine(buff, sizeof(buff)) != -1) {
-            QString decoded = QString::fromUtf8(QByteArray::fromPercentEncoding(buff));
+        while (reply->canReadLine()) {
+            auto line_buff = reply->readLine().trimmed();
+            QString decoded = QString::fromUtf8(line_buff.constData(), line_buff.size());
             QStringList line = decoded.split(":");
 
             //TODO: have a look at two following pub lines
