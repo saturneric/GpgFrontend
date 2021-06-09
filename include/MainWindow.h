@@ -98,6 +98,12 @@ private slots:
     void slotVerify();
 
     /**
+     * @details decrypt and verify the text of currently active textedit-page
+     * with the currently checked keys
+     */
+    void slotDecryptVerify();
+
+    /**
      * @details Show the details of the first of the first of selected keys
      */
     void slotShowKeyDetails();
@@ -213,8 +219,6 @@ private slots:
      */
     void slotAddPgpHeader();
 
-//    void dropEvent(QDropEvent *event);
-
     /**
      * @details Disable tab related actions, if number of tabs is 0.
      * @param number number of the opened tabs and -1, if no tab is opened
@@ -274,16 +278,9 @@ private:
     void saveSettings();
 
     /**
-     * @brief
-     *
-     * @param message
-     */
-    void parseMime(QByteArray *message);
-
-    /**
      * @brief return true, if restart is needed
      */
-    bool getRestartNeeded() const;
+    [[nodiscard]] bool getRestartNeeded() const;
 
     TextEdit *edit; /** Tabwidget holding the edit-windows */
     QMenu *fileMenu; /** Submenu for file-operations*/
@@ -317,7 +314,8 @@ private:
     QAction *closeTabAct; /** Action to print */
     QAction *quitAct; /** Action to quit application */
     QAction *encryptAct; /** Action to encrypt text */
-    QAction *encryptSignAct; /** Action to encrypt text */
+    QAction *encryptSignAct; /** Action to encrypt and sign text */
+    QAction *decryptVerifyAct; /** Action to encrypt and sign text */
     QAction *decryptAct; /** Action to decrypt text */
     QAction *signAct; /** Action to sign text */
     QAction *verifyAct; /** Action to verify text */

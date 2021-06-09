@@ -26,6 +26,7 @@
 #include "ui/keygen/KeygenThread.h"
 
 #include <unistd.h>    /* contains read/write */
+#include <Mime.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -381,7 +382,7 @@ namespace GpgME {
         gpgme_key_t recipients[keys.count() + 1];
 
         int index = 0;
-        for(const auto& key : keys) {
+        for (const auto &key : keys) {
             recipients[index++] = key.key_refer;
         }
 
@@ -412,10 +413,41 @@ namespace GpgME {
             gpgme_data_release(dataOut);
         }
 
-        if(result != nullptr) {
+        if (result != nullptr) {
             *result = gpgme_op_encrypt_result(mCtx);
         }
         return err;
+    }
+
+
+    /**
+     * if this is mime, split text and attachments...
+     * message contains only text afterwards
+     */
+    void parseMime(QByteArray *message) {
+
+        QString pText;
+        bool show_ma_dock = false;
+
+        Mime *mime = new Mime(message);
+        for(MimePart tmp : mime->parts()) {
+            if (tmp.header.getValue("Content-Type") == "text/plain" && tmp.header.getValue("Content-Transfer-Encoding") != "base64") {
+                QByteArray body;
+                if (tmp.header.getValue("Content-Transfer-Encoding") == "quoted-printable") {
+                    Mime::quotedPrintableDecode(tmp.body, body);
+                } else {
+                    body = tmp.body;
+                }
+                pText.append(QString(body));
+            } else {
+                // TODO
+                show_ma_dock = true;
+            }
+        }
+        *message = pText.toUtf8();
+        if (show_ma_dock) {
+            // TODO
+        }
     }
 
 /** Decrypt QByteAarray, return QByteArray
@@ -425,46 +457,20 @@ namespace GpgME {
     GpgContext::decrypt(const QByteArray &inBuffer, QByteArray *outBuffer, gpgme_decrypt_result_t *result) {
         gpgme_data_t dataIn = nullptr, dataOut = nullptr;
         gpgme_decrypt_result_t m_result = nullptr;
-        QString errorString;
 
         outBuffer->resize(0);
-        if (mCtx) {
+        if (mCtx != nullptr) {
             err = gpgme_data_new_from_mem(&dataIn, inBuffer.data(), inBuffer.size(), 1);
-            checkErr(err);
-            if (!err) {
+            if (gpgme_err_code(err) == GPG_ERR_NO_ERROR) {
                 err = gpgme_data_new(&dataOut);
-                checkErr(err);
-                if (!err) {
+                if (gpgme_err_code(err) == GPG_ERR_NO_ERROR) {
                     err = gpgme_op_decrypt(mCtx, dataIn, dataOut);
-                    checkErr(err);
-
-                    if (gpg_err_code(err) == GPG_ERR_DECRYPT_FAILED) {
-                        errorString.append(gpgErrString(err)).append("<br>");
-                        m_result = gpgme_op_decrypt_result(mCtx);
-                        checkErr(m_result->recipients->status);
-                        errorString.append(gpgErrString(m_result->recipients->status)).append("<br>");
-                        errorString.append(
-                                tr("<br>No private key with id %1 present dataIn keyring").arg(
-                                        m_result->recipients->keyid));
-                    } else {
-                        errorString.append(gpgErrString(err)).append("<br>");
-                    }
-
-                    if (!err) {
-                        m_result = gpgme_op_decrypt_result(mCtx);
-                        if (m_result->unsupported_algorithm) {
-                            QMessageBox::critical(0, tr("Unsupported algorithm"), m_result->unsupported_algorithm);
-                        } else {
-                            err = readToBuffer(dataOut, outBuffer);
-                            checkErr(err);
-                        }
+                    m_result = gpgme_op_decrypt_result(mCtx);
+                    if (gpgme_err_code(err) == GPG_ERR_NO_ERROR) {
+                        err = readToBuffer(dataOut, outBuffer);
                     }
                 }
             }
-        }
-        if (gpg_err_code(err) != GPG_ERR_NO_ERROR && gpg_err_code(err) != GPG_ERR_CANCELED) {
-            QMessageBox::critical(nullptr, tr("Error decrypting:"), errorString);
-            return false;
         }
 
         if (!settings.value("general/rememberPassword").toBool()) {
@@ -478,7 +484,29 @@ namespace GpgME {
             gpgme_data_release(dataOut);
         }
 
-        if(result != nullptr) {
+        /*
+             *   1) is it mime (content-type:)
+             *   2) parse header
+             *   2) choose action depending on content-type
+        */
+        if (Mime::isMime(outBuffer)) {
+            Header header = Mime::getHeader(outBuffer);
+            // is it multipart, is multipart-parsing enabled
+            if (header.getValue("Content-Type") == "multipart/mixed"
+                && settings.value("mime/parseMime").toBool()) {
+                parseMime(outBuffer);
+            } else if (header.getValue("Content-Type") == "text/plain"
+                       && settings.value("mime/parseQP").toBool()) {
+                if (header.getValue("Content-Transfer-Encoding") == "quoted-printable") {
+                    auto *decoded = new QByteArray();
+                    Mime::quotedPrintableDecode(*outBuffer, *decoded);
+                    //TODO: remove header
+                    outBuffer = decoded;
+                }
+            }
+        }
+
+        if (result != nullptr) {
             *result = m_result;
         }
         return err;
@@ -682,7 +710,7 @@ namespace GpgME {
 
         m_result = gpgme_op_verify_result(mCtx);
 
-        if(result != nullptr) {
+        if (result != nullptr) {
             *result = m_result;
         }
 
@@ -709,7 +737,9 @@ namespace GpgME {
         verify_result = gpgme_op_verify_result (mCtx);
      */
     //}
-    gpg_error_t GpgContext::sign(const QVector<GpgKey>& keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached, gpgme_sign_result_t *result) {
+    gpg_error_t
+    GpgContext::sign(const QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached,
+                     gpgme_sign_result_t *result) {
 
         gpgme_error_t gpgmeError;
         gpgme_data_t dataIn, dataOut;
@@ -763,7 +793,7 @@ namespace GpgME {
 
         m_result = gpgme_op_sign_result(mCtx);
 
-        if(result != nullptr) {
+        if (result != nullptr) {
             *result = m_result;
         }
 
@@ -835,8 +865,8 @@ namespace GpgME {
             if (key.fpr == fpr) {
                 return key;
             } else {
-                for(auto &subkey : key.subKeys) {
-                    if(subkey.fpr == fpr) {
+                for (auto &subkey : key.subKeys) {
+                    if (subkey.fpr == fpr) {
                         return key;
                     }
                 }
@@ -848,9 +878,9 @@ namespace GpgME {
     /**
      * note: is_private_key status is not returned
      */
-    const GpgKey & GpgContext::getKeyById(const QString &id) {
+    const GpgKey &GpgContext::getKeyById(const QString &id) {
 
-        for(const auto &key : mKeyList) {
+        for (const auto &key : mKeyList) {
             if (key.id == id) {
                 return key;
             } else {
@@ -884,7 +914,7 @@ namespace GpgME {
         auto gpgmeError =
                 gpgme_op_keysign(mCtx, target.key_refer, uid.toUtf8().constData(), expires_time_t, flags);
 
-        if(gpgmeError == GPG_ERR_NO_ERROR) {
+        if (gpgmeError == GPG_ERR_NO_ERROR) {
             emit signalKeyUpdated(target.id);
             return true;
         } else {
@@ -923,22 +953,22 @@ namespace GpgME {
         }
     }
 
-    void GpgContext::slotUpdateKeyList(QString key_id) {
+    void GpgContext::slotUpdateKeyList(const QString &key_id) {
         auto it = mKeyMap.find(key_id);
         if (it != mKeyMap.end()) {
             gpgme_key_t new_key_refer;
             auto gpgmeErr = gpgme_get_key(mCtx, key_id.toUtf8().constData(), &new_key_refer, 0);
 
-            if(gpgme_err_code(gpgmeErr) == GPG_ERR_EOF) {
+            if (gpgme_err_code(gpgmeErr) == GPG_ERR_EOF) {
                 gpgmeErr = gpgme_get_key(mCtx, key_id.toUtf8().constData(), &new_key_refer, 1);
 
-                if(gpgme_err_code(gpgmeErr) == GPG_ERR_EOF) {
+                if (gpgme_err_code(gpgmeErr) == GPG_ERR_EOF) {
                     throw std::runtime_error("key_id not found in key database");
                 }
 
             }
 
-            if(new_key_refer != nullptr) {
+            if (new_key_refer != nullptr) {
                 it.value()->swapKeyRefer(new_key_refer);
                 emit signalKeyInfoChanged();
             }
@@ -949,11 +979,10 @@ namespace GpgME {
     bool GpgContext::addUID(const GpgKey &key, const GpgUID &uid) {
         QString userid = QString("%1 (%3) <%2>").arg(uid.name, uid.email, uid.comment);
         auto gpgmeError = gpgme_op_adduid(mCtx, key.key_refer, userid.toUtf8().constData(), 0);
-        if(gpgmeError == GPG_ERR_NO_ERROR) {
+        if (gpgmeError == GPG_ERR_NO_ERROR) {
             emit signalKeyUpdated(key.id);
             return true;
-        }
-        else {
+        } else {
             checkErr(gpgmeError);
             return false;
         }
@@ -962,11 +991,10 @@ namespace GpgME {
 
     bool GpgContext::revUID(const GpgKey &key, const GpgUID &uid) {
         auto gpgmeError = gpgme_op_revuid(mCtx, key.key_refer, uid.uid.toUtf8().constData(), 0);
-        if(gpgmeError == GPG_ERR_NO_ERROR) {
+        if (gpgmeError == GPG_ERR_NO_ERROR) {
             emit signalKeyUpdated(key.id);
             return true;
-        }
-        else {
+        } else {
             checkErr(gpgmeError);
             return false;
         }
@@ -975,11 +1003,10 @@ namespace GpgME {
     bool GpgContext::setPrimaryUID(const GpgKey &key, const GpgUID &uid) {
         auto gpgmeError = gpgme_op_set_uid_flag(mCtx, key.key_refer,
                                                 uid.uid.toUtf8().constData(), "primary", nullptr);
-        if(gpgmeError == GPG_ERR_NO_ERROR) {
+        if (gpgmeError == GPG_ERR_NO_ERROR) {
             emit signalKeyUpdated(key.id);
             return true;
-        }
-        else {
+        } else {
             checkErr(gpgmeError);
             return false;
         }
@@ -990,13 +1017,12 @@ namespace GpgME {
         auto signing_key = getKeyById(signature.keyid);
 
         auto gpgmeError = gpgme_op_revsig(mCtx, key.key_refer,
-                                                signing_key.key_refer,
-                                                signature.uid.toUtf8().constData(), 0);
-        if(gpg_err_code(gpgmeError) == GPG_ERR_NO_ERROR) {
+                                          signing_key.key_refer,
+                                          signature.uid.toUtf8().constData(), 0);
+        if (gpg_err_code(gpgmeError) == GPG_ERR_NO_ERROR) {
             emit signalKeyUpdated(key.id);
             return true;
-        }
-        else {
+        } else {
             checkErr(gpgmeError);
             return false;
         }
@@ -1004,7 +1030,7 @@ namespace GpgME {
 
     bool GpgContext::generateSubkey(const GpgKey &key, GenKeyInfo *params) {
 
-        if(!params->isSubKey()) {
+        if (!params->isSubKey()) {
             return false;
         }
 
@@ -1038,11 +1064,10 @@ namespace GpgME {
 
         auto gpgmeError = gpgme_op_createsubkey(mCtx, key.key_refer,
                                                 algo, 0, expires, flags);
-        if(gpgmeError == GPG_ERR_NO_ERROR) {
+        if (gpgmeError == GPG_ERR_NO_ERROR) {
             emit signalKeyUpdated(key.id);
             return true;
-        }
-        else {
+        } else {
             checkErr(gpgmeError);
             return false;
         }
@@ -1050,33 +1075,33 @@ namespace GpgME {
 
     bool GpgContext::setExpire(const GpgKey &key, const GpgSubKey *subkey, QDateTime *expires) {
         unsigned long expires_time = 0;
-        if(expires != nullptr) {
+        if (expires != nullptr) {
             qDebug() << "Expire Datetime" << expires->toString();
             expires_time = QDateTime::currentDateTime().secsTo(*expires);
         }
 
         const char *subfprs = nullptr;
 
-        if(subkey != nullptr) {
+        if (subkey != nullptr) {
             subfprs = subkey->fpr.toUtf8().constData();
         }
 
         auto gpgmeError = gpgme_op_setexpire(mCtx, key.key_refer,
                                              expires_time, subfprs, 0);
-        if(gpgmeError == GPG_ERR_NO_ERROR) {
+        if (gpgmeError == GPG_ERR_NO_ERROR) {
             emit signalKeyUpdated(key.id);
             return true;
-        }
-        else {
+        } else {
             checkErr(gpgmeError);
             return false;
         }
     }
 
     bool GpgContext::checkIfKeyCanSign(const GpgKey &key) {
-        if(std::any_of(key.subKeys.begin(), key.subKeys.end(), [] (const GpgSubKey &subkey) -> bool {
+        if (std::any_of(key.subKeys.begin(), key.subKeys.end(), [](const GpgSubKey &subkey) -> bool {
             return subkey.secret && subkey.can_sign && !subkey.disabled && !subkey.revoked && !subkey.expired;
-        })) return true;
+        }))
+            return true;
         return false;
     }
 
@@ -1085,16 +1110,18 @@ namespace GpgME {
     }
 
     bool GpgContext::checkIfKeyCanAuth(const GpgKey &key) {
-        if(std::any_of(key.subKeys.begin(), key.subKeys.end(), [] (const GpgSubKey &subkey) -> bool {
+        if (std::any_of(key.subKeys.begin(), key.subKeys.end(), [](const GpgSubKey &subkey) -> bool {
             return subkey.secret && subkey.can_authenticate && !subkey.disabled && !subkey.revoked && !subkey.expired;
-        })) return true;
+        }))
+            return true;
         return false;
     }
 
     bool GpgContext::checkIfKeyCanEncr(const GpgKey &key) {
-        if(std::any_of(key.subKeys.begin(), key.subKeys.end(), [] (const GpgSubKey &subkey) -> bool {
+        if (std::any_of(key.subKeys.begin(), key.subKeys.end(), [](const GpgSubKey &subkey) -> bool {
             return subkey.can_encrypt && !subkey.disabled && !subkey.revoked && !subkey.expired;
-        })) return true;
+        }))
+            return true;
         return false;
     }
 
@@ -1103,11 +1130,6 @@ namespace GpgME {
         gpgme_data_t dataIn = nullptr, dataOut = nullptr;
         outBuffer->resize(0);
 
-        if (keys.count() == 0) {
-            QMessageBox::critical(nullptr, tr("No Key Selected"), tr("No Key Selected"));
-            return false;
-        }
-
         setSigners(keys);
 
         //gpgme_encrypt_result_t e_result;
@@ -1115,25 +1137,25 @@ namespace GpgME {
 
         /* set key for user */
         int index = 0;
-        for(const auto &key : keys) {
+        for (const auto &key : keys) {
             recipients[index++] = key.key_refer;
         }
         //Last entry dataIn array has to be nullptr
         recipients[keys.count()] = nullptr;
 
         //If the last parameter isnt 0, a private copy of data is made
-        if (mCtx) {
+        if (mCtx != nullptr) {
             err = gpgme_data_new_from_mem(&dataIn, inBuffer.data(), inBuffer.size(), 1);
-            checkErr(err);
-            if (!err) {
+            if (gpg_err_code(err) == GPG_ERR_NO_ERROR) {
                 err = gpgme_data_new(&dataOut);
-                checkErr(err);
-                if (!err) {
+                if (gpg_err_code(err) == GPG_ERR_NO_ERROR) {
                     err = gpgme_op_encrypt_sign(mCtx, recipients, GPGME_ENCRYPT_ALWAYS_TRUST, dataIn, dataOut);
-                    checkErr(err);
-                    if (!err) {
+                    if (encr_result != nullptr)
+                        *encr_result = gpgme_op_encrypt_result(mCtx);
+                    if (sign_result != nullptr)
+                        *sign_result = gpgme_op_sign_result(mCtx);
+                    if (gpg_err_code(err) == GPG_ERR_NO_ERROR) {
                         err = readToBuffer(dataOut, outBuffer);
-                        checkErr(err);
                     }
                 }
             }
@@ -1145,19 +1167,43 @@ namespace GpgME {
             gpgme_data_release(dataOut);
         }
 
-        if(encr_result != nullptr) {
-            *encr_result = gpgme_op_encrypt_result(mCtx);
+        return err;
+    }
+
+    gpgme_error_t
+    GpgContext::decryptVerify(const QByteArray &inBuffer, QByteArray *outBuffer, gpgme_decrypt_result_t *decrypt_result,
+                              gpgme_verify_result_t *verify_result) {
+        gpgme_data_t dataIn = nullptr, dataOut = nullptr;
+
+        outBuffer->resize(0);
+        if (mCtx != nullptr) {
+            err = gpgme_data_new_from_mem(&dataIn, inBuffer.data(), inBuffer.size(), 1);
+            if (gpgme_err_code(err) == GPG_ERR_NO_ERROR) {
+                err = gpgme_data_new(&dataOut);
+                if (gpgme_err_code(err) == GPG_ERR_NO_ERROR) {
+                    err = gpgme_op_decrypt_verify(mCtx, dataIn, dataOut);
+                    if (decrypt_result != nullptr)
+                        *decrypt_result = gpgme_op_decrypt_result(mCtx);
+                    if (verify_result != nullptr)
+                        *verify_result = gpgme_op_verify_result(mCtx);
+                    if (gpgme_err_code(err) == GPG_ERR_NO_ERROR) {
+                        err = readToBuffer(dataOut, outBuffer);
+                    }
+                }
+            }
         }
-        if(sign_result != nullptr) {
-            *sign_result = gpgme_op_sign_result(mCtx);
+
+        if (!settings.value("general/rememberPassword").toBool()) {
+            clearPasswordCache();
+        }
+
+        if (dataIn) {
+            gpgme_data_release(dataIn);
+        }
+        if (dataOut) {
+            gpgme_data_release(dataOut);
         }
 
         return err;
     }
-
 }
-
-
-
-
-

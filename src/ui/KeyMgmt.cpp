@@ -119,7 +119,7 @@ void KeyMgmt::createActions()
 
     deleteCheckedKeysAct = new QAction(tr("Delete Checked Key(s)"), this);
     deleteCheckedKeysAct->setToolTip(tr("Delete the Checked keys"));
-    deleteCheckedKeysAct->setIcon(QIcon(":button_cancel.png"));
+    deleteCheckedKeysAct->setIcon(QIcon(":button_delete.png"));
     connect(deleteCheckedKeysAct, SIGNAL(triggered()), this, SLOT(slotDeleteCheckedKeys()));
 
     showKeyDetailsAct = new QAction(tr("Show Keydetails"), this);
@@ -269,6 +269,7 @@ void KeyMgmt::slotExportKeyToFile()
 {
     auto *keyArray = new QByteArray();
     if (!mCtx->exportKeys(mKeyList->getChecked(), keyArray)) {
+        delete keyArray;
         return;
     }
     auto &key = mCtx->getKeyById(mKeyList->getSelected()->first());
@@ -276,8 +277,10 @@ void KeyMgmt::slotExportKeyToFile()
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Export Key To File"), fileString, tr("Key Files") + " (*.asc *.txt);;All Files (*)");
     QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        delete keyArray;
         return;
+    }
     QTextStream stream(&file);
     stream << *keyArray;
     file.close();
