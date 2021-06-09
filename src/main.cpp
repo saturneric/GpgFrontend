@@ -42,41 +42,6 @@ int main(int argc, char *argv[]) {
     // unicode in source
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
 
-    // set environment variables
-    // TODO:
-    //   - unsetenv on windows?
-    //   - wputenv or wputenv_s on windows? http://msdn.microsoft.com/en-us/library/d6dtz42k(v=vs.80).aspx
-#ifndef _WIN32
-    // do not use GPG_AGENTS like seahorse, because they may save
-    // a password an pc's not owned by user
-    unsetenv("GPG_AGENT_INFO");
-#endif
-
-//        qDebug() << getenv("GNUPGHOME");
-
-#ifndef GPG4USB_NON_PORTABLE
-    // take care of gpg not creating directorys on harddisk
-    putenv(QString("GNUPGHOME=" + appPath + "/keydb").toUtf8().data());
-
-    // this may help with newer gpgme versions on windows
-    //putenv(QString("GPGME_GPGPATH=" + appPath.replace("/", "\\") + "\\bin\\gpg.exe").toUtf8().data());
-
-    // QSettings uses org-name for automatically setting path...
-    QApplication::setOrganizationName("conf");
-
-    // specify default path & format for QSettings
-    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, appPath);
-#else
-    // in non portable conf should go to ~/.conf/gpg4usb
-    app.setOrganizationName("gpg4usb");
-    qDebug() << "gpg4usb non portable build";
-#endif
-
-    /*QLocale ql(lang);
-    foreach(QLocale l , QLocale::matchingLocales(ql.language(), ql.script(), ql.country())) {
-        qDebug() << "l: " <<  l.bcp47Name();
-    }*/
-
     // css
     QFile file(qApp->applicationDirPath() + "/css/default.css");
     file.open(QFile::ReadOnly);

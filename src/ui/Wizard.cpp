@@ -117,7 +117,7 @@ IntroPage::IntroPage(QWidget *parent)
                                    "For more information have a look at the <a href='docu_concepts.html'>concepts</a> "
                                    "(by clicking the link, the page will open in the main window). <br>"));
     topLabel->setWordWrap(true);
-    connect(topLabel, SIGNAL(linkActivated(QString)), parentWidget()->parentWidget(), SLOT(openHelp(QString)));
+    // connect(topLabel, SIGNAL(linkActivated(QString)), parentWidget()->parentWidget(), SLOT(openHelp(QString)));
 
     // QComboBox for language selection
     auto *langLabel = new QLabel(tr("Choose a Language"));
@@ -167,7 +167,7 @@ ChoosePage::ChoosePage(QWidget *parent)
                                       "may possibly want to ") + "<a href=""Wizard::Page_GenKey"">"
                                    + tr("create a new keypair") + "</a><hr>");
     keygenLabel->setWordWrap(true);
-    connect(keygenLabel, SIGNAL(linkActivated(QString)), this, SLOT(slotJumpPage(Qtring)));
+    // connect(keygenLabel, SIGNAL(linkActivated(QString)), this, SLOT(slotJumpPage(Qtring)));
 
     auto *importGpg4usbLabel = new QLabel(tr("If you upgrade from an older version of GPGFrontend you may want to ")
                                           + "<a href=""Wizard::Page_ImportFromGpg4usb"">"
@@ -360,7 +360,7 @@ KeyGenPage::KeyGenPage(GpgME::GpgContext *ctx, QWidget *parent)
     auto *linkLabel = new QLabel("<a href=""docu_keygen.html#content"">" + tr("Offline tutorial") + "</a>");
     //linkLabel->setOpenExternalLinks(true);
 
-    connect(linkLabel, SIGNAL(linkActivated(QString)), parentWidget()->parentWidget(), SLOT(openHelp(QString)));
+    // connect(linkLabel, SIGNAL(linkActivated(QString)), parentWidget()->parentWidget(), SLOT(openHelp(QString)));
 
     auto *createKeyButtonBox = new QWidget(this);
     auto *createKeyButtonBoxLayout = new QHBoxLayout(createKeyButtonBox);
