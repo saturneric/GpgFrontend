@@ -4,16 +4,16 @@ GPGFrontend is a modern, easy-to-use, compact, cross-platform, and installation-
 most of the common operations of gpg commands. It aims to allow ordinary users to quickly use gpg and make professional
 users more convenient. Visit gpg. GPGFrontend supports some new features of OpenPGP.
 
-Before use, you only need to install gnupg in advance to make GPGFrontend run on Windows, Linux and MacOS.
+Before use, you only need to install gnupg in advance to make GPGFrontend run on Windows, Linux and macOS.
 
 Purpose
 -----
 The GPGFrontend project is inherited from a relatively mature but not maintained gpg4usb project. It inherits the
-stable, easy-to-use, compact, and installation-free features of gpg4usb, and plans to support some of the new features
+stable, easy-to-use, compact, and installation-free features of gpg4usb, and plans to support some new features
 of OpenPGP based on it and continue to improve the ease of use of the software, so that the gpg tool can be used by more
 and more people use.
 
-My personal strength is always limited. GPGFrontend welcomes volunteers to join. You can use the Github platform to file
+My personal strength is always limited. GPGFrontend welcomes volunteers to join. You can use the GitHub platform to file
 an issue, or submit a pull request.
 
 The GPGFrontend project is as open source as gpg4usb, and it also insists on using open source codes and libraries.
