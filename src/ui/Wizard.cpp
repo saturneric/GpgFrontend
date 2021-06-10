@@ -54,7 +54,7 @@ Wizard::Wizard(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent)
     settings.remove("wizard/nextPage");
 
     connect(this, SIGNAL(accepted()), this, SLOT(slotWizardAccepted()));
-    connect(this, SIGNAL(signalOpenHelp(QString)), parentWidget(), SLOT(signalOpenHelp(QString)));
+    // connect(this, SIGNAL(signalOpenHelp(QString)), parentWidget(), SLOT(signalOpenHelp(QString)));
 
 }
 

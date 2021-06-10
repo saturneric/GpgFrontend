@@ -65,18 +65,6 @@ namespace GpgME {
         err = gpgme_new(&mCtx);
         checkErr(err);
 
-        QSettings qSettings;
-        QString accKeydbPath = qSettings.value("gpgpaths/keydbpath").toString();
-        QString qGpgKeys = appPath + "/keydb/" + accKeydbPath;
-
-        if (accKeydbPath != "") {
-            if (!QDir(qGpgKeys).exists()) {
-                QMessageBox::critical(nullptr, tr("keydb path"),
-                                      tr("Didn't find keydb directory. Switching to gpg4usb's default keydb directory for this session."));
-                qGpgKeys = appPath + "/keydb";
-            }
-        }
-
         gpgme_engine_info_t engineInfo;
         engineInfo = gpgme_ctx_get_engine_info(mCtx);
 
