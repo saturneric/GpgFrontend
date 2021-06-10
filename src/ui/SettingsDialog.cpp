@@ -38,8 +38,8 @@ SettingsDialog::SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent)
     tabWidget->addTab(generalTab, tr("General"));
     tabWidget->addTab(appearanceTab, tr("Appearance"));
     tabWidget->addTab(mimeTab, tr("PGP/Mime"));
-    tabWidget->addTab(keyserverTab, tr("Keyserver"));
-    tabWidget->addTab(gpgPathsTab, tr("Gpg paths"));
+    tabWidget->addTab(keyserverTab, tr("Key Server"));
+    // tabWidget->addTab(gpgPathsTab, tr("Gpg paths"));
     tabWidget->addTab(advancedTab, tr("Advanced"));
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
@@ -65,7 +65,7 @@ SettingsDialog::SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent)
 
     connect(this, SIGNAL(signalRestartNeeded(bool)), parent, SLOT(slotSetRestartNeeded(bool)));
 
-    exec();
+    this->show();
 }
 
 bool SettingsDialog::getRestartNeeded() const {
@@ -551,9 +551,9 @@ KeyserverTab::KeyserverTab(QWidget *parent)
 
     auto *addKeyServerBox = new QWidget(this);
     auto *addKeyServerLayout = new QHBoxLayout(addKeyServerBox);
-    auto *http = new QLabel("http://");
+    auto *http = new QLabel("URL: ");
     newKeyServerEdit = new QLineEdit(this);
-    auto *newKeyServerButton = new QPushButton(tr("Add to keyserverlist"), this);
+    auto *newKeyServerButton = new QPushButton(tr("Add"), this);
     connect(newKeyServerButton, SIGNAL(clicked()), this, SLOT(addKeyServer()));
     addKeyServerLayout->addWidget(http);
     addKeyServerLayout->addWidget(newKeyServerEdit);
@@ -586,7 +586,7 @@ void KeyserverTab::setSettings() {
 }
 
 void KeyserverTab::addKeyServer() {
-    if (newKeyServerEdit->text().startsWith("http://")) {
+    if (newKeyServerEdit->text().startsWith("http://") || newKeyServerEdit->text().startsWith("https://")) {
         comboBox->addItem(newKeyServerEdit->text());
     } else {
         comboBox->addItem("http://" + newKeyServerEdit->text());

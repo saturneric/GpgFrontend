@@ -58,7 +58,7 @@ InfoTab::InfoTab(QWidget *parent)
                                   "Saturneric<br><br>"
                                   "If you have any questions or suggestions have a look<br/>"
                                   "at my <a href=\"https://bktus.com/%e8%81%94%e7%b3%bb%e4%b8%8e%e9%aa%8c%e8%af%81\">"
-                                  "contact page</a> or send a mail to our<br/> mailing list at"
+                                  "contact page</a> or send a mail to my<br/> mailing list at"
                                   " <a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>.") +
                              tr("<br><br> Built with Qt ") + qVersion()
                              + tr(" and GPGME ") + GpgME::GpgContext::getGpgmeVersion() + "</center>");
