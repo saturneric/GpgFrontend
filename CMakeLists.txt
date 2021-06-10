@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.19)
 
 project(GPGFrontend VERSION 1.0.0 LANGUAGES CXX)
 
+message("GPGFrontend Build Confifgure Started.")
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -11,10 +13,25 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_FLAGS_DEBUG_INIT "-Wall")
 set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O2")
+
+IF (MINGW)
+
+	message("OS Platform Microsoft Windows")
+	message("Envrinoment MINGW")
+	
+	include_directories(
+        include
+        /mingw64/include
+    )
+	link_directories(
+        /mingw64/lib
+    )
+
+endif()
 
 if(APPLE)
 
