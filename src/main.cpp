@@ -26,14 +26,14 @@
 
 int main(int argc, char *argv[]) {
 
-    Q_INIT_RESOURCE(gpg4usb);
+    Q_INIT_RESOURCE(gpgfrontend);
 
     QApplication app(argc, argv);
 
     // get application path
     QString appPath = qApp->applicationDirPath();
 
-    QApplication::setApplicationVersion("1.0.0");
+    QApplication::setApplicationVersion(BUILD_VERSION);
     QApplication::setApplicationName("GPGFrontend");
 
     // dont show icons in menus
@@ -67,11 +67,11 @@ int main(int argc, char *argv[]) {
             lang = QLocale::system().name();
         }
 
-        translator.load("ts/gpg4usb_" + lang, appPath);
+        translator.load("./ts/gpg4usb_" + lang, appPath);
         QApplication::installTranslator(&translator);
 
         // set qt translations
-        translator2.load("ts/qt_" + lang, appPath);
+        translator2.load("./ts/qt_" + lang, appPath);
         QApplication::installTranslator(&translator2);
 
         MainWindow window;

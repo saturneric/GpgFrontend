@@ -1,0 +1,31 @@
+#ifndef GPGFRONTEND_H_IN
+#define GPGFRONTEND_H_IN
+
+#include <iostream>
+#include <string>
+#include <cmath>
+#include <clocale>
+#include <cerrno>
+#include <utility>
+
+#include <QtCore>
+#include <QtWidgets>
+#include <QtNetwork/QtNetwork>
+#include <QtPrintSupport/QtPrintSupport>
+
+#include <gpgme.h>
+
+#define PROJECT_NAME "@PROJECT_NAME@"
+#define BUILD_VERSION "@BUILD_VERSION@"
+#define GIT_VERSION "@GIT_VERSION@"
+
+#define VERSION_MAJOR @CMAKE_PROJECT_VERSION_MAJOR@
+#define VERSION_MINOR @CMAKE_PROJECT_VERSION_MINOR@
+#define VERSION_PATCH @CMAKE_PROJECT_VERSION_PATCH@
+
+#define BUILD_TIMESTAMP "@BUILD_TIMESTAMP@"
+
+#define GIT_BRANCH_NAME "@GIT_BRANCH_NAME@"
+#define GIT_COMMIT_HASH "@GIT_COMMIT_HASH@"
+
+#endif //GPGFRONTEND_H_IN
