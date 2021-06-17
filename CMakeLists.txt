@@ -22,6 +22,8 @@ IF (MINGW)
 
 	message("OS Platform Microsoft Windows")
 	message("Envrinoment MINGW")
+
+    set(CMAKE_EXE_LINKER_FLAGS "-static")
 	
 	include_directories(
         include

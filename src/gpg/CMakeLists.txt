@@ -7,6 +7,13 @@ set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
 
 set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 
-target_link_libraries(gpg
-        gpgme gpg-error assuan
-        Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+IF (MINGW)
+    target_link_libraries(gpg
+            gpgme gpg-error assuan
+            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
+            wsock32)
+else()
+    target_link_libraries(gpg
+            gpgme gpg-error assuan
+            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+endif()
