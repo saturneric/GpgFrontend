@@ -29,7 +29,9 @@
 #include <Mime.h>
 
 #ifdef _WIN32
+
 #include <windows.h>
+
 #endif
 
 namespace GpgME {
@@ -69,7 +71,8 @@ namespace GpgME {
         engineInfo = gpgme_ctx_get_engine_info(mCtx);
 
         while (engineInfo != nullptr) {
-            qDebug() << gpgme_get_protocol_name(engineInfo->protocol);
+            qDebug() << gpgme_get_protocol_name(engineInfo->protocol) << engineInfo->file_name << engineInfo->protocol
+                     << engineInfo->home_dir << engineInfo->version;
             engineInfo = engineInfo->next;
         }
 
@@ -418,8 +421,9 @@ namespace GpgME {
         bool show_ma_dock = false;
 
         Mime *mime = new Mime(message);
-        for(MimePart tmp : mime->parts()) {
-            if (tmp.header.getValue("Content-Type") == "text/plain" && tmp.header.getValue("Content-Transfer-Encoding") != "base64") {
+        for (MimePart tmp : mime->parts()) {
+            if (tmp.header.getValue("Content-Type") == "text/plain" &&
+                tmp.header.getValue("Content-Transfer-Encoding") != "base64") {
                 QByteArray body;
                 if (tmp.header.getValue("Content-Transfer-Encoding") == "quoted-printable") {
                     Mime::quotedPrintableDecode(tmp.body, body);
@@ -549,7 +553,7 @@ namespace GpgME {
 
 #ifdef _WIN32
         DWORD written;
-        HANDLE hd = (HANDLE)fd;
+        HANDLE hd = (HANDLE) fd;
 #endif
 
         if (last_was_bad) {
@@ -595,8 +599,8 @@ namespace GpgME {
         WriteFile(hd, "\n", 1, &written, 0);
 
         /* program will hang on cancel if hd not closed */
-        if(!result) {
-                CloseHandle(hd);
+        if (!result) {
+            CloseHandle(hd);
         }
 #endif
 
