@@ -15,7 +15,7 @@ file(COPY ${CMAKE_SOURCE_DIR}/resource/ DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ F
 add_executable(gpgfrontend ${BASE_SOURCE} ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc ${QT5_MOCS})
 
 IF (MINGW)
-    message(STATUS "Link Application Static Library For MINGW")完善工程设置
+    message(STATUS "Link Application Static Library For MINGW")
     target_link_libraries(gpgfrontend
             qtui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
