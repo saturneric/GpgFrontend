@@ -21,7 +21,7 @@ test/
 # Compiled Dynamic libraries
 *.so
 *.dylib
-*.dll
+# *.dll
 
 # Fortran module files
 *.mod
@@ -34,7 +34,7 @@ test/
 *.lib
 
 # Executables
-*.exe
+# *.exe
 *.out
 *.app
 
