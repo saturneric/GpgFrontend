@@ -1,7 +1,3 @@
-# Configure Files
-*/conf/*
-
-
 # Clangd
 .cache/
 test/
