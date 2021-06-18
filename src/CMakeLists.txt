@@ -3,16 +3,36 @@ add_subdirectory(ui)
 
 aux_source_directory(. BASE_SOURCE)
 
-file(GLOB_RECURSE GPG4USB_HEADER_FILES RELACTIVE ../include/* *.h)
-qt5_wrap_cpp(QT5_MOCS ${GPG4USB_HEADER_FILES} TARGET gpgfrontend)
+set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
+set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
+
+
+file(GLOB_RECURSE GPGFRONTEND_HEADER_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/include/*.h)
+qt5_wrap_cpp(QT5_MOCS ${GPGFRONTEND_HEADER_FILES} TARGET gpgfrontend)
+
+# Set Translation Files
+file(GLOB_RECURSE QT_TS_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/resource/ts/*.ts)
+set(QT_QM_FILES_OUTPUT_DIR ${CMAKE_BINARY_DIR}/src/ts)
+set_source_files_properties(${QT_TS_FILES} PROPERTIES OUTPUT_LOCATION ${QT_QM_FILES_OUTPUT_DIR})
+QT5_create_translation(QON_QM_FILES ${BASE_SOURCE} ${QT_TS_FILES})
+message(STATUS ${QON_QM_FILES})
+add_custom_target(translations DEPENDS ${QON_QM_FILES})
+
 
 # Set Build Information
 configure_file(${CMAKE_SOURCE_DIR}/include/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/include/GpgFrontend.h @ONLY)
 
-# Copy Resource File
-file(COPY ${CMAKE_SOURCE_DIR}/resource/ DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+# Copy Resource Files
+file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+file(COPY ${CMAKE_SOURCE_DIR}/resource/help DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+file(COPY ${CMAKE_SOURCE_DIR}/resource/conf DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
 
-add_executable(gpgfrontend ${BASE_SOURCE} ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc ${QT5_MOCS})
+set(RESOURCE_FILES ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc ${APP_ICON_RESOURCE_WINDOWS} ${QON_QM_FILES})
+add_custom_target(resources ALL DEPENDS ${RESOURCE_FILES})
+add_dependencies(resources translations)
+
+add_executable(gpgfrontend ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
 
 IF (MINGW)
     message(STATUS "Link Application Static Library For MINGW")

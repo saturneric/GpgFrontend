@@ -55,6 +55,8 @@ public:
 private:
     GpgME::GpgContext *mCtx;
     KeyMgmt *mKeyMgmt;
+    QString appPath;
+    QSettings settings;
 
 private slots:
 
@@ -74,6 +76,10 @@ public:
     QHash<QString, QString> languages;
 
     [[nodiscard]] int nextId() const override;
+
+private:
+    QString appPath;
+    QSettings settings;
 
 private slots:
 
@@ -113,6 +119,9 @@ private slots:
 
 private:
     [[nodiscard]] int nextId() const override;
+
+    QString appPath;
+    QSettings settings;
 
     KeyMgmt *mKeyMgmt;
     GpgME::GpgContext *mCtx;

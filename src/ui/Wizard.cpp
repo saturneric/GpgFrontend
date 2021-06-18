@@ -29,7 +29,8 @@
 #endif
 
 Wizard::Wizard(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent)
-        : QWizard(parent) {
+        : QWizard(parent), appPath(qApp->applicationDirPath()),
+          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     mCtx = ctx;
     mKeyMgmt = keyMgmt;
 
@@ -49,7 +50,6 @@ Wizard::Wizard(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent)
     setPixmap(QWizard::LogoPixmap, QPixmap(":/logo_small.png"));
     setPixmap(QWizard::BannerPixmap, QPixmap(":/banner.png"));
 
-    QSettings settings;
     setStartId(settings.value("wizard/nextPage", -1).toInt());
     settings.remove("wizard/nextPage");
 
@@ -59,7 +59,6 @@ Wizard::Wizard(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent)
 }
 
 void Wizard::slotWizardAccepted() {
-    QSettings settings;
     // Don't show is mapped to show -> negation
     settings.setValue("wizard/showWizard", !field("showWizard").toBool());
 
@@ -107,7 +106,8 @@ bool Wizard::importPubAndSecKeysFromDir(const QString &dir, KeyMgmt *keyMgmt) {
 }
 
 IntroPage::IntroPage(QWidget *parent)
-        : QWizardPage(parent) {
+        : QWizardPage(parent), appPath(qApp->applicationDirPath()),
+          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     setTitle(tr("Getting started..."));
     setSubTitle(tr("... with GPGFrontend"));
 
@@ -130,7 +130,6 @@ IntroPage::IntroPage(QWidget *parent)
             langSelectBox->addItem(l);
         }
     // selected entry from config
-    QSettings settings;
     QString langKey = settings.value("int/lang").toString();
     QString langValue = languages.value(langKey);
     if (langKey != "") {
@@ -148,7 +147,6 @@ IntroPage::IntroPage(QWidget *parent)
 }
 
 void IntroPage::slotLangChange(const QString &lang) {
-    QSettings settings;
     settings.setValue("int/lang", languages.key(lang));
     settings.setValue("wizard/nextPage", this->wizard()->currentId());
     qApp->exit(RESTART_CODE);
@@ -203,7 +201,8 @@ void ChoosePage::slotJumpPage(const QString &page) {
 }
 
 ImportFromGpg4usbPage::ImportFromGpg4usbPage(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent)
-        : QWizardPage(parent) {
+        : QWizardPage(parent), appPath(qApp->applicationDirPath()),
+          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     mCtx = ctx;
     mKeyMgmt = keyMgmt;
     setTitle(tr("Import from..."));
@@ -255,7 +254,6 @@ void ImportFromGpg4usbPage::slotImportFromOlderGpg4usb() {
     if (gpg4usbConfigCheckBox->isChecked()) {
         slotImportConfFromGpg4usb(dir);
 
-        QSettings settings;
         settings.setValue("wizard/nextPage", this->nextId());
         QMessageBox::information(nullptr, tr("Configuration Imported"),
                                  tr("Imported Configuration from old GPGFrontend.<br>"
@@ -267,7 +265,7 @@ void ImportFromGpg4usbPage::slotImportFromOlderGpg4usb() {
 }
 
 bool ImportFromGpg4usbPage::slotImportConfFromGpg4usb(const QString &dir) {
-    QString path = dir + "/conf/GPGFrontend.ini";
+    QString path = dir + "/conf/gpgfrontend.ini";
     QSettings oldconf(path, QSettings::IniFormat, this);
     QSettings actualConf;
             foreach(QString key, oldconf.allKeys()) {
