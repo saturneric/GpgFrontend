@@ -352,8 +352,11 @@ private:
     QAction *addPgpHeaderAct; /** Action for adding the PGP header */
 
     QLabel *statusBarIcon; /**< TODO */
-    QSettings settings; /**< TODO */
-    KeyList *mKeyList; /**< TODO */
+
+    QString appPath;
+    QSettings settings;
+    KeyList *mKeyList;
+
     InfoBoardWidget *infoBoard;
     Attachments *mAttachments; /**< TODO */
     GpgME::GpgContext *mCtx; /**< TODO */

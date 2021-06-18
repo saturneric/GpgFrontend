@@ -38,6 +38,10 @@ public:
     void applySettings();
 
 private:
+
+    QString appPath;
+    QSettings settings;
+
     QCheckBox *rememberPasswordCheckBox;
     [[maybe_unused]] QCheckBox *importConfirmationcheckBox{};
     QCheckBox *saveCheckedKeysCheckBox;
@@ -73,6 +77,10 @@ public:
     void applySettings();
 
 private:
+
+    QString appPath;
+    QSettings settings;
+
     QCheckBox *mimeParseCheckBox;
     QCheckBox *mimeQPCheckBox;
     QCheckBox *mimeOpenAttachmentCheckBox;
@@ -95,6 +103,10 @@ public:
     void applySettings();
 
 private:
+
+    QString appPath;
+    QSettings settings;
+
     QButtonGroup *iconStyleGroup;
     QRadioButton *iconSizeSmall;
     QRadioButton *iconSizeMedium;
@@ -122,6 +134,10 @@ public:
     void applySettings();
 
 private:
+
+    QString appPath;
+    QSettings settings;
+
     QComboBox *comboBox;
     QLineEdit *newKeyServerEdit;
 
@@ -146,6 +162,10 @@ public:
     void applySettings();
 
 private:
+
+    QString appPath;
+    QSettings settings;
+
     QCheckBox *steganoCheckBox;
 
 signals:
@@ -163,6 +183,9 @@ public:
 
 private:
     static QString getRelativePath(const QString& dir1, const QString& dir2);
+
+    QString appPath;
+    QSettings settings;
 
     QString defKeydbPath; /** The default keydb path used by gpg4usb */
     QString accKeydbPath; /** The currently used keydb path */

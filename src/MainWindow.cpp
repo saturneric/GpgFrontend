@@ -24,7 +24,10 @@
 
 #include "MainWindow.h"
 
-MainWindow::MainWindow() {
+MainWindow::MainWindow()
+    : appPath(qApp->applicationDirPath()),
+    settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
+
     mCtx = new GpgME::GpgContext();
 
     /* get path were app was started */
@@ -92,8 +95,9 @@ MainWindow::MainWindow() {
 
     // Show wizard, if the don't show wizard message box wasn't checked
     // and keylist doesn't contain a private key
-    QSettings qSettings;
-    if (qSettings.value("wizard/showWizard", true).toBool() || !qSettings.value("wizard/nextPage").isNull()) {
+    qDebug() << "wizard/showWizard" << settings.value("wizard/showWizard", true).toBool() ;
+    qDebug() << "wizard/nextPage" << settings.value("wizard/nextPage").isNull() ;
+    if (settings.value("wizard/showWizard", true).toBool() || !settings.value("wizard/nextPage").isNull()) {
         slotStartWizard();
     }
 }
@@ -121,15 +125,15 @@ void MainWindow::restoreSettings() {
     fileEncButton->setIconSize(iconSize);
     // set list of keyserver if not defined
     QStringList *keyServerDefaultList;
-    keyServerDefaultList = new QStringList("http://pgp.mit.edu");
+    keyServerDefaultList = new QStringList("http://keys.gnupg.net");
+    keyServerDefaultList->append("https://keyserver.ubuntu.com");
     keyServerDefaultList->append("http://pool.sks-keyservers.net");
-    keyServerDefaultList->append("http://subkeys.pgp.net");
 
     QStringList keyServerList = settings.value("keyserver/keyServerList", *keyServerDefaultList).toStringList();
     settings.setValue("keyserver/keyServerList", keyServerList);
 
     // set default keyserver, if it's not set
-    QString defaultKeyServer = settings.value("keyserver/defaultKeyServer", QString("http://pgp.mit.edu")).toString();
+    QString defaultKeyServer = settings.value("keyserver/defaultKeyServer", QString("http://keys.gnupg.net")).toString();
     settings.setValue("keyserver/defaultKeyServer", defaultKeyServer);
 
     // Iconstyle
@@ -499,7 +503,7 @@ void MainWindow::createMenus() {
     cryptMenu->addMenu(fileEncMenu);
 
     keyMenu = menuBar()->addMenu(tr("&Keys"));
-    importKeyMenu = keyMenu->addMenu(tr("&Import Key From..."));
+    importKeyMenu = keyMenu->addMenu(tr("&Import Key"));
     importKeyMenu->setIcon(QIcon(":key_import.png"));
     importKeyMenu->addAction(keyMgmt->importKeyFromFileAct);
     importKeyMenu->addAction(importKeyFromEditAct);
@@ -547,7 +551,6 @@ void MainWindow::createToolBars() {
     cryptToolBar->addAction(decryptVerifyAct);
     cryptToolBar->addAction(signAct);
     cryptToolBar->addAction(verifyAct);
-    //cryptToolBar->addAction(fileEncryptionAct);
     viewMenu->addAction(cryptToolBar->toggleViewAction());
 
     keyToolBar = addToolBar(tr("Key"));
@@ -562,10 +565,11 @@ void MainWindow::createToolBars() {
     editToolBar->addAction(selectallAct);
     viewMenu->addAction(editToolBar->toggleViewAction());
 
-    specialEditToolBar = addToolBar(tr("Special edit"));
+    specialEditToolBar = addToolBar(tr("Special Edit"));
     specialEditToolBar->setObjectName("specialEditToolBar");
     specialEditToolBar->addAction(quoteAct);
     specialEditToolBar->addAction(cleanDoubleLinebreaksAct);
+    specialEditToolBar->hide();
     viewMenu->addAction(specialEditToolBar->toggleViewAction());
 
     // Add dropdown menu for key import to keytoolbar
@@ -584,6 +588,7 @@ void MainWindow::createToolBars() {
     fileEncButton->setIcon(QIcon(":fileencryption.png"));
     fileEncButton->setToolTip(tr("Encrypt or decrypt File"));
     fileEncButton->setText(tr("File.."));
+    fileEncButton->hide();
 
     cryptToolBar->addWidget(fileEncButton);
 
@@ -990,41 +995,47 @@ void MainWindow::slotOpenSettingsDialog() {
     QString preLang = settings.value("int/lang").toString();
     QString preKeydbPath = settings.value("gpgpaths/keydbpath").toString();
 
-    new SettingsDialog(mCtx, this);
-    // Iconsize
-    QSize iconSize = settings.value("toolbar/iconsize", QSize(32, 32)).toSize();
-    this->setIconSize(iconSize);
-    importButton->setIconSize(iconSize);
-    fileEncButton->setIconSize(iconSize);
+    auto dialog = new SettingsDialog(mCtx, this);
 
-    // Iconstyle
-    Qt::ToolButtonStyle buttonStyle = static_cast<Qt::ToolButtonStyle>(settings.value("toolbar/iconstyle",
-                                                                                      Qt::ToolButtonTextUnderIcon).toUInt());
-    this->setToolButtonStyle(buttonStyle);
-    importButton->setToolButtonStyle(buttonStyle);
-    fileEncButton->setToolButtonStyle(buttonStyle);
+    connect(dialog, &SettingsDialog::finished, this, [&] () -> void {
 
-    // Mime-settings
-    if (settings.value("mime/parseMime").toBool()) {
-        createAttachmentDock();
-    } else if (attachmentDockCreated) {
-        closeAttachmentDock();
-    }
+        qDebug() << "Setting Dialog Finished";
 
-    // restart mainwindow if necessary
-    if (getRestartNeeded()) {
-        if (edit->maybeSaveAnyTab()) {
-            saveSettings();
-            qApp->exit(RESTART_CODE);
+        // Iconsize
+        QSize iconSize = settings.value("toolbar/iconsize", QSize(32, 32)).toSize();
+        this->setIconSize(iconSize);
+        importButton->setIconSize(iconSize);
+        fileEncButton->setIconSize(iconSize);
+
+        // Iconstyle
+        Qt::ToolButtonStyle buttonStyle = static_cast<Qt::ToolButtonStyle>(settings.value("toolbar/iconstyle",
+                                                                                          Qt::ToolButtonTextUnderIcon).toUInt());
+        this->setToolButtonStyle(buttonStyle);
+        importButton->setToolButtonStyle(buttonStyle);
+        fileEncButton->setToolButtonStyle(buttonStyle);
+
+        // Mime-settings
+        if (settings.value("mime/parseMime").toBool()) {
+            createAttachmentDock();
+        } else if (attachmentDockCreated) {
+            closeAttachmentDock();
         }
-    }
 
-    // steganography hide/show
-    if (!settings.value("advanced/steganography").toBool()) {
-        this->menuBar()->removeAction(steganoMenu->menuAction());
-    } else {
-        this->menuBar()->insertAction(viewMenu->menuAction(), steganoMenu->menuAction());
-    }
+        // restart mainwindow if necessary
+        if (getRestartNeeded()) {
+            if (edit->maybeSaveAnyTab()) {
+                saveSettings();
+                qApp->exit(RESTART_CODE);
+            }
+        }
+
+        // steganography hide/show
+        if (!settings.value("advanced/steganography").toBool()) {
+            this->menuBar()->removeAction(steganoMenu->menuAction());
+        } else {
+            this->menuBar()->insertAction(viewMenu->menuAction(), steganoMenu->menuAction());
+        }
+    });
 
 }
 

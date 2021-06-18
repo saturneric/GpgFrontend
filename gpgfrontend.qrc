@@ -1,3 +1,4 @@
+<!DOCTYPE RCC>
 <RCC>
     <qresource prefix="/">
         <file alias="keymgmt.png">resource/icons/keymgmt.png</file>

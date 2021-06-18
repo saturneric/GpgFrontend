@@ -32,14 +32,14 @@ find_package(Git QUIET)
 if(GIT_FOUND)
     execute_process(
             COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%H
-            OUTPUT_VARIABLE COMMIT_HASH
+            OUTPUT_VARIABLE GIT_COMMIT_HASH
             OUTPUT_STRIP_TRAILING_WHITESPACE
             ERROR_QUIET
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
     execute_process(
             COMMAND ${GIT_EXECUTABLE} symbolic-ref --short -q HEAD
-            OUTPUT_VARIABLE BRANCH_NAME
+            OUTPUT_VARIABLE GIT_BRANCH_NAME
             OUTPUT_STRIP_TRAILING_WHITESPACE
             ERROR_QUIET
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -48,10 +48,10 @@ endif()
 
 
 set(BUILD_VERSION ${PROJECT_VERSION}_${CMAKE_SYSTEM}_${CMAKE_SYSTEM_PROCESSOR}_${CMAKE_BUILD_TYPE})
-set(GIT_VERSION ${PROJECT_NAME}_${GIT_COMMIT_HASH}_${GIT_COMMIT_HASH})
+set(GIT_VERSION ${GIT_BRANCH_NAME}_${GIT_COMMIT_HASH})
 string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S")
 
-message("Build Timestamp ${BUILD_TIMESTAMP}")
+message(STATUS "Build Timestamp ${BUILD_TIMESTAMP}")
 message(STATUS "Build Version ${BUILD_VERSION}")
 message(STATUS "Git Version ${GIT_VERSION}")
 
@@ -110,7 +110,7 @@ if(LINUX)
 
 endif()
 
-find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network LinguistTools REQUIRED)
 
 add_subdirectory(src)
 

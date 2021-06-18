@@ -121,7 +121,8 @@ QHash<QString, QString> SettingsDialog::listLanguages() {
 
 
 GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
-        : QWidget(parent) {
+        : QWidget(parent), appPath(qApp->applicationDirPath()),
+          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     mCtx = ctx;
 
     /*****************************************
@@ -225,7 +226,6 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
  * appropriately
  **********************************/
 void GeneralTab::setSettings() {
-    QSettings settings;
     // Keysaving
     if (settings.value("keys/keySave").toBool()) {
         saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
@@ -276,7 +276,6 @@ void GeneralTab::setSettings() {
   * write them to settings-file
   *************************************/
 void GeneralTab::applySettings() {
-    QSettings settings;
     settings.setValue("keys/keySave", saveCheckedKeysCheckBox->isChecked());
     // TODO: clear passwordCache instantly on unset rememberPassword
     settings.setValue("general/rememberPassword", rememberPasswordCheckBox->isChecked());
@@ -333,7 +332,8 @@ void GeneralTab::slotOwnKeyIdChanged() {
 }
 
 MimeTab::MimeTab(QWidget *parent)
-        : QWidget(parent) {
+        : QWidget(parent), appPath(qApp->applicationDirPath()),
+          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     /*****************************************
      * MIME-Parsing-Box
      *****************************************/
@@ -379,7 +379,6 @@ MimeTab::MimeTab(QWidget *parent)
  * appropriately
  **********************************/
 void MimeTab::setSettings() {
-    QSettings settings;
 
     // MIME-Parsing
     if (settings.value("mime/parsemime").toBool()) mimeParseCheckBox->setCheckState(Qt::Checked);
@@ -397,7 +396,6 @@ void MimeTab::setSettings() {
   * write them to settings-file
   *************************************/
 void MimeTab::applySettings() {
-    QSettings settings;
     settings.setValue("mime/parsemime", mimeParseCheckBox->isChecked());
     settings.setValue("mime/parseQP", mimeQPCheckBox->isChecked());
     settings.setValue("mime/openAttachment", mimeOpenAttachmentCheckBox->isChecked());
@@ -405,7 +403,8 @@ void MimeTab::applySettings() {
 }
 
 AppearanceTab::AppearanceTab(QWidget *parent)
-        : QWidget(parent) {
+        : QWidget(parent), appPath(qApp->applicationDirPath()),
+          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     /*****************************************
       * Icon-Size-Box
       *****************************************/
@@ -470,7 +469,6 @@ AppearanceTab::AppearanceTab(QWidget *parent)
  * appropriately
  **********************************/
 void AppearanceTab::setSettings() {
-    QSettings settings;
 
     //Iconsize
     QSize iconSize = settings.value("toolbar/iconsize", QSize(24, 24)).toSize();
@@ -512,7 +510,6 @@ void AppearanceTab::setSettings() {
   * write them to settings-file
   *************************************/
 void AppearanceTab::applySettings() {
-    QSettings settings;
     switch (iconSizeGroup->checkedId()) {
         case 1:
             settings.setValue("toolbar/iconsize", QSize(12, 12));
@@ -541,13 +538,24 @@ void AppearanceTab::applySettings() {
 }
 
 KeyserverTab::KeyserverTab(QWidget *parent)
-        : QWidget(parent) {
+        : QWidget(parent), appPath(qApp->applicationDirPath()),
+          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
+
+    auto keyServerList = settings.value("keyserver/keyServerList").toStringList();
+
     auto *mainLayout = new QVBoxLayout(this);
 
     auto *label = new QLabel(tr("Default Keyserver for import:"));
     comboBox = new QComboBox;
     comboBox->setEditable(false);
     comboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    for (const auto &keyServer : keyServerList) {
+        comboBox->addItem(keyServer);
+        qDebug() << "KeyserverTab Get ListItemText" << keyServer;
+    }
+
+    comboBox->setCurrentText(settings.value("keyserver/defaultKeyServer").toString());
 
     auto *addKeyServerBox = new QWidget(this);
     auto *addKeyServerLayout = new QHBoxLayout(addKeyServerBox);
@@ -575,14 +583,13 @@ KeyserverTab::KeyserverTab(QWidget *parent)
  * appropriately
  **********************************/
 void KeyserverTab::setSettings() {
-    QSettings settings;
-    QString defKeyserver = settings.value("keyserver/defaultKeyServer").toString();
-
     auto *keyServerList = new QStringList();
     for (int i = 0; i < comboBox->count(); i++) {
         keyServerList->append(comboBox->itemText(i));
+        qDebug() << "KeyserverTab ListItemText" << comboBox->itemText(i);
     }
     settings.setValue("keyserver/keyServerList", *keyServerList);
+    settings.setValue("keyserver/defaultKeyServer", comboBox->currentText());
 }
 
 void KeyserverTab::addKeyServer() {
@@ -599,12 +606,12 @@ void KeyserverTab::addKeyServer() {
   * write them to settings-file
   *************************************/
 void KeyserverTab::applySettings() {
-    QSettings settings;
     settings.setValue("keyserver/defaultKeyServer", comboBox->currentText());
 }
 
 AdvancedTab::AdvancedTab(QWidget *parent)
-        : QWidget(parent) {
+        : QWidget(parent), appPath(qApp->applicationDirPath()),
+          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     /*****************************************
      * Steganography Box
      *****************************************/
@@ -623,19 +630,18 @@ AdvancedTab::AdvancedTab(QWidget *parent)
 }
 
 void AdvancedTab::setSettings() {
-    QSettings settings;
     if (settings.value("advanced/steganography").toBool()) {
         steganoCheckBox->setCheckState(Qt::Checked);
     }
 }
 
 void AdvancedTab::applySettings() {
-    QSettings settings;
     settings.setValue("advanced/steganography", steganoCheckBox->isChecked());
 }
 
 GpgPathsTab::GpgPathsTab(QWidget *parent)
-        : QWidget(parent) {
+        : QWidget(parent), appPath(qApp->applicationDirPath()),
+          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     setSettings();
 
     /*****************************************
@@ -696,7 +702,6 @@ QString GpgPathsTab::chooseKeydbDir() {
 void GpgPathsTab::setSettings() {
     defKeydbPath = qApp->applicationDirPath() + "/keydb";
 
-    QSettings settings;
     accKeydbPath = settings.value("gpgpaths/keydbpath").toString();
     if (accKeydbPath.isEmpty()) {
         accKeydbPath = ".";
@@ -704,6 +709,5 @@ void GpgPathsTab::setSettings() {
 }
 
 void GpgPathsTab::applySettings() {
-    QSettings settings;
     settings.setValue("gpgpaths/keydbpath", accKeydbPath);
 }

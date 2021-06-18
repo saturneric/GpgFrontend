@@ -49,19 +49,22 @@ AboutDialog::AboutDialog(QWidget *parent)
 InfoTab::InfoTab(QWidget *parent)
         : QWidget(parent) {
     auto *pixmap = new QPixmap(":gpgfrontend-logo.png");
-    auto *text = new QString("<center><h2>" + qApp->applicationName() + " "
-                             + qApp->applicationVersion() + "</h2></center>"
-                             + tr("<center>This application allows simple encryption <br>"
-                                  "and decryption of text messages or files.<br>"
-                                  "It's licensed under the GPL v3<br><br>"
-                                  "<b>Developer:</b><br>"
-                                  "Saturneric<br><br>"
-                                  "If you have any questions or suggestions have a look<br/>"
-                                  "at my <a href=\"https://bktus.com/%e8%81%94%e7%b3%bb%e4%b8%8e%e9%aa%8c%e8%af%81\">"
-                                  "contact page</a> or send a mail to my<br/> mailing list at"
-                                  " <a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>.") +
-                             tr("<br><br> Built with Qt ") + qVersion()
-                             + tr(" and GPGME ") + GpgME::GpgContext::getGpgmeVersion() + "</center>");
+    auto *text = new QString("<center><h2>" + qApp->applicationName() + "</h2></center>"
+            + "<center><b>" + qApp->applicationVersion() + "</b></center>"
+            + "<center>" + GIT_VERSION + "</center>"
+            + tr("<br><center>GPGFrontend is a modern, easy-to-use, compact, <br>"
+            "cross-platform, and installation-free gpg front-end tool.<br>"
+            "It visualizes most of the common operations of gpg commands.<br>"
+            "It's licensed under the GPL v3<br><br>"
+            "<b>Developer:</b><br>"
+            "Saturneric<br><br>"
+            "If you have any questions or suggestions have a look<br/>"
+            "at my <a href=\"https://bktus.com/%e8%81%94%e7%b3%bb%e4%b8%8e%e9%aa%8c%e8%af%81\">"
+            "contact page</a> or send a mail to my<br/> mailing list at"
+            " <a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>.") +
+            tr("<br><br> Built with Qt ") + qVersion()
+            + tr(" and GPGME ") + GpgME::GpgContext::getGpgmeVersion() +
+            tr("<br>Built at ") + BUILD_TIMESTAMP + "</center>");
 
     auto *layout = new QGridLayout();
     auto *pixmapLabel = new QLabel();
