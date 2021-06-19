@@ -28,7 +28,9 @@
 #include <Mime.h>
 
 #ifdef _WIN32
+
 #include <windows.h>
+
 #endif
 
 #define INT2VOIDP(i) (void*)(uintptr_t)(i)
@@ -47,14 +49,9 @@ namespace GpgME {
          *  subsystem in GPGME. (from the info page) */
         gpgme_check_version(nullptr);
 
-        // TODO: Set gpgme_language to config
-        /*QSettings qSettings;
-        qDebug() << " - " << qSettings.value("int/lang").toLocale().name();
-        qDebug() << " - " << QLocale(qSettings.value("int/lang").toString()).name();*/
-
         // the locale set here is used for the other setlocale calls which have nullptr
         // -> nullptr means use default, which is configured here
-        setlocale(LC_ALL, "");
+        setlocale(LC_ALL, settings.value("int/lang").toLocale().name().toUtf8().constData());
 
         /** set locale, because tests do also */
         gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
@@ -69,10 +66,31 @@ namespace GpgME {
         gpgme_engine_info_t engineInfo;
         engineInfo = gpgme_ctx_get_engine_info(mCtx);
 
+        // Check ENV before running
+        bool check_pass = false, find_openpgp = false, find_gpgconf = false, find_assuan = false, find_cms = false;
         while (engineInfo != nullptr) {
             qDebug() << gpgme_get_protocol_name(engineInfo->protocol) << engineInfo->file_name << engineInfo->protocol
                      << engineInfo->home_dir << engineInfo->version;
+            if (engineInfo->protocol == GPGME_PROTOCOL_GPGCONF && strcmp(engineInfo->version, "1.0.0") != 0)
+                find_gpgconf = true;
+            if (engineInfo->protocol == GPGME_PROTOCOL_OpenPGP && strcmp(engineInfo->version, "1.0.0") != 0)
+                find_openpgp = true;
+            if (engineInfo->protocol == GPGME_PROTOCOL_CMS && strcmp(engineInfo->version, "1.0.0") != 0)
+                find_cms = true;
+            if (engineInfo->protocol == GPGME_PROTOCOL_ASSUAN)
+                find_assuan = true;
+
             engineInfo = engineInfo->next;
+        }
+
+        if (find_gpgconf && find_openpgp && find_cms && find_assuan)
+            check_pass = true;
+
+        if (!check_pass) {
+            QMessageBox::critical(nullptr, tr("ENV Loading Failed"),
+                                  tr("Gnupg is not installed correctly, please follow the ReadME instructions to install gnupg and then open GPGFrontend."));
+            QCoreApplication::quit();
+            exit(0);
         }
 
         /** Setting the output type must be done at the beginning */
