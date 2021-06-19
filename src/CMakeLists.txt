@@ -42,7 +42,11 @@ set(RESOURCE_FILES ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc ${APP_ICON_RESOURCE_WINDO
 add_custom_target(resources ALL DEPENDS ${RESOURCE_FILES})
 add_dependencies(resources translations)
 
-add_executable(gpgfrontend ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+if((${CMAKE_BUILD_TYPE} STREQUAL  "Release") AND (MINGW))
+    add_executable(gpgfrontend WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+else()
+    add_executable(gpgfrontend ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+endif()
 
 IF (MINGW)
     message(STATUS "Link Application Static Library For MINGW")
