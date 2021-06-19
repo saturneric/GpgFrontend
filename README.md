@@ -52,6 +52,7 @@ If you have any questions, please open an issue. If you want to contact me indiv
 
 ## LOGO
 ![logo](https://github.com/saturneric/Blob/blob/master/logos/gpgfrontend-logo.jpg?raw=true)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_shield)
 
 ## LICENSES
 
@@ -67,3 +68,6 @@ The icons of this software use materials from Alibaba vector icon library. The A
 use. The icons in the free library aren't registered as trademarks. There is no copyright issue involved and can be used
 commercially.
 
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_large)
