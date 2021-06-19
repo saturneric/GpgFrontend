@@ -1,5 +1,8 @@
 #CLion
-.idea
+.idea/*
+
+# macOS
+.DS_Store
 
 # Clangd
 .cache/
