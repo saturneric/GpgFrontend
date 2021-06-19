@@ -59,8 +59,10 @@ private:
 
     QPushButton *createButton(const QString &text, const char *member);
 
-    static QComboBox *createComboBox();
+    QComboBox *createComboBox();
 
+    QString appPath;
+    QSettings settings;
     GpgME::GpgContext *mCtx;
     KeyList *mKeyList;
     QLineEdit *searchLineEdit;
@@ -73,7 +75,6 @@ private:
     QPushButton *importButton;
     QPushButton *searchButton;
     QTableWidget *keysTable{};
-    [[maybe_unused]] QUrl url;
     QNetworkAccessManager *qnam{};
 
 };

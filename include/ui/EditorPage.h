@@ -92,10 +92,7 @@ public:
 private:
     QTextEdit *textPage; /** The textedit of the tab */
     QVBoxLayout *mainLayout; /** The layout for the tab */
-    [[maybe_unused]] QWidget *notificationWidget{}; /** The notification widget shown at the buttom of the tab */
-    [[maybe_unused]] QMenu *verifyMenu{}; /** The menu in the notifiaction widget */
     QString fullFilePath; /** The path to the file handled in the tab */
-    [[maybe_unused]] QLabel *verifyLabel{}; /** The label of the verify-notification widget */
     bool signMarked{}; /** true, if the signed header is marked, false if not */
 
 private slots:

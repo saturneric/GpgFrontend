@@ -41,8 +41,6 @@ private:
     const GpgKey mKey;
     GenKeyInfo *keyGenParams;
     GpgME::GpgContext *mCtx;
-    [[maybe_unused]] bool abort;
-    QMutex mutex;
 
 protected:
 

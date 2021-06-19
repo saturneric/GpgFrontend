@@ -361,18 +361,6 @@ void MainWindow::createActions() {
     aboutAct->setToolTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(slotAbout()));
 
-    openHelpAct = new QAction(tr("Integrated Help"), this);
-    openHelpAct->setToolTip(tr("Open integrated Help"));
-    connect(openHelpAct, SIGNAL(triggered()), this, SLOT(slotOpenHelp()));
-
-    openTutorialAct = new QAction(tr("Online &Tutorials"), this);
-    openTutorialAct->setToolTip(tr("Open Online Tutorials"));
-    connect(openTutorialAct, SIGNAL(triggered()), this, SLOT(slotOpenTutorial()));
-
-    openTranslateAct = new QAction(tr("Translate gpg4usb"), this);
-    openTranslateAct->setToolTip(tr("Translate gpg4usb yourself"));
-    connect(openTranslateAct, SIGNAL(triggered()), this, SLOT(slotOpenTranslate()));
-
     startWizardAct = new QAction(tr("Open &Wizard"), this);
     startWizardAct->setToolTip(tr("Open the wizard"));
     connect(startWizardAct, SIGNAL(triggered()), this, SLOT(slotStartWizard()));
@@ -524,11 +512,7 @@ void MainWindow::createMenus() {
     viewMenu = menuBar()->addMenu(tr("&View"));
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
-    helpMenu->addAction(openHelpAct);
     helpMenu->addAction(startWizardAct);
-    helpMenu->addSeparator();
-    helpMenu->addAction(openTutorialAct);
-    helpMenu->addAction(openTranslateAct);
     helpMenu->addSeparator();
     helpMenu->addAction(aboutAct);
 
@@ -680,22 +664,6 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 void MainWindow::slotAbout() {
     new AboutDialog(this);
-}
-
-void MainWindow::slotOpenTranslate() {
-    QDesktopServices::openUrl(QUrl("http://gpg4usb.cpunk.de/docu_translate.html"));
-}
-
-void MainWindow::slotOpenTutorial() {
-    QDesktopServices::openUrl(QUrl("http://gpg4usb.cpunk.de/docu.html"));
-}
-
-void MainWindow::slotOpenHelp() {
-    slotOpenHelp("docu.html");
-}
-
-void MainWindow::slotOpenHelp(const QString &page) {
-    edit->slotNewHelpTab("help", "file:" + qApp->applicationDirPath() + "/help/" + page);
 }
 
 void MainWindow::slotSetStatusBarText(const QString &text) {

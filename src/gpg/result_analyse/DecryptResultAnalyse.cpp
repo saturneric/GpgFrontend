@@ -7,33 +7,33 @@
 DecryptResultAnalyse::DecryptResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_decrypt_result_t result)
         : mCtx(ctx) {
 
-    stream << "Decrypt Report: " << endl << "-----" << endl;
+    stream << "Decrypt Report: " << Qt::endl << "-----" << Qt::endl;
 
     if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
-        stream << "Status: Success" << endl;
+        stream << "Status: Success" << Qt::endl;
     } else {
         setStatus(-1);
-        stream << "Status: " << gpgme_strerror(error) << endl;
+        stream << "Status: " << gpgme_strerror(error) << Qt::endl;
 
         if (result != nullptr && result->unsupported_algorithm != nullptr)
-            stream << "Unsupported algo: " << result->unsupported_algorithm << endl;
+            stream << "Unsupported algo: " << result->unsupported_algorithm << Qt::endl;
     }
 
     if(result != nullptr) {
         if (result->file_name != nullptr)
-            stream << "File name: " << result->file_name << endl;
-        stream << endl;
+            stream << "File name: " << result->file_name << Qt::endl;
+        stream << Qt::endl;
 
         auto reci = result->recipients;
         if (reci != nullptr)
-            stream << "Recipient(s): " << endl;
+            stream << "Recipient(s): " << Qt::endl;
         while (reci != nullptr) {
             printReci(stream, reci);
             reci = reci->next;
         }
     }
 
-    stream << "-----" << endl << endl;
+    stream << "-----" << Qt::endl << Qt::endl;
 
 }
 
@@ -52,8 +52,8 @@ bool DecryptResultAnalyse::printReci(QTextStream &stream, gpgme_recipient_t reci
         setStatus(0);
         keyFound = false;
     }
-    stream << endl;
+    stream << Qt::endl;
 
-    stream << "Public algo: " << gpgme_pubkey_algo_name(reci->pubkey_algo) << endl << endl;
+    stream << "Public algo: " << gpgme_pubkey_algo_name(reci->pubkey_algo) << Qt::endl << Qt::endl;
     return keyFound;
 }

@@ -1163,53 +1163,53 @@ gpg4usb va essayer d&apos;importer les clefs.</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="568"/>
+        <location filename="../../src/MainWindow.cpp" line="552"/>
         <source>Special Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="617"/>
+        <location filename="../../src/MainWindow.cpp" line="601"/>
         <source>Key ToolBox</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="625"/>
+        <location filename="../../src/MainWindow.cpp" line="609"/>
         <source>Information Board</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="758"/>
-        <location filename="../../src/MainWindow.cpp" line="805"/>
-        <location filename="../../src/MainWindow.cpp" line="1108"/>
+        <location filename="../../src/MainWindow.cpp" line="726"/>
+        <location filename="../../src/MainWindow.cpp" line="773"/>
+        <location filename="../../src/MainWindow.cpp" line="1076"/>
         <source>No Key Selected</source>
         <translation type="unfinished">Aucune clef selectionnée</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="765"/>
-        <location filename="../../src/MainWindow.cpp" line="812"/>
-        <location filename="../../src/MainWindow.cpp" line="1115"/>
+        <location filename="../../src/MainWindow.cpp" line="733"/>
+        <location filename="../../src/MainWindow.cpp" line="780"/>
+        <location filename="../../src/MainWindow.cpp" line="1083"/>
         <source>Invalid Operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="766"/>
+        <location filename="../../src/MainWindow.cpp" line="734"/>
         <source>The selected key contains a key that does not actually have a encrypt function.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="767"/>
-        <location filename="../../src/MainWindow.cpp" line="814"/>
-        <location filename="../../src/MainWindow.cpp" line="1117"/>
+        <location filename="../../src/MainWindow.cpp" line="735"/>
+        <location filename="../../src/MainWindow.cpp" line="782"/>
+        <location filename="../../src/MainWindow.cpp" line="1085"/>
         <source>&lt;br/&gt;For example the Following Key: &lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="813"/>
+        <location filename="../../src/MainWindow.cpp" line="781"/>
         <source>The selected key contains a key that does not actually have a signature function.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="1116"/>
+        <location filename="../../src/MainWindow.cpp" line="1084"/>
         <source>The selected key cannot be used for signing and encryption at the same time.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1312,117 +1312,111 @@ gpg4usb va essayer d&apos;importer les clefs.</translation>
         <translation>Afficher la fenêtre A Propos de</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="364"/>
         <source>Integrated Help</source>
-        <translation>Aide &amp;intégrée</translation>
+        <translation type="vanished">Aide &amp;intégrée</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="365"/>
         <source>Open integrated Help</source>
-        <translation>Ouvrir l&apos;aide intégrée</translation>
+        <translation type="vanished">Ouvrir l&apos;aide intégrée</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="368"/>
         <source>Online &amp;Tutorials</source>
-        <translation>Tutoriaux en &amp;ligne</translation>
+        <translation type="vanished">Tutoriaux en &amp;ligne</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="369"/>
         <source>Open Online Tutorials</source>
-        <translation>Ouvrir tutoriaux en ligne</translation>
+        <translation type="vanished">Ouvrir tutoriaux en ligne</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="372"/>
         <source>Translate gpg4usb</source>
-        <translation>Traduire &amp;gpg4usb</translation>
+        <translation type="vanished">Traduire &amp;gpg4usb</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="373"/>
         <source>Translate gpg4usb yourself</source>
-        <translation>Traduire gpg4usb vous-même</translation>
+        <translation type="vanished">Traduire gpg4usb vous-même</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="376"/>
+        <location filename="../../src/MainWindow.cpp" line="364"/>
         <source>Open &amp;Wizard</source>
         <translation>&amp;Ouvrir l&apos;assistant</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="377"/>
+        <location filename="../../src/MainWindow.cpp" line="365"/>
         <source>Open the wizard</source>
         <translation>Ouvrir l&apos;assistant</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="382"/>
+        <location filename="../../src/MainWindow.cpp" line="370"/>
         <source>Append Selected Key(s) To Text</source>
         <translation>Ajouter la clef sélectionnée au texte</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="383"/>
+        <location filename="../../src/MainWindow.cpp" line="371"/>
         <source>Append The Selected Keys To Text in Editor</source>
         <translation>Ajouter les clefs sélectionnées aux texte dans l&apos;éditeur</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="386"/>
+        <location filename="../../src/MainWindow.cpp" line="374"/>
         <source>Copy EMail-address</source>
         <translation>Copier adresse email</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="387"/>
+        <location filename="../../src/MainWindow.cpp" line="375"/>
         <source>Copy selected EMailaddress to clipboard</source>
         <translation>Copier l&apos;adresse mail dans le presse-papiers</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="391"/>
+        <location filename="../../src/MainWindow.cpp" line="379"/>
         <source>Show Keydetails</source>
         <translation>Afficher propriétés de la clef</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="392"/>
+        <location filename="../../src/MainWindow.cpp" line="380"/>
         <source>Show Details for this Key</source>
         <translation>Afficher les propriétés de cette clef</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="395"/>
+        <location filename="../../src/MainWindow.cpp" line="383"/>
         <source>Refresh key from keyserver</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="396"/>
+        <location filename="../../src/MainWindow.cpp" line="384"/>
         <source>Refresh key from default keyserver</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="399"/>
+        <location filename="../../src/MainWindow.cpp" line="387"/>
         <source>Upload Key(s) To Server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="400"/>
+        <location filename="../../src/MainWindow.cpp" line="388"/>
         <source>Upload The Selected Keys To Server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="458"/>
+        <location filename="../../src/MainWindow.cpp" line="446"/>
         <source>&amp;File</source>
         <translation>&amp;Fichier</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="470"/>
+        <location filename="../../src/MainWindow.cpp" line="458"/>
         <source>&amp;Edit</source>
         <translation>&amp;Edition</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="488"/>
+        <location filename="../../src/MainWindow.cpp" line="476"/>
         <source>&amp;File...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="494"/>
+        <location filename="../../src/MainWindow.cpp" line="482"/>
         <source>&amp;Crypt</source>
         <translation>&amp;Chiffrage</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="505"/>
+        <location filename="../../src/MainWindow.cpp" line="493"/>
         <source>&amp;Keys</source>
         <translation>C&amp;lefs</translation>
     </message>
@@ -1431,7 +1425,7 @@ gpg4usb va essayer d&apos;importer les clefs.</translation>
         <translation type="vanished">&amp;Importer des clefs de...</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="515"/>
+        <location filename="../../src/MainWindow.cpp" line="503"/>
         <source>&amp;Steganography</source>
         <translation>&amp;Stéganographie</translation>
     </message>
@@ -1444,47 +1438,47 @@ gpg4usb va essayer d&apos;importer les clefs.</translation>
         <translation type="vanished">&lt;center&gt;Cette application permet le chiffrage et le&lt;br&gt;déchiffrage simples de messages ou de fichiers.&lt;br&gt;Il est sous licence GPL v3&lt;br&gt;&lt;br&gt;&lt;b&gt;Développeurs:&lt;/b&gt;&lt;br&gt;Bene, Heimer, Juergen, Nils, Ubbo&lt;br&gt;&lt;br&gt;&lt;b&gt;Traductions:&lt;/b&gt;&lt;br/&gt;Ahmad (ar), Alessandro (pt_br), Åke (sv),&lt;br/&gt;Elad (he), George (el), Jedi Lin (zh_tw),&lt;br/&gt;Kirill (ru), Marek Bogacz (pl), Phol (es),&lt;br/&gt;Russell (my), Serse (it), Tom (vi),&lt;br/&gt;Toughworm(zh), Viriato (es), Pierre Fauque (fr)&lt;br&gt;&lt;br&gt;Si vous avez des questions ou des suggestions,&lt;br/&gt;jetez un oeil à notre &lt;a href=&quot;http://gpg4usb.cpunk.de/contact.php&quot;&gt;page de contact&lt;/a&gt;&lt;br/&gt;ou&lt;br/&gt;envoyez un mail à notre&lt;br/&gt; mailing list à &lt;a href=&quot;mailto:gpg4usb@gzehn.de&quot;&gt;gpg4usb@gzehn.de&lt;/a&gt;.</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="414"/>
+        <location filename="../../src/MainWindow.cpp" line="402"/>
         <source>Remove PGP Header</source>
         <translation>Supprimer en-tête PGP</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="417"/>
+        <location filename="../../src/MainWindow.cpp" line="405"/>
         <source>Add PGP Header</source>
         <translation>Ajouter en-tête PGP</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="506"/>
+        <location filename="../../src/MainWindow.cpp" line="494"/>
         <source>&amp;Import Key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="524"/>
+        <location filename="../../src/MainWindow.cpp" line="512"/>
         <source>&amp;View</source>
         <translation>Affic&amp;her</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="526"/>
+        <location filename="../../src/MainWindow.cpp" line="514"/>
         <source>&amp;Help</source>
         <translation>&amp;Aide</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="538"/>
+        <location filename="../../src/MainWindow.cpp" line="522"/>
         <source>File</source>
         <translation>Fichier</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="546"/>
+        <location filename="../../src/MainWindow.cpp" line="530"/>
         <source>Crypt</source>
         <translation>Chiffrage</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="556"/>
+        <location filename="../../src/MainWindow.cpp" line="540"/>
         <source>Key</source>
         <translation>Clef</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="561"/>
+        <location filename="../../src/MainWindow.cpp" line="545"/>
         <source>Edit</source>
         <translation>Edition</translation>
     </message>
@@ -1493,27 +1487,27 @@ gpg4usb va essayer d&apos;importer les clefs.</translation>
         <translation type="vanished">Edition spéciale</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="580"/>
+        <location filename="../../src/MainWindow.cpp" line="564"/>
         <source>Import key from...</source>
         <translation>Importer clef de...</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="581"/>
+        <location filename="../../src/MainWindow.cpp" line="565"/>
         <source>Import key</source>
         <translation>Importer clef</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="589"/>
+        <location filename="../../src/MainWindow.cpp" line="573"/>
         <source>Encrypt or decrypt File</source>
         <translation>Chiffrer ou déchiffrer fichier</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="590"/>
+        <location filename="../../src/MainWindow.cpp" line="574"/>
         <source>File..</source>
         <translation>Fichier..</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="610"/>
+        <location filename="../../src/MainWindow.cpp" line="594"/>
         <source>Ready</source>
         <translation>Prêt</translation>
     </message>
@@ -1522,7 +1516,7 @@ gpg4usb va essayer d&apos;importer les clefs.</translation>
         <translation type="vanished">Chiffrer pour</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="645"/>
+        <location filename="../../src/MainWindow.cpp" line="629"/>
         <source>Attached files:</source>
         <translation>Fichiers joints:</translation>
     </message>
@@ -1535,17 +1529,17 @@ gpg4usb va essayer d&apos;importer les clefs.</translation>
         <translation type="vanished"> et GPGME </translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="724"/>
+        <location filename="../../src/MainWindow.cpp" line="692"/>
         <source>There is one unencrypted file in attachment folder</source>
         <translation>Il y a un fichier non chiffré dans le dossier pièces jointes</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="726"/>
+        <location filename="../../src/MainWindow.cpp" line="694"/>
         <source>There are </source>
         <translation>Il y a </translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="726"/>
+        <location filename="../../src/MainWindow.cpp" line="694"/>
         <source> unencrypted files in attachment folder</source>
         <translation> fichiers non chiffrés dans le dossier pièces jointes</translation>
     </message>

@@ -26,7 +26,7 @@
 
 QuitDialog::QuitDialog(QWidget *parent, const QHash<int, QString>& unsavedDocs)
         : QDialog(parent) {
-    setWindowTitle(tr("Unsaved files"));
+    setWindowTitle(tr("Unsaved Files"));
     setModal(true);
     discarded = false;
 
@@ -46,9 +46,9 @@ QuitDialog::QuitDialog(QWidget *parent, const QHash<int, QString>& unsavedDocs)
     mFileList->setFocusPolicy(Qt::NoFocus);
     mFileList->horizontalHeader()->setStretchLastSection(true);
     // fill the table
-    i.toBack(); //jump to the end of list to fill the table backwards
-    while (i.hasPrevious()) {
-        i.previous();
+    i.toFront(); //jump to the end of list to fill the table backwards
+    while (i.hasNext()) {
+        i.next();
         mFileList->setRowCount(mFileList->rowCount() + 1);
 
         // checkbox in front of filename
@@ -69,14 +69,15 @@ QuitDialog::QuitDialog(QWidget *parent, const QHash<int, QString>& unsavedDocs)
     /*
      *  Warnbox with icon and text
      */
-    auto *pixmap = new QPixmap(":error.png");
-    auto *warnicon = new QLabel();
-    warnicon->setPixmap(*pixmap);
-    auto *warnlabel = new QLabel(
+    auto pixmap = QPixmap(":error.png");
+    pixmap = pixmap.scaled(50, 50, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    auto *warn_icon = new QLabel();
+    warn_icon->setPixmap(pixmap);
+    auto *warn_label = new QLabel(
             tr("<h3>%1 files contain unsaved information.<br/>Save the changes before closing?</h3>").arg(row));
     auto *warnBoxLayout = new QHBoxLayout();
-    warnBoxLayout->addWidget(warnicon);
-    warnBoxLayout->addWidget(warnlabel);
+    warnBoxLayout->addWidget(warn_icon);
+    warnBoxLayout->addWidget(warn_label);
     warnBoxLayout->setAlignment(Qt::AlignLeft);
     auto *warnBox = new QWidget(this);
     warnBox->setLayout(warnBoxLayout);
@@ -85,7 +86,7 @@ QuitDialog::QuitDialog(QWidget *parent, const QHash<int, QString>& unsavedDocs)
      *  Two labels on top and under the filelist
      */
     auto *checkLabel = new QLabel(tr("Check the files you want to save:"));
-    auto *notelabel = new QLabel(tr("<b>Note:</b> If you don't save these files, all changes are lost.<br/>"));
+    auto *note_label = new QLabel(tr("<b>Note:</b> If you don't save these files, all changes are lost.<br/>"));
 
     /*
      *  Buttonbox
@@ -104,7 +105,7 @@ QuitDialog::QuitDialog(QWidget *parent, const QHash<int, QString>& unsavedDocs)
     vbox->addWidget(warnBox);
     vbox->addWidget(checkLabel);
     vbox->addWidget(mFileList);
-    vbox->addWidget(notelabel);
+    vbox->addWidget(note_label);
     vbox->addWidget(buttonBox);
     this->setLayout(vbox);
 }

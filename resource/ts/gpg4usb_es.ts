@@ -1156,27 +1156,27 @@ gpg4usb intentara ahora importar la(s) llave(s).</translation>
     </message>
     <message>
         <source>Integrated Help</source>
-        <translation>Ayuda Integrada</translation>
+        <translation type="vanished">Ayuda Integrada</translation>
     </message>
     <message>
         <source>Open integrated Help</source>
-        <translation>Abrir Ayuda integrada</translation>
+        <translation type="vanished">Abrir Ayuda integrada</translation>
     </message>
     <message>
         <source>Online &amp;Tutorials</source>
-        <translation>&amp;Tutoriales en línea</translation>
+        <translation type="vanished">&amp;Tutoriales en línea</translation>
     </message>
     <message>
         <source>Open Online Tutorials</source>
-        <translation>Abrir Tutoriales en línea</translation>
+        <translation type="vanished">Abrir Tutoriales en línea</translation>
     </message>
     <message>
         <source>Translate gpg4usb</source>
-        <translation>Traducir gpg4usb</translation>
+        <translation type="vanished">Traducir gpg4usb</translation>
     </message>
     <message>
         <source>Translate gpg4usb yourself</source>
-        <translation>Traduzca usted mismo gpg4usb</translation>
+        <translation type="vanished">Traduzca usted mismo gpg4usb</translation>
     </message>
     <message>
         <source>Open &amp;Wizard</source>

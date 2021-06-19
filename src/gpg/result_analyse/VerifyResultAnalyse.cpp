@@ -8,23 +8,23 @@
 VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_verify_result_t result)
         : mCtx(ctx) {
 
-    stream << "# Verify Report: " << endl << "-----" << endl;
-    stream << "Status: " << gpgme_strerror(error) << endl;
+    stream << "# Verify Report: " << Qt::endl << "-----" << Qt::endl;
+    stream << "Status: " << gpgme_strerror(error) << Qt::endl;
 
     if(result != nullptr) {
 
         auto sign = result->signatures;
 
         if (sign == nullptr) {
-            stream << "> Not Signature Found" << endl;
+            stream << "> Not Signature Found" << Qt::endl;
             setStatus(-1);
             return;
         }
 
 
-        stream << "> It was Signed ON " << QDateTime::fromTime_t(sign->timestamp).toString() << endl;
+        stream << "> It was Signed ON " << QDateTime::fromTime_t(sign->timestamp).toString() << Qt::endl;
 
-        stream << endl << "> It Contains:" << endl;
+        stream << Qt::endl << "> It Contains:" << Qt::endl;
 
         bool canContinue = true;
 
@@ -32,7 +32,7 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
 
             switch (gpg_err_code(sign->status)) {
                 case GPG_ERR_BAD_SIGNATURE:
-                    stream << QApplication::tr("One or More Bad Signatures.") << endl;
+                    stream << QApplication::tr("One or More Bad Signatures.") << Qt::endl;
                     canContinue = false;
                     setStatus(-1);
                     break;
@@ -61,9 +61,9 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
                     }
 
                     if (sign->summary & GPGME_SIGSUM_VALID) {
-                        stream << QApplication::tr("Signature Fully Valid.") << endl;
+                        stream << QApplication::tr("Signature Fully Valid.") << Qt::endl;
                     } else {
-                        stream << QApplication::tr("Signature NOT Fully Valid.") << endl;
+                        stream << QApplication::tr("Signature NOT Fully Valid.") << Qt::endl;
                     }
 
                     if (!(sign->status & GPGME_SIGSUM_KEY_MISSING)) {
@@ -71,7 +71,7 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
                             setStatus(0);
                         }
                     } else {
-                        stream << QApplication::tr("Key is NOT present with ID 0x") << QString(sign->fpr) << endl;
+                        stream << QApplication::tr("Key is NOT present with ID 0x") << QString(sign->fpr) << Qt::endl;
                     }
 
                     setStatus(1);
@@ -114,13 +114,13 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
                            GpgME::GpgContext::beautifyFingerprint(QString(sign->fpr));
                     setStatus(-1);
             }
-            stream << endl;
+            stream << Qt::endl;
             sign = sign->next;
         }
     }
 
-    stream << "-----" << endl;
-    stream << endl;
+    stream << "-----" << Qt::endl;
+    stream << Qt::endl;
 }
 
 bool VerifyResultAnalyse::printSigner(QTextStream &stream, gpgme_signature_t sign) {
@@ -136,7 +136,7 @@ bool VerifyResultAnalyse::printSigner(QTextStream &stream, gpgme_signature_t sig
     if (!key.email.isEmpty()) {
         stream << "<" << key.email <<  ">";
     }
-    stream << endl;
+    stream << Qt::endl;
     return keyFound;
 
 }
