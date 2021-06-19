@@ -51,7 +51,7 @@ If you have any questions, please open an issue. If you want to contact me indiv
 
 
 ## LOGO
-![Main ScreenShot](https://github.com/saturneric/Blob/blob/master/logos/GpgFrontend-logo.jpg?raw=true)
+![logo](https://github.com/saturneric/Blob/blob/master/logos/gpgfrontend-logo.jpg?raw=true)
 
 ## LICENSES
 
