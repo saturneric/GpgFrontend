@@ -52,7 +52,6 @@ private:
 
     QTextEdit *mTextpage; /** Textedit associated to the notification */
     QLineEdit *findEdit; /** Label holding the text shown in infoBoard */
-    [[maybe_unused]] QTextCharFormat cursorFormat;
 
 private slots:
 

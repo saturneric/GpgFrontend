@@ -27,8 +27,7 @@
 #include <utility>
 
 SubkeyGenerateThread::SubkeyGenerateThread(GpgKey key, GenKeyInfo *keyGenParams, GpgME::GpgContext *ctx)
-        : mKey(std::move(key)), keyGenParams(keyGenParams) , mCtx(ctx), abort(
-        false) {
+        : mKey(std::move(key)), keyGenParams(keyGenParams) , mCtx(ctx) {
     connect(this, &SubkeyGenerateThread::finished, this, &SubkeyGenerateThread::deleteLater);
 }
 

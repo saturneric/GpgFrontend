@@ -67,10 +67,10 @@ void VerifyDetailsDialog::slotRefresh() {
         mVboxLayout->addWidget(new QLabel(tr("Error Validating signature")));
     } else if (mInputSignature != nullptr) {
         mVboxLayout->addWidget(new QLabel(
-                tr("File was signed on %1 <br/> It Contains:<br/>").arg(timestamp.toString(Qt::SystemLocaleLongDate))));
+                tr("File was signed on %1 <br/> It Contains:<br/>").arg(QLocale::system().toString(timestamp))));
     } else {
         mVboxLayout->addWidget(new QLabel(tr("Signed on %1 <br/> It Contains:<br/>").arg(
-                timestamp.toString(Qt::SystemLocaleLongDate))));
+                QLocale::system().toString(timestamp))));
     }
     // Add informationbox for every single key
     while (sign) {

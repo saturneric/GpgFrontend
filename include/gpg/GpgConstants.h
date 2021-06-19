@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef GPGCONSTANTS_H
-#define GPGCONSTANTS_H
+#ifndef GPG_CONSTANTS_H
+#define GPG_CONSTANTS_H
 
 class QString;
 
@@ -39,4 +39,4 @@ public:
     static const char *PGP_SIGNATURE_END;
 };
 
-#endif // GPGCONSTANTS_H
+#endif // CONSTANTS_H

@@ -23,16 +23,15 @@
  */
 
 #include "gpg/GpgContext.h"
-#include "ui/keygen/KeygenThread.h"
 
 #include <unistd.h>    /* contains read/write */
 #include <Mime.h>
 
 #ifdef _WIN32
-
 #include <windows.h>
-
 #endif
+
+#define INT2VOIDP(i) (void*)(uintptr_t)(i)
 
 namespace GpgME {
 
@@ -163,7 +162,7 @@ namespace GpgME {
             GpgImportedKey key;
             key.importStatus = static_cast<int>(status->status);
             key.fpr = status->fpr;
-            importInformation->importedKeys.append(key);
+            importInformation->importedKeys.emplace_back(key);
             status = status->next;
         }
         checkErr(err);
@@ -294,7 +293,7 @@ namespace GpgME {
 
             qDebug() << "Append Key" << key->subkeys->keyid;
 
-            keys.append(GpgKey(key));
+            keys.emplace_back(key);
             keys_map.insert(keys.back().id, &keys.back());
             gpgme_key_unref(key);
         }
@@ -553,7 +552,7 @@ namespace GpgME {
 
 #ifdef _WIN32
         DWORD written;
-        HANDLE hd = (HANDLE) fd;
+        auto hd = INT2VOIDP(fd);
 #endif
 
         if (last_was_bad) {

@@ -39,7 +39,6 @@ signals:
 private:
     GenKeyInfo *keyGenParams;
     GpgME::GpgContext *mCtx;
-    [[maybe_unused]] bool abort;
     QMutex mutex;
 
 protected:

@@ -39,8 +39,6 @@ private slots:
     void slotMyDiscard();
 
 private:
-    [[maybe_unused]] QAction *closeAct{};
-    [[maybe_unused]] QLabel *nameLabel{};
     bool discarded;
     QTableWidget *mFileList;
 };

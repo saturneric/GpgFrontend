@@ -1164,53 +1164,53 @@ Weak -&gt; Strong</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="568"/>
+        <location filename="../../src/MainWindow.cpp" line="552"/>
         <source>Special Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="617"/>
+        <location filename="../../src/MainWindow.cpp" line="601"/>
         <source>Key ToolBox</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="625"/>
+        <location filename="../../src/MainWindow.cpp" line="609"/>
         <source>Information Board</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="758"/>
-        <location filename="../../src/MainWindow.cpp" line="805"/>
-        <location filename="../../src/MainWindow.cpp" line="1108"/>
+        <location filename="../../src/MainWindow.cpp" line="726"/>
+        <location filename="../../src/MainWindow.cpp" line="773"/>
+        <location filename="../../src/MainWindow.cpp" line="1076"/>
         <source>No Key Selected</source>
         <translation type="unfinished">未選擇任何金鑰</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="765"/>
-        <location filename="../../src/MainWindow.cpp" line="812"/>
-        <location filename="../../src/MainWindow.cpp" line="1115"/>
+        <location filename="../../src/MainWindow.cpp" line="733"/>
+        <location filename="../../src/MainWindow.cpp" line="780"/>
+        <location filename="../../src/MainWindow.cpp" line="1083"/>
         <source>Invalid Operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="766"/>
+        <location filename="../../src/MainWindow.cpp" line="734"/>
         <source>The selected key contains a key that does not actually have a encrypt function.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="767"/>
-        <location filename="../../src/MainWindow.cpp" line="814"/>
-        <location filename="../../src/MainWindow.cpp" line="1117"/>
+        <location filename="../../src/MainWindow.cpp" line="735"/>
+        <location filename="../../src/MainWindow.cpp" line="782"/>
+        <location filename="../../src/MainWindow.cpp" line="1085"/>
         <source>&lt;br/&gt;For example the Following Key: &lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="813"/>
+        <location filename="../../src/MainWindow.cpp" line="781"/>
         <source>The selected key contains a key that does not actually have a signature function.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="1116"/>
+        <location filename="../../src/MainWindow.cpp" line="1084"/>
         <source>The selected key cannot be used for signing and encryption at the same time.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1313,117 +1313,111 @@ Weak -&gt; Strong</source>
         <translation>顯示應用程式的「關於」對話方塊</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="364"/>
         <source>Integrated Help</source>
-        <translation>內建說明文件</translation>
+        <translation type="vanished">內建說明文件</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="365"/>
         <source>Open integrated Help</source>
-        <translation>開啟內建說明文件</translation>
+        <translation type="vanished">開啟內建說明文件</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="368"/>
         <source>Online &amp;Tutorials</source>
-        <translation>線上教學文件 (&amp;T)</translation>
+        <translation type="vanished">線上教學文件 (&amp;T)</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="369"/>
         <source>Open Online Tutorials</source>
-        <translation>開啟線上教學文件</translation>
+        <translation type="vanished">開啟線上教學文件</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="372"/>
         <source>Translate gpg4usb</source>
-        <translation>翻譯 gpg4usb</translation>
+        <translation type="vanished">翻譯 gpg4usb</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="373"/>
         <source>Translate gpg4usb yourself</source>
-        <translation>自行翻譯 gpg4usb</translation>
+        <translation type="vanished">自行翻譯 gpg4usb</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="376"/>
+        <location filename="../../src/MainWindow.cpp" line="364"/>
         <source>Open &amp;Wizard</source>
         <translation>開啟精靈 (&amp;W)</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="377"/>
+        <location filename="../../src/MainWindow.cpp" line="365"/>
         <source>Open the wizard</source>
         <translation>開啟精靈</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="382"/>
+        <location filename="../../src/MainWindow.cpp" line="370"/>
         <source>Append Selected Key(s) To Text</source>
         <translation>將所選的金鑰附加至文字後</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="383"/>
+        <location filename="../../src/MainWindow.cpp" line="371"/>
         <source>Append The Selected Keys To Text in Editor</source>
         <translation>在編輯器中，將所選的金鑰附加至文字後</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="386"/>
+        <location filename="../../src/MainWindow.cpp" line="374"/>
         <source>Copy EMail-address</source>
         <translation>複製電子郵件地址</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="387"/>
+        <location filename="../../src/MainWindow.cpp" line="375"/>
         <source>Copy selected EMailaddress to clipboard</source>
         <translation>將所選的電子郵件地址複製到剪貼簿</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="391"/>
+        <location filename="../../src/MainWindow.cpp" line="379"/>
         <source>Show Keydetails</source>
         <translation>顯示金鑰詳細資訊</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="392"/>
+        <location filename="../../src/MainWindow.cpp" line="380"/>
         <source>Show Details for this Key</source>
         <translation>顯示此金鑰的詳細資訊</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="395"/>
+        <location filename="../../src/MainWindow.cpp" line="383"/>
         <source>Refresh key from keyserver</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="396"/>
+        <location filename="../../src/MainWindow.cpp" line="384"/>
         <source>Refresh key from default keyserver</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="399"/>
+        <location filename="../../src/MainWindow.cpp" line="387"/>
         <source>Upload Key(s) To Server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="400"/>
+        <location filename="../../src/MainWindow.cpp" line="388"/>
         <source>Upload The Selected Keys To Server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="458"/>
+        <location filename="../../src/MainWindow.cpp" line="446"/>
         <source>&amp;File</source>
         <translation>檔案 (&amp;F)</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="470"/>
+        <location filename="../../src/MainWindow.cpp" line="458"/>
         <source>&amp;Edit</source>
         <translation>編輯 (&amp;E)</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="488"/>
+        <location filename="../../src/MainWindow.cpp" line="476"/>
         <source>&amp;File...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="494"/>
+        <location filename="../../src/MainWindow.cpp" line="482"/>
         <source>&amp;Crypt</source>
         <translation>編密 (&amp;C)</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="505"/>
+        <location filename="../../src/MainWindow.cpp" line="493"/>
         <source>&amp;Keys</source>
         <translation>金鑰 (&amp;K)</translation>
     </message>
@@ -1432,7 +1426,7 @@ Weak -&gt; Strong</source>
         <translation type="vanished">匯入金鑰自 (&amp;I)...</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="515"/>
+        <location filename="../../src/MainWindow.cpp" line="503"/>
         <source>&amp;Steganography</source>
         <translation>資訊偽裝 (&amp;S)</translation>
     </message>
@@ -1445,47 +1439,47 @@ Weak -&gt; Strong</source>
         <translation type="vanished">&lt;center&gt;本應用程式讓你能夠輕鬆地對文字訊息和檔案&lt;br&gt;予以加密和解密。&lt;br&gt;本程式係採用 GPL v3 授權&lt;br&gt;&lt;br&gt;&lt;b&gt;開發者:&lt;/b&gt;&lt;br&gt;Bene, Heimer, Juergen, Nils, Ubbo&lt;br&gt;&lt;br&gt;&lt;b&gt;正體中文翻譯:&lt;/b&gt;&lt;br&gt;Ahmad (ar), Alessandro (pt_br), Åke (sv),&lt;br/&gt;Elad (he), George (el), Jedi Lin (zh_tw),&lt;br/&gt;Kirill (ru), Marek Bogacz (pl), Phol (es),&lt;br/&gt;Russell (my), Serse (it), Tom (vi),&lt;br/&gt;Toughworm(zh), Viriato (es)&lt;br&gt;&lt;br&gt;如果你有任何疑問或建議事項，請至我們的&lt;br/&gt;&lt;a href=&quot;http://gpg4usb.cpunk.de/contact.php&quot;&gt;聯絡頁面&lt;/a&gt;或寫信至我們的郵遞論壇: &lt;br/&gt;&lt;a href=&quot;mailto:gpg4usb@gzehn.de&quot;&gt;gpg4usb@gzehn.de&lt;/a&gt;&lt;br/&gt;繁體中文翻譯方面的建議或更正事項，請直接&lt;br/&gt;與 Jedi 聯繫: &lt;a href=&quot;mailto:JediLin@Gmail.com&quot;&gt;JediLin@Gmail.com&lt;/a&gt;</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="414"/>
+        <location filename="../../src/MainWindow.cpp" line="402"/>
         <source>Remove PGP Header</source>
         <translation>移除 PGP 標頭</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="417"/>
+        <location filename="../../src/MainWindow.cpp" line="405"/>
         <source>Add PGP Header</source>
         <translation>加上 PGP 標頭</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="506"/>
+        <location filename="../../src/MainWindow.cpp" line="494"/>
         <source>&amp;Import Key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="524"/>
+        <location filename="../../src/MainWindow.cpp" line="512"/>
         <source>&amp;View</source>
         <translation>檢視 (&amp;V)</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="526"/>
+        <location filename="../../src/MainWindow.cpp" line="514"/>
         <source>&amp;Help</source>
         <translation>說明 (&amp;H)</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="538"/>
+        <location filename="../../src/MainWindow.cpp" line="522"/>
         <source>File</source>
         <translation>檔案</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="546"/>
+        <location filename="../../src/MainWindow.cpp" line="530"/>
         <source>Crypt</source>
         <translation>編密</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="556"/>
+        <location filename="../../src/MainWindow.cpp" line="540"/>
         <source>Key</source>
         <translation>金鑰</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="561"/>
+        <location filename="../../src/MainWindow.cpp" line="545"/>
         <source>Edit</source>
         <translation>編輯</translation>
     </message>
@@ -1494,27 +1488,27 @@ Weak -&gt; Strong</source>
         <translation type="vanished">特殊編輯</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="580"/>
+        <location filename="../../src/MainWindow.cpp" line="564"/>
         <source>Import key from...</source>
         <translation>匯入金鑰自...</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="581"/>
+        <location filename="../../src/MainWindow.cpp" line="565"/>
         <source>Import key</source>
         <translation>匯入金鑰</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="589"/>
+        <location filename="../../src/MainWindow.cpp" line="573"/>
         <source>Encrypt or decrypt File</source>
         <translation>檔案加密或解密</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="590"/>
+        <location filename="../../src/MainWindow.cpp" line="574"/>
         <source>File..</source>
         <translation>檔案..</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="610"/>
+        <location filename="../../src/MainWindow.cpp" line="594"/>
         <source>Ready</source>
         <translation>就緒</translation>
     </message>
@@ -1523,7 +1517,7 @@ Weak -&gt; Strong</source>
         <translation type="vanished">加密對象:</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="645"/>
+        <location filename="../../src/MainWindow.cpp" line="629"/>
         <source>Attached files:</source>
         <translation>附加檔案:</translation>
     </message>
@@ -1544,17 +1538,17 @@ Weak -&gt; Strong</source>
         <translation type="vanished"> 及 GPGME </translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="724"/>
+        <location filename="../../src/MainWindow.cpp" line="692"/>
         <source>There is one unencrypted file in attachment folder</source>
         <translation>在附加檔案資料夾內有個未加密的檔案</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="726"/>
+        <location filename="../../src/MainWindow.cpp" line="694"/>
         <source>There are </source>
         <translation>在附加檔案資料夾內有 </translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="726"/>
+        <location filename="../../src/MainWindow.cpp" line="694"/>
         <source> unencrypted files in attachment folder</source>
         <translation> 個未加密的檔案</translation>
     </message>

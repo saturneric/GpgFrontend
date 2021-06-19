@@ -24,8 +24,8 @@
 
 #include "ui/keygen/KeygenThread.h"
 
-KeyGenThread::KeyGenThread(GenKeyInfo* keyGenParams, GpgME::GpgContext *ctx):
-mCtx(ctx), keyGenParams(keyGenParams), abort(false), QThread(nullptr) {
+KeyGenThread::KeyGenThread(GenKeyInfo* keyGenParams, GpgME::GpgContext *ctx)
+: mCtx(ctx), keyGenParams(keyGenParams), QThread(nullptr) {
     connect(this, &KeyGenThread::finished, this, &KeyGenThread::deleteLater);
 }
 

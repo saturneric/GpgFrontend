@@ -1163,53 +1163,53 @@ Svag    -&gt;    Stark</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="568"/>
+        <location filename="../../src/MainWindow.cpp" line="552"/>
         <source>Special Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="617"/>
+        <location filename="../../src/MainWindow.cpp" line="601"/>
         <source>Key ToolBox</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="625"/>
+        <location filename="../../src/MainWindow.cpp" line="609"/>
         <source>Information Board</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="758"/>
-        <location filename="../../src/MainWindow.cpp" line="805"/>
-        <location filename="../../src/MainWindow.cpp" line="1108"/>
+        <location filename="../../src/MainWindow.cpp" line="726"/>
+        <location filename="../../src/MainWindow.cpp" line="773"/>
+        <location filename="../../src/MainWindow.cpp" line="1076"/>
         <source>No Key Selected</source>
         <translation type="unfinished">Ingen nyckel vald</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="765"/>
-        <location filename="../../src/MainWindow.cpp" line="812"/>
-        <location filename="../../src/MainWindow.cpp" line="1115"/>
+        <location filename="../../src/MainWindow.cpp" line="733"/>
+        <location filename="../../src/MainWindow.cpp" line="780"/>
+        <location filename="../../src/MainWindow.cpp" line="1083"/>
         <source>Invalid Operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="766"/>
+        <location filename="../../src/MainWindow.cpp" line="734"/>
         <source>The selected key contains a key that does not actually have a encrypt function.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="767"/>
-        <location filename="../../src/MainWindow.cpp" line="814"/>
-        <location filename="../../src/MainWindow.cpp" line="1117"/>
+        <location filename="../../src/MainWindow.cpp" line="735"/>
+        <location filename="../../src/MainWindow.cpp" line="782"/>
+        <location filename="../../src/MainWindow.cpp" line="1085"/>
         <source>&lt;br/&gt;For example the Following Key: &lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="813"/>
+        <location filename="../../src/MainWindow.cpp" line="781"/>
         <source>The selected key contains a key that does not actually have a signature function.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="1116"/>
+        <location filename="../../src/MainWindow.cpp" line="1084"/>
         <source>The selected key cannot be used for signing and encryption at the same time.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1312,117 +1312,111 @@ Svag    -&gt;    Stark</translation>
         <translation>Visa programmets Om-fönster</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="364"/>
         <source>Integrated Help</source>
-        <translation>Hjälp</translation>
+        <translation type="vanished">Hjälp</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="365"/>
         <source>Open integrated Help</source>
-        <translation>Öppna hjälpfilen</translation>
+        <translation type="vanished">Öppna hjälpfilen</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="368"/>
         <source>Online &amp;Tutorials</source>
-        <translation>Online-&amp;hjälp</translation>
+        <translation type="vanished">Online-&amp;hjälp</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="369"/>
         <source>Open Online Tutorials</source>
-        <translation>Öppna hjälp i webbläsaren</translation>
+        <translation type="vanished">Öppna hjälp i webbläsaren</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="372"/>
         <source>Translate gpg4usb</source>
-        <translation>Översätt gpg4usb</translation>
+        <translation type="vanished">Översätt gpg4usb</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="373"/>
         <source>Translate gpg4usb yourself</source>
-        <translation>Översätt gpg4usb själv</translation>
+        <translation type="vanished">Översätt gpg4usb själv</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="376"/>
+        <location filename="../../src/MainWindow.cpp" line="364"/>
         <source>Open &amp;Wizard</source>
         <translation>Öppna &amp;startguiden</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="377"/>
+        <location filename="../../src/MainWindow.cpp" line="365"/>
         <source>Open the wizard</source>
         <translation>Öppna startguiden</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="382"/>
+        <location filename="../../src/MainWindow.cpp" line="370"/>
         <source>Append Selected Key(s) To Text</source>
         <translation>Bifoga markerade nycklar till text</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="383"/>
+        <location filename="../../src/MainWindow.cpp" line="371"/>
         <source>Append The Selected Keys To Text in Editor</source>
         <translation>Bifoga de markerade nycklarna till texten</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="386"/>
+        <location filename="../../src/MainWindow.cpp" line="374"/>
         <source>Copy EMail-address</source>
         <translation>Kopiera e-postadress</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="387"/>
+        <location filename="../../src/MainWindow.cpp" line="375"/>
         <source>Copy selected EMailaddress to clipboard</source>
         <translation>Kopiera markerad e-postadress till Urklipp</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="391"/>
+        <location filename="../../src/MainWindow.cpp" line="379"/>
         <source>Show Keydetails</source>
         <translation>Visa nyckeldetaljer</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="392"/>
+        <location filename="../../src/MainWindow.cpp" line="380"/>
         <source>Show Details for this Key</source>
         <translation>Visa detaljerad info för denna nyckel</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="395"/>
+        <location filename="../../src/MainWindow.cpp" line="383"/>
         <source>Refresh key from keyserver</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="396"/>
+        <location filename="../../src/MainWindow.cpp" line="384"/>
         <source>Refresh key from default keyserver</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="399"/>
+        <location filename="../../src/MainWindow.cpp" line="387"/>
         <source>Upload Key(s) To Server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="400"/>
+        <location filename="../../src/MainWindow.cpp" line="388"/>
         <source>Upload The Selected Keys To Server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="458"/>
+        <location filename="../../src/MainWindow.cpp" line="446"/>
         <source>&amp;File</source>
         <translation>&amp;Arkiv</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="470"/>
+        <location filename="../../src/MainWindow.cpp" line="458"/>
         <source>&amp;Edit</source>
         <translation>&amp;Redigera</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="488"/>
+        <location filename="../../src/MainWindow.cpp" line="476"/>
         <source>&amp;File...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="494"/>
+        <location filename="../../src/MainWindow.cpp" line="482"/>
         <source>&amp;Crypt</source>
         <translation>&amp;Kryptering</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="505"/>
+        <location filename="../../src/MainWindow.cpp" line="493"/>
         <source>&amp;Keys</source>
         <translation>&amp;Nycklar</translation>
     </message>
@@ -1431,7 +1425,7 @@ Svag    -&gt;    Stark</translation>
         <translation type="vanished">&amp;Importera nyckel från...</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="515"/>
+        <location filename="../../src/MainWindow.cpp" line="503"/>
         <source>&amp;Steganography</source>
         <translation>&amp;Steganografi</translation>
     </message>
@@ -1444,47 +1438,47 @@ Svag    -&gt;    Stark</translation>
         <translation type="vanished">&lt;center&gt;Detta program tillhandahåller enkel kryptering &lt;br&gt;och dekryptering av textmeddelanden och filer.&lt;br&gt;Det är licencierat under GPL v3&lt;br&gt;&lt;br&gt;&lt;b&gt;Utvecklarer:&lt;/b&gt;&lt;br&gt;Bene, Heimer, Juergen, Nils, Ubbo&lt;br&gt;&lt;br&gt;&lt;b&gt;Översättning:&lt;/b&gt;&lt;br&gt;Ahmad (ar), Alessandro (pt_br), Åke (sv),&lt;br/&gt;Elad (he), George (el), Jedi Lin (zh_tw),&lt;br/&gt;Kirill (ru), Marek Bogacz (pl), Phol (es),&lt;br/&gt;Russell (my), Serse (it), Tom (vi),&lt;br/&gt;Toughworm(zh), Viriato (es)&lt;br&gt;&lt;br&gt;Har du några frågor eller förslag, kan du använda vår&lt;br/&gt;&lt;a href=&quot;http://gpg4usb.cpunk.de/contact.php&quot;&gt;kontaktsida&lt;/a&gt; eller skicka e-post till vår&lt;br/&gt; e-postlista. &lt;a href=&quot;mailto:gpg4usb@gzehn.de&quot;&gt;gpg4usb@gzehn.de&lt;/a&gt;.</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="414"/>
+        <location filename="../../src/MainWindow.cpp" line="402"/>
         <source>Remove PGP Header</source>
         <translation>Ta bort PGP-huvud</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="417"/>
+        <location filename="../../src/MainWindow.cpp" line="405"/>
         <source>Add PGP Header</source>
         <translation>Lägg till PGP-huvud</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="506"/>
+        <location filename="../../src/MainWindow.cpp" line="494"/>
         <source>&amp;Import Key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="524"/>
+        <location filename="../../src/MainWindow.cpp" line="512"/>
         <source>&amp;View</source>
         <translation>&amp;Visa</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="526"/>
+        <location filename="../../src/MainWindow.cpp" line="514"/>
         <source>&amp;Help</source>
         <translation>&amp;Hjälp</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="538"/>
+        <location filename="../../src/MainWindow.cpp" line="522"/>
         <source>File</source>
         <translation>Arkiv</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="546"/>
+        <location filename="../../src/MainWindow.cpp" line="530"/>
         <source>Crypt</source>
         <translation>Kryptering</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="556"/>
+        <location filename="../../src/MainWindow.cpp" line="540"/>
         <source>Key</source>
         <translation>Nycklar</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="561"/>
+        <location filename="../../src/MainWindow.cpp" line="545"/>
         <source>Edit</source>
         <translation>Redigera</translation>
     </message>
@@ -1493,27 +1487,27 @@ Svag    -&gt;    Stark</translation>
         <translation type="vanished">Specialredigering</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="580"/>
+        <location filename="../../src/MainWindow.cpp" line="564"/>
         <source>Import key from...</source>
         <translation>Importera nyckel från...</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="581"/>
+        <location filename="../../src/MainWindow.cpp" line="565"/>
         <source>Import key</source>
         <translation>Importera nyckel</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="589"/>
+        <location filename="../../src/MainWindow.cpp" line="573"/>
         <source>Encrypt or decrypt File</source>
         <translation>Kryptera eller dekryptera fil</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="590"/>
+        <location filename="../../src/MainWindow.cpp" line="574"/>
         <source>File..</source>
         <translation>Fil</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="610"/>
+        <location filename="../../src/MainWindow.cpp" line="594"/>
         <source>Ready</source>
         <translation>Klar</translation>
     </message>
@@ -1522,7 +1516,7 @@ Svag    -&gt;    Stark</translation>
         <translation type="vanished">Nyckellista</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="645"/>
+        <location filename="../../src/MainWindow.cpp" line="629"/>
         <source>Attached files:</source>
         <translation>Bifogade filer:</translation>
     </message>
@@ -1543,17 +1537,17 @@ Svag    -&gt;    Stark</translation>
         <translation type="vanished"> och GPGME</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="724"/>
+        <location filename="../../src/MainWindow.cpp" line="692"/>
         <source>There is one unencrypted file in attachment folder</source>
         <translation>Det finns en okrypterad fil i bilagemappen</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="726"/>
+        <location filename="../../src/MainWindow.cpp" line="694"/>
         <source>There are </source>
         <translation>Det finns </translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="726"/>
+        <location filename="../../src/MainWindow.cpp" line="694"/>
         <source> unencrypted files in attachment folder</source>
         <translation> okrypterade filer i bilagemappen</translation>
     </message>

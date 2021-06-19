@@ -89,7 +89,7 @@ void KeyNewUIDDialog::slotCreateNewUID() {
          */
         errorLabel->setAutoFillBackground(true);
         QPalette error = errorLabel->palette();
-        error.setColor(QPalette::Background, "#ff8080");
+        error.setColor(QPalette::Window, "#ff8080");
         errorLabel->setPalette(error);
         errorLabel->setText(errorString);
 

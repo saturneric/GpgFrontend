@@ -43,7 +43,6 @@ private:
     QSettings settings;
 
     QCheckBox *rememberPasswordCheckBox;
-    [[maybe_unused]] QCheckBox *importConfirmationcheckBox{};
     QCheckBox *saveCheckedKeysCheckBox;
     QCheckBox *importConfirmationCheckBox;
     QComboBox *langSelectBox;

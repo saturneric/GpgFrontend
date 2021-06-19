@@ -86,7 +86,7 @@ void InfoBoardWidget::setInfoBoard(const QString &text, InfoBoardStatus verifyLa
     QPalette status = infoBoard->palette();
     status.setColor(QPalette::Text, color);
     infoBoard->setPalette(status);
-    infoBoard->setFont(QFont("Times", 12));
+    infoBoard->setFont(QFont("Times", 10));
 }
 
 void InfoBoardWidget::slotRefresh(const QString &text, InfoBoardStatus status) {

@@ -31,7 +31,7 @@
 #include "GpgGenKeyInfo.h"
 #include "GpgKey.h"
 
-using GpgKeyList = QLinkedList<GpgKey>;
+using GpgKeyList = std::list<GpgKey>;
 
 class GpgImportedKey {
 public:
@@ -39,7 +39,7 @@ public:
     int importStatus;
 };
 
-typedef QLinkedList<GpgImportedKey> GpgImportedKeyList;
+typedef std::list<GpgImportedKey> GpgImportedKeyList;
 
 class GpgImportInformation {
 public:

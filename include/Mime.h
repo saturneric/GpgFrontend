@@ -64,7 +64,7 @@ public:
         return "";
     }
 
-    [[maybe_unused]] QHash<QString, QString> getParams(const QString &key) {
+    QHash<QString, QString> getParams(const QString &key) {
                 foreach(HeadElem tmp, headElems) {
                 //qDebug() << "gv: " << tmp.name << ":" << tmp.value;
                 if (tmp.name == key)
@@ -107,7 +107,7 @@ class Mime {
 public:
     explicit Mime(QByteArray *message); // Constructor
     ~Mime(); // Destructor
-    [[maybe_unused]] static bool isMultipart(QByteArray *message);
+    static bool isMultipart(QByteArray *message);
 
     static bool isMime(const QByteArray *message);
 
@@ -124,10 +124,7 @@ public:
     static void quotedPrintableDecode(const QByteArray &in, QByteArray &out);
 
 private:
-    [[maybe_unused]] QByteArray *mMessage;
-    [[maybe_unused]] QByteArray *mBoundary;
     QList<MimePart> mPartList;
-
 };
 
 #endif  // __MIME_H__

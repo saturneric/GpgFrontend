@@ -27,9 +27,8 @@
 #include <utility>
 
 KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *keyList, QWidget *parent)
-        : QDialog(parent) {
-    mCtx = ctx;
-    mKeyList = keyList;
+        : QDialog(parent), appPath(qApp->applicationDirPath()),
+        settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat), mCtx(ctx), mKeyList(keyList) {
     // Buttons
     closeButton = createButton(tr("&Close"), SLOT(close()));
     importButton = createButton(tr("&Import"), SLOT(slotImport()));
@@ -87,7 +86,6 @@ QComboBox *KeyServerImportDialog::createComboBox() {
     comboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     // Read keylist from ini-file and fill it into combobox
-    QSettings settings;
     comboBox->addItems(settings.value("keyserver/keyServerList").toStringList());
 
     // set default keyserver in combobox
@@ -180,13 +178,11 @@ void KeyServerImportDialog::slotSearchFinished() {
             auto line_buff = reply->readLine().trimmed();
             QString decoded = QString::fromUtf8(line_buff.constData(), line_buff.size());
             QStringList line = decoded.split(":");
-
             //TODO: have a look at two following pub lines
             if (line[0] == "pub") {
                 strikeout = false;
 
                 QString flags = line[line.size() - 1];
-
                 keysTable->setRowCount(row + 1);
 
                 // flags can be "d" for disabled, "r" for revoked
@@ -211,16 +207,16 @@ void KeyServerImportDialog::slotSearchFinished() {
                     uid->setText(line2[1]);
                     keysTable->setItem(row, 0, uid);
                 }
-                auto *creationdate = new QTableWidgetItem(
+                auto *creation_date = new QTableWidgetItem(
                         QDateTime::fromTime_t(line[4].toInt()).toString("dd. MMM. yyyy"));
-                keysTable->setItem(row, 1, creationdate);
+                keysTable->setItem(row, 1, creation_date);
                 auto *keyid = new QTableWidgetItem(line[1]);
                 keysTable->setItem(row, 2, keyid);
                 if (strikeout) {
                     QFont strike = uid->font();
                     strike.setStrikeOut(true);
                     uid->setFont(strike);
-                    creationdate->setFont(strike);
+                    creation_date->setFont(strike);
                     keyid->setFont(strike);
                 }
                 row++;
@@ -255,7 +251,6 @@ void KeyServerImportDialog::slotImport() {
 }
 
 void KeyServerImportDialog::slotImport(QStringList keyIds) {
-    QSettings settings;
     QString keyserver = settings.value("keyserver/defaultKeyServer").toString();;
     slotImport(std::move(keyIds), QUrl(keyserver));
 }
@@ -288,7 +283,6 @@ void KeyServerImportDialog::slotImportFinished() {
     setMessage(tr("Key imported"), false);
 
     // Add keyserver to list in config-file, if it isn't contained
-    QSettings settings;
     QStringList keyServerList = settings.value("keyserver/keyServerList").toStringList();
     if (!keyServerList.contains(keyServerComboBox->currentText())) {
         keyServerList.append(keyServerComboBox->currentText());

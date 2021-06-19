@@ -1631,58 +1631,58 @@ Weak -&gt; Strong</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="506"/>
+        <location filename="../../src/MainWindow.cpp" line="494"/>
         <source>&amp;Import Key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="568"/>
+        <location filename="../../src/MainWindow.cpp" line="552"/>
         <source>Special Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="617"/>
+        <location filename="../../src/MainWindow.cpp" line="601"/>
         <source>Key ToolBox</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="625"/>
+        <location filename="../../src/MainWindow.cpp" line="609"/>
         <source>Information Board</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="758"/>
-        <location filename="../../src/MainWindow.cpp" line="805"/>
-        <location filename="../../src/MainWindow.cpp" line="1108"/>
+        <location filename="../../src/MainWindow.cpp" line="726"/>
+        <location filename="../../src/MainWindow.cpp" line="773"/>
+        <location filename="../../src/MainWindow.cpp" line="1076"/>
         <source>No Key Selected</source>
         <translation type="unfinished">لا مفاتيح مُختارة</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="765"/>
-        <location filename="../../src/MainWindow.cpp" line="812"/>
-        <location filename="../../src/MainWindow.cpp" line="1115"/>
+        <location filename="../../src/MainWindow.cpp" line="733"/>
+        <location filename="../../src/MainWindow.cpp" line="780"/>
+        <location filename="../../src/MainWindow.cpp" line="1083"/>
         <source>Invalid Operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="766"/>
+        <location filename="../../src/MainWindow.cpp" line="734"/>
         <source>The selected key contains a key that does not actually have a encrypt function.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="767"/>
-        <location filename="../../src/MainWindow.cpp" line="814"/>
-        <location filename="../../src/MainWindow.cpp" line="1117"/>
+        <location filename="../../src/MainWindow.cpp" line="735"/>
+        <location filename="../../src/MainWindow.cpp" line="782"/>
+        <location filename="../../src/MainWindow.cpp" line="1085"/>
         <source>&lt;br/&gt;For example the Following Key: &lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="813"/>
+        <location filename="../../src/MainWindow.cpp" line="781"/>
         <source>The selected key contains a key that does not actually have a signature function.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="1116"/>
+        <location filename="../../src/MainWindow.cpp" line="1084"/>
         <source>The selected key cannot be used for signing and encryption at the same time.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1785,127 +1785,121 @@ Weak -&gt; Strong</source>
         <translation>يظهر صفحة معلومات عن الأداة</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="364"/>
         <source>Integrated Help</source>
-        <translation>المساعدة المُرفقة</translation>
+        <translation type="vanished">المساعدة المُرفقة</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="365"/>
         <source>Open integrated Help</source>
-        <translation>افتح المساعدة المُرفقة</translation>
+        <translation type="vanished">افتح المساعدة المُرفقة</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="368"/>
         <source>Online &amp;Tutorials</source>
-        <translation>المساعدة على ال&amp;خطّ</translation>
+        <translation type="vanished">المساعدة على ال&amp;خطّ</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="369"/>
         <source>Open Online Tutorials</source>
-        <translation>يفتح المساعدة على الخط</translation>
+        <translation type="vanished">يفتح المساعدة على الخط</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="372"/>
         <source>Translate gpg4usb</source>
-        <translation>ترجِم gpg4usb</translation>
+        <translation type="vanished">ترجِم gpg4usb</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="373"/>
         <source>Translate gpg4usb yourself</source>
-        <translation>ساهم بترجمة gpg4usb</translation>
+        <translation type="vanished">ساهم بترجمة gpg4usb</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="376"/>
+        <location filename="../../src/MainWindow.cpp" line="364"/>
         <source>Open &amp;Wizard</source>
         <translation>شغِّل المُر&amp;شد</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="377"/>
+        <location filename="../../src/MainWindow.cpp" line="365"/>
         <source>Open the wizard</source>
         <translation>شغِّل المُرشد</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="382"/>
+        <location filename="../../src/MainWindow.cpp" line="370"/>
         <source>Append Selected Key(s) To Text</source>
         <translation>ألحِق بالنصّ المفاتيح المختارة</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="383"/>
+        <location filename="../../src/MainWindow.cpp" line="371"/>
         <source>Append The Selected Keys To Text in Editor</source>
         <translation>يلحق بالنصّ في المحرر المفاتيح المختارة</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="386"/>
+        <location filename="../../src/MainWindow.cpp" line="374"/>
         <source>Copy EMail-address</source>
         <translation>انسخ عنوان البريد</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="387"/>
+        <location filename="../../src/MainWindow.cpp" line="375"/>
         <source>Copy selected EMailaddress to clipboard</source>
         <translation>ينسخ عنوان البريد الإلكتروني إلى حافظة القصاصات</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="391"/>
+        <location filename="../../src/MainWindow.cpp" line="379"/>
         <source>Show Keydetails</source>
         <translation>أظهر بيانات المفتاح</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="392"/>
+        <location filename="../../src/MainWindow.cpp" line="380"/>
         <source>Show Details for this Key</source>
         <translation>أظهر بيانات هذا المفتاح</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="395"/>
+        <location filename="../../src/MainWindow.cpp" line="383"/>
         <source>Refresh key from keyserver</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="396"/>
+        <location filename="../../src/MainWindow.cpp" line="384"/>
         <source>Refresh key from default keyserver</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="399"/>
+        <location filename="../../src/MainWindow.cpp" line="387"/>
         <source>Upload Key(s) To Server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="400"/>
+        <location filename="../../src/MainWindow.cpp" line="388"/>
         <source>Upload The Selected Keys To Server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="414"/>
+        <location filename="../../src/MainWindow.cpp" line="402"/>
         <source>Remove PGP Header</source>
         <translation>أزّل ترويسة PGP</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="417"/>
+        <location filename="../../src/MainWindow.cpp" line="405"/>
         <source>Add PGP Header</source>
         <translation>أضِف ترويسة PGP</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="458"/>
+        <location filename="../../src/MainWindow.cpp" line="446"/>
         <source>&amp;File</source>
         <translation>&amp;ملف</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="470"/>
+        <location filename="../../src/MainWindow.cpp" line="458"/>
         <source>&amp;Edit</source>
         <translation>&amp;حرّر</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="488"/>
+        <location filename="../../src/MainWindow.cpp" line="476"/>
         <source>&amp;File...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="494"/>
+        <location filename="../../src/MainWindow.cpp" line="482"/>
         <source>&amp;Crypt</source>
         <translation>&amp;عمِّ</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="505"/>
+        <location filename="../../src/MainWindow.cpp" line="493"/>
         <source>&amp;Keys</source>
         <translation>الم&amp;فاتيح</translation>
     </message>
@@ -1914,37 +1908,37 @@ Weak -&gt; Strong</source>
         <translation type="vanished">ا&amp;ستورد مفتاحا من...</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="515"/>
+        <location filename="../../src/MainWindow.cpp" line="503"/>
         <source>&amp;Steganography</source>
         <translation>الاستغانو&amp;غرافيا</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="524"/>
+        <location filename="../../src/MainWindow.cpp" line="512"/>
         <source>&amp;View</source>
         <translation>&amp;عرض</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="526"/>
+        <location filename="../../src/MainWindow.cpp" line="514"/>
         <source>&amp;Help</source>
         <translation>م&amp;ساعدة</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="538"/>
+        <location filename="../../src/MainWindow.cpp" line="522"/>
         <source>File</source>
         <translation>ملف</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="546"/>
+        <location filename="../../src/MainWindow.cpp" line="530"/>
         <source>Crypt</source>
         <translation>عمّ</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="556"/>
+        <location filename="../../src/MainWindow.cpp" line="540"/>
         <source>Key</source>
         <translation>مفتاح</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="561"/>
+        <location filename="../../src/MainWindow.cpp" line="545"/>
         <source>Edit</source>
         <translation>حرّر</translation>
     </message>
@@ -1953,29 +1947,29 @@ Weak -&gt; Strong</source>
         <translation type="vanished">تحرير خاص</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="580"/>
+        <location filename="../../src/MainWindow.cpp" line="564"/>
         <source>Import key from...</source>
         <translatorcomment>This is the tool tip. It shouldn&apos;t have ellipsis</translatorcomment>
         <translation>يستورد مفتاحا</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="581"/>
+        <location filename="../../src/MainWindow.cpp" line="565"/>
         <source>Import key</source>
         <translatorcomment>This is the button&apos;s label. It should have &quot;from&quot; appended to it to be more intuitive</translatorcomment>
         <translation>استورد مفتاحا من...</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="589"/>
+        <location filename="../../src/MainWindow.cpp" line="573"/>
         <source>Encrypt or decrypt File</source>
         <translation>يعمِّي أو يظهِّر ملفات</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="590"/>
+        <location filename="../../src/MainWindow.cpp" line="574"/>
         <source>File..</source>
         <translation>ملف...</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="610"/>
+        <location filename="../../src/MainWindow.cpp" line="594"/>
         <source>Ready</source>
         <translation>جاهز</translation>
     </message>
@@ -1984,7 +1978,7 @@ Weak -&gt; Strong</source>
         <translation type="vanished">عمّ لأجل:</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="645"/>
+        <location filename="../../src/MainWindow.cpp" line="629"/>
         <source>Attached files:</source>
         <translation>ملفات مُرفقة:</translation>
     </message>
@@ -2030,17 +2024,17 @@ Alessandro (pt_br) و Kirill (ru) و Phol (es) و Viriato (es) و Serse (it) و 
         <translation type="vanished"> و GPGME </translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="724"/>
+        <location filename="../../src/MainWindow.cpp" line="692"/>
         <source>There is one unencrypted file in attachment folder</source>
         <translation>يوجد ملف غير معمّى في دليل المُرفقات</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="726"/>
+        <location filename="../../src/MainWindow.cpp" line="694"/>
         <source>There are </source>
         <translation>توجد</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="726"/>
+        <location filename="../../src/MainWindow.cpp" line="694"/>
         <source> unencrypted files in attachment folder</source>
         <translation>ملفات غير مُعمّاة في دليل المرفقات</translation>
     </message>

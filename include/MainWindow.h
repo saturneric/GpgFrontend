@@ -180,29 +180,9 @@ private slots:
     void slotOpenSettingsDialog();
 
     /**
-     * @details Open online-tutorial in default browser.
-     */
-    static void slotOpenTutorial();
-
-    /**
-     * @details Open integrated help in new tab.
-     */
-    void slotOpenHelp();
-
-    /**
-     * @details Open integrated help in new tab with the specified page.
-     */
-    void slotOpenHelp(const QString& page);
-
-    /**
      * @details Show a warn message in status bar, if there are files in attachment folder.
      */
     void slotCheckAttachmentFolder();
-
-    /**
-     * @details Open online translation tutorial in default browser.
-     */
-    static void slotOpenTranslate();
 
     /**
      * @details Replace double linebreaks by single linebreaks in currently active tab.
@@ -302,7 +282,6 @@ private:
     QDockWidget *keylistDock; /** Encrypt Dock*/
     QDockWidget *attachmentDock; /** Attachment Dock */
     QDockWidget *infoBoardDock;
-    [[maybe_unused]] QDialog *genkeyDialog; /** Dialog for key generation */
 
     QAction *newTabAct; /** Action to create new tab */
     QAction *switchTabUpAct; /** Action to switch tab up*/
@@ -341,9 +320,6 @@ private:
     QAction *fileSignAct; /** Action to open dialog for signing file */
     QAction *fileVerifyAct; /** Action to open dialog for verifying file */
     QAction *openSettingsAct; /** Action to open settings dialog */
-    QAction *openTranslateAct; /** Action to open translate doc*/
-    QAction *openTutorialAct; /** Action to open tutorial */
-    QAction *openHelpAct; /** Action to open tutorial */
     QAction *showKeyDetailsAct; /** Action to open key-details dialog */
     QAction *refreshKeysFromKeyserverAct; /** Action to refresh a key from keyserver */
     QAction *uploadKeyToServerAct; /** Action to append selected keys to edit */

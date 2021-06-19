@@ -97,8 +97,6 @@ private:
     KeyList *mKeyList; /** Table holding the keys */
     QTextEdit *mTextPage{ nullptr }; /** Textedit associated to the notification */
     QHBoxLayout *actionButtonLayout;
-    [[maybe_unused]] QVector<QString> verifyDetailStringVector; /** Vector containing the text for labels in verifydetaildialog */
-    [[maybe_unused]] QVector<InfoBoardStatus> verifyDetailStatusVector; /** Vector containing the status for labels in verifydetaildialog */
 
 
 };

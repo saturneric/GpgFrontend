@@ -96,7 +96,6 @@ private:
     QAction *generateKeyDialogAct{};
     QAction *closeAct{};
     QAction *showKeyDetailsAct{};
-    [[maybe_unused]] QMessageBox msgbox;
     KeyServerImportDialog *importDialog{};
 
 protected:

@@ -317,7 +317,7 @@ void GeneralTab::slotOwnKeyIdChanged() {
     // add line with hidden-encrypt-to, if a key is chosen
     if (!ownKeyId.isEmpty()) {
         QByteArray string("recipient ");
-        string.append(ownKeyId);
+        string.append(ownKeyId.toUtf8());
         string.append("\n");
         gpgConfTempFile.write(string);
     }

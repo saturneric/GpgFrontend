@@ -1,28 +1,18 @@
 # GPG Frontend
 
-GPGFrontend is a modern, easy-to-use, compact, cross-platform, and installation-free gpg front-end tool. It visualizes
-most of the common operations of gpg commands. It aims to allow ordinary users to quickly use gpg and make professional
-users more convenient. Visit gpg. GPGFrontend supports some new features of OpenPGP.
+GPGFrontend is a modern, easy-to-use, compact, cross-platform, and installation-free gpg front-end tool. By using
+GPGFrontend, you can quickly encrypt and decrypt text or files. Or at the same time as the above operations, you can add
+your own signature to let others know that this document or this paragraph of text was issued by you.
 
-Before use, you only need to install gnupg in advance to make GPGFrontend run on Windows, Linux and macOS.
+Furthermore, it visualizes most of the common operations of gpg commands. It aims to allow ordinary users to quickly use
+gpg and make professional users more convenient. GPGFrontend supports some new features of OpenPGP.
 
-Purpose
------
-The GPGFrontend project is inherited from a relatively mature but not maintained gpg4usb project. It inherits the
-stable, easy-to-use, compact, and installation-free features of gpg4usb, and plans to support some new features
-of OpenPGP based on it and continue to improve the ease of use of the software, so that the gpg tool can be used by more
-and more people use.
-
-My personal strength is always limited. GPGFrontend welcomes volunteers to join. You can use the GitHub platform to file
-an issue, or submit a pull request.
-
-The GPGFrontend project is as open source as gpg4usb, and it also insists on using open source codes and libraries.
-
-
-Obtaining
----------
-You can get the available binary files of the project and the compressed package of its dependent resources in the
-release, and double-click to use it after decompression.
+# Features
+- No need to install.
+- GPGFrontend can run on Windows, Linux and macOS.
+- Just double-click, and then you can use it freely.
+- Before use, you only need to install gnupg. A tool of a few MB.
+- GPGFrontend supports multiple languages.
 
 How to Use it
 ---------
@@ -30,6 +20,25 @@ How to Use it
 0. Install gnupg. To check if it is installed, you can enter gpg on the command line.
 1. Unzip gpgfrontend.zip. The compressed package can be downloaded in Release.
 2. Start GpgFrontend with gpgfrontend.exe or gpgfrontend (depending on your os).
+
+Purpose
+-----
+The GPGFrontend project inherit from a relatively mature but not maintained gpg4usb project. It inherits the stable,
+easy-to-use, compact, and installation-free features of gpg4usb, and plans to support some new features of OpenPGP based
+on it and continue to improve it.
+
+GPGFrontend will add more functions in the future to improve the ease of use of GPG in end-to-end transmission. At the
+same time, the addition of new functions does not affect the old basic functions. My personal strength is always
+limited. GPGFrontend welcomes volunteers to join. You can use the GitHub platform to file an issue, or submit a pull
+request.
+
+The GPGFrontend project is as open source, and it also insists on using open source codes and libraries.
+
+
+Obtaining
+---------
+You can get the available binary files of the project and the compressed package of its dependent resources in the
+release, and double-click to use it after decompression.
 
 How to Build it
 ---------
