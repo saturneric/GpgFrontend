@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
     QString appPath = qApp->applicationDirPath();
 
     QApplication::setApplicationVersion(BUILD_VERSION);
-    QApplication::setApplicationName("GPGFrontend");
+    QApplication::setApplicationName(PROJECT_NAME);
 
     // dont show icons in menus
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
