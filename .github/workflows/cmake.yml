@@ -2,9 +2,9 @@ name: Build and Upload Binary Package
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -48,7 +48,7 @@ jobs:
     - name: Set up Dependence (Windows)
       shell: msys2 {0}
       run: |
-        pacman --noconfirm -Syu cmake autoconf automake mingw-w64-x86_64-qt-creator libgpgme
+        pacman --noconfirm -Syu mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-qt-creator libgpgme
       if: matrix.os == 'windows-latest'
 
     - name: Build GpgME
@@ -74,34 +74,35 @@ jobs:
 
     - name: Configure CMake (Windows)
       shell: msys2 {0}
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}}
+      run: |
+        cd ${{github.workspace}}
+        mkdir build && cd build
+        cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}}  ..
       if: matrix.os == 'windows-latest'
 
     - name: Build GpgFrontend (Windows)
       shell: msys2 {0}
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}  -- -j 2
+      run: cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
       if: matrix.os == 'windows-latest'
 
     - name: Upload Artifact(Linux)
       uses: actions/upload-artifact@master
       with:
-        name: gpgfrontend-linux-release
+        name: gpgfrontend-linux-release-${{github.sha}}
         path: ${{github.workspace}}/build/release/*
       if: matrix.os == 'ubuntu-latest'
 
     - name: Upload Artifact(macOS)
       uses: actions/upload-artifact@master
       with:
-        name: gpgfrontend-macos-release
+        name: gpgfrontend-macos-release-${{github.sha}}
         path: ${{github.workspace}}/build/release/*
       if: matrix.os == 'macos-latest'
 
     - name: Upload Artifact(Windows)
       uses: actions/upload-artifact@master
       with:
-        name: gpgfrontend-windows-release
+        name: gpgfrontend-windows-release-${{github.sha}}
         path: ${{github.workspace}}/build/release/*
       if: matrix.os == 'windows-latest'
