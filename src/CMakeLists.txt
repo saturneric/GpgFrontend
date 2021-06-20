@@ -1,3 +1,5 @@
+set(ALL_SOURCE_FILE)
+
 add_subdirectory(gpg)
 add_subdirectory(ui)
 
@@ -10,14 +12,18 @@ set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE
 file(GLOB_RECURSE GPGFRONTEND_HEADER_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/include/*.h)
 qt5_wrap_cpp(QT5_MOCS ${GPGFRONTEND_HEADER_FILES} TARGET gpgfrontend)
 
+# Get ALL SOURCE FILES
+file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
+
 # Set Translation Files
-file(GLOB_RECURSE QT_TS_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/resource/ts/*.ts)
+set(QT_TS_FILES gpgfrontend_en_us.ts gpgfrontend_zh_chs.ts gpgfrontend_zh_cht.ts gpg_frontend_fr.ts gpg_frontend_ru.ts)
+list(TRANSFORM QT_TS_FILES PREPEND ${CMAKE_SOURCE_DIR}/resource/ts/)
+message(STATUS "QT_TS_FILES ${QT_TS_FILES}")
 set(QT_QM_FILES_OUTPUT_DIR ${CMAKE_BINARY_DIR}/src/ts)
 set_source_files_properties(${QT_TS_FILES} PROPERTIES OUTPUT_LOCATION ${QT_QM_FILES_OUTPUT_DIR})
-QT5_create_translation(QON_QM_FILES ${BASE_SOURCE} ${QT_TS_FILES})
-message(STATUS ${QON_QM_FILES})
+QT5_create_translation(QON_QM_FILES ${CMAKE_SOURCE_DIR} ${QT_TS_FILES})
+message(STATUS "QON_QM_FILES ${QON_QM_FILES}")
 add_custom_target(translations DEPENDS ${QON_QM_FILES})
-
 
 # Set Build Information
 configure_file(${CMAKE_SOURCE_DIR}/include/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/include/GpgFrontend.h @ONLY)
@@ -27,6 +33,8 @@ file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${EXECUTABLE_OUTPUT_PATH}
 file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
 file(COPY ${CMAKE_SOURCE_DIR}/resource/help DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
 file(COPY ${CMAKE_SOURCE_DIR}/resource/conf DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+
+# Copy Utils Files
 if(MINGW)
     message(STATUS "Copying Dependent DLL For Windows Runtime Env")
     file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/lib/ DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
@@ -51,14 +59,14 @@ endif()
 IF (MINGW)
     message(STATUS "Link Application Static Library For MINGW")
     target_link_libraries(gpgfrontend
-            qtui gpg
+            gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
 
 
 else()
     message(STATUS "Link Application Static Library For UNIX")
     target_link_libraries(gpgfrontend
-            qtui gpg
+            gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
 endif()
 
