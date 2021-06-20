@@ -48,13 +48,7 @@ jobs:
     - name: Set up Dependence (Windows)
       shell: msys2 {0}
       run: |
-        pacman --noconfirm -Syu cmake autoconf automake mingw-w64-x86_64-qt-creator
-      if: matrix.os == 'windows-latest'
-
-    - name: Set up Python3.8 (Windows)
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
+        pacman --noconfirm -Syu cmake autoconf automake mingw-w64-x86_64-qt-creator libgpgme
       if: matrix.os == 'windows-latest'
 
     - name: Build GpgME
@@ -66,17 +60,6 @@ jobs:
         sudo make install
         cd ..
       if: matrix.os == 'ubuntu-latest' && matrix.os == 'macos-latest'
-
-    - name: Build GpgME (Windows)
-      shell: msys2 {0}
-      run: |
-        git clone https://github.com/gpg/gpgme
-        cd gpgme
-        ./autogen.sh
-        ./configure && make -j2
-        sudo make install
-        cd ..
-      if: matrix.os == 'windows-latest'
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
