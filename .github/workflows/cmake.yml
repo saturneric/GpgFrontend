@@ -75,7 +75,7 @@ jobs:
     - name: Configure CMake (Windows)
       shell: msys2 {0}
       run: |
-        cd $(echo "/"${{github.workspace}}  | sed 's/\\/\//g' | sed 's/://')
+        cd $(echo "/${github.workspace}"  | sed 's/\\/\//g' | sed 's/://')
         mkdir build && cd build
         cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}} ..
       if: matrix.os == 'windows-latest'
