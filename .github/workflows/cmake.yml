@@ -1,4 +1,4 @@
-name: Build and Upload
+name: Build and Upload Binary Package
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ 'ubuntu-latest', 'macos-latest' ]
+        os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -37,6 +37,26 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
       if: matrix.os == 'ubuntu-latest'
+
+    - name: Set up MinGW and QT5 (Windows)
+      uses: msys2/setup-msys2@v2
+      with:
+        install: git msys2-devel base-devel binutils pactoys-git mercurial cvs wget p7zip perl ruby python2 mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain
+        update: true
+      shell: msys2 {0}
+      run: |
+        uname -a
+        sed -i '1s|^|[staging]\nServer = https://repo.msys2.org/staging/\nSigLevel = Never\n[clang32]\nServer = https://repo.msys2.org/mingw/clang32/\n|' /etc/pacman.conf
+        pacman --noconfirm -Suuy
+        pacman --noconfirm -Suu
+        pacman --noconfirm -S cmake autoconf automake mingw-w64-i686-qt-creator mingw-w64-x86_64-qt-creator
+      if: matrix.os == 'windows-latest'
+
+    - name: Set up Python3.8 (Windows)
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+      if: matrix.os == 'windows-latest'
 
     - name: Build GpgME
       run: |
@@ -69,3 +89,10 @@ jobs:
         name: gpgfrontend-macos-release
         path: ${{github.workspace}}/build/release/*
       if: matrix.os == 'macos-latest'
+
+    - name: Upload Artifact(Windows)
+      uses: actions/upload-artifact@master
+      with:
+        name: gpgfrontend-windows-release
+        path: ${{github.workspace}}/build/release/*
+      if: matrix.os == 'windows-latest'

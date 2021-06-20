@@ -89,7 +89,7 @@ endif()
 
 if(APPLE)
 
-    message(STATUS, "Configuration For  OS Platform MacOS")
+    message(STATUS "Configuration For OS Platform MacOS")
 
     set(ENV{Qt5_DIR} /usr/local/opt/qt5/lib/cmake)
 
