@@ -1,4 +1,4 @@
-<img style='float:right; width:100px;height:100px' src="https://github.com/saturneric/Blob/blob/master/logos/icon.png?raw=true" alt="ICON"/>
+<img width="100" height="100" align="right" src="https://github.com/saturneric/Blob/blob/master/logos/icon.png?raw=true" alt="ICON"/>
 
 # GpgFrontend
 
