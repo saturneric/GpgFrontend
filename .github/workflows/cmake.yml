@@ -1,4 +1,4 @@
-name: CMake
+name: Build and Upload
 
 on:
   push:
@@ -13,24 +13,30 @@ env:
 
 jobs:
   build:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ 'ubuntu-latest', 'macos-latest' ]
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install Dependence
+    - name: Install Dependence (Linux)
       run: |
         sudo apt-get update
         sudo apt-get -y install build-essential binutils git autoconf automake
         sudo apt-get -y install gcc g++
         sudo apt-get -y install libgpgme-dev gpg
+      if: matrix.os == 'ubuntu-latest'
+
+    - name: Install Dependence (macOS)
+      run: |
+        brew install cmake git autoconf automake qt@5
+      if: matrix.os == 'macos-latest'
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
+      if: matrix.os == 'ubuntu-latest'
 
     - name: Build GpgME
       run: |
@@ -50,9 +56,16 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}  -- -j 2
 
-    - name: Upload Artifact
+    - name: Upload Artifact(Linux)
       uses: actions/upload-artifact@master
       with:
-        name: gpgfrontend-linux
+        name: gpgfrontend-linux-release
         path: ${{github.workspace}}/build/release/*
-      
+      if: matrix.os == 'ubuntu-latest'
+
+    - name: Upload Artifact(macOS)
+      uses: actions/upload-artifact@master
+      with:
+        name: gpgfrontend-macos-release
+        path: ${{github.workspace}}/build/release/*
+      if: matrix.os == 'macos-latest'
