@@ -41,7 +41,7 @@ jobs:
     - name: Set up MinGW (Windows)
       uses: msys2/setup-msys2@v2
       with:
-        install: git msys2-devel base-devel binutils pactoys-git mercurial cvs wget p7zip perl ruby mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain
+        install: git msys2-devel base-devel binutils pactoys-git mercurial cvs wget p7zip perl ruby mingw-w64-x86_64-toolchain
         update: true
       if: matrix.os == 'windows-latest'
 
@@ -52,7 +52,7 @@ jobs:
         sed -i '1s|^|[staging]\nServer = https://repo.msys2.org/staging/\nSigLevel = Never\n[clang32]\nServer = https://repo.msys2.org/mingw/clang32/\n|' /etc/pacman.conf
         pacman --noconfirm -Suuy
         pacman --noconfirm -Suu
-        pacman --noconfirm -S cmake autoconf automake mingw-w64-i686-qt-creator mingw-w64-x86_64-qt-creator
+        pacman --noconfirm -Syu cmake autoconf automake mingw-w64-x86_64-qt-creator
       if: matrix.os == 'windows-latest'
 
     - name: Set up Python3.8 (Windows)
