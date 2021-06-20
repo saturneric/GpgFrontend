@@ -7,7 +7,8 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/saturneric/gpgfrontend)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_small)
 
-GpgFrontend is a Modern, Easy-to-Use, Compact, Cross-Platform, and Installation-Free OpenPGP Frontend Tool.
+GpgFrontend is a Modern, Easy-to-Use, Compact, Cross-Platform, and Installation-Free [OpenPGP](https://www.openpgp.org/)
+Frontend Tool.
 
 By using GpgFrontend, you can quickly **encrypt and decrypt text or files**. Or at the same time as the above
 operations, you can add **your own signature** to let others know that this document or this paragraph of text was
@@ -18,9 +19,11 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
 
 ![Main ScreenShot](https://github.com/saturneric/Blob/blob/master/screenshots/main.png?raw=true)
 
-Workflows Status: 
+#### Workflows Status:
 
-![main](https://github.com/saturneric/gpgfrontend/actions/workflows/cmake.yml/badge.svg?branch=main)
+[![Build & Package](https://github.com/saturneric/GpgFrontend/actions/workflows/cmake.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/cmake.yml)
+
+---
 
 ## Table of Contents
 
@@ -29,33 +32,75 @@ Workflows Status:
 - [Purpose](#purpose)
 - [Build](#build)
 - [Contract](#contract)
-  - [Contributing](#contributing)
-  - [Maintainers](#maintainers)
+    - [Contributing](#contributing)
+    - [Maintainers](#maintainers)
 - [Licenses](#LICENSES)
 
 ## Features
 
-- Open source, free, no need to install.
 - Can run on **Windows, Linux and macOS**.
+- Open source, free, no need to install.
 - Just double-click, and then you can use it freely.
-- Before use, you only need to install gnupg. A tiny tool of a few MB.
+- Before use, you only need to install [gnupg](https://gnupg.org/). A tiny GNU tool.
 - Supports multiple languages. Don’t forget to help me translate this software.
 
 ## Usage
 
-0. Install gnupg. To check if it is installed, you can enter gpg on the command line.
-    - For Windows User, Click [this link](https://gnupg.org/ftp/gcrypt/binary/gnupg-w32-2.3.1_20210420.exe) to download
-      gnupg.
-    - For macOS User, Use [Homebrew](https://brew.sh/) to install **gpg**.
-    - For Linux User, Use the package manager(e.g., apt, yum, pacman) to install **gpg**.
-1. Unzip GpgFrontend.zip. The compressed package can be downloaded in Release.
-2. Start GpgFrontend with GpgFrontend.exe or GpgFrontend (depending on your os).
+### Windows
+
+1. [Download](https://gnupg.org/ftp/gcrypt/binary/gnupg-w32-2.3.1_20210420.exe) gnupg-w32-******.exe
+2. Double Click it to install it
+3. [Download](https://github.com/saturneric/GpgFrontend/releases) GpgFrontend Windows Edition
+4. Unzip GpgFrontend
+5. Double Click gpgfrontend.exe
+
+### MacOS
+1. Install Homebrew [Here](https://brew.sh/) if you don't know it.
+2. Install gnupg
+    ```shell
+    % brew update
+    % brew install gnupg
+    ```
+3. [Download](https://github.com/saturneric/GpgFrontend/releases) GpgFrontend macOS Edition
+4. Unzip GpgFrontend
+5. Get into folder and Give gpgfrontend permission to execute
+    ```shell
+    % cd gpgfrontend-*.*.*-macos-amd64-release/
+    % chmod u+x gpgfrontend
+    ```
+6. Just run it
+    ```shell
+    % ./gpgfrontend
+    ```
+
+### Debian/Ubuntu/CentOS
+1. Install gnupg
+    - For Debian/Ubuntu
+       ```shell
+       $ sudo apt update
+       $ sudo apt install gpg
+       ```
+    - For CentOS
+       ```shell
+       $ sudo yum install gnupg
+       ```
+2. [Download](https://github.com/saturneric/GpgFrontend/releases) GpgFrontend Linux Edition
+3. Unzip GpgFrontend
+4. Get into folder and Give gpgfrontend permission to execute
+    ```shell
+    $ cd gpgfrontend-*.*.*-linux-amd64-release/
+    $ chmod u+x gpgfrontend
+    ```
+5. Just run it
+    ```shell
+    $ ./gpgfrontend
+    ```
 
 ## Purpose
 
-The GpgFrontend project inherit from a relatively mature but not maintained gpg4usb project. It inherits the stable,
-easy-to-use, compact, and installation-free features of gpg4usb, and plans to support some new features of OpenPGP based
-on it and continue to improve it.
+The GpgFrontend project inherit from a relatively mature but not maintained [gpg4usb](https://www.gpg4usb.org/) project.
+It inherits the stable, easy-to-use, compact, and installation-free features of gpg4usb, and plans to support some new
+features of OpenPGP based on it and continue to improve it.
 
 GpgFrontend will add more functions in the future to improve the ease of use of GPG in end-to-end transmission. At the
 same time, the addition of new functions does not affect the old basic functions. My personal strength is always
@@ -70,7 +115,7 @@ The tutorial for building the software will be released shortly.
 
 ## Contract
 
-If you want to contact me individually, you can email [eric@bktus.com](mailto:eric@bktus.com).
+If you want to contact me individually, you can email [eric@bktus.com](mailto:eric@bktus.com). 
 
 ### Contributing
 
@@ -88,11 +133,18 @@ Feel free to dive in! [Open an issue](https://github.com/saturneric/GpgFrontend/
 
 GpgFrontend itself is licensed under the [GPLv3](COPYING).
 
-There are some libraries, and the gpg-binary included in the zip-file / a static gpg-build which (may) have different
+There are some libraries and binary included in the zip-file which (may) have different
 licenses, for more information check their homepages. You can also obtain the sources from there.
 
-GPG: http://gnupg.org/
-QT: http://trolltech.no/ , http://trolltech.no/downloads/opensource
+gpg4usb: https://www.gpg4usb.org/
+
+Gnupg: https://gnupg.org/
+
+QT: https://www.qt.io/
+
+MSYS2: https://www.msys2.org/
+
+mingw-w64: http://mingw-w64.org/doku.php
 
 The icons of this software use materials from Alibaba vector icon library. The Alibaba vector icon library is free to
 use. The icons in the free library aren't registered as trademarks. There is no copyright issue involved and can be used

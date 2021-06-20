@@ -99,7 +99,7 @@ QHash<QString, QString> SettingsDialog::listLanguages() {
     QString appPath = qApp->applicationDirPath();
     QDir qmDir = QDir(appPath + "/ts/");
     QStringList fileNames =
-            qmDir.entryList(QStringList("gpg4usb_*.qm"));
+            qmDir.entryList(QStringList("gpgfrontend_*.qm"));
 
     for (int i = 0; i < fileNames.size(); ++i) {
         QString locale = fileNames[i];
@@ -112,7 +112,7 @@ QHash<QString, QString> SettingsDialog::listLanguages() {
         QString language =  QLocale::languageToString(qloc.language()) +" (" + locale + ")"; //+ " (" + QLocale::languageToString(qloc.language()) + ")";
 #else
         QString language = qloc.nativeLanguageName() + " (" + locale +
-                           ")"; //+ " (" + QLocale::languageToString(qloc.language()) + ")";
+                           ")";
 #endif
         languages.insert(locale, language);
     }
@@ -167,7 +167,7 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
 
     langBoxLayout->addWidget(langSelectBox);
     langBoxLayout->addWidget(
-            new QLabel(tr("<b>NOTE: </b> Gpg4usb will restart automatically if you change the language!")));
+            new QLabel(tr("<b>NOTE: </b> GpgFrontend will restart automatically if you change the language!")));
     langBox->setLayout(langBoxLayout);
     connect(langSelectBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slotLanguageChanged()));
 

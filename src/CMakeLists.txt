@@ -1,3 +1,5 @@
+set(ALL_SOURCE_FILE)
+
 add_subdirectory(gpg)
 add_subdirectory(ui)
 
@@ -10,34 +12,38 @@ set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE
 file(GLOB_RECURSE GPGFRONTEND_HEADER_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/include/*.h)
 qt5_wrap_cpp(QT5_MOCS ${GPGFRONTEND_HEADER_FILES} TARGET gpgfrontend)
 
-# Set Binary Output Path
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
-message(STATUS "CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+# Get ALL SOURCE FILES
+file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
 # Set Translation Files
-file(GLOB_RECURSE QT_TS_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/resource/ts/*.ts)
-set(QT_QM_FILES_OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ts)
+set(QT_TS_FILES gpgfrontend_en_us.ts gpgfrontend_zh_chs.ts gpgfrontend_zh_cht.ts gpg_frontend_fr.ts gpg_frontend_ru.ts)
+list(TRANSFORM QT_TS_FILES PREPEND ${CMAKE_SOURCE_DIR}/resource/ts/)
+message(STATUS "QT_TS_FILES ${QT_TS_FILES}")
+set(QT_QM_FILES_OUTPUT_DIR ${CMAKE_BINARY_DIR}/src/ts)
 set_source_files_properties(${QT_TS_FILES} PROPERTIES OUTPUT_LOCATION ${QT_QM_FILES_OUTPUT_DIR})
-QT5_create_translation(QON_QM_FILES ${BASE_SOURCE} ${QT_TS_FILES})
+QT5_create_translation(QON_QM_FILES ${CMAKE_SOURCE_DIR} ${QT_TS_FILES})
+message(STATUS "QON_QM_FILES ${QON_QM_FILES}")
 add_custom_target(translations DEPENDS ${QON_QM_FILES})
 
 # Set Build Information
 configure_file(${CMAKE_SOURCE_DIR}/include/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/include/GpgFrontend.h @ONLY)
 
 # Copy Resource Files
-file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-file(COPY ${CMAKE_SOURCE_DIR}/resource/help DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-file(COPY ${CMAKE_SOURCE_DIR}/resource/conf DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+file(COPY ${CMAKE_SOURCE_DIR}/resource/help DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+file(COPY ${CMAKE_SOURCE_DIR}/resource/conf DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+
+# Copy Utils Files
 if(MINGW)
     message(STATUS "Copying Dependent DLL For Windows Runtime Env")
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/lib/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/gpgme/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/bearer DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/iconengines DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/imageformats DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/printsupport DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/platforms DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/lib/ DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/gpgme/ DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/bearer DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/iconengines DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/imageformats DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/printsupport DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
+    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/platforms DESTINATION ${EXECUTABLE_OUTPUT_PATH}/ FOLLOW_SYMLINK_CHAIN)
 endif()
 
 set(RESOURCE_FILES ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc ${APP_ICON_RESOURCE_WINDOWS} ${QON_QM_FILES})
@@ -53,14 +59,14 @@ endif()
 IF (MINGW)
     message(STATUS "Link Application Static Library For MINGW")
     target_link_libraries(gpgfrontend
-            qtui gpg
+            gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
 
 
 else()
     message(STATUS "Link Application Static Library For UNIX")
     target_link_libraries(gpgfrontend
-            qtui gpg
+            gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
 endif()
 
