@@ -25,9 +25,12 @@ jobs:
     - name: Install Dependence
       run: |
         sudo apt-get update
-        sudo apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint
+        sudo apt-get -y install build-essential binutils git autoconf automake
         sudo apt-get -y install gcc g++
-        sudo apt-get -y install libgpgme-dev gpg qt5-default qttools5-dev-tools qttools5-dev
+        sudo apt-get -y install libgpgme-dev gpg
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
 
     - name: Build GpgME
       run: |
@@ -38,21 +41,18 @@ jobs:
         sudo make install
         cd ..
 
-    - name: Re-Install Qt
-      uses: jurplel/install-qt-action@v2
-
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}}
 
-    - name: Build
+    - name: Build GpgFrontend
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}  -- -j 2
 
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      # Execute tests defined by the CMake configuration.  
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest -C ${{env.BUILD_TYPE}}
+    - name: Upload Artifact
+      uses: actions/upload-artifact@master
+      with:
+        name: gpgfrontend-linux
+        path: ${{github.workspace}}/build/release/*
       
