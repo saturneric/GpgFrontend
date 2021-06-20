@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
             lang = QLocale::system().name();
         }
         qDebug() << "Language set" << lang;
-        translator.load( appPath + "/ts/" + "gpg4usb_" + lang);
+        translator.load( appPath + "/ts/" + "gpgfrontend_" + lang);
         qDebug() << "Translator" << translator.filePath();
         QApplication::installTranslator(&translator);
 
