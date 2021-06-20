@@ -18,15 +18,15 @@
 
 #define PROJECT_NAME "GpgFrontend"
 #define BUILD_VERSION "1.0.0_Windows-10.0.19042_AMD64_Release"
-#define GIT_VERSION "main_edf08cf137e47ab9e61f5f088cef94cdbeca2c6e"
+#define GIT_VERSION "feature/ci_a2da66e1f95d06b9c97182f611f0019fae871c02"
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
 #define VERSION_PATCH 0
 
-#define BUILD_TIMESTAMP "2021-06-19 20:12:57"
+#define BUILD_TIMESTAMP "2021-06-20 14:52:25"
 
-#define GIT_BRANCH_NAME "main"
-#define GIT_COMMIT_HASH "edf08cf137e47ab9e61f5f088cef94cdbeca2c6e"
+#define GIT_BRANCH_NAME "feature/ci"
+#define GIT_COMMIT_HASH "a2da66e1f95d06b9c97182f611f0019fae871c02"
 
 #endif //GPGFRONTEND_H_IN
