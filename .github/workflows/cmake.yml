@@ -48,10 +48,6 @@ jobs:
     - name: Set up Dependence (Windows)
       shell: msys2 {0}
       run: |
-        uname -a
-        sed -i '1s|^|[staging]\nServer = https://repo.msys2.org/staging/\nSigLevel = Never\n[clang32]\nServer = https://repo.msys2.org/mingw/clang32/\n|' /etc/pacman.conf
-        pacman --noconfirm -Suuy
-        pacman --noconfirm -Suu
         pacman --noconfirm -Syu cmake autoconf automake mingw-w64-x86_64-qt-creator
       if: matrix.os == 'windows-latest'
 
