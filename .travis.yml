@@ -1,0 +1,13 @@
+language: c++
+compiler: gcc
+
+before_install:
+  - sudo apt-get -y install libgpgme-dev cmake autoconf automake
+  - sudo apt-get install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+
+before_script:
+  ############################################################################
+  # Set the git identity (for pushing the documentation and the benchmarks)
+  ############################################################################
+  - git config --global user.name "Travis Bot"
+  - git config --global user.email "<>"
