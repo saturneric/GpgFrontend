@@ -41,7 +41,7 @@ jobs:
     - name: Set up MinGW (Windows)
       uses: msys2/setup-msys2@v2
       with:
-        install: git msys2-devel base-devel binutils pactoys-git mercurial cvs wget p7zip perl ruby python2 mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain
+        install: git msys2-devel base-devel binutils pactoys-git mercurial cvs wget p7zip perl ruby mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain
         update: true
       if: matrix.os == 'windows-latest'
 
