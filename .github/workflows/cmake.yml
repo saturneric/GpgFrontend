@@ -9,6 +9,7 @@ on:
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
+  EXECUTABLE_OUTPUT_PATH: ./
 
 jobs:
   build:
@@ -26,7 +27,7 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint
         sudo apt-get -y install gcc g++
-        sudo apt-get -y install libgpgme-dev gpg qt5-default qttools5-dev-tools
+        sudo apt-get -y install libgpgme-dev gpg qt5-default qttools5-dev-tools qttools5-dev
 
     - name: Build GpgME
       run: |
@@ -35,6 +36,10 @@ jobs:
         ./autogen.sh
         ./configure && make -j2
         sudo make install
+        cd ..
+
+    - name: Re-Install Qt
+      uses: jurplel/install-qt-action@v2
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
