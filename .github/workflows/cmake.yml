@@ -3,10 +3,14 @@ name: Build & Package
 on:
   push:
     branches: [ main, develop ]
+    paths-ignore:
+      - '**/README.md'
+      - 'resources/**'
   pull_request:
     branches: [ develop ]
     paths-ignore:
       - '**/README.md'
+      - 'resources/**'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
