@@ -18,7 +18,9 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
 
 ![Main ScreenShot](https://github.com/saturneric/Blob/blob/master/screenshots/main.png?raw=true)
 
-Build Status: ![main](https://github.com/saturneric/gpgfrontend/actions/workflows/cmake.yml/badge.svg?branch=main)
+Workflows Status: 
+
+![main](https://github.com/saturneric/gpgfrontend/actions/workflows/cmake.yml/badge.svg?branch=main)
 
 ## Table of Contents
 
