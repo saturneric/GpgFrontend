@@ -26,7 +26,8 @@
 
 #include <utility>
 
-KeyMgmt::KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent )  : QMainWindow(parent)
+KeyMgmt::KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent )  :
+    QMainWindow(parent), appPath(qApp->applicationDirPath()), settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat)
 {
     mCtx = ctx;
 
@@ -45,24 +46,36 @@ KeyMgmt::KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent )  : QMainWindow(parent
     connect(this,SIGNAL(signalStatusBarChanged(QString)),this->parent(),SLOT(slotSetStatusBarText(QString)));
 
     /* Restore the iconstyle */
-    QSettings settings;
-    settings.sync();
-    QSize iconSize = settings.value("toolbar/iconsize", QSize(32, 32)).toSize();
+    this->settings.sync();
+
+    QSize iconSize = settings.value("toolbar/iconsize", QSize(24, 24)).toSize();
+    settings.setValue("toolbar/iconsize", iconSize);
+
     Qt::ToolButtonStyle buttonStyle = static_cast<Qt::ToolButtonStyle>(settings.value("toolbar/iconstyle", Qt::ToolButtonTextUnderIcon).toUInt());
     this->setIconSize(iconSize);
     this->setToolButtonStyle(buttonStyle);
 
     // state sets pos & size of dock-widgets
-    this->restoreState(settings.value("keymgmt/windowState").toByteArray());
+    this->restoreState(this->settings.value("keymgmt/windowState").toByteArray());
+
+    qDebug() << "windows/windowSave" << this->settings.value("window/windowSave").toBool();
 
     // Restore window size & location
-    if (settings.value("window/windowSave").toBool()) {
+    if (this->settings.value("keymgmt/setWindowSize").toBool()) {
         QPoint pos = settings.value("keymgmt/pos", QPoint(100, 100)).toPoint();
-        QSize size = settings.value("keymgmt/size", QSize(800, 450)).toSize();
-        this->resize(size);
+        QSize size = settings.value("keymgmt/size", QSize(900, 600)).toSize();
+        qDebug() << "Settings size" << size << "pos" << pos;
+        this->setMinimumSize(size);
         this->move(pos);
     } else {
-        this->resize(QSize(1000, 600));
+        qDebug() << "Use default min windows size and pos";
+        QPoint defaultPoint(100, 100);
+        QSize defaultMinSize(900, 600);
+        this->setMinimumSize(defaultMinSize);
+        this->move(defaultPoint);
+        this->settings.setValue("keymgmt/pos", defaultPoint);
+        this->settings.setValue("keymgmt/size", defaultMinSize);
+        this->settings.setValue("keymgmt/setWindowSize", true);
     }
 
     setWindowTitle(tr("KeyPairs Management"));
@@ -72,18 +85,25 @@ KeyMgmt::KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent )  : QMainWindow(parent
 
 void KeyMgmt::createActions()
 {
-    closeAct = new QAction(tr("&Close Key Management"), this);
+    openKeyFileAct = new QAction(tr("&Open"), this);
+    openKeyFileAct->setShortcut(tr("Ctrl+O"));
+    openKeyFileAct->setToolTip(tr("Open Key File"));
+    connect(openKeyFileAct, SIGNAL(triggered()), this, SLOT(slotImportKeyFromFile()));
+
+    closeAct = new QAction(tr("&Close"), this);
     closeAct->setShortcut(tr("Ctrl+Q"));
     closeAct->setIcon(QIcon(":exit.png"));
-    closeAct->setToolTip(tr("Close Key Management"));
+    closeAct->setToolTip(tr("Close"));
     connect(closeAct, SIGNAL(triggered()), this, SLOT(close()));
 
-    generateKeyPairAct = new QAction(tr("Generate KeyPair"), this);
+    generateKeyPairAct = new QAction(tr("New Keypair"), this);
+    generateKeyPairAct->setShortcut(tr("Ctrl+N"));
     generateKeyPairAct->setIcon(QIcon(":key_generate.png"));
     generateKeyPairAct->setToolTip(tr("Generate KeyPair"));
     connect(generateKeyPairAct, SIGNAL(triggered()), this, SLOT(slotGenerateKeyDialog()));
 
-    generateSubKeyAct = new QAction(tr("Generate Subkey For Selected"), this);
+    generateSubKeyAct = new QAction(tr("New Subkey"), this);
+    generateSubKeyAct->setShortcut(tr("Ctrl+Shift+N"));
     generateSubKeyAct->setIcon(QIcon(":key_generate.png"));
     generateSubKeyAct->setToolTip(tr("Generate Subkey For Selected KeyPair"));
     connect(generateSubKeyAct, SIGNAL(triggered()), this, SLOT(slotGenerateSubKey()));
@@ -130,6 +150,7 @@ void KeyMgmt::createActions()
 void KeyMgmt::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
+    fileMenu->addAction(openKeyFileAct);
     fileMenu->addAction(closeAct);
 
     keyMenu = menuBar()->addMenu(tr("&Key"));
@@ -137,7 +158,7 @@ void KeyMgmt::createMenus()
     generateKeyMenu->addAction(generateKeyPairAct);
     generateKeyMenu->addAction(generateSubKeyAct);
 
-    importKeyMenu = keyMenu->addMenu(tr("&Import Key From..."));
+    importKeyMenu = keyMenu->addMenu(tr("&Import Key"));
     importKeyMenu->addAction(importKeyFromFileAct);
     importKeyMenu->addAction(importKeyFromClipboardAct);
     importKeyMenu->addAction(importKeyFromKeyServerAct);
@@ -157,8 +178,8 @@ void KeyMgmt::createToolBars()
     generateToolButton->setMenu(generateKeyMenu);
     generateToolButton->setPopupMode(QToolButton::InstantPopup);
     generateToolButton->setIcon(QIcon(":key_generate.png"));
-    generateToolButton->setToolTip(tr("Generate key"));
-    generateToolButton->setText(tr("Generate key"));
+    generateToolButton->setText(tr("Generate"));
+    generateToolButton->setToolTip(tr("Generate A New Keypair or Subkey"));
     generateToolButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     keyToolBar->addWidget(generateToolButton);
 
@@ -168,7 +189,7 @@ void KeyMgmt::createToolBars()
     toolButton->setPopupMode(QToolButton::InstantPopup);
     toolButton->setIcon(QIcon(":key_import.png"));
     toolButton->setToolTip(tr("Import key"));
-    toolButton->setText(tr("Import key from"));
+    toolButton->setText(tr("Import Key"));
     toolButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     keyToolBar->addWidget(toolButton);
 
