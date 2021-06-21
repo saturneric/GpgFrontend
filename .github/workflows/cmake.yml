@@ -62,12 +62,13 @@ jobs:
 
       - name: Build GpgME
         run: |
+          cd ..
           git clone https://github.com/gpg/gpgme
           cd gpgme
           ./autogen.sh
           ./configure && make -j2
           sudo make install
-          cd ..
+          cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
 
       - name: Configure CMake
