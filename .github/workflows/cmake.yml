@@ -43,13 +43,13 @@ jobs:
         if: matrix.os == 'macos-latest'
 
 
-    - name: Cache Qt
-      id: cache-qt
-      uses: actions/cache@v1
-      with:
-        path: ../Qt
-        key: ${{ runner.os }}-QtCache
-      if: matrix.os == 'ubuntu-latest'
+      - name: Cache Qt
+        id: cache-qt
+        uses: actions/cache@v1
+        with:
+          path: ../Qt
+          key: ${{ runner.os }}-QtCache
+        if: matrix.os == 'ubuntu-latest'
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
