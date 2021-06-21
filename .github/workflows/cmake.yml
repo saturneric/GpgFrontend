@@ -42,15 +42,26 @@ jobs:
           brew install cmake git autoconf automake qt@5
         if: matrix.os == 'macos-latest'
 
+
+    - name: Cache Qt
+      id: cache-qt
+      uses: actions/cache@v1
+      with:
+        path: ../Qt
+        key: ${{ runner.os }}-QtCache
+      if: matrix.os == 'ubuntu-latest'
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
+          with:
+            cached: ${{ steps.cache-qt.outputs.cache-hit }}
         if: matrix.os == 'ubuntu-latest'
 
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
         with:
           install: git msys2-devel base-devel binutils pactoys-git mercurial cvs wget p7zip perl ruby mingw-w64-x86_64-toolchain
-          update: true
+          release: false
         if: matrix.os == 'windows-latest'
 
       - name: Set up Dependence (Windows)
