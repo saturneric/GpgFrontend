@@ -67,7 +67,7 @@ jobs:
       - name: Set up Dependence (Windows)
         shell: msys2 {0}
         run: |
-          pacman --noconfirm -Syu mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-qt-creator mingw-w64-x86_64-gpgme
+          pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-qt-creator mingw-w64-x86_64-gpgme
         if: matrix.os == 'windows-latest'
 
       - name: Build GpgME
