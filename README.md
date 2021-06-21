@@ -18,8 +18,11 @@ issued by you.
 
 Furthermore, it visualizes most of the common operations of gpg commands. It aims to allow ordinary users to quickly use
 gpg and make professional users more convenient. GpgFrontend supports new features of OpenPGP.
-
-![Main ScreenShot](https://github.com/saturneric/Blob/blob/master/screenshots/main.png?raw=true)
+<div align="center">
+<img width="360" src="https://github.com/saturneric/Blob/blob/master/screenshots/key_info.PNG?raw=true" alt="Windows Screenshot"/>
+<img width="360" src="https://github.com/saturneric/Blob/blob/master/screenshots/main_mac.jpg?raw=true" alt="macOS Screenshot"/>
+<img width="360" src="https://github.com/saturneric/Blob/blob/master/screenshots/keygen_ubuntu.png?raw=true" alt="Ubuntu Screenshot"/>
+</div>
 
 #### Workflows Status:
 
