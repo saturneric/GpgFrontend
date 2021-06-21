@@ -102,6 +102,9 @@ private:
 
     void importKeys(QByteArray inBuffer);
 
+    QString appPath;
+    QSettings settings;
+
     GpgME::GpgContext *mCtx;
     QTableWidget *mKeyList;
     QMenu *popupMenu;

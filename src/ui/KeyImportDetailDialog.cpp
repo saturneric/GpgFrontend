@@ -24,13 +24,17 @@
 
 #include <ui/KeyImportDetailDialog.h>
 
-KeyImportDetailDialog::KeyImportDetailDialog(GpgME::GpgContext *ctx, GpgImportInformation result, QWidget *parent)
+KeyImportDetailDialog::KeyImportDetailDialog(GpgME::GpgContext *ctx, GpgImportInformation result, bool automatic,
+                                             QWidget *parent)
         : QDialog(parent) {
     mCtx = ctx;
     mResult = std::move(result);
     // If no key for import found, just show a message
     if (mResult.considered == 0) {
-        QMessageBox::information(nullptr, tr("Key import details"), tr("No keys found to import"));
+        if(automatic)
+            QMessageBox::information(nullptr, tr("Key Update Details"), tr("No keys found"));
+        else
+            QMessageBox::information(nullptr, tr("Key Import Details"), tr("No keys found to import"));
         return;
     }
 
@@ -46,7 +50,11 @@ KeyImportDetailDialog::KeyImportDetailDialog(GpgME::GpgContext *ctx, GpgImportIn
     mvbox->addWidget(buttonBox);
 
     this->setLayout(mvbox);
-    this->setWindowTitle(tr("Key import details"));
+    if(automatic)
+        this->setWindowTitle(tr("Key Update Details"));
+    else
+        this->setWindowTitle(tr("Key Import Details"));
+
     this->resize(QSize(600, 300));
     this->setModal(true);
     this->exec();
@@ -54,7 +62,7 @@ KeyImportDetailDialog::KeyImportDetailDialog(GpgME::GpgContext *ctx, GpgImportIn
 
 void KeyImportDetailDialog::createGeneralInfoBox() {
     // GridBox for general import information
-    generalInfoBox = new QGroupBox(tr("Genral key import info"));
+    generalInfoBox = new QGroupBox(tr("General key info"));
     auto *generalInfoBoxLayout = new QGridLayout(generalInfoBox);
 
     generalInfoBoxLayout->addWidget(new QLabel(tr("Considered:")), 1, 0);

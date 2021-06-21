@@ -141,7 +141,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext *ctx, 
 }
 
 void VerifyKeyDetailBox::slotImportFormKeyserver() {
-    auto *importDialog = new KeyServerImportDialog(mCtx, mKeyList, this);
+    auto *importDialog = new KeyServerImportDialog(mCtx, mKeyList, false, this);
     importDialog->slotImport(QStringList(fpr));
 }
 

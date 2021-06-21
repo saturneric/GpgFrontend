@@ -133,7 +133,7 @@ void MainWindow::restoreSettings() {
     settings.setValue("keyserver/keyServerList", keyServerList);
 
     // set default keyserver, if it's not set
-    QString defaultKeyServer = settings.value("keyserver/defaultKeyServer", QString("http://keys.gnupg.net")).toString();
+    QString defaultKeyServer = settings.value("keyserver/defaultKeyServer", QString("https://keyserver.ubuntu.com")).toString();
     settings.setValue("keyserver/defaultKeyServer", defaultKeyServer);
 
     // Iconstyle
@@ -376,16 +376,16 @@ void MainWindow::createActions() {
     connect(copyMailAddressToClipboardAct, SIGNAL(triggered()), this, SLOT(slotCopyMailAddressToClipboard()));
 
     // TODO: find central place for shared actions, to avoid code-duplication with keymgmt.cpp
-    showKeyDetailsAct = new QAction(tr("Show Keydetails"), this);
+    showKeyDetailsAct = new QAction(tr("Show Key Details"), this);
     showKeyDetailsAct->setToolTip(tr("Show Details for this Key"));
     connect(showKeyDetailsAct, SIGNAL(triggered()), this, SLOT(slotShowKeyDetails()));
 
-    refreshKeysFromKeyserverAct = new QAction(tr("Refresh key from keyserver"), this);
-    refreshKeysFromKeyserverAct->setToolTip(tr("Refresh key from default keyserver"));
+    refreshKeysFromKeyserverAct = new QAction(tr("Refresh Key From Key Server"), this);
+    refreshKeysFromKeyserverAct->setToolTip(tr("Refresh key from default key server"));
     connect(refreshKeysFromKeyserverAct, SIGNAL(triggered()), this, SLOT(refreshKeysFromKeyserver()));
 
-    uploadKeyToServerAct = new QAction(tr("Upload Key(s) To Server"), this);
-    uploadKeyToServerAct->setToolTip(tr("Upload The Selected Keys To Server"));
+    uploadKeyToServerAct = new QAction(tr("Upload Public Key(s) To Server"), this);
+    uploadKeyToServerAct->setToolTip(tr("Upload The Selected Public Keys To Server"));
     connect(uploadKeyToServerAct, SIGNAL(triggered()), this, SLOT(uploadKeyToServer()));
     /* Key-Shortcuts for Tab-Switchung-Action
     */
@@ -922,7 +922,8 @@ void MainWindow::refreshKeysFromKeyserver() {
         return;
     }
 
-    auto *ksid = new KeyServerImportDialog(mCtx, mKeyList, this);
+    auto *ksid = new KeyServerImportDialog(mCtx, mKeyList, true, this);
+    ksid->show();
     ksid->slotImport(*mKeyList->getSelected());
 
 }

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(GpgFrontend VERSION 1.0.2 LANGUAGES CXX)
+project(GpgFrontend VERSION 1.0.3 LANGUAGES CXX)
 
 message(STATUS "GPGFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
@@ -19,12 +19,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Check Env Variables Before Configuring
 
-if(NOT DEFINED ENV{CMAKE_BUILD_TYPE})
+if(CMAKE_BUILD_TYPE)
+    message(STATUS "PreCheck CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
+else()
     set(CMAKE_BUILD_TYPE "Release")
+    message(STATUS "Set CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 endif()
 
-if(NOT DEFINED ENV{EXECUTABLE_OUTPUT_PATH})
+if(EXECUTABLE_OUTPUT_PATH)
+    message(STATUS "PreCheck EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH}")
+else()
     set(EXECUTABLE_OUTPUT_PATH "./")
+    message(STATUS "Set EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH}")
 endif()
 
 # Output Env Variables

@@ -34,11 +34,12 @@ class KeyServerImportDialog : public QDialog {
 Q_OBJECT
 
 public:
-    KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *keyList, QWidget *parent = nullptr);
+    KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *keyList, bool automatic,
+                          QWidget *parent);
 
-    void slotImport(QStringList keyIds);
+    void slotImport(const QStringList& keyIds);
 
-    void slotImport(QStringList keyIds, const QUrl& keyserverUrl);
+    void slotImport(const QStringList& keyIds, const QUrl& keyserverUrl);
 
 private slots:
 
@@ -57,16 +58,22 @@ private:
 
     void importKeys(QByteArray inBuffer);
 
+    void setLoading(bool status);
+
     QPushButton *createButton(const QString &text, const char *member);
 
     QComboBox *createComboBox();
 
+    bool mAutomatic;
+
     QString appPath;
     QSettings settings;
+
     GpgME::GpgContext *mCtx;
     KeyList *mKeyList;
     QLineEdit *searchLineEdit;
     QComboBox *keyServerComboBox;
+    QProgressBar *waitingBar;
     QLabel *searchLabel;
     QLabel *keyServerLabel;
     QLabel *message;

@@ -30,7 +30,8 @@ KeyList::KeyList(GpgME::GpgContext *ctx,
                  KeyListRow::KeyType selectType,
                  KeyListColumn::InfoType infoType,
                  QWidget *parent)
-        : QWidget(parent), mSelectType(selectType), mInfoType(infoType)
+        : QWidget(parent), mSelectType(selectType), mInfoType(infoType), appPath(qApp->applicationDirPath()),
+        settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat)
 {
     mCtx = ctx;
 
@@ -380,55 +381,94 @@ void KeyList::dragEnterEvent(QDragEnterEvent *event)
 void KeyList::importKeys(QByteArray inBuffer)
 {
     GpgImportInformation result = mCtx->importKey(std::move(inBuffer));
-    new KeyImportDetailDialog(mCtx, result, this);
+    new KeyImportDetailDialog(mCtx, result, false, this);
 }
 
-void KeyList::uploadKeyToServer(QByteArray *keys)
-{
-    QUrl reqUrl("http://localhost:11371/pks/add");
+void KeyList::uploadKeyToServer(QByteArray *keys) {
+
+    // set default keyserver
+    QString keyserver = settings.value("keyserver/defaultKeyServer").toString();
+
+    QUrl reqUrl(keyserver + "/pks/add");
     qnam = new QNetworkAccessManager(this);
 
-    QUrl params;
-    keys->replace("\n", "%0D%0A")
+    // Building Post Data
+    QByteArray postData;
+
+    keys->replace("\n", "%0A")
+            .replace("\r", "%0D")
             .replace("(", "%28")
             .replace(")", "%29")
             .replace("/", "%2F")
             .replace(":", "%3A")
-            .replace("+","%2B")
+            .replace("+", "%2B")
+            .replace('=', "%3D")
             .replace(' ', '+');
 
-    QUrlQuery q;
+    QNetworkRequest request(reqUrl);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
-    q.addQueryItem("keytext", *keys);
+    postData.append("keytext").append("=").append(*keys);
 
-    params = q.query(QUrl::FullyEncoded).toUtf8();
-
-    QNetworkRequest req(reqUrl);
-
-    req.setHeader(QNetworkRequest::ContentTypeHeader,"application/x-www-form-urlencoded");
-
-    QNetworkReply *reply = qnam->post(req,params.toEncoded());
+    // Send Post Data
+    QNetworkReply *reply = qnam->post(request, postData);
     connect(reply, SIGNAL(finished()),
             this, SLOT(uploadFinished()));
-    qDebug() << "REQURL: " << reqUrl;
-    qDebug() << "PARAMS.ENCODED: " << params.toEncoded();
-}
 
-void KeyList::uploadFinished()
-{
+
+    // A Waiting Dialog
+    auto *dialog = new QDialog(this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    dialog->setModal(true);
+    dialog->setWindowTitle(tr("Uploading Public Key..."));
+
+    auto *pb = new QProgressBar();
+    pb->setRange(0, 0);
+    pb->setFixedSize(260, 24);
+
+    auto *layout = new QVBoxLayout(dialog);
+    layout->addWidget(pb);
+    dialog->setLayout(layout);
+
+    dialog->show();
+
+    // Keep Waiting
+    while(reply->isRunning()) {
+        QApplication::processEvents();
+    }
+
+    // Done
+    dialog->hide();
+    dialog->close();
+}
+void KeyList::uploadFinished() {
     auto *reply = qobject_cast<QNetworkReply *>(sender());
 
     QByteArray response = reply->readAll();
-    qDebug() << "RESPNOSE: " << response.data();
-    //reply->readAll();
-    qDebug() << "ERROR: " << reply->error();
-    if (reply->error()) {
-        qDebug() << "Error while contacting keyserver!";
+    qDebug() << "Response: " << response.data();
+
+    auto error = reply->error();
+    if (error != QNetworkReply::NoError) {
+        qDebug() << "Error From Reply" << reply->errorString();
+        QString message;
+        switch (error) {
+            case QNetworkReply::ContentNotFoundError :
+                message = tr("Key Not Found");
+                break;
+            case QNetworkReply::TimeoutError :
+                message = tr("Timeout");
+                break;
+            case QNetworkReply::HostNotFoundError :
+                message = tr("Key Server Not Found");
+                break;
+            default:
+                message = tr("Connection Error");
+        }
+        QMessageBox::critical(nullptr, "Upload Failed", message);
         return;
     } else {
+        QMessageBox::information(nullptr, "Upload Success", "Upload Public Key Successfully");
         qDebug() << "Success while contacting keyserver!";
     }
-
     reply->deleteLater();
 }
 

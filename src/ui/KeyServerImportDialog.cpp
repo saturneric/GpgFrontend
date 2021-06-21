@@ -26,52 +26,101 @@
 
 #include <utility>
 
-KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *keyList, QWidget *parent)
+KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *keyList, bool automatic,
+                                             QWidget *parent)
         : QDialog(parent), appPath(qApp->applicationDirPath()),
-        settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat), mCtx(ctx), mKeyList(keyList) {
+          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat),
+          mCtx(ctx), mKeyList(keyList), mAutomatic(automatic) {
+
+    if(automatic) {
+        setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
+    }
+
     // Buttons
     closeButton = createButton(tr("&Close"), SLOT(close()));
-    importButton = createButton(tr("&Import"), SLOT(slotImport()));
+    importButton = createButton(tr("&Import ALL"), SLOT(slotImport()));
     searchButton = createButton(tr("&Search"), SLOT(slotSearch()));
 
     // Line edit for search string
-    searchLabel = new QLabel(tr("Search string:"));
+    searchLabel = new QLabel(tr("Search String:"));
     searchLineEdit = new QLineEdit();
 
     // combobox for keyserverlist
-    keyServerLabel = new QLabel(tr("Keyserver:"));
+    keyServerLabel = new QLabel(tr("Key Server:"));
     keyServerComboBox = createComboBox();
 
     // table containing the keys found
     createKeysTable();
     message = new QLabel;
+    message->setFixedHeight(24);
     icon = new QLabel;
+    icon->setFixedHeight(24);
+
+    // Network Waiting
+    waitingBar = new QProgressBar();
+    waitingBar->setVisible(false);
+    waitingBar->setRange(0, 0);
+    waitingBar->setFixedHeight(24);
+    waitingBar->setFixedWidth(260);
 
     // Layout for messagebox
     auto *messageLayout = new QHBoxLayout;
     messageLayout->addWidget(icon);
     messageLayout->addWidget(message);
+    messageLayout->addWidget(waitingBar);
     messageLayout->addStretch();
 
     // Layout for import and close button
     auto *buttonsLayout = new QHBoxLayout;
     buttonsLayout->addStretch();
-    buttonsLayout->addWidget(importButton);
+    if(!automatic)
+        buttonsLayout->addWidget(importButton);
     buttonsLayout->addWidget(closeButton);
 
     auto *mainLayout = new QGridLayout;
-    mainLayout->addWidget(searchLabel, 1, 0);
-    mainLayout->addWidget(searchLineEdit, 1, 1);
-    mainLayout->addWidget(searchButton, 1, 2);
-    mainLayout->addWidget(keyServerLabel, 2, 0);
-    mainLayout->addWidget(keyServerComboBox, 2, 1);
-    mainLayout->addWidget(keysTable, 3, 0, 1, 3);
-    mainLayout->addLayout(messageLayout, 4, 0, 1, 3);
-    mainLayout->addLayout(buttonsLayout, 5, 0, 1, 3);
+
+    // 自动化调用界面布局
+    if(automatic) {
+        mainLayout->addLayout(messageLayout, 0, 0, 1, 3);
+        mainLayout->addLayout(buttonsLayout, 1, 0, 1, 3);
+    } else {
+        mainLayout->addWidget(searchLabel, 1, 0);
+        mainLayout->addWidget(searchLineEdit, 1, 1);
+        mainLayout->addWidget(searchButton, 1, 2);
+        mainLayout->addWidget(keyServerLabel, 2, 0);
+        mainLayout->addWidget(keyServerComboBox, 2, 1);
+        mainLayout->addWidget(keysTable, 3, 0, 1, 3);
+        mainLayout->addLayout(messageLayout, 4, 0, 1, 3);
+        mainLayout->addLayout(buttonsLayout, 6, 0, 1, 3);
+    }
 
     this->setLayout(mainLayout);
     this->setWindowTitle(tr("Import Keys from Keyserver"));
-    this->resize(700, 300);
+
+    if(automatic) {
+        this->setMinimumHeight(80);
+    } else {
+        // Restore window size & location
+        if (this->settings.value("ImportKeyFromServer/setWindowSize").toBool()) {
+            QPoint pos = settings.value("ImportKeyFromServer/pos", QPoint(150, 150)).toPoint();
+            QSize size = settings.value("ImportKeyFromServer/size", QSize(500, 300)).toSize();
+            qDebug() << "Settings size" << size << "pos" << pos;
+            this->setMinimumSize(size);
+            this->move(pos);
+        } else {
+            qDebug() << "Use default min windows size and pos";
+            QPoint defaultPoint(150, 150);
+            QSize defaultMinSize(500, 300);
+            this->setMinimumSize(defaultMinSize);
+            this->move(defaultPoint);
+            this->settings.setValue("ImportKeyFromServer/pos", defaultPoint);
+            this->settings.setValue("ImportKeyFromServer/size", defaultMinSize);
+            this->settings.setValue("ImportKeyFromServer/setWindowSize", true);
+        }
+    }
+
+
+
     this->setModal(true);
 }
 
@@ -119,23 +168,35 @@ void KeyServerImportDialog::createKeysTable() {
 void KeyServerImportDialog::setMessage(const QString &text, bool error) {
     message->setText(text);
     if (error) {
-        QIcon undoicon = QIcon::fromTheme("dialog-error");
-        QPixmap pixmap = undoicon.pixmap(QSize(32, 32), QIcon::Normal, QIcon::On);
-        icon->setPixmap(pixmap);
+        icon->setPixmap(QPixmap(":error.png").scaled(QSize(24, 24), Qt::KeepAspectRatio));
     } else {
-        QIcon undoicon = QIcon::fromTheme("dialog-information");
-        QPixmap pixmap = undoicon.pixmap(QSize(32, 32), QIcon::Normal, QIcon::On);
-        icon->setPixmap(pixmap);
+        icon->setPixmap(QPixmap(":info.png").scaled(QSize(24, 24), Qt::KeepAspectRatio));
     }
 }
 
 void KeyServerImportDialog::slotSearch() {
+
+    if (searchLineEdit->text().isEmpty()) {
+        setMessage(tr("<h4>Text is empty.</h4>"), false);
+        return;
+    }
+
     QUrl urlFromRemote = keyServerComboBox->currentText() + "/pks/lookup?search=" + searchLineEdit->text() +
                          "&op=index&options=mr";
     qnam = new QNetworkAccessManager(this);
     QNetworkReply *reply = qnam->get(QNetworkRequest(urlFromRemote));
+
     connect(reply, SIGNAL(finished()),
             this, SLOT(slotSearchFinished()));
+
+    setLoading(true);
+
+    while (reply->isRunning()) {
+        QApplication::processEvents();
+    }
+
+    setLoading(false);
+
 }
 
 void KeyServerImportDialog::slotSearchFinished() {
@@ -147,29 +208,34 @@ void KeyServerImportDialog::slotSearchFinished() {
 
     QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
     if (reply->error()) {
-        setMessage(tr("Couldn't contact keyserver!"), true);
-        //setMessage(reply->error());
+        setMessage(tr("<h4>Couldn't contact keyserver!</h4>"), true);
         qDebug() << reply->error();
+        return;
     }
     if (firstLine.contains("Error")) {
         QString text = QString(reply->readLine(1024));
         if (text.contains("Too many responses")) {
-            setMessage(tr("Too many responses from keyserver!"), true);
+            setMessage(tr("<h4>CToo many responses from keyserver!</h4>"), true);
+            return;
         } else if (text.contains("No keys found")) {
             // if string looks like hex string, search again with 0x prepended
             QRegExp rx("[0-9A-Fa-f]*");
             QString query = searchLineEdit->text();
             if (rx.exactMatch(query)) {
-                setMessage(tr("No keys found, input may be kexId, retrying search with 0x."), true);
+                setMessage(tr("<h4>No keys found, input may be kexId, retrying search with 0x.</h4>"), true);
                 searchLineEdit->setText(query.prepend("0x"));
                 this->slotSearch();
+                return;
             } else {
-                setMessage(tr("No keys found containing the search string!"), true);
+                setMessage(tr("<h4>No keys found containing the search string!</h4>"), true);
+                return;
             }
         } else if (text.contains("Insufficiently specific words")) {
-            setMessage(tr("Insufficiently specific search string!"), true);
+            setMessage(tr("<h4>Insufficiently specific search string!</h4>"), true);
+            return;
         } else {
             setMessage(text, true);
+            return;
         }
     } else {
         int row = 0;
@@ -236,7 +302,7 @@ void KeyServerImportDialog::slotSearchFinished() {
                     }
                 }
             }
-            setMessage(tr("%1 keys found. Doubleclick a key to import it.").arg(row), false);
+            setMessage(tr("<h4>%1 keys found. Double click a key to import it.</h4>").arg(row), false);
         }
         keysTable->resizeColumnsToContents();
     }
@@ -250,23 +316,34 @@ void KeyServerImportDialog::slotImport() {
     }
 }
 
-void KeyServerImportDialog::slotImport(QStringList keyIds) {
-    QString keyserver = settings.value("keyserver/defaultKeyServer").toString();;
-    slotImport(std::move(keyIds), QUrl(keyserver));
+void KeyServerImportDialog::slotImport(const QStringList& keyIds) {
+    QString keyserver = settings.value("keyserver/defaultKeyServer").toString();
+    qDebug() << "Select Key Server" << keyserver;
+    slotImport(keyIds, QUrl(keyserver));
 }
 
 
-void KeyServerImportDialog::slotImport(QStringList keyIds, const QUrl &keyServerUrl) {
-            foreach(QString keyId, keyIds) {
-            QUrl reqUrl(
-                    keyServerUrl.scheme() + "://" + keyServerUrl.host() + ":11371/pks/lookup?op=get&search=0x" + keyId +
-                    "&options=mr");
-            //qDebug() << "req to " << reqUrl;
-            qnam = new QNetworkAccessManager(this);
-            QNetworkReply *reply = qnam->get(QNetworkRequest(reqUrl));
-            connect(reply, SIGNAL(finished()),
-                    this, SLOT(slotImportFinished()));
+void KeyServerImportDialog::slotImport(const QStringList& keyIds, const QUrl &keyServerUrl) {
+    for (const auto &keyId : keyIds) {
+        QUrl reqUrl(
+                keyServerUrl.scheme() + "://" + keyServerUrl.host() + "/pks/lookup?op=get&search=0x" + keyId +
+                "&options=mr");
+        qDebug() << "slotImport reqUrl" << reqUrl;
+        qnam = new QNetworkAccessManager(this);
+
+        QNetworkReply *reply = qnam->get(QNetworkRequest(reqUrl));
+
+        connect(reply, SIGNAL(finished()),
+                this, SLOT(slotImportFinished()));
+
+        setLoading(true);
+
+        while(reply->isRunning()) {
+            QApplication::processEvents();
         }
+
+        setLoading(false);
+    }
 }
 
 void KeyServerImportDialog::slotImportFinished() {
@@ -275,12 +352,25 @@ void KeyServerImportDialog::slotImportFinished() {
     QByteArray key = reply->readAll();
 
     QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
-    if (reply->error()) {
-        setMessage(tr("Error while contacting keyserver!"), true);
+
+    auto error = reply->error();
+    if (error != QNetworkReply::NoError) {
+        qDebug() << "Error From Reply" << reply->errorString();
+        switch (error) {
+            case QNetworkReply::ContentNotFoundError :
+                setMessage(tr("Key Not Found"), true);
+                break;
+            case QNetworkReply::TimeoutError :
+                setMessage(tr("Timeout"), true);
+                break;
+            case QNetworkReply::HostNotFoundError :
+                setMessage(tr("Key Server Not Found"), true);
+                break;
+            default:
+                setMessage(tr("Connection Error"), true);
+        }
         return;
     }
-    this->importKeys(key.constData());
-    setMessage(tr("Key imported"), false);
 
     // Add keyserver to list in config-file, if it isn't contained
     QStringList keyServerList = settings.value("keyserver/keyServerList").toStringList();
@@ -289,10 +379,35 @@ void KeyServerImportDialog::slotImportFinished() {
         settings.setValue("keyserver/keyServerList", keyServerList);
     }
     reply->deleteLater();
-    reply = nullptr;
+
+    this->importKeys(key.constData());
+    if(mAutomatic) {
+        setMessage(tr("<h4>Key Updated</h4>"), false);
+    } else {
+        setMessage(tr("<h4>Key Imported</h4>"), false);
+    }
+
+
 }
 
 void KeyServerImportDialog::importKeys(QByteArray inBuffer) {
     GpgImportInformation result = mCtx->importKey(std::move(inBuffer));
-    new KeyImportDetailDialog(mCtx, result, this);
+    if(mAutomatic) {
+        new KeyImportDetailDialog(mCtx, result, false, nullptr);
+        this->accept();
+    } else {
+        new KeyImportDetailDialog(mCtx, result, false, this);
+    }
+}
+
+void KeyServerImportDialog::setLoading(bool status) {
+    if (status) {
+        waitingBar->setVisible(true);
+        icon->setVisible(false);
+        message->setVisible(false);
+    } else {
+        waitingBar->setVisible(false);
+        icon->setVisible(true);
+        message->setVisible(true);
+    }
 }

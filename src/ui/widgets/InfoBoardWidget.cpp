@@ -60,7 +60,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyLis
 }
 
 void InfoBoardWidget::slotImportFromKeyserver() {
-    auto *importDialog = new KeyServerImportDialog(mCtx, mKeyList, this);
+    auto *importDialog = new KeyServerImportDialog(mCtx, mKeyList, false, this);
     importDialog->slotImport(*keysNotInList);
 }
 
