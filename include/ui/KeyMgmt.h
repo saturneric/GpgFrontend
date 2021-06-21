@@ -83,12 +83,16 @@ private:
 
     void deleteKeysWithWarning(QStringList *uidList);
 
+    QString appPath;
+    QSettings settings;
+
     KeyList *mKeyList;
     GpgME::GpgContext *mCtx;
     QMenu *fileMenu{};
     QMenu *keyMenu{};
     QMenu *generateKeyMenu{};
     QMenu *importKeyMenu{};
+    QAction *openKeyFileAct{};
     QAction *exportKeyToFileAct{};
     QAction *exportKeyToClipboardAct{};
     QAction *deleteCheckedKeysAct{};
