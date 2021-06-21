@@ -53,8 +53,8 @@ jobs:
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
-          with:
-            cached: ${{ steps.cache-qt.outputs.cache-hit }}
+        with:
+          cached: ${{ steps.cache-qt.outputs.cache-hit }}
         if: matrix.os == 'ubuntu-latest'
 
       - name: Set up MinGW (Windows)
