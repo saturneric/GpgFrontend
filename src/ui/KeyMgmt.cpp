@@ -142,7 +142,7 @@ void KeyMgmt::createActions()
     deleteCheckedKeysAct->setIcon(QIcon(":button_delete.png"));
     connect(deleteCheckedKeysAct, SIGNAL(triggered()), this, SLOT(slotDeleteCheckedKeys()));
 
-    showKeyDetailsAct = new QAction(tr("Show Keydetails"), this);
+    showKeyDetailsAct = new QAction(tr("Show Key Details"), this);
     showKeyDetailsAct->setToolTip(tr("Show Details for this Key"));
     connect(showKeyDetailsAct, SIGNAL(triggered()), this, SLOT(slotShowKeyDetails()));
 }
@@ -204,7 +204,7 @@ void KeyMgmt::createToolBars()
 void KeyMgmt::slotImportKeys(QByteArray inBuffer)
 {
     GpgImportInformation result = mCtx->importKey(std::move(inBuffer));
-    new KeyImportDetailDialog(mCtx, result, this);
+    new KeyImportDetailDialog(mCtx, result, false, this);
 
 }
 
@@ -226,7 +226,7 @@ void KeyMgmt::slotImportKeyFromFile()
 
 void KeyMgmt::slotImportKeyFromKeyServer()
 {
-    importDialog = new KeyServerImportDialog(mCtx, mKeyList, this);
+    importDialog = new KeyServerImportDialog(mCtx, mKeyList, false, this);
     importDialog->show();
 }
 
@@ -328,12 +328,6 @@ void KeyMgmt::slotGenerateKeyDialog()
 
 void KeyMgmt::closeEvent(QCloseEvent *event)
 {
-    QSettings settings;
-    //settings.setValue("geometry", saveGeometry());
-    settings.setValue("keymgmt/windowState", saveState());
-    settings.setValue("keymgmt/pos", pos());
-    settings.setValue("keymgmt/size", size());
-
     QMainWindow::closeEvent(event);
 }
 

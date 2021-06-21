@@ -33,7 +33,7 @@ class KeyImportDetailDialog : public QDialog
     Q_OBJECT
 
 public:
-    KeyImportDetailDialog(GpgME::GpgContext* ctx, GpgImportInformation result, QWidget *parent = 0);
+    KeyImportDetailDialog(GpgME::GpgContext *ctx, GpgImportInformation result, bool automatic, QWidget *parent = 0);
 
 private:
     void createGeneralInfoBox();
