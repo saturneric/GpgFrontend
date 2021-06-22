@@ -903,27 +903,27 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/KeyList.cpp" line="418"/>
+        <location filename="../../src/ui/widgets/KeyList.cpp" line="422"/>
         <source>Uploading Public Key...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/KeyList.cpp" line="448"/>
+        <location filename="../../src/ui/widgets/KeyList.cpp" line="455"/>
         <source>Key Not Found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/KeyList.cpp" line="451"/>
+        <location filename="../../src/ui/widgets/KeyList.cpp" line="458"/>
         <source>Timeout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/KeyList.cpp" line="454"/>
+        <location filename="../../src/ui/widgets/KeyList.cpp" line="461"/>
         <source>Key Server Not Found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/KeyList.cpp" line="457"/>
+        <location filename="../../src/ui/widgets/KeyList.cpp" line="464"/>
         <source>Connection Error</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1648,127 +1648,127 @@ Make sure you keep it save.Do you really want to export your private key?</sourc
 <context>
     <name>KeyServerImportDialog</name>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="35"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="40"/>
         <source>&amp;Close</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="37"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="42"/>
         <source>&amp;Search</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="36"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="41"/>
         <source>&amp;Import ALL</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="40"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="45"/>
         <source>Search String:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="44"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="49"/>
         <source>Key Server:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="93"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="98"/>
         <source>Import Keys from Keyserver</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="154"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="159"/>
         <source>UID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="154"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="159"/>
         <source>Creation date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="154"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="159"/>
         <source>KeyID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="154"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="159"/>
         <source>Tag</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="175"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="180"/>
         <source>&lt;h4&gt;Text is empty.&lt;/h4&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="206"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="211"/>
         <source>&lt;h4&gt;Couldn&apos;t contact keyserver!&lt;/h4&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="213"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="218"/>
         <source>&lt;h4&gt;CToo many responses from keyserver!&lt;/h4&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="220"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="225"/>
         <source>&lt;h4&gt;No keys found, input may be kexId, retrying search with 0x.&lt;/h4&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="225"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="230"/>
         <source>&lt;h4&gt;No keys found containing the search string!&lt;/h4&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="229"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="234"/>
         <source>&lt;h4&gt;Insufficiently specific search string!&lt;/h4&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="257"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="262"/>
         <source>revoked</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="260"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="265"/>
         <source>disabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="300"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="305"/>
         <source>&lt;h4&gt;%1 keys found. Double click a key to import it.&lt;/h4&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="356"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="361"/>
         <source>Key Not Found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="359"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="364"/>
         <source>Timeout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="362"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="367"/>
         <source>Key Server Not Found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="365"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="370"/>
         <source>Connection Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="380"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="385"/>
         <source>&lt;h4&gt;Key Updated&lt;/h4&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="382"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="387"/>
         <source>&lt;h4&gt;Key Imported&lt;/h4&gt;</source>
         <translation type="unfinished"></translation>
     </message>
