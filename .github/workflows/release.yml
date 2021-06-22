@@ -25,7 +25,6 @@ jobs:
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 18
     steps:
 
       - uses: actions/checkout@v2
@@ -106,20 +105,20 @@ jobs:
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-linux-release-${{github.sha}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{github.sha}}
           path: ${{github.workspace}}/build/release/*
         if: matrix.os == 'ubuntu-latest'
 
       - name: Upload Artifact(macOS)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-macos-release-${{github.sha}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{github.sha}}
           path: ${{github.workspace}}/build/release/*
         if: matrix.os == 'macos-latest'
 
       - name: Upload Artifact(Windows)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-windows-release-${{github.sha}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{github.sha}}
           path: ${{github.workspace}}/build/release/*
         if: matrix.os == 'windows-latest'
