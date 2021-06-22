@@ -1,8 +1,8 @@
-name: Build & Package
+name: Debug Build & Package
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ develop ]
     paths-ignore:
       - '**/README.md'
       - 'resource/ts/**'
@@ -16,7 +16,7 @@ on:
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
+  BUILD_TYPE: Debug
   EXECUTABLE_OUTPUT_PATH: ./
 
 jobs:
@@ -25,7 +25,6 @@ jobs:
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 18
     steps:
 
       - uses: actions/checkout@v2
@@ -61,7 +60,7 @@ jobs:
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
         with:
-          install: git msys2-devel base-devel binutils pactoys-git mercurial cvs wget p7zip perl ruby mingw-w64-x86_64-toolchain
+          install: git msys2-devel base-devel binutils mingw-w64-x86_64-toolchain
           release: false
         if: matrix.os == 'windows-latest'
 
@@ -69,18 +68,30 @@ jobs:
         shell: msys2 {0}
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-qt-creator mingw-w64-x86_64-gpgme
+          pacman --noconfirm -S --needed make texinfo
+
         if: matrix.os == 'windows-latest'
 
       - name: Build GpgME
         run: |
           cd ..
-          git clone https://github.com/gpg/gpgme
+          git clone https://github.com/saturneric/gpgme
           cd gpgme
           ./autogen.sh
           ./configure && make -j2
           sudo make install
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+
+      - name: Build GpgME (Windows)
+        shell: msys2 {0}
+        run: |
+          git clone https://github.com/saturneric/gpgme
+          cd gpgme
+          ./autogen.sh
+          ./configure --enable-static=true --enable-languages=cpp LDFLAGS="-static" && make -j2
+          make install
+        if: matrix.os == 'windows-latest'
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -103,23 +114,27 @@ jobs:
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'windows-latest'
 
+      - name: Get Short SHA of Commit
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-linux-release-${{github.sha}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
           path: ${{github.workspace}}/build/release/*
         if: matrix.os == 'ubuntu-latest'
 
       - name: Upload Artifact(macOS)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-macos-release-${{github.sha}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
           path: ${{github.workspace}}/build/release/*
         if: matrix.os == 'macos-latest'
 
       - name: Upload Artifact(Windows)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-windows-release-${{github.sha}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
           path: ${{github.workspace}}/build/release/*
         if: matrix.os == 'windows-latest'
