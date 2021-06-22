@@ -89,7 +89,7 @@ jobs:
           git clone https://github.com/saturneric/gpgme
           cd gpgme
           ./autogen.sh
-          ./configure && make -j2
+          ./configure --enable-static=true  --enable-languages=cpp && make -j2
           make install
         if: matrix.os == 'windows-latest'
 
