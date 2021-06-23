@@ -28,7 +28,7 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
 
 #### Workflows Status:
 
-[![Build & Package](https://github.com/saturneric/GpgFrontend/actions/workflows/cmake.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/cmake.yml)
+[![Build & Package](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/cmake.yml)
 
 ---
 
