@@ -81,6 +81,8 @@ int main(int argc, char *argv[]) {
         qDebug() << "Translator2" << translator2.filePath();
         QApplication::installTranslator(&translator2);
 
+        QApplication::setQuitOnLastWindowClosed(true);
+
         MainWindow window;
         return_from_event_loop_code = QApplication::exec();
 
