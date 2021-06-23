@@ -18,6 +18,9 @@ issued by you.
 
 Furthermore, it visualizes most of the common operations of gpg commands. It aims to allow ordinary users to quickly use
 gpg and make professional users more convenient. GpgFrontend supports new features of OpenPGP.
+
+[ >> Quick Start](#quick-start)
+
 <div align="center">
 <img width="640" src="https://github.com/saturneric/Blob/blob/master/screenshots/main_mac.jpg?raw=true" alt="macOS Screenshot"/>
 </div>
@@ -36,9 +39,11 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
 
 - [Features](#features)
 - [Usage](#usage)
-   - [Windows](#windows)
-   - [macOS](#macos)
-   - [Debian/Ubuntu/CentOS](#debianubuntucentos)
+    - [Quick Start](#quick-start)
+    - [How to Run it](#how-to-run-it)
+        - [Windows](#windows)
+        - [macOS](#macos)
+        - [Debian/Ubuntu/CentOS](#debianubuntucentos)
 - [Document](#document)
 - [Purpose](#purpose)
 - [Build](#build)
@@ -57,7 +62,28 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
 
 ## Usage
 
-### Windows
+### Quick Start
+
+### Fast encryption
+
+Encryption can be done in just a few clicks.
+
+![GIF](https://github.com/saturneric/Blob/blob/master/gif/encrypt.gif?raw=true)
+
+### Fast Decryption
+
+I want to see what you wrote right away.
+
+![GIF](https://github.com/saturneric/Blob/blob/master/gif/decrypt.gif?raw=true)
+
+### More Helpful Operation
+
+Read the animated pictures in the [Document](https://saturneric.github.io/GpgFrontend/index.html#/) to learn more
+awesome operations.
+
+### How to Run it
+
+#### Windows
 
 1. [Download](https://gnupg.org/ftp/gcrypt/binary/gnupg-w32-2.3.1_20210420.exe) gnupg-w32-******.exe
 2. Double Click it to install it
@@ -65,7 +91,8 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
 4. Unzip GpgFrontend
 5. Double Click gpgfrontend.exe
 
-### macOS
+#### macOS
+
 1. Install Homebrew [Here](https://brew.sh/) if you don't know it.
 2. Install gnupg
     ```shell
@@ -84,7 +111,8 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
     % ./gpgfrontend
     ```
 
-### Debian/Ubuntu/CentOS
+#### Debian/Ubuntu/CentOS
+
 1. Install gnupg
     - For Debian/Ubuntu
        ```shell
@@ -130,7 +158,7 @@ The tutorial for building the software will be released shortly.
 
 ## Contract
 
-If you want to contact me individually, you can email [eric@bktus.com](mailto:eric@bktus.com). 
+If you want to contact me individually, you can email [eric@bktus.com](mailto:eric@bktus.com).
 
 ### Contributing
 
@@ -148,8 +176,8 @@ Feel free to dive in! [Open an issue](https://github.com/saturneric/GpgFrontend/
 
 GpgFrontend itself is licensed under the [GPLv3](COPYING).
 
-There are some libraries and binary included in the zip-file which (may) have different
-licenses, for more information check their homepages. You can also obtain the sources from there.
+There are some libraries and binary included in the zip-file which (may) have different licenses, for more information
+check their homepages. You can also obtain the sources from there.
 
 gpg4usb: https://www.gpg4usb.org/
 
