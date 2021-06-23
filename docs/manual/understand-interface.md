@@ -3,6 +3,8 @@
 As a novice, you only need to quickly grasp the meaning of a few important parts of the page. You will gradually
 discover other functions in the next exploration.
 
+![Interface](https://github.com/saturneric/Blob/blob/master/screenshots/interface-introduce.png?raw=true)
+
 ## Text Editor
 
 In the text editing area, you can type text at will. Or create a new tab through the New option in the top file menu.
@@ -64,5 +66,5 @@ Here, you can perform corresponding operations by clicking the buttons above. Fo
 editor and setting the key you want to use in the key toolbox, you can click the encryption button to perform the
 operation.
 
-Some operations need to specify the key and some are not used, which will be explained in other corresponding parts of
+Some operations need to specify the key, and some are not used, which will be explained in other corresponding parts of
 the document.

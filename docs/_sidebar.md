@@ -3,7 +3,7 @@
     - [Quick Start](quick-start.md)
   
 - Manual
-  - [Understand Interface](manual/encrypt-decrypt-text.md)
+  - [Understand Interface](manual/understand-interface.md)
   - [Encrypt & Decrypt Text](manual/encrypt-decrypt-text.md)
   - Sign & Verify Text
   - Encrypt & Decrypt File
