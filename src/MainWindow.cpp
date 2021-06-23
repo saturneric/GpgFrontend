@@ -261,11 +261,11 @@ void MainWindow::createActions() {
     quoteAct->setToolTip(tr("Quote whole text"));
     connect(quoteAct, SIGNAL(triggered()), edit, SLOT(slotQuote()));
 
-    selectallAct = new QAction(tr("Select &All"), this);
-    selectallAct->setIcon(QIcon(":edit.png"));
-    selectallAct->setShortcut(QKeySequence::SelectAll);
-    selectallAct->setToolTip(tr("Select the whole text"));
-    connect(selectallAct, SIGNAL(triggered()), edit, SLOT(slotSelectAll()));
+    selectAllAct = new QAction(tr("Select &All"), this);
+    selectAllAct->setIcon(QIcon(":edit.png"));
+    selectAllAct->setShortcut(QKeySequence::SelectAll);
+    selectAllAct->setToolTip(tr("Select the whole text"));
+    connect(selectAllAct, SIGNAL(triggered()), edit, SLOT(slotSelectAll()));
 
     findAct = new QAction(tr("&Find"), this);
     findAct->setShortcut(QKeySequence::Find);
@@ -422,7 +422,7 @@ void MainWindow::slotDisableTabActions(int number) {
     copyAct->setDisabled(disable);
     pasteAct->setDisabled(disable);
     closeTabAct->setDisabled(disable);
-    selectallAct->setDisabled(disable);
+    selectAllAct->setDisabled(disable);
     findAct->setDisabled(disable);
     verifyAct->setDisabled(disable);
     signAct->setDisabled(disable);
@@ -465,7 +465,7 @@ void MainWindow::createMenus() {
     editMenu->addAction(copyAct);
     editMenu->addAction(cutAct);
     editMenu->addAction(pasteAct);
-    editMenu->addAction(selectallAct);
+    editMenu->addAction(selectAllAct);
     editMenu->addAction(findAct);
     editMenu->addSeparator();
     editMenu->addAction(quoteAct);
@@ -546,7 +546,7 @@ void MainWindow::createToolBars() {
     editToolBar->setObjectName("editToolBar");
     editToolBar->addAction(copyAct);
     editToolBar->addAction(pasteAct);
-    editToolBar->addAction(selectallAct);
+    editToolBar->addAction(selectAllAct);
     viewMenu->addAction(editToolBar->toggleViewAction());
 
     specialEditToolBar = addToolBar(tr("Special Edit"));
@@ -598,13 +598,13 @@ void MainWindow::createStatusBar() {
 void MainWindow::createDockWindows() {
     /* KeyList-Dockwindow
      */
-    keylistDock = new QDockWidget(tr("Key ToolBox"), this);
-    keylistDock->setObjectName("EncryptDock");
-    keylistDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    keylistDock->setMinimumWidth(460);
-    addDockWidget(Qt::RightDockWidgetArea, keylistDock);
-    keylistDock->setWidget(mKeyList);
-    viewMenu->addAction(keylistDock->toggleViewAction());
+    keyListDock = new QDockWidget(tr("Key ToolBox"), this);
+    keyListDock->setObjectName("EncryptDock");
+    keyListDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    keyListDock->setMinimumWidth(460);
+    addDockWidget(Qt::RightDockWidgetArea, keyListDock);
+    keyListDock->setWidget(mKeyList);
+    viewMenu->addAction(keyListDock->toggleViewAction());
 
     infoBoardDock = new QDockWidget(tr("Information Board"), this);
     infoBoardDock->setObjectName("Information Board");
@@ -922,17 +922,16 @@ void MainWindow::refreshKeysFromKeyserver() {
         return;
     }
 
-    auto *ksid = new KeyServerImportDialog(mCtx, mKeyList, true, this);
-    ksid->show();
-    ksid->slotImport(*mKeyList->getSelected());
+    auto *dialog = new KeyServerImportDialog(mCtx, mKeyList, true, this);
+    dialog->show();
+    dialog->slotImport(*mKeyList->getSelected());
 
 }
 
 void MainWindow::uploadKeyToServer() {
-    auto *keyArray = new QByteArray();
-    mCtx->exportKeys(mKeyList->getSelected(), keyArray);
-
-    mKeyList->uploadKeyToServer(keyArray);
+    QVector<GpgKey> keys;
+    keys.append(mKeyList->getSelectedKey());
+    auto *dialog = new KeyUploadDialog(mCtx, keys);
 }
 
 void MainWindow::slotFileEncrypt() {

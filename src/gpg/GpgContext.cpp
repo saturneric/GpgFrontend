@@ -1215,4 +1215,30 @@ namespace GpgME {
 
         return err;
     }
+
+    bool GpgContext::exportKeys(const QVector<GpgKey> &keys, QByteArray &outBuffer) {
+        size_t read_bytes;
+        gpgme_data_t dataOut = nullptr;
+        outBuffer.resize(0);
+
+        if (keys.count() == 0) {
+            QMessageBox::critical(nullptr, "Export Keys Error", "No Keys Selected");
+            return false;
+        }
+
+        for (const auto& key : keys) {
+            err = gpgme_data_new(&dataOut);
+            checkErr(err);
+
+            err = gpgme_op_export(mCtx,key.id.toUtf8().constData(), 0, dataOut);
+            checkErr(err);
+
+            read_bytes = gpgme_data_seek(dataOut, 0, SEEK_END);
+
+            err = readToBuffer(dataOut, &outBuffer);
+            checkErr(err);
+            gpgme_data_release(dataOut);
+        }
+        return true;
+    }
 }
