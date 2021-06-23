@@ -35,6 +35,7 @@
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/FindWidget.h"
 #include "ui/Wizard.h"
+#include "ui/KeyUploadDialog.h"
 
 #include "gpg/result_analyse/SignResultAnalyse.h"
 #include "gpg/result_analyse/EncryptResultAnalyse.h"
@@ -279,7 +280,7 @@ private:
     QToolBar *keyToolBar; /** Toolbar holding key operations */
     QToolButton *importButton; /** Toolbutton for import dropdown menu in toolbar */
     QToolButton *fileEncButton; /** Toolbutton for file cryption dropdown menu in toolbar */
-    QDockWidget *keylistDock; /** Encrypt Dock*/
+    QDockWidget *keyListDock; /** Encrypt Dock*/
     QDockWidget *attachmentDock; /** Attachment Dock */
     QDockWidget *infoBoardDock;
 
@@ -308,7 +309,7 @@ private:
     QAction *quoteAct; /** Action to quote text */
     QAction *cutAct; /** Action to cut text */
     QAction *pasteAct; /** Action to paste text */
-    QAction *selectallAct; /** Action to select whole text */
+    QAction *selectAllAct; /** Action to select whole text */
     QAction *findAct; /** Action to find text */
     QAction *undoAct; /** Action to undo last action */
     QAction *redoAct; /** Action to redo last action */

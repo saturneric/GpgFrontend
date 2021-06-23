@@ -305,14 +305,12 @@ void KeyList::addMenuAction(QAction *act)
 
 void KeyList::dropEvent(QDropEvent* event)
 {
-//    importKeyDialog();
-    QSettings settings;
 
     auto *dialog = new QDialog();
 
     dialog->setWindowTitle(tr("Import Keys"));
     QLabel *label;
-    label = new QLabel(tr("You've dropped something on the keylist.\n gpg4usb will now try to import key(s).")+"\n");
+    label = new QLabel(tr("You've dropped something on the table.\n GpgFrontend will now try to import key(s).")+"\n");
 
     // "always import keys"-CheckBox
     auto *checkBox = new QCheckBox(tr("Always import without bothering."));
@@ -346,7 +344,7 @@ void KeyList::dropEvent(QDropEvent* event)
 
     if (event->mimeData()->hasUrls())
     {
-        foreach (QUrl tmp, event->mimeData()->urls())
+        for (const QUrl& tmp : event->mimeData()->urls())
         {
                 QFile file;
                 file.setFileName(tmp.toLocalFile());
@@ -382,94 +380,6 @@ void KeyList::importKeys(QByteArray inBuffer)
 {
     GpgImportInformation result = mCtx->importKey(std::move(inBuffer));
     new KeyImportDetailDialog(mCtx, result, false, this);
-}
-
-void KeyList::uploadKeyToServer(QByteArray *keys) {
-
-    // set default keyserver
-    QString keyserver = settings.value("keyserver/defaultKeyServer").toString();
-
-    QUrl reqUrl(keyserver + "/pks/add");
-    qnam = new QNetworkAccessManager(this);
-
-    // Building Post Data
-    QByteArray postData;
-
-    keys->replace("\n", "%0A")
-            .replace("\r", "%0D")
-            .replace("(", "%28")
-            .replace(")", "%29")
-            .replace("/", "%2F")
-            .replace(":", "%3A")
-            .replace("+", "%2B")
-            .replace('=', "%3D")
-            .replace(' ', '+');
-
-    QNetworkRequest request(reqUrl);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-
-    postData.append("keytext").append("=").append(*keys);
-
-    // Send Post Data
-    QNetworkReply *reply = qnam->post(request, postData);
-    connect(reply, SIGNAL(finished()),
-            this, SLOT(uploadFinished()));
-
-
-    // A Waiting Dialog
-    auto *dialog = new QDialog(this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-    dialog->setModal(true);
-    dialog->setWindowTitle(tr("Uploading Public Key..."));
-
-    auto *pb = new QProgressBar();
-    pb->setRange(0, 0);
-    pb->setFixedSize(260, 24);
-
-    auto *layout = new QVBoxLayout(dialog);
-    layout->addWidget(pb);
-    dialog->setLayout(layout);
-
-    dialog->show();
-
-    // Keep Waiting
-    while(reply->isRunning()) {
-        QApplication::processEvents();
-    }
-
-    // Done
-    dialog->hide();
-    dialog->close();
-}
-void KeyList::uploadFinished() {
-    auto *reply = qobject_cast<QNetworkReply *>(sender());
-
-    QByteArray response = reply->readAll();
-    qDebug() << "Response: " << response.data();
-
-    auto error = reply->error();
-    if (error != QNetworkReply::NoError) {
-        qDebug() << "Error From Reply" << reply->errorString();
-        QString message;
-        switch (error) {
-            case QNetworkReply::ContentNotFoundError :
-                message = tr("Key Not Found");
-                break;
-            case QNetworkReply::TimeoutError :
-                message = tr("Timeout");
-                break;
-            case QNetworkReply::HostNotFoundError :
-                message = tr("Key Server Not Found");
-                break;
-            default:
-                message = tr("Connection Error");
-        }
-        QMessageBox::critical(nullptr, "Upload Failed", message);
-        return;
-    } else {
-        QMessageBox::information(nullptr, "Upload Success", "Upload Public Key Successfully");
-        qDebug() << "Success while contacting keyserver!";
-    }
-    reply->deleteLater();
 }
 
 void KeyList::getCheckedKeys(QVector<GpgKey> &keys) {
@@ -511,4 +421,13 @@ void KeyList::getPrivateCheckedKeys(QVector<GpgKey> &keys) {
             keys.push_back(buffered_keys[i]);
         }
     }
+}
+
+GpgKey KeyList::getSelectedKey() {
+    for (int i = 0; i < mKeyList->rowCount(); i++) {
+        if (mKeyList->item(i, 0)->isSelected() == 1) {
+            return buffered_keys[i];
+        }
+    }
+    return GpgKey();
 }

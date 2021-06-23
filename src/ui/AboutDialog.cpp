@@ -50,21 +50,19 @@ InfoTab::InfoTab(QWidget *parent)
         : QWidget(parent) {
     auto *pixmap = new QPixmap(":gpgfrontend-logo.png");
     auto *text = new QString("<center><h2>" + qApp->applicationName() + "</h2></center>"
-            + "<center><b>" + qApp->applicationVersion() + "</b></center>"
-            + "<center>" + GIT_VERSION + "</center>"
-            + tr("<br><center>GPGFrontend is a modern, easy-to-use, compact, <br>"
-            "cross-platform, and installation-free gpg front-end tool.<br>"
-            "It visualizes most of the common operations of gpg commands.<br>"
-            "It's licensed under the GPL v3<br><br>"
-            "<b>Developer:</b><br>"
-            "Saturneric<br><br>"
-            "If you have any questions or suggestions have a look<br/>"
-            "at my <a href=\"https://bktus.com/%e8%81%94%e7%b3%bb%e4%b8%8e%e9%aa%8c%e8%af%81\">"
-            "contact page</a> or send a mail to my<br/> mailing list at"
-            " <a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>.") +
-            tr("<br><br> Built with Qt ") + qVersion()
-            + tr(" and GPGME ") + GpgME::GpgContext::getGpgmeVersion() +
-            tr("<br>Built at ") + BUILD_TIMESTAMP + "</center>");
+                             + "<center><b>" + qApp->applicationVersion() + "</b></center>"
+                             + "<center>" + GIT_VERSION + "</center>"
+                             + tr("<br><center>GPGFrontend is an easy-to-use, compact, <br>"
+                                  "cross-platform, and installation-free gpg front-end tool.<br>"
+                                  "It visualizes most of the common operations of gpg commands.<br>"
+                                  "It's licensed under the GPL v3<br><br>"
+                                  "<b>Developer:</b><br>"
+                                  "Saturneric<br><br>"
+                                  "If you have any questions or suggestions, raise an issue<br/>"
+                                  "at <a href=\"https://github.com/saturneric/GpgFrontend\">GitHub</a> or send a mail to my mailing list at <a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>.") +
+                             tr("<br><br> Built with Qt ") + qVersion()
+                             + tr(" and GPGME ") + GpgME::GpgContext::getGpgmeVersion() +
+                             tr("<br>Built at ") + BUILD_TIMESTAMP + "</center>");
 
     auto *layout = new QGridLayout();
     auto *pixmapLabel = new QLabel();
@@ -83,7 +81,7 @@ InfoTab::InfoTab(QWidget *parent)
 TranslatorsTab::TranslatorsTab(QWidget *parent)
         : QWidget(parent) {
     QFile translatorsFile;
-    translatorsFile.setFileName(qApp->applicationDirPath() + "/TRANSLATORS");
+    translatorsFile.setFileName(qApp->applicationDirPath() + "/About");
     translatorsFile.open(QIODevice::ReadOnly);
     QByteArray inBuffer = translatorsFile.readAll();
 

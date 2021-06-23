@@ -37,9 +37,13 @@ public:
     KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *keyList, bool automatic,
                           QWidget *parent);
 
+    KeyServerImportDialog(GpgME::GpgContext *ctx, QWidget *parent);
+
     void slotImport(const QStringList& keyIds);
 
     void slotImport(const QStringList& keyIds, const QUrl& keyserverUrl);
+
+    void slotImportKey(const QVector<GpgKey>& keys);
 
 private slots:
 
@@ -70,17 +74,17 @@ private:
     QSettings settings;
 
     GpgME::GpgContext *mCtx;
-    KeyList *mKeyList;
-    QLineEdit *searchLineEdit;
-    QComboBox *keyServerComboBox;
+    KeyList *mKeyList{};
+    QLineEdit *searchLineEdit{};
+    QComboBox *keyServerComboBox{};
     QProgressBar *waitingBar;
-    QLabel *searchLabel;
-    QLabel *keyServerLabel;
-    QLabel *message;
-    QLabel *icon;
-    QPushButton *closeButton;
-    QPushButton *importButton;
-    QPushButton *searchButton;
+    QLabel *searchLabel{};
+    QLabel *keyServerLabel{};
+    QLabel *message{};
+    QLabel *icon{};
+    QPushButton *closeButton{};
+    QPushButton *importButton{};
+    QPushButton *searchButton{};
     QTableWidget *keysTable{};
     QNetworkAccessManager *qnam{};
 

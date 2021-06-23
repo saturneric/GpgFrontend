@@ -27,10 +27,13 @@
 
 #include "GpgFrontend.h"
 #include "gpg/GpgContext.h"
+
+#include "ui/KeyUploadDialog.h"
+#include "ui/KeyServerImportDialog.h"
 #include "KeySetExpireDateDialog.h"
 
 class KeyPairDetailTab : public QWidget {
-    Q_OBJECT
+Q_OBJECT
 
     /**
  * @details Return QString with a space inserted at every fourth character
@@ -38,6 +41,8 @@ class KeyPairDetailTab : public QWidget {
  * @param fingerprint The fingerprint to be beautified
  */
     static QString beautifyFingerprint(QString fingerprint);
+
+    void createKeyServerOperaMenu();
 
 private slots:
 
@@ -54,6 +59,10 @@ private slots:
     void slotModifyEditDatetime();
 
     void slotRefreshKeyInfo();
+
+    void slotUploadKeyToServer();
+
+    void slotUpdateKeyToServer();
 
 private:
 
@@ -80,8 +89,10 @@ private:
     QLabel *actualUsageVarLabel;
     QLabel *masterKeyExistVarLabel;
 
+    QMenu *keyServerOperaMenu;
+
 public:
-    explicit KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey& mKey, QWidget *parent = nullptr);
+    explicit KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, QWidget *parent = nullptr);
 };
 
 
