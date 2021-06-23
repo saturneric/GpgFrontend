@@ -37,9 +37,9 @@ QDialog(parent), mKey(key), mSubkey(subkey), mCtx(ctx) {
 
     auto *gridLayout = new QGridLayout();
     gridLayout->addWidget(dateTimeEdit, 0, 0, 1, 2);
-    gridLayout->addWidget(nonExpiredCheck, 1, 0, 1, 1, Qt::AlignRight);
-    gridLayout->addWidget(new QLabel(tr("Never Expire")));
-    gridLayout->addWidget(confirmButton, 2, 0);
+    gridLayout->addWidget(nonExpiredCheck, 0, 2, 1, 1, Qt::AlignRight);
+    gridLayout->addWidget(new QLabel(tr("Never Expire")), 0, 3);
+    gridLayout->addWidget(confirmButton, 1, 3);
 
     connect(nonExpiredCheck, SIGNAL(stateChanged(int)), this, SLOT(slotNonExpiredChecked(int)));
     connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(slotConfirm()));

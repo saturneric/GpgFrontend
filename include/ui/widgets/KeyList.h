@@ -85,8 +85,9 @@ public:
 
     void setChecked(QStringList *keyIds);
 
-    //QStringList *getPrivateChecked();
     QStringList *getSelected();
+
+    GpgKey getSelectedKey();
 
     [[maybe_unused]] static void markKeys(QStringList *keyIds);
 
@@ -95,8 +96,6 @@ public:
 public slots:
 
     void slotRefresh();
-
-    void uploadKeyToServer(QByteArray *keys);
 
 private:
 
@@ -120,10 +119,7 @@ private:
 
 private slots:
 
-    void uploadFinished();
-
     void slotDoubleClicked(const QModelIndex &index);
-
 
 protected:
 

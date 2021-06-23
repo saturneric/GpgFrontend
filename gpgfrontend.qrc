@@ -11,6 +11,7 @@
         <file alias="keys3.jpg">resource/icons/keys13.jpg</file>
         <file alias="error.png">resource/icons/error.png</file>
         <file alias="info.png">resource/icons/info.png</file>
+        <file alias="warning.png">resource/icons/warning.png</file>
         <file alias="button_cancel.png">resource/icons/button_cancel.png</file>
         <file alias="button_cut.png">resource/icons/button_cut.png</file>
         <file alias="button_ok.png">resource/icons/button_ok.png</file>

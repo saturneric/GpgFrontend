@@ -61,7 +61,7 @@ KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *ke
     waitingBar->setVisible(false);
     waitingBar->setRange(0, 0);
     waitingBar->setFixedHeight(24);
-    waitingBar->setFixedWidth(260);
+    waitingBar->setFixedWidth(200);
 
     // Layout for messagebox
     auto *messageLayout = new QHBoxLayout;
@@ -82,7 +82,6 @@ KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *ke
     // 自动化调用界面布局
     if(automatic) {
         mainLayout->addLayout(messageLayout, 0, 0, 1, 3);
-        mainLayout->addLayout(buttonsLayout, 1, 0, 1, 3);
     } else {
         mainLayout->addWidget(searchLabel, 1, 0);
         mainLayout->addWidget(searchLineEdit, 1, 1);
@@ -95,10 +94,13 @@ KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *ke
     }
 
     this->setLayout(mainLayout);
-    this->setWindowTitle(tr("Import Keys from Keyserver"));
+    if(automatic)
+        this->setWindowTitle(tr("Update Keys from Keyserver"));
+    else
+        this->setWindowTitle(tr("Import Keys from Keyserver"));
 
     if(automatic) {
-        this->setMinimumHeight(80);
+        this->setFixedSize(200, 42);
     } else {
         // Restore window size & location
         if (this->settings.value("ImportKeyFromServer/setWindowSize").toBool()) {
@@ -206,12 +208,25 @@ void KeyServerImportDialog::slotSearchFinished() {
     keysTable->setRowCount(0);
     QString firstLine = QString(reply->readLine(1024));
 
-    QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
-    if (reply->error()) {
-        setMessage(tr("<h4>Couldn't contact keyserver!</h4>"), true);
-        qDebug() << reply->error();
+    auto error = reply->error();
+    if (error != QNetworkReply::NoError) {
+        qDebug() << "Error From Reply" << reply->errorString();
+        switch (error) {
+            case QNetworkReply::ContentNotFoundError :
+                setMessage(tr("Not Key Found"), true);
+                break;
+            case QNetworkReply::TimeoutError :
+                setMessage(tr("Timeout"), true);
+                break;
+            case QNetworkReply::HostNotFoundError :
+                setMessage(tr("Key Server Not Found"), true);
+                break;
+            default:
+                setMessage(tr("Connection Error"), true);
+        }
         return;
     }
+
     if (firstLine.contains("Error")) {
         QString text = QString(reply->readLine(1024));
         if (text.contains("Too many responses")) {
@@ -322,6 +337,16 @@ void KeyServerImportDialog::slotImport(const QStringList& keyIds) {
     slotImport(keyIds, QUrl(keyserver));
 }
 
+void KeyServerImportDialog::slotImportKey(const QVector<GpgKey>& keys) {
+    QString keyserver = settings.value("keyserver/defaultKeyServer").toString();
+    qDebug() << "Select Key Server" << keyserver;
+    auto keyIds = QStringList();
+    for(const auto &key : keys) {
+        keyIds.append(key.id);
+    }
+    slotImport(keyIds, QUrl(keyserver));
+}
+
 
 void KeyServerImportDialog::slotImport(const QStringList& keyIds, const QUrl &keyServerUrl) {
     for (const auto &keyId : keyIds) {
@@ -329,9 +354,9 @@ void KeyServerImportDialog::slotImport(const QStringList& keyIds, const QUrl &ke
                 keyServerUrl.scheme() + "://" + keyServerUrl.host() + "/pks/lookup?op=get&search=0x" + keyId +
                 "&options=mr");
         qDebug() << "slotImport reqUrl" << reqUrl;
-        qnam = new QNetworkAccessManager(this);
+        auto pManager = new QNetworkAccessManager(this);
 
-        QNetworkReply *reply = qnam->get(QNetworkRequest(reqUrl));
+        QNetworkReply *reply = pManager->get(QNetworkRequest(reqUrl));
 
         connect(reply, SIGNAL(finished()),
                 this, SLOT(slotImportFinished()));
@@ -369,6 +394,9 @@ void KeyServerImportDialog::slotImportFinished() {
             default:
                 setMessage(tr("Connection Error"), true);
         }
+        if(mAutomatic) {
+            setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
+        }
         return;
     }
 
@@ -393,7 +421,7 @@ void KeyServerImportDialog::slotImportFinished() {
 void KeyServerImportDialog::importKeys(QByteArray inBuffer) {
     GpgImportInformation result = mCtx->importKey(std::move(inBuffer));
     if(mAutomatic) {
-        new KeyImportDetailDialog(mCtx, result, false, nullptr);
+        new KeyImportDetailDialog(mCtx, result, false, this);
         this->accept();
     } else {
         new KeyImportDetailDialog(mCtx, result, false, this);
@@ -410,4 +438,42 @@ void KeyServerImportDialog::setLoading(bool status) {
         icon->setVisible(true);
         message->setVisible(true);
     }
+}
+
+KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, QWidget *parent)
+        : QDialog(parent), appPath(qApp->applicationDirPath()),
+          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat),
+          mCtx(ctx), mAutomatic(true) {
+
+    setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
+
+    message = new QLabel;
+    message->setFixedHeight(24);
+    icon = new QLabel;
+    icon->setFixedHeight(24);
+
+    // Network Waiting
+    waitingBar = new QProgressBar();
+    waitingBar->setVisible(false);
+    waitingBar->setRange(0, 0);
+    waitingBar->setFixedHeight(24);
+    waitingBar->setFixedWidth(200);
+
+    // Layout for messagebox
+    auto *messageLayout = new QHBoxLayout;
+    messageLayout->addWidget(icon);
+    messageLayout->addWidget(message);
+    messageLayout->addWidget(waitingBar);
+    messageLayout->addStretch();
+
+    keyServerComboBox = createComboBox();
+
+    auto *mainLayout = new QGridLayout;
+
+    mainLayout->addLayout(messageLayout, 0, 0, 1, 3);
+
+    this->setLayout(mainLayout);
+    this->setWindowTitle(tr("Upload Keys from Keyserver"));
+    this->setFixedSize(200, 42);
+    this->setModal(true);
 }

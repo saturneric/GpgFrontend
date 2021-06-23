@@ -135,9 +135,19 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
         vboxPK->addWidget(exportButton);
         connect(exportButton, SIGNAL(clicked()), this, SLOT(slotExportPrivateKey()));
 
-        auto *editExpiresButton = new QPushButton(tr("Modify Expiration Datetime"));
-        vboxPK->addWidget(editExpiresButton);
-        connect(editExpiresButton, SIGNAL(clicked()), this, SLOT(slotModifyEditDatetime()));
+        if(mKey.has_master_key) {
+            auto *editExpiresButton = new QPushButton(tr("Modify Expiration Datetime"));
+            vboxPK->addWidget(editExpiresButton);
+            connect(editExpiresButton, SIGNAL(clicked()), this, SLOT(slotModifyEditDatetime()));
+
+            auto *keyServerOperaButton = new QPushButton(tr("Key Server Operation"));
+            vboxPK->addWidget(keyServerOperaButton);
+            connect(keyServerOperaButton, SIGNAL(clicked()), this, SLOT(slotModifyEditDatetime()));
+
+            // Set Menu
+            createKeyServerOperaMenu();
+            keyServerOperaButton->setMenu(keyServerOperaMenu);
+        }
 
         privKeyBox->setLayout(vboxPK);
         mvbox->addWidget(privKeyBox);
@@ -147,19 +157,18 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
 
     if ((mKey.expired) || (mKey.revoked)) {
         auto *expBox = new QHBoxLayout();
-        QIcon icon = QIcon::fromTheme("dialog-warning");
-        QPixmap pixmap = icon.pixmap(QSize(32, 32), QIcon::Normal, QIcon::On);
+        QPixmap pixmap(":warning.png");
 
         auto *expLabel = new QLabel();
         auto *iconLabel = new QLabel();
         if (mKey.expired) {
-            expLabel->setText(tr("Warning: The master key of the key pair has expired."));
+            expLabel->setText(tr("Warning: The Master Key has expired."));
         }
         if (mKey.revoked) {
-            expLabel->setText(tr("Warning: The master key of the key pair has been revoked"));
+            expLabel->setText(tr("Warning: The Master Key has been revoked"));
         }
 
-        iconLabel->setPixmap(pixmap);
+        iconLabel->setPixmap(pixmap.scaled(24,24,Qt::KeepAspectRatio));
         QFont font = expLabel->font();
         font.setBold(true);
         expLabel->setFont(font);
@@ -180,10 +189,9 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
 void KeyPairDetailTab::slotExportPrivateKey() {
     // Show a information box with explanation about private key
     int ret = QMessageBox::information(this, tr("Exporting private Key"),
-                                       tr("You are about to export your private key.\n"
-                                          "This is NOT your public key, so don't give it away.\n"
-                                          "Make sure you keep it save."
-                                          "Do you really want to export your private key?"),
+                                       tr("<h3>You are about to export your <font color=\"red\">PRIVATE KEY</font>!</h3>\n"
+                                          "This is NOT your Public Key, so DON'T give it away.<br />"
+                                          "Do you REALLY want to export your PRIVATE KEY?"),
                                        QMessageBox::Cancel | QMessageBox::Ok);
 
     // export key, if ok was clicked
@@ -192,12 +200,12 @@ void KeyPairDetailTab::slotExportPrivateKey() {
         mCtx->exportSecretKey(*keyid, keyArray);
         auto &key = mCtx->getKeyById(*keyid);
         QString fileString = key.name + " " +key.email + "(" +
-                             key.id + ")_pub_sec.asc";
+                             key.id + ")_secret.asc";
         QString fileName = QFileDialog::getSaveFileName(this, tr("Export Key To File"), fileString,
                                                         tr("Key Files") + " (*.asc *.txt);;All Files (*)");
         QFile file(fileName);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            QMessageBox::critical(nullptr, tr("Export error"), tr("Couldn't open %1 for writing").arg(fileName));
+            QMessageBox::critical(nullptr, tr("Export Error"), tr("Couldn't open %1 for writing").arg(fileName));
             return;
         }
         QTextStream stream(&file);
@@ -282,5 +290,32 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
 
     fingerPrintVarLabel->setText(beautifyFingerprint(mKey.fpr));
 
+}
+
+void KeyPairDetailTab::createKeyServerOperaMenu() {
+    keyServerOperaMenu = new QMenu(this);
+
+    auto *uploadKeyPair = new QAction(tr("Upload Key Pair"), this);
+    connect(uploadKeyPair, SIGNAL(triggered()), this, SLOT(slotUploadKeyToServer()));
+    auto *updateKeyPair = new QAction(tr("Update Key Pair"), this);
+    connect(updateKeyPair, SIGNAL(triggered()), this, SLOT(slotUpdateKeyToServer()));
+
+    keyServerOperaMenu->addAction(uploadKeyPair);
+    // TODO Solve Refresh Problem
+//    keyServerOperaMenu->addAction(updateKeyPair);
+}
+
+void KeyPairDetailTab::slotUploadKeyToServer() {
+    QVector<GpgKey> keys;
+    keys.append(mKey);
+    auto *dialog = new KeyUploadDialog(mCtx, keys);
+}
+
+void KeyPairDetailTab::slotUpdateKeyToServer() {
+    QVector<GpgKey> keys;
+    keys.append(mKey);
+    auto *dialog = new KeyServerImportDialog(mCtx, this);
+    dialog->show();
+    dialog->slotImportKey(keys);
 }
 
