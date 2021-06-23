@@ -36,9 +36,9 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
 
 - [Features](#features)
 - [Usage](#usage)
-   - [Windows](#windows)
-   - [macOS](#macos)
-   - [Debian/Ubuntu/CentOS](#debianubuntucentos)
+    - [Windows](#windows)
+    - [macOS](#macos)
+    - [Debian/Ubuntu/CentOS](#debianubuntucentos)
 - [Document](#document)
 - [Purpose](#purpose)
 - [Build](#build)
@@ -66,6 +66,7 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
 5. Double Click gpgfrontend.exe
 
 ### macOS
+
 1. Install Homebrew [Here](https://brew.sh/) if you don't know it.
 2. Install gnupg
     ```shell
@@ -85,6 +86,7 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
     ```
 
 ### Debian/Ubuntu/CentOS
+
 1. Install gnupg
     - For Debian/Ubuntu
        ```shell
@@ -130,7 +132,7 @@ The tutorial for building the software will be released shortly.
 
 ## Contract
 
-If you want to contact me individually, you can email [eric@bktus.com](mailto:eric@bktus.com). 
+If you want to contact me individually, you can email [eric@bktus.com](mailto:eric@bktus.com).
 
 ### Contributing
 
@@ -148,8 +150,8 @@ Feel free to dive in! [Open an issue](https://github.com/saturneric/GpgFrontend/
 
 GpgFrontend itself is licensed under the [GPLv3](COPYING).
 
-There are some libraries and binary included in the zip-file which (may) have different
-licenses, for more information check their homepages. You can also obtain the sources from there.
+There are some libraries and binary included in the zip-file which (may) have different licenses, for more information
+check their homepages. You can also obtain the sources from there.
 
 gpg4usb: https://www.gpg4usb.org/
 
