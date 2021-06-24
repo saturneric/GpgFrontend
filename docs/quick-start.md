@@ -19,7 +19,7 @@ platforms.
 2. Install gnupg
     ```shell
     % brew update
-    % brew install gnupg
+    % brew install gnupg gpgme qt@5
     ```
 3. [Download](https://github.com/saturneric/GpgFrontend/releases) Latest GpgFrontend macOS Edition
 4. Unzip GpgFrontend
@@ -39,11 +39,11 @@ platforms.
     - For Debian/Ubuntu
        ```shell
        $ sudo apt update
-       $ sudo apt install gpg
+       $ sudo apt install gpg libgpgme11 qt-default
        ```
     - For CentOS
        ```shell
-       $ sudo yum install gnupg
+       $ sudo yum install gnupg gpgme qt5-qtbase
        ```
 2. [Download](https://github.com/saturneric/GpgFrontend/releases) Latest GpgFrontend Linux Edition
 3. Unzip GpgFrontend

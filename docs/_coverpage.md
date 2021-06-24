@@ -10,10 +10,14 @@
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_shield)
 
 - Can run on **Windows, Linux and macOS**.
+
 - Open source, free, no need to install.
-- Just double-click, and then you can use it freely.
-- Before use, you only need to install [gnupg](https://gnupg.org/).
-- Supports multiple languages.
+
+- For Windows user, just double-click, and then you can use it freely.
+
+- For macOS and Linux user, just type few command before running it.
+
+- Supports multiple languages. Don’t forget to help me translate this software.
 
 [GitHub](https://github.com/saturneric/GpgFrontend)
 [Quick Start](quick-start.md)
