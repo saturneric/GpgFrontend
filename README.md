@@ -21,7 +21,9 @@ GpgFrontend supports new features of OpenPGP.
 installed by the user. **This is to ensure safety and avoid code or binary files being implanted in the backdoor during
 the delivery process.**
 
-[ >> Quick Start](#quick-start)
+[>> Quick Start](#quick-start)
+
+[>> Code & Binary Security](https://saturneric.github.io/GpgFrontend/index.html#/about/code-binary-verify)
 
 <div align="center">
 <img width="640" src="https://github.com/saturneric/Blob/blob/master/screenshots/main_mac.jpg?raw=true" alt="macOS Screenshot"/>
