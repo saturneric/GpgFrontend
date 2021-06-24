@@ -1,7 +1,8 @@
-# Code & binary Verify
+# Code & Binary Verify
 
 Some users of this software have relatively high requirements for security, so here are instructions on how to verify
-whether the code and executable files have been tampered with.
+whether the code and executable files have been tampered with.If you find that the signature is incorrect, please stop
+using it immediately.
 
 When you see the document, every binary file version released on github is automatically compiled after submission using
 **Github Actions**.
@@ -37,7 +38,7 @@ The key used for binary signature is Saturneric<eric@bktus.com>. This is my offi
 The fingerprint of the key is now given:
 
 ```text
-9C60AFFED3412F22736135FED10531533ED7624A
+E3379489C39B7270E70E2E303AAF1C64137CEE57
 ```
 
 ## Check on About Interface
@@ -48,10 +49,17 @@ used for compilation of this binary version on the second line.
 
 ![About Interface](https://github.com/saturneric/Blob/blob/master/screenshots/check-build.png?raw=true)
 
-
 ## Pubkey Mentioned Above
 
-### Saturenric<eric.bktu@gmail.com>
+### Saturneric <eric.bktu@gmail.com>
+
+#### Fingertprint
+
+```text
+9C60AFFED3412F22736135FED10531533ED7624A
+```
+
+#### Pubkey Content
 
 ```text
 -----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -130,7 +138,15 @@ JV99VVcBfvU4GSI=
 
 ```
 
-### Saturenric<eric@bktus.com>
+### Saturneric <eric@bktus.com>
+
+#### Fingerprint
+
+```text
+E3379489C39B7270E70E2E303AAF1C64137CEE57
+```
+
+#### Pubkey Content
 
 ```text
 -----BEGIN PGP PUBLIC KEY BLOCK-----
