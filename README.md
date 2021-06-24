@@ -14,10 +14,12 @@ Frontend Tool.
 
 By using GpgFrontend, you can quickly **encrypt and decrypt text or files**. Or at the same time as the above
 operations, you can add **your own signature** to let others know that this document or this paragraph of text was
-issued by you.
+issued by you. It aims to allow ordinary users to quickly use gpg and make professional users more convenient.
+GpgFrontend supports new features of OpenPGP.
 
-Furthermore, it visualizes most of the common operations of gpg commands. It aims to allow ordinary users to quickly use
-gpg and make professional users more convenient. GpgFrontend supports new features of OpenPGP.
+**Notice:** GpgFrontend does not provide an embedded [gnupg](https://gnupg.org/) binary library and needs to be
+installed by the user. **This is to ensure safety and avoid code or binary files being implanted in the backdoor during
+the delivery process.**
 
 [ >> Quick Start](#quick-start)
 

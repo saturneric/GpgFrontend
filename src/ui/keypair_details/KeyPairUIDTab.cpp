@@ -39,7 +39,11 @@ KeyPairUIDTab::KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget 
     auto addUIDButton = new QPushButton(tr("New UID"));
     auto manageUIDButton = new QPushButton(tr("UID Management"));
 
-    manageUIDButton->setMenu(manageSelectedUIDMenu);
+    if(mKey.has_master_key) {
+        manageUIDButton->setMenu(manageSelectedUIDMenu);
+    } else {
+        manageUIDButton->setDisabled(true);
+    }
 
     uidButtonsLayout->addWidget(addUIDButton, 0, 1);
     uidButtonsLayout->addWidget(manageUIDButton, 0, 2);
@@ -258,8 +262,10 @@ void KeyPairUIDTab::createManageUIDMenu() {
     auto *delUIDAct = new QAction(tr("Delete Selected UID(s)"), this);
     connect(delUIDAct, SIGNAL(triggered()), this, SLOT(slotDelUID()));
 
-    manageSelectedUIDMenu->addAction(signUIDAct);
-    manageSelectedUIDMenu->addAction(delUIDAct);
+    if(mKey.has_master_key) {
+        manageSelectedUIDMenu->addAction(signUIDAct);
+        manageSelectedUIDMenu->addAction(delUIDAct);
+    }
 }
 
 void KeyPairUIDTab::slotAddUID() {
@@ -390,9 +396,11 @@ void KeyPairUIDTab::createUIDPopupMenu() {
     auto *delUIDAct = new QAction(tr("Delete UID"), this);
     connect(delUIDAct, SIGNAL(triggered()), this, SLOT(slotDelUIDSingle()));
 
-    uidPopupMenu->addAction(serPrimaryUIDAct);
-    uidPopupMenu->addAction(signUIDAct);
-    uidPopupMenu->addAction(delUIDAct);
+    if(mKey.has_master_key) {
+        uidPopupMenu->addAction(serPrimaryUIDAct);
+        uidPopupMenu->addAction(signUIDAct);
+        uidPopupMenu->addAction(delUIDAct);
+    }
 }
 
 void KeyPairUIDTab::contextMenuEvent(QContextMenuEvent *event) {
