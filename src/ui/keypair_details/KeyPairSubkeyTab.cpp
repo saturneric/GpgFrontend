@@ -35,7 +35,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     auto uidButtonsLayout = new QGridLayout();
 
     auto addSubkeyButton = new QPushButton(tr("Generate A New Subkey"));
-    if(!mKey.is_private_key) {
+    if(!mKey.is_private_key || !mKey.has_master_key) {
         addSubkeyButton->setDisabled(true);
         setHidden(addSubkeyButton);
     }
