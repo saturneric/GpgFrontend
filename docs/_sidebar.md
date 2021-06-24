@@ -16,4 +16,5 @@
     - [Translate Interface](translate-interface.md)
 - About
     - FAQ
+    - [Code & Binary Verify](about/code-binary-verify.md)
     - [Contract](contract.md)
