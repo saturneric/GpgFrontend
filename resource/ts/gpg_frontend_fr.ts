@@ -508,21 +508,21 @@
     <name>InfoTab</name>
     <message>
         <location filename="../../src/ui/AboutDialog.cpp" line="55"/>
-        <source>&lt;br&gt;&lt;center&gt;GPGFrontend is an easy-to-use, compact, &lt;br&gt;cross-platform, and installation-free gpg front-end tool.&lt;br&gt;It visualizes most of the common operations of gpg commands.&lt;br&gt;It&apos;s licensed under the GPL v3&lt;br&gt;&lt;br&gt;&lt;b&gt;Developer:&lt;/b&gt;&lt;br&gt;Saturneric&lt;br&gt;&lt;br&gt;If you have any questions or suggestions, raise an issue&lt;br/&gt;at &lt;a href=&quot;https://github.com/saturneric/GpgFrontend&quot;&gt;GitHub&lt;/a&gt; or send a mail to my&lt;br/&gt; mailing list at &lt;a href=&quot;mailto:eric@bktus.com&quot;&gt;eric@bktus.com&lt;/a&gt;.</source>
+        <source>&lt;br&gt;&lt;center&gt;GPGFrontend is an easy-to-use, compact, &lt;br&gt;cross-platform, and installation-free gpg front-end tool.&lt;br&gt;It visualizes most of the common operations of gpg commands.&lt;br&gt;It&apos;s licensed under the GPL v3&lt;br&gt;&lt;br&gt;&lt;b&gt;Developer:&lt;/b&gt;&lt;br&gt;Saturneric&lt;br&gt;&lt;br&gt;If you have any questions or suggestions, raise an issue&lt;br/&gt;at &lt;a href=&quot;https://github.com/saturneric/GpgFrontend&quot;&gt;GitHub&lt;/a&gt; or send a mail to my mailing list at &lt;a href=&quot;mailto:eric@bktus.com&quot;&gt;eric@bktus.com&lt;/a&gt;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/AboutDialog.cpp" line="64"/>
+        <location filename="../../src/ui/AboutDialog.cpp" line="63"/>
         <source>&lt;br&gt;&lt;br&gt; Built with Qt </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/AboutDialog.cpp" line="65"/>
+        <location filename="../../src/ui/AboutDialog.cpp" line="64"/>
         <source> and GPGME </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/AboutDialog.cpp" line="66"/>
+        <location filename="../../src/ui/AboutDialog.cpp" line="65"/>
         <source>&lt;br&gt;Built at </source>
         <translation type="unfinished"></translation>
     </message>
@@ -1454,182 +1454,182 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="96"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="100"/>
         <source>Select</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="96"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="119"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="100"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="123"/>
         <source>Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="96"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="119"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="100"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="123"/>
         <source>Email</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="96"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="100"/>
         <source>Comment</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="119"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="123"/>
         <source>Key ID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="119"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="123"/>
         <source>Create Date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="119"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="123"/>
         <source>Expired Date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="212"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="216"/>
         <source>Never Expires</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="230"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="291"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="414"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="429"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="469"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="476"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="234"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="297"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="422"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="437"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="477"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="484"/>
         <source>Invalid Operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="231"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="292"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="235"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="298"/>
         <source>Please select one or more UIDs before doing this operation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="256"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="260"/>
         <source>Sign Selected UID(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="258"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="262"/>
         <source>Delete Selected UID(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="275"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="281"/>
         <source>Successful Operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="276"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="282"/>
         <source>Successfully added a new UID.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="279"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="321"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="354"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="449"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="496"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="285"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="327"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="360"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="457"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="504"/>
         <source>Operation Failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="280"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="322"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="355"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="450"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="497"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="286"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="328"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="361"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="458"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="505"/>
         <source>An error occurred during the operation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="304"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="310"/>
         <source>Deleting UIDs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="305"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="311"/>
         <source>Are you sure that you want to delete the following uids?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="306"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="348"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="443"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="490"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="312"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="354"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="451"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="498"/>
         <source>The action can not be undone.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="346"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="352"/>
         <source>Set Primary UID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="347"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="353"/>
         <source>Are you sure that you want to set the Primary UID to?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="386"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="392"/>
         <source>Set As Primary</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="388"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="394"/>
         <source>Sign UID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="390"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="396"/>
         <source>Delete UID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="415"/>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="430"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="423"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="438"/>
         <source>Please select one UID before doing this operation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="441"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="449"/>
         <source>Deleting UID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="442"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="450"/>
         <source>Are you sure that you want to delete the following uid?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="458"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="466"/>
         <source>Delete(Revoke) Key Signature</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="470"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="478"/>
         <source>Please select one Key Signature before doing this operation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="477"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="485"/>
         <source>To delete the signature, you need to have its corresponding public key in the local database.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="488"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="496"/>
         <source>Deleting Key Signature</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="489"/>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="497"/>
         <source>Are you sure that you want to delete the following signature?</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1834,27 +1834,27 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
 <context>
     <name>KeyUploadDialog</name>
     <message>
-        <location filename="../../src/ui/KeyUploadDialog.cpp" line="52"/>
+        <location filename="../../src/ui/KeyUploadDialog.cpp" line="72"/>
         <source>Uploading Public Key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyUploadDialog.cpp" line="87"/>
+        <location filename="../../src/ui/KeyUploadDialog.cpp" line="107"/>
         <source>Key Not Found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyUploadDialog.cpp" line="90"/>
+        <location filename="../../src/ui/KeyUploadDialog.cpp" line="110"/>
         <source>Timeout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyUploadDialog.cpp" line="93"/>
+        <location filename="../../src/ui/KeyUploadDialog.cpp" line="113"/>
         <source>Key Server Not Found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyUploadDialog.cpp" line="96"/>
+        <location filename="../../src/ui/KeyUploadDialog.cpp" line="116"/>
         <source>Connection Error</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2336,82 +2336,82 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
     </message>
     <message>
         <location filename="../../src/MainWindow.cpp" line="573"/>
-        <source>Encrypt or decrypt File</source>
+        <source>Opera File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/MainWindow.cpp" line="574"/>
-        <source>File..</source>
+        <source>File Crypto</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="594"/>
+        <location filename="../../src/MainWindow.cpp" line="592"/>
         <source>Ready</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="601"/>
+        <location filename="../../src/MainWindow.cpp" line="599"/>
         <source>Key ToolBox</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="609"/>
+        <location filename="../../src/MainWindow.cpp" line="607"/>
         <source>Information Board</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="629"/>
+        <location filename="../../src/MainWindow.cpp" line="627"/>
         <source>Attached files:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="692"/>
+        <location filename="../../src/MainWindow.cpp" line="690"/>
         <source>There is one unencrypted file in attachment folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="694"/>
+        <location filename="../../src/MainWindow.cpp" line="692"/>
         <source>There are </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="694"/>
+        <location filename="../../src/MainWindow.cpp" line="692"/>
         <source> unencrypted files in attachment folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="726"/>
-        <location filename="../../src/MainWindow.cpp" line="773"/>
-        <location filename="../../src/MainWindow.cpp" line="1076"/>
+        <location filename="../../src/MainWindow.cpp" line="724"/>
+        <location filename="../../src/MainWindow.cpp" line="771"/>
+        <location filename="../../src/MainWindow.cpp" line="1074"/>
         <source>No Key Selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/MainWindow.cpp" line="731"/>
+        <location filename="../../src/MainWindow.cpp" line="778"/>
+        <location filename="../../src/MainWindow.cpp" line="1081"/>
+        <source>Invalid Operation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/MainWindow.cpp" line="732"/>
+        <source>The selected key contains a key that does not actually have a encrypt function.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/MainWindow.cpp" line="733"/>
         <location filename="../../src/MainWindow.cpp" line="780"/>
         <location filename="../../src/MainWindow.cpp" line="1083"/>
-        <source>Invalid Operation</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="734"/>
-        <source>The selected key contains a key that does not actually have a encrypt function.&lt;br/&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="735"/>
-        <location filename="../../src/MainWindow.cpp" line="782"/>
-        <location filename="../../src/MainWindow.cpp" line="1085"/>
         <source>&lt;br/&gt;For example the Following Key: &lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="781"/>
+        <location filename="../../src/MainWindow.cpp" line="779"/>
         <source>The selected key contains a key that does not actually have a signature function.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="1084"/>
+        <location filename="../../src/MainWindow.cpp" line="1082"/>
         <source>The selected key cannot be used for signing and encryption at the same time.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
