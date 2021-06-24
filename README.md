@@ -96,8 +96,8 @@ awesome operations.
 1. [Download](https://gnupg.org/ftp/gcrypt/binary/gnupg-w32-2.3.1_20210420.exe) gnupg-w32-******.exe
 2. Double Click it to install it
 3. [Download](https://github.com/saturneric/GpgFrontend/releases) GpgFrontend Windows Edition
-4. Unzip GpgFrontend
-5. Double Click gpgfrontend.exe
+4. Unzip gpgfrontend-windows-latest-*******.zip
+5. Go into the directory and double click gpgfrontend.exe
 
 #### macOS
 
@@ -111,7 +111,7 @@ awesome operations.
 4. Unzip GpgFrontend
 5. Get into folder and Give gpgfrontend permission to execute
     ```shell
-    % cd gpgfrontend-*.*.*-macos-amd64-release/
+    % cd gpgfrontend-macos-latest-*******/
     % chmod u+x gpgfrontend
     ```
 6. Just run it
@@ -135,7 +135,7 @@ awesome operations.
 3. Unzip GpgFrontend
 4. Get into folder and Give gpgfrontend permission to execute
     ```shell
-    $ cd gpgfrontend-*.*.*-linux-amd64-release/
+    $ cd gpgfrontend-ubuntu-latest-*******/
     $ chmod u+x gpgfrontend
     ```
 5. Just run it
