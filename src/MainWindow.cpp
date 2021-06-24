@@ -570,10 +570,8 @@ void MainWindow::createToolBars() {
     fileEncButton->setMenu(fileEncMenu);
     fileEncButton->setPopupMode(QToolButton::InstantPopup);
     fileEncButton->setIcon(QIcon(":fileencryption.png"));
-    fileEncButton->setToolTip(tr("Encrypt or decrypt File"));
-    fileEncButton->setText(tr("File.."));
-    fileEncButton->hide();
-
+    fileEncButton->setToolTip(tr("Opera File"));
+    fileEncButton->setText(tr("File Crypto"));
     cryptToolBar->addWidget(fileEncButton);
 
 }
