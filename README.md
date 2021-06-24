@@ -59,9 +59,13 @@ the delivery process.**
 ## Features
 
 - Can run on **Windows, Linux and macOS**.
+  
 - Open source, free, no need to install.
-- Just double-click, and then you can use it freely.
-- Before use, you only need to install [gnupg](https://gnupg.org/). A tiny GNU tool.
+  
+- For Windows user, just double-click, and then you can use it freely.
+  
+- For macOS and Linux user, just type few command before running it.
+
 - Supports multiple languages. Don’t forget to help me translate this software.
 
 ## Usage
@@ -101,7 +105,7 @@ awesome operations.
 2. Install gnupg
     ```shell
     % brew update
-    % brew install gnupg
+    % brew install gnupg qt@5 gpgme
     ```
 3. [Download](https://github.com/saturneric/GpgFrontend/releases) GpgFrontend macOS Edition
 4. Unzip GpgFrontend
@@ -121,11 +125,11 @@ awesome operations.
     - For Debian/Ubuntu
        ```shell
        $ sudo apt update
-       $ sudo apt install gpg
+       $ sudo apt install gpg libgpgme11 qt-default
        ```
     - For CentOS
        ```shell
-       $ sudo yum install gnupg
+       $ sudo yum install gnupg gpgme qt5-qtbase
        ```
 2. [Download](https://github.com/saturneric/GpgFrontend/releases) GpgFrontend Linux Edition
 3. Unzip GpgFrontend
