@@ -42,6 +42,7 @@ jobs:
           brew install cmake git autoconf automake qt@5 gcc texinfo gettext
           brew link qt@5
           brew link gcc
+          brew link gettext --force
         if: matrix.os == 'macos-latest'
 
 
@@ -132,7 +133,10 @@ jobs:
         run: |
           cmake --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -j 3
           macdeployqt ${{github.workspace}}/build/release/GpgFrontend.app
-
+          mkdir {{github.workspace}}/build/tmp
+          hdiutil create {{github.workspace}}/build/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder {{github.workspace}}/build/release/
+          mkdir {{github.workspace}}/build/artifact-out
+          hdiutil convert {{github.workspace}}/tmp/tmp.dmg -format UDZO -o {{github.workspace}}/build/artifact-out/GpgFrontend.dmg
         if: matrix.os == 'macos-latest'
 
       - name: Configure CMake & Build Binary(Windows)
