@@ -25,7 +25,7 @@
 #ifndef __ATTACHMENTS_H__
 #define __ATTACHMENTS_H__
 
-#include "AttachmentTableModel.h"
+#include "ui/AttachmentTableModel.h"
 
 class Attachments : public QWidget {
 Q_OBJECT

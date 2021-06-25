@@ -101,35 +101,35 @@
 <context>
     <name>Attachments</name>
     <message>
-        <location filename="../../src/ui/Attachments.cpp" line="78"/>
-        <location filename="../../src/ui/Attachments.cpp" line="113"/>
+        <location filename="../../src/ui/widgets/Attachments.cpp" line="78"/>
+        <location filename="../../src/ui/widgets/Attachments.cpp" line="113"/>
         <source>Save File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/Attachments.cpp" line="79"/>
+        <location filename="../../src/ui/widgets/Attachments.cpp" line="79"/>
         <source>Save this file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/Attachments.cpp" line="83"/>
+        <location filename="../../src/ui/widgets/Attachments.cpp" line="83"/>
         <source>Open File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/Attachments.cpp" line="84"/>
+        <location filename="../../src/ui/widgets/Attachments.cpp" line="84"/>
         <source>Open this file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/Attachments.cpp" line="119"/>
-        <location filename="../../src/ui/Attachments.cpp" line="164"/>
+        <location filename="../../src/ui/widgets/Attachments.cpp" line="119"/>
+        <location filename="../../src/ui/widgets/Attachments.cpp" line="164"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/Attachments.cpp" line="120"/>
-        <location filename="../../src/ui/Attachments.cpp" line="165"/>
+        <location filename="../../src/ui/widgets/Attachments.cpp" line="120"/>
+        <location filename="../../src/ui/widgets/Attachments.cpp" line="165"/>
         <source>Cannot write file %1:
 %2.</source>
         <translation type="unfinished"></translation>
@@ -1307,16 +1307,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="298"/>
-        <source>Upload Key Pair</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="300"/>
-        <source>Update Key Pair</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="191"/>
         <source>Exporting private Key</source>
         <translation type="unfinished"></translation>
@@ -1339,17 +1329,27 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
     </message>
     <message>
         <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="208"/>
-        <source>Couldn&apos;t open %1 for writing</source>
+        <source>Export Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="208"/>
-        <source>Export Error</source>
+        <source>Couldn&apos;t open %1 for writing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="278"/>
         <source>Never Expire</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="298"/>
+        <source>Upload Key Pair</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="300"/>
+        <source>Update Key Pair</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1697,6 +1697,29 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="216"/>
+        <source>Not Key Found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="219"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="389"/>
+        <source>Timeout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="222"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="392"/>
+        <source>Key Server Not Found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="225"/>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="395"/>
+        <source>Connection Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../../src/ui/KeyServerImportDialog.cpp" line="233"/>
         <source>&lt;h4&gt;CToo many responses from keyserver!&lt;/h4&gt;</source>
         <translation type="unfinished"></translation>
@@ -1737,34 +1760,6 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="476"/>
-        <source>Upload Keys from Keyserver</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="219"/>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="389"/>
-        <source>Timeout</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="216"/>
-        <source>Not Key Found</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="222"/>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="392"/>
-        <source>Key Server Not Found</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="225"/>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="395"/>
-        <source>Connection Error</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../src/ui/KeyServerImportDialog.cpp" line="413"/>
         <source>&lt;h4&gt;Key Updated&lt;/h4&gt;</source>
         <translation type="unfinished"></translation>
@@ -1772,6 +1767,11 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
     <message>
         <location filename="../../src/ui/KeyServerImportDialog.cpp" line="415"/>
         <source>&lt;h4&gt;Key Imported&lt;/h4&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="476"/>
+        <source>Upload Keys from Keyserver</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1875,544 +1875,544 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="175"/>
-        <source>&amp;New</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="181"/>
-        <source>Open a new file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="184"/>
-        <source>&amp;Open...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="187"/>
-        <source>Open an existing file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="190"/>
-        <source>&amp;Save</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="193"/>
-        <source>Save the current File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="196"/>
-        <source>Save &amp;As</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="199"/>
-        <source>Save the current File as...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="202"/>
-        <source>&amp;Print</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="205"/>
-        <source>Print Document</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="208"/>
-        <source>&amp;Close</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="210"/>
-        <source>Close file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="213"/>
-        <source>&amp;Quit</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="216"/>
-        <source>Quit Program</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="221"/>
-        <source>&amp;Undo</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="223"/>
-        <source>Undo Last Edit Action</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="226"/>
-        <source>&amp;Redo</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="228"/>
-        <source>Redo Last Edit Action</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="231"/>
-        <source>Zoom In</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="235"/>
-        <source>Zoom Out</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="239"/>
-        <source>&amp;Paste</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="242"/>
-        <source>Paste Text From Clipboard</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="245"/>
-        <source>Cu&amp;t</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="248"/>
-        <source>Cut the current selection&apos;s contents to the clipboard</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="252"/>
-        <source>&amp;Copy</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="255"/>
-        <source>Copy the current selection&apos;s contents to the clipboard</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="259"/>
-        <source>&amp;Quote</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="261"/>
-        <source>Quote whole text</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="264"/>
-        <source>Select &amp;All</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="267"/>
-        <source>Select the whole text</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="270"/>
-        <source>&amp;Find</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="272"/>
-        <source>Find a word</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="275"/>
-        <source>Remove &amp;spacing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="278"/>
-        <source>Remove double linebreaks, e.g. in pasted text from webmailer</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="281"/>
-        <source>Se&amp;ttings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="282"/>
-        <source>Open settings dialog</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="288"/>
-        <source>&amp;Encrypt</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="291"/>
-        <source>Encrypt Message</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="294"/>
-        <source>&amp;Encrypt &amp;Sign</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="297"/>
-        <source>Encrypt and Sign Message</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="300"/>
-        <source>&amp;Decrypt</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="303"/>
-        <source>Decrypt Message</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="306"/>
-        <source>&amp;Decrypt &amp;Verify</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="309"/>
-        <source>Decrypt and Verify Message</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="315"/>
-        <source>&amp;Encrypt File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="316"/>
-        <source>Encrypt File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="319"/>
-        <source>&amp;Decrypt File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="320"/>
-        <source>Decrypt File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="323"/>
-        <source>&amp;Sign File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="324"/>
-        <source>Sign File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="327"/>
-        <source>&amp;Verify File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="328"/>
-        <source>Verify File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="332"/>
-        <source>&amp;Sign</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="335"/>
-        <source>Sign Message</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="338"/>
-        <source>&amp;Verify</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="341"/>
-        <source>Verify Message</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="347"/>
-        <source>&amp;Editor</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="349"/>
-        <source>Import New Key From Editor</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="352"/>
-        <source>Manage &amp;keys</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="354"/>
-        <source>Open Keymanagement</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="359"/>
-        <source>&amp;About</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="361"/>
-        <source>Show the application&apos;s About box</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="364"/>
-        <source>Open &amp;Wizard</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="365"/>
-        <source>Open the wizard</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="370"/>
-        <source>Append Selected Key(s) To Text</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="371"/>
-        <source>Append The Selected Keys To Text in Editor</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="374"/>
-        <source>Copy EMail-address</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="375"/>
-        <source>Copy selected EMailaddress to clipboard</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="379"/>
-        <source>Show Key Details</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="380"/>
-        <source>Show Details for this Key</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="383"/>
-        <source>Refresh Key From Key Server</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="384"/>
-        <source>Refresh key from default key server</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="387"/>
-        <source>Upload Public Key(s) To Server</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="388"/>
-        <source>Upload The Selected Public Keys To Server</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="402"/>
-        <source>Remove PGP Header</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="405"/>
-        <source>Add PGP Header</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="446"/>
-        <source>&amp;File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="458"/>
-        <source>&amp;Edit</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="476"/>
-        <source>&amp;File...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="482"/>
-        <source>&amp;Crypt</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="493"/>
-        <source>&amp;Keys</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="494"/>
-        <source>&amp;Import Key</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="503"/>
-        <source>&amp;Steganography</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="512"/>
-        <source>&amp;View</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="514"/>
-        <source>&amp;Help</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="522"/>
-        <source>File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="530"/>
-        <source>Crypt</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="540"/>
-        <source>Key</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="545"/>
-        <source>Edit</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="552"/>
-        <source>Special Edit</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="564"/>
-        <source>Import key from...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="565"/>
-        <source>Import key</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="573"/>
-        <source>Opera File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="574"/>
-        <source>File Crypto</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="592"/>
-        <source>Ready</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="599"/>
-        <source>Key ToolBox</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="607"/>
-        <source>Information Board</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="627"/>
-        <source>Attached files:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="690"/>
-        <source>There is one unencrypted file in attachment folder</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="692"/>
-        <source>There are </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="692"/>
-        <source> unencrypted files in attachment folder</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="724"/>
-        <location filename="../../src/MainWindow.cpp" line="771"/>
-        <location filename="../../src/MainWindow.cpp" line="1074"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="36"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="83"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="281"/>
         <source>No Key Selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="731"/>
-        <location filename="../../src/MainWindow.cpp" line="778"/>
-        <location filename="../../src/MainWindow.cpp" line="1081"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="43"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="90"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="288"/>
         <source>Invalid Operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="732"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="44"/>
         <source>The selected key contains a key that does not actually have a encrypt function.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="733"/>
-        <location filename="../../src/MainWindow.cpp" line="780"/>
-        <location filename="../../src/MainWindow.cpp" line="1083"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="45"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="92"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="290"/>
         <source>&lt;br/&gt;For example the Following Key: &lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="779"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="91"/>
         <source>The selected key contains a key that does not actually have a signature function.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="1082"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="289"/>
         <source>The selected key cannot be used for signing and encryption at the same time.&lt;br/&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotUI.cpp" line="54"/>
+        <source>There is one unencrypted file in attachment folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotUI.cpp" line="56"/>
+        <source>There are </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotUI.cpp" line="56"/>
+        <source> unencrypted files in attachment folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="30"/>
+        <source>&amp;New</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="36"/>
+        <source>Open a new file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="39"/>
+        <source>&amp;Open...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="42"/>
+        <source>Open an existing file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="45"/>
+        <source>&amp;Save</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="48"/>
+        <source>Save the current File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="51"/>
+        <source>Save &amp;As</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="54"/>
+        <source>Save the current File as...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="57"/>
+        <source>&amp;Print</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="60"/>
+        <source>Print Document</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="63"/>
+        <source>&amp;Close</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="65"/>
+        <source>Close file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="68"/>
+        <source>&amp;Quit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="71"/>
+        <source>Quit Program</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="76"/>
+        <source>&amp;Undo</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="78"/>
+        <source>Undo Last Edit Action</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="81"/>
+        <source>&amp;Redo</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="83"/>
+        <source>Redo Last Edit Action</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="86"/>
+        <source>Zoom In</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="90"/>
+        <source>Zoom Out</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="94"/>
+        <source>&amp;Paste</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="97"/>
+        <source>Paste Text From Clipboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="100"/>
+        <source>Cu&amp;t</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="103"/>
+        <source>Cut the current selection&apos;s contents to the clipboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="107"/>
+        <source>&amp;Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="110"/>
+        <source>Copy the current selection&apos;s contents to the clipboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="114"/>
+        <source>&amp;Quote</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="116"/>
+        <source>Quote whole text</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="119"/>
+        <source>Select &amp;All</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="122"/>
+        <source>Select the whole text</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="125"/>
+        <source>&amp;Find</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="127"/>
+        <source>Find a word</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="130"/>
+        <source>Remove &amp;spacing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="133"/>
+        <source>Remove double linebreaks, e.g. in pasted text from webmailer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="136"/>
+        <source>Se&amp;ttings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="137"/>
+        <source>Open settings dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="143"/>
+        <source>&amp;Encrypt</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="146"/>
+        <source>Encrypt Message</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="149"/>
+        <source>&amp;Encrypt &amp;Sign</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="152"/>
+        <source>Encrypt and Sign Message</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="155"/>
+        <source>&amp;Decrypt</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="158"/>
+        <source>Decrypt Message</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="161"/>
+        <source>&amp;Decrypt &amp;Verify</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="164"/>
+        <source>Decrypt and Verify Message</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="170"/>
+        <source>&amp;Encrypt File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="171"/>
+        <source>Encrypt File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="174"/>
+        <source>&amp;Decrypt File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="175"/>
+        <source>Decrypt File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="178"/>
+        <source>&amp;Sign File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="179"/>
+        <source>Sign File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="182"/>
+        <source>&amp;Verify File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="183"/>
+        <source>Verify File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="187"/>
+        <source>&amp;Sign</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="190"/>
+        <source>Sign Message</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="193"/>
+        <source>&amp;Verify</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="196"/>
+        <source>Verify Message</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="202"/>
+        <source>&amp;Editor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="204"/>
+        <source>Import New Key From Editor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="207"/>
+        <source>Manage &amp;keys</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="209"/>
+        <source>Open Keymanagement</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="214"/>
+        <source>&amp;About</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="216"/>
+        <source>Show the application&apos;s About box</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="219"/>
+        <source>Open &amp;Wizard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="220"/>
+        <source>Open the wizard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="225"/>
+        <source>Append Selected Key(s) To Text</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="226"/>
+        <source>Append The Selected Keys To Text in Editor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="229"/>
+        <source>Copy EMail-address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="230"/>
+        <source>Copy selected EMailaddress to clipboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="234"/>
+        <source>Show Key Details</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="235"/>
+        <source>Show Details for this Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="238"/>
+        <source>Refresh Key From Key Server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="239"/>
+        <source>Refresh key from default key server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="242"/>
+        <source>Upload Public Key(s) To Server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="243"/>
+        <source>Upload The Selected Public Keys To Server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="257"/>
+        <source>Remove PGP Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="260"/>
+        <source>Add PGP Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="265"/>
+        <source>&amp;File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="277"/>
+        <source>&amp;Edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="295"/>
+        <source>&amp;File...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="301"/>
+        <source>&amp;Crypt</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="312"/>
+        <source>&amp;Keys</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="313"/>
+        <source>&amp;Import Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="322"/>
+        <source>&amp;Steganography</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="331"/>
+        <source>&amp;View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="333"/>
+        <source>&amp;Help</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="341"/>
+        <source>File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="349"/>
+        <source>Crypt</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="359"/>
+        <source>Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="364"/>
+        <source>Edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="371"/>
+        <source>Special Edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="383"/>
+        <source>Import key from...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="384"/>
+        <source>Import key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="393"/>
+        <source>Opera File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="394"/>
+        <source>File Crypto</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="412"/>
+        <source>Ready</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="419"/>
+        <source>Key ToolBox</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="427"/>
+        <source>Information Board</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="447"/>
+        <source>Attached files:</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2717,56 +2717,56 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
 <context>
     <name>TextEdit</name>
     <message>
-        <location filename="../../src/ui/TextEdit.cpp" line="49"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="49"/>
         <source>untitled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/TextEdit.cpp" line="68"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="76"/>
         <source>Open file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/TextEdit.cpp" line="93"/>
-        <location filename="../../src/ui/TextEdit.cpp" line="371"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="101"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="379"/>
         <source>Application</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/TextEdit.cpp" line="94"/>
-        <location filename="../../src/ui/TextEdit.cpp" line="372"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="102"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="380"/>
         <source>Cannot read file %1:
 %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/TextEdit.cpp" line="143"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="151"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/TextEdit.cpp" line="144"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="152"/>
         <source>Cannot write file %1:
 %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/TextEdit.cpp" line="165"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="173"/>
         <source>Save file </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/TextEdit.cpp" line="229"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="237"/>
         <source>Unsaved document</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/TextEdit.cpp" line="230"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="238"/>
         <source>&lt;h3&gt;The document &quot;%1&quot; has been modified.&lt;br/&gt;Do you want to save your changes?&lt;/h3&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/TextEdit.cpp" line="232"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="240"/>
         <source>&lt;b&gt;Note:&lt;/b&gt; If you don&apos;t save these files, all changes are lost.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>

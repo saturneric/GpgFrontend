@@ -22,7 +22,7 @@
  *
  */
 
-#include "ui/EditorPage.h"
+#include "ui/widgets/EditorPage.h"
 
 #include <utility>
 

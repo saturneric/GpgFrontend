@@ -22,7 +22,7 @@
  *
  */
 
-#include "ui/HelpPage.h"
+#include "ui/widgets/HelpPage.h"
 
 #include <utility>
 
@@ -35,8 +35,6 @@ HelpPage::HelpPage(const QString &path, QWidget *parent) :
     mainLayout->addWidget(browser);
     mainLayout->setContentsMargins(0, 0, 0, 0);
     setLayout(mainLayout);
-    //setAttribute(Qt::WA_DeleteOnClose);
-    //browser->setSource(QUrl::fromLocalFile(path));
 
     connect(browser, SIGNAL(anchorClicked(QUrl)), this, SLOT(slotOpenUrl(QUrl)));
     browser->setOpenLinks(false);

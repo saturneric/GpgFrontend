@@ -22,7 +22,7 @@
  *
  */
 
-#include "ui/TextEdit.h"
+#include "ui/widgets/TextEdit.h"
 
 TextEdit::TextEdit() {
     countPage = 0;
@@ -60,6 +60,14 @@ void TextEdit::slotNewHelpTab(const QString &title, const QString &path) const {
 
     auto *page = new HelpPage(path);
     tabWidget->addTab(page, title);
+    tabWidget->setCurrentIndex(tabWidget->count() - 1);
+
+}
+
+void TextEdit::slotNewFileTab() const {
+
+    auto *page = new FilePage();
+    tabWidget->addTab(page, "File");
     tabWidget->setCurrentIndex(tabWidget->count() - 1);
 
 }

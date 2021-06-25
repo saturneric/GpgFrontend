@@ -25,9 +25,10 @@
 #ifndef __TEXTEDIT_H__
 #define __TEXTEDIT_H__
 
-#include "ui/EditorPage.h"
-#include "ui/HelpPage.h"
-#include "QuitDialog.h"
+#include "ui/widgets/EditorPage.h"
+#include "ui/widgets/HelpPage.h"
+#include "ui/widgets/FilePage.h"
+#include "ui/QuitDialog.h"
 
 
 /**
@@ -59,22 +60,22 @@ public:
      */
     bool maybeSaveAnyTab();
 
-    int tabCount() const;
+    [[nodiscard]] int tabCount() const;
 
     /**
      * @details textpage of the currently activated tab
      * @return \li reference to QTextEdit if tab has one
      *         \li 0 otherwise (e.g. if helppage)
      */
-    QTextEdit *curTextPage() const;
+    [[nodiscard]] QTextEdit *curTextPage() const;
 
-    QTextBrowser *curHelpPage() const;
+    [[nodiscard]] QTextBrowser *curHelpPage() const;
 
     /**
      * @details  List of currently unsaved tabs.
      * @returns QHash<int, QString> Hash of tabindexes and title of unsaved tabs.
      */
-    QHash<int, QString> unsavedDocuments() const;
+    [[nodiscard]] QHash<int, QString> unsavedDocuments() const;
 
     QTabWidget *tabWidget; /** Widget containing the tabs of the editor */
 
@@ -84,7 +85,7 @@ public slots:
      * @details Return pointer to the currently activated tabpage.
      *
      */
-    EditorPage *slotCurPage() const;
+    [[nodiscard]] EditorPage *slotCurPage() const;
 
     /**
      * @details Insert a ">" at the begining of every line of current textedit.
@@ -135,6 +136,11 @@ public slots:
      * @param path  path for html file to show
      */
     void slotNewHelpTab(const QString& title, const QString& path) const;
+
+    /**
+     * New File Tab to do file operation
+     */
+    void slotNewFileTab() const;
 
     /**
      * @details put a * in front of current tabs title, if current textedit is modified
@@ -240,8 +246,7 @@ private slots:
     void slotSelectAll() const;
 
 protected:
-    // void dragEnterEvent(QDragEnterEvent *event);
-    // void dropEvent(QDropEvent* event);
+
     /****************************************************************************************
      * Name:                saveFile
      * Description:         Saves the content of currentTab to the file filename
