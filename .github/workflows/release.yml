@@ -163,7 +163,7 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
-          path: {{github.workspace}}/build/artifactOut/*
+          path: ${{github.workspace}}/build/artifactOut/*
         if: matrix.os == 'macos-latest'
 
       - name: Upload Artifact(Windows)
