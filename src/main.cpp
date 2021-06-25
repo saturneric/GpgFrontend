@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
         QDir().mkdir(appPath + "/conf");
     }
     QSettings::setDefaultFormat(QSettings::IniFormat);
-    QSettings settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat);
+    QSettings settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat);
     QTranslator translator, translator2;
     int return_from_event_loop_code;
 

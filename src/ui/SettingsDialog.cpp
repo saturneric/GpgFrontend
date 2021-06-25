@@ -122,7 +122,7 @@ QHash<QString, QString> SettingsDialog::listLanguages() {
 
 GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
         : QWidget(parent), appPath(qApp->applicationDirPath()),
-          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     mCtx = ctx;
 
     /*****************************************
@@ -333,7 +333,7 @@ void GeneralTab::slotOwnKeyIdChanged() {
 
 MimeTab::MimeTab(QWidget *parent)
         : QWidget(parent), appPath(qApp->applicationDirPath()),
-          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     /*****************************************
      * MIME-Parsing-Box
      *****************************************/
@@ -404,7 +404,7 @@ void MimeTab::applySettings() {
 
 AppearanceTab::AppearanceTab(QWidget *parent)
         : QWidget(parent), appPath(qApp->applicationDirPath()),
-          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     /*****************************************
       * Icon-Size-Box
       *****************************************/
@@ -539,7 +539,7 @@ void AppearanceTab::applySettings() {
 
 KeyserverTab::KeyserverTab(QWidget *parent)
         : QWidget(parent), appPath(qApp->applicationDirPath()),
-          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
 
     auto keyServerList = settings.value("keyserver/keyServerList").toStringList();
 
@@ -611,7 +611,7 @@ void KeyserverTab::applySettings() {
 
 AdvancedTab::AdvancedTab(QWidget *parent)
         : QWidget(parent), appPath(qApp->applicationDirPath()),
-          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     /*****************************************
      * Steganography Box
      *****************************************/
@@ -641,7 +641,7 @@ void AdvancedTab::applySettings() {
 
 GpgPathsTab::GpgPathsTab(QWidget *parent)
         : QWidget(parent), appPath(qApp->applicationDirPath()),
-          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     setSettings();
 
     /*****************************************

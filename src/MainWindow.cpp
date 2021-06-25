@@ -26,7 +26,7 @@
 
 MainWindow::MainWindow()
     : appPath(qApp->applicationDirPath()),
-    settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
+    settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
 
     mCtx = new GpgME::GpgContext();
 

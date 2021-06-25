@@ -29,7 +29,7 @@
 KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *keyList, bool automatic,
                                              QWidget *parent)
         : QDialog(parent), appPath(qApp->applicationDirPath()),
-          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat),
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat),
           mCtx(ctx), mKeyList(keyList), mAutomatic(automatic) {
 
     if(automatic) {
@@ -442,7 +442,7 @@ void KeyServerImportDialog::setLoading(bool status) {
 
 KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, QWidget *parent)
         : QDialog(parent), appPath(qApp->applicationDirPath()),
-          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat),
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat),
           mCtx(ctx), mAutomatic(true) {
 
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
