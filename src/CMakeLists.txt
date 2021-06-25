@@ -10,7 +10,7 @@ set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE
 
 
 file(GLOB_RECURSE GPGFRONTEND_HEADER_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/include/*.h)
-qt5_wrap_cpp(QT5_MOCS ${GPGFRONTEND_HEADER_FILES} TARGET gpgfrontend)
+qt5_wrap_cpp(QT5_MOCS ${GPGFRONTEND_HEADER_FILES} TARGET ${AppName})
 
 # Set Binary Output Path
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
@@ -48,7 +48,7 @@ file(COPY ${CMAKE_SOURCE_DIR}/resource/conf DESTINATION ${RESOURCE_OUTPUT_DIRECT
 if(APPLE)
     file(COPY ${CMAKE_SOURCE_DIR}/gpgfrontend.icns DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     # Refresh App Bundle
-    file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend.app)
+    file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.app)
 endif()
 
 # Copy Utils Files
@@ -70,43 +70,43 @@ add_dependencies(resources translations)
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     if(MINGW)
-        add_executable(gpgfrontend WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+        add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
     elseif(APPLE)
-        add_executable(gpgfrontend MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
-        set_target_properties(gpgfrontend PROPERTIES
+        add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+        set_target_properties(${AppName} PROPERTIES
             BUNDLE True
             MACOSX_BUNDLE_GUI_IDENTIFIER org.gnupg.gpgfrontend
-            MACOSX_BUNDLE_BUNDLE_NAME "GpgFrontend"
+            MACOSX_BUNDLE_BUNDLE_NAME ${AppName}
             MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
             MACOSX_BUNDLE_BUNDLE_VERSION ${BUILD_VERSION}
             MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns"
             )
-        add_custom_command(TARGET gpgfrontend POST_BUILD
-            COMMAND  /bin/rm -rf ./gpgfrontend.app/Contents/Resources
+        add_custom_command(TARGET ${AppName} POST_BUILD
+            COMMAND  /bin/rm -rf ./${AppName}.app/Contents/Resources
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
             COMMENT "Deleting Resources IN App Bundle")
-        add_custom_command(TARGET gpgfrontend POST_BUILD
-            COMMAND  /bin/mv -n ./Resources ./gpgfrontend.app/Contents/
+        add_custom_command(TARGET ${AppName} POST_BUILD
+            COMMAND  /bin/mv -n ./Resources ./${AppName}.app/Contents/
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
             COMMENT "Copying Resources INTO App Bundle Resource")
     else()
-        add_executable(gpgfrontend ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+        add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
     endif()
 else()
-    add_executable(gpgfrontend ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+    add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
 endif()
 
 IF (MINGW)
     message(STATUS "Link Application Static Library For MINGW")
-    target_link_libraries(gpgfrontend
+    target_link_libraries(${AppName}
             gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
 
 
 else()
     message(STATUS "Link Application Static Library For UNIX")
-    target_link_libraries(gpgfrontend
+    target_link_libraries(${AppName}
             gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
 endif()
