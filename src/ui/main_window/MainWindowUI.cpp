@@ -386,8 +386,8 @@ void MainWindow::createToolBars() {
 
     // Add dropdown menu for file encryption/decryption to crypttoolbar
     fileEncButton = new QToolButton();
-    // fileEncButton->setMenu(fileEncMenu);
-    connect(fileEncButton, SIGNAL(clicked(bool)), this, SLOT(slotOpenFileTab()));
+    fileEncButton->setMenu(fileEncMenu);
+    // connect(fileEncButton, SIGNAL(clicked(bool)), this, SLOT(slotOpenFileTab()));
     fileEncButton->setPopupMode(QToolButton::InstantPopup);
     fileEncButton->setIcon(QIcon(":fileencryption.png"));
     fileEncButton->setToolTip(tr("Opera File"));
