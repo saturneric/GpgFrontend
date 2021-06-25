@@ -133,7 +133,7 @@ jobs:
           cmake --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -j 3
           macdeployqt ${{github.workspace}}/build/release/GpgFrontend.app
           mkdir {{github.workspace}}/build/tmp
-          hdiutil create {{github.workspace}}/build/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder {{github.workspace}}/build/release/
+          hdiutil create {{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder {{github.workspace}}/build/release/
           mkdir {{github.workspace}}/build/artifactOut
           hdiutil convert {{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o {{github.workspace}}/build/artifactOut/GpgFrontend.dmg
         if: matrix.os == 'macos-latest'
