@@ -31,7 +31,7 @@ KeyList::KeyList(GpgME::GpgContext *ctx,
                  KeyListColumn::InfoType infoType,
                  QWidget *parent)
         : QWidget(parent), mSelectType(selectType), mInfoType(infoType), appPath(qApp->applicationDirPath()),
-        settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat)
+        settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat)
 {
     mCtx = ctx;
 

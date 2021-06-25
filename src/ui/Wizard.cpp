@@ -30,7 +30,7 @@
 
 Wizard::Wizard(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent)
         : QWizard(parent), appPath(qApp->applicationDirPath()),
-          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     mCtx = ctx;
     mKeyMgmt = keyMgmt;
 
@@ -107,7 +107,7 @@ bool Wizard::importPubAndSecKeysFromDir(const QString &dir, KeyMgmt *keyMgmt) {
 
 IntroPage::IntroPage(QWidget *parent)
         : QWizardPage(parent), appPath(qApp->applicationDirPath()),
-          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     setTitle(tr("Getting started..."));
     setSubTitle(tr("... with GPGFrontend"));
 
@@ -202,7 +202,7 @@ void ChoosePage::slotJumpPage(const QString &page) {
 
 ImportFromGpg4usbPage::ImportFromGpg4usbPage(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent)
         : QWizardPage(parent), appPath(qApp->applicationDirPath()),
-          settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     mCtx = ctx;
     mKeyMgmt = keyMgmt;
     setTitle(tr("Import from..."));

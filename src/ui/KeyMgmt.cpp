@@ -27,7 +27,7 @@
 #include <utility>
 
 KeyMgmt::KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent )  :
-    QMainWindow(parent), appPath(qApp->applicationDirPath()), settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat)
+    QMainWindow(parent), appPath(qApp->applicationDirPath()), settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat)
 {
     mCtx = ctx;
 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(GpgFrontend VERSION 1.1.0 LANGUAGES CXX)
+project(GpgFrontend VERSION 1.0.6 LANGUAGES CXX)
 
 message(STATUS "GPGFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
@@ -81,7 +81,7 @@ IF (MINGW)
 	message(STATUS "Configuration For OS Platform Microsoft Windows")
 	message(STATUS "Build Environment MINGW")
 
-    set(OS_PLATFORM "WINDOWS")
+    set(OS_PLATFORM 0)
 
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
 
@@ -99,7 +99,7 @@ if(APPLE)
 
     message(STATUS "Configuration For OS Platform MacOS")
 
-    set(OS_PLATFORM "MACOS")
+    set(OS_PLATFORM 1)
 
     set(ENV{Qt5_DIR} /usr/local/opt/qt5/lib/cmake)
 
@@ -119,7 +119,7 @@ endif()
 if(LINUX)
 
     message(STATUS "Configuration For OS Platform LINUX")
-    set(OS_PLATFORM "LINUX")
+    set(OS_PLATFORM 2)
 
     include_directories(
         include
@@ -134,6 +134,8 @@ if(LINUX)
     )
 
 endif()
+
+message(STATUS "OS_PLATFORM ${OS_PLATFORM}")
 
 find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network LinguistTools REQUIRED)
 

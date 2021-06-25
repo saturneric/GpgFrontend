@@ -28,7 +28,7 @@
 
 KeyUploadDialog::KeyUploadDialog(GpgME::GpgContext *ctx, const QVector<GpgKey> &keys, QWidget *parent)
 : appPath(qApp->applicationDirPath()),
-settings(appPath + "/conf/gpgfrontend.ini", QSettings::IniFormat),
+settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat),
 QDialog(parent) {
     ctx->exportKeys(keys, mKeyData);
     uploadKeyToServer(mKeyData);
