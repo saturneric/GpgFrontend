@@ -81,6 +81,8 @@ IF (MINGW)
 	message(STATUS "Configuration For OS Platform Microsoft Windows")
 	message(STATUS "Build Environment MINGW")
 
+    set(OS_PLATFORM "WINDOWS")
+
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
 
     include_directories(
@@ -96,6 +98,8 @@ endif()
 if(APPLE)
 
     message(STATUS "Configuration For OS Platform MacOS")
+
+    set(OS_PLATFORM "MACOS")
 
     set(ENV{Qt5_DIR} /usr/local/opt/qt5/lib/cmake)
 
@@ -115,7 +119,7 @@ endif()
 if(LINUX)
 
     message(STATUS "Configuration For OS Platform LINUX")
-    set(Platform LINUX)
+    set(OS_PLATFORM "LINUX")
 
     include_directories(
         include
