@@ -39,8 +39,9 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5
+          brew install cmake git autoconf automake qt@5 gcc
           brew link qt@5
+          brew link gcc
         if: matrix.os == 'macos-latest'
 
 
@@ -75,10 +76,10 @@ jobs:
       - name: Build GpgME
         run: |
           cd ..
-          git clone https://github.com/gpg/gpgme
+          git clone https://github.com/saturneric/gpgme
           cd gpgme
           ./autogen.sh
-          ./configure && make -j2
+          ./configure --enable-maintainer-mode --enable-languages=cpp && make -j2
           sudo make install
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
@@ -89,7 +90,7 @@ jobs:
           git clone https://github.com/saturneric/gpgme
           cd gpgme
           ./autogen.sh
-          ./configure --enable-static=true --enable-languages=cpp LDFLAGS="-static" && make -j2
+          ./configure --enable-maintainer-mode --enable-static=true --enable-languages=cpp LDFLAGS="-static" && make -j2
           make install
         if: matrix.os == 'windows-latest'
 
