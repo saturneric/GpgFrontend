@@ -39,10 +39,9 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5 gcc texinfo gettext
+          brew install cmake git autoconf automake qt@5 gcc texinfo gettext libgpg-error libassuan gpgme
           brew link qt@5
           brew link gcc
-          brew unlink gettext && brew link gettext --force
         if: matrix.os == 'macos-latest'
 
       - name: Cache Qt
