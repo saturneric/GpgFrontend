@@ -72,7 +72,7 @@ jobs:
           pacman --noconfirm -S --needed make texinfo
         if: matrix.os == 'windows-latest'
 
-      - name: Build gpg-error
+      - name: Build gpg-error (Linux)
         run: |
           cd  ${{github.workspace}}/..
           git clone https://github.com/saturneric/libgpg-error
@@ -83,7 +83,7 @@ jobs:
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-latest'
 
-      - name: Build assuan
+      - name: Build assuan (Linux)
         run: |
           cd  ${{github.workspace}}/..
           git clone https://github.com/saturneric/libassuan
@@ -94,7 +94,7 @@ jobs:
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-latest'
 
-      - name: Build GpgME
+      - name: Build GpgME (Linux)
         run: |
           cd  ${{github.workspace}}/..
           git clone https://github.com/saturneric/gpgme
@@ -124,17 +124,15 @@ jobs:
       - name: Build GpgFrontend
         # Build your program with the given configuration
         run: cmake --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -j 2
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
 
-      - name: Build GpgFrontend (macOS App Bundle)
-        # Build your program with the given configuration
+      - name: Package App Bundle (macOS)
         run: |
-          cmake --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -j 3
           macdeployqt ${{github.workspace}}/build/release/GpgFrontend.app
-          mkdir {{github.workspace}}/build/tmp
-          hdiutil create {{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder {{github.workspace}}/build/release/
-          mkdir {{github.workspace}}/build/artifactOut
-          hdiutil convert {{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o {{github.workspace}}/build/artifactOut/GpgFrontend.dmg
+          mkdir ${{github.workspace}}/build/tmp/
+          hdiutil create ${{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/release/
+          mkdir ${{github.workspace}}/build/artifactOut
+          hdiutil convert ${{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
         if: matrix.os == 'macos-latest'
 
       - name: Configure CMake & Build Binary(Windows)

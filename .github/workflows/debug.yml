@@ -39,7 +39,7 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5
+          brew install cmake git autoconf automake qt@5 gcc texinfo gettext libgpg-error libassuan gpgme
         if: matrix.os == 'macos-latest'
 
 
@@ -81,7 +81,7 @@ jobs:
           ./configure && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        if: matrix.os == 'ubuntu-latest'
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}
