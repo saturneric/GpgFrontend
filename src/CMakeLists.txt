@@ -90,14 +90,8 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
             COMMAND  /bin/mv -n ./Resources ./gpgfrontend.app/Contents/
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
             COMMENT "Copying Resources INTO App Bundle Resource")
-        add_custom_command(TARGET gpgfrontend POST_BUILD
-                COMMAND  /bin/rm -rf ./GpgFrontend.app
-                WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                COMMENT "Deleting Old Final App Bundle")
-        add_custom_command(TARGET gpgfrontend POST_BUILD
-                COMMAND  /bin/mv -n ./gpgfrontend.app ./GpgFrontend.app
-                WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                COMMENT "Rename Build App Bundle to Final App Bundle")
+    else()
+        add_executable(gpgfrontend ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
     endif()
 else()
     add_executable(gpgfrontend ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})

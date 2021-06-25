@@ -97,7 +97,7 @@ QHash<QString, QString> SettingsDialog::listLanguages() {
     languages.insert("", tr("System Default"));
 
     QString appPath = qApp->applicationDirPath();
-    QDir qmDir = QDir(appPath + "/ts/");
+    QDir qmDir = QDir(RESOURCE_DIR(appPath) + "/ts/");
     QStringList fileNames =
             qmDir.entryList(QStringList("gpgfrontend_*.qm"));
 
