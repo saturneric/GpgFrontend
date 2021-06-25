@@ -32,14 +32,14 @@ jobs:
       - name: Install Dependence (Linux)
         run: |
           sudo apt-get update
-          sudo apt-get -y install build-essential binutils git autoconf automake
+          sudo apt-get -y install build-essential binutils git autoconf automake gettext
           sudo apt-get -y install gcc g++
           sudo apt-get -y install libgpgme-dev gpg
         if: matrix.os == 'ubuntu-latest'
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5 gcc
+          brew install cmake git autoconf automake qt@5 gcc texinfo gettext
           brew link qt@5
           brew link gcc
         if: matrix.os == 'macos-latest'
