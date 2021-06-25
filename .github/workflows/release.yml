@@ -134,8 +134,8 @@ jobs:
           macdeployqt ${{github.workspace}}/build/release/GpgFrontend.app
           mkdir {{github.workspace}}/build/tmp
           hdiutil create {{github.workspace}}/build/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder {{github.workspace}}/build/release/
-          mkdir {{github.workspace}}/build/artifact-out
-          hdiutil convert {{github.workspace}}/tmp/tmp.dmg -format UDZO -o {{github.workspace}}/build/artifact-out/GpgFrontend.dmg
+          mkdir {{github.workspace}}/build/artifactOut
+          hdiutil convert {{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o {{github.workspace}}/build/artifactOut/GpgFrontend.dmg
         if: matrix.os == 'macos-latest'
 
       - name: Configure CMake & Build Binary(Windows)
@@ -163,7 +163,7 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
-          path: {{github.workspace}}/build/artifact-out/*
+          path: {{github.workspace}}/build/artifactOut/*
         if: matrix.os == 'macos-latest'
 
       - name: Upload Artifact(Windows)
