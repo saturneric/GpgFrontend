@@ -20,10 +20,15 @@
 #define MACOS 1
 #define LINUX 2
 
+#define RELEASE 0
+#define DEBUG 1
+
 #define PROJECT_NAME "@PROJECT_NAME@"
 #define BUILD_VERSION "@BUILD_VERSION@"
 #define GIT_VERSION "@GIT_VERSION@"
 #define OS_PLATFORM @OS_PLATFORM@
+
+#define BUILD_FLAG @BUILD_FLAG@
 
 #define VERSION_MAJOR @CMAKE_PROJECT_VERSION_MAJOR@
 #define VERSION_MINOR @CMAKE_PROJECT_VERSION_MINOR@
@@ -34,8 +39,8 @@
 #define GIT_BRANCH_NAME "@GIT_BRANCH_NAME@"
 #define GIT_COMMIT_HASH "@GIT_COMMIT_HASH@"
 
-#if OS_PLATFORM == MACOS
-# define RESOURCE_DIR(appDir) (appDir + "../Resources/")
+#if OS_PLATFORM == MACOS && BUILD_FLAG == RELEASE
+# define RESOURCE_DIR(appDir) (appDir + "/../Resources/")
 #else
 # define RESOURCE_DIR(appDir) (appDir)
 #endif

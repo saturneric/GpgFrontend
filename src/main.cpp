@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
 
     // css
-    QFile file(qApp->applicationDirPath() + "/css/default.qss");
+    QFile file(RESOURCE_DIR(qApp->applicationDirPath()) + "/css/default.qss");
     file.open(QFile::ReadOnly);
     QString styleSheet = QLatin1String(file.readAll());
     qApp->setStyleSheet(styleSheet);
@@ -53,8 +53,8 @@ int main(int argc, char *argv[]) {
      * internationalisation. loop to restart mainwindow
      * with changed translation when settings change.
      */
-    if(!QDir(appPath + "/conf").exists()) {
-        QDir().mkdir(appPath + "/conf");
+    if(!QDir(RESOURCE_DIR(appPath) + "/conf").exists()) {
+        QDir().mkdir(RESOURCE_DIR(appPath) + "/conf");
     }
     QSettings::setDefaultFormat(QSettings::IniFormat);
     QSettings settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat);
@@ -72,12 +72,12 @@ int main(int argc, char *argv[]) {
             lang = QLocale::system().name();
         }
         qDebug() << "Language set" << lang;
-        translator.load( appPath + "/ts/" + "gpgfrontend_" + lang);
+        translator.load(RESOURCE_DIR(appPath) + "/ts/" + "gpgfrontend_" + lang);
         qDebug() << "Translator" << translator.filePath();
         QApplication::installTranslator(&translator);
 
         // set qt translations
-        translator2.load("./ts/qt_" + lang, appPath);
+        translator2.load(RESOURCE_DIR(appPath) + "/ts/qt_" + lang);
         qDebug() << "Translator2" << translator2.filePath();
         QApplication::installTranslator(&translator2);
 
