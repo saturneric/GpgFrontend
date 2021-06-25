@@ -79,7 +79,7 @@ jobs:
           git clone https://github.com/saturneric/libgpg-error
           cd libgpg-error
           ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=true && make -j2
+          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
           sudo make install
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
@@ -90,7 +90,7 @@ jobs:
           git clone https://github.com/saturneric/libassuan
           cd libassuan
           ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=true && make -j2
+          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
           sudo make install
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
@@ -101,7 +101,7 @@ jobs:
           git clone https://github.com/saturneric/gpgme
           cd gpgme
           ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=true --enable-languages=cpp && make -j2
+          ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
           sudo make install
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
@@ -112,7 +112,7 @@ jobs:
           git clone https://github.com/saturneric/gpgme
           cd gpgme
           ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=true --enable-languages=cpp LDFLAGS="-static" && make -j2
+          ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp LDFLAGS="-static" && make -j2
           make install
         if: matrix.os == 'windows-latest'
 
