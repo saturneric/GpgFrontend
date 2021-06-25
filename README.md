@@ -1,3 +1,5 @@
+<img style='float:right; width:100px;height:100px' src="https://github.com/saturneric/Blob/blob/master/logos/icon.png?raw=true" alt="ICON"/>
+
 # GpgFrontend
 
 ![Language](https://img.shields.io/badge/language-C%2B%2B-green)
@@ -29,6 +31,10 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
 
 - [Features](#features)
 - [Usage](#usage)
+   - [Windows](#windows)
+   - [macOS](#macos)
+   - [Debian/Ubuntu/CentOS](#debianubuntucentos)
+- [Document](#document)
 - [Purpose](#purpose)
 - [Build](#build)
 - [Contract](#contract)
@@ -54,7 +60,7 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
 4. Unzip GpgFrontend
 5. Double Click gpgfrontend.exe
 
-### MacOS
+### macOS
 1. Install Homebrew [Here](https://brew.sh/) if you don't know it.
 2. Install gnupg
     ```shell
@@ -95,6 +101,10 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
     ```shell
     $ ./gpgfrontend
     ```
+
+## Document
+
+For more usage information, please read [Document](https://saturneric.github.io/GpgFrontend/index.html#/).
 
 ## Purpose
 
