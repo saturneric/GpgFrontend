@@ -22,46 +22,35 @@
  *
  */
 
-#ifndef FINDWIDGET_H
-#define FINDWIDGET_H
+#ifndef GPGFRONTEND_FILEPAGE_H
+#define GPGFRONTEND_FILEPAGE_H
 
-#include "ui/widgets/EditorPage.h"
+#include <GpgFrontend.h>
 
-/**
- * @brief Class for handling the find widget shown at buttom of a textedit-page
- */
-class FindWidget : public QWidget {
+class FilePage : public QWidget  {
 Q_OBJECT
-
 public:
-    /**
-     * @brief
-     *
-     * @param parent The parent widget
-     */
-    explicit FindWidget(QWidget *parent, QTextEdit *edit);
 
-private:
-    void keyPressEvent(QKeyEvent *e) override;
+    explicit FilePage(QWidget* parent = nullptr);
 
-    /**
-     * @details Set background of findEdit to red, if no match is found (Documents textcursor position equals -1),
-     *          otherwise set it to white.
-     */
-    void setBackground();
+    void getSelected(QString &path);
 
-    QTextEdit *mTextpage; /** Textedit associated to the notification */
-    QLineEdit *findEdit; /** Label holding the text shown in infoBoard */
 
 private slots:
 
-    void slotFindNext();
+    void fileTreeViewItemClicked(const QModelIndex &index);
+    void fileTreeViewItemDoubleClicked(const QModelIndex &index);
 
-    void slotFindPrevious();
+    void slotUpLevel();
 
-    void slotFind();
+private:
+    QFileSystemModel *dirModel;
+    QTreeView *dirTreeView;
+    QString mPath;
 
-    void slotClose();
+    QPushButton *upLevelButton;
+
 };
 
-#endif // FINDWIDGET_H
+
+#endif //GPGFRONTEND_FILEPAGE_H

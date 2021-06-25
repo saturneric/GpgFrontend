@@ -25,7 +25,7 @@
 #ifndef __VERIFYDETAILSDIALOG_H__
 #define __VERIFYDETAILSDIALOG_H__
 
-#include "ui/EditorPage.h"
+#include "ui/widgets/EditorPage.h"
 #include "ui/widgets/VerifyKeyDetailBox.h"
 
 class VerifyDetailsDialog : public QDialog {

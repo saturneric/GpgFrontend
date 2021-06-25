@@ -37,7 +37,7 @@
  */
 
 
-#include "ui/Attachments.h"
+#include "ui/widgets/Attachments.h"
 
 Attachments::Attachments(QWidget *parent)
         : QWidget(parent) {

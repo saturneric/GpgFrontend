@@ -26,9 +26,9 @@
 #define __GPGWIN_H__
 
 #include "gpg/GpgConstants.h"
-#include "ui/Attachments.h"
+#include "ui/widgets/Attachments.h"
 #include "ui/KeyMgmt.h"
-#include "ui/TextEdit.h"
+#include "ui/widgets/TextEdit.h"
 #include "ui/FileEncryptionDialog.h"
 #include "ui/SettingsDialog.h"
 #include "ui/AboutDialog.h"
@@ -174,6 +174,11 @@ private slots:
      * @details Open dialog for verifying file.
      */
     void slotFileVerify();
+
+    /**
+     * @details Open File Opera Tab
+     */
+    void slotOpenFileTab();
 
     /**
      * @details Open settings-dialog.
@@ -339,6 +344,7 @@ private:
     GpgME::GpgContext *mCtx; /**< TODO */
     KeyMgmt *keyMgmt; /**< TODO */
     KeyServerImportDialog *importDialog; /**< TODO */
+
     bool attachmentDockCreated;
     bool restartNeeded;
 };
