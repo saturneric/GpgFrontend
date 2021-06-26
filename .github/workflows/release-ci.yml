@@ -34,7 +34,9 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc g++
-          sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-iccm4
+          sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
+          sudo apt-get -y libgcrypt11-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp ninja-build
+          sudo apt-get -y libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev
         if: matrix.os == 'ubuntu-16.04'
 
       - name: Install Dependence (macOS)
