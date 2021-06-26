@@ -138,7 +138,7 @@ jobs:
 
       - name: Package App Image (Linux)
         run: |
-          mdkir ${{github.workspace}}/build/artifactOut
+          mkdir ${{github.workspace}}/build/artifactOut
           cd ${{github.workspace}}/build/artifactOut
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
