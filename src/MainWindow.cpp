@@ -34,7 +34,9 @@ MainWindow::MainWindow()
     setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
-    edit = new TextEdit();
+    qDebug() << "Main Window" << this;
+
+    edit = new TextEdit(this);
     setCentralWidget(edit);
 
     /* the list of Keys available*/

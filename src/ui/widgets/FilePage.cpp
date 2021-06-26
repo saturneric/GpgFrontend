@@ -24,7 +24,13 @@
 
 #include "ui/widgets/FilePage.h"
 
+#include "MainWindow.h"
+
 FilePage::FilePage(QWidget *parent) : QWidget(parent) {
+
+    qDebug() << "First Parent" << parent;
+    firstParent = parent;
+
     qDebug() << "New File Page";
 
     dirModel = new QFileSystemModel();
@@ -35,6 +41,10 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
     dirTreeView->setAnimated(true);
     dirTreeView->setIndentation(20);
     dirTreeView->setRootIndex(dirModel->index(QDir::currentPath()));
+    dirTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
+    mPath = dirModel->rootPath();
+
+    createPopupMenu();
 
     upLevelButton = new QPushButton("UP Level");
     connect(upLevelButton, SIGNAL(clicked(bool)), this, SLOT(slotUpLevel()));
@@ -43,7 +53,7 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
     connect(goPathButton, SIGNAL(clicked(bool)), this, SLOT(slotGoPath()));
 
     pathEdit = new QLineEdit();
-    pathEdit->setFixedWidth(520);
+    pathEdit->setFixedWidth(500);
     pathEdit->setText(dirModel->rootPath());
 
     auto *menuLayout = new QHBoxLayout();
@@ -60,6 +70,9 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
 
     connect(dirTreeView, SIGNAL(clicked(const QModelIndex &)), this, SLOT(fileTreeViewItemClicked(const QModelIndex &)));
     connect(dirTreeView, SIGNAL(doubleClicked(const QModelIndex &)), this, SLOT(fileTreeViewItemDoubleClicked(const QModelIndex &)));
+    connect(dirTreeView, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(onCustomContextMenu(const QPoint &)));
+
+    emit pathChanged(mPath);
 
 }
 
@@ -77,6 +90,7 @@ void FilePage::slotUpLevel() {
         pathEdit->setText(mPath);
     }
     qDebug() << "Current Root mPath" << mPath;
+    emit pathChanged(mPath);
 }
 
 void FilePage::fileTreeViewItemDoubleClicked(const QModelIndex &index) {
@@ -87,13 +101,11 @@ void FilePage::fileTreeViewItemDoubleClicked(const QModelIndex &index) {
         pathEdit->setText(mPath);
     }
     qDebug() << "Index mPath" << mPath;
+    emit pathChanged(mPath);
 }
 
 QString FilePage::getSelected() const {
-    QModelIndex index = dirTreeView->currentIndex();
-    QVariant data = dirTreeView->model()->data(index);
-    qDebug() << "Target Path" << mPath;
-    return data.toString();
+    return mPath;
 }
 
 void FilePage::slotGoPath() {
@@ -105,4 +117,104 @@ void FilePage::slotGoPath() {
     } else {
         QMessageBox::critical(this, "Error", "The path is unprivileged or unreachable.");
     }
+    emit pathChanged(mPath);
+}
+
+void FilePage::createPopupMenu() {
+    popUpMenu = new QMenu();
+
+    auto openItemAct = new QAction(tr("Open"), this);
+    connect(openItemAct, SIGNAL(triggered()), this, SLOT(slotOpenItem()));
+    auto deleteItemAct = new QAction(tr("Delete"), this);
+    connect(deleteItemAct, SIGNAL(triggered()), this, SLOT(slotDeleteItem()));
+    encryptItemAct = new QAction(tr("Encrypt File"), this);
+    connect(encryptItemAct, SIGNAL(triggered()), this, SLOT(slotEncryptItem()));
+    decryptItemAct = new QAction(tr("Decrypt File"), this);
+    connect(decryptItemAct, SIGNAL(triggered()), this, SLOT(slotDecryptItem()));
+    signItemAct = new QAction(tr("Sign File"), this);
+    connect(signItemAct, SIGNAL(triggered()), this, SLOT(slotSignItem()));
+    verifyItemAct = new QAction(tr("Verify File"), this);
+    connect(verifyItemAct, SIGNAL(triggered()), this, SLOT(slotVerifyItem()));
+
+    popUpMenu->addAction(openItemAct);
+    popUpMenu->addAction(deleteItemAct);
+    popUpMenu->addSeparator();
+    popUpMenu->addAction(encryptItemAct);
+    popUpMenu->addAction(decryptItemAct);
+    popUpMenu->addAction(signItemAct);
+    popUpMenu->addAction(verifyItemAct);
+
+}
+
+void FilePage::onCustomContextMenu(const QPoint &point) {
+    QModelIndex index = dirTreeView->indexAt(point);
+    mPath = dirModel->fileInfo(index).absoluteFilePath();
+    qDebug() << "Right Click" <<  mPath;
+    if (index.isValid()) {
+        QFileInfo info(mPath);
+        encryptItemAct->setEnabled(info.isFile());
+        decryptItemAct->setEnabled(info.isFile());
+        signItemAct->setEnabled(info.isFile());
+        verifyItemAct->setEnabled(info.isFile());
+
+        popUpMenu->exec(dirTreeView->viewport()->mapToGlobal(point));
+    }
+}
+
+void FilePage::slotOpenItem() {
+    QFileInfo info(mPath);
+    if(info.isDir()) {
+        qDebug() << "getSelected" << pathEdit->text();
+        if(info.isReadable() && info.isExecutable()) {
+            qDebug() << "Set Path" << info.filePath();
+            dirTreeView->setRootIndex(dirModel->index(info.filePath()));
+        } else {
+            QMessageBox::critical(this, "Error", "The path is unprivileged or unreachable.");
+        }
+    } else {
+        auto mainWindow = qobject_cast<MainWindow *>(firstParent);
+        qDebug() << "Open Item" << mPath;
+        if (mainWindow != nullptr)
+            mainWindow->slotOpenFile(mPath);
+    }
+    emit pathChanged(mPath);
+}
+
+void FilePage::slotDeleteItem() {
+    QModelIndex index = dirTreeView->currentIndex();
+    QVariant data = dirTreeView->model()->data(index);
+
+    auto ret = QMessageBox::warning(this,
+                                    tr("Warning"),
+                                    tr("Are you sure you want to delete it?"),
+                                    QMessageBox::Ok | QMessageBox::Cancel);
+
+    if(ret == QMessageBox::Cancel)
+        return;
+
+    qDebug() << "Delete Item" << data.toString();
+
+    if(!dirModel->remove(index)){
+        QMessageBox::critical(this,
+                              tr("Error"),
+                              tr("Unable to delete the file or folder."));
+    }
+}
+
+void FilePage::slotEncryptItem() {
+    auto mainWindow = qobject_cast<MainWindow *>(firstParent);
+    if(mainWindow != nullptr)
+        mainWindow->slotFileEncrypt();
+}
+
+void FilePage::slotDecryptItem() {
+
+}
+
+void FilePage::slotSignItem() {
+
+}
+
+void FilePage::slotVerifyItem() {
+
 }

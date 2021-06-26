@@ -84,13 +84,13 @@ void MainWindow::slotSign() {
     mKeyList->getPrivateCheckedKeys(keys);
 
     if (keys.isEmpty()) {
-        QMessageBox::critical(nullptr, tr("No Key Selected"), tr("No Key Selected"));
+        QMessageBox::critical(this, tr("No Key Selected"), tr("No Key Selected"));
         return;
     }
 
     for (const auto &key : keys) {
         if (!GpgME::GpgContext::checkIfKeyCanSign(key)) {
-            QMessageBox::information(nullptr,
+            QMessageBox::information(this,
                                      tr("Invalid Operation"),
                                      tr("The selected key contains a key that does not actually have a signature usage.<br/>")
                                      + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
@@ -255,7 +255,7 @@ void MainWindow::slotFileEncrypt() {
 
     QFileInfo fileInfo(path);
     if(!fileInfo.isFile()) {
-        QMessageBox::critical(this, tr("Error"), tr("Can only encrypt a file."));
+        QMessageBox::critical(this, tr("Error"), tr("Select a file before doing it."));
         return;
     }
     if(!fileInfo.isReadable()) {
@@ -276,9 +276,14 @@ void MainWindow::slotFileEncrypt() {
 
     mKeyList->getCheckedKeys(keys);
 
+    if(keys.empty()) {
+        QMessageBox::critical(this, tr("No Key Selected"), tr("No Key Selected"));
+        return;
+    }
+
     for (const auto &key : keys) {
         if (!GpgME::GpgContext::checkIfKeyCanEncr(key)) {
-            QMessageBox::information(nullptr,
+            QMessageBox::information(this,
                                      tr("Invalid Operation"),
                                      tr("The selected key contains a key that does not actually have a encrypt usage.<br/>")
                                      + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
@@ -402,4 +407,8 @@ void MainWindow::slotDecryptVerify() {
     }
     delete resultAnalyseDecrypt;
     delete resultAnalyseVerify;
+}
+
+void MainWindow::slotOpenFile(QString &path) {
+    edit->slotOpenFile(path);
 }

@@ -25,7 +25,7 @@
 #ifndef GPGFRONTEND_FILEPAGE_H
 #define GPGFRONTEND_FILEPAGE_H
 
-#include <GpgFrontend.h>
+#include "GpgFrontend.h"
 
 class FilePage : public QWidget  {
 Q_OBJECT
@@ -33,7 +33,13 @@ public:
 
     explicit FilePage(QWidget* parent = nullptr);
 
-    QString getSelected() const;
+    [[nodiscard]] QString getSelected() const;
+
+    void createPopupMenu();
+
+signals:
+
+    void pathChanged(QString path);
 
 
 private slots:
@@ -44,7 +50,18 @@ private slots:
     void slotUpLevel();
     void slotGoPath();
 
+    void slotOpenItem();
+    void slotDeleteItem();
+    void slotEncryptItem();
+    void slotDecryptItem();
+    void slotSignItem();
+    void slotVerifyItem();
+
+    void onCustomContextMenu(const QPoint &point);
+
+
 private:
+
     QFileSystemModel *dirModel;
     QTreeView *dirTreeView;
     QLineEdit *pathEdit;
@@ -52,6 +69,15 @@ private:
 
     QPushButton *upLevelButton;
     QPushButton *goPathButton;
+
+    QMenu *popUpMenu{};
+    QAction *encryptItemAct{};
+    QAction *decryptItemAct{};
+    QAction *signItemAct{};
+    QAction *verifyItemAct{};
+
+    QWidget *firstParent;
+
 
 };
 

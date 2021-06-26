@@ -284,6 +284,59 @@
     </message>
 </context>
 <context>
+    <name>FilePage</name>
+    <message>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="126"/>
+        <source>Open</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="128"/>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="130"/>
+        <source>Encrypt File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="132"/>
+        <source>Decrypt File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="134"/>
+        <source>Sign File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="136"/>
+        <source>Verify File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="188"/>
+        <source>Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="189"/>
+        <source>Are you sure you want to delete it?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="199"/>
+        <source>Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="200"/>
+        <source>Unable to delete the file or folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>FindWidget</name>
     <message>
         <location filename="../../src/ui/FindWidget.cpp" line="38"/>
@@ -1875,38 +1928,74 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="36"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="83"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="281"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="37"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="87"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="280"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="331"/>
         <source>No Key Selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="43"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="90"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="288"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="44"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="94"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="287"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="338"/>
         <source>Invalid Operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="44"/>
-        <source>The selected key contains a key that does not actually have a encrypt function.&lt;br/&gt;</source>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="45"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="288"/>
+        <source>The selected key contains a key that does not actually have a encrypt usage.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="45"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="92"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="290"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="95"/>
+        <source>The selected key contains a key that does not actually have a signature usage.&lt;br/&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="258"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="262"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="296"/>
+        <source>Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="262"/>
+        <source>No permission to read this file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="267"/>
+        <source>Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="268"/>
+        <source>The target file already exists, do you need to overwrite it?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="296"/>
+        <source>An error occurred during operation.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="46"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="96"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="289"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="340"/>
         <source>&lt;br/&gt;For example the Following Key: &lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="91"/>
-        <source>The selected key contains a key that does not actually have a signature function.&lt;br/&gt;</source>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="258"/>
+        <source>Select a file before doing it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="289"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="339"/>
         <source>The selected key cannot be used for signing and encryption at the same time.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2722,51 +2811,57 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="76"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="100"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="132"/>
+        <source>Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="107"/>
         <source>Open file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="101"/>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="379"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="204"/>
+        <source>Save file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="416"/>
         <source>Application</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="102"/>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="380"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="101"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="133"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="417"/>
         <source>Cannot read file %1:
 %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="151"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="182"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="152"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="183"/>
         <source>Cannot write file %1:
 %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="173"/>
-        <source>Save file </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="237"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="268"/>
         <source>Unsaved document</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="238"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="269"/>
         <source>&lt;h3&gt;The document &quot;%1&quot; has been modified.&lt;br/&gt;Do you want to save your changes?&lt;/h3&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="240"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="271"/>
         <source>&lt;b&gt;Note:&lt;/b&gt; If you don&apos;t save these files, all changes are lost.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>

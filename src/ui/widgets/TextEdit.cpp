@@ -24,7 +24,7 @@
 
 #include "ui/widgets/TextEdit.h"
 
-TextEdit::TextEdit() {
+TextEdit::TextEdit(QWidget *parent) : QWidget(parent) {
     countPage = 0;
     tabWidget = new QTabWidget(this);
     tabWidget->setMovable(true);
@@ -66,45 +66,75 @@ void TextEdit::slotNewHelpTab(const QString &title, const QString &path) const {
 
 void TextEdit::slotNewFileTab() const {
 
-    auto *page = new FilePage();
+    auto *page = new FilePage(qobject_cast<QWidget *>(parent()));
     tabWidget->addTab(page, "File");
     tabWidget->setCurrentIndex(tabWidget->count() - 1);
+    connect(page, SIGNAL(pathChanged(QString)), this, SLOT(slotFilePagePathChanged(QString)));
 
+}
+
+void TextEdit::slotOpenFile(QString &path) {
+
+    QFile file(path);
+
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        auto *page = new EditorPage(path);
+
+        QTextStream in(&file);
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+        page->getTextPage()->setPlainText(in.readAll());
+        page->setFilePath(path);
+        QTextDocument *document = page->getTextPage()->document();
+        document->setModified(false);
+
+        tabWidget->addTab(page, strippedName(path));
+        tabWidget->setCurrentIndex(tabWidget->count() - 1);
+        QApplication::restoreOverrideCursor();
+        page->getTextPage()->setFocus();
+        connect(page->getTextPage()->document(), SIGNAL(modificationChanged(bool)), this,
+                SLOT(slotShowModified()));
+        //enableAction(true)
+        file.close();
+    } else {
+        QMessageBox::warning(this, tr("Warning"),
+                             tr("Cannot read file %1:\n%2.")
+                                     .arg(path).arg(file.errorString()));
+    }
 }
 
 void TextEdit::slotOpen() {
     QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open file"),
                                                           QDir::currentPath());
-            foreach (QString fileName, fileNames) {
-            if (!fileName.isEmpty()) {
-                QFile file(fileName);
+    for (const auto &fileName : fileNames) {
+        if (!fileName.isEmpty()) {
+            QFile file(fileName);
 
-                if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                    auto *page = new EditorPage(fileName);
+            if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                auto *page = new EditorPage(fileName);
 
-                    QTextStream in(&file);
-                    QApplication::setOverrideCursor(Qt::WaitCursor);
-                    page->getTextPage()->setPlainText(in.readAll());
-                    page->setFilePath(fileName);
-                    QTextDocument *document = page->getTextPage()->document();
-                    document->setModified(false);
+                QTextStream in(&file);
+                QApplication::setOverrideCursor(Qt::WaitCursor);
+                page->getTextPage()->setPlainText(in.readAll());
+                page->setFilePath(fileName);
+                QTextDocument *document = page->getTextPage()->document();
+                document->setModified(false);
 
-                    tabWidget->addTab(page, strippedName(fileName));
-                    tabWidget->setCurrentIndex(tabWidget->count() - 1);
-                    QApplication::restoreOverrideCursor();
-                    page->getTextPage()->setFocus();
-                    connect(page->getTextPage()->document(), SIGNAL(modificationChanged(bool)), this,
-                            SLOT(slotShowModified()));
-                    //enableAction(true)
-                    file.close();
-                } else {
-                    QMessageBox::warning(this, tr("Application"),
-                                         tr("Cannot read file %1:\n%2.")
-                                                 .arg(fileName)
-                                                 .arg(file.errorString()));
-                }
+                tabWidget->addTab(page, strippedName(fileName));
+                tabWidget->setCurrentIndex(tabWidget->count() - 1);
+                QApplication::restoreOverrideCursor();
+                page->getTextPage()->setFocus();
+                connect(page->getTextPage()->document(), SIGNAL(modificationChanged(bool)), this,
+                        SLOT(slotShowModified()));
+                //enableAction(true)
+                file.close();
+            } else {
+                QMessageBox::warning(this, tr("Warning"),
+                                     tr("Cannot read file %1:\n%2.")
+                                             .arg(fileName)
+                                             .arg(file.errorString()));
             }
         }
+    }
 }
 
 void TextEdit::slotSave() {
@@ -170,7 +200,7 @@ bool TextEdit::slotSaveAs() {
         path = tabWidget->tabText(tabWidget->currentIndex()).remove(0, 2);
     }
 
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save file "),
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save file"),
                                                     path);
     return saveFile(fileName);
 }
@@ -299,7 +329,8 @@ bool TextEdit::maybeSaveAnyTab() {
             bool allsaved = true;
             QList<int> tabIdsToSave = dialog->getTabIdsToSave();
 
-                    foreach (int tabId, tabIdsToSave) {
+                    foreach(int
+                                    tabId, tabIdsToSave) {
                     tabWidget->setCurrentIndex(tabId);
                     if (!maybeSaveCurrentTab(false)) {
                         allsaved = false;
@@ -544,26 +575,16 @@ void TextEdit::slotSelectAll() const {
     if (tabWidget->count() == 0 || curTextPage() == nullptr) {
         return;
     }
-
     curTextPage()->selectAll();
 }
 
-/*void TextEdit::dragEnterEvent(QDragEnterEvent *event)
-{
-    if (event->mimeData()->hasFormat("text/plain"))
-        qDebug() << "enter textedit drag action";
-        event->acceptProposedAction();
-}
-
-void TextEdit::dropEvent(QDropEvent* event)
-{
-    curTextPage()->setPlainText(event->mimeData()->text());
-
-    foreach (QUrl tmp, event->mimeData()->urls())
-    {
-        qDebug() << tmp;
+void TextEdit::slotFilePagePathChanged(const QString& path) {
+    int index = tabWidget->currentIndex();
+    QString mPath;
+    if(path.size() > 8) {
+        mPath = path.mid(path.size()-8,8).prepend("...");
+    } else {
+        mPath = path;
     }
-
-    //event->acceptProposedAction();
+    tabWidget->setTabText(index, mPath);
 }
-*/
