@@ -108,11 +108,11 @@ void TextEdit::slotOpen() {
 }
 
 void TextEdit::slotSave() {
-    if (tabWidget->count() == 0 || slotCurPage() == 0) {
+    if (tabWidget->count() == 0 || slotCurPageTextEdit() == 0) {
         return;
     }
 
-    QString fileName = slotCurPage()->getFilePath();
+    QString fileName = slotCurPageTextEdit()->getFilePath();
 
     if (fileName.isEmpty()) {
         //QString docname = tabWidget->tabText(tabWidget->currentIndex());
@@ -131,7 +131,7 @@ bool TextEdit::saveFile(const QString &fileName) {
     QFile file(fileName);
 
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        EditorPage *page = slotCurPage();
+        EditorPage *page = slotCurPageTextEdit();
 
         QTextStream outputStream(&file);
         QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -158,11 +158,11 @@ bool TextEdit::saveFile(const QString &fileName) {
 
 
 bool TextEdit::slotSaveAs() {
-    if (tabWidget->count() == 0 || slotCurPage() == 0) {
+    if (tabWidget->count() == 0 || slotCurPageTextEdit() == 0) {
         return true;
     }
 
-    EditorPage *page = slotCurPage();
+    EditorPage *page = slotCurPageTextEdit();
     QString path;
     if (page->getFilePath() != "") {
         path = page->getFilePath();
@@ -178,7 +178,7 @@ bool TextEdit::slotSaveAs() {
 void TextEdit::slotCloseTab() {
     removeTab(tabWidget->currentIndex());
     if (tabWidget->count() != 0) {
-        slotCurPage()->getTextPage()->setFocus();
+        slotCurPageTextEdit()->getTextPage()->setFocus();
     }
 }
 
@@ -218,7 +218,7 @@ void TextEdit::removeTab(int index) {
  */
 bool TextEdit::maybeSaveCurrentTab(bool askToSave) {
 
-    EditorPage *page = slotCurPage();
+    EditorPage *page = slotCurPageTextEdit();
     // if this page is no textedit, there should be nothing to save
     if (page == nullptr) {
         return true;
@@ -339,8 +339,13 @@ int TextEdit::tabCount() const {
     return tabWidget->count();
 }
 
-EditorPage *TextEdit::slotCurPage() const {
+EditorPage *TextEdit::slotCurPageTextEdit() const {
     auto *curPage = qobject_cast<EditorPage *>(tabWidget->currentWidget());
+    return curPage;
+}
+
+FilePage *TextEdit::slotCurPageFileTreeView() const {
+    auto *curPage = qobject_cast<FilePage *>(tabWidget->currentWidget());
     return curPage;
 }
 
@@ -386,7 +391,7 @@ void TextEdit::loadFile(const QString &fileName) {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     curTextPage()->setPlainText(in.readAll());
     QApplication::restoreOverrideCursor();
-    slotCurPage()->setFilePath(fileName);
+    slotCurPageTextEdit()->setFilePath(fileName);
     tabWidget->setTabText(tabWidget->currentIndex(), strippedName(fileName));
     file.close();
     // statusBar()->showMessage(tr("File loaded"), 2000);

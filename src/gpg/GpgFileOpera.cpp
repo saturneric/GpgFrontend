@@ -21,39 +21,32 @@
  * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
+#include "gpg/GpgFileOpera.h"
 
-#ifndef GPGFRONTEND_FILEPAGE_H
-#define GPGFRONTEND_FILEPAGE_H
+bool GpgFileOpera::encryptFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath) {
 
-#include <GpgFrontend.h>
+    QFileInfo fileInfo(mPath);
 
-class FilePage : public QWidget  {
-Q_OBJECT
-public:
+    if(!fileInfo.isFile() || !fileInfo.isReadable()) return false;
 
-    explicit FilePage(QWidget* parent = nullptr);
+    QFile infile;
+    infile.setFileName(mPath);
+    if (!infile.open(QIODevice::ReadOnly))
+        return false;
 
-    QString getSelected() const;
+    QByteArray inBuffer = infile.readAll();
+    auto *outBuffer = new QByteArray();
+    infile.close();
 
+    if (gpg_err_code(ctx->encrypt(keys, inBuffer, outBuffer, nullptr)) != GPG_ERR_NO_ERROR) return false;
 
-private slots:
+    QFile outfile(mPath + ".asc");
 
-    void fileTreeViewItemClicked(const QModelIndex &index);
-    void fileTreeViewItemDoubleClicked(const QModelIndex &index);
+    if (!outfile.open(QFile::WriteOnly))
+        return false;
 
-    void slotUpLevel();
-    void slotGoPath();
-
-private:
-    QFileSystemModel *dirModel;
-    QTreeView *dirTreeView;
-    QLineEdit *pathEdit;
-    QString mPath;
-
-    QPushButton *upLevelButton;
-    QPushButton *goPathButton;
-
-};
-
-
-#endif //GPGFRONTEND_FILEPAGE_H
+    QDataStream out(&outfile);
+    out.writeRawData(outBuffer->data(), outBuffer->length());
+    outfile.close();
+    return true;
+}
