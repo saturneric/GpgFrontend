@@ -99,7 +99,7 @@ KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *ke
         this->setWindowTitle(tr("Import Keys from Keyserver"));
 
     if(automatic) {
-        this->setFixedSize(200, 42);
+        this->setFixedSize(240, 42);
     } else {
         // Restore window size & location
         if (this->settings.value("ImportKeyFromServer/setWindowSize").toBool()) {
