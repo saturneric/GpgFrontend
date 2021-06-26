@@ -14,7 +14,7 @@ if (MINGW)
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
             wsock32)
 elseif(APPLE)
-    message(STATUS "Link GPG Static Library For Unix")
+    message(STATUS "Link GPG Static Library For macOS")
     target_link_libraries(gpg
             /usr/local/lib/libgpgme.a /usr/local/lib/libgpg-error.a /usr/local/lib/libassuan.a
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)

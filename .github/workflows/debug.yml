@@ -69,16 +69,37 @@ jobs:
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-qt-creator mingw-w64-x86_64-gpgme
           pacman --noconfirm -S --needed make texinfo
-
         if: matrix.os == 'windows-latest'
 
-      - name: Build GpgME
+      - name: Build gpg-error (Linux)
         run: |
-          cd ..
+          cd  ${{github.workspace}}/..
+          git clone https://github.com/saturneric/libgpg-error
+          cd libgpg-error
+          ./autogen.sh
+          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Build assuan (Linux)
+        run: |
+          cd  ${{github.workspace}}/..
+          git clone https://github.com/saturneric/libassuan
+          cd libassuan
+          ./autogen.sh
+          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Build GpgME (Linux)
+        run: |
+          cd  ${{github.workspace}}/..
           git clone https://github.com/saturneric/gpgme
           cd gpgme
           ./autogen.sh
-          ./configure && make -j2
+          ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
           sudo make install
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-latest'
@@ -89,7 +110,7 @@ jobs:
           git clone https://github.com/saturneric/gpgme
           cd gpgme
           ./autogen.sh
-          ./configure --enable-static=true --enable-languages=cpp LDFLAGS="-static" && make -j2
+          ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp LDFLAGS="-static" && make -j2
           make install
         if: matrix.os == 'windows-latest'
 

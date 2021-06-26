@@ -59,13 +59,8 @@ the delivery process.**
 ## Features
 
 - Can run on **Windows, Linux and macOS**.
-  
 - Open source, free, no need to install.
-  
-- For Windows user, just double-click, and then you can use it freely.
-  
-- For macOS and Linux user, just type few command before running it.
-
+- For Windows and macOS user, just double-click, and then you can use it freely.
 - Supports multiple languages. Don’t forget to help me translate this software.
 
 ## Usage
