@@ -32,16 +32,15 @@ jobs:
       - name: Install Dependence (Linux)
         run: |
           sudo apt-get update
-          sudo apt-get -y install build-essential binutils git autoconf automake
+          sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc g++
           sudo apt-get -y install libgpgme-dev gpg
         if: matrix.os == 'ubuntu-latest'
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5
+          brew install cmake git autoconf automake qt@5 gcc texinfo gettext libgpg-error libassuan gpgme
         if: matrix.os == 'macos-latest'
-
 
       - name: Cache Qt
         id: cache-qt
@@ -69,19 +68,40 @@ jobs:
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-qt-creator mingw-w64-x86_64-gpgme
           pacman --noconfirm -S --needed make texinfo
-
         if: matrix.os == 'windows-latest'
 
-      - name: Build GpgME
+      - name: Build gpg-error (Linux)
         run: |
-          cd ..
+          cd  ${{github.workspace}}/..
+          git clone https://github.com/saturneric/libgpg-error
+          cd libgpg-error
+          ./autogen.sh
+          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Build assuan (Linux)
+        run: |
+          cd  ${{github.workspace}}/..
+          git clone https://github.com/saturneric/libassuan
+          cd libassuan
+          ./autogen.sh
+          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Build GpgME (Linux)
+        run: |
+          cd  ${{github.workspace}}/..
           git clone https://github.com/saturneric/gpgme
           cd gpgme
           ./autogen.sh
-          ./configure && make -j2
+          ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        if: matrix.os == 'ubuntu-latest'
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}
@@ -89,7 +109,7 @@ jobs:
           git clone https://github.com/saturneric/gpgme
           cd gpgme
           ./autogen.sh
-          ./configure --enable-static=true --enable-languages=cpp LDFLAGS="-static" && make -j2
+          ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp LDFLAGS="-static" && make -j2
           make install
         if: matrix.os == 'windows-latest'
 
