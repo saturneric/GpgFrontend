@@ -101,9 +101,9 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     elseif(LINUX)
         add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
         add_custom_command(TARGET ${AppName} POST_BUILD
-            COMMAND  /bin/mv -f ./GpgFrontend ./gpgfrontend/usr/bin/
+            COMMAND /bin/mkdir ./gpgfrontend/usr/bin && /bin/mv -f ./${AppName} ./gpgfrontend/usr/bin/
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-            COMMENT "Copying Resources INTO App Bundle Resource")
+            COMMENT "Copying Binary INTO App Image")
     else()
         add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
     endif()
@@ -115,13 +115,13 @@ IF (MINGW)
     message(STATUS "Link Application Static Library For MINGW")
     target_link_libraries(${AppName}
             gpgfrontend-ui gpg
-            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
-
-
+            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
+            crypto ssl)
 else()
     message(STATUS "Link Application Static Library For UNIX")
     target_link_libraries(${AppName}
             gpgfrontend-ui gpg
-            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
+            crypto ssl)
 endif()
 
