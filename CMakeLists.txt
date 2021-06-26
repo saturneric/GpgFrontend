@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 
 project(GpgFrontend VERSION 1.0.7 LANGUAGES CXX)
 

@@ -42,7 +42,7 @@ jobs:
           brew install cmake git autoconf automake qt@5 gcc texinfo gettext libgpg-error libassuan gpgme openssl
           brew link qt@5
           brew link gcc
-          brew
+          brew link openssl --force
         if: matrix.os == 'macos-latest'
 
       - name: Cache Qt
