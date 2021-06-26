@@ -40,7 +40,7 @@ public:
     /**
      * @brief
      */
-    TextEdit();
+    TextEdit(QWidget *parent);
 
     /**
      * @details Load the content of file into the current textpage
@@ -136,6 +136,11 @@ public slots:
     void slotNewTab();
 
     /**
+     * @details Adds a new tab with opening file by path
+     */
+    void slotOpenFile(QString &path);
+
+    /**
      * @details Adds a new tab with the given title and opens given html file.
      * Increase Tab-Count by one
      * @param title title for the tab
@@ -194,6 +199,8 @@ private:
     int countPage; /* TODO */
 
 private slots:
+
+    void slotFilePagePathChanged(const QString& path);
 
     /**
      * @details Remove the tab with given index

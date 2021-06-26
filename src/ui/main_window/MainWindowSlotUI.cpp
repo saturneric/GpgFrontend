@@ -63,10 +63,8 @@ void MainWindow::slotCheckAttachmentFolder() {
 }
 
 void MainWindow::slotImportKeyFromEdit() {
-    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == 0) {
+    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr)
         return;
-    }
-
     keyMgmt->slotImportKeys(edit->curTextPage()->toPlainText().toUtf8());
 }
 

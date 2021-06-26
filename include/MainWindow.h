@@ -69,6 +69,34 @@ protected:
      */
     void closeEvent(QCloseEvent *event) override;
 
+public slots:
+
+    /**
+     * @details Open a new tab for path
+     */
+    void slotOpenFile(QString &path);
+
+    /**
+     * @details Open dialog for encrypting file.
+     */
+    void slotFileEncrypt();
+
+    /**
+     * @details Open dialog for decrypting file.
+     */
+    void slotFileDecrypt();
+
+    /**
+     * @details Open dialog for signing file.
+     */
+    void slotFileSign();
+
+    /**
+     * @details Open dialog for verifying file.
+     */
+    void slotFileVerify();
+
+
 private slots:
 
     /**
@@ -156,26 +184,6 @@ private slots:
      * @details Open about-dialog.
      */
     void slotAbout();
-
-    /**
-     * @details Open dialog for encrypting file.
-     */
-    void slotFileEncrypt();
-
-    /**
-     * @details Open dialog for decrypting file.
-     */
-    void slotFileDecrypt();
-
-    /**
-     * @details Open dialog for signing file.
-     */
-    void slotFileSign();
-
-    /**
-     * @details Open dialog for verifying file.
-     */
-    void slotFileVerify();
 
     /**
      * @details Open File Opera Tab

@@ -27,7 +27,7 @@
 #include <utility>
 
 EditorPage::EditorPage(QString filePath, QWidget *parent) : QWidget(parent),
-                                                                   fullFilePath(std::move(filePath)) {
+                                                            fullFilePath(std::move(filePath)) {
     // Set the Textedit properties
     textPage = new QTextEdit();
     textPage->setAcceptRichText(false);
@@ -42,7 +42,7 @@ EditorPage::EditorPage(QString filePath, QWidget *parent) : QWidget(parent),
     setAttribute(Qt::WA_DeleteOnClose);
     textPage->setFocus();
 
-    //connect(textPage, SIGNAL(textChanged()), this, SLOT(formatGpgHeader()));
+    connect(textPage, SIGNAL(textChanged()), this, SLOT(formatGpgHeader()));
 }
 
 const QString &EditorPage::getFilePath() const {
@@ -64,11 +64,11 @@ void EditorPage::showNotificationWidget(QWidget *widget, const char *className) 
 
 void EditorPage::closeNoteByClass(const char *className) {
     QList<QWidget *> widgets = findChildren<QWidget *>();
-            foreach(QWidget *widget, widgets) {
-            if (widget->property(className) == true) {
-                widget->close();
-            }
+    for (QWidget *widget:  widgets) {
+        if (widget->property(className) == true) {
+            widget->close();
         }
+    }
 }
 
 void EditorPage::slotFormatGpgHeader() {
