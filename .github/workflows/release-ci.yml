@@ -34,7 +34,7 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc g++
-          sudo apt-get -y install gpgsm libxcb-xinerama0
+          sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-iccm4
         if: matrix.os == 'ubuntu-16.04'
 
       - name: Install Dependence (macOS)
