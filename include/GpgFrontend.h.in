@@ -41,6 +41,8 @@
 
 #if OS_PLATFORM == MACOS && BUILD_FLAG == RELEASE
 # define RESOURCE_DIR(appDir) (appDir + "/../Resources/")
+#elif OS_PLATFORM == LINUX && BUILD_FLAG == RELEASE
+# define RESOURCE_DIR(appDir) (appDir + "/../share/")
 #else
 # define RESOURCE_DIR(appDir) (appDir)
 #endif
