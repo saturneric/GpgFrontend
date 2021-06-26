@@ -63,7 +63,7 @@ void MainWindow::slotCheckAttachmentFolder() {
 }
 
 void MainWindow::slotImportKeyFromEdit() {
-    if (edit->tabCount() == 0 || edit->slotCurPage() == 0) {
+    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == 0) {
         return;
     }
 
@@ -163,7 +163,7 @@ void MainWindow::slotOpenSettingsDialog() {
 }
 
 void MainWindow::slotCleanDoubleLinebreaks() {
-    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
+    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
         return;
     }
 
@@ -173,7 +173,7 @@ void MainWindow::slotCleanDoubleLinebreaks() {
 }
 
 void MainWindow::slotAddPgpHeader() {
-    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
+    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
         return;
     }
 
@@ -187,7 +187,7 @@ void MainWindow::slotAddPgpHeader() {
 
 void MainWindow::slotCutPgpHeader() {
 
-    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
+    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
         return;
     }
 

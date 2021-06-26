@@ -28,21 +28,28 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
     qDebug() << "New File Page";
 
     dirModel = new QFileSystemModel();
-
     dirModel->setRootPath(QDir::currentPath());
 
     dirTreeView = new QTreeView();
     dirTreeView->setModel(dirModel);
     dirTreeView->setAnimated(true);
     dirTreeView->setIndentation(20);
-    dirTreeView->setSortingEnabled(true);
     dirTreeView->setRootIndex(dirModel->index(QDir::currentPath()));
 
     upLevelButton = new QPushButton("UP Level");
     connect(upLevelButton, SIGNAL(clicked(bool)), this, SLOT(slotUpLevel()));
 
+    goPathButton = new QPushButton("Go Path");
+    connect(goPathButton, SIGNAL(clicked(bool)), this, SLOT(slotGoPath()));
+
+    pathEdit = new QLineEdit();
+    pathEdit->setFixedWidth(520);
+    pathEdit->setText(dirModel->rootPath());
+
     auto *menuLayout = new QHBoxLayout();
     menuLayout->addWidget(upLevelButton);
+    menuLayout->addWidget(pathEdit);
+    menuLayout->addWidget(goPathButton);
     menuLayout->addStretch(0);
 
     auto *layout = new QVBoxLayout();
@@ -63,10 +70,11 @@ void FilePage::fileTreeViewItemClicked(const QModelIndex &index) {
 
 void FilePage::slotUpLevel() {
     QModelIndex currentRoot = dirTreeView->rootIndex();
-    mPath = dirModel->fileInfo(currentRoot).absoluteFilePath();
+    mPath = dirModel->fileInfo(currentRoot.parent()).absoluteFilePath();
     auto fileInfo = QFileInfo(mPath);
     if(fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
         dirTreeView->setRootIndex(currentRoot.parent());
+        pathEdit->setText(mPath);
     }
     qDebug() << "Current Root mPath" << mPath;
 }
@@ -76,13 +84,25 @@ void FilePage::fileTreeViewItemDoubleClicked(const QModelIndex &index) {
     auto fileInfo = QFileInfo(mPath);
     if(fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
         dirTreeView->setRootIndex(index);
+        pathEdit->setText(mPath);
     }
     qDebug() << "Index mPath" << mPath;
 }
 
-void FilePage::getSelected(QString &path) {
+QString FilePage::getSelected() const {
     QModelIndex index = dirTreeView->currentIndex();
     QVariant data = dirTreeView->model()->data(index);
-    path = data.toString();
     qDebug() << "Target Path" << mPath;
+    return data.toString();
+}
+
+void FilePage::slotGoPath() {
+    qDebug() << "getSelected" << pathEdit->text();
+    auto fileInfo = QFileInfo(pathEdit->text());
+    if(fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
+        qDebug() << "Set Path" << fileInfo.filePath();
+        dirTreeView->setRootIndex(dirModel->index(fileInfo.filePath()));
+    } else {
+        QMessageBox::critical(this, "Error", "The path is unprivileged or unreachable.");
+    }
 }

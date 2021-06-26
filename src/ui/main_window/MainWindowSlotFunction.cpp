@@ -25,53 +25,57 @@
 #include "MainWindow.h"
 
 void MainWindow::slotEncrypt() {
-    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
-        return;
-    }
 
-    QVector<GpgKey> keys;
-    mKeyList->getCheckedKeys(keys);
+    if (edit->tabCount() == 0) return;
 
-    if (keys.count() == 0) {
-        QMessageBox::critical(nullptr, tr("No Key Selected"), tr("No Key Selected"));
-        return;
-    }
+    if(edit->slotCurPageTextEdit() != nullptr) {
 
-    for (const auto &key : keys) {
-        if (!GpgME::GpgContext::checkIfKeyCanEncr(key)) {
-            QMessageBox::information(nullptr,
-                                     tr("Invalid Operation"),
-                                     tr("The selected key contains a key that does not actually have a encrypt function.<br/>")
-                                     + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
+        QVector<GpgKey> keys;
+        mKeyList->getCheckedKeys(keys);
+
+        if (keys.count() == 0) {
+            QMessageBox::critical(nullptr, tr("No Key Selected"), tr("No Key Selected"));
             return;
-
         }
+
+        for (const auto &key : keys) {
+            if (!GpgME::GpgContext::checkIfKeyCanEncr(key)) {
+                QMessageBox::information(nullptr,
+                                         tr("Invalid Operation"),
+                                         tr("The selected key contains a key that does not actually have a encrypt usage.<br/>")
+                                         + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
+                return;
+
+            }
+        }
+
+        auto *tmp = new QByteArray();
+
+        gpgme_encrypt_result_t result = nullptr;
+        auto error = mCtx->encrypt(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &result);
+
+        auto resultAnalyse = new EncryptResultAnalyse(error, result);
+        auto &reportText = resultAnalyse->getResultReport();
+
+        auto *tmp2 = new QString(*tmp);
+        edit->slotFillTextEditWithText(*tmp2);
+        infoBoard->associateTextEdit(edit->curTextPage());
+
+        if (resultAnalyse->getStatus() < 0)
+            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
+        else if (resultAnalyse->getStatus() > 0)
+            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
+        else
+            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+        delete resultAnalyse;
+    } else if(edit->slotCurPageFileTreeView() != nullptr) {
+        this->slotFileEncrypt();
     }
-
-    auto *tmp = new QByteArray();
-
-    gpgme_encrypt_result_t result = nullptr;
-    auto error = mCtx->encrypt(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &result);
-
-    auto resultAnalyse = new EncryptResultAnalyse(error, result);
-    auto &reportText = resultAnalyse->getResultReport();
-
-    auto *tmp2 = new QString(*tmp);
-    edit->slotFillTextEditWithText(*tmp2);
-    infoBoard->associateTextEdit(edit->curTextPage());
-
-    if (resultAnalyse->getStatus() < 0)
-        infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-    else if (resultAnalyse->getStatus() > 0)
-        infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-    else
-        infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-    delete resultAnalyse;
 }
 
 void MainWindow::slotSign() {
-    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
+    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
         return;
     }
 
@@ -88,7 +92,7 @@ void MainWindow::slotSign() {
         if (!GpgME::GpgContext::checkIfKeyCanSign(key)) {
             QMessageBox::information(nullptr,
                                      tr("Invalid Operation"),
-                                     tr("The selected key contains a key that does not actually have a signature function.<br/>")
+                                     tr("The selected key contains a key that does not actually have a signature usage.<br/>")
                                      + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
             return;
         }
@@ -116,7 +120,7 @@ void MainWindow::slotSign() {
 }
 
 void MainWindow::slotDecrypt() {
-    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
+    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
         return;
     }
 
@@ -151,15 +155,15 @@ void MainWindow::slotFind() {
     }
 
     // At first close verifynotification, if existing
-    edit->slotCurPage()->closeNoteByClass("findwidget");
+    edit->slotCurPageTextEdit()->closeNoteByClass("findwidget");
 
     auto *fw = new FindWidget(this, edit->curTextPage());
-    edit->slotCurPage()->showNotificationWidget(fw, "findWidget");
+    edit->slotCurPageTextEdit()->showNotificationWidget(fw, "findWidget");
 
 }
 
 void MainWindow::slotVerify() {
-    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
+    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
         return;
     }
 
@@ -198,7 +202,7 @@ void MainWindow::slotVerify() {
  * Append the selected (not checked!) Key(s) To Textedit
  */
 void MainWindow::slotAppendSelectedKeys() {
-    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
+    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
         return;
     }
 
@@ -245,9 +249,50 @@ void MainWindow::uploadKeyToServer() {
 }
 
 void MainWindow::slotFileEncrypt() {
-    QStringList *keyList;
-    keyList = mKeyList->getChecked();
-    new FileEncryptionDialog(mCtx, *keyList, FileEncryptionDialog::Encrypt, this);
+
+    auto fileTreeView = edit->slotCurPageFileTreeView();
+    auto path = fileTreeView->getSelected();
+
+    QFileInfo fileInfo(path);
+    if(!fileInfo.isFile()) {
+        QMessageBox::critical(this, tr("Error"), tr("Can only encrypt a file."));
+        return;
+    }
+    if(!fileInfo.isReadable()) {
+        QMessageBox::critical(this, tr("Error"), tr("No permission to read this file."));
+        return;
+    }
+    if(QFile::exists(path + ".asc")) {
+        auto ret = QMessageBox::warning(this,
+                             tr("Warning"),
+                             tr("The target file already exists, do you need to overwrite it?"),
+                             QMessageBox::Ok | QMessageBox::Cancel);
+
+        if(ret == QMessageBox::Cancel)
+            return;
+    }
+
+    QVector<GpgKey> keys;
+
+    mKeyList->getCheckedKeys(keys);
+
+    for (const auto &key : keys) {
+        if (!GpgME::GpgContext::checkIfKeyCanEncr(key)) {
+            QMessageBox::information(nullptr,
+                                     tr("Invalid Operation"),
+                                     tr("The selected key contains a key that does not actually have a encrypt usage.<br/>")
+                                     + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
+            return;
+
+        }
+    }
+
+    if(!GpgFileOpera::encryptFile(mCtx, keys, path)) {
+        QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
+    }
+
+    fileTreeView->update();
+
 }
 
 void MainWindow::slotFileDecrypt() {
@@ -270,7 +315,7 @@ void MainWindow::slotFileVerify() {
 
 void MainWindow::slotEncryptSign() {
 
-    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
+    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
         return;
     }
 
@@ -320,7 +365,7 @@ void MainWindow::slotEncryptSign() {
 
 void MainWindow::slotDecryptVerify() {
 
-    if (edit->tabCount() == 0 || edit->slotCurPage() == nullptr) {
+    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
         return;
     }
 

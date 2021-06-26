@@ -22,38 +22,16 @@
  *
  */
 
-#ifndef GPGFRONTEND_FILEPAGE_H
-#define GPGFRONTEND_FILEPAGE_H
+#ifndef GPGFRONTEND_GPGFILEOPERA_H
+#define GPGFRONTEND_GPGFILEOPERA_H
 
-#include <GpgFrontend.h>
+#include "GpgFrontend.h"
+#include "gpg/GpgContext.h"
 
-class FilePage : public QWidget  {
-Q_OBJECT
+class GpgFileOpera {
 public:
-
-    explicit FilePage(QWidget* parent = nullptr);
-
-    QString getSelected() const;
-
-
-private slots:
-
-    void fileTreeViewItemClicked(const QModelIndex &index);
-    void fileTreeViewItemDoubleClicked(const QModelIndex &index);
-
-    void slotUpLevel();
-    void slotGoPath();
-
-private:
-    QFileSystemModel *dirModel;
-    QTreeView *dirTreeView;
-    QLineEdit *pathEdit;
-    QString mPath;
-
-    QPushButton *upLevelButton;
-    QPushButton *goPathButton;
-
+    static bool encryptFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath);
 };
 
 
-#endif //GPGFRONTEND_FILEPAGE_H
+#endif //GPGFRONTEND_GPGFILEOPERA_H

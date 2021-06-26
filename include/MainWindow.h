@@ -41,6 +41,8 @@
 #include "gpg/result_analyse/EncryptResultAnalyse.h"
 #include "gpg/result_analyse/DecryptResultAnalyse.h"
 
+#include "gpg/GpgFileOpera.h"
+
 
 /**
  * @brief
