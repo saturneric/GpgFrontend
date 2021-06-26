@@ -1,5 +1,5 @@
 ![logo](https://github.com/saturneric/Blob/blob/master/logos/gpgfrontend-logo.jpg?raw=true)
-## A Modern OpenPGP Frontend Software
+## A Cross-Platform OpenPGP Frontend Software
 > Makes Encrypting, Decrypting and Signing Text and Files more convenient
 
 ![Language](https://img.shields.io/badge/language-C%2B%2B-green)
@@ -10,13 +10,8 @@
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_shield)
 
 - Can run on **Windows, Linux and macOS**.
-
 - Open source, free, no need to install.
-
-- For Windows user, just double-click, and then you can use it freely.
-
-- For macOS and Linux user, just type few command before running it.
-
+- For Windows and macOS users, just double-click, and then you can use it freely.
 - Supports multiple languages. Don’t forget to help me translate this software.
 
 [GitHub](https://github.com/saturneric/GpgFrontend)
