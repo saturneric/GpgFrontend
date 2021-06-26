@@ -108,11 +108,11 @@ awesome operations.
     - For Debian/Ubuntu
        ```shell
        $ sudo apt update
-       $ sudo apt install gpg qt-default
+       $ sudo apt install gpg
        ```
     - For CentOS
        ```shell
-       $ sudo yum install gnupg qt5-qtbase
+       $ sudo yum install gnupg 
        ```
 2. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases) Linux edition from release
 3. Unzip gpgfrontend-ubuntu-latest-*******.zip
