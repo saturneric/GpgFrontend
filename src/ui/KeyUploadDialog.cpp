@@ -74,11 +74,11 @@ void KeyUploadDialog::uploadKeyToServer(QByteArray &keys) {
 
     auto *pb = new QProgressBar();
     pb->setRange(0, 0);
-    pb->setFixedSize(200, 24);
 
     auto *layout = new QVBoxLayout(dialog);
     layout->addWidget(pb);
     dialog->setLayout(layout);
+
 
     dialog->show();
 
