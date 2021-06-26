@@ -34,7 +34,7 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc g++
-          sudo apt-get -y install gpgsm
+          sudo apt-get -y install gpgsm libxcb-xinerama0
         if: matrix.os == 'ubuntu-16.04'
 
       - name: Install Dependence (macOS)
@@ -135,6 +135,15 @@ jobs:
           hdiutil convert ${{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
         if: matrix.os == 'macos-latest'
 
+      - name: Package App Image (Linux)
+        run: |
+          mdkir ${{github.workspace}}/build/artifactOut
+          cd ${{github.workspace}}/build/artifactOut
+          wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          chmod u+x linuxdeployqt-continuous-x86_64.AppImage
+          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/release/gpgfrontend/usr/share/applications/*.desktop -appimage
+        if: matrix.os == 'ubuntu-16.04'
+
       - name: Configure CMake & Build Binary(Windows)
         shell: msys2 {0}
         run: |
@@ -153,8 +162,8 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
-          path: ${{github.workspace}}/build/release/*
-        if: matrix.os == 'ubuntu-latest'
+          path: ${{github.workspace}}/build/artifactOut/*
+        if: matrix.os == 'ubuntu-16.04'
 
       - name: Upload Artifact(macOS)
         uses: actions/upload-artifact@master
