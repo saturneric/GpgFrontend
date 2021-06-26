@@ -93,17 +93,21 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
         add_custom_command(TARGET ${AppName} POST_BUILD
             COMMAND  /bin/rm -rf ./${AppName}.app/Contents/Resources
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-            COMMENT "Deleting Resources IN App Bundle")
+            COMMENT "Deleting Resources in App Bundle")
         add_custom_command(TARGET ${AppName} POST_BUILD
             COMMAND  /bin/mv -n ./Resources ./${AppName}.app/Contents/
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-            COMMENT "Copying Resources INTO App Bundle Resource")
+            COMMENT "Copying Resources into App Bundle Resource")
     elseif(LINUX)
         add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
         add_custom_command(TARGET ${AppName} POST_BUILD
             COMMAND /bin/mkdir ./gpgfrontend/usr/bin && /bin/mv -f ./${AppName} ./gpgfrontend/usr/bin/
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-            COMMENT "Copying Binary INTO App Image")
+            COMMENT "Copying Binary into App Image")
+        add_custom_command(TARGET ${AppName} POST_BUILD
+                COMMAND /bin/mkdir ./gpgfrontend/usr/lib
+                WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                COMMENT "Complement to build the required architecture")
     else()
         add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
     endif()
