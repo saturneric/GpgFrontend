@@ -25,6 +25,9 @@ the delivery process.**
 
 [>> Code & Binary Security](https://saturneric.github.io/GpgFrontend/index.html#/about/code-binary-verify)
 
+[>> 中文文档](https://github.com/saturneric/GpgFrontend/blob/main/README_CN.md)
+
+
 <div align="center">
 <img width="640" src="https://github.com/saturneric/Blob/blob/master/screenshots/main_mac.jpg?raw=true" alt="macOS Screenshot"/>
 </div>
@@ -98,6 +101,7 @@ awesome operations.
 
 #### macOS
 
+0. If command `gpg` is not avaliable, please use homebrew to install it first.
 1. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases) macOS edition from the latest release
 2. Double-Click GpgFrontend.dmg to load it
     - macOS will automatically decompress the zip file and then you will be able to see the dmg
