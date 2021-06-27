@@ -28,7 +28,7 @@ GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](
 <img width="320" src="https://github.com/saturneric/Blob/blob/master/screenshots/keygen_ubuntu.png?raw=true" alt="Ubuntu Screenshot"/>
 </div>
 
-#### Workflows Status:
+#### Workflows 状态：
 
 [![Build & Package](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/cmake.yml)
 
@@ -44,12 +44,12 @@ GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](
         - [macOS](#macos)
         - [Debian/Ubuntu/CentOS](#debianubuntucentos)
 - [文档](#文档)
-- [宗旨](#宗旨)
+- [开发宗旨](#开发宗旨)
 - [构建方法](#构建方法)
 - [联系](#联系)
     - [做出贡献](#做出贡献)
     - [维护者](#维护者)
-- [许可](#许可)
+- [许可证](#许可证)
 
 ## 软件特性
 
@@ -75,10 +75,9 @@ GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](
 
 ![GIF](https://github.com/saturneric/Blob/blob/master/gif/decrypt.gif?raw=true)
 
-### More Helpful Operation
+### 还有那些有用的操作
 
-Read the animated pictures in the [Document](https://saturneric.github.io/GpgFrontend/index.html#/) to learn more
-awesome operations.
+阅读 [文档](https://saturneric.github.io/GpgFrontend/index.html#/) 中的动图，了解更多精彩操作。
 
 ### 如何安装
 
@@ -124,7 +123,7 @@ awesome operations.
 
 如果你想获取更多信息，请阅读 [文档](https://saturneric.github.io/GpgFrontend/index.html#/).
 
-## 宗旨
+## 开发宗旨
 
 GpgFrontend 项目继承自一个相对成熟但未维护的 [gpg4usb](https://www.gpg4usb.org/) 项目。
 它继承了 gpg4usb 稳定、易用、小巧、免安装的特点。
