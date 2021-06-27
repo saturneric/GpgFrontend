@@ -9,8 +9,8 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/saturneric/gpgfrontend)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_small)
 
-GpgFrontend is an Easy-to-Use, Compact, Cross-Platform, and Installation-Free [OpenPGP](https://www.openpgp.org/)
-Frontend Tool.
+GpgFrontend is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free [OpenPGP](https://www.openpgp.org/)
+Crypto Tool.
 
 By using GpgFrontend, you can quickly **encrypt and decrypt text or files**. Or at the same time as the above
 operations, you can add **your own signature** to let others know that this document or this paragraph of text was
