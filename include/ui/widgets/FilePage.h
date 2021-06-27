@@ -38,9 +38,7 @@ public:
     void createPopupMenu();
 
 signals:
-
-    void pathChanged(QString path);
-
+    void pathChanged(const QString &path);
 
 private slots:
 
@@ -77,7 +75,6 @@ private:
     QAction *verifyItemAct{};
 
     QWidget *firstParent;
-
 
 };
 

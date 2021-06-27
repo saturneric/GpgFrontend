@@ -23,30 +23,215 @@
  */
 #include "gpg/GpgFileOpera.h"
 
-bool GpgFileOpera::encryptFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath) {
+gpgme_error_t GpgFileOpera::encryptFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
+                                        gpgme_encrypt_result_t *result) {
 
     QFileInfo fileInfo(mPath);
 
-    if(!fileInfo.isFile() || !fileInfo.isReadable()) return false;
+    if (!fileInfo.isFile() || !fileInfo.isReadable())
+        throw std::runtime_error("no permission");
 
     QFile infile;
     infile.setFileName(mPath);
     if (!infile.open(QIODevice::ReadOnly))
-        return false;
+        throw std::runtime_error("cannot open file");
 
     QByteArray inBuffer = infile.readAll();
-    auto *outBuffer = new QByteArray();
+    auto outBuffer = QByteArray();
     infile.close();
 
-    if (gpg_err_code(ctx->encrypt(keys, inBuffer, outBuffer, nullptr)) != GPG_ERR_NO_ERROR) return false;
+    auto error = ctx->encrypt(keys, inBuffer, &outBuffer, result);
+
+    if (gpg_err_code(error) != GPG_ERR_NO_ERROR) return error;
 
     QFile outfile(mPath + ".asc");
 
     if (!outfile.open(QFile::WriteOnly))
-        return false;
+        throw std::runtime_error("cannot open file");
 
     QDataStream out(&outfile);
-    out.writeRawData(outBuffer->data(), outBuffer->length());
+    out.writeRawData(outBuffer.data(), outBuffer.length());
     outfile.close();
-    return true;
+    return error;
+}
+
+gpgme_error_t GpgFileOpera::decryptFile(GpgME::GpgContext *ctx, const QString &mPath, gpgme_decrypt_result_t *result) {
+
+    QFileInfo fileInfo(mPath);
+
+    if (!fileInfo.isFile() || !fileInfo.isReadable())
+        throw std::runtime_error("no permission");
+
+    QFile infile;
+    infile.setFileName(mPath);
+    if (!infile.open(QIODevice::ReadOnly))
+        throw std::runtime_error("cannot open file");
+
+    QByteArray inBuffer = infile.readAll();
+    auto outBuffer = QByteArray();
+    infile.close();
+
+    auto error = ctx->decrypt(inBuffer, &outBuffer, result);
+
+    if (gpgme_err_code(error) != GPG_ERR_NO_ERROR) return error;
+
+    QString outFileName, fileExtension = fileInfo.suffix();
+
+    if (fileExtension == "asc" || fileExtension == "gpg") {
+        int pos = mPath.lastIndexOf(QChar('.'));
+        outFileName = mPath.left(pos);
+    } else {
+        outFileName = mPath + ".out";
+    }
+
+    QFile outfile(outFileName);
+
+    if (!outfile.open(QFile::WriteOnly))
+        throw std::runtime_error("cannot open file");
+
+    QDataStream out(&outfile);
+    out.writeRawData(outBuffer.data(), outBuffer.length());
+    outfile.close();
+
+    return error;
+}
+
+gpgme_error_t GpgFileOpera::signFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
+                                     gpgme_sign_result_t *result) {
+
+    QFileInfo fileInfo(mPath);
+
+    if (!fileInfo.isFile() || !fileInfo.isReadable())
+        throw std::runtime_error("no permission");
+
+    QFile infile;
+    infile.setFileName(mPath);
+    if (!infile.open(QIODevice::ReadOnly))
+        throw std::runtime_error("cannot open file");
+
+
+    QByteArray inBuffer = infile.readAll();
+    auto outBuffer = QByteArray();
+    infile.close();
+
+    auto error = ctx->sign(keys, inBuffer, &outBuffer, true, result);
+
+    if (gpg_err_code(error) != GPG_ERR_NO_ERROR) return error;
+
+    QFile outfile(mPath + ".sig");
+
+    if (!outfile.open(QFile::WriteOnly))
+        throw std::runtime_error("cannot open file");
+
+    QDataStream out(&outfile);
+    out.writeRawData(outBuffer.data(), outBuffer.length());
+    outfile.close();
+
+    return error;
+}
+
+gpgme_error_t GpgFileOpera::verifyFile(GpgME::GpgContext *ctx, const QString &mPath, gpgme_verify_result_t *result) {
+
+    QFileInfo fileInfo(mPath);
+
+    if (!fileInfo.isFile() || !fileInfo.isReadable())
+        throw std::runtime_error("no permission");
+
+    QFile infile;
+    infile.setFileName(mPath);
+    if (!infile.open(QIODevice::ReadOnly))
+        throw std::runtime_error("cannot open file");
+
+
+    QByteArray inBuffer = infile.readAll();
+
+    QFile signFile;
+    signFile.setFileName(mPath + ".sig");
+    if (!signFile.open(QIODevice::ReadOnly)) {
+        throw std::runtime_error("cannot open file");
+    }
+
+
+
+    auto signBuffer = signFile.readAll();
+    infile.close();
+
+
+    auto error = ctx->verify(&inBuffer, &signBuffer, result);
+
+    return error;
+}
+
+gpg_error_t GpgFileOpera::encryptSignFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
+                                          gpgme_encrypt_result_t *encr_res,
+                                          gpgme_sign_result_t *sign_res) {
+    QFileInfo fileInfo(mPath);
+
+    if (!fileInfo.isFile() || !fileInfo.isReadable())
+        throw std::runtime_error("no permission");
+
+    QFile infile;
+    infile.setFileName(mPath);
+    if (!infile.open(QIODevice::ReadOnly))
+        throw std::runtime_error("cannot open file");
+
+    QByteArray inBuffer = infile.readAll();
+    auto outBuffer = QByteArray();
+    infile.close();
+
+    auto error = ctx->encryptSign(keys, inBuffer, &outBuffer, encr_res, sign_res);
+
+    if (gpg_err_code(error) != GPG_ERR_NO_ERROR)
+        return error;
+
+    QFile outfile(mPath + ".gpg");
+
+    if (!outfile.open(QFile::WriteOnly))
+        throw std::runtime_error("cannot open file");
+
+    QDataStream out(&outfile);
+    out.writeRawData(outBuffer.data(), outBuffer.length());
+    outfile.close();
+
+    return error;
+}
+
+gpg_error_t GpgFileOpera::decryptVerifyFile(GpgME::GpgContext *ctx, const QString &mPath, gpgme_decrypt_result_t *decr_res,
+                                            gpgme_verify_result_t *verify_res) {
+    QFileInfo fileInfo(mPath);
+
+    if (!fileInfo.isFile() || !fileInfo.isReadable())
+        throw std::runtime_error("no permission");
+
+    QFile infile;
+    infile.setFileName(mPath);
+    if (!infile.open(QIODevice::ReadOnly))
+        throw std::runtime_error("cannot open file");
+
+    QByteArray inBuffer = infile.readAll();
+    auto outBuffer = QByteArray();
+    infile.close();
+
+    auto error = ctx->decryptVerify(inBuffer, &outBuffer, decr_res, verify_res);
+    if (gpg_err_code(error) != GPG_ERR_NO_ERROR) return error;
+
+    QString outFileName, fileExtension = fileInfo.suffix();
+
+    if (fileExtension == "asc" || fileExtension == "gpg") {
+        int pos = mPath.lastIndexOf(QChar('.'));
+        outFileName = mPath.left(pos);
+    } else {
+        outFileName = mPath + ".out";
+    }
+
+    QFile outfile(outFileName);
+
+    if (!outfile.open(QFile::WriteOnly))
+        throw std::runtime_error("cannot open file");
+
+    QDataStream out(&outfile);
+    out.writeRawData(outBuffer.data(), outBuffer.length());
+    outfile.close();
+
+    return error;
 }

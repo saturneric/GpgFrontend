@@ -69,7 +69,7 @@ public:
      */
     [[nodiscard]] QTextEdit *curTextPage() const;
 
-    [[nodiscard]] QTextBrowser *curHelpPage() const;
+    [[nodiscard]] FilePage * curFilePage() const;
 
     /**
      * @details  List of currently unsaved tabs.

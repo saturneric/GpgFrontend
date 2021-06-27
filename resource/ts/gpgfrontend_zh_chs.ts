@@ -2811,57 +2811,57 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="100"/>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="132"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="99"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="131"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="107"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="106"/>
         <source>Open file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="204"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="203"/>
         <source>Save file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="416"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="415"/>
         <source>Application</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="101"/>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="133"/>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="417"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="100"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="132"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="416"/>
         <source>Cannot read file %1:
 %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="182"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="181"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="183"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="182"/>
         <source>Cannot write file %1:
 %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="268"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="267"/>
         <source>Unsaved document</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="269"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="268"/>
         <source>&lt;h3&gt;The document &quot;%1&quot; has been modified.&lt;br/&gt;Do you want to save your changes?&lt;/h3&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="271"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="270"/>
         <source>&lt;b&gt;Note:&lt;/b&gt; If you don&apos;t save these files, all changes are lost.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>

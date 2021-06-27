@@ -26,6 +26,7 @@
 #define __VERIFYNOTIFICATION_H__
 
 #include "EditorPage.h"
+#include "FilePage.h"
 #include "ui/VerifyDetailsDialog.h"
 #include "gpg/result_analyse/VerifyResultAnalyse.h"
 
@@ -55,6 +56,10 @@ public:
 
 
     void associateTextEdit(QTextEdit *edit);
+
+    void associateFileTreeView(FilePage *treeView);
+
+    void associateTabWidget(QTabWidget *tab);
 
     void addOptionalAction(const QString& name, const std::function<void()>& action);
 
@@ -95,7 +100,11 @@ private:
     QTextEdit *infoBoard;
     GpgME::GpgContext *mCtx; /** GpgME Context */
     KeyList *mKeyList; /** Table holding the keys */
-    QTextEdit *mTextPage{ nullptr }; /** Textedit associated to the notification */
+
+    QTextEdit *mTextPage{ nullptr }; /** TextEdit associated to the notification */
+    FilePage *mFileTreeView{nullptr }; /** TreeView associated to the notification */
+    QTabWidget *mTabWidget{ nullptr }; /** TreeView associated to the notification */
+
     QHBoxLayout *actionButtonLayout;
 
 

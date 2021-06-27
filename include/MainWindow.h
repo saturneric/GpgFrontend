@@ -96,6 +96,16 @@ public slots:
      */
     void slotFileVerify();
 
+    /**
+     * @details Open dialog for signing file.
+     */
+    void slotFileEncryptSign();
+
+    /**
+     * @details Open dialog for verifying file.
+     */
+    void slotFileDecryptVerify();
+
 
 private slots:
 
@@ -133,6 +143,26 @@ private slots:
      * with the currently checked keys
      */
     void slotDecryptVerify();
+
+    /**
+     * @details Open dialog for encrypting file.
+     */
+    void slotFileEncryptCustom();
+
+    /**
+     * @details Open dialog for decrypting file.
+     */
+    void slotFileDecryptCustom();
+
+    /**
+     * @details Open dialog for signing file.
+     */
+    void slotFileSignCustom();
+
+    /**
+     * @details Open dialog for verifying file.
+     */
+    void slotFileVerifyCustom();
 
     /**
      * @details Show the details of the first of the first of selected keys
