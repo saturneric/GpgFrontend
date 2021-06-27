@@ -169,19 +169,19 @@ void MainWindow::createActions() {
      */
     fileEncryptAct = new QAction(tr("&Encrypt File"), this);
     fileEncryptAct->setToolTip(tr("Encrypt File"));
-    connect(fileEncryptAct, SIGNAL(triggered()), this, SLOT(slotFileEncrypt()));
+    connect(fileEncryptAct, SIGNAL(triggered()), this, SLOT(slotFileEncryptCustom()));
 
     fileDecryptAct = new QAction(tr("&Decrypt File"), this);
     fileDecryptAct->setToolTip(tr("Decrypt File"));
-    connect(fileDecryptAct, SIGNAL(triggered()), this, SLOT(slotFileDecrypt()));
+    connect(fileDecryptAct, SIGNAL(triggered()), this, SLOT(slotFileDecryptCustom()));
 
     fileSignAct = new QAction(tr("&Sign File"), this);
     fileSignAct->setToolTip(tr("Sign File"));
-    connect(fileSignAct, SIGNAL(triggered()), this, SLOT(slotFileSign()));
+    connect(fileSignAct, SIGNAL(triggered()), this, SLOT(slotFileSignCustom()));
 
     fileVerifyAct = new QAction(tr("&Verify File"), this);
     fileVerifyAct->setToolTip(tr("Verify File"));
-    connect(fileVerifyAct, SIGNAL(triggered()), this, SLOT(slotFileVerify()));
+    connect(fileVerifyAct, SIGNAL(triggered()), this, SLOT(slotFileVerifyCustom()));
 
 
     signAct = new QAction(tr("&Sign"), this);

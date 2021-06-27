@@ -67,9 +67,9 @@ void TextEdit::slotNewHelpTab(const QString &title, const QString &path) const {
 void TextEdit::slotNewFileTab() const {
 
     auto *page = new FilePage(qobject_cast<QWidget *>(parent()));
-    tabWidget->addTab(page, "File");
+    tabWidget->addTab(page, "[File Browser]");
     tabWidget->setCurrentIndex(tabWidget->count() - 1);
-    connect(page, SIGNAL(pathChanged(QString)), this, SLOT(slotFilePagePathChanged(QString)));
+    connect(page, SIGNAL(pathChanged(const QString &)), this, SLOT(slotFilePagePathChanged(const QString &)));
 
 }
 
@@ -357,10 +357,10 @@ QTextEdit *TextEdit::curTextPage() const {
     }
 }
 
-QTextBrowser *TextEdit::curHelpPage() const {
-    auto *curHelpPage = qobject_cast<HelpPage *>(tabWidget->currentWidget());
-    if (curHelpPage != nullptr) {
-        return curHelpPage->getBrowser();
+FilePage * TextEdit::curFilePage() const {
+    auto *curFilePage = qobject_cast<FilePage *>(tabWidget->currentWidget());
+    if (curFilePage != nullptr) {
+        return curFilePage;
     } else {
         return nullptr;
     }
@@ -439,9 +439,7 @@ void TextEdit::slotPrint() {
 
 #ifndef QT_NO_PRINTER
     QTextDocument *document;
-    if (curTextPage() == nullptr) {
-        document = curHelpPage()->document();
-    } else {
+    if (curTextPage() != nullptr) {
         document = curTextPage()->document();
     }
     QPrinter printer;
@@ -515,8 +513,6 @@ void TextEdit::slotCopy() const {
 
     if (curTextPage() != nullptr) {
         curTextPage()->copy();
-    } else {
-        curHelpPage()->copy();
     }
 
 
@@ -553,8 +549,6 @@ void TextEdit::slotZoomIn() const {
 
     if (curTextPage() != nullptr) {
         curTextPage()->zoomIn();
-    } else {
-        curHelpPage()->zoomIn();
     }
 
 }
@@ -566,8 +560,6 @@ void TextEdit::slotZoomOut() const {
 
     if (curTextPage() != nullptr) {
         curTextPage()->zoomOut();
-    } else {
-        curHelpPage()->zoomOut();
     }
 }
 
@@ -578,13 +570,17 @@ void TextEdit::slotSelectAll() const {
     curTextPage()->selectAll();
 }
 
-void TextEdit::slotFilePagePathChanged(const QString& path) {
+void TextEdit::slotFilePagePathChanged(const QString &path) {
     int index = tabWidget->currentIndex();
     QString mPath;
-    if(path.size() > 8) {
-        mPath = path.mid(path.size()-8,8).prepend("...");
+    QFileInfo fileInfo(path);
+    QString tPath = fileInfo.path();
+    if (path.size() > 16) {
+        mPath = tPath.mid(tPath.size() - 16, 16).prepend("...");
     } else {
-        mPath = path;
+        mPath = tPath;
     }
+    mPath.prepend("[File Browser]: ");
+    mPath.append("/");
     tabWidget->setTabText(index, mPath);
 }

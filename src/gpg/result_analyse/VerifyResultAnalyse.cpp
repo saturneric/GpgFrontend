@@ -17,7 +17,7 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
 
         if (sign == nullptr) {
             stream << "> Not Signature Found" << Qt::endl;
-            setStatus(-1);
+            setStatus(0);
             return;
         }
 

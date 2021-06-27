@@ -25,7 +25,7 @@
 #include "ui/widgets/InfoBoardWidget.h"
 
 InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList) :
-        QWidget(parent), mCtx(ctx), mKeyList(keyList){
+        QWidget(parent), mCtx(ctx), mKeyList(keyList) {
 
     infoBoard = new QTextEdit(this);
     infoBoard->setReadOnly(true);
@@ -43,7 +43,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyLis
 
     actionButtonLayout = new QHBoxLayout();
     auto label = new QLabel("Optional Actions Menu");
-    label->setMinimumHeight(16);
+    label->setFixedHeight(24);
     actionButtonLayout->addWidget(label);
     actionButtonLayout->addStretch();
 
@@ -96,15 +96,36 @@ void InfoBoardWidget::slotRefresh(const QString &text, InfoBoardStatus status) {
 }
 
 void InfoBoardWidget::associateTextEdit(QTextEdit *edit) {
-    this->mTextPage = edit;
-    if(mTextPage != nullptr) {
+    if (mTextPage != nullptr)
         disconnect(mTextPage, SIGNAL(textChanged()), this, SLOT(slotReset()));
-    }
+    this->mTextPage = edit;
     connect(edit, SIGNAL(textChanged()), this, SLOT(slotReset()));
 }
 
-void InfoBoardWidget::addOptionalAction(const QString& name, const std::function<void()>& action) {
+void InfoBoardWidget::associateFileTreeView(FilePage *treeView) {
+//    if (mFileTreeView != nullptr)
+//        disconnect(mFileTreeView, &FilePage::pathChanged, this, &InfoBoardWidget::slotReset);
+//    this->mFileTreeView = treeView;
+//    connect(treeView, &FilePage::pathChanged, this, &InfoBoardWidget::slotReset);
+}
+
+void InfoBoardWidget::associateTabWidget(QTabWidget *tab) {
+    if (mTextPage != nullptr)
+        disconnect(mTextPage, SIGNAL(textChanged()), this, SLOT(slotReset()));
+//    if (mFileTreeView != nullptr)
+//        disconnect(mFileTreeView, &FilePage::pathChanged, this, &InfoBoardWidget::slotReset);
+    if (mTabWidget != nullptr)
+        disconnect(mTabWidget, SIGNAL(tabBarClicked(int)), this, SLOT(slotReset()));
+
+    mTextPage = nullptr;
+    mFileTreeView = nullptr;
+    mTabWidget = tab;
+    connect(tab, SIGNAL(tabBarClicked(int)), this, SLOT(slotReset()));
+}
+
+void InfoBoardWidget::addOptionalAction(const QString &name, const std::function<void()> &action) {
     auto actionButton = new QPushButton(name);
+    actionButton->setFixedHeight(24);
     actionButtonLayout->addWidget(actionButton);
     connect(actionButton, &QPushButton::clicked, this, [=]() {
         action();
@@ -113,7 +134,7 @@ void InfoBoardWidget::addOptionalAction(const QString& name, const std::function
 
 void InfoBoardWidget::resetOptionActionsMenu() {
     QLayoutItem *item;
-    while ((item = actionButtonLayout->layout()->takeAt( 2)) != nullptr ) {
+    while ((item = actionButtonLayout->layout()->takeAt(2)) != nullptr) {
         actionButtonLayout->removeItem(item);
         delete item->widget();
         delete item;

@@ -30,7 +30,21 @@
 
 class GpgFileOpera {
 public:
-    static bool encryptFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath);
+    static gpgme_error_t encryptFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
+                                     gpgme_encrypt_result_t *result);
+
+    static gpgme_error_t decryptFile(GpgME::GpgContext *ctx, const QString &mPath, gpgme_decrypt_result_t *result);
+
+    static gpgme_error_t signFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
+                                  gpgme_sign_result_t *result);
+
+    static gpgme_error_t verifyFile(GpgME::GpgContext *ctx, const QString &mPath, gpgme_verify_result_t *result);
+
+    static gpg_error_t
+    encryptSignFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath, gpgme_encrypt_result_t *encr_res, gpgme_sign_result_t *sign_res);
+
+    static gpg_error_t decryptVerifyFile(GpgME::GpgContext *ctx, const QString &mPath, gpgme_decrypt_result_t *decr_res, gpgme_verify_result_t *verify_res);
+
 };
 
 

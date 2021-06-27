@@ -127,13 +127,13 @@ void FilePage::createPopupMenu() {
     connect(openItemAct, SIGNAL(triggered()), this, SLOT(slotOpenItem()));
     auto deleteItemAct = new QAction(tr("Delete"), this);
     connect(deleteItemAct, SIGNAL(triggered()), this, SLOT(slotDeleteItem()));
-    encryptItemAct = new QAction(tr("Encrypt File"), this);
+    encryptItemAct = new QAction(tr("Encrypt and Sign"), this);
     connect(encryptItemAct, SIGNAL(triggered()), this, SLOT(slotEncryptItem()));
-    decryptItemAct = new QAction(tr("Decrypt File"), this);
+    decryptItemAct = new QAction(tr("Decrypt and Verify"), this);
     connect(decryptItemAct, SIGNAL(triggered()), this, SLOT(slotDecryptItem()));
-    signItemAct = new QAction(tr("Sign File"), this);
+    signItemAct = new QAction(tr("Only Sign"), this);
     connect(signItemAct, SIGNAL(triggered()), this, SLOT(slotSignItem()));
-    verifyItemAct = new QAction(tr("Verify File"), this);
+    verifyItemAct = new QAction(tr("Only Verify"), this);
     connect(verifyItemAct, SIGNAL(triggered()), this, SLOT(slotVerifyItem()));
 
     popUpMenu->addAction(openItemAct);
@@ -204,17 +204,23 @@ void FilePage::slotDeleteItem() {
 void FilePage::slotEncryptItem() {
     auto mainWindow = qobject_cast<MainWindow *>(firstParent);
     if(mainWindow != nullptr)
-        mainWindow->slotFileEncrypt();
+        mainWindow->slotFileEncryptSign();
 }
 
 void FilePage::slotDecryptItem() {
-
+    auto mainWindow = qobject_cast<MainWindow *>(firstParent);
+    if(mainWindow != nullptr)
+        mainWindow->slotFileDecryptVerify();
 }
 
 void FilePage::slotSignItem() {
-
+    auto mainWindow = qobject_cast<MainWindow *>(firstParent);
+    if(mainWindow != nullptr)
+        mainWindow->slotFileSign();
 }
 
 void FilePage::slotVerifyItem() {
-
+    auto mainWindow = qobject_cast<MainWindow *>(firstParent);
+    if(mainWindow != nullptr)
+        mainWindow->slotFileVerify();
 }
