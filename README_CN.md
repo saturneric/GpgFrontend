@@ -9,7 +9,7 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/saturneric/gpgfrontend)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_small)
 
-GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](https://www.openpgp.org/) 工具。
+GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](https://www.openpgp.org/) 加密解密签名工具。
 
 通过使用 GpgFrontend，你可以快速加密和解密文本或文件。或者在进行上述操作的同时加上自己的签名，让别人知道这个文件或者这段文字是出自你之手。
 该软件旨在让普通用户更快上手gpg工具，让专业用户更便捷。 GpgFrontend 支持 OpenPGP 的新特性。
