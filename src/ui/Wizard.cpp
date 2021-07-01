@@ -162,27 +162,34 @@ ChoosePage::ChoosePage(QWidget *parent)
     setSubTitle(tr("...by clicking on the appropriate link."));
 
     auto *keygenLabel = new QLabel(tr("If you have never used GPGFrontend before and also don't own a gpg key yet you "
-                                      "may possibly want to ") + "<a href=""Wizard::Page_GenKey"">"
+                                      "may possibly want to read how to") + "<a href=\"https://saturneric.github.io/GpgFrontend/index.html#/manual/generate-key\">"
                                    + tr("create a new keypair") + "</a><hr>");
+    keygenLabel->setTextFormat(Qt::RichText);
+    keygenLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    keygenLabel->setOpenExternalLinks(true);
     keygenLabel->setWordWrap(true);
-    // connect(keygenLabel, SIGNAL(linkActivated(QString)), this, SLOT(slotJumpPage(Qtring)));
 
-    auto *importGpg4usbLabel = new QLabel(tr("If you upgrade from an older version of GPGFrontend you may want to ")
-                                          + "<a href=""Wizard::Page_ImportFromGpg4usb"">"
-                                          + tr("import settings and/or keys from GPGFrontend") + "</a>");
-    importGpg4usbLabel->setWordWrap(true);
-    connect(importGpg4usbLabel, SIGNAL(linkActivated(QString)), this, SLOT(slotJumpPage(QString)));
+    auto *encrDecyTextLabel = new QLabel(tr("If you want to learn how to encrypt and decrypt text, you can read ")
+                                          + "<a href=\"https://saturneric.github.io/GpgFrontend/index.html#/manual/encrypt-decrypt-text\">"
+                                          + tr("this document") + "</a><hr>");
 
-    auto *importGnupgLabel = new QLabel(tr("If you are already using GnuPG you may want to ")
-                                        + "<a href=""Wizard::Page_ImportFromGnupg"">"
-                                        + tr("import keys from GnuPG") + "</a><hr>");
-    importGnupgLabel->setWordWrap(true);
-    connect(importGnupgLabel, SIGNAL(linkActivated(QString)), this, SLOT(slotJumpPage(QString)));
+    encrDecyTextLabel->setTextFormat(Qt::RichText);
+    encrDecyTextLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    encrDecyTextLabel->setOpenExternalLinks(true);
+    encrDecyTextLabel->setWordWrap(true);
+
+    auto *signVerifyTextLabel = new QLabel(tr("If you want to sign and verify text, you can read ")
+                                        + "<a href=\"https://saturneric.github.io/GpgFrontend/index.html#/manual/sign-verify-text\">"
+                                        + tr("this document") + "</a>");
+    signVerifyTextLabel->setTextFormat(Qt::RichText);
+    signVerifyTextLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    signVerifyTextLabel->setOpenExternalLinks(true);
+    signVerifyTextLabel->setWordWrap(true);
 
     auto *layout = new QVBoxLayout();
     layout->addWidget(keygenLabel);
-    layout->addWidget(importGnupgLabel);
-    layout->addWidget(importGpg4usbLabel);
+    layout->addWidget(encrDecyTextLabel);
+    layout->addWidget(signVerifyTextLabel);
     setLayout(layout);
     nextPage = Wizard::Page_Conclusion;
 }
@@ -369,7 +376,7 @@ KeyGenPage::KeyGenPage(GpgME::GpgContext *ctx, QWidget *parent)
     layout->addWidget(topLabel);
     layout->addWidget(linkLabel);
     layout->addWidget(createKeyButtonBox);
-    connect(createKeyButton, SIGNAL(clicked()), this, SLOT(slotGenerateKeyDialog()));
+    connect(createKeyButton, SIGNAL(clicked(bool)), this, SLOT(slotGenerateKeyDialog()));
 
     setLayout(layout);
 }
@@ -379,8 +386,9 @@ int KeyGenPage::nextId() const {
 }
 
 void KeyGenPage::slotGenerateKeyDialog() {
+    qDebug() << "Try Opening KeyGenDialog";
     auto *keyGenDialog = new KeyGenDialog(mCtx, this);
-    keyGenDialog->exec();
+    keyGenDialog->show();
     wizard()->next();
 }
 
@@ -389,9 +397,14 @@ ConclusionPage::ConclusionPage(QWidget *parent)
     setTitle(tr("Ready."));
     setSubTitle(tr("Have fun with GPGFrontend!"));
 
-    auto *bottomLabel = new QLabel(tr("You are ready to use GPGFrontend now.<br><br>"
-                                      "The offline help will get you started with GPGFrontend. "
-                                      "It will open in the main window.<br>"));
+    auto *bottomLabel = new QLabel(tr("You are ready to use GPGFrontend now.<br><br>")+
+            "<a href=\"https://saturneric.github.io/GpgFrontend/index.html#/overview\">"
+            + tr("The Online Document") + "</a>"
+            + tr(" will get you started with GPGFrontend. It will open in the main window.<br>"));
+
+    bottomLabel->setTextFormat(Qt::RichText);
+    bottomLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    bottomLabel->setOpenExternalLinks(true);
     bottomLabel->setWordWrap(true);
 
     openHelpCheckBox = new QCheckBox(tr("Open offline help."));
@@ -401,11 +414,11 @@ ConclusionPage::ConclusionPage(QWidget *parent)
     dontShowWizardCheckBox->setChecked(Qt::Checked);
 
     registerField("showWizard", dontShowWizardCheckBox);
-    registerField("openHelp", openHelpCheckBox);
+    // registerField("openHelp", openHelpCheckBox);
 
     auto *layout = new QVBoxLayout;
     layout->addWidget(bottomLabel);
-    layout->addWidget(openHelpCheckBox);
+    // layout->addWidget(openHelpCheckBox);
     layout->addWidget(dontShowWizardCheckBox);
     setLayout(layout);
     setVisible(true);

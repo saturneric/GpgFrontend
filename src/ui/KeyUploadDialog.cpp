@@ -27,10 +27,27 @@
 #include <utility>
 
 KeyUploadDialog::KeyUploadDialog(GpgME::GpgContext *ctx, const QVector<GpgKey> &keys, QWidget *parent)
-: appPath(qApp->applicationDirPath()),
-settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat),
-QDialog(parent) {
-    ctx->exportKeys(keys, mKeyData);
+    : appPath(qApp->applicationDirPath()),
+    settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat),
+    mCtx(ctx),
+    mKeys(keys),
+    QDialog(parent) {
+
+
+    auto *pb = new QProgressBar();
+    pb->setRange(0, 0);
+
+    auto *layout = new QVBoxLayout();
+    layout->addWidget(pb);
+    this->setLayout(layout);
+
+    this->setModal(true);
+    this->setWindowTitle(tr("Uploading Public Key"));
+    this->setFixedSize(240, 42);
+}
+
+void KeyUploadDialog::slotUpload() {
+    mCtx->exportKeys(mKeys, mKeyData);
     uploadKeyToServer(mKeyData);
 }
 
@@ -66,30 +83,14 @@ void KeyUploadDialog::uploadKeyToServer(QByteArray &keys) {
             this, SLOT(slotUploadFinished()));
 
 
-    // A Waiting Dialog
-    auto *dialog = new QDialog(this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-    dialog->setModal(true);
-    dialog->setWindowTitle(tr("Uploading Public Key"));
-    dialog->setFixedSize(200, 42);
-
-    auto *pb = new QProgressBar();
-    pb->setRange(0, 0);
-
-    auto *layout = new QVBoxLayout(dialog);
-    layout->addWidget(pb);
-    dialog->setLayout(layout);
-
-
-    dialog->show();
-
     // Keep Waiting
     while(reply->isRunning()) {
         QApplication::processEvents();
     }
 
     // Done
-    dialog->hide();
-    dialog->close();
+    this->hide();
+    this->close();
 }
 
 void KeyUploadDialog::slotUploadFinished() {
