@@ -120,8 +120,6 @@ KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *ke
         }
     }
 
-
-
     this->setModal(true);
 }
 

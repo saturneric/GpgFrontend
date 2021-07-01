@@ -131,16 +131,17 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
         auto *privKeyBox = new QGroupBox(tr("Operations"));
         auto *vboxPK = new QVBoxLayout();
 
-        auto *exportButton = new QPushButton(tr("Export Private Key"));
+        auto *exportButton = new QPushButton(tr("Export Private Key (Include Subkeys)"));
         vboxPK->addWidget(exportButton);
         connect(exportButton, SIGNAL(clicked()), this, SLOT(slotExportPrivateKey()));
 
         if(mKey.has_master_key) {
-            auto *editExpiresButton = new QPushButton(tr("Modify Expiration Datetime"));
+            auto *editExpiresButton = new QPushButton(tr("Modify Expiration Datetime (Master Key)"));
             vboxPK->addWidget(editExpiresButton);
             connect(editExpiresButton, SIGNAL(clicked()), this, SLOT(slotModifyEditDatetime()));
 
-            auto *keyServerOperaButton = new QPushButton(tr("Key Server Operation"));
+            auto *keyServerOperaButton = new QPushButton(tr("Key Server Operation (Pubkey)"));
+            keyServerOperaButton->setStyleSheet("text-align:center;");
             vboxPK->addWidget(keyServerOperaButton);
             connect(keyServerOperaButton, SIGNAL(clicked()), this, SLOT(slotModifyEditDatetime()));
 
@@ -197,7 +198,12 @@ void KeyPairDetailTab::slotExportPrivateKey() {
     // export key, if ok was clicked
     if (ret == QMessageBox::Ok) {
         auto *keyArray = new QByteArray();
-        mCtx->exportSecretKey(*keyid, keyArray);
+
+    if(!mCtx->exportSecretKey(mKey, keyArray)) {
+         QMessageBox::critical(this, "Error", "An error occurred during the export operation.");
+         return;
+    }
+
         auto &key = mCtx->getKeyById(*keyid);
         QString fileString = key.name + " " +key.email + "(" +
                              key.id + ")_secret.asc";

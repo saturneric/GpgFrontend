@@ -26,9 +26,8 @@
 
 KeyImportDetailDialog::KeyImportDetailDialog(GpgME::GpgContext *ctx, GpgImportInformation result, bool automatic,
                                              QWidget *parent)
-        : QDialog(parent) {
-    mCtx = ctx;
-    mResult = std::move(result);
+        : QDialog(parent), mCtx(ctx), mResult(std::move(result)) {
+
     // If no key for import found, just show a message
     if (mResult.considered == 0) {
         if(automatic)

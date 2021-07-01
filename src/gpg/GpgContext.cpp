@@ -653,22 +653,27 @@ namespace GpgME {
         return QString::fromUtf8(gpgme_strerror(err));
     }
 
-/** export private key, TODO errohandling, e.g. like in seahorse (seahorse-gpg-op.c) **/
+    bool GpgContext::exportSecretKey(const GpgKey &key, QByteArray *outBuffer) {
+        qDebug() << "Export Secret Key" << key.id;
+        gpgme_key_t target_key[2] = {
+            key.key_refer,
+            nullptr
+        };
 
-    void GpgContext::exportSecretKey(const QString &uid, QByteArray *outBuffer) {
-        qDebug() << *outBuffer;
+        gpgme_data_t dataOut;
+        gpgme_data_new(&dataOut);
         // export private key to outBuffer
-        QStringList arguments;
-        arguments << "--armor" << "--export-secret-key" << uid;
-        auto *p_errArray = new QByteArray();
-        executeGpgCommand(arguments, outBuffer, p_errArray);
+        gpgme_error_t error = gpgme_op_export_keys(mCtx, target_key,GPGME_EXPORT_MODE_SECRET, dataOut);
 
-        // append public key to outBuffer
-        auto *pubKey = new QByteArray();
-        QStringList keyList;
-        keyList.append(uid);
-        exportKeys(&keyList, pubKey);
-        outBuffer->append(*pubKey);
+        if(gpgme_err_code(error) != GPG_ERR_NO_ERROR) {
+            checkErr(error);
+            gpgme_data_release(dataOut);
+            return false;
+        }
+
+        readToBuffer(dataOut, outBuffer);
+        gpgme_data_release(dataOut);
+        return true;
     }
 
 /** return type should be gpgme_error_t*/
