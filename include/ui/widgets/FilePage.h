@@ -67,6 +67,7 @@ private:
 
     QPushButton *upLevelButton;
     QPushButton *goPathButton;
+    QPushButton *refreshButton;
 
     QMenu *popUpMenu{};
     QAction *encryptItemAct{};

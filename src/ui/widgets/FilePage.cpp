@@ -49,17 +49,22 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
     upLevelButton = new QPushButton("UP Level");
     connect(upLevelButton, SIGNAL(clicked(bool)), this, SLOT(slotUpLevel()));
 
+    refreshButton = new QPushButton("Refresh");
+    connect(refreshButton, SIGNAL(clicked(bool)), this, SLOT(slotGoPath()));
+
     goPathButton = new QPushButton("Go Path");
     connect(goPathButton, SIGNAL(clicked(bool)), this, SLOT(slotGoPath()));
 
     pathEdit = new QLineEdit();
-    pathEdit->setFixedWidth(500);
+    pathEdit->setFixedWidth(480);
     pathEdit->setText(dirModel->rootPath());
 
     auto *menuLayout = new QHBoxLayout();
     menuLayout->addWidget(upLevelButton);
     menuLayout->addWidget(pathEdit);
     menuLayout->addWidget(goPathButton);
+    menuLayout->addWidget(goPathButton);
+    menuLayout->addWidget(refreshButton);
     menuLayout->addStretch(0);
 
     auto *layout = new QVBoxLayout();
@@ -112,7 +117,8 @@ void FilePage::slotGoPath() {
     qDebug() << "getSelected" << pathEdit->text();
     auto fileInfo = QFileInfo(pathEdit->text());
     if(fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
-        qDebug() << "Set Path" << fileInfo.filePath();
+        mPath = fileInfo.filePath();
+        qDebug() << "Set Path" << mPath;
         dirTreeView->setRootIndex(dirModel->index(fileInfo.filePath()));
     } else {
         QMessageBox::critical(this, "Error", "The path is unprivileged or unreachable.");
