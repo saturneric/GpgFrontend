@@ -14,7 +14,7 @@ GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](
 通过使用 GpgFrontend，你可以快速加密和解密文本或文件。或者在进行上述操作的同时加上自己的签名，让别人知道这个文件或者这段文字是出自你之手。
 该软件旨在让普通用户更快上手gpg工具，让专业用户更便捷。 GpgFrontend 支持 OpenPGP 的新特性。
 
-注意：GpgFrontend 不提供嵌入式 gnupg 二进制库，需要用户自行安装。这是为了确保安全，避免代码或二进制文件在传递过程中被植入后门。
+注意：GpgFrontend 不提供嵌入式 gnupg 二进制库，需要用户自行安装。这是为了确保安全，避免涉及加密解密的代码或二进制文件在传递过程中被植入后门。
 
 [>> 快速开始](#quick-start)
 
@@ -43,12 +43,13 @@ GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](
         - [Windows](#windows)
         - [macOS](#macos)
         - [Debian/Ubuntu/CentOS](#debianubuntucentos)
+        
 - [文档](#文档)
 - [开发宗旨](#开发宗旨)
 - [构建方法](#构建方法)
 - [联系](#联系)
-    - [做出贡献](#做出贡献)
-    - [维护者](#维护者)
+    - [做出贡献或者报告问题](#做出贡献或者报告问题)
+    - [关于维护者](#关于维护者)
 - [许可证](#许可证)
 
 ## 软件特性
@@ -135,19 +136,19 @@ GpgFrontend 项目作为开源项目，也坚持使用开源代码和库。
 
 ## 构建方法
 
-构建软件的教程将很快发布。
+构建软件的教程将很快发布。你可以先查看本项目的GitHub Action文件。
 
 ## 联系
 
-如果你想单独与我联系，你可以发送电子邮件到 [eric@bktus.com](mailto:eric@bktus.com)。
+如果你想与我私下联系，你可以发送电子邮件到 [eric@bktus.com](mailto:eric@bktus.com)。
 
-### 做出贡献
+### 做出贡献或者报告问题
 
 欢迎！你可以通过 [提出issue](https://github.com/saturneric/GpgFrontend/issues/new) 或提交 PR来做出贡献。
 
-### 维护者
+### 关于维护者
 
-[@Saturneric](https://github.com/saturneric).
+该项目的维护者是 [@Saturneric](https://github.com/saturneric).
 
 ## LOGO
 
