@@ -18,7 +18,7 @@ issued by you. It aims to allow ordinary users to quickly use gpg and make profe
 GpgFrontend supports new features of OpenPGP.
 
 **Notice:** GpgFrontend does not provide an embedded [gnupg](https://gnupg.org/) binary library and needs to be
-installed by the user. **This is to ensure safety and avoid code or binary files being implanted in the backdoor during
+installed by the user. **This is to ensure safety and avoid code or binary files involved in encryption and decryption being implanted in the backdoor during
 the delivery process.**
 
 [>> Quick Start](#quick-start)
@@ -54,8 +54,8 @@ the delivery process.**
 - [Document](#document)
 - [Purpose](#purpose)
 - [Build](#build)
-- [Contract](#contract)
-    - [Contributing](#contributing)
+- [Contributing & Bugs Report](#contributing--bugs-report)
+    - [Contract](#contract)
     - [Maintainers](#maintainers)
 - [Licenses](#LICENSES)
 
@@ -149,13 +149,13 @@ The GpgFrontend project is as open source, and it also insists on using open sou
 
 ## Build
 
-The tutorial for building the software will be released shortly.
+The tutorial for building the software will be released shortly. Before the relevant documents are released, you can refer to the project-related Github Action file if you know it.
 
 ## Contract
 
 If you want to contact me individually, you can email [eric@bktus.com](mailto:eric@bktus.com).
 
-### Contributing
+### Contributing & Bugs Report
 
 Feel free to dive in! [Open an issue](https://github.com/saturneric/GpgFrontend/issues/new) or submit PRs.
 
