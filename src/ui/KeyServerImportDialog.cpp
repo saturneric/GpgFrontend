@@ -60,7 +60,6 @@ KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *ke
     waitingBar = new QProgressBar();
     waitingBar->setVisible(false);
     waitingBar->setRange(0, 0);
-    waitingBar->setFixedHeight(24);
     waitingBar->setFixedWidth(200);
 
     // Layout for messagebox

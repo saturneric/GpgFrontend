@@ -17,8 +17,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
 message(STATUS "CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 # Set Resource Output Path
-if(APPLE)
-    set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
+if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+    if(APPLE)
+        set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
+    elseif(LINUX)
+	file(COPY ${CMAKE_SOURCE_DIR}/resource/gpgfrontend DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+	set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share)
+    endif()
 else()
     set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
@@ -45,10 +50,14 @@ file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTO
 file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
 file(COPY ${CMAKE_SOURCE_DIR}/resource/conf DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
 
-if(APPLE)
-    file(COPY ${CMAKE_SOURCE_DIR}/gpgfrontend.icns DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    # Refresh App Bundle
-    file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.app)
+if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+    if(APPLE)
+        file(COPY ${CMAKE_SOURCE_DIR}/gpgfrontend.icns DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+        # Refresh App Bundle
+        file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.app)
+    elseif(LINUX)
+        file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/bin/${AppName})
+    endif()
 endif()
 
 # Copy Utils Files
@@ -80,16 +89,25 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
             MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
             MACOSX_BUNDLE_BUNDLE_VERSION ${BUILD_VERSION}
-            MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns"
-            )
+            MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns")
         add_custom_command(TARGET ${AppName} POST_BUILD
             COMMAND  /bin/rm -rf ./${AppName}.app/Contents/Resources
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-            COMMENT "Deleting Resources IN App Bundle")
+            COMMENT "Deleting Resources in App Bundle")
         add_custom_command(TARGET ${AppName} POST_BUILD
             COMMAND  /bin/mv -n ./Resources ./${AppName}.app/Contents/
             WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-            COMMENT "Copying Resources INTO App Bundle Resource")
+            COMMENT "Copying Resources into App Bundle Resource")
+    elseif(LINUX)
+        add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+        add_custom_command(TARGET ${AppName} POST_BUILD
+            COMMAND /bin/mkdir ./gpgfrontend/usr/bin && /bin/mv -f ./${AppName} ./gpgfrontend/usr/bin/
+            WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+            COMMENT "Copying Binary into App Image")
+        add_custom_command(TARGET ${AppName} POST_BUILD
+                COMMAND /bin/mkdir ./gpgfrontend/usr/lib
+                WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                COMMENT "Complement to build the required architecture")
     else()
         add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
     endif()
@@ -101,13 +119,13 @@ IF (MINGW)
     message(STATUS "Link Application Static Library For MINGW")
     target_link_libraries(${AppName}
             gpgfrontend-ui gpg
-            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
-
-
+            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
+            crypto ssl)
 else()
     message(STATUS "Link Application Static Library For UNIX")
     target_link_libraries(${AppName}
             gpgfrontend-ui gpg
-            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
+            crypto ssl)
 endif()
 
