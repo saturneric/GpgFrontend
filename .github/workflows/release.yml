@@ -5,12 +5,14 @@ on:
     branches: [ main, develop ]
     paths-ignore:
       - '**/README.md'
+      - '**/README_CN.md'
       - 'resource/ts/**'
       - 'docs/**'
   pull_request:
     branches: [ develop ]
     paths-ignore:
       - '**/README.md'
+      - '**/README_CN.md'
       - 'resource/ts/**'
       - 'docs/**'
 
