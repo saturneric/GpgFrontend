@@ -56,20 +56,23 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
     connect(goPathButton, SIGNAL(clicked(bool)), this, SLOT(slotGoPath()));
 
     pathEdit = new QLineEdit();
-    pathEdit->setFixedWidth(480);
     pathEdit->setText(dirModel->rootPath());
 
     auto *menuLayout = new QHBoxLayout();
     menuLayout->addWidget(upLevelButton);
+    menuLayout->setStretchFactor(upLevelButton, 1);
     menuLayout->addWidget(pathEdit);
+    menuLayout->setStretchFactor(pathEdit, 8);
     menuLayout->addWidget(goPathButton);
-    menuLayout->addWidget(goPathButton);
+    menuLayout->setStretchFactor(goPathButton, 1);
     menuLayout->addWidget(refreshButton);
-    menuLayout->addStretch(0);
+    menuLayout->setStretchFactor(refreshButton, 1);
 
     auto *layout = new QVBoxLayout();
     layout->addLayout(menuLayout);
+    layout->setStretchFactor(menuLayout, 1);
     layout->addWidget(dirTreeView);
+    layout->setStretchFactor(dirTreeView, 8);
 
     this->setLayout(layout);
 
@@ -158,10 +161,10 @@ void FilePage::onCustomContextMenu(const QPoint &point) {
     qDebug() << "Right Click" <<  mPath;
     if (index.isValid()) {
         QFileInfo info(mPath);
-        encryptItemAct->setEnabled(info.isFile());
-        decryptItemAct->setEnabled(info.isFile());
-        signItemAct->setEnabled(info.isFile());
-        verifyItemAct->setEnabled(info.isFile());
+        encryptItemAct->setEnabled(info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig"));
+        decryptItemAct->setEnabled(info.isFile() && info.suffix() == "gpg");
+        signItemAct->setEnabled(info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig"));
+        verifyItemAct->setEnabled(info.isFile() && (info.suffix() == "sig" || info.suffix() == "gpg"));
 
         popUpMenu->exec(dirTreeView->viewport()->mapToGlobal(point));
     }

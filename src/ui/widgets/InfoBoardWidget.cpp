@@ -29,7 +29,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyLis
 
     infoBoard = new QTextEdit(this);
     infoBoard->setReadOnly(true);
-    infoBoard->setMinimumHeight(140);
+    infoBoard->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     infoBoard->setMinimumWidth(480);
 
     connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotReset()));
@@ -41,11 +41,14 @@ InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyLis
     detailMenu->addAction(importFromKeyserverAct);
     importFromKeyserverAct->setVisible(false);
 
+    QWidget *actionButtonMenu = new QWidget();
     actionButtonLayout = new QHBoxLayout();
+    actionButtonMenu->setLayout(actionButtonLayout);
     auto label = new QLabel("Optional Actions Menu");
-    label->setFixedHeight(24);
     actionButtonLayout->addWidget(label);
     actionButtonLayout->addStretch();
+
+    actionButtonMenu->setFixedHeight(42);
 
     QFrame *line;
     line = new QFrame(this);
@@ -54,8 +57,12 @@ InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyLis
 
     auto *notificationWidgetLayout = new QVBoxLayout(this);
     notificationWidgetLayout->addWidget(infoBoard);
-    notificationWidgetLayout->addLayout(actionButtonLayout);
+    notificationWidgetLayout->setStretchFactor(infoBoard, 8);
+    notificationWidgetLayout->addWidget(actionButtonMenu);
+    notificationWidgetLayout->setStretchFactor(actionButtonMenu, 1);
     notificationWidgetLayout->addWidget(line);
+    notificationWidgetLayout->setStretchFactor(line, 1);
+    notificationWidgetLayout->addStretch(0);
     this->setLayout(notificationWidgetLayout);
 }
 
@@ -125,7 +132,7 @@ void InfoBoardWidget::associateTabWidget(QTabWidget *tab) {
 
 void InfoBoardWidget::addOptionalAction(const QString &name, const std::function<void()> &action) {
     auto actionButton = new QPushButton(name);
-    actionButton->setFixedHeight(24);
+    infoBoard->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     actionButtonLayout->addWidget(actionButton);
     connect(actionButton, &QPushButton::clicked, this, [=]() {
         action();
