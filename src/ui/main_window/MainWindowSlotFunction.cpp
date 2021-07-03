@@ -257,49 +257,52 @@ void MainWindow::slotEncryptSign() {
         delete resultAnalyseEncr;
         delete resultAnalyseSign;
     } else if (edit->slotCurPageFileTreeView() != nullptr) {
-        this->slotFileVerify();
+        this->slotFileEncryptSign();
     }
 }
 
 void MainWindow::slotDecryptVerify() {
 
-    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
-        return;
+    if (edit->tabCount() == 0) return;
+
+    if (edit->slotCurPageTextEdit() != nullptr) {
+
+        auto *decrypted = new QByteArray();
+        QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
+        GpgME::GpgContext::preventNoDataErr(&text);
+
+        gpgme_decrypt_result_t d_result = nullptr;
+        gpgme_verify_result_t v_result = nullptr;
+        // try decrypt, if fail do nothing, especially don't replace text
+        auto error = mCtx->decryptVerify(text, decrypted, &d_result, &v_result);
+        infoBoard->associateTextEdit(edit->curTextPage());
+
+        if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
+            edit->slotFillTextEditWithText(QString::fromUtf8(*decrypted));
+
+        auto resultAnalyseDecrypt = new DecryptResultAnalyse(mCtx, error, d_result);
+        auto resultAnalyseVerify = new VerifyResultAnalyse(mCtx, error, v_result);
+
+        int status = std::min(resultAnalyseDecrypt->getStatus(), resultAnalyseVerify->getStatus());
+        auto &reportText = resultAnalyseDecrypt->getResultReport() + resultAnalyseVerify->getResultReport();
+        if (status < 0)
+            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
+        else if (status > 0)
+            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
+        else
+            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+        if (resultAnalyseVerify->getStatus() >= 0) {
+            infoBoard->resetOptionActionsMenu();
+            infoBoard->addOptionalAction("Show Verify Details", [this, error, v_result]() {
+                VerifyDetailsDialog(this, mCtx, mKeyList, error, v_result);
+            });
+        }
+        delete resultAnalyseDecrypt;
+        delete resultAnalyseVerify;
+    } else if (edit->slotCurPageFileTreeView() != nullptr) {
+        this->slotFileDecryptVerify();
     }
-
-    auto *decrypted = new QByteArray();
-    QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
-    GpgME::GpgContext::preventNoDataErr(&text);
-
-    gpgme_decrypt_result_t d_result = nullptr;
-    gpgme_verify_result_t v_result = nullptr;
-    // try decrypt, if fail do nothing, especially don't replace text
-    auto error = mCtx->decryptVerify(text, decrypted, &d_result, &v_result);
-    infoBoard->associateTextEdit(edit->curTextPage());
-
-    if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
-        edit->slotFillTextEditWithText(QString::fromUtf8(*decrypted));
-
-    auto resultAnalyseDecrypt = new DecryptResultAnalyse(mCtx, error, d_result);
-    auto resultAnalyseVerify = new VerifyResultAnalyse(mCtx, error, v_result);
-
-    int status = std::min(resultAnalyseDecrypt->getStatus(), resultAnalyseVerify->getStatus());
-    auto &reportText = resultAnalyseDecrypt->getResultReport() + resultAnalyseVerify->getResultReport();
-    if (status < 0)
-        infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-    else if (status > 0)
-        infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-    else
-        infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-    if (resultAnalyseVerify->getStatus() >= 0) {
-        infoBoard->resetOptionActionsMenu();
-        infoBoard->addOptionalAction("Show Verify Details", [this, error, v_result]() {
-            VerifyDetailsDialog(this, mCtx, mKeyList, error, v_result);
-        });
-    }
-    delete resultAnalyseDecrypt;
-    delete resultAnalyseVerify;
 }
 
 /*
@@ -745,16 +748,6 @@ void MainWindow::slotFileDecryptVerify() {
         outFileName = path.left(pos);
     } else {
         outFileName = path + ".out";
-    }
-
-    if (QFile::exists(outFileName)) {
-        auto ret = QMessageBox::warning(this,
-                                        tr("Warning"),
-                                        tr("The target file already exists, do you need to overwrite it?"),
-                                        QMessageBox::Ok | QMessageBox::Cancel);
-
-        if (ret == QMessageBox::Cancel)
-            return;
     }
 
     try {

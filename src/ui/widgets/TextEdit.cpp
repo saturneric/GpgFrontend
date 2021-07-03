@@ -575,12 +575,12 @@ void TextEdit::slotFilePagePathChanged(const QString &path) {
     QString mPath;
     QFileInfo fileInfo(path);
     QString tPath = fileInfo.path();
-    if (path.size() > 16) {
-        mPath = tPath.mid(tPath.size() - 16, 16).prepend("...");
+    if (path.size() > 18) {
+        mPath = tPath.mid(tPath.size() - 18, 18).prepend("...");
     } else {
         mPath = tPath;
     }
-    mPath.prepend("[File Browser]: ");
+    mPath.prepend("[File Browser] ");
     mPath.append("/");
     tabWidget->setTabText(index, mPath);
 }
