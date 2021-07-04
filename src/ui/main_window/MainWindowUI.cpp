@@ -42,6 +42,11 @@ void MainWindow::createActions() {
     openAct->setToolTip(tr("Open an existing file"));
     connect(openAct, SIGNAL(triggered()), edit, SLOT(slotOpen()));
 
+    browserAct = new QAction(tr("&Browser"), this);
+    browserAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
+    browserAct->setToolTip(tr("Open a file browser"));
+    connect(browserAct, SIGNAL(triggered()), this, SLOT(slotOpenFileTab()));
+
     saveAct = new QAction(tr("&Save"), this);
     saveAct->setIcon(QIcon(":filesave.png"));
     saveAct->setShortcut(QKeySequence::Save);
@@ -264,6 +269,7 @@ void MainWindow::createActions() {
 void MainWindow::createMenus() {
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(newTabAct);
+    fileMenu->addAction(browserAct);
     fileMenu->addAction(openAct);
     fileMenu->addSeparator();
     fileMenu->addAction(saveAct);
@@ -343,6 +349,7 @@ void MainWindow::createToolBars() {
     fileToolBar->addAction(newTabAct);
     fileToolBar->addAction(openAct);
     fileToolBar->addAction(saveAct);
+    fileToolBar->hide();
     viewMenu->addAction(fileToolBar->toggleViewAction());
 
     cryptToolBar = addToolBar(tr("Crypt"));
@@ -385,7 +392,6 @@ void MainWindow::createToolBars() {
 
     // Add dropdown menu for file encryption/decryption to crypttoolbar
     fileEncButton = new QToolButton();
-    // fileEncButton->setMenu(fileEncMenu);
     connect(fileEncButton, SIGNAL(clicked(bool)), this, SLOT(slotOpenFileTab()));
     fileEncButton->setPopupMode(QToolButton::InstantPopup);
     fileEncButton->setIcon(QIcon(":fileencryption.png"));
