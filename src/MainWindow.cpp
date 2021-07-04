@@ -146,8 +146,8 @@ void MainWindow::restoreSettings() {
     fileEncButton->setToolButtonStyle(buttonStyle);
 
     // Checked Keys
-    if (settings.value("keys/keySave").toBool()) {
-        QStringList keyIds = settings.value("keys/keyList").toStringList();
+    if (settings.value("keys/saveKeyChecked").toBool()) {
+        QStringList keyIds = settings.value("keys/savedCheckedKeyList").toStringList();
         mKeyList->setChecked(&keyIds);
     }
 }
@@ -159,15 +159,15 @@ void MainWindow::saveSettings() {
     settings.setValue("window/size", size());
 
     // keyid-list of private checked keys
-    if (settings.value("keys/keySave").toBool()) {
-        QStringList *keyIds = mKeyList->getPrivateChecked();
+    if (settings.value("keys/saveKeyChecked").toBool()) {
+        QStringList *keyIds = mKeyList->getChecked();
         if (!keyIds->isEmpty()) {
-            settings.setValue("keys/keyList", *keyIds);
+            settings.setValue("keys/savedCheckedKeyList", *keyIds);
         } else {
-            settings.setValue("keys/keyList", "");
+            settings.setValue("keys/savedCheckedKeyList", "");
         }
     } else {
-        settings.remove("keys/keyList");
+        settings.remove("keys/savedCheckedKeyList");
     }
 }
 

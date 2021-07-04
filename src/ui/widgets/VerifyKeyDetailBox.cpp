@@ -26,10 +26,7 @@
 
 VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList,
                                        gpgme_signature_t signature) :
-        QGroupBox(parent) {
-    this->mCtx = ctx;
-    this->mKeyList = keyList;
-    this->fpr = signature->fpr;
+        QGroupBox(parent), mCtx(ctx), mKeyList(keyList), fpr(signature->fpr) {
 
     auto *vbox = new QVBoxLayout();
 

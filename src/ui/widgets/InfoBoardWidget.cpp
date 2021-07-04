@@ -31,6 +31,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyLis
     infoBoard->setReadOnly(true);
     infoBoard->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     infoBoard->setMinimumWidth(480);
+    infoBoard->setContentsMargins(0, 0, 0, 0);
 
     connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotReset()));
 
@@ -42,22 +43,35 @@ InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyLis
     importFromKeyserverAct->setVisible(false);
 
     QWidget *actionButtonMenu = new QWidget();
+    actionButtonMenu->setContentsMargins(0, 0, 0, 0);
+    actionButtonMenu->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+    actionButtonMenu->setFixedHeight(36);
+
     actionButtonLayout = new QHBoxLayout();
+    actionButtonLayout->setContentsMargins(0, 0, 0, 0);
+    actionButtonLayout->setSpacing(0);
     actionButtonMenu->setLayout(actionButtonLayout);
+
     auto label = new QLabel("Optional Actions Menu");
+    label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    label->setContentsMargins(0, 0, 0, 0);
+
     actionButtonLayout->addWidget(label);
     actionButtonLayout->addStretch();
 
-    actionButtonMenu->setFixedHeight(42);
 
     QFrame *line;
     line = new QFrame(this);
     line->setFrameShape(QFrame::HLine);
     line->setFrameShadow(QFrame::Sunken);
+    line->setContentsMargins(0, 0, 0, 0);
 
     auto *notificationWidgetLayout = new QVBoxLayout(this);
+    notificationWidgetLayout->setContentsMargins(0, 0, 0, 0);
+    notificationWidgetLayout->setSpacing(0);
+
     notificationWidgetLayout->addWidget(infoBoard);
-    notificationWidgetLayout->setStretchFactor(infoBoard, 8);
+    notificationWidgetLayout->setStretchFactor(infoBoard, 10);
     notificationWidgetLayout->addWidget(actionButtonMenu);
     notificationWidgetLayout->setStretchFactor(actionButtonMenu, 1);
     notificationWidgetLayout->addWidget(line);

@@ -343,7 +343,6 @@ void MainWindow::createToolBars() {
     fileToolBar->addAction(newTabAct);
     fileToolBar->addAction(openAct);
     fileToolBar->addAction(saveAct);
-    fileToolBar->hide();
     viewMenu->addAction(fileToolBar->toggleViewAction());
 
     cryptToolBar = addToolBar(tr("Crypt"));
@@ -390,9 +389,9 @@ void MainWindow::createToolBars() {
     connect(fileEncButton, SIGNAL(clicked(bool)), this, SLOT(slotOpenFileTab()));
     fileEncButton->setPopupMode(QToolButton::InstantPopup);
     fileEncButton->setIcon(QIcon(":fileencryption.png"));
-    fileEncButton->setToolTip(tr("Opera File"));
-    fileEncButton->setText(tr("File Crypto"));
-    cryptToolBar->addWidget(fileEncButton);
+    fileEncButton->setToolTip(tr("Browser to view and operate file"));
+    fileEncButton->setText(tr("Browser"));
+    fileToolBar->addWidget(fileEncButton);
 
 }
 

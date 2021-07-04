@@ -49,6 +49,7 @@ private:
     QComboBox *ownKeySelectBox;
     QHash<QString, QString> lang;
     QHash<QString, QString> keyIds;
+    QVector<QString> keyIdsList;
     QString ownKeyId;
     KeyList *mKeyList;
     GpgME::GpgContext *mCtx; /** The current gpg context */

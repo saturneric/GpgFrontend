@@ -46,13 +46,13 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
 
     createPopupMenu();
 
-    upLevelButton = new QPushButton("UP Level");
+    upLevelButton = new QPushButton("<");
     connect(upLevelButton, SIGNAL(clicked(bool)), this, SLOT(slotUpLevel()));
 
     refreshButton = new QPushButton("Refresh");
     connect(refreshButton, SIGNAL(clicked(bool)), this, SLOT(slotGoPath()));
 
-    goPathButton = new QPushButton("Go Path");
+    goPathButton = new QPushButton("Go");
     connect(goPathButton, SIGNAL(clicked(bool)), this, SLOT(slotGoPath()));
 
     pathEdit = new QLineEdit();
@@ -65,10 +65,12 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
     menuLayout->setStretchFactor(pathEdit, 8);
     menuLayout->addWidget(goPathButton);
     menuLayout->setStretchFactor(goPathButton, 1);
-    menuLayout->addWidget(refreshButton);
-    menuLayout->setStretchFactor(refreshButton, 1);
+    // menuLayout->addWidget(refreshButton);
+    // menuLayout->setStretchFactor(refreshButton, 1);
 
     auto *layout = new QVBoxLayout();
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
     layout->addLayout(menuLayout);
     layout->setStretchFactor(menuLayout, 1);
     layout->addWidget(dirTreeView);
