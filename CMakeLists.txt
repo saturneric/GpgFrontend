@@ -112,6 +112,7 @@ if(APPLE)
     )
     link_directories(
         /usr/local/lib
+        /usr/local/opt/openssl/lib
     )
 endif()
 

@@ -352,7 +352,9 @@ void MainWindow::refreshKeysFromKeyserver() {
 void MainWindow::uploadKeyToServer() {
     QVector<GpgKey> keys;
     keys.append(mKeyList->getSelectedKey());
-    auto *dialog = new KeyUploadDialog(mCtx, keys);
+    auto *dialog = new KeyUploadDialog(mCtx, keys, this);
+    dialog->show();
+    dialog->slotUpload();
 }
 
 void MainWindow::slotFileEncrypt() {

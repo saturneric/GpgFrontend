@@ -33,6 +33,10 @@ Q_OBJECT
 public:
     KeyUploadDialog(GpgME::GpgContext *ctx, const QVector<GpgKey> &keys, QWidget *parent = nullptr);
 
+public slots:
+
+    void slotUpload();
+
 private slots:
 
     void uploadKeyToServer(QByteArray &keys);
@@ -41,6 +45,8 @@ private slots:
 
 private:
 
+    GpgME::GpgContext *mCtx;
+    const QVector<GpgKey> &mKeys;
     QString appPath;
     QSettings settings;
     QByteArray mKeyData;

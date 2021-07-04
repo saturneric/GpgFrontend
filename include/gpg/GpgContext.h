@@ -99,7 +99,7 @@ namespace GpgME {
 
         void clearPasswordCache();
 
-        void exportSecretKey(const QString &uid, QByteArray *outBuffer);
+        bool exportSecretKey(const GpgKey &key, QByteArray *outBuffer);
 
         void getSigners(QVector<GpgKey> &signer);
 

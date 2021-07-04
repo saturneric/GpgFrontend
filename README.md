@@ -9,8 +9,8 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/saturneric/gpgfrontend)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_small)
 
-GpgFrontend is an Easy-to-Use, Compact, Cross-Platform, and Installation-Free [OpenPGP](https://www.openpgp.org/)
-Frontend Tool.
+GpgFrontend is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free [OpenPGP](https://www.openpgp.org/)
+Crypto Tool.
 
 By using GpgFrontend, you can quickly **encrypt and decrypt text or files**. Or at the same time as the above
 operations, you can add **your own signature** to let others know that this document or this paragraph of text was
@@ -18,12 +18,15 @@ issued by you. It aims to allow ordinary users to quickly use gpg and make profe
 GpgFrontend supports new features of OpenPGP.
 
 **Notice:** GpgFrontend does not provide an embedded [gnupg](https://gnupg.org/) binary library and needs to be
-installed by the user. **This is to ensure safety and avoid code or binary files being implanted in the backdoor during
+installed by the user. **This is to ensure safety and avoid code or binary files involved in encryption and decryption being implanted in the backdoor during
 the delivery process.**
 
 [>> Quick Start](#quick-start)
 
 [>> Code & Binary Security](https://saturneric.github.io/GpgFrontend/index.html#/about/code-binary-verify)
+
+[>> 中文文档](https://github.com/saturneric/GpgFrontend/blob/main/README_CN.md)
+
 
 <div align="center">
 <img width="640" src="https://github.com/saturneric/Blob/blob/master/screenshots/main_mac.jpg?raw=true" alt="macOS Screenshot"/>
@@ -35,7 +38,7 @@ the delivery process.**
 
 #### Workflows Status:
 
-[![Build & Package](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/cmake.yml)
+[![Build & Package](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml)
 
 ---
 
@@ -51,8 +54,8 @@ the delivery process.**
 - [Document](#document)
 - [Purpose](#purpose)
 - [Build](#build)
-- [Contract](#contract)
-    - [Contributing](#contributing)
+- [Contributing & Bugs Report](#contributing--bugs-report)
+    - [Contract](#contract)
     - [Maintainers](#maintainers)
 - [Licenses](#LICENSES)
 
@@ -60,8 +63,10 @@ the delivery process.**
 
 - Can run on **Windows, Linux and macOS**.
 - Open source, free, no need to install.
-- For Windows and macOS user, just double-click, and then you can use it freely.
-- Supports multiple languages. Don’t forget to help me translate this software.
+- Just double-click, and then you can use it freely.
+- Supports multiple languages.
+    - If you are interested, you can help
+      me [translate the interface](https://saturneric.github.io/GpgFrontend/index.html#/translate-interface).
 
 ## Usage
 
@@ -88,43 +93,42 @@ awesome operations.
 
 #### Windows
 
-1. [Download](https://gnupg.org/ftp/gcrypt/binary/gnupg-w32-2.3.1_20210420.exe) gnupg-w32-******.exe
+1. [Download](https://gnupg.org/ftp/gcrypt/binary/gnupg-w32-2.3.1_20210420.exe) `gnupg-w32-******.exe`
 2. Double Click it to install it
-3. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases)  Windows Edition from release
-4. Unzip gpgfrontend-windows-latest-*******.zip
-5. Go into the directory and double click GpgFrontend.exe
+3. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases)  Windows Edition from the latest release
+4. Unzip `gpgfrontend-windows-latest-*******.zip`
+5. Go into the directory and double click `GpgFrontend.exe`.
 
 #### macOS
 
-1. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases) macOS edition from release
+0. If command `gpg` is not avaliable, please use homebrew to install it first.
+1. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases) macOS edition from the latest release
 2. Double-Click GpgFrontend.dmg to load it
+    - macOS will automatically decompress the zip file and then you will be able to see the dmg
 3. Double click and run it
    (due to macOS security policy, you may need a little more step).
 4. If it satisfies you, you can drag it into your Application folder.
 
 #### Debian/Ubuntu/CentOS
 
-1. Install gnupg
+1. Install gnupg (If you have already followed please skip)
     - For Debian/Ubuntu
        ```shell
        $ sudo apt update
-       $ sudo apt install gpg qt-default
+       $ sudo apt install gpg
        ```
     - For CentOS
        ```shell
-       $ sudo yum install gnupg qt5-qtbase
+       $ sudo yum install gnupg 
        ```
-2. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases) Linux edition from release
-3. Unzip gpgfrontend-ubuntu-latest-*******.zip
-4. Get into folder and Give gpgfrontend permission to execute
+2. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases) Linux edition from the latest release
+3. Unzip gpgfrontend-ubuntu-16.04-*******.zip
+    - `ubuntu-16.04` shows that Linux distributions at the same time as 16.04 or later are supported.
+4. Give `GpgFrontend-***.AppImage` permission to execute
     ```shell
-    $ cd gpgfrontend-ubuntu-latest-*******/
-    $ chmod u+x GpgFrontend
+    $ chmod u+x ./GpgFrontend-***.AppImage
     ```
-5. Just run it
-    ```shell
-    $ ./GpgFrontend
-    ```
+5. Just double-click `GpgFrontend-***.AppImage` to run it.
 
 ## Document
 
@@ -145,13 +149,13 @@ The GpgFrontend project is as open source, and it also insists on using open sou
 
 ## Build
 
-The tutorial for building the software will be released shortly.
+The tutorial for building the software will be released shortly. Before the relevant documents are released, you can refer to the project-related Github Action file if you know it.
 
 ## Contract
 
 If you want to contact me individually, you can email [eric@bktus.com](mailto:eric@bktus.com).
 
-### Contributing
+### Contributing & Bugs Report
 
 Feel free to dive in! [Open an issue](https://github.com/saturneric/GpgFrontend/issues/new) or submit PRs.
 
