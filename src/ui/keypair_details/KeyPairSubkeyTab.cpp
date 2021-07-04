@@ -222,7 +222,7 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
 }
 
 void KeyPairSubkeyTab::createSubkeyOperaMenu() {
-    subkeyOperaMenu = new QMenu();
+    subkeyOperaMenu = new QMenu(this);
     // auto *revokeSubkeyAct = new QAction(tr("Revoke Subkey"));
     auto *editSubkeyAct = new QAction(tr("Edit Expire Date"));
     connect(editSubkeyAct, SIGNAL(triggered(bool)), this, SLOT(slotEditSubkey()));
@@ -232,6 +232,7 @@ void KeyPairSubkeyTab::createSubkeyOperaMenu() {
 }
 
 void KeyPairSubkeyTab::slotEditSubkey() {
+    qDebug() << "Slot Edit Subkry";
     auto *subkey = getSelectedSubkey();
     if(subkey == buffered_subkeys[0]) {
         subkey = nullptr;
@@ -245,7 +246,7 @@ void KeyPairSubkeyTab::slotRevokeSubkey() {
 }
 
 void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent *event) {
-    if (subkeyList->selectedItems().length() > 0) {
+    if (!subkeyList->selectedItems().isEmpty()) {
         subkeyOperaMenu->exec(event->globalPos());
     }
 }

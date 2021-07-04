@@ -1,15 +1,15 @@
-name: Debug Build & Package
+name: Build & Package CI Test
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop-ci ]
     paths-ignore:
       - '**/README.md'
       - '**/README_CN.md'
       - 'resource/ts/**'
       - 'docs/**'
   pull_request:
-    branches: [ develop ]
+    branches: [ develop-ci ]
     paths-ignore:
       - '**/README.md'
       - '**/README_CN.md'
@@ -18,14 +18,14 @@ on:
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Debug
+  BUILD_TYPE: Release
   EXECUTABLE_OUTPUT_PATH: ./
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
+        os: [ 'ubuntu-16.04', 'macos-latest', 'windows-latest' ]
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -36,12 +36,18 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc g++
-          sudo apt-get -y install libgpgme-dev gpg
-        if: matrix.os == 'ubuntu-latest'
+          sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
+          sudo apt-get -y install libgcrypt11-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp ninja-build
+          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-image0
+          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-*
+        if: matrix.os == 'ubuntu-16.04'
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5 gcc texinfo gettext libgpg-error libassuan gpgme
+          brew install cmake git autoconf automake qt@5 gcc texinfo gettext libgpg-error libassuan gpgme openssl
+          brew link qt@5
+          brew link gcc
+          brew link openssl --force
         if: matrix.os == 'macos-latest'
 
       - name: Cache Qt
@@ -50,13 +56,13 @@ jobs:
         with:
           path: ../Qt
           key: ${{ runner.os }}-QtCache
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-16.04'
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
         with:
           cached: ${{ steps.cache-qt.outputs.cache-hit }}
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-16.04'
 
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
@@ -81,7 +87,7 @@ jobs:
           ./configure --enable-maintainer-mode --enable-static=yes && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-16.04'
 
       - name: Build assuan (Linux)
         run: |
@@ -92,7 +98,7 @@ jobs:
           ./configure --enable-maintainer-mode --enable-static=yes && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-16.04'
 
       - name: Build GpgME (Linux)
         run: |
@@ -103,7 +109,7 @@ jobs:
           ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-16.04'
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}
@@ -119,12 +125,30 @@ jobs:
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}}
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        if: matrix.os == 'ubuntu-16.04' || matrix.os == 'macos-latest'
 
       - name: Build GpgFrontend
         # Build your program with the given configuration
         run: cmake --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -j 2
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        if: matrix.os == 'ubuntu-16.04' || matrix.os == 'macos-latest'
+
+      - name: Package App Bundle (macOS)
+        run: |
+          macdeployqt ${{github.workspace}}/build/release/GpgFrontend.app
+          mkdir ${{github.workspace}}/build/tmp/
+          hdiutil create ${{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/release/
+          mkdir ${{github.workspace}}/build/artifactOut
+          hdiutil convert ${{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
+        if: matrix.os == 'macos-latest'
+
+      - name: Package App Image (Linux)
+        run: |
+          mkdir ${{github.workspace}}/build/artifactOut
+          cd ${{github.workspace}}/build/artifactOut
+          wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          chmod u+x linuxdeployqt-continuous-x86_64.AppImage
+          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/release/gpgfrontend/usr/share/applications/*.desktop -appimage
+        if: matrix.os == 'ubuntu-16.04'
 
       - name: Configure CMake & Build Binary(Windows)
         shell: msys2 {0}
@@ -144,14 +168,14 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
-          path: ${{github.workspace}}/build/release/*
-        if: matrix.os == 'ubuntu-latest'
+          path: ${{github.workspace}}/build/artifactOut/GpgFrontend*.AppImage*
+        if: matrix.os == 'ubuntu-16.04'
 
       - name: Upload Artifact(macOS)
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
-          path: ${{github.workspace}}/build/release/*
+          path: ${{github.workspace}}/build/artifactOut/*
         if: matrix.os == 'macos-latest'
 
       - name: Upload Artifact(Windows)

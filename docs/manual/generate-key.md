@@ -50,7 +50,17 @@ will give you sufficient hints on the UI so that you will not go wrong.
 
 Just remember that the larger the key length, the more secure, but it will be slower when performing operations.
 
-![keysize-algo](https://github.com/saturneric/Blob/blob/master/screenshots/keysize-algo.png?raw=true)
+!treeModuleSelected[keysize-algo](https://github.com/saturneric/Blob/blob/master/screenshots/keysize-algo.png?raw=true)
+
+### Passphrase
+
+You can set a key to protect the master key, which is very important when the master key is leaked.
+When the Do not set password check box is not checked, an interface for you to enter the password will pop up during the process of generating the password. 
+Just follow the prompts. 
+After setting the password, when you need to use the master key for operation, you may enter the password to unlock it 
+(some systems have a password manager to take over this process).
+
+You can also check the checkbox to not set a protection password for the master key, but due to security considerations, this is not recommended.
 
 ### Usage
 

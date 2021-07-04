@@ -60,7 +60,6 @@ KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *ke
     waitingBar = new QProgressBar();
     waitingBar->setVisible(false);
     waitingBar->setRange(0, 0);
-    waitingBar->setFixedHeight(24);
     waitingBar->setFixedWidth(200);
 
     // Layout for messagebox
@@ -100,7 +99,7 @@ KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *ke
         this->setWindowTitle(tr("Import Keys from Keyserver"));
 
     if(automatic) {
-        this->setFixedSize(200, 42);
+        this->setFixedSize(240, 42);
     } else {
         // Restore window size & location
         if (this->settings.value("ImportKeyFromServer/setWindowSize").toBool()) {
@@ -120,8 +119,6 @@ KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *ke
             this->settings.setValue("ImportKeyFromServer/setWindowSize", true);
         }
     }
-
-
 
     this->setModal(true);
 }
