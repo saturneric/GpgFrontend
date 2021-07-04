@@ -215,7 +215,6 @@ void KeyList::slotRefresh()
         ++row_index;
     }
 
-
     setChecked(keyList);
 }
 
