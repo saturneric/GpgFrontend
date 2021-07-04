@@ -86,6 +86,10 @@ void MainWindow::slotDisableTabActions(int number) {
     else
         disable = false;
 
+    if(edit->curFilePage() != nullptr) {
+        disable = true;
+    }
+
     printAct->setDisabled(disable);
     saveAct->setDisabled(disable);
     saveAsAct->setDisabled(disable);
@@ -99,7 +103,9 @@ void MainWindow::slotDisableTabActions(int number) {
     verifyAct->setDisabled(disable);
     signAct->setDisabled(disable);
     encryptAct->setDisabled(disable);
+    encryptSignAct->setDisabled(disable);
     decryptAct->setDisabled(disable);
+    decryptVerifyAct->setDisabled(disable);
 
     redoAct->setDisabled(disable);
     undoAct->setDisabled(disable);

@@ -46,7 +46,7 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
 
     createPopupMenu();
 
-    upLevelButton = new QPushButton("<");
+    upLevelButton = new QPushButton("Up");
     connect(upLevelButton, SIGNAL(clicked(bool)), this, SLOT(slotUpLevel()));
 
     refreshButton = new QPushButton("Refresh");
@@ -188,7 +188,6 @@ void FilePage::slotOpenItem() {
         if (mainWindow != nullptr)
             mainWindow->slotOpenFile(mPath);
     }
-    emit pathChanged(mPath);
 }
 
 void FilePage::slotDeleteItem() {

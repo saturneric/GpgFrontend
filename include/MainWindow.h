@@ -333,6 +333,7 @@ private:
     QAction *switchTabUpAct; /** Action to switch tab up*/
     QAction *switchTabDownAct; /** Action to switch tab down */
     QAction *openAct; /** Action to open file */
+    QAction *browserAct; /** Action to open file browser*/
     QAction *saveAct; /** Action to save file */
     QAction *saveAsAct; /** Action to save file as */
     QAction *printAct; /** Action to print */
