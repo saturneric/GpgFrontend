@@ -52,7 +52,22 @@ void MainWindow::slotEncrypt() {
         auto *tmp = new QByteArray();
 
         gpgme_encrypt_result_t result = nullptr;
-        auto error = mCtx->encrypt(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &result);
+
+        gpgme_error_t error;
+
+        auto thread = QThread::create([&]() {
+            error = mCtx->encrypt(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &result);
+        });
+
+        thread->start();
+
+        WaitingDialog *dialog = new WaitingDialog(this);
+
+        while(thread->isRunning()) {
+            QApplication::processEvents();
+        }
+
+        dialog->close();
 
         auto resultAnalyse = new EncryptResultAnalyse(error, result);
         auto &reportText = resultAnalyse->getResultReport();
@@ -133,8 +148,21 @@ void MainWindow::slotDecrypt() {
         GpgME::GpgContext::preventNoDataErr(&text);
 
         gpgme_decrypt_result_t result = nullptr;
-        // try decrypt, if fail do nothing, especially don't replace text
-        auto error = mCtx->decrypt(text, decrypted, &result);
+
+        gpgme_error_t error;
+        auto thread = QThread::create([&]() {
+            // try decrypt, if fail do nothing, especially don't replace text
+            error = mCtx->decrypt(text, decrypted, &result);
+        });
+        thread->start();
+
+        WaitingDialog *dialog = new WaitingDialog(this);
+        while(thread->isRunning()) {
+            QApplication::processEvents();
+        }
+
+        dialog->close();
+
         infoBoard->associateTextEdit(edit->curTextPage());
 
         if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
@@ -181,7 +209,18 @@ void MainWindow::slotVerify() {
 
         gpgme_verify_result_t result;
 
-        auto error = mCtx->verify(&text, nullptr, &result);
+        gpgme_error_t error;
+        auto thread = QThread::create([&]() {
+            error = mCtx->verify(&text, nullptr, &result);
+        });
+        thread->start();
+
+        WaitingDialog *dialog = new WaitingDialog(this);
+        while(thread->isRunning()) {
+            QApplication::processEvents();
+        }
+
+        dialog->close();
 
         auto resultAnalyse = new VerifyResultAnalyse(mCtx, error, result);
         infoBoard->associateTextEdit(edit->curTextPage());
@@ -256,8 +295,21 @@ void MainWindow::slotEncryptSign() {
         gpgme_encrypt_result_t encr_result = nullptr;
         gpgme_sign_result_t sign_result = nullptr;
 
-        auto error = mCtx->encryptSign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &encr_result,
+        gpgme_decrypt_result_t result = nullptr;
+
+        gpgme_error_t error;
+        auto thread = QThread::create([&]() {
+            error = mCtx->encryptSign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &encr_result,
                                        &sign_result);
+        });
+        thread->start();
+
+        WaitingDialog *dialog = new WaitingDialog(this);
+        while(thread->isRunning()) {
+            QApplication::processEvents();
+        }
+
+        dialog->close();
 
         if(gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
             auto *tmp2 = new QString(*tmp);
@@ -297,8 +349,20 @@ void MainWindow::slotDecryptVerify() {
 
         gpgme_decrypt_result_t d_result = nullptr;
         gpgme_verify_result_t v_result = nullptr;
-        // try decrypt, if fail do nothing, especially don't replace text
-        auto error = mCtx->decryptVerify(text, decrypted, &d_result, &v_result);
+
+        gpgme_error_t error;
+        auto thread = QThread::create([&]() {
+            error = mCtx->decryptVerify(text, decrypted, &d_result, &v_result);
+        });
+        thread->start();
+
+        WaitingDialog *dialog = new WaitingDialog(this);
+        while(thread->isRunning()) {
+            QApplication::processEvents();
+        }
+
+        dialog->close();
+
         infoBoard->associateTextEdit(edit->curTextPage());
 
         if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
@@ -433,7 +497,19 @@ void MainWindow::slotFileEncrypt() {
 
     try {
         gpgme_encrypt_result_t result;
-        auto error = GpgFileOpera::encryptFile(mCtx, keys, path, &result);
+
+        gpgme_error_t error;
+        auto thread = QThread::create([&]() {
+            error = GpgFileOpera::encryptFile(mCtx, keys, path, &result);
+        });
+        thread->start();
+
+        WaitingDialog *dialog = new WaitingDialog(this);
+        while(thread->isRunning()) {
+            QApplication::processEvents();
+        }
+
+        dialog->close();
 
         auto resultAnalyse = new EncryptResultAnalyse(error, result);
         auto &reportText = resultAnalyse->getResultReport();
@@ -451,7 +527,7 @@ void MainWindow::slotFileEncrypt() {
 
         fileTreeView->update();
 
-    } catch (std::runtime_error &e) {
+    } catch (const std::runtime_error &e) {
         QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
     }
 
@@ -498,7 +574,18 @@ void MainWindow::slotFileDecrypt() {
 
     try {
         gpgme_decrypt_result_t result;
-        auto error = GpgFileOpera::decryptFile(mCtx, path, &result);
+        gpgme_error_t error;
+        auto thread = QThread::create([&]() {
+            error = GpgFileOpera::decryptFile(mCtx, path, &result);
+        });
+        thread->start();
+
+        WaitingDialog *dialog = new WaitingDialog(this);
+        while(thread->isRunning()) {
+            QApplication::processEvents();
+        }
+
+        dialog->close();
 
         auto resultAnalyse = new DecryptResultAnalyse(mCtx, error, result);
         auto &reportText = resultAnalyse->getResultReport();
@@ -515,7 +602,7 @@ void MainWindow::slotFileDecrypt() {
         delete resultAnalyse;
 
         fileTreeView->update();
-    } catch (std::runtime_error &e) {
+    } catch (const std::runtime_error &e) {
         QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
         return;
     }
@@ -576,7 +663,18 @@ void MainWindow::slotFileSign() {
 
     try {
         gpgme_sign_result_t result;
-        auto error = GpgFileOpera::signFile(mCtx, keys, path, &result);
+        gpgme_error_t error;
+        auto thread = QThread::create([&]() {
+            error = GpgFileOpera::signFile(mCtx, keys, path, &result);
+        });
+        thread->start();
+
+        WaitingDialog *dialog = new WaitingDialog(this);
+        while(thread->isRunning()) {
+            QApplication::processEvents();
+        }
+
+        dialog->close();
 
         auto resultAnalyse = new SignResultAnalyse(error, result);
         auto &reportText = resultAnalyse->getResultReport();
@@ -594,7 +692,7 @@ void MainWindow::slotFileSign() {
 
         fileTreeView->update();
 
-    } catch (std::runtime_error &e) {
+    } catch (const std::runtime_error &e) {
         QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
     }
 
@@ -611,7 +709,11 @@ void MainWindow::slotFileVerify() {
 
     QString signFilePath, dataFilePath;
 
-    if (fileInfo.suffix() == "sig" || fileInfo.suffix() == "gpg") {
+    if(fileInfo.suffix() == "gpg") {
+        dataFilePath = path;
+        signFilePath = path;
+    }
+    else if (fileInfo.suffix() == "sig") {
         int pos = path.lastIndexOf(QChar('.'));
         dataFilePath = path.left(pos);
         signFilePath = path;
@@ -636,10 +738,26 @@ void MainWindow::slotFileVerify() {
         return;
     }
 
-    try {
-        gpgme_verify_result_t result;
-        auto error = GpgFileOpera::verifyFile(mCtx, dataFilePath, &result);
+    gpgme_verify_result_t result;
 
+    gpgme_error_t error;
+    bool if_error = false;
+    auto thread = QThread::create([&]() {
+        try{
+            error = GpgFileOpera::verifyFile(mCtx, dataFilePath, &result);
+        } catch (const std::runtime_error &e) {
+            if_error = true;
+        }
+    });
+    thread->start();
+
+    WaitingDialog *dialog = new WaitingDialog(this);
+    while(thread->isRunning()) {
+        QApplication::processEvents();
+    }
+    dialog->close();
+
+    if(!if_error) {
         auto resultAnalyse = new VerifyResultAnalyse(mCtx, error, result);
         auto &reportText = resultAnalyse->getResultReport();
         infoBoard->associateTabWidget(edit->tabWidget);
@@ -662,7 +780,7 @@ void MainWindow::slotFileVerify() {
         delete resultAnalyse;
 
         fileTreeView->update();
-    } catch (std::runtime_error &e) {
+    } else {
         QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
         return;
     }
@@ -742,7 +860,17 @@ void MainWindow::slotFileEncryptSign() {
         gpgme_encrypt_result_t encr_result = nullptr;
         gpgme_sign_result_t sign_result = nullptr;
 
-        auto error = GpgFileOpera::encryptSignFile(mCtx, keys, path, &encr_result, &sign_result);
+        gpgme_error_t error;
+        auto thread = QThread::create([&]() {
+            error = GpgFileOpera::encryptSignFile(mCtx, keys, path, &encr_result, &sign_result);
+        });
+        thread->start();
+
+        WaitingDialog *dialog = new WaitingDialog(this);
+        while(thread->isRunning()) {
+            QApplication::processEvents();
+        }
+        dialog->close();
 
         auto resultAnalyseEncr = new EncryptResultAnalyse(error, encr_result);
         auto resultAnalyseSign = new SignResultAnalyse(error, sign_result);
@@ -800,8 +928,18 @@ void MainWindow::slotFileDecryptVerify() {
 
         gpgme_decrypt_result_t d_result = nullptr;
         gpgme_verify_result_t v_result = nullptr;
-        // try decrypt, if fail do nothing, especially don't replace text
-        auto error = GpgFileOpera::decryptVerifyFile(mCtx, path, &d_result, &v_result);
+
+        gpgme_error_t error;
+        auto thread = QThread::create([&]() {
+            error = GpgFileOpera::decryptVerifyFile(mCtx, path, &d_result, &v_result);
+        });
+        thread->start();
+
+        WaitingDialog *dialog = new WaitingDialog(this);
+        while(thread->isRunning()) {
+            QApplication::processEvents();
+        }
+        dialog->close();
         infoBoard->associateFileTreeView(edit->curFilePage());
 
         auto resultAnalyseDecrypt = new DecryptResultAnalyse(mCtx, error, d_result);
