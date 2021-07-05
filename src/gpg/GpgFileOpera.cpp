@@ -132,6 +132,8 @@ gpgme_error_t GpgFileOpera::signFile(GpgME::GpgContext *ctx, QVector<GpgKey> &ke
 
 gpgme_error_t GpgFileOpera::verifyFile(GpgME::GpgContext *ctx, const QString &mPath, gpgme_verify_result_t *result) {
 
+    qDebug() << "Verify File Path" << mPath;
+
     QFileInfo fileInfo(mPath);
 
     if (!fileInfo.isFile() || !fileInfo.isReadable())
@@ -166,6 +168,9 @@ gpgme_error_t GpgFileOpera::verifyFile(GpgME::GpgContext *ctx, const QString &mP
 gpg_error_t GpgFileOpera::encryptSignFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
                                           gpgme_encrypt_result_t *encr_res,
                                           gpgme_sign_result_t *sign_res) {
+
+    qDebug() << "Encrypt Sign File Path" << mPath;
+
     QFileInfo fileInfo(mPath);
 
     if (!fileInfo.isFile() || !fileInfo.isReadable())
@@ -199,6 +204,9 @@ gpg_error_t GpgFileOpera::encryptSignFile(GpgME::GpgContext *ctx, QVector<GpgKey
 
 gpg_error_t GpgFileOpera::decryptVerifyFile(GpgME::GpgContext *ctx, const QString &mPath, gpgme_decrypt_result_t *decr_res,
                                             gpgme_verify_result_t *verify_res) {
+
+    qDebug() << "Decrypt Verify File Path" << mPath;
+
     QFileInfo fileInfo(mPath);
 
     if (!fileInfo.isFile() || !fileInfo.isReadable())

@@ -71,6 +71,8 @@ namespace GpgME {
 
         ~GpgContext() override;
 
+        bool isGood() const;
+
         GpgImportInformation importKey(QByteArray inBuffer);
 
         [[nodiscard]] const GpgKeyList &getKeys() const;
@@ -178,6 +180,7 @@ namespace GpgME {
         gpgme_data_t in{};
         gpgme_error_t err;
         bool debug;
+        bool good = true;
 
         static gpgme_error_t readToBuffer(gpgme_data_t dataIn, QByteArray *outBuffer);
 

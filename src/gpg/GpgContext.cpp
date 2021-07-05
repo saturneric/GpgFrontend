@@ -87,11 +87,10 @@ namespace GpgME {
             check_pass = true;
 
         if (!check_pass) {
-            QMessageBox::critical(nullptr, tr("ENV Loading Failed"),
-                                  tr("Gnupg is not installed correctly, please follow the ReadME instructions to install gnupg and then open GPGFrontend."));
-            QCoreApplication::quit();
-            exit(0);
-        }
+            good = false;
+            return;
+        } else good = true;
+
 
         /** Setting the output type must be done at the beginning */
         /** think this means ascii-armor --> ? */
@@ -120,6 +119,10 @@ namespace GpgME {
     GpgContext::~GpgContext() {
         if (mCtx) gpgme_release(mCtx);
         mCtx = nullptr;
+    }
+
+    bool GpgContext::isGood() const {
+        return good;
     }
 
 /** Import Key from QByteArray
