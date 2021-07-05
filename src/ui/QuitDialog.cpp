@@ -74,7 +74,7 @@ QuitDialog::QuitDialog(QWidget *parent, const QHash<int, QString>& unsavedDocs)
     auto *warn_icon = new QLabel();
     warn_icon->setPixmap(pixmap);
     auto *warn_label = new QLabel(
-            tr("<h3>%1 files contain unsaved information.<br/>Save the changes before closing?</h3>").arg(row));
+            tr("%1 files contain unsaved information.<br/>Save the changes before closing?").arg(row));
     auto *warnBoxLayout = new QHBoxLayout();
     warnBoxLayout->addWidget(warn_icon);
     warnBoxLayout->addWidget(warn_label);

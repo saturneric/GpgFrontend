@@ -47,7 +47,6 @@ QT_END_NAMESPACE
  */
 class EditorPage : public QWidget {
 Q_OBJECT
-
 public:
     /**
      * @details Add layout and add plaintextedit
@@ -88,6 +87,9 @@ public:
      * @param className The classname of the widgets to hide
      */
     void closeNoteByClass(const char *className);
+
+
+    const QString uuid = QUuid::createUuid().toString();
 
 private:
     QTextEdit *textPage; /** The textedit of the tab */
