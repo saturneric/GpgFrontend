@@ -221,14 +221,35 @@ void MainWindow::slotEncryptSign() {
             return;
         }
 
+        bool can_sign = false, can_encr = false;
+
         for (const auto &key : keys) {
-            if (!GpgME::GpgContext::checkIfKeyCanSign(key) || !GpgME::GpgContext::checkIfKeyCanEncr(key)) {
-                QMessageBox::information(nullptr,
-                                         tr("Invalid Operation"),
-                                         tr("The selected key cannot be used for signing and encryption at the same time.<br/>")
+            bool key_can_sign = GpgME::GpgContext::checkIfKeyCanSign(key);
+            bool key_can_encr = GpgME::GpgContext::checkIfKeyCanEncr(key);
+
+            if (!key_can_sign && !key_can_encr) {
+                QMessageBox::critical(nullptr,
+                                         tr("Invalid KeyPair"),
+                                         tr("The selected keypair cannot be used for signing and encryption at the same time.<br/>")
                                          + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
                 return;
             }
+
+            if(key_can_sign) can_sign = true;
+            if(key_can_encr) can_encr = true;
+        }
+
+        if(!can_encr) {
+                QMessageBox::critical(nullptr,
+                                         tr("Incomplete Operation"),
+                                         tr("None of the selected key pairs can provide the encryption function."));
+                return;
+        }
+
+        if(!can_sign) {
+                QMessageBox::warning(nullptr,
+                                         tr("Incomplete Operation"),
+                                         tr("None of the selected key pairs can provide the signature function."));
         }
 
         auto *tmp = new QByteArray();
@@ -237,8 +258,11 @@ void MainWindow::slotEncryptSign() {
 
         auto error = mCtx->encryptSign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &encr_result,
                                        &sign_result);
-        auto *tmp2 = new QString(*tmp);
-        edit->slotFillTextEditWithText(*tmp2);
+
+        if(gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
+            auto *tmp2 = new QString(*tmp);
+            edit->slotFillTextEditWithText(*tmp2);
+        }
 
         auto resultAnalyseEncr = new EncryptResultAnalyse(error, encr_result);
         auto resultAnalyseSign = new SignResultAnalyse(error, sign_result);
@@ -663,7 +687,7 @@ void MainWindow::slotFileEncryptSign() {
         QMessageBox::critical(this, tr("Error"), tr("No permission to create file."));
         return;
     }
-    if (QFile::exists(path + ".asc")) {
+    if (QFile::exists(path + ".gpg")) {
         auto ret = QMessageBox::warning(this,
                                         tr("Warning"),
                                         tr("The target file already exists, do you need to overwrite it?"),
@@ -682,15 +706,35 @@ void MainWindow::slotFileEncryptSign() {
         return;
     }
 
+    bool can_sign = false, can_encr = false;
+
     for (const auto &key : keys) {
-        if (!GpgME::GpgContext::checkIfKeyCanEncr(key)) {
-            QMessageBox::information(this,
-                                     tr("Invalid Operation"),
-                                     tr("The selected key contains a key that does not actually have a encrypt usage.<br/>")
+        bool key_can_sign = GpgME::GpgContext::checkIfKeyCanSign(key);
+        bool key_can_encr = GpgME::GpgContext::checkIfKeyCanEncr(key);
+
+        if (!key_can_sign && !key_can_encr) {
+            QMessageBox::critical(nullptr,
+                                     tr("Invalid KeyPair"),
+                                     tr("The selected keypair cannot be used for signing and encryption at the same time.<br/>")
                                      + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
             return;
-
         }
+
+        if(key_can_sign) can_sign = true;
+        if(key_can_encr) can_encr = true;
+    }
+
+    if(!can_encr) {
+            QMessageBox::critical(nullptr,
+                                     tr("Incomplete Operation"),
+                                     tr("None of the selected key pairs can provide the encryption function."));
+            return;
+    }
+
+    if(!can_sign) {
+            QMessageBox::warning(nullptr,
+                                     tr("Incomplete Operation"),
+                                     tr("None of the selected key pairs can provide the signature function."));
     }
 
     try {

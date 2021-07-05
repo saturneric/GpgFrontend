@@ -959,8 +959,10 @@ namespace GpgME {
     void GpgContext::setSigners(const QVector<GpgKey> &keys) {
         gpgme_signers_clear(mCtx);
         for (const auto &key : keys) {
-            auto gpgmeError = gpgme_signers_add(mCtx, key.key_refer);
-            checkErr(gpgmeError);
+            if(checkIfKeyCanSign(key)) {
+                auto gpgmeError = gpgme_signers_add(mCtx, key.key_refer);
+                checkErr(gpgmeError);
+            }
         }
         if (keys.length() != gpgme_signers_count(mCtx)) {
             qDebug() << "No All Keys Added";
@@ -1174,6 +1176,10 @@ namespace GpgME {
                 }
             }
         }
+
+        if(gpgme_err_code(err) != GPG_ERR_NO_ERROR)
+            checkErr(err);
+
         if (dataIn) {
             gpgme_data_release(dataIn);
         }
