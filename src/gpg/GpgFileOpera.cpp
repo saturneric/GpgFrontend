@@ -142,24 +142,25 @@ gpgme_error_t GpgFileOpera::verifyFile(GpgME::GpgContext *ctx, const QString &mP
     if (!infile.open(QIODevice::ReadOnly))
         throw std::runtime_error("cannot open file");
 
-
     QByteArray inBuffer = infile.readAll();
 
-    QFile signFile;
-    signFile.setFileName(mPath + ".sig");
-    if (!signFile.open(QIODevice::ReadOnly)) {
-        throw std::runtime_error("cannot open file");
+    if(fileInfo.suffix() == "gpg") {
+        auto error = ctx->verify(&inBuffer, nullptr, result);
+        return error;
     }
+    else {
+        QFile signFile;
+        signFile.setFileName(mPath + ".sig");
+        if (!signFile.open(QIODevice::ReadOnly)) {
+            throw std::runtime_error("cannot open file");
+        }
 
+        auto signBuffer = signFile.readAll();
+        infile.close();
 
-
-    auto signBuffer = signFile.readAll();
-    infile.close();
-
-
-    auto error = ctx->verify(&inBuffer, &signBuffer, result);
-
-    return error;
+        auto error = ctx->verify(&inBuffer, &signBuffer, result);
+        return error;
+    }
 }
 
 gpg_error_t GpgFileOpera::encryptSignFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
