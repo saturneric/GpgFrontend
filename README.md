@@ -9,7 +9,8 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/saturneric/gpgfrontend)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_small)
 
-GpgFrontend is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free [OpenPGP](https://www.openpgp.org/)
+GpgFrontend is a Powerful, Easy-to-Use, Compact, Cross-Platform, and
+Installation-Free [OpenPGP](https://www.openpgp.org/)
 Crypto Tool.
 
 By using GpgFrontend, you can quickly **encrypt and decrypt text or files**. Or at the same time as the above
@@ -18,8 +19,8 @@ issued by you. It aims to allow ordinary users to quickly use gpg and make profe
 GpgFrontend supports new features of OpenPGP.
 
 **Notice:** GpgFrontend does not provide an embedded [gnupg](https://gnupg.org/) binary library and needs to be
-installed by the user. **This is to ensure safety and avoid code or binary files involved in encryption and decryption being implanted in the backdoor during
-the delivery process.**
+installed by the user. **This is to ensure safety and avoid code or binary files involved in encryption and decryption
+being implanted in the backdoor during the delivery process.**
 
 [>> Quick Start](#quick-start)
 
@@ -72,17 +73,23 @@ the delivery process.**
 
 ### Quick Start
 
-### Fast encryption
+### Fast Text Encryption
 
 Encryption can be done in just a few clicks.
 
 ![GIF](https://github.com/saturneric/Blob/blob/master/gif/encrypt.gif?raw=true)
 
-### Fast Decryption
+### Fast Text Decryption
 
 I want to see what you wrote right away.
 
 ![GIF](https://github.com/saturneric/Blob/blob/master/gif/decrypt.gif?raw=true)
+
+### Fast File Encryption & Sign
+
+What about files?
+
+![GIF](https://github.com/saturneric/Blob/blob/master/gif/encr-sign-file.gif?raw=true)
 
 ### More Helpful Operation
 
@@ -149,7 +156,8 @@ The GpgFrontend project is as open source, and it also insists on using open sou
 
 ## Build
 
-The tutorial for building the software will be released shortly. Before the relevant documents are released, you can refer to the project-related Github Action file if you know it.
+The tutorial for building the software will be released shortly. Before the relevant documents are released, you can
+refer to the project-related Github Action file if you know it.
 
 ## Contract
 
@@ -174,16 +182,20 @@ GpgFrontend itself is licensed under the [GPLv3](COPYING).
 There are some libraries and binary included in the zip-file which (may) have different licenses, for more information
 check their homepages. You can also obtain the sources from there.
 
+gnupg: https://gnupg.org/
+
 gpg4usb: https://www.gpg4usb.org/
 
-Gnupg: https://gnupg.org/
-
-QT: https://www.qt.io/
+QT 5.15.2(opensource): https://www.qt.io/
 
 MSYS2: https://www.msys2.org/
 
 mingw-w64: http://mingw-w64.org/doku.php
 
-The icons of this software use materials from Alibaba vector icon library. The Alibaba vector icon library is free to
+AppImage: https://appimage.org/
+
+Application Bundles: [Link](!https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
+
+The icons of this software use materials from [Alibaba Iconfont](!https://www.iconfont.cn/). The Alibaba vector icon library is free to
 use. The icons in the free library aren't registered as trademarks. There is no copyright issue involved and can be used
 commercially.
