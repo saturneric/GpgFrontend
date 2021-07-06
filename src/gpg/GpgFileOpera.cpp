@@ -132,6 +132,8 @@ gpgme_error_t GpgFileOpera::signFile(GpgME::GpgContext *ctx, QVector<GpgKey> &ke
 
 gpgme_error_t GpgFileOpera::verifyFile(GpgME::GpgContext *ctx, const QString &mPath, gpgme_verify_result_t *result) {
 
+    qDebug() << "Verify File Path" << mPath;
+
     QFileInfo fileInfo(mPath);
 
     if (!fileInfo.isFile() || !fileInfo.isReadable())
@@ -142,29 +144,33 @@ gpgme_error_t GpgFileOpera::verifyFile(GpgME::GpgContext *ctx, const QString &mP
     if (!infile.open(QIODevice::ReadOnly))
         throw std::runtime_error("cannot open file");
 
-
     QByteArray inBuffer = infile.readAll();
 
-    QFile signFile;
-    signFile.setFileName(mPath + ".sig");
-    if (!signFile.open(QIODevice::ReadOnly)) {
-        throw std::runtime_error("cannot open file");
+    if(fileInfo.suffix() == "gpg") {
+        auto error = ctx->verify(&inBuffer, nullptr, result);
+        return error;
     }
+    else {
+        QFile signFile;
+        signFile.setFileName(mPath + ".sig");
+        if (!signFile.open(QIODevice::ReadOnly)) {
+            throw std::runtime_error("cannot open file");
+        }
 
+        auto signBuffer = signFile.readAll();
+        infile.close();
 
-
-    auto signBuffer = signFile.readAll();
-    infile.close();
-
-
-    auto error = ctx->verify(&inBuffer, &signBuffer, result);
-
-    return error;
+        auto error = ctx->verify(&inBuffer, &signBuffer, result);
+        return error;
+    }
 }
 
 gpg_error_t GpgFileOpera::encryptSignFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
                                           gpgme_encrypt_result_t *encr_res,
                                           gpgme_sign_result_t *sign_res) {
+
+    qDebug() << "Encrypt Sign File Path" << mPath;
+
     QFileInfo fileInfo(mPath);
 
     if (!fileInfo.isFile() || !fileInfo.isReadable())
@@ -198,6 +204,9 @@ gpg_error_t GpgFileOpera::encryptSignFile(GpgME::GpgContext *ctx, QVector<GpgKey
 
 gpg_error_t GpgFileOpera::decryptVerifyFile(GpgME::GpgContext *ctx, const QString &mPath, gpgme_decrypt_result_t *decr_res,
                                             gpgme_verify_result_t *verify_res) {
+
+    qDebug() << "Decrypt Verify File Path" << mPath;
+
     QFileInfo fileInfo(mPath);
 
     if (!fileInfo.isFile() || !fileInfo.isReadable())

@@ -36,6 +36,7 @@
 #include "ui/FindWidget.h"
 #include "ui/Wizard.h"
 #include "ui/KeyUploadDialog.h"
+#include "ui/WaitingDialog.h"
 
 #include "gpg/result_analyse/SignResultAnalyse.h"
 #include "gpg/result_analyse/EncryptResultAnalyse.h"
