@@ -87,11 +87,10 @@ namespace GpgME {
             check_pass = true;
 
         if (!check_pass) {
-            QMessageBox::critical(nullptr, tr("ENV Loading Failed"),
-                                  tr("Gnupg is not installed correctly, please follow the ReadME instructions to install gnupg and then open GPGFrontend."));
-            QCoreApplication::quit();
-            exit(0);
-        }
+            good = false;
+            return;
+        } else good = true;
+
 
         /** Setting the output type must be done at the beginning */
         /** think this means ascii-armor --> ? */
@@ -120,6 +119,10 @@ namespace GpgME {
     GpgContext::~GpgContext() {
         if (mCtx) gpgme_release(mCtx);
         mCtx = nullptr;
+    }
+
+    bool GpgContext::isGood() const {
+        return good;
     }
 
 /** Import Key from QByteArray
@@ -656,16 +659,16 @@ namespace GpgME {
     bool GpgContext::exportSecretKey(const GpgKey &key, QByteArray *outBuffer) {
         qDebug() << "Export Secret Key" << key.id;
         gpgme_key_t target_key[2] = {
-            key.key_refer,
-            nullptr
+                key.key_refer,
+                nullptr
         };
 
         gpgme_data_t dataOut;
         gpgme_data_new(&dataOut);
         // export private key to outBuffer
-        gpgme_error_t error = gpgme_op_export_keys(mCtx, target_key,GPGME_EXPORT_MODE_SECRET, dataOut);
+        gpgme_error_t error = gpgme_op_export_keys(mCtx, target_key, GPGME_EXPORT_MODE_SECRET, dataOut);
 
-        if(gpgme_err_code(error) != GPG_ERR_NO_ERROR) {
+        if (gpgme_err_code(error) != GPG_ERR_NO_ERROR) {
             checkErr(error);
             gpgme_data_release(dataOut);
             return false;
@@ -731,26 +734,6 @@ namespace GpgME {
         return gpgmeError;
     }
 
-    /***
-      * return type should contain:
-      * -> list of sigs
-      * -> valid
-      * -> decrypted message
-      */
-    //void GpgContext::decryptVerify(QByteArray in) {
-
-    /*    gpgme_error_t err;
-        gpgme_data_t in, out;
-
-        gpgme_decrypt_result_t decrypt_result;
-        gpgme_verify_result_t verify_result;
-
-        err = gpgme_op_decrypt_verify (mCtx, in, out);
-        decrypt_result = gpgme_op_decrypt_result (mCtx);
-
-        verify_result = gpgme_op_verify_result (mCtx);
-     */
-    //}
     gpg_error_t
     GpgContext::sign(const QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached,
                      gpgme_sign_result_t *result) {
@@ -959,8 +942,10 @@ namespace GpgME {
     void GpgContext::setSigners(const QVector<GpgKey> &keys) {
         gpgme_signers_clear(mCtx);
         for (const auto &key : keys) {
-            auto gpgmeError = gpgme_signers_add(mCtx, key.key_refer);
-            checkErr(gpgmeError);
+            if (checkIfKeyCanSign(key)) {
+                auto gpgmeError = gpgme_signers_add(mCtx, key.key_refer);
+                checkErr(gpgmeError);
+            }
         }
         if (keys.length() != gpgme_signers_count(mCtx)) {
             qDebug() << "No All Keys Added";
@@ -1174,6 +1159,10 @@ namespace GpgME {
                 }
             }
         }
+
+        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR)
+            checkErr(err);
+
         if (dataIn) {
             gpgme_data_release(dataIn);
         }
@@ -1231,11 +1220,11 @@ namespace GpgME {
             return false;
         }
 
-        for (const auto& key : keys) {
+        for (const auto &key : keys) {
             err = gpgme_data_new(&dataOut);
             checkErr(err);
 
-            err = gpgme_op_export(mCtx,key.id.toUtf8().constData(), 0, dataOut);
+            err = gpgme_op_export(mCtx, key.id.toUtf8().constData(), 0, dataOut);
             checkErr(err);
 
             read_bytes = gpgme_data_seek(dataOut, 0, SEEK_END);

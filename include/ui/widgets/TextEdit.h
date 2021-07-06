@@ -176,6 +176,23 @@ public slots:
      */
     void slotSwitchTabDown() const;
 
+    /**
+     * @details Insert text in target Text Edit
+     */
+    void slotInsertTargetTextPage(const QString &pagePtr,  const QString &text);
+
+    void slotReadTargetTextPageStart(const QString &pageStr);
+
+    void slotReadTargetTextPageDone(const QString &pagePtr);
+
+signals:
+
+    void readTargetTextPageStart(const QString &pagePtr);
+
+    void insertTargetTextPage(const QString &pagePtr,  const QString &text);
+
+    void readTargetTextPageDone(const QString &pagePtr);
+
 private:
     /**
      * @details return just a filename stripped of a whole path
@@ -197,6 +214,8 @@ private:
      * Description:         int cotaining the number of added tabs
     */
     int countPage; /* TODO */
+
+    QHash<const QString, QWidget *> pagesHashMap;
 
 private slots:
 

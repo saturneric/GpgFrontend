@@ -121,11 +121,17 @@ IF (MINGW)
             gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
             crypto ssl)
+elseif(APPLE)
+    message(STATUS "Link Application Static Library For macOS")
+    target_link_libraries(${AppName}
+            gpgfrontend-ui gpg
+            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
+            crypto ssl)
 else()
     message(STATUS "Link Application Static Library For UNIX")
     target_link_libraries(${AppName}
             gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
-            crypto ssl)
+            crypto ssl pthread)
 endif()
 
