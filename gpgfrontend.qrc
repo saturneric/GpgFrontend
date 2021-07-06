@@ -55,5 +55,7 @@
         <file alias="mimetypes/unknown.png">resource/icons/mimetypes/unknown.png</file>
         <file alias="button_previous.png">resource/icons/button_previous.png</file>
         <file alias="button_next.png">resource/icons/button_next.png</file>
+        <file alias="refresh.png">resource/icons/refresh.png</file>
+        <file alias="up.png">resource/icons/up.png</file>
     </qresource>
 </RCC>

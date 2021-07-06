@@ -46,14 +46,27 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
 
     createPopupMenu();
 
-    upLevelButton = new QPushButton("Up");
+
+    upLevelButton = new QPushButton();
     connect(upLevelButton, SIGNAL(clicked(bool)), this, SLOT(slotUpLevel()));
+
+    auto upPixmap = QPixmap(":up.png");
+    upPixmap = upPixmap.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QIcon upButtonIcon(upPixmap);
+    upLevelButton->setIcon(upButtonIcon);
+    upLevelButton->setIconSize(upPixmap.rect().size());
 
     refreshButton = new QPushButton("Refresh");
     connect(refreshButton, SIGNAL(clicked(bool)), this, SLOT(slotGoPath()));
 
-    goPathButton = new QPushButton("Go");
+    goPathButton = new QPushButton();
     connect(goPathButton, SIGNAL(clicked(bool)), this, SLOT(slotGoPath()));
+
+    auto updatePixmap = QPixmap(":refresh.png");
+    updatePixmap = updatePixmap.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QIcon updateButtonIcon(updatePixmap);
+    goPathButton->setIcon(updateButtonIcon);
+    goPathButton->setIconSize(updatePixmap.rect().size());
 
     pathEdit = new QLineEdit();
     pathEdit->setText(dirModel->rootPath());
