@@ -16,6 +16,8 @@ GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](
 
 注意：GpgFrontend 不提供嵌入式 gnupg 二进制库，需要用户自行安装。这是为了确保安全，避免涉及加密解密的代码或二进制文件在传递过程中被植入后门。
 
+如果你觉得这款工具有用或者有希望，`欢迎通过STAR这个项目来鼓励我`。
+
 [>> 快速开始](#quick-start)
 
 [>> 代码与二进制文件安全](https://saturneric.github.io/GpgFrontend/index.html#/about/code-binary-verify)

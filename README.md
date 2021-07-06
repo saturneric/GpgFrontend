@@ -22,6 +22,8 @@ GpgFrontend supports new features of OpenPGP.
 installed by the user. **This is to ensure safety and avoid code or binary files involved in encryption and decryption
 being implanted in the backdoor during the delivery process.**
 
+If you find this tool useful and promising, welcome to encourage me through STAR this project. Thanks!
+
 [>> Quick Start](#quick-start)
 
 [>> Code & Binary Security](https://saturneric.github.io/GpgFrontend/index.html#/about/code-binary-verify)
@@ -194,8 +196,9 @@ mingw-w64: http://mingw-w64.org/doku.php
 
 AppImage: https://appimage.org/
 
-Application Bundles: [Link](!https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
+Application
+Bundles: [Link](!https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
 
-The icons of this software use materials from [Alibaba Iconfont](!https://www.iconfont.cn/). The Alibaba vector icon library is free to
-use. The icons in the free library aren't registered as trademarks. There is no copyright issue involved and can be used
-commercially.
+The icons of this software use materials from [Alibaba Iconfont](!https://www.iconfont.cn/). The Alibaba vector icon
+library is free to use. The icons in the free library aren't registered as trademarks. There is no copyright issue
+involved and can be used commercially.
