@@ -28,7 +28,7 @@ class WaitingDialog : public QDialog {
 Q_OBJECT
 public:
 
-    WaitingDialog(QWidget *parent = nullptr);
+    WaitingDialog(const QString &title, QWidget *parent);
 
 public slots:
 

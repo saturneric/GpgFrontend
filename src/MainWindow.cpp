@@ -29,7 +29,7 @@ MainWindow::MainWindow()
       settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
                QSettings::IniFormat) {
 
-  auto waitingDialog = new WaitingDialog(this);
+  auto waitingDialog = new WaitingDialog("Loading", this);
 
   auto ctx_thread = QThread::create([&]() { mCtx = new GpgME::GpgContext(); });
 
