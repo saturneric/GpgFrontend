@@ -292,52 +292,52 @@
 <context>
     <name>FilePage</name>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="144"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="150"/>
         <source>Open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="146"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="152"/>
         <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="148"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="154"/>
         <source>Encrypt and Sign</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="150"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="156"/>
         <source>Decrypt and Verify</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="152"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="158"/>
         <source>Only Sign</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="154"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="160"/>
         <source>Only Verify</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="205"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="211"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="206"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="212"/>
         <source>Are you sure you want to delete it?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="216"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="222"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="217"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="223"/>
         <source>Unable to delete the file or folder.</source>
         <translation type="unfinished"></translation>
     </message>

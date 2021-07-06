@@ -6,7 +6,7 @@
     - [Understand Interface](manual/understand-interface.md)
     - [Encrypt & Decrypt Text](manual/encrypt-decrypt-text.md)
     - [Sign & Verify Text](manual/sign-verify-text.md)
-    - Encrypt & Decrypt File
+    - [Encrypt & Decrypt File](manual/encrypt-decrypt-file.md)
     - Sign & Verify File
     - [Generate Key](manual/generate-key.md)
     - Manage Key
