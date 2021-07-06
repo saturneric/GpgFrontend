@@ -203,27 +203,50 @@ void FileEncryptionDialog::slotExecuteAction() {
     QVector<GpgKey> keys;
     mKeyList->getCheckedKeys(keys);
 
+    qDebug() << "slotExecuteAction" << mAction;
+
     if (mAction == Encrypt) {
-        if (!mCtx->encrypt(keys, inBuffer, outBuffer, nullptr)) return;
+        qDebug() << "Action Encrypt";
+        gpgme_error_t err = mCtx->encrypt(keys, inBuffer, outBuffer, nullptr);
+        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) {
+            qDebug() << "Error" << gpgme_strerror(err);
+            QMessageBox::warning(this, tr("Error"),
+                                       tr("Error Occurred During Encryption"));
+            return;
+        }
     }
 
     if (mAction == Decrypt) {
-        if (!mCtx->decrypt(inBuffer, outBuffer, nullptr)) return;
+        qDebug() << "Action Decrypt";
+        gpgme_error_t err = mCtx->decrypt(inBuffer, outBuffer, nullptr);
+        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) {
+            qDebug() << "Error" << gpgme_strerror(err);
+            QMessageBox::warning(this, tr("Error"),
+                                 tr("Error Occurred During Decryption"));
+            return;
+        }
     }
 
     if (mAction == Sign) {
-        if (gpgme_err_code(mCtx->sign(keys, inBuffer, outBuffer, true)) != GPG_ERR_NO_ERROR) return;
+        qDebug() << "Action Sign";
+        gpgme_error_t err = mCtx->sign(keys, inBuffer, outBuffer, true);
+        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) {
+            qDebug() << "Error" << gpgme_strerror(err);
+            QMessageBox::warning(this, tr("Error"),
+                                 tr("Error Occurred During Signature"));
+            return;
+        }
     }
 
     if (mAction == Verify) {
-        QFile signfile;
-        signfile.setFileName(signFileEdit->text());
-        if (!signfile.open(QIODevice::ReadOnly)) {
+        QFile sign_file;
+        sign_file.setFileName(signFileEdit->text());
+        if (!sign_file.open(QIODevice::ReadOnly)) {
             statusLabel->setText(tr("Couldn't open file"));
             signFileEdit->setStyleSheet("QLineEdit { background: yellow }");
             return;
         }
-        auto signBuffer = signfile.readAll();
+        auto signBuffer = sign_file.readAll();
         gpgme_verify_result_t result;
         auto error = mCtx->verify(&inBuffer, &signBuffer, &result);
         new VerifyDetailsDialog(this, mCtx, mKeyList, error, result);
