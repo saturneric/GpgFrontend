@@ -132,6 +132,7 @@ void TextEdit::slotInsertTargetTextPage(const QString &pagePtr,
     auto *taregtTextPage = qobject_cast<EditorPage *>(it.value());
     if (taregtTextPage != nullptr) {
       taregtTextPage->getTextPage()->insertPlainText(text);
+      taregtTextPage->getTextPage()->document()->setModified(false);
     }
   }
 }
@@ -164,6 +165,7 @@ void TextEdit::slotReadTargetTextPageDone(const QString &pagePtr) {
         tabWidget->setTabText(index,
                               strippedName(taregtTextPage->getFilePath()));
       }
+      taregtTextPage->getTextPage()->document()->setModified(false);
       connect(taregtTextPage->getTextPage()->document(),
               SIGNAL(modificationChanged(bool)), this,
               SLOT(slotShowModified()));
