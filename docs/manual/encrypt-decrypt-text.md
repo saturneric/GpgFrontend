@@ -18,7 +18,9 @@ This can be viewed in the usage column of the key toolbox (the letter E stands f
 ### Encrypt And Sign
 
 By encrypting and signing at the same time, not only can the text be protected, but the recipient can also know that the
-cipher text is from your hand.
+cipher text is from your hand. You can select one or more recipients' public key and your own private key to complete
+this operation.
+
 A typical usage method is to check two key pairs, one is someone else's public key, which is used for encryption; the other is your own private key, which is used for signing.
 If you do not check any key that can be used for signing, this is possible (equivalent to encryption only). The only difference is that you will receive a warning.
 

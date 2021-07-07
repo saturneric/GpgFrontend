@@ -7,10 +7,11 @@
     - [Encrypt & Decrypt Text](manual/encrypt-decrypt-text.md)
     - [Sign & Verify Text](manual/sign-verify-text.md)
     - [Encrypt & Decrypt File](manual/encrypt-decrypt-file.md)
-    - Sign & Verify File
+    - [Sign & Verify File](manual/sign-verify-file.md)
     - [Generate Key](manual/generate-key.md)
-    - Manage Key
+    - [View key pair information]((manual/view-keypair-info.md))
     - Import & Export Key
+    - KeyServer Operations
 
 - Contribute
     - [Translate Interface](translate-interface.md)
