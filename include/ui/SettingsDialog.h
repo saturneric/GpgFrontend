@@ -115,6 +115,7 @@ private:
     QRadioButton *iconTextButton;
     QRadioButton *iconIconsButton;
     QRadioButton *iconAllButton;
+    QSpinBox *infoBoardFontSizeSpin;
     QCheckBox *windowSizeCheckBox;
 
 signals:
