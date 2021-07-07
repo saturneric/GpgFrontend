@@ -9,7 +9,7 @@
     - [Encrypt & Decrypt File](manual/encrypt-decrypt-file.md)
     - [Sign & Verify File](manual/sign-verify-file.md)
     - [Generate Key](manual/generate-key.md)
-    - [View key pair information]((manual/view-keypair-info.md))
+    - [View key pair information](manual/view-keypair-info.md)
     - Import & Export Key
     - KeyServer Operations
 
