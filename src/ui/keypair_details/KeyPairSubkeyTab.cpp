@@ -89,6 +89,8 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefreshSubkeyList()));
     connect(subkeyList, SIGNAL(itemSelectionChanged()), this, SLOT(slotRefreshSubkeyDetail()));
 
+    baseLayout->setContentsMargins(0, 0, 0, 0);
+
     setLayout(baseLayout);
     setAttribute(Qt::WA_DeleteOnClose, true);
 

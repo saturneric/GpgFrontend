@@ -73,6 +73,8 @@ public:
 
     void addMenuAction(QAction *act);
 
+    void addSeparator();
+
     QStringList *getChecked();
 
     void getCheckedKeys(QVector<GpgKey> &keys);

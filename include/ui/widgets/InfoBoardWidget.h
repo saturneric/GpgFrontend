@@ -95,6 +95,10 @@ public slots:
     void slotRefresh(const QString &text, InfoBoardStatus status);
 
 private:
+
+    QString appPath;
+    QSettings settings;
+
     QMenu *detailMenu; /** Menu for te Button in verfiyNotification */
     QAction *importFromKeyserverAct; /** Action for importing keys from keyserver which are notin keylist */
     QTextEdit *infoBoard;

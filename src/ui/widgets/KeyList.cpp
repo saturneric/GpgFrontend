@@ -297,6 +297,11 @@ void KeyList::contextMenuEvent(QContextMenuEvent *event)
 
 }
 
+void KeyList::addSeparator()
+{
+    popupMenu->addSeparator();
+}
+
 void KeyList::addMenuAction(QAction *act)
 {
     popupMenu->addAction(act);

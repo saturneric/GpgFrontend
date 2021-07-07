@@ -152,8 +152,6 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
 
         privKeyBox->setLayout(vboxPK);
         mvbox->addWidget(privKeyBox);
-
-
     }
 
     if ((mKey.expired) || (mKey.revoked)) {
@@ -179,10 +177,11 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
         mvbox->addLayout(expBox);
     }
 
+    mvbox->setContentsMargins(0, 0, 0, 0);
+
     connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefreshKeyInfo()));
 
     slotRefreshKeyInfo();
-
     setAttribute(Qt::WA_DeleteOnClose, true);
     setLayout(mvbox);
 }

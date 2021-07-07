@@ -4,6 +4,7 @@ WaitingDialog::WaitingDialog(const QString &title, QWidget *parent) : QDialog(pa
     auto *pb = new QProgressBar();
     pb->setRange(0, 0);
     pb->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    pb->setTextVisible(false);
 
     auto *layout = new QVBoxLayout();
     layout->setContentsMargins(0, 0, 0, 0);

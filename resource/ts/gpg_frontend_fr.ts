@@ -22,12 +22,12 @@
 <context>
     <name>AdvancedTab</name>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="580"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="595"/>
         <source>Show Steganography Options [Advanced]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="582"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="597"/>
         <source>Show Steganographic Options.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -82,6 +82,11 @@
     <message>
         <location filename="../../src/ui/SettingsDialog.cpp" line="411"/>
         <source>Save window size and position on exit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="419"/>
+        <source>Information Board</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -267,23 +272,45 @@
     </message>
     <message>
         <location filename="../../src/ui/FileEncryptionDialog.cpp" line="194"/>
-        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="222"/>
+        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="245"/>
         <source>Couldn&apos;t open file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="213"/>
+        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="224"/>
+        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="235"/>
+        <source>Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="214"/>
+        <source>Error Occurred During Encryption</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="225"/>
+        <source>Error Occurred During Decryption</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../../src/ui/FileEncryptionDialog.cpp" line="236"/>
-        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="245"/>
+        <source>Error Occurred During Signature</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="259"/>
+        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="268"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="237"/>
+        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="260"/>
         <source>File exists! Do you want to overwrite it?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="246"/>
+        <location filename="../../src/ui/FileEncryptionDialog.cpp" line="269"/>
         <source>Cannot write file %1:
 %2.</source>
         <translation type="unfinished"></translation>
@@ -444,22 +471,22 @@
 <context>
     <name>GpgPathsTab</name>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="612"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="627"/>
         <source>Relative path to keydb</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="625"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="640"/>
         <source>Current keydb path: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="630"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="645"/>
         <source>&lt;b&gt;NOTE: &lt;/b&gt; Gpg4usb will restart automatically if you change the keydb path!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="659"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="674"/>
         <source>Choose keydb directory</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1911,12 +1938,12 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
 <context>
     <name>KeyserverTab</name>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="508"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="523"/>
         <source>Default Keyserver for import:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="525"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="540"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>

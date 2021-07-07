@@ -231,8 +231,8 @@ void MainWindow::createActions() {
     appendSelectedKeysAct->setToolTip(tr("Append The Selected Keys To Text in Editor"));
     connect(appendSelectedKeysAct, SIGNAL(triggered()), this, SLOT(slotAppendSelectedKeys()));
 
-    copyMailAddressToClipboardAct = new QAction(tr("Copy EMail-address"), this);
-    copyMailAddressToClipboardAct->setToolTip(tr("Copy selected EMailaddress to clipboard"));
+    copyMailAddressToClipboardAct = new QAction(tr("Copy Email"), this);
+    copyMailAddressToClipboardAct->setToolTip(tr("Copy selected Email to clipboard"));
     connect(copyMailAddressToClipboardAct, SIGNAL(triggered()), this, SLOT(slotCopyMailAddressToClipboard()));
 
     // TODO: find central place for shared actions, to avoid code-duplication with keymgmt.cpp
@@ -247,6 +247,7 @@ void MainWindow::createActions() {
     uploadKeyToServerAct = new QAction(tr("Upload Public Key(s) To Server"), this);
     uploadKeyToServerAct->setToolTip(tr("Upload The Selected Public Keys To Server"));
     connect(uploadKeyToServerAct, SIGNAL(triggered()), this, SLOT(uploadKeyToServer()));
+    
     /* Key-Shortcuts for Tab-Switchung-Action
     */
     switchTabUpAct = new QAction(this);

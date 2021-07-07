@@ -29,7 +29,7 @@ MainWindow::MainWindow()
       settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
                QSettings::IniFormat) {
 
-  auto waitingDialog = new WaitingDialog("Loading", this);
+  auto waitingDialog = new WaitingDialog("Loading Gnupg", this);
 
   auto ctx_thread = QThread::create([&]() { mCtx = new GpgME::GpgContext(); });
 
@@ -100,6 +100,7 @@ MainWindow::MainWindow()
   mKeyList->addMenuAction(appendSelectedKeysAct);
   mKeyList->addMenuAction(copyMailAddressToClipboardAct);
   mKeyList->addMenuAction(showKeyDetailsAct);
+  mKeyList->addSeparator();
   mKeyList->addMenuAction(refreshKeysFromKeyserverAct);
   mKeyList->addMenuAction(uploadKeyToServerAct);
 
