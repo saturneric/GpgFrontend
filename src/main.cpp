@@ -23,6 +23,7 @@
  */
 
 #include "MainWindow.h"
+#include "GpgFrontendBuildInfo.h"
 
 int main(int argc, char *argv[]) {
 

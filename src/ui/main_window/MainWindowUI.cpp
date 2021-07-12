@@ -209,17 +209,26 @@ void MainWindow::createActions() {
     importKeyFromEditAct->setToolTip(tr("Import New Key From Editor"));
     connect(importKeyFromEditAct, SIGNAL(triggered()), this, SLOT(slotImportKeyFromEdit()));
 
-    openKeyManagementAct = new QAction(tr("Manage &keys"), this);
+    openKeyManagementAct = new QAction(tr("Manage &Keys"), this);
     openKeyManagementAct->setIcon(QIcon(":keymgmt.png"));
     openKeyManagementAct->setToolTip(tr("Open Keymanagement"));
     connect(openKeyManagementAct, SIGNAL(triggered()), this, SLOT(slotOpenKeyManagement()));
 
-    /* About Menu
+    /*
+     * About Menu
      */
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setIcon(QIcon(":help.png"));
     aboutAct->setToolTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(slotAbout()));
+
+    /*
+     * Check Update Menu
+    */
+    checkUpdateAct = new QAction(tr("&Check for Updates"), this);
+    checkUpdateAct->setIcon(QIcon(":help.png"));
+    checkUpdateAct->setToolTip(tr("Check for updates"));
+    connect(checkUpdateAct, SIGNAL(triggered()), this, SLOT(slotCheckUpdate()));
 
     startWizardAct = new QAction(tr("Open &Wizard"), this);
     startWizardAct->setToolTip(tr("Open the wizard"));
@@ -340,6 +349,7 @@ void MainWindow::createMenus() {
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(startWizardAct);
     helpMenu->addSeparator();
+    helpMenu->addAction(checkUpdateAct);
     helpMenu->addAction(aboutAct);
 
 }

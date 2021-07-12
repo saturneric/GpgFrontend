@@ -52,7 +52,7 @@ KeyPairUIDTab::KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget 
 
     gridLayout->addWidget(uidList, 0, 0);
     gridLayout->addLayout(uidButtonsLayout, 1, 0);
-//    gridLayout->setContentsMargins(0, 0, 0, 0);
+    gridLayout->setContentsMargins(0, 10, 0, 0);
 
     auto uidGroupBox = new QGroupBox();
     uidGroupBox->setLayout(gridLayout);
@@ -60,7 +60,7 @@ KeyPairUIDTab::KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget 
 
     auto signGridLayout = new QGridLayout();
     signGridLayout->addWidget(sigList, 0, 0);
-//    signGridLayout->setContentsMargins(0, 0, 0, 0);
+    signGridLayout->setContentsMargins(0, 10, 0, 0);
 
     auto signGroupBox = new QGroupBox();
     signGroupBox->setLayout(signGridLayout);
