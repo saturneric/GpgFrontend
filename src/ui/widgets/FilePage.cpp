@@ -50,11 +50,15 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
     upLevelButton = new QPushButton();
     connect(upLevelButton, SIGNAL(clicked(bool)), this, SLOT(slotUpLevel()));
 
+    QString buttonStyle = "QPushButton{border:none;background-color:rgba(255, 255, 255,100);}";
+
+
     auto upPixmap = QPixmap(":up.png");
     upPixmap = upPixmap.scaled(18, 18, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     QIcon upButtonIcon(upPixmap);
     upLevelButton->setIcon(upButtonIcon);
     upLevelButton->setIconSize(upPixmap.rect().size());
+    upLevelButton->setStyleSheet(buttonStyle);
 
     refreshButton = new QPushButton("Refresh");
     connect(refreshButton, SIGNAL(clicked(bool)), this, SLOT(slotGoPath()));
@@ -67,6 +71,7 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
     QIcon updateButtonIcon(updatePixmap);
     goPathButton->setIcon(updateButtonIcon);
     goPathButton->setIconSize(updatePixmap.rect().size());
+    goPathButton->setStyleSheet(buttonStyle);
 
     pathEdit = new QLineEdit();
     pathEdit->setText(dirModel->rootPath());
@@ -75,7 +80,7 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
     menuLayout->addWidget(upLevelButton);
     menuLayout->setStretchFactor(upLevelButton, 1);
     menuLayout->addWidget(pathEdit);
-    menuLayout->setStretchFactor(pathEdit, 8);
+    menuLayout->setStretchFactor(pathEdit, 10);
     menuLayout->addWidget(goPathButton);
     menuLayout->setStretchFactor(goPathButton, 1);
     // menuLayout->addWidget(refreshButton);
