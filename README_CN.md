@@ -165,6 +165,10 @@ GpgFrontend 项目作为开源项目，也坚持使用开源代码和库。
 
 GpgFrontend 在 [GPLv3](COPYING) 许可证下。
 
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_large)
+
+### 依赖
+
 项目使用到了一些库和二进制文件，它们（可能）具有不同的许可证，请查看它们的主页获取更多信息。您也可以从那里获取相关信息。
 
 gnupg: https://gnupg.org/
