@@ -5,7 +5,7 @@
 ![Language](https://img.shields.io/badge/language-C%2B%2B-green)
 ![License](https://img.shields.io/badge/License-GPL--3.0-orange)
 ![CodeSize](https://img.shields.io/github/languages/code-size/saturneric/GpgFrontend)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=saturneric/GpgFrontend&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&utm_medium=referral&utm_content=saturneric/GpgFrontend&utm_campaign=Badge_Grade)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/saturneric/gpgfrontend)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_small)
 
@@ -29,7 +29,6 @@ If you find this tool useful and promising, welcome to encourage me through STAR
 [>> Code & Binary Security](https://saturneric.github.io/GpgFrontend/index.html#/about/code-binary-verify)
 
 [>> 中文文档](https://github.com/saturneric/GpgFrontend/blob/main/README_CN.md)
-
 
 <div align="center">
 <img width="640" src="https://github.com/saturneric/Blob/blob/master/screenshots/main_mac.jpg?raw=true" alt="macOS Screenshot"/>
@@ -104,7 +103,7 @@ awesome operations.
 
 1. [Download](https://gnupg.org/ftp/gcrypt/binary/gnupg-w32-2.3.1_20210420.exe) `gnupg-w32-******.exe`
 2. Double Click it to install it
-3. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases)  Windows Edition from the latest release
+3. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases) Windows Edition from the latest release
 4. Unzip `gpgfrontend-windows-latest-*******.zip`
 5. Go into the directory and double click `GpgFrontend.exe`.
 
@@ -122,21 +121,21 @@ awesome operations.
 
 1. Install gnupg (If you have already followed please skip)
     - For Debian/Ubuntu
-       ```shell
-       $ sudo apt update
-       $ sudo apt install gpg
-       ```
+      ```shell
+      $ sudo apt update
+      $ sudo apt install gpg
+      ```
     - For CentOS
-       ```shell
-       $ sudo yum install gnupg 
-       ```
+      ```shell
+      $ sudo yum install gnupg
+      ```
 2. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases) Linux edition from the latest release
-3. Unzip gpgfrontend-ubuntu-16.04-*******.zip
+3. Unzip gpgfrontend-ubuntu-16.04-**\*\*\***.zip
     - `ubuntu-16.04` shows that Linux distributions at the same time as 16.04 or later are supported.
 4. Give `GpgFrontend-***.AppImage` permission to execute
-    ```shell
-    $ chmod u+x ./GpgFrontend-***.AppImage
-    ```
+   ```shell
+   $ chmod u+x ./GpgFrontend-***.AppImage
+   ```
 5. Just double-click `GpgFrontend-***.AppImage` to run it.
 
 ## Document
