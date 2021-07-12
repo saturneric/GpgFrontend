@@ -1,4 +1,4 @@
-# Generate Key
+# Generate Key Pair & Subkey
 
 For GpgFrontend, to understand the key, you must first understand two concepts: key pair and subkey.
 

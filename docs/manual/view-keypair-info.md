@@ -1,9 +1,11 @@
-# View key pair information
+# View Key Pair Details
 
 Right-click the key pair in the key toolbox or key management interface and click Show key details to view the
 information about the key pair.
 
 This part may involve a brief introduction to gpg-related concepts, and it will be relatively long.
+
+![screenshot](https://github.com/saturneric/Blob/blob/master/screenshots/key-details.png?raw=true)
 
 ## General Info
 
@@ -14,11 +16,15 @@ can create a new UID in the UID section and set it as the main UID to change it.
 
 According to the OpenPGP protocol, this part is divided into Name, Email, and Comment.
 
+![screenshot](https://github.com/saturneric/Blob/blob/master/screenshots/key-details-owner.png?raw=true)
+
 ### Master Key
 
 This part is the information of the master key of the key pair. The master key is very important, because without it,
 the key pair cannot perform related management operations such as adding and revoking sub-keys (similar to the key ring
 cannot be opened). Let's introduce the information of the master key separately below.
+
+![screenshot](https://github.com/saturneric/Blob/blob/master/screenshots/key-details-master-key.png?raw=true)
 
 #### Key ID
 
@@ -61,9 +67,13 @@ the key pair cannot sign other key pairs.
 
 ### Fingerprint
 
+![screenshot](https://github.com/saturneric/Blob/blob/master/screenshots/key-details-fingerprint.png?raw=true)
+
 The fingerprint of the key pair is used for humans to quickly compare whether the key pair is the expected key pair.
 
 ### Operations
+
+![screenshot](https://github.com/saturneric/Blob/blob/master/screenshots/key-details-opera.png?raw=true)
 
 This column lists all available operations.
 
