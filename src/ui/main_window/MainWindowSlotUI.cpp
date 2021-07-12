@@ -25,7 +25,11 @@
 #include "MainWindow.h"
 
 void MainWindow::slotAbout() {
-    new AboutDialog(this);
+    new AboutDialog(0, this);
+}
+
+void MainWindow::slotCheckUpdate() {
+    new AboutDialog(2, this);
 }
 
 void MainWindow::slotSetStatusBarText(const QString &text) {

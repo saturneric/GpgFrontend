@@ -44,6 +44,7 @@ add_custom_target(translations DEPENDS ${QON_QM_FILES})
 
 # Set Build Information
 configure_file(${CMAKE_SOURCE_DIR}/include/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/include/GpgFrontend.h @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/include/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/include/GpgFrontendBuildInfo.h @ONLY)
 
 # Copy Resource Files
 file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)

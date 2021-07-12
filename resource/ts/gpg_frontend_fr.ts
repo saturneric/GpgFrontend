@@ -4,18 +4,23 @@
 <context>
     <name>AboutDialog</name>
     <message>
-        <location filename="../../src/ui/AboutDialog.cpp" line="29"/>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="36"/>
         <source>About </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/AboutDialog.cpp" line="35"/>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="43"/>
         <source>General</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/AboutDialog.cpp" line="36"/>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="44"/>
         <source>Translators</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="45"/>
+        <source>Update</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -339,52 +344,52 @@
 <context>
     <name>FilePage</name>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="150"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="155"/>
         <source>Open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="152"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="157"/>
         <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="154"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="159"/>
         <source>Encrypt and Sign</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="156"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="161"/>
         <source>Decrypt and Verify</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="158"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="163"/>
         <source>Only Sign</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="160"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="165"/>
         <source>Only Verify</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="211"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="216"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="212"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="217"/>
         <source>Are you sure you want to delete it?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="222"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="227"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/FilePage.cpp" line="223"/>
+        <location filename="../../src/ui/widgets/FilePage.cpp" line="228"/>
         <source>Unable to delete the file or folder.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -603,22 +608,22 @@
 <context>
     <name>InfoTab</name>
     <message>
-        <location filename="../../src/ui/AboutDialog.cpp" line="55"/>
-        <source>&lt;br&gt;&lt;center&gt;GPGFrontend is an easy-to-use, compact, &lt;br&gt;cross-platform, and installation-free gpg front-end tool.&lt;br&gt;It visualizes most of the common operations of gpg commands.&lt;br&gt;It&apos;s licensed under the GPL v3&lt;br&gt;&lt;br&gt;&lt;b&gt;Developer:&lt;/b&gt;&lt;br&gt;Saturneric&lt;br&gt;&lt;br&gt;If you have any questions or suggestions, raise an issue&lt;br/&gt;at &lt;a href=&quot;https://github.com/saturneric/GpgFrontend&quot;&gt;GitHub&lt;/a&gt; or send a mail to my mailing list at &lt;a href=&quot;mailto:eric@bktus.com&quot;&gt;eric@bktus.com&lt;/a&gt;.</source>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="71"/>
+        <source>&lt;br&gt;&lt;center&gt;GPGFrontend is an easy-to-use, compact, cross-platform, &lt;br&gt;and installation-free gpg front-end tool.&lt;br&gt;It visualizes most of the common operations of gpg commands.&lt;br&gt;It&apos;s licensed under the GPL v3&lt;br&gt;&lt;br&gt;&lt;b&gt;Developer:&lt;/b&gt;&lt;br&gt;Saturneric&lt;br&gt;&lt;br&gt;If you have any questions or suggestions, raise an issue&lt;br/&gt;at &lt;a href=&quot;https://github.com/saturneric/GpgFrontend&quot;&gt;GitHub&lt;/a&gt; or send a mail to my mailing list at &lt;a href=&quot;mailto:eric@bktus.com&quot;&gt;eric@bktus.com&lt;/a&gt;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/AboutDialog.cpp" line="63"/>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="79"/>
         <source>&lt;br&gt;&lt;br&gt; Built with Qt </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/AboutDialog.cpp" line="64"/>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="80"/>
         <source> and GPGME </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/AboutDialog.cpp" line="65"/>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="81"/>
         <source>&lt;br&gt;Built at </source>
         <translation type="unfinished"></translation>
     </message>
@@ -1477,82 +1482,82 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="53"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="54"/>
         <source>Key ID: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="54"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="55"/>
         <source>Algorithm: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="55"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="56"/>
         <source>Key Size:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="56"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="57"/>
         <source>Usage: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="57"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="58"/>
         <source>Expires On </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="58"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="59"/>
         <source>Last Update: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="59"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="60"/>
         <source>Existence: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="60"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="61"/>
         <source>Fingerprint: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="119"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="121"/>
         <source>Subkey ID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="119"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="121"/>
         <source>Key Size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="119"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="121"/>
         <source>Algo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="119"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="121"/>
         <source>Create Date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="119"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="121"/>
         <source>Expire Date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="159"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="161"/>
         <source>Never Expire</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="183"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="185"/>
         <source>Never Expires</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="229"/>
+        <location filename="../../src/ui/keypair_details/KeyPairSubkeyTab.cpp" line="231"/>
         <source>Edit Expire Date</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1991,6 +1996,16 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
 <context>
     <name>MainWindow</name>
     <message>
+        <location filename="../../src/MainWindow.cpp" line="46"/>
+        <source>ENV Loading Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/MainWindow.cpp" line="47"/>
+        <source>Gnupg is not installed correctly, please follow the ReadME instructions to install gnupg and then open GPGFrontend.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="37"/>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="103"/>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="269"/>
@@ -2013,6 +2028,16 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="501"/>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="676"/>
         <source>The selected key contains a key that does not actually have a encrypt usage.&lt;br/&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="46"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="112"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="283"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="502"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="677"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="863"/>
+        <source>&lt;br/&gt;For example the Following Key: &lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2116,6 +2141,14 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="467"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="557"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="641"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="823"/>
+        <source>Select a file before doing it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="471"/>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="561"/>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="645"/>
@@ -2177,24 +2210,6 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
     <message>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="939"/>
         <source>Select a file(.gpg/.asc) before doing it.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="46"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="112"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="283"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="502"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="677"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="863"/>
-        <source>&lt;br/&gt;For example the Following Key: &lt;br/&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="467"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="557"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="641"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="823"/>
-        <source>Select a file before doing it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2712,16 +2727,6 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
         <source>Attached files:</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="46"/>
-        <source>ENV Loading Failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/MainWindow.cpp" line="47"/>
-        <source>Gnupg is not installed correctly, please follow the ReadME instructions to install gnupg and then open GPGFrontend.</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>MimeTab</name>
@@ -3024,63 +3029,96 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
 <context>
     <name>TextEdit</name>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="56"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="53"/>
         <source>untitled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="123"/>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="203"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="120"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="200"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="178"/>
-        <source>Open file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="273"/>
-        <source>Save file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="337"/>
-        <source>The document &quot;%1&quot; has been modified. Do you want to save your changes?&lt;br/&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="484"/>
-        <source>Application</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="124"/>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="204"/>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="485"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="121"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="201"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="482"/>
         <source>Cannot read file %1:
 %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="254"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="175"/>
+        <source>Open file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="251"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="255"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="252"/>
         <source>Cannot write file %1:
 %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="336"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="270"/>
+        <source>Save file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="333"/>
         <source>Unsaved document</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/widgets/TextEdit.cpp" line="340"/>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="334"/>
+        <source>The document &quot;%1&quot; has been modified. Do you want to save your changes?&lt;br/&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="337"/>
         <source>&lt;b&gt;Note:&lt;/b&gt; If you don&apos;t save these files, all changes are lost.&lt;br/&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/TextEdit.cpp" line="481"/>
+        <source>Application</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>UpdateTab</name>
+    <message>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="124"/>
+        <source>It is recommended that you always check the version of GpgFrontend and upgrade to the latest version.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="126"/>
+        <source>New versions not only represent new features, but also often represent functional and security fixes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="130"/>
+        <source>Current Version: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="138"/>
+        <source>The current version is inconsistent with the latest version on github.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="140"/>
+        <source>Please click &lt;a href=&quot;https://github.com/saturneric/GpgFrontend/releases&quot;&gt;here&lt;/a&gt; to download the latest version.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/help/AboutDialog.cpp" line="198"/>
+        <source>Latest Version: </source>
         <translation type="unfinished"></translation>
     </message>
 </context>

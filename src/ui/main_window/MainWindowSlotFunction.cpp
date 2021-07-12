@@ -58,7 +58,7 @@ void MainWindow::slotEncrypt() {
         auto thread = QThread::create([&]() {
             error = mCtx->encrypt(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &result);
         });
-
+        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
         thread->start();
 
         auto *dialog = new WaitingDialog(tr("Encrypting"), this);
@@ -122,6 +122,7 @@ void MainWindow::slotSign() {
         auto thread = QThread::create([&]() {
             error = mCtx->sign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, false, &result);
         });
+        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
         thread->start();
 
         auto *dialog = new WaitingDialog(tr("Signing"), this);
@@ -165,6 +166,7 @@ void MainWindow::slotDecrypt() {
             // try decrypt, if fail do nothing, especially don't replace text
             error = mCtx->decrypt(text, decrypted, &result);
         });
+        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
         thread->start();
 
         auto *dialog = new WaitingDialog(tr("Decrypting"), this);
@@ -224,6 +226,7 @@ void MainWindow::slotVerify() {
         auto thread = QThread::create([&]() {
             error = mCtx->verify(&text, nullptr, &result);
         });
+        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
         thread->start();
 
         auto *dialog = new WaitingDialog(tr("Verifying"), this);
@@ -312,6 +315,7 @@ void MainWindow::slotEncryptSign() {
             error = mCtx->encryptSign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &encr_result,
                                       &sign_result);
         });
+        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
         thread->start();
 
         auto *dialog = new WaitingDialog(tr("Encrypting and Signing"), this);
@@ -364,6 +368,7 @@ void MainWindow::slotDecryptVerify() {
         auto thread = QThread::create([&]() {
             error = mCtx->decryptVerify(text, decrypted, &d_result, &v_result);
         });
+        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
         thread->start();
 
         WaitingDialog *dialog = new WaitingDialog(tr("Decrypting and Verifying"), this);
@@ -516,6 +521,7 @@ void MainWindow::slotFileEncrypt() {
             if_error = true;
         }
     });
+    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
     thread->start();
 
     auto *dialog = new WaitingDialog(tr("Encrypting"), this);
@@ -524,7 +530,7 @@ void MainWindow::slotFileEncrypt() {
     }
 
     dialog->close();
-    if(!if_error) {
+    if (!if_error) {
         auto resultAnalyse = new EncryptResultAnalyse(error, result);
         auto &reportText = resultAnalyse->getResultReport();
         infoBoard->associateTabWidget(edit->tabWidget);
@@ -596,6 +602,7 @@ void MainWindow::slotFileDecrypt() {
             if_error = true;
         }
     });
+    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
     thread->start();
 
     auto *dialog = new WaitingDialog("Decrypting", this);
@@ -605,7 +612,7 @@ void MainWindow::slotFileDecrypt() {
 
     dialog->close();
 
-    if(!if_error) {
+    if (!if_error) {
         auto resultAnalyse = new DecryptResultAnalyse(mCtx, error, result);
         auto &reportText = resultAnalyse->getResultReport();
         infoBoard->associateTabWidget(edit->tabWidget);
@@ -691,6 +698,7 @@ void MainWindow::slotFileSign() {
             if_error = true;
         }
     });
+    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
     thread->start();
 
     auto *dialog = new WaitingDialog(tr("Signing"), this);
@@ -700,7 +708,7 @@ void MainWindow::slotFileSign() {
 
     dialog->close();
 
-    if(!if_error) {
+    if (!if_error) {
 
         auto resultAnalyse = new SignResultAnalyse(error, result);
         auto &reportText = resultAnalyse->getResultReport();
@@ -775,6 +783,7 @@ void MainWindow::slotFileVerify() {
             if_error = true;
         }
     });
+    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
     thread->start();
 
     auto *dialog = new WaitingDialog(tr("Verifying"), this);
@@ -894,6 +903,7 @@ void MainWindow::slotFileEncryptSign() {
             if_error = true;
         }
     });
+    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
     thread->start();
 
     WaitingDialog *dialog = new WaitingDialog(tr("Encrypting and Signing"), this);
@@ -902,7 +912,7 @@ void MainWindow::slotFileEncryptSign() {
     }
     dialog->close();
 
-    if(!if_error) {
+    if (!if_error) {
 
         auto resultAnalyseEncr = new EncryptResultAnalyse(error, encr_result);
         auto resultAnalyseSign = new SignResultAnalyse(error, sign_result);
@@ -970,7 +980,9 @@ void MainWindow::slotFileDecryptVerify() {
             if_error = true;
         }
     });
+    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
     thread->start();
+
 
     auto *dialog = new WaitingDialog(tr("Decrypting and Verifying"), this);
     while (thread->isRunning()) {
@@ -978,7 +990,7 @@ void MainWindow::slotFileDecryptVerify() {
     }
     dialog->close();
 
-    if(!if_error) {
+    if (!if_error) {
         infoBoard->associateFileTreeView(edit->curFilePage());
 
         auto resultAnalyseDecrypt = new DecryptResultAnalyse(mCtx, error, d_result);
@@ -1035,4 +1047,22 @@ void MainWindow::slotFileVerifyCustom() {
 
 void MainWindow::slotOpenFile(QString &path) {
     edit->slotOpenFile(path);
+}
+
+void MainWindow::slotVersionUpgrade(const QString &currentVersion, const QString &latestVersion) {
+    if(currentVersion < latestVersion) {
+        QMessageBox::warning(this,
+                             tr("Outdated Version"),
+                             tr("This version(%1) is out of date, please update the latest version in time. ").arg(
+                                     currentVersion)
+                             + tr("You can download the latest version(%1) on Github Releases Page.<br/>").arg(
+                                     latestVersion));
+    } else if(currentVersion > latestVersion) {
+        QMessageBox::warning(this,
+                             tr("Unreleased Version"),
+                             tr("This version(%1) has not been officially released and is not recommended for use in a production environment. <br/>").arg(
+                                     currentVersion)
+                             + tr("You can download the latest version(%1) on Github Releases Page.<br/>").arg(
+                                     latestVersion));
+    }
 }

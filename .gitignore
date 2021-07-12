@@ -1,5 +1,6 @@
 # Project
 include/GpgFrontend.h
+include/GpgFrontendBuildInfo.h
 
 #CLion
 .idea/*

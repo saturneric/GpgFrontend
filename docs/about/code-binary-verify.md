@@ -33,7 +33,7 @@ The fingerprint of the key is now given:
 
 Starting from version 1.0.5, I will use the Gpg key to sign the ZIP package that contains the binary executable file.
 Each ZIP compressed package will be accompanied by a signature file in the Release (end with sig suffix). You can use
-the gpg command tool to verify them before use.
+the gpg command tool to verify them before use. 
 
 The key used for binary signature is Saturneric\<eric@bktus.com\>. This is my official key and will be given below.
 
@@ -140,7 +140,7 @@ JV99VVcBfvU4GSI=
 
 ```
 
-### Saturneric\<eric@bktus.com>\
+### Saturneric\<eric@bktus.com\>
 
 #### Fingerprint
 

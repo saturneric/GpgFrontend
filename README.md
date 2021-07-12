@@ -196,6 +196,8 @@ mingw-w64: http://mingw-w64.org/doku.php
 
 AppImage: https://appimage.org/
 
+rapidjson: https://github.com/Tencent/rapidjson
+
 Application
 Bundles: [Link](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
 

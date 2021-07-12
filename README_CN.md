@@ -179,6 +179,8 @@ mingw-w64: http://mingw-w64.org/doku.php
 
 AppImage: https://appimage.org/
 
+rapidjson: https://github.com/Tencent/rapidjson
+
 Application Bundles: [Link](!https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
 
 本软件图标使用来自 [阿里巴巴矢量图标库](!https://www.iconfont.cn/) 的素材。免费库中的图标未注册为商标。不涉及版权问题。
