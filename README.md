@@ -28,7 +28,7 @@ If you find this tool useful and promising, welcome to encourage me through STAR
 
 [>> Code & Binary Security](https://saturneric.github.io/GpgFrontend/index.html#/about/code-binary-verify)
 
-[>> 中文文档](https://github.com/saturneric/GpgFrontend/blob/main/README_CN.md)
+[>> 简体中文文档](https://github.com/saturneric/GpgFrontend/blob/main/README_CN.md)
 
 <div align="center">
 <img width="640" src="https://github.com/saturneric/Blob/blob/master/screenshots/main_mac.jpg?raw=true" alt="macOS Screenshot"/>
@@ -179,6 +179,10 @@ Feel free to dive in! [Open an issue](https://github.com/saturneric/GpgFrontend/
 ## LICENSES
 
 GpgFrontend itself is licensed under the [GPLv3](COPYING).
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_large)
+
+### Dependency
 
 There are some libraries and binary included in the zip-file which (may) have different licenses, for more information
 check their homepages. You can also obtain the sources from there.
