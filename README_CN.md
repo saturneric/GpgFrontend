@@ -11,8 +11,7 @@
 
 GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](https://www.openpgp.org/) 加密解密签名工具。
 
-通过使用 GpgFrontend，你可以快速加密和解密文本或文件。或者在进行上述操作的同时加上自己的签名，让别人知道这个文件或者这段文字是出自你之手。
-该软件旨在让普通用户更快上手 gpg 工具，让专业用户更便捷。 GpgFrontend 支持 OpenPGP 的新特性。
+通过使用 GpgFrontend，你可以快速加密和解密文本或文件。或者在进行上述操作的同时加上自己的签名，让别人知道这个文件或者这段文字是出自你之手。 请将隐私保护的主动权掌握在自己手上，而不是依赖大公司提供的服务器和算法。
 
 注意：GpgFrontend 不提供嵌入式 gnupg 二进制库，需要用户自行安装。这是为了确保安全，避免涉及加密解密的代码或二进制文件在传递过程中被植入后门。
 
@@ -133,11 +132,10 @@ GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](
 
 ## 开发宗旨
 
-GpgFrontend 项目继承自一个相对成熟但未维护的 [gpg4usb](https://www.gpg4usb.org/) 项目。
-它继承了 gpg4usb 稳定、易用、小巧、免安装的特点。
+GpgFrontend 项目继承自一个相对成熟但未维护的 [gpg4usb](https://www.gpg4usb.org/) 项目。 它继承了 gpg4usb 稳定、易用、小巧、免安装的特点。
 
-GpgFrontend 未来会增加更多功能，提高 GPG 在端到端传输中的易用性并缩短密文长度。同时，新功能的加入不影响旧的基础功能。
-我个人的力量总是有限的。 GpgFrontend 欢迎志愿者加入。你可以使用 GitHub 平台提交问题或提交 pull request。
+GpgFrontend 未来会增加更多功能，提高 GPG 在端到端传输中的易用性并缩短密文长度。同时，新功能的加入不影响旧的基础功能。 我个人的力量总是有限的。 GpgFrontend 欢迎志愿者加入。你可以使用 GitHub
+平台提交问题或提交 pull request。
 
 GpgFrontend 项目作为开源项目，也坚持使用开源代码和库。
 
@@ -185,6 +183,7 @@ AppImage: https://appimage.org/
 
 rapidjson: https://github.com/Tencent/rapidjson
 
-Application Bundles: [Link](!https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
+Application
+Bundles: [Link](!https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
 
 本软件图标使用来自 [阿里巴巴矢量图标库](!https://www.iconfont.cn/) 的素材。免费库中的图标未注册为商标。不涉及版权问题。
