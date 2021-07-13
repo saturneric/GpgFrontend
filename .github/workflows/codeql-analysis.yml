@@ -19,6 +19,11 @@ on:
     branches: [ main ]
   schedule:
     - cron: '19 14 * * 2'
+    
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Debug
+  EXECUTABLE_OUTPUT_PATH: ./
 
 jobs:
   analyze:
@@ -56,11 +61,7 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
         sudo apt-get -y install gcc g++
-        sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
-        sudo apt-get -y install libgcrypt11-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp ninja-build
-        sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-image0
-        sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-*
-
+        sudo apt-get -y install gpgsm
     - name: Cache Qt
       id: cache-qt
       uses: actions/cache@v1
@@ -110,15 +111,7 @@ jobs:
 
     - name: Build GpgFrontend
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -j 2
-
-    - name: Package App Image (Linux)
-      run: |
-        mkdir ${{github.workspace}}/build/artifactOut
-        cd ${{github.workspace}}/build/artifactOut
-        wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-        chmod u+x linuxdeployqt-continuous-x86_64.AppImage
-        ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/release/gpgfrontend/usr/share/applications/*.desktop -appimage
+      run: cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}}  -- -j 2
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
