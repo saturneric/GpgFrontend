@@ -19,7 +19,7 @@ GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](
 
 [>> 快速开始](#quick-start)
 
-[>> 代码与二进制文件安全](https://saturneric.github.io/GpgFrontend/index.html#/about/code-binary-verify)
+[>> 代码与二进制文件安全](https://gpgfrontend.pub/#/about/code-binary-verify)
 
 <div align="center">
 <img width="640" src="https://github.com/saturneric/Blob/blob/master/screenshots/main_mac.jpg?raw=true" alt="macOS Screenshot"/>
@@ -58,7 +58,7 @@ GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](
 - 开源，免费，无需安装。
 - 只需双击即可自由使用。
 - 支持多种语言。
-    - 有兴趣的可以帮我 [翻译一下界面](https://saturneric.github.io/GpgFrontend/index.html#/translate-interface) 。
+    - 有兴趣的可以帮我 [翻译一下界面](https://gpgfrontend.pub/#/translate-interface) 。
 
 ## 使用方法
 
@@ -84,7 +84,7 @@ GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](
 
 ### 还有那些有用的操作
 
-阅读 [文档](https://saturneric.github.io/GpgFrontend/index.html#/) 中的动图，了解更多精彩操作。
+阅读 [文档](https://gpgfrontend.pub/#/quick-start) 中的动图，了解更多精彩操作。
 
 ### 如何安装
 
@@ -128,7 +128,7 @@ GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](
 
 ## 文档
 
-如果你想获取更多信息，请阅读 [文档](https://saturneric.github.io/GpgFrontend/index.html#/).
+如果你想获取更多信息，请阅读 [文档](https://gpgfrontend.pub/#/overview).
 
 ## 开发宗旨
 
