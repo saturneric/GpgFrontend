@@ -26,7 +26,7 @@ If you find this tool useful and promising, welcome to encourage me through STAR
 
 [>> Quick Start](#quick-start)
 
-[>> Code & Binary Security](https://saturneric.github.io/GpgFrontend/index.html#/about/code-binary-verify)
+[>> Code & Binary Security](https://gpgfrontend.pub/#/about/code-binary-verify)
 
 [>> 简体中文文档](https://github.com/saturneric/GpgFrontend/blob/main/README_CN.md)
 
@@ -68,7 +68,7 @@ If you find this tool useful and promising, welcome to encourage me through STAR
 - Just double-click, and then you can use it freely.
 - Supports multiple languages.
     - If you are interested, you can help
-      me [translate the interface](https://saturneric.github.io/GpgFrontend/index.html#/translate-interface).
+      me [translate the interface](https://gpgfrontend.pub/#/translate-interface).
 
 ## Usage
 
@@ -94,7 +94,7 @@ What about files?
 
 ### More Helpful Operation
 
-Read the animated pictures in the [Document](https://saturneric.github.io/GpgFrontend/index.html#/) to learn more
+Read the animated pictures in the [Document](https://gpgfrontend.pub/#/quick-start)learn more
 awesome operations.
 
 ### How to Run it
@@ -140,7 +140,7 @@ awesome operations.
 
 ## Document
 
-For more usage information, please read [Document](https://saturneric.github.io/GpgFrontend/index.html#/).
+for more usage information, please read [document](https://gpgfrontend.pub/#/overview).
 
 ## Purpose
 
