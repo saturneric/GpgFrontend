@@ -26,7 +26,6 @@
 #define __GPGWIN_H__
 
 #include "gpg/GpgConstants.h"
-#include "ui/widgets/Attachments.h"
 #include "ui/KeyMgmt.h"
 #include "ui/widgets/TextEdit.h"
 #include "ui/FileEncryptionDialog.h"
@@ -393,9 +392,8 @@ private:
     KeyList *mKeyList;
 
     InfoBoardWidget *infoBoard;
-    Attachments *mAttachments; /**< TODO */
-    GpgME::GpgContext *mCtx; /**< TODO */
-    KeyMgmt *keyMgmt; /**< TODO */
+    GpgME::GpgContext *mCtx;
+    KeyMgmt *keyMgmt;
     KeyServerImportDialog *importDialog; /**< TODO */
 
     QNetworkAccessManager *networkAccessManager;

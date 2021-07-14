@@ -42,8 +42,6 @@ public:
     /* [1] Constructors and Destructors */
     explicit MimeMultiPart(MultiPartType type = Related);
 
-    ~MimeMultiPart() override;
-
     /* [1] --- */
 
     /* [2] Getters and Setters */
