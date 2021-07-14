@@ -145,13 +145,6 @@ void MainWindow::slotOpenSettingsDialog() {
         importButton->setToolButtonStyle(buttonStyle);
         fileEncButton->setToolButtonStyle(buttonStyle);
 
-        // Mime-settings
-        if (settings.value("mime/parseMime").toBool()) {
-            createAttachmentDock();
-        } else if (attachmentDockCreated) {
-            closeAttachmentDock();
-        }
-
         // restart mainwindow if necessary
         if (getRestartNeeded()) {
             if (edit->maybeSaveAnyTab()) {

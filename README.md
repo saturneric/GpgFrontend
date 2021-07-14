@@ -110,12 +110,13 @@ awesome operations.
 
 #### macOS
 
-0. If command `gpg` is not avaliable, please use homebrew to install it first.
+0. If command `gpg` is not available, please use homebrew to install it first.
 1. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases) macOS edition from the latest release
-2. Double-Click GpgFrontend-***.dmg to load it
+2. Double-Click GpgFrontend.dmg to load it
     - macOS will automatically decompress the zip file and then you will be able to see the dmg
-3. Double click and run it. If it satisfies you, you can drag it into your Application folder.
+3. Double click and run it
    (due to macOS security policy, you may need a little more step).
+4. If it satisfies you, you can drag it into your Application folder.
 
 #### Debian/Ubuntu/CentOS
 

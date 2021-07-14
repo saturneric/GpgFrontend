@@ -25,7 +25,6 @@
 #include "gpg/GpgContext.h"
 
 #include <unistd.h>    /* contains read/write */
-#include <Mime.h>
 
 #ifdef _WIN32
 
@@ -430,38 +429,6 @@ namespace GpgME {
         return err;
     }
 
-
-    /**
-     * if this is mime, split text and attachments...
-     * message contains only text afterwards
-     */
-    void parseMime(QByteArray *message) {
-
-        QString pText;
-        bool show_ma_dock = false;
-
-        Mime *mime = new Mime(message);
-        for (MimePart tmp : mime->parts()) {
-            if (tmp.header.getValue("Content-Type") == "text/plain" &&
-                tmp.header.getValue("Content-Transfer-Encoding") != "base64") {
-                QByteArray body;
-                if (tmp.header.getValue("Content-Transfer-Encoding") == "quoted-printable") {
-                    Mime::quotedPrintableDecode(tmp.body, body);
-                } else {
-                    body = tmp.body;
-                }
-                pText.append(QString(body));
-            } else {
-                // TODO
-                show_ma_dock = true;
-            }
-        }
-        *message = pText.toUtf8();
-        if (show_ma_dock) {
-            // TODO
-        }
-    }
-
 /** Decrypt QByteAarray, return QByteArray
  *  mainly from http://basket.kde.org/ (kgpgme.cpp)
  */
@@ -494,28 +461,6 @@ namespace GpgME {
         }
         if (dataOut) {
             gpgme_data_release(dataOut);
-        }
-
-        /*
-             *   1) is it mime (content-type:)
-             *   2) parse header
-             *   2) choose action depending on content-type
-        */
-        if (Mime::isMime(outBuffer)) {
-            Header header = Mime::getHeader(outBuffer);
-            // is it multipart, is multipart-parsing enabled
-            if (header.getValue("Content-Type") == "multipart/mixed"
-                && settings.value("mime/parseMime").toBool()) {
-                parseMime(outBuffer);
-            } else if (header.getValue("Content-Type") == "text/plain"
-                       && settings.value("mime/parseQP").toBool()) {
-                if (header.getValue("Content-Transfer-Encoding") == "quoted-printable") {
-                    auto *decoded = new QByteArray();
-                    Mime::quotedPrintableDecode(*outBuffer, *decoded);
-                    //TODO: remove header
-                    outBuffer = decoded;
-                }
-            }
         }
 
         if (result != nullptr) {

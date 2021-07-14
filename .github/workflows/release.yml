@@ -75,7 +75,7 @@ jobs:
         shell: msys2 {0}
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-qt-creator mingw-w64-x86_64-gpgme
-          pacman --noconfirm -S --needed make texinfo
+          pacman --noconfirm -S --needed make texinfo zip
         if: matrix.os == 'windows-latest'
 
       - name: Build gpg-error (Linux)
@@ -132,6 +132,10 @@ jobs:
         run: cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'ubuntu-16.04' || matrix.os == 'macos-latest'
 
+      - name: Get Short SHA of Commit
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
       - name: Package App Bundle (macOS)
         run: |
           macdeployqt ${{github.workspace}}/build/release/GpgFrontend.app
@@ -139,6 +143,7 @@ jobs:
           hdiutil create ${{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/release/
           mkdir ${{github.workspace}}/build/artifactOut
           hdiutil convert ${{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
+          mv ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg 
         if: matrix.os == 'macos-latest'
 
       - name: Package App Image (Linux)
@@ -150,7 +155,7 @@ jobs:
           ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/release/gpgfrontend/usr/share/applications/*.desktop -appimage
         if: matrix.os == 'ubuntu-16.04'
 
-      - name: Configure CMake & Build Binary(Windows)
+      - name: Configure CMake & Build Binary (Windows)
         shell: msys2 {0}
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
@@ -159,10 +164,6 @@ jobs:
           # Build your program with the given configuration
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'windows-latest'
-
-      - name: Get Short SHA of Commit
-        id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@master
