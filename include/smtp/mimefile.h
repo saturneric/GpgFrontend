@@ -24,16 +24,17 @@
 
 #include "smtpexports.h"
 
-class SMTP_EXPORT MimeFile : public MimePart
-{
-    Q_OBJECT
+class SMTP_EXPORT MimeFile : public MimePart {
+Q_OBJECT
 public:
 
     /* [1] Constructors and Destructors */
 
-    MimeFile(const QByteArray& stream, const QString& fileName);
-    MimeFile(QFile *f);
-    ~MimeFile();
+    MimeFile(const QByteArray &stream, const QString &fileName);
+
+    explicit MimeFile(QFile *f);
+
+    ~MimeFile() override;
 
     /* [1] --- */
 
@@ -46,14 +47,14 @@ protected:
 
     /* [3] Protected members */
 
-    QFile* file;
+    QFile *file;
 
     /* [3] --- */
 
 
     /* [4] Protected methods */
 
-    virtual void prepare();
+    void prepare() override;
 
     /* [4] --- */
 

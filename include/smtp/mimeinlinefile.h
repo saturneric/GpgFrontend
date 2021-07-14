@@ -23,14 +23,14 @@
 
 #include "smtpexports.h"
 
-class SMTP_EXPORT MimeInlineFile : public MimeFile
-{
+class SMTP_EXPORT MimeInlineFile : public MimeFile {
 public:
 
     /* [1] Constructors and Destructors */
 
-    MimeInlineFile(QFile *f);
-    ~MimeInlineFile();
+    explicit MimeInlineFile(QFile *f);
+
+    ~MimeInlineFile() override;
 
     /* [1] --- */
 
@@ -48,7 +48,7 @@ protected:
 
     /* [4] Protected methods */
 
-    virtual void prepare();
+    void prepare() override;
 
     /* [4] --- */
 };
