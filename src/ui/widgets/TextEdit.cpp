@@ -37,9 +37,6 @@ TextEdit::TextEdit(QWidget *parent) : QWidget(parent) {
   layout->setSpacing(0);
   setLayout(layout);
 
-  // Front in same width
-  this->setFont({"Courier"});
-
   connect(tabWidget, SIGNAL(tabCloseRequested(int)), this,
           SLOT(removeTab(int)));
   connect(this, &TextEdit::insertTargetTextPage, this,
@@ -73,7 +70,7 @@ void TextEdit::slotNewHelpTab(const QString &title, const QString &path) const {
 void TextEdit::slotNewFileTab() const {
 
   auto *page = new FilePage(qobject_cast<QWidget *>(parent()));
-  tabWidget->addTab(page, "[File Browser]");
+  tabWidget->addTab(page, "[Browser]");
   tabWidget->setCurrentIndex(tabWidget->count() - 1);
   connect(page, SIGNAL(pathChanged(const QString &)), this,
           SLOT(slotFilePagePathChanged(const QString &)));
@@ -646,7 +643,7 @@ void TextEdit::slotFilePagePathChanged(const QString &path) {
   } else {
     mPath = tPath;
   }
-  mPath.prepend("[File Browser] ");
+  mPath.prepend("[Browser] ");
   mPath.append("/");
   tabWidget->setTabText(index, mPath);
 }

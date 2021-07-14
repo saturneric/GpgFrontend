@@ -42,6 +42,9 @@ EditorPage::EditorPage(QString filePath, QWidget *parent) : QWidget(parent),
     setAttribute(Qt::WA_DeleteOnClose);
     textPage->setFocus();
 
+    // Front in same width
+    this->setFont({"Courier"});
+
     connect(textPage, SIGNAL(textChanged()), this, SLOT(formatGpgHeader()));
 }
 
