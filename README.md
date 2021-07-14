@@ -5,7 +5,7 @@
 ![Language](https://img.shields.io/badge/language-C%2B%2B-green)
 ![License](https://img.shields.io/badge/License-GPL--3.0-orange)
 ![CodeSize](https://img.shields.io/github/languages/code-size/saturneric/GpgFrontend)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=saturneric/GpgFrontend&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&utm_medium=referral&utm_content=saturneric/GpgFrontend&utm_campaign=Badge_Grade)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/saturneric/gpgfrontend)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_small)
 
@@ -13,10 +13,10 @@ GpgFrontend is a Powerful, Easy-to-Use, Compact, Cross-Platform, and
 Installation-Free [OpenPGP](https://www.openpgp.org/)
 Crypto Tool.
 
-By using GpgFrontend, you can quickly **encrypt and decrypt text or files**. Or at the same time as the above
-operations, you can add **your own signature** to let others know that this document or this paragraph of text was
-issued by you. It aims to allow ordinary users to quickly use gpg and make professional users more convenient.
-GpgFrontend supports new features of OpenPGP.
+By using GpgFrontend, you can quickly encrypt and decrypt text or files. Or at the same time as the above
+operations, you can add your own signature to let others know that this document or this paragraph of text was
+issued by you. Please **take the initiative to protect privacy in your own hands**, instead of relying on servers and
+algorithms provided by large companies.
 
 **Notice:** GpgFrontend does not provide an embedded [gnupg](https://gnupg.org/) binary library and needs to be
 installed by the user. **This is to ensure safety and avoid code or binary files involved in encryption and decryption
@@ -26,10 +26,9 @@ If you find this tool useful and promising, welcome to encourage me through STAR
 
 [>> Quick Start](#quick-start)
 
-[>> Code & Binary Security](https://saturneric.github.io/GpgFrontend/index.html#/about/code-binary-verify)
+[>> Code & Binary Security](https://gpgfrontend.pub/#/about/code-binary-verify)
 
-[>> 中文文档](https://github.com/saturneric/GpgFrontend/blob/main/README_CN.md)
-
+[>> 简体中文文档](https://github.com/saturneric/GpgFrontend/blob/main/README_CN.md)
 
 <div align="center">
 <img width="640" src="https://github.com/saturneric/Blob/blob/master/screenshots/main_mac.jpg?raw=true" alt="macOS Screenshot"/>
@@ -69,7 +68,7 @@ If you find this tool useful and promising, welcome to encourage me through STAR
 - Just double-click, and then you can use it freely.
 - Supports multiple languages.
     - If you are interested, you can help
-      me [translate the interface](https://saturneric.github.io/GpgFrontend/index.html#/translate-interface).
+      me [translate the interface](https://gpgfrontend.pub/#/translate-interface).
 
 ## Usage
 
@@ -95,18 +94,19 @@ What about files?
 
 ### More Helpful Operation
 
-Read the animated pictures in the [Document](https://saturneric.github.io/GpgFrontend/index.html#/) to learn more
+Read the animated pictures in the [Document](https://gpgfrontend.pub/#/quick-start) to learn more
 awesome operations.
 
 ### How to Run it
 
 #### Windows
 
-1. [Download](https://gnupg.org/ftp/gcrypt/binary/gnupg-w32-2.3.1_20210420.exe) `gnupg-w32-******.exe`
-2. Double Click it to install it
-3. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases)  Windows Edition from the latest release
-4. Unzip `gpgfrontend-windows-latest-*******.zip`
-5. Go into the directory and double click `GpgFrontend.exe`.
+0. If you haven't installed gnupg,
+   please [Download](https://gnupg.org/ftp/gcrypt/binary/gnupg-w32-2.3.1_20210420.exe) `gnupg-w32-******.exe` and
+   install it.
+1. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases)  Windows Edition from the latest release
+2. Unzip `gpgfrontend-windows-latest-*******.zip`
+3. Go into the directory and double click `GpgFrontend.exe`.
 
 #### macOS
 
@@ -121,10 +121,10 @@ awesome operations.
 
 0. Install gnupg (If you have already followed please skip)
     - For Debian/Ubuntu
-       ```shell
-       $ sudo apt update
-       $ sudo apt install gpg
-       ```
+      ```shell
+      $ sudo apt update
+      $ sudo apt install gpg
+      ```
     - For CentOS
        ```shell
        $ sudo yum install gnupg 
@@ -138,7 +138,7 @@ awesome operations.
 
 ## Document
 
-For more usage information, please read [Document](https://saturneric.github.io/GpgFrontend/index.html#/).
+for more usage information, please read [document](https://gpgfrontend.pub/#/overview).
 
 ## Purpose
 
@@ -178,6 +178,10 @@ Feel free to dive in! [Open an issue](https://github.com/saturneric/GpgFrontend/
 
 GpgFrontend itself is licensed under the [GPLv3](COPYING).
 
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_large)
+
+### Dependency
+
 There are some libraries and binary included in the zip-file which (may) have different licenses, for more information
 check their homepages. You can also obtain the sources from there.
 
@@ -192,6 +196,8 @@ MSYS2: https://www.msys2.org/
 mingw-w64: http://mingw-w64.org/doku.php
 
 AppImage: https://appimage.org/
+
+rapidjson: https://github.com/Tencent/rapidjson
 
 Application
 Bundles: [Link](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)

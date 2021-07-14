@@ -8,9 +8,9 @@
     - [Sign & Verify Text](manual/sign-verify-text.md)
     - [Encrypt & Decrypt File](manual/encrypt-decrypt-file.md)
     - [Sign & Verify File](manual/sign-verify-file.md)
-    - [Generate Key](manual/generate-key.md)
-    - [View key pair information](manual/view-keypair-info.md)
-    - Import & Export Key
+    - [Generate Key Pair & Subkey](manual/generate-key.md)
+    - [View Key Pair Details](manual/view-keypair-info.md)
+    - Import & Export Key Pair
     - KeyServer Operations
 
 - Contribute

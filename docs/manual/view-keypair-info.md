@@ -1,9 +1,11 @@
-# View key pair information
+# View Key Pair Details
 
 Right-click the key pair in the key toolbox or key management interface and click Show key details to view the
 information about the key pair.
 
 This part may involve a brief introduction to gpg-related concepts, and it will be relatively long.
+
+![screenshot](https://github.com/saturneric/Blob/blob/master/screenshots/key-details.png?raw=true)
 
 ## General Info
 
@@ -14,11 +16,15 @@ can create a new UID in the UID section and set it as the main UID to change it.
 
 According to the OpenPGP protocol, this part is divided into Name, Email, and Comment.
 
+![screenshot](https://github.com/saturneric/Blob/blob/master/screenshots/key-details-owner.png?raw=true)
+
 ### Master Key
 
 This part is the information of the master key of the key pair. The master key is very important, because without it,
 the key pair cannot perform related management operations such as adding and revoking sub-keys (similar to the key ring
 cannot be opened). Let's introduce the information of the master key separately below.
+
+![screenshot](https://github.com/saturneric/Blob/blob/master/screenshots/key-details-master-key.png?raw=true)
 
 #### Key ID
 
@@ -30,7 +36,9 @@ The encryption algorithm used by the master key.
 
 #### Key Size
 
-The length of the master key.
+The length of the master key. 
+It can be said that the longer the key, the harder it is to crack the ciphertext, but at the same time, the more time it takes for a single operation. 
+Generally speaking, a length of 2048 bits is safe enough.
 
 #### Normal Usage
 
@@ -40,12 +48,14 @@ will still be displayed here.
 
 #### Actual Usage
 
-The actual usage of the master key and all subkeys. When there is only one subkey that can be used for signing, if it
-has expired, the signature purpose will not be displayed here.
+The actual usage of the master key and all subkeys. It is the union of their usage. 
+If there is only one master key in the key pair that can be used for signing, but this master key does not exist. Then the signature usage will not appear here, only in Normal Usage.
+In addition, when there is only one subkey that can be used for signing, if it has expired, the signature purpose will not be displayed here.
 
 #### Expires on
 
-The expiration time of the master key.
+The expiration time of the master key. When the master key expires, it will be invalid. You cannot use it for any operation. In addition, the subkeys in the key pair will also be unavailable.
+Fortunately, you can change the expiration time of the master key at any time, or even set it to never expire. The prerequisite for this is that the master key exists.
 
 #### Last Update
 
@@ -61,9 +71,13 @@ the key pair cannot sign other key pairs.
 
 ### Fingerprint
 
+![screenshot](https://github.com/saturneric/Blob/blob/master/screenshots/key-details-fingerprint.png?raw=true)
+
 The fingerprint of the key pair is used for humans to quickly compare whether the key pair is the expected key pair.
 
 ### Operations
+
+![screenshot](https://github.com/saturneric/Blob/blob/master/screenshots/key-details-opera.png?raw=true)
 
 This column lists all available operations.
 

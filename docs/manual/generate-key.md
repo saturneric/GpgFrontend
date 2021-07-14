@@ -1,4 +1,4 @@
-# Generate Key
+# Generate Key Pair & Subkey
 
 For GpgFrontend, to understand the key, you must first understand two concepts: key pair and subkey.
 
@@ -58,7 +58,7 @@ You can set a key to protect the master key, which is very important when the ma
 When the Do not set password check box is not checked, an interface for you to enter the password will pop up during the process of generating the password. 
 Just follow the prompts. 
 After setting the password, when you need to use the master key for operation, you may enter the password to unlock it 
-(some systems have a password manager to take over this process).
+(some systems have a password networkAccessManager to take over this process).
 
 You can also check the checkbox to not set a protection password for the master key, but due to security considerations, this is not recommended.
 
