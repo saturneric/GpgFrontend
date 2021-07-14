@@ -163,9 +163,7 @@ jobs:
           cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}} ..
           # Build your program with the given configuration
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
-          zip -r GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.zip ./release/*
         if: matrix.os == 'windows-latest'
-
 
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@master
@@ -185,5 +183,5 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
-          path: ${{github.workspace}}/build/GpgFrontend*.zip*
+          path: ${{github.workspace}}/build/release/*
         if: matrix.os == 'windows-latest'
