@@ -25,76 +25,86 @@
 #include "smtpexports.h"
 
 class SMTP_EXPORT MimePart : public QObject {
-  Q_OBJECT
+Q_OBJECT
 public:
-  /* [0] Enumerations */
-  enum Encoding { _7Bit, _8Bit, Base64, QuotedPrintable };
+    /* [0] Enumerations */
+    enum Encoding {
+        _7Bit, _8Bit, Base64, QuotedPrintable
+    };
 
-  /* [0] --- */
+    /* [0] --- */
 
-  /* [1] Constructors and Destructors */
+    /* [1] Constructors and Destructors */
 
-  MimePart();
-  ~MimePart();
+    MimePart();
 
-  /* [1] --- */
+    ~MimePart() override;
 
-  /* [2] Getters and Setters */
+    /* [1] --- */
 
-  const QString &getHeader() const;
-  const QByteArray &getContent() const;
+    /* [2] Getters and Setters */
 
-  void setContent(const QByteArray &content);
-  void setHeader(const QString &header);
+    [[nodiscard]] const QString &getHeader() const;
 
-  void addHeaderLine(const QString &line);
+    [[nodiscard]] const QByteArray &getContent() const;
 
-  void setContentId(const QString &cId);
-  const QString &getContentId() const;
+    void setContent(const QByteArray &content);
 
-  void setContentName(const QString &cName);
-  const QString &getContentName() const;
+    void setHeader(const QString &header);
 
-  void setContentType(const QString &cType);
-  const QString &getContentType() const;
+    void addHeaderLine(const QString &line);
 
-  void setCharset(const QString &charset);
-  const QString &getCharset() const;
+    void setContentId(const QString &cId);
 
-  void setEncoding(Encoding enc);
-  Encoding getEncoding() const;
+    [[nodiscard]] const QString &getContentId() const;
 
-  MimeContentFormatter &getContentFormatter();
+    void setContentName(const QString &cName);
 
-  /* [2] --- */
+    [[nodiscard]] const QString &getContentName() const;
 
-  /* [3] Public methods */
+    void setContentType(const QString &cType);
 
-  virtual QString toString();
+    [[nodiscard]] const QString &getContentType() const;
 
-  virtual void prepare();
+    void setCharset(const QString &charset);
 
-  /* [3] --- */
+    [[nodiscard]] const QString &getCharset() const;
+
+    void setEncoding(Encoding enc);
+
+    [[nodiscard]] Encoding getEncoding() const;
+
+    MimeContentFormatter &getContentFormatter();
+
+    /* [2] --- */
+
+    /* [3] Public methods */
+
+    virtual QString toString();
+
+    virtual void prepare();
+
+    /* [3] --- */
 
 protected:
-  /* [4] Protected members */
+    /* [4] Protected members */
 
-  QString header;
-  QByteArray content;
+    QString header;
+    QByteArray content;
 
-  QString cId;
-  QString cName;
-  QString cType;
-  QString cCharset;
-  QString cBoundary;
-  Encoding cEncoding;
+    QString cId;
+    QString cName;
+    QString cType;
+    QString cCharset;
+    QString cBoundary;
+    Encoding cEncoding;
 
-  QString mimeString;
-  bool prepared;
+    QString mimeString;
+    bool prepared;
 
-  MimeContentFormatter formatter;
+    MimeContentFormatter formatter;
 
-  /* [4] --- */
+    /* [4] --- */
 };
 
 #endif // MIMEPART_H

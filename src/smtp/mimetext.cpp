@@ -21,13 +21,13 @@
 /* [1] Constructors and Destructors */
 
 MimeText::MimeText(const QString &txt) {
-  this->text = txt;
-  this->cType = "text/plain";
-  this->cCharset = "utf-8";
-  this->cEncoding = _8Bit;
+    this->text = txt;
+    this->cType = "text/plain";
+    this->cCharset = "utf-8";
+    this->cEncoding = _8Bit;
 }
 
-MimeText::~MimeText() {}
+MimeText::~MimeText() = default;
 
 /* [1] --- */
 
@@ -42,11 +42,11 @@ const QString &MimeText::getText() const { return text; }
 /* [3] Protected Methods */
 
 void MimeText::prepare() {
-  this->content.clear();
-  this->content.append(text.toUtf8());
+    this->content.clear();
+    this->content.append(text.toUtf8());
 
-  /* !!! IMPORTANT !!! */
-  MimePart::prepare();
+    /* !!! IMPORTANT !!! */
+    MimePart::prepare();
 }
 
 /* [3] --- */

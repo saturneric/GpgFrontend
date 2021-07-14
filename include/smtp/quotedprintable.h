@@ -24,12 +24,12 @@
 
 #include "smtpexports.h"
 
-class SMTP_EXPORT QuotedPrintable : public QObject
-{
-    Q_OBJECT
+class SMTP_EXPORT QuotedPrintable : public QObject {
+Q_OBJECT
 public:
 
     static QString encode(const QByteArray &input);
+
     static QByteArray decode(const QString &input);
 
 private:

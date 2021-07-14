@@ -22,7 +22,7 @@
 
 MimeInlineFile::MimeInlineFile(QFile *f) : MimeFile(f) {}
 
-MimeInlineFile::~MimeInlineFile() {}
+MimeInlineFile::~MimeInlineFile() = default;
 
 /* [1] --- */
 
@@ -33,10 +33,10 @@ MimeInlineFile::~MimeInlineFile() {}
 /* [3] Protected methods */
 
 void MimeInlineFile::prepare() {
-  this->header += "Content-Disposition: inline\r\n";
+    this->header += "Content-Disposition: inline\r\n";
 
-  /* !!! IMPORTANT !!! */
-  MimeFile::prepare();
+    /* !!! IMPORTANT !!! */
+    MimeFile::prepare();
 }
 
 /* [3] --- */
