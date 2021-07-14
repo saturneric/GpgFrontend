@@ -94,7 +94,7 @@ What about files?
 
 ### More Helpful Operation
 
-Read the animated pictures in the [Document](https://gpgfrontend.pub/#/quick-start)learn more
+Read the animated pictures in the [Document](https://gpgfrontend.pub/#/quick-start) to learn more
 awesome operations.
 
 ### How to Run it
@@ -129,7 +129,7 @@ awesome operations.
       ```shell
       $ sudo yum install gnupg
       ```
-2. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases) Linux edition from the latest release
+2. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases/latest) Linux edition from the latest release
 3. Unzip gpgfrontend-ubuntu-16.04-**\*\*\***.zip
     - `ubuntu-16.04` shows that Linux distributions at the same time as 16.04 or later are supported.
 4. Give `GpgFrontend-***.AppImage` permission to execute
