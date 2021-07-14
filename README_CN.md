@@ -101,7 +101,7 @@ GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](
 
 0. 如果命令 `gpg` 不可用,请先用Homebrew安装它.
 1. [下载 GpgFrontend](https://github.com/saturneric/GpgFrontend/releases) macOS edition from release
-2. 双击并加载 GpgFrontend.dmg
+2. 双击并加载 GpgFrontend-***.dmg
 3. 双击并运行
    (由于macOS的安全策略，在真正能运行前请遵照系统说明).
 4. 如果你满意的话，可以将本软件复制到Application文件夹.
@@ -119,13 +119,11 @@ GpgFrontend 是一个易于使用、小巧、跨平台和免安装的 [OpenPGP](
        $ sudo yum install gnupg 
        ```
 2. [下载 GpgFrontend](https://github.com/saturneric/GpgFrontend/releases) Linux edition from the latest release
-3. 解压 gpgfrontend-ubuntu-16.04-*******.zip
-    - `ubuntu-16.04` 说明ubuntu 16.04及其同时期与后来的Linux发行版都可以正常运行。
-4. 赋予 `GpgFrontend-***.AppImage` 执行权限
+3. 赋予 `GpgFrontend-***.AppImage` 执行权限
     ```shell
     $ chmod u+x ./GpgFrontend-***.AppImage
     ```
-5. 双击运行 `GpgFrontend-***.AppImage`.
+4. 双击运行 `GpgFrontend-***.AppImage`.
 
 ## 文档
 
