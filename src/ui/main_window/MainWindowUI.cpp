@@ -447,26 +447,4 @@ void MainWindow::createDockWindows() {
     infoBoardDock->setWidget(infoBoard);
     infoBoardDock->widget()->layout()->setContentsMargins(0, 0, 0, 0);
     viewMenu->addAction(infoBoardDock->toggleViewAction());
-
-    /* Attachments-Dockwindow
-      */
-    if (settings.value("mime/parseMime").toBool()) {
-        createAttachmentDock();
-    }
-}
-
-void MainWindow::createAttachmentDock() {
-    if (attachmentDockCreated) {
-        return;
-    }
-    mAttachments = new Attachments();
-    attachmentDock = new QDockWidget(tr("Attached files:"), this);
-    attachmentDock->setObjectName("AttachmentDock");
-    attachmentDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
-    addDockWidget(Qt::LeftDockWidgetArea, attachmentDock);
-    attachmentDock->setWidget(mAttachments);
-    // hide till attachment is decrypted
-    viewMenu->addAction(attachmentDock->toggleViewAction());
-    attachmentDock->hide();
-    attachmentDockCreated = true;
 }

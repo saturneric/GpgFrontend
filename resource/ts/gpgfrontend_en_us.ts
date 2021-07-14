@@ -96,56 +96,6 @@
     </message>
 </context>
 <context>
-    <name>AttachmentTableModel</name>
-    <message>
-        <location filename="../../src/ui/AttachmentTableModel.cpp" line="124"/>
-        <source>Filename</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/AttachmentTableModel.cpp" line="127"/>
-        <source>Contenttype</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>Attachments</name>
-    <message>
-        <location filename="../../src/ui/widgets/Attachments.cpp" line="78"/>
-        <location filename="../../src/ui/widgets/Attachments.cpp" line="113"/>
-        <source>Save File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/widgets/Attachments.cpp" line="79"/>
-        <source>Save this file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/widgets/Attachments.cpp" line="83"/>
-        <source>Open File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/widgets/Attachments.cpp" line="84"/>
-        <source>Open this file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/widgets/Attachments.cpp" line="119"/>
-        <location filename="../../src/ui/widgets/Attachments.cpp" line="164"/>
-        <source>File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/widgets/Attachments.cpp" line="120"/>
-        <location filename="../../src/ui/widgets/Attachments.cpp" line="165"/>
-        <source>Cannot write file %1:
-%2.</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>ChoosePage</name>
     <message>
         <location filename="../../src/ui/Wizard.cpp" line="165"/>
@@ -463,32 +413,32 @@
 <context>
     <name>GpgME::GpgContext</name>
     <message>
-        <location filename="../../src/gpg/GpgContext.cpp" line="580"/>
+        <location filename="../../src/gpg/GpgContext.cpp" line="525"/>
         <source>Wrong password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/GpgContext.cpp" line="588"/>
+        <location filename="../../src/gpg/GpgContext.cpp" line="533"/>
         <source>Enter Password for</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/GpgContext.cpp" line="592"/>
+        <location filename="../../src/gpg/GpgContext.cpp" line="537"/>
         <source>Enter Password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/GpgContext.cpp" line="747"/>
+        <location filename="../../src/gpg/GpgContext.cpp" line="692"/>
         <source>Key Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/GpgContext.cpp" line="747"/>
+        <location filename="../../src/gpg/GpgContext.cpp" line="692"/>
         <source>No Private Key Selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/GpgContext.cpp" line="787"/>
+        <location filename="../../src/gpg/GpgContext.cpp" line="732"/>
         <source>Error in signing:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2756,11 +2706,6 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
     <message>
         <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="443"/>
         <source>Information Board</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/main_window/MainWindowUI.cpp" line="463"/>
-        <source>Attached files:</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

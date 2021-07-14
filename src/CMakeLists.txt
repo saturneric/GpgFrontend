@@ -2,6 +2,7 @@ set(ALL_SOURCE_FILE)
 
 add_subdirectory(gpg)
 add_subdirectory(ui)
+add_subdirectory(smtp)
 
 aux_source_directory(. BASE_SOURCE)
 
@@ -121,19 +122,19 @@ endif()
 IF (MINGW)
     message(STATUS "Link Application Static Library For MINGW")
     target_link_libraries(${AppName}
-            gpgfrontend-ui gpg
+            smtp gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
             crypto ssl)
 elseif(APPLE)
     message(STATUS "Link Application Static Library For macOS")
     target_link_libraries(${AppName}
-            gpgfrontend-ui gpg
+            smtp gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
             crypto ssl)
 else()
     message(STATUS "Link Application Static Library For UNIX")
     target_link_libraries(${AppName}
-            gpgfrontend-ui gpg
+            smtp gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
             crypto ssl pthread)
 endif()
