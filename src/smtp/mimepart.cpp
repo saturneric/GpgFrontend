@@ -27,8 +27,6 @@ MimePart::MimePart() {
     cBoundary = "";
 }
 
-MimePart::~MimePart() = default;
-
 /* [1] --- */
 
 /* [2] Getters and Setters */

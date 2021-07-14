@@ -38,7 +38,7 @@ public:
 
     MimePart();
 
-    ~MimePart() override;
+    ~MimePart() = default;
 
     /* [1] --- */
 

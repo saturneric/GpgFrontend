@@ -43,8 +43,6 @@ MimeMultiPart::MimeMultiPart(MultiPartType type) {
     cBoundary = md5.result().toHex();
 }
 
-MimeMultiPart::~MimeMultiPart() = default;
-
 void MimeMultiPart::addPart(MimePart *part) { parts.append(part); }
 
 const QList<MimePart *> &MimeMultiPart::getParts() const { return parts; }
