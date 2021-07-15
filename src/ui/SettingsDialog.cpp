@@ -23,6 +23,8 @@
  */
 
 #include "ui/SettingsDialog.h"
+#include "smtp/SmtpMime"
+#include "ui/WaitingDialog.h"
 
 SettingsDialog::SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent)
         : QDialog(parent) {
@@ -30,14 +32,14 @@ SettingsDialog::SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent)
     tabWidget = new QTabWidget;
     generalTab = new GeneralTab(mCtx);
     appearanceTab = new AppearanceTab;
-    mimeTab = new MimeTab;
+    sendMailTab = new SendMailTab;
     keyserverTab = new KeyserverTab;
     advancedTab = new AdvancedTab;
     gpgPathsTab = new GpgPathsTab;
 
     tabWidget->addTab(generalTab, tr("General"));
     tabWidget->addTab(appearanceTab, tr("Appearance"));
-    tabWidget->addTab(mimeTab, tr("PGP/Mime"));
+    tabWidget->addTab(sendMailTab, tr("Send Mail"));
     tabWidget->addTab(keyserverTab, tr("Key Server"));
     // tabWidget->addTab(gpgPathsTab, tr("Gpg paths"));
     tabWidget->addTab(advancedTab, tr("Advanced"));
@@ -61,7 +63,7 @@ SettingsDialog::SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent)
             SLOT(slotSetRestartNeeded(bool)));
     connect(appearanceTab, SIGNAL(signalRestartNeeded(bool)), this,
             SLOT(slotSetRestartNeeded(bool)));
-    connect(mimeTab, SIGNAL(signalRestartNeeded(bool)), this,
+    connect(sendMailTab, SIGNAL(signalRestartNeeded(bool)), this,
             SLOT(slotSetRestartNeeded(bool)));
     connect(keyserverTab, SIGNAL(signalRestartNeeded(bool)), this,
             SLOT(slotSetRestartNeeded(bool)));
@@ -82,7 +84,7 @@ void SettingsDialog::slotSetRestartNeeded(bool needed) {
 
 void SettingsDialog::slotAccept() {
     generalTab->applySettings();
-    mimeTab->applySettings();
+    sendMailTab->applySettings();
     appearanceTab->applySettings();
     keyserverTab->applySettings();
     advancedTab->applySettings();
@@ -279,51 +281,53 @@ void GeneralTab::slotOwnKeyIdChanged() {
     // Set ownKeyId to currently selected
 }
 
-MimeTab::MimeTab(QWidget *parent)
+SendMailTab::SendMailTab(QWidget *parent)
         : QWidget(parent), appPath(qApp->applicationDirPath()),
           settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
                    QSettings::IniFormat) {
-    /*****************************************
-     * MIME-Parsing-Box
-     *****************************************/
-    auto *mimeQPBox = new QGroupBox(tr("Decode quoted printable"));
-    auto *mimeQPBoxLayout = new QVBoxLayout();
-    mimeQPCheckBox =
-            new QCheckBox(tr("Try to recognize quoted printable."), this);
-    mimeQPBoxLayout->addWidget(mimeQPCheckBox);
-    mimeQPBox->setLayout(mimeQPBoxLayout);
 
-    auto *mimeParseBox = new QGroupBox(tr("Parse PGP/MIME (Experimental)"));
-    auto *mimeParseBoxLayout = new QVBoxLayout();
-    mimeParseCheckBox = new QCheckBox(
-            tr("Try to split attachments from PGP-MIME ecrypted messages."), this);
-    mimeParseBoxLayout->addWidget(mimeParseCheckBox);
-    mimeParseBox->setLayout(mimeParseBoxLayout);
+    enableCheckBox = new QCheckBox(tr("Enable"));
+    enableCheckBox->setTristate(false);
 
-    auto *mimeOpenAttachmentBox =
-            new QGroupBox(tr("Open with external application (Experimental)"));
-    auto *mimeOpenAttachmentBoxLayout = new QVBoxLayout();
-    auto *mimeOpenAttachmentText = new QLabel(tr(
-            "Open attachments with default application for the filetype.<br> "
-            "There are at least two possible problems with this behaviour:"
-            "<ol><li>File needs to be saved unencrypted to attachments folder.<br> "
-            "Its your job to clean this folder.</li>"
-            "<li>The external application may have its own temp files.</li></ol>"));
+    smtpAddress = new QLineEdit();
+    username = new QLineEdit();
+    password = new QLineEdit();
+    password->setEchoMode(QLineEdit::Password);
 
-    // mimeOpenAttachmentBox->setDisabled(true);
-    mimeOpenAttachmentCheckBox =
-            new QCheckBox(tr("Enable opening with external applications."), this);
+    portSpin = new QSpinBox();
+    portSpin->setMinimum(1);
+    portSpin->setMaximum(65535);
+    connectionTypeComboBox = new QComboBox();
+    connectionTypeComboBox->addItem("None");
+    connectionTypeComboBox->addItem("SSL");
+    connectionTypeComboBox->addItem("TLS");
+    connectionTypeComboBox->addItem("STARTTLS");
 
-    mimeOpenAttachmentBoxLayout->addWidget(mimeOpenAttachmentText);
-    mimeOpenAttachmentBoxLayout->addWidget(mimeOpenAttachmentCheckBox);
-    mimeOpenAttachmentBox->setLayout(mimeOpenAttachmentBoxLayout);
+    defaultSender = new QLineEdit();;
+    checkConnectionButton = new QPushButton("Check Connection");
 
-    auto *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(mimeParseBox);
-    mainLayout->addWidget(mimeOpenAttachmentBox);
-    mainLayout->addWidget(mimeQPBox);
-    mainLayout->addStretch(1);
-    setLayout(mainLayout);
+    auto layout = new QGridLayout();
+    layout->addWidget(enableCheckBox, 0, 0);
+    layout->addWidget(new QLabel(tr("SMTP Address")), 1, 0);
+    layout->addWidget(smtpAddress, 1, 1, 1, 4);
+    layout->addWidget(new QLabel(tr("Username")), 2, 0);
+    layout->addWidget(username, 2, 1, 1, 4);
+    layout->addWidget(new QLabel(tr("Password")), 3, 0);
+    layout->addWidget(password, 3, 1, 1, 4);
+    layout->addWidget(new QLabel(tr("Port")), 4, 0);
+    layout->addWidget(portSpin, 4, 1, 1, 1);
+    layout->addWidget(new QLabel(tr("Connection Security")), 5, 0);
+    layout->addWidget(connectionTypeComboBox, 5, 1, 1, 1);
+
+    layout->addWidget(new QLabel(tr("Default Sender")), 6, 0);
+    layout->addWidget(defaultSender, 6, 1, 1, 4);
+    layout->addWidget(checkConnectionButton, 7, 0);
+
+    connect(enableCheckBox, SIGNAL(stateChanged(int)), this, SLOT(slotCheckBoxSetEnableDisable(int)));
+    connect(checkConnectionButton, SIGNAL(clicked(bool)), this, SLOT(slotCheckConnection()));
+
+
+    this->setLayout(layout);
     setSettings();
 }
 
@@ -332,30 +336,102 @@ MimeTab::MimeTab(QWidget *parent)
  * and set the buttons and checkboxes
  * appropriately
  **********************************/
-void MimeTab::setSettings() {
+void SendMailTab::setSettings() {
 
-    // MIME-Parsing
-    if (settings.value("mime/parsemime").toBool())
-        mimeParseCheckBox->setCheckState(Qt::Checked);
+    if (settings.value("sendMail/enable", false).toBool())
+        enableCheckBox->setCheckState(Qt::Checked);
+    else {
+        enableCheckBox->setCheckState(Qt::Unchecked);
+        smtpAddress->setDisabled(true);
+        username->setDisabled(true);
+        password->setDisabled(true);
+        portSpin->setDisabled(true);
+        connectionTypeComboBox->setDisabled(true);
+        defaultSender->setDisabled(true);
+        checkConnectionButton->setDisabled(true);
+    }
 
-    // Qouted Printable
-    if (settings.value("mime/parseQP", true).toBool())
-        mimeQPCheckBox->setCheckState(Qt::Checked);
+    smtpAddress->setText(settings.value("sendMail/smtpAddress", QString()).toString());
+    username->setText(settings.value("sendMail/username", QString()).toString());
+    password->setText(settings.value("sendMail/password", QString()).toString());
+    portSpin->setValue(settings.value("sendMail/port", 25).toInt());
+    connectionTypeComboBox->setCurrentText(settings.value("sendMail/connectionType", "None").toString());
+    defaultSender->setText(settings.value("sendMail/defaultSender", QString()).toString());
 
-    // Open Attachments with external app
-    if (settings.value("mime/openAttachment").toBool())
-        mimeOpenAttachmentCheckBox->setCheckState(Qt::Checked);
 }
 
 /***********************************
  * get the values of the buttons and
  * write them to settings-file
  *************************************/
-void MimeTab::applySettings() {
-    settings.setValue("mime/parsemime", mimeParseCheckBox->isChecked());
-    settings.setValue("mime/parseQP", mimeQPCheckBox->isChecked());
-    settings.setValue("mime/openAttachment",
-                      mimeOpenAttachmentCheckBox->isChecked());
+void SendMailTab::applySettings() {
+
+    settings.setValue("sendMail/smtpAddress", smtpAddress->text());
+    settings.setValue("sendMail/username", username->text());
+    settings.setValue("sendMail/password", password->text());
+    settings.setValue("sendMail/port", portSpin->value());
+    settings.setValue("sendMail/connectionType", connectionTypeComboBox->currentText());
+    settings.setValue("sendMail/defaultSender", defaultSender->text());
+
+    settings.setValue("sendMail/enable", enableCheckBox->isChecked());
+}
+
+void SendMailTab::slotCheckConnection() {
+
+    SmtpClient::ConnectionType connectionType = SmtpClient::ConnectionType::TcpConnection;
+
+    if (connectionTypeComboBox->currentText() == "SSL") {
+        connectionType = SmtpClient::ConnectionType::SslConnection;
+    } else if (connectionTypeComboBox->currentText() == "TLS") {
+        connectionType = SmtpClient::ConnectionType::TlsConnection;
+    } else if (connectionTypeComboBox->currentText() == "STARTTLS") {
+        connectionType = SmtpClient::ConnectionType::TlsConnection;
+    } else {
+        connectionType = SmtpClient::ConnectionType::TcpConnection;
+    }
+
+    SmtpClient smtp(smtpAddress->text(), portSpin->value(), connectionType);
+
+    // We need to set the username (your email address) and the password
+    // for smtp authentification.
+
+    smtp.setUser(username->text());
+    smtp.setPassword(password->text());
+
+    bool if_success = true;
+
+    if (!smtp.connectToHost()) {
+        QMessageBox::critical(this, tr("Fail"), tr("Fail to Connect SMTP Server"));
+        if_success = false;
+    }
+    if (if_success && !smtp.login()) {
+        QMessageBox::critical(this, tr("Fail"), tr("Fail to Login"));
+        if_success = false;
+    }
+
+    if (if_success)
+        QMessageBox::information(this, tr("Success"), tr("Succeed in connecting and login"));
+
+}
+
+void SendMailTab::slotCheckBoxSetEnableDisable(int state) {
+    if (state == Qt::Checked) {
+        smtpAddress->setEnabled(true);
+        username->setEnabled(true);
+        password->setEnabled(true);
+        portSpin->setEnabled(true);
+        connectionTypeComboBox->setEnabled(true);
+        defaultSender->setEnabled(true);
+        checkConnectionButton->setEnabled(true);
+    } else {
+        smtpAddress->setDisabled(true);
+        username->setDisabled(true);
+        password->setDisabled(true);
+        portSpin->setDisabled(true);
+        connectionTypeComboBox->setDisabled(true);
+        defaultSender->setDisabled(true);
+        checkConnectionButton->setDisabled(true);
+    }
 }
 
 AppearanceTab::AppearanceTab(QWidget *parent)
@@ -480,7 +556,7 @@ void AppearanceTab::setSettings() {
 
     // infoBoardFontSize
     auto infoBoardFontSize = settings.value("informationBoard/fontSize", 10).toInt();
-    if(infoBoardFontSize < 9 || infoBoardFontSize > 18)
+    if (infoBoardFontSize < 9 || infoBoardFontSize > 18)
         infoBoardFontSize = 10;
     infoBoardFontSizeSpin->setValue(infoBoardFontSize);
 }

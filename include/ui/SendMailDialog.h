@@ -22,28 +22,37 @@
  *
  */
 
-#ifndef __QUITDIALOG_H__
-#define __QUITDIALOG_H__
+#ifndef GPGFRONTEND_SENDMAILDIALOG_H
+#define GPGFRONTEND_SENDMAILDIALOG_H
 
-#include <GpgFrontend.h>
+#include "GpgFrontend.h"
 
-class QuitDialog : public QDialog {
+class SendMailDialog : public QDialog {
 Q_OBJECT
-
 public:
-    QuitDialog(QWidget *parent, const QHash<int, QString>& unsavedDocs);
-
-    [[nodiscard]] bool isDiscarded() const;
-
-    QList<int> getTabIdsToSave();
+    explicit SendMailDialog(QWidget *parent = nullptr);
 
 private slots:
 
-    void slotMyDiscard();
+    void slotConfirm();
 
 private:
-    bool discarded;
-    QTableWidget *mFileList;
+
+    QString appPath;
+    QSettings settings;
+
+    QLineEdit *senderEdit;
+    QLineEdit *recipientEdit;
+    QLineEdit *subjectEdit;
+    QPushButton *confirmButton;
+
+    QString smtpAddress = settings.value("sendMail/smtpAddress", QString()).toString();
+    QString username = settings.value("sendMail/username", QString()).toString();
+    QString password = settings.value("sendMail/password", QString()).toString();
+    QString defaultSender = settings.value("sendMail/defaultSender", QString()).toString();
+    QString connectionTypeSettings = settings.value("sendMail/connectionType", QString()).toString();
+    int port = settings.value("sendMail/port", QString()).toInt();
 };
 
-#endif // __QUITDIALOG_H__
+
+#endif //GPGFRONTEND_SENDMAILDIALOG_H
