@@ -23,6 +23,7 @@
  */
 
 #include "MainWindow.h"
+#include "ui/SendMailDialog.h"
 
 void MainWindow::slotEncrypt() {
 
@@ -82,6 +83,13 @@ void MainWindow::slotEncrypt() {
             infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
         else
             infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+        if (resultAnalyse->getStatus() >= 0) {
+            infoBoard->resetOptionActionsMenu();
+            infoBoard->addOptionalAction("Send Mail", [this]() {
+                new SendMailDialog(this);
+            });
+        }
 
         delete resultAnalyse;
     } else if (edit->slotCurPageFileTreeView() != nullptr) {
