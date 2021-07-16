@@ -358,6 +358,19 @@ void MainWindow::slotEncryptSign() {
         else
             infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
 
+        if (status >= 0) {
+            infoBoard->resetOptionActionsMenu();
+            infoBoard->addOptionalAction("Send Mail", [this]() {
+                if(settings.value("sendMail/enable", false).toBool())
+                    new SendMailDialog(edit->curTextPage()->toPlainText(), this);
+                else {
+                    QMessageBox::warning(nullptr,
+                                         tr("Function Disabled"),
+                                         tr("Please go to the settings interface to enable and configure this function."));
+                }
+            });
+        }
+
         delete resultAnalyseEncr;
         delete resultAnalyseSign;
     } else if (edit->slotCurPageFileTreeView() != nullptr) {
