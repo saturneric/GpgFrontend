@@ -23,6 +23,7 @@
  */
 
 #include "MainWindow.h"
+#include "ui/SendMailDialog.h"
 
 void MainWindow::slotEncrypt() {
 
@@ -82,6 +83,19 @@ void MainWindow::slotEncrypt() {
             infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
         else
             infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+        if (resultAnalyse->getStatus() >= 0) {
+            infoBoard->resetOptionActionsMenu();
+            infoBoard->addOptionalAction("Send Mail", [this]() {
+                if(settings.value("sendMail/enable", false).toBool())
+                    new SendMailDialog(edit->curTextPage()->toPlainText(), this);
+                else {
+                    QMessageBox::warning(nullptr,
+                                         tr("Function Disabled"),
+                                         tr("Please go to the settings interface to enable and configure this function."));
+                }
+            });
+        }
 
         delete resultAnalyse;
     } else if (edit->slotCurPageFileTreeView() != nullptr) {
@@ -343,6 +357,19 @@ void MainWindow::slotEncryptSign() {
             infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
         else
             infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+        if (status >= 0) {
+            infoBoard->resetOptionActionsMenu();
+            infoBoard->addOptionalAction("Send Mail", [this]() {
+                if(settings.value("sendMail/enable", false).toBool())
+                    new SendMailDialog(edit->curTextPage()->toPlainText(), this);
+                else {
+                    QMessageBox::warning(nullptr,
+                                         tr("Function Disabled"),
+                                         tr("Please go to the settings interface to enable and configure this function."));
+                }
+            });
+        }
 
         delete resultAnalyseEncr;
         delete resultAnalyseSign;
