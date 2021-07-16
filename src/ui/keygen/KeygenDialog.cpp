@@ -74,8 +74,7 @@ void KeyGenDialog::slotKeyGenAccept() {
      * primary keys should have a reasonable expiration date (no more than 2 years in the future)
      */
     if(dateEdit->dateTime() > QDateTime::currentDateTime().addYears(2)) {
-
-        errorString.append(tr("  Expiration time no more than 2 years.  "));
+        errorString.append(tr("  Expiration time no more than 2 years.  \n"));
     }
 
     if (errorString.isEmpty()) {

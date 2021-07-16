@@ -27,12 +27,12 @@
 <context>
     <name>AdvancedTab</name>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="603"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="679"/>
         <source>Show Steganography Options [Advanced]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="605"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="681"/>
         <source>Show Steganographic Options.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -40,57 +40,57 @@
 <context>
     <name>AppearanceTab</name>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="368"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="444"/>
         <source>Iconsize</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="370"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="446"/>
         <source>small</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="371"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="447"/>
         <source>medium</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="372"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="448"/>
         <source>large</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="388"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="464"/>
         <source>Iconstyle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="390"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="466"/>
         <source>just text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="391"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="467"/>
         <source>just icons</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="392"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="468"/>
         <source>text and icons</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="408"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="484"/>
         <source>Windowstate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="411"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="487"/>
         <source>Save window size and position on exit.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="419"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="495"/>
         <source>Information Board</source>
         <translation type="unfinished"></translation>
     </message>
@@ -355,57 +355,57 @@
 <context>
     <name>GeneralTab</name>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="135"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="137"/>
         <source>Remember Password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="138"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="140"/>
         <source>Remember password until closing gpg4usb</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="145"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="147"/>
         <source>Save Checked Keys</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="148"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="150"/>
         <source>Save checked private keys on exit and restore them on next start.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="157"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="159"/>
         <source>Confirm drag&apos;n&apos;drop key import</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="160"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="162"/>
         <source>Import files dropped on the keylist without confirmation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="167"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="169"/>
         <source>Language</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="176"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="178"/>
         <source>&lt;b&gt;NOTE: &lt;/b&gt; GpgFrontend will restart automatically if you change the language!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="185"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="187"/>
         <source>Own key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="193"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="195"/>
         <source>&lt;none&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="207"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="209"/>
         <source>Key pair for synchronization and identity authentication</source>
         <translation type="unfinished"></translation>
     </message>
@@ -446,22 +446,22 @@
 <context>
     <name>GpgPathsTab</name>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="635"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="711"/>
         <source>Relative path to keydb</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="648"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="724"/>
         <source>Current keydb path: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="653"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="729"/>
         <source>&lt;b&gt;NOTE: &lt;/b&gt; Gpg4usb will restart automatically if you change the keydb path!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="682"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="758"/>
         <source>Choose keydb directory</source>
         <translation type="unfinished"></translation>
     </message>
@@ -664,17 +664,18 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="78"/>
-        <source>  Expiration time no more than 2 years.  </source>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="77"/>
+        <source>  Expiration time no more than 2 years.  
+</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="104"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="103"/>
         <source>Generating Key...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="107"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="106"/>
         <source>Collecting random data for key generation.
  This may take a while.
  To speed up the process use your computer
@@ -682,87 +683,87 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="153"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="152"/>
         <source>Encryption</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="156"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="155"/>
         <source>Signing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="159"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="158"/>
         <source>Certification</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="162"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="161"/>
         <source>Authentication</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="313"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="312"/>
         <source>Success</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="313"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="312"/>
         <source>The new key pair has been generated.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="315"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="314"/>
         <source>Failure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="315"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="314"/>
         <source>An error occurred during key generation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="351"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="350"/>
         <source>Name:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="352"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="351"/>
         <source>Email Address:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="353"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="352"/>
         <source>Comment:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="354"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="353"/>
         <source>Expiration Date:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="355"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="354"/>
         <source>Never Expire</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="356"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="355"/>
         <source>KeySize (in Bit):</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="357"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="356"/>
         <source>Key Type:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="358"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="357"/>
         <source>Non Pass Phrase</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="371"/>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="370"/>
         <source>Basic Information</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1933,12 +1934,12 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
 <context>
     <name>KeyserverTab</name>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="531"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="607"/>
         <source>Default Keyserver for import:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="548"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="624"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1957,234 +1958,244 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="38"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="111"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="280"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="506"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="683"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="866"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="117"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="286"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="512"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="689"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="872"/>
         <source>No Key Selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="45"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="118"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="513"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="690"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="124"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="519"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="696"/>
         <source>Invalid Operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="46"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="514"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="691"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="520"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="697"/>
         <source>The selected key contains a key that does not actually have a encrypt usage.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="47"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="120"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="294"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="515"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="692"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="880"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="126"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="300"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="521"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="698"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="886"/>
         <source>&lt;br/&gt;For example the Following Key: &lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="65"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="535"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="541"/>
         <source>Encrypting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="119"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="94"/>
+        <source>Function Disabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="95"/>
+        <source>Please go to the settings interface to enable and configure this function.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="125"/>
         <source>The selected key contains a key that does not actually have a signature usage.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="136"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="712"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="142"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="718"/>
         <source>Signing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="180"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="186"/>
         <source>Decrypting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="240"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="797"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="246"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="803"/>
         <source>Verifying</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="292"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="878"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="298"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="884"/>
         <source>Invalid KeyPair</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="293"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="879"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="299"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="885"/>
         <source>The selected keypair cannot be used for signing and encryption at the same time.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="304"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="311"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="890"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="897"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="310"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="317"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="896"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="903"/>
         <source>Incomplete Operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="305"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="891"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="311"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="897"/>
         <source>None of the selected key pairs can provide the encryption function.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="312"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="898"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="318"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="904"/>
         <source>None of the selected key pairs can provide the signature function.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="329"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="917"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="335"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="923"/>
         <source>Encrypting and Signing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="382"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="995"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="388"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1001"/>
         <source>Decrypting and Verifying</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="480"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="484"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="488"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="558"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="571"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="575"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="579"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="640"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="656"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="660"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="664"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="738"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="770"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="775"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="779"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="827"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="840"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="844"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="848"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="945"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="957"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="961"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="965"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1027"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="486"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="490"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="494"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="564"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="577"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="581"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="585"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="646"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="662"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="666"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="670"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="744"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="776"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="781"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="785"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="833"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="846"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="850"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="854"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="951"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="963"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="967"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="971"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1033"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="480"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="571"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="656"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="840"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="486"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="577"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="662"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="846"/>
         <source>Select a file before doing it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="484"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="575"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="660"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="844"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="961"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="490"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="581"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="666"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="850"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="967"/>
         <source>No permission to read this file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="488"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="579"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="664"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="848"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="965"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="494"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="585"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="670"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="854"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="971"/>
         <source>No permission to create file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="493"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="594"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="670"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="853"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="499"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="600"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="676"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="859"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="494"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="595"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="671"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="854"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="500"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="601"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="677"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="860"/>
         <source>The target file already exists, do you need to overwrite it?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="558"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="640"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="738"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="827"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="945"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1027"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="564"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="646"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="744"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="833"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="951"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1033"/>
         <source>An error occurred during operation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="771"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="777"/>
         <source>Please select the appropriate target file or signature file. Ensure that both are in this directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="775"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="781"/>
         <source>No permission to read target file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="779"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="785"/>
         <source>No permission to read signature file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="957"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="963"/>
         <source>Select a file(.gpg/.asc) before doing it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1063"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1069"/>
         <source>Outdated Version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1064"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1070"/>
         <source>This version(%1) is out of date, please update the latest version in time. </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1066"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1073"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1072"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1079"/>
         <source>You can download the latest version(%1) on Github Releases Page.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1070"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1076"/>
         <source>Unreleased Version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1071"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1077"/>
         <source>This version(%1) has not been officially released and is not recommended for use in a production environment. &lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2710,44 +2721,6 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
     </message>
 </context>
 <context>
-    <name>MimeTab</name>
-    <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="289"/>
-        <source>Decode quoted printable</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="292"/>
-        <source>Try to recognize quoted printable.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="296"/>
-        <source>Parse PGP/MIME (Experimental)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="299"/>
-        <source>Try to split attachments from PGP-MIME ecrypted messages.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="304"/>
-        <source>Open with external application (Experimental)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="306"/>
-        <source>Open attachments with default application for the filetype.&lt;br&gt; There are at least two possible problems with this behaviour:&lt;ol&gt;&lt;li&gt;File needs to be saved unencrypted to attachments folder.&lt;br&gt; Its your job to clean this folder.&lt;/li&gt;&lt;li&gt;The external application may have its own temp files.&lt;/li&gt;&lt;/ol&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="315"/>
-        <source>Enable opening with external applications.</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>QApplication</name>
     <message>
         <location filename="../../src/gpg/result_analyse/DecryptResultAnalyse.cpp" line="42"/>
@@ -2879,39 +2852,172 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
     </message>
 </context>
 <context>
+    <name>SendMailDialog</name>
+    <message>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="35"/>
+        <source>Incomplete configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="36"/>
+        <source>The SMTP address is empty, please go to the setting interface to complete the configuration.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="83"/>
+        <source>  Recipient cannot be empty  
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="85"/>
+        <source>  Recipient&apos;s Email Address is invalid  
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="88"/>
+        <source>  Sender cannot be empty  
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="90"/>
+        <source>  Sender&apos;s Email Address is invalid  
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="143"/>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="148"/>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="153"/>
+        <source>Fail</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="143"/>
+        <source>Fail to Connect SMTP Server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="148"/>
+        <source>Fail to Login into SMTP Server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="153"/>
+        <source>Fail to Send Mail to SMTP Server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="159"/>
+        <source>Success</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SendMailDialog.cpp" line="159"/>
+        <source>Succeed in Sending Mail to SMTP Server</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SendMailTab</name>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="289"/>
+        <source>Enable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="311"/>
+        <source>SMTP Address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="313"/>
+        <source>Username</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="315"/>
+        <source>Password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="317"/>
+        <source>Port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="319"/>
+        <source>Connection Security</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="322"/>
+        <source>Default Sender</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="404"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="408"/>
+        <source>Fail</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="404"/>
+        <source>Fail to Connect SMTP Server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="408"/>
+        <source>Fail to Login</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="413"/>
+        <source>Success</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="413"/>
+        <source>Succeed in connecting and login</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>SettingsDialog</name>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="38"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="40"/>
         <source>General</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="39"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="41"/>
         <source>Appearance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="40"/>
-        <source>PGP/Mime</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="41"/>
-        <source>Key Server</source>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="42"/>
+        <source>Send Mail</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/SettingsDialog.cpp" line="43"/>
+        <source>Key Server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="45"/>
         <source>Advanced</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="56"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="58"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/SettingsDialog.cpp" line="101"/>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="103"/>
         <source>System Default</source>
         <translation type="unfinished"></translation>
     </message>

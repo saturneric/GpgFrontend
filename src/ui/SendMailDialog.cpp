@@ -23,16 +23,30 @@
  */
 
 #include "ui/SendMailDialog.h"
+
+#include <utility>
 #include "smtp/SmtpMime"
 
-SendMailDialog::SendMailDialog(QWidget *parent) : QDialog(parent), appPath(qApp->applicationDirPath()),
-                                                  settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-                                                           QSettings::IniFormat) {
+SendMailDialog::SendMailDialog(QString text, QWidget *parent)
+        : QDialog(parent), appPath(qApp->applicationDirPath()),
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat), mText(std::move(text)) {
+
+    if (smtpAddress.isEmpty()) {
+        QMessageBox::critical(this, tr("Incomplete configuration"),
+                              tr("The SMTP address is empty, please go to the setting interface to complete the configuration."));
+
+        deleteLater();
+        return;
+
+    }
 
     senderEdit = new QLineEdit();
     senderEdit->setText(defaultSender);
-    recipientEdit = new QLineEdit();
+    recipientEdit = new QTextEdit();
+    recipientEdit->setPlaceholderText("One or more email addresses. Please use ; to separate.");
     subjectEdit = new QLineEdit();
+
+    errorLabel = new QLabel();
 
     qDebug() << "Send Mail Settings" << smtpAddress << username << password << defaultSender << connectionTypeSettings;
 
@@ -46,17 +60,53 @@ SendMailDialog::SendMailDialog(QWidget *parent) : QDialog(parent), appPath(qApp-
     layout->addWidget(new QLabel("Subject"), 2, 0);
     layout->addWidget(subjectEdit, 2, 1);
     layout->addWidget(confirmButton, 3, 1);
+    layout->addWidget(errorLabel, 4, 0, 1, 2);
 
     connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(slotConfirm()));
 
     this->setLayout(layout);
     this->setWindowTitle("Send Mail");
     this->setModal(true);
-    this->setFixedSize(320, 160);
+    this->setFixedWidth(320);
     this->show();
 }
 
+bool SendMailDialog::check_email_address(const QString &str) {
+    return re_email.match(str).hasMatch();
+}
+
 void SendMailDialog::slotConfirm() {
+
+    QString errString;
+    errorLabel->clear();
+
+    QStringList rcptStringList = recipientEdit->toPlainText().split(';');
+
+    if (rcptStringList.isEmpty()) {
+        errString.append(tr("  Recipient cannot be empty  \n"));
+    } else {
+        for (const auto& reci : rcptStringList) {
+            qDebug() << "Receiver" << reci.trimmed();
+            if (!check_email_address(reci.trimmed())) {
+                errString.append(tr("  One or more Recipient's Email Address is invalid  \n"));
+                break;
+            }
+        }
+    }
+    if (senderEdit->text().isEmpty()) {
+        errString.append(tr("  Sender cannot be empty  \n"));
+    } else if (!check_email_address(senderEdit->text())) {
+        errString.append(tr("  Sender's Email Address is invalid  \n"));
+    }
+
+    if (!errString.isEmpty()) {
+        errorLabel->setAutoFillBackground(true);
+        QPalette error = errorLabel->palette();
+        error.setColor(QPalette::Window, "#ff8080");
+        errorLabel->setPalette(error);
+        errorLabel->setText(errString);
+        return;
+    }
 
     SmtpClient::ConnectionType connectionType = SmtpClient::ConnectionType::TcpConnection;
 
@@ -82,16 +132,19 @@ void SendMailDialog::slotConfirm() {
 
     MimeMessage message;
 
-    message.setSender(new EmailAddress(defaultSender));
-    message.addRecipient(new EmailAddress("eric@bktus.com"));
-    message.setSubject("GpgFrontend Mail Test");
+    message.setSender(new EmailAddress(senderEdit->text()));
+    for (const auto &reci : rcptStringList) {
+        if(!reci.isEmpty())
+        message.addRecipient(new EmailAddress(reci.trimmed()));
+    }
+    message.setSubject(subjectEdit->text());
 
     // Now add some text to the email.
     // First we create a MimeText object.
 
     MimeText text;
 
-    text.setText("Hi,\nThis is a simple email message.\n");
+    text.setText(mText);
 
     // Now add it to the mail
     message.addPart(&text);
@@ -99,15 +152,22 @@ void SendMailDialog::slotConfirm() {
     // Now we can send the mail
     if (!smtp.connectToHost()) {
         qDebug() << "Connect to SMTP Server Failed";
+        QMessageBox::critical(this, tr("Fail"), tr("Fail to Connect SMTP Server"));
         return;
     }
     if (!smtp.login()) {
         qDebug() << "Login to SMTP Server Failed";
+        QMessageBox::critical(this, tr("Fail"), tr("Fail to Login into SMTP Server"));
         return;
     }
     if (!smtp.sendMail(message)) {
         qDebug() << "Send Mail to SMTP Server Failed";
+        QMessageBox::critical(this, tr("Fail"), tr("Fail to Send Mail to SMTP Server"));
         return;
     }
     smtp.quit();
+
+    // Close after sending email
+    QMessageBox::information(this, tr("Success"), tr("Succeed in Sending Mail to SMTP Server"));
+    deleteLater();
 }

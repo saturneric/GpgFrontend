@@ -87,7 +87,13 @@ void MainWindow::slotEncrypt() {
         if (resultAnalyse->getStatus() >= 0) {
             infoBoard->resetOptionActionsMenu();
             infoBoard->addOptionalAction("Send Mail", [this]() {
-                new SendMailDialog(this);
+                if(settings.value("sendMail/enable", false).toBool())
+                    new SendMailDialog(edit->curTextPage()->toPlainText(), this);
+                else {
+                    QMessageBox::warning(nullptr,
+                                         tr("Function Disabled"),
+                                         tr("Please go to the settings interface to enable and configure this function."));
+                }
             });
         }
 
