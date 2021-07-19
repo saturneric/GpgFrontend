@@ -105,17 +105,22 @@ FilePage::FilePage(QWidget *parent) : QWidget(parent) {
 }
 
 void FilePage::fileTreeViewItemClicked(const QModelIndex &index) {
-    mPath = dirModel->fileInfo(index).absoluteFilePath();
-    qDebug() << "mPath" << mPath;
+    selectedPath = dirModel->fileInfo(index).absoluteFilePath();
+    qDebug() << "selectedPath" << selectedPath;
 }
 
 void FilePage::slotUpLevel() {
     QModelIndex currentRoot = dirTreeView->rootIndex();
-    mPath = dirModel->fileInfo(currentRoot.parent()).absoluteFilePath();
-    auto fileInfo = QFileInfo(mPath);
+
+    mPath = dirModel->fileInfo(currentRoot).absoluteFilePath();
+    QDir dir(mPath);
+    dir.makeAbsolute();
+    dir.setPath(QDir::cleanPath(dir.filePath(QStringLiteral(".."))));
+    mPath = dir.absolutePath();
+    auto fileInfo = QFileInfo(dir.absolutePath());
     if(fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
-        dirTreeView->setRootIndex(currentRoot.parent());
         pathEdit->setText(mPath);
+        slotGoPath();
     }
     qDebug() << "Current Root mPath" << mPath;
     emit pathChanged(mPath);
@@ -124,8 +129,9 @@ void FilePage::slotUpLevel() {
 void FilePage::fileTreeViewItemDoubleClicked(const QModelIndex &index) {
     mPath = dirModel->fileInfo(index).absoluteFilePath();
     auto fileInfo = QFileInfo(mPath);
+    auto targetModelIndex = dirTreeView->model()->index(index.row(), 0, index.parent());
     if(fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
-        dirTreeView->setRootIndex(index);
+        dirTreeView->setRootIndex(targetModelIndex);
         pathEdit->setText(mPath);
     }
     qDebug() << "Index mPath" << mPath;
@@ -133,7 +139,7 @@ void FilePage::fileTreeViewItemDoubleClicked(const QModelIndex &index) {
 }
 
 QString FilePage::getSelected() const {
-    return mPath;
+    return selectedPath;
 }
 
 void FilePage::slotGoPath() {
@@ -177,10 +183,10 @@ void FilePage::createPopupMenu() {
 
 void FilePage::onCustomContextMenu(const QPoint &point) {
     QModelIndex index = dirTreeView->indexAt(point);
-    mPath = dirModel->fileInfo(index).absoluteFilePath();
-    qDebug() << "Right Click" <<  mPath;
+    selectedPath = dirModel->fileInfo(index).absoluteFilePath();
+    qDebug() << "Right Click" <<  selectedPath;
     if (index.isValid()) {
-        QFileInfo info(mPath);
+        QFileInfo info(selectedPath);
         encryptItemAct->setEnabled(info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig"));
         decryptItemAct->setEnabled(info.isFile() && info.suffix() == "gpg");
         signItemAct->setEnabled(info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig"));
@@ -251,4 +257,11 @@ void FilePage::slotVerifyItem() {
     auto mainWindow = qobject_cast<MainWindow *>(firstParent);
     if(mainWindow != nullptr)
         mainWindow->slotFileVerify();
+}
+
+void FilePage::keyPressEvent(QKeyEvent *event) {
+    qDebug() << "Key Press" << event->key();
+    if(event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) {
+        slotGoPath();
+    }
 }

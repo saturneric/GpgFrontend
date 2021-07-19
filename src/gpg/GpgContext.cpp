@@ -24,6 +24,7 @@
 
 #include "gpg/GpgContext.h"
 
+#include <functional>
 #include <unistd.h>    /* contains read/write */
 
 #ifdef _WIN32
@@ -72,8 +73,10 @@ namespace GpgME {
                      << engineInfo->home_dir << engineInfo->version;
             if (engineInfo->protocol == GPGME_PROTOCOL_GPGCONF && strcmp(engineInfo->version, "1.0.0") != 0)
                 find_gpgconf = true;
-            if (engineInfo->protocol == GPGME_PROTOCOL_OpenPGP && strcmp(engineInfo->version, "1.0.0") != 0)
+            if (engineInfo->protocol == GPGME_PROTOCOL_OpenPGP && strcmp(engineInfo->version, "1.0.0") != 0) {
+                gpgExec = engineInfo->file_name;
                 find_openpgp = true;
+            }
             if (engineInfo->protocol == GPGME_PROTOCOL_CMS && strcmp(engineInfo->version, "1.0.0") != 0)
                 find_cms = true;
             if (engineInfo->protocol == GPGME_PROTOCOL_ASSUAN)
@@ -625,20 +628,31 @@ namespace GpgME {
     }
 
 /** return type should be gpgme_error_t*/
-    void GpgContext::executeGpgCommand(const QStringList &arguments, QByteArray *stdOut, QByteArray *stdErr) {
+    QProcess * GpgContext::executeGpgCommand(const QStringList &arguments, QByteArray *stdOut, QByteArray *stdErr,
+                                       const std::function<void(QProcess *)> &interactFunc) {
         QStringList args;
-        args << "--homedir" << gpgKeys << "--batch" << arguments;
+        args << arguments;
 
-        qDebug() << args;
-        QProcess gpg;
-        //  qDebug() << "engine->file_name" << engine->file_name;
+        auto *gpgProcess = new QProcess(this);
+        qDebug() << "gpgExec" << gpgExec << args;
 
-        gpg.start(gpgBin, args);
-        gpg.waitForFinished();
+        gpgProcess->setReadChannel(QProcess::StandardOutput);
+        connect(gpgProcess, SIGNAL(finished(int,QProcess::ExitStatus)),
+                gpgProcess, SLOT(deleteLater()));
+        connect(gpgProcess, &QProcess::readyReadStandardOutput, this, [gpgProcess, interactFunc]() {
+            qDebug() << "Function Called" << &gpgProcess;
+            // interactFunc(gpgProcess);
+        });
 
-        *stdOut = gpg.readAllStandardOutput();
-        *stdErr = gpg.readAllStandardError();
-        qDebug() << *stdOut;
+        gpgProcess->start(gpgExec, args);
+
+        if (gpgProcess->waitForStarted()){
+            qDebug() << "Gpg Process Started Success";
+        } else {
+            qDebug() << "Gpg Process Started Failed";
+        }
+
+        return gpgProcess;
     }
 
 /***
@@ -1179,5 +1193,42 @@ namespace GpgME {
             gpgme_data_release(dataOut);
         }
         return true;
+    }
+
+    QProcess * GpgContext::generateRevokeCert(const GpgKey &key, const QString &outputFileName) {
+        QByteArray out, stdErr;
+        auto process = executeGpgCommand({
+                                  "--command-fd",
+                                  "0",
+                                  "--status-fd", "1",
+                                  "-o",
+                                  outputFileName,
+                                  "--gen-revoke",
+                                  key.fpr
+                          }, &out, &stdErr,
+                          [](QProcess *proc) {
+                              qDebug() << "Function Called" << proc;
+                              while (proc->canReadLine()) {
+                                  const QString line = QString::fromUtf8(proc->readLine()).trimmed();
+                                  // Command-fd is a stable interface, while this is all kind of hacky we
+                                  // are on a deadline :-/
+                                  if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
+                                      proc->write("y\n");
+                                  } else if (line == QLatin1String("[GNUPG:] GET_LINE ask_revocation_reason.code")) {
+                                      proc->write("0\n");
+                                  } else if (line == QLatin1String("[GNUPG:] GET_LINE ask_revocation_reason.text")) {
+                                      proc->write("\n");
+                                  } else if (line == QLatin1String("[GNUPG:] GET_BOOL openfile.overwrite.okay")) {
+                                      // We asked before
+                                      proc->write("y\n");
+                                  } else if (line == QLatin1String("[GNUPG:] GET_BOOL ask_revocation_reason.okay")) {
+                                      proc->write("y\n");
+                                  }
+                              }
+                          });
+
+        qDebug() << "GenerateRevokeCert Process" << process;
+
+        return process;
     }
 }

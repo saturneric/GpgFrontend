@@ -23,8 +23,10 @@
  */
 
 #include "ui/keypair_details/KeyPairDetailTab.h"
+#include "ui/WaitingDialog.h"
 
-KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, QWidget *parent) : mKey(mKey), QWidget(parent) {
+KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, QWidget *parent) : mKey(mKey),
+                                                                                                  QWidget(parent) {
 
     mCtx = ctx;
     keyid = new QString(mKey.id);
@@ -53,8 +55,8 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
     algorithmVarLabel = new QLabel();
 
     // Show the situation that master key not exists.
-    masterKeyExistVarLabel = new QLabel(mKey.has_master_key ? "Exists" : "Not Exists");
-    if(!mKey.has_master_key){
+    masterKeyExistVarLabel = new QLabel(mKey.has_master_key ? tr("Exists") : tr("Not Exists"));
+    if (!mKey.has_master_key) {
         auto paletteExpired = masterKeyExistVarLabel->palette();
         paletteExpired.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::red);
         masterKeyExistVarLabel->setPalette(paletteExpired);
@@ -64,7 +66,7 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
         masterKeyExistVarLabel->setPalette(paletteValid);
     }
 
-    if(mKey.expired){
+    if (mKey.expired) {
         auto paletteExpired = expireVarLabel->palette();
         paletteExpired.setColor(expireVarLabel->foregroundRole(), Qt::red);
         expireVarLabel->setPalette(paletteExpired);
@@ -131,18 +133,27 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
         auto *privKeyBox = new QGroupBox(tr("Operations"));
         auto *vboxPK = new QVBoxLayout();
 
-        auto *exportButton = new QPushButton(tr("Export Private Key (Include Subkeys)"));
+        auto *exportButton = new QPushButton(tr("Export Private Key (Include Subkey)"));
         vboxPK->addWidget(exportButton);
         connect(exportButton, SIGNAL(clicked()), this, SLOT(slotExportPrivateKey()));
 
-        if(mKey.has_master_key) {
+        if (mKey.has_master_key) {
             auto *editExpiresButton = new QPushButton(tr("Modify Expiration Datetime (Master Key)"));
             vboxPK->addWidget(editExpiresButton);
             connect(editExpiresButton, SIGNAL(clicked()), this, SLOT(slotModifyEditDatetime()));
 
+            auto hBoxLayout = new QHBoxLayout();
             auto *keyServerOperaButton = new QPushButton(tr("Key Server Operation (Pubkey)"));
             keyServerOperaButton->setStyleSheet("text-align:center;");
-            vboxPK->addWidget(keyServerOperaButton);
+
+            auto *revokeCertGenButton = new QPushButton(tr("Generate Revoke Certificate"));
+            revokeCertGenButton->setDisabled(true);
+            connect(revokeCertGenButton, SIGNAL(clicked()), this, SLOT(slotGenRevokeCert()));
+
+            hBoxLayout->addWidget(keyServerOperaButton);
+            hBoxLayout->addWidget(revokeCertGenButton);
+
+            vboxPK->addLayout(hBoxLayout);
             connect(keyServerOperaButton, SIGNAL(clicked()), this, SLOT(slotModifyEditDatetime()));
 
             // Set Menu
@@ -167,7 +178,7 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
             expLabel->setText(tr("Warning: The Master Key has been revoked"));
         }
 
-        iconLabel->setPixmap(pixmap.scaled(24,24,Qt::KeepAspectRatio));
+        iconLabel->setPixmap(pixmap.scaled(24, 24, Qt::KeepAspectRatio));
         QFont font = expLabel->font();
         font.setBold(true);
         expLabel->setFont(font);
@@ -189,22 +200,23 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
 void KeyPairDetailTab::slotExportPrivateKey() {
     // Show a information box with explanation about private key
     int ret = QMessageBox::information(this, tr("Exporting private Key"),
-                                       tr("<h3>You are about to export your <font color=\"red\">PRIVATE KEY</font>!</h3>\n"
-                                          "This is NOT your Public Key, so DON'T give it away.<br />"
-                                          "Do you REALLY want to export your PRIVATE KEY?"),
+                                       "<h3>" + tr("You are about to export your") + "<font color=\"red\">" +
+                                       tr("PRIVATE KEY") + "</font>!</h3>\n" +
+                                       tr("This is NOT your Public Key, so DON'T give it away.") + "<br />" +
+                                       tr("Do you REALLY want to export your PRIVATE KEY?"),
                                        QMessageBox::Cancel | QMessageBox::Ok);
 
     // export key, if ok was clicked
     if (ret == QMessageBox::Ok) {
         auto *keyArray = new QByteArray();
 
-    if(!mCtx->exportSecretKey(mKey, keyArray)) {
-         QMessageBox::critical(this, "Error", "An error occurred during the export operation.");
-         return;
-    }
+        if (!mCtx->exportSecretKey(mKey, keyArray)) {
+            QMessageBox::critical(this, "Error", "An error occurred during the export operation.");
+            return;
+        }
 
         auto &key = mCtx->getKeyById(*keyid);
-        QString fileString = key.name + " " +key.email + "(" +
+        QString fileString = key.name + " " + key.email + "(" +
                              key.id + ")_secret.asc";
         QString fileName = QFileDialog::getSaveFileName(this, tr("Export Key To File"), fileString,
                                                         tr("Key Files") + " (*.asc *.txt);;All Files (*)");
@@ -250,13 +262,13 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
     QString usage;
     QTextStream usage_steam(&usage);
 
-    if(mKey.can_certify)
+    if (mKey.can_certify)
         usage_steam << "Cert ";
-    if(mKey.can_encrypt)
+    if (mKey.can_encrypt)
         usage_steam << "Encr ";
-    if(mKey.can_sign)
+    if (mKey.can_sign)
         usage_steam << "Sign ";
-    if(mKey.can_authenticate)
+    if (mKey.can_authenticate)
         usage_steam << "Auth ";
 
     usageVarLabel->setText(usage);
@@ -264,13 +276,13 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
     QString actualUsage;
     QTextStream actual_usage_steam(&actualUsage);
 
-    if(GpgME::GpgContext::checkIfKeyCanCert(mKey))
+    if (GpgME::GpgContext::checkIfKeyCanCert(mKey))
         actual_usage_steam << "Cert ";
-    if(GpgME::GpgContext::checkIfKeyCanEncr(mKey))
+    if (GpgME::GpgContext::checkIfKeyCanEncr(mKey))
         actual_usage_steam << "Encr ";
-    if(GpgME::GpgContext::checkIfKeyCanSign(mKey))
+    if (GpgME::GpgContext::checkIfKeyCanSign(mKey))
         actual_usage_steam << "Sign ";
-    if(GpgME::GpgContext::checkIfKeyCanAuth(mKey))
+    if (GpgME::GpgContext::checkIfKeyCanAuth(mKey))
         actual_usage_steam << "Auth ";
 
     actualUsageVarLabel->setText(actualUsage);
@@ -300,7 +312,7 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
 void KeyPairDetailTab::createKeyServerOperaMenu() {
     keyServerOperaMenu = new QMenu(this);
 
-    auto *uploadKeyPair = new QAction(tr("Upload Key Pair"), this);
+    auto *uploadKeyPair = new QAction(tr("Upload Key Pair to Key Server"), this);
     connect(uploadKeyPair, SIGNAL(triggered()), this, SLOT(slotUploadKeyToServer()));
     auto *updateKeyPair = new QAction(tr("Update Key Pair"), this);
     connect(updateKeyPair, SIGNAL(triggered()), this, SLOT(slotUpdateKeyToServer()));
@@ -322,5 +334,23 @@ void KeyPairDetailTab::slotUpdateKeyToServer() {
     auto *dialog = new KeyServerImportDialog(mCtx, this);
     dialog->show();
     dialog->slotImportKey(keys);
+}
+
+void KeyPairDetailTab::slotGenRevokeCert() {
+    auto mOutputFileName = QFileDialog::getSaveFileName(this, tr("Generate revocation certificate"),
+                                                        QString(),
+                                                        QStringLiteral("%1 (*.rev)").arg(
+                                                                tr("Revocation Certificates")));
+
+    auto process = mCtx->generateRevokeCert(mKey, mOutputFileName);
+
+    auto *dialog = new WaitingDialog("Generating", this);
+
+    while (process->state() == QProcess::Running) {
+        QApplication::processEvents();
+    }
+
+    dialog->close();
+
 }
 

@@ -13,10 +13,10 @@ GpgFrontend is a Powerful, Easy-to-Use, Compact, Cross-Platform, and
 Installation-Free [OpenPGP](https://www.openpgp.org/)
 Crypto Tool.
 
-By using GpgFrontend, you can quickly encrypt and decrypt text or files. Or at the same time as the above
-operations, you can add your own signature to let others know that this document or this paragraph of text was
-issued by you. Please **take the initiative to protect privacy in your own hands**, instead of relying on servers and
-algorithms provided by large companies.
+By using GpgFrontend, you can quickly encrypt and decrypt text or files. Or at the same time as the above operations,
+you can add your own signature to let others know that this document or this paragraph of text was issued by you.
+Please **take the initiative to protect privacy in your own hands**, instead of relying on servers and algorithms
+provided by large companies.
 
 **Notice:** GpgFrontend does not provide an embedded [gnupg](https://gnupg.org/) binary library and needs to be
 installed by the user. **This is to ensure safety and avoid code or binary files involved in encryption and decryption
@@ -24,11 +24,9 @@ being implanted in the backdoor during the delivery process.**
 
 If you find this tool useful and promising, welcome to encourage me through STAR this project. Thanks!
 
-[>> Quick Start](#quick-start)
-
-[>> Code & Binary Security](https://gpgfrontend.pub/#/about/code-binary-verify)
-
-[>> 简体中文文档](https://github.com/saturneric/GpgFrontend/blob/main/README_CN.md)
+[>> Quick Start <<](#quick-start) |
+[>> Code & Binary Security <<](https://gpgfrontend.pub/#/about/code-binary-verify) |
+[>> 简中README <<](https://github.com/saturneric/GpgFrontend/blob/main/README_CN.md)
 
 <div align="center">
 <img width="640" src="https://github.com/saturneric/Blob/blob/master/screenshots/main_mac.jpg?raw=true" alt="macOS Screenshot"/>
@@ -56,6 +54,7 @@ If you find this tool useful and promising, welcome to encourage me through STAR
 - [Document](#document)
 - [Purpose](#purpose)
 - [Build](#build)
+- [Languages Support](#languages-support)
 - [Contributing & Bugs Report](#contributing--bugs-report)
     - [Contract](#contract)
     - [Maintainers](#maintainers)
@@ -66,9 +65,7 @@ If you find this tool useful and promising, welcome to encourage me through STAR
 - Can run on **Windows, Linux and macOS**.
 - Open source, free, no need to install.
 - Just double-click, and then you can use it freely.
-- Supports multiple languages.
-    - If you are interested, you can help
-      me [translate the interface](https://gpgfrontend.pub/#/translate-interface).
+- Supports multiple [languages](#languages-support).
 
 ## Usage
 
@@ -94,8 +91,7 @@ What about files?
 
 ### More Helpful Operation
 
-Read the animated pictures in the [Document](https://gpgfrontend.pub/#/quick-start) to learn more
-awesome operations.
+Read the animated pictures in the [Document](https://gpgfrontend.pub/#/quick-start) to learn more awesome operations.
 
 ### How to Run it
 
@@ -119,6 +115,8 @@ awesome operations.
 4. If it satisfies you, you can drag it into your Application folder.
 
 #### Debian/Ubuntu/CentOS
+
+[![!AppImage](https://docs.appimage.org/_images/download-appimage-banner.svg)](https://github.com/saturneric/GpgFrontend/releases/latest)
 
 0. Install gnupg (If you have already followed please skip)
     - For Debian/Ubuntu
@@ -158,6 +156,24 @@ The GpgFrontend project is as open source, and it also insists on using open sou
 
 The tutorial for building the software will be released shortly. Before the relevant documents are released, you can
 refer to the project-related Github Action file if you know it.
+
+## Languages Support
+
+The supported languages are listed here. Some languages use machine translation and have not been verified. If you want
+to join translation and verification work, please refer to
+the [translate the interface](https://gpgfrontend.pub/#/translate-interface).
+
+Notice: The verification may not be complete and rigorous.
+
+|  Language |  English   | 简体中文  | français  | Французский  | Español  | 
+|  ----  | ----  | ----  | ----  | ----  | ----  |
+| Support  | Support | 支持 | Etre prêt | ожидать | apoyar |
+| Verification  | Origin | 不完全 | Jamais |Никогда | Nunca |
+
+|  Language |  日本語   | 繁體中文  | عربى  | português  |
+|  ----  | ----  | ----  | ----  | ----  | 
+| Support  | 未だに | 尚未 | ليس بعد | Ainda não |
+| Verification  |  |  |  | |
 
 ## Contract
 

@@ -20,6 +20,11 @@ void VersionCheckThread::run() {
         QApplication::processEvents();
     }
 
+    if(mNetworkReply->error() !=  QNetworkReply::NoError) {
+        qDebug() << "VersionCheckThread Found Network Error";
+        return;
+    }
+
     QByteArray bytes = mNetworkReply->readAll();
 
     Document d;

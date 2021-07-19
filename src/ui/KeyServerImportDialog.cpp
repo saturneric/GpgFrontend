@@ -176,7 +176,7 @@ void KeyServerImportDialog::setMessage(const QString &text, bool error) {
 void KeyServerImportDialog::slotSearch() {
 
     if (searchLineEdit->text().isEmpty()) {
-        setMessage(tr("<h4>Text is empty.</h4>"), false);
+        setMessage("<h4>" + tr("Text is empty.") + "</h4>", false);
         return;
     }
 
@@ -227,23 +227,23 @@ void KeyServerImportDialog::slotSearchFinished() {
     if (firstLine.contains("Error")) {
         QString text = QString(reply->readLine(1024));
         if (text.contains("Too many responses")) {
-            setMessage(tr("<h4>CToo many responses from keyserver!</h4>"), true);
+            setMessage("<h4>" +tr("Too many responses from keyserver!") + "</h4>", true);
             return;
         } else if (text.contains("No keys found")) {
             // if string looks like hex string, search again with 0x prepended
             QRegExp rx("[0-9A-Fa-f]*");
             QString query = searchLineEdit->text();
             if (rx.exactMatch(query)) {
-                setMessage(tr("<h4>No keys found, input may be kexId, retrying search with 0x.</h4>"), true);
+                setMessage("<h4>" + tr("No keys found, input may be kexId, retrying search with 0x.") + "</h4>", true);
                 searchLineEdit->setText(query.prepend("0x"));
                 this->slotSearch();
                 return;
             } else {
-                setMessage(tr("<h4>No keys found containing the search string!</h4>"), true);
+                setMessage("<h4>" +tr("No keys found containing the search string!") + "</h4>", true);
                 return;
             }
         } else if (text.contains("Insufficiently specific words")) {
-            setMessage(tr("<h4>Insufficiently specific search string!</h4>"), true);
+            setMessage("<h4>" + tr("Insufficiently specific search string!") + "</h4>", true);
             return;
         } else {
             setMessage(text, true);
