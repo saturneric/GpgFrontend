@@ -57,6 +57,10 @@ private slots:
 
     void onCustomContextMenu(const QPoint &point);
 
+protected:
+
+    void keyPressEvent(QKeyEvent *event) override;
+
 
 private:
 
@@ -64,6 +68,7 @@ private:
     QTreeView *dirTreeView;
     QLineEdit *pathEdit;
     QString mPath;
+    QString selectedPath;
 
     QPushButton *upLevelButton;
     QPushButton *goPathButton;

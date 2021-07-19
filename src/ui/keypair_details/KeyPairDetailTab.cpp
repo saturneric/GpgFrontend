@@ -23,6 +23,7 @@
  */
 
 #include "ui/keypair_details/KeyPairDetailTab.h"
+#include "ui/WaitingDialog.h"
 
 KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, QWidget *parent) : mKey(mKey), QWidget(parent) {
 
@@ -140,9 +141,17 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
             vboxPK->addWidget(editExpiresButton);
             connect(editExpiresButton, SIGNAL(clicked()), this, SLOT(slotModifyEditDatetime()));
 
+            auto hBoxLayout = new QHBoxLayout();
             auto *keyServerOperaButton = new QPushButton(tr("Key Server Operation (Pubkey)"));
             keyServerOperaButton->setStyleSheet("text-align:center;");
-            vboxPK->addWidget(keyServerOperaButton);
+
+            auto *revokeCertGenButton = new QPushButton(tr("Generate Revoke Certificate"));
+            connect(revokeCertGenButton, SIGNAL(clicked()), this, SLOT(slotGenRevokeCert()));
+
+            hBoxLayout->addWidget(keyServerOperaButton);
+            hBoxLayout->addWidget(revokeCertGenButton);
+
+            vboxPK->addLayout(hBoxLayout);
             connect(keyServerOperaButton, SIGNAL(clicked()), this, SLOT(slotModifyEditDatetime()));
 
             // Set Menu
@@ -300,7 +309,7 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
 void KeyPairDetailTab::createKeyServerOperaMenu() {
     keyServerOperaMenu = new QMenu(this);
 
-    auto *uploadKeyPair = new QAction(tr("Upload Key Pair"), this);
+    auto *uploadKeyPair = new QAction(tr("Upload Key Pair to Key Server"), this);
     connect(uploadKeyPair, SIGNAL(triggered()), this, SLOT(slotUploadKeyToServer()));
     auto *updateKeyPair = new QAction(tr("Update Key Pair"), this);
     connect(updateKeyPair, SIGNAL(triggered()), this, SLOT(slotUpdateKeyToServer()));
@@ -322,5 +331,22 @@ void KeyPairDetailTab::slotUpdateKeyToServer() {
     auto *dialog = new KeyServerImportDialog(mCtx, this);
     dialog->show();
     dialog->slotImportKey(keys);
+}
+
+void KeyPairDetailTab::slotGenRevokeCert() {
+    auto mOutputFileName = QFileDialog::getSaveFileName(this, tr("Generate revocation certificate"),
+                                                        QString(),
+                                                        QStringLiteral("%1 (*.rev)").arg(tr("Revocation Certificates")));
+
+    auto process = mCtx->generateRevokeCert(mKey, mOutputFileName);
+
+    auto *dialog = new WaitingDialog("Generating", this);
+
+    while(process->state() == QProcess::Running) {
+        QApplication::processEvents();
+    }
+
+    dialog->close();
+
 }
 
