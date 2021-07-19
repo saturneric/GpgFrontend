@@ -398,7 +398,7 @@ void MainWindow::slotDecryptVerify() {
         connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
         thread->start();
 
-        WaitingDialog *dialog = new WaitingDialog(tr("Decrypting and Verifying"), this);
+        auto *dialog = new WaitingDialog(tr("Decrypting and Verifying"), this);
         while (thread->isRunning()) {
             QApplication::processEvents();
         }

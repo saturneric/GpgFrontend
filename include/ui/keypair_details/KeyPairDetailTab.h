@@ -64,6 +64,8 @@ private slots:
 
     void slotUpdateKeyToServer();
 
+    void slotGenRevokeCert();
+
 private:
 
     QString *keyid; /** The id of the key the details should be shown for */
