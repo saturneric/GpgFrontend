@@ -36,7 +36,7 @@ message(STATUS "RESOURCE_OUTPUT_DIRECTORY ${RESOURCE_OUTPUT_DIRECTORY}")
 file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
 # Set Translation Files
-set(QT_TS_FILES gpgfrontend_en_us.ts gpgfrontend_zh_chs.ts gpgfrontend_zh_cht.ts gpg_frontend_fr.ts gpg_frontend_ru.ts)
+set(QT_TS_FILES gpgfrontend_en_us.ts gpgfrontend_zh_cn.ts gpgfrontend_zh_tw.ts gpg_frontend_fr.ts gpg_frontend_ru.ts)
 list(TRANSFORM QT_TS_FILES PREPEND ${CMAKE_SOURCE_DIR}/resource/ts/)
 message(STATUS "QT_TS_FILES ${QT_TS_FILES}")
 set(QT_QM_FILES_OUTPUT_DIR ${RESOURCE_OUTPUT_DIRECTORY}/ts)

@@ -94,6 +94,11 @@
         <source>Information Board</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../../src/ui/SettingsDialog.cpp" line="501"/>
+        <source> Front Size</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ChoosePage</name>
@@ -428,17 +433,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/GpgContext.cpp" line="700"/>
+        <location filename="../../src/gpg/GpgContext.cpp" line="706"/>
         <source>Key Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/GpgContext.cpp" line="700"/>
+        <location filename="../../src/gpg/GpgContext.cpp" line="706"/>
         <source>No Private Key Selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/GpgContext.cpp" line="740"/>
+        <location filename="../../src/gpg/GpgContext.cpp" line="746"/>
         <source>Error in signing:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -552,6 +557,11 @@
     <message>
         <location filename="../../src/ui/widgets/InfoBoardWidget.cpp" line="40"/>
         <source>Import missing key from Keyserver</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/widgets/InfoBoardWidget.cpp" line="57"/>
+        <source>Optional Actions Menu</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -680,6 +690,11 @@
  This may take a while.
  To speed up the process use your computer
  (e.g. browse the net, listen to music,...)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/keygen/KeygenDialog.cpp" line="150"/>
+        <source>Key Usage</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -979,7 +994,7 @@
     <name>KeyMgmt</name>
     <message>
         <location filename="../../src/ui/KeyMgmt.cpp" line="81"/>
-        <source>KeyPairs Management</source>
+        <source>Key Pair Management</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1264,178 +1279,202 @@
 <context>
     <name>KeyPairDetailTab</name>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="32"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="34"/>
         <source>Owner</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="33"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="35"/>
         <source>Master Key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="34"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="36"/>
         <source>Fingerprint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="35"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="37"/>
         <source>Additional UIDs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="81"/>
-        <source>Name:</source>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="58"/>
+        <source>Exists</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="82"/>
-        <source>Email Address:</source>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="58"/>
+        <source>Not Exists</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="83"/>
+        <source>Name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="84"/>
+        <source>Email Address:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="85"/>
         <source>Comment:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="88"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="90"/>
         <source>Key ID: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="89"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="91"/>
         <source>Algorithm: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="90"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="92"/>
         <source>Key Size:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="91"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="93"/>
         <source>Nominal Usage: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="92"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="94"/>
         <source>Actual Usage: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="93"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="95"/>
         <source>Expires on: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="94"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="96"/>
         <source>Last Update: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="95"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="97"/>
         <source>Secret Key Existence: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="119"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="121"/>
         <source>Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="121"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="123"/>
         <source>copy fingerprint to clipboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="131"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="133"/>
         <source>Operations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="134"/>
-        <source>Export Private Key (Include Subkeys)</source>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="136"/>
+        <source>Export Private Key (Include Subkey)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="139"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="203"/>
+        <source>You are about to export your</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="204"/>
+        <source>PRIVATE KEY</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="205"/>
+        <source>This is NOT your Public Key, so DON&apos;T give it away.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="206"/>
+        <source>Do you REALLY want to export your PRIVATE KEY?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="141"/>
         <source>Modify Expiration Datetime (Master Key)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="144"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="146"/>
         <source>Key Server Operation (Pubkey)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="147"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="149"/>
         <source>Generate Revoke Certificate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="172"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="175"/>
         <source>Warning: The Master Key has expired.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="175"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="178"/>
         <source>Warning: The Master Key has been revoked</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="199"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="202"/>
         <source>Exporting private Key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="200"/>
-        <source>&lt;h3&gt;You are about to export your &lt;font color=&quot;red&quot;&gt;PRIVATE KEY&lt;/font&gt;!&lt;/h3&gt;
-This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALLY want to export your PRIVATE KEY?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="217"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="221"/>
         <source>Export Key To File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="218"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="222"/>
         <source>Key Files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="221"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="225"/>
         <source>Export Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="221"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="225"/>
         <source>Couldn&apos;t open %1 for writing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="291"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="295"/>
         <source>Never Expire</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="311"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="315"/>
         <source>Upload Key Pair to Key Server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="313"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="317"/>
         <source>Update Key Pair</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="336"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="340"/>
         <source>Generate revocation certificate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="338"/>
+        <location filename="../../src/ui/keypair_details/KeyPairDetailTab.cpp" line="343"/>
         <source>Revocation Certificates</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1538,6 +1577,16 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
     <message>
         <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="40"/>
         <source>UID Management</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="59"/>
+        <source>UIDs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/keypair_details/KeyPairUIDTab.cpp" line="67"/>
+        <source>Signature of Selected UID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1780,7 +1829,27 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
     </message>
     <message>
         <location filename="../../src/ui/KeyServerImportDialog.cpp" line="179"/>
-        <source>&lt;h4&gt;Text is empty.&lt;/h4&gt;</source>
+        <source>Text is empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="230"/>
+        <source>Too many responses from keyserver!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="237"/>
+        <source>No keys found, input may be kexId, retrying search with 0x.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="242"/>
+        <source>No keys found containing the search string!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="246"/>
+        <source>Insufficiently specific search string!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1804,26 +1873,6 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
         <location filename="../../src/ui/KeyServerImportDialog.cpp" line="222"/>
         <location filename="../../src/ui/KeyServerImportDialog.cpp" line="392"/>
         <source>Connection Error</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="230"/>
-        <source>&lt;h4&gt;CToo many responses from keyserver!&lt;/h4&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="237"/>
-        <source>&lt;h4&gt;No keys found, input may be kexId, retrying search with 0x.&lt;/h4&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="242"/>
-        <source>&lt;h4&gt;No keys found containing the search string!&lt;/h4&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/ui/KeyServerImportDialog.cpp" line="246"/>
-        <source>&lt;h4&gt;Insufficiently specific search string!&lt;/h4&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1950,7 +1999,7 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
     <name>KeyserverTab</name>
     <message>
         <location filename="../../src/ui/SettingsDialog.cpp" line="607"/>
-        <source>Default Keyserver for import:</source>
+        <source>Default Key Server for import:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1961,6 +2010,11 @@ This is NOT your Public Key, so DON&apos;T give it away.&lt;br /&gt;Do you REALL
 </context>
 <context>
     <name>MainWindow</name>
+    <message>
+        <location filename="../../src/MainWindow.cpp" line="35"/>
+        <source>Loading Gnupg</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message>
         <location filename="../../src/MainWindow.cpp" line="62"/>
         <source>ENV Loading Failed</source>
