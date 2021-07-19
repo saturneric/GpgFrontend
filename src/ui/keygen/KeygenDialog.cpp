@@ -147,7 +147,7 @@ QGroupBox *KeyGenDialog::create_key_usage_group_box() {
     auto *groupBox = new QGroupBox(this);
     auto *grid = new QGridLayout(this);
 
-    groupBox->setTitle("Key Usage");
+    groupBox->setTitle(tr("Key Usage"));
 
     auto* encrypt = new QCheckBox(tr("Encryption"), groupBox);
     encrypt->setTristate(false);

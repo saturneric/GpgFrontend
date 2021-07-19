@@ -36,10 +36,10 @@ class KeyPairDetailTab : public QWidget {
 Q_OBJECT
 
     /**
- * @details Return QString with a space inserted at every fourth character
- *
- * @param fingerprint The fingerprint to be beautified
- */
+     * @details Return QString with a space inserted at every fourth character
+     *
+     * @param fingerprint The fingerprint to be beautified
+     */
     static QString beautifyFingerprint(QString fingerprint);
 
     void createKeyServerOperaMenu();
@@ -63,6 +63,8 @@ private slots:
     void slotUploadKeyToServer();
 
     void slotUpdateKeyToServer();
+
+    void slotGenRevokeCert();
 
 private:
 

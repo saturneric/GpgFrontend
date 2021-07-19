@@ -32,7 +32,7 @@ MainWindow::MainWindow()
 
     networkAccessManager = new QNetworkAccessManager(this);
 
-    auto waitingDialog = new WaitingDialog("Loading Gnupg", this);
+    auto waitingDialog = new WaitingDialog(tr("Loading Gnupg"), this);
 
     // Init Gnupg
     auto ctx_thread = QThread::create([&]() { mCtx = new GpgME::GpgContext(); });

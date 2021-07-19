@@ -181,6 +181,13 @@ void UpdateTab::getLatestVersion() {
 
      this->pb->setHidden(true);
 
+    if(replay->error() !=  QNetworkReply::NoError) {
+        qDebug() << "VersionCheckThread Found Network Error";
+        auto latestVersion = "Unknown";
+        latestVersionLabel->setText("<center><b>" + tr("Latest Version From Github: ") + latestVersion + "</b></center>");
+        return;
+    }
+
      QByteArray bytes = replay->readAll();
 
     Document d;

@@ -637,7 +637,7 @@ void TextEdit::slotFilePagePathChanged(const QString &path) {
   int index = tabWidget->currentIndex();
   QString mPath;
   QFileInfo fileInfo(path);
-  QString tPath = fileInfo.path();
+  QString tPath = fileInfo.absoluteFilePath();
   if (path.size() > 18) {
     mPath = tPath.mid(tPath.size() - 18, 18).prepend("...");
   } else {
