@@ -24,11 +24,9 @@ being implanted in the backdoor during the delivery process.**
 
 If you find this tool useful and promising, welcome to encourage me through STAR this project. Thanks!
 
-[>> Quick Start](#quick-start)
-
-[>> Code & Binary Security](https://gpgfrontend.pub/#/about/code-binary-verify)
-
-[>> 简体中文文档](https://github.com/saturneric/GpgFrontend/blob/main/README_CN.md)
+[>> Quick Start <<](#quick-start) |
+[>> Code & Binary Security <<](https://gpgfrontend.pub/#/about/code-binary-verify) |
+[>> 简中README <<](https://github.com/saturneric/GpgFrontend/blob/main/README_CN.md)
 
 <div align="center">
 <img width="640" src="https://github.com/saturneric/Blob/blob/master/screenshots/main_mac.jpg?raw=true" alt="macOS Screenshot"/>
@@ -56,7 +54,7 @@ If you find this tool useful and promising, welcome to encourage me through STAR
 - [Document](#document)
 - [Purpose](#purpose)
 - [Build](#build)
-- [Language Support](#language-support)
+- [Languages Support](#languages-support)
 - [Contributing & Bugs Report](#contributing--bugs-report)
     - [Contract](#contract)
     - [Maintainers](#maintainers)
@@ -67,8 +65,7 @@ If you find this tool useful and promising, welcome to encourage me through STAR
 - Can run on **Windows, Linux and macOS**.
 - Open source, free, no need to install.
 - Just double-click, and then you can use it freely.
-- Supports multiple languages.
-    - If you are interested, you can help me [translate the interface](https://gpgfrontend.pub/#/translate-interface).
+- Supports multiple [languages](#languages-support).
 
 ## Usage
 
@@ -119,6 +116,8 @@ Read the animated pictures in the [Document](https://gpgfrontend.pub/#/quick-sta
 
 #### Debian/Ubuntu/CentOS
 
+[![!AppImage](https://docs.appimage.org/_images/download-appimage-banner.svg)](https://github.com/saturneric/GpgFrontend/releases/latest)
+
 0. Install gnupg (If you have already followed please skip)
     - For Debian/Ubuntu
       ```shell
@@ -158,17 +157,23 @@ The GpgFrontend project is as open source, and it also insists on using open sou
 The tutorial for building the software will be released shortly. Before the relevant documents are released, you can
 refer to the project-related Github Action file if you know it.
 
-## Language Support
+## Languages Support
 
-The supported languages are listed here. Some languages use machine translation and have not been verified. If you
-want to join translation and verification work, please refer to the documentation.
+The supported languages are listed here. Some languages use machine translation and have not been verified. If you want
+to join translation and verification work, please refer to
+the [translate the interface](https://gpgfrontend.pub/#/translate-interface).
 
 Notice: The verification may not be complete and rigorous.
 
-|  Language |  English   | 简体中文  |
-|  ----  | ----  | ----  |
-| Support  | Support | Support |
-| Verification  | Origin | Not Fully |
+|  Language |  English   | 简体中文  | français  | Французский  | Español  | 
+|  ----  | ----  | ----  | ----  | ----  | ----  |
+| Support  | Support | 支持 | Etre prêt | ожидать | apoyar |
+| Verification  | Origin | 不完全 | Jamais |Никогда | Nunca |
+
+|  Language |  日本語   | 繁體中文  | عربى  | português  |
+|  ----  | ----  | ----  | ----  | ----  | 
+| Support  | 未だに | 尚未 | ليس بعد | Ainda não |
+| Verification  |  |  |  | |
 
 ## Contract
 
