@@ -498,7 +498,7 @@ AppearanceTab::AppearanceTab(QWidget *parent)
     infoBoardFontSizeSpin->setRange(9, 18);
     infoBoardFontSizeSpin->setValue(10);
     infoBoardFontSizeSpin->setSingleStep(1);
-    infoBoardLayout->addWidget(new QLabel(" Front Size"));
+    infoBoardLayout->addWidget(new QLabel(tr(" Front Size")));
     infoBoardLayout->addWidget(infoBoardFontSizeSpin);
     infoBoardBox->setLayout(infoBoardLayout);
 
@@ -604,7 +604,7 @@ KeyserverTab::KeyserverTab(QWidget *parent)
 
     auto *mainLayout = new QVBoxLayout(this);
 
-    auto *label = new QLabel(tr("Default Keyserver for import:"));
+    auto *label = new QLabel(tr("Default Key Server for import:"));
     comboBox = new QComboBox;
     comboBox->setEditable(false);
     comboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);

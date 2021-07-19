@@ -54,7 +54,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyLis
     actionButtonLayout->setSpacing(0);
     actionButtonMenu->setLayout(actionButtonLayout);
 
-    auto label = new QLabel("Optional Actions Menu");
+    auto label = new QLabel(tr("Optional Actions Menu"));
     label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     label->setContentsMargins(0, 0, 0, 0);
 

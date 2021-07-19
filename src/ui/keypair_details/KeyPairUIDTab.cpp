@@ -56,7 +56,7 @@ KeyPairUIDTab::KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget 
 
     auto uidGroupBox = new QGroupBox();
     uidGroupBox->setLayout(gridLayout);
-    uidGroupBox->setTitle("UIDs");
+    uidGroupBox->setTitle(tr("UIDs"));
 
     auto signGridLayout = new QGridLayout();
     signGridLayout->addWidget(sigList, 0, 0);
@@ -64,7 +64,7 @@ KeyPairUIDTab::KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget 
 
     auto signGroupBox = new QGroupBox();
     signGroupBox->setLayout(signGridLayout);
-    signGroupBox->setTitle("Signature of Selected UID");
+    signGroupBox->setTitle(tr("Signature of Selected UID"));
 
     auto vboxLayout = new QVBoxLayout();
     vboxLayout->addWidget(uidGroupBox);

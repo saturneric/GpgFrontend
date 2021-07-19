@@ -78,7 +78,7 @@ KeyMgmt::KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent )  :
         this->settings.setValue("keymgmt/setWindowSize", true);
     }
 
-    setWindowTitle(tr("KeyPairs Management"));
+    setWindowTitle(tr("Key Pair Management"));
     mKeyList->addMenuAction(deleteSelectedKeysAct);
     mKeyList->addMenuAction(showKeyDetailsAct);
 }
