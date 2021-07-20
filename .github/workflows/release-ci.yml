@@ -147,11 +147,6 @@ jobs:
           macdeployqt ${{github.workspace}}/build/release/GpgFrontend.app
           codesign -s "Developer ID Application: Yu Hu (4279AWUL3X)" ${{github.workspace}}/build/release/GpgFrontend.app --deep -v --options=runtime
           mkdir ${{github.workspace}}/build/tmp/
-          hdiutil create ${{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/release/
-          mkdir ${{github.workspace}}/build/artifactOut
-          hdiutil convert ${{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
-          codesign -s "Developer ID Application: Yu Hu (4279AWUL3X)" ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
-          mv ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg 
         if: matrix.os == 'macos-latest'
 
       - name: Package & Sign App Bundle (macOS)
