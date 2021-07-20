@@ -81,9 +81,9 @@ namespace GpgME {
 
         bool exportKeys(const QVector<GpgKey> &keys, QByteArray &outBuffer);
 
-        bool generateKey(GenKeyInfo *params);
+        gpgme_error_t generateKey(GenKeyInfo *params);
 
-        bool generateSubkey(const GpgKey &key, GenKeyInfo *params);
+        gpgme_error_t generateSubkey(const GpgKey &key, GenKeyInfo *params);
 
         void deleteKeys(QStringList *uidList);
 

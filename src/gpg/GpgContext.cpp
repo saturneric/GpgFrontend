@@ -197,7 +197,7 @@ namespace GpgME {
 /** Generate New Key with values params
  *
  */
-    bool GpgContext::generateKey(GenKeyInfo *params) {
+    gpgme_error_t GpgContext::generateKey(GenKeyInfo *params) {
 
         auto userid_utf8 = params->getUserid().toUtf8();
         const char *userid = userid_utf8.constData();
@@ -232,12 +232,12 @@ namespace GpgME {
 
         err = gpgme_op_createkey(mCtx, userid, algo, 0, expires, nullptr, flags);
 
-        if (err != GPG_ERR_NO_ERROR) {
+        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) {
             checkErr(err);
-            return false;
+            return err;
         } else {
             emit signalKeyDBChanged();
-            return true;
+            return err;
         }
     }
 
@@ -986,10 +986,10 @@ namespace GpgME {
         }
     }
 
-    bool GpgContext::generateSubkey(const GpgKey &key, GenKeyInfo *params) {
+    gpgme_error_t GpgContext::generateSubkey(const GpgKey &key, GenKeyInfo *params) {
 
         if (!params->isSubKey()) {
-            return false;
+            return GPG_ERR_CANCELED;
         }
 
         auto algo_utf8 = (params->getAlgo() + params->getKeySizeStr()).toUtf8();
@@ -1022,12 +1022,12 @@ namespace GpgME {
 
         auto gpgmeError = gpgme_op_createsubkey(mCtx, key.key_refer,
                                                 algo, 0, expires, flags);
-        if (gpgmeError == GPG_ERR_NO_ERROR) {
+        if (gpgme_err_code(gpgmeError) == GPG_ERR_NO_ERROR) {
             emit signalKeyUpdated(key.id);
-            return true;
+            return gpgmeError;
         } else {
             checkErr(gpgmeError);
-            return false;
+            return gpgmeError;
         }
     }
 
