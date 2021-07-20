@@ -145,7 +145,7 @@ jobs:
       - name: Build & Sign App Bundle (macOS)
         run: |
           macdeployqt ${{github.workspace}}/build/release/GpgFrontend.app
-          codesign --force --options=runtime -s "Developer ID Application: Yu Hu (4279AWUL3X)" ${{github.workspace}}/build/release/GpgFrontend.app -v
+          codesign --deep --force --options=runtime -s "Developer ID Application: Yu Hu (4279AWUL3X)" ${{github.workspace}}/build/release/GpgFrontend.app -v
           mkdir ${{github.workspace}}/build/tmp/
         if: matrix.os == 'macos-latest'
 
