@@ -17,7 +17,7 @@
       me [translate the interface](https://saturneric.github.io/GpgFrontend/index.html#/translate-interface).
 
 
-[GitHub](https://github.com/saturneric/GpgFrontend)
+[Download](https://github.com/saturneric/GpgFrontend/releases/latest)
 [Quick Start](quick-start.md)
 
 <!-- 背景色 -->
