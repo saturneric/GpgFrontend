@@ -23,6 +23,7 @@
  */
 
 #include "MainWindow.h"
+#include "GpgFrontendBuildInfo.h"
 
 int main(int argc, char *argv[]) {
 
@@ -61,7 +62,7 @@ int main(int argc, char *argv[]) {
     QTranslator translator, translator2;
     int return_from_event_loop_code;
 
-    qDebug() << settings.fileName();
+    qDebug() << "Resource Directory" << RESOURCE_DIR(appPath);
 
     do {
         QApplication::removeTranslator(&translator);

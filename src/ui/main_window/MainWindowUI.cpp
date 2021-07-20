@@ -209,17 +209,26 @@ void MainWindow::createActions() {
     importKeyFromEditAct->setToolTip(tr("Import New Key From Editor"));
     connect(importKeyFromEditAct, SIGNAL(triggered()), this, SLOT(slotImportKeyFromEdit()));
 
-    openKeyManagementAct = new QAction(tr("Manage &keys"), this);
+    openKeyManagementAct = new QAction(tr("Manage &Keys"), this);
     openKeyManagementAct->setIcon(QIcon(":keymgmt.png"));
     openKeyManagementAct->setToolTip(tr("Open Keymanagement"));
     connect(openKeyManagementAct, SIGNAL(triggered()), this, SLOT(slotOpenKeyManagement()));
 
-    /* About Menu
+    /*
+     * About Menu
      */
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setIcon(QIcon(":help.png"));
     aboutAct->setToolTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(slotAbout()));
+
+    /*
+     * Check Update Menu
+    */
+    checkUpdateAct = new QAction(tr("&Check for Updates"), this);
+    checkUpdateAct->setIcon(QIcon(":help.png"));
+    checkUpdateAct->setToolTip(tr("Check for updates"));
+    connect(checkUpdateAct, SIGNAL(triggered()), this, SLOT(slotCheckUpdate()));
 
     startWizardAct = new QAction(tr("Open &Wizard"), this);
     startWizardAct->setToolTip(tr("Open the wizard"));
@@ -231,8 +240,8 @@ void MainWindow::createActions() {
     appendSelectedKeysAct->setToolTip(tr("Append The Selected Keys To Text in Editor"));
     connect(appendSelectedKeysAct, SIGNAL(triggered()), this, SLOT(slotAppendSelectedKeys()));
 
-    copyMailAddressToClipboardAct = new QAction(tr("Copy EMail-address"), this);
-    copyMailAddressToClipboardAct->setToolTip(tr("Copy selected EMailaddress to clipboard"));
+    copyMailAddressToClipboardAct = new QAction(tr("Copy Email"), this);
+    copyMailAddressToClipboardAct->setToolTip(tr("Copy selected Email to clipboard"));
     connect(copyMailAddressToClipboardAct, SIGNAL(triggered()), this, SLOT(slotCopyMailAddressToClipboard()));
 
     // TODO: find central place for shared actions, to avoid code-duplication with keymgmt.cpp
@@ -247,6 +256,7 @@ void MainWindow::createActions() {
     uploadKeyToServerAct = new QAction(tr("Upload Public Key(s) To Server"), this);
     uploadKeyToServerAct->setToolTip(tr("Upload The Selected Public Keys To Server"));
     connect(uploadKeyToServerAct, SIGNAL(triggered()), this, SLOT(uploadKeyToServer()));
+    
     /* Key-Shortcuts for Tab-Switchung-Action
     */
     switchTabUpAct = new QAction(this);
@@ -339,6 +349,7 @@ void MainWindow::createMenus() {
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(startWizardAct);
     helpMenu->addSeparator();
+    helpMenu->addAction(checkUpdateAct);
     helpMenu->addAction(aboutAct);
 
 }
@@ -436,26 +447,4 @@ void MainWindow::createDockWindows() {
     infoBoardDock->setWidget(infoBoard);
     infoBoardDock->widget()->layout()->setContentsMargins(0, 0, 0, 0);
     viewMenu->addAction(infoBoardDock->toggleViewAction());
-
-    /* Attachments-Dockwindow
-      */
-    if (settings.value("mime/parseMime").toBool()) {
-        createAttachmentDock();
-    }
-}
-
-void MainWindow::createAttachmentDock() {
-    if (attachmentDockCreated) {
-        return;
-    }
-    mAttachments = new Attachments();
-    attachmentDock = new QDockWidget(tr("Attached files:"), this);
-    attachmentDock->setObjectName("AttachmentDock");
-    attachmentDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
-    addDockWidget(Qt::LeftDockWidgetArea, attachmentDock);
-    attachmentDock->setWidget(mAttachments);
-    // hide till attachment is decrypted
-    viewMenu->addAction(attachmentDock->toggleViewAction());
-    attachmentDock->hide();
-    attachmentDockCreated = true;
 }

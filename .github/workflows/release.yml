@@ -88,7 +88,7 @@ jobs:
         shell: msys2 {0}
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-qt-creator mingw-w64-x86_64-gpgme
-          pacman --noconfirm -S --needed make texinfo
+          pacman --noconfirm -S --needed make texinfo zip
         if: matrix.os == 'windows-latest'
 
       - name: Build gpg-error (Linux)
@@ -142,8 +142,12 @@ jobs:
 
       - name: Build GpgFrontend
         # Build your program with the given configuration
-        run: cmake --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -j 2
+        run: cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'ubuntu-16.04' || matrix.os == 'macos-latest'
+
+      - name: Get Short SHA of Commit
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Package App Bundle (macOS)
         run: |
@@ -154,12 +158,13 @@ jobs:
           mkdir ${{github.workspace}}/build/artifactOut
           hdiutil convert ${{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
            codesign -s "Developer ID Application: Yu Hu (4279AWUL3X)" GpgFrontend.dmg
+          mv ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg 
         if: matrix.os == 'macos-latest'
 
       - name: Notarize Release Build (macOS)
         uses: devbotsxyz/xcode-notarize@v1
         with:
-          product-path: "Export/Rings.app"
+          product-path: ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg
           appstore-connect-username: ${{ secrets.APPLE_DEVELOPER_ID }}
           appstore-connect-password: ${{ secrets.APPLE_DEVELOPER_ID_SECRET }}
         if: matrix.os == 'macos-latest'
@@ -173,7 +178,7 @@ jobs:
           ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/release/gpgfrontend/usr/share/applications/*.desktop -appimage
         if: matrix.os == 'ubuntu-16.04'
 
-      - name: Configure CMake & Build Binary(Windows)
+      - name: Configure CMake & Build Binary (Windows)
         shell: msys2 {0}
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
@@ -182,10 +187,6 @@ jobs:
           # Build your program with the given configuration
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'windows-latest'
-
-      - name: Get Short SHA of Commit
-        id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@master

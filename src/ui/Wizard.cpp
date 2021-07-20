@@ -108,16 +108,20 @@ bool Wizard::importPubAndSecKeysFromDir(const QString &dir, KeyMgmt *keyMgmt) {
 IntroPage::IntroPage(QWidget *parent)
         : QWizardPage(parent), appPath(qApp->applicationDirPath()),
           settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
-    setTitle(tr("Getting started..."));
+    setTitle(tr("Getting Started..."));
     setSubTitle(tr("... with GPGFrontend"));
 
-    auto *topLabel = new QLabel(tr("To use GPGFrontend for decrypting and signing messages, you need a "
-                                   "private key. The next page will help you with "
-                                   "key generation or import.<br><br>"
-                                   "For more information have a look at the <a href='docu_concepts.html'>concepts</a> "
-                                   "(by clicking the link, the page will open in the main window). <br>"));
+    auto *topLabel = new QLabel(tr("Welcome to use GPGFrontend for decrypting and signing text or file!")+
+                                   " <br><br><a href='https://github.com/saturneric/GpgFrontend'>GpgFrontend</a> " +
+                                   tr("is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free OpenPGP Crypto Tool.") +
+                                   tr("For brief information have a look at the") + "<a href='https://saturneric.github.io/GpgFrontend/index.html#/overview'>"+
+                                   tr("Overview") +"</a> (" +
+                                   tr("by clicking the link, the page will open in the web browser") +
+                                   "). <br>");
+    topLabel->setTextFormat(Qt::RichText);
+    topLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    topLabel->setOpenExternalLinks(true);
     topLabel->setWordWrap(true);
-    // connect(topLabel, SIGNAL(linkActivated(QString)), parentWidget()->parentWidget(), SLOT(openHelp(QString)));
 
     // QComboBox for language selection
     auto *langLabel = new QLabel(tr("Choose a Language"));
@@ -126,9 +130,9 @@ IntroPage::IntroPage(QWidget *parent)
     languages = SettingsDialog::listLanguages();
     auto *langSelectBox = new QComboBox();
 
-            foreach(QString l, languages) {
-            langSelectBox->addItem(l);
-        }
+    for(const auto &l : languages) {
+        langSelectBox->addItem(l);
+    }
     // selected entry from config
     QString langKey = settings.value("int/lang").toString();
     QString langValue = languages.value(langKey);
@@ -162,25 +166,31 @@ ChoosePage::ChoosePage(QWidget *parent)
     setSubTitle(tr("...by clicking on the appropriate link."));
 
     auto *keygenLabel = new QLabel(tr("If you have never used GPGFrontend before and also don't own a gpg key yet you "
-                                      "may possibly want to read how to") + "<a href=\"https://saturneric.github.io/GpgFrontend/index.html#/manual/generate-key\">"
-                                   + tr("create a new keypair") + "</a><hr>");
+                                      "may possibly want to read how to") + " <a href=\"https://saturneric.github.io/GpgFrontend/index.html#/manual/generate-key\">"
+                                   + tr("Generate Key") + "</a><hr>");
     keygenLabel->setTextFormat(Qt::RichText);
     keygenLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
     keygenLabel->setOpenExternalLinks(true);
     keygenLabel->setWordWrap(true);
 
-    auto *encrDecyTextLabel = new QLabel(tr("If you want to learn how to encrypt and decrypt text, you can read ")
+    auto *encrDecyTextLabel = new QLabel(tr("If you want to learn how to encrypt, decrypt, sign and verify text, you can read ")
                                           + "<a href=\"https://saturneric.github.io/GpgFrontend/index.html#/manual/encrypt-decrypt-text\">"
-                                          + tr("this document") + "</a><hr>");
+                                          + tr("Encrypt & Decrypt Text") + "</a> " + tr("or")
+                                          + " <a href=\"https://saturneric.github.io/GpgFrontend/index.html#/manual/sign-verify-text\">"
+                                          + tr("Sign & Verify Text")
+                                          +"</a><hr>");
 
     encrDecyTextLabel->setTextFormat(Qt::RichText);
     encrDecyTextLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
     encrDecyTextLabel->setOpenExternalLinks(true);
     encrDecyTextLabel->setWordWrap(true);
 
-    auto *signVerifyTextLabel = new QLabel(tr("If you want to sign and verify text, you can read ")
-                                        + "<a href=\"https://saturneric.github.io/GpgFrontend/index.html#/manual/sign-verify-text\">"
-                                        + tr("this document") + "</a>");
+    auto *signVerifyTextLabel = new QLabel(tr("If you want to operate file, you can read ")
+                                        + "<a href=\"https://saturneric.github.io/GpgFrontend/index.html#/manual/encrypt-decrypt-file\">"
+                                        + tr("Encrypt & Sign File") + "</a> " + tr("or")
+                                        + " <a href=\"https://saturneric.github.io/GpgFrontend/index.html#/manual/sign-verify-file\">"
+                                        + tr("Sign & Verify File")
+                                        +"</a><hr>");
     signVerifyTextLabel->setTextFormat(Qt::RichText);
     signVerifyTextLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
     signVerifyTextLabel->setOpenExternalLinks(true);

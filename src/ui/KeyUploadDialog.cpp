@@ -36,9 +36,13 @@ KeyUploadDialog::KeyUploadDialog(GpgME::GpgContext *ctx, const QVector<GpgKey> &
 
     auto *pb = new QProgressBar();
     pb->setRange(0, 0);
+    pb->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    pb->setTextVisible(false);
 
     auto *layout = new QVBoxLayout();
     layout->addWidget(pb);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
     this->setLayout(layout);
 
     this->setModal(true);

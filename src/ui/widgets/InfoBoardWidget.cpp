@@ -25,7 +25,9 @@
 #include "ui/widgets/InfoBoardWidget.h"
 
 InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList) :
-        QWidget(parent), mCtx(ctx), mKeyList(keyList) {
+        QWidget(parent), mCtx(ctx), mKeyList(keyList), appPath(qApp->applicationDirPath()),
+        settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
+                 QSettings::IniFormat) {
 
     infoBoard = new QTextEdit(this);
     infoBoard->setReadOnly(true);
@@ -42,7 +44,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyLis
     detailMenu->addAction(importFromKeyserverAct);
     importFromKeyserverAct->setVisible(false);
 
-    QWidget *actionButtonMenu = new QWidget();
+    auto *actionButtonMenu = new QWidget();
     actionButtonMenu->setContentsMargins(0, 0, 0, 0);
     actionButtonMenu->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
     actionButtonMenu->setFixedHeight(36);
@@ -52,7 +54,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyLis
     actionButtonLayout->setSpacing(0);
     actionButtonMenu->setLayout(actionButtonLayout);
 
-    auto label = new QLabel("Optional Actions Menu");
+    auto label = new QLabel(tr("Optional Actions Menu"));
     label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     label->setContentsMargins(0, 0, 0, 0);
 
@@ -107,7 +109,8 @@ void InfoBoardWidget::setInfoBoard(const QString &text, InfoBoardStatus verifyLa
     QPalette status = infoBoard->palette();
     status.setColor(QPalette::Text, color);
     infoBoard->setPalette(status);
-    infoBoard->setFont(QFont("Times", 10));
+    auto infoBoardFontSize = settings.value("informationBoard/fontSize", 10).toInt();
+    infoBoard->setFont(QFont("Times", infoBoardFontSize));
 }
 
 void InfoBoardWidget::slotRefresh(const QString &text, InfoBoardStatus status) {
@@ -135,13 +138,16 @@ void InfoBoardWidget::associateTabWidget(QTabWidget *tab) {
         disconnect(mTextPage, SIGNAL(textChanged()), this, SLOT(slotReset()));
 //    if (mFileTreeView != nullptr)
 //        disconnect(mFileTreeView, &FilePage::pathChanged, this, &InfoBoardWidget::slotReset);
-    if (mTabWidget != nullptr)
+    if (mTabWidget != nullptr) {
         disconnect(mTabWidget, SIGNAL(tabBarClicked(int)), this, SLOT(slotReset()));
+        connect(mTabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(slotReset()));
+    }
 
     mTextPage = nullptr;
     mFileTreeView = nullptr;
     mTabWidget = tab;
     connect(tab, SIGNAL(tabBarClicked(int)), this, SLOT(slotReset()));
+    connect(tab, SIGNAL(tabCloseRequested(int)), this, SLOT(slotReset()));
 }
 
 void InfoBoardWidget::addOptionalAction(const QString &name, const std::function<void()> &action) {
