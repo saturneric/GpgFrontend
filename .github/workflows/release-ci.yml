@@ -151,7 +151,6 @@ jobs:
 
       - name: Package & Sign App Bundle (macOS)
         run: |
-          mkdir ${{github.workspace}}/build/tmp/
           hdiutil create ${{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/release/
           mkdir ${{github.workspace}}/build/artifactOut
           hdiutil convert ${{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
