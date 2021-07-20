@@ -156,7 +156,7 @@ jobs:
 
       - name: Notarize Release Build (macOS)
         run: |
-          xcrun altool --notarize-app -f GpgFrontend.dmg --primary-bundle-id pub.gpgfrontend.gpgfrontend -u ${{secrets.APPLE_DEVELOPER_ID}} -p ${{secrets.APPLE_DEVELOPER_ID_SECRET}}
+          xcrun altool --notarize-app -f ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg  --primary-bundle-id pub.gpgfrontend.gpgfrontend -u ${{secrets.APPLE_DEVELOPER_ID}} -p ${{secrets.APPLE_DEVELOPER_ID_SECRET}}
         if: matrix.os == 'macos-latest'
 
       - name: Package App Image (Linux)
