@@ -84,7 +84,7 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
         add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
         set_target_properties(${AppName} PROPERTIES
             BUNDLE True
-            MACOSX_BUNDLE_GUI_IDENTIFIER org.gnupg.gpgfrontend
+            MACOSX_BUNDLE_GUI_IDENTIFIER pub.gpgfrontend.gpgfrontend
             MACOSX_BUNDLE_BUNDLE_NAME ${AppName}
             MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
