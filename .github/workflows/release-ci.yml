@@ -155,11 +155,8 @@ jobs:
         if: matrix.os == 'macos-latest'
 
       - name: Notarize Release Build (macOS)
-        uses: devbotsxyz/xcode-notarize@v1
-        with:
-          product-path: ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg
-          appstore-connect-username: ${{ secrets.APPLE_DEVELOPER_ID }}
-          appstore-connect-password: ${{ secrets.APPLE_DEVELOPER_ID_SECRET }}
+        run: |
+          xcrun altool --notarize-app -f GpgFrontend.dmg --primary-bundle-id pub.gpgfrontend.gpgfrontend -u ${{secrets.APPLE_DEVELOPER_ID}} -p ${{APPLE_DEVELOPER_ID_SECRET}}
         if: matrix.os == 'macos-latest'
 
       - name: Package App Image (Linux)
