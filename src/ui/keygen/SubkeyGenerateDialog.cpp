@@ -23,6 +23,7 @@
  */
 
 #include "ui/keygen/SubkeyGenerateDialog.h"
+#include "ui/WaitingDialog.h"
 
 SubkeyGenerateDialog::SubkeyGenerateDialog(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent)
         : genKeyInfo(true), mCtx(ctx), mKey(key), QDialog(parent) {
@@ -224,33 +225,26 @@ void SubkeyGenerateDialog::slotKeyGenAccept() {
             genKeyInfo.setExpired(dateEdit->dateTime());
         }
 
-        kg = new SubkeyGenerateThread(mKey ,&genKeyInfo, mCtx);
-        connect(kg, SIGNAL(signalKeyGenerated(bool)), this, SLOT(slotKeyGenResult(bool)));
-        kg->start();
+        gpgme_error_t error = false;
+        auto thread = QThread::create([&]() {
+            error = mCtx->generateSubkey(mKey, &genKeyInfo);
+        });
+        thread->start();
 
-        this->accept();
-
-        auto *dialog = new QDialog(this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-        dialog->setModal(true);
-        dialog->setWindowTitle(tr("Generating Subkey..."));
-
-        auto *waitMessage = new QLabel(
-                tr("Collecting random data for subkey generation.\n This may take a while.\n To speed up the process use your computer\n (e.g. browse the net, listen to music,...)"));
-        auto *pb = new QProgressBar();
-        pb->setRange(0, 0);
-
-        auto *layout = new QVBoxLayout(dialog);
-        layout->addWidget(waitMessage);
-        layout->addWidget(pb);
-        dialog->setLayout(layout);
-
+        auto *dialog = new WaitingDialog("Generating", this);
         dialog->show();
 
-        while (!kg->isFinished() && kg->isRunning()) {
+        while (thread->isRunning()) {
             QCoreApplication::processEvents();
         }
 
         dialog->close();
+
+        if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
+            QMessageBox::information(nullptr, tr("Success"), tr("The new subkey has been generated."));
+            this->close();
+        } else
+            QMessageBox::critical(this, tr("Failure"), tr(gpgme_strerror(error)));
 
     } else {
         /**
@@ -302,11 +296,4 @@ void SubkeyGenerateDialog::slotActivatedKeyType(int index) {
     qDebug() << "key type index changed " << index;
     genKeyInfo.setAlgo(this->keyTypeComboBox->itemText(index));
     refresh_widgets_state();
-}
-
-void SubkeyGenerateDialog::slotKeyGenResult(bool success) {
-    if(success)
-        QMessageBox::information(nullptr, tr("Success"), tr("The new subkey has been generated."));
-    else
-        QMessageBox::critical(nullptr, tr("Failure"), tr("An error occurred during subkey generation."));
 }

@@ -23,6 +23,7 @@
  */
 
 #include "ui/keygen/KeygenDialog.h"
+#include "ui/WaitingDialog.h"
 
 KeyGenDialog::KeyGenDialog(GpgME::GpgContext *ctx, QWidget *parent)
         : QDialog(parent), mCtx(ctx) {
@@ -92,33 +93,27 @@ void KeyGenDialog::slotKeyGenAccept() {
             genKeyInfo.setExpired(dateEdit->dateTime());
         }
 
-        kg = new KeyGenThread(&genKeyInfo, mCtx);
-        connect(kg, SIGNAL(signalKeyGenerated(bool)), this, SLOT(slotKeyGenResult(bool)));
-        kg->start();
+        gpgme_error_t error = false;
+        auto thread = QThread::create([&]() {
+            error = mCtx->generateKey(&genKeyInfo);
+        });
+        thread->start();
 
-        this->accept();
-
-        auto *dialog = new QDialog(this, Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-        dialog->setModal(true);
-        dialog->setWindowTitle(tr("Generating Key..."));
-
-        auto *waitMessage = new QLabel(
-                tr("Collecting random data for key generation.\n This may take a while.\n To speed up the process use your computer\n (e.g. browse the net, listen to music,...)"));
-        auto *pb = new QProgressBar();
-        pb->setRange(0, 0);
-
-        auto *layout = new QVBoxLayout(dialog);
-        layout->addWidget(waitMessage);
-        layout->addWidget(pb);
-        dialog->setLayout(layout);
-
+        auto *dialog = new WaitingDialog("Generating", this);
         dialog->show();
 
-        while (kg->isRunning()) {
+        while (thread->isRunning()) {
             QCoreApplication::processEvents();
         }
 
         dialog->close();
+
+        if(gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
+            QMessageBox::information(this, tr("Success"), tr("The new key pair has been generated."));
+            this->close();
+        }
+        else
+            QMessageBox::critical(this, tr("Failure"), tr(gpgme_strerror(error)));
 
     } else {
         /**
@@ -305,13 +300,6 @@ void KeyGenDialog::set_signal_slot() {
 
 bool KeyGenDialog::check_email_address(const QString &str) {
     return re_email.match(str).hasMatch();
-}
-
-void  KeyGenDialog::slotKeyGenResult(bool success) {
-    if(success)
-        QMessageBox::information(nullptr, tr("Success"), tr("The new key pair has been generated."));
-    else
-        QMessageBox::critical(nullptr, tr("Failure"), tr("An error occurred during key generation."));
 }
 
 QGroupBox *KeyGenDialog::create_basic_info_group_box() {

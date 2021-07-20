@@ -25,9 +25,7 @@
 #ifndef __KEYGENDIALOG_H__
 #define __KEYGENDIALOG_H__
 
-#include "KeygenThread.h"
 #include "gpg/GpgContext.h"
-
 
 class KeyGenDialog : public QDialog {
 Q_OBJECT
@@ -54,7 +52,6 @@ private:
             R"((?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\]))"};
 
     GpgME::GpgContext *mCtx; /** The current gpg context */
-    KeyGenThread *kg{}; /** Thread for key generation */
     QStringList errorMessages; /** List of errors occuring when checking entries of lineedits */
     GenKeyInfo genKeyInfo{};
 
@@ -106,8 +103,6 @@ private slots:
     void slotAuthenticationBoxChanged(int state);
 
     void slotActivatedKeyType(int index);
-
-    void slotKeyGenResult(bool success);
 
 };
 
