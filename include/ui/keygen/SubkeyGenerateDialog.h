@@ -25,12 +25,7 @@
 #ifndef GPGFRONTEND_SUBKEYGENERATEDIALOG_H
 #define GPGFRONTEND_SUBKEYGENERATEDIALOG_H
 
-#include "GpgFrontend.h"
-#include "gpg/GpgKey.h"
-#include "gpg/GpgSubKey.h"
-#include "gpg/GpgGenKeyInfo.h"
-
-#include "SubkeyGenerateThread.h"
+#include "gpg/GpgContext.h"
 
 class SubkeyGenerateDialog : public QDialog {
 Q_OBJECT
@@ -45,7 +40,6 @@ private:
     const GpgKey &mKey;
 
     GenKeyInfo genKeyInfo{};
-    SubkeyGenerateThread *kg{}; /** Thread for key generation */
 
     QGroupBox *keyUsageGroupBox{};
     QDialogButtonBox *buttonBox; /** Box for standardbuttons */
@@ -90,8 +84,6 @@ private slots:
     void slotAuthenticationBoxChanged(int state);
 
     void slotActivatedKeyType(int index);
-
-    void slotKeyGenResult(bool success);
 
 };
 
