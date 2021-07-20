@@ -42,6 +42,16 @@ jobs:
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-*
         if: matrix.os == 'ubuntu-16.04'
 
+      - name: Codesign Configuration (macOS)
+        run: |
+          echo ${{secrets.MACOS_CERTIFICATE}} | base64 --decode > certificate.p12
+          security create-keychain -p gpgfrontend build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p gpgfrontend build.keychain
+          security import certificate.p12 -k build.keychain -P ${{secrets.MAOS_CERTIFICATE_PWD}} -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
+        if: matrix.os == 'macos-latest'
+
       - name: Install Dependence (macOS)
         run: |
           brew install cmake git autoconf automake qt@5 gcc texinfo gettext libgpg-error libassuan gpgme openssl
@@ -136,14 +146,25 @@ jobs:
         id: vars
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
-      - name: Package App Bundle (macOS)
+      - name: Build & Sign App Bundle (macOS)
         run: |
           macdeployqt ${{github.workspace}}/build/release/GpgFrontend.app
+          codesign --deep --force --options=runtime -s "Developer ID Application: Yu Hu (4279AWUL3X)" ${{github.workspace}}/build/release/GpgFrontend.app -v
           mkdir ${{github.workspace}}/build/tmp/
+        if: matrix.os == 'macos-latest'
+
+      - name: Package & Sign App Bundle (macOS)
+        run: |
           hdiutil create ${{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/release/
           mkdir ${{github.workspace}}/build/artifactOut
           hdiutil convert ${{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
-          mv ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg 
+          codesign -s "Developer ID Application: Yu Hu (4279AWUL3X)" ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
+          mv ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg
+        if: matrix.os == 'macos-latest'
+
+      - name: Notarize Release Build (macOS)
+        run: |
+          xcrun altool --notarize-app -f ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg  --primary-bundle-id pub.gpgfrontend.gpgfrontend -u ${{secrets.APPLE_DEVELOPER_ID}} -p ${{secrets.APPLE_DEVELOPER_ID_SECRET}}
         if: matrix.os == 'macos-latest'
 
       - name: Package App Image (Linux)
