@@ -71,7 +71,7 @@ namespace GpgME {
 
         ~GpgContext() override;
 
-        bool isGood() const;
+        [[nodiscard]] bool isGood() const;
 
         GpgImportInformation importKey(QByteArray inBuffer);
 
@@ -115,7 +115,7 @@ namespace GpgME {
 
         gpg_error_t
         sign(const QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached = false,
-             gpgme_sign_result_t* result = nullptr);
+             gpgme_sign_result_t *result = nullptr);
 
         bool addUID(const GpgKey &key, const GpgUID &uid);
 
@@ -125,6 +125,8 @@ namespace GpgME {
 
         bool setExpire(const GpgKey &key, const GpgSubKey *subkey, QDateTime *expires);
 
+        QProcess * generateRevokeCert(const GpgKey &key, const QString &outputFileName);
+
         static bool checkIfKeyCanSign(const GpgKey &key);
 
         static bool checkIfKeyCanCert(const GpgKey &key);
@@ -132,6 +134,7 @@ namespace GpgME {
         static bool checkIfKeyCanAuth(const GpgKey &key);
 
         static bool checkIfKeyCanEncr(const GpgKey &key);
+
 
         /**
          * @details If text contains PGP-message, put a linebreak before the message,
@@ -143,7 +146,7 @@ namespace GpgME {
 
         GpgKey getKeyByFpr(const QString &fpr);
 
-        const GpgKey & getKeyById(const QString &id);
+        const GpgKey &getKeyById(const QString &id);
 
         static QString gpgErrString(gpgme_error_t err);
 
@@ -173,7 +176,7 @@ namespace GpgME {
 
         void slotRefreshKeyList();
 
-        void slotUpdateKeyList(const QString& key_id);
+        void slotUpdateKeyList(const QString &key_id);
 
     private:
         gpgme_ctx_t mCtx{};
@@ -204,11 +207,11 @@ namespace GpgME {
                                  const char *passphrase_info,
                                  int last_was_bad, int fd);
 
-        void executeGpgCommand(const QStringList &arguments,
-                               QByteArray *stdOut,
-                               QByteArray *stdErr);
+        QProcess * executeGpgCommand(const QStringList &arguments,
+                                     QByteArray *stdOut,
+                                     QByteArray *stdErr, const std::function<void(QProcess *)> &interactFunc);
 
-        QString gpgBin;
+        QString gpgExec;
         QString gpgKeys;
     };
 } // namespace GpgME

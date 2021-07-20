@@ -23,6 +23,7 @@
  */
 
 #include "MainWindow.h"
+#include "ui/SendMailDialog.h"
 
 void MainWindow::slotEncrypt() {
 
@@ -58,12 +59,12 @@ void MainWindow::slotEncrypt() {
         auto thread = QThread::create([&]() {
             error = mCtx->encrypt(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &result);
         });
-
+        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
         thread->start();
 
-        WaitingDialog *dialog = new WaitingDialog(this);
+        auto *dialog = new WaitingDialog(tr("Encrypting"), this);
 
-        while(thread->isRunning()) {
+        while (thread->isRunning()) {
             QApplication::processEvents();
         }
 
@@ -82,6 +83,19 @@ void MainWindow::slotEncrypt() {
             infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
         else
             infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+        if (resultAnalyse->getStatus() >= 0) {
+            infoBoard->resetOptionActionsMenu();
+            infoBoard->addOptionalAction("Send Mail", [this]() {
+                if(settings.value("sendMail/enable", false).toBool())
+                    new SendMailDialog(edit->curTextPage()->toPlainText(), this);
+                else {
+                    QMessageBox::warning(nullptr,
+                                         tr("Function Disabled"),
+                                         tr("Please go to the settings interface to enable and configure this function."));
+                }
+            });
+        }
 
         delete resultAnalyse;
     } else if (edit->slotCurPageFileTreeView() != nullptr) {
@@ -118,7 +132,19 @@ void MainWindow::slotSign() {
 
         gpgme_sign_result_t result = nullptr;
 
-        auto error = mCtx->sign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, false, &result);
+        gpgme_error_t error;
+        auto thread = QThread::create([&]() {
+            error = mCtx->sign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, false, &result);
+        });
+        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+        thread->start();
+
+        auto *dialog = new WaitingDialog(tr("Signing"), this);
+        while (thread->isRunning()) {
+            QApplication::processEvents();
+        }
+        dialog->close();
+
         infoBoard->associateTextEdit(edit->curTextPage());
         edit->slotFillTextEditWithText(QString::fromUtf8(*tmp));
 
@@ -154,10 +180,11 @@ void MainWindow::slotDecrypt() {
             // try decrypt, if fail do nothing, especially don't replace text
             error = mCtx->decrypt(text, decrypted, &result);
         });
+        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
         thread->start();
 
-        WaitingDialog *dialog = new WaitingDialog(this);
-        while(thread->isRunning()) {
+        auto *dialog = new WaitingDialog(tr("Decrypting"), this);
+        while (thread->isRunning()) {
             QApplication::processEvents();
         }
 
@@ -213,13 +240,13 @@ void MainWindow::slotVerify() {
         auto thread = QThread::create([&]() {
             error = mCtx->verify(&text, nullptr, &result);
         });
+        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
         thread->start();
 
-        WaitingDialog *dialog = new WaitingDialog(this);
-        while(thread->isRunning()) {
+        auto *dialog = new WaitingDialog(tr("Verifying"), this);
+        while (thread->isRunning()) {
             QApplication::processEvents();
         }
-
         dialog->close();
 
         auto resultAnalyse = new VerifyResultAnalyse(mCtx, error, result);
@@ -268,27 +295,27 @@ void MainWindow::slotEncryptSign() {
 
             if (!key_can_sign && !key_can_encr) {
                 QMessageBox::critical(nullptr,
-                                         tr("Invalid KeyPair"),
-                                         tr("The selected keypair cannot be used for signing and encryption at the same time.<br/>")
-                                         + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
+                                      tr("Invalid KeyPair"),
+                                      tr("The selected keypair cannot be used for signing and encryption at the same time.<br/>")
+                                      + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
                 return;
             }
 
-            if(key_can_sign) can_sign = true;
-            if(key_can_encr) can_encr = true;
+            if (key_can_sign) can_sign = true;
+            if (key_can_encr) can_encr = true;
         }
 
-        if(!can_encr) {
-                QMessageBox::critical(nullptr,
-                                         tr("Incomplete Operation"),
-                                         tr("None of the selected key pairs can provide the encryption function."));
-                return;
+        if (!can_encr) {
+            QMessageBox::critical(nullptr,
+                                  tr("Incomplete Operation"),
+                                  tr("None of the selected key pairs can provide the encryption function."));
+            return;
         }
 
-        if(!can_sign) {
-                QMessageBox::warning(nullptr,
-                                         tr("Incomplete Operation"),
-                                         tr("None of the selected key pairs can provide the signature function."));
+        if (!can_sign) {
+            QMessageBox::warning(nullptr,
+                                 tr("Incomplete Operation"),
+                                 tr("None of the selected key pairs can provide the signature function."));
         }
 
         auto *tmp = new QByteArray();
@@ -300,18 +327,19 @@ void MainWindow::slotEncryptSign() {
         gpgme_error_t error;
         auto thread = QThread::create([&]() {
             error = mCtx->encryptSign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &encr_result,
-                                       &sign_result);
+                                      &sign_result);
         });
+        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
         thread->start();
 
-        WaitingDialog *dialog = new WaitingDialog(this);
-        while(thread->isRunning()) {
+        auto *dialog = new WaitingDialog(tr("Encrypting and Signing"), this);
+        while (thread->isRunning()) {
             QApplication::processEvents();
         }
 
         dialog->close();
 
-        if(gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
+        if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
             auto *tmp2 = new QString(*tmp);
             edit->slotFillTextEditWithText(*tmp2);
         }
@@ -329,6 +357,19 @@ void MainWindow::slotEncryptSign() {
             infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
         else
             infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+        if (status >= 0) {
+            infoBoard->resetOptionActionsMenu();
+            infoBoard->addOptionalAction("Send Mail", [this]() {
+                if(settings.value("sendMail/enable", false).toBool())
+                    new SendMailDialog(edit->curTextPage()->toPlainText(), this);
+                else {
+                    QMessageBox::warning(nullptr,
+                                         tr("Function Disabled"),
+                                         tr("Please go to the settings interface to enable and configure this function."));
+                }
+            });
+        }
 
         delete resultAnalyseEncr;
         delete resultAnalyseSign;
@@ -354,10 +395,11 @@ void MainWindow::slotDecryptVerify() {
         auto thread = QThread::create([&]() {
             error = mCtx->decryptVerify(text, decrypted, &d_result, &v_result);
         });
+        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
         thread->start();
 
-        WaitingDialog *dialog = new WaitingDialog(this);
-        while(thread->isRunning()) {
+        auto *dialog = new WaitingDialog(tr("Decrypting and Verifying"), this);
+        while (thread->isRunning()) {
             QApplication::processEvents();
         }
 
@@ -495,22 +537,27 @@ void MainWindow::slotFileEncrypt() {
         }
     }
 
-    try {
-        gpgme_encrypt_result_t result;
+    gpgme_encrypt_result_t result;
 
-        gpgme_error_t error;
-        auto thread = QThread::create([&]() {
+    gpgme_error_t error;
+    bool if_error = false;
+    auto thread = QThread::create([&]() {
+        try {
             error = GpgFileOpera::encryptFile(mCtx, keys, path, &result);
-        });
-        thread->start();
-
-        WaitingDialog *dialog = new WaitingDialog(this);
-        while(thread->isRunning()) {
-            QApplication::processEvents();
+        } catch (const std::runtime_error &e) {
+            if_error = true;
         }
+    });
+    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+    thread->start();
 
-        dialog->close();
+    auto *dialog = new WaitingDialog(tr("Encrypting"), this);
+    while (thread->isRunning()) {
+        QApplication::processEvents();
+    }
 
+    dialog->close();
+    if (!if_error) {
         auto resultAnalyse = new EncryptResultAnalyse(error, result);
         auto &reportText = resultAnalyse->getResultReport();
         infoBoard->associateTabWidget(edit->tabWidget);
@@ -526,11 +573,10 @@ void MainWindow::slotFileEncrypt() {
         delete resultAnalyse;
 
         fileTreeView->update();
-
-    } catch (const std::runtime_error &e) {
+    } else {
         QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
+        return;
     }
-
 }
 
 void MainWindow::slotFileDecrypt() {
@@ -572,21 +618,28 @@ void MainWindow::slotFileDecrypt() {
             return;
     }
 
-    try {
-        gpgme_decrypt_result_t result;
-        gpgme_error_t error;
-        auto thread = QThread::create([&]() {
+    gpgme_decrypt_result_t result;
+    gpgme_error_t error;
+    bool if_error = false;
+
+    auto thread = QThread::create([&]() {
+        try {
             error = GpgFileOpera::decryptFile(mCtx, path, &result);
-        });
-        thread->start();
-
-        WaitingDialog *dialog = new WaitingDialog(this);
-        while(thread->isRunning()) {
-            QApplication::processEvents();
+        } catch (const std::runtime_error &e) {
+            if_error = true;
         }
+    });
+    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+    thread->start();
 
-        dialog->close();
+    auto *dialog = new WaitingDialog("Decrypting", this);
+    while (thread->isRunning()) {
+        QApplication::processEvents();
+    }
 
+    dialog->close();
+
+    if (!if_error) {
         auto resultAnalyse = new DecryptResultAnalyse(mCtx, error, result);
         auto &reportText = resultAnalyse->getResultReport();
         infoBoard->associateTabWidget(edit->tabWidget);
@@ -602,7 +655,7 @@ void MainWindow::slotFileDecrypt() {
         delete resultAnalyse;
 
         fileTreeView->update();
-    } catch (const std::runtime_error &e) {
+    } else {
         QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
         return;
     }
@@ -661,20 +714,28 @@ void MainWindow::slotFileSign() {
         }
     }
 
-    try {
-        gpgme_sign_result_t result;
-        gpgme_error_t error;
-        auto thread = QThread::create([&]() {
+    gpgme_sign_result_t result;
+    gpgme_error_t error;
+    bool if_error = false;
+
+    auto thread = QThread::create([&]() {
+        try {
             error = GpgFileOpera::signFile(mCtx, keys, path, &result);
-        });
-        thread->start();
-
-        WaitingDialog *dialog = new WaitingDialog(this);
-        while(thread->isRunning()) {
-            QApplication::processEvents();
+        } catch (const std::runtime_error &e) {
+            if_error = true;
         }
+    });
+    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+    thread->start();
 
-        dialog->close();
+    auto *dialog = new WaitingDialog(tr("Signing"), this);
+    while (thread->isRunning()) {
+        QApplication::processEvents();
+    }
+
+    dialog->close();
+
+    if (!if_error) {
 
         auto resultAnalyse = new SignResultAnalyse(error, result);
         auto &reportText = resultAnalyse->getResultReport();
@@ -692,8 +753,9 @@ void MainWindow::slotFileSign() {
 
         fileTreeView->update();
 
-    } catch (const std::runtime_error &e) {
+    } else {
         QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
+        return;
     }
 
     fileTreeView->update();
@@ -709,11 +771,10 @@ void MainWindow::slotFileVerify() {
 
     QString signFilePath, dataFilePath;
 
-    if(fileInfo.suffix() == "gpg") {
+    if (fileInfo.suffix() == "gpg") {
         dataFilePath = path;
         signFilePath = path;
-    }
-    else if (fileInfo.suffix() == "sig") {
+    } else if (fileInfo.suffix() == "sig") {
         int pos = path.lastIndexOf(QChar('.'));
         dataFilePath = path.left(pos);
         signFilePath = path;
@@ -743,21 +804,22 @@ void MainWindow::slotFileVerify() {
     gpgme_error_t error;
     bool if_error = false;
     auto thread = QThread::create([&]() {
-        try{
+        try {
             error = GpgFileOpera::verifyFile(mCtx, dataFilePath, &result);
         } catch (const std::runtime_error &e) {
             if_error = true;
         }
     });
+    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
     thread->start();
 
-    WaitingDialog *dialog = new WaitingDialog(this);
-    while(thread->isRunning()) {
+    auto *dialog = new WaitingDialog(tr("Verifying"), this);
+    while (thread->isRunning()) {
         QApplication::processEvents();
     }
     dialog->close();
 
-    if(!if_error) {
+    if (!if_error) {
         auto resultAnalyse = new VerifyResultAnalyse(mCtx, error, result);
         auto &reportText = resultAnalyse->getResultReport();
         infoBoard->associateTabWidget(edit->tabWidget);
@@ -832,45 +894,52 @@ void MainWindow::slotFileEncryptSign() {
 
         if (!key_can_sign && !key_can_encr) {
             QMessageBox::critical(nullptr,
-                                     tr("Invalid KeyPair"),
-                                     tr("The selected keypair cannot be used for signing and encryption at the same time.<br/>")
-                                     + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
+                                  tr("Invalid KeyPair"),
+                                  tr("The selected keypair cannot be used for signing and encryption at the same time.<br/>")
+                                  + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
             return;
         }
 
-        if(key_can_sign) can_sign = true;
-        if(key_can_encr) can_encr = true;
+        if (key_can_sign) can_sign = true;
+        if (key_can_encr) can_encr = true;
     }
 
-    if(!can_encr) {
-            QMessageBox::critical(nullptr,
-                                     tr("Incomplete Operation"),
-                                     tr("None of the selected key pairs can provide the encryption function."));
-            return;
+    if (!can_encr) {
+        QMessageBox::critical(nullptr,
+                              tr("Incomplete Operation"),
+                              tr("None of the selected key pairs can provide the encryption function."));
+        return;
     }
 
-    if(!can_sign) {
-            QMessageBox::warning(nullptr,
-                                     tr("Incomplete Operation"),
-                                     tr("None of the selected key pairs can provide the signature function."));
+    if (!can_sign) {
+        QMessageBox::warning(nullptr,
+                             tr("Incomplete Operation"),
+                             tr("None of the selected key pairs can provide the signature function."));
     }
 
-    try {
+    gpgme_encrypt_result_t encr_result = nullptr;
+    gpgme_sign_result_t sign_result = nullptr;
 
-        gpgme_encrypt_result_t encr_result = nullptr;
-        gpgme_sign_result_t sign_result = nullptr;
+    gpgme_error_t error;
+    bool if_error = false;
 
-        gpgme_error_t error;
-        auto thread = QThread::create([&]() {
+    auto thread = QThread::create([&]() {
+        try {
             error = GpgFileOpera::encryptSignFile(mCtx, keys, path, &encr_result, &sign_result);
-        });
-        thread->start();
-
-        WaitingDialog *dialog = new WaitingDialog(this);
-        while(thread->isRunning()) {
-            QApplication::processEvents();
+        } catch (const std::runtime_error &e) {
+            if_error = true;
         }
-        dialog->close();
+    });
+    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+    thread->start();
+
+    WaitingDialog *dialog = new WaitingDialog(tr("Encrypting and Signing"), this);
+    while (thread->isRunning()) {
+        QApplication::processEvents();
+    }
+    dialog->close();
+
+    if (!if_error) {
 
         auto resultAnalyseEncr = new EncryptResultAnalyse(error, encr_result);
         auto resultAnalyseSign = new SignResultAnalyse(error, sign_result);
@@ -891,8 +960,9 @@ void MainWindow::slotFileEncryptSign() {
 
         fileTreeView->update();
 
-    } catch (std::runtime_error &e) {
+    } else {
         QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
+        return;
     }
 }
 
@@ -924,22 +994,30 @@ void MainWindow::slotFileDecryptVerify() {
         outFileName = path + ".out";
     }
 
-    try {
+    gpgme_decrypt_result_t d_result = nullptr;
+    gpgme_verify_result_t v_result = nullptr;
 
-        gpgme_decrypt_result_t d_result = nullptr;
-        gpgme_verify_result_t v_result = nullptr;
+    gpgme_error_t error;
+    bool if_error = false;
 
-        gpgme_error_t error;
-        auto thread = QThread::create([&]() {
+    auto thread = QThread::create([&]() {
+        try {
             error = GpgFileOpera::decryptVerifyFile(mCtx, path, &d_result, &v_result);
-        });
-        thread->start();
-
-        WaitingDialog *dialog = new WaitingDialog(this);
-        while(thread->isRunning()) {
-            QApplication::processEvents();
+        } catch (const std::runtime_error &e) {
+            if_error = true;
         }
-        dialog->close();
+    });
+    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+    thread->start();
+
+
+    auto *dialog = new WaitingDialog(tr("Decrypting and Verifying"), this);
+    while (thread->isRunning()) {
+        QApplication::processEvents();
+    }
+    dialog->close();
+
+    if (!if_error) {
         infoBoard->associateFileTreeView(edit->curFilePage());
 
         auto resultAnalyseDecrypt = new DecryptResultAnalyse(mCtx, error, d_result);
@@ -964,7 +1042,7 @@ void MainWindow::slotFileDecryptVerify() {
         delete resultAnalyseVerify;
 
         fileTreeView->update();
-    } catch (std::runtime_error &e) {
+    } else {
         QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
         return;
     }
@@ -996,4 +1074,22 @@ void MainWindow::slotFileVerifyCustom() {
 
 void MainWindow::slotOpenFile(QString &path) {
     edit->slotOpenFile(path);
+}
+
+void MainWindow::slotVersionUpgrade(const QString &currentVersion, const QString &latestVersion) {
+    if(currentVersion < latestVersion) {
+        QMessageBox::warning(this,
+                             tr("Outdated Version"),
+                             tr("This version(%1) is out of date, please update the latest version in time. ").arg(
+                                     currentVersion)
+                             + tr("You can download the latest version(%1) on Github Releases Page.<br/>").arg(
+                                     latestVersion));
+    } else if(currentVersion > latestVersion) {
+        QMessageBox::warning(this,
+                             tr("Unreleased Version"),
+                             tr("This version(%1) has not been officially released and is not recommended for use in a production environment. <br/>").arg(
+                                     currentVersion)
+                             + tr("You can download the latest version(%1) on Github Releases Page.<br/>").arg(
+                                     latestVersion));
+    }
 }

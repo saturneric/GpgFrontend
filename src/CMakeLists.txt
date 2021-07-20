@@ -2,6 +2,7 @@ set(ALL_SOURCE_FILE)
 
 add_subdirectory(gpg)
 add_subdirectory(ui)
+add_subdirectory(smtp)
 
 aux_source_directory(. BASE_SOURCE)
 
@@ -23,6 +24,8 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     elseif(LINUX)
     	file(COPY ${CMAKE_SOURCE_DIR}/resource/gpgfrontend DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
 	    set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share)
+    else()
+        set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     endif()
 else()
     set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
@@ -33,7 +36,9 @@ message(STATUS "RESOURCE_OUTPUT_DIRECTORY ${RESOURCE_OUTPUT_DIRECTORY}")
 file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
 # Set Translation Files
-set(QT_TS_FILES gpgfrontend_en_us.ts gpgfrontend_zh_chs.ts gpgfrontend_zh_cht.ts gpg_frontend_fr.ts gpg_frontend_ru.ts)
+set(QT_TS_FILES
+        gpgfrontend_en_us.ts gpgfrontend_zh_cn.ts
+        gpgfrontend_fr.ts gpgfrontend_ru.ts gpgfrontend_es.ts)
 list(TRANSFORM QT_TS_FILES PREPEND ${CMAKE_SOURCE_DIR}/resource/ts/)
 message(STATUS "QT_TS_FILES ${QT_TS_FILES}")
 set(QT_QM_FILES_OUTPUT_DIR ${RESOURCE_OUTPUT_DIRECTORY}/ts)
@@ -44,6 +49,7 @@ add_custom_target(translations DEPENDS ${QON_QM_FILES})
 
 # Set Build Information
 configure_file(${CMAKE_SOURCE_DIR}/include/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/include/GpgFrontend.h @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/include/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/include/GpgFrontendBuildInfo.h @ONLY)
 
 # Copy Resource Files
 file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
@@ -118,19 +124,19 @@ endif()
 IF (MINGW)
     message(STATUS "Link Application Static Library For MINGW")
     target_link_libraries(${AppName}
-            gpgfrontend-ui gpg
+            smtp gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
             crypto ssl)
 elseif(APPLE)
     message(STATUS "Link Application Static Library For macOS")
     target_link_libraries(${AppName}
-            gpgfrontend-ui gpg
+            smtp gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
             crypto ssl)
 else()
     message(STATUS "Link Application Static Library For UNIX")
     target_link_libraries(${AppName}
-            gpgfrontend-ui gpg
+            smtp gpgfrontend-ui gpg
             Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
             crypto ssl pthread)
 endif()

@@ -47,6 +47,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     auto subkeyListLayout = new QGridLayout();
     subkeyListLayout->addWidget(subkeyList, 0, 0);
     subkeyListLayout->addLayout(uidButtonsLayout, 1, 0);
+    subkeyListLayout->setContentsMargins(0, 10, 0, 0);
 
     auto *subkeyDetailLayout = new QGridLayout();
 
@@ -79,6 +80,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     subkeyDetailLayout->addWidget(fingerPrintVarLabel, 7, 1);
 
     listBox->setLayout(subkeyListLayout);
+    listBox->setContentsMargins(0, 5, 0, 0);
     detailBox->setLayout(subkeyDetailLayout);
 
     baseLayout->addWidget(listBox);
@@ -88,6 +90,8 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QW
     connect(addSubkeyButton, SIGNAL(clicked(bool)), this, SLOT(slotAddSubkey()));
     connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefreshSubkeyList()));
     connect(subkeyList, SIGNAL(itemSelectionChanged()), this, SLOT(slotRefreshSubkeyDetail()));
+
+    baseLayout->setContentsMargins(0, 0, 0, 0);
 
     setLayout(baseLayout);
     setAttribute(Qt::WA_DeleteOnClose, true);

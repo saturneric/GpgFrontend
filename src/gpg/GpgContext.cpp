@@ -24,8 +24,8 @@
 
 #include "gpg/GpgContext.h"
 
+#include <functional>
 #include <unistd.h>    /* contains read/write */
-#include <Mime.h>
 
 #ifdef _WIN32
 
@@ -73,8 +73,10 @@ namespace GpgME {
                      << engineInfo->home_dir << engineInfo->version;
             if (engineInfo->protocol == GPGME_PROTOCOL_GPGCONF && strcmp(engineInfo->version, "1.0.0") != 0)
                 find_gpgconf = true;
-            if (engineInfo->protocol == GPGME_PROTOCOL_OpenPGP && strcmp(engineInfo->version, "1.0.0") != 0)
+            if (engineInfo->protocol == GPGME_PROTOCOL_OpenPGP && strcmp(engineInfo->version, "1.0.0") != 0) {
+                gpgExec = engineInfo->file_name;
                 find_openpgp = true;
+            }
             if (engineInfo->protocol == GPGME_PROTOCOL_CMS && strcmp(engineInfo->version, "1.0.0") != 0)
                 find_cms = true;
             if (engineInfo->protocol == GPGME_PROTOCOL_ASSUAN)
@@ -430,38 +432,6 @@ namespace GpgME {
         return err;
     }
 
-
-    /**
-     * if this is mime, split text and attachments...
-     * message contains only text afterwards
-     */
-    void parseMime(QByteArray *message) {
-
-        QString pText;
-        bool show_ma_dock = false;
-
-        Mime *mime = new Mime(message);
-        for (MimePart tmp : mime->parts()) {
-            if (tmp.header.getValue("Content-Type") == "text/plain" &&
-                tmp.header.getValue("Content-Transfer-Encoding") != "base64") {
-                QByteArray body;
-                if (tmp.header.getValue("Content-Transfer-Encoding") == "quoted-printable") {
-                    Mime::quotedPrintableDecode(tmp.body, body);
-                } else {
-                    body = tmp.body;
-                }
-                pText.append(QString(body));
-            } else {
-                // TODO
-                show_ma_dock = true;
-            }
-        }
-        *message = pText.toUtf8();
-        if (show_ma_dock) {
-            // TODO
-        }
-    }
-
 /** Decrypt QByteAarray, return QByteArray
  *  mainly from http://basket.kde.org/ (kgpgme.cpp)
  */
@@ -494,28 +464,6 @@ namespace GpgME {
         }
         if (dataOut) {
             gpgme_data_release(dataOut);
-        }
-
-        /*
-             *   1) is it mime (content-type:)
-             *   2) parse header
-             *   2) choose action depending on content-type
-        */
-        if (Mime::isMime(outBuffer)) {
-            Header header = Mime::getHeader(outBuffer);
-            // is it multipart, is multipart-parsing enabled
-            if (header.getValue("Content-Type") == "multipart/mixed"
-                && settings.value("mime/parseMime").toBool()) {
-                parseMime(outBuffer);
-            } else if (header.getValue("Content-Type") == "text/plain"
-                       && settings.value("mime/parseQP").toBool()) {
-                if (header.getValue("Content-Transfer-Encoding") == "quoted-printable") {
-                    auto *decoded = new QByteArray();
-                    Mime::quotedPrintableDecode(*outBuffer, *decoded);
-                    //TODO: remove header
-                    outBuffer = decoded;
-                }
-            }
         }
 
         if (result != nullptr) {
@@ -659,16 +607,16 @@ namespace GpgME {
     bool GpgContext::exportSecretKey(const GpgKey &key, QByteArray *outBuffer) {
         qDebug() << "Export Secret Key" << key.id;
         gpgme_key_t target_key[2] = {
-            key.key_refer,
-            nullptr
+                key.key_refer,
+                nullptr
         };
 
         gpgme_data_t dataOut;
         gpgme_data_new(&dataOut);
         // export private key to outBuffer
-        gpgme_error_t error = gpgme_op_export_keys(mCtx, target_key,GPGME_EXPORT_MODE_SECRET, dataOut);
+        gpgme_error_t error = gpgme_op_export_keys(mCtx, target_key, GPGME_EXPORT_MODE_SECRET, dataOut);
 
-        if(gpgme_err_code(error) != GPG_ERR_NO_ERROR) {
+        if (gpgme_err_code(error) != GPG_ERR_NO_ERROR) {
             checkErr(error);
             gpgme_data_release(dataOut);
             return false;
@@ -680,20 +628,31 @@ namespace GpgME {
     }
 
 /** return type should be gpgme_error_t*/
-    void GpgContext::executeGpgCommand(const QStringList &arguments, QByteArray *stdOut, QByteArray *stdErr) {
+    QProcess * GpgContext::executeGpgCommand(const QStringList &arguments, QByteArray *stdOut, QByteArray *stdErr,
+                                       const std::function<void(QProcess *)> &interactFunc) {
         QStringList args;
-        args << "--homedir" << gpgKeys << "--batch" << arguments;
+        args << arguments;
 
-        qDebug() << args;
-        QProcess gpg;
-        //  qDebug() << "engine->file_name" << engine->file_name;
+        auto *gpgProcess = new QProcess(this);
+        qDebug() << "gpgExec" << gpgExec << args;
 
-        gpg.start(gpgBin, args);
-        gpg.waitForFinished();
+        gpgProcess->setReadChannel(QProcess::StandardOutput);
+        connect(gpgProcess, SIGNAL(finished(int,QProcess::ExitStatus)),
+                gpgProcess, SLOT(deleteLater()));
+        connect(gpgProcess, &QProcess::readyReadStandardOutput, this, [gpgProcess, interactFunc]() {
+            qDebug() << "Function Called" << &gpgProcess;
+            // interactFunc(gpgProcess);
+        });
 
-        *stdOut = gpg.readAllStandardOutput();
-        *stdErr = gpg.readAllStandardError();
-        qDebug() << *stdOut;
+        gpgProcess->start(gpgExec, args);
+
+        if (gpgProcess->waitForStarted()){
+            qDebug() << "Gpg Process Started Success";
+        } else {
+            qDebug() << "Gpg Process Started Failed";
+        }
+
+        return gpgProcess;
     }
 
 /***
@@ -734,26 +693,6 @@ namespace GpgME {
         return gpgmeError;
     }
 
-    /***
-      * return type should contain:
-      * -> list of sigs
-      * -> valid
-      * -> decrypted message
-      */
-    //void GpgContext::decryptVerify(QByteArray in) {
-
-    /*    gpgme_error_t err;
-        gpgme_data_t in, out;
-
-        gpgme_decrypt_result_t decrypt_result;
-        gpgme_verify_result_t verify_result;
-
-        err = gpgme_op_decrypt_verify (mCtx, in, out);
-        decrypt_result = gpgme_op_decrypt_result (mCtx);
-
-        verify_result = gpgme_op_verify_result (mCtx);
-     */
-    //}
     gpg_error_t
     GpgContext::sign(const QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached,
                      gpgme_sign_result_t *result) {
@@ -962,7 +901,7 @@ namespace GpgME {
     void GpgContext::setSigners(const QVector<GpgKey> &keys) {
         gpgme_signers_clear(mCtx);
         for (const auto &key : keys) {
-            if(checkIfKeyCanSign(key)) {
+            if (checkIfKeyCanSign(key)) {
                 auto gpgmeError = gpgme_signers_add(mCtx, key.key_refer);
                 checkErr(gpgmeError);
             }
@@ -1180,7 +1119,7 @@ namespace GpgME {
             }
         }
 
-        if(gpgme_err_code(err) != GPG_ERR_NO_ERROR)
+        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR)
             checkErr(err);
 
         if (dataIn) {
@@ -1240,11 +1179,11 @@ namespace GpgME {
             return false;
         }
 
-        for (const auto& key : keys) {
+        for (const auto &key : keys) {
             err = gpgme_data_new(&dataOut);
             checkErr(err);
 
-            err = gpgme_op_export(mCtx,key.id.toUtf8().constData(), 0, dataOut);
+            err = gpgme_op_export(mCtx, key.id.toUtf8().constData(), 0, dataOut);
             checkErr(err);
 
             read_bytes = gpgme_data_seek(dataOut, 0, SEEK_END);
@@ -1254,5 +1193,42 @@ namespace GpgME {
             gpgme_data_release(dataOut);
         }
         return true;
+    }
+
+    QProcess * GpgContext::generateRevokeCert(const GpgKey &key, const QString &outputFileName) {
+        QByteArray out, stdErr;
+        auto process = executeGpgCommand({
+                                  "--command-fd",
+                                  "0",
+                                  "--status-fd", "1",
+                                  "-o",
+                                  outputFileName,
+                                  "--gen-revoke",
+                                  key.fpr
+                          }, &out, &stdErr,
+                          [](QProcess *proc) {
+                              qDebug() << "Function Called" << proc;
+                              while (proc->canReadLine()) {
+                                  const QString line = QString::fromUtf8(proc->readLine()).trimmed();
+                                  // Command-fd is a stable interface, while this is all kind of hacky we
+                                  // are on a deadline :-/
+                                  if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
+                                      proc->write("y\n");
+                                  } else if (line == QLatin1String("[GNUPG:] GET_LINE ask_revocation_reason.code")) {
+                                      proc->write("0\n");
+                                  } else if (line == QLatin1String("[GNUPG:] GET_LINE ask_revocation_reason.text")) {
+                                      proc->write("\n");
+                                  } else if (line == QLatin1String("[GNUPG:] GET_BOOL openfile.overwrite.okay")) {
+                                      // We asked before
+                                      proc->write("y\n");
+                                  } else if (line == QLatin1String("[GNUPG:] GET_BOOL ask_revocation_reason.okay")) {
+                                      proc->write("y\n");
+                                  }
+                              }
+                          });
+
+        qDebug() << "GenerateRevokeCert Process" << process;
+
+        return process;
     }
 }

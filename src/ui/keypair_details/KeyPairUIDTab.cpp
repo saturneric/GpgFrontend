@@ -52,21 +52,24 @@ KeyPairUIDTab::KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget 
 
     gridLayout->addWidget(uidList, 0, 0);
     gridLayout->addLayout(uidButtonsLayout, 1, 0);
+    gridLayout->setContentsMargins(0, 10, 0, 0);
 
     auto uidGroupBox = new QGroupBox();
     uidGroupBox->setLayout(gridLayout);
-    uidGroupBox->setTitle("UIDs");
+    uidGroupBox->setTitle(tr("UIDs"));
 
     auto signGridLayout = new QGridLayout();
     signGridLayout->addWidget(sigList, 0, 0);
+    signGridLayout->setContentsMargins(0, 10, 0, 0);
 
     auto signGroupBox = new QGroupBox();
     signGroupBox->setLayout(signGridLayout);
-    signGroupBox->setTitle("Signature of Selected UID");
+    signGroupBox->setTitle(tr("Signature of Selected UID"));
 
     auto vboxLayout = new QVBoxLayout();
     vboxLayout->addWidget(uidGroupBox);
     vboxLayout->addWidget(signGroupBox);
+    vboxLayout->setContentsMargins(0, 0, 0, 0);
 
     connect(addUIDButton, SIGNAL(clicked(bool)), this, SLOT(slotAddUID()));
     connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefreshUIDList()));

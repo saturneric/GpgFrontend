@@ -24,8 +24,6 @@
 
 #include "ui/keygen/SubkeyGenerateThread.h"
 
-#include <utility>
-
 SubkeyGenerateThread::SubkeyGenerateThread(GpgKey key, GenKeyInfo *keyGenParams, GpgME::GpgContext *ctx)
         : mKey(std::move(key)), keyGenParams(keyGenParams) , mCtx(ctx) {
     connect(this, &SubkeyGenerateThread::finished, this, &SubkeyGenerateThread::deleteLater);

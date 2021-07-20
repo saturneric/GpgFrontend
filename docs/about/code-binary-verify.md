@@ -16,8 +16,10 @@ questions, please feel free to [Contact ME](../contract.md).
 ## Verify Code
 
 I will sign every new git commit. The key I use is the key that I use to perform Git related operations:
-sautnreric<eric.bktu@gmail.com>. It will be given at the end of this description. For information about signing git
-commits, you can see it on the github interface.
+sautnreric
+
+\<eric.bktu@gmail.com\>. It will be given at the end of this description. For information about signing git commits, you
+can see it on the github interface.
 
 The fingerprint of the key is now given:
 
@@ -31,9 +33,9 @@ The fingerprint of the key is now given:
 
 Starting from version 1.0.5, I will use the Gpg key to sign the ZIP package that contains the binary executable file.
 Each ZIP compressed package will be accompanied by a signature file in the Release (end with sig suffix). You can use
-the gpg command tool to verify them before use.
+the gpg command tool to verify them before use. 
 
-The key used for binary signature is Saturneric<eric@bktus.com>. This is my official key and will be given below.
+The key used for binary signature is Saturneric\<eric@bktus.com\>. This is my official key and will be given below.
 
 The fingerprint of the key is now given:
 
@@ -51,7 +53,7 @@ used for compilation of this binary version on the second line.
 
 ## Pubkey Mentioned Above
 
-### Saturneric <eric.bktu@gmail.com>
+### Saturneric\<eric.bktu@gmail.com\>
 
 #### Fingertprint
 
@@ -138,7 +140,7 @@ JV99VVcBfvU4GSI=
 
 ```
 
-### Saturneric <eric@bktus.com>
+### Saturneric\<eric@bktus.com\>
 
 #### Fingerprint
 

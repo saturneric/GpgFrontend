@@ -7,7 +7,9 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=saturneric/GpgFrontend&amp;utm_campaign=Badge_Grade)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_shield)
 
-**GpgFrontend** is a Modern, Easy-to-Use, Compact, Cross-Platform, and Installation-Free OpenPGP Frontend Tool.
+**GpgFrontend** is a Powerful, Easy-to-Use, Compact, Cross-Platform, and
+Installation-Free [OpenPGP](https://www.openpgp.org/)
+Crypto Tool.
 
 By using GpgFrontend, you can quickly encrypt and decrypt text or files. Or at the same time as the above operations,
 you can add your own signature to let others know that this document or this paragraph of text was issued by you.

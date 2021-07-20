@@ -11,10 +11,13 @@
 
 - Can run on **Windows, Linux and macOS**.
 - Open source, free, no need to install.
-- For Windows and macOS users, just double-click, and then you can use it freely.
-- Supports multiple languages. Don’t forget to help me translate this software.
+- Just double-click, and then you can use it freely.
+- Supports multiple languages.
+    - If you are interested, you can help
+      me [translate the interface](https://saturneric.github.io/GpgFrontend/index.html#/translate-interface).
 
-[GitHub](https://github.com/saturneric/GpgFrontend)
+
+[Download](https://github.com/saturneric/GpgFrontend/releases/latest)
 [Quick Start](quick-start.md)
 
 <!-- 背景色 -->

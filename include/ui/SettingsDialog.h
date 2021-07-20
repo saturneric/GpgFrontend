@@ -66,24 +66,37 @@ signals:
 
 };
 
-class MimeTab : public QWidget {
+class SendMailTab : public QWidget {
 Q_OBJECT
 
 public:
-    explicit MimeTab(QWidget *parent = nullptr);
+    explicit SendMailTab(QWidget *parent = nullptr);
 
     void setSettings();
 
     void applySettings();
+
+private slots:
+
+    void slotCheckConnection();
+
+    void slotCheckBoxSetEnableDisable(int state);
 
 private:
 
     QString appPath;
     QSettings settings;
 
-    QCheckBox *mimeParseCheckBox;
-    QCheckBox *mimeQPCheckBox;
-    QCheckBox *mimeOpenAttachmentCheckBox;
+    QCheckBox *enableCheckBox;
+
+    QLineEdit *smtpAddress;
+    QLineEdit *username;
+    QLineEdit *password;
+    QSpinBox *portSpin;
+    QComboBox *connectionTypeComboBox;
+    QLineEdit *defaultSender;
+
+    QPushButton *checkConnectionButton;
 
 signals:
 
@@ -115,6 +128,7 @@ private:
     QRadioButton *iconTextButton;
     QRadioButton *iconIconsButton;
     QRadioButton *iconAllButton;
+    QSpinBox *infoBoardFontSizeSpin;
     QCheckBox *windowSizeCheckBox;
 
 signals:
@@ -208,7 +222,7 @@ public:
     explicit SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
 
     GeneralTab *generalTab;
-    MimeTab *mimeTab;
+    SendMailTab *sendMailTab;
     AppearanceTab *appearanceTab;
     KeyserverTab *keyserverTab;
     AdvancedTab *advancedTab;
