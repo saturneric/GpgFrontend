@@ -130,9 +130,9 @@ IntroPage::IntroPage(QWidget *parent)
     languages = SettingsDialog::listLanguages();
     auto *langSelectBox = new QComboBox();
 
-            foreach(QString l, languages) {
-            langSelectBox->addItem(l);
-        }
+    for(const auto &l : languages) {
+        langSelectBox->addItem(l);
+    }
     // selected entry from config
     QString langKey = settings.value("int/lang").toString();
     QString langValue = languages.value(langKey);
