@@ -26,6 +26,9 @@
 #include "smtp/SmtpMime"
 #include "ui/WaitingDialog.h"
 
+#include "rapidjson/document.h"
+#include "rapidjson/prettywriter.h"
+
 SettingsDialog::SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent)
         : QDialog(parent) {
     mCtx = ctx;
@@ -132,14 +135,15 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
     mCtx = ctx;
 
     /*****************************************
-     * remember Password-Box
+     * GpgFrontend Server
      *****************************************/
-    auto *rememberPasswordBox = new QGroupBox(tr("Remember Password"));
-    auto *rememberPasswordBoxLayout = new QHBoxLayout();
-    rememberPasswordCheckBox =
-            new QCheckBox(tr("Remember password until closing gpg4usb"), this);
-    rememberPasswordBoxLayout->addWidget(rememberPasswordCheckBox);
-    rememberPasswordBox->setLayout(rememberPasswordBoxLayout);
+    auto *serverBox = new QGroupBox(tr("GpgFrontend Server"));
+    auto *serverBoxLayout = new QVBoxLayout();
+    serverSelectBox = new QComboBox();
+    serverBoxLayout->addWidget(serverSelectBox);
+    serverBoxLayout->addWidget(new QLabel(
+            tr("Server that provides short key and key exchange services")));
+    serverBox->setLayout(serverBoxLayout);
 
     /*****************************************
      * Save-Checked-Keys-Box
@@ -171,7 +175,7 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
     langSelectBox = new QComboBox;
     lang = SettingsDialog::listLanguages();
 
-            foreach (QString l, lang) { langSelectBox->addItem(l); }
+    for (const auto &l: lang) { langSelectBox->addItem(l); }
 
     langBoxLayout->addWidget(langSelectBox);
     langBoxLayout->addWidget(
@@ -186,7 +190,10 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
      *****************************************/
     auto *ownKeyBox = new QGroupBox(tr("Own key"));
     auto *ownKeyBoxLayout = new QVBoxLayout();
+    auto *ownKeyServiceTokenLayout = new QHBoxLayout();
     ownKeySelectBox = new QComboBox;
+    getServiceTokenButton = new QPushButton(tr("Get Service Token"));
+    serviceTokenLabel = new QLabel(tr("No Service Token Found"));
 
     ownKeyBox->setLayout(ownKeyBoxLayout);
     mKeyList = new KeyList(mCtx);
@@ -204,16 +211,22 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
     }
     connect(ownKeySelectBox, SIGNAL(currentIndexChanged(int)), this,
             SLOT(slotOwnKeyIdChanged()));
+    connect(getServiceTokenButton, SIGNAL(clicked(bool)), this,
+            SLOT(slotGetServiceToken()));
 
     ownKeyBoxLayout->addWidget(new QLabel(
             tr("Key pair for synchronization and identity authentication")));
     ownKeyBoxLayout->addWidget(ownKeySelectBox);
+    ownKeyBoxLayout->addLayout(ownKeyServiceTokenLayout);
+    ownKeyServiceTokenLayout->addWidget(getServiceTokenButton);
+    ownKeyServiceTokenLayout->addWidget(serviceTokenLabel);
+    ownKeyServiceTokenLayout->stretch(0);
 
     /*****************************************
      * Mainlayout
      *****************************************/
     auto *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(rememberPasswordBox);
+    mainLayout->addWidget(serverBox);
     mainLayout->addWidget(saveCheckedKeysBox);
     mainLayout->addWidget(importConfirmationBox);
     mainLayout->addWidget(langBox);
@@ -235,6 +248,15 @@ void GeneralTab::setSettings() {
         saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
     }
 
+    auto serverList = settings.value("general/gpgfrontendServerList").toStringList();
+    if(serverList.empty()) {
+        serverList.append("service.gpgfrontend.pub");
+    }
+    for(const auto &s : serverList)
+        serverSelectBox->addItem(s);
+    serverSelectBox->setCurrentText(settings.value("general/currentGpgfrontendServer",
+                                                   "service.gpgfrontend.pub").toString());
+
     // Language setting
     QString langKey = settings.value("int/lang").toString();
     QString langValue = lang.value(langKey);
@@ -242,14 +264,20 @@ void GeneralTab::setSettings() {
         langSelectBox->setCurrentIndex(langSelectBox->findText(langValue));
     }
 
-    QString ownKeyId = settings.value("general/ownKeyId").toString();
-    qDebug() << "OwnKeyId" << ownKeyId;
-    if (ownKeyId.isEmpty()) {
+    QString own_key_id = settings.value("general/ownKeyId").toString();
+    qDebug() << "OwnKeyId" << own_key_id;
+    if (own_key_id.isEmpty()) {
         ownKeySelectBox->setCurrentText("<none>");
     } else {
-        const auto text = keyIds.find(ownKeyId).value();
-        qDebug() << "OwnKey" << ownKeyId << text;
+        const auto text = keyIds.find(own_key_id).value();
+        qDebug() << "OwnKey" << own_key_id << text;
         ownKeySelectBox->setCurrentText(text);
+    }
+
+    serviceToken = settings.value("general/serviceToken").toString();
+    qDebug() << "Load Service Token" << serviceToken;
+    if(!serviceToken.isEmpty()) {
+        serviceTokenLabel->setText(serviceToken);
     }
 
     // Get own key information from keydb/gpg.conf (if contained)
@@ -265,12 +293,25 @@ void GeneralTab::setSettings() {
 void GeneralTab::applySettings() {
     settings.setValue("keys/saveKeyChecked",
                       saveCheckedKeysCheckBox->isChecked());
-    // TODO: clear passwordCache instantly on unset rememberPassword
-    settings.setValue("general/rememberPassword",
-                      rememberPasswordCheckBox->isChecked());
+
+    settings.setValue("general/currentGpgfrontendServer",
+                      serverSelectBox->currentText());
+
+    auto *serverList = new QStringList();
+    for(int i = 0; i < serverSelectBox->count(); i++)
+        serverList->append(serverSelectBox->itemText(i));
+    settings.setValue("general/gpgfrontendServerList",
+                      *serverList);
+    delete serverList;
+
     settings.setValue("int/lang", lang.key(langSelectBox->currentText()));
+
     settings.setValue("general/ownKeyId",
                       keyIdsList[ownKeySelectBox->currentIndex()]);
+
+    settings.setValue("general/serviceToken",
+                     serviceToken);
+
     settings.setValue("general/confirmImportKeys",
                       importConfirmationCheckBox->isChecked());
 }
@@ -279,6 +320,81 @@ void GeneralTab::slotLanguageChanged() { emit signalRestartNeeded(true); }
 
 void GeneralTab::slotOwnKeyIdChanged() {
     // Set ownKeyId to currently selected
+    this->serviceTokenLabel->setText(tr("No Service Token Found"));
+    serviceToken.clear();
+}
+
+void GeneralTab::slotGetServiceToken() {
+    QUrl reqUrl("http://127.0.0.1:9048/user");
+    QNetworkRequest request(reqUrl);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    // Building Post Data
+    QByteArray keyDataBuf;
+
+    const auto keyId = keyIdsList[ownKeySelectBox->currentIndex()];
+
+    qDebug() << "KeyId" << keyIdsList[ownKeySelectBox->currentIndex()];
+
+    if(keyId.isEmpty()) {
+        QMessageBox::critical(this, tr("Invalid Operation"), tr("Own Key can not be None while getting service token."));
+        return;
+    }
+
+    QStringList selectedKeyIds(keyIdsList[ownKeySelectBox->currentIndex()]);
+    mCtx->exportKeys(&selectedKeyIds, &keyDataBuf);
+
+    qDebug() << "keyDataBuf" << keyDataBuf;
+
+    rapidjson::Value p, v;
+
+    rapidjson::Document doc;
+    doc.SetObject();
+
+    p.SetString(keyDataBuf.constData(), keyDataBuf.count());
+
+    auto version = qApp->applicationVersion();
+    v.SetString(version.toUtf8().constData(), qApp->applicationVersion().count());
+
+    doc.AddMember("publicKey", p, doc.GetAllocator());
+    doc.AddMember("version", v, doc.GetAllocator());
+
+    rapidjson::StringBuffer sb;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
+    doc.Accept(writer);
+
+    QByteArray postData(sb.GetString());
+
+    QNetworkReply *reply = manager.post(request, postData);
+
+    auto dialog = new WaitingDialog("Getting Token From Server", this);
+    dialog->show();
+
+    while (reply->isRunning()) {
+        QApplication::processEvents();
+    }
+
+    dialog->close();
+
+    if(reply->error() == QNetworkReply::NoError) {
+        rapidjson::Document docReply;
+        docReply.Parse(reply->readAll().constData());
+        QString serviceTokenTemp = docReply["serviceToken"].GetString();
+        if(checkUUIDFormat(serviceTokenTemp)) {
+            serviceToken = serviceTokenTemp;
+            qDebug() << "Get Service Token" << serviceToken;
+            serviceTokenLabel->setText(serviceToken);
+        } else {
+            QMessageBox::critical(this, tr("Error"), tr("Invalid Service Token Format"));
+        }
+    } else {
+        QMessageBox::critical(this, tr("Error"), reply->errorString());
+    }
+
+}
+
+bool GeneralTab::checkUUIDFormat(const QString& uuid) {
+    return re_uuid.match(uuid).hasMatch();
 }
 
 SendMailTab::SendMailTab(QWidget *parent)
@@ -304,7 +420,7 @@ SendMailTab::SendMailTab(QWidget *parent)
     connectionTypeComboBox->addItem("STARTTLS");
 
     defaultSender = new QLineEdit();;
-    checkConnectionButton = new QPushButton("Check Connection");
+    checkConnectionButton = new QPushButton(tr("Check Connection"));
 
     auto layout = new QGridLayout();
     layout->addWidget(enableCheckBox, 0, 0);
@@ -378,22 +494,17 @@ void SendMailTab::applySettings() {
 
 void SendMailTab::slotCheckConnection() {
 
-    SmtpClient::ConnectionType connectionType = SmtpClient::ConnectionType::TcpConnection;
-
-    if (connectionTypeComboBox->currentText() == "SSL") {
+    SmtpClient::ConnectionType connectionType;
+    const auto selectedConnType = connectionTypeComboBox->currentText();
+    if (selectedConnType == "SSL") {
         connectionType = SmtpClient::ConnectionType::SslConnection;
-    } else if (connectionTypeComboBox->currentText() == "TLS") {
-        connectionType = SmtpClient::ConnectionType::TlsConnection;
-    } else if (connectionTypeComboBox->currentText() == "STARTTLS") {
+    } else if (selectedConnType == "TLS" || selectedConnType == "STARTTLS") {
         connectionType = SmtpClient::ConnectionType::TlsConnection;
     } else {
         connectionType = SmtpClient::ConnectionType::TcpConnection;
     }
 
     SmtpClient smtp(smtpAddress->text(), portSpin->value(), connectionType);
-
-    // We need to set the username (your email address) and the password
-    // for smtp authentification.
 
     smtp.setUser(username->text());
     smtp.setPassword(password->text());
@@ -648,6 +759,7 @@ void KeyserverTab::setSettings() {
         qDebug() << "KeyserverTab ListItemText" << comboBox->itemText(i);
     }
     settings.setValue("keyserver/keyServerList", *keyServerList);
+    delete keyServerList;
     settings.setValue("keyserver/defaultKeyServer", comboBox->currentText());
 }
 

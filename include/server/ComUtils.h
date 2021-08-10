@@ -22,17 +22,36 @@
  *
  */
 
-#include "gpg/GpgUID.h"
+#ifndef GPGFRONTEND_ZH_CN_TS_COMUTILS_H
+#define GPGFRONTEND_ZH_CN_TS_COMUTILS_H
 
-GpgUID::GpgUID(gpgme_user_id_t user_id) :
-        uid(user_id->uid), name(user_id->name), email(user_id->email), comment(user_id->comment),
-        revoked(user_id->revoked), invalid(user_id->invalid) {
+#include "GpgFrontend.h"
+#include "rapidjson/document.h"
 
-    auto sig = user_id->signatures;
+class ComUtils : public QWidget {
+Q_OBJECT
+public:
 
-    while (sig != nullptr) {
-        signatures.push_back(GpgKeySignature(sig));
-        sig = sig->next;
+    explicit ComUtils(QWidget *parent) : QWidget(parent), appPath(qApp->applicationDirPath()),
+                                         settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
+                                                  QSettings::IniFormat) {
+
     }
 
-}
+    bool checkServerReply(const QByteArray &reply);
+
+    QString getDataValue(const QString &key);
+
+    [[nodiscard]] bool good() const { return is_good; }
+
+private:
+
+    QString appPath;
+    QSettings settings;
+    rapidjson::Document replyDoc;
+    rapidjson::Value dataVal;
+    bool is_good = false;
+};
+
+
+#endif //GPGFRONTEND_ZH_CN_TS_COMUTILS_H

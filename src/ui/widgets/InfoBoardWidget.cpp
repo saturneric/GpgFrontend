@@ -150,9 +150,12 @@ void InfoBoardWidget::associateTabWidget(QTabWidget *tab) {
     connect(tab, SIGNAL(tabCloseRequested(int)), this, SLOT(slotReset()));
 }
 
+
 void InfoBoardWidget::addOptionalAction(const QString &name, const std::function<void()> &action) {
     auto actionButton = new QPushButton(name);
     infoBoard->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    // set margin from surroundings
+    actionButton->setContentsMargins(5, 5, 5, 5);
     actionButtonLayout->addWidget(actionButton);
     connect(actionButton, &QPushButton::clicked, this, [=]() {
         action();

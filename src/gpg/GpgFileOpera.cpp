@@ -114,7 +114,7 @@ gpgme_error_t GpgFileOpera::signFile(GpgME::GpgContext *ctx, QVector<GpgKey> &ke
     auto outBuffer = QByteArray();
     infile.close();
 
-    auto error = ctx->sign(keys, inBuffer, &outBuffer, true, result);
+    auto error = ctx->sign(keys, inBuffer, &outBuffer, GPGME_SIG_MODE_DETACH, result);
 
     if (gpg_err_code(error) != GPG_ERR_NO_ERROR) return error;
 

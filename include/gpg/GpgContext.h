@@ -25,7 +25,7 @@
 #ifndef __SGPGMEPP_CONTEXT_H__
 #define __SGPGMEPP_CONTEXT_H__
 
-#include <GpgFrontend.h>
+#include "GpgFrontend.h"
 
 #include "GpgConstants.h"
 #include "GpgGenKeyInfo.h"
@@ -63,10 +63,14 @@ public:
 
 namespace GpgME {
 
+    /**
+     * Custom Encapsulation of GpgME APIs
+     */
     class GpgContext : public QObject {
     Q_OBJECT
 
     public:
+
         GpgContext();
 
         ~GpgContext() override;
@@ -114,7 +118,8 @@ namespace GpgME {
         gpgme_error_t verify(QByteArray *inBuffer, QByteArray *sigBuffer, gpgme_verify_result_t *result);
 
         gpg_error_t
-        sign(const QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached = false,
+        sign(const QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer,
+             gpgme_sig_mode_t mode = GPGME_SIG_MODE_NORMAL,
              gpgme_sign_result_t *result = nullptr);
 
         bool addUID(const GpgKey &key, const GpgUID &uid);
@@ -125,7 +130,7 @@ namespace GpgME {
 
         bool setExpire(const GpgKey &key, const GpgSubKey *subkey, QDateTime *expires);
 
-        QProcess * generateRevokeCert(const GpgKey &key, const QString &outputFileName);
+        QProcess *generateRevokeCert(const GpgKey &key, const QString &outputFileName);
 
         static bool checkIfKeyCanSign(const GpgKey &key);
 
@@ -207,9 +212,9 @@ namespace GpgME {
                                  const char *passphrase_info,
                                  int last_was_bad, int fd);
 
-        QProcess * executeGpgCommand(const QStringList &arguments,
-                                     QByteArray *stdOut,
-                                     QByteArray *stdErr, const std::function<void(QProcess *)> &interactFunc);
+        QProcess *executeGpgCommand(const QStringList &arguments,
+                                    QByteArray *stdOut,
+                                    QByteArray *stdErr, const std::function<void(QProcess *)> &interactFunc);
 
         QString gpgExec;
         QString gpgKeys;

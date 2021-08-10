@@ -229,7 +229,7 @@ void FileEncryptionDialog::slotExecuteAction() {
 
     if (mAction == Sign) {
         qDebug() << "Action Sign";
-        gpgme_error_t err = mCtx->sign(keys, inBuffer, outBuffer, true);
+        gpgme_error_t err = mCtx->sign(keys, inBuffer, outBuffer, GPGME_SIG_MODE_DETACH);
         if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) {
             qDebug() << "Error" << gpgme_strerror(err);
             QMessageBox::warning(this, tr("Error"),
