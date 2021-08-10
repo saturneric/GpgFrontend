@@ -694,13 +694,12 @@ namespace GpgME {
     }
 
     gpg_error_t
-    GpgContext::sign(const QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer, bool detached,
+    GpgContext::sign(const QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer, gpgme_sig_mode_t mode,
                      gpgme_sign_result_t *result) {
 
         gpgme_error_t gpgmeError;
         gpgme_data_t dataIn, dataOut;
         gpgme_sign_result_t m_result;
-        gpgme_sig_mode_t mode;
 
         if (keys.isEmpty()) {
             QMessageBox::critical(nullptr, tr("Key Selection"), tr("No Private Key Selected"));
@@ -728,12 +727,6 @@ namespace GpgME {
                   A clear text signature is made.  The ASCII armor and text
                   mode settings of the context are ignored.
         */
-
-        if (detached) {
-            mode = GPGME_SIG_MODE_DETACH;
-        } else {
-            mode = GPGME_SIG_MODE_CLEAR;
-        }
 
         gpgmeError = gpgme_op_sign(mCtx, dataIn, dataOut, mode);
         checkErr(gpgmeError);
