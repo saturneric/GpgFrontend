@@ -61,7 +61,7 @@ bool ComUtils::checkServerReply(const QByteArray &reply) {
         QDateTime time;
         time.setMSecsSinceEpoch(replyDoc["timestamp"].GetInt64());
         auto message = replyDoc["msg"].GetString();
-        dataVal = replyDoc["data"].GetObjectA();
+        dataVal = replyDoc["data"].GetObject();
 
         qDebug() << "Reply Date & Time" << time;
 
@@ -77,7 +77,6 @@ bool ComUtils::checkServerReply(const QByteArray &reply) {
             is_good = true;
             return true;
         } else  {
-            dataVal = replyDoc["data"].GetObjectA();
             if (dataVal.HasMember("exceptionMessage") && dataVal["exceptionMessage"].IsString())
                 QMessageBox::critical(this, message, dataVal["exceptionMessage"].GetString());
             else QMessageBox::critical(this, message, tr("Unknown Reason"));
