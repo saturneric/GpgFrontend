@@ -59,7 +59,7 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     // Sign Shorten Text
-    QVector keys{key};
+    QVector<GpgKey> keys{key};
     QByteArray outSignText;
     mCtx->sign(keys, shortenCryptoText.toUtf8(), &outSignText, GPGME_SIG_MODE_NORMAL);
     auto outSignTextBase64 = outSignText.toBase64();
