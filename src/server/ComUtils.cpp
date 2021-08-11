@@ -31,11 +31,14 @@
  */
 bool ComUtils::checkServerReply(const QByteArray &reply) {
 
+    qDebug() << "Reply" << reply;
+
     /**
      * Server Reply Format(Except Timeout)
      * {
      *      "status": 200,
-     *      "message": "OK",
+     *      "msg": "OK",
+     *      "timestamp": 1628652783895
      *      "data" : {
      *          ...
      *      }
@@ -49,21 +52,40 @@ bool ComUtils::checkServerReply(const QByteArray &reply) {
     }
 
     // check status(int) and message(string)
-    if (replyDoc.HasMember("status") && replyDoc.HasMember("message")
-        && replyDoc["status"].IsInt() && replyDoc["message"].IsString()) {
+    if (replyDoc.HasMember("status") && replyDoc.HasMember("msg") && replyDoc.HasMember("timestamp") &&
+        replyDoc.HasMember("data")
+        && replyDoc["status"].IsNumber() && replyDoc["msg"].IsString() && replyDoc["timestamp"].IsNumber() &&
+        replyDoc["data"].IsObject()) {
 
         int status = replyDoc["status"].GetInt();
-        QString message = replyDoc["status"].GetString();
+        QDateTime time;
+        time.setMSecsSinceEpoch(replyDoc["timestamp"].GetInt64());
+        auto message = replyDoc["msg"].GetString();
+        dataVal = replyDoc["data"].GetObjectA();
+
+        qDebug() << "Reply Date & Time" << time;
+
+        // check reply timestamp
+        if (time < QDateTime::currentDateTime().addSecs(-10)) {
+            QMessageBox::critical(this, tr("Network Error"), tr("Outdated Reply"));
+            return false;
+        }
 
         // check status code if successful (200-299)
         // check data object
-        if (status / 10 == 2 && replyDoc.HasMember("data") && replyDoc["data"].IsObject()) {
-            dataVal = replyDoc["data"].GetObjectA();
+        if (status / 100 == 2) {
             is_good = true;
             return true;
-        } else QMessageBox::critical(this, tr("Error"), message);
+        } else  {
+            dataVal = replyDoc["data"].GetObjectA();
+            if (dataVal.HasMember("exceptionMessage") && dataVal["exceptionMessage"].IsString())
+                QMessageBox::critical(this, message, dataVal["exceptionMessage"].GetString());
+            else QMessageBox::critical(this, message, tr("Unknown Reason"));
+        }
 
-    } else QMessageBox::critical(this, tr("Error"), tr("Unknown Reply Format"));
+    } else QMessageBox::critical(this, tr("Network Error"), tr("Unknown Reply Format"));
+
+    return false;
 }
 
 /**
@@ -78,4 +100,48 @@ QString ComUtils::getDataValue(const QString &key) {
             return dataVal[k_byte_array.data()].GetString();
         } else return {};
     } else return {};
+}
+
+/**
+ * Get eventually url by service type
+ * @param type service which server provides
+ * @return url
+ */
+QString ComUtils::getUrl(ComUtils::ServiceType type) {
+    auto host = settings.value("general/currentGpgfrontendServer",
+                               "service.gpgfrontend.pub").toString();
+
+    auto protocol = QString();
+    // Debug Server
+    if (host == "localhost") protocol = "http://";
+    else protocol = "https://";
+
+    auto url = protocol + host + "/";
+
+    switch (type) {
+        case GetServiceToken:
+            url += "/user";
+            break;
+        case ShortenCryptText:
+            url += "/text/new";
+            break;
+        case GetFullCryptText:
+            url += "/text/get";
+            break;
+    }
+
+    qDebug() << "ComUtils getUrl" << url;
+
+    return url;
+}
+
+bool ComUtils::checkDataValue(const QString &key) {
+    auto key_byte_array_data = key.toUtf8().constData();
+    if (is_good) {
+        return dataVal.HasMember(key_byte_array_data) && dataVal[key_byte_array_data].IsString();
+    } else return false;
+}
+
+bool ComUtils::checkServiceTokenFormat(const QString &uuid) {
+    return re_uuid.match(uuid).hasMatch();
 }

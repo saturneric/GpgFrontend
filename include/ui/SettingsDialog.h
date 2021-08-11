@@ -58,10 +58,6 @@ private:
 
     QNetworkAccessManager manager;
 
-    QRegularExpression re_uuid{R"(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)"};
-
-    bool checkUUIDFormat(const QString& uuid);
-
 private slots:
 
     void slotOwnKeyIdChanged();

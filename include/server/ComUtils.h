@@ -32,15 +32,23 @@ class ComUtils : public QWidget {
 Q_OBJECT
 public:
 
+    enum ServiceType { GetServiceToken, ShortenCryptText, GetFullCryptText };
+
     explicit ComUtils(QWidget *parent) : QWidget(parent), appPath(qApp->applicationDirPath()),
                                          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
                                                   QSettings::IniFormat) {
 
     }
 
+    QString getUrl(ServiceType type);
+
     bool checkServerReply(const QByteArray &reply);
 
     QString getDataValue(const QString &key);
+
+    bool checkDataValue(const QString &key);
+
+    bool checkServiceTokenFormat(const QString& serviceToken);
 
     [[nodiscard]] bool good() const { return is_good; }
 
@@ -50,6 +58,9 @@ private:
     QSettings settings;
     rapidjson::Document replyDoc;
     rapidjson::Value dataVal;
+
+    QRegularExpression re_uuid{R"(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)"};
+
     bool is_good = false;
 };
 

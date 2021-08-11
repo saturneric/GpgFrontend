@@ -35,8 +35,7 @@
  * @return
  */
 QString MainWindow::getCryptText(const QString &shortenCryptoText) {
-    auto host = settings.value("general/currentGpgfrontendServer",
-                                  "service.gpgfrontend.pub").toString();
+
 
     QString ownKeyId = settings.value("general/ownKeyId").toString();
 
@@ -46,14 +45,16 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
         return {};
     }
 
+    auto utils = new ComUtils(this);
+
     QString serviceToken = settings.value("general/serviceToken").toString();
-    if (serviceToken.isEmpty()) {
+    if (serviceToken.isEmpty() || !utils->checkServiceTokenFormat(serviceToken)) {
         QMessageBox::critical(this, tr("Error"),
                               tr("Please obtain a Service Token from the server in the settings."));
         return {};
     }
 
-    QUrl reqUrl("http://127.0.0.1:9048/text/get");
+    QUrl reqUrl(utils->getUrl(ComUtils::GetFullCryptText));
     QNetworkRequest request(reqUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
@@ -89,29 +90,63 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
     auto dialog = new WaitingDialog("Getting Crypt Text From Server", this);
     dialog->show();
 
-    while (reply->isRunning()) {
-        QApplication::processEvents();
-    }
+    while (reply->isRunning()) QApplication::processEvents();
 
     dialog->close();
 
     QByteArray replyData = reply->readAll().constData();
-    auto comUtils = new ComUtils(this);
-    if (comUtils->checkServerReply(replyData)) {
-        //TODO Logic
-    } else QMessageBox::critical(this, tr("Error"), tr("Unknown Error"));
+    if (utils->checkServerReply(replyData)) {
+        /**
+         * {
+         *      "cryptoText" : ...
+         *      "sha": ...
+         *      "serviceToken": ...
+         *      "date": ...
+         * }
+         */
+
+        if (!utils->checkDataValue("cryptoText")
+            || !utils->checkDataValue("sha")
+            || !utils->checkDataValue("serviceToken")) {
+            QMessageBox::critical(this, tr("Error"),
+                                  tr("The communication content with the server does not meet the requirements"));
+            return {};
+        }
+
+        auto cryptoText = utils->getDataValue("cryptoText");
+        auto sha = utils->getDataValue("sha");
+        auto serviceTokenFromServer = utils->getDataValue("serviceToken");
+
+        QCryptographicHash sha_generator(QCryptographicHash::Sha256);
+        sha_generator.addData(cryptoText.toUtf8());
+
+        if (serviceTokenFromServer == serviceToken &&
+            sha_generator.result().toHex() == sha) {
+            return cryptoText;
+        } else QMessageBox::critical(this, tr("Error"), tr("Invalid short ciphertext"));
+
+        return {};
+    }
 
     return {};
 }
 
 void MainWindow::shortenCryptText() {
 
+    // gather information
     QString serviceToken = settings.value("general/serviceToken").toString();
     QString ownKeyId = settings.value("general/ownKeyId").toString();
-
     QByteArray cryptoText = edit->curTextPage()->toPlainText().toUtf8();
 
-    QUrl reqUrl("http://127.0.0.1:9048/text/new");
+    auto utils = new ComUtils(this);
+
+    if (serviceToken.isEmpty() || !utils->checkServiceTokenFormat(serviceToken)) {
+        QMessageBox::critical(this, tr("Invalid Service Token"),
+                              tr("Please go to the setting interface to get a ServiceToken."));
+        return;
+    }
+
+    QUrl reqUrl(utils->getUrl(ComUtils::ShortenCryptText));
     QNetworkRequest request(reqUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
@@ -166,20 +201,35 @@ void MainWindow::shortenCryptText() {
 
     QNetworkReply *reply = networkAccessManager->post(request, postData);
 
-    while (reply->isRunning()) {
-        QApplication::processEvents();
-    }
+    while (reply->isRunning()) QApplication::processEvents();
 
-    if (reply->error() == QNetworkReply::NoError) {
-        rapidjson::Document docReply;
-        docReply.Parse(reply->readAll().constData());
-        QString shortenText = docReply["shortenText"].GetString();
-        auto *dialog = new ShowCopyDialog(shortenText, this);
-        dialog->show();
-    } else {
-        QMessageBox::critical(this, tr("Error"), reply->errorString());
-    }
+    if (utils->checkServerReply(reply->readAll().constData())) {
 
+        /**
+         * {
+         *      "shortenText" : ...
+         *      "md5": ...
+         * }
+         */
+
+        if (!utils->checkDataValue("shortenText") || !utils->checkDataValue("md5")) {
+            QMessageBox::critical(this, tr("Error"),
+                                  tr("The communication content with the server does not meet the requirements"));
+            return;
+        }
+
+        QString shortenText = utils->getDataValue("shortenText");
+
+        QCryptographicHash md5_generator(QCryptographicHash::Md5);
+        md5_generator.addData(shortenText.toUtf8());
+        if (md5_generator.result().toHex() == utils->getDataValue("md5")) {
+            auto *dialog = new ShowCopyDialog(shortenText, this);
+            dialog->show();
+        } else {
+            QMessageBox::critical(this, tr("Error"), tr("There is a problem with the communication with the server"));
+            return;
+        }
+    }
 
 }
 
