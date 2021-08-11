@@ -61,7 +61,7 @@ bool ComUtils::checkServerReply(const QByteArray &reply) {
         QDateTime time;
         time.setMSecsSinceEpoch(replyDoc["timestamp"].GetInt64());
         auto message = replyDoc["msg"].GetString();
-        dataVal = replyDoc["data"].GetObjectA();
+        dataVal = replyDoc["data"].GetObject();
 
         qDebug() << "Reply Date & Time" << time;
 
