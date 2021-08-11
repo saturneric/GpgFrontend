@@ -170,7 +170,7 @@ void MainWindow::shortenCryptText() {
 
     qDebug() << "shaText" << shaText;
 
-    QVector keys{key};
+    QVector<GpgKey> keys{key};
     QByteArray outSignText;
     mCtx->sign(keys, signText, &outSignText, GPGME_SIG_MODE_NORMAL);
     QByteArray outSignTextBase64 = outSignText.toBase64();
