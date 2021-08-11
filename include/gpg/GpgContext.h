@@ -190,13 +190,13 @@ namespace GpgME {
         bool debug;
         bool good = true;
 
-        static gpgme_error_t readToBuffer(gpgme_data_t dataIn, QByteArray *outBuffer);
-
         QByteArray mPasswordCache;
         QSettings settings;
         GpgKeyList mKeyList;
 
         QMap<QString, GpgKey *> mKeyMap;
+
+        static gpgme_error_t readToBuffer(gpgme_data_t dataIn, QByteArray *outBuffer);
 
         void fetch_keys();
 

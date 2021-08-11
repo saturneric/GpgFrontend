@@ -54,9 +54,12 @@ struct GpgKeySignature {
     explicit GpgKeySignature(gpgme_key_sig_t key_sig);
 
     GpgKeySignature(GpgKeySignature &&) noexcept = default;
+
     GpgKeySignature(const GpgKeySignature &) = default;
-    GpgKeySignature& operator=(GpgKeySignature &&) noexcept = default;
-    GpgKeySignature& operator=(const GpgKeySignature &) = default;
+
+    GpgKeySignature &operator=(GpgKeySignature &&) noexcept = default;
+
+    GpgKeySignature &operator=(const GpgKeySignature &) = default;
 
 };
 
