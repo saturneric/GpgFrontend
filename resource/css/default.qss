@@ -229,6 +229,17 @@ QLineEdit
 
 }
 
+QLineEdit::disabled
+{
+	background-color: #D3D3D3;
+	color : #276678;
+	border: 1px solid #1d1d1d;
+    padding-left: 6px;
+    height: 20px;
+	border-radius: 4px;
+
+}
+
 
 /*-----QPlainTExtEdit-----*/
 QPlainTextEdit
@@ -281,7 +292,7 @@ QComboBox
 
 QComboBox::disabled
 {
-	background-color: #F6F5F5;
+	background-color: #D3D3D3;
 	color: #656565;
 	border-color: #051a39;
 
@@ -334,6 +345,14 @@ QSpinBox
     padding-left: 6px;
     height: 20px;
 	border-radius: 4px;
+}
+
+QSpinBox::disabled
+{
+	background-color: #D3D3D3;
+	color: #656565;
+	border-color: #051a39;
+
 }
 
 QSpinBox::up-button
@@ -588,7 +607,7 @@ QGroupBox::title
 {
     background-color: #D3E0EA;
     border: 1px solid #276678;
-    color: #FFFFFF;
+    color: #276678;
 	subcontrol-position: top left;
     subcontrol-origin: margin;
     padding: 3px;
@@ -904,7 +923,7 @@ QListView::item:hover {
 QCheckBox
 {
 	background-color: transparent;
-    color: #fff;
+    color: #276678;
 	border: none;
 
 }

@@ -51,7 +51,9 @@ SettingsDialog::SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent)
 
     auto *mainLayout = new QVBoxLayout;
     mainLayout->addWidget(tabWidget);
+    mainLayout->stretch(0);
     mainLayout->addWidget(buttonBox);
+    mainLayout->stretch(0);
     setLayout(mainLayout);
 
     setWindowTitle(tr("Settings"));
@@ -72,7 +74,7 @@ SettingsDialog::SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent)
     connect(this, SIGNAL(signalRestartNeeded(bool)), parent,
             SLOT(slotSetRestartNeeded(bool)));
 
-    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+    this->resize(640, 640);
     this->show();
 }
 

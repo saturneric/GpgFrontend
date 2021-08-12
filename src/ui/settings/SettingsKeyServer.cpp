@@ -25,26 +25,40 @@
 #include "ui/SettingsDialog.h"
 
 KeyserverTab::KeyserverTab(QWidget *parent)
-: QWidget(parent), appPath(qApp->applicationDirPath()),
-settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-         QSettings::IniFormat) {
+        : QWidget(parent), appPath(qApp->applicationDirPath()),
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
+                   QSettings::IniFormat) {
 
-    auto keyServerList = settings.value("keyserver/keyServerList").toStringList();
+    auto generalGroupBox = new QGroupBox(tr("General"));
+    auto generalLayout = new QVBoxLayout();
+
+    keyServerTable = new QTableWidget();
+    keyServerTable->setColumnCount(3);
+    keyServerTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    keyServerTable->horizontalHeader()->setStretchLastSection(false);
+    keyServerTable->verticalHeader()->hide();
+    keyServerTable->setShowGrid(false);
+    keyServerTable->sortByColumn(0, Qt::AscendingOrder);
+    keyServerTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    keyServerTable->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    // tableitems not editable
+    keyServerTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    // no focus (rectangle around tableitems)
+    // may be it should focus on whole row
+    keyServerTable->setFocusPolicy(Qt::NoFocus);
+    keyServerTable->setAlternatingRowColors(true);
+
+    QStringList labels;
+    labels << tr("No.") << tr("Address") << tr("Available");
+    keyServerTable->setHorizontalHeaderLabels(labels);
 
     auto *mainLayout = new QVBoxLayout(this);
+    auto *label = new QLabel(tr("Default Key Server for Import:"));
 
-    auto *label = new QLabel(tr("Default Key Server for import:"));
     comboBox = new QComboBox;
     comboBox->setEditable(false);
     comboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-
-    for (const auto &keyServer : keyServerList) {
-        comboBox->addItem(keyServer);
-        qDebug() << "KeyserverTab Get ListItemText" << keyServer;
-    }
-
-    comboBox->setCurrentText(
-            settings.value("keyserver/defaultKeyServer").toString());
 
     auto *addKeyServerBox = new QWidget(this);
     auto *addKeyServerLayout = new QHBoxLayout(addKeyServerBox);
@@ -56,13 +70,20 @@ settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
     addKeyServerLayout->addWidget(newKeyServerEdit);
     addKeyServerLayout->addWidget(newKeyServerButton);
 
-    mainLayout->addWidget(label);
-    mainLayout->addWidget(comboBox);
-    mainLayout->addWidget(addKeyServerBox);
-    mainLayout->addStretch(1);
+    generalLayout->addWidget(label);
+    generalLayout->addWidget(comboBox);
+    generalLayout->addWidget(keyServerTable);
+    generalLayout->addWidget(addKeyServerBox);
+    generalLayout->addStretch(0);
 
+    generalGroupBox->setLayout(generalLayout);
+    mainLayout->addWidget(generalGroupBox);
+    mainLayout->addStretch(0);
+
+    setLayout(mainLayout);
     // Read keylist from ini-file and fill it into combobox
     setSettings();
+    refreshTable();
 }
 
 /**********************************
@@ -71,24 +92,29 @@ settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
  * appropriately
  **********************************/
 void KeyserverTab::setSettings() {
-    auto *keyServerList = new QStringList();
-    for (int i = 0; i < comboBox->count(); i++) {
-        keyServerList->append(comboBox->itemText(i));
-        qDebug() << "KeyserverTab ListItemText" << comboBox->itemText(i);
+
+    keyServerStrList = settings.value("keyserver/keyServerList").toStringList();
+
+    for (const auto &keyServer : keyServerStrList) {
+        comboBox->addItem(keyServer);
+        qDebug() << "KeyserverTab Get ListItemText" << keyServer;
     }
-    settings.setValue("keyserver/keyServerList", *keyServerList);
-    delete keyServerList;
-    settings.setValue("keyserver/defaultKeyServer", comboBox->currentText());
+
+    comboBox->setCurrentText(
+            settings.value("keyserver/defaultKeyServer").toString());
+
 }
 
 void KeyserverTab::addKeyServer() {
+    QString targetUrl;
     if (newKeyServerEdit->text().startsWith("http://") ||
-    newKeyServerEdit->text().startsWith("https://")) {
-        comboBox->addItem(newKeyServerEdit->text());
-    } else {
-        comboBox->addItem("http://" + newKeyServerEdit->text());
-    }
-    comboBox->setCurrentIndex(comboBox->count() - 1);
+        newKeyServerEdit->text().startsWith("https://"))
+        targetUrl = newKeyServerEdit->text();
+    else
+        targetUrl = "http://" + newKeyServerEdit->text();
+    keyServerStrList.append(targetUrl);
+    comboBox->addItem(targetUrl);
+    refreshTable();
 }
 
 /***********************************
@@ -96,5 +122,27 @@ void KeyserverTab::addKeyServer() {
  * write them to settings-file
  *************************************/
 void KeyserverTab::applySettings() {
+    settings.setValue("keyserver/keyServerList", keyServerStrList);
     settings.setValue("keyserver/defaultKeyServer", comboBox->currentText());
+}
+
+void KeyserverTab::refreshTable() {
+
+    qDebug() << "Start Refreshing Key Server Table";
+
+    keyServerTable->setRowCount(keyServerStrList.size());
+
+    int index = 0;
+    for (const auto &server : keyServerStrList) {
+        auto *tmp1 = new QTableWidgetItem(QString::number(index));
+        tmp1->setTextAlignment(Qt::AlignCenter);
+        keyServerTable->setItem(index, 0, tmp1);
+        auto *tmp2 = new QTableWidgetItem(server);
+        tmp2->setTextAlignment(Qt::AlignCenter);
+        keyServerTable->setItem(index, 1, tmp2);
+        auto *tmp3 = new QTableWidgetItem("");
+        tmp3->setTextAlignment(Qt::AlignCenter);
+        keyServerTable->setItem(index, 2, tmp3);
+        index++;
+    }
 }

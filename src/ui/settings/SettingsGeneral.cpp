@@ -45,6 +45,11 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
     serverBoxLayout->addWidget(serverSelectBox);
     serverBoxLayout->addWidget(new QLabel(
             tr("Server that provides short key and key exchange services")));
+    connect(serverSelectBox, QOverload<const QString&>::of(&QComboBox::currentTextChanged),
+            this, [&](const QString &current) -> void {
+        settings.setValue("general/currentGpgfrontendServer", current);
+    });
+
     serverBox->setLayout(serverBoxLayout);
 
     /*****************************************
@@ -306,6 +311,8 @@ void GeneralTab::slotGetServiceToken() {
             // Auto update settings
             settings.setValue("general/serviceToken", serviceToken);
             serviceTokenLabel->setText(serviceToken);
+            QMessageBox::information(this, tr("Notice"),
+                                  tr("Succeed in getting service token"));
         } else {
             QMessageBox::critical(this, tr("Error"), tr("There is a problem with the communication with the server"));
         }

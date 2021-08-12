@@ -50,28 +50,46 @@ SendMailTab::SendMailTab(QWidget *parent)
     defaultSender = new QLineEdit();;
     checkConnectionButton = new QPushButton(tr("Check Connection"));
 
-    auto layout = new QGridLayout();
-    layout->addWidget(enableCheckBox, 0, 0);
-    layout->addWidget(new QLabel(tr("SMTP Address")), 1, 0);
-    layout->addWidget(smtpAddress, 1, 1, 1, 4);
-    layout->addWidget(new QLabel(tr("Username")), 2, 0);
-    layout->addWidget(username, 2, 1, 1, 4);
-    layout->addWidget(new QLabel(tr("Password")), 3, 0);
-    layout->addWidget(password, 3, 1, 1, 4);
-    layout->addWidget(new QLabel(tr("Port")), 4, 0);
-    layout->addWidget(portSpin, 4, 1, 1, 1);
-    layout->addWidget(new QLabel(tr("Connection Security")), 5, 0);
-    layout->addWidget(connectionTypeComboBox, 5, 1, 1, 1);
+    auto generalGroupBox = new QGroupBox(tr("General"));
+    auto connectGroupBox = new QGroupBox(tr("Connection"));
+    auto preferenceGroupBox = new QGroupBox(tr("Preference"));
 
-    layout->addWidget(new QLabel(tr("Default Sender")), 6, 0);
-    layout->addWidget(defaultSender, 6, 1, 1, 4);
-    layout->addWidget(checkConnectionButton, 7, 0);
+    auto generalLayout = new QGridLayout();
+    generalLayout->addWidget(enableCheckBox);
+
+    auto connectLayout = new QGridLayout();
+    connectLayout->addWidget(new QLabel(tr("SMTP Address")), 1, 0);
+    connectLayout->addWidget(smtpAddress, 1, 1, 1, 4);
+    connectLayout->addWidget(new QLabel(tr("Username")), 2, 0);
+    connectLayout->addWidget(username, 2, 1, 1, 4);
+    connectLayout->addWidget(new QLabel(tr("Password")), 3, 0);
+    connectLayout->addWidget(password, 3, 1, 1, 4);
+    connectLayout->addWidget(new QLabel(tr("Port")), 4, 0);
+    connectLayout->addWidget(portSpin, 4, 1, 1, 1);
+    connectLayout->addWidget(new QLabel(tr("Connection Security")), 5, 0);
+    connectLayout->addWidget(connectionTypeComboBox, 5, 1, 1, 1);
+    connectLayout->addWidget(checkConnectionButton, 6, 0);
+
+    auto preferenceLayout = new QGridLayout();
+
+    preferenceLayout->addWidget(new QLabel(tr("Default Sender")), 0, 0);
+    preferenceLayout->addWidget(defaultSender, 0, 1, 1, 4);
+
+    generalGroupBox->setLayout(generalLayout);
+    connectGroupBox->setLayout(connectLayout);
+    preferenceGroupBox->setLayout(preferenceLayout);
+
+    auto vBox = new QVBoxLayout();
+    vBox->addWidget(generalGroupBox);
+    vBox->addWidget(connectGroupBox);
+    vBox->addWidget(preferenceGroupBox);
+    vBox->addStretch(0);
 
     connect(enableCheckBox, SIGNAL(stateChanged(int)), this, SLOT(slotCheckBoxSetEnableDisable(int)));
     connect(checkConnectionButton, SIGNAL(clicked(bool)), this, SLOT(slotCheckConnection()));
 
 
-    this->setLayout(layout);
+    this->setLayout(vBox);
     setSettings();
 }
 
