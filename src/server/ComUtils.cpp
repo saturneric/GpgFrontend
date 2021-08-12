@@ -31,6 +31,11 @@
  */
 bool ComUtils::checkServerReply(const QByteArray &reply) {
 
+    if(reply.isEmpty()) {
+        QMessageBox::critical(this, tr("Error"), tr("Nothing Reply"));
+        return false;
+    }
+
     qDebug() << "Reply" << reply;
 
     /**

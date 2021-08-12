@@ -36,7 +36,6 @@
  */
 QString MainWindow::getCryptText(const QString &shortenCryptoText) {
 
-
     QString ownKeyId = settings.value("general/ownKeyId").toString();
 
     GpgKey key = mCtx->getKeyById(ownKeyId);
