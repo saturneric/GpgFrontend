@@ -179,6 +179,11 @@ void MainWindow::slotDecrypt() {
         QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
         GpgME::GpgContext::preventNoDataErr(&text);
 
+        if (text.trimmed().startsWith(GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD)) {
+            QMessageBox::critical(this, tr("Notice"), tr("Short Crypto Text only supports Decrypt & Verify."));
+            return;
+        }
+
         gpgme_decrypt_result_t result = nullptr;
 
         gpgme_error_t error;
@@ -328,8 +333,6 @@ void MainWindow::slotEncryptSign() {
         gpgme_encrypt_result_t encr_result = nullptr;
         gpgme_sign_result_t sign_result = nullptr;
 
-        gpgme_decrypt_result_t result = nullptr;
-
         gpgme_error_t error;
         auto thread = QThread::create([&]() {
             error = mCtx->encryptSign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &encr_result,
@@ -403,7 +406,7 @@ void MainWindow::slotDecryptVerify() {
         QString plainText = edit->curTextPage()->toPlainText();
 
 
-        if (plainText.trimmed().startsWith("[GpgFrontend_ShortCrypto]://")) {
+        if (plainText.trimmed().startsWith(GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD)) {
             auto cryptoText = getCryptText(plainText);
             if (!cryptoText.isEmpty()) {
                 plainText = cryptoText;

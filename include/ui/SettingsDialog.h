@@ -157,13 +157,16 @@ private:
 
     QString appPath;
     QSettings settings;
-
     QComboBox *comboBox;
     QLineEdit *newKeyServerEdit;
+    QTableWidget *keyServerTable;
+    QStringList keyServerStrList;
 
 private slots:
 
     void addKeyServer();
+
+    void refreshTable();
 
 signals:
 
