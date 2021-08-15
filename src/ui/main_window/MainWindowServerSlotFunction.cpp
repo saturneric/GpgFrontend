@@ -86,7 +86,7 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
 
     QNetworkReply *reply = networkAccessManager->post(request, postData);
 
-    auto dialog = new WaitingDialog("Getting Crypt Text From Server", this);
+    auto dialog = new WaitingDialog(tr("Getting Cpt From Server"), this);
     dialog->show();
 
     while (reply->isRunning()) QApplication::processEvents();
@@ -200,7 +200,12 @@ void MainWindow::shortenCryptText() {
 
     QNetworkReply *reply = networkAccessManager->post(request, postData);
 
+    auto dialog = new WaitingDialog(tr("Getting Scpt From Server"), this);
+    dialog->show();
+
     while (reply->isRunning()) QApplication::processEvents();
+
+    dialog->close();
 
     if (utils->checkServerReply(reply->readAll().constData())) {
 
@@ -222,7 +227,7 @@ void MainWindow::shortenCryptText() {
         QCryptographicHash md5_generator(QCryptographicHash::Md5);
         md5_generator.addData(shortenText.toUtf8());
         if (md5_generator.result().toHex() == utils->getDataValue("md5")) {
-            auto *dialog = new ShowCopyDialog(shortenText, this);
+            auto *dialog = new ShowCopyDialog(shortenText, tr("Notice: Use Decrypt & Verify operation to decrypt this short crypto text."), this);
             dialog->show();
         } else {
             QMessageBox::critical(this, tr("Error"), tr("There is a problem with the communication with the server"));

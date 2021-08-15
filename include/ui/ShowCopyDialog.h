@@ -30,13 +30,14 @@
 class ShowCopyDialog : public QDialog {
 Q_OBJECT
 public:
-    explicit ShowCopyDialog(const QString &text, QWidget *parent = nullptr);
+    explicit ShowCopyDialog(const QString &text, const QString &info = "", QWidget *parent = nullptr);
 
 private slots:
 
     void slotCopyText();
 
 private:
+    QLabel *infoLabel;
     QTextEdit *textEdit;
     QPushButton *copyButton;
 };

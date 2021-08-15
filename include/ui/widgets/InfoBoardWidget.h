@@ -111,6 +111,8 @@ private:
 
     QHBoxLayout *actionButtonLayout;
 
+    void deleteWidgetsInLayout(QLayout* layout, int start_index = 0);
+
 
 };
 

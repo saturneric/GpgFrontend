@@ -50,11 +50,11 @@ InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyLis
     actionButtonMenu->setFixedHeight(36);
 
     actionButtonLayout = new QHBoxLayout();
-    actionButtonLayout->setContentsMargins(0, 0, 0, 0);
+    actionButtonLayout->setContentsMargins(5, 5, 5, 5);
     actionButtonLayout->setSpacing(0);
     actionButtonMenu->setLayout(actionButtonLayout);
 
-    auto label = new QLabel(tr("Optional Actions Menu"));
+    auto label = new QLabel(tr("Optional Actions"));
     label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     label->setContentsMargins(0, 0, 0, 0);
 
@@ -153,25 +153,41 @@ void InfoBoardWidget::associateTabWidget(QTabWidget *tab) {
 
 void InfoBoardWidget::addOptionalAction(const QString &name, const std::function<void()> &action) {
     auto actionButton = new QPushButton(name);
+    auto layout = new QHBoxLayout();
+    layout->setContentsMargins(5, 0, 5, 0);
     infoBoard->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     // set margin from surroundings
-    actionButton->setContentsMargins(5, 5, 5, 5);
-    actionButtonLayout->addWidget(actionButton);
+    layout->addWidget(actionButton);
+    actionButtonLayout->addLayout(layout);
     connect(actionButton, &QPushButton::clicked, this, [=]() {
         action();
     });
 }
 
+/**
+ * Delete All item in actionButtonLayout
+ */
 void InfoBoardWidget::resetOptionActionsMenu() {
-    QLayoutItem *item;
-    while ((item = actionButtonLayout->layout()->takeAt(2)) != nullptr) {
-        actionButtonLayout->removeItem(item);
-        delete item->widget();
-        delete item;
-    }
+    deleteWidgetsInLayout(actionButtonLayout, 2);
 }
 
 void InfoBoardWidget::slotReset() {
     this->infoBoard->clear();
     resetOptionActionsMenu();
+}
+
+/**
+ * Try Delete all widget from target layout
+ * @param layout target layout
+ */
+void InfoBoardWidget::deleteWidgetsInLayout(QLayout *layout, int start_index) {
+    QLayoutItem *item;
+    while ((item = layout->layout()->takeAt(start_index)) != nullptr) {
+        layout->removeItem(item);
+        if (item->layout() != nullptr)
+            deleteWidgetsInLayout(item->layout());
+        else if (item->widget() != nullptr)
+            delete item->widget();
+        delete item;
+    }
 }

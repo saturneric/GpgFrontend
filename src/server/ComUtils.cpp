@@ -32,7 +32,7 @@
 bool ComUtils::checkServerReply(const QByteArray &reply) {
 
     if(reply.isEmpty()) {
-        QMessageBox::critical(this, tr("Error"), tr("Nothing Reply"));
+        QMessageBox::critical(this, tr("Error"), tr("Nothing Reply. Please check the Internet connection."));
         return false;
     }
 
