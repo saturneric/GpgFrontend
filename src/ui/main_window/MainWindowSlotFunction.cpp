@@ -63,7 +63,7 @@ void MainWindow::slotEncrypt() {
         auto thread = QThread::create([&]() {
             error = mCtx->encrypt(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &result);
         });
-        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         thread->start();
 
         auto *dialog = new WaitingDialog(tr("Encrypting"), this);
@@ -142,7 +142,7 @@ void MainWindow::slotSign() {
         auto thread = QThread::create([&]() {
             error = mCtx->sign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, GPGME_SIG_MODE_CLEAR, &result);
         });
-        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         thread->start();
 
         auto *dialog = new WaitingDialog(tr("Signing"), this);
@@ -191,7 +191,7 @@ void MainWindow::slotDecrypt() {
             // try decrypt, if fail do nothing, especially don't replace text
             error = mCtx->decrypt(text, decrypted, &result);
         });
-        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         thread->start();
 
         auto *dialog = new WaitingDialog(tr("Decrypting"), this);
@@ -244,14 +244,13 @@ void MainWindow::slotVerify() {
         QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
         GpgME::GpgContext::preventNoDataErr(&text);
 
-
         gpgme_verify_result_t result;
 
         gpgme_error_t error;
         auto thread = QThread::create([&]() {
             error = mCtx->verify(&text, nullptr, &result);
         });
-        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         thread->start();
 
         auto *dialog = new WaitingDialog(tr("Verifying"), this);
@@ -338,7 +337,7 @@ void MainWindow::slotEncryptSign() {
             error = mCtx->encryptSign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &encr_result,
                                       &sign_result);
         });
-        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         thread->start();
 
         auto *dialog = new WaitingDialog(tr("Encrypting and Signing"), this);
@@ -424,7 +423,7 @@ void MainWindow::slotDecryptVerify() {
         auto thread = QThread::create([&]() {
             error = mCtx->decryptVerify(text, decrypted, &d_result, &v_result);
         });
-        connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         thread->start();
 
         auto *dialog = new WaitingDialog(tr("Decrypting and Verifying"), this);

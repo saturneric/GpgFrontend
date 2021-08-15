@@ -30,6 +30,7 @@
 #include "GpgConstants.h"
 #include "GpgGenKeyInfo.h"
 #include "GpgKey.h"
+#include "GpgInfo.h"
 
 using GpgKeyList = std::list<GpgKey>;
 
@@ -184,6 +185,9 @@ namespace GpgME {
         void slotUpdateKeyList(const QString &key_id);
 
     private:
+
+        GpgInfo info;
+
         gpgme_ctx_t mCtx{};
         gpgme_data_t in{};
         gpgme_error_t err;
@@ -216,8 +220,6 @@ namespace GpgME {
                                     QByteArray *stdOut,
                                     QByteArray *stdErr, const std::function<void(QProcess *)> &interactFunc);
 
-        QString gpgExec;
-        QString gpgKeys;
     };
 } // namespace GpgME
 

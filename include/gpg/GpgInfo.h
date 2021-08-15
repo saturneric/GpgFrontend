@@ -20,15 +20,24 @@
  * The source code version of this software was modified and released
  * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
+*/
+
+#ifndef GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#define GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+
+#include "GpgFrontend.h"
+
+/**
+ * Use to record some info about gnupg
  */
+class GpgInfo {
+public:
 
-#include "gpg/GpgConstants.h"
+    /**
+     * executable binary path of gnupg
+     */
+    QString appPath;
+};
 
-const char *GpgConstants::PGP_CRYPT_BEGIN = "-----BEGIN PGP MESSAGE-----";
-const char *GpgConstants::PGP_CRYPT_END = "-----END PGP MESSAGE-----";
-const char *GpgConstants::PGP_SIGNED_BEGIN = "-----BEGIN PGP SIGNED MESSAGE-----";
-const char *GpgConstants::PGP_SIGNED_END = "-----END PGP SIGNATURE-----";
-const char *GpgConstants::PGP_SIGNATURE_BEGIN = "-----BEGIN PGP SIGNATURE-----";
-const char *GpgConstants::PGP_SIGNATURE_END = "-----END PGP SIGNATURE-----";
-const char *GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD = "GpgF_Scpt://";
 
+#endif //GPGFRONTEND_ZH_CN_TS_GPGINFO_H

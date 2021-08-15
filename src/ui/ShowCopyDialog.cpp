@@ -24,7 +24,7 @@
 
 #include "ui/ShowCopyDialog.h"
 
-ShowCopyDialog::ShowCopyDialog(const QString &text, QWidget *parent) : QDialog(parent) {
+ShowCopyDialog::ShowCopyDialog(const QString &text, const QString &info, QWidget *parent) : QDialog(parent) {
     textEdit = new QTextEdit();
     textEdit->setReadOnly(true);
     textEdit->setLineWrapMode(QTextEdit::WidgetWidth);
@@ -32,9 +32,14 @@ ShowCopyDialog::ShowCopyDialog(const QString &text, QWidget *parent) : QDialog(p
     copyButton = new QPushButton("Copy");
     connect(copyButton, SIGNAL(clicked(bool)), this, SLOT(slotCopyText()));
 
+    infoLabel = new QLabel();
+    infoLabel->setText(info);
+    infoLabel->setWordWrap(true);
+
     auto *layout = new QVBoxLayout();
     layout->addWidget(textEdit);
     layout->addWidget(copyButton);
+    layout->addWidget(infoLabel);
 
     this->setModal(true);
     this->setLayout(layout);

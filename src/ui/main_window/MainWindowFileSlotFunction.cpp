@@ -85,7 +85,7 @@ void MainWindow::slotFileEncrypt() {
             if_error = true;
         }
     });
-    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
     thread->start();
 
     auto *dialog = new WaitingDialog(tr("Encrypting"), this);
@@ -166,7 +166,7 @@ void MainWindow::slotFileDecrypt() {
             if_error = true;
         }
     });
-    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
     thread->start();
 
     auto *dialog = new WaitingDialog("Decrypting", this);
@@ -262,7 +262,7 @@ void MainWindow::slotFileSign() {
             if_error = true;
         }
     });
-    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
     thread->start();
 
     auto *dialog = new WaitingDialog(tr("Signing"), this);
@@ -347,7 +347,7 @@ void MainWindow::slotFileVerify() {
             if_error = true;
         }
     });
-    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
     thread->start();
 
     auto *dialog = new WaitingDialog(tr("Verifying"), this);
@@ -467,7 +467,7 @@ void MainWindow::slotFileEncryptSign() {
             if_error = true;
         }
     });
-    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
     thread->start();
 
     auto *dialog = new WaitingDialog(tr("Encrypting and Signing"), this);
@@ -544,7 +544,7 @@ void MainWindow::slotFileDecryptVerify() {
             if_error = true;
         }
     });
-    connect(thread, SIGNAL(finished(QPrivateSignal)), thread, SLOT(deleteLater()));
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
     thread->start();
 
 

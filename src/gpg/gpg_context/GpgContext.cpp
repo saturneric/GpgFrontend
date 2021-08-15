@@ -73,10 +73,8 @@ namespace GpgME {
                      << engineInfo->home_dir << engineInfo->version;
             if (engineInfo->protocol == GPGME_PROTOCOL_GPGCONF && strcmp(engineInfo->version, "1.0.0") != 0)
                 find_gpgconf = true;
-            if (engineInfo->protocol == GPGME_PROTOCOL_OpenPGP && strcmp(engineInfo->version, "1.0.0") != 0) {
-                gpgExec = engineInfo->file_name;
-                find_openpgp = true;
-            }
+            if (engineInfo->protocol == GPGME_PROTOCOL_OpenPGP && strcmp(engineInfo->version, "1.0.0") != 0)
+                find_openpgp = true, info.appPath = engineInfo->file_name;
             if (engineInfo->protocol == GPGME_PROTOCOL_CMS && strcmp(engineInfo->version, "1.0.0") != 0)
                 find_cms = true;
             if (engineInfo->protocol == GPGME_PROTOCOL_ASSUAN)
@@ -259,7 +257,6 @@ namespace GpgME {
         args << arguments;
 
         auto *gpgProcess = new QProcess(this);
-        qDebug() << "gpgExec" << gpgExec << args;
 
         gpgProcess->setReadChannel(QProcess::StandardOutput);
         connect(gpgProcess, SIGNAL(finished(int, QProcess::ExitStatus)),
@@ -269,7 +266,7 @@ namespace GpgME {
             // interactFunc(gpgProcess);
         });
 
-        gpgProcess->start(gpgExec, args);
+        gpgProcess->start(info.appPath, args);
 
         if (gpgProcess->waitForStarted()) {
             qDebug() << "Gpg Process Started Success";

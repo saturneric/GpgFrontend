@@ -22,13 +22,4 @@
  *
  */
 
-#include "gpg/GpgConstants.h"
-
-const char *GpgConstants::PGP_CRYPT_BEGIN = "-----BEGIN PGP MESSAGE-----";
-const char *GpgConstants::PGP_CRYPT_END = "-----END PGP MESSAGE-----";
-const char *GpgConstants::PGP_SIGNED_BEGIN = "-----BEGIN PGP SIGNED MESSAGE-----";
-const char *GpgConstants::PGP_SIGNED_END = "-----END PGP SIGNATURE-----";
-const char *GpgConstants::PGP_SIGNATURE_BEGIN = "-----BEGIN PGP SIGNATURE-----";
-const char *GpgConstants::PGP_SIGNATURE_END = "-----END PGP SIGNATURE-----";
-const char *GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD = "GpgF_Scpt://";
-
+#include "gpg/GpgInfo.h"
