@@ -377,7 +377,7 @@ void MainWindow::slotEncryptSign() {
                                          tr("Please go to the settings interface to enable and configure this function."));
                 }
             });
-            infoBoard->addOptionalAction("Shorten Crypt Text", [this]() {
+            infoBoard->addOptionalAction("Shorten Ciphertext", [this]() {
                 if (settings.value("general/serviceToken").toString().isEmpty())
                     QMessageBox::warning(nullptr,
                                          tr("Service Token Empty"),
