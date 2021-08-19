@@ -390,7 +390,7 @@ void KeyList::setFilter(std::function<bool(const GpgKey &)> filter) {
 
 void KeyList::slotDoubleClicked(const QModelIndex &index) {
     if (mAction != nullptr) {
-        const auto &key = mCtx->getKeyById(buffered_keys[index.row()].id);
+        const auto key = mCtx->getKeyById(buffered_keys[index.row()].id);
         mAction(key, this);
     }
 

@@ -65,17 +65,18 @@ bool DecryptResultAnalyse::printReci(QTextStream &stream, gpgme_recipient_t reci
     bool keyFound = true;
     stream << QApplication::tr("  {>} Recipient: ");
 
-    try {
-        auto key = mCtx->getKeyById(reci->keyid);
+    auto key = mCtx->getKeyById(reci->keyid);
+    if(key.good) {
         stream << key.name;
         if (!key.email.isEmpty()) {
             stream << "<" << key.email << ">";
         }
-    } catch (std::runtime_error &ignored) {
+    } else {
         stream << "<Unknown>";
         setStatus(0);
         keyFound = false;
     }
+
     stream << Qt::endl;
 
     stream << tr("      Keu ID: ") << reci->keyid << Qt::endl;

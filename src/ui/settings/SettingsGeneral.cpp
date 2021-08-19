@@ -109,7 +109,8 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
     keyIds.insert("", tr("<none>"));
 
     for (const auto &keyid : *mKeyList->getAllPrivateKeys()) {
-        auto &key = mCtx->getKeyById(keyid);
+        auto key = mCtx->getKeyById(keyid);
+        if (!key.good) continue;
         keyIds.insert(key.id, key.uids.first().uid);
     }
     for (const auto &k : keyIds.keys()) {
