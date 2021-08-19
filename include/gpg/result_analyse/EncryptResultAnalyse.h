@@ -27,7 +27,8 @@
 
 #include "ResultAnalyse.h"
 
-class EncryptResultAnalyse : public ResultAnalyse{
+class EncryptResultAnalyse : public ResultAnalyse {
+Q_OBJECT
 public:
     explicit EncryptResultAnalyse(gpgme_error_t error, gpgme_encrypt_result_t result);
 

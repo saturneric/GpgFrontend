@@ -28,23 +28,29 @@
 VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_verify_result_t result)
         : mCtx(ctx) {
 
-    stream << "# Verify Report: " << Qt::endl << "-----" << Qt::endl;
-    stream << "Status: " << gpgme_strerror(error) << Qt::endl;
+    stream << tr("[#] Verify Operation ");
 
-    if(result != nullptr) {
+    if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
+        stream << tr("[Success]") << Qt::endl;
+    else {
+        stream << tr("[Failed] ") << gpgme_strerror(error) << Qt::endl;
+        setStatus(-1);
+    }
 
+
+    if(result != nullptr && result->signatures) {
+        stream << "------------>" << Qt::endl;
         auto sign = result->signatures;
 
         if (sign == nullptr) {
-            stream << "> Not Signature Found" << Qt::endl;
+            stream << "[>] Not Signature Found" << Qt::endl;
             setStatus(0);
             return;
         }
 
+        stream << "[>] Signed On " << QDateTime::fromTime_t(sign->timestamp).toString() << Qt::endl;
 
-        stream << "> It was Signed ON " << QDateTime::fromTime_t(sign->timestamp).toString() << Qt::endl;
-
-        stream << Qt::endl << "> It Contains:" << Qt::endl;
+        stream << Qt::endl << "[>] Signatures:" << Qt::endl;
 
         bool canContinue = true;
 
@@ -57,7 +63,7 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
                     setStatus(-1);
                     break;
                 case GPG_ERR_NO_ERROR:
-                    stream << QApplication::tr("A ");
+                    stream  << QApplication::tr("A ");
                     if (sign->summary & GPGME_SIGSUM_GREEN) {
                         stream << QApplication::tr("Good ");
                     }
@@ -137,10 +143,8 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
             stream << Qt::endl;
             sign = sign->next;
         }
+        stream << "<------------" << Qt::endl;
     }
-
-    stream << "-----" << Qt::endl;
-    stream << Qt::endl;
 }
 
 bool VerifyResultAnalyse::printSigner(QTextStream &stream, gpgme_signature_t sign) {
@@ -148,7 +152,7 @@ bool VerifyResultAnalyse::printSigner(QTextStream &stream, gpgme_signature_t sig
     stream << QApplication::tr("Signed By: ");
     auto key = mCtx->getKeyByFpr(sign->fpr);
     if(!key.good) {
-        stream << "<Unknown>";
+        stream << tr("<Unknown>");
         setStatus(0);
         keyFound = false;
     }

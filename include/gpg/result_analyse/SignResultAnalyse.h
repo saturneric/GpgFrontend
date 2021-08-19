@@ -29,7 +29,8 @@
 
 #include "ResultAnalyse.h"
 
-class SignResultAnalyse : public ResultAnalyse{
+class SignResultAnalyse : public ResultAnalyse {
+Q_OBJECT
 public:
     explicit SignResultAnalyse(gpgme_error_t error, gpgme_sign_result_t result);
 

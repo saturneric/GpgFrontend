@@ -74,7 +74,7 @@ SettingsDialog::SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent)
     connect(this, SIGNAL(signalRestartNeeded(bool)), parent,
             SLOT(slotSetRestartNeeded(bool)));
 
-    this->resize(640, 640);
+    this->resize(480, 640);
     this->show();
 }
 

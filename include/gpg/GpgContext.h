@@ -131,7 +131,7 @@ namespace GpgME {
 
         bool setExpire(const GpgKey &key, const GpgSubKey *subkey, QDateTime *expires);
 
-        QProcess *generateRevokeCert(const GpgKey &key, const QString &outputFileName);
+        void generateRevokeCert(const GpgKey &key, const QString &outputFileName);
 
         static bool checkIfKeyCanSign(const GpgKey &key);
 
@@ -216,9 +216,7 @@ namespace GpgME {
                                  const char *passphrase_info,
                                  int last_was_bad, int fd);
 
-        QProcess *executeGpgCommand(const QStringList &arguments,
-                                    QByteArray *stdOut,
-                                    QByteArray *stdErr, const std::function<void(QProcess *)> &interactFunc);
+        void executeGpgCommand(const QStringList &arguments, const std::function<void(QProcess *)> &interactFunc);
 
     };
 } // namespace GpgME

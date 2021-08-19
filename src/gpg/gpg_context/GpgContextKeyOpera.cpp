@@ -364,48 +364,46 @@ bool GpgME::GpgContext::signKey(const GpgKey &target, const QString &uid, const 
 }
 
 /**
- * Generate revoke cert of a key pair (TODO)
+ * Generate revoke cert of a key pair
  * @param key target key pair
  * @param outputFileName out file name(path)
  * @return the process doing this job
  */
-QProcess *GpgME::GpgContext::generateRevokeCert(const GpgKey &key, const QString &outputFileName) {
-    QByteArray out, stdErr;
-    auto process = executeGpgCommand({
-                                             "--command-fd",
-                                             "0",
-                                             "--status-fd", "1",
-                                             "-o",
-                                             outputFileName,
-                                             "--gen-revoke",
-                                             key.fpr
-                                     }, &out, &stdErr,
-                                     [](QProcess *proc) {
-                                         qDebug() << "Function Called" << proc;
-                                         while (proc->canReadLine()) {
-                                             const QString line = QString::fromUtf8(proc->readLine()).trimmed();
-                                             // Command-fd is a stable interface, while this is all kind of hacky we
-                                             // are on a deadline :-/
-                                             if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
-                                                 proc->write("y\n");
-                                             } else if (line == QLatin1String(
-                                                     "[GNUPG:] GET_LINE ask_revocation_reason.code")) {
-                                                 proc->write("0\n");
-                                             } else if (line == QLatin1String(
-                                                     "[GNUPG:] GET_LINE ask_revocation_reason.text")) {
-                                                 proc->write("\n");
-                                             } else if (line == QLatin1String(
-                                                     "[GNUPG:] GET_BOOL openfile.overwrite.okay")) {
-                                                 // We asked before
-                                                 proc->write("y\n");
-                                             } else if (line == QLatin1String(
-                                                     "[GNUPG:] GET_BOOL ask_revocation_reason.okay")) {
-                                                 proc->write("y\n");
-                                             }
-                                         }
-                                     });
-
-    qDebug() << "GenerateRevokeCert Process" << process;
-
-    return process;
+void GpgME::GpgContext::generateRevokeCert(const GpgKey &key, const QString &outputFileName) {
+    executeGpgCommand({
+                              "--command-fd",
+                              "0",
+                              "--status-fd",
+                              "1",
+                              //"--no-tty",
+                              "-o",
+                              outputFileName,
+                              "--gen-revoke",
+                              key.fpr
+                      },
+                      [](QProcess *proc) -> void {
+                          qDebug() << "Function Called" << proc;
+                          // Code From Gpg4Win
+                          while (proc->canReadLine()) {
+                              const QString line = QString::fromUtf8(proc->readLine()).trimmed();
+                              if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
+                                  proc->write("y\n");
+                              } else if (line == QLatin1String(
+                                      "[GNUPG:] GET_LINE ask_revocation_reason.code")) {
+                                  proc->write("0\n");
+                              } else if (line == QLatin1String(
+                                      "[GNUPG:] GET_LINE ask_revocation_reason.text")) {
+                                  proc->write("\n");
+                              } else if (line == QLatin1String(
+                                      "[GNUPG:] GET_BOOL openfile.overwrite.okay")) {
+                                  // We asked before
+                                  proc->write("y\n");
+                              } else if (line == QLatin1String(
+                                      "[GNUPG:] GET_BOOL ask_revocation_reason.okay")) {
+                                  proc->write("y\n");
+                              }
+                          }
+                          // Code From Gpg4Win
+                      }
+    );
 }

@@ -191,6 +191,7 @@ void UpdateTab::processReplyDataFromUpdateServer(const QByteArray& data) {
     qDebug() << "Try to Process Reply Data From Update Server";
 
     this->pb->setHidden(true);
+
     Document d;
     if (d.Parse(data.constData()).HasParseError() || !d.IsObject()) {
         qDebug() << "VersionCheckThread Found Network Error";
@@ -203,18 +204,14 @@ void UpdateTab::processReplyDataFromUpdateServer(const QByteArray& data) {
 
     qDebug() << "Latest Version From Github" << latestVersion;
 
-    QRegularExpression re("^[vV](\\d+\\.)?(\\d+\\.)?(\\*|\\d+)");
+    QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
     QRegularExpressionMatch match = re.match(latestVersion);
     if (match.hasMatch()) {
-        latestVersion = match.captured(0); // matched == "23 def"
+        latestVersion = match.captured(0);
         qDebug() << "Latest Version Matched" << latestVersion;
-    } else {
-        latestVersion = "Unknown";
-    }
+    } else latestVersion = "Unknown";
 
     latestVersionLabel->setText("<center><b>" + tr("Latest Version From Github: ") + latestVersion + "</b></center>");
 
-    if(latestVersion > currentVersion) {
-        upgradeLabel->setHidden(false);
-    }
+    if(latestVersion > currentVersion) upgradeLabel->setHidden(false);
 }

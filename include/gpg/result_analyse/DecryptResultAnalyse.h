@@ -28,7 +28,8 @@
 #include "gpg/GpgContext.h"
 #include "ResultAnalyse.h"
 
-class DecryptResultAnalyse: public ResultAnalyse{
+class DecryptResultAnalyse : public ResultAnalyse {
+Q_OBJECT
 public:
     explicit DecryptResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_decrypt_result_t result);
 
