@@ -120,7 +120,7 @@ QString ComUtils::getUrl(ComUtils::ServiceType type) {
     if (host == "localhost") protocol = "http://";
     else protocol = "https://";
 
-    auto url = protocol + host + "/";
+    auto url = protocol + host + ":9049/";
 
     switch (type) {
         case GetServiceToken:

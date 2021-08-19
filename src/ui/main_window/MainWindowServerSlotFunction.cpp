@@ -119,8 +119,7 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
         QCryptographicHash sha_generator(QCryptographicHash::Sha256);
         sha_generator.addData(cryptoText.toUtf8());
 
-        if (serviceTokenFromServer == serviceToken &&
-            sha_generator.result().toHex() == sha) {
+        if (sha_generator.result().toHex() == sha) {
             return cryptoText;
         } else QMessageBox::critical(this, tr("Error"), tr("Invalid short ciphertext"));
 
@@ -200,11 +199,9 @@ void MainWindow::shortenCryptText() {
 
     QNetworkReply *reply = networkAccessManager->post(request, postData);
 
-    auto dialog = new WaitingDialog(tr("Getting Scpt From Server"), this);
+    auto *dialog = new WaitingDialog(tr("Getting Scpt From Server"), this);
     dialog->show();
-
     while (reply->isRunning()) QApplication::processEvents();
-
     dialog->close();
 
     if (utils->checkServerReply(reply->readAll().constData())) {

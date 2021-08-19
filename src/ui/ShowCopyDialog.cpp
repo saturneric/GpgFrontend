@@ -41,6 +41,8 @@ ShowCopyDialog::ShowCopyDialog(const QString &text, const QString &info, QWidget
     layout->addWidget(copyButton);
     layout->addWidget(infoLabel);
 
+    this->setWindowTitle("Short Ciphertext");
+    this->resize(320, 120);
     this->setModal(true);
     this->setLayout(layout);
 }

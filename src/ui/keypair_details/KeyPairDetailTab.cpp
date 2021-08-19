@@ -147,7 +147,6 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
             keyServerOperaButton->setStyleSheet("text-align:center;");
 
             auto *revokeCertGenButton = new QPushButton(tr("Generate Revoke Certificate"));
-            // revokeCertGenButton->setDisabled(true);
             connect(revokeCertGenButton, SIGNAL(clicked()), this, SLOT(slotGenRevokeCert()));
 
             hBoxLayout->addWidget(keyServerOperaButton);
