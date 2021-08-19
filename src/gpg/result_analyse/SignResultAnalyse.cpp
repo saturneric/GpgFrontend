@@ -26,34 +26,35 @@
 
 SignResultAnalyse::SignResultAnalyse(gpgme_error_t error, gpgme_sign_result_t result) {
 
-    stream << "# Sign Report: " << Qt::endl
-        << "-----" << Qt::endl;
-    stream << "Status: " << gpgme_strerror(error) << Qt::endl << Qt::endl;
+    stream << tr("[#] Sign Operation ");
 
-    if(gpg_err_code(error) != GPG_ERR_NO_ERROR) {
+    if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
+        stream << tr("[Success]") << Qt::endl;
+    else {
+        stream << tr("[Failed] ") << gpgme_strerror(error) << Qt::endl;
         setStatus(-1);
     }
 
-    if(result != nullptr) {
-
+    if (result != nullptr && (result->signatures != nullptr || result->invalid_signers != nullptr)) {
+        stream << "------------>" << Qt::endl;
         auto new_sign = result->signatures;
 
         while (new_sign != nullptr) {
-            stream << "> A New Signature: " << Qt::endl;
+            stream << tr("[>] New Signature: ") << Qt::endl;
 
-            stream << "Sign mode: ";
+            stream << tr("    Sign Mode: ");
             if (new_sign->type == GPGME_SIG_MODE_NORMAL)
-                stream << "Normal";
+                stream << tr("Normal");
             else if (new_sign->type == GPGME_SIG_MODE_CLEAR)
-                stream << "Clear";
+                stream << tr("Clear");
             else if (new_sign->type == GPGME_SIG_MODE_DETACH)
-                stream << "Detach";
+                stream << tr("Detach");
 
             stream << Qt::endl;
 
-            stream << "Public key algo: " << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << Qt::endl;
-            stream << "Hash algo: " << gpgme_hash_algo_name(new_sign->hash_algo) << Qt::endl;
-            stream << "Date of signature: " << QDateTime::fromTime_t(new_sign->timestamp).toString() << Qt::endl;
+            stream << tr("    Public Key Algo: ") << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << Qt::endl;
+            stream << tr("    Hash Algo: ") << gpgme_hash_algo_name(new_sign->hash_algo) << Qt::endl;
+            stream << tr("    Date & Time: ") << QDateTime::fromTime_t(new_sign->timestamp).toString() << Qt::endl;
 
             stream << Qt::endl;
 
@@ -63,19 +64,19 @@ SignResultAnalyse::SignResultAnalyse(gpgme_error_t error, gpgme_sign_result_t re
         auto invalid_signer = result->invalid_signers;
 
         if (invalid_signer != nullptr)
-            stream << "Invalid Signers: " << Qt::endl;
+            stream << tr("Invalid Signers: ") << Qt::endl;
 
         while (invalid_signer != nullptr) {
             setStatus(0);
-            stream << "Fingerprint: " << invalid_signer->fpr << Qt::endl;
-            stream << "Reason: " << gpgme_strerror(invalid_signer->reason) << Qt::endl;
+            stream << tr("[>] Signer: ") << Qt::endl;
+            stream << tr("      Fingerprint: ") << invalid_signer->fpr << Qt::endl;
+            stream << tr("      Reason: ") << gpgme_strerror(invalid_signer->reason) << Qt::endl;
             stream << Qt::endl;
 
             invalid_signer = invalid_signer->next;
         }
+        stream << "<------------" << Qt::endl;
 
     }
-
-    stream << "-----" << Qt::endl << Qt::endl;
 
 }

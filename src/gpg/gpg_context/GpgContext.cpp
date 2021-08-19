@@ -23,6 +23,7 @@
  */
 
 #include "gpg/GpgContext.h"
+#include "ui/WaitingDialog.h"
 
 #include <functional>
 #include <unistd.h>    /* contains read/write */
@@ -251,30 +252,28 @@ namespace GpgME {
     }
 
     /** return type should be gpgme_error_t*/
-    QProcess *GpgContext::executeGpgCommand(const QStringList &arguments, QByteArray *stdOut, QByteArray *stdErr,
-                                            const std::function<void(QProcess *)> &interactFunc) {
-        QStringList args;
-        args << arguments;
-
-        auto *gpgProcess = new QProcess(this);
-
-        gpgProcess->setReadChannel(QProcess::StandardOutput);
-        connect(gpgProcess, SIGNAL(finished(int, QProcess::ExitStatus)),
-                gpgProcess, SLOT(deleteLater()));
-        connect(gpgProcess, &QProcess::readyReadStandardOutput, this, [gpgProcess, interactFunc]() {
-            qDebug() << "Function Called" << &gpgProcess;
-            // interactFunc(gpgProcess);
+    void
+    GpgContext::executeGpgCommand(const QStringList &arguments, const std::function<void(QProcess *)> &interactFunc) {
+        QEventLoop looper;
+        auto dialog = new WaitingDialog(tr("Processing"), nullptr);
+        dialog->show();
+        auto *gpgProcess = new QProcess(&looper);
+        gpgProcess->setProcessChannelMode(QProcess::MergedChannels);
+        connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), &looper, &QEventLoop::quit);
+        connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), dialog, &WaitingDialog::deleteLater);
+        connect(gpgProcess, &QProcess::errorOccurred, []() -> void { qDebug("Error in Process"); });
+        connect(gpgProcess, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
+        connect(gpgProcess, &QProcess::started, []() -> void { qDebug() << "Gpg Process Started Success"; });
+        connect(gpgProcess, &QProcess::readyReadStandardOutput,  [interactFunc, gpgProcess]() {
+            qDebug() << "Function Called";
+            interactFunc(gpgProcess);
         });
+        gpgProcess->setProgram(info.appPath);
+        gpgProcess->setArguments(arguments);
+        gpgProcess->start();
+        looper.exec();
+        dialog->close();
 
-        gpgProcess->start(info.appPath, args);
-
-        if (gpgProcess->waitForStarted()) {
-            qDebug() << "Gpg Process Started Success";
-        } else {
-            qDebug() << "Gpg Process Started Failed";
-        }
-
-        return gpgProcess;
     }
 
 

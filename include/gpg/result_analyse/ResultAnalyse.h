@@ -26,7 +26,8 @@
 
 #include "GpgFrontend.h"
 
-class ResultAnalyse {
+class ResultAnalyse : public QObject {
+Q_OBJECT
 public:
     ResultAnalyse() = default;
 

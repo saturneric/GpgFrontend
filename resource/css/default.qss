@@ -463,7 +463,7 @@ QDateTimeEdit::up-button:pressed
 
 QDateTimeEdit::up-arrow
 {
-    image: url(://arrow-up.png);
+    image: url("./icons/up-arrow.png");
     width: 7px;
     height: 7px;
 
@@ -503,7 +503,7 @@ QDateTimeEdit::down-button:pressed
 
 QDateTimeEdit::down-arrow
 {
-    image: url(://arrow-up.png);
+    image: url("./icons/down.png");
     width: 7px;
     height: 7px;
 
@@ -550,7 +550,7 @@ QCalendarWidget::up-button:pressed
 
 QCalendarWidget::up-arrow
 {
-    image: url(://arrow-up.png);
+    image: url("./icons/up-arrow.png");
     width: 7px;
     height: 7px;
 
@@ -586,7 +586,7 @@ QCalendarWidget::down-button:pressed
 
 QCalendarWidget::down-arrow
 {
-    image: url(://arrow-down.png);
+    image: url("./icons/down.png");
     width: 7px;
     height: 7px;
 

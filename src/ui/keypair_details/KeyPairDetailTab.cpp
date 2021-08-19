@@ -147,7 +147,7 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
             keyServerOperaButton->setStyleSheet("text-align:center;");
 
             auto *revokeCertGenButton = new QPushButton(tr("Generate Revoke Certificate"));
-            revokeCertGenButton->setDisabled(true);
+            // revokeCertGenButton->setDisabled(true);
             connect(revokeCertGenButton, SIGNAL(clicked()), this, SLOT(slotGenRevokeCert()));
 
             hBoxLayout->addWidget(keyServerOperaButton);
@@ -342,15 +342,8 @@ void KeyPairDetailTab::slotGenRevokeCert() {
                                                         QStringLiteral("%1 (*.rev)").arg(
                                                                 tr("Revocation Certificates")));
 
-    auto process = mCtx->generateRevokeCert(mKey, mOutputFileName);
-
-    auto *dialog = new WaitingDialog("Generating", this);
-
-    while (process->state() == QProcess::Running) {
-        QApplication::processEvents();
-    }
-
-    dialog->close();
+    if(!mOutputFileName.isEmpty())
+        mCtx->generateRevokeCert(mKey, mOutputFileName);
 
 }
 
