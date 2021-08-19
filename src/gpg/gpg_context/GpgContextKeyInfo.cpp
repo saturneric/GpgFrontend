@@ -94,11 +94,10 @@ GpgKey GpgME::GpgContext::getKeyByFpr(const QString &fpr) {
  * @param id master key's id
  * @return the key
  */
-const GpgKey &GpgME::GpgContext::getKeyById(const QString &id) {
+GpgKey GpgME::GpgContext::getKeyById(const QString &id) {
 
     for (const auto &key : mKeyList) {
-        if (key.id == id)
-            return key;
+        if (key.id == id) return key;
         else {
             auto sub_keys = key.subKeys;
             for (const auto &subkey : sub_keys) {
@@ -107,5 +106,5 @@ const GpgKey &GpgME::GpgContext::getKeyById(const QString &id) {
         }
     }
 
-    throw std::runtime_error("key not found");
+    return GpgKey(nullptr);
 }

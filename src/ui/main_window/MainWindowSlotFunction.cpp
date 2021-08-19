@@ -481,7 +481,11 @@ void MainWindow::slotCopyMailAddressToClipboard() {
     if (mKeyList->getSelected()->isEmpty()) {
         return;
     }
-    auto &key = mCtx->getKeyById(mKeyList->getSelected()->first());
+    auto key = mCtx->getKeyById(mKeyList->getSelected()->first());
+    if (!key.good) {
+        QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
+        return;
+    }
     QClipboard *cb = QApplication::clipboard();
     QString mail = key.email;
     cb->setText(mail);
@@ -491,9 +495,11 @@ void MainWindow::slotShowKeyDetails() {
     if (mKeyList->getSelected()->isEmpty()) {
         return;
     }
-    auto &key = mCtx->getKeyById(mKeyList->getSelected()->first());
+    auto key = mCtx->getKeyById(mKeyList->getSelected()->first());
     if (key.good) {
         new KeyDetailsDialog(mCtx, key, this);
+    } else {
+        QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
     }
 }
 

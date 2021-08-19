@@ -214,7 +214,11 @@ void KeyPairDetailTab::slotExportPrivateKey() {
             return;
         }
 
-        auto &key = mCtx->getKeyById(*keyid);
+        auto key = mCtx->getKeyById(*keyid);
+        if (!key.good) {
+            QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
+            return;
+        }
         QString fileString = key.name + " " + key.email + "(" +
                              key.id + ")_secret.asc";
         QString fileName = QFileDialog::getSaveFileName(this, tr("Export Key To File"), fileString,
@@ -341,7 +345,7 @@ void KeyPairDetailTab::slotGenRevokeCert() {
                                                         QStringLiteral("%1 (*.rev)").arg(
                                                                 tr("Revocation Certificates")));
 
-    if(!mOutputFileName.isEmpty())
+    if (!mOutputFileName.isEmpty())
         mCtx->generateRevokeCert(mKey, mOutputFileName);
 
 }

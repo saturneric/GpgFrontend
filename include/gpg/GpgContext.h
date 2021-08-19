@@ -152,7 +152,7 @@ namespace GpgME {
 
         GpgKey getKeyByFpr(const QString &fpr);
 
-        const GpgKey &getKeyById(const QString &id);
+        GpgKey getKeyById(const QString &id);
 
         static QString gpgErrString(gpgme_error_t err);
 
