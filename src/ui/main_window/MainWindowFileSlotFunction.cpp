@@ -274,7 +274,7 @@ void MainWindow::slotFileSign() {
 
     if (!if_error) {
 
-        auto resultAnalyse = new SignResultAnalyse(error, result);
+        auto resultAnalyse = new SignResultAnalyse(mCtx, error, result);
         auto &reportText = resultAnalyse->getResultReport();
         infoBoard->associateTabWidget(edit->tabWidget);
         infoBoard->associateFileTreeView(edit->curFilePage());
@@ -479,7 +479,7 @@ void MainWindow::slotFileEncryptSign() {
     if (!if_error) {
 
         auto resultAnalyseEncr = new EncryptResultAnalyse(error, encr_result);
-        auto resultAnalyseSign = new SignResultAnalyse(error, sign_result);
+        auto resultAnalyseSign = new SignResultAnalyse(mCtx, error, sign_result);
         int status = std::min(resultAnalyseEncr->getStatus(), resultAnalyseSign->getStatus());
         auto reportText = resultAnalyseEncr->getResultReport() + resultAnalyseSign->getResultReport();
 

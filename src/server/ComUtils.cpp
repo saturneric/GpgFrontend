@@ -97,7 +97,7 @@ bool ComUtils::checkServerReply(const QByteArray &reply) {
  * @param key key of value
  * @return value in string format
  */
-QString ComUtils::getDataValue(const QString &key) {
+QString ComUtils::getDataValueStr(const QString &key) {
     if (is_good) {
         auto k_byte_array = key.toUtf8();
         if (dataVal.HasMember(k_byte_array.data())) {
@@ -111,12 +111,12 @@ QString ComUtils::getDataValue(const QString &key) {
  * @param type service which server provides
  * @return url
  */
-QString ComUtils::getUrl(ComUtils::ServiceType type) {
+QString ComUtils::getUrl(ComUtils::ServiceType type) const {
     auto host = settings.value("general/currentGpgfrontendServer",
                                "service.gpgfrontend.pub").toString();
 
     auto protocol = QString();
-    // Debug Server
+    // Localhost Debug Server
     if (host == "localhost") protocol = "http://";
     else protocol = "https://";
 
@@ -132,6 +132,9 @@ QString ComUtils::getUrl(ComUtils::ServiceType type) {
         case GetFullCryptText:
             url += "/text/get";
             break;
+        case UploadPubkey:
+            url += "/key/upload";
+            break;
     }
 
     qDebug() << "ComUtils getUrl" << url;
@@ -139,7 +142,7 @@ QString ComUtils::getUrl(ComUtils::ServiceType type) {
     return url;
 }
 
-bool ComUtils::checkDataValue(const QString &key) {
+bool ComUtils::checkDataValueStr(const QString &key) {
     auto key_byte_array_data = key.toUtf8().constData();
     if (is_good) {
         return dataVal.HasMember(key_byte_array_data) && dataVal[key_byte_array_data].IsString();
@@ -148,4 +151,29 @@ bool ComUtils::checkDataValue(const QString &key) {
 
 bool ComUtils::checkServiceTokenFormat(const QString &uuid) {
     return re_uuid.match(uuid).hasMatch();
+}
+
+QByteArray ComUtils::getSignStringBase64(GpgME::GpgContext *ctx, const QString &str, const GpgKey &key) {
+    QVector<GpgKey> keys{key};
+    QByteArray outSignText;
+    auto signData = str.toUtf8();
+    ctx->sign(keys, signData, &outSignText, GPGME_SIG_MODE_NORMAL);
+    return outSignText.toBase64();
+}
+
+rapidjson::Value &ComUtils::getDataValue(const QString &key) {
+    if (is_good) {
+        auto k_byte_array = key.toUtf8();
+        if (dataVal.HasMember(k_byte_array.data())) {
+            return dataVal[k_byte_array.data()];
+        }
+    }
+    throw std::runtime_error("Inner Error");
+}
+
+bool ComUtils::checkDataValue(const QString &key){
+    auto key_byte_array_data = key.toUtf8().constData();
+    if (is_good) {
+        return dataVal.HasMember(key_byte_array_data);
+    } else return false;
 }

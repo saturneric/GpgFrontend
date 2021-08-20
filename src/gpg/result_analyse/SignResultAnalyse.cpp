@@ -24,7 +24,7 @@
 
 #include "gpg/result_analyse/SignResultAnalyse.h"
 
-SignResultAnalyse::SignResultAnalyse(gpgme_error_t error, gpgme_sign_result_t result) {
+SignResultAnalyse::SignResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_sign_result_t result) {
 
     stream << tr("[#] Sign Operation ");
 
@@ -52,6 +52,12 @@ SignResultAnalyse::SignResultAnalyse(gpgme_error_t error, gpgme_sign_result_t re
 
             stream << Qt::endl;
 
+            GpgKey singerKey = ctx->getKeyByFpr(new_sign->fpr);
+            if(singerKey.good) {
+                stream << tr("    Signer: ") << singerKey.uids.first().uid << Qt::endl;
+            } else {
+                stream << tr("    Signer: ") << tr("<unknown>") << Qt::endl;
+            }
             stream << tr("    Public Key Algo: ") << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << Qt::endl;
             stream << tr("    Hash Algo: ") << gpgme_hash_algo_name(new_sign->hash_algo) << Qt::endl;
             stream << tr("    Date & Time: ") << QDateTime::fromTime_t(new_sign->timestamp).toString() << Qt::endl;

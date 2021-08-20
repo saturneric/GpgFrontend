@@ -24,6 +24,7 @@
 
 #include "MainWindow.h"
 #include "ui/SendMailDialog.h"
+#include "ui/widgets/SignersPicker.h"
 
 
 /**
@@ -154,7 +155,7 @@ void MainWindow::slotSign() {
         infoBoard->associateTextEdit(edit->curTextPage());
         edit->slotFillTextEditWithText(QString::fromUtf8(*tmp));
 
-        auto resultAnalyse = new SignResultAnalyse(error, result);
+        auto resultAnalyse = new SignResultAnalyse(mCtx, error, result);
 
         auto &reportText = resultAnalyse->getResultReport();
         if (resultAnalyse->getStatus() < 0)
@@ -328,13 +329,33 @@ void MainWindow::slotEncryptSign() {
                                  tr("None of the selected key pairs can provide the signature function."));
         }
 
+        QVector<GpgKey> signerKeys;
+
+        auto signersPicker = new SignersPicker(mCtx, this);
+
+        QEventLoop loop;
+        connect(signersPicker, SIGNAL(accepted()), &loop, SLOT(quit()));
+        loop.exec();
+
+        signersPicker->getCheckedSigners(signerKeys);
+
+        for(const auto &key : keys) {
+            qDebug() << "Keys " << key.email;
+        }
+
+        for(const auto &signer : signerKeys) {
+            qDebug() << "Signers " << signer.email;
+        }
+
+
         auto *tmp = new QByteArray();
         gpgme_encrypt_result_t encr_result = nullptr;
         gpgme_sign_result_t sign_result = nullptr;
 
         gpgme_error_t error;
         auto thread = QThread::create([&]() {
-            error = mCtx->encryptSign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &encr_result,
+            error = mCtx->encryptSign(keys, signerKeys, edit->curTextPage()->toPlainText().toUtf8(), tmp,
+                                      &encr_result,
                                       &sign_result);
         });
         connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
@@ -353,7 +374,7 @@ void MainWindow::slotEncryptSign() {
         }
 
         auto resultAnalyseEncr = new EncryptResultAnalyse(error, encr_result);
-        auto resultAnalyseSign = new SignResultAnalyse(error, sign_result);
+        auto resultAnalyseSign = new SignResultAnalyse(mCtx, error, sign_result);
         int status = std::min(resultAnalyseEncr->getStatus(), resultAnalyseSign->getStatus());
         auto reportText = resultAnalyseEncr->getResultReport() + resultAnalyseSign->getResultReport();
 
@@ -521,7 +542,6 @@ void MainWindow::uploadKeyToServer() {
     dialog->show();
     dialog->slotUpload();
 }
-
 
 
 void MainWindow::slotOpenFile(QString &path) {

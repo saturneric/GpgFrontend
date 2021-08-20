@@ -54,9 +54,7 @@ private:
     QVector<QString> keyIdsList;
     QString serviceToken;
     KeyList *mKeyList;
-    GpgME::GpgContext *mCtx; /** The current gpg context */
-
-    QNetworkAccessManager manager;
+    GpgME::GpgContext *mCtx;
 
 private slots:
 

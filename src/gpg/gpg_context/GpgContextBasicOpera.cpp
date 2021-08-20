@@ -221,12 +221,14 @@ gpg_error_t GpgME::GpgContext::sign(const QVector<GpgKey> &keys, const QByteArra
  * @param sign_result sign opera result
  * @return
  */
-gpgme_error_t GpgME::GpgContext::encryptSign(QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer,
-                                             gpgme_encrypt_result_t *encr_result, gpgme_sign_result_t *sign_result) {
+gpgme_error_t
+GpgME::GpgContext::encryptSign(QVector<GpgKey> &keys, QVector<GpgKey> &signers, const QByteArray &inBuffer,
+                               QByteArray *outBuffer, gpgme_encrypt_result_t *encr_result,
+                               gpgme_sign_result_t *sign_result) {
     gpgme_data_t data_in = nullptr, data_out = nullptr;
     outBuffer->resize(0);
 
-    setSigners(keys);
+    setSigners(signers);
 
     //gpgme_encrypt_result_t e_result;
     gpgme_key_t recipients[keys.count() + 1];

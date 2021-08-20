@@ -22,23 +22,18 @@
  *
  */
 
-#ifndef GPGFRONTEND_SIGNRESULTANALYSE_H
-#define GPGFRONTEND_SIGNRESULTANALYSE_H
+#ifndef GPGFRONTEND_ZH_CN_TS_PUBKEYUPLOADER_H
+#define GPGFRONTEND_ZH_CN_TS_PUBKEYUPLOADER_H
 
 #include "GpgFrontend.h"
+#include "ComUtils.h"
 
-#include "ResultAnalyse.h"
-#include "gpg/GpgContext.h"
-
-class SignResultAnalyse : public ResultAnalyse {
-Q_OBJECT
+class PubkeyUploader {
 public:
 
-    explicit SignResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_sign_result_t result);
-
-
-private:
+    PubkeyUploader(GpgME::GpgContext *ctx, const QVector<GpgKey> &keys);
 
 };
 
-#endif //GPGFRONTEND_SIGNRESULTANALYSE_H
+
+#endif //GPGFRONTEND_ZH_CN_TS_PUBKEYUPLOADER_H
