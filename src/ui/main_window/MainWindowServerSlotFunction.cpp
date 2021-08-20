@@ -86,7 +86,7 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
     QByteArray postData(sb.GetString());
     qDebug() << "postData" << QString::fromUtf8(postData);
 
-    QNetworkReply *reply = utils->getNetworkManager()->post(request, postData);
+    QNetworkReply *reply = utils->getNetworkManager().post(request, postData);
 
     auto dialog = new WaitingDialog(tr("Getting Cpt From Server"), this);
     dialog->show();
