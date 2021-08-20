@@ -26,13 +26,14 @@
 #define GPGFRONTEND_ZH_CN_TS_COMUTILS_H
 
 #include "GpgFrontend.h"
+#include "gpg/GpgContext.h"
 #include "rapidjson/document.h"
 
 class ComUtils : public QWidget {
 Q_OBJECT
 public:
 
-    enum ServiceType { GetServiceToken, ShortenCryptText, GetFullCryptText };
+    enum ServiceType { GetServiceToken, ShortenCryptText, GetFullCryptText, UploadPubkey };
 
     explicit ComUtils(QWidget *parent) : QWidget(parent), appPath(qApp->applicationDirPath()),
                                          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
@@ -40,17 +41,25 @@ public:
 
     }
 
-    QString getUrl(ServiceType type);
+    QString getUrl(ServiceType type) const;
 
     bool checkServerReply(const QByteArray &reply);
 
-    QString getDataValue(const QString &key);
+    QString getDataValueStr(const QString &key);
+
+    bool checkDataValueStr(const QString &key);
+
+    rapidjson::Value &getDataValue(const QString &key);
 
     bool checkDataValue(const QString &key);
 
     bool checkServiceTokenFormat(const QString& serviceToken);
 
+    static QByteArray getSignStringBase64(GpgME::GpgContext *ctx, const QString &str, const GpgKey& key);
+
     [[nodiscard]] bool good() const { return is_good; }
+
+    QNetworkAccessManager &getNetworkManager() {return networkMgr;}
 
 private:
 
@@ -58,6 +67,8 @@ private:
     QSettings settings;
     rapidjson::Document replyDoc;
     rapidjson::Value dataVal;
+
+    QNetworkAccessManager networkMgr;
 
     QRegularExpression re_uuid{R"(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)"};
 

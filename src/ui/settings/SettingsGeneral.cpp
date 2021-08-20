@@ -24,10 +24,8 @@
 
 #include "ui/SettingsDialog.h"
 #include "ui/WaitingDialog.h"
-
 #include "server/ComUtils.h"
 
-#include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 
 GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
@@ -241,8 +239,6 @@ void GeneralTab::slotGetServiceToken() {
     QNetworkRequest request(reqUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    // Building Post Data
-    QByteArray keyDataBuf;
 
     const auto keyId = keyIdsList[ownKeySelectBox->currentIndex()];
 
@@ -255,22 +251,55 @@ void GeneralTab::slotGetServiceToken() {
     }
 
     QStringList selectedKeyIds(keyIdsList[ownKeySelectBox->currentIndex()]);
+
+    QByteArray keyDataBuf;
     mCtx->exportKeys(&selectedKeyIds, &keyDataBuf);
+
+    GpgKey key = mCtx->getKeyById(keyId);
+
+    if(!key.good) {
+        QMessageBox::critical(this, tr("Error"),
+                              tr("Key Not Exists"));
+        return;
+    }
 
     qDebug() << "keyDataBuf" << keyDataBuf;
 
-    rapidjson::Value p, v;
+    /**
+     * {
+     *      "publicKey" : ...
+     *      "sha": ...
+     *      "signedFpr": ...
+     *      "version": ...
+     * }
+     */
+
+    QCryptographicHash shaGen(QCryptographicHash::Sha256);
+    shaGen.addData(keyDataBuf);
+
+    auto shaStr = shaGen.result().toHex();
+
+    auto signFprStr = utils->getSignStringBase64(mCtx, key.fpr, key);
+
+    rapidjson::Value pubkey, ver, sha, signFpr;
 
     rapidjson::Document doc;
     doc.SetObject();
 
-    p.SetString(keyDataBuf.constData(), keyDataBuf.count());
+    pubkey.SetString(keyDataBuf.constData(), keyDataBuf.count());
 
     auto version = qApp->applicationVersion();
-    v.SetString(version.toUtf8().constData(), qApp->applicationVersion().count());
+    ver.SetString(version.toUtf8().constData(), qApp->applicationVersion().count());
 
-    doc.AddMember("publicKey", p, doc.GetAllocator());
-    doc.AddMember("version", v, doc.GetAllocator());
+    sha.SetString(shaStr.constData(), shaStr.count());
+    signFpr.SetString(signFprStr.constData(), signFprStr.count());
+
+    rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+
+    doc.AddMember("publicKey", pubkey, allocator);
+    doc.AddMember("sha", sha, allocator);
+    doc.AddMember("signedFpr", signFpr, allocator);
+    doc.AddMember("version", ver, allocator);
 
     rapidjson::StringBuffer sb;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
@@ -278,8 +307,9 @@ void GeneralTab::slotGetServiceToken() {
 
     QByteArray postData(sb.GetString());
 
-    QNetworkReply *reply = manager.post(request, postData);
+    QNetworkReply *reply = utils->getNetworkManager().post(request, postData);
 
+    // Show Waiting Dailog
     auto dialog = new WaitingDialog("Getting Token From Server", this);
     dialog->show();
 
@@ -298,13 +328,13 @@ void GeneralTab::slotGetServiceToken() {
          * }
          */
 
-        if(!utils->checkDataValue("serviceToken") || !utils->checkDataValue("fpr")) {
+        if(!utils->checkDataValueStr("serviceToken") || !utils->checkDataValueStr("fpr")) {
             QMessageBox::critical(this, tr("Error"), tr("The communication content with the server does not meet the requirements"));
             return;
         }
 
-        QString serviceTokenTemp = utils->getDataValue("serviceToken");
-        QString fpr = utils->getDataValue("fpr");
+        QString serviceTokenTemp = utils->getDataValueStr("serviceToken");
+        QString fpr = utils->getDataValueStr("fpr");
         auto key = mCtx->getKeyByFpr(fpr);
         if (utils->checkServiceTokenFormat(serviceTokenTemp) && key.good) {
             serviceToken = serviceTokenTemp;

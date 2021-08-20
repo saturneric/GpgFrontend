@@ -22,23 +22,27 @@
  *
  */
 
-#ifndef GPGFRONTEND_SIGNRESULTANALYSE_H
-#define GPGFRONTEND_SIGNRESULTANALYSE_H
+#ifndef GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
+#define GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
 
 #include "GpgFrontend.h"
-
-#include "ResultAnalyse.h"
 #include "gpg/GpgContext.h"
 
-class SignResultAnalyse : public ResultAnalyse {
+#include "ui/widgets/KeyList.h"
+
+class SignersPicker : public QDialog {
 Q_OBJECT
+
 public:
 
-    explicit SignResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_sign_result_t result);
+    explicit SignersPicker(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
 
+    void getCheckedSigners(QVector<GpgKey> &keys);
 
 private:
-
+    GpgME::GpgContext *mCtx;
+    KeyList *mKeyList;
 };
 
-#endif //GPGFRONTEND_SIGNRESULTANALYSE_H
+
+#endif //GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H

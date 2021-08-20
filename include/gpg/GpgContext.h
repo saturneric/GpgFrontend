@@ -95,8 +95,9 @@ namespace GpgME {
         gpg_error_t encrypt(QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer,
                             gpgme_encrypt_result_t *result);
 
-        gpgme_error_t encryptSign(QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer,
-                                  gpgme_encrypt_result_t *encr_result, gpgme_sign_result_t *sign_result);
+        gpgme_error_t encryptSign(QVector<GpgKey> &keys, QVector<GpgKey> &signers, const QByteArray &inBuffer,
+                                  QByteArray *outBuffer, gpgme_encrypt_result_t *encr_result,
+                                  gpgme_sign_result_t *sign_result);
 
         gpgme_error_t decrypt(const QByteArray &inBuffer, QByteArray *outBuffer, gpgme_decrypt_result_t *result);
 

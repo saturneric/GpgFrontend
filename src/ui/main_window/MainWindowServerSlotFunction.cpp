@@ -74,8 +74,10 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
     const auto t_byte_array = serviceToken.toUtf8();
     t.SetString(t_byte_array.constData(), t_byte_array.count());
 
-    doc.AddMember("signature", s, doc.GetAllocator());
-    doc.AddMember("serviceToken", t, doc.GetAllocator());
+    rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+
+    doc.AddMember("signature", s, allocator);
+    doc.AddMember("serviceToken", t, allocator);
 
     rapidjson::StringBuffer sb;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
@@ -84,7 +86,7 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
     QByteArray postData(sb.GetString());
     qDebug() << "postData" << QString::fromUtf8(postData);
 
-    QNetworkReply *reply = networkAccessManager->post(request, postData);
+    QNetworkReply *reply = utils->getNetworkManager()->post(request, postData);
 
     auto dialog = new WaitingDialog(tr("Getting Cpt From Server"), this);
     dialog->show();
@@ -104,17 +106,17 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
          * }
          */
 
-        if (!utils->checkDataValue("cryptoText")
-            || !utils->checkDataValue("sha")
-            || !utils->checkDataValue("serviceToken")) {
+        if (!utils->checkDataValueStr("cryptoText")
+            || !utils->checkDataValueStr("sha")
+            || !utils->checkDataValueStr("serviceToken")) {
             QMessageBox::critical(this, tr("Error"),
                                   tr("The communication content with the server does not meet the requirements"));
             return {};
         }
 
-        auto cryptoText = utils->getDataValue("cryptoText");
-        auto sha = utils->getDataValue("sha");
-        auto serviceTokenFromServer = utils->getDataValue("serviceToken");
+        auto cryptoText = utils->getDataValueStr("cryptoText");
+        auto sha = utils->getDataValueStr("sha");
+        auto serviceTokenFromServer = utils->getDataValueStr("serviceToken");
 
         QCryptographicHash sha_generator(QCryptographicHash::Sha256);
         sha_generator.addData(cryptoText.toUtf8());
@@ -168,10 +170,7 @@ void MainWindow::shortenCryptText() {
 
     qDebug() << "shaText" << shaText;
 
-    QVector<GpgKey> keys{key};
-    QByteArray outSignText;
-    mCtx->sign(keys, signText, &outSignText, GPGME_SIG_MODE_NORMAL);
-    QByteArray outSignTextBase64 = outSignText.toBase64();
+    QByteArray outSignTextBase64 = ComUtils::getSignStringBase64(mCtx, signText, key);
 
     rapidjson::Value c, s, m, t;
 
@@ -185,10 +184,12 @@ void MainWindow::shortenCryptText() {
     auto t_byte_array = serviceToken.toUtf8();
     t.SetString(t_byte_array.constData(), t_byte_array.count());
 
-    doc.AddMember("cryptoText", c, doc.GetAllocator());
-    doc.AddMember("sha", m, doc.GetAllocator());
-    doc.AddMember("sign", s, doc.GetAllocator());
-    doc.AddMember("serviceToken", t, doc.GetAllocator());
+    rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+
+    doc.AddMember("cryptoText", c, allocator);
+    doc.AddMember("sha", m, allocator);
+    doc.AddMember("sign", s, allocator);
+    doc.AddMember("serviceToken", t, allocator);
 
     rapidjson::StringBuffer sb;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
@@ -213,17 +214,17 @@ void MainWindow::shortenCryptText() {
          * }
          */
 
-        if (!utils->checkDataValue("shortenText") || !utils->checkDataValue("md5")) {
+        if (!utils->checkDataValueStr("shortenText") || !utils->checkDataValueStr("md5")) {
             QMessageBox::critical(this, tr("Error"),
                                   tr("The communication content with the server does not meet the requirements"));
             return;
         }
 
-        QString shortenText = utils->getDataValue("shortenText");
+        QString shortenText = utils->getDataValueStr("shortenText");
 
         QCryptographicHash md5_generator(QCryptographicHash::Md5);
         md5_generator.addData(shortenText.toUtf8());
-        if (md5_generator.result().toHex() == utils->getDataValue("md5")) {
+        if (md5_generator.result().toHex() == utils->getDataValueStr("md5")) {
             auto *dialog = new ShowCopyDialog(shortenText, tr("Notice: Use Decrypt & Verify operation to decrypt this short crypto text."), this);
             dialog->show();
         } else {
