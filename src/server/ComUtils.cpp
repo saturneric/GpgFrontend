@@ -97,7 +97,7 @@ bool ComUtils::checkServerReply(const QByteArray &reply) {
  * @param key key of value
  * @return value in string format
  */
-QString ComUtils::getDataValueStr(const QString &key) {
+QString ComUtils::getDataValueStr(const QString &key) const {
     if (is_good) {
         auto k_byte_array = key.toUtf8();
         if (dataVal.HasMember(k_byte_array.data())) {
@@ -135,6 +135,9 @@ QString ComUtils::getUrl(ComUtils::ServiceType type) const {
         case UploadPubkey:
             url += "/key/upload";
             break;
+        case GetPubkey:
+            url += "/key/get";
+            break;
     }
 
     qDebug() << "ComUtils getUrl" << url;
@@ -142,14 +145,14 @@ QString ComUtils::getUrl(ComUtils::ServiceType type) const {
     return url;
 }
 
-bool ComUtils::checkDataValueStr(const QString &key) {
+bool ComUtils::checkDataValueStr(const QString &key) const {
     auto key_byte_array_data = key.toUtf8().constData();
     if (is_good) {
         return dataVal.HasMember(key_byte_array_data) && dataVal[key_byte_array_data].IsString();
     } else return false;
 }
 
-bool ComUtils::checkServiceTokenFormat(const QString &uuid) {
+bool ComUtils::checkServiceTokenFormat(const QString &uuid) const {
     return re_uuid.match(uuid).hasMatch();
 }
 
@@ -161,7 +164,7 @@ QByteArray ComUtils::getSignStringBase64(GpgME::GpgContext *ctx, const QString &
     return outSignText.toBase64();
 }
 
-rapidjson::Value &ComUtils::getDataValue(const QString &key) {
+const rapidjson::Value &ComUtils::getDataValue(const QString &key) const {
     if (is_good) {
         auto k_byte_array = key.toUtf8();
         if (dataVal.HasMember(k_byte_array.data())) {
@@ -171,9 +174,15 @@ rapidjson::Value &ComUtils::getDataValue(const QString &key) {
     throw std::runtime_error("Inner Error");
 }
 
-bool ComUtils::checkDataValue(const QString &key){
+bool ComUtils::checkDataValue(const QString &key) const{
     auto key_byte_array_data = key.toUtf8().constData();
     if (is_good) {
         return dataVal.HasMember(key_byte_array_data);
     } else return false;
+}
+
+void ComUtils::clear() {
+    this->dataVal.Clear();
+    this->replyDoc.Clear();
+    is_good = false;
 }

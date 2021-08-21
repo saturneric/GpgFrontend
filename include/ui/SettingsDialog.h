@@ -188,6 +188,7 @@ private:
     QSettings settings;
 
     QCheckBox *steganoCheckBox;
+    QCheckBox *autoPubkeyExchangeCheckBox;
 
 signals:
 
