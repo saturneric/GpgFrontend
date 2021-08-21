@@ -33,7 +33,7 @@ class ComUtils : public QWidget {
 Q_OBJECT
 public:
 
-    enum ServiceType { GetServiceToken, ShortenCryptText, GetFullCryptText, UploadPubkey };
+    enum ServiceType { GetServiceToken, ShortenCryptText, GetFullCryptText, UploadPubkey, GetPubkey };
 
     explicit ComUtils(QWidget *parent) : QWidget(parent), appPath(qApp->applicationDirPath()),
                                          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
@@ -41,19 +41,19 @@ public:
 
     }
 
-    QString getUrl(ServiceType type) const;
+    [[nodiscard]] QString getUrl(ServiceType type) const;
 
     bool checkServerReply(const QByteArray &reply);
 
-    QString getDataValueStr(const QString &key);
+    [[nodiscard]] QString getDataValueStr(const QString &key) const;
 
-    bool checkDataValueStr(const QString &key);
+    [[nodiscard]] bool checkDataValueStr(const QString &key) const;
 
-    rapidjson::Value &getDataValue(const QString &key);
+    [[nodiscard]] const rapidjson::Value &getDataValue(const QString &key) const;
 
-    bool checkDataValue(const QString &key);
+    [[nodiscard]] bool checkDataValue(const QString &key) const;
 
-    bool checkServiceTokenFormat(const QString& serviceToken);
+    [[nodiscard]] bool checkServiceTokenFormat(const QString& serviceToken) const;
 
     static QByteArray getSignStringBase64(GpgME::GpgContext *ctx, const QString &str, const GpgKey& key);
 
@@ -61,15 +61,15 @@ public:
 
     QNetworkAccessManager &getNetworkManager() {return networkMgr;}
 
+    void clear();
+
 private:
 
     QString appPath;
     QSettings settings;
     rapidjson::Document replyDoc;
     rapidjson::Value dataVal;
-
     QNetworkAccessManager networkMgr;
-
     QRegularExpression re_uuid{R"(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)"};
 
     bool is_good = false;

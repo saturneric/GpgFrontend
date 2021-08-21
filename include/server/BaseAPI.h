@@ -22,18 +22,52 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_PUBKEYUPLOADER_H
-#define GPGFRONTEND_ZH_CN_TS_PUBKEYUPLOADER_H
+#ifndef GPGFRONTEND_ZH_CN_TS_BASEAPI_H
+#define GPGFRONTEND_ZH_CN_TS_BASEAPI_H
 
 #include "GpgFrontend.h"
 #include "ComUtils.h"
 
-class PubkeyUploader {
+#include "rapidjson/document.h"
+
+class BaseAPI : QObject {
+Q_OBJECT
 public:
 
-    PubkeyUploader(GpgME::GpgContext *ctx, const QVector<GpgKey> &keys);
+    explicit BaseAPI(ComUtils::ServiceType serviceType);
+
+    ~BaseAPI() override;
+
+    void start();
+
+    void refresh();
+
+    [[nodiscard]] bool result() const;
+
+private:
+
+    ComUtils *utils;
+
+    QUrl reqUrl;
+
+    QNetworkRequest request;
+
+    bool good = false;
+
+    QNetworkReply *send_json_data();
+
+protected:
+
+    rapidjson::Document document;
+
+    const ComUtils &getUtils() { return *utils; };
+
+    virtual void construct_json() = 0;
+
+    virtual void deal_reply() = 0;
+
 
 };
 
 
-#endif //GPGFRONTEND_ZH_CN_TS_PUBKEYUPLOADER_H
+#endif //GPGFRONTEND_ZH_CN_TS_BASEAPI_H

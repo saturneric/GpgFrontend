@@ -38,7 +38,7 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
     }
 
 
-    if(result != nullptr && result->signatures) {
+    if (result != nullptr && result->signatures) {
         stream << "------------>" << Qt::endl;
         auto sign = result->signatures;
 
@@ -63,7 +63,7 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
                     setStatus(-1);
                     break;
                 case GPG_ERR_NO_ERROR:
-                    stream  << QApplication::tr("A ");
+                    stream << QApplication::tr("A ");
                     if (sign->summary & GPGME_SIGSUM_GREEN) {
                         stream << QApplication::tr("Good ");
                     }
@@ -151,16 +151,18 @@ bool VerifyResultAnalyse::printSigner(QTextStream &stream, gpgme_signature_t sig
     bool keyFound = true;
     stream << QApplication::tr("Signed By: ");
     auto key = mCtx->getKeyByFpr(sign->fpr);
-    if(!key.good) {
+
+    key = mCtx->getKeyByFpr(sign->fpr);
+
+    if (!key.good) {
         stream << tr("<Unknown>");
         setStatus(0);
         keyFound = false;
     }
     stream << key.name;
     if (!key.email.isEmpty()) {
-        stream << "<" << key.email <<  ">";
+        stream << "<" << key.email << ">";
     }
     stream << Qt::endl;
     return keyFound;
-
 }

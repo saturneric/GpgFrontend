@@ -43,10 +43,10 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
     serverBoxLayout->addWidget(serverSelectBox);
     serverBoxLayout->addWidget(new QLabel(
             tr("Server that provides short key and key exchange services")));
-    connect(serverSelectBox, QOverload<const QString&>::of(&QComboBox::currentTextChanged),
+    connect(serverSelectBox, QOverload<const QString &>::of(&QComboBox::currentTextChanged),
             this, [&](const QString &current) -> void {
-        settings.setValue("general/currentGpgfrontendServer", current);
-    });
+                settings.setValue("general/currentGpgfrontendServer", current);
+            });
 
     serverBox->setLayout(serverBoxLayout);
 
@@ -257,7 +257,7 @@ void GeneralTab::slotGetServiceToken() {
 
     GpgKey key = mCtx->getKeyById(keyId);
 
-    if(!key.good) {
+    if (!key.good) {
         QMessageBox::critical(this, tr("Error"),
                               tr("Key Not Exists"));
         return;
@@ -279,7 +279,7 @@ void GeneralTab::slotGetServiceToken() {
 
     auto shaStr = shaGen.result().toHex();
 
-    auto signFprStr = utils->getSignStringBase64(mCtx, key.fpr, key);
+    auto signFprStr = ComUtils::getSignStringBase64(mCtx, key.fpr, key);
 
     rapidjson::Value pubkey, ver, sha, signFpr;
 
@@ -294,7 +294,7 @@ void GeneralTab::slotGetServiceToken() {
     sha.SetString(shaStr.constData(), shaStr.count());
     signFpr.SetString(signFprStr.constData(), signFprStr.count());
 
-    rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+    rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
 
     doc.AddMember("publicKey", pubkey, allocator);
     doc.AddMember("sha", sha, allocator);
@@ -328,8 +328,9 @@ void GeneralTab::slotGetServiceToken() {
          * }
          */
 
-        if(!utils->checkDataValueStr("serviceToken") || !utils->checkDataValueStr("fpr")) {
-            QMessageBox::critical(this, tr("Error"), tr("The communication content with the server does not meet the requirements"));
+        if (!utils->checkDataValueStr("serviceToken") || !utils->checkDataValueStr("fpr")) {
+            QMessageBox::critical(this, tr("Error"),
+                                  tr("The communication content with the server does not meet the requirements"));
             return;
         }
 
@@ -343,7 +344,7 @@ void GeneralTab::slotGetServiceToken() {
             settings.setValue("general/serviceToken", serviceToken);
             serviceTokenLabel->setText(serviceToken);
             QMessageBox::information(this, tr("Notice"),
-                                  tr("Succeed in getting service token"));
+                                     tr("Succeed in getting service token"));
         } else {
             QMessageBox::critical(this, tr("Error"), tr("There is a problem with the communication with the server"));
         }

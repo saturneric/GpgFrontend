@@ -22,34 +22,33 @@
  *
  */
 
-#include "server/PubkeyUploader.h"
+#include "server/api/PubkeyUploader.h"
 
-#include "rapidjson/prettywriter.h"
+PubkeyUploader::PubkeyUploader(GpgME::GpgContext *ctx, const QVector<GpgKey> &keys) : BaseAPI(ComUtils::UploadPubkey),
+                                                                                      mCtx(ctx),
+                                                                                      mKeys(keys) {
+}
 
-PubkeyUploader::PubkeyUploader(GpgME::GpgContext *ctx, const QVector<GpgKey> &keys) {
-    auto utils = new ComUtils(nullptr);
-    QUrl reqUrl(utils->getUrl(ComUtils::UploadPubkey));
-    QNetworkRequest request(reqUrl);
-
-    rapidjson::Document publicKeys;
-    publicKeys.SetArray();
+void PubkeyUploader::construct_json() {
+    document.SetArray();
     QStringList keyIds;
 
-    rapidjson::Document::AllocatorType& allocator = publicKeys.GetAllocator();
+    rapidjson::Document::AllocatorType &allocator = document.GetAllocator();
 
-    for(const auto &key : keys) {
+    for (const auto &key : mKeys) {
         rapidjson::Value publicKeyObj, pubkey, sha, signedFpr;
 
         QByteArray keyDataBuf;
         keyIds << key.id;
-        ctx->exportKeys(&keyIds, &keyDataBuf);
+        mCtx->exportKeys(&keyIds, &keyDataBuf);
 
         QCryptographicHash shaGen(QCryptographicHash::Sha256);
         shaGen.addData(keyDataBuf);
 
         auto shaStr = shaGen.result().toHex();
 
-        auto signFprStr = ComUtils::getSignStringBase64(ctx, key.fpr, key);
+        auto signFprStr = ComUtils::getSignStringBase64(mCtx, key.fpr, key);
+        qDebug() << "signFprStr" << signFprStr;
 
         pubkey.SetString(keyDataBuf.constData(), keyDataBuf.count());
 
@@ -62,31 +61,35 @@ PubkeyUploader::PubkeyUploader(GpgME::GpgContext *ctx, const QVector<GpgKey> &ke
         publicKeyObj.AddMember("sha", sha, allocator);
         publicKeyObj.AddMember("signedFpr", signedFpr, allocator);
 
-        publicKeys.PushBack(publicKeyObj, allocator);
+        document.PushBack(publicKeyObj, allocator);
         keyIds.clear();
     }
+}
 
-    rapidjson::StringBuffer sb;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
-    publicKeys.Accept(writer);
+void PubkeyUploader::deal_reply() {
 
-    QByteArray postData(sb.GetString());
-    qDebug() << "postData" << QString::fromUtf8(postData);
+    const auto &utils = getUtils();
 
-    QNetworkReply *reply = utils->getNetworkManager().post(request, postData);
+    /**
+     * {
+     *      "strings" : [
+     *          "...",
+     *          "..."
+     *      ]
+     * }
+     */
 
-    while (reply->isRunning()) QApplication::processEvents();
+    if (!utils.checkDataValue("strings")) {
+        QMessageBox::critical(nullptr, tr("Error"),
+                              tr("The communication content with the server does not meet the requirements"));
+    } else {
+        auto &strings = utils.getDataValue("strings");
+        qDebug() << "Pubkey Uploader" << strings.IsArray() << strings.GetArray().Size();
+        if (strings.IsArray() && strings.GetArray().Size() == mKeys.size()) {
 
-    QByteArray replyData = reply->readAll().constData();
-    if (utils->checkServerReply(replyData)) {
-        /**
-         * {
-         *      "strings" : [
-         *          "...",
-         *          "..."
-         *      ]
-         * }
-         */
+        } else {
+            QMessageBox::warning(nullptr, tr("Warning"),
+                                 tr("Partial failure of automatic pubkey exchange"));
+        }
     }
-
 }

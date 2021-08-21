@@ -25,6 +25,8 @@
 #include "MainWindow.h"
 #include "ui/SendMailDialog.h"
 #include "ui/widgets/SignersPicker.h"
+#include "server/api/PubkeyUploader.h"
+#include "advance/UnknownSignersChecker.h"
 
 
 /**
@@ -366,6 +368,16 @@ void MainWindow::slotEncryptSign() {
             QApplication::processEvents();
         }
 
+        if (settings.value("advanced/autoPubkeyExchange").toBool()) {
+            auto pubkeyUploader = PubkeyUploader(mCtx, signerKeys);
+            pubkeyUploader.start();
+            if(!pubkeyUploader.result()) {
+                QMessageBox::warning(nullptr,
+                                     tr("Warning"),
+                                     tr("Automatic public key exchange failed."));
+            }
+        }
+
         dialog->close();
 
         if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
@@ -450,6 +462,13 @@ void MainWindow::slotDecryptVerify() {
         auto *dialog = new WaitingDialog(tr("Decrypting and Verifying"), this);
         while (thread->isRunning()) {
             QApplication::processEvents();
+        }
+
+        // Automatically import public keys that are not stored locally
+        if(settings.value("advanced/autoPubkeyExchange").toBool()) {
+            auto* checker = new UnknownSignersChecker(mCtx, v_result);
+            checker->start();
+            checker->deleteLater();
         }
 
         dialog->close();

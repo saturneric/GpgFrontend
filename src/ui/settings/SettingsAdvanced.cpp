@@ -31,14 +31,21 @@ settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
     /*****************************************
      * Steganography Box
      *****************************************/
-    auto *steganoBox = new QGroupBox(tr("Show Steganography Options [Advanced]"));
+    auto *steganoBox = new QGroupBox(tr("Show Steganography Options"));
     auto *steganoBoxLayout = new QHBoxLayout();
     steganoCheckBox = new QCheckBox(tr("Show Steganographic Options."), this);
     steganoBoxLayout->addWidget(steganoCheckBox);
     steganoBox->setLayout(steganoBoxLayout);
 
+    auto *pubkeyExchangeBox = new QGroupBox(tr("Pubkey Exchange"));
+    auto *pubkeyExchangeBoxLayout = new QHBoxLayout();
+    autoPubkeyExchangeCheckBox = new QCheckBox(tr("Auto Pubkey Exchange"), this);
+    pubkeyExchangeBoxLayout->addWidget(autoPubkeyExchangeCheckBox);
+    pubkeyExchangeBox->setLayout(pubkeyExchangeBoxLayout);
+
     auto *mainLayout = new QVBoxLayout;
     mainLayout->addWidget(steganoBox);
+    mainLayout->addWidget(pubkeyExchangeBox);
     setSettings();
     mainLayout->addStretch(1);
     setLayout(mainLayout);
@@ -48,9 +55,13 @@ void AdvancedTab::setSettings() {
     if (settings.value("advanced/steganography").toBool()) {
         steganoCheckBox->setCheckState(Qt::Checked);
     }
+    if (settings.value("advanced/autoPubkeyExchange").toBool()) {
+        autoPubkeyExchangeCheckBox->setCheckState(Qt::Checked);
+    }
 }
 
 void AdvancedTab::applySettings() {
     settings.setValue("advanced/steganography", steganoCheckBox->isChecked());
+    settings.setValue("advanced/autoPubkeyExchange", autoPubkeyExchangeCheckBox->isChecked());
 }
 

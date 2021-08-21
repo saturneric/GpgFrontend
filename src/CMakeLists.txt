@@ -2,6 +2,7 @@ add_subdirectory(gpg)
 add_subdirectory(ui)
 add_subdirectory(smtp)
 add_subdirectory(server)
+add_subdirectory(advance)
 
 aux_source_directory(. BASE_SOURCE)
 
@@ -120,7 +121,7 @@ else()
     add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
 endif()
 
-set(GPGFRONTEND_LIBS smtp gpgfrontend-ui server gpg)
+set(GPGFRONTEND_LIBS smtp gpgfrontend-ui advance server gpg)
 set(QT_DEPENDENCY_LIBS Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
 
 IF (MINGW)
