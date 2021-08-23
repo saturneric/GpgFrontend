@@ -42,8 +42,6 @@ namespace GpgME {
      *  Set up gpgme-context, set paths to app-run path
      */
     GpgContext::GpgContext() {
-        /** get application path */
-        QString appPath = qApp->applicationDirPath();
 
         /** The function `gpgme_check_version' must be called before any other
          *  function in the library, because it initializes the thread support

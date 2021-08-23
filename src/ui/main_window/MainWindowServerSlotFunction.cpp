@@ -120,7 +120,7 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
         QCryptographicHash sha_generator(QCryptographicHash::Sha256);
         sha_generator.addData(cryptoText.toUtf8());
 
-        if (sha_generator.result().toHex() == sha) {
+        if (sha_generator.result().toHex() == sha && serviceToken == serviceTokenFromServer) {
             return cryptoText;
         } else QMessageBox::critical(this, tr("Error"), tr("Invalid short ciphertext"));
 
