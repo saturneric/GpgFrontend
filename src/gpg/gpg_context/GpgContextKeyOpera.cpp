@@ -106,7 +106,6 @@ gpgme_error_t GpgME::GpgContext::generateKey(GenKeyInfo *params) {
  * @return if success
  */
 bool GpgME::GpgContext::exportKeys(QStringList *uidList, QByteArray *outBuffer) {
-    size_t read_bytes;
     gpgme_data_t dataOut = nullptr;
     outBuffer->resize(0);
 
@@ -125,16 +124,12 @@ bool GpgME::GpgContext::exportKeys(QStringList *uidList, QByteArray *outBuffer) 
         err = gpgme_op_export(ctx, uidList->at(i).toUtf8().constData(), 0, dataOut);
         checkErr(err);
 
-        read_bytes = gpgme_data_seek(dataOut, 0, SEEK_END);
-
-        qDebug() << "exportKeys read_bytes" << read_bytes;
+        qDebug() << "exportKeys read_bytes" <<  gpgme_data_seek(dataOut, 0, SEEK_END);
 
         err = readToBuffer(dataOut, outBuffer);
         checkErr(err);
         gpgme_data_release(dataOut);
     }
-
-    qDebug() << "outBuffer" << *outBuffer;
 
     gpgme_release(ctx);
 
