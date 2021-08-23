@@ -255,7 +255,6 @@ void GpgME::GpgContext::deleteKeys(QStringList *uidList) {
  * @return if success
  */
 bool GpgME::GpgContext::exportKeys(const QVector<GpgKey> &keys, QByteArray &outBuffer) {
-    size_t read_bytes;
     gpgme_data_t data_out = nullptr;
     outBuffer.resize(0);
 
@@ -271,7 +270,7 @@ bool GpgME::GpgContext::exportKeys(const QVector<GpgKey> &keys, QByteArray &outB
         err = gpgme_op_export(mCtx, key.id.toUtf8().constData(), 0, data_out);
         checkErr(err);
 
-        read_bytes = gpgme_data_seek(data_out, 0, SEEK_END);
+        gpgme_data_seek(data_out, 0, SEEK_END);
 
         err = readToBuffer(data_out, &outBuffer);
         checkErr(err);
