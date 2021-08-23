@@ -164,7 +164,7 @@ QByteArray ComUtils::getSignStringBase64(GpgME::GpgContext *ctx, const QString &
     // The use of multi-threading brings an improvement in UI smoothness
     gpgme_error_t error;
     auto thread = QThread::create([&]() {
-        error = ctx->sign(keys, signData, &outSignText, GPGME_SIG_MODE_NORMAL);
+        error = ctx->sign(keys, signData, &outSignText, GPGME_SIG_MODE_NORMAL, nullptr, false);
     });
     thread->start();
     while (thread->isRunning()) QApplication::processEvents();

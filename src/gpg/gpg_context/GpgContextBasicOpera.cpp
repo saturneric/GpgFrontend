@@ -154,11 +154,16 @@ gpgme_error_t GpgME::GpgContext::verify(QByteArray *inBuffer, QByteArray *sigBuf
  * @return
  */
 gpg_error_t GpgME::GpgContext::sign(const QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer,
-                                    gpgme_sig_mode_t mode, gpgme_sign_result_t *result) {
+                                    gpgme_sig_mode_t mode, gpgme_sign_result_t *result, bool default_ctx) {
 
     gpgme_error_t gpgmeError;
     gpgme_data_t dataIn, dataOut;
     gpgme_sign_result_t m_result;
+
+    auto _ctx = mCtx;
+
+    if(!default_ctx)
+        _ctx = create_ctx();
 
     if (keys.isEmpty()) {
         QMessageBox::critical(nullptr, tr("Key Selection"), tr("No Private Key Selected"));
@@ -166,7 +171,7 @@ gpg_error_t GpgME::GpgContext::sign(const QVector<GpgKey> &keys, const QByteArra
     }
 
     // Set Singers of this opera
-    setSigners(keys, mCtx);
+    setSigners(keys, _ctx);
 
     gpgmeError = gpgme_data_new_from_mem(&dataIn, inBuffer.data(), inBuffer.size(), 1);
     checkErr(gpgmeError);
@@ -186,7 +191,7 @@ gpg_error_t GpgME::GpgContext::sign(const QVector<GpgKey> &keys, const QByteArra
               mode settings of the context are ignored.
     */
 
-    gpgmeError = gpgme_op_sign(mCtx, dataIn, dataOut, mode);
+    gpgmeError = gpgme_op_sign(_ctx, dataIn, dataOut, mode);
     checkErr(gpgmeError);
 
     if (gpgmeError == GPG_ERR_CANCELED) return false;
@@ -196,9 +201,13 @@ gpg_error_t GpgME::GpgContext::sign(const QVector<GpgKey> &keys, const QByteArra
         return false;
     }
 
-    m_result = gpgme_op_sign_result(mCtx);
+    if(default_ctx)
+        m_result = gpgme_op_sign_result(_ctx);
+    else m_result = nullptr;
 
     if (result != nullptr) *result = m_result;
+
+    if(!default_ctx) gpgme_release(_ctx);
 
     gpgmeError = readToBuffer(dataOut, outBuffer);
     checkErr(gpgmeError);
