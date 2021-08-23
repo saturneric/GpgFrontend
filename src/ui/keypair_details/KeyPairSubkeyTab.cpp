@@ -132,9 +132,8 @@ void KeyPairSubkeyTab::slotRefreshSubkeyList() {
     this->buffered_subkeys.clear();
 
     for(const auto &subkeys : mKey.subKeys) {
-        if(subkeys.disabled || subkeys.revoked) {
+        if(subkeys.disabled || subkeys.revoked)
             continue;
-        }
         this->buffered_subkeys.push_back(&subkeys);
     }
 

@@ -1,6 +1,26 @@
-//
-// Created by eric on 2021/6/7.
-//
+/**
+ * This file is part of GPGFrontend.
+ *
+ * GPGFrontend is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Foobar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * The initial version of the source code is inherited from gpg4usb-team.
+ * Their source code version also complies with GNU General Public License.
+ *
+ * The source code version of this software was modified and released
+ * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ */
 
 #include "GpgFrontend.h"
 #include "gpg/result_analyse/VerifyResultAnalyse.h"
@@ -8,23 +28,31 @@
 VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_verify_result_t result)
         : mCtx(ctx) {
 
-    stream << "# Verify Report: " << Qt::endl << "-----" << Qt::endl;
-    stream << "Status: " << gpgme_strerror(error) << Qt::endl;
+    qDebug() << "Verify Result Analyse Started";
 
-    if(result != nullptr) {
+    stream << tr("[#] Verify Operation ");
 
+    if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
+        stream << tr("[Success]") << Qt::endl;
+    else {
+        stream << tr("[Failed] ") << gpgme_strerror(error) << Qt::endl;
+        setStatus(-1);
+    }
+
+
+    if (result != nullptr && result->signatures) {
+        stream << "------------>" << Qt::endl;
         auto sign = result->signatures;
 
         if (sign == nullptr) {
-            stream << "> Not Signature Found" << Qt::endl;
+            stream << "[>] Not Signature Found" << Qt::endl;
             setStatus(0);
             return;
         }
 
+        stream << "[>] Signed On " << QDateTime::fromTime_t(sign->timestamp).toString() << Qt::endl;
 
-        stream << "> It was Signed ON " << QDateTime::fromTime_t(sign->timestamp).toString() << Qt::endl;
-
-        stream << Qt::endl << "> It Contains:" << Qt::endl;
+        stream << Qt::endl << "[>] Signatures:" << Qt::endl;
 
         bool canContinue = true;
 
@@ -63,13 +91,11 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
                     if (sign->summary & GPGME_SIGSUM_VALID) {
                         stream << QApplication::tr("Signature Fully Valid.") << Qt::endl;
                     } else {
-                        stream << QApplication::tr("Signature NOT Fully Valid.") << Qt::endl;
+                        stream << QApplication::tr("Signature Not Fully Valid.") << Qt::endl;
                     }
 
                     if (!(sign->status & GPGME_SIGSUM_KEY_MISSING)) {
-                        if (!printSigner(stream, sign)) {
-                            setStatus(0);
-                        }
+                        if (!printSigner(stream, sign)) setStatus(0);
                     } else {
                         stream << QApplication::tr("Key is NOT present with ID 0x") << QString(sign->fpr) << Qt::endl;
                     }
@@ -117,26 +143,26 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
             stream << Qt::endl;
             sign = sign->next;
         }
+        stream << "<------------" << Qt::endl;
     }
-
-    stream << "-----" << Qt::endl;
-    stream << Qt::endl;
 }
 
 bool VerifyResultAnalyse::printSigner(QTextStream &stream, gpgme_signature_t sign) {
     bool keyFound = true;
-    stream << QApplication::tr("Signed By: ");
     auto key = mCtx->getKeyByFpr(sign->fpr);
-    if(!key.good) {
-        stream << "<Unknown>";
+
+    key = mCtx->getKeyByFpr(sign->fpr);
+
+    if (!key.good) {
+        stream << tr("    Signed By: ") << tr("<unknown>") << Qt::endl;
         setStatus(0);
         keyFound = false;
+    } else {
+        stream << tr("    Signed By: ") << key.uids.first().uid << Qt::endl;
     }
-    stream << key.name;
-    if (!key.email.isEmpty()) {
-        stream << "<" << key.email <<  ">";
-    }
+    stream << tr("    Public Key Algo: ") << gpgme_pubkey_algo_name(sign->pubkey_algo) << Qt::endl;
+    stream << tr("    Hash Algo: ") << gpgme_hash_algo_name(sign->hash_algo) << Qt::endl;
+    stream << tr("    Date & Time: ") << QDateTime::fromTime_t(sign->timestamp).toString() << Qt::endl;
     stream << Qt::endl;
     return keyFound;
-
 }

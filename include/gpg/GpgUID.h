@@ -28,7 +28,6 @@
 #include <utility>
 
 #include "GpgFrontend.h"
-
 #include "GpgKeySignature.h"
 
 struct GpgUID {
@@ -41,9 +40,9 @@ struct GpgUID {
 
     QString uid{};
 
-    bool revoked;
+    bool revoked{};
 
-    bool invalid;
+    bool invalid{};
 
     QVector<GpgKeySignature> signatures;
 

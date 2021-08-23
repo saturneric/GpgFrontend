@@ -51,7 +51,7 @@ MainWindow::MainWindow()
 
     auto version_thread = new VersionCheckThread(replay);
 
-    connect(version_thread, SIGNAL(finished(QPrivateSignal)), version_thread, SLOT(deleteLater()));
+    connect(version_thread, SIGNAL(finished()), version_thread, SLOT(deleteLater()));
     connect(version_thread, SIGNAL(upgradeVersion(const QString &, const QString &)), this, SLOT(slotVersionUpgrade(const QString &, const QString &)));
 
     version_thread->start();
