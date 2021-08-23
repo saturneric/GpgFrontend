@@ -79,8 +79,8 @@ void MainWindow::slotEncrypt() {
         auto resultAnalyse = new EncryptResultAnalyse(error, result);
         auto &reportText = resultAnalyse->getResultReport();
 
-        auto *tmp2 = new QString(*tmp);
-        edit->slotFillTextEditWithText(*tmp2);
+        auto tmp2 = QString(tmp);
+        edit->slotFillTextEditWithText(tmp2);
         infoBoard->associateTextEdit(edit->curTextPage());
 
         // check result analyse status
@@ -362,8 +362,8 @@ void MainWindow::slotEncryptSign() {
         dialog->close();
 
         if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
-            auto *tmp2 = new QString(*tmp);
-            edit->slotFillTextEditWithText(*tmp2);
+            auto tmp2 = QString(tmp);
+            edit->slotFillTextEditWithText(tmp2);
         }
 
         qDebug() << "Start Analyse Result";
