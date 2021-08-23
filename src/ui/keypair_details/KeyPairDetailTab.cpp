@@ -147,7 +147,6 @@ KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, Q
             keyServerOperaButton->setStyleSheet("text-align:center;");
 
             auto *revokeCertGenButton = new QPushButton(tr("Generate Revoke Certificate"));
-            revokeCertGenButton->setDisabled(true);
             connect(revokeCertGenButton, SIGNAL(clicked()), this, SLOT(slotGenRevokeCert()));
 
             hBoxLayout->addWidget(keyServerOperaButton);
@@ -215,7 +214,11 @@ void KeyPairDetailTab::slotExportPrivateKey() {
             return;
         }
 
-        auto &key = mCtx->getKeyById(*keyid);
+        auto key = mCtx->getKeyById(*keyid);
+        if (!key.good) {
+            QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
+            return;
+        }
         QString fileString = key.name + " " + key.email + "(" +
                              key.id + ")_secret.asc";
         QString fileName = QFileDialog::getSaveFileName(this, tr("Export Key To File"), fileString,
@@ -342,15 +345,8 @@ void KeyPairDetailTab::slotGenRevokeCert() {
                                                         QStringLiteral("%1 (*.rev)").arg(
                                                                 tr("Revocation Certificates")));
 
-    auto process = mCtx->generateRevokeCert(mKey, mOutputFileName);
-
-    auto *dialog = new WaitingDialog("Generating", this);
-
-    while (process->state() == QProcess::Running) {
-        QApplication::processEvents();
-    }
-
-    dialog->close();
+    if (!mOutputFileName.isEmpty())
+        mCtx->generateRevokeCert(mKey, mOutputFileName);
 
 }
 

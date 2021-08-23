@@ -72,6 +72,12 @@ public:
     explicit UpdateTab(QWidget *parent = nullptr);
 
     void getLatestVersion();
+
+private slots:
+    void processReplyDataFromUpdateServer(const QByteArray& data);;
+
+signals:
+    void replyFromUpdateServer(QByteArray data);
 };
 
 /**
@@ -83,6 +89,13 @@ Q_OBJECT
 
 public:
     explicit AboutDialog(int defaultIndex, QWidget *parent);
+
+
+protected:
+    void showEvent(QShowEvent *ev) override;
+
+private:
+    UpdateTab *updateTab;
 };
 
 #endif  // __ABOUTDIALOG_H__

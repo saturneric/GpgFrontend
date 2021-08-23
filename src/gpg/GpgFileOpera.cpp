@@ -114,7 +114,7 @@ gpgme_error_t GpgFileOpera::signFile(GpgME::GpgContext *ctx, QVector<GpgKey> &ke
     auto outBuffer = QByteArray();
     infile.close();
 
-    auto error = ctx->sign(keys, inBuffer, &outBuffer, true, result);
+    auto error = ctx->sign(keys, inBuffer, &outBuffer, GPGME_SIG_MODE_DETACH, result);
 
     if (gpg_err_code(error) != GPG_ERR_NO_ERROR) return error;
 
@@ -185,7 +185,10 @@ gpg_error_t GpgFileOpera::encryptSignFile(GpgME::GpgContext *ctx, QVector<GpgKey
     auto outBuffer = QByteArray();
     infile.close();
 
-    auto error = ctx->encryptSign(keys, inBuffer, &outBuffer, encr_res, sign_res);
+    QVector<GpgKey> signerKeys;
+
+    // TODO dealing with signer keys
+    auto error = ctx->encryptSign(keys, signerKeys, inBuffer, &outBuffer, encr_res, sign_res);
 
     if (gpg_err_code(error) != GPG_ERR_NO_ERROR)
         return error;

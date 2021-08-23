@@ -42,23 +42,27 @@ private:
     QString appPath;
     QSettings settings;
 
-    QCheckBox *rememberPasswordCheckBox;
+    QComboBox *serverSelectBox;
     QCheckBox *saveCheckedKeysCheckBox;
     QCheckBox *importConfirmationCheckBox;
     QComboBox *langSelectBox;
     QComboBox *ownKeySelectBox;
+    QPushButton *getServiceTokenButton;
+    QLabel *serviceTokenLabel;
     QHash<QString, QString> lang;
     QHash<QString, QString> keyIds;
     QVector<QString> keyIdsList;
-    QString ownKeyId;
+    QString serviceToken;
     KeyList *mKeyList;
-    GpgME::GpgContext *mCtx; /** The current gpg context */
+    GpgME::GpgContext *mCtx;
 
 private slots:
 
     void slotOwnKeyIdChanged();
 
     void slotLanguageChanged();
+
+    void slotGetServiceToken();
 
 signals:
 
@@ -151,13 +155,16 @@ private:
 
     QString appPath;
     QSettings settings;
-
     QComboBox *comboBox;
     QLineEdit *newKeyServerEdit;
+    QTableWidget *keyServerTable;
+    QStringList keyServerStrList;
 
 private slots:
 
     void addKeyServer();
+
+    void refreshTable();
 
 signals:
 
@@ -181,6 +188,7 @@ private:
     QSettings settings;
 
     QCheckBox *steganoCheckBox;
+    QCheckBox *autoPubkeyExchangeCheckBox;
 
 signals:
 
@@ -196,7 +204,7 @@ public:
     void applySettings();
 
 private:
-    static QString getRelativePath(const QString& dir1, const QString& dir2);
+    static QString getRelativePath(const QString &dir1, const QString &dir2);
 
     QString appPath;
     QSettings settings;
