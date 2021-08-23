@@ -62,7 +62,7 @@ void UnknownSignersChecker::start() {
     }
 
     if(!unknownFprs.isEmpty()) {
-        auto pubkeyGetter = PubkeyGetter(mCtx, unknownFprs);
+        PubkeyGetter pubkeyGetter(mCtx, unknownFprs);
         pubkeyGetter.start();
         if (!pubkeyGetter.result()) {
 
