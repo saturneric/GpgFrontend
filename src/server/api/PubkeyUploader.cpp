@@ -32,37 +32,49 @@ PubkeyUploader::PubkeyUploader(GpgME::GpgContext *ctx, const QVector<GpgKey> &ke
 void PubkeyUploader::construct_json() {
     document.SetArray();
     QStringList keyIds;
+    QCryptographicHash shaGen(QCryptographicHash::Sha256);
 
-    rapidjson::Document::AllocatorType &allocator = document.GetAllocator();
+    auto &allocator = document.GetAllocator();
 
+    QVector<QByteArray> keysData;
     for (const auto &key : mKeys) {
-        rapidjson::Value publicKeyObj, pubkey, sha, signedFpr;
-
         QByteArray keyDataBuf;
         keyIds << key.id;
-        mCtx->exportKeys(&keyIds, &keyDataBuf);
 
-        QCryptographicHash shaGen(QCryptographicHash::Sha256);
-        shaGen.addData(keyDataBuf);
+        // The use of multi-threading brings an improvement in UI smoothness
+        gpgme_error_t error;
+        auto thread = QThread::create([&]() {
+            error = mCtx->exportKeys(&keyIds, &keyDataBuf);
+        });
+        thread->start();
+        while (thread->isRunning()) QApplication::processEvents();
+        thread->deleteLater();
+        keysData.push_back(keyDataBuf);
+        keyIds.clear();
+    }
 
+    int index = 0;
+    for (const auto &keyData : keysData) {
+        rapidjson::Value publicKeyObj, pubkey, sha, signedFpr;
+
+        shaGen.addData(keyData);
         auto shaStr = shaGen.result().toHex();
+        shaGen.reset();
 
-        auto signFprStr = ComUtils::getSignStringBase64(mCtx, key.fpr, key);
+        auto signFprStr = ComUtils::getSignStringBase64(mCtx, mKeys[index].fpr, mKeys[index]);
         qDebug() << "signFprStr" << signFprStr;
 
-        pubkey.SetString(keyDataBuf.constData(), keyDataBuf.count());
-
-        sha.SetString(shaStr.constData(), shaStr.count());
-        signedFpr.SetString(signFprStr.constData(), signFprStr.count());
+        pubkey.SetString(keyData.data(), keyData.count(), allocator);
+        sha.SetString(shaStr.data(), shaStr.count(), allocator);
+        signedFpr.SetString(signFprStr.data(), signFprStr.count(), allocator);
 
         publicKeyObj.SetObject();
-
         publicKeyObj.AddMember("publicKey", pubkey, allocator);
         publicKeyObj.AddMember("sha", sha, allocator);
         publicKeyObj.AddMember("signedFpr", signedFpr, allocator);
 
         document.PushBack(publicKeyObj, allocator);
-        keyIds.clear();
+        index++;
     }
 }
 

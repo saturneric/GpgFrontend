@@ -28,6 +28,8 @@
 VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_verify_result_t result)
         : mCtx(ctx) {
 
+    qDebug() << "Verify Result Analyse Started";
+
     stream << tr("[#] Verify Operation ");
 
     if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
@@ -89,13 +91,11 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
                     if (sign->summary & GPGME_SIGSUM_VALID) {
                         stream << QApplication::tr("Signature Fully Valid.") << Qt::endl;
                     } else {
-                        stream << QApplication::tr("Signature NOT Fully Valid.") << Qt::endl;
+                        stream << QApplication::tr("Signature Not Fully Valid.") << Qt::endl;
                     }
 
                     if (!(sign->status & GPGME_SIGSUM_KEY_MISSING)) {
-                        if (!printSigner(stream, sign)) {
-                            setStatus(0);
-                        }
+                        if (!printSigner(stream, sign)) setStatus(0);
                     } else {
                         stream << QApplication::tr("Key is NOT present with ID 0x") << QString(sign->fpr) << Qt::endl;
                     }
@@ -149,20 +149,20 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
 
 bool VerifyResultAnalyse::printSigner(QTextStream &stream, gpgme_signature_t sign) {
     bool keyFound = true;
-    stream << QApplication::tr("Signed By: ");
     auto key = mCtx->getKeyByFpr(sign->fpr);
 
     key = mCtx->getKeyByFpr(sign->fpr);
 
     if (!key.good) {
-        stream << tr("<Unknown>");
+        stream << tr("    Signed By: ") << tr("<unknown>") << Qt::endl;
         setStatus(0);
         keyFound = false;
+    } else {
+        stream << tr("    Signed By: ") << key.uids.first().uid << Qt::endl;
     }
-    stream << key.name;
-    if (!key.email.isEmpty()) {
-        stream << "<" << key.email << ">";
-    }
+    stream << tr("    Public Key Algo: ") << gpgme_pubkey_algo_name(sign->pubkey_algo) << Qt::endl;
+    stream << tr("    Hash Algo: ") << gpgme_hash_algo_name(sign->hash_algo) << Qt::endl;
+    stream << tr("    Date & Time: ") << QDateTime::fromTime_t(sign->timestamp).toString() << Qt::endl;
     stream << Qt::endl;
     return keyFound;
 }

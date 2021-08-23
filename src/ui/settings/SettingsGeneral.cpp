@@ -43,10 +43,6 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
     serverBoxLayout->addWidget(serverSelectBox);
     serverBoxLayout->addWidget(new QLabel(
             tr("Server that provides short key and key exchange services")));
-    connect(serverSelectBox, QOverload<const QString &>::of(&QComboBox::currentTextChanged),
-            this, [&](const QString &current) -> void {
-                settings.setValue("general/currentGpgfrontendServer", current);
-            });
 
     serverBox->setLayout(serverBoxLayout);
 
@@ -161,8 +157,15 @@ void GeneralTab::setSettings() {
     }
     for (const auto &s : serverList)
         serverSelectBox->addItem(s);
+
+    qDebug() << "currentGpgfrontendServer" << settings.value("general/currentGpgfrontendServer").toString();
     serverSelectBox->setCurrentText(settings.value("general/currentGpgfrontendServer",
                                                    "service.gpgfrontend.pub").toString());
+
+    connect(serverSelectBox, QOverload<const QString &>::of(&QComboBox::currentTextChanged),
+            this, [&](const QString &current) -> void {
+        settings.setValue("general/currentGpgfrontendServer", current);
+    });
 
     // Language setting
     QString langKey = settings.value("int/lang").toString();
@@ -201,6 +204,7 @@ void GeneralTab::applySettings() {
     settings.setValue("keys/saveKeyChecked",
                       saveCheckedKeysCheckBox->isChecked());
 
+    qDebug() << "serverSelectBox currentText" << serverSelectBox->currentText();
     settings.setValue("general/currentGpgfrontendServer",
                       serverSelectBox->currentText());
 

@@ -109,11 +109,12 @@ namespace GpgME {
 
         bool exportSecretKey(const GpgKey &key, QByteArray *outBuffer);
 
-        void getSigners(QVector<GpgKey> &signer);
+        void getSigners(QVector<GpgKey> &signer, gpgme_ctx_t ctx);
 
-        void setSigners(const QVector<GpgKey> &keys);
+        static void setSigners(const QVector<GpgKey> &keys, gpgme_ctx_t ctx);
 
-        bool signKey(const GpgKey &target, const QString &uid, const QDateTime *expires);
+        bool signKey(const GpgKey &target, const QVector<GpgKey> &keys, const QString &uid,
+                     const QDateTime *expires);
 
         bool revSign(const GpgKey &key, const GpgKeySignature &signature);
 
@@ -200,6 +201,8 @@ namespace GpgME {
         GpgKeyList mKeyList;
 
         QMap<QString, GpgKey *> mKeyMap;
+
+        gpgme_ctx_t create_ctx();
 
         static gpgme_error_t readToBuffer(gpgme_data_t dataIn, QByteArray *outBuffer);
 

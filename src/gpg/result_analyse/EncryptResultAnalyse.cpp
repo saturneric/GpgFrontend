@@ -26,6 +26,8 @@
 
 EncryptResultAnalyse::EncryptResultAnalyse(gpgme_error_t error, gpgme_encrypt_result_t result) {
 
+    qDebug() << "Start Encrypt Result Analyse";
+
     stream << "[#] Encrypt Operation ";
 
     if(gpgme_err_code(error) == GPG_ERR_NO_ERROR)

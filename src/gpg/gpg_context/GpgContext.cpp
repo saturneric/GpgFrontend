@@ -260,11 +260,12 @@ namespace GpgME {
         auto *gpgProcess = new QProcess(&looper);
         gpgProcess->setProcessChannelMode(QProcess::MergedChannels);
         connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), &looper, &QEventLoop::quit);
-        connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), dialog, &WaitingDialog::deleteLater);
+        connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), dialog,
+                &WaitingDialog::deleteLater);
         connect(gpgProcess, &QProcess::errorOccurred, []() -> void { qDebug("Error in Process"); });
         connect(gpgProcess, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
         connect(gpgProcess, &QProcess::started, []() -> void { qDebug() << "Gpg Process Started Success"; });
-        connect(gpgProcess, &QProcess::readyReadStandardOutput,  [interactFunc, gpgProcess]() {
+        connect(gpgProcess, &QProcess::readyReadStandardOutput, [interactFunc, gpgProcess]() {
             qDebug() << "Function Called";
             interactFunc(gpgProcess);
         });
@@ -330,11 +331,11 @@ namespace GpgME {
         return mKeyList;
     }
 
-    void GpgContext::getSigners(QVector<GpgKey> &signer) {
-        auto count = gpgme_signers_count(mCtx);
+    void GpgContext::getSigners(QVector<GpgKey> &signer, gpgme_ctx_t ctx) {
+        auto count = gpgme_signers_count(ctx);
         signer.clear();
         for (auto i = 0; i < count; i++) {
-            auto key = gpgme_signers_enum(mCtx, i);
+            auto key = gpgme_signers_enum(ctx, i);
             auto it = mKeyMap.find(key->subkeys->keyid);
             if (it == mKeyMap.end()) {
                 qDebug() << "Inconsistent state";
@@ -345,15 +346,15 @@ namespace GpgME {
         }
     }
 
-    void GpgContext::setSigners(const QVector<GpgKey> &keys) {
-        gpgme_signers_clear(mCtx);
+    void GpgContext::setSigners(const QVector<GpgKey> &keys, gpgme_ctx_t ctx) {
+        gpgme_signers_clear(ctx);
         for (const auto &key : keys) {
             if (checkIfKeyCanSign(key)) {
-                auto gpgmeError = gpgme_signers_add(mCtx, key.key_refer);
+                auto gpgmeError = gpgme_signers_add(ctx, key.key_refer);
                 checkErr(gpgmeError);
             }
         }
-        if (keys.length() != gpgme_signers_count(mCtx)) {
+        if (keys.length() != gpgme_signers_count(ctx)) {
             qDebug() << "No All Keys Added";
         }
     }
@@ -396,5 +397,16 @@ namespace GpgME {
             return false;
         }
     }
+
+    gpgme_ctx_t GpgME::GpgContext::create_ctx() {
+        gpgme_ctx_t ctx;
+        err = gpgme_new(&ctx);
+        checkErr(err);
+
+        gpgme_set_armor(ctx, 1);
+        gpgme_set_passphrase_cb(ctx, passphraseCb, this);
+        return ctx;
+    }
+
 
 }

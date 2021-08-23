@@ -166,7 +166,7 @@ gpg_error_t GpgME::GpgContext::sign(const QVector<GpgKey> &keys, const QByteArra
     }
 
     // Set Singers of this opera
-    setSigners(keys);
+    setSigners(keys, mCtx);
 
     gpgmeError = gpgme_data_new_from_mem(&dataIn, inBuffer.data(), inBuffer.size(), 1);
     checkErr(gpgmeError);
@@ -228,7 +228,7 @@ GpgME::GpgContext::encryptSign(QVector<GpgKey> &keys, QVector<GpgKey> &signers, 
     gpgme_data_t data_in = nullptr, data_out = nullptr;
     outBuffer->resize(0);
 
-    setSigners(signers);
+    setSigners(signers, mCtx);
 
     //gpgme_encrypt_result_t e_result;
     gpgme_key_t recipients[keys.count() + 1];

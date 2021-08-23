@@ -23,7 +23,6 @@
  */
 
 #include "advance/UnknownSignersChecker.h"
-#include "server/api/PubkeyGetter.h"
 
 
 UnknownSignersChecker::UnknownSignersChecker(GpgME::GpgContext *ctx, gpgme_verify_result_t result) :
@@ -47,7 +46,7 @@ void UnknownSignersChecker::start() {
                     check_signer(sign);
                 break;
             case GPG_ERR_NO_PUBKEY:
-                break;
+
             case GPG_ERR_CERT_REVOKED:
             case GPG_ERR_SIG_EXPIRED:
             case GPG_ERR_KEY_EXPIRED:
@@ -62,20 +61,19 @@ void UnknownSignersChecker::start() {
         sign = sign->next;
     }
 
-    auto pubkeyGetter = PubkeyGetter(mCtx, unknownFprs);
-    pubkeyGetter.start();
-    if (!pubkeyGetter.result()) {
-        QMessageBox::warning(nullptr,
-                             tr("Warning"),
-                             tr("Automatic public key exchange failed."));
+    if(!unknownFprs.isEmpty()) {
+        auto pubkeyGetter = PubkeyGetter(mCtx, unknownFprs);
+        pubkeyGetter.start();
+        if (!pubkeyGetter.result()) {
+
+        }
     }
 }
 
 void UnknownSignersChecker::check_signer(gpgme_signature_t sign) {
 
     auto key = mCtx->getKeyByFpr(sign->fpr);
-
-    if (settings.value("advanced/autoPubkeyExchange").toBool() && !key.good) {
+    if (!key.good) {
         qDebug() << "Find Unknown FingerPrint " << sign->fpr;
         unknownFprs.append(sign->fpr);
     }

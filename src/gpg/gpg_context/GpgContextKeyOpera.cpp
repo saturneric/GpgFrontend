@@ -115,19 +115,29 @@ bool GpgME::GpgContext::exportKeys(QStringList *uidList, QByteArray *outBuffer) 
         return false;
     }
 
+    // Alleviate another crash problem caused by an unknown array out-of-bounds access
+    gpgme_ctx_t ctx = create_ctx();
+
     for (int i = 0; i < uidList->count(); i++) {
         err = gpgme_data_new(&dataOut);
         checkErr(err);
 
-        err = gpgme_op_export(mCtx, uidList->at(i).toUtf8().constData(), 0, dataOut);
+        err = gpgme_op_export(ctx, uidList->at(i).toUtf8().constData(), 0, dataOut);
         checkErr(err);
 
         read_bytes = gpgme_data_seek(dataOut, 0, SEEK_END);
+
+        qDebug() << "exportKeys read_bytes" << read_bytes;
 
         err = readToBuffer(dataOut, outBuffer);
         checkErr(err);
         gpgme_data_release(dataOut);
     }
+
+    qDebug() << "outBuffer" << *outBuffer;
+
+    gpgme_release(ctx);
+
     return true;
 }
 
@@ -188,19 +198,13 @@ void GpgME::GpgContext::fetch_keys() {
         return;
     }
 
+    gpgmeError = gpgme_op_keylist_end(mCtx);
+    if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
+        checkErr(gpgmeError);
+        return;
+    }
+
     qDebug() << "Operate KeyList End";
-
-    gpgmeError = gpgme_op_keylist_end(mCtx);
-    if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
-        checkErr(gpgmeError);
-        return;
-    }
-
-    gpgmeError = gpgme_op_keylist_end(mCtx);
-    if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
-        checkErr(gpgmeError);
-        return;
-    }
 
     mKeyList = keys;
 }
@@ -343,7 +347,10 @@ bool GpgME::GpgContext::exportSecretKey(const GpgKey &key, QByteArray *outBuffer
  * @param expires expire date and time of the signature
  * @return if successful
  */
-bool GpgME::GpgContext::signKey(const GpgKey &target, const QString &uid, const QDateTime *expires) {
+bool GpgME::GpgContext::signKey(const GpgKey &target, const QVector<GpgKey> &keys, const QString &uid,
+                                const QDateTime *expires) {
+
+    setSigners(keys, mCtx);
 
     unsigned int flags = 0;
 
