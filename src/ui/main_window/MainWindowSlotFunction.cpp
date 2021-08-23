@@ -352,7 +352,7 @@ void MainWindow::slotEncryptSign() {
         }
 
         if (settings.value("advanced/autoPubkeyExchange").toBool()) {
-            auto pubkeyUploader = PubkeyUploader(mCtx, signerKeys);
+            PubkeyUploader pubkeyUploader(mCtx, signerKeys);
             pubkeyUploader.start();
             if (!pubkeyUploader.result()) {
                 QMessageBox::warning(nullptr,
