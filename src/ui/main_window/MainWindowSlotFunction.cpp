@@ -57,23 +57,22 @@ void MainWindow::slotEncrypt() {
             }
         }
 
-        auto *tmp = new QByteArray();
+        auto tmp = QByteArray();
 
         gpgme_encrypt_result_t result = nullptr;
 
         gpgme_error_t error;
 
         auto thread = QThread::create([&]() {
-            error = mCtx->encrypt(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, &result);
+            error = mCtx->encrypt(keys, edit->curTextPage()->toPlainText().toUtf8(), &tmp, &result);
         });
         connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         thread->start();
 
         auto *dialog = new WaitingDialog(tr("Encrypting"), this);
 
-        while (thread->isRunning()) {
+        while (thread->isRunning())
             QApplication::processEvents();
-        }
 
         dialog->close();
 
@@ -137,13 +136,13 @@ void MainWindow::slotSign() {
             }
         }
 
-        auto *tmp = new QByteArray();
+        auto tmp = QByteArray();
 
         gpgme_sign_result_t result = nullptr;
 
         gpgme_error_t error;
         auto thread = QThread::create([&]() {
-            error = mCtx->sign(keys, edit->curTextPage()->toPlainText().toUtf8(), tmp, GPGME_SIG_MODE_CLEAR, &result);
+            error = mCtx->sign(keys, edit->curTextPage()->toPlainText().toUtf8(), &tmp, GPGME_SIG_MODE_CLEAR, &result);
         });
         connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         thread->start();
@@ -155,7 +154,7 @@ void MainWindow::slotSign() {
         dialog->close();
 
         infoBoard->associateTextEdit(edit->curTextPage());
-        edit->slotFillTextEditWithText(QString::fromUtf8(*tmp));
+        edit->slotFillTextEditWithText(QString::fromUtf8(tmp));
 
         auto resultAnalyse = new SignResultAnalyse(mCtx, error, result);
 
@@ -178,7 +177,7 @@ void MainWindow::slotDecrypt() {
 
     if (edit->slotCurPageTextEdit() != nullptr) {
 
-        auto *decrypted = new QByteArray();
+        auto decrypted = QByteArray();
         QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
         GpgME::GpgContext::preventNoDataErr(&text);
 
@@ -192,7 +191,7 @@ void MainWindow::slotDecrypt() {
         gpgme_error_t error;
         auto thread = QThread::create([&]() {
             // try decrypt, if fail do nothing, especially don't replace text
-            error = mCtx->decrypt(text, decrypted, &result);
+            error = mCtx->decrypt(text, &decrypted, &result);
         });
         connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         thread->start();
@@ -207,7 +206,7 @@ void MainWindow::slotDecrypt() {
         infoBoard->associateTextEdit(edit->curTextPage());
 
         if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
-            edit->slotFillTextEditWithText(QString::fromUtf8(*decrypted));
+            edit->slotFillTextEditWithText(QString::fromUtf8(decrypted));
 
         auto resultAnalyse = new DecryptResultAnalyse(mCtx, error, result);
 
@@ -257,9 +256,8 @@ void MainWindow::slotVerify() {
         thread->start();
 
         auto *dialog = new WaitingDialog(tr("Verifying"), this);
-        while (thread->isRunning()) {
+        while (thread->isRunning())
             QApplication::processEvents();
-        }
         dialog->close();
 
         auto resultAnalyse = new VerifyResultAnalyse(mCtx, error, result);
@@ -299,8 +297,6 @@ void MainWindow::slotEncryptSign() {
             return;
         }
 
-        bool can_sign = false, can_encr = false;
-
         for (const auto &key : keys) {
             bool key_can_encr = GpgME::GpgContext::checkIfKeyCanEncr(key);
 
@@ -333,13 +329,13 @@ void MainWindow::slotEncryptSign() {
         }
 
 
-        auto *tmp = new QByteArray();
+        auto tmp = QByteArray();
         gpgme_encrypt_result_t encr_result = nullptr;
         gpgme_sign_result_t sign_result = nullptr;
 
         gpgme_error_t error;
         auto thread = QThread::create([&]() {
-            error = mCtx->encryptSign(keys, signerKeys, edit->curTextPage()->toPlainText().toUtf8(), tmp,
+            error = mCtx->encryptSign(keys, signerKeys, edit->curTextPage()->toPlainText().toUtf8(), &tmp,
                                       &encr_result,
                                       &sign_result);
         });
@@ -423,7 +419,7 @@ void MainWindow::slotDecryptVerify() {
 
     if (edit->slotCurPageTextEdit() != nullptr) {
 
-        auto *decrypted = new QByteArray();
+        auto decrypted = QByteArray();
         QString plainText = edit->curTextPage()->toPlainText();
 
 
@@ -458,14 +454,12 @@ void MainWindow::slotDecryptVerify() {
 
         gpgme_error_t error;
         auto thread = QThread::create([&]() {
-            error = mCtx->decryptVerify(text, decrypted, &d_result, &v_result);
+            error = mCtx->decryptVerify(text, &decrypted, &d_result, &v_result);
         });
         connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         thread->start();
 
-        while (thread->isRunning()) {
-            QApplication::processEvents();
-        }
+        while (thread->isRunning()) QApplication::processEvents();
 
         dialog->close();
 
@@ -474,7 +468,7 @@ void MainWindow::slotDecryptVerify() {
         infoBoard->associateTextEdit(edit->curTextPage());
 
         if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
-            edit->slotFillTextEditWithText(QString::fromUtf8(*decrypted));
+            edit->slotFillTextEditWithText(QString::fromUtf8(decrypted));
 
         auto resultAnalyseDecrypt = new DecryptResultAnalyse(mCtx, error, d_result);
         auto resultAnalyseVerify = new VerifyResultAnalyse(mCtx, error, v_result);
