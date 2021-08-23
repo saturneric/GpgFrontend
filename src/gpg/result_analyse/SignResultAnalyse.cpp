@@ -38,6 +38,8 @@ SignResultAnalyse::SignResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error
     }
 
     if (result != nullptr && (result->signatures != nullptr || result->invalid_signers != nullptr)) {
+
+        qDebug() << "Sign Result Analyse Getting Result";
         stream << "------------>" << Qt::endl;
         auto new_sign = result->signatures;
 
@@ -70,6 +72,8 @@ SignResultAnalyse::SignResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error
 
             new_sign = new_sign->next;
         }
+
+        qDebug() << "Sign Result Analyse Getting Invalid Signer";
 
         auto invalid_signer = result->invalid_signers;
 

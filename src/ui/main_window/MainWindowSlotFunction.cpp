@@ -302,32 +302,16 @@ void MainWindow::slotEncryptSign() {
         bool can_sign = false, can_encr = false;
 
         for (const auto &key : keys) {
-            bool key_can_sign = GpgME::GpgContext::checkIfKeyCanSign(key);
             bool key_can_encr = GpgME::GpgContext::checkIfKeyCanEncr(key);
 
-            if (!key_can_sign && !key_can_encr) {
+            if (!key_can_encr) {
                 QMessageBox::critical(nullptr,
                                       tr("Invalid KeyPair"),
-                                      tr("The selected keypair cannot be used for signing and encryption at the same time.<br/>")
+                                      tr("The selected keypair cannot be used for encryption.<br/>")
                                       + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
                 return;
             }
 
-            if (key_can_sign) can_sign = true;
-            if (key_can_encr) can_encr = true;
-        }
-
-        if (!can_encr) {
-            QMessageBox::critical(nullptr,
-                                  tr("Incomplete Operation"),
-                                  tr("None of the selected key pairs can provide the encryption function."));
-            return;
-        }
-
-        if (!can_sign) {
-            QMessageBox::warning(nullptr,
-                                 tr("Incomplete Operation"),
-                                 tr("None of the selected key pairs can provide the signature function."));
         }
 
         QVector<GpgKey> signerKeys;
@@ -335,16 +319,16 @@ void MainWindow::slotEncryptSign() {
         auto signersPicker = new SignersPicker(mCtx, this);
 
         QEventLoop loop;
-        connect(signersPicker, SIGNAL(accepted()), &loop, SLOT(quit()));
+        connect(signersPicker, SIGNAL(finished(int)), &loop, SLOT(quit()));
         loop.exec();
 
         signersPicker->getCheckedSigners(signerKeys);
 
-        for(const auto &key : keys) {
+        for (const auto &key : keys) {
             qDebug() << "Keys " << key.email;
         }
 
-        for(const auto &signer : signerKeys) {
+        for (const auto &signer : signerKeys) {
             qDebug() << "Signers " << signer.email;
         }
 
@@ -370,8 +354,12 @@ void MainWindow::slotEncryptSign() {
         if (settings.value("advanced/autoPubkeyExchange").toBool()) {
             auto pubkeyUploader = PubkeyUploader(mCtx, signerKeys);
             pubkeyUploader.start();
-            if(!pubkeyUploader.result()) {
-
+            if (!pubkeyUploader.result()) {
+                QMessageBox::warning(nullptr,
+                                     tr("Automatic Key Exchange Warning"),
+                                     tr("Part of the automatic key exchange failed, which may be related to your key.")
+                                     +
+                                     tr("If possible, try to use the RSA algorithm compatible with the server for signing."));
             }
         }
 
@@ -397,6 +385,8 @@ void MainWindow::slotEncryptSign() {
             infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
         else
             infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
+
+        qDebug() << "End Analyse Result";
 
         if (status >= 0) {
             infoBoard->resetOptionActionsMenu();
@@ -454,14 +444,14 @@ void MainWindow::slotDecryptVerify() {
         auto *dialog = new WaitingDialog(tr("Decrypting and Verifying"), this);
 
         // Automatically import public keys that are not stored locally
-        if(settings.value("advanced/autoPubkeyExchange").toBool()) {
+        if (settings.value("advanced/autoPubkeyExchange").toBool()) {
             gpgme_verify_result_t tmp_v_result = nullptr;
             auto thread = QThread::create([&]() {
                 mCtx->verify(&text, nullptr, &tmp_v_result);
             });
             thread->start();
             while (thread->isRunning()) QApplication::processEvents();
-            auto* checker = new UnknownSignersChecker(mCtx, tmp_v_result);
+            auto *checker = new UnknownSignersChecker(mCtx, tmp_v_result);
             checker->start();
             checker->deleteLater();
         }

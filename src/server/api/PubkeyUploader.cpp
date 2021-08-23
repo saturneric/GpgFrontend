@@ -98,10 +98,9 @@ void PubkeyUploader::deal_reply() {
         auto &strings = utils.getDataValue("strings");
         qDebug() << "Pubkey Uploader" << strings.IsArray() << strings.GetArray().Size();
         if (strings.IsArray() && strings.GetArray().Size() == mKeys.size()) {
-
+            good = true;
         } else {
-            QMessageBox::warning(nullptr, tr("Warning"),
-                                 tr("Partial failure of automatic pubkey exchange"));
+            good = false;
         }
     }
 }

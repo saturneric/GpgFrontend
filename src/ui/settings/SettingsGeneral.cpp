@@ -95,6 +95,7 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
     ownKeySelectBox = new QComboBox;
     getServiceTokenButton = new QPushButton(tr("Get Service Token"));
     serviceTokenLabel = new QLabel(tr("No Service Token Found"));
+    serviceTokenLabel->setAlignment(Qt::AlignCenter);
 
     ownKeyBox->setLayout(ownKeyBoxLayout);
     mKeyList = new KeyList(mCtx);
@@ -158,7 +159,7 @@ void GeneralTab::setSettings() {
     for (const auto &s : serverList)
         serverSelectBox->addItem(s);
 
-    qDebug() << "currentGpgfrontendServer" << settings.value("general/currentGpgfrontendServer").toString();
+    qDebug() << "Current Gpgfrontend Server" << settings.value("general/currentGpgfrontendServer").toString();
     serverSelectBox->setCurrentText(settings.value("general/currentGpgfrontendServer",
                                                    "service.gpgfrontend.pub").toString());
 

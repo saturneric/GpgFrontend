@@ -40,7 +40,9 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
 
     GpgKey key = mCtx->getKeyById(ownKeyId);
     if (!key.good) {
-        QMessageBox::critical(this, tr("Invalid Own Key"), tr("Own Key can not be use to do any operation."));
+        QMessageBox::critical(this, tr("Invalid Own Key"),
+                              tr("Own Key can not be use to do any operation. "
+                                 "Please go to the setting interface to select an OwnKey and get a ServiceToken."));
         return {};
     }
 
@@ -58,10 +60,7 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     // Sign Shorten Text
-    QVector<GpgKey> keys{key};
-    QByteArray outSignText;
-    mCtx->sign(keys, shortenCryptoText.toUtf8(), &outSignText, GPGME_SIG_MODE_NORMAL);
-    auto outSignTextBase64 = outSignText.toBase64();
+    auto outSignTextBase64 = ComUtils::getSignStringBase64(mCtx, shortenCryptoText, key);
 
     rapidjson::Document doc;
     doc.SetObject();
@@ -74,7 +73,7 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
     const auto t_byte_array = serviceToken.toUtf8();
     t.SetString(t_byte_array.constData(), t_byte_array.count());
 
-    rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+    rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
 
     doc.AddMember("signature", s, allocator);
     doc.AddMember("serviceToken", t, allocator);
@@ -184,7 +183,7 @@ void MainWindow::shortenCryptText() {
     auto t_byte_array = serviceToken.toUtf8();
     t.SetString(t_byte_array.constData(), t_byte_array.count());
 
-    rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+    rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
 
     doc.AddMember("cryptoText", c, allocator);
     doc.AddMember("sha", m, allocator);
@@ -225,7 +224,9 @@ void MainWindow::shortenCryptText() {
         QCryptographicHash md5_generator(QCryptographicHash::Md5);
         md5_generator.addData(shortenText.toUtf8());
         if (md5_generator.result().toHex() == utils->getDataValueStr("md5")) {
-            auto *dialog = new ShowCopyDialog(shortenText, tr("Notice: Use Decrypt & Verify operation to decrypt this short crypto text."), this);
+            auto *dialog = new ShowCopyDialog(shortenText,
+                                              tr("Notice: Use Decrypt & Verify operation to decrypt this short crypto text."),
+                                              this);
             dialog->show();
         } else {
             QMessageBox::critical(this, tr("Error"), tr("There is a problem with the communication with the server"));

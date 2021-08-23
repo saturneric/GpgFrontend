@@ -122,8 +122,7 @@ namespace GpgME {
 
         gpg_error_t
         sign(const QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer,
-             gpgme_sig_mode_t mode = GPGME_SIG_MODE_NORMAL,
-             gpgme_sign_result_t *result = nullptr);
+             gpgme_sig_mode_t mode, gpgme_sign_result_t *result = nullptr, bool default_ctx = true);
 
         bool addUID(const GpgKey &key, const GpgUID &uid);
 

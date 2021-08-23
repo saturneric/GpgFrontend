@@ -30,7 +30,7 @@
 
 #include "rapidjson/document.h"
 
-class BaseAPI : QObject {
+class BaseAPI : public QObject {
 Q_OBJECT
 public:
 
@@ -52,11 +52,11 @@ private:
 
     QNetworkRequest request;
 
-    bool good = false;
-
     QNetworkReply *send_json_data();
 
 protected:
+
+    bool good = false;
 
     rapidjson::Document document;
 
