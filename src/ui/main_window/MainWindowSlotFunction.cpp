@@ -287,7 +287,6 @@ void MainWindow::slotVerify() {
 
 void MainWindow::slotEncryptSign() {
 
-
     if (edit->tabCount() == 0) return;
 
     if (edit->slotCurPageTextEdit() != nullptr) {
@@ -372,9 +371,7 @@ void MainWindow::slotEncryptSign() {
             auto pubkeyUploader = PubkeyUploader(mCtx, signerKeys);
             pubkeyUploader.start();
             if(!pubkeyUploader.result()) {
-                QMessageBox::warning(nullptr,
-                                     tr("Warning"),
-                                     tr("Automatic public key exchange failed."));
+
             }
         }
 
@@ -384,6 +381,8 @@ void MainWindow::slotEncryptSign() {
             auto *tmp2 = new QString(*tmp);
             edit->slotFillTextEditWithText(*tmp2);
         }
+
+        qDebug() << "Start Analyse Result";
 
         auto resultAnalyseEncr = new EncryptResultAnalyse(error, encr_result);
         auto resultAnalyseSign = new SignResultAnalyse(mCtx, error, sign_result);
@@ -452,6 +451,21 @@ void MainWindow::slotDecryptVerify() {
         gpgme_decrypt_result_t d_result = nullptr;
         gpgme_verify_result_t v_result = nullptr;
 
+        auto *dialog = new WaitingDialog(tr("Decrypting and Verifying"), this);
+
+        // Automatically import public keys that are not stored locally
+        if(settings.value("advanced/autoPubkeyExchange").toBool()) {
+            gpgme_verify_result_t tmp_v_result = nullptr;
+            auto thread = QThread::create([&]() {
+                mCtx->verify(&text, nullptr, &tmp_v_result);
+            });
+            thread->start();
+            while (thread->isRunning()) QApplication::processEvents();
+            auto* checker = new UnknownSignersChecker(mCtx, tmp_v_result);
+            checker->start();
+            checker->deleteLater();
+        }
+
         gpgme_error_t error;
         auto thread = QThread::create([&]() {
             error = mCtx->decryptVerify(text, decrypted, &d_result, &v_result);
@@ -459,19 +473,13 @@ void MainWindow::slotDecryptVerify() {
         connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         thread->start();
 
-        auto *dialog = new WaitingDialog(tr("Decrypting and Verifying"), this);
         while (thread->isRunning()) {
             QApplication::processEvents();
         }
 
-        // Automatically import public keys that are not stored locally
-        if(settings.value("advanced/autoPubkeyExchange").toBool()) {
-            auto* checker = new UnknownSignersChecker(mCtx, v_result);
-            checker->start();
-            checker->deleteLater();
-        }
-
         dialog->close();
+
+        qDebug() << "Start Analyse Result";
 
         infoBoard->associateTextEdit(edit->curTextPage());
 
@@ -498,6 +506,9 @@ void MainWindow::slotDecryptVerify() {
         }
         delete resultAnalyseDecrypt;
         delete resultAnalyseVerify;
+
+        qDebug() << "End Analyse Result";
+
     } else if (edit->slotCurPageFileTreeView() != nullptr) {
         this->slotFileDecryptVerify();
     }

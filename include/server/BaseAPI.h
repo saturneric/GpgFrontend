@@ -36,7 +36,7 @@ public:
 
     explicit BaseAPI(ComUtils::ServiceType serviceType);
 
-    ~BaseAPI() override;
+    virtual ~BaseAPI();
 
     void start();
 

@@ -26,6 +26,8 @@
 
 SignResultAnalyse::SignResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_sign_result_t result) {
 
+    qDebug() << "Start Sign Result Analyse";
+
     stream << tr("[#] Sign Operation ");
 
     if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
@@ -41,6 +43,8 @@ SignResultAnalyse::SignResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error
 
         while (new_sign != nullptr) {
             stream << tr("[>] New Signature: ") << Qt::endl;
+
+            qDebug() << "Signers Fingerprint: " << new_sign->fpr;
 
             stream << tr("    Sign Mode: ");
             if (new_sign->type == GPGME_SIG_MODE_NORMAL)

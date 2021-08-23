@@ -160,7 +160,16 @@ QByteArray ComUtils::getSignStringBase64(GpgME::GpgContext *ctx, const QString &
     QVector<GpgKey> keys{key};
     QByteArray outSignText;
     auto signData = str.toUtf8();
-    ctx->sign(keys, signData, &outSignText, GPGME_SIG_MODE_NORMAL);
+
+    // The use of multi-threading brings an improvement in UI smoothness
+    gpgme_error_t error;
+    auto thread = QThread::create([&]() {
+        error = ctx->sign(keys, signData, &outSignText, GPGME_SIG_MODE_NORMAL);
+    });
+    thread->start();
+    while (thread->isRunning()) QApplication::processEvents();
+    thread->deleteLater();
+
     return outSignText.toBase64();
 }
 
