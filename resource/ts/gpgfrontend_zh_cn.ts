@@ -293,17 +293,17 @@
 <context>
     <name>EncryptResultAnalyse</name>
     <message>
-        <location filename="../../src/gpg/result_analyse/EncryptResultAnalyse.cpp" line="41"/>
+        <location filename="../../src/gpg/result_analyse/EncryptResultAnalyse.cpp" line="43"/>
         <source>Invalid Recipients: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/EncryptResultAnalyse.cpp" line="44"/>
+        <location filename="../../src/gpg/result_analyse/EncryptResultAnalyse.cpp" line="46"/>
         <source>Fingerprint: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/EncryptResultAnalyse.cpp" line="45"/>
+        <location filename="../../src/gpg/result_analyse/EncryptResultAnalyse.cpp" line="47"/>
         <source>Reason: </source>
         <translation type="unfinished"></translation>
     </message>
@@ -522,59 +522,59 @@
     </message>
     <message>
         <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="97"/>
-        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="234"/>
+        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="235"/>
         <source>No Service Token Found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="103"/>
+        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="104"/>
         <source>&lt;none&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="120"/>
+        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="121"/>
         <source>Key pair for synchronization and identity authentication</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="252"/>
+        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="253"/>
         <source>Invalid Operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="253"/>
+        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="254"/>
         <source>Own Key can not be None while getting service token.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="265"/>
-        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="336"/>
-        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="353"/>
+        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="266"/>
+        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="337"/>
+        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="354"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="266"/>
+        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="267"/>
         <source>Key Not Exists</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="337"/>
+        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="338"/>
         <source>The communication content with the server does not meet the requirements</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="350"/>
+        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="351"/>
         <source>Notice</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="351"/>
+        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="352"/>
         <source>Succeed in getting service token</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="353"/>
+        <location filename="../../src/ui/settings/SettingsGeneral.cpp" line="354"/>
         <source>There is a problem with the communication with the server</source>
         <translation type="unfinished"></translation>
     </message>
@@ -582,37 +582,37 @@
 <context>
     <name>GpgME::GpgContext</name>
     <message>
-        <location filename="../../src/gpg/gpg_context/GpgContext.cpp" line="184"/>
+        <location filename="../../src/gpg/gpg_context/GpgContext.cpp" line="182"/>
         <source>Wrong password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/gpg_context/GpgContext.cpp" line="192"/>
+        <location filename="../../src/gpg/gpg_context/GpgContext.cpp" line="190"/>
         <source>Enter Password for</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/gpg_context/GpgContext.cpp" line="196"/>
+        <location filename="../../src/gpg/gpg_context/GpgContext.cpp" line="194"/>
         <source>Enter Password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/gpg_context/GpgContext.cpp" line="258"/>
+        <location filename="../../src/gpg/gpg_context/GpgContext.cpp" line="256"/>
         <source>Processing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/gpg_context/GpgContextBasicOpera.cpp" line="164"/>
+        <location filename="../../src/gpg/gpg_context/GpgContextBasicOpera.cpp" line="169"/>
         <source>Key Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/gpg_context/GpgContextBasicOpera.cpp" line="164"/>
+        <location filename="../../src/gpg/gpg_context/GpgContextBasicOpera.cpp" line="169"/>
         <source>No Private Key Selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/gpg_context/GpgContextBasicOpera.cpp" line="195"/>
+        <location filename="../../src/gpg/gpg_context/GpgContextBasicOpera.cpp" line="200"/>
         <source>Error in signing:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2164,13 +2164,13 @@
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="517"/>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="521"/>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="583"/>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="51"/>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="112"/>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="126"/>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="218"/>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="231"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="525"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="541"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="53"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="111"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="125"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="217"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="232"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="521"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="537"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2205,7 +2205,6 @@
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="150"/>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="226"/>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="409"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="375"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2222,8 +2221,8 @@
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="239"/>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="422"/>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="45"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="126"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="298"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="125"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="296"/>
         <source>No Key Selected</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2231,7 +2230,7 @@
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="69"/>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="246"/>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="52"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="133"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="132"/>
         <source>Invalid Operation</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2247,8 +2246,8 @@
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="248"/>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="436"/>
         <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="54"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="135"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="312"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="134"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="307"/>
         <source>&lt;br/&gt;For example the Following Key: &lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2270,7 +2269,7 @@
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="268"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="151"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="150"/>
         <source>Signing</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2291,45 +2290,40 @@
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="353"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="259"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="258"/>
         <source>Verifying</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="434"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="310"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="305"/>
         <source>Invalid KeyPair</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="435"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="311"/>
         <source>The selected keypair cannot be used for signing and encryption at the same time.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="446"/>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="453"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="322"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="329"/>
         <source>Incomplete Operation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="447"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="323"/>
         <source>None of the selected key pairs can provide the encryption function.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="454"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="330"/>
         <source>None of the selected key pairs can provide the signature function.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="473"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="365"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="345"/>
         <source>Encrypting and Signing</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2340,55 +2334,59 @@
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="551"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="461"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="440"/>
         <source>Decrypting and Verifying</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="43"/>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="155"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="154"/>
         <source>Invalid Own Key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="43"/>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="155"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="154"/>
         <source>Own Key can not be use to do any operation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="52"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="54"/>
         <source>Please obtain a Service Token from the server in the settings.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="91"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="44"/>
+        <source>Own Key can not be use to do any operation. Please go to the setting interface to select an OwnKey and get a ServiceToken.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="90"/>
         <source>Getting Cpt From Server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="113"/>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="219"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="112"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="218"/>
         <source>The communication content with the server does not meet the requirements</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="126"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="125"/>
         <source>Invalid short ciphertext</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="144"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="143"/>
         <source>Invalid Service Token</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="145"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="144"/>
         <source>Please go to the setting interface to get a ServiceToken.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="203"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="202"/>
         <source>Getting Scpt From Server</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2398,86 +2396,101 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="231"/>
+        <location filename="../../src/ui/main_window/MainWindowServerSlotFunction.cpp" line="232"/>
         <source>There is a problem with the communication with the server</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="103"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="408"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="102"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="394"/>
         <source>Function Disabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="104"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="409"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="103"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="395"/>
         <source>Please go to the settings interface to enable and configure this function.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="134"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="133"/>
         <source>The selected key contains a key that does not actually have a signature usage.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="186"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="185"/>
         <source>Notice</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="186"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="185"/>
         <source>Short Crypto Text only supports Decrypt &amp; Verify.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="200"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="199"/>
         <source>Decrypting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="376"/>
-        <source>Automatic public key exchange failed.</source>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="306"/>
+        <source>The selected keypair cannot be used for encryption.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="415"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="355"/>
+        <source>Automatic Key Exchange Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="356"/>
+        <source>Part of the automatic key exchange failed, which may be related to your key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="358"/>
+        <source>If possible, try to use the RSA algorithm compatible with the server for signing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="401"/>
         <source>Service Token Empty</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="416"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="402"/>
         <source>Please go to the settings interface to set Own Key and get Service Token.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="525"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="541"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="521"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="537"/>
         <source>Key Not Found.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="572"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="568"/>
         <source>Outdated Version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="573"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="569"/>
         <source>This version(%1) is out of date, please update the latest version in time. </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="575"/>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="582"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="571"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="578"/>
         <source>You can download the latest version(%1) on Github Releases Page.&lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="579"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="575"/>
         <source>Unreleased Version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="580"/>
+        <location filename="../../src/ui/main_window/MainWindowSlotFunction.cpp" line="576"/>
         <source>This version(%1) has not been officially released and is not recommended for use in a production environment. &lt;br/&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3029,16 +3042,6 @@
         <source>The communication content with the server does not meet the requirements</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location filename="../../src/server/api/PubkeyUploader.cpp" line="103"/>
-        <source>Warning</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/server/api/PubkeyUploader.cpp" line="104"/>
-        <source>Partial failure of automatic pubkey exchange</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>QApplication</name>
@@ -3048,58 +3051,58 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="61"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="63"/>
         <source>One or More Bad Signatures.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="66"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="68"/>
         <source>A </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="68"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="70"/>
         <source>Good </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="71"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="73"/>
         <source>Bad </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="74"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="76"/>
         <source>Expired </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="77"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="79"/>
         <source>Missing Key&apos;s </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="80"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="82"/>
         <source>Revoked Key&apos;s </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="83"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="85"/>
         <source>Expired Key&apos;s </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="86"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="88"/>
         <source>Missing CRL&apos;s </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="90"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="92"/>
         <source>Signature Fully Valid.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="92"/>
-        <source>Signature NOT Fully Valid.</source>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="94"/>
+        <source>Signature Not Fully Valid.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3140,11 +3143,6 @@
     <message>
         <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="139"/>
         <source>Error for key with fingerprint </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="152"/>
-        <source>Signed By: </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3365,88 +3363,88 @@
 <context>
     <name>SignResultAnalyse</name>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="29"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="31"/>
         <source>[#] Sign Operation </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="32"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="34"/>
         <source>[Success]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="34"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="36"/>
         <source>[Failed] </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="43"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="47"/>
         <source>[&gt;] New Signature: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="47"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="51"/>
         <source>    Sign Mode: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="49"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="53"/>
         <source>Normal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="51"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="55"/>
         <source>Clear</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="53"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="57"/>
         <source>Detach</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="59"/>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="61"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="63"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="65"/>
         <source>    Signer: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="61"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="65"/>
         <source>&lt;unknown&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="63"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="67"/>
         <source>    Public Key Algo: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="64"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="68"/>
         <source>    Hash Algo: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="65"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="69"/>
         <source>    Date &amp; Time: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="75"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="81"/>
         <source>Invalid Signers: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="79"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="85"/>
         <source>[&gt;] Signer: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="80"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="86"/>
         <source>      Fingerprint: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="81"/>
+        <location filename="../../src/gpg/result_analyse/SignResultAnalyse.cpp" line="87"/>
         <source>      Reason: </source>
         <translation type="unfinished"></translation>
     </message>
@@ -3592,19 +3590,6 @@
     <message>
         <location filename="../../src/ui/widgets/TextEdit.cpp" line="481"/>
         <source>Application</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>UnknownSignersChecker</name>
-    <message>
-        <location filename="../../src/advance/UnknownSignersChecker.cpp" line="69"/>
-        <source>Warning</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/advance/UnknownSignersChecker.cpp" line="70"/>
-        <source>Automatic public key exchange failed.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3817,23 +3802,44 @@
 <context>
     <name>VerifyResultAnalyse</name>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="31"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="33"/>
         <source>[#] Verify Operation </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="34"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="36"/>
         <source>[Success]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="36"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="38"/>
         <source>[Failed] </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="158"/>
-        <source>&lt;Unknown&gt;</source>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="157"/>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="161"/>
+        <source>    Signed By: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="157"/>
+        <source>&lt;unknown&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="163"/>
+        <source>    Public Key Algo: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="164"/>
+        <source>    Hash Algo: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../src/gpg/result_analyse/VerifyResultAnalyse.cpp" line="165"/>
+        <source>    Date &amp; Time: </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
