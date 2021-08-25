@@ -22,15 +22,32 @@
  *
  */
 
-#include "ui/keygen/KeygenThread.h"
+#include "ui/ShowCopyDialog.h"
 
-KeyGenThread::KeyGenThread(GenKeyInfo* keyGenParams, GpgME::GpgContext *ctx)
-: mCtx(ctx), keyGenParams(keyGenParams), QThread(nullptr) {
-    connect(this, &KeyGenThread::finished, this, &KeyGenThread::deleteLater);
+ShowCopyDialog::ShowCopyDialog(const QString &text, const QString &info, QWidget *parent) : QDialog(parent) {
+    textEdit = new QTextEdit();
+    textEdit->setReadOnly(true);
+    textEdit->setLineWrapMode(QTextEdit::WidgetWidth);
+    textEdit->setText(text);
+    copyButton = new QPushButton("Copy");
+    connect(copyButton, SIGNAL(clicked(bool)), this, SLOT(slotCopyText()));
+
+    infoLabel = new QLabel();
+    infoLabel->setText(info);
+    infoLabel->setWordWrap(true);
+
+    auto *layout = new QVBoxLayout();
+    layout->addWidget(textEdit);
+    layout->addWidget(copyButton);
+    layout->addWidget(infoLabel);
+
+    this->setWindowTitle("Short Ciphertext");
+    this->resize(320, 120);
+    this->setModal(true);
+    this->setLayout(layout);
 }
 
-void KeyGenThread::run() {
-    bool success = mCtx->generateKey(keyGenParams);
-    emit signalKeyGenerated(success);
-    emit finished({});
+void ShowCopyDialog::slotCopyText() {
+    QClipboard *cb = QApplication::clipboard();
+    cb->setText(textEdit->toPlainText());
 }

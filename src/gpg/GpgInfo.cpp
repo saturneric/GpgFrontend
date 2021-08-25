@@ -18,19 +18,8 @@
  * Their source code version also complies with GNU General Public License.
  *
  * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
 
-#include "ui/keygen/SubkeyGenerateThread.h"
-
-SubkeyGenerateThread::SubkeyGenerateThread(GpgKey key, GenKeyInfo *keyGenParams, GpgME::GpgContext *ctx)
-        : mKey(std::move(key)), keyGenParams(keyGenParams) , mCtx(ctx) {
-    connect(this, &SubkeyGenerateThread::finished, this, &SubkeyGenerateThread::deleteLater);
-}
-
-void SubkeyGenerateThread::run() {
-    bool success = mCtx->generateSubkey(mKey, keyGenParams);
-    emit signalKeyGenerated(success);
-    emit finished({});
-}
+#include "gpg/GpgInfo.h"

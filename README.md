@@ -109,9 +109,8 @@ Read the animated pictures in the [Document](https://gpgfrontend.pub/#/quick-sta
 0. If command `gpg` is not available, please use homebrew to install it first.
 1. [Download GpgFrontend](https://github.com/saturneric/GpgFrontend/releases) macOS edition from the latest release
 2. Double-Click GpgFrontend.dmg to load it
-    - macOS will automatically decompress the zip file and then you will be able to see the dmg
 3. Double click and run it
-   (due to macOS security policy, you may need a little more step).
+    - Every Release App is Now Code-Signed By Develop ID Certificate and Checked By Apple Inc.
 4. If it satisfies you, you can drag it into your Application folder.
 
 #### Debian/Ubuntu/CentOS

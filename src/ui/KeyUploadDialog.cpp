@@ -24,8 +24,6 @@
 
 #include "ui/KeyUploadDialog.h"
 
-#include <utility>
-
 KeyUploadDialog::KeyUploadDialog(GpgME::GpgContext *ctx, const QVector<GpgKey> &keys, QWidget *parent)
     : appPath(qApp->applicationDirPath()),
     settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat),

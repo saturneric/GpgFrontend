@@ -102,14 +102,14 @@ public slots:
     void slotShowKeyList();
 
 private:
-    QLineEdit *outputFileEdit; /**< TODO */
-    QLineEdit *inputFileEdit; /**< TODO */
-    QLineEdit *signFileEdit; /**< TODO */
-    DialogAction mAction; /**< TODO */
-    QLabel *statusLabel; /**< TODO */
+    QLineEdit *outputFileEdit;
+    QLineEdit *inputFileEdit;
+    QLineEdit *signFileEdit;
+    DialogAction mAction;
+    QLabel *statusLabel;
 protected:
-    GpgME::GpgContext *mCtx; /**< TODO */
-    KeyList *mKeyList; /**< TODO */
+    GpgME::GpgContext *mCtx;
+    KeyList *mKeyList;
 
 };
 

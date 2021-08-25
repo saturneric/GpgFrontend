@@ -44,8 +44,6 @@ EditorPage::EditorPage(QString filePath, QWidget *parent) : QWidget(parent),
 
     // Front in same width
     this->setFont({"Courier"});
-
-    connect(textPage, SIGNAL(textChanged()), this, SLOT(formatGpgHeader()));
 }
 
 const QString &EditorPage::getFilePath() const {

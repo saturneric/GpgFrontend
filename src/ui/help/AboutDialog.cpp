@@ -37,7 +37,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget *parent)
     auto *tabWidget = new QTabWidget;
     auto *infoTab = new InfoTab();
     auto *translatorsTab = new TranslatorsTab();
-    auto *updateTab = new UpdateTab();
+    updateTab = new UpdateTab();
 
     tabWidget->addTab(infoTab, tr("General"));
     tabWidget->addTab(translatorsTab, tr("Translators"));
@@ -45,9 +45,6 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget *parent)
 
     connect(tabWidget, &QTabWidget::currentChanged, this, [&](int index) {
         qDebug() << "Current Index" << index;
-        if(index == 2) {
-            updateTab->getLatestVersion();
-        }
     });
 
     if(defaultIndex < tabWidget->count() && defaultIndex >= 0) {
@@ -62,7 +59,14 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget *parent)
     mainLayout->addWidget(buttonBox);
     setLayout(mainLayout);
 
-    this->exec();
+    this->resize(320, 580);
+
+    this->show();
+}
+
+void AboutDialog::showEvent(QShowEvent *ev) {
+    QDialog::showEvent(ev);
+    updateTab->getLatestVersion();
 }
 
 InfoTab::InfoTab(QWidget *parent)
@@ -157,6 +161,8 @@ UpdateTab::UpdateTab(QWidget *parent) {
     layout->addItem(new QSpacerItem(20, 10, QSizePolicy::Minimum,
                                     QSizePolicy::Fixed), 2, 1, 1, 1);
 
+    connect(this, SIGNAL(replyFromUpdateServer(QByteArray)), this, SLOT(processReplyDataFromUpdateServer(QByteArray)));
+
     setLayout(layout);
 }
 
@@ -172,44 +178,42 @@ void UpdateTab::getLatestVersion() {
 
     QNetworkRequest request;
     request.setUrl(QUrl(baseUrl));
-
     QNetworkReply *replay = manager->get(request);
+    auto thread = QThread::create([replay, this]() {
+        while(replay->isRunning()) QApplication::processEvents();
+        emit replyFromUpdateServer(replay->readAll());
+    });
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+    thread->start();
 
-    while(replay->isRunning()) {
-        QApplication::processEvents();
-    }
+}
 
-     this->pb->setHidden(true);
+void UpdateTab::processReplyDataFromUpdateServer(const QByteArray& data) {
 
-    if(replay->error() !=  QNetworkReply::NoError) {
+    qDebug() << "Try to Process Reply Data From Update Server";
+
+    this->pb->setHidden(true);
+
+    Document d;
+    if (d.Parse(data.constData()).HasParseError() || !d.IsObject()) {
         qDebug() << "VersionCheckThread Found Network Error";
         auto latestVersion = "Unknown";
         latestVersionLabel->setText("<center><b>" + tr("Latest Version From Github: ") + latestVersion + "</b></center>");
         return;
     }
 
-     QByteArray bytes = replay->readAll();
-
-    Document d;
-    d.Parse(bytes.constData());
-
     QString latestVersion = d["tag_name"].GetString();
 
     qDebug() << "Latest Version From Github" << latestVersion;
 
-    QRegularExpression re("^[vV](\\d+\\.)?(\\d+\\.)?(\\*|\\d+)");
+    QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
     QRegularExpressionMatch match = re.match(latestVersion);
     if (match.hasMatch()) {
-        latestVersion = match.captured(0); // matched == "23 def"
+        latestVersion = match.captured(0);
         qDebug() << "Latest Version Matched" << latestVersion;
-    } else {
-        latestVersion = "Unknown";
-    }
+    } else latestVersion = "Unknown";
 
     latestVersionLabel->setText("<center><b>" + tr("Latest Version From Github: ") + latestVersion + "</b></center>");
 
-    if(latestVersion > currentVersion) {
-        upgradeLabel->setHidden(false);
-    }
-
+    if(latestVersion > currentVersion) upgradeLabel->setHidden(false);
 }

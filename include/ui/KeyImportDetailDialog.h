@@ -27,7 +27,6 @@
 
 #include "gpg/GpgContext.h"
 
-
 class KeyImportDetailDialog : public QDialog
 {
     Q_OBJECT
