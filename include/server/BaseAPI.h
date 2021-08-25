@@ -22,29 +22,52 @@
  *
  */
 
-#ifndef __KEYGENTHREAD_H__
-#define __KEYGENTHREAD_H__
+#ifndef GPGFRONTEND_ZH_CN_TS_BASEAPI_H
+#define GPGFRONTEND_ZH_CN_TS_BASEAPI_H
 
-#include "gpg/GpgContext.h"
+#include "GpgFrontend.h"
+#include "ComUtils.h"
 
-class KeyGenThread : public QThread {
+#include "rapidjson/document.h"
+
+class BaseAPI : public QObject {
 Q_OBJECT
-
 public:
-    KeyGenThread(GenKeyInfo *keyGenParams, GpgME::GpgContext *ctx);
 
-signals:
-    void signalKeyGenerated(bool success);
+    explicit BaseAPI(ComUtils::ServiceType serviceType);
+
+    ~BaseAPI() override;
+
+    void start();
+
+    void refresh();
+
+    [[nodiscard]] bool result() const;
 
 private:
-    GenKeyInfo *keyGenParams;
-    GpgME::GpgContext *mCtx;
-    QMutex mutex;
+
+    ComUtils *utils;
+
+    QUrl reqUrl;
+
+    QNetworkRequest request;
+
+    QNetworkReply *send_json_data();
 
 protected:
 
-    void run() override;
+    bool good = false;
+
+    rapidjson::Document document;
+
+    const ComUtils &getUtils() { return *utils; };
+
+    virtual void construct_json() = 0;
+
+    virtual void deal_reply() = 0;
+
 
 };
 
-#endif // __KEYGENTHREAD_H__
+
+#endif //GPGFRONTEND_ZH_CN_TS_BASEAPI_H

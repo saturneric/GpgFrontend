@@ -18,34 +18,29 @@
  * Their source code version also complies with GNU General Public License.
  *
  * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
 
-#ifndef GPGFRONTEND_SUBKEYGENERATETHREAD_H
-#define GPGFRONTEND_SUBKEYGENERATETHREAD_H
+#ifndef GPGFRONTEND_ZH_CN_TS_SHOWCOPYDIALOG_H
+#define GPGFRONTEND_ZH_CN_TS_SHOWCOPYDIALOG_H
 
-#include "gpg/GpgContext.h"
+#include "GpgFrontend.h"
 
-class SubkeyGenerateThread : public QThread {
-    Q_OBJECT
-
+class ShowCopyDialog : public QDialog {
+Q_OBJECT
 public:
-    SubkeyGenerateThread(GpgKey key, GenKeyInfo *keyGenParams, GpgME::GpgContext *ctx);
+    explicit ShowCopyDialog(const QString &text, const QString &info = "", QWidget *parent = nullptr);
 
-signals:
+private slots:
 
-    void signalKeyGenerated(bool success);
+    void slotCopyText();
 
 private:
-    const GpgKey mKey;
-    GenKeyInfo *keyGenParams;
-    GpgME::GpgContext *mCtx;
-
-protected:
-
-    void run() override;
+    QLabel *infoLabel;
+    QTextEdit *textEdit;
+    QPushButton *copyButton;
 };
 
 
-#endif //GPGFRONTEND_SUBKEYGENERATETHREAD_H
+#endif //GPGFRONTEND_ZH_CN_TS_SHOWCOPYDIALOG_H

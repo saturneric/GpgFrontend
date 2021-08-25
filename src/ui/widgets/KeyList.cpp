@@ -31,8 +31,7 @@ KeyList::KeyList(GpgME::GpgContext *ctx,
                  KeyListColumn::InfoType infoType,
                  QWidget *parent)
         : QWidget(parent), mSelectType(selectType), mInfoType(infoType), appPath(qApp->applicationDirPath()),
-        settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat)
-{
+          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     mCtx = ctx;
 
 
@@ -43,7 +42,7 @@ KeyList::KeyList(GpgME::GpgContext *ctx,
     mKeyList->setShowGrid(false);
     mKeyList->sortByColumn(2, Qt::AscendingOrder);
     mKeyList->setSelectionBehavior(QAbstractItemView::SelectRows);
-    mKeyList->setSelectionMode( QAbstractItemView::SingleSelection );
+    mKeyList->setSelectionMode(QAbstractItemView::SingleSelection);
 
     // tableitems not editable
     mKeyList->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -54,22 +53,22 @@ KeyList::KeyList(GpgME::GpgContext *ctx,
     mKeyList->setAlternatingRowColors(true);
 
     // Hidden Column For Purpose
-    if(!(mInfoType & KeyListColumn::TYPE)) {
+    if (!(mInfoType & KeyListColumn::TYPE)) {
         mKeyList->setColumnHidden(1, true);
     }
-    if(!(mInfoType & KeyListColumn::NAME)) {
+    if (!(mInfoType & KeyListColumn::NAME)) {
         mKeyList->setColumnHidden(2, true);
     }
-    if(!(mInfoType & KeyListColumn::EmailAddress)) {
+    if (!(mInfoType & KeyListColumn::EmailAddress)) {
         mKeyList->setColumnHidden(3, true);
     }
-    if(!(mInfoType & KeyListColumn::Usage)) {
+    if (!(mInfoType & KeyListColumn::Usage)) {
         mKeyList->setColumnHidden(4, true);
     }
-    if(!(mInfoType & KeyListColumn::Validity)) {
+    if (!(mInfoType & KeyListColumn::Validity)) {
         mKeyList->setColumnHidden(5, true);
     }
-    if(!(mInfoType & KeyListColumn::FingerPrint)) {
+    if (!(mInfoType & KeyListColumn::FingerPrint)) {
         mKeyList->setColumnHidden(6, true);
     }
 
@@ -95,8 +94,7 @@ KeyList::KeyList(GpgME::GpgContext *ctx,
     slotRefresh();
 }
 
-void KeyList::slotRefresh()
-{
+void KeyList::slotRefresh() {
     QStringList *keyList;
     keyList = getChecked();
     // while filling the table, sort enabled causes errors
@@ -110,21 +108,21 @@ void KeyList::slotRefresh()
     int row_count = 0;
 
     while (it != keys.end()) {
-        if(mFilter != nullptr) {
-            if(!mFilter(*it)) {
+        if (mFilter != nullptr) {
+            if (!mFilter(*it)) {
                 it = keys.erase(it);
                 continue;
             }
         }
-        if(!excluded_key_ids.isEmpty()){
+        if (!excluded_key_ids.isEmpty()) {
 
             auto iterator = std::find_if(excluded_key_ids.begin(), excluded_key_ids.end(),
-                                         [it] (const auto &key_id) -> bool {
-                if(it->id == key_id) return true;
-                else return false;
-            });
+                                         [it](const auto &key_id) -> bool {
+                                             if (it->id == key_id) return true;
+                                             else return false;
+                                         });
 
-            if(iterator != excluded_key_ids.end()) {
+            if (iterator != excluded_key_ids.end()) {
                 it = keys.erase(it);
                 continue;
             }
@@ -161,10 +159,10 @@ void KeyList::slotRefresh()
             type_steam << "pub";
         }
 
-        if(it->is_private_key && !it->has_master_key) {
+        if (it->is_private_key && !it->has_master_key) {
             type_steam << "#";
         }
-        auto* tmp1 = new QTableWidgetItem(type_str);
+        auto *tmp1 = new QTableWidgetItem(type_str);
         mKeyList->setItem(row_index, 1, tmp1);
 
         auto *tmp2 = new QTableWidgetItem(it->name);
@@ -177,13 +175,13 @@ void KeyList::slotRefresh()
         QString usage;
         QTextStream usage_steam(&usage);
 
-        if(GpgME::GpgContext::checkIfKeyCanCert(*it))
+        if (GpgME::GpgContext::checkIfKeyCanCert(*it))
             usage_steam << "C";
-        if(GpgME::GpgContext::checkIfKeyCanEncr(*it))
+        if (GpgME::GpgContext::checkIfKeyCanEncr(*it))
             usage_steam << "E";
-        if(GpgME::GpgContext::checkIfKeyCanSign(*it))
+        if (GpgME::GpgContext::checkIfKeyCanSign(*it))
             usage_steam << "S";
-        if(GpgME::GpgContext::checkIfKeyCanAuth(*it))
+        if (GpgME::GpgContext::checkIfKeyCanAuth(*it))
             usage_steam << "A";
 
         auto *temp_usage = new QTableWidgetItem(usage);
@@ -199,7 +197,7 @@ void KeyList::slotRefresh()
         mKeyList->setItem(row_index, 6, temp_fpr);
 
         // strike out expired keys
-        if(it->expired || it->revoked) {
+        if (it->expired || it->revoked) {
             QFont strike = tmp2->font();
             strike.setStrikeOut(true);
             tmp0->setFont(strike);
@@ -218,8 +216,7 @@ void KeyList::slotRefresh()
     setChecked(keyList);
 }
 
-QStringList *KeyList::getChecked()
-{
+QStringList *KeyList::getChecked() {
     auto *ret = new QStringList();
     for (int i = 0; i < mKeyList->rowCount(); i++) {
         if (mKeyList->item(i, 0)->checkState() == Qt::Checked) {
@@ -229,19 +226,17 @@ QStringList *KeyList::getChecked()
     return ret;
 }
 
-QStringList *KeyList::getAllPrivateKeys()
-{
+QStringList *KeyList::getAllPrivateKeys() {
     auto *ret = new QStringList();
     for (int i = 0; i < mKeyList->rowCount(); i++) {
-        if (mKeyList->item(i, 1)) {
+        if (mKeyList->item(i, 1) && buffered_keys[i].is_private_key) {
             *ret << buffered_keys[i].id;
         }
     }
     return ret;
 }
 
-QStringList *KeyList::getPrivateChecked()
-{
+QStringList *KeyList::getPrivateChecked() {
     auto *ret = new QStringList();
     for (int i = 0; i < mKeyList->rowCount(); i++) {
         if ((mKeyList->item(i, 0)->checkState() == Qt::Checked) && (mKeyList->item(i, 1))) {
@@ -251,19 +246,17 @@ QStringList *KeyList::getPrivateChecked()
     return ret;
 }
 
-void KeyList::setChecked(QStringList *keyIds)
-{
+void KeyList::setChecked(QStringList *keyIds) {
     if (!keyIds->isEmpty()) {
         for (int i = 0; i < mKeyList->rowCount(); i++) {
-            if (keyIds->contains(buffered_keys[i].id))  {
+            if (keyIds->contains(buffered_keys[i].id)) {
                 mKeyList->item(i, 0)->setCheckState(Qt::Checked);
             }
         }
     }
 }
 
-QStringList *KeyList::getSelected()
-{
+QStringList *KeyList::getSelected() {
     auto *ret = new QStringList();
 
     for (int i = 0; i < mKeyList->rowCount(); i++) {
@@ -274,47 +267,42 @@ QStringList *KeyList::getSelected()
     return ret;
 }
 
-[[maybe_unused]] bool KeyList::containsPrivateKeys()
-{
+[[maybe_unused]] bool KeyList::containsPrivateKeys() {
     for (int i = 0; i < mKeyList->rowCount(); i++) {
         if (mKeyList->item(i, 1)) {
-            return  true;
+            return true;
         }
     }
     return false;
 }
 
-void KeyList::setColumnWidth(int row, int size)
-{
+void KeyList::setColumnWidth(int row, int size) {
     mKeyList->setColumnWidth(row, size);
 }
 
-void KeyList::contextMenuEvent(QContextMenuEvent *event)
-{
+void KeyList::contextMenuEvent(QContextMenuEvent *event) {
     if (mKeyList->selectedItems().length() > 0) {
         popupMenu->exec(event->globalPos());
     }
 
 }
 
-void KeyList::addSeparator()
-{
+void KeyList::addSeparator() {
     popupMenu->addSeparator();
 }
 
-void KeyList::addMenuAction(QAction *act)
-{
+void KeyList::addMenuAction(QAction *act) {
     popupMenu->addAction(act);
 }
 
-void KeyList::dropEvent(QDropEvent* event)
-{
+void KeyList::dropEvent(QDropEvent *event) {
 
     auto *dialog = new QDialog();
 
     dialog->setWindowTitle(tr("Import Keys"));
     QLabel *label;
-    label = new QLabel(tr("You've dropped something on the table.\n GpgFrontend will now try to import key(s).")+"\n");
+    label = new QLabel(
+            tr("You've dropped something on the table.\n GpgFrontend will now try to import key(s).") + "\n");
 
     // "always import keys"-CheckBox
     auto *checkBox = new QCheckBox(tr("Always import without bothering."));
@@ -332,56 +320,50 @@ void KeyList::dropEvent(QDropEvent* event)
 
     dialog->setLayout(vbox);
 
-    if (settings.value("general/confirmImportKeys",Qt::Checked).toBool())
-    {
+    if (settings.value("general/confirmImportKeys", Qt::Checked).toBool()) {
         dialog->exec();
         if (dialog->result() == QDialog::Rejected) {
             return;
         }
-        if (checkBox->isChecked()){
-           settings.setValue("general/confirmImportKeys", false);
+        if (checkBox->isChecked()) {
+            settings.setValue("general/confirmImportKeys", false);
         } else {
             settings.setValue("general/confirmImportKeys", true);
 
         }
     }
 
-    if (event->mimeData()->hasUrls())
-    {
-        for (const QUrl& tmp : event->mimeData()->urls())
-        {
-                QFile file;
-                file.setFileName(tmp.toLocalFile());
-                if (!file.open(QIODevice::ReadOnly)) {
-                    qDebug() << tr("Couldn't Open File: ") + tmp.toString();
-                }
-                QByteArray inBuffer = file.readAll();
-                this->importKeys(inBuffer);
-                file.close();
-        }
-   } else  {
-            QByteArray inBuffer(event->mimeData()->text().toUtf8());
+    if (event->mimeData()->hasUrls()) {
+        for (const QUrl &tmp : event->mimeData()->urls()) {
+            QFile file;
+            file.setFileName(tmp.toLocalFile());
+            if (!file.open(QIODevice::ReadOnly)) {
+                qDebug() << tr("Couldn't Open File: ") + tmp.toString();
+            }
+            QByteArray inBuffer = file.readAll();
             this->importKeys(inBuffer);
-  }
+            file.close();
+        }
+    } else {
+        QByteArray inBuffer(event->mimeData()->text().toUtf8());
+        this->importKeys(inBuffer);
+    }
 }
 
-void KeyList::dragEnterEvent(QDragEnterEvent *event)
-{
+void KeyList::dragEnterEvent(QDragEnterEvent *event) {
     event->acceptProposedAction();
 }
 
 /** set background color for Keys and put them to top
  *
  */
-[[maybe_unused]] void KeyList::markKeys(QStringList *keyIds)
-{
-    foreach(QString id, *keyIds) {
-        qDebug() << "marked: " << id;
-     }
+[[maybe_unused]] void KeyList::markKeys(QStringList *keyIds) {
+            foreach(QString id, *keyIds) {
+            qDebug() << "marked: " << id;
+        }
 }
 
-void KeyList::importKeys(QByteArray inBuffer)
-{
+void KeyList::importKeys(QByteArray inBuffer) {
     GpgImportInformation result = mCtx->importKey(std::move(inBuffer));
     new KeyImportDetailDialog(mCtx, result, false, this);
 }
@@ -397,7 +379,7 @@ void KeyList::getCheckedKeys(QVector<GpgKey> &keys) {
 
 void KeyList::setExcludeKeys(std::initializer_list<QString> key_ids) {
     excluded_key_ids.clear();
-    for(auto &key_id : key_ids) {
+    for (auto &key_id : key_ids) {
         excluded_key_ids.push_back(key_id);
     }
 }
@@ -407,8 +389,8 @@ void KeyList::setFilter(std::function<bool(const GpgKey &)> filter) {
 }
 
 void KeyList::slotDoubleClicked(const QModelIndex &index) {
-    if(mAction != nullptr) {
-        const auto &key = mCtx->getKeyById(buffered_keys[index.row()].id);
+    if (mAction != nullptr) {
+        const auto key = mCtx->getKeyById(buffered_keys[index.row()].id);
         mAction(key, this);
     }
 

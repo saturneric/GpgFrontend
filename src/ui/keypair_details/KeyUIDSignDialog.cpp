@@ -89,13 +89,12 @@ void KeyUIDSignDialog::slotSignKey(bool clicked) {
     // Set Signers
     QVector<GpgKey> keys;
     mKeyList->getCheckedKeys(keys);
-    mCtx->setSigners(keys);
 
     const auto expires = expiresEdit->dateTime();
 
     for(const auto &uid : mUids) {
         // Sign For mKey
-        if (!mCtx->signKey(mKey, uid.uid, &expires)) {
+        if (!mCtx->signKey(mKey, keys, uid.uid, &expires)) {
             QMessageBox::critical(nullptr,
                                   tr("Unsuccessful Operation"),
                                   QString(tr("Signature operation failed for UID ") + "%1")

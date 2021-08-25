@@ -314,6 +314,16 @@ private:
     void saveSettings();
 
     /**
+     * @details Get full crypto text
+     */
+    QString getCryptText(const QString& shortenCryptoText);
+
+    /**
+     * @details Shorten crypto text
+     */
+    void shortenCryptText();
+
+    /**
      * @brief return true, if restart is needed
      */
     [[nodiscard]] bool getRestartNeeded() const;

@@ -43,12 +43,14 @@ int main(int argc, char *argv[]) {
     // unicode in source
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
 
-    // css
+#if OS_PLATFORM == WINDOWS
+    // load css file
     QFile file(RESOURCE_DIR(qApp->applicationDirPath()) + "/css/default.qss");
     file.open(QFile::ReadOnly);
     QString styleSheet = QLatin1String(file.readAll());
     qApp->setStyleSheet(styleSheet);
     file.close();
+#endif
 
     /**
      * internationalisation. loop to restart mainwindow

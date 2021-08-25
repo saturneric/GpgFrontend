@@ -1,8 +1,8 @@
-set(ALL_SOURCE_FILE)
-
 add_subdirectory(gpg)
 add_subdirectory(ui)
 add_subdirectory(smtp)
+add_subdirectory(server)
+add_subdirectory(advance)
 
 aux_source_directory(. BASE_SOURCE)
 
@@ -90,7 +90,7 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
         add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
         set_target_properties(${AppName} PROPERTIES
             BUNDLE True
-            MACOSX_BUNDLE_GUI_IDENTIFIER org.gnupg.gpgfrontend
+            MACOSX_BUNDLE_GUI_IDENTIFIER pub.gpgfrontend.gpgfrontend
             MACOSX_BUNDLE_BUNDLE_NAME ${AppName}
             MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
@@ -121,23 +121,26 @@ else()
     add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
 endif()
 
+set(GPGFRONTEND_LIBS smtp gpgfrontend-ui advance server gpg)
+set(QT_DEPENDENCY_LIBS Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+
 IF (MINGW)
     message(STATUS "Link Application Static Library For MINGW")
     target_link_libraries(${AppName}
-            smtp gpgfrontend-ui gpg
-            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
+            ${GPGFRONTEND_LIBS}
+            ${QT_DEPENDENCY_LIBS}
             crypto ssl)
 elseif(APPLE)
     message(STATUS "Link Application Static Library For macOS")
     target_link_libraries(${AppName}
-            smtp gpgfrontend-ui gpg
-            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
+            ${GPGFRONTEND_LIBS}
+            ${QT_DEPENDENCY_LIBS}
             crypto ssl)
 else()
     message(STATUS "Link Application Static Library For UNIX")
     target_link_libraries(${AppName}
-            smtp gpgfrontend-ui gpg
-            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
+            ${GPGFRONTEND_LIBS}
+            ${QT_DEPENDENCY_LIBS}
             crypto ssl pthread)
 endif()
 

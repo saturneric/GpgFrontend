@@ -30,14 +30,6 @@
 #include "gpg/GpgConstants.h"
 #include "SettingsDialog.h"
 
-class QCheckBox;
-
-class QLabel;
-
-class QLineEdit;
-
-class QRadioButton;
-
 class Wizard : public QWizard {
 Q_OBJECT
     Q_ENUMS(WizardPages)
@@ -49,8 +41,6 @@ public:
     };
 
     Wizard(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent = nullptr);
-
-    static bool importPubAndSecKeysFromDir(const QString& dir, KeyMgmt *keyMgmt);
 
 private:
     GpgME::GpgContext *mCtx;
@@ -100,62 +90,6 @@ private:
     [[nodiscard]] int nextId() const override;
 
     int nextPage;
-};
-
-class ImportFromGpg4usbPage : public QWizardPage {
-Q_OBJECT
-
-public:
-    ImportFromGpg4usbPage(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent = nullptr);
-
-private slots:
-
-    /**
-      * @details  Import keys from gnupg-homedir, private or/and public depend on the checked boxes
-      */
-    void slotImportFromOlderGpg4usb();
-
-    bool slotImportConfFromGpg4usb(const QString& dir);
-
-private:
-    [[nodiscard]] int nextId() const override;
-
-    QString appPath;
-    QSettings settings;
-
-    KeyMgmt *mKeyMgmt;
-    GpgME::GpgContext *mCtx;
-    QCheckBox *gpg4usbKeyCheckBox;
-    QCheckBox *gpg4usbConfigCheckBox;
-};
-
-class ImportFromGnupgPage : public QWizardPage {
-Q_OBJECT
-
-public:
-    ImportFromGnupgPage(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent = nullptr);
-
-private slots:
-
-    /**
-      * @details  Import keys from gnupg-homedir, private or/and public depend on the checked boxes
-      */
-    void slotrImportKeysFromGnupg();
-
-private:
-    KeyMgmt *mKeyMgmt;
-
-    [[nodiscard]] int nextId() const override;
-
-    /**
-      * @details  String containing the gnupg-homedir
-      * @returns String containg the gnupg-homedir, but NULL, if the in windows registry entry
-      * doesn't exist or in linux ~/.gnupg doesn't exist
-      */
-    static QString getGnuPGHome();
-
-    GpgME::GpgContext *mCtx;
-    QPushButton *importFromGnupgButton;
 };
 
 class KeyGenPage : public QWizardPage {
