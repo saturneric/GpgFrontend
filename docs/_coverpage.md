@@ -17,6 +17,7 @@ Crypto Tool.
 
 - Can run on **Windows, Linux and macOS**.
 - Open source, free, no need to install.
+- Shorter ciphertext and automatic pubkey exchange.
 - Just double-click, and then you can use it freely.
 - Supports multiple languages.
     - If you are interested, you can help
