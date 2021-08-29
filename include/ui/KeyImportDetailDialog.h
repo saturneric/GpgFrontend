@@ -32,7 +32,7 @@ class KeyImportDetailDialog : public QDialog
     Q_OBJECT
 
 public:
-    KeyImportDetailDialog(GpgME::GpgContext *ctx, GpgImportInformation result, bool automatic, QWidget *parent = 0);
+    KeyImportDetailDialog(GpgFrontend::GpgContext *ctx, GpgImportInformation result, bool automatic, QWidget *parent = 0);
 
 private:
     void createGeneralInfoBox();
@@ -41,7 +41,7 @@ private:
     static QString getStatusString(int keyStatus);
 
     QTableWidget *keysTable{};
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     QGroupBox *generalInfoBox{};
     QGroupBox *keyInfoBox{};
     QDialogButtonBox *buttonBox{};

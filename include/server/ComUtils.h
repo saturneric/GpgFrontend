@@ -29,51 +29,55 @@
 #include "gpg/GpgContext.h"
 #include "rapidjson/document.h"
 
-class ComUtils : public QWidget {
-Q_OBJECT
-public:
+namespace GpgFrontend {
 
-    enum ServiceType { GetServiceToken, ShortenCryptText, GetFullCryptText, UploadPubkey, GetPubkey };
+    class ComUtils : public QWidget {
+        Q_OBJECT
+    public:
 
-    explicit ComUtils(QWidget *parent) : QWidget(parent), appPath(qApp->applicationDirPath()),
-                                         settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-                                                  QSettings::IniFormat) {
+        enum ServiceType { GetServiceToken, ShortenCryptText, GetFullCryptText, UploadPubkey, GetPubkey };
 
-    }
+        explicit ComUtils(QWidget *parent) : QWidget(parent), appPath(qApp->applicationDirPath()),
+        settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
+                 QSettings::IniFormat) {
 
-    [[nodiscard]] QString getUrl(ServiceType type) const;
+        }
 
-    bool checkServerReply(const QByteArray &reply);
+        [[nodiscard]] QString getUrl(ServiceType type) const;
 
-    [[nodiscard]] QString getDataValueStr(const QString &key) const;
+        bool checkServerReply(const QByteArray &reply);
 
-    [[nodiscard]] bool checkDataValueStr(const QString &key) const;
+        [[nodiscard]] QString getDataValueStr(const QString &key) const;
 
-    [[nodiscard]] const rapidjson::Value &getDataValue(const QString &key) const;
+        [[nodiscard]] bool checkDataValueStr(const QString &key) const;
 
-    [[nodiscard]] bool checkDataValue(const QString &key) const;
+        [[nodiscard]] const rapidjson::Value &getDataValue(const QString &key) const;
 
-    [[nodiscard]] bool checkServiceTokenFormat(const QString& serviceToken) const;
+        [[nodiscard]] bool checkDataValue(const QString &key) const;
 
-    static QByteArray getSignStringBase64(GpgME::GpgContext *ctx, const QString &str, const GpgKey& key);
+        [[nodiscard]] bool checkServiceTokenFormat(const QString& serviceToken) const;
 
-    [[nodiscard]] bool good() const { return is_good; }
+        static QByteArray getSignStringBase64(GpgFrontend::GpgContext *ctx, const QString &str, const GpgKey& key);
 
-    QNetworkAccessManager &getNetworkManager() {return networkMgr;}
+        [[nodiscard]] bool good() const { return is_good; }
 
-    void clear();
+        QNetworkAccessManager &getNetworkManager() {return networkMgr;}
 
-private:
+        void clear();
 
-    QString appPath;
-    QSettings settings;
-    rapidjson::Document replyDoc;
-    rapidjson::Value dataVal;
-    QNetworkAccessManager networkMgr;
-    QRegularExpression re_uuid{R"(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)"};
+    private:
 
-    bool is_good = false;
-};
+        QString appPath;
+        QSettings settings;
+        rapidjson::Document replyDoc;
+        rapidjson::Value dataVal;
+        QNetworkAccessManager networkMgr;
+        QRegularExpression re_uuid{R"(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)"};
+
+        bool is_good = false;
+    };
+
+}
 
 
 #endif //GPGFRONTEND_ZH_CN_TS_COMUTILS_H

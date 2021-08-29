@@ -24,7 +24,7 @@
 
 #include "ui/keypair_details/KeyPairSubkeyTab.h"
 
-KeyPairSubkeyTab::KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent) : mCtx(ctx), mKey(key), QWidget(parent) {
+KeyPairSubkeyTab::KeyPairSubkeyTab(GpgFrontend::GpgContext *ctx, const GpgKey &key, QWidget *parent) : mCtx(ctx), mKey(key), QWidget(parent) {
 
     createSubkeyList();
     createSubkeyOperaMenu();

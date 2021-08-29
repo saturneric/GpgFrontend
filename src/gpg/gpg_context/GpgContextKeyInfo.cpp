@@ -29,9 +29,10 @@
  * @param key target key
  * @return if key sign
  */
-bool GpgME::GpgContext::checkIfKeyCanSign(const GpgKey &key) {
-    if (std::any_of(key.subKeys.begin(), key.subKeys.end(), [](const GpgSubKey &subkey) -> bool {
-        return subkey.secret && subkey.can_sign && !subkey.disabled && !subkey.revoked && !subkey.expired;
+bool GpgFrontend::GpgContext::checkIfKeyCanSign(const GpgKey &key) {
+    auto subkeys = key.subKeys();
+    if (std::any_of(subkeys->begin(), subkeys->end(), [](const GpgSubKey &subkey) -> bool {
+        return subkey.secret() && subkey.can_sign() && !subkey.disabled() && !subkey.revoked() && !subkey.expired();
     }))
         return true;
     else return false;
@@ -42,8 +43,8 @@ bool GpgME::GpgContext::checkIfKeyCanSign(const GpgKey &key) {
  * @param key target key
  * @return if key certify
  */
-bool GpgME::GpgContext::checkIfKeyCanCert(const GpgKey &key) {
-    return key.has_master_key && !key.expired && !key.revoked && !key.disabled;
+bool GpgFrontend::GpgContext::checkIfKeyCanCert(const GpgKey &key) {
+    return key.has_master_key() && !key.expired() && !key.revoked() && !key.disabled();
 }
 
 /**
@@ -51,9 +52,10 @@ bool GpgME::GpgContext::checkIfKeyCanCert(const GpgKey &key) {
  * @param key target key
  * @return if key authenticate
  */
-bool GpgME::GpgContext::checkIfKeyCanAuth(const GpgKey &key) {
-    if (std::any_of(key.subKeys.begin(), key.subKeys.end(), [](const GpgSubKey &subkey) -> bool {
-        return subkey.secret && subkey.can_authenticate && !subkey.disabled && !subkey.revoked && !subkey.expired;
+bool GpgFrontend::GpgContext::checkIfKeyCanAuth(const GpgKey &key) {
+    auto subkeys = key.subKeys();
+    if (std::any_of(subkeys->begin(), subkeys->end(), [](const GpgSubKey &subkey) -> bool {
+        return subkey.secret() && subkey.can_authenticate() && !subkey.disabled() && !subkey.revoked() && !subkey.expired();
     }))
         return true;
     else return false;
@@ -64,47 +66,11 @@ bool GpgME::GpgContext::checkIfKeyCanAuth(const GpgKey &key) {
  * @param key target key
  * @return if key encrypt
  */
-bool GpgME::GpgContext::checkIfKeyCanEncr(const GpgKey &key) {
-    if (std::any_of(key.subKeys.begin(), key.subKeys.end(), [](const GpgSubKey &subkey) -> bool {
-        return subkey.can_encrypt && !subkey.disabled && !subkey.revoked && !subkey.expired;
+bool GpgFrontend::GpgContext::checkIfKeyCanEncr(const GpgKey &key) {
+    auto subkeys = key.subKeys();
+    if (std::any_of(subkeys->begin(), subkeys->end(), [](const GpgSubKey &subkey) -> bool {
+        return subkey.can_encrypt() && !subkey.disabled() && !subkey.revoked() && !subkey.expired();
     }))
         return true;
     else return false;
-}
-
-/**
- * Get target key
- * @param fpr master key's fingerprint
- * @return the key
- */
-GpgKey GpgME::GpgContext::getKeyByFpr(const QString &fpr) {
-    for (const auto &key : mKeyList) {
-        if (key.fpr == fpr) return key;
-        else
-            for (auto &subkey : key.subKeys) {
-                if (subkey.fpr == fpr) return key;
-            }
-    }
-    return GpgKey(nullptr);
-}
-
-
-/**
- * Get target key
- * @param id master key's id
- * @return the key
- */
-GpgKey GpgME::GpgContext::getKeyById(const QString &id) {
-
-    for (const auto &key : mKeyList) {
-        if (key.id == id) return key;
-        else {
-            auto sub_keys = key.subKeys;
-            for (const auto &subkey : sub_keys) {
-                if (subkey.id == id) return key;
-            }
-        }
-    }
-
-    return GpgKey(nullptr);
 }

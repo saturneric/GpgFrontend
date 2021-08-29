@@ -31,7 +31,7 @@
 class VerifyDetailsDialog : public QDialog {
 Q_OBJECT
 public:
-    explicit VerifyDetailsDialog(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList, gpg_error_t error,
+    explicit VerifyDetailsDialog(QWidget *parent, GpgFrontend::GpgContext *ctx, KeyList *keyList, gpg_error_t error,
                                  gpgme_verify_result_t result);
 
 private slots:
@@ -39,7 +39,7 @@ private slots:
     void slotRefresh();
 
 private:
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     KeyList *mKeyList;
     QHBoxLayout *mainLayout;
     QWidget *mVbox{};

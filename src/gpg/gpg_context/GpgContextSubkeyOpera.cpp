@@ -30,7 +30,7 @@
  * @param params opera args
  * @return error info
  */
-gpgme_error_t GpgME::GpgContext::generateSubkey(const GpgKey &key, GenKeyInfo *params) {
+gpgme_error_t GpgFrontend::GpgContext::generateSubkey(const GpgKey &key, GenKeyInfo *params) {
 
     if (!params->isSubKey()) return GPG_ERR_CANCELED;
 
@@ -48,13 +48,13 @@ gpgme_error_t GpgME::GpgContext::generateSubkey(const GpgKey &key, GenKeyInfo *p
     flags |= GPGME_CREATE_NOPASSWD;
 
 
-    auto gpgmeError = gpgme_op_createsubkey(mCtx, key.key_refer,
+    auto gpgmeError = gpgme_op_createsubkey(*this, gpgme_key_t(key),
                                             algo, 0, expires, flags);
     if (gpgme_err_code(gpgmeError) == GPG_ERR_NO_ERROR) {
-        emit signalKeyUpdated(key.id);
+        emit signalKeyUpdated(key.id());
         return gpgmeError;
     } else {
-        checkErr(gpgmeError);
+        check_gpg_error(gpgmeError);
         return gpgmeError;
     }
 }

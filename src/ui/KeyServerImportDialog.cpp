@@ -26,7 +26,7 @@
 
 #include <utility>
 
-KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, KeyList *keyList, bool automatic,
+KeyServerImportDialog::KeyServerImportDialog(GpgFrontend::GpgContext *ctx, KeyList *keyList, bool automatic,
                                              QWidget *parent)
         : QDialog(parent), appPath(qApp->applicationDirPath()),
           settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat),
@@ -437,7 +437,7 @@ void KeyServerImportDialog::setLoading(bool status) {
     }
 }
 
-KeyServerImportDialog::KeyServerImportDialog(GpgME::GpgContext *ctx, QWidget *parent)
+KeyServerImportDialog::KeyServerImportDialog(GpgFrontend::GpgContext *ctx, QWidget *parent)
         : QDialog(parent), appPath(qApp->applicationDirPath()),
           settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat),
           mCtx(ctx), mAutomatic(true) {

@@ -25,7 +25,7 @@
 #include "ui/keygen/SubkeyGenerateDialog.h"
 #include "ui/WaitingDialog.h"
 
-SubkeyGenerateDialog::SubkeyGenerateDialog(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent)
+SubkeyGenerateDialog::SubkeyGenerateDialog(GpgFrontend::GpgContext *ctx, const GpgKey &key, QWidget *parent)
         : genKeyInfo(true), mCtx(ctx), mKey(key), QDialog(parent) {
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);

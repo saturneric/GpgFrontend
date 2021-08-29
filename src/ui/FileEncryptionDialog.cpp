@@ -24,7 +24,7 @@
 
 #include "ui/FileEncryptionDialog.h"
 
-FileEncryptionDialog::FileEncryptionDialog(GpgME::GpgContext *ctx, QStringList keyList, DialogAction action,
+FileEncryptionDialog::FileEncryptionDialog(GpgFrontend::GpgContext *ctx, QStringList keyList, DialogAction action,
                                            QWidget *parent)
         : QDialog(parent), mAction(action), mCtx(ctx){
 
@@ -92,13 +92,13 @@ FileEncryptionDialog::FileEncryptionDialog(GpgME::GpgContext *ctx, QStringList k
 
     if(mAction == Encrypt)
         mKeyList->setFilter([](const GpgKey &key) -> bool {
-            if(!GpgME::GpgContext::checkIfKeyCanEncr(key)) return false;
+            if(!GpgFrontend::GpgContext::checkIfKeyCanEncr(key)) return false;
             else return true;
         });
 
     if(mAction == Sign)
         mKeyList->setFilter([](const GpgKey &key) -> bool {
-            if(!GpgME::GpgContext::checkIfKeyCanSign(key)) return false;
+            if(!GpgFrontend::GpgContext::checkIfKeyCanSign(key)) return false;
             else return true;
         });
 

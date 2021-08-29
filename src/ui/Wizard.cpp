@@ -24,7 +24,7 @@
 
 #include "ui/Wizard.h"
 
-Wizard::Wizard(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent)
+Wizard::Wizard(GpgFrontend::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent)
         : QWizard(parent), appPath(qApp->applicationDirPath()),
           settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     mCtx = ctx;
@@ -177,7 +177,7 @@ void ChoosePage::slotJumpPage(const QString &page) {
     wizard()->next();
 }
 
-KeyGenPage::KeyGenPage(GpgME::GpgContext *ctx, QWidget *parent)
+KeyGenPage::KeyGenPage(GpgFrontend::GpgContext *ctx, QWidget *parent)
         : QWizardPage(parent) {
     mCtx = ctx;
     setTitle(tr("Create a keypair..."));

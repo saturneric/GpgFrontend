@@ -21,31 +21,6 @@
  * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
-#include "gpg/GpgSubKey.h"
+#include "gpg/model/GpgSubKey.h"
 
-GpgSubKey::GpgSubKey(gpgme_subkey_t key) {
-
-    if (key == nullptr) return;
-
-    id = key->keyid;
-    pubkey_algo = gpgme_pubkey_algo_name(key->pubkey_algo);
-    fpr = key->fpr;
-
-    expired = key->expired;
-    revoked = key->revoked;
-    secret = key->secret;
-
-    disabled = key->disabled;
-
-    length = key->length;
-
-    can_authenticate = key->can_authenticate;
-    can_certify = key->can_certify;
-    can_encrypt = key->can_encrypt;
-    can_sign = key->can_sign;
-    is_cardkey = key->is_cardkey;
-    is_private_key = key->secret;
-
-    timestamp = QDateTime::fromTime_t(key->timestamp);
-    expires = QDateTime::fromTime_t(key->expires);
-}
+GpgFrontend::GpgSubKey::GpgSubKey(gpgme_subkey_t subkey) : _subkey_ref(subkey, [&](gpgme_subkey_t subkey) {}) {}

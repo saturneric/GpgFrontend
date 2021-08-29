@@ -47,7 +47,7 @@ void MainWindow::slotEncrypt() {
         }
 
         for (const auto &key : keys) {
-            if (!GpgME::GpgContext::checkIfKeyCanEncr(key)) {
+            if (!GpgFrontend::GpgContext::checkIfKeyCanEncr(key)) {
                 QMessageBox::information(nullptr,
                                          tr("Invalid Operation"),
                                          tr("The selected key contains a key that does not actually have a encrypt usage.<br/>")
@@ -127,7 +127,7 @@ void MainWindow::slotSign() {
         }
 
         for (const auto &key : keys) {
-            if (!GpgME::GpgContext::checkIfKeyCanSign(key)) {
+            if (!GpgFrontend::GpgContext::checkIfKeyCanSign(key)) {
                 QMessageBox::information(this,
                                          tr("Invalid Operation"),
                                          tr("The selected key contains a key that does not actually have a signature usage.<br/>")
@@ -179,7 +179,7 @@ void MainWindow::slotDecrypt() {
 
         auto decrypted = QByteArray();
         QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
-        GpgME::GpgContext::preventNoDataErr(&text);
+        GpgFrontend::GpgContext::preventNoDataErr(&text);
 
         if (text.trimmed().startsWith(GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD)) {
             QMessageBox::critical(this, tr("Notice"), tr("Short Crypto Text only supports Decrypt & Verify."));
@@ -244,7 +244,7 @@ void MainWindow::slotVerify() {
     if (edit->slotCurPageTextEdit() != nullptr) {
 
         QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
-        GpgME::GpgContext::preventNoDataErr(&text);
+        GpgFrontend::GpgContext::preventNoDataErr(&text);
 
         gpgme_verify_result_t result;
 
@@ -298,7 +298,7 @@ void MainWindow::slotEncryptSign() {
         }
 
         for (const auto &key : keys) {
-            bool key_can_encr = GpgME::GpgContext::checkIfKeyCanEncr(key);
+            bool key_can_encr = GpgFrontend::GpgContext::checkIfKeyCanEncr(key);
 
             if (!key_can_encr) {
                 QMessageBox::critical(nullptr,
@@ -432,7 +432,7 @@ void MainWindow::slotDecryptVerify() {
 
         QByteArray text = plainText.toUtf8();
 
-        GpgME::GpgContext::preventNoDataErr(&text);
+        GpgFrontend::GpgContext::preventNoDataErr(&text);
 
         gpgme_decrypt_result_t d_result = nullptr;
         gpgme_verify_result_t v_result = nullptr;
@@ -516,7 +516,7 @@ void MainWindow::slotCopyMailAddressToClipboard() {
     if (mKeyList->getSelected()->isEmpty()) {
         return;
     }
-    auto key = mCtx->getKeyById(mKeyList->getSelected()->first());
+    auto key = mCtx->getKeyRefById(mKeyList->getSelected()->first());
     if (!key.good) {
         QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
         return;
@@ -530,7 +530,7 @@ void MainWindow::slotShowKeyDetails() {
     if (mKeyList->getSelected()->isEmpty()) {
         return;
     }
-    auto key = mCtx->getKeyById(mKeyList->getSelected()->first());
+    auto key = mCtx->getKeyRefById(mKeyList->getSelected()->first());
     if (key.good) {
         new KeyDetailsDialog(mCtx, key, this);
     } else {

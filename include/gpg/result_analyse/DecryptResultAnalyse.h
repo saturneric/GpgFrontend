@@ -31,11 +31,11 @@
 class DecryptResultAnalyse : public ResultAnalyse {
 Q_OBJECT
 public:
-    explicit DecryptResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_decrypt_result_t result);
+    explicit DecryptResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_error_t error, gpgme_decrypt_result_t result);
 
 private:
 
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
 
     bool printReci(QTextStream &stream, gpgme_recipient_t reci);
 };

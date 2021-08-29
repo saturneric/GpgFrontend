@@ -52,7 +52,7 @@ public:
      * @param ctx The GPGme-Context
      * @param parent The parent widget
      */
-    explicit InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList);
+    explicit InfoBoardWidget(QWidget *parent, GpgFrontend::GpgContext *ctx, KeyList *keyList);
 
 
     void associateTextEdit(QTextEdit *edit);
@@ -102,7 +102,7 @@ private:
     QMenu *detailMenu; /** Menu for te Button in verfiyNotification */
     QAction *importFromKeyserverAct; /** Action for importing keys from keyserver which are notin keylist */
     QTextEdit *infoBoard;
-    GpgME::GpgContext *mCtx; /** GpgME Context */
+    GpgFrontend::GpgContext *mCtx; /** GpgME Context */
     KeyList *mKeyList; /** Table holding the keys */
 
     QTextEdit *mTextPage{ nullptr }; /** TextEdit associated to the notification */

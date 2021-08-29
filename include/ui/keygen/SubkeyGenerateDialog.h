@@ -32,11 +32,11 @@ Q_OBJECT
 
 public:
 
-    explicit SubkeyGenerateDialog(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent = nullptr);
+    explicit SubkeyGenerateDialog(GpgFrontend::GpgContext *ctx, const GpgKey &key, QWidget *parent = nullptr);
 
 private:
 
-    GpgME::GpgContext *mCtx; /** The current gpg context */
+    GpgFrontend::GpgContext *mCtx; /** The current gpg context */
     const GpgKey &mKey;
 
     GenKeyInfo genKeyInfo{};

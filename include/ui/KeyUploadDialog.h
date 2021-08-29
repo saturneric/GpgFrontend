@@ -31,7 +31,7 @@
 class KeyUploadDialog : public QDialog {
 Q_OBJECT
 public:
-    KeyUploadDialog(GpgME::GpgContext *ctx, const QVector<GpgKey> &keys, QWidget *parent = nullptr);
+    KeyUploadDialog(GpgFrontend::GpgContext *ctx, const QVector<GpgKey> &keys, QWidget *parent = nullptr);
 
 public slots:
 
@@ -45,7 +45,7 @@ private slots:
 
 private:
 
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     const QVector<GpgKey> &mKeys;
     QString appPath;
     QSettings settings;

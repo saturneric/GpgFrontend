@@ -35,6 +35,8 @@
 #include <cerrno>
 #include <utility>
 #include <list>
+#include <span>
+#include <mutex>
 
 /**
  * QT Headers

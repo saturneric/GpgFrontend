@@ -25,7 +25,7 @@
 #include "GpgFrontend.h"
 #include "gpg/result_analyse/VerifyResultAnalyse.h"
 
-VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_verify_result_t result)
+VerifyResultAnalyse::VerifyResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_error_t error, gpgme_verify_result_t result)
         : mCtx(ctx) {
 
     qDebug() << "Verify Result Analyse Started";
@@ -137,7 +137,7 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
                     break;
                 default:
                     stream << QApplication::tr("Error for key with fingerprint ") <<
-                           GpgME::GpgContext::beautifyFingerprint(QString(sign->fpr));
+                           GpgFrontend::GpgContext::beautifyFingerprint(QString(sign->fpr));
                     setStatus(-1);
             }
             stream << Qt::endl;
@@ -149,9 +149,7 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t e
 
 bool VerifyResultAnalyse::printSigner(QTextStream &stream, gpgme_signature_t sign) {
     bool keyFound = true;
-    auto key = mCtx->getKeyByFpr(sign->fpr);
-
-    key = mCtx->getKeyByFpr(sign->fpr);
+    auto key = mCtx->getKeyRefByFpr(sign->fpr);
 
     if (!key.good) {
         stream << tr("    Signed By: ") << tr("<unknown>") << Qt::endl;

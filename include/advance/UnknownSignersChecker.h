@@ -31,7 +31,7 @@ class UnknownSignersChecker : public QObject {
 Q_OBJECT
 public:
 
-    UnknownSignersChecker(GpgME::GpgContext *ctx, gpgme_verify_result_t result);
+    UnknownSignersChecker(GpgFrontend::GpgContext *ctx, gpgme_verify_result_t result);
 
     void start();
 
@@ -39,7 +39,7 @@ private:
 
     QString appPath;
     QSettings settings;
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     gpgme_verify_result_t mResult;
 
     QVector<QString> unknownFprs;

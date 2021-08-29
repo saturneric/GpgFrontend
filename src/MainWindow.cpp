@@ -35,7 +35,7 @@ MainWindow::MainWindow()
     auto waitingDialog = new WaitingDialog(tr("Loading Gnupg"), this);
 
     // Init Gnupg
-    auto ctx_thread = QThread::create([&]() { mCtx = new GpgME::GpgContext(); });
+    auto ctx_thread = QThread::create([&]() { mCtx = new GpgFrontend::GpgContext(); });
     ctx_thread->start();
     while (ctx_thread->isRunning())
         QApplication::processEvents();

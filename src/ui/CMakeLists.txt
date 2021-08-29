@@ -10,5 +10,3 @@ add_library(gpgfrontend-ui STATIC ${UI_SOURCE})
 
 target_link_libraries(gpgfrontend-ui
         Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
-
-message(STATUS "UI SOURCE ${UI_SOURCE}")

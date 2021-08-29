@@ -34,7 +34,7 @@ Q_OBJECT
 
 public:
 
-    KeyNewUIDDialog(GpgME::GpgContext *ctx, const GpgKey &key ,QWidget *parent = nullptr);
+    KeyNewUIDDialog(GpgFrontend::GpgContext *ctx, const GpgKey &key ,QWidget *parent = nullptr);
 
 
 private slots:
@@ -43,7 +43,7 @@ private slots:
 
 private:
 
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     const GpgKey &mKey;
 
     QLineEdit *name{};

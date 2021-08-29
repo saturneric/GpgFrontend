@@ -35,11 +35,11 @@ class KeyUIDSignDialog : public QDialog {
 
 public:
 
-    explicit KeyUIDSignDialog(GpgME::GpgContext *ctx, const GpgKey &key, const QVector<GpgUID> &uid, QWidget *parent = nullptr);
+    explicit KeyUIDSignDialog(GpgFrontend::GpgContext *ctx, const GpgKey &key, const QVector<GpgUID> &uid, QWidget *parent = nullptr);
 
 private:
 
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
 
     KeyList *mKeyList;
 

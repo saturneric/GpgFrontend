@@ -34,7 +34,7 @@ class SignResultAnalyse : public ResultAnalyse {
 Q_OBJECT
 public:
 
-    explicit SignResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_sign_result_t result);
+    explicit SignResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_error_t error, gpgme_sign_result_t result);
 
 
 private:

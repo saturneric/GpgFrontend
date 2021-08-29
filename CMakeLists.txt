@@ -5,7 +5,7 @@ project(GpgFrontend VERSION 1.3.1 LANGUAGES CXX)
 message(STATUS "GPGFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
 # C++
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -24,6 +24,18 @@ if(CMAKE_BUILD_TYPE)
 else()
     set(CMAKE_BUILD_TYPE "Release")
     message(STATUS "Set CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
+endif()
+
+if(BUILD_CONFIG)
+    if(${BUILD_CONFIG} STREQUAL  "test")
+        message(STATUS "Switch TEST_BUILD")
+        set(TEST_BUILD 1)
+        set(AppName GpgFrontendTest)
+    endif()
+else()
+    message(STATUS "Switch Default FULL_APPLICATION_BUILD")
+    set(FULL_APPLICATION_BUILD 1)
+    set(AppName GpgFrontend)
 endif()
 
 if(EXECUTABLE_OUTPUT_PATH)
@@ -69,10 +81,8 @@ if(GIT_FOUND)
     )
 endif()
 
-
 set(BUILD_VERSION ${PROJECT_VERSION}_${CMAKE_SYSTEM}_${CMAKE_SYSTEM_PROCESSOR}_${CMAKE_BUILD_TYPE})
 set(GIT_VERSION ${GIT_BRANCH_NAME}_${GIT_COMMIT_HASH})
-set(AppName GpgFrontend)
 string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S")
 
 message(STATUS "Build Timestamp ${BUILD_TIMESTAMP}")
@@ -143,7 +153,34 @@ message(STATUS "OS_PLATFORM ${OS_PLATFORM}")
 
 find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network LinguistTools REQUIRED)
 
+if(FULL_APPLICATION_BUILD)
+    message(STATUS "Build Full Application")
+    set(QT_MOC_CONFIG 1)
+    set(GPG_CORE 1)
+    set(UI_CORE 1)
+    set(SMTP_SUPPORT 1)
+    set(SERVER_SUPPORT 1)
+    set(ADVANCE_SUPPORT 1)
+    set(APPLICATION_BUILD 1)
+    set(BASIC_ENV_CONFIG 1)
+    set(MULTI_LANG_SUPPORT 1)
+elseif(TEST_BUILD)
+    message(STATUS "Build Test Cases")
+
+    if(MODULES)
+    else()
+        message(STATUS "Build Default Modules")
+        set(QT_MOC_CONFIG 1)
+        set(GPG_CORE 1)
+    endif()
+
+endif()
+
 add_subdirectory(src)
+
+if(TEST_BUILD)
+    add_subdirectory(test)
+endif()
 
 
 

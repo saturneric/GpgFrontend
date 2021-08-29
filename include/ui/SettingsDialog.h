@@ -31,7 +31,7 @@ class GeneralTab : public QWidget {
 Q_OBJECT
 
 public:
-    explicit GeneralTab(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
+    explicit GeneralTab(GpgFrontend::GpgContext *ctx, QWidget *parent = nullptr);
 
     void setSettings();
 
@@ -54,7 +54,7 @@ private:
     QVector<QString> keyIdsList;
     QString serviceToken;
     KeyList *mKeyList;
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
 
 private slots:
 
@@ -227,7 +227,7 @@ class SettingsDialog : public QDialog {
 Q_OBJECT
 
 public:
-    explicit SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
+    explicit SettingsDialog(GpgFrontend::GpgContext *ctx, QWidget *parent = nullptr);
 
     GeneralTab *generalTab;
     SendMailTab *sendMailTab;
@@ -249,7 +249,7 @@ signals:
 private:
     QTabWidget *tabWidget;
     QDialogButtonBox *buttonBox;
-    GpgME::GpgContext *mCtx; /** The current gpg context */
+    GpgFrontend::GpgContext *mCtx; /** The current gpg context */
     bool restartNeeded{};
 
     bool getRestartNeeded() const;

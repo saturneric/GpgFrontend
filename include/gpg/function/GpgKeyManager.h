@@ -22,39 +22,41 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGUID_H
-#define GPGFRONTEND_GPGUID_H
 
-#include <utility>
+#ifndef GPGFRONTEND_ZH_CN_TS_GPGKEYMANAGER_H
+#define GPGFRONTEND_ZH_CN_TS_GPGKEYMANAGER_H
 
 #include "GpgFrontend.h"
-#include "GpgKeySignature.h"
+#include "gpg/GpgModel.h"
+#include "gpg/GpgContext.h"
+#include "gpg/GpgFunctionObject.h"
 
-struct GpgUID {
+namespace GpgFrontend {
 
-    QString name{};
+    class GpgKeyManager : public SingletonFunctionObject<GpgKeyManager> {
+    public:
 
-    QString email{};
+        /**
+         * Sign a key pair(actually a certain uid)
+         * @param target target key pair
+         * @param uid target
+         * @param expires expire date and time of the signature
+         * @return if successful
+         */
+        bool signKey(const GpgKey &target, KeyArgsList &keys, const QString &uid,
+                     std::unique_ptr<QDateTime> &expires);
 
-    QString comment{};
+        bool revSign(const GpgKey &key, const GpgKeySignature &signature);
 
-    QString uid{};
+        bool setExpire(const GpgKey &key, std::unique_ptr<GpgSubKey> &subkey, std::unique_ptr<QDateTime> &expires);
 
-    bool revoked{};
+    private:
 
-    bool invalid{};
+        GpgContext &ctx = GpgContext::getInstance();
 
-    QVector<GpgKeySignature> signatures;
+    };
 
-    GpgUID() = default;
+}
 
-    explicit GpgUID(gpgme_user_id_t user_id);
 
-    GpgUID(GpgUID &&) noexcept = default;
-    GpgUID(const GpgUID &) = default;
-    GpgUID& operator=(GpgUID &&) noexcept = default;
-    GpgUID& operator=(const GpgUID &) = default;
-
-};
-
-#endif //GPGFRONTEND_GPGUID_H
+#endif //GPGFRONTEND_ZH_CN_TS_GPGKEYMANAGER_H

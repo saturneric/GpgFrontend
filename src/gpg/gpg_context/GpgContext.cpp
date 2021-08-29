@@ -36,36 +36,23 @@
 
 #define INT2VOIDP(i) (void*)(uintptr_t)(i)
 
-namespace GpgME {
+namespace GpgFrontend {
 
-    /** Constructor
+    /**
+     * Constructor
      *  Set up gpgme-context, set paths to app-run path
      */
     GpgContext::GpgContext() {
 
-        /** The function `gpgme_check_version' must be called before any other
-         *  function in the library, because it initializes the thread support
-         *  subsystem in GPGME. (from the info page) */
-        gpgme_check_version(nullptr);
-
-        // the locale set here is used for the other setlocale calls which have nullptr
-        // -> nullptr means use default, which is configured here
-        setlocale(LC_ALL, settings.value("int/lang").toLocale().name().toUtf8().constData());
-
-        /** set locale, because tests do also */
-        gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
-        //qDebug() << "Locale set to" << LC_CTYPE << " - " << setlocale(LC_CTYPE, nullptr);
-#ifndef _WIN32
-        gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
-#endif
-
-        err = gpgme_new(&mCtx);
-        checkErr(err);
+        gpgme_ctx_t _p_ctx;
+        err = gpgme_new(&_p_ctx);
+        check_gpg_error(err);
+        _ctx_ref = CtxRefHandler(_p_ctx, [&](gpgme_ctx_t ctx) { gpgme_release(ctx); });
 
         gpgme_engine_info_t engineInfo;
-        engineInfo = gpgme_ctx_get_engine_info(mCtx);
+        engineInfo = gpgme_ctx_get_engine_info(*this);
 
-// Check ENV before running
+        // Check ENV before running
         bool check_pass = false, find_openpgp = false, find_gpgconf = false, find_assuan = false, find_cms = false;
         while (engineInfo != nullptr) {
             qDebug() << gpgme_get_protocol_name(engineInfo->protocol) << engineInfo->file_name << engineInfo->protocol
@@ -91,66 +78,28 @@ namespace GpgME {
         } else good = true;
 
 
-/** Setting the output type must be done at the beginning */
-/** think this means ascii-armor --> ? */
-        gpgme_set_armor(mCtx, 1);
-/** passphrase-callback */
-        gpgme_set_passphrase_cb(mCtx, passphraseCb, this);
+        /** Setting the output type must be done at the beginning */
+        /** think this means ascii-armor --> ? */
+        gpgme_set_armor(*this, 1);
+        /** passphrase-callback */
+        gpgme_set_passphrase_cb(*this, passphraseCb, this);
 
-/** check if app is called with -d from command line */
+        /** check if app is called with -d from command line */
         if (qApp->arguments().contains("-d")) {
             qDebug() << "gpgme_data_t debug on";
             debug = true;
-        } else {
-            debug = false;
-        }
+        } else debug = false;
 
         connect(this, SIGNAL(signalKeyDBChanged()),
                 this, SLOT(slotRefreshKeyList()), Qt::DirectConnection);
         connect(this, SIGNAL(signalKeyUpdated(QString)),
                 this, SLOT(slotUpdateKeyList(QString)), Qt::DirectConnection);
-        slotRefreshKeyList();
-    }
 
-    /** Destructor
-     *  Release gpgme-context
-     */
-    GpgContext::~GpgContext() {
-        if (mCtx) gpgme_release(mCtx);
-        mCtx = nullptr;
+        slotRefreshKeyList();
     }
 
     bool GpgContext::isGood() const {
         return good;
-    }
-
-    /**  Read gpgme-Data to QByteArray
-     *   mainly from http://basket.kde.org/ (kgpgme.cpp)
-     */
-#define BUF_SIZE (32 * 1024)
-
-    gpgme_error_t GpgContext::readToBuffer(gpgme_data_t dataIn, QByteArray *outBuffer) {
-        gpgme_off_t ret;
-        gpgme_error_t gpgErrNoError = GPG_ERR_NO_ERROR;
-
-        ret = gpgme_data_seek(dataIn, 0, SEEK_SET);
-        if (ret) {
-            gpgErrNoError = gpgme_err_code_from_errno(errno);
-            checkErr(gpgErrNoError, "failed dataseek dataIn readToBuffer");
-        } else {
-            char buf[BUF_SIZE + 2];
-
-            while ((ret = gpgme_data_read(dataIn, buf, BUF_SIZE)) > 0) {
-                const size_t size = outBuffer->size();
-                outBuffer->resize(static_cast<int>(size + ret));
-                memcpy(outBuffer->data() + size, buf, ret);
-            }
-            if (ret < 0) {
-                gpgErrNoError = gpgme_err_code_from_errno(errno);
-                checkErr(gpgErrNoError, "failed data_read dataIn readToBuffer");
-            }
-        }
-        return gpgErrNoError;
     }
 
     /**
@@ -229,24 +178,22 @@ namespace GpgME {
     }
 
     // error-handling
-    void GpgContext::checkErr(gpgme_error_t gpgmeError, const QString &comment) {
+    gpgme_error_t check_gpg_error(gpgme_error_t err, const QString &comment) {
         //if (gpgmeError != GPG_ERR_NO_ERROR && gpgmeError != GPG_ERR_CANCELED) {
-        if (gpgmeError != GPG_ERR_NO_ERROR) {
-            qDebug() << "[Error " << gpg_err_code(gpgmeError)
-                     << "] Source: " << gpgme_strsource(gpgmeError) << " Description: " << gpgErrString(gpgmeError);
+        if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
+            qDebug() << "[Error " << gpg_err_code(err)
+                     << "] Source: " << gpgme_strsource(err) << " Description: " << gpgme_strerror(err);
         }
+        return err;
     }
 
-    void GpgContext::checkErr(gpgme_error_t gpgmeError) {
+    gpgme_error_t check_gpg_error(gpgme_error_t err) {
         //if (gpgmeError != GPG_ERR_NO_ERROR && gpgmeError != GPG_ERR_CANCELED) {
-        if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
-            qDebug() << "[Error " << gpg_err_code(gpgmeError)
-                     << "] Source: " << gpgme_strsource(gpgmeError) << " Description: " << gpgErrString(gpgmeError);
+        if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
+            qDebug() << "[Error " << gpg_err_code(err)
+                     << "] Source: " << gpgme_strsource(err) << " Description: " << gpgme_strerror(err);
         }
-    }
-
-    QString GpgContext::gpgErrString(gpgme_error_t err) {
-        return QString::fromUtf8(gpgme_strerror(err));
+        return err;
     }
 
     /** return type should be gpgme_error_t*/
@@ -329,82 +276,26 @@ namespace GpgME {
         return mKeyList;
     }
 
-    void GpgContext::getSigners(QVector<GpgKey> &signer, gpgme_ctx_t ctx) {
-        auto count = gpgme_signers_count(ctx);
-        signer.clear();
-        for (auto i = 0; i < count; i++) {
-            auto key = gpgme_signers_enum(ctx, i);
-            auto it = mKeyMap.find(key->subkeys->keyid);
-            if (it == mKeyMap.end()) {
-                qDebug() << "Inconsistent state";
-                signer.push_back(GpgKey(key));
-            } else {
-                signer.push_back(*it.value());
-            }
-        }
-    }
-
-    void GpgContext::setSigners(const QVector<GpgKey> &keys, gpgme_ctx_t ctx) {
-        gpgme_signers_clear(ctx);
-        for (const auto &key : keys) {
-            if (checkIfKeyCanSign(key)) {
-                auto gpgmeError = gpgme_signers_add(ctx, key.key_refer);
-                checkErr(gpgmeError);
-            }
-        }
-        if (keys.length() != gpgme_signers_count(ctx)) {
-            qDebug() << "No All Keys Added";
-        }
-    }
-
     void GpgContext::slotUpdateKeyList(const QString &key_id) {
         auto it = mKeyMap.find(key_id);
         if (it != mKeyMap.end()) {
-            gpgme_key_t new_key_refer;
-            auto gpgmeErr = gpgme_get_key(mCtx, key_id.toUtf8().constData(), &new_key_refer, 0);
+            gpgme_key_t new_key_ref;
+
+            auto gpgmeErr = gpgme_get_key(*this, key_id.toUtf8().constData(), &new_key_ref, 0);
 
             if (gpgme_err_code(gpgmeErr) == GPG_ERR_EOF) {
-                gpgmeErr = gpgme_get_key(mCtx, key_id.toUtf8().constData(), &new_key_refer, 1);
+                gpgmeErr = gpgme_get_key(*this, key_id.toUtf8().constData(), &new_key_ref, 1);
 
-                if (gpgme_err_code(gpgmeErr) == GPG_ERR_EOF) {
+                if (gpgme_err_code(gpgmeErr) == GPG_ERR_EOF)
                     throw std::runtime_error("key_id not found in key database");
-                }
-
             }
 
-            if (new_key_refer != nullptr) {
-                it.value()->swapKeyRefer(new_key_refer);
+            if (new_key_ref != nullptr) {
+                it->second = std::move(GpgKey(std::move(new_key_ref)));
                 emit signalKeyInfoChanged();
             }
 
         }
     }
-
-    bool GpgContext::revSign(const GpgKey &key, const GpgKeySignature &signature) {
-
-        auto signing_key = getKeyById(signature.keyid);
-
-        auto gpgmeError = gpgme_op_revsig(mCtx, key.key_refer,
-                                          signing_key.key_refer,
-                                          signature.uid.toUtf8().constData(), 0);
-        if (gpg_err_code(gpgmeError) == GPG_ERR_NO_ERROR) {
-            emit signalKeyUpdated(key.id);
-            return true;
-        } else {
-            checkErr(gpgmeError);
-            return false;
-        }
-    }
-
-    gpgme_ctx_t GpgME::GpgContext::create_ctx() {
-        gpgme_ctx_t ctx;
-        err = gpgme_new(&ctx);
-        checkErr(err);
-
-        gpgme_set_armor(ctx, 1);
-        gpgme_set_passphrase_cb(ctx, passphraseCb, this);
-        return ctx;
-    }
-
 
 }

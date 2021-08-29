@@ -24,7 +24,7 @@
 
 #include "ui/keypair_details/KeyPairUIDTab.h"
 
-KeyPairUIDTab::KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent) : QWidget(parent), mKey(key) {
+KeyPairUIDTab::KeyPairUIDTab(GpgFrontend::GpgContext *ctx, const GpgKey &key, QWidget *parent) : QWidget(parent), mKey(key) {
 
     mCtx = ctx;
 

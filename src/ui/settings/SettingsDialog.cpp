@@ -25,7 +25,7 @@
 #include "ui/SettingsDialog.h"
 #include "ui/WaitingDialog.h"
 
-SettingsDialog::SettingsDialog(GpgME::GpgContext *ctx, QWidget *parent)
+SettingsDialog::SettingsDialog(GpgFrontend::GpgContext *ctx, QWidget *parent)
         : QDialog(parent) {
     mCtx = ctx;
     tabWidget = new QTabWidget;

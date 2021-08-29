@@ -25,7 +25,7 @@
 #include "advance/UnknownSignersChecker.h"
 
 
-UnknownSignersChecker::UnknownSignersChecker(GpgME::GpgContext *ctx, gpgme_verify_result_t result) :
+UnknownSignersChecker::UnknownSignersChecker(GpgFrontend::GpgContext *ctx, gpgme_verify_result_t result) :
         appPath(qApp->applicationDirPath()), settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini"), mCtx(ctx),
         mResult(result) {
 
@@ -72,7 +72,7 @@ void UnknownSignersChecker::start() {
 
 void UnknownSignersChecker::check_signer(gpgme_signature_t sign) {
 
-    auto key = mCtx->getKeyByFpr(sign->fpr);
+    auto key = mCtx->getKeyRefByFpr(sign->fpr);
     if (!key.good) {
         qDebug() << "Find Unknown FingerPrint " << sign->fpr;
         unknownFprs.append(sign->fpr);

@@ -24,7 +24,7 @@
 
 #include "ui/widgets/VerifyKeyDetailBox.h"
 
-VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList,
+VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget *parent, GpgFrontend::GpgContext *ctx, KeyList *keyList,
                                        gpgme_signature_t signature) :
         QGroupBox(parent), mCtx(ctx), mKeyList(keyList), fpr(signature->fpr) {
 
@@ -153,7 +153,7 @@ QString VerifyKeyDetailBox::beautifyFingerprint(QString fingerprint) {
 QGridLayout *VerifyKeyDetailBox::createKeyInfoGrid(gpgme_signature_t &signature) {
 
     auto grid = new QGridLayout();
-    GpgKey key = mCtx->getKeyByFpr(signature->fpr);
+    GpgKey key = mCtx->getKeyRefByFpr(signature->fpr);
 
     if(!key.good) return nullptr;
     grid->addWidget(new QLabel(tr("Signer Name:")), 0, 0);

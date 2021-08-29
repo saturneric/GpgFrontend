@@ -38,7 +38,7 @@ QString MainWindow::getCryptText(const QString &shortenCryptoText) {
 
     QString ownKeyId = settings.value("general/ownKeyId").toString();
 
-    GpgKey key = mCtx->getKeyById(ownKeyId);
+    GpgKey key = mCtx->getKeyRefById(ownKeyId);
     if (!key.good) {
         QMessageBox::critical(this, tr("Invalid Own Key"),
                               tr("Own Key can not be use to do any operation. "
@@ -149,7 +149,7 @@ void MainWindow::shortenCryptText() {
     QNetworkRequest request(reqUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    GpgKey key = mCtx->getKeyById(ownKeyId);
+    GpgKey key = mCtx->getKeyRefById(ownKeyId);
     if (!key.good) {
         QMessageBox::critical(this, tr("Invalid Own Key"), tr("Own Key can not be use to do any operation."));
         return;

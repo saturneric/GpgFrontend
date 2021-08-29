@@ -24,7 +24,7 @@
 
 #include "ui/keypair_details/KeyDetailsDialog.h"
 
-KeyDetailsDialog::KeyDetailsDialog(GpgME::GpgContext *ctx, const GpgKey& key, QWidget *parent)
+KeyDetailsDialog::KeyDetailsDialog(GpgFrontend::GpgContext *ctx, const GpgKey& key, QWidget *parent)
         : QDialog(parent) {
 
     tabWidget = new QTabWidget();

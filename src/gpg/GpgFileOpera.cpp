@@ -23,7 +23,7 @@
  */
 #include "gpg/GpgFileOpera.h"
 
-gpgme_error_t GpgFileOpera::encryptFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
+gpgme_error_t GpgFileOpera::encryptFile(GpgFrontend::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
                                         gpgme_encrypt_result_t *result) {
 
     QFileInfo fileInfo(mPath);
@@ -55,7 +55,7 @@ gpgme_error_t GpgFileOpera::encryptFile(GpgME::GpgContext *ctx, QVector<GpgKey> 
     return error;
 }
 
-gpgme_error_t GpgFileOpera::decryptFile(GpgME::GpgContext *ctx, const QString &mPath, gpgme_decrypt_result_t *result) {
+gpgme_error_t GpgFileOpera::decryptFile(GpgFrontend::GpgContext *ctx, const QString &mPath, gpgme_decrypt_result_t *result) {
 
     QFileInfo fileInfo(mPath);
 
@@ -96,7 +96,7 @@ gpgme_error_t GpgFileOpera::decryptFile(GpgME::GpgContext *ctx, const QString &m
     return error;
 }
 
-gpgme_error_t GpgFileOpera::signFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
+gpgme_error_t GpgFileOpera::signFile(GpgFrontend::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
                                      gpgme_sign_result_t *result) {
 
     QFileInfo fileInfo(mPath);
@@ -130,7 +130,7 @@ gpgme_error_t GpgFileOpera::signFile(GpgME::GpgContext *ctx, QVector<GpgKey> &ke
     return error;
 }
 
-gpgme_error_t GpgFileOpera::verifyFile(GpgME::GpgContext *ctx, const QString &mPath, gpgme_verify_result_t *result) {
+gpgme_error_t GpgFileOpera::verifyFile(GpgFrontend::GpgContext *ctx, const QString &mPath, gpgme_verify_result_t *result) {
 
     qDebug() << "Verify File Path" << mPath;
 
@@ -165,7 +165,7 @@ gpgme_error_t GpgFileOpera::verifyFile(GpgME::GpgContext *ctx, const QString &mP
     }
 }
 
-gpg_error_t GpgFileOpera::encryptSignFile(GpgME::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
+gpg_error_t GpgFileOpera::encryptSignFile(GpgFrontend::GpgContext *ctx, QVector<GpgKey> &keys, const QString &mPath,
                                           gpgme_encrypt_result_t *encr_res,
                                           gpgme_sign_result_t *sign_res) {
 
@@ -205,7 +205,7 @@ gpg_error_t GpgFileOpera::encryptSignFile(GpgME::GpgContext *ctx, QVector<GpgKey
     return error;
 }
 
-gpg_error_t GpgFileOpera::decryptVerifyFile(GpgME::GpgContext *ctx, const QString &mPath, gpgme_decrypt_result_t *decr_res,
+gpg_error_t GpgFileOpera::decryptVerifyFile(GpgFrontend::GpgContext *ctx, const QString &mPath, gpgme_decrypt_result_t *decr_res,
                                             gpgme_verify_result_t *verify_res) {
 
     qDebug() << "Decrypt Verify File Path" << mPath;

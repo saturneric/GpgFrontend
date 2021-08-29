@@ -24,7 +24,7 @@
 
 #include "server/api/PubkeyGetter.h"
 
-PubkeyGetter::PubkeyGetter(GpgME::GpgContext *ctx, const QVector<QString> &fprs) : BaseAPI(ComUtils::GetPubkey),
+PubkeyGetter::PubkeyGetter(GpgFrontend::GpgContext *ctx, const QVector<QString> &fprs) : BaseAPI(ComUtils::GetPubkey),
                                                                                    mCtx(ctx), mFprs(fprs) {
 }
 

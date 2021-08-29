@@ -24,7 +24,7 @@
 
 #include "ui/VerifyDetailsDialog.h"
 
-VerifyDetailsDialog::VerifyDetailsDialog(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList, gpg_error_t error,
+VerifyDetailsDialog::VerifyDetailsDialog(QWidget *parent, GpgFrontend::GpgContext *ctx, KeyList *keyList, gpg_error_t error,
                                          gpgme_verify_result_t result) :
         QDialog(parent), mCtx(ctx), mKeyList(keyList), sign(result->signatures), error(error) {
 

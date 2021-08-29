@@ -25,7 +25,7 @@
 #include "ui/keypair_details/KeyPairDetailTab.h"
 #include "ui/WaitingDialog.h"
 
-KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, QWidget *parent) : mKey(mKey),
+KeyPairDetailTab::KeyPairDetailTab(GpgFrontend::GpgContext *ctx, const GpgKey &mKey, QWidget *parent) : mKey(mKey),
                                                                                                   QWidget(parent) {
 
     mCtx = ctx;
@@ -214,7 +214,7 @@ void KeyPairDetailTab::slotExportPrivateKey() {
             return;
         }
 
-        auto key = mCtx->getKeyById(*keyid);
+        auto key = mCtx->getKeyRefById(*keyid);
         if (!key.good) {
             QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
             return;
@@ -279,13 +279,13 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
     QString actualUsage;
     QTextStream actual_usage_steam(&actualUsage);
 
-    if (GpgME::GpgContext::checkIfKeyCanCert(mKey))
+    if (GpgFrontend::GpgContext::checkIfKeyCanCert(mKey))
         actual_usage_steam << "Cert ";
-    if (GpgME::GpgContext::checkIfKeyCanEncr(mKey))
+    if (GpgFrontend::GpgContext::checkIfKeyCanEncr(mKey))
         actual_usage_steam << "Encr ";
-    if (GpgME::GpgContext::checkIfKeyCanSign(mKey))
+    if (GpgFrontend::GpgContext::checkIfKeyCanSign(mKey))
         actual_usage_steam << "Sign ";
-    if (GpgME::GpgContext::checkIfKeyCanAuth(mKey))
+    if (GpgFrontend::GpgContext::checkIfKeyCanAuth(mKey))
         actual_usage_steam << "Auth ";
 
     actualUsageVarLabel->setText(actualUsage);

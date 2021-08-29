@@ -36,7 +36,7 @@ Q_OBJECT
 
 public:
 
-    KeyPairSubkeyTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent);
+    KeyPairSubkeyTab(GpgFrontend::GpgContext *ctx, const GpgKey &key, QWidget *parent);
 
 private:
 
@@ -46,7 +46,7 @@ private:
 
     const GpgSubKey *getSelectedSubkey();
 
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     const GpgKey &mKey;
     QTableWidget *subkeyList;
     QVector<const GpgSubKey *> buffered_subkeys;

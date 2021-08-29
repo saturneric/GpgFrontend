@@ -24,7 +24,7 @@
 
 #include "ui/widgets/InfoBoardWidget.h"
 
-InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgME::GpgContext *ctx, KeyList *keyList) :
+InfoBoardWidget::InfoBoardWidget(QWidget *parent, GpgFrontend::GpgContext *ctx, KeyList *keyList) :
         QWidget(parent), mCtx(ctx), mKeyList(keyList), appPath(qApp->applicationDirPath()),
         settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
                  QSettings::IniFormat) {

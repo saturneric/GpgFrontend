@@ -24,7 +24,7 @@
 
 #include "ui/widgets/SignersPicker.h"
 
-SignersPicker::SignersPicker(GpgME::GpgContext *ctx, QWidget *parent) : mCtx(ctx), QDialog(parent) {
+SignersPicker::SignersPicker(GpgFrontend::GpgContext *ctx, QWidget *parent) : mCtx(ctx), QDialog(parent) {
     auto confirmButton = new QPushButton(tr("Confirm"));
     connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(accept()));
 
@@ -33,7 +33,7 @@ SignersPicker::SignersPicker(GpgME::GpgContext *ctx, QWidget *parent) : mCtx(ctx
                            KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage);
 
     mKeyList->setFilter([](const GpgKey &key) -> bool {
-        if (!GpgME::GpgContext::checkIfKeyCanSign(key)) return false;
+        if (!GpgFrontend::GpgContext::checkIfKeyCanSign(key)) return false;
         else return true;
     });
 

@@ -25,7 +25,7 @@
 #include "ui/keygen/KeygenDialog.h"
 #include "ui/WaitingDialog.h"
 
-KeyGenDialog::KeyGenDialog(GpgME::GpgContext *ctx, QWidget *parent)
+KeyGenDialog::KeyGenDialog(GpgFrontend::GpgContext *ctx, QWidget *parent)
         : QDialog(parent), mCtx(ctx) {
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);

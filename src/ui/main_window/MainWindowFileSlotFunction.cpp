@@ -64,7 +64,7 @@ void MainWindow::slotFileEncrypt() {
     }
 
     for (const auto &key : keys) {
-        if (!GpgME::GpgContext::checkIfKeyCanEncr(key)) {
+        if (!GpgFrontend::GpgContext::checkIfKeyCanEncr(key)) {
             QMessageBox::information(this,
                                      tr("Invalid Operation"),
                                      tr("The selected key contains a key that does not actually have a encrypt usage.<br/>")
@@ -241,7 +241,7 @@ void MainWindow::slotFileSign() {
     }
 
     for (const auto &key : keys) {
-        if (!GpgME::GpgContext::checkIfKeyCanEncr(key)) {
+        if (!GpgFrontend::GpgContext::checkIfKeyCanEncr(key)) {
             QMessageBox::information(this,
                                      tr("Invalid Operation"),
                                      tr("The selected key contains a key that does not actually have a encrypt usage.<br/>")
@@ -426,8 +426,8 @@ void MainWindow::slotFileEncryptSign() {
     bool can_sign = false, can_encr = false;
 
     for (const auto &key : keys) {
-        bool key_can_sign = GpgME::GpgContext::checkIfKeyCanSign(key);
-        bool key_can_encr = GpgME::GpgContext::checkIfKeyCanEncr(key);
+        bool key_can_sign = GpgFrontend::GpgContext::checkIfKeyCanSign(key);
+        bool key_can_encr = GpgFrontend::GpgContext::checkIfKeyCanEncr(key);
 
         if (!key_can_sign && !key_can_encr) {
             QMessageBox::critical(nullptr,
