@@ -65,7 +65,6 @@ namespace GpgFrontend {
                 find_cms = true;
             if (engineInfo->protocol == GPGME_PROTOCOL_ASSUAN)
                 find_assuan = true;
-
             engineInfo = engineInfo->next;
         }
 
@@ -80,20 +79,24 @@ namespace GpgFrontend {
 
         /** Setting the output type must be done at the beginning */
         /** think this means ascii-armor --> ? */
-        gpgme_set_armor(*this, 1);
+        gpgme_set_armor(*this, 1) ;
+        // Speed up loading process
+        gpgme_set_offline(*this, 1);
         /** passphrase-callback */
         gpgme_set_passphrase_cb(*this, passphraseCb, this);
+
+        gpgme_set_keylist_mode(*this,
+                               GPGME_KEYLIST_MODE_LOCAL
+                               | GPGME_KEYLIST_MODE_WITH_SECRET
+                               | GPGME_KEYLIST_MODE_SIGS
+                               | GPGME_KEYLIST_MODE_SIG_NOTATIONS
+                               | GPGME_KEYLIST_MODE_WITH_TOFU);
 
         /** check if app is called with -d from command line */
         if (qApp->arguments().contains("-d")) {
             qDebug() << "gpgme_data_t debug on";
             debug = true;
         } else debug = false;
-
-        connect(this, SIGNAL(signalKeyDBChanged()),
-                this, SLOT(slotRefreshKeyList()), Qt::DirectConnection);
-        connect(this, SIGNAL(signalKeyUpdated(QString)),
-                this, SLOT(slotUpdateKeyList(QString)), Qt::DirectConnection);
 
         slotRefreshKeyList();
     }
@@ -160,7 +163,7 @@ namespace GpgFrontend {
 #ifndef _WIN32
         if (write(fd, "\n", 1) == -1) qDebug() << "something is terribly broken";
 #else
-        WriteFile(hd, "\n", 1, &written, 0);
+        WriteFile(hd, "\n", 1, &written, nullptr);
 
         /* program will hang on cancel if hd not closed */
         if (!result) CloseHandle(hd);
