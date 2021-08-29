@@ -35,12 +35,12 @@ Q_OBJECT
 
 public:
 
-    explicit SignersPicker(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
+    explicit SignersPicker(GpgFrontend::GpgContext *ctx, QWidget *parent = nullptr);
 
     void getCheckedSigners(QVector<GpgKey> &keys);
 
 private:
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     KeyList *mKeyList;
 };
 

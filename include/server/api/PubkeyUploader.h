@@ -37,13 +37,13 @@
 class PubkeyUploader : public BaseAPI {
 public:
 
-    PubkeyUploader(GpgME::GpgContext *ctx, const QVector<GpgKey> &keys);
+    PubkeyUploader(GpgFrontend::GpgContext *ctx, const QVector<GpgKey> &keys);
 
 private:
 
     const QVector<GpgKey> &mKeys;
 
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
 
 protected:
 

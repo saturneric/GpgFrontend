@@ -40,10 +40,10 @@ public:
         Page_Conclusion
     };
 
-    Wizard(GpgME::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent = nullptr);
+    Wizard(GpgFrontend::GpgContext *ctx, KeyMgmt *keyMgmt, QWidget *parent = nullptr);
 
 private:
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     KeyMgmt *mKeyMgmt;
     QString appPath;
     QSettings settings;
@@ -96,7 +96,7 @@ class KeyGenPage : public QWizardPage {
 Q_OBJECT
 
 public:
-    explicit KeyGenPage(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
+    explicit KeyGenPage(GpgFrontend::GpgContext *ctx, QWidget *parent = nullptr);
 
     [[nodiscard]] int nextId() const override;
 
@@ -105,7 +105,7 @@ private slots:
     void slotGenerateKeyDialog();
 
 private:
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
 };
 
 class ConclusionPage : public QWizardPage {

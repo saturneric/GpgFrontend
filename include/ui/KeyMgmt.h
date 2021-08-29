@@ -36,7 +36,7 @@ class KeyMgmt : public QMainWindow {
 Q_OBJECT
 
 public:
-    explicit KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent = nullptr);
+    explicit KeyMgmt(GpgFrontend::GpgContext *ctx, QWidget *parent = nullptr);
 
     QAction *importKeyFromClipboardAct{};
     QAction *importKeyFromFileAct{};
@@ -86,7 +86,7 @@ private:
     QSettings settings;
 
     KeyList *mKeyList;
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     QMenu *fileMenu{};
     QMenu *keyMenu{};
     QMenu *generateKeyMenu{};

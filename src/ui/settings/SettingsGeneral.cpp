@@ -28,7 +28,7 @@
 
 #include "rapidjson/prettywriter.h"
 
-GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
+GeneralTab::GeneralTab(GpgFrontend::GpgContext *ctx, QWidget *parent)
         : QWidget(parent), appPath(qApp->applicationDirPath()),
           settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
                    QSettings::IniFormat) {
@@ -104,7 +104,7 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
     keyIds.insert("", tr("<none>"));
 
     for (const auto &keyid : *mKeyList->getAllPrivateKeys()) {
-        auto key = mCtx->getKeyById(keyid);
+        auto key = mCtx->getKeyRefById(keyid);
         if (!key.good) continue;
         keyIds.insert(key.id, key.uids.first().uid);
     }
@@ -260,7 +260,7 @@ void GeneralTab::slotGetServiceToken() {
     QByteArray keyDataBuf;
     mCtx->exportKeys(&selectedKeyIds, &keyDataBuf);
 
-    GpgKey key = mCtx->getKeyById(keyId);
+    GpgKey key = mCtx->getKeyRefById(keyId);
 
     if (!key.good) {
         QMessageBox::critical(this, tr("Error"),
@@ -341,7 +341,7 @@ void GeneralTab::slotGetServiceToken() {
 
         QString serviceTokenTemp = utils->getDataValueStr("serviceToken");
         QString fpr = utils->getDataValueStr("fpr");
-        auto key = mCtx->getKeyByFpr(fpr);
+        auto key = mCtx->getKeyRefByFpr(fpr);
         if (utils->checkServiceTokenFormat(serviceTokenTemp) && key.good) {
             serviceToken = serviceTokenTemp;
             qDebug() << "Get Service Token" << serviceToken;

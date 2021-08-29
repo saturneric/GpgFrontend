@@ -24,7 +24,7 @@
 
 #include <ui/KeyImportDetailDialog.h>
 
-KeyImportDetailDialog::KeyImportDetailDialog(GpgME::GpgContext *ctx, GpgImportInformation result, bool automatic,
+KeyImportDetailDialog::KeyImportDetailDialog(GpgFrontend::GpgContext *ctx, GpgImportInformation result, bool automatic,
                                              QWidget *parent)
         : QDialog(parent), mCtx(ctx), mResult(std::move(result)) {
 
@@ -115,7 +115,7 @@ void KeyImportDetailDialog::createKeysTable() {
     int row = 0;
     for (const auto &impKey : mResult.importedKeys) {
         keysTable->setRowCount(row + 1);
-        GpgKey key = mCtx->getKeyByFpr(impKey.fpr);
+        GpgKey key = mCtx->getKeyRefByFpr(impKey.fpr);
         if(!key.good) continue;
         keysTable->setItem(row, 0, new QTableWidgetItem(key.name));
         keysTable->setItem(row, 1, new QTableWidgetItem(key.email));

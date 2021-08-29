@@ -29,7 +29,7 @@
  * @param reply reply data in byte array
  * @return if successful
  */
-bool ComUtils::checkServerReply(const QByteArray &reply) {
+bool GpgFrontend::ComUtils::checkServerReply(const QByteArray &reply) {
 
     if(reply.isEmpty()) {
         QMessageBox::critical(this, tr("Error"), tr("Nothing Reply. Please check the Internet connection."));
@@ -97,7 +97,7 @@ bool ComUtils::checkServerReply(const QByteArray &reply) {
  * @param key key of value
  * @return value in string format
  */
-QString ComUtils::getDataValueStr(const QString &key) const {
+QString GpgFrontend::ComUtils::getDataValueStr(const QString &key) const {
     if (is_good) {
         auto k_byte_array = key.toUtf8();
         if (dataVal.HasMember(k_byte_array.data())) {
@@ -111,7 +111,7 @@ QString ComUtils::getDataValueStr(const QString &key) const {
  * @param type service which server provides
  * @return url
  */
-QString ComUtils::getUrl(ComUtils::ServiceType type) const {
+QString GpgFrontend::ComUtils::getUrl(ComUtils::ServiceType type) const {
     auto host = settings.value("general/currentGpgfrontendServer",
                                "service.gpgfrontend.pub").toString();
 
@@ -145,19 +145,19 @@ QString ComUtils::getUrl(ComUtils::ServiceType type) const {
     return url;
 }
 
-bool ComUtils::checkDataValueStr(const QString &key) const {
+bool GpgFrontend::ComUtils::checkDataValueStr(const QString &key) const {
     auto key_byte_array_data = key.toUtf8().constData();
     if (is_good) {
         return dataVal.HasMember(key_byte_array_data) && dataVal[key_byte_array_data].IsString();
     } else return false;
 }
 
-bool ComUtils::checkServiceTokenFormat(const QString &uuid) const {
+bool GpgFrontend::ComUtils::checkServiceTokenFormat(const QString &uuid) const {
     return re_uuid.match(uuid).hasMatch();
 }
 
-QByteArray ComUtils::getSignStringBase64(GpgME::GpgContext *ctx, const QString &str, const GpgKey &key) {
-    QVector<GpgKey> keys{key};
+QByteArray GpgFrontend::ComUtils::getSignStringBase64(GpgFrontend::GpgContext *ctx, const QString &str, const GpgKey &key) {
+    std::vector<GpgKey> keys{key};
     QByteArray outSignText;
     auto signData = str.toUtf8();
 
@@ -173,7 +173,7 @@ QByteArray ComUtils::getSignStringBase64(GpgME::GpgContext *ctx, const QString &
     return outSignText.toBase64();
 }
 
-const rapidjson::Value &ComUtils::getDataValue(const QString &key) const {
+const rapidjson::Value &GpgFrontend::ComUtils::getDataValue(const QString &key) const {
     if (is_good) {
         auto k_byte_array = key.toUtf8();
         if (dataVal.HasMember(k_byte_array.data())) {
@@ -183,14 +183,14 @@ const rapidjson::Value &ComUtils::getDataValue(const QString &key) const {
     throw std::runtime_error("Inner Error");
 }
 
-bool ComUtils::checkDataValue(const QString &key) const{
+bool GpgFrontend::ComUtils::checkDataValue(const QString &key) const{
     auto key_byte_array_data = key.toUtf8().constData();
     if (is_good) {
         return dataVal.HasMember(key_byte_array_data);
     } else return false;
 }
 
-void ComUtils::clear() {
+void GpgFrontend::ComUtils::clear() {
     this->dataVal.Clear();
     this->replyDoc.Clear();
     is_good = false;

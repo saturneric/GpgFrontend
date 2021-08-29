@@ -26,7 +26,7 @@
 
 #include <utility>
 
-KeyList::KeyList(GpgME::GpgContext *ctx,
+KeyList::KeyList(GpgFrontend::GpgContext *ctx,
                  KeyListRow::KeyType selectType,
                  KeyListColumn::InfoType infoType,
                  QWidget *parent)
@@ -175,13 +175,13 @@ void KeyList::slotRefresh() {
         QString usage;
         QTextStream usage_steam(&usage);
 
-        if (GpgME::GpgContext::checkIfKeyCanCert(*it))
+        if (GpgFrontend::GpgContext::checkIfKeyCanCert(*it))
             usage_steam << "C";
-        if (GpgME::GpgContext::checkIfKeyCanEncr(*it))
+        if (GpgFrontend::GpgContext::checkIfKeyCanEncr(*it))
             usage_steam << "E";
-        if (GpgME::GpgContext::checkIfKeyCanSign(*it))
+        if (GpgFrontend::GpgContext::checkIfKeyCanSign(*it))
             usage_steam << "S";
-        if (GpgME::GpgContext::checkIfKeyCanAuth(*it))
+        if (GpgFrontend::GpgContext::checkIfKeyCanAuth(*it))
             usage_steam << "A";
 
         auto *temp_usage = new QTableWidgetItem(usage);
@@ -390,7 +390,7 @@ void KeyList::setFilter(std::function<bool(const GpgKey &)> filter) {
 
 void KeyList::slotDoubleClicked(const QModelIndex &index) {
     if (mAction != nullptr) {
-        const auto key = mCtx->getKeyById(buffered_keys[index.row()].id);
+        const auto key = mCtx->getKeyRefById(buffered_keys[index.row()].id);
         mAction(key, this);
     }
 

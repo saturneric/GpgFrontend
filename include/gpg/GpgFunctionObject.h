@@ -22,46 +22,49 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGKEYSIGNATURE_H
-#define GPGFRONTEND_GPGKEYSIGNATURE_H
+#ifndef GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
+#define GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
 
 #include "GpgFrontend.h"
 
-struct GpgKeySignature {
+namespace GpgFrontend {
+    template<typename T>
+    class SingletonFunctionObject {
+    public:
 
-    bool revoked{};
-    bool expired{};
-    bool invalid{};
-    bool exportable{};
+        static T &getInstance()  {
+            std::lock_guard<std::mutex> guard(_instance_mutex);
+            if(_instance == nullptr) _instance = std::make_unique<T>();
+            return *_instance;
+        }
 
-    gpgme_error_t status{};
+        SingletonFunctionObject(T&&) = delete;
 
-    QString keyid;
-    QString pubkey_algo;
+        SingletonFunctionObject(const T&) = delete;
 
-    QDateTime create_time;
-    QDateTime expire_time;
+        void operator= (const T&) = delete;
 
-    QString uid;
-    QString name;
-    QString email;
-    QString comment;
+    protected:
 
-    gpgme_sigsum_t summary;
+        SingletonFunctionObject() = default;
 
-    GpgKeySignature() = default;
+        virtual ~SingletonFunctionObject() = default;
 
-    explicit GpgKeySignature(gpgme_key_sig_t key_sig);
+    private:
 
-    GpgKeySignature(GpgKeySignature &&) noexcept = default;
+        static std::mutex _instance_mutex;
+        static std::unique_ptr<T> _instance;
+    };
 
-    GpgKeySignature(const GpgKeySignature &) = default;
+    template<typename T>
+    std::mutex SingletonFunctionObject<T>::_instance_mutex;
 
-    GpgKeySignature &operator=(GpgKeySignature &&) noexcept = default;
+    template<typename T>
+    std::unique_ptr<T> SingletonFunctionObject<T>::_instance = nullptr;
 
-    GpgKeySignature &operator=(const GpgKeySignature &) = default;
-
-};
+}
 
 
-#endif //GPGFRONTEND_GPGKEYSIGNATURE_H
+
+
+#endif //GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H

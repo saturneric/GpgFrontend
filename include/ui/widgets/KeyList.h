@@ -58,7 +58,7 @@ Q_OBJECT
 
 public:
 
-    explicit KeyList(GpgME::GpgContext *ctx,
+    explicit KeyList(GpgFrontend::GpgContext *ctx,
                      KeyListRow::KeyType selectType = KeyListRow::SECRET_OR_PUBLIC_KEY,
                      KeyListColumn::InfoType infoType = KeyListColumn::ALL,
                      QWidget *parent = nullptr);
@@ -106,7 +106,7 @@ private:
     QString appPath;
     QSettings settings;
 
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     QTableWidget *mKeyList;
     QMenu *popupMenu;
     QNetworkAccessManager *qnam{};

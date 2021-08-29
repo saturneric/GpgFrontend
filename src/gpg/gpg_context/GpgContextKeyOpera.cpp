@@ -29,14 +29,14 @@
  * @param inBuffer input byte array
  * @return Import information
  */
-GpgImportInformation GpgME::GpgContext::importKey(QByteArray inBuffer) {
+GpgImportInformation GpgFrontend::GpgContext::importKey(QByteArray inBuffer) {
     auto *importInformation = new GpgImportInformation();
     err = gpgme_data_new_from_mem(&in, inBuffer.data(), inBuffer.size(), 1);
-    checkErr(err);
-    err = gpgme_op_import(mCtx, in);
+    check_gpg_error(err);
+    err = gpgme_op_import(*this, in);
     gpgme_import_result_t result;
 
-    result = gpgme_op_import_result(mCtx);
+    result = gpgme_op_import_result(*this);
 
     if (result->unchanged) importInformation->unchanged = result->unchanged;
     if (result->considered) importInformation->considered = result->considered;
@@ -61,7 +61,7 @@ GpgImportInformation GpgME::GpgContext::importKey(QByteArray inBuffer) {
         importInformation->importedKeys.emplace_back(key);
         status = status->next;
     }
-    checkErr(err);
+    check_gpg_error(err);
     emit signalKeyDBChanged();
     gpgme_data_release(in);
     return *importInformation;
@@ -72,7 +72,7 @@ GpgImportInformation GpgME::GpgContext::importKey(QByteArray inBuffer) {
  * @param params key generation args
  * @return error information
  */
-gpgme_error_t GpgME::GpgContext::generateKey(GenKeyInfo *params) {
+gpgme_error_t GpgFrontend::GpgContext::generateKey(GenKeyInfo *params) {
 
     auto userid_utf8 = params->getUserid().toUtf8();
     const char *userid = userid_utf8.constData();
@@ -88,10 +88,10 @@ gpgme_error_t GpgME::GpgContext::generateKey(GenKeyInfo *params) {
     if (params->isNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
     if (params->isNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
-    err = gpgme_op_createkey(mCtx, userid, algo, 0, expires, nullptr, flags);
+    err = gpgme_op_createkey(*this, userid, algo, 0, expires, nullptr, flags);
 
     if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) {
-        checkErr(err);
+        check_gpg_error(err);
         return err;
     } else {
         emit signalKeyDBChanged();
@@ -105,7 +105,7 @@ gpgme_error_t GpgME::GpgContext::generateKey(GenKeyInfo *params) {
  * @param outBuffer output byte array
  * @return if success
  */
-bool GpgME::GpgContext::exportKeys(QStringList *uidList, QByteArray *outBuffer) {
+bool GpgFrontend::GpgContext::exportKeys(QStringList *uidList, QByteArray *outBuffer) {
     gpgme_data_t dataOut = nullptr;
     outBuffer->resize(0);
 
@@ -119,15 +119,15 @@ bool GpgME::GpgContext::exportKeys(QStringList *uidList, QByteArray *outBuffer) 
 
     for (int i = 0; i < uidList->count(); i++) {
         err = gpgme_data_new(&dataOut);
-        checkErr(err);
+        check_gpg_error(err);
 
         err = gpgme_op_export(ctx, uidList->at(i).toUtf8().constData(), 0, dataOut);
-        checkErr(err);
+        check_gpg_error(err);
 
-        qDebug() << "exportKeys read_bytes" <<  gpgme_data_seek(dataOut, 0, SEEK_END);
+        qDebug() << "exportKeys read_bytes" << gpgme_data_seek(dataOut, 0, SEEK_END);
 
         err = readToBuffer(dataOut, outBuffer);
-        checkErr(err);
+        check_gpg_error(err);
         gpgme_data_release(dataOut);
     }
 
@@ -139,7 +139,7 @@ bool GpgME::GpgContext::exportKeys(QStringList *uidList, QByteArray *outBuffer) 
 /**
  * Get and store all key pairs info
  */
-void GpgME::GpgContext::fetch_keys() {
+void GpgFrontend::GpgContext::fetch_keys() {
 
     gpgme_error_t gpgmeError;
 
@@ -155,47 +155,47 @@ void GpgME::GpgContext::fetch_keys() {
 
     qDebug() << "Set Key Listing Mode";
 
-    gpgmeError = gpgme_set_keylist_mode(mCtx,
+    gpgmeError = gpgme_set_keylist_mode(*this,
                                         GPGME_KEYLIST_MODE_LOCAL
                                         | GPGME_KEYLIST_MODE_WITH_SECRET
                                         | GPGME_KEYLIST_MODE_SIGS
                                         | GPGME_KEYLIST_MODE_SIG_NOTATIONS
                                         | GPGME_KEYLIST_MODE_WITH_TOFU);
     if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
-        checkErr(gpgmeError);
+        check_gpg_error(gpgmeError);
         return;
     }
 
     qDebug() << "Operate KeyList Start";
 
-    gpgmeError = gpgme_op_keylist_start(mCtx, nullptr, 0);
+    gpgmeError = gpgme_op_keylist_start(*this, nullptr, 0);
     if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
-        checkErr(gpgmeError);
+        check_gpg_error(gpgmeError);
         return;
     }
 
     qDebug() << "Start Loop";
 
-    while ((gpgmeError = gpgme_op_keylist_next(mCtx, &key)) == GPG_ERR_NO_ERROR) {
+    while ((gpgmeError = gpgme_op_keylist_next(*this, &key)) == GPG_ERR_NO_ERROR) {
         if (!key->subkeys)
             continue;
 
         qDebug() << "Append Key" << key->subkeys->keyid;
 
-        keys.emplace_back(key);
-        keys_map.insert(keys.back().id, &keys.back());
+        keys.emplace_back(gpgme_key_t(key));
+        keys_map.insert(keys.back().id(), &keys.back());
         gpgme_key_unref(key);
     }
 
 
     if (gpg_err_code(gpgmeError) != GPG_ERR_EOF) {
-        checkErr(gpgmeError);
+        check_gpg_error(gpgmeError);
         return;
     }
 
-    gpgmeError = gpgme_op_keylist_end(mCtx);
+    gpgmeError = gpgme_op_keylist_end(*this);
     if (gpg_err_code(gpgmeError) != GPG_ERR_NO_ERROR) {
-        checkErr(gpgmeError);
+        check_gpg_error(gpgmeError);
         return;
     }
 
@@ -208,34 +208,34 @@ void GpgME::GpgContext::fetch_keys() {
  * Delete keys
  * @param uidList key ids
  */
-void GpgME::GpgContext::deleteKeys(QStringList *uidList) {
+void GpgFrontend::GpgContext::deleteKeys(QStringList *uidList) {
 
     gpgme_error_t error;
     gpgme_key_t key;
 
     for (const auto &tmp : *uidList) {
 
-        error = gpgme_op_keylist_start(mCtx, tmp.toUtf8().constData(), 0);
+        error = gpgme_op_keylist_start(*this, tmp.toUtf8().constData(), 0);
         if (error != GPG_ERR_NO_ERROR) {
-            checkErr(error);
+            check_gpg_error(error);
             continue;
         }
 
-        error = gpgme_op_keylist_next(mCtx, &key);
+        error = gpgme_op_keylist_next(*this, &key);
         if (error != GPG_ERR_NO_ERROR) {
-            checkErr(error);
+            check_gpg_error(error);
             continue;
         }
 
-        error = gpgme_op_keylist_end(mCtx);
+        error = gpgme_op_keylist_end(*this);
         if (error != GPG_ERR_NO_ERROR) {
-            checkErr(error);
+            check_gpg_error(error);
             continue;
         }
 
-        error = gpgme_op_delete(mCtx, key, 1);
+        error = gpgme_op_delete(*this, key, 1);
         if (error != GPG_ERR_NO_ERROR) {
-            checkErr(error);
+            check_gpg_error(error);
             continue;
         }
 
@@ -249,7 +249,7 @@ void GpgME::GpgContext::deleteKeys(QStringList *uidList) {
  * @param outBuffer output byte array
  * @return if success
  */
-bool GpgME::GpgContext::exportKeys(const QVector<GpgKey> &keys, QByteArray &outBuffer) {
+bool GpgFrontend::GpgContext::exportKeys(const QVector <GpgKey> &keys, QByteArray &outBuffer) {
     gpgme_data_t data_out = nullptr;
     outBuffer.resize(0);
 
@@ -260,15 +260,15 @@ bool GpgME::GpgContext::exportKeys(const QVector<GpgKey> &keys, QByteArray &outB
 
     for (const auto &key : keys) {
         err = gpgme_data_new(&data_out);
-        checkErr(err);
+        check_gpg_error(err);
 
-        err = gpgme_op_export(mCtx, key.id.toUtf8().constData(), 0, data_out);
-        checkErr(err);
+        err = gpgme_op_export(*this, key.id().toUtf8().constData(), 0, data_out);
+        check_gpg_error(err);
 
         gpgme_data_seek(data_out, 0, SEEK_END);
 
         err = readToBuffer(data_out, &outBuffer);
-        checkErr(err);
+        check_gpg_error(err);
         gpgme_data_release(data_out);
     }
 
@@ -282,24 +282,25 @@ bool GpgME::GpgContext::exportKeys(const QVector<GpgKey> &keys, QByteArray &outB
  * @param expires date and time
  * @return if successful
  */
-bool GpgME::GpgContext::setExpire(const GpgKey &key, const GpgSubKey *subkey, QDateTime *expires) {
+bool GpgFrontend::GpgContext::setExpire(const GpgKey &key, std::unique_ptr <GpgSubKey> &subkey,
+                                        std::unique_ptr <QDateTime> &expires) {
     unsigned long expires_time = 0;
     if (expires != nullptr) {
         qDebug() << "Expire Datetime" << expires->toString();
         expires_time = QDateTime::currentDateTime().secsTo(*expires);
     }
 
-    const char *subfprs = nullptr;
+    const char *sub_fprs = nullptr;
 
-    if (subkey != nullptr) subfprs = subkey->fpr.toUtf8().constData();
+    if (subkey != nullptr) sub_fprs = subkey->fpr().toUtf8().constData();
 
-    auto gpgmeError = gpgme_op_setexpire(mCtx, key.key_refer,
-                                         expires_time, subfprs, 0);
+    auto gpgmeError = gpgme_op_setexpire(*this, gpgme_key_t(key),
+                                         expires_time, sub_fprs, 0);
     if (gpgmeError == GPG_ERR_NO_ERROR) {
-        emit signalKeyUpdated(key.id);
+        emit signalKeyUpdated(key.id());
         return true;
     } else {
-        checkErr(gpgmeError);
+        check_gpg_error(gpgmeError);
         return false;
     }
 }
@@ -310,10 +311,10 @@ bool GpgME::GpgContext::setExpire(const GpgKey &key, const GpgSubKey *subkey, QD
  * @param outBuffer output byte array
  * @return if successful
  */
-bool GpgME::GpgContext::exportSecretKey(const GpgKey &key, QByteArray *outBuffer) {
-    qDebug() << "Export Secret Key" << key.id;
+bool GpgFrontend::GpgContext::exportSecretKey(const GpgKey &key, QByteArray *outBuffer) const {
+    qDebug() << "Export Secret Key" << key.id();
     gpgme_key_t target_key[2] = {
-            key.key_refer,
+            gpgme_key_t(key),
             nullptr
     };
 
@@ -321,10 +322,10 @@ bool GpgME::GpgContext::exportSecretKey(const GpgKey &key, QByteArray *outBuffer
     gpgme_data_new(&dataOut);
 
     // export private key to outBuffer
-    gpgme_error_t error = gpgme_op_export_keys(mCtx, target_key, GPGME_EXPORT_MODE_SECRET, dataOut);
+    gpgme_error_t error = gpgme_op_export_keys(*this, target_key, GPGME_EXPORT_MODE_SECRET, dataOut);
 
     if (gpgme_err_code(error) != GPG_ERR_NO_ERROR) {
-        checkErr(error);
+        check_gpg_error(error);
         gpgme_data_release(dataOut);
         return false;
     }
@@ -335,42 +336,12 @@ bool GpgME::GpgContext::exportSecretKey(const GpgKey &key, QByteArray *outBuffer
 }
 
 /**
- * Sign a key pair(actually a certain uid)
- * @param target target key pair
- * @param uid target
- * @param expires expire date and time of the signature
- * @return if successful
- */
-bool GpgME::GpgContext::signKey(const GpgKey &target, const QVector<GpgKey> &keys, const QString &uid,
-                                const QDateTime *expires) {
-
-    setSigners(keys, mCtx);
-
-    unsigned int flags = 0;
-
-    unsigned int expires_time_t = 0;
-    if (expires == nullptr) flags |= GPGME_KEYSIGN_NOEXPIRE;
-    else expires_time_t = QDateTime::currentDateTime().secsTo(*expires);
-
-    auto gpgmeError =
-            gpgme_op_keysign(mCtx, target.key_refer, uid.toUtf8().constData(), expires_time_t, flags);
-
-    if (gpgmeError == GPG_ERR_NO_ERROR) {
-        emit signalKeyUpdated(target.id);
-        return true;
-    } else {
-        checkErr(gpgmeError);
-        return false;
-    }
-}
-
-/**
  * Generate revoke cert of a key pair
  * @param key target key pair
  * @param outputFileName out file name(path)
  * @return the process doing this job
  */
-void GpgME::GpgContext::generateRevokeCert(const GpgKey &key, const QString &outputFileName) {
+void GpgFrontend::GpgContext::generateRevokeCert(const GpgKey &key, const QString &outputFileName) {
     executeGpgCommand({
                               "--command-fd",
                               "0",
@@ -380,7 +351,7 @@ void GpgME::GpgContext::generateRevokeCert(const GpgKey &key, const QString &out
                               "-o",
                               outputFileName,
                               "--gen-revoke",
-                              key.fpr
+                              key.fpr()
                       },
                       [](QProcess *proc) -> void {
                           qDebug() << "Function Called" << proc;

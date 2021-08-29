@@ -36,7 +36,7 @@ Q_OBJECT
 
 public:
 
-    KeyPairUIDTab(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent);
+    KeyPairUIDTab(GpgFrontend::GpgContext *ctx, const GpgKey &key, QWidget *parent);
 
 private:
 
@@ -56,7 +56,7 @@ private:
 
     bool getSignSelected(GpgKeySignature &signature);
 
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     const GpgKey &mKey;
     QTableWidget *uidList{};
     QTableWidget *sigList{};

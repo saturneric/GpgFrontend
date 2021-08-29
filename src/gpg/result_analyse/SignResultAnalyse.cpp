@@ -24,7 +24,7 @@
 
 #include "gpg/result_analyse/SignResultAnalyse.h"
 
-SignResultAnalyse::SignResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_sign_result_t result) {
+SignResultAnalyse::SignResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_error_t error, gpgme_sign_result_t result) {
 
     qDebug() << "Start Sign Result Analyse";
 
@@ -58,7 +58,7 @@ SignResultAnalyse::SignResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error
 
             stream << Qt::endl;
 
-            GpgKey singerKey = ctx->getKeyByFpr(new_sign->fpr);
+            GpgKey singerKey = ctx->getKeyRefByFpr(new_sign->fpr);
             if(singerKey.good) {
                 stream << tr("    Signer: ") << singerKey.uids.first().uid << Qt::endl;
             } else {

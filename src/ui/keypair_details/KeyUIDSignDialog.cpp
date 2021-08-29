@@ -24,7 +24,7 @@
 
 #include "ui/keypair_details/KeyUIDSignDialog.h"
 
-KeyUIDSignDialog::KeyUIDSignDialog(GpgME::GpgContext *ctx, const GpgKey &key, const QVector<GpgUID> &uid, QWidget *parent) :
+KeyUIDSignDialog::KeyUIDSignDialog(GpgFrontend::GpgContext *ctx, const GpgKey &key, const QVector<GpgUID> &uid, QWidget *parent) :
         mKey(key), mCtx(ctx), mUids(uid), QDialog(parent) {
 
     mKeyList = new KeyList(ctx,

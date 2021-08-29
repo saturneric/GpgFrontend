@@ -55,7 +55,7 @@ public:
      * @param keyList
      * @param parent
      */
-    FileEncryptionDialog(GpgME::GpgContext *ctx, QStringList keyList, DialogAction action, QWidget *parent = nullptr);
+    FileEncryptionDialog(GpgFrontend::GpgContext *ctx, QStringList keyList, DialogAction action, QWidget *parent = nullptr);
 
 public slots:
 
@@ -108,7 +108,7 @@ private:
     DialogAction mAction;
     QLabel *statusLabel;
 protected:
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     KeyList *mKeyList;
 
 };

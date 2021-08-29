@@ -70,7 +70,7 @@ private:
 
     QString *keyid; /** The id of the key the details should be shown for */
 
-    GpgME::GpgContext *mCtx; /** The current gpg-context */
+    GpgFrontend::GpgContext *mCtx; /** The current gpg-context */
     const GpgKey &mKey;
 
     QGroupBox *ownerBox; /** Groupbox containing owner information */
@@ -94,7 +94,7 @@ private:
     QMenu *keyServerOperaMenu;
 
 public:
-    explicit KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, QWidget *parent = nullptr);
+    explicit KeyPairDetailTab(GpgFrontend::GpgContext *ctx, const GpgKey &mKey, QWidget *parent = nullptr);
 };
 
 

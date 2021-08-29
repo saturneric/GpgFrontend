@@ -24,7 +24,7 @@
 
 #include "ui/keypair_details/KeySetExpireDateDialog.h"
 
-KeySetExpireDateDialog::KeySetExpireDateDialog(GpgME::GpgContext *ctx, const GpgKey &key, const GpgSubKey *subkey, QWidget *parent) :
+KeySetExpireDateDialog::KeySetExpireDateDialog(GpgFrontend::GpgContext *ctx, const GpgKey &key, const GpgSubKey *subkey, QWidget *parent) :
 QDialog(parent), mKey(key), mSubkey(subkey), mCtx(ctx) {
 
     QDateTime maxDateTime = QDateTime::currentDateTime().addYears(2);

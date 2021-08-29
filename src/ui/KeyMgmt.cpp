@@ -26,7 +26,7 @@
 
 #include <utility>
 
-KeyMgmt::KeyMgmt(GpgME::GpgContext *ctx, QWidget *parent) :
+KeyMgmt::KeyMgmt(GpgFrontend::GpgContext *ctx, QWidget *parent) :
         QMainWindow(parent), appPath(qApp->applicationDirPath()),
         settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat) {
     mCtx = ctx;
@@ -251,7 +251,7 @@ void KeyMgmt::deleteKeysWithWarning(QStringList *uidList) {
     }
     QString keynames;
     for (const auto &uid : *uidList) {
-        auto key = mCtx->getKeyById(uid);
+        auto key = mCtx->getKeyRefById(uid);
         if (!key.good) continue;
         keynames.append(key.name);
         keynames.append("<i> &lt;");
@@ -275,7 +275,7 @@ void KeyMgmt::slotShowKeyDetails() {
         return;
     }
 
-    auto key = mCtx->getKeyById(mKeyList->getSelected()->first());
+    auto key = mCtx->getKeyRefById(mKeyList->getSelected()->first());
 
     if (!key.good) {
         QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
@@ -291,7 +291,7 @@ void KeyMgmt::slotExportKeyToFile() {
         delete keyArray;
         return;
     }
-    auto key = mCtx->getKeyById(mKeyList->getSelected()->first());
+    auto key = mCtx->getKeyRefById(mKeyList->getSelected()->first());
     if (!key.good) {
         QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
         return;
@@ -339,7 +339,7 @@ void KeyMgmt::slotGenerateSubKey() {
                                  tr("Please select one KeyPair before doing this operation."));
         return;
     }
-    const auto key = mCtx->getKeyById(selectedList->first());
+    const auto key = mCtx->getKeyRefById(selectedList->first());
     if (!key.good) {
         QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
         return;

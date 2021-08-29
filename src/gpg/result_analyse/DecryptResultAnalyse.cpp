@@ -24,7 +24,7 @@
 
 #include "gpg/result_analyse/DecryptResultAnalyse.h"
 
-DecryptResultAnalyse::DecryptResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_decrypt_result_t result)
+DecryptResultAnalyse::DecryptResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_error_t error, gpgme_decrypt_result_t result)
         : mCtx(ctx) {
 
     stream << tr("[#] Decrypt Operation ");
@@ -65,7 +65,7 @@ bool DecryptResultAnalyse::printReci(QTextStream &stream, gpgme_recipient_t reci
     bool keyFound = true;
     stream << QApplication::tr("  {>} Recipient: ");
 
-    auto key = mCtx->getKeyById(reci->keyid);
+    auto key = mCtx->getKeyRefById(reci->keyid);
     if(key.good) {
         stream << key.name;
         if (!key.email.isEmpty()) {

@@ -580,7 +580,7 @@
     </message>
 </context>
 <context>
-    <name>GpgME::GpgContext</name>
+    <name>GpgFrontend::GpgContext</name>
     <message>
         <location filename="../../src/gpg/gpg_context/GpgContext.cpp" line="182"/>
         <source>Wrong password</source>

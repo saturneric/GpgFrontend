@@ -29,10 +29,11 @@
 
 #include "GpgConstants.h"
 #include "GpgGenKeyInfo.h"
-#include "GpgKey.h"
+#include "GpgModel.h"
 #include "GpgInfo.h"
+#include "GpgFunctionObject.h"
 
-using GpgKeyList = std::list<GpgKey>;
+using GpgKeyList = std::list<GpgFrontend::GpgKey>;
 
 class GpgImportedKey {
 public:
@@ -62,19 +63,22 @@ public:
     GpgImportedKeyList importedKeys;
 };
 
-namespace GpgME {
+namespace GpgFrontend {
+
+    static gpgme_error_t check_gpg_error(gpgme_error_t err);
+
+    static gpgme_error_t check_gpg_error(gpgme_error_t gpgmeError, const std::string &comment);
 
     /**
      * Custom Encapsulation of GpgME APIs
      */
-    class GpgContext : public QObject {
-    Q_OBJECT
+    class GpgContext : public SingletonFunctionObject<GpgContext> {
 
     public:
 
         GpgContext();
 
-        ~GpgContext() override;
+        ~GpgContext() override = default;
 
         [[nodiscard]] bool isGood() const;
 
@@ -92,45 +96,9 @@ namespace GpgME {
 
         void deleteKeys(QStringList *uidList);
 
-        gpg_error_t encrypt(QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer,
-                            gpgme_encrypt_result_t *result);
-
-        gpgme_error_t encryptSign(QVector<GpgKey> &keys, QVector<GpgKey> &signers, const QByteArray &inBuffer,
-                                  QByteArray *outBuffer, gpgme_encrypt_result_t *encr_result,
-                                  gpgme_sign_result_t *sign_result);
-
-        gpgme_error_t decrypt(const QByteArray &inBuffer, QByteArray *outBuffer, gpgme_decrypt_result_t *result);
-
-        gpgme_error_t
-        decryptVerify(const QByteArray &inBuffer, QByteArray *outBuffer, gpgme_decrypt_result_t *decrypt_result,
-                      gpgme_verify_result_t *verify_result);
-
         void clearPasswordCache();
 
-        bool exportSecretKey(const GpgKey &key, QByteArray *outBuffer);
-
-        void getSigners(QVector<GpgKey> &signer, gpgme_ctx_t ctx);
-
-        static void setSigners(const QVector<GpgKey> &keys, gpgme_ctx_t ctx);
-
-        bool signKey(const GpgKey &target, const QVector<GpgKey> &keys, const QString &uid,
-                     const QDateTime *expires);
-
-        bool revSign(const GpgKey &key, const GpgKeySignature &signature);
-
-        gpgme_error_t verify(QByteArray *inBuffer, QByteArray *sigBuffer, gpgme_verify_result_t *result);
-
-        gpg_error_t
-        sign(const QVector<GpgKey> &keys, const QByteArray &inBuffer, QByteArray *outBuffer,
-             gpgme_sig_mode_t mode, gpgme_sign_result_t *result = nullptr, bool default_ctx = true);
-
-        bool addUID(const GpgKey &key, const GpgUID &uid);
-
-        bool revUID(const GpgKey &key, const GpgUID &uid);
-
-        bool setPrimaryUID(const GpgKey &key, const GpgUID &uid);
-
-        bool setExpire(const GpgKey &key, const GpgSubKey *subkey, QDateTime *expires);
+        bool exportSecretKey(const GpgKey &key, QByteArray *outBuffer) const;
 
         void generateRevokeCert(const GpgKey &key, const QString &outputFileName);
 
@@ -151,12 +119,6 @@ namespace GpgME {
          */
         static void preventNoDataErr(QByteArray *in);
 
-        GpgKey getKeyByFpr(const QString &fpr);
-
-        GpgKey getKeyById(const QString &id);
-
-        static QString gpgErrString(gpgme_error_t err);
-
         static QString getGpgmeVersion();
 
         /**
@@ -170,6 +132,8 @@ namespace GpgME {
         static int textIsSigned(const QByteArray &text);
 
         static QString beautifyFingerprint(QString fingerprint);
+
+        operator gpgme_ctx_t() const { return _ctx_ref.get(); }
 
     signals:
 
@@ -189,7 +153,9 @@ namespace GpgME {
 
         GpgInfo info;
 
-        gpgme_ctx_t mCtx{};
+        using CtxRefHandler = std::unique_ptr<struct gpgme_context, std::function<void(gpgme_ctx_t)>>;
+        CtxRefHandler _ctx_ref = nullptr;
+
         gpgme_data_t in{};
         gpgme_error_t err;
         bool debug;
@@ -199,17 +165,9 @@ namespace GpgME {
         QSettings settings;
         GpgKeyList mKeyList;
 
-        QMap<QString, GpgKey *> mKeyMap;
-
-        gpgme_ctx_t create_ctx();
-
-        static gpgme_error_t readToBuffer(gpgme_data_t dataIn, QByteArray *outBuffer);
+        std::map<QString, GpgKey> mKeyMap;
 
         void fetch_keys();
-
-        static void checkErr(gpgme_error_t gpgmeError);
-
-        static void checkErr(gpgme_error_t gpgmeError, const QString &comment);
 
         static gpgme_error_t passphraseCb(void *hook, const char *uid_hint,
                                           const char *passphrase_info,

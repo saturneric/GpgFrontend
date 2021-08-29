@@ -24,7 +24,7 @@
 
 #include "ui/keypair_details/KeyNewUIDDialog.h"
 
-KeyNewUIDDialog::KeyNewUIDDialog(GpgME::GpgContext *ctx, const GpgKey &key, QWidget *parent) :
+KeyNewUIDDialog::KeyNewUIDDialog(GpgFrontend::GpgContext *ctx, const GpgKey &key, QWidget *parent) :
     mCtx(ctx), mKey(key), QDialog(parent) {
 
     name = new QLineEdit();

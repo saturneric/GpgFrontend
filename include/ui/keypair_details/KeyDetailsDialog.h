@@ -35,7 +35,7 @@ Q_OBJECT
 
 public:
 
-    KeyDetailsDialog(GpgME::GpgContext *ctx, const GpgKey& key, QWidget *parent = nullptr);
+    KeyDetailsDialog(GpgFrontend::GpgContext *ctx, const GpgKey& key, QWidget *parent = nullptr);
 
 private:
 

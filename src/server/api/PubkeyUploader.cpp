@@ -24,7 +24,7 @@
 
 #include "server/api/PubkeyUploader.h"
 
-PubkeyUploader::PubkeyUploader(GpgME::GpgContext *ctx, const QVector<GpgKey> &keys) : BaseAPI(ComUtils::UploadPubkey),
+PubkeyUploader::PubkeyUploader(GpgFrontend::GpgContext *ctx, const QVector<GpgKey> &keys) : BaseAPI(ComUtils::UploadPubkey),
                                                                                       mCtx(ctx),
                                                                                       mKeys(keys) {
 }

@@ -21,44 +21,35 @@
  * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
-#ifndef GPGFRONTEND_GPGSUBKEY_H
-#define GPGFRONTEND_GPGSUBKEY_H
+
+#ifndef GPGFRONTEND_ZH_CN_TS_GPGKEYGETTER_H
+#define GPGFRONTEND_ZH_CN_TS_GPGKEYGETTER_H
 
 #include "GpgFrontend.h"
+#include "gpg/GpgModel.h"
+#include "gpg/GpgContext.h"
+#include "gpg/GpgFunctionObject.h"
 
-struct GpgSubKey {
+namespace GpgFrontend {
 
-    QString id;
-    QString fpr;
+    class GpgKeyGetter : public SingletonFunctionObject<GpgKeyGetter>{
 
-    QString pubkey_algo;
+    public:
 
-    unsigned int length;
+        GpgKey &&getKey(const std::string &fpr);
 
-    bool can_encrypt{};
-    bool can_sign{};
-    bool can_certify{};
-    bool can_authenticate{};
+        GpgKey &&getPubkey(const std::string &fpr);
 
+        GpgKeyGetter() = default;
 
-    bool is_private_key{};
-    bool expired{};
-    bool revoked{};
-    bool disabled{};
-    bool secret{};
-    bool is_cardkey{};
+    private:
 
-    QDateTime timestamp;
-    QDateTime expires;
+        GpgContext &ctx = GpgContext::getInstance();
 
-    explicit GpgSubKey(gpgme_subkey_t key = nullptr);
-
-    GpgSubKey(GpgSubKey &&) noexcept = default;
-    GpgSubKey(const GpgSubKey &) = default;
-    GpgSubKey& operator=(GpgSubKey &&) noexcept = default;
-    GpgSubKey& operator=(const GpgSubKey &) = default;
-
-};
+    };
+}
 
 
-#endif //GPGFRONTEND_GPGSUBKEY_H
+
+
+#endif //GPGFRONTEND_ZH_CN_TS_GPGKEYGETTER_H

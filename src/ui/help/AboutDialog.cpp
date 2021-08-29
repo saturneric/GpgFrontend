@@ -82,7 +82,7 @@ InfoTab::InfoTab(QWidget *parent)
                                   "If you have any questions or suggestions, raise an issue<br/>"
                                   "at <a href=\"https://github.com/saturneric/GpgFrontend\">GitHub</a> or send a mail to my mailing list at <a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>.") +
                              tr("<br><br> Built with Qt ") + qVersion()
-                             + tr(" and GPGME ") + GpgME::GpgContext::getGpgmeVersion() +
+                             + tr(" and GPGME ") + GpgFrontend::GpgContext::getGpgmeVersion() +
                              tr("<br>Built at ") + BUILD_TIMESTAMP + "</center>");
 
     auto *layout = new QGridLayout();

@@ -37,11 +37,11 @@ class ComUtils;
 class PubkeyGetter : public BaseAPI {
 public:
 
-    PubkeyGetter(GpgME::GpgContext *ctx, const QVector<QString> &fprs);
+    PubkeyGetter(GpgFrontend::GpgContext *ctx, const QVector<QString> &fprs);
 
 private:
 
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
 
     const QVector<QString> &mFprs;
 

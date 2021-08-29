@@ -27,16 +27,16 @@
 
 #include "GpgFrontend.h"
 #include "gpg/GpgContext.h"
-#include "gpg/GpgKey.h"
-#include "gpg/GpgSubKey.h"
+#include "gpg/model/GpgKey.h"
+#include "gpg/model/GpgSubKey.h"
 
 class KeySetExpireDateDialog : public QDialog {
 Q_OBJECT
 public:
-    explicit KeySetExpireDateDialog(GpgME::GpgContext *ctx, const GpgKey &key, const GpgSubKey *subkey, QWidget *parent = nullptr);
+    explicit KeySetExpireDateDialog(GpgFrontend::GpgContext *ctx, const GpgKey &key, const GpgSubKey *subkey, QWidget *parent = nullptr);
 
 private:
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     const GpgKey &mKey;
     const GpgSubKey *mSubkey;
 

@@ -86,6 +86,24 @@ int main(int argc, char *argv[]) {
 
         QApplication::setQuitOnLastWindowClosed(true);
 
+
+        /**
+         * The function `gpgme_check_version' must be called before any other
+         *  function in the library, because it initializes the thread support
+         *  subsystem in GPGME. (from the info page) */
+        gpgme_check_version(nullptr);
+
+        // the locale set here is used for the other setlocale calls which have nullptr
+        // -> nullptr means use default, which is configured here
+        setlocale(LC_ALL, settings.value("int/lang").toLocale().name().toUtf8().constData());
+
+        /** set locale, because tests do also */
+        gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
+        //qDebug() << "Locale set to" << LC_CTYPE << " - " << setlocale(LC_CTYPE, nullptr);
+        #ifndef _WIN32
+        gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
+        #endif
+
         MainWindow window;
         return_from_event_loop_code = QApplication::exec();
 

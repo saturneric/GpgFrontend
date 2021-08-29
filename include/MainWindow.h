@@ -402,7 +402,7 @@ private:
     KeyList *mKeyList;
 
     InfoBoardWidget *infoBoard;
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     KeyMgmt *keyMgmt;
     KeyServerImportDialog *importDialog; /**< TODO */
 

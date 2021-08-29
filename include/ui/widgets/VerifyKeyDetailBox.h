@@ -31,7 +31,7 @@
 class VerifyKeyDetailBox : public QGroupBox {
 Q_OBJECT
 public:
-    explicit VerifyKeyDetailBox(QWidget *parent, GpgME::GpgContext *ctx, KeyList *mKeyList,
+    explicit VerifyKeyDetailBox(QWidget *parent, GpgFrontend::GpgContext *ctx, KeyList *mKeyList,
                                 gpgme_signature_t signature);
 
 private slots:
@@ -39,7 +39,7 @@ private slots:
     void slotImportFormKeyserver();
 
 private:
-    GpgME::GpgContext *mCtx;
+    GpgFrontend::GpgContext *mCtx;
     KeyList *mKeyList;
 
     static QString beautifyFingerprint(QString fingerprint);
