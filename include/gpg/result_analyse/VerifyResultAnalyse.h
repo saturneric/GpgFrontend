@@ -30,18 +30,20 @@
 
 #include "ResultAnalyse.h"
 
-class VerifyResultAnalyse : public ResultAnalyse{
-public:
+namespace GpgFrontend {
 
-    explicit VerifyResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_error_t error, gpgme_verify_result_t result);
+    class VerifyResultAnalyse : public ResultAnalyse{
+    public:
 
-private:
+        explicit VerifyResultAnalyse(gpgme_error_t error, gpgme_verify_result_t result);
 
-    GpgFrontend::GpgContext *mCtx;
+    private:
 
-    bool printSigner(QTextStream &stream, gpgme_signature_t sign);
+        bool printSigner(QTextStream &stream, gpgme_signature_t sign);
 
-};
+    };
+
+}
 
 
 #endif //GPGFRONTEND_VERIFYRESULTANALYSE_H

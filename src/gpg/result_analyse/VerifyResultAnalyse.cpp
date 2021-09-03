@@ -23,10 +23,10 @@
  */
 
 #include "GpgFrontend.h"
+#include "gpg/function/GpgKeyGetter.h"
 #include "gpg/result_analyse/VerifyResultAnalyse.h"
 
-VerifyResultAnalyse::VerifyResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_error_t error, gpgme_verify_result_t result)
-        : mCtx(ctx) {
+GpgFrontend::VerifyResultAnalyse::VerifyResultAnalyse(gpgme_error_t error, gpgme_verify_result_t result) {
 
     qDebug() << "Verify Result Analyse Started";
 
@@ -147,16 +147,16 @@ VerifyResultAnalyse::VerifyResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_err
     }
 }
 
-bool VerifyResultAnalyse::printSigner(QTextStream &stream, gpgme_signature_t sign) {
+bool GpgFrontend::VerifyResultAnalyse::printSigner(QTextStream &stream, gpgme_signature_t sign) {
     bool keyFound = true;
-    auto key = mCtx->getKeyRefByFpr(sign->fpr);
+    auto key = GpgFrontend::GpgKeyGetter::getInstance().getKey(sign->fpr);
 
-    if (!key.good) {
+    if (!key.good()) {
         stream << tr("    Signed By: ") << tr("<unknown>") << Qt::endl;
         setStatus(0);
         keyFound = false;
     } else {
-        stream << tr("    Signed By: ") << key.uids.first().uid << Qt::endl;
+        stream << tr("    Signed By: ") << key.uids()->front().uid() << Qt::endl;
     }
     stream << tr("    Public Key Algo: ") << gpgme_pubkey_algo_name(sign->pubkey_algo) << Qt::endl;
     stream << tr("    Hash Algo: ") << gpgme_hash_algo_name(sign->hash_algo) << Qt::endl;
