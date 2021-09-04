@@ -25,19 +25,38 @@
 #ifndef GPG_CONSTANTS_H
 #define GPG_CONSTANTS_H
 
-class QString;
+#include "GpgFrontend.h"
 
 const int RESTART_CODE = 1000;
 
-class GpgConstants {
-public:
-    static const char *PGP_CRYPT_BEGIN;
-    static const char *PGP_CRYPT_END;
-    static const char *PGP_SIGNED_BEGIN;
-    static const char *PGP_SIGNED_END;
-    static const char *PGP_SIGNATURE_BEGIN;
-    static const char *PGP_SIGNATURE_END;
-    static const char *GPG_FRONTEND_SHORT_CRYPTO_HEAD;
-};
+namespace GpgFrontend {
 
-#endif // CONSTANTS_H
+    using BypeArrayPtr = std::unique_ptr<QByteArray>;
+    using BypeArrayRef = QByteArray &;
+
+    using GpgError = gpgme_error_t;
+
+    using GpgEncrResult = std::unique_ptr<struct _gpgme_op_encrypt_result, std::function<void(
+            gpgme_encrypt_result_t)>>;
+    using GpgDecrResult = std::unique_ptr<struct _gpgme_op_decrypt_result, std::function<void(
+            gpgme_decrypt_result_t)>>;
+    using GpgSignResult = std::unique_ptr<struct _gpgme_op_sign_result, std::function<void(
+            gpgme_sign_result_t)>>;
+    using GpgVerifyResult = std::unique_ptr<struct _gpgme_op_verify_result, std::function<void(
+            gpgme_verify_result_t)>>;
+
+    class GpgConstants {
+    public:
+        static const char *PGP_CRYPT_BEGIN;
+        static const char *PGP_CRYPT_END;
+        static const char *PGP_SIGNED_BEGIN;
+        static const char *PGP_SIGNED_END;
+        static const char *PGP_SIGNATURE_BEGIN;
+        static const char *PGP_SIGNATURE_END;
+        static const char *GPG_FRONTEND_SHORT_CRYPTO_HEAD;
+    };
+}
+
+
+
+#endif // GPG_CONSTANTS_H

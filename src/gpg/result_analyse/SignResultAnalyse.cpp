@@ -22,10 +22,14 @@
  *
  */
 
+#include "gpg/function/GpgKeyGetter.h"
 #include "gpg/result_analyse/SignResultAnalyse.h"
 
-SignResultAnalyse::SignResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_error_t error, gpgme_sign_result_t result) {
+GpgFrontend::SignResultAnalyse::SignResultAnalyse(GpgError error, GpgSignResult result) : error(error),
+                                                                                          result(std::move(result)) {}
 
+
+void GpgFrontend::SignResultAnalyse::do_analyse() {
     qDebug() << "Start Sign Result Analyse";
 
     stream << tr("[#] Sign Operation ");
@@ -58,9 +62,9 @@ SignResultAnalyse::SignResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_error_t
 
             stream << Qt::endl;
 
-            GpgKey singerKey = ctx->getKeyRefByFpr(new_sign->fpr);
-            if(singerKey.good) {
-                stream << tr("    Signer: ") << singerKey.uids.first().uid << Qt::endl;
+            auto singerKey = GpgFrontend::GpgKeyGetter::getInstance().getKey(new_sign->fpr);
+            if (singerKey.good()) {
+                stream << tr("    Signer: ") << singerKey.uids()->front().uid() << Qt::endl;
             } else {
                 stream << tr("    Signer: ") << tr("<unknown>") << Qt::endl;
             }
@@ -92,5 +96,4 @@ SignResultAnalyse::SignResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_error_t
         stream << "<------------" << Qt::endl;
 
     }
-
 }

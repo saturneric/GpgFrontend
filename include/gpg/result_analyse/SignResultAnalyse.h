@@ -28,17 +28,28 @@
 #include "GpgFrontend.h"
 
 #include "ResultAnalyse.h"
-#include "gpg/GpgContext.h"
+#include "gpg/GpgConstants.h"
 
-class SignResultAnalyse : public ResultAnalyse {
-Q_OBJECT
-public:
+namespace GpgFrontend {
 
-    explicit SignResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_error_t error, gpgme_sign_result_t result);
+    class SignResultAnalyse : public ResultAnalyse {
+        Q_OBJECT
+    public:
+
+        explicit SignResultAnalyse(GpgError error, GpgSignResult result);
+
+    protected:
+
+        void do_analyse();
 
 
-private:
+    private:
+        GpgError error;
 
-};
+        GpgSignResult result;
+
+    };
+
+}
 
 #endif //GPGFRONTEND_SIGNRESULTANALYSE_H

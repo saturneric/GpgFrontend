@@ -21,39 +21,26 @@
  * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
-#ifndef GPGFRONTEND_RESULTANALYSE_H
-#define GPGFRONTEND_RESULTANALYSE_H
+
+#ifndef GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
+#define GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
 
 #include "GpgFrontend.h"
+#include "gpg/GpgContext.h"
 
 namespace GpgFrontend {
 
-    class ResultAnalyse : public QObject {
-        Q_OBJECT
+    class GpgCommandExecutor : public QObject {
+    Q_OBJECT
     public:
-        ResultAnalyse() = default;
+        void execute(const QStringList &arguments, const std::function<void(QProcess *)> &interactFunc);
 
-        [[nodiscard]] const QString &getResultReport();
+    private:
 
-        [[nodiscard]] int getStatus();
-
-        void analyse();
-
-    protected:
-
-        virtual void do_analyse() = 0;
-
-        QString resultText;
-        QTextStream stream{&resultText};
-
-        int status = 1;
-
-        bool analysed_ = false;
-
-        void setStatus(int mStatus);
+        GpgContext &ctx = GpgContext::getInstance();
     };
 
 }
 
 
-#endif //GPGFRONTEND_RESULTANALYSE_H
+#endif //GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H

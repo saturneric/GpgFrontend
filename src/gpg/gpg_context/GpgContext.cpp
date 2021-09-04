@@ -131,7 +131,7 @@ namespace GpgFrontend {
 #endif
 
         if (last_was_bad) {
-            passwordDialogMessage += "<i>" + tr("Wrong password") + ".</i><br><br>\n\n";
+            passwordDialogMessage += "<i> Wrong password. </i><br><br>\n\n";
             clearPasswordCache();
         }
 
@@ -139,11 +139,11 @@ namespace GpgFrontend {
         if (!gpgHint.isEmpty()) {
             // remove UID, leave only username & email
             gpgHint.remove(0, gpgHint.indexOf(" "));
-            passwordDialogMessage += "<b>" + tr("Enter Password for") + "</b><br>" + gpgHint + "<br>";
+            passwordDialogMessage += "<b> Enter Password for </b><br>" + gpgHint + "<br>";
         }
 
         if (mPasswordCache.isEmpty()) {
-            QString password = QInputDialog::getText(QApplication::activeWindow(), tr("Enter Password"),
+            QString password = QInputDialog::getText(QApplication::activeWindow(), "Enter Password",
                                                      passwordDialogMessage, QLineEdit::Password,
                                                      "", &result);
 
@@ -200,30 +200,7 @@ namespace GpgFrontend {
     }
 
     /** return type should be gpgme_error_t*/
-    void
-    GpgContext::executeGpgCommand(const QStringList &arguments, const std::function<void(QProcess *)> &interactFunc) {
-        QEventLoop looper;
-        auto dialog = new WaitingDialog(tr("Processing"), nullptr);
-        dialog->show();
-        auto *gpgProcess = new QProcess(&looper);
-        gpgProcess->setProcessChannelMode(QProcess::MergedChannels);
-        connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), &looper, &QEventLoop::quit);
-        connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), dialog,
-                &WaitingDialog::deleteLater);
-        connect(gpgProcess, &QProcess::errorOccurred, []() -> void { qDebug("Error in Process"); });
-        connect(gpgProcess, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
-        connect(gpgProcess, &QProcess::started, []() -> void { qDebug() << "Gpg Process Started Success"; });
-        connect(gpgProcess, &QProcess::readyReadStandardOutput, [interactFunc, gpgProcess]() {
-            qDebug() << "Function Called";
-            interactFunc(gpgProcess);
-        });
-        gpgProcess->setProgram(info.appPath);
-        gpgProcess->setArguments(arguments);
-        gpgProcess->start();
-        looper.exec();
-        dialog->close();
 
-    }
 
 
     /*

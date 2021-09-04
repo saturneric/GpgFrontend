@@ -85,6 +85,15 @@ namespace GpgFrontend {
 
         [[nodiscard]] bool can_authenticate() const { return _key_ref->can_authenticate; }
 
+        bool canAuthActual() {
+            auto subkeys = subKeys();
+            if (std::any_of(subkeys->begin(), subkeys->end(), [](const GpgSubKey &subkey) -> bool {
+                return subkey.secret() && subkey.can_authenticate() && !subkey.disabled() && !subkey.revoked() && !subkey.expired();
+            }))
+                return true;
+            else return false;
+        }
+
 
         [[nodiscard]] bool is_private_key() const { return _key_ref->secret; }
 

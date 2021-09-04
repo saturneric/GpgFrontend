@@ -22,11 +22,12 @@
  *
  */
 
+#include "gpg/function/GpgKeyGetter.h"
 #include "gpg/result_analyse/DecryptResultAnalyse.h"
 
-DecryptResultAnalyse::DecryptResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_error_t error, gpgme_decrypt_result_t result)
-        : mCtx(ctx) {
+GpgFrontend::DecryptResultAnalyse::DecryptResultAnalyse(GpgError error, GpgDecrResult result) : error(error), result(std::move(result)) {}
 
+void GpgFrontend::DecryptResultAnalyse::do_analyse() {
     stream << tr("[#] Decrypt Operation ");
 
     if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
@@ -51,25 +52,24 @@ DecryptResultAnalyse::DecryptResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_e
         if (reci != nullptr)
             stream << tr("Recipient(s): ") << Qt::endl;
         while (reci != nullptr) {
-            printReci(stream, reci);
+            print_reci(stream, reci);
             reci = reci->next;
         }
         stream << "<------------" << Qt::endl;
     }
 
     stream << Qt::endl;
-
 }
 
-bool DecryptResultAnalyse::printReci(QTextStream &stream, gpgme_recipient_t reci) {
+bool GpgFrontend::DecryptResultAnalyse::print_reci(QTextStream &stream, gpgme_recipient_t reci) {
     bool keyFound = true;
     stream << QApplication::tr("  {>} Recipient: ");
 
-    auto key = mCtx->getKeyRefById(reci->keyid);
-    if(key.good) {
-        stream << key.name;
-        if (!key.email.isEmpty()) {
-            stream << "<" << key.email << ">";
+    auto key = GpgFrontend::GpgKeyGetter::getInstance().getKey(reci->keyid);
+    if(key.good()) {
+        stream << key.name().c_str();
+        if (!key.email().empty()) {
+            stream << "<" << key.email().c_str() << ">";
         }
     } else {
         stream << "<Unknown>";
@@ -79,7 +79,7 @@ bool DecryptResultAnalyse::printReci(QTextStream &stream, gpgme_recipient_t reci
 
     stream << Qt::endl;
 
-    stream << tr("      Keu ID: ") << reci->keyid << Qt::endl;
+    stream << tr("      Keu ID: ") << key.id().c_str() << Qt::endl;
     stream << tr("      Public Algo: ") << gpgme_pubkey_algo_name(reci->pubkey_algo) << Qt::endl;
 
     return keyFound;

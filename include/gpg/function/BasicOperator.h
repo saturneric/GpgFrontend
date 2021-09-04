@@ -26,23 +26,12 @@
 #define GPGFRONTEND_ZH_CN_TS_BASICOPERATOR_H
 
 #include "GpgFrontend.h"
+#include "gpg/GpgConstants.h"
 #include "gpg/GpgModel.h"
 #include "gpg/GpgContext.h"
 #include "gpg/GpgFunctionObject.h"
 
 namespace GpgFrontend {
-
-    using BypeArrayPtr = std::unique_ptr<QByteArray>;
-    using BypeArrayRef = QByteArray &;
-
-    using GpgEncrResult = std::unique_ptr<struct _gpgme_op_encrypt_result, std::function<void(
-            gpgme_encrypt_result_t)>>;
-    using GpgDecrResult = std::unique_ptr<struct _gpgme_op_decrypt_result, std::function<void(
-            gpgme_decrypt_result_t)>>;
-    using GpgSignResult = std::unique_ptr<struct _gpgme_op_sign_result, std::function<void(
-            gpgme_sign_result_t)>>;
-    using GpgVerifyResult = std::unique_ptr<struct _gpgme_op_verify_result, std::function<void(
-            gpgme_verify_result_t)>>;
 
     class BasicOperator : public SingletonFunctionObject<BasicOperator> {
     public:

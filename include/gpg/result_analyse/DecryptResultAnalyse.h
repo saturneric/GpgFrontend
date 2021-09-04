@@ -25,20 +25,29 @@
 #ifndef GPGFRONTEND_DECRYPTRESULTANALYSE_H
 #define GPGFRONTEND_DECRYPTRESULTANALYSE_H
 
-#include "gpg/GpgContext.h"
+#include "gpg/GpgConstants.h"
 #include "ResultAnalyse.h"
 
-class DecryptResultAnalyse : public ResultAnalyse {
-Q_OBJECT
-public:
-    explicit DecryptResultAnalyse(GpgFrontend::GpgContext *ctx, gpgme_error_t error, gpgme_decrypt_result_t result);
+namespace GpgFrontend {
 
-private:
+    class DecryptResultAnalyse : public ResultAnalyse {
+        Q_OBJECT
+    public:
+        explicit DecryptResultAnalyse(GpgError error, GpgDecrResult result);
 
-    GpgFrontend::GpgContext *mCtx;
+    protected:
 
-    bool printReci(QTextStream &stream, gpgme_recipient_t reci);
-};
+        void do_analyse() final;
+
+    private:
+
+        bool print_reci(QTextStream &stream, gpgme_recipient_t reci);
+
+        GpgError error;
+        GpgDecrResult result;
+    };
+
+}
 
 
 #endif //GPGFRONTEND_DECRYPTRESULTANALYSE_H
