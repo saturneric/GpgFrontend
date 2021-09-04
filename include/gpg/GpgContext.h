@@ -94,6 +94,8 @@ namespace GpgFrontend {
 
         gpgme_error_t generateSubkey(const GpgKey &key, GenKeyInfo *params);
 
+        const GpgInfo &getInfo() const { return info; }
+
         void deleteKeys(QStringList *uidList);
 
         void clearPasswordCache();

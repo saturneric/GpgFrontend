@@ -24,8 +24,9 @@
 
 #include "gpg/result_analyse/EncryptResultAnalyse.h"
 
-EncryptResultAnalyse::EncryptResultAnalyse(gpgme_error_t error, gpgme_encrypt_result_t result) {
+GpgFrontend::EncryptResultAnalyse::EncryptResultAnalyse(GpgError error, GpgEncrResult result) : error(error), result(std::move(result)) {}
 
+void GpgFrontend::EncryptResultAnalyse::do_analyse() {
     qDebug() << "Start Encrypt Result Analyse";
 
     stream << "[#] Encrypt Operation ";
@@ -54,5 +55,4 @@ EncryptResultAnalyse::EncryptResultAnalyse(gpgme_error_t error, gpgme_encrypt_re
     }
 
     stream << Qt::endl;
-
 }

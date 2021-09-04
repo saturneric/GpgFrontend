@@ -25,14 +25,29 @@
 #ifndef GPGFRONTEND_ENCRYPTRESULTANALYSE_H
 #define GPGFRONTEND_ENCRYPTRESULTANALYSE_H
 
+#include "gpg/GpgConstants.h"
 #include "ResultAnalyse.h"
 
-class EncryptResultAnalyse : public ResultAnalyse {
-Q_OBJECT
-public:
-    explicit EncryptResultAnalyse(gpgme_error_t error, gpgme_encrypt_result_t result);
+namespace GpgFrontend {
+    class EncryptResultAnalyse : public ResultAnalyse {
+        Q_OBJECT
+    public:
 
-};
+        explicit EncryptResultAnalyse(GpgError error, GpgEncrResult result);
+
+    protected:
+
+        void do_analyse() final;
+
+    private:
+
+        GpgError error;
+        GpgEncrResult result;
+
+    };
+}
+
+
 
 
 #endif //GPGFRONTEND_ENCRYPTRESULTANALYSE_H

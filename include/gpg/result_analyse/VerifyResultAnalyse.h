@@ -25,7 +25,7 @@
 #ifndef GPGFRONTEND_VERIFYRESULTANALYSE_H
 #define GPGFRONTEND_VERIFYRESULTANALYSE_H
 
-#include "gpg/GpgContext.h"
+#include "gpg/GpgConstants.h"
 #include "gpg/model/GpgKeySignature.h"
 
 #include "ResultAnalyse.h"
@@ -35,12 +35,18 @@ namespace GpgFrontend {
     class VerifyResultAnalyse : public ResultAnalyse{
     public:
 
-        explicit VerifyResultAnalyse(gpgme_error_t error, gpgme_verify_result_t result);
+        explicit VerifyResultAnalyse(GpgError error, GpgVerifyResult result);
 
     private:
 
-        bool printSigner(QTextStream &stream, gpgme_signature_t sign);
+        void do_analyse();
 
+    private:
+
+        bool print_signer(QTextStream &stream, gpgme_signature_t sign);
+
+        GpgError error;
+        GpgVerifyResult result;
     };
 
 }

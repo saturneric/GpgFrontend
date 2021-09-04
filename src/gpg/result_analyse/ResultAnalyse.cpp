@@ -24,15 +24,23 @@
 
 #include "gpg/result_analyse/ResultAnalyse.h"
 
-const QString &ResultAnalyse::getResultReport() const{
+const QString &GpgFrontend::ResultAnalyse::getResultReport() {
+    if(!analysed_) do_analyse();
     return resultText;
 }
 
-int ResultAnalyse::getStatus() const {
+int GpgFrontend::ResultAnalyse::getStatus() {
+    if(!analysed_) do_analyse();
     return status;
 }
 
-void ResultAnalyse::setStatus(int mStatus) {
-    if(mStatus < status)
-        status = mStatus;
+void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
+    if(mStatus < status) status = mStatus;
+}
+
+void GpgFrontend::ResultAnalyse::analyse() {
+    if(!analysed_){
+        do_analyse();
+        analysed_ = true;
+    }
 }
