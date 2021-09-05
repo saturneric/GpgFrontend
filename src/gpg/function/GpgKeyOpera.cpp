@@ -26,6 +26,15 @@
 #include "gpg/GpgConstants.h"
 #include "gpg/GpgGenKeyInfo.h"
 #include "gpg/function/GpgCommandExecutor.h"
+#include "gpg/function/GpgKeyGetter.h"
+
+#include <boost/asio/read_until.hpp>
+#include <boost/date_time/posix_time/conversion.hpp>
+
+#include <boost/process/async_pipe.hpp>
+#include <memory>
+#include <string>
+#include <vector>
 
 /**
  * Delete keys
@@ -33,23 +42,15 @@
  */
 void GpgFrontend::GpgKeyOpera::DeleteKeys(
     GpgFrontend::KeyIdArgsListPtr uid_list) {
-
   GpgError err;
-  gpgme_key_t key;
-
   for (const auto &tmp : *uid_list) {
-
-    err = gpgme_op_keylist_start(ctx, tmp.c_str(), 0);
-    assert(gpg_err_code(err) != GPG_ERR_NO_ERROR);
-
-    err = gpgme_op_keylist_next(ctx, &key);
-    assert(gpg_err_code(err) != GPG_ERR_NO_ERROR);
-
-    err = gpgme_op_keylist_end(ctx);
-    assert(gpg_err_code(err) != GPG_ERR_NO_ERROR);
-
-    err = gpgme_op_delete(ctx, key, 1);
-    assert(gpg_err_code(err) != GPG_ERR_NO_ERROR);
+    auto key = GpgKeyGetter::GetInstance().GetKey(tmp);
+    if (key.good()) {
+      LOG(INFO) << "GpgKeyOpera DeleteKeys Get Key Good";
+      err = check_gpg_error(gpgme_op_delete(ctx, gpgme_key_t(key), 1));
+      assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
+    } else
+      LOG(WARNING) << "GpgKeyOpera DeleteKeys Get Key Bad";
   }
 }
 
@@ -60,13 +61,13 @@ void GpgFrontend::GpgKeyOpera::DeleteKeys(
  * @param expires date and time
  * @return if successful
  */
-void GpgFrontend::GpgKeyOpera::SetExpire(const GpgKey &key,
-                                         std::unique_ptr<GpgSubKey> &subkey,
-                                         std::unique_ptr<QDateTime> &expires) {
+void GpgFrontend::GpgKeyOpera::SetExpire(
+    const GpgKey &key, std::unique_ptr<GpgSubKey> &subkey,
+    std::unique_ptr<boost::gregorian::date> &expires) {
   unsigned long expires_time = 0;
   if (expires != nullptr) {
-    qDebug() << "Expire Datetime" << expires->toString();
-    expires_time = QDateTime::currentDateTime().secsTo(*expires);
+    using namespace boost::posix_time;
+    expires_time = to_time_t(ptime(*expires));
   }
 
   const char *sub_fprs = nullptr;
@@ -88,34 +89,20 @@ void GpgFrontend::GpgKeyOpera::SetExpire(const GpgKey &key,
  */
 void GpgFrontend::GpgKeyOpera::GenerateRevokeCert(
     const GpgKey &key, const std::string &output_file_name) {
+  auto args = std::vector<std::string>{"--command-fd", "0",
+                                       "--status-fd",  "1",
+                                       "-o",           output_file_name.c_str(),
+                                       "--gen-revoke", key.fpr().c_str()};
+
+  using boost::process::async_pipe;
   GpgCommandExecutor::GetInstance().Execute(
-      {"--command-fd", "0", "--status-fd", "1", "-o", output_file_name.c_str(),
-       "--gen-revoke", key.fpr().c_str()},
-      [](QProcess *proc) -> void {
-        qDebug() << "Function Called" << proc;
-        // Code From Gpg4Win
-        while (proc->canReadLine()) {
-          const QString line = QString::fromUtf8(proc->readLine()).trimmed();
-          if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
-            proc->write("y\n");
-          } else if (line ==
-                     QLatin1String(
-                         "[GNUPG:] GET_LINE ask_revocation_reason.code")) {
-            proc->write("0\n");
-          } else if (line ==
-                     QLatin1String(
-                         "[GNUPG:] GET_LINE ask_revocation_reason.text")) {
-            proc->write("\n");
-          } else if (line == QLatin1String(
-                                 "[GNUPG:] GET_BOOL openfile.overwrite.okay")) {
-            // We asked before
-            proc->write("y\n");
-          } else if (line ==
-                     QLatin1String(
-                         "[GNUPG:] GET_BOOL ask_revocation_reason.okay")) {
-            proc->write("y\n");
-          }
-        }
+      args, [](async_pipe &in, async_pipe &out) -> void {
+        boost::asio::streambuf buff;
+        boost::asio::read_until(in, buff, '\n');
+
+        std::string line;
+        std::istream is(&buff);
+        is >> line;
         // Code From Gpg4Win
       });
 }
@@ -132,8 +119,12 @@ GpgFrontend::GpgKeyOpera::GenerateKey(std::unique_ptr<GenKeyInfo> params) {
   const char *userid = userid_utf8.c_str();
   auto algo_utf8 = (params->getAlgo() + params->getKeySizeStr());
   const char *algo = algo_utf8.c_str();
-  unsigned long expires =
-      QDateTime::currentDateTime().secsTo(params->getExpired());
+  unsigned long expires = 0;
+  {
+    using namespace boost::posix_time;
+    expires = to_time_t(ptime(params->getExpired()));
+  }
+
   unsigned int flags = 0;
 
   if (!params->isSubKey())
@@ -168,8 +159,11 @@ GpgFrontend::GpgKeyOpera::GenerateSubkey(const GpgKey &key,
 
   auto algo_utf8 = (params->getAlgo() + params->getKeySizeStr());
   const char *algo = algo_utf8.c_str();
-  unsigned long expires =
-      QDateTime::currentDateTime().secsTo(params->getExpired());
+  unsigned long expires = 0;
+  {
+    using namespace boost::posix_time;
+    expires = to_time_t(ptime(params->getExpired()));
+  }
   unsigned int flags = 0;
 
   if (!params->isSubKey())

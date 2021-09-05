@@ -23,27 +23,33 @@
  */
 #include "gpg/function/GpgCommandExecutor.h"
 
+#include <boost/asio.hpp>
+
+using boost::process::async_pipe;
+
 void GpgFrontend::GpgCommandExecutor::Execute(
-    const QStringList &arguments,
-    const std::function<void(QProcess *)> &interact_func) {
-  QEventLoop looper;
-  auto *gpg_process = new QProcess(&looper);
-  gpg_process->setProcessChannelMode(QProcess::MergedChannels);
-  connect(gpg_process,
-          qOverload<int, QProcess::ExitStatus>(&QProcess::finished), &looper,
-          &QEventLoop::quit);
-  connect(gpg_process, &QProcess::errorOccurred,
-          []() -> void { qDebug("Error in Process"); });
-  connect(gpg_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
-  connect(gpg_process, &QProcess::started,
-          []() -> void { qDebug() << "Gpg Process Started Success"; });
-  connect(gpg_process, &QProcess::readyReadStandardOutput,
-          [interact_func, gpg_process]() {
-            qDebug() << "Function Called";
-            interact_func(gpg_process);
-          });
-  gpg_process->setProgram(ctx.GetInfo().appPath.c_str());
-  gpg_process->setArguments(arguments);
-  gpg_process->start();
-  looper.exec();
+    StringArgsRef arguments,
+    const std::function<void(async_pipe &in, async_pipe &out)> &interact_func) {
+
+  using namespace boost::process;
+
+  boost::asio::io_service ios;
+
+  std::vector<char> buf;
+
+  async_pipe in_pipe_stream(ios);
+  async_pipe out_pipe_stream(ios);
+
+  child child_process(ctx.GetInfo().appPath.c_str(), arguments,
+                      std_out > in_pipe_stream, std_in < out_pipe_stream);
+
+  boost::asio::async_read(
+      in_pipe_stream, boost::asio::buffer(buf),
+      [&](const boost::system::error_code &ec, std::size_t size) {
+        interact_func(in_pipe_stream, out_pipe_stream);
+      });
+
+  ios.run();
+  child_process.wait();
+  int result = child_process.exit_code();
 }

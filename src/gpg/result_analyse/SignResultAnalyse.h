@@ -30,7 +30,6 @@
 namespace GpgFrontend {
 
 class SignResultAnalyse : public ResultAnalyse {
-  Q_OBJECT
 public:
   explicit SignResultAnalyse(GpgError error, GpgSignResult result);
 

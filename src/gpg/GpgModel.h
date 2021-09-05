@@ -28,6 +28,8 @@
 #include "gpg/model/GpgData.h"
 #include "gpg/model/GpgKey.h"
 
+#include <list>
+
 namespace GpgFrontend {
 
 using KeyIdArgsListPtr = std::unique_ptr<std::vector<std::string>>;

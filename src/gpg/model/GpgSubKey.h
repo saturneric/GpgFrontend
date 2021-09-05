@@ -26,6 +26,7 @@
 
 #include "gpg/GpgConstants.h"
 
+#include <boost/date_time.hpp>
 #include <string>
 
 namespace GpgFrontend {
@@ -64,12 +65,12 @@ public:
 
   [[nodiscard]] bool is_cardkey() const { return _subkey_ref->is_cardkey; }
 
-  [[nodiscard]] QDateTime timestamp() const {
-    return QDateTime::fromTime_t(_subkey_ref->timestamp);
+  [[nodiscard]] boost::gregorian::date timestamp() const {
+    return boost::posix_time::from_time_t(_subkey_ref->timestamp).date();
   }
 
-  [[nodiscard]] QDateTime expires() const {
-    return QDateTime::fromTime_t(_subkey_ref->expires);
+  [[nodiscard]] boost::gregorian::date expires() const {
+    return boost::posix_time::from_time_t(_subkey_ref->expires).date();
   }
 
   GpgSubKey() = default;

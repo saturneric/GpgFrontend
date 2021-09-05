@@ -27,45 +27,53 @@
 
 #include "GpgFrontend.h"
 
-#include <QtCore>
 #include <functional>
 
+#include <assert.h>
 #include <gpgme.h>
 #include <memory>
 #include <string>
+
+#include <easyloggingpp/easylogging++.h>
 
 const int RESTART_CODE = 1000;
 
 namespace GpgFrontend {
 
-using BypeArrayPtr = std::unique_ptr<QByteArray>;
+using BypeArrayPtr = std::unique_ptr<std::string>;
 using StdBypeArrayPtr = std::unique_ptr<std::string>;
-using BypeArrayRef = QByteArray &;
+using BypeArrayRef = std::string &;
+using StringArgsPtr = std::unique_ptr<std::vector<std::string>>;
+using StringArgsRef = std::vector<std::string> &;
 
 using GpgError = gpgme_error_t;
 
+// Result
+struct __result_ref_deletor {
+  void operator()(void *_result) {
+    if (_result != nullptr)
+      gpgme_result_unref(_result);
+  }
+};
+
 using GpgEncrResult =
-    std::unique_ptr<struct _gpgme_op_encrypt_result,
-                    std::function<void(gpgme_encrypt_result_t)>>;
+    std::unique_ptr<struct _gpgme_op_encrypt_result, __result_ref_deletor>;
 using GpgDecrResult =
-    std::unique_ptr<struct _gpgme_op_decrypt_result,
-                    std::function<void(gpgme_decrypt_result_t)>>;
-using GpgSignResult = std::unique_ptr<struct _gpgme_op_sign_result,
-                                      std::function<void(gpgme_sign_result_t)>>;
+    std::unique_ptr<struct _gpgme_op_decrypt_result, __result_ref_deletor>;
+using GpgSignResult =
+    std::unique_ptr<struct _gpgme_op_sign_result, __result_ref_deletor>;
 using GpgVerifyResult =
-    std::unique_ptr<struct _gpgme_op_verify_result,
-                    std::function<void(gpgme_verify_result_t)>>;
+    std::unique_ptr<struct _gpgme_op_verify_result, __result_ref_deletor>;
 
 // Error Info Printer
 GpgError check_gpg_error(GpgError err);
-
 GpgError check_gpg_error(GpgError gpgmeError, const std::string &comment);
 
 // Fingerprint
-std::string beautify_fingerprint(std::string fingerprint);
+std::string beautify_fingerprint(BypeArrayRef fingerprint);
 
 // Check
-int text_is_signed(const QByteArray &text);
+int text_is_signed(BypeArrayRef text);
 
 class GpgConstants {
 public:

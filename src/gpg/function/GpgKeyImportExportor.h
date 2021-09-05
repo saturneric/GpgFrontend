@@ -35,7 +35,7 @@ namespace GpgFrontend {
 class GpgImportedKey {
 public:
   std::string fpr;
-  int importStatus;
+  int import_status;
 };
 
 typedef std::list<GpgImportedKey> GpgImportedKeyList;
@@ -43,6 +43,37 @@ typedef std::list<GpgImportedKey> GpgImportedKeyList;
 class GpgImportInformation {
 public:
   GpgImportInformation() = default;
+
+  explicit GpgImportInformation(gpgme_import_result_t result) {
+    if (result->unchanged)
+      unchanged = result->unchanged;
+    if (result->considered)
+      considered = result->considered;
+    if (result->no_user_id)
+      no_user_id = result->no_user_id;
+    if (result->imported)
+      imported = result->imported;
+    if (result->imported_rsa)
+      imported_rsa = result->imported_rsa;
+    if (result->unchanged)
+      unchanged = result->unchanged;
+    if (result->new_user_ids)
+      new_user_ids = result->new_user_ids;
+    if (result->new_sub_keys)
+      new_sub_keys = result->new_sub_keys;
+    if (result->new_signatures)
+      new_signatures = result->new_signatures;
+    if (result->new_revocations)
+      new_revocations = result->new_revocations;
+    if (result->secret_read)
+      secret_read = result->secret_read;
+    if (result->secret_imported)
+      secret_imported = result->secret_imported;
+    if (result->secret_unchanged)
+      secret_unchanged = result->secret_unchanged;
+    if (result->not_imported)
+      not_imported = result->not_imported;
+  }
 
   int considered = 0;
   int no_user_id = 0;

@@ -30,8 +30,7 @@
 #include <string>
 namespace GpgFrontend {
 
-class ResultAnalyse : public QObject {
-  Q_OBJECT
+class ResultAnalyse {
 public:
   ResultAnalyse() = default;
 

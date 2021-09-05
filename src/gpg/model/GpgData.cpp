@@ -30,8 +30,8 @@ GpgFrontend::GpgData::GpgData() {
   gpgme_error_t err = gpgme_data_new(&data);
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
-  data_ = std::unique_ptr<struct gpgme_data, std::function<void(gpgme_data_t)>>(
-      std::move(data), [](gpgme_data_t t) { gpgme_data_release(t); });
+  data_ =
+      std::unique_ptr<struct gpgme_data, __data_ref_deletor>(std::move(data));
 }
 
 GpgFrontend::GpgData::GpgData(void *buffer, size_t size, bool copy) {
@@ -41,8 +41,8 @@ GpgFrontend::GpgData::GpgData(void *buffer, size_t size, bool copy) {
       gpgme_data_new_from_mem(&data, (const char *)buffer, size, copy);
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
-  data_ = std::unique_ptr<struct gpgme_data, std::function<void(gpgme_data_t)>>(
-      std::move(data), [](gpgme_data_t t) { gpgme_data_release(t); });
+  data_ =
+      std::unique_ptr<struct gpgme_data, __data_ref_deletor>(std::move(data));
 }
 
 /**
@@ -55,7 +55,7 @@ GpgFrontend::BypeArrayPtr GpgFrontend::GpgData::Read2Buffer() {
   gpgme_off_t ret = gpgme_data_seek(*this, 0, SEEK_SET);
   gpgme_error_t err = gpg_error(GPG_ERR_NO_ERROR);
 
-  BypeArrayPtr out_buffer = std::make_unique<QByteArray>();
+  BypeArrayPtr out_buffer = std::make_unique<std::string>();
 
   if (ret) {
     err = gpgme_err_code_from_errno(errno);

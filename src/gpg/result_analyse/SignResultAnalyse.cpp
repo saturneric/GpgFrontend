@@ -30,76 +30,75 @@ GpgFrontend::SignResultAnalyse::SignResultAnalyse(GpgError error,
     : error(error), result(std::move(result)) {}
 
 void GpgFrontend::SignResultAnalyse::do_analyse() {
-  qDebug() << "Start Sign Result Analyse";
+  LOG(INFO) << "Start Sign Result Analyse";
 
-  stream << tr("[#] Sign Operation ").constData();
+  stream << "[#] Sign Operation ";
 
   if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
-    stream << tr("[Success]").constData() << std::endl;
+    stream << "[Success]" << std::endl;
   else {
-    stream << tr("[Failed] ").constData() << gpgme_strerror(error) << std::endl;
+    stream << "[Failed] " << gpgme_strerror(error) << std::endl;
     setStatus(-1);
   }
 
   if (result != nullptr &&
       (result->signatures != nullptr || result->invalid_signers != nullptr)) {
 
-    qDebug() << "Sign Result Analyse Getting Result";
+    LOG(INFO) << "Sign Result Analyse Getting Result";
     stream << "------------>" << std::endl;
     auto new_sign = result->signatures;
 
     while (new_sign != nullptr) {
-      stream << tr("[>] New Signature: ").constData() << std::endl;
+      stream << "[>] New Signature: " << std::endl;
 
-      qDebug() << "Signers Fingerprint: " << new_sign->fpr;
+      LOG(INFO) << "Signers Fingerprint: " << new_sign->fpr;
 
-      stream << tr("    Sign Mode: ").constData();
+      stream << "    Sign Mode: ";
       if (new_sign->type == GPGME_SIG_MODE_NORMAL)
-        stream << tr("Normal").constData();
+        stream << "Normal";
       else if (new_sign->type == GPGME_SIG_MODE_CLEAR)
-        stream << tr("Clear").constData();
+        stream << "Clear";
       else if (new_sign->type == GPGME_SIG_MODE_DETACH)
-        stream << tr("Detach").constData();
+        stream << "Detach";
 
       stream << std::endl;
 
       auto singerKey =
           GpgFrontend::GpgKeyGetter::GetInstance().GetKey(new_sign->fpr);
       if (singerKey.good()) {
-        stream << tr("    Signer: ").constData()
-               << singerKey.uids()->front().uid() << std::endl;
-      } else {
-        stream << tr("    Signer: ").constData() << tr("<unknown>").constData()
+        stream << "    Signer: " << singerKey.uids()->front().uid()
                << std::endl;
+      } else {
+        stream << "    Signer: "
+               << "<unknown>" << std::endl;
       }
-      stream << tr("    Public Key Algo: ").constData()
+      stream << "    Public Key Algo: "
              << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << std::endl;
-      stream << tr("    Hash Algo: ").constData()
-             << gpgme_hash_algo_name(new_sign->hash_algo) << std::endl;
-      stream
-          << tr("    Date & Time: ").constData()
-          << QDateTime::fromTime_t(new_sign->timestamp).toString().constData()
-          << std::endl;
+      stream << "    Hash Algo: " << gpgme_hash_algo_name(new_sign->hash_algo)
+             << std::endl;
+      stream << "    Date & Time: "
+             << boost::posix_time::to_iso_string(
+                    boost::posix_time::from_time_t(new_sign->timestamp))
+             << std::endl;
 
       stream << std::endl;
 
       new_sign = new_sign->next;
     }
 
-    qDebug() << "Sign Result Analyse Getting Invalid Signer";
+    LOG(INFO) << "Sign Result Analyse Getting Invalid Signer";
 
     auto invalid_signer = result->invalid_signers;
 
     if (invalid_signer != nullptr)
-      stream << tr("Invalid Signers: ").constData() << std::endl;
+      stream << "Invalid Signers: " << std::endl;
 
     while (invalid_signer != nullptr) {
       setStatus(0);
-      stream << tr("[>] Signer: ").constData() << std::endl;
-      stream << tr("      Fingerprint: ").constData() << invalid_signer->fpr
+      stream << "[>] Signer: " << std::endl;
+      stream << "      Fingerprint: " << invalid_signer->fpr << std::endl;
+      stream << "      Reason: " << gpgme_strerror(invalid_signer->reason)
              << std::endl;
-      stream << tr("      Reason: ").constData()
-             << gpgme_strerror(invalid_signer->reason) << std::endl;
       stream << std::endl;
 
       invalid_signer = invalid_signer->next;

@@ -25,10 +25,11 @@
 #ifndef GPG4USB_GPGGENKEYINFO_H
 #define GPG4USB_GPGGENKEYINFO_H
 
+#include <boost/date_time/gregorian/greg_duration_types.hpp>
 #include <string>
 #include <vector>
 
-#include <QtCore>
+#include <boost/date_time.hpp>
 
 namespace GpgFrontend {
 
@@ -38,7 +39,8 @@ class GenKeyInfo {
   std::string userid;
   std::string algo;
   int keySize = 2048;
-  QDateTime expired = QDateTime::currentDateTime().addYears(2);
+  boost::gregorian::date expired =
+      boost::gregorian::day_clock::local_day() + boost::gregorian::years(2);
   bool nonExpired = false;
 
   bool noPassPhrase = false;
@@ -73,9 +75,11 @@ public:
 
   void setKeySize(int m_key_size);
 
-  [[nodiscard]] const QDateTime &getExpired() const { return expired; }
+  [[nodiscard]] const boost::gregorian::date &getExpired() const {
+    return expired;
+  }
 
-  void setExpired(const QDateTime &m_expired);
+  void setExpired(const boost::gregorian::date &m_expired);
 
   [[nodiscard]] bool isNonExpired() const { return nonExpired; }
 

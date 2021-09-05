@@ -29,7 +29,7 @@ GpgFrontend::EncryptResultAnalyse::EncryptResultAnalyse(GpgError error,
     : error(error), result(std::move(result)) {}
 
 void GpgFrontend::EncryptResultAnalyse::do_analyse() {
-  qDebug() << "Start Encrypt Result Analyse";
+  LOG(INFO) << "Start Encrypt Result Analyse";
 
   stream << "[#] Encrypt Operation ";
 
@@ -43,12 +43,11 @@ void GpgFrontend::EncryptResultAnalyse::do_analyse() {
   if (!~status) {
     stream << "------------>" << std::endl;
     if (result != nullptr) {
-      stream << tr("Invalid Recipients: ").constData() << std::endl;
+      stream << "Invalid Recipients: " << std::endl;
       auto inv_reci = result->invalid_recipients;
       while (inv_reci != nullptr) {
-        stream << tr("Fingerprint: ").constData() << inv_reci->fpr << std::endl;
-        stream << tr("Reason: ").constData() << gpgme_strerror(inv_reci->reason)
-               << std::endl;
+        stream << "Fingerprint: " << inv_reci->fpr << std::endl;
+        stream << "Reason: " << gpgme_strerror(inv_reci->reason) << std::endl;
         stream << std::endl;
 
         inv_reci = inv_reci->next;

@@ -9,11 +9,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Qt
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-
+# CMake
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -100,6 +96,7 @@ IF (MINGW)
 
     include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party
         /mingw64/include
     )
 	link_directories(
@@ -118,6 +115,7 @@ if(APPLE)
 
     include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party
         /usr/local/include
     )
     link_directories(
@@ -134,9 +132,9 @@ if(LINUX)
 
     message(STATUS "Configuration For OS Platform LINUX")
     set(OS_PLATFORM 2)
-
     include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party
         /usr/include
         /usr/local/include
     )
@@ -151,14 +149,16 @@ endif()
 
 message(STATUS "OS_PLATFORM ${OS_PLATFORM}")
 
-find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network LinguistTools REQUIRED)
+find_package(Boost COMPONENTS date_time filesystem REQUIRED)
 
 # Basic Envirnoment Configure
 set(BASIC_ENV_CONFIG 1)
 set(QT_MOC_CONFIG 1)
+set(ESAY_LOGGING_CPP 1)
 
 if(FULL_APPLICATION_BUILD)
     message(STATUS "Build Full Application")
+    set(QT5_ENV_SUPPORT 1)
     set(QT_MOC_CONFIG 1)
     set(GPG_CORE 1)
     set(UI_CORE 1)
@@ -174,11 +174,21 @@ elseif(TEST_BUILD)
     if(MODULES)
     else()
         message(STATUS "Build Default Modules")
-        set(QT_MOC_CONFIG 1)
         set(GPG_CORE 1)
     endif()
 
 endif()
+
+if(QT5_ENV_SUPPORT) 
+    # Find
+    find_package(Qt5 5.15.2 EXACT COMPONENTS Core Test Widgets PrintSupport Network LinguistTools REQUIRED)
+    # Qt
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTORCC ON)
+    set(CMAKE_AUTOUIC ON)
+endif()
+
+add_subdirectory(third_party)
 
 add_subdirectory(src)
 

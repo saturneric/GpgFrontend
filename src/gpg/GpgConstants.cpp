@@ -42,9 +42,9 @@ const char *GpgFrontend::GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD =
 gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err) {
   // if (gpgmeError != GPG_ERR_NO_ERROR && gpgmeError != GPG_ERR_CANCELED) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    qDebug() << "[Error " << gpg_err_code(err)
-             << "] Source: " << gpgme_strsource(err)
-             << " Description: " << gpgme_strerror(err);
+    LOG(ERROR) << "[Error " << gpg_err_code(err)
+               << "] Source: " << gpgme_strsource(err)
+               << " Description: " << gpgme_strerror(err);
   }
   return err;
 }
@@ -54,20 +54,43 @@ gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
                                            const std::string &comment) {
   // if (gpgmeError != GPG_ERR_NO_ERROR && gpgmeError != GPG_ERR_CANCELED) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    qDebug() << "[Error " << gpg_err_code(err)
-             << "] Source: " << gpgme_strsource(err)
-             << " Description: " << gpgme_strerror(err) << " "
-             << comment.c_str();
+    LOG(ERROR) << "[Error " << gpg_err_code(err)
+               << "] Source: " << gpgme_strsource(err)
+               << " Description: " << gpgme_strerror(err) << " "
+               << comment.c_str();
   }
   return err;
 }
 
-std::string GpgFrontend::beautify_fingerprint(std::string fingerprint) {
+std::string
+GpgFrontend::beautify_fingerprint(GpgFrontend::BypeArrayRef fingerprint) {
   uint len = fingerprint.size();
   if ((len > 0) && (len % 4 == 0))
     for (uint n = 0; 4 * (n + 1) < len; ++n)
       fingerprint.insert(static_cast<int>(5u * n + 4u), " ");
   return fingerprint;
+}
+
+// trim from start (in place)
+static inline void ltrim(std::string &s) {
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+            return !std::isspace(ch);
+          }));
+}
+
+// trim from end (in place)
+static inline void rtrim(std::string &s) {
+  s.erase(std::find_if(s.rbegin(), s.rend(),
+                       [](unsigned char ch) { return !std::isspace(ch); })
+              .base(),
+          s.end());
+}
+
+// trim from both ends (in place)
+static inline std::string trim(std::string &s) {
+  ltrim(s);
+  rtrim(s);
+  return s;
 }
 
 /*
@@ -76,12 +99,12 @@ std::string GpgFrontend::beautify_fingerprint(std::string fingerprint) {
  * - 1, if text is partially signed
  * - 2, if text is completly signed
  */
-int GpgFrontend::text_is_signed(const QByteArray &text) {
-  if (text.trimmed().startsWith(GpgConstants::PGP_SIGNED_BEGIN) &&
-      text.trimmed().endsWith(GpgConstants::PGP_SIGNED_END))
+int GpgFrontend::text_is_signed(GpgFrontend::BypeArrayRef text) {
+  if (trim(text).starts_with(GpgConstants::PGP_SIGNED_BEGIN) &&
+      trim(text).ends_with(GpgConstants::PGP_SIGNED_END))
     return 2;
-  else if (text.contains(GpgConstants::PGP_SIGNED_BEGIN) &&
-           text.contains(GpgConstants::PGP_SIGNED_END))
+  else if (text.find(GpgConstants::PGP_SIGNED_BEGIN) != std::string::npos &&
+           text.find(GpgConstants::PGP_SIGNED_END) != std::string::npos)
     return 1;
 
   else

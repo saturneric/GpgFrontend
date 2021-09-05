@@ -34,9 +34,9 @@ namespace GpgFrontend {
 class GpgKeyGetter : public SingletonFunctionObject<GpgKeyGetter> {
 
 public:
-  GpgKey &&GetKey(const std::string &fpr);
+  GpgKey GetKey(const std::string &fpr);
 
-  GpgKey &&GetPubkey(const std::string &fpr);
+  GpgKey GetPubkey(const std::string &fpr);
 
   KeyListPtr FetchKey();
 

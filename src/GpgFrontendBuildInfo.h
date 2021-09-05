@@ -36,19 +36,19 @@
  * Code Version (According to Git)
  */
 #define GIT_BRANCH_NAME "develop-core"
-#define GIT_COMMIT_HASH "7b7dd67b99a758924e531a63efd25894a32a3298"
+#define GIT_COMMIT_HASH "f8668adc7fe319896a3444409c076bd61c690c84"
 
 /**
  * Generated Information (According to CMake)
  */
 #define PROJECT_NAME "GpgFrontend"
 #define BUILD_VERSION "1.3.1_Linux-5.4.0-81-generic_x86_64_Debug"
-#define GIT_VERSION "develop-core_7b7dd67b99a758924e531a63efd25894a32a3298"
+#define GIT_VERSION "develop-core_f8668adc7fe319896a3444409c076bd61c690c84"
 
 /**
  * Build Information
  */
 #define BUILD_FLAG 1
-#define BUILD_TIMESTAMP "2021-09-05 14:39:04"
+#define BUILD_TIMESTAMP "2021-09-05 21:22:47"
 
 #endif // GPGFRONTEND_BUILD_INFO_H_IN

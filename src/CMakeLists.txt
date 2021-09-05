@@ -1,8 +1,3 @@
-if(QT_MOC_CONFIG)
-    file(GLOB_RECURSE GPGFRONTEND_HEADER_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/include/*.h)
-    qt5_wrap_cpp(QT5_MOCS ${GPGFRONTEND_HEADER_FILES} TARGET ${AppName})
-endif()
-
 if(GPG_CORE)
     message(STATUS "Build Gpg Core")
     add_subdirectory(gpg)

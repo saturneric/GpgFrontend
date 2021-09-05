@@ -1,4 +1,5 @@
 #include "gpg/function/GpgKeyImportExportor.h"
+#include "GpgConstants.h"
 
 /**
  * Import key pair
@@ -7,54 +8,26 @@
  */
 GpgFrontend::GpgImportInformation
 GpgFrontend::GpgKeyImportExportor::ImportKey(StdBypeArrayPtr in_buffer) {
-  auto import_information = std::make_unique<GpgImportInformation>();
+  LOG(INFO) << "ImportKey Called in_buffer Size " << in_buffer->size();
   GpgData data_in(in_buffer->data(), in_buffer->size());
-  auto err = gpgme_op_import(ctx, data_in);
+  auto err = check_gpg_error(gpgme_op_import(ctx, data_in));
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
   gpgme_import_result_t result;
 
   result = gpgme_op_import_result(ctx);
-
-  if (result->unchanged)
-    import_information->unchanged = result->unchanged;
-  if (result->considered)
-    import_information->considered = result->considered;
-  if (result->no_user_id)
-    import_information->no_user_id = result->no_user_id;
-  if (result->imported)
-    import_information->imported = result->imported;
-  if (result->imported_rsa)
-    import_information->imported_rsa = result->imported_rsa;
-  if (result->unchanged)
-    import_information->unchanged = result->unchanged;
-  if (result->new_user_ids)
-    import_information->new_user_ids = result->new_user_ids;
-  if (result->new_sub_keys)
-    import_information->new_sub_keys = result->new_sub_keys;
-  if (result->new_signatures)
-    import_information->new_signatures = result->new_signatures;
-  if (result->new_revocations)
-    import_information->new_revocations = result->new_revocations;
-  if (result->secret_read)
-    import_information->secret_read = result->secret_read;
-  if (result->secret_imported)
-    import_information->secret_imported = result->secret_imported;
-  if (result->secret_unchanged)
-    import_information->secret_unchanged = result->secret_unchanged;
-  if (result->not_imported)
-    import_information->not_imported = result->not_imported;
-
-  gpgme_result_unref(result);
-
   gpgme_import_status_t status = result->imports;
+  auto import_info = std::make_unique<GpgImportInformation>(result);
+  LOG(INFO) << "ImportKey import_information " << result->not_imported << " "
+            << result->imported << " " << result->considered;
   while (status != nullptr) {
     GpgImportedKey key;
-    key.importStatus = static_cast<int>(status->status);
+    key.import_status = static_cast<int>(status->status);
     key.fpr = status->fpr;
-    import_information->importedKeys.emplace_back(key);
+    import_info->importedKeys.emplace_back(key);
     status = status->next;
+    LOG(INFO) << "ImportKey Fpr " << key.fpr << " Status " << key.import_status;
   }
-  return *import_information;
+  return *import_info;
 }
 
 /**
@@ -75,8 +48,8 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
     auto err = gpgme_op_export(ctx, (*uid_list)[i].c_str(), 0, data_out);
     assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
-    qDebug() << "exportKeys read_bytes"
-             << gpgme_data_seek(data_out, 0, SEEK_END);
+    LOG(INFO) << "exportKeys read_bytes"
+              << gpgme_data_seek(data_out, 0, SEEK_END);
 
     auto temp_out_buffer = std::move(data_out.Read2Buffer());
     std::swap(out_buffer, temp_out_buffer);
@@ -108,7 +81,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
 bool GpgFrontend::GpgKeyImportExportor::ExportSecretKey(
     const GpgKey &key, BypeArrayPtr out_buffer) const {
 
-  qDebug() << "Export Secret Key" << key.id().c_str();
+  LOG(INFO) << "Export Secret Key" << key.id().c_str();
 
   gpgme_key_t target_key[2] = {gpgme_key_t(key), nullptr};
 

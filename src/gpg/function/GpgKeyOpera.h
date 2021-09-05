@@ -36,7 +36,7 @@ public:
   void DeleteKeys(KeyIdArgsListPtr uid_list);
 
   void SetExpire(const GpgKey &key, std::unique_ptr<GpgSubKey> &subkey,
-                 std::unique_ptr<QDateTime> &expires);
+                 std::unique_ptr<boost::gregorian::date> &expires);
 
   void GenerateRevokeCert(const GpgKey &key,
                           const std::string &output_file_name);

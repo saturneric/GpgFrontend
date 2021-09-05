@@ -23,14 +23,17 @@
  */
 #include "gpg/function/GpgFileOpera.h"
 #include "gpg/function/BasicOperator.h"
+
+#include <filesystem>
 #include <memory>
 
 GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
     KeyArgsList &keys, const std::string &path, GpgEncrResult &result) {
 
-  QFileInfo file_info(path.c_str());
+  using namespace std::filesystem;
+  class path file_info(path.c_str());
 
-  if (!file_info.isFile() || !file_info.isReadable())
+  if (!exists(file_info) || !is_regular_file(path))
     throw std::runtime_error("no permission");
 
   QFile in_file(path.c_str());
@@ -59,7 +62,7 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
 }
 
 GpgFrontend::GpgError
-GpgFrontend::GpgFileOpera::DecryptFile(const QString &path,
+GpgFrontend::GpgFileOpera::DecryptFile(const std::string &path,
                                        GpgDecrResult &result) {
 
   QFileInfo file_info(path);

@@ -40,7 +40,14 @@ public:
   BypeArrayPtr Read2Buffer();
 
 private:
-  std::unique_ptr<struct gpgme_data, std::function<void(gpgme_data_t)>> data_;
+  struct __data_ref_deletor {
+    void operator()(gpgme_data_t _data) {
+      if (_data != nullptr)
+        gpgme_data_release(_data);
+    }
+  };
+
+  std::unique_ptr<struct gpgme_data, __data_ref_deletor> data_ = nullptr;
 };
 
 } // namespace GpgFrontend

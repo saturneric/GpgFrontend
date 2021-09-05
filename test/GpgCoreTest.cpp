@@ -22,9 +22,12 @@
  *
  */
 
+#include "GpgFrontendTest.h"
+
 #include <gtest/gtest.h>
 #include <memory>
 
+#include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExportor.h"
 #include "gpg/function/GpgKeyOpera.h"
 
@@ -33,7 +36,7 @@ class GpgCoreTest : public ::testing::Test {
 
 protected:
   GpgFrontend::StdBypeArrayPtr secret_key_ = std::make_unique<std::string>(
-      "-----BEGIN PGP PRIVATE KEY BLOCK-----"
+      "-----BEGIN PGP PRIVATE KEY BLOCK-----\n"
       "lQVYBGE0XVEBDADHYmnEbRB8hxqyQmaLmIRU71PTMZc162qWoWTMaPd7a8gQcQwc"
       "MUFYHp3mAmoHYUAKyT0lgpyj7UqGDdiAOt8z+nW6tR2Wu2xe6o0su/oK8qGtX37e"
       "bexiWcsMftrk/uR+l2G7JcCKMTAszLbyDgg1IaJ/SaVicKaO1CRjD5ZlNa2IQVOG"
@@ -113,26 +116,61 @@ protected:
       "cqEh8fyKWtmiXrW2zzlszJVGJrpXDDpzgP7ZELGxhfZYFi8rMrSVKDwrpFZBSWMG"
       "T2R+xoMRGcJJphKWpVjZ"
       "=u+uG"
-      "-----END PGP PRIVATE KEY BLOCK-----");
+      "\n-----END PGP PRIVATE KEY BLOCK-----\n");
 
-  GpgCoreTest() {
+  GpgCoreTest() = default;
+
+  virtual ~GpgCoreTest() = default;
+
+  virtual void SetUp() {
+    GpgFrontend::GpgContext::GetInstance().SetPassphraseCb(
+        GpgFrontend::GpgContext::test_passphrase_cb);
     GpgFrontend::GpgKeyImportExportor::GetInstance().ImportKey(
         std::move(this->secret_key_));
   }
 
-  virtual ~GpgCoreTest() {
-    GpgFrontend::GpgKeyOpera::GetInstance().DeleteKeys(
-        std::move(std::make_unique<std::vector<std::string>>(
-            1, "9490795B78F8AFE9F93BD09281704859182661FB")));
-  }
-
-  virtual void SetUp() {}
-
   virtual void TearDown() {}
 };
 
+TEST_F(GpgCoreTest, CoreInitTest) {
+  auto &ctx = GpgFrontend::GpgContext::GetInstance();
+}
+
+TEST_F(GpgCoreTest, GpgDataTest) {
+  auto data_buff = std::string(
+      "cqEh8fyKWtmiXrW2zzlszJVGJrpXDDpzgP7ZELGxhfZYFi8rMrSVKDwrpFZBSWMG");
+
+  GpgFrontend::GpgData data(data_buff.data(), data_buff.size());
+
+  auto out_buffer = data.Read2Buffer();
+  LOG(INFO) << "in_buffer size " << data_buff.size();
+  LOG(INFO) << "out_buffer size " << out_buffer->size();
+  ASSERT_EQ(out_buffer->size(), 64);
+}
+
 TEST_F(GpgCoreTest, GpgKeyTest) {
-  // You can assume that the code in SetUp has been executed
-  //         pFoo_->bar(...)
-  // The code in TearDown will be run after the end of this test
+  auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(
+      "9490795B78F8AFE9F93BD09281704859182661FB");
+  ASSERT_TRUE(key.good());
+  ASSERT_TRUE(key.is_private_key());
+  ASSERT_TRUE(key.has_master_key());
+  ASSERT_FALSE(key.disabled());
+  ASSERT_EQ(key.subKeys()->size(), 2);
+  ASSERT_EQ(key.uids()->size(), 1);
+  ASSERT_TRUE(key.can_certify());
+  ASSERT_TRUE(key.can_encrypt());
+  ASSERT_TRUE(key.can_sign());
+  ASSERT_FALSE(key.can_authenticate());
+  ASSERT_TRUE(key.CanEncrActual());
+  ASSERT_TRUE(key.CanEncrActual());
+  ASSERT_TRUE(key.CanSignActual());
+  ASSERT_FALSE(key.CanAuthActual());
+  ASSERT_EQ(key.name(), "GpgFrontendTest");
+  ASSERT_EQ(key.email(), "gpgfrontend@gpgfrontend.pub");
+}
+
+TEST_F(GpgCoreTest, GpgKeyDeleteTest) {
+  // GpgFrontend::GpgKeyOpera::GetInstance().DeleteKeys(
+  //     std::move(std::make_unique<std::vector<std::string>>(
+  //         1, "9490795B78F8AFE9F93BD09281704859182661FB")));
 }
