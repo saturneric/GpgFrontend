@@ -22,28 +22,28 @@
  *
  */
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#ifndef GPGFRONTEND_VERIFYRESULTANALYSE_H
+#define GPGFRONTEND_VERIFYRESULTANALYSE_H
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+#include "ResultAnalyse.h"
+#include "gpg/model/GpgKeySignature.h"
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
+namespace GpgFrontend {
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
+class VerifyResultAnalyse : public ResultAnalyse {
+public:
+  explicit VerifyResultAnalyse(GpgError error, GpgVerifyResult result);
 
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
-  }
-}
+private:
+  void do_analyse();
+
+private:
+  bool print_signer(std::stringstream &stream, gpgme_signature_t sign);
+
+  GpgError error;
+  GpgVerifyResult result;
+};
+
+} // namespace GpgFrontend
+
+#endif // GPGFRONTEND_VERIFYRESULTANALYSE_H

@@ -22,28 +22,36 @@
  *
  */
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#ifndef GPGFRONTEND_ZH_CN_TS_GPGKEYMANAGER_H
+#define GPGFRONTEND_ZH_CN_TS_GPGKEYMANAGER_H
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+#include "gpg/GpgContext.h"
+#include "gpg/GpgFunctionObject.h"
+#include "gpg/GpgModel.h"
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
+namespace GpgFrontend {
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
+class GpgKeyManager : public SingletonFunctionObject<GpgKeyManager> {
+public:
+  /**
+   * Sign a key pair(actually a certain uid)
+   * @param target target key pair
+   * @param uid target
+   * @param expires expire date and time of the signature
+   * @return if successful
+   */
+  bool signKey(const GpgKey &target, KeyArgsList &keys, const QString &uid,
+               std::unique_ptr<QDateTime> &expires);
 
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
-  }
-}
+  bool revSign(const GpgKey &key, const GpgKeySignature &signature);
+
+  bool setExpire(const GpgKey &key, std::unique_ptr<GpgSubKey> &subkey,
+                 std::unique_ptr<QDateTime> &expires);
+
+private:
+  GpgContext &ctx = GpgContext::GetInstance();
+};
+
+} // namespace GpgFrontend
+
+#endif // GPGFRONTEND_ZH_CN_TS_GPGKEYMANAGER_H

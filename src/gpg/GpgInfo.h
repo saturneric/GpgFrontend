@@ -22,28 +22,20 @@
  *
  */
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#ifndef GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#define GPGFRONTEND_ZH_CN_TS_GPGINFO_H
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+#include <string>
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
+/**
+ * Use to record some info about gnupg
+ */
+class GpgInfo {
+public:
+  /**
+   * executable binary path of gnupg
+   */
+  std::string appPath;
+};
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
-
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
-  }
-}
+#endif // GPGFRONTEND_ZH_CN_TS_GPGINFO_H

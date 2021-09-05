@@ -22,28 +22,44 @@
  *
  */
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#ifndef GPGFRONTEND_ZH_CN_TS_UIDOPERATOR_H
+#define GPGFRONTEND_ZH_CN_TS_UIDOPERATOR_H
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+#include "gpg/GpgContext.h"
+#include "gpg/GpgModel.h"
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
+namespace GpgFrontend {
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
+class UidOperator {
+public:
+  /**
+   * create a new uid in certain key pair
+   * @param key target key pair
+   * @param uid uid args
+   * @return if successful
+   */
+  bool addUID(const GpgKey &key, const GpgUID &uid);
 
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
-  }
-}
+  /**
+   * Revoke(Delete) UID from certain key pair
+   * @param key target key pair
+   * @param uid target uid
+   * @return if successful
+   */
+  bool revUID(const GpgKey &key, const GpgUID &uid);
+
+  /**
+   * Set one of a uid of a key pair as primary
+   * @param key target key pair
+   * @param uid target uid
+   * @return if successful
+   */
+  bool setPrimaryUID(const GpgKey &key, const GpgUID &uid);
+
+private:
+  GpgContext &ctx = GpgContext::GetInstance();
+};
+
+} // namespace GpgFrontend
+
+#endif // GPGFRONTEND_ZH_CN_TS_UIDOPERATOR_H

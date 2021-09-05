@@ -22,28 +22,25 @@
  *
  */
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#ifndef GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
+#define GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+#include "gpg/GpgContext.h"
+#include "gpg/GpgFunctionObject.h"
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
+namespace GpgFrontend {
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
+class GpgCommandExecutor : public QObject,
+                           public SingletonFunctionObject<GpgCommandExecutor> {
+  Q_OBJECT
+public:
+  void Execute(const QStringList &arguments,
+               const std::function<void(QProcess *)> &interact_func);
 
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
-  }
-}
+private:
+  GpgContext &ctx = GpgContext::GetInstance();
+};
+
+} // namespace GpgFrontend
+
+#endif // GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H

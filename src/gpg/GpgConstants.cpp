@@ -24,11 +24,66 @@
 
 #include "gpg/GpgConstants.h"
 
-const char *GpgConstants::PGP_CRYPT_BEGIN = "-----BEGIN PGP MESSAGE-----";
-const char *GpgConstants::PGP_CRYPT_END = "-----END PGP MESSAGE-----";
-const char *GpgConstants::PGP_SIGNED_BEGIN = "-----BEGIN PGP SIGNED MESSAGE-----";
-const char *GpgConstants::PGP_SIGNED_END = "-----END PGP SIGNATURE-----";
-const char *GpgConstants::PGP_SIGNATURE_BEGIN = "-----BEGIN PGP SIGNATURE-----";
-const char *GpgConstants::PGP_SIGNATURE_END = "-----END PGP SIGNATURE-----";
-const char *GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD = "GpgF_Scpt://";
+const char *GpgFrontend::GpgConstants::PGP_CRYPT_BEGIN =
+    "-----BEGIN PGP MESSAGE-----";
+const char *GpgFrontend::GpgConstants::PGP_CRYPT_END =
+    "-----END PGP MESSAGE-----";
+const char *GpgFrontend::GpgConstants::PGP_SIGNED_BEGIN =
+    "-----BEGIN PGP SIGNED MESSAGE-----";
+const char *GpgFrontend::GpgConstants::PGP_SIGNED_END =
+    "-----END PGP SIGNATURE-----";
+const char *GpgFrontend::GpgConstants::PGP_SIGNATURE_BEGIN =
+    "-----BEGIN PGP SIGNATURE-----";
+const char *GpgFrontend::GpgConstants::PGP_SIGNATURE_END =
+    "-----END PGP SIGNATURE-----";
+const char *GpgFrontend::GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD =
+    "GpgF_Scpt://";
 
+gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err) {
+  // if (gpgmeError != GPG_ERR_NO_ERROR && gpgmeError != GPG_ERR_CANCELED) {
+  if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
+    qDebug() << "[Error " << gpg_err_code(err)
+             << "] Source: " << gpgme_strsource(err)
+             << " Description: " << gpgme_strerror(err);
+  }
+  return err;
+}
+
+// error-handling
+gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
+                                           const std::string &comment) {
+  // if (gpgmeError != GPG_ERR_NO_ERROR && gpgmeError != GPG_ERR_CANCELED) {
+  if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
+    qDebug() << "[Error " << gpg_err_code(err)
+             << "] Source: " << gpgme_strsource(err)
+             << " Description: " << gpgme_strerror(err) << " "
+             << comment.c_str();
+  }
+  return err;
+}
+
+std::string GpgFrontend::beautify_fingerprint(std::string fingerprint) {
+  uint len = fingerprint.size();
+  if ((len > 0) && (len % 4 == 0))
+    for (uint n = 0; 4 * (n + 1) < len; ++n)
+      fingerprint.insert(static_cast<int>(5u * n + 4u), " ");
+  return fingerprint;
+}
+
+/*
+ * isSigned returns:
+ * - 0, if text isn't signed at all
+ * - 1, if text is partially signed
+ * - 2, if text is completly signed
+ */
+int GpgFrontend::text_is_signed(const QByteArray &text) {
+  if (text.trimmed().startsWith(GpgConstants::PGP_SIGNED_BEGIN) &&
+      text.trimmed().endsWith(GpgConstants::PGP_SIGNED_END))
+    return 2;
+  else if (text.contains(GpgConstants::PGP_SIGNED_BEGIN) &&
+           text.contains(GpgConstants::PGP_SIGNED_END))
+    return 1;
+
+  else
+    return 0;
+}

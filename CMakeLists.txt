@@ -99,7 +99,7 @@ IF (MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
 
     include_directories(
-        include
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
         /mingw64/include
     )
 	link_directories(
@@ -117,7 +117,7 @@ if(APPLE)
     set(ENV{Qt5_DIR} /usr/local/opt/qt5/lib/cmake)
 
     include_directories(
-        include
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
         /usr/local/include
     )
     link_directories(
@@ -136,7 +136,7 @@ if(LINUX)
     set(OS_PLATFORM 2)
 
     include_directories(
-        include
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
         /usr/include
         /usr/local/include
     )
@@ -152,6 +152,10 @@ endif()
 message(STATUS "OS_PLATFORM ${OS_PLATFORM}")
 
 find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network LinguistTools REQUIRED)
+
+# Basic Envirnoment Configure
+set(BASIC_ENV_CONFIG 1)
+set(QT_MOC_CONFIG 1)
 
 if(FULL_APPLICATION_BUILD)
     message(STATUS "Build Full Application")

@@ -1,6 +1,7 @@
 aux_source_directory(./result_analyse GPG_SOURCE)
 aux_source_directory(./gpg_context GPG_SOURCE)
 aux_source_directory(./function GPG_SOURCE)
+aux_source_directory(./model GPG_SOURCE)
 aux_source_directory(. GPG_SOURCE)
 
 add_library(gpg_core STATIC ${GPG_SOURCE})
@@ -12,17 +13,13 @@ set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 if (MINGW)
     message(STATUS "Link GPG Static Library For MINGW")
     target_link_libraries(gpg_core
-            gpgme gpg-error assuan
-            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
-            wsock32)
+            gpgme gpg-error assuan Qt5::Core wsock32)
 elseif(APPLE)
     message(STATUS "Link GPG Static Library For macOS")
     target_link_libraries(gpg_core
-            /usr/local/lib/libgpgme.a /usr/local/lib/libgpg-error.a /usr/local/lib/libassuan.a
-            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+            libgpgme.a libgpg-error.a libassuan.a Qt5::Core)
 else()
     message(STATUS "Link GPG Static Library For Unix")
     target_link_libraries(gpg_core
-            /usr/local/lib/libgpgme.a /usr/local/lib/libgpg-error.a /usr/local/lib/libassuan.a
-            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+            libgpgme.a libgpg-error.a libassuan.a Qt5::Core pthread)
 endif()

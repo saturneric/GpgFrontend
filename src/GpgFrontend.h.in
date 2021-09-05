@@ -22,28 +22,33 @@
  *
  */
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#ifndef GPGFRONTEND_H_IN
+#define GPGFRONTEND_H_IN
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+/**
+ * Platform Vars
+ */
+#define WINDOWS 0
+#define MACOS 1
+#define LINUX 2
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
+#define OS_PLATFORM @OS_PLATFORM@
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
+/**
+ * Build Options Vars
+ */
+#define RELEASE 0
+#define DEBUG 1
 
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
-  }
-}
+/**
+ * Resources File(s) Path Vars
+ */
+#if OS_PLATFORM == MACOS && BUILD_FLAG == RELEASE
+#define RESOURCE_DIR(appDir) (appDir + "/../Resources/")
+#elif OS_PLATFORM == LINUX && BUILD_FLAG == RELEASE
+#define RESOURCE_DIR(appDir) (appDir + "/../share/")
+#else
+#define RESOURCE_DIR(appDir) (appDir)
+#endif
+
+#endif // GPGFRONTEND_H_IN

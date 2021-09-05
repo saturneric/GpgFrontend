@@ -75,8 +75,8 @@ endif()
 
 if(BASIC_ENV_CONFIG)
     # Set Build Information
-    configure_file(${CMAKE_SOURCE_DIR}/include/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/include/GpgFrontend.h @ONLY)
-    configure_file(${CMAKE_SOURCE_DIR}/include/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/include/GpgFrontendBuildInfo.h @ONLY)
+    configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
+    configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
 endif()
 
 if(APPLICATION_BUILD)

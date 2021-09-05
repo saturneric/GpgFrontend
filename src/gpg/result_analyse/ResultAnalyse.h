@@ -21,29 +21,38 @@
  * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
+#ifndef GPGFRONTEND_RESULTANALYSE_H
+#define GPGFRONTEND_RESULTANALYSE_H
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#include "gpg/GpgConstants.h"
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+#include <sstream>
+#include <string>
+namespace GpgFrontend {
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
+class ResultAnalyse : public QObject {
+  Q_OBJECT
+public:
+  ResultAnalyse() = default;
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
+  [[nodiscard]] const std::string getResultReport();
 
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
-  }
-}
+  [[nodiscard]] int getStatus();
+
+  void analyse();
+
+protected:
+  virtual void do_analyse() = 0;
+
+  std::stringstream stream;
+
+  int status = 1;
+
+  bool analysed_ = false;
+
+  void setStatus(int mStatus);
+};
+
+} // namespace GpgFrontend
+
+#endif // GPGFRONTEND_RESULTANALYSE_H

@@ -22,28 +22,27 @@
  *
  */
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#ifndef GPGFRONTEND_SIGNRESULTANALYSE_H
+#define GPGFRONTEND_SIGNRESULTANALYSE_H
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+#include "ResultAnalyse.h"
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
+namespace GpgFrontend {
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
+class SignResultAnalyse : public ResultAnalyse {
+  Q_OBJECT
+public:
+  explicit SignResultAnalyse(GpgError error, GpgSignResult result);
 
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
-  }
-}
+protected:
+  void do_analyse();
+
+private:
+  GpgError error;
+
+  GpgSignResult result;
+};
+
+} // namespace GpgFrontend
+
+#endif // GPGFRONTEND_SIGNRESULTANALYSE_H
