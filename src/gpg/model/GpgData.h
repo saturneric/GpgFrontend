@@ -22,28 +22,27 @@
  *
  */
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#ifndef _GPGDATA_H
+#define _GPGDATA_H
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+#include "gpg/GpgConstants.h"
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
+namespace GpgFrontend {
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
+class GpgData {
+public:
+  GpgData();
 
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
-  }
-}
+  GpgData(void *buffer, size_t size, bool copy = true);
+
+  operator gpgme_data_t() { return data_.get(); }
+
+  BypeArrayPtr Read2Buffer();
+
+private:
+  std::unique_ptr<struct gpgme_data, std::function<void(gpgme_data_t)>> data_;
+};
+
+} // namespace GpgFrontend
+
+#endif // _GPGDATA_H

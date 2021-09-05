@@ -22,28 +22,43 @@
  *
  */
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#ifndef GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
+#define GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+#include <memory>
+#include <mutex>
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
-
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
-
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
+namespace GpgFrontend {
+template <typename T> class SingletonFunctionObject {
+public:
+  static T &GetInstance() {
+    std::lock_guard<std::mutex> guard(_instance_mutex);
+    if (_instance == nullptr)
+      _instance = std::make_unique<T>();
+    return *_instance;
   }
-}
+
+  SingletonFunctionObject(T &&) = delete;
+
+  SingletonFunctionObject(const T &) = delete;
+
+  void operator=(const T &) = delete;
+
+protected:
+  SingletonFunctionObject() = default;
+
+  virtual ~SingletonFunctionObject() = default;
+
+private:
+  static std::mutex _instance_mutex;
+  static std::unique_ptr<T> _instance;
+};
+
+template <typename T> std::mutex SingletonFunctionObject<T>::_instance_mutex;
+
+template <typename T>
+std::unique_ptr<T> SingletonFunctionObject<T>::_instance = nullptr;
+
+} // namespace GpgFrontend
+
+#endif // GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H

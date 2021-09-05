@@ -23,23 +23,27 @@
  */
 #include "gpg/function/GpgCommandExecutor.h"
 
-
-void GpgFrontend::GpgCommandExecutor::execute(const QStringList &arguments,
-                                              const std::function<void(QProcess *)> &interactFunc) {
-    QEventLoop looper;
-    auto *gpgProcess = new QProcess(&looper);
-    gpgProcess->setProcessChannelMode(QProcess::MergedChannels);
-    connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), &looper, &QEventLoop::quit);
-    connect(gpgProcess, &QProcess::errorOccurred, []() -> void { qDebug("Error in Process"); });
-    connect(gpgProcess, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
-    connect(gpgProcess, &QProcess::started, []() -> void { qDebug() << "Gpg Process Started Success"; });
-    connect(gpgProcess, &QProcess::readyReadStandardOutput, [interactFunc, gpgProcess]() {
-        qDebug() << "Function Called";
-        interactFunc(gpgProcess);
-    });
-    gpgProcess->setProgram(ctx.getInfo().appPath);
-    gpgProcess->setArguments(arguments);
-    gpgProcess->start();
-    looper.exec();
-
+void GpgFrontend::GpgCommandExecutor::Execute(
+    const QStringList &arguments,
+    const std::function<void(QProcess *)> &interact_func) {
+  QEventLoop looper;
+  auto *gpg_process = new QProcess(&looper);
+  gpg_process->setProcessChannelMode(QProcess::MergedChannels);
+  connect(gpg_process,
+          qOverload<int, QProcess::ExitStatus>(&QProcess::finished), &looper,
+          &QEventLoop::quit);
+  connect(gpg_process, &QProcess::errorOccurred,
+          []() -> void { qDebug("Error in Process"); });
+  connect(gpg_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
+  connect(gpg_process, &QProcess::started,
+          []() -> void { qDebug() << "Gpg Process Started Success"; });
+  connect(gpg_process, &QProcess::readyReadStandardOutput,
+          [interact_func, gpg_process]() {
+            qDebug() << "Function Called";
+            interact_func(gpg_process);
+          });
+  gpg_process->setProgram(ctx.GetInfo().appPath.c_str());
+  gpg_process->setArguments(arguments);
+  gpg_process->start();
+  looper.exec();
 }

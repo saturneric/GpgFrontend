@@ -24,35 +24,38 @@
 
 #include "gpg/result_analyse/EncryptResultAnalyse.h"
 
-GpgFrontend::EncryptResultAnalyse::EncryptResultAnalyse(GpgError error, GpgEncrResult result) : error(error), result(std::move(result)) {}
+GpgFrontend::EncryptResultAnalyse::EncryptResultAnalyse(GpgError error,
+                                                        GpgEncrResult result)
+    : error(error), result(std::move(result)) {}
 
 void GpgFrontend::EncryptResultAnalyse::do_analyse() {
-    qDebug() << "Start Encrypt Result Analyse";
+  qDebug() << "Start Encrypt Result Analyse";
 
-    stream << "[#] Encrypt Operation ";
+  stream << "[#] Encrypt Operation ";
 
-    if(gpgme_err_code(error) == GPG_ERR_NO_ERROR)
-        stream << "[Success]" << Qt::endl;
-    else {
-        stream << "[Failed] " << gpgme_strerror(error) << Qt::endl;
-        setStatus(-1);
+  if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
+    stream << "[Success]" << std::endl;
+  else {
+    stream << "[Failed] " << gpgme_strerror(error) << std::endl;
+    setStatus(-1);
+  }
+
+  if (!~status) {
+    stream << "------------>" << std::endl;
+    if (result != nullptr) {
+      stream << tr("Invalid Recipients: ").constData() << std::endl;
+      auto inv_reci = result->invalid_recipients;
+      while (inv_reci != nullptr) {
+        stream << tr("Fingerprint: ").constData() << inv_reci->fpr << std::endl;
+        stream << tr("Reason: ").constData() << gpgme_strerror(inv_reci->reason)
+               << std::endl;
+        stream << std::endl;
+
+        inv_reci = inv_reci->next;
+      }
     }
+    stream << "<------------" << std::endl;
+  }
 
-    if(!~status) {
-        stream << "------------>" << Qt::endl;
-        if (result != nullptr) {
-            stream << tr("Invalid Recipients: ") << Qt::endl;
-            auto inv_reci = result->invalid_recipients;
-            while (inv_reci != nullptr) {
-                stream << tr("Fingerprint: ") << inv_reci->fpr << Qt::endl;
-                stream << tr("Reason: ") << gpgme_strerror(inv_reci->reason) << Qt::endl;
-                stream << Qt::endl;
-
-                inv_reci = inv_reci->next;
-            }
-        }
-        stream << "<------------" << Qt::endl;
-    }
-
-    stream << Qt::endl;
+  stream << std::endl;
 }

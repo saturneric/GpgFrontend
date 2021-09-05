@@ -22,28 +22,33 @@
  *
  */
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#ifndef _GPGKEYOPERA_H
+#define _GPGKEYOPERA_H
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+#include "gpg/GpgConstants.h"
+#include "gpg/GpgContext.h"
+#include "gpg/GpgModel.h"
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
+namespace GpgFrontend {
+class GenKeyInfo;
+class GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
+public:
+  void DeleteKeys(KeyIdArgsListPtr uid_list);
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
+  void SetExpire(const GpgKey &key, std::unique_ptr<GpgSubKey> &subkey,
+                 std::unique_ptr<QDateTime> &expires);
 
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
-  }
-}
+  void GenerateRevokeCert(const GpgKey &key,
+                          const std::string &output_file_name);
+
+  GpgFrontend::GpgError GenerateKey(std::unique_ptr<GenKeyInfo> params);
+
+  GpgFrontend::GpgError GenerateSubkey(const GpgKey &key,
+                                       std::unique_ptr<GenKeyInfo> params);
+
+private:
+  GpgContext &ctx = GpgContext::GetInstance();
+};
+} // namespace GpgFrontend
+
+#endif // _GPGKEYOPERA_H

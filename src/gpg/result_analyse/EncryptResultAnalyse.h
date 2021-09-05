@@ -22,28 +22,25 @@
  *
  */
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#ifndef GPGFRONTEND_ENCRYPTRESULTANALYSE_H
+#define GPGFRONTEND_ENCRYPTRESULTANALYSE_H
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+#include "ResultAnalyse.h"
+#include "gpg/GpgConstants.h"
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
+namespace GpgFrontend {
+class EncryptResultAnalyse : public ResultAnalyse {
+  Q_OBJECT
+public:
+  explicit EncryptResultAnalyse(GpgError error, GpgEncrResult result);
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
+protected:
+  void do_analyse() final;
 
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
-  }
-}
+private:
+  GpgError error;
+  GpgEncrResult result;
+};
+} // namespace GpgFrontend
+
+#endif // GPGFRONTEND_ENCRYPTRESULTANALYSE_H

@@ -22,28 +22,27 @@
  *
  */
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#ifndef GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
+#define GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+#include "gpg/model/GpgData.h"
+#include "gpg/model/GpgKey.h"
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
+namespace GpgFrontend {
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
+using KeyIdArgsListPtr = std::unique_ptr<std::vector<std::string>>;
 
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
-  }
-}
+using KeyFprArgsListPtr = std::unique_ptr<std::vector<std::string>>;
+
+using KeyArgsList = std::vector<GpgKey>;
+
+using KeyListPtr = std::unique_ptr<std::vector<GpgKey>>;
+
+using GpgKeyLinkList = std::list<GpgFrontend::GpgKey>;
+
+using KeyPtr = std::unique_ptr<GpgKey>;
+
+using KeyPtrArgsList = std::initializer_list<KeyPtr>;
+} // namespace GpgFrontend
+
+#endif // GPGFRONTEND_ZH_CN_TS_GPGMODEL_H

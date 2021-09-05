@@ -22,55 +22,68 @@
  *
  */
 
-
 #include "gpg/function/GpgKeyManager.h"
-#include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/BasicOperator.h"
+#include "gpg/function/GpgKeyGetter.h"
 
-bool GpgFrontend::GpgKeyManager::signKey(const GpgFrontend::GpgKey &target, GpgFrontend::KeyArgsList &keys,
-                                         const QString &uid, std::unique_ptr<QDateTime> &expires) {
-    BasicOperator::getInstance().setSigners(keys);
+bool GpgFrontend::GpgKeyManager::signKey(const GpgFrontend::GpgKey &target,
+                                         GpgFrontend::KeyArgsList &keys,
+                                         const QString &uid,
+                                         std::unique_ptr<QDateTime> &expires) {
+  BasicOperator::GetInstance().SetSigners(keys);
 
-    unsigned int flags = 0;
+  unsigned int flags = 0;
 
-    unsigned int expires_time_t = 0;
-    if (expires == nullptr) flags |= GPGME_KEYSIGN_NOEXPIRE;
-    else expires_time_t = QDateTime::currentDateTime().secsTo(*expires);
+  unsigned int expires_time_t = 0;
+  if (expires == nullptr)
+    flags |= GPGME_KEYSIGN_NOEXPIRE;
+  else
+    expires_time_t = QDateTime::currentDateTime().secsTo(*expires);
 
-    auto err =
-            check_gpg_error(
-                    gpgme_op_keysign(ctx, gpgme_key_t(target), uid.toUtf8().constData(), expires_time_t, flags));
+  auto err = check_gpg_error(gpgme_op_keysign(ctx, gpgme_key_t(target),
+                                              uid.toUtf8().constData(),
+                                              expires_time_t, flags));
 
-    if (gpg_err_code(err) == GPG_ERR_NO_ERROR) return true;
-    else return false;
+  if (gpg_err_code(err) == GPG_ERR_NO_ERROR)
+    return true;
+  else
+    return false;
 }
 
-bool
-GpgFrontend::GpgKeyManager::revSign(const GpgFrontend::GpgKey &key, const GpgFrontend::GpgKeySignature &signature) {
+bool GpgFrontend::GpgKeyManager::revSign(
+    const GpgFrontend::GpgKey &key,
+    const GpgFrontend::GpgKeySignature &signature) {
 
-    auto &key_getter = GpgKeyGetter::getInstance();
-    auto signing_key = key_getter.getKey(signature.keyid());
+  auto &key_getter = GpgKeyGetter::GetInstance();
+  auto signing_key = key_getter.GetKey(signature.keyid());
 
-    auto err = check_gpg_error(gpgme_op_revsig(ctx, gpgme_key_t(key), gpgme_key_t(signing_key),
-                                               signature.uid().data(), 0));
-    if (gpg_err_code(err) == GPG_ERR_NO_ERROR) return true;
-    else return false;
-
+  auto err = check_gpg_error(gpgme_op_revsig(ctx, gpgme_key_t(key),
+                                             gpgme_key_t(signing_key),
+                                             signature.uid().data(), 0));
+  if (gpg_err_code(err) == GPG_ERR_NO_ERROR)
+    return true;
+  else
+    return false;
 }
 
-bool GpgFrontend::GpgKeyManager::setExpire(const GpgFrontend::GpgKey &key, std::unique_ptr<GpgSubKey> &subkey,
-                                           std::unique_ptr<QDateTime> &expires) {
-    unsigned long expires_time = 0;
-    if (expires != nullptr) {
-        qDebug() << "Expire Datetime" << expires->toString();
-        expires_time = QDateTime::currentDateTime().secsTo(*expires);
-    }
+bool GpgFrontend::GpgKeyManager::setExpire(
+    const GpgFrontend::GpgKey &key, std::unique_ptr<GpgSubKey> &subkey,
+    std::unique_ptr<QDateTime> &expires) {
+  unsigned long expires_time = 0;
+  if (expires != nullptr) {
+    qDebug() << "Expire Datetime" << expires->toString();
+    expires_time = QDateTime::currentDateTime().secsTo(*expires);
+  }
 
-    const char *sub_fprs = nullptr;
+  const char *sub_fprs = nullptr;
 
-    if (subkey != nullptr) sub_fprs = subkey->fpr().toUtf8().constData();
+  if (subkey != nullptr)
+    sub_fprs = subkey->fpr().c_str();
 
-    auto err = check_gpg_error(gpgme_op_setexpire(ctx, gpgme_key_t(key), expires_time, sub_fprs, 0));
-    if (gpg_err_code(err) == GPG_ERR_NO_ERROR) return true;
-    else return false;
+  auto err = check_gpg_error(
+      gpgme_op_setexpire(ctx, gpgme_key_t(key), expires_time, sub_fprs, 0));
+  if (gpg_err_code(err) == GPG_ERR_NO_ERROR)
+    return true;
+  else
+    return false;
 }

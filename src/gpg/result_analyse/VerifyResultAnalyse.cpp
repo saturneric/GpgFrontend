@@ -22,148 +22,163 @@
  *
  */
 
-#include "GpgFrontend.h"
-#include "gpg/function/GpgKeyGetter.h"
 #include "gpg/result_analyse/VerifyResultAnalyse.h"
+#include "GpgFrontend.h"
+#include "gpg/GpgConstants.h"
+#include "gpg/function/GpgKeyGetter.h"
 
-GpgFrontend::VerifyResultAnalyse::VerifyResultAnalyse(GpgError error, GpgVerifyResult result) : error(errror), result(std::move(result)) {}
+GpgFrontend::VerifyResultAnalyse::VerifyResultAnalyse(GpgError error,
+                                                      GpgVerifyResult result)
+    : error(error), result(std::move(result)) {}
 
 void GpgFrontend::VerifyResultAnalyse::do_analyse() {
-    qDebug() << "Verify Result Analyse Started";
+  qDebug() << "Verify Result Analyse Started";
 
-    stream << tr("[#] Verify Operation ");
+  stream << tr("[#] Verify Operation ").constData();
 
-    if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
-        stream << tr("[Success]") << Qt::endl;
-    else {
-        stream << tr("[Failed] ") << gpgme_strerror(error) << Qt::endl;
+  if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
+    stream << tr("[Success]").constData() << std::endl;
+  else {
+    stream << tr("[Failed] ").constData() << gpgme_strerror(error) << std::endl;
+    setStatus(-1);
+  }
+
+  if (result != nullptr && result->signatures) {
+    stream << "------------>" << std::endl;
+    auto sign = result->signatures;
+
+    if (sign == nullptr) {
+      stream << "[>] Not Signature Found" << std::endl;
+      setStatus(0);
+      return;
+    }
+
+    stream << "[>] Signed On "
+           << QDateTime::fromTime_t(sign->timestamp).toString().constData()
+           << std::endl;
+
+    stream << std::endl << "[>] Signatures:" << std::endl;
+
+    bool canContinue = true;
+
+    while (sign && canContinue) {
+
+      switch (gpg_err_code(sign->status)) {
+      case GPG_ERR_BAD_SIGNATURE:
+        stream << tr("One or More Bad Signatures.").constData() << std::endl;
+        canContinue = false;
         setStatus(-1);
-    }
+        break;
+      case GPG_ERR_NO_ERROR:
+        stream << tr("A ").constData();
+        if (sign->summary & GPGME_SIGSUM_GREEN) {
+          stream << tr("Good ").constData();
+        }
+        if (sign->summary & GPGME_SIGSUM_RED) {
+          stream << tr("Bad ").constData();
+        }
+        if (sign->summary & GPGME_SIGSUM_SIG_EXPIRED) {
+          stream << tr("Expired ").constData();
+        }
+        if (sign->summary & GPGME_SIGSUM_KEY_MISSING) {
+          stream << tr("Missing Key's ").constData();
+        }
+        if (sign->summary & GPGME_SIGSUM_KEY_REVOKED) {
+          stream << tr("Revoked Key's ").constData();
+        }
+        if (sign->summary & GPGME_SIGSUM_KEY_EXPIRED) {
+          stream << tr("Expired Key's ").constData();
+        }
+        if (sign->summary & GPGME_SIGSUM_CRL_MISSING) {
+          stream << tr("Missing CRL's ").constData();
+        }
 
+        if (sign->summary & GPGME_SIGSUM_VALID) {
+          stream << tr("Signature Fully Valid.").constData() << std::endl;
+        } else {
+          stream << tr("Signature Not Fully Valid.").constData() << std::endl;
+        }
 
-    if (result != nullptr && result->signatures) {
-        stream << "------------>" << Qt::endl;
-        auto sign = result->signatures;
-
-        if (sign == nullptr) {
-            stream << "[>] Not Signature Found" << Qt::endl;
+        if (!(sign->status & GPGME_SIGSUM_KEY_MISSING)) {
+          if (!print_signer(stream, sign))
             setStatus(0);
-            return;
+        } else {
+          stream << tr("Key is NOT present with ID 0x").constData() << sign->fpr
+                 << std::endl;
         }
 
-        stream << "[>] Signed On " << QDateTime::fromTime_t(sign->timestamp).toString() << Qt::endl;
+        setStatus(1);
 
-        stream << Qt::endl << "[>] Signatures:" << Qt::endl;
-
-        bool canContinue = true;
-
-        while (sign && canContinue) {
-
-            switch (gpg_err_code(sign->status)) {
-                case GPG_ERR_BAD_SIGNATURE:
-                    stream << QApplication::tr("One or More Bad Signatures.") << Qt::endl;
-                    canContinue = false;
-                    setStatus(-1);
-                    break;
-                    case GPG_ERR_NO_ERROR:
-                        stream << QApplication::tr("A ");
-                        if (sign->summary & GPGME_SIGSUM_GREEN) {
-                            stream << QApplication::tr("Good ");
-                        }
-                        if (sign->summary & GPGME_SIGSUM_RED) {
-                            stream << QApplication::tr("Bad ");
-                        }
-                        if (sign->summary & GPGME_SIGSUM_SIG_EXPIRED) {
-                            stream << QApplication::tr("Expired ");
-                        }
-                        if (sign->summary & GPGME_SIGSUM_KEY_MISSING) {
-                            stream << QApplication::tr("Missing Key's ");
-                        }
-                        if (sign->summary & GPGME_SIGSUM_KEY_REVOKED) {
-                            stream << QApplication::tr("Revoked Key's ");
-                        }
-                        if (sign->summary & GPGME_SIGSUM_KEY_EXPIRED) {
-                            stream << QApplication::tr("Expired Key's ");
-                        }
-                        if (sign->summary & GPGME_SIGSUM_CRL_MISSING) {
-                            stream << QApplication::tr("Missing CRL's ");
-                        }
-
-                        if (sign->summary & GPGME_SIGSUM_VALID) {
-                            stream << QApplication::tr("Signature Fully Valid.") << Qt::endl;
-                        } else {
-                            stream << QApplication::tr("Signature Not Fully Valid.") << Qt::endl;
-                        }
-
-                        if (!(sign->status & GPGME_SIGSUM_KEY_MISSING)) {
-                            if (!print_signer(stream, sign)) setStatus(0);
-                        } else {
-                            stream << QApplication::tr("Key is NOT present with ID 0x") << QString(sign->fpr) << Qt::endl;
-                        }
-
-                        setStatus(1);
-
-                        break;
-                        case GPG_ERR_NO_PUBKEY:
-                            stream << QApplication::tr("A signature could NOT be verified due to a Missing Key\n");
-                            setStatus(-1);
-                            break;
-                            case GPG_ERR_CERT_REVOKED:
-                                stream << QApplication::tr(
-                                        "A signature is valid but the key used to verify the signature has been revoked\n");
-                                if (!print_signer(stream, sign)) {
-                                    setStatus(0);
-                                }
-                                setStatus(-1);
-                                break;
-                                case GPG_ERR_SIG_EXPIRED:
-                                    stream << QApplication::tr("A signature is valid but expired\n");
-                                    if (!print_signer(stream, sign)) {
-                                        setStatus(0);
-                                    }
-                                    setStatus(-1);
-                                    break;
-                                    case GPG_ERR_KEY_EXPIRED:
-                                        stream << QApplication::tr(
-                                                "A signature is valid but the key used to verify the signature has expired.\n");
-                                        if (!print_signer(stream, sign)) {
-                                            setStatus(0);
-                                        }
-                                        break;
-                                        case GPG_ERR_GENERAL:
-                                            stream << QApplication::tr(
-                                                    "There was some other error which prevented the signature verification.\n");
-                                            status = -1;
-                                            canContinue = false;
-                                            break;
-                                            default:
-                                                stream << QApplication::tr("Error for key with fingerprint ") <<
-                                                GpgFrontend::GpgContext::beautifyFingerprint(QString(sign->fpr));
-                                                setStatus(-1);
-            }
-            stream << Qt::endl;
-            sign = sign->next;
+        break;
+      case GPG_ERR_NO_PUBKEY:
+        stream << tr("A signature could NOT be verified due to a Missing Key\n")
+                      .constData();
+        setStatus(-1);
+        break;
+      case GPG_ERR_CERT_REVOKED:
+        stream << tr("A signature is valid but the key used to "
+                     "verify the signature has been revoked\n")
+                      .constData();
+        if (!print_signer(stream, sign)) {
+          setStatus(0);
         }
-        stream << "<------------" << Qt::endl;
+        setStatus(-1);
+        break;
+      case GPG_ERR_SIG_EXPIRED:
+        stream << tr("A signature is valid but expired\n").constData();
+        if (!print_signer(stream, sign)) {
+          setStatus(0);
+        }
+        setStatus(-1);
+        break;
+      case GPG_ERR_KEY_EXPIRED:
+        stream << tr("A signature is valid but the key used to "
+                     "verify the signature has expired.\n")
+                      .constData();
+        if (!print_signer(stream, sign)) {
+          setStatus(0);
+        }
+        break;
+      case GPG_ERR_GENERAL:
+        stream << tr("There was some other error which prevented "
+                     "the signature verification.\n")
+                      .constData();
+        status = -1;
+        canContinue = false;
+        break;
+      default:
+        stream << tr("Error for key with fingerprint ").constData()
+               << GpgFrontend::beautify_fingerprint(sign->fpr);
+        setStatus(-1);
+      }
+      stream << std::endl;
+      sign = sign->next;
     }
+    stream << "<------------" << std::endl;
+  }
 }
 
+bool GpgFrontend::VerifyResultAnalyse::print_signer(std::stringstream &stream,
+                                                    gpgme_signature_t sign) {
+  bool keyFound = true;
+  auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(sign->fpr);
 
-bool GpgFrontend::VerifyResultAnalyse::print_signer(QTextStream &stream, gpgme_signature_t sign) {
-    bool keyFound = true;
-    auto key = GpgFrontend::GpgKeyGetter::getInstance().getKey(sign->fpr);
-
-    if (!key.good()) {
-        stream << tr("    Signed By: ") << tr("<unknown>") << Qt::endl;
-        setStatus(0);
-        keyFound = false;
-    } else {
-        stream << tr("    Signed By: ") << key.uids()->front().uid() << Qt::endl;
-    }
-    stream << tr("    Public Key Algo: ") << gpgme_pubkey_algo_name(sign->pubkey_algo) << Qt::endl;
-    stream << tr("    Hash Algo: ") << gpgme_hash_algo_name(sign->hash_algo) << Qt::endl;
-    stream << tr("    Date & Time: ") << QDateTime::fromTime_t(sign->timestamp).toString() << Qt::endl;
-    stream << Qt::endl;
-    return keyFound;
+  if (!key.good()) {
+    stream << tr("    Signed By: ").constData() << tr("<unknown>").constData()
+           << std::endl;
+    setStatus(0);
+    keyFound = false;
+  } else {
+    stream << tr("    Signed By: ").constData() << key.uids()->front().uid()
+           << std::endl;
+  }
+  stream << tr("    Public Key Algo: ").constData()
+         << gpgme_pubkey_algo_name(sign->pubkey_algo) << std::endl;
+  stream << tr("    Hash Algo: ").constData()
+         << gpgme_hash_algo_name(sign->hash_algo) << std::endl;
+  stream << tr("    Date & Time: ").constData()
+         << QDateTime::fromTime_t(sign->timestamp).toString().constData()
+         << std::endl;
+  stream << std::endl;
+  return keyFound;
 }
-

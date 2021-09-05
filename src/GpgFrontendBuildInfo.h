@@ -22,28 +22,33 @@
  *
  */
 
-#include "gpg/result_analyse/ResultAnalyse.h"
+#ifndef GPGFRONTEND_BUILD_INFO_H_IN
+#define GPGFRONTEND_BUILD_INFO_H_IN
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
-  return stream.str();
-}
+/**
+ * Logic Version (*.*.*)
+ */
+#define VERSION_MAJOR 1
+#define VERSION_MINOR 3
+#define VERSION_PATCH 1
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
-  return status;
-}
+/**
+ * Code Version (According to Git)
+ */
+#define GIT_BRANCH_NAME "develop-core"
+#define GIT_COMMIT_HASH "7b7dd67b99a758924e531a63efd25894a32a3298"
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status)
-    status = mStatus;
-}
+/**
+ * Generated Information (According to CMake)
+ */
+#define PROJECT_NAME "GpgFrontend"
+#define BUILD_VERSION "1.3.1_Linux-5.4.0-81-generic_x86_64_Debug"
+#define GIT_VERSION "develop-core_7b7dd67b99a758924e531a63efd25894a32a3298"
 
-void GpgFrontend::ResultAnalyse::analyse() {
-  if (!analysed_) {
-    do_analyse();
-    analysed_ = true;
-  }
-}
+/**
+ * Build Information
+ */
+#define BUILD_FLAG 1
+#define BUILD_TIMESTAMP "2021-09-05 14:39:04"
+
+#endif // GPGFRONTEND_BUILD_INFO_H_IN
