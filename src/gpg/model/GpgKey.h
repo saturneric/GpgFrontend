@@ -28,11 +28,14 @@
 #include "GpgSubKey.h"
 #include "GpgUID.h"
 
+#include <boost/date_time.hpp>
+#include <boost/date_time/posix_time/conversion.hpp>
+
 namespace GpgFrontend {
 
 class GpgKey {
 public:
-  [[nodiscard]] bool good() const { return _key_ref == nullptr; }
+  [[nodiscard]] bool good() const { return _key_ref != nullptr; }
 
   [[nodiscard]] std::string id() const { return _key_ref->subkeys->keyid; }
 
@@ -69,16 +72,16 @@ public:
     return gpgme_pubkey_algo_name(_key_ref->subkeys->pubkey_algo);
   }
 
-  [[nodiscard]] QDateTime last_update() const {
-    return QDateTime::fromTime_t(_key_ref->last_update);
+  [[nodiscard]] boost::gregorian::date last_update() const {
+    return boost::posix_time::from_time_t(_key_ref->last_update).date();
   }
 
-  [[nodiscard]] QDateTime expires() const {
-    return QDateTime::fromTime_t(_key_ref->subkeys->expires);
+  [[nodiscard]] boost::gregorian::date expires() const {
+    return boost::posix_time::from_time_t(_key_ref->subkeys->expires).date();
   };
 
-  [[nodiscard]] QDateTime create_time() const {
-    return QDateTime::fromTime_t(_key_ref->subkeys->timestamp);
+  [[nodiscard]] boost::gregorian::date create_time() const {
+    return boost::posix_time::from_time_t(_key_ref->subkeys->timestamp).date();
   };
 
   [[nodiscard]] unsigned int length() const {
@@ -119,9 +122,11 @@ public:
 
   [[nodiscard]] std::unique_ptr<std::vector<GpgUID>> uids() const;
 
-  explicit GpgKey() = default;
+  GpgKey() = default;
 
   explicit GpgKey(gpgme_key_t &&key);
+
+  ~GpgKey() = default;
 
   GpgKey(const gpgme_key_t &key) = delete;
 
@@ -134,10 +139,16 @@ public:
   explicit operator gpgme_key_t() const { return _key_ref.get(); }
 
 private:
-  using KeyRefHandler =
-      std::unique_ptr<struct _gpgme_key, std::function<void(gpgme_key_t)>>;
+  struct __key_ref_deletor {
+    void operator()(gpgme_key_t _key) {
+      if (_key != nullptr)
+        gpgme_key_unref(_key);
+    }
+  };
 
-  KeyRefHandler _key_ref;
+  using KeyRefHandler = std::unique_ptr<struct _gpgme_key, __key_ref_deletor>;
+
+  KeyRefHandler _key_ref = nullptr;
 };
 
 } // namespace GpgFrontend

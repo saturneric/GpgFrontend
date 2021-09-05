@@ -30,30 +30,30 @@ GpgFrontend::DecryptResultAnalyse::DecryptResultAnalyse(GpgError error,
     : error(error), result(std::move(result)) {}
 
 void GpgFrontend::DecryptResultAnalyse::do_analyse() {
-  stream << tr("[#] Decrypt Operation ").constData();
+  stream << "[#] Decrypt Operation ";
 
   if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
-    stream << tr("[Success]").constData() << std::endl;
+    stream << "[Success]" << std::endl;
   } else {
-    stream << tr("[Failed] ").constData() << gpgme_strerror(error) << std::endl;
+    stream << "[Failed] " << gpgme_strerror(error) << std::endl;
     setStatus(-1);
     if (result != nullptr && result->unsupported_algorithm != nullptr) {
       stream << "------------>" << std::endl;
-      stream << tr("Unsupported Algo: ").constData()
-             << result->unsupported_algorithm << std::endl;
+      stream << "Unsupported Algo: " << result->unsupported_algorithm
+             << std::endl;
     }
   }
 
   if (result != nullptr && result->recipients != nullptr) {
     stream << "------------>" << std::endl;
     if (result->file_name != nullptr) {
-      stream << tr("File Name: ").constData() << result->file_name << std::endl;
+      stream << "File Name: " << result->file_name << std::endl;
       stream << std::endl;
     }
 
     auto reci = result->recipients;
     if (reci != nullptr)
-      stream << tr("Recipient(s): ").constData() << std::endl;
+      stream << "Recipient(s): " << std::endl;
     while (reci != nullptr) {
       print_reci(stream, reci);
       reci = reci->next;
@@ -67,7 +67,7 @@ void GpgFrontend::DecryptResultAnalyse::do_analyse() {
 bool GpgFrontend::DecryptResultAnalyse::print_reci(std::stringstream &stream,
                                                    gpgme_recipient_t reci) {
   bool keyFound = true;
-  stream << tr("  {>} Recipient: ").constData();
+  stream << "  {>} Recipient: ";
 
   auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(reci->keyid);
   if (key.good()) {
@@ -83,9 +83,9 @@ bool GpgFrontend::DecryptResultAnalyse::print_reci(std::stringstream &stream,
 
   stream << std::endl;
 
-  stream << tr("      Keu ID: ").constData() << key.id().c_str() << std::endl;
-  stream << tr("      Public Algo: ").constData()
-         << gpgme_pubkey_algo_name(reci->pubkey_algo) << std::endl;
+  stream << "      Keu ID: " << key.id().c_str() << std::endl;
+  stream << "      Public Algo: " << gpgme_pubkey_algo_name(reci->pubkey_algo)
+         << std::endl;
 
   return keyFound;
 }

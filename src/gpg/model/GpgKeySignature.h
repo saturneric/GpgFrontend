@@ -27,6 +27,7 @@
 
 #include "gpg/GpgConstants.h"
 
+#include <boost/date_time.hpp>
 #include <string>
 
 namespace GpgFrontend {
@@ -45,11 +46,11 @@ public:
     return gpgme_pubkey_algo_name(_signature_ref->pubkey_algo);
   }
 
-  [[nodiscard]] QDateTime create_time() const {
-    return QDateTime::fromTime_t(_signature_ref->timestamp);
+  [[nodiscard]] boost::gregorian::date create_time() const {
+    return boost::posix_time::from_time_t(_signature_ref->timestamp).date();
   }
-  [[nodiscard]] QDateTime expire_time() const {
-    return QDateTime::fromTime_t(_signature_ref->expires);
+  [[nodiscard]] boost::gregorian::date expire_time() const {
+    return boost::posix_time::from_time_t(_signature_ref->expires).date();
   }
 
   [[nodiscard]] std::string uid() const { return _signature_ref->uid; }

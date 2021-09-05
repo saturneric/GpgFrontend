@@ -24,9 +24,7 @@
 
 #include "gpg/model/GpgKey.h"
 
-GpgFrontend::GpgKey::GpgKey(gpgme_key_t &&key)
-    : _key_ref(std::move(key),
-               [&](gpgme_key_t key) { gpgme_key_release(key); }) {}
+GpgFrontend::GpgKey::GpgKey(gpgme_key_t &&key) : _key_ref(std::move(key)) {}
 
 GpgFrontend::GpgKey::GpgKey(GpgKey &&k) noexcept { swap(_key_ref, k._key_ref); }
 

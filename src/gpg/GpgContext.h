@@ -39,11 +39,9 @@ class GpgContext : public SingletonFunctionObject<GpgContext> {
 public:
   GpgContext();
 
-  ~GpgContext() override = default;
+  ~GpgContext() = default;
 
   [[nodiscard]] bool good() const;
-
-  bool exportKeys(const QVector<GpgKey> &keys, QByteArray &outBuffer);
 
   const GpgInfo &GetInfo() const { return info; }
 
@@ -55,7 +53,7 @@ public:
    *
    * @param in Pointer to the QBytearray to check.
    */
-  static void preventNoDataErr(QByteArray *in);
+  static void preventNoDataErr(BypeArrayPtr in);
 
   static std::string getGpgmeVersion();
 
@@ -64,20 +62,48 @@ public:
 private:
   GpgInfo info;
 
+  struct __ctx_ref_deletor {
+    void operator()(gpgme_ctx_t _ctx) {
+      if (_ctx != nullptr)
+        gpgme_release(_ctx);
+    }
+  };
+
   using CtxRefHandler =
-      std::unique_ptr<struct gpgme_context, std::function<void(gpgme_ctx_t)>>;
+      std::unique_ptr<struct gpgme_context, __ctx_ref_deletor>;
   CtxRefHandler _ctx_ref = nullptr;
 
   bool good_ = true;
 
-  QByteArray mPasswordCache;
-
-  static gpgme_error_t passphraseCb(void *hook, const char *uid_hint,
-                                    const char *passphrase_info,
-                                    int last_was_bad, int fd);
-
   gpgme_error_t passphrase(const char *uid_hint, const char *passphrase_info,
                            int last_was_bad, int fd);
+
+public:
+  static gpgme_error_t test_passphrase_cb(void *opaque, const char *uid_hint,
+                                          const char *passphrase_info,
+                                          int last_was_bad, int fd) {
+
+    LOG(INFO) << "test_passphrase_cb Called";
+    int res;
+    char pass[] = "abcdefg\n";
+    int passlen = strlen(pass);
+    int off = 0;
+
+    (void)opaque;
+    (void)uid_hint;
+    (void)passphrase_info;
+    (void)last_was_bad;
+
+    do {
+      res = gpgme_io_write(fd, &pass[off], passlen - off);
+      if (res > 0)
+        off += res;
+    } while (res > 0 && off != passlen);
+
+    return off == passlen ? 0 : gpgme_error_from_errno(errno);
+  }
+
+  void SetPassphraseCb(decltype(test_passphrase_cb) func);
 };
 } // namespace GpgFrontend
 

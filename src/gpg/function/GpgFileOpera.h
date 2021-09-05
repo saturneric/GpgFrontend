@@ -36,7 +36,7 @@ public:
   GpgError EncryptFile(KeyArgsList &keys, const std::string &path,
                        GpgEncrResult &result);
 
-  GpgError DecryptFile(const QString &path, GpgDecrResult &result);
+  GpgError DecryptFile(const std::string &path, GpgDecrResult &result);
 
   GpgError SignFile(KeyArgsList &keys, const std::string &path,
                     GpgSignResult &result);

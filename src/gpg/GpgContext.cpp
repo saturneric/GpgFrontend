@@ -23,14 +23,12 @@
  */
 
 #include "gpg/GpgContext.h"
+#include "GpgConstants.h"
 
 #include <functional>
-#include <unistd.h> /* contains read/write */
 
 #ifdef _WIN32
-
 #include <windows.h>
-
 #endif
 
 #define INT2VOIDP(i) (void *)(uintptr_t)(i)
@@ -43,22 +41,36 @@ namespace GpgFrontend {
  */
 GpgContext::GpgContext() {
 
-  gpgme_ctx_t _p_ctx;
-  auto err = gpgme_new(&_p_ctx);
-  check_gpg_error(err);
-  _ctx_ref =
-      CtxRefHandler(_p_ctx, [&](gpgme_ctx_t ctx) { gpgme_release(ctx); });
+  static bool __first = true;
 
-  gpgme_engine_info_t engineInfo;
-  engineInfo = gpgme_ctx_get_engine_info(*this);
+  if (__first) {
+    /* Initialize the locale environment. */
+    setlocale(LC_ALL, "");
+    gpgme_check_version(nullptr);
+    gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
+#ifdef LC_MESSAGES
+    gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
+#endif
+    __first = false;
+  }
+
+  gpgme_ctx_t _p_ctx;
+  check_gpg_error(gpgme_new(&_p_ctx));
+  _ctx_ref = CtxRefHandler(_p_ctx);
+
+  LOG(INFO) << "GpgContext _ctx_ref Created";
+
+  auto engineInfo = gpgme_ctx_get_engine_info(*this);
+
+  LOG(INFO) << "GpgContext gpgme_ctx_get_engine_info Called";
 
   // Check ENV before running
   bool check_pass = false, find_openpgp = false, find_gpgconf = false,
        find_assuan = false, find_cms = false;
   while (engineInfo != nullptr) {
-    qDebug() << gpgme_get_protocol_name(engineInfo->protocol)
-             << engineInfo->file_name << engineInfo->protocol
-             << engineInfo->home_dir << engineInfo->version;
+    LOG(INFO) << gpgme_get_protocol_name(engineInfo->protocol) << " "
+              << engineInfo->file_name << " " << engineInfo->version;
+
     if (engineInfo->protocol == GPGME_PROTOCOL_GPGCONF &&
         strcmp(engineInfo->version, "1.0.0") != 0)
       find_gpgconf = true;
@@ -76,32 +88,29 @@ GpgContext::GpgContext() {
   if (find_gpgconf && find_openpgp && find_cms && find_assuan)
     check_pass = true;
 
+  LOG(INFO) << "GpgContext check_pass " << check_pass;
   if (!check_pass) {
     good_ = false;
     return;
-  } else
+  } else {
+    /** Setting the output type must be done at the beginning */
+    /** think this means ascii-armor --> ? */
+    gpgme_set_armor(*this, 1);
+    // Speed up loading process
+    gpgme_set_offline(*this, 1);
+
+    check_gpg_error(gpgme_set_keylist_mode(
+        *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
+                   GPGME_KEYLIST_MODE_SIGS | GPGME_KEYLIST_MODE_SIG_NOTATIONS |
+                   GPGME_KEYLIST_MODE_WITH_TOFU));
     good_ = true;
-
-  /** Setting the output type must be done at the beginning */
-  /** think this means ascii-armor --> ? */
-  gpgme_set_armor(*this, 1);
-  // Speed up loading process
-  gpgme_set_offline(*this, 1);
-
-  gpgme_set_keylist_mode(
-      *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
-                 GPGME_KEYLIST_MODE_SIGS | GPGME_KEYLIST_MODE_SIG_NOTATIONS |
-                 GPGME_KEYLIST_MODE_WITH_TOFU);
+  }
 }
 
 bool GpgContext::good() const { return good_; }
 
-/** also from kgpgme.cpp, seems to clear password from mem */
-void GpgContext::clearPasswordCache() {
-  if (mPasswordCache.size() > 0) {
-    mPasswordCache.fill('\0');
-    mPasswordCache.truncate(0);
-  }
+void GpgContext::SetPassphraseCb(decltype(test_passphrase_cb) cb) {
+  gpgme_set_passphrase_cb(*this, cb, nullptr);
 }
 
 /** return type should be gpgme_error_t*/
@@ -111,15 +120,13 @@ void GpgContext::clearPasswordCache() {
  * GPGME doesn't recognise the Message as encrypted. This function adds '\n'
  * before the PGP-Begin-Block, if missing.
  */
-void GpgContext::preventNoDataErr(QByteArray *in) {
-  int block_start = in->indexOf(GpgConstants::PGP_CRYPT_BEGIN);
-  if (block_start > 0 && in->at(block_start - 1) != '\n') {
-    in->insert(block_start, '\n');
-  }
-  block_start = in->indexOf(GpgConstants::PGP_SIGNED_BEGIN);
-  if (block_start > 0 && in->at(block_start - 1) != '\n') {
-    in->insert(block_start, '\n');
-  }
+void GpgContext::preventNoDataErr(BypeArrayPtr in) {
+  int block_start = in->find(GpgConstants::PGP_CRYPT_BEGIN);
+  if (block_start != std::string::npos && in->at(block_start - 1) != '\n')
+    in->insert(block_start, "\n");
+  block_start = in->find(GpgConstants::PGP_SIGNED_BEGIN);
+  if (block_start != std::string::npos && in->at(block_start - 1) != '\n')
+    in->insert(block_start, "\n");
 }
 
 std::string GpgContext::getGpgmeVersion() {

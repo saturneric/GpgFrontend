@@ -22,26 +22,11 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
-#define GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
+#ifndef _GPGFRONTENDTEST_H
+#define _GPGFRONTENDTEST_H
 
-#include "gpg/GpgContext.h"
-#include "gpg/GpgFunctionObject.h"
+#include <easyloggingpp/easylogging++.h>
 
-#include <boost/process.hpp>
+INITIALIZE_EASYLOGGINGPP
 
-namespace GpgFrontend {
-class GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
-public:
-  void Execute(StringArgsRef arguments,
-               const std::function<void(boost::process::async_pipe &in,
-                                        boost::process::async_pipe &out)>
-                   &interact_func);
-
-private:
-  GpgContext &ctx = GpgContext::GetInstance();
-};
-
-} // namespace GpgFrontend
-
-#endif // GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
+#endif // _GPGFRONTENDTEST_H

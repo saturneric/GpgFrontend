@@ -28,10 +28,14 @@
 #include <memory>
 #include <mutex>
 
+#include <easyloggingpp/easylogging++.h>
+
 namespace GpgFrontend {
 template <typename T> class SingletonFunctionObject {
 public:
   static T &GetInstance() {
+    LOG(INFO) << "SingletonFunctionObject GetInstance Calling "
+              << typeid(T).name();
     std::lock_guard<std::mutex> guard(_instance_mutex);
     if (_instance == nullptr)
       _instance = std::make_unique<T>();

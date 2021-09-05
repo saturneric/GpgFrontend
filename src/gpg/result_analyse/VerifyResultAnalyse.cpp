@@ -32,14 +32,14 @@ GpgFrontend::VerifyResultAnalyse::VerifyResultAnalyse(GpgError error,
     : error(error), result(std::move(result)) {}
 
 void GpgFrontend::VerifyResultAnalyse::do_analyse() {
-  qDebug() << "Verify Result Analyse Started";
+  LOG(INFO) << "Verify Result Analyse Started";
 
-  stream << tr("[#] Verify Operation ").constData();
+  stream << "[#] Verify Operation ";
 
   if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
-    stream << tr("[Success]").constData() << std::endl;
+    stream << "[Success]" << std::endl;
   else {
-    stream << tr("[Failed] ").constData() << gpgme_strerror(error) << std::endl;
+    stream << "[Failed] " << gpgme_strerror(error) << std::endl;
     setStatus(-1);
   }
 
@@ -54,7 +54,8 @@ void GpgFrontend::VerifyResultAnalyse::do_analyse() {
     }
 
     stream << "[>] Signed On "
-           << QDateTime::fromTime_t(sign->timestamp).toString().constData()
+           << boost::posix_time::to_iso_string(
+                  boost::posix_time::from_time_t(sign->timestamp))
            << std::endl;
 
     stream << std::endl << "[>] Signatures:" << std::endl;
@@ -62,93 +63,89 @@ void GpgFrontend::VerifyResultAnalyse::do_analyse() {
     bool canContinue = true;
 
     while (sign && canContinue) {
-
       switch (gpg_err_code(sign->status)) {
       case GPG_ERR_BAD_SIGNATURE:
-        stream << tr("One or More Bad Signatures.").constData() << std::endl;
+        stream << "One or More Bad Signatures." << std::endl;
         canContinue = false;
         setStatus(-1);
         break;
       case GPG_ERR_NO_ERROR:
-        stream << tr("A ").constData();
+        stream << "A ";
         if (sign->summary & GPGME_SIGSUM_GREEN) {
-          stream << tr("Good ").constData();
+          stream << "Good ";
         }
         if (sign->summary & GPGME_SIGSUM_RED) {
-          stream << tr("Bad ").constData();
+          stream << "Bad ";
         }
         if (sign->summary & GPGME_SIGSUM_SIG_EXPIRED) {
-          stream << tr("Expired ").constData();
+          stream << "Expired ";
         }
         if (sign->summary & GPGME_SIGSUM_KEY_MISSING) {
-          stream << tr("Missing Key's ").constData();
+          stream << "Missing Key's ";
         }
         if (sign->summary & GPGME_SIGSUM_KEY_REVOKED) {
-          stream << tr("Revoked Key's ").constData();
+          stream << "Revoked Key's ";
         }
         if (sign->summary & GPGME_SIGSUM_KEY_EXPIRED) {
-          stream << tr("Expired Key's ").constData();
+          stream << "Expired Key's ";
         }
         if (sign->summary & GPGME_SIGSUM_CRL_MISSING) {
-          stream << tr("Missing CRL's ").constData();
+          stream << "Missing CRL's ";
         }
 
         if (sign->summary & GPGME_SIGSUM_VALID) {
-          stream << tr("Signature Fully Valid.").constData() << std::endl;
+          stream << "Signature Fully Valid." << std::endl;
         } else {
-          stream << tr("Signature Not Fully Valid.").constData() << std::endl;
+          stream << "Signature Not Fully Valid." << std::endl;
         }
 
         if (!(sign->status & GPGME_SIGSUM_KEY_MISSING)) {
           if (!print_signer(stream, sign))
             setStatus(0);
         } else {
-          stream << tr("Key is NOT present with ID 0x").constData() << sign->fpr
-                 << std::endl;
+          stream << "Key is NOT present with ID 0x" << sign->fpr << std::endl;
         }
 
         setStatus(1);
 
         break;
       case GPG_ERR_NO_PUBKEY:
-        stream << tr("A signature could NOT be verified due to a Missing Key\n")
-                      .constData();
+        stream << "A signature could NOT be verified due to a Missing "
+                  "Key\n";
         setStatus(-1);
         break;
       case GPG_ERR_CERT_REVOKED:
-        stream << tr("A signature is valid but the key used to "
-                     "verify the signature has been revoked\n")
-                      .constData();
+        stream << "A signature is valid but the key used to "
+                  "verify the signature has been revoked\n";
         if (!print_signer(stream, sign)) {
           setStatus(0);
         }
         setStatus(-1);
         break;
       case GPG_ERR_SIG_EXPIRED:
-        stream << tr("A signature is valid but expired\n").constData();
+        stream << "A signature is valid but expired\n";
         if (!print_signer(stream, sign)) {
           setStatus(0);
         }
         setStatus(-1);
         break;
       case GPG_ERR_KEY_EXPIRED:
-        stream << tr("A signature is valid but the key used to "
-                     "verify the signature has expired.\n")
-                      .constData();
+        stream << "A signature is valid but the key used to "
+                  "verify the signature has expired.\n";
         if (!print_signer(stream, sign)) {
           setStatus(0);
         }
         break;
       case GPG_ERR_GENERAL:
-        stream << tr("There was some other error which prevented "
-                     "the signature verification.\n")
-                      .constData();
+        stream << "There was some other error which prevented "
+                  "the signature verification.\n";
         status = -1;
         canContinue = false;
         break;
       default:
-        stream << tr("Error for key with fingerprint ").constData()
-               << GpgFrontend::beautify_fingerprint(sign->fpr);
+        auto fpr = std::string(sign->fpr);
+        stream << "Error for key with fingerprint "
+               << GpgFrontend::beautify_fingerprint(fpr);
         setStatus(-1);
       }
       stream << std::endl;
@@ -164,20 +161,20 @@ bool GpgFrontend::VerifyResultAnalyse::print_signer(std::stringstream &stream,
   auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(sign->fpr);
 
   if (!key.good()) {
-    stream << tr("    Signed By: ").constData() << tr("<unknown>").constData()
-           << std::endl;
+    stream << "    Signed By: "
+           << "<unknown>" << std::endl;
     setStatus(0);
     keyFound = false;
   } else {
-    stream << tr("    Signed By: ").constData() << key.uids()->front().uid()
-           << std::endl;
+    stream << "    Signed By: " << key.uids()->front().uid() << std::endl;
   }
-  stream << tr("    Public Key Algo: ").constData()
-         << gpgme_pubkey_algo_name(sign->pubkey_algo) << std::endl;
-  stream << tr("    Hash Algo: ").constData()
-         << gpgme_hash_algo_name(sign->hash_algo) << std::endl;
-  stream << tr("    Date & Time: ").constData()
-         << QDateTime::fromTime_t(sign->timestamp).toString().constData()
+  stream << "    Public Key Algo: " << gpgme_pubkey_algo_name(sign->pubkey_algo)
+         << std::endl;
+  stream << "    Hash Algo: " << gpgme_hash_algo_name(sign->hash_algo)
+         << std::endl;
+  stream << "    Date & Time: "
+         << boost::posix_time::to_iso_string(
+                boost::posix_time::from_time_t(sign->timestamp))
          << std::endl;
   stream << std::endl;
   return keyFound;

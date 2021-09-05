@@ -30,7 +30,6 @@
 
 namespace GpgFrontend {
 class EncryptResultAnalyse : public ResultAnalyse {
-  Q_OBJECT
 public:
   explicit EncryptResultAnalyse(GpgError error, GpgEncrResult result);
 

@@ -24,14 +24,16 @@
 
 #include "gpg/function/GpgKeyGetter.h"
 
-GpgFrontend::GpgKey &&
-GpgFrontend::GpgKeyGetter::GetKey(const std::string &fpr) {
+GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string &fpr) {
+  LOG(INFO) << "GpgKeyGetter GetKey Fpr " << fpr;
   gpgme_key_t _p_key;
   gpgme_get_key(ctx, fpr.c_str(), &_p_key, 1);
+  if (_p_key == nullptr)
+    LOG(WARNING) << "GpgKeyGetter GetKey _p_key Null";
   return std::move(GpgKey(std::move(_p_key)));
 }
 
-GpgFrontend::GpgKey &&
+GpgFrontend::GpgKey
 GpgFrontend::GpgKeyGetter::GetPubkey(const std::string &fpr) {
   gpgme_key_t _p_key;
   gpgme_get_key(ctx, fpr.c_str(), &_p_key, 0);
@@ -42,28 +44,28 @@ GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
 
   gpgme_error_t err;
 
-  qDebug() << "Clear List and Map";
+  LOG(INFO) << "Clear List and Map";
 
   KeyListPtr keys_list = std::make_unique<std::vector<GpgKey>>();
 
-  qDebug() << "Operate KeyList Start";
+  LOG(INFO) << "Operate KeyList Start";
 
   err = gpgme_op_keylist_start(ctx, nullptr, 0);
   assert(gpg_err_code(err) != GPG_ERR_NO_ERROR);
 
-  qDebug() << "Start Loop";
+  LOG(INFO) << "Start Loop";
 
   gpgme_key_t key;
   while ((err = gpgme_op_keylist_next(ctx, &key)) == GPG_ERR_NO_ERROR) {
     keys_list->push_back(GpgKey(std::move(key)));
-    qDebug() << "Append Key" << keys_list->back().id().c_str();
+    LOG(INFO) << "Append Key" << keys_list->back().id().c_str();
   }
 
   assert(gpg_err_code(err) != GPG_ERR_NO_ERROR);
 
   err = gpgme_op_keylist_end(ctx);
 
-  qDebug() << "Operate KeyList End";
+  LOG(INFO) << "Operate KeyList End";
 
   return keys_list;
 }
