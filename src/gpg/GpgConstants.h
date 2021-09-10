@@ -68,6 +68,7 @@ using GpgVerifyResult =
 // Error Info Printer
 GpgError check_gpg_error(GpgError err);
 GpgError check_gpg_error(GpgError gpgmeError, const std::string &comment);
+gpg_err_code_t check_gpg_error_2_err_code(gpgme_error_t err);
 
 // Fingerprint
 std::string beautify_fingerprint(BypeArrayRef fingerprint);

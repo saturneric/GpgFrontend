@@ -23,6 +23,10 @@
  */
 
 #include "gpg/GpgGenKeyInfo.h"
+#include <boost/date_time/gregorian/greg_date.hpp>
+#include <boost/date_time/gregorian/greg_duration.hpp>
+#include <boost/date_time/gregorian/gregorian_types.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
 #include <string>
 #include <vector>
 
@@ -33,8 +37,6 @@ const std::vector<std::string> GpgFrontend::GenKeyInfo::SupportedSubkeyAlgo = {
     "RSA", "DSA", "ED25519", "ELG"};
 
 void GpgFrontend::GenKeyInfo::setAlgo(const std::string &m_algo) {
-
-  qDebug() << "set algo " << m_algo.c_str();
 
   reset_options();
 
@@ -141,17 +143,19 @@ void GpgFrontend::GenKeyInfo::setKeySize(int m_key_size) {
   GenKeyInfo::keySize = m_key_size;
 }
 
-void GpgFrontend::GenKeyInfo::setExpired(const QDateTime &m_expired) {
-  auto current = QDateTime::currentDateTime();
-  if (isNonExpired() && m_expired < current.addYears(2)) {
+void GpgFrontend::GenKeyInfo::setExpired(
+    const boost::gregorian::date &m_expired) {
+  using namespace boost::gregorian;
+  auto current = day_clock::local_day();
+  if (isNonExpired() && m_expired < current + years(2)) {
     GenKeyInfo::expired = m_expired;
   }
 }
 
 void GpgFrontend::GenKeyInfo::setNonExpired(bool m_non_expired) {
-  if (!m_non_expired) {
-    this->expired = QDateTime(QDateTime::fromTime_t(0));
-  }
+  using namespace boost::posix_time;
+  if (!m_non_expired)
+    this->expired = from_time_t(0).date();
   GenKeyInfo::nonExpired = m_non_expired;
 }
 

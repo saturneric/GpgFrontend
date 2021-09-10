@@ -40,13 +40,13 @@ public:
    * @param expires expire date and time of the signature
    * @return if successful
    */
-  bool signKey(const GpgKey &target, KeyArgsList &keys, const QString &uid,
-               std::unique_ptr<QDateTime> &expires);
+  bool signKey(const GpgKey &target, KeyArgsList &keys, const std::string &uid,
+               std::unique_ptr<boost::gregorian::date> &expires);
 
   bool revSign(const GpgKey &key, const GpgKeySignature &signature);
 
   bool setExpire(const GpgKey &key, std::unique_ptr<GpgSubKey> &subkey,
-                 std::unique_ptr<QDateTime> &expires);
+                 std::unique_ptr<boost::gregorian::date> &expires);
 
 private:
   GpgContext &ctx = GpgContext::GetInstance();

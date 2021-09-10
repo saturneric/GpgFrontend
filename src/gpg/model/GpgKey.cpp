@@ -38,7 +38,7 @@ GpgFrontend::GpgKey::subKeys() const {
   auto p_keys = std::make_unique<std::vector<GpgSubKey>>();
   auto next = _key_ref->subkeys;
   while (next != nullptr) {
-    p_keys->push_back(std::move(GpgSubKey(next)));
+    p_keys->push_back(GpgSubKey(next));
     next = next->next;
   }
   return p_keys;
@@ -49,7 +49,7 @@ GpgFrontend::GpgKey::uids() const {
   auto p_uids = std::make_unique<std::vector<GpgUID>>();
   auto uid_next = _key_ref->uids;
   while (uid_next != nullptr) {
-    p_uids->push_back(std::move(GpgUID(uid_next)));
+    p_uids->push_back(GpgUID(uid_next));
     uid_next = uid_next->next;
   }
   return p_uids;

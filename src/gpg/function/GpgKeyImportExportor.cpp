@@ -1,5 +1,6 @@
 #include "gpg/function/GpgKeyImportExportor.h"
 #include "GpgConstants.h"
+#include <gpg-error.h>
 
 /**
  * Import key pair
@@ -51,7 +52,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
     LOG(INFO) << "exportKeys read_bytes"
               << gpgme_data_seek(data_out, 0, SEEK_END);
 
-    auto temp_out_buffer = std::move(data_out.Read2Buffer());
+    auto temp_out_buffer = data_out.Read2Buffer();
     std::swap(out_buffer, temp_out_buffer);
   }
 
@@ -88,10 +89,11 @@ bool GpgFrontend::GpgKeyImportExportor::ExportSecretKey(
   GpgData data_out;
 
   // export private key to outBuffer
-  gpgme_error_t error =
+  gpgme_error_t err =
       gpgme_op_export_keys(ctx, target_key, GPGME_EXPORT_MODE_SECRET, data_out);
 
-  auto temp_out_buffer = std::move(data_out.Read2Buffer());
+  auto temp_out_buffer = data_out.Read2Buffer();
   std::swap(out_buffer, temp_out_buffer);
-  return true;
+
+  return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
 }

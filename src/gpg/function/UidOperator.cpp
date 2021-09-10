@@ -24,14 +24,15 @@
 
 #include "gpg/function/UidOperator.h"
 
+#include "boost/format.hpp"
+
 bool GpgFrontend::UidOperator::addUID(const GpgFrontend::GpgKey &key,
                                       const GpgFrontend::GpgUID &uid) {
-  QString userid =
-      QString("%1 (%3) <%2>")
-          .arg(uid.name().c_str(), uid.email().c_str(), uid.comment().c_str());
-  auto err =
-      gpgme_op_adduid(ctx, gpgme_key_t(key), userid.toUtf8().constData(), 0);
-  if (gpgme_err_code(err) == GPG_ERR_NO_ERROR)
+  auto userid = (boost::format("%1% (%2%) <%3%>") % uid.name() % uid.comment() %
+                 uid.email())
+                    .str();
+  auto err = gpgme_op_adduid(ctx, gpgme_key_t(key), userid.c_str(), 0);
+  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
     return true;
   else
     return false;
@@ -41,7 +42,7 @@ bool GpgFrontend::UidOperator::revUID(const GpgFrontend::GpgKey &key,
                                       const GpgFrontend::GpgUID &uid) {
   auto err = check_gpg_error(
       gpgme_op_revuid(ctx, gpgme_key_t(key), uid.uid().c_str(), 0));
-  if (gpgme_err_code(err) == GPG_ERR_NO_ERROR)
+  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
     return true;
   else
     return false;
@@ -51,7 +52,7 @@ bool GpgFrontend::UidOperator::setPrimaryUID(const GpgFrontend::GpgKey &key,
                                              const GpgFrontend::GpgUID &uid) {
   auto err = check_gpg_error(gpgme_op_set_uid_flag(
       ctx, gpgme_key_t(key), uid.uid().c_str(), "primary", nullptr));
-  if (gpgme_err_code(err) == GPG_ERR_NO_ERROR)
+  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
     return true;
   else
     return false;

@@ -23,6 +23,7 @@
  */
 
 #include "gpg/GpgConstants.h"
+#include <gpg-error.h>
 
 const char *GpgFrontend::GpgConstants::PGP_CRYPT_BEGIN =
     "-----BEGIN PGP MESSAGE-----";
@@ -40,7 +41,6 @@ const char *GpgFrontend::GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD =
     "GpgF_Scpt://";
 
 gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err) {
-  // if (gpgmeError != GPG_ERR_NO_ERROR && gpgmeError != GPG_ERR_CANCELED) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
     LOG(ERROR) << "[Error " << gpg_err_code(err)
                << "] Source: " << gpgme_strsource(err)
@@ -49,10 +49,19 @@ gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err) {
   return err;
 }
 
+gpg_err_code_t GpgFrontend::check_gpg_error_2_err_code(gpgme_error_t err) {
+  auto err_code = gpg_err_code(err);
+  if (err_code != GPG_ERR_NO_ERROR) {
+    LOG(ERROR) << "[Error " << gpg_err_code(err)
+               << "] Source: " << gpgme_strsource(err)
+               << " Description: " << gpgme_strerror(err);
+  }
+  return err_code;
+}
+
 // error-handling
 gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
                                            const std::string &comment) {
-  // if (gpgmeError != GPG_ERR_NO_ERROR && gpgmeError != GPG_ERR_CANCELED) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
     LOG(ERROR) << "[Error " << gpg_err_code(err)
                << "] Source: " << gpgme_strsource(err)
