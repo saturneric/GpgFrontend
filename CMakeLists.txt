@@ -48,11 +48,11 @@ message(STATUS "Define CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 if(${CMAKE_BUILD_TYPE} STREQUAL  "Release")
     set(BUILD_FLAG 0)
     message(STATUS "Build Type RELEASE")
-    set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O2")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 else()
     set(BUILD_FLAG 1)
     message(STATUS "Build Type DEBUG")
-    set(CMAKE_CXX_FLAGS_DEBUG_INIT "-Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fprofile-instr-generate -fcoverage-mapping")
 endif()
 
 # Get Git Information

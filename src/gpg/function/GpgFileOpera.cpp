@@ -22,83 +22,101 @@
  *
  */
 #include "gpg/function/GpgFileOpera.h"
+#include "GpgConstants.h"
 #include "gpg/function/BasicOperator.h"
 
+#include <boost/process/detail/config.hpp>
 #include <filesystem>
+#include <iterator>
 #include <memory>
+#include <string>
 
-GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
-    KeyArgsList &keys, const std::string &path, GpgEncrResult &result) {
-
+std::string read_all_data_in_file(const std::string &path) {
   using namespace std::filesystem;
   class path file_info(path.c_str());
 
   if (!exists(file_info) || !is_regular_file(path))
     throw std::runtime_error("no permission");
 
-  QFile in_file(path.c_str());
-  if (!in_file.open(QIODevice::ReadOnly))
+  std::ifstream in_file;
+  in_file.open(path, std::ios::in);
+  if (!in_file.good())
     throw std::runtime_error("cannot open file");
-
-  QByteArray in_buffer = in_file.readAll();
-  auto out_buffer = std::make_unique<QByteArray>();
+  std::istreambuf_iterator<char> begin(in_file);
+  std::istreambuf_iterator<char> end;
+  std::string in_buffer(begin, end);
   in_file.close();
+  return in_buffer;
+}
+
+void write_buufer_to_file(const std::string &path,
+                          const std::string &out_buffer) {
+  std::ofstream out_file(path);
+  out_file.open(path.c_str(), std::ios::out);
+  if (!out_file.good())
+    throw std::runtime_error("cannot open file");
+  out_file.write(out_buffer.c_str(), out_buffer.size());
+  out_file.close();
+}
+
+GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
+    KeyArgsList &keys, const std::string &path, GpgEncrResult &result) {
+
+  std::string in_buffer = read_all_data_in_file(path);
+  std::unique_ptr<std::string> out_buffer;
 
   auto err =
       BasicOperator::GetInstance().Encrypt(keys, in_buffer, out_buffer, result);
 
-  if (gpg_err_code(err) != GPG_ERR_NO_ERROR)
-    return err;
+  assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
-  QFile out_file((path + ".asc").c_str());
-
-  if (!out_file.open(QFile::WriteOnly))
-    throw std::runtime_error("cannot open file");
-
-  QDataStream out(&out_file);
-  out.writeRawData(out_buffer->data(), out_buffer->length());
-  out_file.close();
+  write_buufer_to_file(path + ".asc", *out_buffer);
   return err;
+}
+
+std::string get_file_extension(const std::string &path) {
+  // Create a Path object from given string
+  std::filesystem::path path_obj(path);
+  // Check if file name in the path object has extension
+  if (path_obj.has_extension()) {
+    // Fetch the extension from path object and return
+    return path_obj.extension().string();
+  }
+  // In case of no extension return empty string
+  return std::string();
+}
+
+std::string get_file_name_with_path(const std::string &path) {
+  // Create a Path object from given string
+  std::filesystem::path path_obj(path);
+  // Check if file name in the path object has extension
+  if (path_obj.has_filename()) {
+    // Fetch the extension from path object and return
+    return path_obj.parent_path() / path_obj.filename();
+  }
+  // In case of no extension return empty string
+  throw std::runtime_error("invalid file path");
 }
 
 GpgFrontend::GpgError
 GpgFrontend::GpgFileOpera::DecryptFile(const std::string &path,
                                        GpgDecrResult &result) {
 
-  QFileInfo file_info(path);
-
-  if (!file_info.isFile() || !file_info.isReadable())
-    throw std::runtime_error("no permission");
-
-  QFile in_file(path);
-  if (!in_file.open(QIODevice::ReadOnly))
-    throw std::runtime_error("cannot open file");
-
-  QByteArray in_buffer = in_file.readAll();
-  auto out_buffer = std::make_unique<QByteArray>();
-  in_file.close();
+  std::string in_buffer = read_all_data_in_file(path);
+  std::unique_ptr<std::string> out_buffer;
 
   auto err =
       BasicOperator::GetInstance().Decrypt(in_buffer, out_buffer, result);
 
-  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
+  assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
-  QString out_file_name, file_extension = file_info.suffix();
+  std::string out_file_name = get_file_name_with_path(path),
+              file_extension = get_file_extension(path);
 
-  if (file_extension == "asc" || file_extension == "gpg") {
-    int pos = path.lastIndexOf('.');
-    out_file_name = path.left(pos);
-  } else
-    out_file_name = path + ".out";
+  if (!(file_extension == ".asc" || file_extension == ".gpg"))
+    out_file_name += ".out";
 
-  QFile out_file(out_file_name);
-
-  if (!out_file.open(QFile::WriteOnly))
-    throw std::runtime_error("cannot open file");
-
-  QDataStream out(&out_file);
-  out.writeRawData(out_buffer->data(), out_buffer->length());
-  out_file.close();
+  write_buufer_to_file(out_file_name, *out_buffer);
 
   return err;
 }
@@ -107,31 +125,15 @@ gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyArgsList &keys,
                                                   const std::string &path,
                                                   GpgSignResult &result) {
 
-  QFileInfo file_info(path.c_str());
-
-  if (!file_info.isFile() || !file_info.isReadable())
-    throw std::runtime_error("no permission");
-
-  QFile in_file(path.c_str());
-  if (!in_file.open(QIODevice::ReadOnly))
-    throw std::runtime_error("cannot open file");
-
-  QByteArray in_buffer = in_file.readAll();
-  auto out_buffer = std::make_unique<QByteArray>();
-  in_file.close();
+  auto in_buffer = read_all_data_in_file(path);
+  std::unique_ptr<std::string> out_buffer;
 
   auto err = BasicOperator::GetInstance().Sign(keys, in_buffer, out_buffer,
                                                GPGME_SIG_MODE_DETACH, result);
-  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
-  QFile out_file((path + ".sig").c_str());
+  assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
-  if (!out_file.open(QFile::WriteOnly))
-    throw std::runtime_error("cannot open file");
-
-  QDataStream out(&out_file);
-  out.writeRawData(out_buffer->data(), out_buffer->length());
-  out_file.close();
+  write_buufer_to_file(path + ".sig", *out_buffer);
 
   return err;
 }
@@ -139,33 +141,17 @@ gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyArgsList &keys,
 gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(const std::string &path,
                                                     GpgVerifyResult &result) {
 
-  qDebug() << "Verify File Path" << path.c_str();
+  auto in_buffer = read_all_data_in_file(path);
+  std::unique_ptr<std::string> sign_buffer = nullptr;
 
-  QFileInfo file_info(path.c_str());
-
-  if (!file_info.isFile() || !file_info.isReadable())
-    throw std::runtime_error("no permission");
-
-  QFile in_file(path.c_str());
-  if (!in_file.open(QIODevice::ReadOnly))
-    throw std::runtime_error("cannot open file");
-
-  QByteArray in_buffer = in_file.readAll();
-  std::unique_ptr<QByteArray> sign_buffer = nullptr;
-
-  if (file_info.suffix() == "gpg") {
+  if (get_file_extension(path) == ".gpg") {
     auto err =
         BasicOperator::GetInstance().Verify(in_buffer, sign_buffer, result);
+    assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
     return err;
   } else {
-    QFile sign_file;
-    sign_file.setFileName((path + ".sig").c_str());
-    if (!sign_file.open(QIODevice::ReadOnly)) {
-      throw std::runtime_error("cannot open file");
-    }
-
-    auto sign_buffer = std::make_unique<QByteArray>(sign_file.readAll());
-    in_file.close();
+    auto sign_buffer =
+        std::make_unique<std::string>(read_all_data_in_file(path + ".sig"));
 
     auto err =
         BasicOperator::GetInstance().Verify(in_buffer, sign_buffer, result);
@@ -179,21 +165,8 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
     KeyArgsList &keys, const std::string &path, GpgEncrResult &encr_res,
     GpgSignResult &sign_res) {
 
-  qDebug() << "Encrypt Sign File Path" << path.c_str();
-
-  QFileInfo file_info(path.c_str());
-
-  if (!file_info.isFile() || !file_info.isReadable())
-    throw std::runtime_error("no permission");
-
-  QFile in_file;
-  in_file.setFileName(path.c_str());
-  if (!in_file.open(QIODevice::ReadOnly))
-    throw std::runtime_error("cannot open file");
-
-  QByteArray in_buffer = in_file.readAll();
-  in_file.close();
-  std::unique_ptr<QByteArray> out_buffer = nullptr;
+  auto in_buffer = read_all_data_in_file(path);
+  std::unique_ptr<std::string> out_buffer = nullptr;
 
   // TODO Fill the vector
   std::vector<GpgKey> signerKeys;
@@ -202,17 +175,9 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
   auto err = BasicOperator::GetInstance().EncryptSign(
       keys, signerKeys, in_buffer, out_buffer, encr_res, sign_res);
 
-  if (gpg_err_code(err) != GPG_ERR_NO_ERROR)
-    return err;
+  assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
-  QFile out_file((path + ".gpg").c_str());
-
-  if (!out_file.open(QFile::WriteOnly))
-    throw std::runtime_error("cannot open file");
-
-  QDataStream out(&out_file);
-  out.writeRawData(out_buffer->data(), out_buffer->length());
-  out_file.close();
+  write_buufer_to_file(path + ".gpg", *out_buffer);
 
   return err;
 }
@@ -222,44 +187,20 @@ GpgFrontend::GpgFileOpera::DecryptVerifyFile(const std::string &path,
                                              GpgDecrResult &decr_res,
                                              GpgVerifyResult &verify_res) {
 
-  qDebug() << "Decrypt Verify File Path" << path.c_str();
-
-  QFileInfo file_info(path.c_str());
-
-  if (!file_info.isFile() || !file_info.isReadable())
-    throw std::runtime_error("no permission");
-
-  QFile in_file;
-  in_file.setFileName(path.c_str());
-  if (!in_file.open(QIODevice::ReadOnly))
-    throw std::runtime_error("cannot open file");
-
-  QByteArray in_buffer = in_file.readAll();
-  in_file.close();
-  std::unique_ptr<QByteArray> out_buffer = nullptr;
+  auto in_buffer = read_all_data_in_file(path);
+  std::unique_ptr<std::string> out_buffer = nullptr;
 
   auto err = BasicOperator::GetInstance().DecryptVerify(in_buffer, out_buffer,
                                                         decr_res, verify_res);
-  if (gpg_err_code(err) != GPG_ERR_NO_ERROR)
-    return err;
+  assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
-  std::string out_file_name,
-      file_extension = file_info.suffix().toUtf8().constData();
+  std::string out_file_name = get_file_name_with_path(path),
+              file_extension = get_file_extension(path);
 
-  if (file_extension == "asc" || file_extension == "gpg") {
-    int pos = path.find_last_of('.');
-    out_file_name = path.substr(0, pos);
-  } else
-    out_file_name = (path + ".out").c_str();
+  if (!(file_extension == ".asc" || file_extension == ".gpg"))
+    out_file_name = path + ".out";
 
-  QFile out_file(out_file_name.c_str());
-
-  if (!out_file.open(QFile::WriteOnly))
-    throw std::runtime_error("cannot open file");
-
-  QDataStream out(&out_file);
-  out.writeRawData(out_buffer->data(), out_buffer->length());
-  out_file.close();
+  write_buufer_to_file(out_file_name, *out_buffer);
 
   return err;
 }

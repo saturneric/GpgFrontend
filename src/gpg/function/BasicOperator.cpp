@@ -77,7 +77,6 @@ GpgFrontend::BasicOperator::Verify(BypeArrayRef &in_buffer,
                                    BypeArrayPtr &sig_buffer,
                                    GpgVerifyResult &result) const {
   gpgme_error_t err;
-  gpgme_verify_result_t m_result;
 
   GpgData data_in(in_buffer.data(), in_buffer.size());
 
@@ -204,7 +203,7 @@ GpgFrontend::BasicOperator::GetSigners() {
   auto signers = std::make_unique<std::vector<GpgKey>>();
   for (auto i = 0; i < count; i++) {
     auto key = GpgKey(gpgme_signers_enum(ctx, i));
-    signers->push_back(std::move(GpgKey(std::move(key))));
+    signers->push_back(GpgKey(std::move(key)));
   }
   return signers;
 }

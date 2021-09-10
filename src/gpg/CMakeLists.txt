@@ -19,13 +19,17 @@ message(STATUS "Third Party Libraries " ${THIRD_PARTY_LIBS})
 if (MINGW)
     message(STATUS "Link GPG Static Library For MINGW")
     target_link_libraries(gpg_core ${THIRD_PARTY_LIBS}
+            Boost::date_time
             gpgme gpg-error assuan wsock32)
 elseif(APPLE)
     message(STATUS "Link GPG Static Library For macOS")
     target_link_libraries(gpg_core ${THIRD_PARTY_LIBS}
+            Boost::date_time
             libgpgme.a libgpg-error.a libassuan.a)
 else()
     message(STATUS "Link GPG Static Library For Unix")
     target_link_libraries(gpg_core ${THIRD_PARTY_LIBS}
-            libgpgme.a libgpg-error.a libassuan.a pthread)
+            libgpgme.a libgpg-error.a libassuan.a
+            Boost::date_time
+            pthread)
 endif()

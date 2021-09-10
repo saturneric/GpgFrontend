@@ -24,6 +24,7 @@
 
 #include "GpgFrontendTest.h"
 
+#include <boost/date_time/gregorian/parsers.hpp>
 #include <gtest/gtest.h>
 #include <memory>
 
@@ -134,6 +135,7 @@ protected:
 
 TEST_F(GpgCoreTest, CoreInitTest) {
   auto &ctx = GpgFrontend::GpgContext::GetInstance();
+  ASSERT_TRUE(ctx.good());
 }
 
 TEST_F(GpgCoreTest, GpgDataTest) {
@@ -154,9 +156,15 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
   ASSERT_TRUE(key.good());
   ASSERT_TRUE(key.is_private_key());
   ASSERT_TRUE(key.has_master_key());
+
   ASSERT_FALSE(key.disabled());
+  ASSERT_FALSE(key.revoked());
+
+  ASSERT_EQ(key.protocol(), "OpenPGP");
+
   ASSERT_EQ(key.subKeys()->size(), 2);
   ASSERT_EQ(key.uids()->size(), 1);
+
   ASSERT_TRUE(key.can_certify());
   ASSERT_TRUE(key.can_encrypt());
   ASSERT_TRUE(key.can_sign());
@@ -165,8 +173,17 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
   ASSERT_TRUE(key.CanEncrActual());
   ASSERT_TRUE(key.CanSignActual());
   ASSERT_FALSE(key.CanAuthActual());
+
   ASSERT_EQ(key.name(), "GpgFrontendTest");
   ASSERT_EQ(key.email(), "gpgfrontend@gpgfrontend.pub");
+  ASSERT_EQ(key.fpr(), "9490795B78F8AFE9F93BD09281704859182661FB");
+  ASSERT_EQ(key.expires(), boost::gregorian::from_simple_string("2023-09-05"));
+  ASSERT_EQ(key.pubkey_algo(), "RSA");
+  ASSERT_EQ(key.length(), 3072);
+  ASSERT_EQ(key.last_update(),
+            boost::gregorian::from_simple_string("1970-01-01"));
+  ASSERT_EQ(key.create_time(),
+            boost::gregorian::from_simple_string("2021-09-05"));
 }
 
 TEST_F(GpgCoreTest, GpgKeyDeleteTest) {

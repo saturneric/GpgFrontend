@@ -48,9 +48,6 @@ public:
 
   GpgError DecryptVerifyFile(const std::string &path, GpgDecrResult &decr_res,
                              GpgVerifyResult &verify_res);
-
-private:
-  GpgContext &ctx = GpgContext::GetInstance();
 };
 
 } // namespace GpgFrontend
