@@ -51,5 +51,5 @@ void GpgFrontend::GpgCommandExecutor::Execute(
 
   ios.run();
   child_process.wait();
-  int result = child_process.exit_code();
+  child_process.exit_code();
 }

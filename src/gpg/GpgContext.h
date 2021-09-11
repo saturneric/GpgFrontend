@@ -39,21 +39,11 @@ class GpgContext : public SingletonFunctionObject<GpgContext> {
 public:
   GpgContext();
 
-  ~GpgContext() = default;
+  ~GpgContext() override = default;
 
   [[nodiscard]] bool good() const;
 
-  const GpgInfo &GetInfo() const { return info; }
-
-  void clearPasswordCache();
-
-  /**
-   * @details If text contains PGP-message, put a linebreak before the message,
-   * so that gpgme can decrypt correctly
-   *
-   * @param in Pointer to the QBytearray to check.
-   */
-  static void preventNoDataErr(BypeArrayPtr in);
+  [[nodiscard]] const GpgInfo &GetInfo() const { return info; }
 
   static std::string getGpgmeVersion();
 
@@ -62,7 +52,7 @@ public:
 private:
   GpgInfo info;
 
-  struct __ctx_ref_deletor {
+  struct _ctx_ref_deletor {
     void operator()(gpgme_ctx_t _ctx) {
       if (_ctx != nullptr)
         gpgme_release(_ctx);
@@ -70,13 +60,10 @@ private:
   };
 
   using CtxRefHandler =
-      std::unique_ptr<struct gpgme_context, __ctx_ref_deletor>;
+      std::unique_ptr<struct gpgme_context, _ctx_ref_deletor>;
   CtxRefHandler _ctx_ref = nullptr;
 
   bool good_ = true;
-
-  gpgme_error_t passphrase(const char *uid_hint, const char *passphrase_info,
-                           int last_was_bad, int fd);
 
 public:
   static gpgme_error_t test_passphrase_cb(void *opaque, const char *uid_hint,
@@ -84,10 +71,10 @@ public:
                                           int last_was_bad, int fd) {
 
     LOG(INFO) << "test_passphrase_cb Called";
-    int res;
+    size_t res;
     char pass[] = "abcdefg\n";
-    int passlen = strlen(pass);
-    int off = 0;
+    size_t pass_len = strlen(pass);
+    size_t off = 0;
 
     (void)opaque;
     (void)uid_hint;
@@ -95,15 +82,15 @@ public:
     (void)last_was_bad;
 
     do {
-      res = gpgme_io_write(fd, &pass[off], passlen - off);
+        res = gpgme_io_write(fd, &pass[off], pass_len - off);
       if (res > 0)
         off += res;
-    } while (res > 0 && off != passlen);
+    } while (res > 0 && off != pass_len);
 
-    return off == passlen ? 0 : gpgme_error_from_errno(errno);
+    return off == pass_len ? 0 : gpgme_error_from_errno(errno);
   }
 
-  void SetPassphraseCb(decltype(test_passphrase_cb) func);
+  void SetPassphraseCb(decltype(test_passphrase_cb) func) const;
 };
 } // namespace GpgFrontend
 

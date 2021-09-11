@@ -201,7 +201,7 @@ std::unique_ptr<std::vector<GpgFrontend::GpgKey>>
 GpgFrontend::BasicOperator::GetSigners() {
   auto count = gpgme_signers_count(ctx);
   auto signers = std::make_unique<std::vector<GpgKey>>();
-  for (auto i = 0; i < count; i++) {
+  for (auto i = 0u; i < count; i++) {
     auto key = GpgKey(gpgme_signers_enum(ctx, i));
     signers->push_back(GpgKey(std::move(key)));
   }

@@ -1,6 +1,6 @@
 # Project
-include/GpgFrontend.h
-include/GpgFrontendBuildInfo.h
+src/GpgFrontend.h
+src/GpgFrontendBuildInfo.h
 
 #Vscode
 .vscode/*

@@ -52,7 +52,7 @@ if(${CMAKE_BUILD_TYPE} STREQUAL  "Release")
 else()
     set(BUILD_FLAG 1)
     message(STATUS "Build Type DEBUG")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fprofile-instr-generate -fcoverage-mapping")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 endif()
 
 # Get Git Information
