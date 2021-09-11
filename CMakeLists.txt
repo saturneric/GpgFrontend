@@ -5,6 +5,27 @@ project(GpgFrontend VERSION 1.3.1 LANGUAGES CXX)
 message(STATUS "GPGFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
 # C++
+# Need Gcc For Coverage Test
+set(CMAKE_C_COMPILER "/usr/bin/gcc")
+set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    # using Clang
+    message(STATUS "Using Complier Clang")
+    set(USING_COMPILER_CLANG 1)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    # using GCC
+    message(STATUS "Using Complier Gcc")
+    set(USING_COMPILER_GCC 1)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    # using Intel C++
+    message(STATUS "Using Complier Intel")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    # using Visual Studio C++
+    message(STATUS "Using Complier Msvc")
+endif()
+
+# Using Standard CXX-20
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -22,10 +43,24 @@ else()
     message(STATUS "Set CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 endif()
 
+# Specify different compilation modes
 if(BUILD_CONFIG)
+    # Test Build
     if(${BUILD_CONFIG} STREQUAL  "test")
         message(STATUS "Switch TEST_BUILD")
         set(TEST_BUILD 1)
+        set(AppName GpgFrontendTest)
+    # Test Build With Coverage Test
+    elseif(${BUILD_CONFIG} STREQUAL  "test_coverage")
+        message(STATUS "Switch TEST_COVERAGE_BUILD")
+        set(TEST_BUILD 1)
+        if(USING_COMPILER_CLANG OR USING_COMPILER_GCC)
+            set(TEST_COVERAGE_BUILD 1)
+            set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
+        else()
+            message(WARNING "Branch testing is disabled")
+            message(WARNING "Please use gcc or clang for branch coverage test.")
+        endif()
         set(AppName GpgFrontendTest)
     endif()
 else()
@@ -52,8 +87,15 @@ if(${CMAKE_BUILD_TYPE} STREQUAL  "Release")
 else()
     set(BUILD_FLAG 1)
     message(STATUS "Build Type DEBUG")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
+    # Generate branch coverage information using gcc
+    if(TEST_COVERAGE_BUILD AND USING_COMPILER_GCC)
+        message(STATUS "Set branch coverage test parameters for Gcc")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+    endif()
 endif()
+
+message(STATUS "Build Flags " ${CMAKE_CXX_FLAGS})
 
 # Get Git Information
 
@@ -193,8 +235,7 @@ add_subdirectory(third_party)
 add_subdirectory(src)
 
 if(TEST_BUILD)
+    include(CTest)
+    enable_testing()
     add_subdirectory(test)
 endif()
-
-
-
