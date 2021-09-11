@@ -44,7 +44,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
 
   // Alleviate another crash problem caused by an unknown array out-of-bounds
   // access
-  for (int i = 0; i < uid_list->size(); i++) {
+  for (size_t i = 0; i < uid_list->size(); i++) {
     GpgData data_out;
     auto err = gpgme_op_export(ctx, (*uid_list)[i].c_str(), 0, data_out);
     assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);

@@ -41,9 +41,9 @@ namespace GpgFrontend {
  */
 GpgContext::GpgContext() {
 
-  static bool __first = true;
+  static bool _first = true;
 
-  if (__first) {
+  if (_first) {
     /* Initialize the locale environment. */
     setlocale(LC_ALL, "");
     gpgme_check_version(nullptr);
@@ -51,7 +51,7 @@ GpgContext::GpgContext() {
 #ifdef LC_MESSAGES
     gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
 #endif
-    __first = false;
+    _first = false;
   }
 
   gpgme_ctx_t _p_ctx;
@@ -109,24 +109,8 @@ GpgContext::GpgContext() {
 
 bool GpgContext::good() const { return good_; }
 
-void GpgContext::SetPassphraseCb(decltype(test_passphrase_cb) cb) {
+void GpgContext::SetPassphraseCb(decltype(test_passphrase_cb) cb) const {
   gpgme_set_passphrase_cb(*this, cb, nullptr);
-}
-
-/** return type should be gpgme_error_t*/
-
-/*
- * if there is no '\n' before the PGP-Begin-Block, but for example a whitespace,
- * GPGME doesn't recognise the Message as encrypted. This function adds '\n'
- * before the PGP-Begin-Block, if missing.
- */
-void GpgContext::preventNoDataErr(BypeArrayPtr in) {
-  int block_start = in->find(GpgConstants::PGP_CRYPT_BEGIN);
-  if (block_start != std::string::npos && in->at(block_start - 1) != '\n')
-    in->insert(block_start, "\n");
-  block_start = in->find(GpgConstants::PGP_SIGNED_BEGIN);
-  if (block_start != std::string::npos && in->at(block_start - 1) != '\n')
-    in->insert(block_start, "\n");
 }
 
 std::string GpgContext::getGpgmeVersion() {

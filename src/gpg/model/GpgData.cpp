@@ -73,5 +73,5 @@ GpgFrontend::BypeArrayPtr GpgFrontend::GpgData::Read2Buffer() {
       assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
     }
   }
-  return std::move(out_buffer);
+  return out_buffer;
 }
