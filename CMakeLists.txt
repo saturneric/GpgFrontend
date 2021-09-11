@@ -5,10 +5,7 @@ project(GpgFrontend VERSION 1.3.1 LANGUAGES CXX)
 message(STATUS "GPGFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
 # C++
-# Need Gcc For Coverage Test
-set(CMAKE_C_COMPILER "/usr/bin/gcc")
-set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-
+#Detect Compiler
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     # using Clang
     message(STATUS "Using Complier Clang")
@@ -89,9 +86,14 @@ else()
     message(STATUS "Build Type DEBUG")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
     # Generate branch coverage information using gcc
-    if(TEST_COVERAGE_BUILD AND USING_COMPILER_GCC)
-        message(STATUS "Set branch coverage test parameters for Gcc")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+    if(TEST_COVERAGE_BUILD)
+        if(USING_COMPILER_GCC)
+            message(STATUS "Set branch coverage test parameters for Gcc")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+        elseif(USING_COMPILER_CLANG)
+            message(STATUS "Set branch coverage test parameters for Clang")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate -fcoverage-mapping")
+        endif()
     endif()
 endif()
 
