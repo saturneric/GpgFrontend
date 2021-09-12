@@ -31,7 +31,7 @@
 #include <windows.h>
 #endif
 
-#define INT2VOIDP(i) (void *)(uintptr_t)(i)
+#define INT2VOIDP(i) (void*)(uintptr_t)(i)
 
 namespace GpgFrontend {
 
@@ -40,7 +40,6 @@ namespace GpgFrontend {
  *  Set up gpgme-context, set paths to app-run path
  */
 GpgContext::GpgContext() {
-
   static bool _first = true;
 
   if (_first) {
@@ -76,7 +75,7 @@ GpgContext::GpgContext() {
       find_gpgconf = true;
     if (engineInfo->protocol == GPGME_PROTOCOL_OpenPGP &&
         strcmp(engineInfo->version, "1.0.0") != 0)
-      find_openpgp = true, info.appPath = engineInfo->file_name;
+      find_openpgp = true, info.AppPath = engineInfo->file_name;
     if (engineInfo->protocol == GPGME_PROTOCOL_CMS &&
         strcmp(engineInfo->version, "1.0.0") != 0)
       find_cms = true;
@@ -107,7 +106,9 @@ GpgContext::GpgContext() {
   }
 }
 
-bool GpgContext::good() const { return good_; }
+bool GpgContext::good() const {
+  return good_;
+}
 
 void GpgContext::SetPassphraseCb(decltype(test_passphrase_cb) cb) const {
   gpgme_set_passphrase_cb(*this, cb, nullptr);
@@ -117,4 +118,4 @@ std::string GpgContext::getGpgmeVersion() {
   return {gpgme_check_version(nullptr)};
 }
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend

@@ -29,8 +29,7 @@ using boost::process::async_pipe;
 
 void GpgFrontend::GpgCommandExecutor::Execute(
     StringArgsRef arguments,
-    const std::function<void(async_pipe &in, async_pipe &out)> &interact_func) {
-
+    const std::function<void(async_pipe& in, async_pipe& out)>& interact_func) {
   using namespace boost::process;
 
   boost::asio::io_service ios;
@@ -40,12 +39,12 @@ void GpgFrontend::GpgCommandExecutor::Execute(
   async_pipe in_pipe_stream(ios);
   async_pipe out_pipe_stream(ios);
 
-  child child_process(ctx.GetInfo().appPath.c_str(), arguments,
+  child child_process(ctx.GetInfo().AppPath.c_str(), arguments,
                       std_out > in_pipe_stream, std_in < out_pipe_stream);
 
   boost::asio::async_read(
       in_pipe_stream, boost::asio::buffer(buf),
-      [&](const boost::system::error_code &ec, std::size_t size) {
+      [&](const boost::system::error_code& ec, std::size_t size) {
         interact_func(in_pipe_stream, out_pipe_stream);
       });
 

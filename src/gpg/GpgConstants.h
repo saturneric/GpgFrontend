@@ -30,11 +30,13 @@
 #include <functional>
 
 #include <assert.h>
+#include <gpg-error.h>
 #include <gpgme.h>
 #include <memory>
 #include <string>
 
 #include <easyloggingpp/easylogging++.h>
+#include <libconfig.h++>
 
 const int RESTART_CODE = 1000;
 
@@ -42,50 +44,61 @@ namespace GpgFrontend {
 
 using BypeArrayPtr = std::unique_ptr<std::string>;
 using StdBypeArrayPtr = std::unique_ptr<std::string>;
-using BypeArrayRef = std::string &;
+using BypeArrayRef = std::string&;
 using StringArgsPtr = std::unique_ptr<std::vector<std::string>>;
-using StringArgsRef = std::vector<std::string> &;
+using StringArgsRef = std::vector<std::string>&;
 
 using GpgError = gpgme_error_t;
 
 // Result
-struct __result_ref_deletor {
-  void operator()(void *_result) {
+struct _result_ref_deletor {
+  void operator()(void* _result) {
     if (_result != nullptr)
       gpgme_result_unref(_result);
   }
 };
 
 using GpgEncrResult =
-    std::unique_ptr<struct _gpgme_op_encrypt_result, __result_ref_deletor>;
+    std::unique_ptr<struct _gpgme_op_encrypt_result, _result_ref_deletor>;
 using GpgDecrResult =
-    std::unique_ptr<struct _gpgme_op_decrypt_result, __result_ref_deletor>;
+    std::unique_ptr<struct _gpgme_op_decrypt_result, _result_ref_deletor>;
 using GpgSignResult =
-    std::unique_ptr<struct _gpgme_op_sign_result, __result_ref_deletor>;
+    std::unique_ptr<struct _gpgme_op_sign_result, _result_ref_deletor>;
 using GpgVerifyResult =
-    std::unique_ptr<struct _gpgme_op_verify_result, __result_ref_deletor>;
+    std::unique_ptr<struct _gpgme_op_verify_result, _result_ref_deletor>;
 
 // Error Info Printer
 GpgError check_gpg_error(GpgError err);
-GpgError check_gpg_error(GpgError gpgmeError, const std::string &comment);
-gpg_err_code_t check_gpg_error_2_err_code(gpgme_error_t err);
+GpgError check_gpg_error(GpgError gpgmeError, const std::string& comment);
+gpg_err_code_t check_gpg_error_2_err_code(
+    gpgme_error_t err,
+    gpgme_error_t predict = GPG_ERR_NO_ERROR);
 
 // Fingerprint
 std::string beautify_fingerprint(BypeArrayRef fingerprint);
+
+// File Operation
+std::string read_all_data_in_file(const std::string& path);
+void write_buffer_to_file(const std::string& path,
+                          const std::string& out_buffer);
+
+std::string get_file_extension(const std::string& path);
+std::string get_file_extension(const std::string& path);
+std::string get_file_name_with_path(const std::string& path);
 
 // Check
 int text_is_signed(BypeArrayRef text);
 
 class GpgConstants {
-public:
-  static const char *PGP_CRYPT_BEGIN;
-  static const char *PGP_CRYPT_END;
-  static const char *PGP_SIGNED_BEGIN;
-  static const char *PGP_SIGNED_END;
-  static const char *PGP_SIGNATURE_BEGIN;
-  static const char *PGP_SIGNATURE_END;
-  static const char *GPG_FRONTEND_SHORT_CRYPTO_HEAD;
+ public:
+  static const char* PGP_CRYPT_BEGIN;
+  static const char* PGP_CRYPT_END;
+  static const char* PGP_SIGNED_BEGIN;
+  static const char* PGP_SIGNED_END;
+  static const char* PGP_SIGNATURE_BEGIN;
+  static const char* PGP_SIGNATURE_END;
+  static const char* GPG_FRONTEND_SHORT_CRYPTO_HEAD;
 };
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPG_CONSTANTS_H
+#endif  // GPG_CONSTANTS_H

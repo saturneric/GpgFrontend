@@ -1,5 +1,8 @@
 find_package(GTest REQUIRED)
 
+# Set configure for test
+file(COPY ${CMAKE_SOURCE_DIR}/test/conf DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FOLLOW_SYMLINK_CHAIN)
+
 aux_source_directory(. TEST_SOURCE)
 
 add_executable(
