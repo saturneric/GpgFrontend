@@ -31,11 +31,13 @@
  * Use to record some info about gnupg
  */
 class GpgInfo {
-public:
+ public:
   /**
    * executable binary path of gnupg
    */
-  std::string appPath;
+  std::string AppPath;
+
+  std::string DatabasePath;
 };
 
-#endif // GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#endif  // GPGFRONTEND_ZH_CN_TS_GPGINFO_H

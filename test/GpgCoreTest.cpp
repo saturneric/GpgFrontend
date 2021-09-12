@@ -24,18 +24,20 @@
 
 #include "GpgFrontendTest.h"
 
-#include <boost/date_time/gregorian/parsers.hpp>
+#include <gpg-error.h>
 #include <gtest/gtest.h>
+#include <boost/date_time/gregorian/parsers.hpp>
+#include <boost/dll.hpp>
 #include <memory>
 
+#include "gpg/GpgConstants.h"
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExportor.h"
 #include "gpg/function/GpgKeyOpera.h"
 
 TEST(GpgKeyTest, GpgCoreTest) {}
 class GpgCoreTest : public ::testing::Test {
-
-protected:
+ protected:
   GpgFrontend::StdBypeArrayPtr secret_key_ = std::make_unique<std::string>(
       "-----BEGIN PGP PRIVATE KEY BLOCK-----\n"
       "lQVYBGE0XVEBDADHYmnEbRB8hxqyQmaLmIRU71PTMZc162qWoWTMaPd7a8gQcQwc"
@@ -124,17 +126,35 @@ protected:
   virtual ~GpgCoreTest() = default;
 
   virtual void SetUp() {
-    GpgFrontend::GpgContext::GetInstance().SetPassphraseCb(
-        GpgFrontend::GpgContext::test_passphrase_cb);
+    auto config_path =
+        boost::dll::program_location().parent_path() / "conf" / "core.cfg";
+
+    using namespace libconfig;
+    Config cfg;
+    ASSERT_NO_THROW(cfg.readFile(config_path.c_str()));
+
+    const Setting& root = cfg.getRoot();
+    ASSERT_TRUE(root.exists("independent_database"));
+    bool independent_database = true;
+    ASSERT_TRUE(root.lookupValue("independent_database", independent_database));
+    if (independent_database)
+
+      GpgFrontend::GpgContext::GetInstance().SetPassphraseCb(
+          GpgFrontend::GpgContext::test_passphrase_cb);
     GpgFrontend::GpgKeyImportExportor::GetInstance().ImportKey(
         std::move(this->secret_key_));
   }
 
   virtual void TearDown() {}
+
+ private:
+  void dealing_private_keys() {}
+
+  void configure_independent_database() {}
 };
 
 TEST_F(GpgCoreTest, CoreInitTest) {
-  auto &ctx = GpgFrontend::GpgContext::GetInstance();
+  auto& ctx = GpgFrontend::GpgContext::GetInstance();
   ASSERT_TRUE(ctx.good());
 }
 
@@ -175,7 +195,9 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
   ASSERT_FALSE(key.CanAuthActual());
 
   ASSERT_EQ(key.name(), "GpgFrontendTest");
+  ASSERT_TRUE(key.comment().empty());
   ASSERT_EQ(key.email(), "gpgfrontend@gpgfrontend.pub");
+  ASSERT_EQ(key.id(), "81704859182661FB");
   ASSERT_EQ(key.fpr(), "9490795B78F8AFE9F93BD09281704859182661FB");
   ASSERT_EQ(key.expires(), boost::gregorian::from_simple_string("2023-09-05"));
   ASSERT_EQ(key.pubkey_algo(), "RSA");
@@ -184,6 +206,90 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
             boost::gregorian::from_simple_string("1970-01-01"));
   ASSERT_EQ(key.create_time(),
             boost::gregorian::from_simple_string("2021-09-05"));
+
+  ASSERT_EQ(key.owner_trust(), "Unknown");
+
+  using namespace boost::posix_time;
+  ASSERT_EQ(key.expired(), key.expires() < second_clock::local_time().date());
+}
+
+TEST_F(GpgCoreTest, GpgSubKeyTest) {
+  auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(
+      "9490795B78F8AFE9F93BD09281704859182661FB");
+  auto sub_keys = key.subKeys();
+  ASSERT_EQ(sub_keys->size(), 2);
+
+  auto& sub_key = sub_keys->back();
+
+  ASSERT_FALSE(sub_key.revoked());
+  ASSERT_FALSE(sub_key.disabled());
+  ASSERT_EQ(sub_key.timestamp(),
+            boost::gregorian::from_simple_string("2021-09-05"));
+
+  ASSERT_FALSE(sub_key.is_cardkey());
+  ASSERT_TRUE(sub_key.is_private_key());
+  ASSERT_EQ(sub_key.id(), "2B36803235B5E25B");
+  ASSERT_EQ(sub_key.fpr(), "50D37E8F8EE7340A6794E0592B36803235B5E25B");
+  ASSERT_EQ(sub_key.length(), 3072);
+  ASSERT_EQ(sub_key.pubkey_algo(), "RSA");
+  ASSERT_FALSE(sub_key.can_certify());
+  ASSERT_FALSE(sub_key.can_authenticate());
+  ASSERT_FALSE(sub_key.can_sign());
+  ASSERT_TRUE(sub_key.can_encrypt());
+  ASSERT_EQ(key.expires(), boost::gregorian::from_simple_string("2023-09-05"));
+
+  using namespace boost::posix_time;
+  ASSERT_EQ(sub_key.expired(),
+            sub_key.expires() < second_clock::local_time().date());
+}
+
+TEST_F(GpgCoreTest, GpgUIDTest) {
+  auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(
+      "9490795B78F8AFE9F93BD09281704859182661FB");
+  auto uids = key.uids();
+  ASSERT_EQ(uids->size(), 1);
+  auto& uid = uids->front();
+
+  ASSERT_EQ(uid.name(), "GpgFrontendTest");
+  ASSERT_TRUE(uid.comment().empty());
+  ASSERT_EQ(uid.email(), "gpgfrontend@gpgfrontend.pub");
+  ASSERT_EQ(uid.uid(), "GpgFrontendTest <gpgfrontend@gpgfrontend.pub>");
+  ASSERT_FALSE(uid.invalid());
+  ASSERT_FALSE(uid.revoked());
+}
+
+TEST_F(GpgCoreTest, GpgKeySignatureTest) {
+  auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(
+      "9490795B78F8AFE9F93BD09281704859182661FB");
+  auto uids = key.uids();
+  ASSERT_EQ(uids->size(), 1);
+  auto& uid = uids->front();
+
+  auto signatures = uid.signatures();
+  ASSERT_EQ(signatures->size(), 1);
+  auto& signature = signatures->front();
+
+  ASSERT_EQ(signature.name(), "GpgFrontendTest");
+  ASSERT_TRUE(signature.comment().empty());
+  ASSERT_EQ(signature.email(), "gpgfrontend@gpgfrontend.pub");
+  ASSERT_EQ(signature.keyid(), "81704859182661FB");
+  ASSERT_EQ(signature.pubkey_algo(), "RSA");
+
+  ASSERT_FALSE(signature.revoked());
+  ASSERT_FALSE(signature.invalid());
+  ASSERT_EQ(GpgFrontend::check_gpg_error_2_err_code(signature.status()),
+            GPG_ERR_NO_ERROR);
+  ASSERT_EQ(signature.uid(), "GpgFrontendTest <gpgfrontend@gpgfrontend.pub>");
+}
+
+TEST_F(GpgCoreTest, GpgKeyGetterTest) {
+  auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(
+      "9490795B78F8AFE9F93BD09281704859182661FB");
+  ASSERT_TRUE(key.good());
+  auto keys = GpgFrontend::GpgKeyGetter::GetInstance().FetchKey();
+  ASSERT_GE(keys->size(), 1);
+
+  ASSERT_TRUE(find(keys->begin(), keys->end(), key) != keys->end());
 }
 
 TEST_F(GpgCoreTest, GpgKeyDeleteTest) {

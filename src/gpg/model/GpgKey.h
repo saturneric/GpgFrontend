@@ -34,7 +34,7 @@
 namespace GpgFrontend {
 
 class GpgKey {
-public:
+ public:
   [[nodiscard]] bool good() const { return _key_ref != nullptr; }
 
   [[nodiscard]] std::string id() const { return _key_ref->subkeys->keyid; }
@@ -53,19 +53,20 @@ public:
 
   [[nodiscard]] std::string owner_trust() const {
     switch (_key_ref->owner_trust) {
-    case GPGME_VALIDITY_UNKNOWN:
-      return "Unknown";
-    case GPGME_VALIDITY_UNDEFINED:
-      return "Undefined";
-    case GPGME_VALIDITY_NEVER:
-      return "Never";
-    case GPGME_VALIDITY_MARGINAL:
-      return "Marginal";
-    case GPGME_VALIDITY_FULL:
-      return "FULL";
-    case GPGME_VALIDITY_ULTIMATE:
-      return "Ultimate";
+      case GPGME_VALIDITY_UNKNOWN:
+        return "Unknown";
+      case GPGME_VALIDITY_UNDEFINED:
+        return "Undefined";
+      case GPGME_VALIDITY_NEVER:
+        return "Never";
+      case GPGME_VALIDITY_MARGINAL:
+        return "Marginal";
+      case GPGME_VALIDITY_FULL:
+        return "FULL";
+      case GPGME_VALIDITY_ULTIMATE:
+        return "Ultimate";
     }
+    return "Invalid";
   }
 
   [[nodiscard]] std::string pubkey_algo() const {
@@ -124,33 +125,37 @@ public:
 
   GpgKey() = default;
 
-  explicit GpgKey(gpgme_key_t &&key);
+  explicit GpgKey(gpgme_key_t&& key);
 
   ~GpgKey() = default;
 
-  GpgKey(const gpgme_key_t &key) = delete;
+  GpgKey(const gpgme_key_t& key) = delete;
 
-  GpgKey(GpgKey &&k) noexcept;
+  GpgKey(GpgKey&& k) noexcept;
 
-  GpgKey &operator=(GpgKey &&k) noexcept;
+  GpgKey& operator=(GpgKey&& k) noexcept;
 
-  GpgKey &operator=(const gpgme_key_t &key) = delete;
+  GpgKey& operator=(const gpgme_key_t& key) = delete;
+
+  bool operator==(const GpgKey& o) { return o.id() == this->id(); }
+
+  bool operator<=(const GpgKey& o) { return this->id() < o.id(); }
 
   explicit operator gpgme_key_t() const { return _key_ref.get(); }
 
-private:
-  struct __key_ref_deletor {
+ private:
+  struct _key_ref_deletor {
     void operator()(gpgme_key_t _key) {
       if (_key != nullptr)
         gpgme_key_unref(_key);
     }
   };
 
-  using KeyRefHandler = std::unique_ptr<struct _gpgme_key, __key_ref_deletor>;
+  using KeyRefHandler = std::unique_ptr<struct _gpgme_key, _key_ref_deletor>;
 
   KeyRefHandler _key_ref = nullptr;
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_GPGKEY_H
+#endif  // GPGFRONTEND_GPGKEY_H

@@ -22,8 +22,8 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     message(STATUS "Using Complier Msvc")
 endif()
 
-# Using Standard CXX-20
-set(CMAKE_CXX_STANDARD 20)
+# Using Standard C++-17 (Consider compatibility)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -198,7 +198,7 @@ find_package(Boost COMPONENTS date_time filesystem REQUIRED)
 # Basic Envirnoment Configure
 set(BASIC_ENV_CONFIG 1)
 set(QT_MOC_CONFIG 1)
-set(ESAY_LOGGING_CPP 1)
+set(ESAY_LOGGING_PP 1)
 
 if(FULL_APPLICATION_BUILD)
     message(STATUS "Build Full Application")
