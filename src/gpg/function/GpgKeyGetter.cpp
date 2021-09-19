@@ -32,6 +32,7 @@ GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr) {
   gpgme_get_key(ctx, fpr.c_str(), &_p_key, 1);
   if (_p_key == nullptr)
     DLOG(WARNING) << "GpgKeyGetter GetKey _p_key Null";
+  assert(_p_key != nullptr);
   return GpgKey(std::move(_p_key));
 }
 

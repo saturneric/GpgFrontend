@@ -25,6 +25,7 @@
 #ifndef _GPGKEYIMPORTEXPORTOR_H
 #define _GPGKEYIMPORTEXPORTOR_H
 
+#include <string>
 #include "gpg/GpgConstants.h"
 #include "gpg/GpgContext.h"
 #include "gpg/GpgFunctionObject.h"
@@ -33,7 +34,7 @@
 namespace GpgFrontend {
 
 class GpgImportedKey {
-public:
+ public:
   std::string fpr;
   int import_status;
 };
@@ -41,7 +42,7 @@ public:
 typedef std::list<GpgImportedKey> GpgImportedKeyList;
 
 class GpgImportInformation {
-public:
+ public:
   GpgImportInformation() = default;
 
   explicit GpgImportInformation(gpgme_import_result_t result) {
@@ -93,19 +94,20 @@ public:
 
 class GpgKeyImportExportor
     : public SingletonFunctionObject<GpgKeyImportExportor> {
-public:
+ public:
   GpgImportInformation ImportKey(StdBypeArrayPtr inBuffer);
 
-  bool ExportKeys(KeyIdArgsListPtr &uid_list, BypeArrayPtr &out_buffer) const;
+  bool ExportKeys(KeyIdArgsListPtr& uid_list, BypeArrayPtr& out_buffer) const;
 
-  bool ExportKeys(KeyArgsList &keys, BypeArrayPtr &outBuffer) const;
+  bool ExportKeys(KeyArgsList& keys, BypeArrayPtr& outBuffer) const;
 
-  bool ExportSecretKey(const GpgKey &key, BypeArrayPtr outBuffer) const;
+  bool ExportSecretKey(const GpgKey& key, BypeArrayPtr outBuffer) const;
 
-private:
-  GpgContext &ctx = GpgContext::GetInstance();
+ private:
+  GpgContext& ctx =
+      GpgContext::GetInstance(SingletonFunctionObject::GetDefaultChannel());
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // _GPGKEYIMPORTEXPORTOR_H
+#endif  // _GPGKEYIMPORTEXPORTOR_H

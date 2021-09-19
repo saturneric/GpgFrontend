@@ -32,19 +32,19 @@
 namespace GpgFrontend {
 
 class GpgKeyGetter : public SingletonFunctionObject<GpgKeyGetter> {
+ public:
+  GpgKeyGetter() = default;
 
-public:
-  GpgKey GetKey(const std::string &fpr);
+  GpgKey GetKey(const std::string& fpr);
 
-  GpgKey GetPubkey(const std::string &fpr);
+  GpgKey GetPubkey(const std::string& fpr);
 
   KeyListPtr FetchKey();
 
-  GpgKeyGetter() = default;
-
-private:
-  GpgContext &ctx = GpgContext::GetInstance();
+ private:
+  GpgContext& ctx =
+      GpgContext::GetInstance(SingletonFunctionObject::GetDefaultChannel());
 };
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_ZH_CN_TS_GPGKEYGETTER_H
+#endif  // GPGFRONTEND_ZH_CN_TS_GPGKEYGETTER_H
