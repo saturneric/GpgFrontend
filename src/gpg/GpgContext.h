@@ -35,21 +35,22 @@ namespace GpgFrontend {
  * Custom Encapsulation of GpgME APIs
  */
 class GpgContext : public SingletonFunctionObject<GpgContext> {
-
-public:
-  GpgContext();
+ public:
+  GpgContext(bool independent_database = false,
+             std::string path = std::string(),
+             int channel = 0);
 
   ~GpgContext() override = default;
 
   [[nodiscard]] bool good() const;
 
-  [[nodiscard]] const GpgInfo &GetInfo() const { return info; }
+  [[nodiscard]] const GpgInfo& GetInfo() const { return info; }
 
   static std::string getGpgmeVersion();
 
   operator gpgme_ctx_t() const { return _ctx_ref.get(); }
 
-private:
+ private:
   GpgInfo info;
 
   struct _ctx_ref_deletor {
@@ -59,17 +60,17 @@ private:
     }
   };
 
-  using CtxRefHandler =
-      std::unique_ptr<struct gpgme_context, _ctx_ref_deletor>;
+  using CtxRefHandler = std::unique_ptr<struct gpgme_context, _ctx_ref_deletor>;
   CtxRefHandler _ctx_ref = nullptr;
 
   bool good_ = true;
 
-public:
-  static gpgme_error_t test_passphrase_cb(void *opaque, const char *uid_hint,
-                                          const char *passphrase_info,
-                                          int last_was_bad, int fd) {
-
+ public:
+  static gpgme_error_t test_passphrase_cb(void* opaque,
+                                          const char* uid_hint,
+                                          const char* passphrase_info,
+                                          int last_was_bad,
+                                          int fd) {
     LOG(INFO) << "test_passphrase_cb Called";
     size_t res;
     char pass[] = "abcdefg\n";
@@ -82,7 +83,7 @@ public:
     (void)last_was_bad;
 
     do {
-        res = gpgme_io_write(fd, &pass[off], pass_len - off);
+      res = gpgme_io_write(fd, &pass[off], pass_len - off);
       if (res > 0)
         off += res;
     } while (res > 0 && off != pass_len);
@@ -92,6 +93,6 @@ public:
 
   void SetPassphraseCb(decltype(test_passphrase_cb) func) const;
 };
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // __SGPGMEPP_CONTEXT_H__
+#endif  // __SGPGMEPP_CONTEXT_H__

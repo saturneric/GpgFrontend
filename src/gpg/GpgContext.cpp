@@ -23,9 +23,13 @@
  */
 
 #include "gpg/GpgContext.h"
-#include "GpgConstants.h"
 
+#include <gpg-error.h>
+#include <gpgme.h>
 #include <functional>
+#include <string>
+
+#include "GpgConstants.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -39,7 +43,10 @@ namespace GpgFrontend {
  * Constructor
  *  Set up gpgme-context, set paths to app-run path
  */
-GpgContext::GpgContext() {
+GpgContext::GpgContext(bool independent_database,
+                       std::string db_path,
+                       int channel)
+    : SingletonFunctionObject<GpgContext>(channel) {
   static bool _first = true;
 
   if (_first) {
@@ -57,25 +64,26 @@ GpgContext::GpgContext() {
   check_gpg_error(gpgme_new(&_p_ctx));
   _ctx_ref = CtxRefHandler(_p_ctx);
 
-  LOG(INFO) << "GpgContext _ctx_ref Created";
+  DLOG(INFO) << "GpgContext _ctx_ref Created";
 
   auto engineInfo = gpgme_ctx_get_engine_info(*this);
 
-  LOG(INFO) << "GpgContext gpgme_ctx_get_engine_info Called";
+  DLOG(INFO) << "GpgContext gpgme_ctx_get_engine_info Called";
 
   // Check ENV before running
   bool check_pass = false, find_openpgp = false, find_gpgconf = false,
        find_assuan = false, find_cms = false;
   while (engineInfo != nullptr) {
-    LOG(INFO) << gpgme_get_protocol_name(engineInfo->protocol) << " "
-              << engineInfo->file_name << " " << engineInfo->version;
+    DLOG(INFO) << gpgme_get_protocol_name(engineInfo->protocol) << " "
+               << engineInfo->file_name << " " << engineInfo->version;
 
     if (engineInfo->protocol == GPGME_PROTOCOL_GPGCONF &&
         strcmp(engineInfo->version, "1.0.0") != 0)
       find_gpgconf = true;
     if (engineInfo->protocol == GPGME_PROTOCOL_OpenPGP &&
         strcmp(engineInfo->version, "1.0.0") != 0)
-      find_openpgp = true, info.AppPath = engineInfo->file_name;
+      find_openpgp = true, info.AppPath = engineInfo->file_name,
+      info.DatabasePath = "default";
     if (engineInfo->protocol == GPGME_PROTOCOL_CMS &&
         strcmp(engineInfo->version, "1.0.0") != 0)
       find_cms = true;
@@ -87,11 +95,21 @@ GpgContext::GpgContext() {
   if (find_gpgconf && find_openpgp && find_cms && find_assuan)
     check_pass = true;
 
-  LOG(INFO) << "GpgContext check_pass " << check_pass;
+  DLOG(INFO) << "GpgContext check_pass " << check_pass;
   if (!check_pass) {
     good_ = false;
     return;
   } else {
+    // Set Independent Database
+    if (independent_database) {
+      info.DatabasePath = db_path;
+      auto err = gpgme_ctx_set_engine_info(
+          _ctx_ref.get(), GPGME_PROTOCOL_OpenPGP, info.AppPath.c_str(),
+          info.DatabasePath.c_str());
+      assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
+      DLOG(INFO) << "Set independent_database path" << db_path;
+    }
+
     /** Setting the output type must be done at the beginning */
     /** think this means ascii-armor --> ? */
     gpgme_set_armor(*this, 1);
@@ -104,6 +122,7 @@ GpgContext::GpgContext() {
                    GPGME_KEYLIST_MODE_WITH_TOFU));
     good_ = true;
   }
+  DLOG(INFO) << "GpgContext init done ";
 }
 
 bool GpgContext::good() const {
