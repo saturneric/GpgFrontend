@@ -23,17 +23,19 @@
  */
 
 #include "gpg/function/BasicOperator.h"
+#include <vector>
 #include "gpg/function/GpgKeyGetter.h"
 
 GpgFrontend::GpgError GpgFrontend::BasicOperator::Encrypt(
-    std::vector<GpgKey> &keys, GpgFrontend::BypeArrayRef in_buffer,
-    GpgFrontend::BypeArrayPtr &out_buffer, GpgFrontend::GpgEncrResult &result) {
-
+    GpgFrontend::KeyArgsList&& keys,
+    GpgFrontend::BypeArrayRef in_buffer,
+    GpgFrontend::BypeArrayPtr& out_buffer,
+    GpgFrontend::GpgEncrResult& result) {
   // gpgme_encrypt_result_t e_result;
   gpgme_key_t recipients[keys.size() + 1];
 
   int index = 0;
-  for (const auto &key : keys)
+  for (const auto& key : keys)
     recipients[index++] = gpgme_key_t(key);
 
   // Last entry data_in array has to be nullptr
@@ -53,11 +55,10 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Encrypt(
   return err;
 }
 
-GpgFrontend::GpgError
-GpgFrontend::BasicOperator::Decrypt(BypeArrayRef in_buffer,
-                                    GpgFrontend::BypeArrayPtr &out_buffer,
-                                    GpgFrontend::GpgDecrResult &result) {
-
+GpgFrontend::GpgError GpgFrontend::BasicOperator::Decrypt(
+    BypeArrayRef in_buffer,
+    GpgFrontend::BypeArrayPtr& out_buffer,
+    GpgFrontend::GpgDecrResult& result) {
   gpgme_error_t err;
 
   GpgData data_in(in_buffer.data(), in_buffer.size()), data_out;
@@ -72,10 +73,10 @@ GpgFrontend::BasicOperator::Decrypt(BypeArrayRef in_buffer,
   return err;
 }
 
-GpgFrontend::GpgError
-GpgFrontend::BasicOperator::Verify(BypeArrayRef &in_buffer,
-                                   BypeArrayPtr &sig_buffer,
-                                   GpgVerifyResult &result) const {
+GpgFrontend::GpgError GpgFrontend::BasicOperator::Verify(
+    BypeArrayRef& in_buffer,
+    BypeArrayPtr& sig_buffer,
+    GpgVerifyResult& result) const {
   gpgme_error_t err;
 
   GpgData data_in(in_buffer.data(), in_buffer.size());
@@ -92,11 +93,11 @@ GpgFrontend::BasicOperator::Verify(BypeArrayRef &in_buffer,
   return err;
 }
 
-GpgFrontend::GpgError GpgFrontend::BasicOperator::Sign(KeyArgsList &keys,
+GpgFrontend::GpgError GpgFrontend::BasicOperator::Sign(KeyArgsList&& keys,
                                                        BypeArrayRef in_buffer,
-                                                       BypeArrayPtr &out_buffer,
+                                                       BypeArrayPtr& out_buffer,
                                                        gpgme_sig_mode_t mode,
-                                                       GpgSignResult &result) {
+                                                       GpgSignResult& result) {
   gpgme_error_t err;
 
   // Set Singers of this opera
@@ -130,8 +131,10 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Sign(KeyArgsList &keys,
 }
 
 gpgme_error_t GpgFrontend::BasicOperator::DecryptVerify(
-    BypeArrayRef in_buffer, BypeArrayPtr &out_buffer,
-    GpgDecrResult &decrypt_result, GpgVerifyResult &verify_result) {
+    BypeArrayRef in_buffer,
+    BypeArrayPtr& out_buffer,
+    GpgDecrResult& decrypt_result,
+    GpgVerifyResult& verify_result) {
   gpgme_error_t err;
 
   GpgData data_in(in_buffer.data(), in_buffer.size()), data_out;
@@ -151,9 +154,12 @@ gpgme_error_t GpgFrontend::BasicOperator::DecryptVerify(
 }
 
 gpgme_error_t GpgFrontend::BasicOperator::EncryptSign(
-    std::vector<GpgKey> &keys, std::vector<GpgKey> &signers,
-    BypeArrayRef in_buffer, BypeArrayPtr &out_buffer,
-    GpgEncrResult &encr_result, GpgSignResult &sign_result) {
+    KeyArgsList&& keys,
+    KeyArgsList&& signers,
+    BypeArrayRef in_buffer,
+    BypeArrayPtr& out_buffer,
+    GpgEncrResult& encr_result,
+    GpgSignResult& sign_result) {
   gpgme_error_t err;
   SetSigners(signers);
 
@@ -162,7 +168,7 @@ gpgme_error_t GpgFrontend::BasicOperator::EncryptSign(
 
   // set key for user
   int index = 0;
-  for (const auto &key : keys)
+  for (const auto& key : keys)
     recipients[index++] = gpgme_key_t(key);
 
   // Last entry dataIn array has to be nullptr
@@ -185,19 +191,19 @@ gpgme_error_t GpgFrontend::BasicOperator::EncryptSign(
   return err;
 }
 
-void GpgFrontend::BasicOperator::SetSigners(KeyArgsList &keys) {
+void GpgFrontend::BasicOperator::SetSigners(KeyArgsList& keys) {
   gpgme_signers_clear(ctx);
-  for (const GpgKey &key : keys) {
+  for (const GpgKey& key : keys) {
     if (key.CanSignActual()) {
       auto gpgmeError = gpgme_signers_add(ctx, gpgme_key_t(key));
       check_gpg_error(gpgmeError);
     }
   }
   if (keys.size() != gpgme_signers_count(ctx))
-    LOG(INFO) << "No All Signers Added";
+    DLOG(INFO) << "No All Signers Added";
 }
 
-std::unique_ptr<std::vector<GpgFrontend::GpgKey>>
+std::unique_ptr<GpgFrontend::KeyArgsList>
 GpgFrontend::BasicOperator::GetSigners() {
   auto count = gpgme_signers_count(ctx);
   auto signers = std::make_unique<std::vector<GpgKey>>();

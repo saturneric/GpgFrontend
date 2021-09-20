@@ -27,6 +27,103 @@
 
 #include <easyloggingpp/easylogging++.h>
 
-INITIALIZE_EASYLOGGINGPP
+#include <gpg-error.h>
+#include <gtest/gtest.h>
+#include <boost/date_time/gregorian/parsers.hpp>
+#include <boost/dll.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <memory>
+#include <string>
+#include <vector>
 
-#endif // _GPGFRONTENDTEST_H
+#include "gpg/GpgConstants.h"
+#include "gpg/function/GpgKeyImportExportor.h"
+
+class GpgCoreTest : public ::testing::Test {
+ protected:
+  // Secret Keys Imported
+  std::vector<GpgFrontend::StdBypeArrayPtr> secret_keys_;
+
+  // Program Location
+  boost::filesystem::path parent_path =
+      boost::dll::program_location().parent_path();
+
+  // Configure File Location
+  boost::filesystem::path config_path = parent_path / "conf" / "core.cfg";
+
+  // Data File Directory Location
+  boost::filesystem::path data_path;
+
+  int default_channel = 0;
+
+  GpgCoreTest() = default;
+
+  virtual ~GpgCoreTest() = default;
+
+  virtual void SetUp() {
+    using namespace libconfig;
+    Config cfg;
+    ASSERT_NO_THROW(cfg.readFile(config_path.c_str()));
+    Setting& root = cfg.getRoot();
+
+    if (root.exists("data_path")) {
+      std::string relative_data_path;
+      root.lookupValue("data_path", relative_data_path);
+      data_path = parent_path / relative_data_path;
+    };
+
+    configure_independent_database(root);
+
+    dealing_private_keys(root);
+    import_data();
+  }
+
+  virtual void TearDown() {}
+
+ private:
+  void import_data() {
+    GpgFrontend::GpgContext::GetInstance(default_channel)
+        .SetPassphraseCb(GpgFrontend::GpgContext::test_passphrase_cb);
+    for (auto& secret_key : secret_keys_) {
+      GpgFrontend::GpgKeyImportExportor::GetInstance(default_channel)
+          .ImportKey(std::move(secret_key));
+    }
+  }
+  void dealing_private_keys(const libconfig::Setting& root) {
+    if (root.exists("load_keys.private_keys")) {
+      auto& private_keys = root.lookup("load_keys.private_keys");
+      for (auto it = private_keys.begin(); it != private_keys.end(); it++) {
+        if (it->exists("filename")) {
+          std::string filename;
+          it->lookupValue("filename", filename);
+          auto data_file_path = data_path / filename;
+          std::string data =
+              GpgFrontend::read_all_data_in_file(data_file_path.string());
+          secret_keys_.push_back(std::make_unique<std::string>(data));
+        }
+      }
+    }
+  }
+
+  void configure_independent_database(const libconfig::Setting& root) {
+    bool independent_database = false;
+    if (root.exists("independent_database")) {
+      root.lookupValue("independent_database", independent_database);
+      if (independent_database && root.exists("independent_db_path")) {
+        default_channel = 1;
+        std::string relative_db_path;
+        root.lookupValue("independent_db_path", relative_db_path);
+        auto db_path = parent_path / relative_db_path;
+        if (!boost::filesystem::exists(db_path)) {
+          boost::filesystem::create_directory(db_path);
+        }
+        GpgFrontend::GpgContext::CreateInstance(
+            1,
+            std::make_unique<GpgFrontend::GpgContext>(true, db_path.c_str()));
+      }
+    }
+  }
+};
+
+#endif  // _GPGFRONTENDTEST_H

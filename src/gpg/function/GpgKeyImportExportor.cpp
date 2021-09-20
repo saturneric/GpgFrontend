@@ -33,30 +33,22 @@
  */
 GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExportor::ImportKey(
     StdBypeArrayPtr in_buffer) {
-  DLOG(INFO) << "ImportKey called in_buffer Size " << in_buffer->size();
-
   if (in_buffer->empty())
     return GpgImportInformation();
 
   GpgData data_in(in_buffer->data(), in_buffer->size());
-  DLOG(INFO) << "ImportKey gpgme_op_import";
   auto err = check_gpg_error(gpgme_op_import(ctx, data_in));
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
   gpgme_import_result_t result;
-  DLOG(INFO) << "ImportKey gpgme_op_import_result";
   result = gpgme_op_import_result(ctx);
   gpgme_import_status_t status = result->imports;
   auto import_info = std::make_unique<GpgImportInformation>(result);
-  DLOG(INFO) << "ImportKey import_information " << result->not_imported << " "
-             << result->imported << " " << result->considered;
   while (status != nullptr) {
     GpgImportedKey key;
     key.import_status = static_cast<int>(status->status);
     key.fpr = status->fpr;
     import_info->importedKeys.emplace_back(key);
     status = status->next;
-    DLOG(INFO) << "ImportKey Fpr " << key.fpr << " Status "
-               << key.import_status;
   }
   return *import_info;
 }

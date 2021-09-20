@@ -32,14 +32,14 @@
 #include <string>
 
 GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
-    KeyArgsList& keys,
+    KeyArgsList&& keys,
     const std::string& path,
     GpgEncrResult& result) {
   std::string in_buffer = read_all_data_in_file(path);
   std::unique_ptr<std::string> out_buffer;
 
-  auto err =
-      BasicOperator::GetInstance().Encrypt(keys, in_buffer, out_buffer, result);
+  auto err = BasicOperator::GetInstance().Encrypt(std::move(keys), in_buffer,
+                                                  out_buffer, result);
 
   assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
@@ -69,14 +69,14 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
   return err;
 }
 
-gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyArgsList& keys,
+gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyArgsList&& keys,
                                                   const std::string& path,
                                                   GpgSignResult& result) {
   auto in_buffer = read_all_data_in_file(path);
   std::unique_ptr<std::string> out_buffer;
 
-  auto err = BasicOperator::GetInstance().Sign(keys, in_buffer, out_buffer,
-                                               GPGME_SIG_MODE_DETACH, result);
+  auto err = BasicOperator::GetInstance().Sign(
+      std::move(keys), in_buffer, out_buffer, GPGME_SIG_MODE_DETACH, result);
 
   assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
@@ -108,7 +108,7 @@ gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(const std::string& path,
 // TODO
 
 gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
-    KeyArgsList& keys,
+    KeyArgsList&& keys,
     const std::string& path,
     GpgEncrResult& encr_res,
     GpgSignResult& sign_res) {
@@ -120,7 +120,8 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
 
   // TODO dealing with signer keys
   auto err = BasicOperator::GetInstance().EncryptSign(
-      keys, signerKeys, in_buffer, out_buffer, encr_res, sign_res);
+      std::move(keys), std::move(signerKeys), in_buffer, out_buffer, encr_res,
+      sign_res);
 
   assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 

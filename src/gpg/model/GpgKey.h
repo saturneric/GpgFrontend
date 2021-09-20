@@ -137,9 +137,9 @@ class GpgKey {
 
   GpgKey& operator=(const gpgme_key_t& key) = delete;
 
-  bool operator==(const GpgKey& o) { return o.id() == this->id(); }
+  bool operator==(const GpgKey& o) const { return o.id() == this->id(); }
 
-  bool operator<=(const GpgKey& o) { return this->id() < o.id(); }
+  bool operator<=(const GpgKey& o) const { return this->id() < o.id(); }
 
   explicit operator gpgme_key_t() const { return _key_ref.get(); }
 

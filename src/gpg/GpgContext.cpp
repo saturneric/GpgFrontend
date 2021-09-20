@@ -64,19 +64,12 @@ GpgContext::GpgContext(bool independent_database,
   check_gpg_error(gpgme_new(&_p_ctx));
   _ctx_ref = CtxRefHandler(_p_ctx);
 
-  DLOG(INFO) << "GpgContext _ctx_ref Created";
-
   auto engineInfo = gpgme_ctx_get_engine_info(*this);
-
-  DLOG(INFO) << "GpgContext gpgme_ctx_get_engine_info Called";
 
   // Check ENV before running
   bool check_pass = false, find_openpgp = false, find_gpgconf = false,
        find_assuan = false, find_cms = false;
   while (engineInfo != nullptr) {
-    DLOG(INFO) << gpgme_get_protocol_name(engineInfo->protocol) << " "
-               << engineInfo->file_name << " " << engineInfo->version;
-
     if (engineInfo->protocol == GPGME_PROTOCOL_GPGCONF &&
         strcmp(engineInfo->version, "1.0.0") != 0)
       find_gpgconf = true;
@@ -95,7 +88,6 @@ GpgContext::GpgContext(bool independent_database,
   if (find_gpgconf && find_openpgp && find_cms && find_assuan)
     check_pass = true;
 
-  DLOG(INFO) << "GpgContext check_pass " << check_pass;
   if (!check_pass) {
     good_ = false;
     return;
@@ -107,7 +99,6 @@ GpgContext::GpgContext(bool independent_database,
           _ctx_ref.get(), GPGME_PROTOCOL_OpenPGP, info.AppPath.c_str(),
           info.DatabasePath.c_str());
       assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
-      DLOG(INFO) << "Set independent_database path" << db_path;
     }
 
     /** Setting the output type must be done at the beginning */
@@ -122,7 +113,6 @@ GpgContext::GpgContext(bool independent_database,
                    GPGME_KEYLIST_MODE_WITH_TOFU));
     good_ = true;
   }
-  DLOG(INFO) << "GpgContext init done ";
 }
 
 bool GpgContext::good() const {
