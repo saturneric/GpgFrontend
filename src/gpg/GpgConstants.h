@@ -42,19 +42,20 @@ const int RESTART_CODE = 1000;
 
 namespace GpgFrontend {
 
-using BypeArrayPtr = std::unique_ptr<std::string>;
-using StdBypeArrayPtr = std::unique_ptr<std::string>;
-using BypeArrayRef = std::string&;
+using ByteArray = std::string;
+using BypeArrayPtr = std::unique_ptr<ByteArray>;
+using StdBypeArrayPtr = std::unique_ptr<ByteArray>;
+using BypeArrayRef = ByteArray&;
 using StringArgsPtr = std::unique_ptr<std::vector<std::string>>;
 using StringArgsRef = std::vector<std::string>&;
 
 using GpgError = gpgme_error_t;
 
-// Result
+// Result Deletor
 struct _result_ref_deletor {
   void operator()(void* _result) {
-    if (_result != nullptr)
-      gpgme_result_unref(_result);
+    // if (_result != nullptr)
+    //   gpgme_result_unref(_result);
   }
 };
 

@@ -32,24 +32,29 @@
 namespace GpgFrontend {
 
 class GpgFileOpera {
-public:
-  GpgError EncryptFile(KeyArgsList &keys, const std::string &path,
-                       GpgEncrResult &result);
+ public:
+  GpgError EncryptFile(KeyArgsList&& keys,
+                       const std::string& path,
+                       GpgEncrResult& result);
 
-  GpgError DecryptFile(const std::string &path, GpgDecrResult &result);
+  GpgError DecryptFile(const std::string& path, GpgDecrResult& result);
 
-  GpgError SignFile(KeyArgsList &keys, const std::string &path,
-                    GpgSignResult &result);
+  GpgError SignFile(KeyArgsList&& keys,
+                    const std::string& path,
+                    GpgSignResult& result);
 
-  GpgError VerifyFile(const std::string &path, GpgVerifyResult &result);
+  GpgError VerifyFile(const std::string& path, GpgVerifyResult& result);
 
-  GpgError EncryptSignFile(KeyArgsList &keys, const std::string &path,
-                           GpgEncrResult &encr_res, GpgSignResult &sign_res);
+  GpgError EncryptSignFile(KeyArgsList&& keys,
+                           const std::string& path,
+                           GpgEncrResult& encr_res,
+                           GpgSignResult& sign_res);
 
-  GpgError DecryptVerifyFile(const std::string &path, GpgDecrResult &decr_res,
-                             GpgVerifyResult &verify_res);
+  GpgError DecryptVerifyFile(const std::string& path,
+                             GpgDecrResult& decr_res,
+                             GpgVerifyResult& verify_res);
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_GPGFILEOPERA_H
+#endif  // GPGFRONTEND_GPGFILEOPERA_H

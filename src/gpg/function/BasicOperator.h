@@ -33,36 +33,46 @@
 namespace GpgFrontend {
 
 class BasicOperator : public SingletonFunctionObject<BasicOperator> {
-public:
-  gpg_error_t Encrypt(KeyArgsList &keys, BypeArrayRef in_buffer,
-                      BypeArrayPtr &out_buffer, GpgEncrResult &result);
+ public:
+  gpg_error_t Encrypt(KeyArgsList&& keys,
+                      BypeArrayRef in_buffer,
+                      BypeArrayPtr& out_buffer,
+                      GpgEncrResult& result);
 
-  gpgme_error_t EncryptSign(KeyArgsList &keys, KeyArgsList &signers,
-                            BypeArrayRef in_buffer, BypeArrayPtr &out_buffer,
-                            GpgEncrResult &encr_result,
-                            GpgSignResult &sign_result);
+  gpgme_error_t EncryptSign(KeyArgsList&& keys,
+                            KeyArgsList&& signers,
+                            BypeArrayRef in_buffer,
+                            BypeArrayPtr& out_buffer,
+                            GpgEncrResult& encr_result,
+                            GpgSignResult& sign_result);
 
-  gpgme_error_t Decrypt(BypeArrayRef in_buffer, BypeArrayPtr &out_buffer,
-                        GpgDecrResult &result);
+  gpgme_error_t Decrypt(BypeArrayRef in_buffer,
+                        BypeArrayPtr& out_buffer,
+                        GpgDecrResult& result);
 
-  gpgme_error_t DecryptVerify(BypeArrayRef in_buffer, BypeArrayPtr &out_buffer,
-                              GpgDecrResult &decrypt_result,
-                              GpgVerifyResult &verify_result);
+  gpgme_error_t DecryptVerify(BypeArrayRef in_buffer,
+                              BypeArrayPtr& out_buffer,
+                              GpgDecrResult& decrypt_result,
+                              GpgVerifyResult& verify_result);
 
-  gpgme_error_t Verify(BypeArrayRef in_buffer, BypeArrayPtr &sig_buffer,
-                       GpgVerifyResult &result) const;
+  gpgme_error_t Verify(BypeArrayRef in_buffer,
+                       BypeArrayPtr& sig_buffer,
+                       GpgVerifyResult& result) const;
 
-  gpg_error_t Sign(KeyArgsList &key_fprs, BypeArrayRef in_buffer,
-                   BypeArrayPtr &out_buffer, gpgme_sig_mode_t mode,
-                   GpgSignResult &result);
+  gpg_error_t Sign(KeyArgsList&& key_fprs,
+                   BypeArrayRef in_buffer,
+                   BypeArrayPtr& out_buffer,
+                   gpgme_sig_mode_t mode,
+                   GpgSignResult& result);
 
-  void SetSigners(KeyArgsList &keys);
+  void SetSigners(KeyArgsList& keys);
 
   std::unique_ptr<KeyArgsList> GetSigners();
 
-private:
-  GpgContext &ctx = GpgContext::GetInstance();
+ private:
+  GpgContext& ctx =
+      GpgContext::GetInstance(SingletonFunctionObject::GetDefaultChannel());
 };
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_ZH_CN_TS_BASICOPERATOR_H
+#endif  // GPGFRONTEND_ZH_CN_TS_BASICOPERATOR_H

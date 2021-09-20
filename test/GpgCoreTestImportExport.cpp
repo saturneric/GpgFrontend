@@ -22,29 +22,14 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
-#define GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
+#include "GpgFrontendTest.h"
 
-#include "gpg/model/GpgData.h"
+#include <string>
+#include <vector>
+
+#include "gpg/GpgConstants.h"
+#include "gpg/function/GpgKeyGetter.h"
+#include "gpg/function/GpgKeyImportExportor.h"
 #include "gpg/model/GpgKey.h"
 
-#include <list>
-
-namespace GpgFrontend {
-
-using KeyIdArgsListPtr = std::unique_ptr<std::vector<std::string>>;
-
-using KeyFprArgsListPtr = std::unique_ptr<std::vector<std::string>>;
-
-using KeyArgsList = const std::vector<GpgKey>;
-
-using KeyListPtr = std::unique_ptr<KeyArgsList>;
-
-using GpgKeyLinkList = const std::list<GpgFrontend::GpgKey>;
-
-using KeyPtr = std::unique_ptr<GpgKey>;
-
-using KeyPtrArgsList = const std::initializer_list<KeyPtr>;
-}  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
+TEST_F(GpgCoreTest, CoreExportSecretTest) {}

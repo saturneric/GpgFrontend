@@ -40,8 +40,6 @@ template <typename T>
 class SingletonFunctionObject {
  public:
   static T& GetInstance(int channel = 0) {
-    DLOG(INFO) << "SingletonFunctionObject GetInstance Calling "
-               << typeid(T).name() << " channel " << channel;
     if (!channel) {
       std::lock_guard<std::mutex> guard(_instance_mutex);
       if (_instance == nullptr)
@@ -62,8 +60,6 @@ class SingletonFunctionObject {
   }
 
   static T& CreateInstance(int channel, std::unique_ptr<T> p_obj = nullptr) {
-    DLOG(INFO) << "SingletonFunctionObject CreateInstance Calling "
-               << typeid(T).name() << " channel " << channel;
     if (!channel)
       return *_instance;
 
