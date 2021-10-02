@@ -44,10 +44,10 @@ GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetPubkey(
   return GpgKey(std::move(_p_key));
 }
 
-GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
+GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
   gpgme_error_t err;
 
-  auto keys_list = std::make_unique<std::vector<GpgKey>>();
+  auto keys_list = std::make_unique<GpgKeyLinkList>();
 
   err = gpgme_op_keylist_start(ctx, nullptr, 0);
   assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
@@ -62,4 +62,11 @@ GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
   err = gpgme_op_keylist_end(ctx);
 
   return keys_list;
+}
+GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeys(
+    const KeyIdArgsListPtr& ids) {
+  auto keys = std::make_unique<KeyArgsList>();
+  for (const auto& id : *ids)
+    keys->push_back(GetKey(id));
+  return keys;
 }

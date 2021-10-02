@@ -41,9 +41,9 @@
  * @param uidList key ids
  */
 void GpgFrontend::GpgKeyOpera::DeleteKeys(
-    GpgFrontend::KeyIdArgsListPtr uid_list) {
+    GpgFrontend::KeyIdArgsListPtr key_ids) {
   GpgError err;
-  for (const auto &tmp : *uid_list) {
+  for (const auto& tmp : *key_ids) {
     auto key = GpgKeyGetter::GetInstance().GetKey(tmp);
     if (key.good()) {
       LOG(INFO) << "GpgKeyOpera DeleteKeys Get Key Good";
@@ -62,21 +62,21 @@ void GpgFrontend::GpgKeyOpera::DeleteKeys(
  * @return if successful
  */
 void GpgFrontend::GpgKeyOpera::SetExpire(
-    const GpgKey &key, std::unique_ptr<GpgSubKey> &subkey,
-    std::unique_ptr<boost::gregorian::date> &expires) {
+    const GpgKey& key,
+    const SubkeyId& subkey_id,
+    std::unique_ptr<boost::gregorian::date>& expires) {
   unsigned long expires_time = 0;
   if (expires != nullptr) {
     using namespace boost::posix_time;
     expires_time = to_time_t(ptime(*expires));
   }
 
-  const char *sub_fprs = nullptr;
-
-  if (subkey != nullptr)
-    sub_fprs = subkey->fpr().c_str();
-
-  auto err =
-      gpgme_op_setexpire(ctx, gpgme_key_t(key), expires_time, sub_fprs, 0);
+  GpgError err;
+  if (subkey_id.empty())
+    err = gpgme_op_setexpire(ctx, gpgme_key_t(key), expires_time, nullptr, 0);
+  else
+    err = gpgme_op_setexpire(ctx, gpgme_key_t(key), expires_time,
+                             subkey_id.c_str(), 0);
 
   assert(gpg_err_code(err) != GPG_ERR_NO_ERROR);
 }
@@ -88,7 +88,8 @@ void GpgFrontend::GpgKeyOpera::SetExpire(
  * @return the process doing this job
  */
 void GpgFrontend::GpgKeyOpera::GenerateRevokeCert(
-    const GpgKey &key, const std::string &output_file_name) {
+    const GpgKey& key,
+    const std::string& output_file_name) {
   auto args = std::vector<std::string>{"--command-fd", "0",
                                        "--status-fd",  "1",
                                        "-o",           output_file_name.c_str(),
@@ -96,7 +97,7 @@ void GpgFrontend::GpgKeyOpera::GenerateRevokeCert(
 
   using boost::process::async_pipe;
   GpgCommandExecutor::GetInstance().Execute(
-      args, [](async_pipe &in, async_pipe &out) -> void {
+      args, [](async_pipe& in, async_pipe& out) -> void {
         boost::asio::streambuf buff;
         boost::asio::read_until(in, buff, '\n');
 
@@ -112,13 +113,12 @@ void GpgFrontend::GpgKeyOpera::GenerateRevokeCert(
  * @param params key generation args
  * @return error information
  */
-GpgFrontend::GpgError
-GpgFrontend::GpgKeyOpera::GenerateKey(std::unique_ptr<GenKeyInfo> params) {
-
+GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
+    const std::unique_ptr<GenKeyInfo>& params) {
   auto userid_utf8 = params->getUserid();
-  const char *userid = userid_utf8.c_str();
+  const char* userid = userid_utf8.c_str();
   auto algo_utf8 = (params->getAlgo() + params->getKeySizeStr());
-  const char *algo = algo_utf8.c_str();
+  const char* algo = algo_utf8.c_str();
   unsigned long expires = 0;
   {
     using namespace boost::posix_time;
@@ -150,15 +150,14 @@ GpgFrontend::GpgKeyOpera::GenerateKey(std::unique_ptr<GenKeyInfo> params) {
  * @param params opera args
  * @return error info
  */
-GpgFrontend::GpgError
-GpgFrontend::GpgKeyOpera::GenerateSubkey(const GpgKey &key,
-                                         std::unique_ptr<GenKeyInfo> params) {
-
+GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateSubkey(
+    const GpgKey& key,
+    const std::unique_ptr<GenKeyInfo>& params) {
   if (!params->isSubKey())
     return GPG_ERR_CANCELED;
 
   auto algo_utf8 = (params->getAlgo() + params->getKeySizeStr());
-  const char *algo = algo_utf8.c_str();
+  const char* algo = algo_utf8.c_str();
   unsigned long expires = 0;
   {
     using namespace boost::posix_time;

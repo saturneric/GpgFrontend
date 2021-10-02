@@ -61,7 +61,7 @@ GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExportor::ImportKey(
  */
 bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
     KeyIdArgsListPtr& uid_list,
-    BypeArrayPtr& out_buffer) const {
+    ByteArrayPtr& out_buffer) const {
   if (uid_list->empty())
     return false;
 
@@ -89,8 +89,8 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
  * @return if success
  */
 bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
-    KeyArgsList& keys,
-    BypeArrayPtr& out_buffer) const {
+    const KeyArgsList& keys,
+    ByteArrayPtr& out_buffer) const {
   KeyIdArgsListPtr key_ids = std::make_unique<std::vector<std::string>>();
   for (const auto& key : keys)
     key_ids->push_back(key.id());
@@ -105,7 +105,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
  */
 bool GpgFrontend::GpgKeyImportExportor::ExportSecretKey(
     const GpgKey& key,
-    BypeArrayPtr out_buffer) const {
+    ByteArrayPtr& out_buffer) const {
   DLOG(INFO) << "Export Secret Key" << key.id().c_str();
 
   gpgme_key_t target_key[2] = {gpgme_key_t(key), nullptr};

@@ -9,10 +9,10 @@ set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
 
 set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 
-if(ESAY_LOGGING_PP)
-   message(STATUS "Link ESAY_LOGGING_PP")
-   set(THIRD_PARTY_LIBS easy_logging_pp config++)
-endif()
+if (ESAY_LOGGING_PP)
+    message(STATUS "Link ESAY_LOGGING_PP")
+    set(THIRD_PARTY_LIBS easy_logging_pp config++)
+endif ()
 
 set(BOOST_LIBS Boost::date_time Boost::filesystem)
 
@@ -23,15 +23,15 @@ if (MINGW)
     target_link_libraries(gpg_core ${THIRD_PARTY_LIBS}
             ${BOOST_LIBS}
             gpgme gpg-error assuan wsock32)
-elseif(APPLE)
+elseif (APPLE)
     message(STATUS "Link GPG Static Library For macOS")
     target_link_libraries(gpg_core ${THIRD_PARTY_LIBS}
             ${BOOST_LIBS}
             libgpgme.a libgpg-error.a libassuan.a dl)
-else()
+else ()
     message(STATUS "Link GPG Static Library For Unix")
     target_link_libraries(gpg_core ${THIRD_PARTY_LIBS}
             libgpgme.a libgpg-error.a libassuan.a
             ${BOOST_LIBS}
             pthread dl)
-endif()
+endif ()

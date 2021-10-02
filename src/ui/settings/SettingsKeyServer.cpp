@@ -24,66 +24,69 @@
 
 #include "ui/SettingsDialog.h"
 
-KeyserverTab::KeyserverTab(QWidget *parent)
-        : QWidget(parent), appPath(qApp->applicationDirPath()),
-          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-                   QSettings::IniFormat) {
+namespace GpgFrontend::UI {
 
-    auto generalGroupBox = new QGroupBox(tr("General"));
-    auto generalLayout = new QVBoxLayout();
+KeyserverTab::KeyserverTab(QWidget* parent)
+    : QWidget(parent),
+      appPath(qApp->applicationDirPath()),
+      settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
+               QSettings::IniFormat) {
+  auto generalGroupBox = new QGroupBox(tr("General"));
+  auto generalLayout = new QVBoxLayout();
 
-    keyServerTable = new QTableWidget();
-    keyServerTable->setColumnCount(3);
-    keyServerTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    keyServerTable->horizontalHeader()->setStretchLastSection(false);
-    keyServerTable->verticalHeader()->hide();
-    keyServerTable->setShowGrid(false);
-    keyServerTable->sortByColumn(0, Qt::AscendingOrder);
-    keyServerTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    keyServerTable->setSelectionMode(QAbstractItemView::SingleSelection);
+  keyServerTable = new QTableWidget();
+  keyServerTable->setColumnCount(3);
+  keyServerTable->horizontalHeader()->setSectionResizeMode(
+      QHeaderView::ResizeToContents);
+  keyServerTable->horizontalHeader()->setStretchLastSection(false);
+  keyServerTable->verticalHeader()->hide();
+  keyServerTable->setShowGrid(false);
+  keyServerTable->sortByColumn(0, Qt::AscendingOrder);
+  keyServerTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+  keyServerTable->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    // tableitems not editable
-    keyServerTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    // no focus (rectangle around tableitems)
-    // may be it should focus on whole row
-    keyServerTable->setFocusPolicy(Qt::NoFocus);
-    keyServerTable->setAlternatingRowColors(true);
+  // tableitems not editable
+  keyServerTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  // no focus (rectangle around tableitems)
+  // may be it should focus on whole row
+  keyServerTable->setFocusPolicy(Qt::NoFocus);
+  keyServerTable->setAlternatingRowColors(true);
 
-    QStringList labels;
-    labels << tr("No.") << tr("Address") << tr("Available");
-    keyServerTable->setHorizontalHeaderLabels(labels);
+  QStringList labels;
+  labels << tr("No.") << tr("Address") << tr("Available");
+  keyServerTable->setHorizontalHeaderLabels(labels);
 
-    auto *mainLayout = new QVBoxLayout(this);
-    auto *label = new QLabel(tr("Default Key Server for Import:"));
+  auto* mainLayout = new QVBoxLayout(this);
+  auto* label = new QLabel(tr("Default Key Server for Import:"));
 
-    comboBox = new QComboBox;
-    comboBox->setEditable(false);
-    comboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  comboBox = new QComboBox;
+  comboBox->setEditable(false);
+  comboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
-    auto *addKeyServerBox = new QWidget(this);
-    auto *addKeyServerLayout = new QHBoxLayout(addKeyServerBox);
-    auto *http = new QLabel("URL: ");
-    newKeyServerEdit = new QLineEdit(this);
-    auto *newKeyServerButton = new QPushButton(tr("Add"), this);
-    connect(newKeyServerButton, SIGNAL(clicked()), this, SLOT(addKeyServer()));
-    addKeyServerLayout->addWidget(http);
-    addKeyServerLayout->addWidget(newKeyServerEdit);
-    addKeyServerLayout->addWidget(newKeyServerButton);
+  auto* addKeyServerBox = new QWidget(this);
+  auto* addKeyServerLayout = new QHBoxLayout(addKeyServerBox);
+  auto* http = new QLabel("URL: ");
+  newKeyServerEdit = new QLineEdit(this);
+  auto* newKeyServerButton = new QPushButton(tr("Add"), this);
+  connect(newKeyServerButton, SIGNAL(clicked()), this, SLOT(addKeyServer()));
+  addKeyServerLayout->addWidget(http);
+  addKeyServerLayout->addWidget(newKeyServerEdit);
+  addKeyServerLayout->addWidget(newKeyServerButton);
 
-    generalLayout->addWidget(label);
-    generalLayout->addWidget(comboBox);
-    generalLayout->addWidget(keyServerTable);
-    generalLayout->addWidget(addKeyServerBox);
-    generalLayout->addStretch(0);
+  generalLayout->addWidget(label);
+  generalLayout->addWidget(comboBox);
+  generalLayout->addWidget(keyServerTable);
+  generalLayout->addWidget(addKeyServerBox);
+  generalLayout->addStretch(0);
 
-    generalGroupBox->setLayout(generalLayout);
-    mainLayout->addWidget(generalGroupBox);
-    mainLayout->addStretch(0);
+  generalGroupBox->setLayout(generalLayout);
+  mainLayout->addWidget(generalGroupBox);
+  mainLayout->addStretch(0);
 
-    setLayout(mainLayout);
-    // Read keylist from ini-file and fill it into combobox
-    setSettings();
-    refreshTable();
+  setLayout(mainLayout);
+  // Read keylist from ini-file and fill it into combobox
+  setSettings();
+  refreshTable();
 }
 
 /**********************************
@@ -92,29 +95,27 @@ KeyserverTab::KeyserverTab(QWidget *parent)
  * appropriately
  **********************************/
 void KeyserverTab::setSettings() {
+  keyServerStrList = settings.value("keyserver/keyServerList").toStringList();
 
-    keyServerStrList = settings.value("keyserver/keyServerList").toStringList();
+  for (const auto& keyServer : keyServerStrList) {
+    comboBox->addItem(keyServer);
+    qDebug() << "KeyserverTab Get ListItemText" << keyServer;
+  }
 
-    for (const auto &keyServer : keyServerStrList) {
-        comboBox->addItem(keyServer);
-        qDebug() << "KeyserverTab Get ListItemText" << keyServer;
-    }
-
-    comboBox->setCurrentText(
-            settings.value("keyserver/defaultKeyServer").toString());
-
+  comboBox->setCurrentText(
+      settings.value("keyserver/defaultKeyServer").toString());
 }
 
 void KeyserverTab::addKeyServer() {
-    QString targetUrl;
-    if (newKeyServerEdit->text().startsWith("http://") ||
-        newKeyServerEdit->text().startsWith("https://"))
-        targetUrl = newKeyServerEdit->text();
-    else
-        targetUrl = "http://" + newKeyServerEdit->text();
-    keyServerStrList.append(targetUrl);
-    comboBox->addItem(targetUrl);
-    refreshTable();
+  QString targetUrl;
+  if (newKeyServerEdit->text().startsWith("http://") ||
+      newKeyServerEdit->text().startsWith("https://"))
+    targetUrl = newKeyServerEdit->text();
+  else
+    targetUrl = "http://" + newKeyServerEdit->text();
+  keyServerStrList.append(targetUrl);
+  comboBox->addItem(targetUrl);
+  refreshTable();
 }
 
 /***********************************
@@ -122,27 +123,28 @@ void KeyserverTab::addKeyServer() {
  * write them to settings-file
  *************************************/
 void KeyserverTab::applySettings() {
-    settings.setValue("keyserver/keyServerList", keyServerStrList);
-    settings.setValue("keyserver/defaultKeyServer", comboBox->currentText());
+  settings.setValue("keyserver/keyServerList", keyServerStrList);
+  settings.setValue("keyserver/defaultKeyServer", comboBox->currentText());
 }
 
 void KeyserverTab::refreshTable() {
+  qDebug() << "Start Refreshing Key Server Table";
 
-    qDebug() << "Start Refreshing Key Server Table";
+  keyServerTable->setRowCount(keyServerStrList.size());
 
-    keyServerTable->setRowCount(keyServerStrList.size());
-
-    int index = 0;
-    for (const auto &server : keyServerStrList) {
-        auto *tmp1 = new QTableWidgetItem(QString::number(index));
-        tmp1->setTextAlignment(Qt::AlignCenter);
-        keyServerTable->setItem(index, 0, tmp1);
-        auto *tmp2 = new QTableWidgetItem(server);
-        tmp2->setTextAlignment(Qt::AlignCenter);
-        keyServerTable->setItem(index, 1, tmp2);
-        auto *tmp3 = new QTableWidgetItem("");
-        tmp3->setTextAlignment(Qt::AlignCenter);
-        keyServerTable->setItem(index, 2, tmp3);
-        index++;
-    }
+  int index = 0;
+  for (const auto& server : keyServerStrList) {
+    auto* tmp1 = new QTableWidgetItem(QString::number(index));
+    tmp1->setTextAlignment(Qt::AlignCenter);
+    keyServerTable->setItem(index, 0, tmp1);
+    auto* tmp2 = new QTableWidgetItem(server);
+    tmp2->setTextAlignment(Qt::AlignCenter);
+    keyServerTable->setItem(index, 1, tmp2);
+    auto* tmp3 = new QTableWidgetItem("");
+    tmp3->setTextAlignment(Qt::AlignCenter);
+    keyServerTable->setItem(index, 2, tmp3);
+    index++;
+  }
 }
+
+}  // namespace GpgFrontend::UI

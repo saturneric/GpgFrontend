@@ -31,7 +31,7 @@
 
 namespace GpgFrontend {
 
-class GpgFileOpera {
+class GpgFileOpera : public SingletonFunctionObject<GpgFileOpera> {
  public:
   GpgError EncryptFile(KeyArgsList&& keys,
                        const std::string& path,

@@ -37,9 +37,11 @@ class GpgKeyGetter : public SingletonFunctionObject<GpgKeyGetter> {
 
   GpgKey GetKey(const std::string& fpr);
 
+  KeyListPtr GetKeys(const KeyIdArgsListPtr& ids);
+
   GpgKey GetPubkey(const std::string& fpr);
 
-  KeyListPtr FetchKey();
+  KeyLinkListPtr FetchKey();
 
  private:
   GpgContext& ctx =

@@ -29,7 +29,7 @@
 GpgFrontend::GpgError GpgFrontend::BasicOperator::Encrypt(
     GpgFrontend::KeyArgsList&& keys,
     GpgFrontend::BypeArrayRef in_buffer,
-    GpgFrontend::BypeArrayPtr& out_buffer,
+    GpgFrontend::ByteArrayPtr& out_buffer,
     GpgFrontend::GpgEncrResult& result) {
   // gpgme_encrypt_result_t e_result;
   gpgme_key_t recipients[keys.size() + 1];
@@ -57,7 +57,7 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Encrypt(
 
 GpgFrontend::GpgError GpgFrontend::BasicOperator::Decrypt(
     BypeArrayRef in_buffer,
-    GpgFrontend::BypeArrayPtr& out_buffer,
+    GpgFrontend::ByteArrayPtr& out_buffer,
     GpgFrontend::GpgDecrResult& result) {
   gpgme_error_t err;
 
@@ -75,7 +75,7 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Decrypt(
 
 GpgFrontend::GpgError GpgFrontend::BasicOperator::Verify(
     BypeArrayRef& in_buffer,
-    BypeArrayPtr& sig_buffer,
+    ByteArrayPtr& sig_buffer,
     GpgVerifyResult& result) const {
   gpgme_error_t err;
 
@@ -95,7 +95,7 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Verify(
 
 GpgFrontend::GpgError GpgFrontend::BasicOperator::Sign(KeyArgsList&& keys,
                                                        BypeArrayRef in_buffer,
-                                                       BypeArrayPtr& out_buffer,
+                                                       ByteArrayPtr& out_buffer,
                                                        gpgme_sig_mode_t mode,
                                                        GpgSignResult& result) {
   gpgme_error_t err;
@@ -132,7 +132,7 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Sign(KeyArgsList&& keys,
 
 gpgme_error_t GpgFrontend::BasicOperator::DecryptVerify(
     BypeArrayRef in_buffer,
-    BypeArrayPtr& out_buffer,
+    ByteArrayPtr& out_buffer,
     GpgDecrResult& decrypt_result,
     GpgVerifyResult& verify_result) {
   gpgme_error_t err;
@@ -157,7 +157,7 @@ gpgme_error_t GpgFrontend::BasicOperator::EncryptSign(
     KeyArgsList&& keys,
     KeyArgsList&& signers,
     BypeArrayRef in_buffer,
-    BypeArrayPtr& out_buffer,
+    ByteArrayPtr& out_buffer,
     GpgEncrResult& encr_result,
     GpgSignResult& sign_result) {
   gpgme_error_t err;

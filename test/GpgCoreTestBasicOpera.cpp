@@ -39,7 +39,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
   auto encrpyt_key = GpgKeyGetter::GetInstance(default_channel)
                          .GetPubkey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   ByteArray encrypt_text = "Hello GpgFrontend!";
-  BypeArrayPtr encr_out_data;
+  ByteArrayPtr encr_out_data;
   GpgEncrResult e_result;
   std::vector<GpgKey> keys;
   keys.push_back(std::move(encrpyt_key));
@@ -50,7 +50,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
   ASSERT_EQ(check_gpg_error_2_err_code(err), GPG_ERR_NO_ERROR);
 
   GpgDecrResult d_result;
-  BypeArrayPtr decr_out_data;
+  ByteArrayPtr decr_out_data;
   err = BasicOperator::GetInstance(default_channel)
             .Decrypt(*encr_out_data, decr_out_data, d_result);
   ASSERT_EQ(check_gpg_error_2_err_code(err), GPG_ERR_NO_ERROR);
@@ -63,7 +63,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
   auto encrpyt_key = GpgKeyGetter::GetInstance(default_channel)
                          .GetPubkey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   ByteArray sign_text = "Hello GpgFrontend!";
-  BypeArrayPtr sign_out_data;
+  ByteArrayPtr sign_out_data;
   GpgSignResult s_result;
   std::vector<GpgKey> keys;
   keys.push_back(std::move(encrpyt_key));
@@ -74,7 +74,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
   ASSERT_EQ(s_result->invalid_signers, nullptr);
 
   GpgVerifyResult v_result;
-  BypeArrayPtr sign_buff = nullptr;
+  ByteArrayPtr sign_buff = nullptr;
   err = BasicOperator::GetInstance(default_channel)
             .Verify(*sign_out_data, sign_buff, v_result);
   ASSERT_EQ(check_gpg_error_2_err_code(err), GPG_ERR_NO_ERROR);
@@ -88,7 +88,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
   auto encrpyt_key = GpgKeyGetter::GetInstance(default_channel)
                          .GetPubkey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   ByteArray sign_text = "Hello GpgFrontend!";
-  BypeArrayPtr sign_out_data;
+  ByteArrayPtr sign_out_data;
   GpgSignResult s_result;
   std::vector<GpgKey> keys;
   keys.push_back(std::move(encrpyt_key));
@@ -112,7 +112,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
   auto sign_key = GpgKeyGetter::GetInstance(default_channel)
                       .GetKey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   ByteArray sign_text = "Hello GpgFrontend!";
-  BypeArrayPtr sign_out_data;
+  ByteArrayPtr sign_out_data;
   GpgSignResult s_result;
   std::vector<GpgKey> keys;
   keys.push_back(std::move(sign_key));
@@ -123,7 +123,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
   ASSERT_EQ(s_result->invalid_signers, nullptr);
 
   GpgVerifyResult v_result;
-  BypeArrayPtr sign_buff = nullptr;
+  ByteArrayPtr sign_buff = nullptr;
   err = BasicOperator::GetInstance(default_channel)
             .Verify(*sign_out_data, sign_buff, v_result);
   ASSERT_EQ(check_gpg_error_2_err_code(err), GPG_ERR_NO_ERROR);
@@ -143,7 +143,7 @@ TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
   ASSERT_TRUE(sign_key.is_private_key());
   ASSERT_TRUE(sign_key.CanSignActual());
   ByteArray encrypt_text = "Hello GpgFrontend!";
-  BypeArrayPtr encr_out_data;
+  ByteArrayPtr encr_out_data;
   GpgEncrResult e_result;
   GpgSignResult s_result;
 
@@ -160,7 +160,7 @@ TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
 
   GpgDecrResult d_result;
   GpgVerifyResult v_result;
-  BypeArrayPtr decr_out_data = nullptr;
+  ByteArrayPtr decr_out_data = nullptr;
   err = BasicOperator::GetInstance(default_channel)
             .DecryptVerify(*encr_out_data, decr_out_data, d_result, v_result);
   ASSERT_EQ(check_gpg_error_2_err_code(err), GPG_ERR_NO_ERROR);

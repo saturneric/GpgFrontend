@@ -29,22 +29,41 @@
 #include "gpg/model/GpgKey.h"
 
 #include <list>
+#include <utility>
 
 namespace GpgFrontend {
 
-using KeyIdArgsListPtr = std::unique_ptr<std::vector<std::string>>;
+using KeyId = std::string;
+
+using SubkeyId = std::string;
+
+using KeyIdArgsList = std::vector<KeyId>;
+
+using KeyIdArgsListPtr = std::unique_ptr<KeyIdArgsList>;
+
+using UIDArgsList = std::vector<std::string>;
+
+using UIDArgsListPtr = std::unique_ptr<UIDArgsList>;
+
+// KeyID/UID
+using SignIdArgsList = std::vector<std::pair<std::string, std::string>>;
+
+using SignIdArgsListPtr = std::unique_ptr<SignIdArgsList>;
 
 using KeyFprArgsListPtr = std::unique_ptr<std::vector<std::string>>;
 
-using KeyArgsList = const std::vector<GpgKey>;
+using KeyArgsList = std::vector<GpgKey>;
 
 using KeyListPtr = std::unique_ptr<KeyArgsList>;
 
-using GpgKeyLinkList = const std::list<GpgFrontend::GpgKey>;
+using GpgKeyLinkList = std::list<GpgFrontend::GpgKey>;
+
+using KeyLinkListPtr = std::unique_ptr<GpgKeyLinkList>;
 
 using KeyPtr = std::unique_ptr<GpgKey>;
 
 using KeyPtrArgsList = const std::initializer_list<KeyPtr>;
+
 }  // namespace GpgFrontend
 
 #endif  // GPGFRONTEND_ZH_CN_TS_GPGMODEL_H

@@ -20,7 +20,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     # using Visual Studio C++
     message(STATUS "Using Complier Msvc")
-endif()
+endif ()
 
 # Using Standard C++-17 (Consider compatibility)
 set(CMAKE_CXX_STANDARD 17)
@@ -33,69 +33,72 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Check Env Variables Before Configuring
 
-if(CMAKE_BUILD_TYPE)
+if (CMAKE_BUILD_TYPE)
     message(STATUS "PreCheck CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
-else()
+else ()
     set(CMAKE_BUILD_TYPE "Release")
     message(STATUS "Set CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
-endif()
+endif ()
 
 # Specify different compilation modes
-if(BUILD_CONFIG)
+if (BUILD_CONFIG)
     # Test Build
-    if(${BUILD_CONFIG} STREQUAL  "test")
+    if (${BUILD_CONFIG} STREQUAL "test")
         message(STATUS "Switch TEST_BUILD")
         set(TEST_BUILD 1)
         set(AppName GpgFrontendTest)
-    # Test Build With Coverage Test
-    elseif(${BUILD_CONFIG} STREQUAL  "test_coverage")
+        # Test Build With Coverage Test
+    elseif (${BUILD_CONFIG} STREQUAL "test_coverage")
         message(STATUS "Switch TEST_COVERAGE_BUILD")
         set(TEST_BUILD 1)
-        if(USING_COMPILER_CLANG OR USING_COMPILER_GCC)
+        if (USING_COMPILER_CLANG OR USING_COMPILER_GCC)
             set(TEST_COVERAGE_BUILD 1)
             set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
-        else()
+        else ()
             message(WARNING "Branch testing is disabled")
             message(WARNING "Please use gcc or clang for branch coverage test.")
-        endif()
+        endif ()
         set(AppName GpgFrontendTest)
-    endif()
-else()
+    elseif (${BUILD_CONFIG} STREQUAL "test_ui")
+        set(MINIMUM_APPLICATION_BUILD 1)
+        set(AppName GpgFrontend)
+    endif ()
+else ()
     message(STATUS "Switch Default FULL_APPLICATION_BUILD")
     set(FULL_APPLICATION_BUILD 1)
     set(AppName GpgFrontend)
-endif()
+endif ()
 
-if(EXECUTABLE_OUTPUT_PATH)
+if (EXECUTABLE_OUTPUT_PATH)
     message(STATUS "PreCheck EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH}")
-else()
+else ()
     set(EXECUTABLE_OUTPUT_PATH "./")
     message(STATUS "Set EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH}")
-endif()
+endif ()
 
 # Output Env Variables
 message(STATUS "Define EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH}")
 message(STATUS "Define CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 
-if(${CMAKE_BUILD_TYPE} STREQUAL  "Release")
+if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
     set(BUILD_FLAG 0)
     message(STATUS "Build Type RELEASE")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
-else()
+else ()
     set(BUILD_FLAG 1)
     message(STATUS "Build Type DEBUG")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
     # Generate branch coverage information using gcc
-    if(TEST_COVERAGE_BUILD)
-        if(USING_COMPILER_GCC)
+    if (TEST_COVERAGE_BUILD)
+        if (USING_COMPILER_GCC)
             message(STATUS "Set branch coverage test parameters for Gcc")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
-        elseif(USING_COMPILER_CLANG)
+        elseif (USING_COMPILER_CLANG)
             message(STATUS "Set branch coverage test parameters for Clang")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate -fcoverage-mapping")
-        endif()
-    endif()
-endif()
+        endif ()
+    endif ()
+endif ()
 
 message(STATUS "Build Flags " ${CMAKE_CXX_FLAGS})
 
@@ -104,7 +107,7 @@ message(STATUS "Build Flags " ${CMAKE_CXX_FLAGS})
 set(GIT_COMMIT_HASH "")
 set(GIT_BRANCH_NAME "")
 find_package(Git QUIET)
-if(GIT_FOUND)
+if (GIT_FOUND)
     execute_process(
             COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%H
             OUTPUT_VARIABLE GIT_COMMIT_HASH
@@ -119,7 +122,7 @@ if(GIT_FOUND)
             ERROR_QUIET
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
-endif()
+endif ()
 
 set(BUILD_VERSION ${PROJECT_VERSION}_${CMAKE_SYSTEM}_${CMAKE_SYSTEM_PROCESSOR}_${CMAKE_BUILD_TYPE})
 set(GIT_VERSION ${GIT_BRANCH_NAME}_${GIT_COMMIT_HASH})
@@ -131,25 +134,25 @@ message(STATUS "Git Version ${GIT_VERSION}")
 
 IF (MINGW)
 
-	message(STATUS "Configuration For OS Platform Microsoft Windows")
-	message(STATUS "Build Environment MINGW")
+    message(STATUS "Configuration For OS Platform Microsoft Windows")
+    message(STATUS "Build Environment MINGW")
 
     set(OS_PLATFORM 0)
 
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
 
     include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/third_party
-        /mingw64/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+            /mingw64/include
     )
-	link_directories(
-        /mingw64/lib
+    link_directories(
+            /mingw64/lib
     )
 
-endif()
+endif ()
 
-if(APPLE)
+if (APPLE)
 
     message(STATUS "Configuration For OS Platform MacOS")
 
@@ -158,38 +161,38 @@ if(APPLE)
     set(ENV{Qt5_DIR} /usr/local/opt/qt5/lib/cmake)
 
     include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/third_party
-        /usr/local/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+            /usr/local/include
     )
     link_directories(
-        /usr/local/lib
-        /usr/local/opt/openssl/lib
+            /usr/local/lib
+            /usr/local/opt/openssl/lib
     )
-endif()
+endif ()
 
-if(UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE)
     set(LINUX TRUE)
-endif()
+endif ()
 
-if(LINUX)
+if (LINUX)
 
     message(STATUS "Configuration For OS Platform LINUX")
     set(OS_PLATFORM 2)
     include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/third_party
-        /usr/include
-        /usr/local/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+            /usr/include
+            /usr/local/include
     )
     link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/)
     link_directories(
-        /lib/
-        /usr/lib/
-        /usr/local/lib/
+            /lib/
+            /usr/lib/
+            /usr/local/lib/
     )
 
-endif()
+endif ()
 
 message(STATUS "OS_PLATFORM ${OS_PLATFORM}")
 
@@ -200,7 +203,7 @@ set(BASIC_ENV_CONFIG 1)
 set(QT_MOC_CONFIG 1)
 set(ESAY_LOGGING_PP 1)
 
-if(FULL_APPLICATION_BUILD)
+if (FULL_APPLICATION_BUILD)
     message(STATUS "Build Full Application")
     set(QT5_ENV_SUPPORT 1)
     set(QT_MOC_CONFIG 1)
@@ -212,32 +215,39 @@ if(FULL_APPLICATION_BUILD)
     set(APPLICATION_BUILD 1)
     set(BASIC_ENV_CONFIG 1)
     set(MULTI_LANG_SUPPORT 1)
-elseif(TEST_BUILD)
+elseif (MINIMUM_APPLICATION_BUILD)
+    set(QT5_ENV_SUPPORT 1)
+    set(QT_MOC_CONFIG 1)
+    set(GPG_CORE 1)
+    set(UI_CORE 1)
+    set(APPLICATION_BUILD 1)
+    set(BASIC_ENV_CONFIG 1)
+elseif (TEST_BUILD)
     message(STATUS "Build Test Cases")
 
-    if(MODULES)
-    else()
+    if (MODULES)
+    else ()
         message(STATUS "Build Default Modules")
         set(GPG_CORE 1)
-    endif()
+    endif ()
 
-endif()
+endif ()
 
-if(QT5_ENV_SUPPORT) 
+if (QT5_ENV_SUPPORT)
     # Find
     find_package(Qt5 5.15.2 EXACT COMPONENTS Core Test Widgets PrintSupport Network LinguistTools REQUIRED)
     # Qt
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
     set(CMAKE_AUTOUIC ON)
-endif()
+endif ()
 
 add_subdirectory(third_party)
 
 add_subdirectory(src)
 
-if(TEST_BUILD)
+if (TEST_BUILD)
     include(CTest)
     enable_testing()
     add_subdirectory(test)
-endif()
+endif ()

@@ -23,89 +23,99 @@
  */
 
 #include "ui/keypair_details/KeyUIDSignDialog.h"
+#include "gpg/function/GpgKeyGetter.h"
+#include "gpg/function/GpgKeyManager.h"
 
-KeyUIDSignDialog::KeyUIDSignDialog(GpgFrontend::GpgContext *ctx, const GpgKey &key, const QVector<GpgUID> &uid, QWidget *parent) :
-        mKey(key), mCtx(ctx), mUids(uid), QDialog(parent) {
+namespace GpgFrontend::UI {
 
-    mKeyList = new KeyList(ctx,
-                           KeyListRow::ONLY_SECRET_KEY,
-                           KeyListColumn::NAME | KeyListColumn::EmailAddress,
-                           this);
+KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key,
+                                   const UIDArgsListPtr& uid,
+                                   QWidget* parent)
+    : mKey(key), mUids(uid), QDialog(parent) {
+  mKeyList =
+      new KeyList(KeyListRow::ONLY_SECRET_KEY,
+                  KeyListColumn::NAME | KeyListColumn::EmailAddress, this);
 
-    mKeyList->setFilter([](const GpgKey &key) -> bool {
-        if(key.disabled || !key.can_certify || !key.has_master_key || key.expired || key.revoked) return false;
-        else return true;
-    });
-    mKeyList->setExcludeKeys({key.id});
-    mKeyList->slotRefresh();
+  mKeyList->setFilter([](const GpgKey& key) -> bool {
+    if (key.disabled() || !key.can_certify() || !key.has_master_key() ||
+        key.expired() || key.revoked())
+      return false;
+    else
+      return true;
+  });
+  mKeyList->setExcludeKeys({key.id()});
+  mKeyList->slotRefresh();
 
-    signKeyButton = new QPushButton("Sign");
+  signKeyButton = new QPushButton("Sign");
 
-    /**
-     * A DateTime after 5 Years is recommend.
-     */
-    expiresEdit = new QDateTimeEdit(QDateTime::currentDateTime().addYears(5));
-    expiresEdit->setMinimumDateTime(QDateTime::currentDateTime());
+  /**
+   * A DateTime after 5 Years is recommend.
+   */
+  expiresEdit = new QDateTimeEdit(QDateTime::currentDateTime().addYears(5));
+  expiresEdit->setMinimumDateTime(QDateTime::currentDateTime());
 
-    /**
-     * Note further that the OpenPGP protocol uses 32 bit values for timestamps
-     * and thus can only encode dates up to the year 2106.
-     */
-    expiresEdit->setMaximumDate(QDate(2106, 1, 1));
+  /**
+   * Note further that the OpenPGP protocol uses 32 bit values for timestamps
+   * and thus can only encode dates up to the year 2106.
+   */
+  expiresEdit->setMaximumDate(QDate(2106, 1, 1));
 
-    nonExpireCheck = new QCheckBox("Non Expired");
-    nonExpireCheck->setTristate(false);
+  nonExpireCheck = new QCheckBox("Non Expired");
+  nonExpireCheck->setTristate(false);
 
-    connect(nonExpireCheck, &QCheckBox::stateChanged, this, [this] (int state) -> void {
-        if(state == 0)
-            expiresEdit->setDisabled(false);
-        else
-            expiresEdit->setDisabled(true);
-    });
+  connect(nonExpireCheck, &QCheckBox::stateChanged, this,
+          [this](int state) -> void {
+            if (state == 0)
+              expiresEdit->setDisabled(false);
+            else
+              expiresEdit->setDisabled(true);
+          });
 
-    auto layout = new QGridLayout();
+  auto layout = new QGridLayout();
 
-    auto timeLayout = new QGridLayout();
+  auto timeLayout = new QGridLayout();
 
-    layout->addWidget(mKeyList, 0, 0);
-    layout->addWidget(signKeyButton, 2, 0, Qt::AlignRight);
-    timeLayout->addWidget(new QLabel(tr("Expire Date")), 0, 0);
-    timeLayout->addWidget(expiresEdit, 0, 1);
-    timeLayout->addWidget(nonExpireCheck, 0, 2);
-    layout->addLayout(timeLayout, 1, 0);
+  layout->addWidget(mKeyList, 0, 0);
+  layout->addWidget(signKeyButton, 2, 0, Qt::AlignRight);
+  timeLayout->addWidget(new QLabel(tr("Expire Date")), 0, 0);
+  timeLayout->addWidget(expiresEdit, 0, 1);
+  timeLayout->addWidget(nonExpireCheck, 0, 2);
+  layout->addLayout(timeLayout, 1, 0);
 
-    connect(signKeyButton, SIGNAL(clicked(bool)), this, SLOT(slotSignKey(bool)));
+  connect(signKeyButton, SIGNAL(clicked(bool)), this, SLOT(slotSignKey(bool)));
 
-    this->setLayout(layout);
-    this->setModal(true);
-    this->setWindowTitle(tr("Sign For Key's UID(s)"));
-    this->adjustSize();
+  this->setLayout(layout);
+  this->setModal(true);
+  this->setWindowTitle(tr("Sign For Key's UID(s)"));
+  this->adjustSize();
 
-    setAttribute(Qt::WA_DeleteOnClose, true);
+  setAttribute(Qt::WA_DeleteOnClose, true);
 }
 
 void KeyUIDSignDialog::slotSignKey(bool clicked) {
+  // Set Signers
+  auto key_ids = mKeyList->getChecked();
+  auto keys = GpgKeyGetter::GetInstance().GetKeys(std::move(key_ids));
 
-    // Set Signers
-    QVector<GpgKey> keys;
-    mKeyList->getCheckedKeys(keys);
+  auto expires = std::make_unique<boost::gregorian::date>(
+      boost::posix_time::from_time_t(expiresEdit->dateTime().toTime_t())
+          .date());
 
-    const auto expires = expiresEdit->dateTime();
-
-    for(const auto &uid : mUids) {
-        // Sign For mKey
-        if (!mCtx->signKey(mKey, keys, uid.uid, &expires)) {
-            QMessageBox::critical(nullptr,
-                                  tr("Unsuccessful Operation"),
-                                  QString(tr("Signature operation failed for UID ") + "%1")
-                                  .arg(uid.uid));
-        }
-
+  for (const auto& uid : *mUids) {
+    // Sign For mKey
+    if (!GpgKeyManager::GetInstance().signKey(mKey, *keys, uid, expires)) {
+      QMessageBox::critical(
+          nullptr, tr("Unsuccessful Operation"),
+          QString(tr("Signature operation failed for UID ") + "%1")
+              .arg(uid.c_str()));
     }
+  }
 
-    QMessageBox::information(nullptr,
-                             tr("Operation Complete"),
-                             tr("The signature operation of the UID is complete"));
+  QMessageBox::information(
+      nullptr, tr("Operation Complete"),
+      tr("The signature operation of the UID is complete"));
 
-    this->close();
+  this->close();
 }
+
+}  // namespace GpgFrontend::UI

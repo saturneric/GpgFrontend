@@ -25,181 +25,186 @@
 #include "ui/SettingsDialog.h"
 #include "ui/WaitingDialog.h"
 
-SettingsDialog::SettingsDialog(GpgFrontend::GpgContext *ctx, QWidget *parent)
-        : QDialog(parent) {
-    mCtx = ctx;
-    tabWidget = new QTabWidget;
-    generalTab = new GeneralTab(mCtx);
-    appearanceTab = new AppearanceTab;
-    sendMailTab = new SendMailTab;
-    keyserverTab = new KeyserverTab;
-    advancedTab = new AdvancedTab;
-    gpgPathsTab = new GpgPathsTab;
+namespace GpgFrontend::UI {
 
-    tabWidget->addTab(generalTab, tr("General"));
-    tabWidget->addTab(appearanceTab, tr("Appearance"));
-    tabWidget->addTab(sendMailTab, tr("Send Mail"));
-    tabWidget->addTab(keyserverTab, tr("Key Server"));
-    // tabWidget->addTab(gpgPathsTab, tr("Gpg paths"));
-    tabWidget->addTab(advancedTab, tr("Advanced"));
+SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
+  tabWidget = new QTabWidget;
+  generalTab = new GeneralTab();
+  appearanceTab = new AppearanceTab;
+  sendMailTab = new SendMailTab;
+  keyserverTab = new KeyserverTab;
+  advancedTab = new AdvancedTab;
+  gpgPathsTab = new GpgPathsTab;
 
-    buttonBox =
-            new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  tabWidget->addTab(generalTab, tr("General"));
+  tabWidget->addTab(appearanceTab, tr("Appearance"));
+  tabWidget->addTab(sendMailTab, tr("Send Mail"));
+  tabWidget->addTab(keyserverTab, tr("Key Server"));
+  // tabWidget->addTab(gpgPathsTab, tr("Gpg paths"));
+  tabWidget->addTab(advancedTab, tr("Advanced"));
 
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slotAccept()));
-    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+  buttonBox =
+      new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
-    auto *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(tabWidget);
-    mainLayout->stretch(0);
-    mainLayout->addWidget(buttonBox);
-    mainLayout->stretch(0);
-    setLayout(mainLayout);
+  connect(buttonBox, SIGNAL(accepted()), this, SLOT(slotAccept()));
+  connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
-    setWindowTitle(tr("Settings"));
+  auto* mainLayout = new QVBoxLayout;
+  mainLayout->addWidget(tabWidget);
+  mainLayout->stretch(0);
+  mainLayout->addWidget(buttonBox);
+  mainLayout->stretch(0);
+  setLayout(mainLayout);
 
-    // slots for handling the restartneeded member
-    this->slotSetRestartNeeded(false);
-    connect(generalTab, SIGNAL(signalRestartNeeded(bool)), this,
-            SLOT(slotSetRestartNeeded(bool)));
-    connect(appearanceTab, SIGNAL(signalRestartNeeded(bool)), this,
-            SLOT(slotSetRestartNeeded(bool)));
-    connect(sendMailTab, SIGNAL(signalRestartNeeded(bool)), this,
-            SLOT(slotSetRestartNeeded(bool)));
-    connect(keyserverTab, SIGNAL(signalRestartNeeded(bool)), this,
-            SLOT(slotSetRestartNeeded(bool)));
-    connect(advancedTab, SIGNAL(signalRestartNeeded(bool)), this,
-            SLOT(slotSetRestartNeeded(bool)));
+  setWindowTitle(tr("Settings"));
 
-    connect(this, SIGNAL(signalRestartNeeded(bool)), parent,
-            SLOT(slotSetRestartNeeded(bool)));
+  // slots for handling the restartneeded member
+  this->slotSetRestartNeeded(false);
+  connect(generalTab, SIGNAL(signalRestartNeeded(bool)), this,
+          SLOT(slotSetRestartNeeded(bool)));
+  connect(appearanceTab, SIGNAL(signalRestartNeeded(bool)), this,
+          SLOT(slotSetRestartNeeded(bool)));
+  connect(sendMailTab, SIGNAL(signalRestartNeeded(bool)), this,
+          SLOT(slotSetRestartNeeded(bool)));
+  connect(keyserverTab, SIGNAL(signalRestartNeeded(bool)), this,
+          SLOT(slotSetRestartNeeded(bool)));
+  connect(advancedTab, SIGNAL(signalRestartNeeded(bool)), this,
+          SLOT(slotSetRestartNeeded(bool)));
 
-    this->resize(480, 640);
-    this->show();
+  connect(this, SIGNAL(signalRestartNeeded(bool)), parent,
+          SLOT(slotSetRestartNeeded(bool)));
+
+  this->resize(480, 640);
+  this->show();
 }
 
-bool SettingsDialog::getRestartNeeded() const { return this->restartNeeded; }
+bool SettingsDialog::getRestartNeeded() const {
+  return this->restartNeeded;
+}
 
 void SettingsDialog::slotSetRestartNeeded(bool needed) {
-    this->restartNeeded = needed;
+  this->restartNeeded = needed;
 }
 
 void SettingsDialog::slotAccept() {
-    generalTab->applySettings();
-    sendMailTab->applySettings();
-    appearanceTab->applySettings();
-    keyserverTab->applySettings();
-    advancedTab->applySettings();
-    gpgPathsTab->applySettings();
-    if (getRestartNeeded()) {
-        emit signalRestartNeeded(true);
-    }
-    close();
+  generalTab->applySettings();
+  sendMailTab->applySettings();
+  appearanceTab->applySettings();
+  keyserverTab->applySettings();
+  advancedTab->applySettings();
+  gpgPathsTab->applySettings();
+  if (getRestartNeeded()) {
+    emit signalRestartNeeded(true);
+  }
+  close();
 }
 
 // http://www.informit.com/articles/article.aspx?p=1405555&seqNum=3
 // http://developer.qt.nokia.com/wiki/How_to_create_a_multi_language_application
 QHash<QString, QString> SettingsDialog::listLanguages() {
-    QHash<QString, QString> languages;
+  QHash<QString, QString> languages;
 
-    languages.insert("", tr("System Default"));
+  languages.insert("", tr("System Default"));
 
-    QString appPath = qApp->applicationDirPath();
-    QDir qmDir = QDir(RESOURCE_DIR(appPath) + "/ts/");
-    QStringList fileNames = qmDir.entryList(QStringList("gpgfrontend_*.qm"));
+  QString appPath = qApp->applicationDirPath();
+  QDir qmDir = QDir(RESOURCE_DIR(appPath) + "/ts/");
+  QStringList fileNames = qmDir.entryList(QStringList("gpgfrontend_*.qm"));
 
-    for (int i = 0; i < fileNames.size(); ++i) {
-        QString locale = fileNames[i];
-        locale.truncate(locale.lastIndexOf('.'));
-        locale.remove(0, locale.indexOf('_') + 1);
+  for (int i = 0; i < fileNames.size(); ++i) {
+    QString locale = fileNames[i];
+    locale.truncate(locale.lastIndexOf('.'));
+    locale.remove(0, locale.indexOf('_') + 1);
 
-        // this works in qt 4.8
-        QLocale qloc(locale);
+    // this works in qt 4.8
+    QLocale qloc(locale);
 #if QT_VERSION < 0x040800
-        QString language =
-            QLocale::languageToString(qloc.language()) + " (" + locale +
-            ")"; //+ " (" + QLocale::languageToString(qloc.language()) + ")";
+    QString language =
+        QLocale::languageToString(qloc.language()) + " (" + locale +
+        ")";  //+ " (" + QLocale::languageToString(qloc.language()) + ")";
 #else
-        QString language = qloc.nativeLanguageName() + " (" + locale + ")";
+    QString language = qloc.nativeLanguageName() + " (" + locale + ")";
 #endif
-        languages.insert(locale, language);
-    }
-    return languages;
+    languages.insert(locale, language);
+  }
+  return languages;
 }
 
-GpgPathsTab::GpgPathsTab(QWidget *parent)
-        : QWidget(parent), appPath(qApp->applicationDirPath()),
-          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-                   QSettings::IniFormat) {
-    setSettings();
+GpgPathsTab::GpgPathsTab(QWidget* parent)
+    : QWidget(parent),
+      appPath(qApp->applicationDirPath()),
+      settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
+               QSettings::IniFormat) {
+  setSettings();
 
-    /*****************************************
-     * Keydb Box
-     *****************************************/
-    auto *keydbBox = new QGroupBox(tr("Relative path to keydb"));
-    auto *keydbBoxLayout = new QGridLayout();
+  /*****************************************
+   * Keydb Box
+   *****************************************/
+  auto* keydbBox = new QGroupBox(tr("Relative path to keydb"));
+  auto* keydbBoxLayout = new QGridLayout();
 
-    // Label containing the current keydbpath relative to default keydb path
-    keydbLabel = new QLabel(accKeydbPath, this);
+  // Label containing the current keydbpath relative to default keydb path
+  keydbLabel = new QLabel(accKeydbPath, this);
 
-    auto *keydbButton = new QPushButton("Change keydb path", this);
-    connect(keydbButton, SIGNAL(clicked()), this, SLOT(chooseKeydbDir()));
-    auto *keydbDefaultButton = new QPushButton("Set keydb to default path", this);
-    connect(keydbDefaultButton, SIGNAL(clicked()), this,
-            SLOT(setKeydbPathToDefault()));
+  auto* keydbButton = new QPushButton("Change keydb path", this);
+  connect(keydbButton, SIGNAL(clicked()), this, SLOT(chooseKeydbDir()));
+  auto* keydbDefaultButton = new QPushButton("Set keydb to default path", this);
+  connect(keydbDefaultButton, SIGNAL(clicked()), this,
+          SLOT(setKeydbPathToDefault()));
 
-    keydbBox->setLayout(keydbBoxLayout);
-    keydbBoxLayout->addWidget(new QLabel(tr("Current keydb path: ")), 1, 1);
-    keydbBoxLayout->addWidget(keydbLabel, 1, 2);
-    keydbBoxLayout->addWidget(keydbButton, 1, 3);
-    keydbBoxLayout->addWidget(keydbDefaultButton, 2, 3);
-    keydbBoxLayout->addWidget(
-            new QLabel(tr("<b>NOTE: </b> Gpg4usb will restart automatically if you "
-                          "change the keydb path!")),
-            3, 1, 1, 3);
+  keydbBox->setLayout(keydbBoxLayout);
+  keydbBoxLayout->addWidget(new QLabel(tr("Current keydb path: ")), 1, 1);
+  keydbBoxLayout->addWidget(keydbLabel, 1, 2);
+  keydbBoxLayout->addWidget(keydbButton, 1, 3);
+  keydbBoxLayout->addWidget(keydbDefaultButton, 2, 3);
+  keydbBoxLayout->addWidget(
+      new QLabel(tr("<b>NOTE: </b> Gpg4usb will restart automatically if you "
+                    "change the keydb path!")),
+      3, 1, 1, 3);
 
-    auto *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(keydbBox);
-    mainLayout->addStretch(1);
-    setLayout(mainLayout);
+  auto* mainLayout = new QVBoxLayout;
+  mainLayout->addWidget(keydbBox);
+  mainLayout->addStretch(1);
+  setLayout(mainLayout);
 }
 
-QString GpgPathsTab::getRelativePath(const QString &dir1, const QString &dir2) {
-    QDir dir(dir1);
-    QString s;
+QString GpgPathsTab::getRelativePath(const QString& dir1, const QString& dir2) {
+  QDir dir(dir1);
+  QString s;
 
-    s = dir.relativeFilePath(dir2);
-    qDebug() << "relative path: " << s;
-    if (s.isEmpty()) {
-        s = ".";
-    }
-    return s;
+  s = dir.relativeFilePath(dir2);
+  qDebug() << "relative path: " << s;
+  if (s.isEmpty()) {
+    s = ".";
+  }
+  return s;
 }
 
 void GpgPathsTab::setKeydbPathToDefault() {
-    accKeydbPath = ".";
-    keydbLabel->setText(".");
+  accKeydbPath = ".";
+  keydbLabel->setText(".");
 }
 
 QString GpgPathsTab::chooseKeydbDir() {
-    QString dir = QFileDialog::getExistingDirectory(
-            this, tr("Choose keydb directory"), accKeydbPath,
-            QFileDialog::ShowDirsOnly);
+  QString dir = QFileDialog::getExistingDirectory(
+      this, tr("Choose keydb directory"), accKeydbPath,
+      QFileDialog::ShowDirsOnly);
 
-    accKeydbPath = getRelativePath(defKeydbPath, dir);
-    keydbLabel->setText(accKeydbPath);
-    return "";
+  accKeydbPath = getRelativePath(defKeydbPath, dir);
+  keydbLabel->setText(accKeydbPath);
+  return "";
 }
 
 void GpgPathsTab::setSettings() {
-    defKeydbPath = qApp->applicationDirPath() + "/keydb";
+  defKeydbPath = qApp->applicationDirPath() + "/keydb";
 
-    accKeydbPath = settings.value("gpgpaths/keydbpath").toString();
-    if (accKeydbPath.isEmpty()) {
-        accKeydbPath = ".";
-    }
+  accKeydbPath = settings.value("gpgpaths/keydbpath").toString();
+  if (accKeydbPath.isEmpty()) {
+    accKeydbPath = ".";
+  }
 }
 
 void GpgPathsTab::applySettings() {
-    settings.setValue("gpgpaths/keydbpath", accKeydbPath);
+  settings.setValue("gpgpaths/keydbpath", accKeydbPath);
 }
+
+}  // namespace GpgFrontend::UI

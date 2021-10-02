@@ -24,36 +24,42 @@
 
 #include "ui/widgets/SignersPicker.h"
 
-SignersPicker::SignersPicker(GpgFrontend::GpgContext *ctx, QWidget *parent) : mCtx(ctx), QDialog(parent) {
-    auto confirmButton = new QPushButton(tr("Confirm"));
-    connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(accept()));
+namespace GpgFrontend::UI {
 
-    /*Setup KeyList*/
-    mKeyList = new KeyList(mCtx, KeyListRow::ONLY_SECRET_KEY,
-                           KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage);
+SignersPicker::SignersPicker(GpgFrontend::GpgContext* ctx, QWidget* parent)
+    : mCtx(ctx), QDialog(parent) {
+  auto confirmButton = new QPushButton(tr("Confirm"));
+  connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(accept()));
 
-    mKeyList->setFilter([](const GpgKey &key) -> bool {
-        if (!GpgFrontend::GpgContext::checkIfKeyCanSign(key)) return false;
-        else return true;
-    });
+  /*Setup KeyList*/
+  mKeyList = new KeyList(
+      mCtx, KeyListRow::ONLY_SECRET_KEY,
+      KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage);
 
-    mKeyList->slotRefresh();
+  mKeyList->setFilter([](const GpgKey& key) -> bool {
+    if (!GpgFrontend::GpgContext::checkIfKeyCanSign(key))
+      return false;
+    else
+      return true;
+  });
 
-    auto *vbox2 = new QVBoxLayout();
-    vbox2->addWidget(new QLabel("Select Signer(s): "));
-    vbox2->addWidget(mKeyList);
-    vbox2->addWidget(confirmButton);
-    vbox2->addStretch(0);
-    setLayout(vbox2);
+  mKeyList->slotRefresh();
 
-    this->setModal(true);
-    this->setWindowTitle("Signers Picker");
-    this->setMinimumWidth(480);
-    this->show();
+  auto* vbox2 = new QVBoxLayout();
+  vbox2->addWidget(new QLabel("Select Signer(s): "));
+  vbox2->addWidget(mKeyList);
+  vbox2->addWidget(confirmButton);
+  vbox2->addStretch(0);
+  setLayout(vbox2);
 
-
+  this->setModal(true);
+  this->setWindowTitle("Signers Picker");
+  this->setMinimumWidth(480);
+  this->show();
 }
 
-void SignersPicker::getCheckedSigners(QVector<GpgKey> &keys) {
-    mKeyList->getPrivateCheckedKeys(keys);
+void SignersPicker::getCheckedSigners(QVector<GpgKey>& keys) {
+  mKeyList->getPrivateCheckedKeys(keys);
 }
+
+}  // namespace GpgFrontend::UI

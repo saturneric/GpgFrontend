@@ -30,188 +30,209 @@
 
 using namespace rapidjson;
 
-AboutDialog::AboutDialog(int defaultIndex, QWidget *parent)
-        : QDialog(parent) {
-    this->setWindowTitle(tr("About ") + qApp->applicationName());
+namespace GpgFrontend::UI {
 
-    auto *tabWidget = new QTabWidget;
-    auto *infoTab = new InfoTab();
-    auto *translatorsTab = new TranslatorsTab();
-    updateTab = new UpdateTab();
+AboutDialog::AboutDialog(int defaultIndex, QWidget* parent) : QDialog(parent) {
+  this->setWindowTitle(tr("About ") + qApp->applicationName());
 
-    tabWidget->addTab(infoTab, tr("General"));
-    tabWidget->addTab(translatorsTab, tr("Translators"));
-    tabWidget->addTab(updateTab, tr("Update"));
+  auto* tabWidget = new QTabWidget;
+  auto* infoTab = new InfoTab();
+  auto* translatorsTab = new TranslatorsTab();
+  updateTab = new UpdateTab();
 
-    connect(tabWidget, &QTabWidget::currentChanged, this, [&](int index) {
-        qDebug() << "Current Index" << index;
-    });
+  tabWidget->addTab(infoTab, tr("General"));
+  tabWidget->addTab(translatorsTab, tr("Translators"));
+  tabWidget->addTab(updateTab, tr("Update"));
 
-    if(defaultIndex < tabWidget->count() && defaultIndex >= 0) {
-        tabWidget->setCurrentIndex(defaultIndex);
-    }
+  connect(tabWidget, &QTabWidget::currentChanged, this,
+          [&](int index) { qDebug() << "Current Index" << index; });
 
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(close()));
+  if (defaultIndex < tabWidget->count() && defaultIndex >= 0) {
+    tabWidget->setCurrentIndex(defaultIndex);
+  }
 
-    auto *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(tabWidget);
-    mainLayout->addWidget(buttonBox);
-    setLayout(mainLayout);
+  auto* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
+  connect(buttonBox, SIGNAL(accepted()), this, SLOT(close()));
 
-    this->show();
+  auto* mainLayout = new QVBoxLayout;
+  mainLayout->addWidget(tabWidget);
+  mainLayout->addWidget(buttonBox);
+  setLayout(mainLayout);
+
+  this->show();
 }
 
-void AboutDialog::showEvent(QShowEvent *ev) {
-    QDialog::showEvent(ev);
-    updateTab->getLatestVersion();
+void AboutDialog::showEvent(QShowEvent* ev) {
+  QDialog::showEvent(ev);
+  updateTab->getLatestVersion();
 }
 
-InfoTab::InfoTab(QWidget *parent)
-        : QWidget(parent) {
-    auto *pixmap = new QPixmap(":gpgfrontend-logo.png");
-    auto *text = new QString("<center><h2>" + qApp->applicationName() + "</h2></center>"
-                             + "<center><b>" + qApp->applicationVersion() + "</b></center>"
-                             + "<center>" + GIT_VERSION + "</center>"
-                             + tr("<br><center>GPGFrontend is an easy-to-use, compact, cross-platform, <br>"
-                                  "and installation-free gpg front-end tool.<br>"
-                                  "It visualizes most of the common operations of gpg commands.<br>"
-                                  "It's licensed under the GPL v3<br><br>"
-                                  "<b>Developer:</b><br>"
-                                  "Saturneric<br><br>"
-                                  "If you have any questions or suggestions, raise an issue<br/>"
-                                  "at <a href=\"https://github.com/saturneric/GpgFrontend\">GitHub</a> or send a mail to my mailing list at <a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>.") +
-                             tr("<br><br> Built with Qt ") + qVersion()
-                             + tr(" and GPGME ") + GpgFrontend::GpgContext::getGpgmeVersion() +
-                             tr("<br>Built at ") + BUILD_TIMESTAMP + "</center>");
+InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
+  auto* pixmap = new QPixmap(":gpgfrontend-logo.png");
+  auto* text = new QString(
+      "<center><h2>" + qApp->applicationName() + "</h2></center>" +
+      "<center><b>" + qApp->applicationVersion() + "</b></center>" +
+      "<center>" + GIT_VERSION + "</center>" +
+      tr("<br><center>GPGFrontend is an easy-to-use, compact, cross-platform, "
+         "<br>"
+         "and installation-free gpg front-end tool.<br>"
+         "It visualizes most of the common operations of gpg commands.<br>"
+         "It's licensed under the GPL v3<br><br>"
+         "<b>Developer:</b><br>"
+         "Saturneric<br><br>"
+         "If you have any questions or suggestions, raise an issue<br/>"
+         "at <a href=\"https://github.com/saturneric/GpgFrontend\">GitHub</a> "
+         "or send a mail to my mailing list at <a "
+         "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>.") +
+      tr("<br><br> Built with Qt ") + qVersion() + tr(" and GPGME ") +
+      GpgFrontend::GpgContext::getGpgmeVersion().c_str() + tr("<br>Built at ") +
+      BUILD_TIMESTAMP + "</center>");
 
-    auto *layout = new QGridLayout();
-    auto *pixmapLabel = new QLabel();
-    pixmapLabel->setPixmap(*pixmap);
-    layout->addWidget(pixmapLabel, 0, 0, 1, -1, Qt::AlignCenter);
-    auto *aboutLabel = new QLabel();
-    aboutLabel->setText(*text);
-    aboutLabel->setOpenExternalLinks(true);
-    layout->addWidget(aboutLabel, 1, 0, 1, -1);
-    layout->addItem(new QSpacerItem(20, 10, QSizePolicy::Minimum,
-                                    QSizePolicy::Fixed), 2, 1, 1, 1);
+  auto* layout = new QGridLayout();
+  auto* pixmapLabel = new QLabel();
+  pixmapLabel->setPixmap(*pixmap);
+  layout->addWidget(pixmapLabel, 0, 0, 1, -1, Qt::AlignCenter);
+  auto* aboutLabel = new QLabel();
+  aboutLabel->setText(*text);
+  aboutLabel->setOpenExternalLinks(true);
+  layout->addWidget(aboutLabel, 1, 0, 1, -1);
+  layout->addItem(
+      new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed), 2, 1,
+      1, 1);
 
-    setLayout(layout);
+  setLayout(layout);
 }
 
-TranslatorsTab::TranslatorsTab(QWidget *parent)
-        : QWidget(parent) {
-    QFile translatorsFile;
-    translatorsFile.setFileName(qApp->applicationDirPath() + "/About");
-    translatorsFile.open(QIODevice::ReadOnly);
-    QByteArray inBuffer = translatorsFile.readAll();
+TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
+  QFile translatorsFile;
+  translatorsFile.setFileName(qApp->applicationDirPath() + "/About");
+  translatorsFile.open(QIODevice::ReadOnly);
+  QByteArray inBuffer = translatorsFile.readAll();
 
-    auto *label = new QLabel(inBuffer);
-    auto *mainLayout = new QVBoxLayout(this);
-    mainLayout->addWidget(label);
+  auto* label = new QLabel(inBuffer);
+  auto* mainLayout = new QVBoxLayout(this);
+  mainLayout->addWidget(label);
 
-    setLayout(mainLayout);
+  setLayout(mainLayout);
 }
 
-UpdateTab::UpdateTab(QWidget *parent) {
-    auto *pixmap = new QPixmap(":gpgfrontend-logo.png");
-    auto *layout = new QGridLayout();
-    auto *pixmapLabel = new QLabel();
-    pixmapLabel->setPixmap(*pixmap);
-    layout->addWidget(pixmapLabel, 0, 0, 1, -1, Qt::AlignCenter);
+UpdateTab::UpdateTab(QWidget* parent) {
+  auto* pixmap = new QPixmap(":gpgfrontend-logo.png");
+  auto* layout = new QGridLayout();
+  auto* pixmapLabel = new QLabel();
+  pixmapLabel->setPixmap(*pixmap);
+  layout->addWidget(pixmapLabel, 0, 0, 1, -1, Qt::AlignCenter);
 
-    currentVersion = "v" + QString::number(VERSION_MAJOR) + "."
-                     + QString::number(VERSION_MINOR) + "."
-                     + QString::number(VERSION_PATCH);
+  currentVersion = "v" + QString::number(VERSION_MAJOR) + "." +
+                   QString::number(VERSION_MINOR) + "." +
+                   QString::number(VERSION_PATCH);
 
-    auto tipsLabel = new QLabel();
-    tipsLabel->setText("<center>" +
-        tr("It is recommended that you always check the version of GpgFrontend and upgrade to the latest version.") +
-        "</center><br><center>" +
-        tr("New versions not only represent new features, but also often represent functional and security fixes.") + "</center>");
-    tipsLabel->setWordWrap(true);
+  auto tipsLabel = new QLabel();
+  tipsLabel->setText("<center>" +
+                     tr("It is recommended that you always check the version "
+                        "of GpgFrontend and upgrade to the latest version.") +
+                     "</center><br><center>" +
+                     tr("New versions not only represent new features, but "
+                        "also often represent functional and security fixes.") +
+                     "</center>");
+  tipsLabel->setWordWrap(true);
 
-    currentVersionLabel = new QLabel();
-    currentVersionLabel->setText("<center>" + tr("Current Version: ") + "<b>" + currentVersion + "</b></center>");
-    currentVersionLabel->setWordWrap(true);
+  currentVersionLabel = new QLabel();
+  currentVersionLabel->setText("<center>" + tr("Current Version: ") + "<b>" +
+                               currentVersion + "</b></center>");
+  currentVersionLabel->setWordWrap(true);
 
-    latestVersionLabel = new QLabel();
-    latestVersionLabel->setWordWrap(true);
+  latestVersionLabel = new QLabel();
+  latestVersionLabel->setWordWrap(true);
 
-    upgradeLabel = new QLabel();
-    upgradeLabel->setText("<center>" +
-                       tr("The current version is inconsistent with the latest version on github.") +
-                       "</center><br><center>" +
-                       tr("Please click <a href=\"https://github.com/saturneric/GpgFrontend/releases\">here</a> to download the latest version.") + "</center>");
-    upgradeLabel->setWordWrap(true);
-    upgradeLabel->setOpenExternalLinks(true);
-    upgradeLabel->setHidden(true);
+  upgradeLabel = new QLabel();
+  upgradeLabel->setText(
+      "<center>" +
+      tr("The current version is inconsistent with the latest version on "
+         "github.") +
+      "</center><br><center>" +
+      tr("Please click <a "
+         "href=\"https://github.com/saturneric/GpgFrontend/releases\">here</a> "
+         "to download the latest version.") +
+      "</center>");
+  upgradeLabel->setWordWrap(true);
+  upgradeLabel->setOpenExternalLinks(true);
+  upgradeLabel->setHidden(true);
 
-    pb = new QProgressBar();
-    pb->setRange(0, 0);
-    pb->setTextVisible(false);
+  pb = new QProgressBar();
+  pb->setRange(0, 0);
+  pb->setTextVisible(false);
 
-    layout->addWidget(tipsLabel, 1, 0, 1, -1);
-    layout->addWidget(currentVersionLabel, 2, 0, 1, -1);
-    layout->addWidget(latestVersionLabel, 3, 0, 1, -1);
-    layout->addWidget(upgradeLabel, 4, 0, 1, -1);
-    layout->addWidget(pb, 5, 0, 1, -1);
-    layout->addItem(new QSpacerItem(20, 10, QSizePolicy::Minimum,
-                                    QSizePolicy::Fixed), 2, 1, 1, 1);
+  layout->addWidget(tipsLabel, 1, 0, 1, -1);
+  layout->addWidget(currentVersionLabel, 2, 0, 1, -1);
+  layout->addWidget(latestVersionLabel, 3, 0, 1, -1);
+  layout->addWidget(upgradeLabel, 4, 0, 1, -1);
+  layout->addWidget(pb, 5, 0, 1, -1);
+  layout->addItem(
+      new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed), 2, 1,
+      1, 1);
 
-    connect(this, SIGNAL(replyFromUpdateServer(QByteArray)), this, SLOT(processReplyDataFromUpdateServer(QByteArray)));
+  connect(this, SIGNAL(replyFromUpdateServer(QByteArray)), this,
+          SLOT(processReplyDataFromUpdateServer(QByteArray)));
 
-    setLayout(layout);
+  setLayout(layout);
 }
 
 void UpdateTab::getLatestVersion() {
+  this->pb->setHidden(false);
 
-    this->pb->setHidden(false);
+  qDebug() << "Try to get latest version";
 
-    qDebug() << "Try to get latest version";
+  QString baseUrl =
+      "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
 
-    QString baseUrl = "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
+  auto manager = new QNetworkAccessManager(this);
 
-    auto manager = new QNetworkAccessManager(this);
-
-    QNetworkRequest request;
-    request.setUrl(QUrl(baseUrl));
-    QNetworkReply *replay = manager->get(request);
-    auto thread = QThread::create([replay, this]() {
-        while(replay->isRunning()) QApplication::processEvents();
-        emit replyFromUpdateServer(replay->readAll());
-    });
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    thread->start();
-
+  QNetworkRequest request;
+  request.setUrl(QUrl(baseUrl));
+  QNetworkReply* replay = manager->get(request);
+  auto thread = QThread::create([replay, this]() {
+    while (replay->isRunning())
+      QApplication::processEvents();
+    emit replyFromUpdateServer(replay->readAll());
+  });
+  connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+  thread->start();
 }
 
 void UpdateTab::processReplyDataFromUpdateServer(const QByteArray& data) {
+  qDebug() << "Try to Process Reply Data From Update Server";
 
-    qDebug() << "Try to Process Reply Data From Update Server";
+  this->pb->setHidden(true);
 
-    this->pb->setHidden(true);
+  Document d;
+  if (d.Parse(data.constData()).HasParseError() || !d.IsObject()) {
+    qDebug() << "VersionCheckThread Found Network Error";
+    auto latestVersion = "Unknown";
+    latestVersionLabel->setText("<center><b>" +
+                                tr("Latest Version From Github: ") +
+                                latestVersion + "</b></center>");
+    return;
+  }
 
-    Document d;
-    if (d.Parse(data.constData()).HasParseError() || !d.IsObject()) {
-        qDebug() << "VersionCheckThread Found Network Error";
-        auto latestVersion = "Unknown";
-        latestVersionLabel->setText("<center><b>" + tr("Latest Version From Github: ") + latestVersion + "</b></center>");
-        return;
-    }
+  QString latestVersion = d["tag_name"].GetString();
 
-    QString latestVersion = d["tag_name"].GetString();
+  qDebug() << "Latest Version From Github" << latestVersion;
 
-    qDebug() << "Latest Version From Github" << latestVersion;
+  QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
+  QRegularExpressionMatch match = re.match(latestVersion);
+  if (match.hasMatch()) {
+    latestVersion = match.captured(0);
+    qDebug() << "Latest Version Matched" << latestVersion;
+  } else
+    latestVersion = "Unknown";
 
-    QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
-    QRegularExpressionMatch match = re.match(latestVersion);
-    if (match.hasMatch()) {
-        latestVersion = match.captured(0);
-        qDebug() << "Latest Version Matched" << latestVersion;
-    } else latestVersion = "Unknown";
+  latestVersionLabel->setText("<center><b>" +
+                              tr("Latest Version From Github: ") +
+                              latestVersion + "</b></center>");
 
-    latestVersionLabel->setText("<center><b>" + tr("Latest Version From Github: ") + latestVersion + "</b></center>");
-
-    if(latestVersion > currentVersion) upgradeLabel->setHidden(false);
+  if (latestVersion > currentVersion)
+    upgradeLabel->setHidden(false);
 }
+
+}  // namespace GpgFrontend::UI

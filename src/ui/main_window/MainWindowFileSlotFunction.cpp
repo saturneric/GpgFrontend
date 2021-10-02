@@ -24,587 +24,503 @@
 
 #include "MainWindow.h"
 
+#include "gpg/function/GpgFileOpera.h"
+#include "gpg/function/GpgKeyGetter.h"
+
+namespace GpgFrontend::UI {
+
+void refresh_info_board(InfoBoardWidget* info_board,
+                        int status,
+                        const std::string& report_text) {
+  if (status < 0)
+    info_board->slotRefresh(QString::fromStdString(report_text),
+                            INFO_ERROR_CRITICAL);
+  else if (status > 0)
+    info_board->slotRefresh(QString::fromStdString(report_text), INFO_ERROR_OK);
+  else
+    info_board->slotRefresh(QString::fromStdString(report_text),
+                            INFO_ERROR_WARN);
+}
+
+void process_result_analyse(TextEdit* edit,
+                            InfoBoardWidget* info_board,
+                            const ResultAnalyse& result_analyse) {
+  info_board->associateTabWidget(edit->tabWidget);
+  info_board->associateFileTreeView(edit->curFilePage());
+  refresh_info_board(info_board, result_analyse.getStatus(),
+                     result_analyse.getResultReport());
+}
+
+void process_result_analyse(TextEdit* edit,
+                            InfoBoardWidget* info_board,
+                            const ResultAnalyse& result_analyse_a,
+                            const ResultAnalyse& result_analyse_b) {
+  info_board->associateTabWidget(edit->tabWidget);
+  info_board->associateFileTreeView(edit->curFilePage());
+
+  refresh_info_board(
+      info_board,
+      std::min(result_analyse_a.getStatus(), result_analyse_a.getStatus()),
+      result_analyse_a.getResultReport() + result_analyse_a.getResultReport());
+}
+
+bool file_pre_check(QWidget* parent, const QString& path) {
+  QFileInfo file_info(path);
+  QFileInfo path_info(file_info.absolutePath());
+  if (!file_info.isFile()) {
+    QMessageBox::critical(parent, QApplication::tr("Error"),
+                          QApplication::tr("Select a file before doing it."));
+    return false;
+  }
+  if (!file_info.isReadable()) {
+    QMessageBox::critical(parent, QApplication::tr("Error"),
+                          QApplication::tr("No permission to read this file."));
+    return false;
+  }
+  if (!path_info.isWritable()) {
+    QMessageBox::critical(parent, QApplication::tr("Error"),
+                          QApplication::tr("No permission to create file."));
+    return false;
+  }
+  return true;
+}
+
+void process_operation(QWidget* parent,
+                       std::string waiting_title,
+                       std::function<void()> func) {
+  GpgEncrResult result = nullptr;
+
+  gpgme_error_t error;
+  bool if_error = false;
+  auto thread = QThread::create(func);
+  QApplication::connect(thread, SIGNAL(finished()), thread,
+                        SLOT(deleteLater()));
+  thread->start();
+
+  auto* dialog =
+      new WaitingDialog(QString::fromStdString(waiting_title), parent);
+  while (thread->isRunning()) {
+    QApplication::processEvents();
+  }
+  dialog->close();
+}
+
 void MainWindow::slotFileEncrypt() {
+  auto fileTreeView = edit->slotCurPageFileTreeView();
+  auto path = fileTreeView->getSelected();
 
-    auto fileTreeView = edit->slotCurPageFileTreeView();
-    auto path = fileTreeView->getSelected();
+  if (!file_pre_check(this, path))
+    return;
 
-    QFileInfo fileInfo(path);
-    QFileInfo pathInfo(fileInfo.absolutePath());
+  if (QFile::exists(path + ".asc")) {
+    auto ret = QMessageBox::warning(
+        this, tr("Warning"),
+        tr("The target file already exists, do you need to overwrite it?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
 
-    if (!fileInfo.isFile()) {
-        QMessageBox::critical(this, tr("Error"), tr("Select a file before doing it."));
-        return;
+    if (ret == QMessageBox::Cancel)
+      return;
+  }
+
+  auto key_ids = mKeyList->getChecked();
+  auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+  if (keys->empty()) {
+    QMessageBox::critical(this, tr("No Key Selected"), tr("No Key Selected"));
+    return;
+  }
+
+  for (const auto& key : *keys) {
+    if (!key.CanEncrActual()) {
+      QMessageBox::information(
+          this, tr("Invalid Operation"),
+          tr("The selected key contains a key that does not actually have a "
+             "encrypt usage.<br/>") +
+              tr("<br/>For example the Following Key: <br/>") +
+              QString::fromStdString(key.uids()->front().uid()));
+      return;
     }
-    if (!fileInfo.isReadable()) {
-        QMessageBox::critical(this, tr("Error"), tr("No permission to read this file."));
-        return;
+  }
+
+  GpgEncrResult result = nullptr;
+  GpgError error;
+  bool if_error = false;
+  process_operation(this, tr("Encrypting").toStdString(), [&]() {
+    try {
+      error = GpgFileOpera::GetInstance().EncryptFile(
+          std::move(*keys), path.toStdString(), result);
+    } catch (const std::runtime_error& e) {
+      if_error = true;
     }
-    if (!pathInfo.isWritable()) {
-        QMessageBox::critical(this, tr("Error"), tr("No permission to create file."));
-        return;
-    }
-    if (QFile::exists(path + ".asc")) {
-        auto ret = QMessageBox::warning(this,
-                                        tr("Warning"),
-                                        tr("The target file already exists, do you need to overwrite it?"),
-                                        QMessageBox::Ok | QMessageBox::Cancel);
+  });
 
-        if (ret == QMessageBox::Cancel)
-            return;
-    }
-
-    QVector<GpgKey> keys;
-
-    mKeyList->getCheckedKeys(keys);
-
-    if (keys.empty()) {
-        QMessageBox::critical(this, tr("No Key Selected"), tr("No Key Selected"));
-        return;
-    }
-
-    for (const auto &key : keys) {
-        if (!GpgFrontend::GpgContext::checkIfKeyCanEncr(key)) {
-            QMessageBox::information(this,
-                                     tr("Invalid Operation"),
-                                     tr("The selected key contains a key that does not actually have a encrypt usage.<br/>")
-                                     + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
-            return;
-
-        }
-    }
-
-    gpgme_encrypt_result_t result;
-
-    gpgme_error_t error;
-    bool if_error = false;
-    auto thread = QThread::create([&]() {
-        try {
-            error = GpgFileOpera::encryptFile(mCtx, keys, path, &result);
-        } catch (const std::runtime_error &e) {
-            if_error = true;
-        }
-    });
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    thread->start();
-
-    auto *dialog = new WaitingDialog(tr("Encrypting"), this);
-    while (thread->isRunning()) {
-        QApplication::processEvents();
-    }
-
-    dialog->close();
-    if (!if_error) {
-        auto resultAnalyse = new EncryptResultAnalyse(error, result);
-        auto &reportText = resultAnalyse->getResultReport();
-        infoBoard->associateTabWidget(edit->tabWidget);
-        infoBoard->associateFileTreeView(edit->curFilePage());
-
-        if (resultAnalyse->getStatus() < 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-        else if (resultAnalyse->getStatus() > 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-        else
-            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-        delete resultAnalyse;
-
-        fileTreeView->update();
-    } else {
-        QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
-        return;
-    }
+  if (!if_error) {
+    auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));
+    resultAnalyse.analyse();
+    process_result_analyse(edit, infoBoard, resultAnalyse);
+    fileTreeView->update();
+  } else {
+    QMessageBox::critical(this, tr("Error"),
+                          tr("An error occurred during operation."));
+    return;
+  }
 }
 
 void MainWindow::slotFileDecrypt() {
+  auto fileTreeView = edit->slotCurPageFileTreeView();
+  auto path = fileTreeView->getSelected();
 
-    auto fileTreeView = edit->slotCurPageFileTreeView();
-    auto path = fileTreeView->getSelected();
+  if (!file_pre_check(this, path))
+    return;
 
-    QFileInfo fileInfo(path);
-    QFileInfo pathInfo(fileInfo.absolutePath());
-    if (!fileInfo.isFile()) {
-        QMessageBox::critical(this, tr("Error"), tr("Select a file before doing it."));
-        return;
+  QString outFileName, fileExtension = QFileInfo(path).suffix();
+
+  if (fileExtension == "asc" || fileExtension == "gpg") {
+    int pos = path.lastIndexOf(QChar('.'));
+    outFileName = path.left(pos);
+  } else {
+    outFileName = path + ".out";
+  }
+
+  if (QFile::exists(outFileName)) {
+    auto ret = QMessageBox::warning(
+        this, tr("Warning"),
+        tr("The target file already exists, do you need to overwrite it?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
+
+    if (ret == QMessageBox::Cancel)
+      return;
+  }
+
+  GpgDecrResult result = nullptr;
+  gpgme_error_t error;
+  bool if_error = false;
+  process_operation(this, tr("Decrypting").toStdString(), [&]() {
+    try {
+      error =
+          GpgFileOpera::GetInstance().DecryptFile(path.toStdString(), result);
+    } catch (const std::runtime_error& e) {
+      if_error = true;
     }
-    if (!fileInfo.isReadable()) {
-        QMessageBox::critical(this, tr("Error"), tr("No permission to read this file."));
-        return;
-    }
-    if (!pathInfo.isWritable()) {
-        QMessageBox::critical(this, tr("Error"), tr("No permission to create file."));
-        return;
-    }
+  });
 
-    QString outFileName, fileExtension = fileInfo.suffix();
+  if (!if_error) {
+    auto resultAnalyse = DecryptResultAnalyse(error, std::move(result));
+    resultAnalyse.analyse();
+    process_result_analyse(edit, infoBoard, resultAnalyse);
 
-    if (fileExtension == "asc" || fileExtension == "gpg") {
-        int pos = path.lastIndexOf(QChar('.'));
-        outFileName = path.left(pos);
-    } else {
-        outFileName = path + ".out";
-    }
-
-    if (QFile::exists(outFileName)) {
-        auto ret = QMessageBox::warning(this,
-                                        tr("Warning"),
-                                        tr("The target file already exists, do you need to overwrite it?"),
-                                        QMessageBox::Ok | QMessageBox::Cancel);
-
-        if (ret == QMessageBox::Cancel)
-            return;
-    }
-
-    gpgme_decrypt_result_t result;
-    gpgme_error_t error;
-    bool if_error = false;
-
-    auto thread = QThread::create([&]() {
-        try {
-            error = GpgFileOpera::decryptFile(mCtx, path, &result);
-        } catch (const std::runtime_error &e) {
-            if_error = true;
-        }
-    });
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    thread->start();
-
-    auto *dialog = new WaitingDialog("Decrypting", this);
-    while (thread->isRunning()) {
-        QApplication::processEvents();
-    }
-
-    dialog->close();
-
-    if (!if_error) {
-        auto resultAnalyse = new DecryptResultAnalyse(mCtx, error, result);
-        auto &reportText = resultAnalyse->getResultReport();
-        infoBoard->associateTabWidget(edit->tabWidget);
-        infoBoard->associateFileTreeView(edit->curFilePage());
-
-        if (resultAnalyse->getStatus() < 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-        else if (resultAnalyse->getStatus() > 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-        else
-            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-        delete resultAnalyse;
-
-        fileTreeView->update();
-    } else {
-        QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
-        return;
-    }
-
-
+    fileTreeView->update();
+  } else {
+    QMessageBox::critical(this, tr("Error"),
+                          tr("An error occurred during operation."));
+    return;
+  }
 }
 
 void MainWindow::slotFileSign() {
+  auto fileTreeView = edit->slotCurPageFileTreeView();
+  auto path = fileTreeView->getSelected();
 
-    auto fileTreeView = edit->slotCurPageFileTreeView();
-    auto path = fileTreeView->getSelected();
+  if (!file_pre_check(this, path))
+    return;
 
-    QFileInfo fileInfo(path);
-    QFileInfo pathInfo(fileInfo.absolutePath());
+  if (QFile::exists(path + ".sig")) {
+    auto ret = QMessageBox::warning(
+        this, tr("Warning"),
+        tr("The target file already exists, do you need to overwrite it?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
 
-    if (!fileInfo.isFile()) {
-        QMessageBox::critical(this, tr("Error"), tr("Select a file before doing it."));
-        return;
+    if (ret == QMessageBox::Cancel)
+      return;
+  }
+
+  auto key_ids = mKeyList->getChecked();
+  auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+
+  if (keys->empty()) {
+    QMessageBox::critical(this, tr("No Key Selected"), tr("No Key Selected"));
+    return;
+  }
+
+  for (const auto& key : *keys) {
+    if (!key.CanSignActual()) {
+      QMessageBox::information(
+          this, tr("Invalid Operation"),
+          tr("The selected key contains a key that does not actually have a "
+             "sign usage.<br/>") +
+              tr("<br/>For example the Following Key: <br/>") +
+              QString::fromStdString(key.uids()->front().uid()));
+      return;
     }
-    if (!fileInfo.isReadable()) {
-        QMessageBox::critical(this, tr("Error"), tr("No permission to read this file."));
-        return;
+  }
+
+  GpgSignResult result = nullptr;
+  gpgme_error_t error;
+  bool if_error = false;
+
+  process_operation(this, tr("Signing").toStdString(), [&]() {
+    try {
+      error = GpgFileOpera::GetInstance().SignFile(std::move(*keys),
+                                                   path.toStdString(), result);
+    } catch (const std::runtime_error& e) {
+      if_error = true;
     }
-    if (!pathInfo.isWritable()) {
-        QMessageBox::critical(this, tr("Error"), tr("No permission to create file."));
-        return;
-    }
+  });
 
-    if (QFile::exists(path + ".sig")) {
-        auto ret = QMessageBox::warning(this,
-                                        tr("Warning"),
-                                        tr("The target file already exists, do you need to overwrite it?"),
-                                        QMessageBox::Ok | QMessageBox::Cancel);
-
-        if (ret == QMessageBox::Cancel)
-            return;
-    }
-
-    QVector<GpgKey> keys;
-
-    mKeyList->getCheckedKeys(keys);
-
-    if (keys.empty()) {
-        QMessageBox::critical(this, tr("No Key Selected"), tr("No Key Selected"));
-        return;
-    }
-
-    for (const auto &key : keys) {
-        if (!GpgFrontend::GpgContext::checkIfKeyCanEncr(key)) {
-            QMessageBox::information(this,
-                                     tr("Invalid Operation"),
-                                     tr("The selected key contains a key that does not actually have a encrypt usage.<br/>")
-                                     + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
-            return;
-
-        }
-    }
-
-    gpgme_sign_result_t result;
-    gpgme_error_t error;
-    bool if_error = false;
-
-    auto thread = QThread::create([&]() {
-        try {
-            error = GpgFileOpera::signFile(mCtx, keys, path, &result);
-        } catch (const std::runtime_error &e) {
-            if_error = true;
-        }
-    });
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    thread->start();
-
-    auto *dialog = new WaitingDialog(tr("Signing"), this);
-    while (thread->isRunning()) {
-        QApplication::processEvents();
-    }
-
-    dialog->close();
-
-    if (!if_error) {
-
-        auto resultAnalyse = new SignResultAnalyse(mCtx, error, result);
-        auto &reportText = resultAnalyse->getResultReport();
-        infoBoard->associateTabWidget(edit->tabWidget);
-        infoBoard->associateFileTreeView(edit->curFilePage());
-
-        if (resultAnalyse->getStatus() < 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-        else if (resultAnalyse->getStatus() > 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-        else
-            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-        delete resultAnalyse;
-
-        fileTreeView->update();
-
-    } else {
-        QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
-        return;
-    }
+  if (!if_error) {
+    auto resultAnalyse = SignResultAnalyse(error, std::move(result));
+    resultAnalyse.analyse();
+    process_result_analyse(edit, infoBoard, resultAnalyse);
 
     fileTreeView->update();
 
+  } else {
+    QMessageBox::critical(this, tr("Error"),
+                          tr("An error occurred during operation."));
+    return;
+  }
+
+  fileTreeView->update();
 }
 
 void MainWindow::slotFileVerify() {
+  auto fileTreeView = edit->slotCurPageFileTreeView();
+  auto path = fileTreeView->getSelected();
 
-    auto fileTreeView = edit->slotCurPageFileTreeView();
-    auto path = fileTreeView->getSelected();
+  QFileInfo fileInfo(path);
 
-    QFileInfo fileInfo(path);
+  QString signFilePath, dataFilePath;
 
-    QString signFilePath, dataFilePath;
+  if (fileInfo.suffix() == "gpg") {
+    dataFilePath = path;
+    signFilePath = path;
+  } else if (fileInfo.suffix() == "sig") {
+    int pos = path.lastIndexOf(QChar('.'));
+    dataFilePath = path.left(pos);
+    signFilePath = path;
+  } else {
+    dataFilePath = path;
+    signFilePath = path + ".sig";
+  }
 
-    if (fileInfo.suffix() == "gpg") {
-        dataFilePath = path;
-        signFilePath = path;
-    } else if (fileInfo.suffix() == "sig") {
-        int pos = path.lastIndexOf(QChar('.'));
-        dataFilePath = path.left(pos);
-        signFilePath = path;
-    } else {
-        dataFilePath = path;
-        signFilePath = path + ".sig";
+  QFileInfo dataFileInfo(dataFilePath), signFileInfo(signFilePath);
+
+  if (!dataFileInfo.isFile() || !signFileInfo.isFile()) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("Please select the appropriate target file or signature file. "
+           "Ensure that both are in this directory."));
+    return;
+  }
+  if (!dataFileInfo.isReadable()) {
+    QMessageBox::critical(this, tr("Error"),
+                          tr("No permission to read target file."));
+    return;
+  }
+  if (!fileInfo.isReadable()) {
+    QMessageBox::critical(this, tr("Error"),
+                          tr("No permission to read signature file."));
+    return;
+  }
+
+  GpgVerifyResult result = nullptr;
+  gpgme_error_t error;
+  bool if_error = false;
+  process_operation(this, tr("Verifying").toStdString(), [&]() {
+    try {
+      error = GpgFileOpera::GetInstance().VerifyFile(dataFilePath.toStdString(),
+                                                     result);
+    } catch (const std::runtime_error& e) {
+      if_error = true;
     }
+  });
 
-    QFileInfo dataFileInfo(dataFilePath), signFileInfo(signFilePath);
+  if (!if_error) {
+    auto resultAnalyse = VerifyResultAnalyse(error, std::move(result));
+    resultAnalyse.analyse();
+    process_result_analyse(edit, infoBoard, resultAnalyse);
 
-    if (!dataFileInfo.isFile() || !signFileInfo.isFile()) {
-        QMessageBox::critical(this, tr("Error"),
-                              tr("Please select the appropriate target file or signature file. Ensure that both are in this directory."));
-        return;
-    }
-    if (!dataFileInfo.isReadable()) {
-        QMessageBox::critical(this, tr("Error"), tr("No permission to read target file."));
-        return;
-    }
-    if (!fileInfo.isReadable()) {
-        QMessageBox::critical(this, tr("Error"), tr("No permission to read signature file."));
-        return;
-    }
+    //    if (resultAnalyse->getStatus() >= 0) {
+    //      infoBoard->resetOptionActionsMenu();
+    //      infoBoard->addOptionalAction(
+    //          "Show Verify Details", [this, error, result]() {
+    //            VerifyDetailsDialog(this, mCtx, mKeyList, error, result);
+    //          });
+    //    }
 
-    gpgme_verify_result_t result;
-
-    gpgme_error_t error;
-    bool if_error = false;
-    auto thread = QThread::create([&]() {
-        try {
-            error = GpgFileOpera::verifyFile(mCtx, dataFilePath, &result);
-        } catch (const std::runtime_error &e) {
-            if_error = true;
-        }
-    });
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    thread->start();
-
-    auto *dialog = new WaitingDialog(tr("Verifying"), this);
-    while (thread->isRunning()) {
-        QApplication::processEvents();
-    }
-    dialog->close();
-
-    if (!if_error) {
-        auto resultAnalyse = new VerifyResultAnalyse(mCtx, error, result);
-        auto &reportText = resultAnalyse->getResultReport();
-        infoBoard->associateTabWidget(edit->tabWidget);
-        infoBoard->associateFileTreeView(edit->curFilePage());
-
-        if (resultAnalyse->getStatus() < 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-        else if (resultAnalyse->getStatus() > 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-        else
-            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-        if (resultAnalyse->getStatus() >= 0) {
-            infoBoard->resetOptionActionsMenu();
-            infoBoard->addOptionalAction("Show Verify Details", [this, error, result]() {
-                VerifyDetailsDialog(this, mCtx, mKeyList, error, result);
-            });
-        }
-
-        delete resultAnalyse;
-
-        fileTreeView->update();
-    } else {
-        QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
-        return;
-    }
+    fileTreeView->update();
+  } else {
+    QMessageBox::critical(this, tr("Error"),
+                          tr("An error occurred during operation."));
+    return;
+  }
 }
 
 void MainWindow::slotFileEncryptSign() {
-    auto fileTreeView = edit->slotCurPageFileTreeView();
-    auto path = fileTreeView->getSelected();
+  auto fileTreeView = edit->slotCurPageFileTreeView();
+  auto path = fileTreeView->getSelected();
 
-    QFileInfo fileInfo(path);
-    QFileInfo pathInfo(fileInfo.absolutePath());
+  if (!file_pre_check(this, path))
+    return;
 
-    if (!fileInfo.isFile()) {
-        QMessageBox::critical(this, tr("Error"), tr("Select a file before doing it."));
-        return;
-    }
-    if (!fileInfo.isReadable()) {
-        QMessageBox::critical(this, tr("Error"), tr("No permission to read this file."));
-        return;
-    }
-    if (!pathInfo.isWritable()) {
-        QMessageBox::critical(this, tr("Error"), tr("No permission to create file."));
-        return;
-    }
-    if (QFile::exists(path + ".gpg")) {
-        auto ret = QMessageBox::warning(this,
-                                        tr("Warning"),
-                                        tr("The target file already exists, do you need to overwrite it?"),
-                                        QMessageBox::Ok | QMessageBox::Cancel);
+  if (QFile::exists(path + ".gpg")) {
+    auto ret = QMessageBox::warning(
+        this, tr("Warning"),
+        tr("The target file already exists, do you need to overwrite it?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
 
-        if (ret == QMessageBox::Cancel)
-            return;
-    }
+    if (ret == QMessageBox::Cancel)
+      return;
+  }
 
-    QVector<GpgKey> keys;
+  auto key_ids = mKeyList->getChecked();
+  auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
-    mKeyList->getCheckedKeys(keys);
+  if (keys->empty()) {
+    QMessageBox::critical(this, tr("No Key Selected"), tr("No Key Selected"));
+    return;
+  }
 
-    if (keys.empty()) {
-        QMessageBox::critical(this, tr("No Key Selected"), tr("No Key Selected"));
-        return;
-    }
+  bool can_sign = false, can_encr = false;
 
-    bool can_sign = false, can_encr = false;
+  for (const auto& key : *keys) {
+    bool key_can_sign = key.CanSignActual();
+    bool key_can_encr = key.CanEncrActual();
 
-    for (const auto &key : keys) {
-        bool key_can_sign = GpgFrontend::GpgContext::checkIfKeyCanSign(key);
-        bool key_can_encr = GpgFrontend::GpgContext::checkIfKeyCanEncr(key);
-
-        if (!key_can_sign && !key_can_encr) {
-            QMessageBox::critical(nullptr,
-                                  tr("Invalid KeyPair"),
-                                  tr("The selected keypair cannot be used for signing and encryption at the same time.<br/>")
-                                  + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
-            return;
-        }
-
-        if (key_can_sign) can_sign = true;
-        if (key_can_encr) can_encr = true;
+    if (!key_can_sign && !key_can_encr) {
+      QMessageBox::critical(
+          nullptr, tr("Invalid KeyPair"),
+          tr("The selected keypair cannot be used for signing and encryption "
+             "at the same time.<br/>") +
+              tr("<br/>For example the Following Key: <br/>") +
+              QString::fromStdString(key.uids()->front().uid()));
+      return;
     }
 
-    if (!can_encr) {
-        QMessageBox::critical(nullptr,
-                              tr("Incomplete Operation"),
-                              tr("None of the selected key pairs can provide the encryption function."));
-        return;
+    if (key_can_sign)
+      can_sign = true;
+    if (key_can_encr)
+      can_encr = true;
+  }
+
+  if (!can_encr) {
+    QMessageBox::critical(nullptr, tr("Incomplete Operation"),
+                          tr("None of the selected key pairs can provide the "
+                             "encryption function."));
+    return;
+  }
+
+  if (!can_sign) {
+    QMessageBox::warning(nullptr, tr("Incomplete Operation"),
+                         tr("None of the selected key pairs can provide the "
+                            "signature function."));
+  }
+
+  GpgEncrResult encr_result = nullptr;
+  GpgSignResult sign_result = nullptr;
+
+  gpgme_error_t error;
+  bool if_error = false;
+
+  process_operation(this, tr("Encrypting and Signing").toStdString(), [&]() {
+    try {
+      error = GpgFileOpera::GetInstance().EncryptSignFile(
+          std::move(*keys), path.toStdString(), encr_result, sign_result);
+    } catch (const std::runtime_error& e) {
+      if_error = true;
     }
+  });
 
-    if (!can_sign) {
-        QMessageBox::warning(nullptr,
-                             tr("Incomplete Operation"),
-                             tr("None of the selected key pairs can provide the signature function."));
-    }
+  if (!if_error) {
+    auto encrypt_res = EncryptResultAnalyse(error, std::move(encr_result));
+    auto sign_res = SignResultAnalyse(error, std::move(sign_result));
+    encrypt_res.analyse();
+    sign_res.analyse();
+    process_result_analyse(edit, infoBoard, encrypt_res, sign_res);
 
-    gpgme_encrypt_result_t encr_result = nullptr;
-    gpgme_sign_result_t sign_result = nullptr;
+    fileTreeView->update();
 
-    gpgme_error_t error;
-    bool if_error = false;
-
-    auto thread = QThread::create([&]() {
-        try {
-            error = GpgFileOpera::encryptSignFile(mCtx, keys, path, &encr_result, &sign_result);
-        } catch (const std::runtime_error &e) {
-            if_error = true;
-        }
-    });
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    thread->start();
-
-    auto *dialog = new WaitingDialog(tr("Encrypting and Signing"), this);
-    while (thread->isRunning()) {
-        QApplication::processEvents();
-    }
-    dialog->close();
-
-    if (!if_error) {
-
-        auto resultAnalyseEncr = new EncryptResultAnalyse(error, encr_result);
-        auto resultAnalyseSign = new SignResultAnalyse(mCtx, error, sign_result);
-        int status = std::min(resultAnalyseEncr->getStatus(), resultAnalyseSign->getStatus());
-        auto reportText = resultAnalyseEncr->getResultReport() + resultAnalyseSign->getResultReport();
-
-        infoBoard->associateFileTreeView(edit->curFilePage());
-
-        if (status < 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-        else if (status > 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-        else
-            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-        delete resultAnalyseEncr;
-        delete resultAnalyseSign;
-
-        fileTreeView->update();
-
-    } else {
-        QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
-        return;
-    }
+  } else {
+    QMessageBox::critical(this, tr("Error"),
+                          tr("An error occurred during operation."));
+    return;
+  }
 }
 
 void MainWindow::slotFileDecryptVerify() {
-    auto fileTreeView = edit->slotCurPageFileTreeView();
-    auto path = fileTreeView->getSelected();
+  auto fileTreeView = edit->slotCurPageFileTreeView();
+  auto path = fileTreeView->getSelected();
 
-    QFileInfo fileInfo(path);
-    QFileInfo pathInfo(fileInfo.absolutePath());
-    if (!fileInfo.isFile()) {
-        QMessageBox::critical(this, tr("Error"), tr("Select a file(.gpg/.asc) before doing it."));
-        return;
+  if (!file_pre_check(this, path))
+    return;
+
+  QString outFileName, fileExtension = QFileInfo(path).suffix();
+
+  if (fileExtension == "asc" || fileExtension == "gpg") {
+    int pos = path.lastIndexOf(QChar('.'));
+    outFileName = path.left(pos);
+  } else {
+    outFileName = path + ".out";
+  }
+
+  GpgDecrResult d_result = nullptr;
+  GpgVerifyResult v_result = nullptr;
+  gpgme_error_t error;
+  bool if_error = false;
+  process_operation(this, tr("Decrypting and Verifying").toStdString(), [&]() {
+    try {
+      error = GpgFileOpera::GetInstance().DecryptVerifyFile(path.toStdString(),
+                                                            d_result, v_result);
+    } catch (const std::runtime_error& e) {
+      if_error = true;
     }
-    if (!fileInfo.isReadable()) {
-        QMessageBox::critical(this, tr("Error"), tr("No permission to read this file."));
-        return;
-    }
-    if (!pathInfo.isWritable()) {
-        QMessageBox::critical(this, tr("Error"), tr("No permission to create file."));
-        return;
-    }
+  });
 
-    QString outFileName, fileExtension = fileInfo.suffix();
+  if (!if_error) {
+    infoBoard->associateFileTreeView(edit->curFilePage());
 
-    if (fileExtension == "asc" || fileExtension == "gpg") {
-        int pos = path.lastIndexOf(QChar('.'));
-        outFileName = path.left(pos);
-    } else {
-        outFileName = path + ".out";
-    }
+    auto decrypt_res = DecryptResultAnalyse(error, std::move(d_result));
+    auto verify_res = VerifyResultAnalyse(error, std::move(v_result));
+    decrypt_res.analyse();
+    verify_res.analyse();
+    process_result_analyse(edit, infoBoard, decrypt_res, verify_res);
 
-    gpgme_decrypt_result_t d_result = nullptr;
-    gpgme_verify_result_t v_result = nullptr;
+    //    if (verify_res.getStatus() >= 0) {
+    //      infoBoard->resetOptionActionsMenu();
+    //      infoBoard->addOptionalAction(
+    //          "Show Verify Details", [this, error, v_result]() {
+    //            VerifyDetailsDialog(this, mCtx, mKeyList, error, v_result);
+    //          });
+    //    }
 
-    gpgme_error_t error;
-    bool if_error = false;
-
-    auto thread = QThread::create([&]() {
-        try {
-            error = GpgFileOpera::decryptVerifyFile(mCtx, path, &d_result, &v_result);
-        } catch (const std::runtime_error &e) {
-            if_error = true;
-        }
-    });
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    thread->start();
-
-
-    auto *dialog = new WaitingDialog(tr("Decrypting and Verifying"), this);
-    while (thread->isRunning()) {
-        QApplication::processEvents();
-    }
-    dialog->close();
-
-    if (!if_error) {
-        infoBoard->associateFileTreeView(edit->curFilePage());
-
-        auto resultAnalyseDecrypt = new DecryptResultAnalyse(mCtx, error, d_result);
-        auto resultAnalyseVerify = new VerifyResultAnalyse(mCtx, error, v_result);
-
-        int status = std::min(resultAnalyseDecrypt->getStatus(), resultAnalyseVerify->getStatus());
-        auto &reportText = resultAnalyseDecrypt->getResultReport() + resultAnalyseVerify->getResultReport();
-        if (status < 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-        else if (status > 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-        else
-            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-        if (resultAnalyseVerify->getStatus() >= 0) {
-            infoBoard->resetOptionActionsMenu();
-            infoBoard->addOptionalAction("Show Verify Details", [this, error, v_result]() {
-                VerifyDetailsDialog(this, mCtx, mKeyList, error, v_result);
-            });
-        }
-        delete resultAnalyseDecrypt;
-        delete resultAnalyseVerify;
-
-        fileTreeView->update();
-    } else {
-        QMessageBox::critical(this, tr("Error"), tr("An error occurred during operation."));
-        return;
-    }
+    fileTreeView->update();
+  } else {
+    QMessageBox::critical(this, tr("Error"),
+                          tr("An error occurred during operation."));
+    return;
+  }
 }
 
 void MainWindow::slotFileEncryptCustom() {
-    QStringList *keyList;
-    keyList = mKeyList->getChecked();
-    new FileEncryptionDialog(mCtx, *keyList, FileEncryptionDialog::Encrypt, this);
+  new FileEncryptionDialog(mKeyList->getChecked(),
+                           FileEncryptionDialog::Encrypt, this);
 }
 
 void MainWindow::slotFileDecryptCustom() {
-    QStringList *keyList;
-    keyList = mKeyList->getChecked();
-    new FileEncryptionDialog(mCtx, *keyList, FileEncryptionDialog::Decrypt, this);
+  auto key_ids = mKeyList->getChecked();
+  new FileEncryptionDialog(mKeyList->getChecked(),
+                           FileEncryptionDialog::Decrypt, this);
 }
 
 void MainWindow::slotFileSignCustom() {
-    QStringList *keyList;
-    keyList = mKeyList->getChecked();
-    new FileEncryptionDialog(mCtx, *keyList, FileEncryptionDialog::Sign, this);
+  auto key_ids = mKeyList->getChecked();
+  new FileEncryptionDialog(mKeyList->getChecked(), FileEncryptionDialog::Sign,
+                           this);
 }
 
 void MainWindow::slotFileVerifyCustom() {
-    QStringList *keyList;
-    keyList = mKeyList->getChecked();
-    new FileEncryptionDialog(mCtx, *keyList, FileEncryptionDialog::Verify, this);
+  auto key_ids = mKeyList->getChecked();
+  new FileEncryptionDialog(mKeyList->getChecked(), FileEncryptionDialog::Verify,
+                           this);
 }
+
+}  // namespace GpgFrontend::UI

@@ -24,51 +24,69 @@
 
 #include "ui/keypair_details/KeySetExpireDateDialog.h"
 
-KeySetExpireDateDialog::KeySetExpireDateDialog(GpgFrontend::GpgContext *ctx, const GpgKey &key, const GpgSubKey *subkey, QWidget *parent) :
-QDialog(parent), mKey(key), mSubkey(subkey), mCtx(ctx) {
+#include "gpg/function/GpgKeyGetter.h"
+#include "gpg/function/GpgKeyOpera.h"
 
-    QDateTime maxDateTime = QDateTime::currentDateTime().addYears(2);
-    dateTimeEdit = new QDateTimeEdit(maxDateTime);
-    dateTimeEdit->setMinimumDateTime(QDateTime::currentDateTime().addSecs(1));
-    dateTimeEdit->setMaximumDateTime(maxDateTime);
-    nonExpiredCheck = new QCheckBox();
-    nonExpiredCheck->setTristate(false);
-    confirmButton = new QPushButton(tr("Confirm"));
+namespace GpgFrontend::UI {
 
-    auto *gridLayout = new QGridLayout();
-    gridLayout->addWidget(dateTimeEdit, 0, 0, 1, 2);
-    gridLayout->addWidget(nonExpiredCheck, 0, 2, 1, 1, Qt::AlignRight);
-    gridLayout->addWidget(new QLabel(tr("Never Expire")), 0, 3);
-    gridLayout->addWidget(confirmButton, 1, 3);
+KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
+                                               QWidget* parent)
+    : QDialog(parent), mKey(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+  init();
+}
 
-    connect(nonExpiredCheck, SIGNAL(stateChanged(int)), this, SLOT(slotNonExpiredChecked(int)));
-    connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(slotConfirm()));
-
-    this->setLayout(gridLayout);
-    this->setWindowTitle("Edit Expire Datetime");
-    this->setModal(true);
-    this->setAttribute(Qt::WA_DeleteOnClose, true);
+KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
+                                               const std::string& subkey_id,
+                                               QWidget* parent)
+    : QDialog(parent),
+      mKey(GpgKeyGetter::GetInstance().GetKey(key_id)),
+      mSubkey(subkey_id) {
+  init();
 }
 
 void KeySetExpireDateDialog::slotConfirm() {
-    QDateTime *expires = nullptr;
-    if(this->nonExpiredCheck->checkState() == Qt::Unchecked) {
-        expires = new QDateTime(this->dateTimeEdit->dateTime());
-    }
+  std::unique_ptr<boost::gregorian::date> expires = nullptr;
+  if (this->nonExpiredCheck->checkState() == Qt::Unchecked) {
+    expires = std::make_unique<boost::gregorian::date>(
+        boost::posix_time::from_time_t(
+            this->dateTimeEdit->dateTime().toTime_t())
+            .date());
+  }
+  GpgKeyOpera::GetInstance().SetExpire(mKey, mSubkey, expires);
+  this->close();
+}
 
-    if(!mCtx->setExpire(mKey, mSubkey, expires)) {
-        QMessageBox::critical(nullptr,
-                              tr("Operation Failed"),
-                              tr("An error occurred during the operation."));
-    }
-    delete expires;
-    this->close();
+void KeySetExpireDateDialog::init() {
+  QDateTime maxDateTime = QDateTime::currentDateTime().addYears(2);
+  dateTimeEdit = new QDateTimeEdit(maxDateTime);
+  dateTimeEdit->setMinimumDateTime(QDateTime::currentDateTime().addSecs(1));
+  dateTimeEdit->setMaximumDateTime(maxDateTime);
+  nonExpiredCheck = new QCheckBox();
+  nonExpiredCheck->setTristate(false);
+  confirmButton = new QPushButton(tr("Confirm"));
+
+  auto* gridLayout = new QGridLayout();
+  gridLayout->addWidget(dateTimeEdit, 0, 0, 1, 2);
+  gridLayout->addWidget(nonExpiredCheck, 0, 2, 1, 1, Qt::AlignRight);
+  gridLayout->addWidget(new QLabel(tr("Never Expire")), 0, 3);
+  gridLayout->addWidget(confirmButton, 1, 3);
+
+  connect(nonExpiredCheck, SIGNAL(stateChanged(int)), this,
+          SLOT(slotNonExpiredChecked(int)));
+  connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(slotConfirm()));
+
+  this->setLayout(gridLayout);
+  this->setWindowTitle("Edit Expire Datetime");
+  this->setModal(true);
+  this->setAttribute(Qt::WA_DeleteOnClose, true);
 }
 
 void KeySetExpireDateDialog::slotNonExpiredChecked(int state) {
-    if(state == 0) {
-        this->dateTimeEdit->setDisabled(false);
-    } else {
-        this->dateTimeEdit->setDisabled(true);
-    }
+  if (state == 0) {
+    this->dateTimeEdit->setDisabled(false);
+  } else {
+    this->dateTimeEdit->setDisabled(true);
+  }
 }
+
+}  // namespace GpgFrontend::UI

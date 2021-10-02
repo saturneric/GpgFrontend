@@ -26,34 +26,38 @@
 
 #include "boost/format.hpp"
 
-bool GpgFrontend::UidOperator::addUID(const GpgFrontend::GpgKey &key,
-                                      const GpgFrontend::GpgUID &uid) {
-  auto userid = (boost::format("%1% (%2%) <%3%>") % uid.name() % uid.comment() %
-                 uid.email())
-                    .str();
-  auto err = gpgme_op_adduid(ctx, gpgme_key_t(key), userid.c_str(), 0);
+bool GpgFrontend::UidOperator::addUID(const GpgFrontend::GpgKey& key,
+                                      const std::string& uid) {
+  auto err = gpgme_op_adduid(ctx, gpgme_key_t(key), uid.c_str(), 0);
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
     return true;
   else
     return false;
 }
 
-bool GpgFrontend::UidOperator::revUID(const GpgFrontend::GpgKey &key,
-                                      const GpgFrontend::GpgUID &uid) {
-  auto err = check_gpg_error(
-      gpgme_op_revuid(ctx, gpgme_key_t(key), uid.uid().c_str(), 0));
+bool GpgFrontend::UidOperator::revUID(const GpgFrontend::GpgKey& key,
+                                      const std::string& uid) {
+  auto err =
+      check_gpg_error(gpgme_op_revuid(ctx, gpgme_key_t(key), uid.c_str(), 0));
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
     return true;
   else
     return false;
 }
 
-bool GpgFrontend::UidOperator::setPrimaryUID(const GpgFrontend::GpgKey &key,
-                                             const GpgFrontend::GpgUID &uid) {
+bool GpgFrontend::UidOperator::setPrimaryUID(const GpgFrontend::GpgKey& key,
+                                             const std::string& uid) {
   auto err = check_gpg_error(gpgme_op_set_uid_flag(
-      ctx, gpgme_key_t(key), uid.uid().c_str(), "primary", nullptr));
+      ctx, gpgme_key_t(key), uid.c_str(), "primary", nullptr));
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
     return true;
   else
     return false;
+}
+bool GpgFrontend::UidOperator::addUID(const GpgFrontend::GpgKey& key,
+                                      const std::string& name,
+                                      const std::string& comment,
+                                      const std::string& email) {
+  auto uid = boost::format("%1 (%2) <%3>") % name % comment % email;
+  return addUID(key, uid.str());
 }

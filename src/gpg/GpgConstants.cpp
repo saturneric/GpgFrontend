@@ -75,11 +75,12 @@ gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
 }
 
 std::string GpgFrontend::beautify_fingerprint(
-    GpgFrontend::BypeArrayRef fingerprint) {
+    GpgFrontend::BypeArrayConstRef fingerprint) {
+  auto _fingerprint = fingerprint;
   uint len = fingerprint.size();
   if ((len > 0) && (len % 4 == 0))
     for (uint n = 0; 4 * (n + 1) < len; ++n)
-      fingerprint.insert(static_cast<int>(5u * n + 4u), " ");
+      _fingerprint.insert(static_cast<int>(5u * n + 4u), " ");
   return fingerprint;
 }
 
@@ -123,14 +124,15 @@ std::string GpgFrontend::read_all_data_in_file(const std::string& path) {
   return in_buffer;
 }
 
-void GpgFrontend::write_buffer_to_file(const std::string& path,
+bool GpgFrontend::write_buffer_to_file(const std::string& path,
                                        const std::string& out_buffer) {
   std::ofstream out_file(path);
   out_file.open(path.c_str(), std::ios::out);
   if (!out_file.good())
-    throw std::runtime_error("cannot open file");
+    return false;
   out_file.write(out_buffer.c_str(), out_buffer.size());
   out_file.close();
+  return true;
 }
 
 std::string GpgFrontend::get_file_extension(const std::string& path) {
@@ -142,10 +144,10 @@ std::string GpgFrontend::get_file_extension(const std::string& path) {
     return path_obj.extension().string();
   }
   // In case of no extension return empty string
-  return std::string();
+  return {};
 }
 
-std::string get_file_name_with_path(const std::string& path) {
+std::string GpgFrontend::get_file_name_with_path(const std::string& path) {
   // Create a Path object from given string
   std::filesystem::path path_obj(path);
   // Check if file name in the path object has extension
