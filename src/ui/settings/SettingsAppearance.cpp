@@ -24,82 +24,85 @@
 
 #include "ui/SettingsDialog.h"
 
-AppearanceTab::AppearanceTab(QWidget *parent)
-: QWidget(parent), appPath(qApp->applicationDirPath()),
-settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-         QSettings::IniFormat) {
-    /*****************************************
-     * Icon-Size-Box
-     *****************************************/
-    auto *iconSizeBox = new QGroupBox(tr("Iconsize"));
-    iconSizeGroup = new QButtonGroup();
-    iconSizeSmall = new QRadioButton(tr("small"));
-    iconSizeMedium = new QRadioButton(tr("medium"));
-    iconSizeLarge = new QRadioButton(tr("large"));
+namespace GpgFrontend::UI {
 
-    iconSizeGroup->addButton(iconSizeSmall, 1);
-    iconSizeGroup->addButton(iconSizeMedium, 2);
-    iconSizeGroup->addButton(iconSizeLarge, 3);
+AppearanceTab::AppearanceTab(QWidget* parent)
+    : QWidget(parent),
+      appPath(qApp->applicationDirPath()),
+      settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
+               QSettings::IniFormat) {
+  /*****************************************
+   * Icon-Size-Box
+   *****************************************/
+  auto* iconSizeBox = new QGroupBox(tr("Iconsize"));
+  iconSizeGroup = new QButtonGroup();
+  iconSizeSmall = new QRadioButton(tr("small"));
+  iconSizeMedium = new QRadioButton(tr("medium"));
+  iconSizeLarge = new QRadioButton(tr("large"));
 
-    auto *iconSizeBoxLayout = new QHBoxLayout();
-    iconSizeBoxLayout->addWidget(iconSizeSmall);
-    iconSizeBoxLayout->addWidget(iconSizeMedium);
-    iconSizeBoxLayout->addWidget(iconSizeLarge);
+  iconSizeGroup->addButton(iconSizeSmall, 1);
+  iconSizeGroup->addButton(iconSizeMedium, 2);
+  iconSizeGroup->addButton(iconSizeLarge, 3);
 
-    iconSizeBox->setLayout(iconSizeBoxLayout);
+  auto* iconSizeBoxLayout = new QHBoxLayout();
+  iconSizeBoxLayout->addWidget(iconSizeSmall);
+  iconSizeBoxLayout->addWidget(iconSizeMedium);
+  iconSizeBoxLayout->addWidget(iconSizeLarge);
 
-    /*****************************************
-     * Icon-Style-Box
-     *****************************************/
-    auto *iconStyleBox = new QGroupBox(tr("Iconstyle"));
-    iconStyleGroup = new QButtonGroup();
-    iconTextButton = new QRadioButton(tr("just text"));
-    iconIconsButton = new QRadioButton(tr("just icons"));
-    iconAllButton = new QRadioButton(tr("text and icons"));
+  iconSizeBox->setLayout(iconSizeBoxLayout);
 
-    iconStyleGroup->addButton(iconTextButton, 1);
-    iconStyleGroup->addButton(iconIconsButton, 2);
-    iconStyleGroup->addButton(iconAllButton, 3);
+  /*****************************************
+   * Icon-Style-Box
+   *****************************************/
+  auto* iconStyleBox = new QGroupBox(tr("Iconstyle"));
+  iconStyleGroup = new QButtonGroup();
+  iconTextButton = new QRadioButton(tr("just text"));
+  iconIconsButton = new QRadioButton(tr("just icons"));
+  iconAllButton = new QRadioButton(tr("text and icons"));
 
-    auto *iconStyleBoxLayout = new QHBoxLayout();
-    iconStyleBoxLayout->addWidget(iconTextButton);
-    iconStyleBoxLayout->addWidget(iconIconsButton);
-    iconStyleBoxLayout->addWidget(iconAllButton);
+  iconStyleGroup->addButton(iconTextButton, 1);
+  iconStyleGroup->addButton(iconIconsButton, 2);
+  iconStyleGroup->addButton(iconAllButton, 3);
 
-    iconStyleBox->setLayout(iconStyleBoxLayout);
+  auto* iconStyleBoxLayout = new QHBoxLayout();
+  iconStyleBoxLayout->addWidget(iconTextButton);
+  iconStyleBoxLayout->addWidget(iconIconsButton);
+  iconStyleBoxLayout->addWidget(iconAllButton);
 
-    /*****************************************
-     * Window-Size-Box
-     *****************************************/
-    auto *windowSizeBox = new QGroupBox(tr("Windowstate"));
-    auto *windowSizeBoxLayout = new QHBoxLayout();
-    windowSizeCheckBox =
-            new QCheckBox(tr("Save window size and position on exit."), this);
-    windowSizeBoxLayout->addWidget(windowSizeCheckBox);
-    windowSizeBox->setLayout(windowSizeBoxLayout);
+  iconStyleBox->setLayout(iconStyleBoxLayout);
 
-    /*****************************************
-     * Info-Board-Font-Size-Box
-     *****************************************/
+  /*****************************************
+   * Window-Size-Box
+   *****************************************/
+  auto* windowSizeBox = new QGroupBox(tr("Windowstate"));
+  auto* windowSizeBoxLayout = new QHBoxLayout();
+  windowSizeCheckBox =
+      new QCheckBox(tr("Save window size and position on exit."), this);
+  windowSizeBoxLayout->addWidget(windowSizeCheckBox);
+  windowSizeBox->setLayout(windowSizeBoxLayout);
 
-    auto *infoBoardBox = new QGroupBox(tr("Information Board"));
-    auto *infoBoardLayout = new QHBoxLayout();
-    infoBoardFontSizeSpin = new QSpinBox();
-    infoBoardFontSizeSpin->setRange(9, 18);
-    infoBoardFontSizeSpin->setValue(10);
-    infoBoardFontSizeSpin->setSingleStep(1);
-    infoBoardLayout->addWidget(new QLabel(tr(" Front Size")));
-    infoBoardLayout->addWidget(infoBoardFontSizeSpin);
-    infoBoardBox->setLayout(infoBoardLayout);
+  /*****************************************
+   * Info-Board-Font-Size-Box
+   *****************************************/
 
-    auto *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(iconSizeBox);
-    mainLayout->addWidget(iconStyleBox);
-    mainLayout->addWidget(windowSizeBox);
-    mainLayout->addWidget(infoBoardBox);
-    mainLayout->addStretch(1);
-    setSettings();
-    setLayout(mainLayout);
+  auto* infoBoardBox = new QGroupBox(tr("Information Board"));
+  auto* infoBoardLayout = new QHBoxLayout();
+  infoBoardFontSizeSpin = new QSpinBox();
+  infoBoardFontSizeSpin->setRange(9, 18);
+  infoBoardFontSizeSpin->setValue(10);
+  infoBoardFontSizeSpin->setSingleStep(1);
+  infoBoardLayout->addWidget(new QLabel(tr(" Front Size")));
+  infoBoardLayout->addWidget(infoBoardFontSizeSpin);
+  infoBoardBox->setLayout(infoBoardLayout);
+
+  auto* mainLayout = new QVBoxLayout;
+  mainLayout->addWidget(iconSizeBox);
+  mainLayout->addWidget(iconStyleBox);
+  mainLayout->addWidget(windowSizeBox);
+  mainLayout->addWidget(infoBoardBox);
+  mainLayout->addStretch(1);
+  setSettings();
+  setLayout(mainLayout);
 }
 
 /**********************************
@@ -108,47 +111,47 @@ settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
  * appropriately
  **********************************/
 void AppearanceTab::setSettings() {
+  // Iconsize
+  QSize iconSize = settings.value("toolbar/iconsize", QSize(24, 24)).toSize();
+  switch (iconSize.height()) {
+    case 12:
+      iconSizeSmall->setChecked(true);
+      break;
+    case 24:
+      iconSizeMedium->setChecked(true);
+      break;
+    case 32:
+      iconSizeLarge->setChecked(true);
+      break;
+  }
+  // Iconstyle
+  Qt::ToolButtonStyle iconStyle = static_cast<Qt::ToolButtonStyle>(
+      settings.value("toolbar/iconstyle", Qt::ToolButtonTextUnderIcon)
+          .toUInt());
+  switch (iconStyle) {
+    case Qt::ToolButtonTextOnly:
+      iconTextButton->setChecked(true);
+      break;
+    case Qt::ToolButtonIconOnly:
+      iconIconsButton->setChecked(true);
+      break;
+    case Qt::ToolButtonTextUnderIcon:
+      iconAllButton->setChecked(true);
+      break;
+    default:
+      break;
+  }
 
-    // Iconsize
-    QSize iconSize = settings.value("toolbar/iconsize", QSize(24, 24)).toSize();
-    switch (iconSize.height()) {
-        case 12:
-            iconSizeSmall->setChecked(true);
-            break;
-            case 24:
-                iconSizeMedium->setChecked(true);
-                break;
-                case 32:
-                    iconSizeLarge->setChecked(true);
-                    break;
-    }
-    // Iconstyle
-    Qt::ToolButtonStyle iconStyle = static_cast<Qt::ToolButtonStyle>(
-            settings.value("toolbar/iconstyle", Qt::ToolButtonTextUnderIcon)
-            .toUInt());
-    switch (iconStyle) {
-        case Qt::ToolButtonTextOnly:
-            iconTextButton->setChecked(true);
-            break;
-            case Qt::ToolButtonIconOnly:
-                iconIconsButton->setChecked(true);
-                break;
-                case Qt::ToolButtonTextUnderIcon:
-                    iconAllButton->setChecked(true);
-                    break;
-                    default:
-                        break;
-    }
+  // Window Save and Position
+  if (settings.value("window/windowSave").toBool())
+    windowSizeCheckBox->setCheckState(Qt::Checked);
 
-    // Window Save and Position
-    if (settings.value("window/windowSave").toBool())
-        windowSizeCheckBox->setCheckState(Qt::Checked);
-
-    // infoBoardFontSize
-    auto infoBoardFontSize = settings.value("informationBoard/fontSize", 10).toInt();
-    if (infoBoardFontSize < 9 || infoBoardFontSize > 18)
-        infoBoardFontSize = 10;
-    infoBoardFontSizeSpin->setValue(infoBoardFontSize);
+  // infoBoardFontSize
+  auto infoBoardFontSize =
+      settings.value("informationBoard/fontSize", 10).toInt();
+  if (infoBoardFontSize < 9 || infoBoardFontSize > 18)
+    infoBoardFontSize = 10;
+  infoBoardFontSizeSpin->setValue(infoBoardFontSize);
 }
 
 /***********************************
@@ -156,32 +159,34 @@ void AppearanceTab::setSettings() {
  * write them to settings-file
  *************************************/
 void AppearanceTab::applySettings() {
-    switch (iconSizeGroup->checkedId()) {
-        case 1:
-            settings.setValue("toolbar/iconsize", QSize(12, 12));
-            break;
-            case 2:
-                settings.setValue("toolbar/iconsize", QSize(24, 24));
-                break;
-                case 3:
-                    settings.setValue("toolbar/iconsize", QSize(32, 32));
-                    break;
-    }
+  switch (iconSizeGroup->checkedId()) {
+    case 1:
+      settings.setValue("toolbar/iconsize", QSize(12, 12));
+      break;
+    case 2:
+      settings.setValue("toolbar/iconsize", QSize(24, 24));
+      break;
+    case 3:
+      settings.setValue("toolbar/iconsize", QSize(32, 32));
+      break;
+  }
 
-    switch (iconStyleGroup->checkedId()) {
-        case 1:
-            settings.setValue("toolbar/iconstyle", Qt::ToolButtonTextOnly);
-            break;
-            case 2:
-                settings.setValue("toolbar/iconstyle", Qt::ToolButtonIconOnly);
-                break;
-                case 3:
-                    settings.setValue("toolbar/iconstyle", Qt::ToolButtonTextUnderIcon);
-                    break;
-    }
+  switch (iconStyleGroup->checkedId()) {
+    case 1:
+      settings.setValue("toolbar/iconstyle", Qt::ToolButtonTextOnly);
+      break;
+    case 2:
+      settings.setValue("toolbar/iconstyle", Qt::ToolButtonIconOnly);
+      break;
+    case 3:
+      settings.setValue("toolbar/iconstyle", Qt::ToolButtonTextUnderIcon);
+      break;
+  }
 
-    settings.setValue("window/windowSave", windowSizeCheckBox->isChecked());
+  settings.setValue("window/windowSave", windowSizeCheckBox->isChecked());
 
-    settings.setValue("informationBoard/fontSize", infoBoardFontSizeSpin->value());
+  settings.setValue("informationBoard/fontSize",
+                    infoBoardFontSizeSpin->value());
 }
 
+}  // namespace GpgFrontend::UI

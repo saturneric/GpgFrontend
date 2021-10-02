@@ -32,7 +32,7 @@
 namespace GpgFrontend {
 
 class GpgSubKey {
-public:
+ public:
   [[nodiscard]] std::string id() const { return _subkey_ref->keyid; }
 
   [[nodiscard]] std::string fpr() const { return _subkey_ref->fpr; }
@@ -77,24 +77,26 @@ public:
 
   explicit GpgSubKey(gpgme_subkey_t subkey);
 
-  GpgSubKey(GpgSubKey &&o) noexcept { swap(_subkey_ref, o._subkey_ref); }
+  GpgSubKey(GpgSubKey&& o) noexcept { swap(_subkey_ref, o._subkey_ref); }
 
-  GpgSubKey(const GpgSubKey &) = delete;
+  GpgSubKey(const GpgSubKey&) = delete;
 
-  GpgSubKey &operator=(GpgSubKey &&o) noexcept {
+  GpgSubKey& operator=(GpgSubKey&& o) noexcept {
     swap(_subkey_ref, o._subkey_ref);
     return *this;
   };
 
-  GpgSubKey &operator=(const GpgSubKey &) = delete;
+  GpgSubKey& operator=(const GpgSubKey&) = delete;
 
-private:
+  bool operator==(const GpgSubKey& o) const { return fpr() == o.fpr(); }
+
+ private:
   using SubkeyRefHandler = std::unique_ptr<struct _gpgme_subkey,
                                            std::function<void(gpgme_subkey_t)>>;
 
   SubkeyRefHandler _subkey_ref = nullptr;
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_GPGSUBKEY_H
+#endif  // GPGFRONTEND_GPGSUBKEY_H

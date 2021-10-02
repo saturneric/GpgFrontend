@@ -26,82 +26,86 @@
 
 #include <utility>
 
-EditorPage::EditorPage(QString filePath, QWidget *parent) : QWidget(parent),
-                                                            fullFilePath(std::move(filePath)) {
-    // Set the Textedit properties
-    textPage = new QTextEdit();
-    textPage->setAcceptRichText(false);
+namespace GpgFrontend::UI {
 
-    // Set the layout style
-    mainLayout = new QVBoxLayout();
-    mainLayout->setSpacing(0);
-    mainLayout->addWidget(textPage);
-    mainLayout->setContentsMargins(0, 0, 0, 0);
-    setLayout(mainLayout);
+EditorPage::EditorPage(QString filePath, QWidget* parent)
+    : QWidget(parent), fullFilePath(std::move(filePath)) {
+  // Set the Textedit properties
+  textPage = new QTextEdit();
+  textPage->setAcceptRichText(false);
 
-    setAttribute(Qt::WA_DeleteOnClose);
-    textPage->setFocus();
+  // Set the layout style
+  mainLayout = new QVBoxLayout();
+  mainLayout->setSpacing(0);
+  mainLayout->addWidget(textPage);
+  mainLayout->setContentsMargins(0, 0, 0, 0);
+  setLayout(mainLayout);
 
-    // Front in same width
-    this->setFont({"Courier"});
+  setAttribute(Qt::WA_DeleteOnClose);
+  textPage->setFocus();
+
+  // Front in same width
+  this->setFont({"Courier"});
 }
 
-const QString &EditorPage::getFilePath() const {
-    return fullFilePath;
+const QString& EditorPage::getFilePath() const {
+  return fullFilePath;
 }
 
-QTextEdit *EditorPage::getTextPage() {
-    return textPage;
+QTextEdit* EditorPage::getTextPage() {
+  return textPage;
 }
 
-void EditorPage::setFilePath(const QString &filePath) {
-    fullFilePath = filePath;
+void EditorPage::setFilePath(const QString& filePath) {
+  fullFilePath = filePath;
 }
 
-void EditorPage::showNotificationWidget(QWidget *widget, const char *className) {
-    widget->setProperty(className, true);
-    mainLayout->addWidget(widget);
+void EditorPage::showNotificationWidget(QWidget* widget,
+                                        const char* className) {
+  widget->setProperty(className, true);
+  mainLayout->addWidget(widget);
 }
 
-void EditorPage::closeNoteByClass(const char *className) {
-    QList<QWidget *> widgets = findChildren<QWidget *>();
-    for (QWidget *widget:  widgets) {
-        if (widget->property(className) == true) {
-            widget->close();
-        }
+void EditorPage::closeNoteByClass(const char* className) {
+  QList<QWidget*> widgets = findChildren<QWidget*>();
+  for (QWidget* widget : widgets) {
+    if (widget->property(className) == true) {
+      widget->close();
     }
+  }
 }
 
 void EditorPage::slotFormatGpgHeader() {
+  QString content = textPage->toPlainText();
 
-    QString content = textPage->toPlainText();
+  // Get positions of the gpg-headers, if they exist
+  int start = content.indexOf(GpgFrontend::GpgConstants::PGP_SIGNED_BEGIN);
+  int startSig =
+      content.indexOf(GpgFrontend::GpgConstants::PGP_SIGNATURE_BEGIN);
+  int endSig = content.indexOf(GpgFrontend::GpgConstants::PGP_SIGNATURE_END);
 
-    // Get positions of the gpg-headers, if they exist
-    int start = content.indexOf(GpgConstants::PGP_SIGNED_BEGIN);
-    int startSig = content.indexOf(GpgConstants::PGP_SIGNATURE_BEGIN);
-    int endSig = content.indexOf(GpgConstants::PGP_SIGNATURE_END);
+  if (start < 0 || startSig < 0 || endSig < 0 || signMarked) {
+    return;
+  }
 
-    if (start < 0 || startSig < 0 || endSig < 0 || signMarked) {
-        return;
-    }
+  signMarked = true;
 
-    signMarked = true;
+  // Set the fontstyle for the header
+  QTextCharFormat signFormat;
+  signFormat.setForeground(QBrush(QColor::fromRgb(80, 80, 80)));
+  signFormat.setFontPointSize(9);
 
-    // Set the fontstyle for the header
-    QTextCharFormat signFormat;
-    signFormat.setForeground(QBrush(QColor::fromRgb(80, 80, 80)));
-    signFormat.setFontPointSize(9);
+  // set font style for the signature
+  QTextCursor cursor(textPage->document());
+  cursor.setPosition(startSig, QTextCursor::MoveAnchor);
+  cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, endSig);
+  cursor.setCharFormat(signFormat);
 
-    // set font style for the signature
-    QTextCursor cursor(textPage->document());
-    cursor.setPosition(startSig, QTextCursor::MoveAnchor);
-    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, endSig);
-    cursor.setCharFormat(signFormat);
-
-    // set the font style for the header
-    int headEnd = content.indexOf("\n\n", start);
-    cursor.setPosition(start, QTextCursor::MoveAnchor);
-    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, headEnd);
-    cursor.setCharFormat(signFormat);
-
+  // set the font style for the header
+  int headEnd = content.indexOf("\n\n", start);
+  cursor.setPosition(start, QTextCursor::MoveAnchor);
+  cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, headEnd);
+  cursor.setCharFormat(signFormat);
 }
+
+}  // namespace GpgFrontend::UI

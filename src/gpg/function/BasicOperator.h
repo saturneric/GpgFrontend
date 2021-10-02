@@ -36,32 +36,32 @@ class BasicOperator : public SingletonFunctionObject<BasicOperator> {
  public:
   gpg_error_t Encrypt(KeyArgsList&& keys,
                       BypeArrayRef in_buffer,
-                      BypeArrayPtr& out_buffer,
+                      ByteArrayPtr& out_buffer,
                       GpgEncrResult& result);
 
   gpgme_error_t EncryptSign(KeyArgsList&& keys,
                             KeyArgsList&& signers,
                             BypeArrayRef in_buffer,
-                            BypeArrayPtr& out_buffer,
+                            ByteArrayPtr& out_buffer,
                             GpgEncrResult& encr_result,
                             GpgSignResult& sign_result);
 
   gpgme_error_t Decrypt(BypeArrayRef in_buffer,
-                        BypeArrayPtr& out_buffer,
+                        ByteArrayPtr& out_buffer,
                         GpgDecrResult& result);
 
   gpgme_error_t DecryptVerify(BypeArrayRef in_buffer,
-                              BypeArrayPtr& out_buffer,
+                              ByteArrayPtr& out_buffer,
                               GpgDecrResult& decrypt_result,
                               GpgVerifyResult& verify_result);
 
   gpgme_error_t Verify(BypeArrayRef in_buffer,
-                       BypeArrayPtr& sig_buffer,
+                       ByteArrayPtr& sig_buffer,
                        GpgVerifyResult& result) const;
 
   gpg_error_t Sign(KeyArgsList&& key_fprs,
                    BypeArrayRef in_buffer,
-                   BypeArrayPtr& out_buffer,
+                   ByteArrayPtr& out_buffer,
                    gpgme_sig_mode_t mode,
                    GpgSignResult& result);
 

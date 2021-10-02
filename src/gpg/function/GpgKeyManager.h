@@ -32,7 +32,7 @@
 namespace GpgFrontend {
 
 class GpgKeyManager : public SingletonFunctionObject<GpgKeyManager> {
-public:
+ public:
   /**
    * Sign a key pair(actually a certain uid)
    * @param target target key pair
@@ -40,18 +40,22 @@ public:
    * @param expires expire date and time of the signature
    * @return if successful
    */
-  bool signKey(const GpgKey &target, KeyArgsList &keys, const std::string &uid,
-               std::unique_ptr<boost::gregorian::date> &expires);
+  bool signKey(const GpgKey& target,
+               KeyArgsList& keys,
+               const std::string& uid,
+               const std::unique_ptr<boost::gregorian::date>& expires);
 
-  bool revSign(const GpgKey &key, const GpgKeySignature &signature);
+  bool revSign(const GpgFrontend::GpgKey& key,
+               const GpgFrontend::SignIdArgsListPtr& signature_id);
 
-  bool setExpire(const GpgKey &key, std::unique_ptr<GpgSubKey> &subkey,
-                 std::unique_ptr<boost::gregorian::date> &expires);
+  bool setExpire(const GpgKey& key,
+                 std::unique_ptr<GpgSubKey>& subkey,
+                 std::unique_ptr<boost::gregorian::date>& expires);
 
-private:
-  GpgContext &ctx = GpgContext::GetInstance();
+ private:
+  GpgContext& ctx = GpgContext::GetInstance();
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_ZH_CN_TS_GPGKEYMANAGER_H
+#endif  // GPGFRONTEND_ZH_CN_TS_GPGKEYMANAGER_H

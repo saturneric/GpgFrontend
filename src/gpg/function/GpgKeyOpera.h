@@ -32,23 +32,25 @@
 namespace GpgFrontend {
 class GenKeyInfo;
 class GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
-public:
-  void DeleteKeys(KeyIdArgsListPtr uid_list);
+ public:
+  void DeleteKeys(KeyIdArgsListPtr key_ids);
 
-  void SetExpire(const GpgKey &key, std::unique_ptr<GpgSubKey> &subkey,
-                 std::unique_ptr<boost::gregorian::date> &expires);
+  void SetExpire(const GpgKey& key,
+                 const SubkeyId& subkey_id,
+                 std::unique_ptr<boost::gregorian::date>& expires);
 
-  void GenerateRevokeCert(const GpgKey &key,
-                          const std::string &output_file_name);
+  void GenerateRevokeCert(const GpgKey& key,
+                          const std::string& output_file_name);
 
-  GpgFrontend::GpgError GenerateKey(std::unique_ptr<GenKeyInfo> params);
+  GpgFrontend::GpgError GenerateKey(const std::unique_ptr<GenKeyInfo>& params);
 
-  GpgFrontend::GpgError GenerateSubkey(const GpgKey &key,
-                                       std::unique_ptr<GenKeyInfo> params);
+  GpgFrontend::GpgError GenerateSubkey(
+      const GpgKey& key,
+      const std::unique_ptr<GenKeyInfo>& params);
 
-private:
-  GpgContext &ctx = GpgContext::GetInstance();
+ private:
+  GpgContext& ctx = GpgContext::GetInstance();
 };
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // _GPGKEYOPERA_H
+#endif  // _GPGKEYOPERA_H

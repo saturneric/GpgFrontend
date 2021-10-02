@@ -30,15 +30,28 @@
 
 namespace GpgFrontend {
 
-class UidOperator {
-public:
+class UidOperator : public SingletonFunctionObject<UidOperator> {
+ public:
   /**
    * create a new uid in certain key pair
    * @param key target key pair
-   * @param uid uid args
+   * @param uid uid args(combine name&comment&email)
    * @return if successful
    */
-  bool addUID(const GpgKey &key, const GpgUID &uid);
+  bool addUID(const GpgKey& key, const std::string& uid);
+
+  /**
+   * create a new uid in certain key pair
+   * @param key target key pair
+   * @param name
+   * @param comment
+   * @param email
+   * @return
+   */
+  bool addUID(const GpgKey& key,
+              const std::string& name,
+              const std::string& comment,
+              const std::string& email);
 
   /**
    * Revoke(Delete) UID from certain key pair
@@ -46,7 +59,7 @@ public:
    * @param uid target uid
    * @return if successful
    */
-  bool revUID(const GpgKey &key, const GpgUID &uid);
+  bool revUID(const GpgKey& key, const std::string& uid);
 
   /**
    * Set one of a uid of a key pair as primary
@@ -54,12 +67,12 @@ public:
    * @param uid target uid
    * @return if successful
    */
-  bool setPrimaryUID(const GpgKey &key, const GpgUID &uid);
+  bool setPrimaryUID(const GpgKey& key, const std::string& uid);
 
-private:
-  GpgContext &ctx = GpgContext::GetInstance();
+ private:
+  GpgContext& ctx = GpgContext::GetInstance();
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_ZH_CN_TS_UIDOPERATOR_H
+#endif  // GPGFRONTEND_ZH_CN_TS_UIDOPERATOR_H

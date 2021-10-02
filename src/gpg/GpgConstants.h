@@ -29,9 +29,9 @@
 
 #include <functional>
 
-#include <assert.h>
 #include <gpg-error.h>
 #include <gpgme.h>
+#include <cassert>
 #include <memory>
 #include <string>
 
@@ -43,9 +43,10 @@ const int RESTART_CODE = 1000;
 namespace GpgFrontend {
 
 using ByteArray = std::string;
-using BypeArrayPtr = std::unique_ptr<ByteArray>;
+using ByteArrayPtr = std::unique_ptr<ByteArray>;
 using StdBypeArrayPtr = std::unique_ptr<ByteArray>;
 using BypeArrayRef = ByteArray&;
+using BypeArrayConstRef = const ByteArray&;
 using StringArgsPtr = std::unique_ptr<std::vector<std::string>>;
 using StringArgsRef = std::vector<std::string>&;
 
@@ -76,14 +77,13 @@ gpg_err_code_t check_gpg_error_2_err_code(
     gpgme_error_t predict = GPG_ERR_NO_ERROR);
 
 // Fingerprint
-std::string beautify_fingerprint(BypeArrayRef fingerprint);
+std::string beautify_fingerprint(BypeArrayConstRef fingerprint);
 
 // File Operation
 std::string read_all_data_in_file(const std::string& path);
-void write_buffer_to_file(const std::string& path,
+bool write_buffer_to_file(const std::string& path,
                           const std::string& out_buffer);
 
-std::string get_file_extension(const std::string& path);
 std::string get_file_extension(const std::string& path);
 std::string get_file_name_with_path(const std::string& path);
 

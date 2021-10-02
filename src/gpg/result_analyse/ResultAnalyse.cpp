@@ -24,15 +24,11 @@
 
 #include "gpg/result_analyse/ResultAnalyse.h"
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() {
-  if (!analysed_)
-    do_analyse();
+const std::string GpgFrontend::ResultAnalyse::getResultReport() const {
   return stream.str();
 }
 
-int GpgFrontend::ResultAnalyse::getStatus() {
-  if (!analysed_)
-    do_analyse();
+int GpgFrontend::ResultAnalyse::getStatus() const {
   return status;
 }
 

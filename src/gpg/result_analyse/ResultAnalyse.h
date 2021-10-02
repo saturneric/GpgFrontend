@@ -31,16 +31,16 @@
 namespace GpgFrontend {
 
 class ResultAnalyse {
-public:
+ public:
   ResultAnalyse() = default;
 
-  [[nodiscard]] const std::string getResultReport();
+  [[nodiscard]] const std::string getResultReport() const;
 
-  [[nodiscard]] int getStatus();
+  [[nodiscard]] int getStatus() const;
 
   void analyse();
 
-protected:
+ protected:
   virtual void do_analyse() = 0;
 
   std::stringstream stream;
@@ -52,6 +52,6 @@ protected:
   void setStatus(int mStatus);
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_RESULTANALYSE_H
+#endif  // GPGFRONTEND_RESULTANALYSE_H

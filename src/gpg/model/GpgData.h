@@ -30,16 +30,16 @@
 namespace GpgFrontend {
 
 class GpgData {
-public:
+ public:
   GpgData();
 
-  GpgData(void *buffer, size_t size, bool copy = true);
+  GpgData(void* buffer, size_t size, bool copy = true);
 
   operator gpgme_data_t() { return data_.get(); }
 
-  BypeArrayPtr Read2Buffer();
+  ByteArrayPtr Read2Buffer();
 
-private:
+ private:
   struct __data_ref_deletor {
     void operator()(gpgme_data_t _data) {
       if (_data != nullptr)
@@ -50,6 +50,6 @@ private:
   std::unique_ptr<struct gpgme_data, __data_ref_deletor> data_ = nullptr;
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // _GPGDATA_H
+#endif  // _GPGDATA_H

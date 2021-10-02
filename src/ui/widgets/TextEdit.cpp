@@ -24,14 +24,16 @@
 
 #include "ui/widgets/TextEdit.h"
 
-TextEdit::TextEdit(QWidget *parent) : QWidget(parent) {
+namespace GpgFrontend::UI {
+
+TextEdit::TextEdit(QWidget* parent) : QWidget(parent) {
   countPage = 0;
   tabWidget = new QTabWidget(this);
   tabWidget->setMovable(true);
   tabWidget->setTabsClosable(true);
   tabWidget->setDocumentMode(true);
 
-  auto *layout = new QVBoxLayout;
+  auto* layout = new QVBoxLayout;
   layout->addWidget(tabWidget);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(0);
@@ -52,7 +54,7 @@ TextEdit::TextEdit(QWidget *parent) : QWidget(parent) {
 void TextEdit::slotNewTab() {
   QString header = tr("untitled") + QString::number(++countPage) + ".txt";
 
-  auto *page = new EditorPage();
+  auto* page = new EditorPage();
   tabWidget->addTab(page, header);
   tabWidget->setCurrentIndex(tabWidget->count() - 1);
   page->getTextPage()->setFocus();
@@ -60,28 +62,25 @@ void TextEdit::slotNewTab() {
           this, SLOT(slotShowModified()));
 }
 
-void TextEdit::slotNewHelpTab(const QString &title, const QString &path) const {
-
-  auto *page = new HelpPage(path);
+void TextEdit::slotNewHelpTab(const QString& title, const QString& path) const {
+  auto* page = new HelpPage(path);
   tabWidget->addTab(page, title);
   tabWidget->setCurrentIndex(tabWidget->count() - 1);
 }
 
 void TextEdit::slotNewFileTab() const {
-
-  auto *page = new FilePage(qobject_cast<QWidget *>(parent()));
+  auto* page = new FilePage(qobject_cast<QWidget*>(parent()));
   tabWidget->addTab(page, "[Browser]");
   tabWidget->setCurrentIndex(tabWidget->count() - 1);
-  connect(page, SIGNAL(pathChanged(const QString &)), this,
-          SLOT(slotFilePagePathChanged(const QString &)));
+  connect(page, SIGNAL(pathChanged(const QString&)), this,
+          SLOT(slotFilePagePathChanged(const QString&)));
 }
 
-void TextEdit::slotOpenFile(QString &path) {
-
+void TextEdit::slotOpenFile(QString& path) {
   QFile file(path);
 
   if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    auto *page = new EditorPage(path);
+    auto* page = new EditorPage(path);
     pagesHashMap.insert(page->uuid, page);
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
@@ -104,7 +103,7 @@ void TextEdit::slotOpenFile(QString &path) {
     });
 
     page->setFilePath(path);
-    QTextDocument *document = page->getTextPage()->document();
+    QTextDocument* document = page->getTextPage()->document();
     document->setModified(false);
 
     tabWidget->addTab(page, strippedName(path));
@@ -122,11 +121,11 @@ void TextEdit::slotOpenFile(QString &path) {
   }
 }
 
-void TextEdit::slotInsertTargetTextPage(const QString &pagePtr,
-                                        const QString &text) {
+void TextEdit::slotInsertTargetTextPage(const QString& pagePtr,
+                                        const QString& text) {
   auto it = pagesHashMap.find(pagePtr);
   if (it != pagesHashMap.end()) {
-    auto *taregtTextPage = qobject_cast<EditorPage *>(it.value());
+    auto* taregtTextPage = qobject_cast<EditorPage*>(it.value());
     if (taregtTextPage != nullptr) {
       taregtTextPage->getTextPage()->insertPlainText(text);
       taregtTextPage->getTextPage()->document()->setModified(false);
@@ -134,10 +133,10 @@ void TextEdit::slotInsertTargetTextPage(const QString &pagePtr,
   }
 }
 
-void TextEdit::slotReadTargetTextPageStart(const QString &pagePtr) {
+void TextEdit::slotReadTargetTextPageStart(const QString& pagePtr) {
   auto it = pagesHashMap.find(pagePtr);
   if (it != pagesHashMap.end()) {
-    auto *taregtTextPage = qobject_cast<EditorPage *>(it.value());
+    auto* taregtTextPage = qobject_cast<EditorPage*>(it.value());
     if (taregtTextPage != nullptr) {
       qDebug() << "Setting TextEdit At Start" << pagePtr;
       taregtTextPage->getTextPage()->setReadOnly(true);
@@ -150,10 +149,10 @@ void TextEdit::slotReadTargetTextPageStart(const QString &pagePtr) {
   }
 }
 
-void TextEdit::slotReadTargetTextPageDone(const QString &pagePtr) {
+void TextEdit::slotReadTargetTextPageDone(const QString& pagePtr) {
   auto it = pagesHashMap.find(pagePtr);
   if (it != pagesHashMap.end()) {
-    auto *taregtTextPage = qobject_cast<EditorPage *>(it.value());
+    auto* taregtTextPage = qobject_cast<EditorPage*>(it.value());
     if (taregtTextPage != nullptr) {
       qDebug() << "Setting TextEdit At End" << pagePtr;
       taregtTextPage->getTextPage()->setReadOnly(false);
@@ -173,18 +172,18 @@ void TextEdit::slotReadTargetTextPageDone(const QString &pagePtr) {
 void TextEdit::slotOpen() {
   QStringList fileNames =
       QFileDialog::getOpenFileNames(this, tr("Open file"), QDir::currentPath());
-  for (const auto &fileName : fileNames) {
+  for (const auto& fileName : fileNames) {
     if (!fileName.isEmpty()) {
       QFile file(fileName);
 
       if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        auto *page = new EditorPage(fileName);
+        auto* page = new EditorPage(fileName);
 
         QTextStream in(&file);
         QApplication::setOverrideCursor(Qt::WaitCursor);
         page->getTextPage()->setPlainText(in.readAll());
         page->setFilePath(fileName);
-        QTextDocument *document = page->getTextPage()->document();
+        QTextDocument* document = page->getTextPage()->document();
         document->setModified(false);
 
         tabWidget->addTab(page, strippedName(fileName));
@@ -222,7 +221,7 @@ void TextEdit::slotSave() {
   }
 }
 
-bool TextEdit::saveFile(const QString &fileName) {
+bool TextEdit::saveFile(const QString& fileName) {
   if (fileName.isEmpty()) {
     return false;
   }
@@ -230,13 +229,13 @@ bool TextEdit::saveFile(const QString &fileName) {
   QFile file(fileName);
 
   if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-    EditorPage *page = slotCurPageTextEdit();
+    EditorPage* page = slotCurPageTextEdit();
 
     QTextStream outputStream(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
     outputStream << page->getTextPage()->toPlainText();
     QApplication::restoreOverrideCursor();
-    QTextDocument *document = page->getTextPage()->document();
+    QTextDocument* document = page->getTextPage()->document();
 
     document->setModified(false);
 
@@ -259,7 +258,7 @@ bool TextEdit::slotSaveAs() {
     return true;
   }
 
-  EditorPage *page = slotCurPageTextEdit();
+  EditorPage* page = slotCurPageTextEdit();
   QString path;
   if (page->getFilePath() != "") {
     path = page->getFilePath();
@@ -312,13 +311,12 @@ void TextEdit::removeTab(int index) {
  * If it returns false, the close event should be aborted.
  */
 bool TextEdit::maybeSaveCurrentTab(bool askToSave) {
-
-  EditorPage *page = slotCurPageTextEdit();
+  EditorPage* page = slotCurPageTextEdit();
   // if this page is no textedit, there should be nothing to save
   if (page == nullptr) {
     return true;
   }
-  QTextDocument *document = page->getTextPage()->document();
+  QTextDocument* document = page->getTextPage()->document();
 
   if (document->isModified()) {
     QMessageBox::StandardButton result = QMessageBox::Cancel;
@@ -327,7 +325,7 @@ bool TextEdit::maybeSaveCurrentTab(bool askToSave) {
     QString docname = tabWidget->tabText(tabWidget->currentIndex());
     docname.remove(0, 2);
 
-    const QString &filePath = page->getFilePath();
+    const QString& filePath = page->getFilePath();
     if (askToSave) {
       result = QMessageBox::warning(
           this, tr("Unsaved document"),
@@ -381,7 +379,7 @@ bool TextEdit::maybeSaveAnyTab() {
   if (unsavedDocs.size() > 1) {
     QHashIterator<int, QString> i(unsavedDocs);
 
-    QuitDialog *dialog;
+    QuitDialog* dialog;
     dialog = new QuitDialog(this, unsavedDocs);
     int result = dialog->exec();
 
@@ -414,8 +412,8 @@ bool TextEdit::maybeSaveAnyTab() {
   return false;
 }
 
-QTextEdit *TextEdit::curTextPage() const {
-  auto *curTextPage = qobject_cast<EditorPage *>(tabWidget->currentWidget());
+QTextEdit* TextEdit::curTextPage() const {
+  auto* curTextPage = qobject_cast<EditorPage*>(tabWidget->currentWidget());
   if (curTextPage != nullptr) {
     return curTextPage->getTextPage();
   } else {
@@ -423,8 +421,8 @@ QTextEdit *TextEdit::curTextPage() const {
   }
 }
 
-FilePage *TextEdit::curFilePage() const {
-  auto *curFilePage = qobject_cast<FilePage *>(tabWidget->currentWidget());
+FilePage* TextEdit::curFilePage() const {
+  auto* curFilePage = qobject_cast<FilePage*>(tabWidget->currentWidget());
   if (curFilePage != nullptr) {
     return curFilePage;
   } else {
@@ -432,15 +430,17 @@ FilePage *TextEdit::curFilePage() const {
   }
 }
 
-int TextEdit::tabCount() const { return tabWidget->count(); }
+int TextEdit::tabCount() const {
+  return tabWidget->count();
+}
 
-EditorPage *TextEdit::slotCurPageTextEdit() const {
-  auto *curPage = qobject_cast<EditorPage *>(tabWidget->currentWidget());
+EditorPage* TextEdit::slotCurPageTextEdit() const {
+  auto* curPage = qobject_cast<EditorPage*>(tabWidget->currentWidget());
   return curPage;
 }
 
-FilePage *TextEdit::slotCurPageFileTreeView() const {
-  auto *curPage = qobject_cast<FilePage *>(tabWidget->currentWidget());
+FilePage* TextEdit::slotCurPageFileTreeView() const {
+  auto* curPage = qobject_cast<FilePage*>(tabWidget->currentWidget());
   return curPage;
 }
 
@@ -466,7 +466,7 @@ void TextEdit::slotQuote() const {
   cursor.endEditBlock();
 }
 
-void TextEdit::slotFillTextEditWithText(const QString &text) const {
+void TextEdit::slotFillTextEditWithText(const QString& text) const {
   QTextCursor cursor(curTextPage()->document());
   cursor.beginEditBlock();
   this->curTextPage()->selectAll();
@@ -474,7 +474,7 @@ void TextEdit::slotFillTextEditWithText(const QString &text) const {
   cursor.endEditBlock();
 }
 
-void TextEdit::loadFile(const QString &fileName) {
+void TextEdit::loadFile(const QString& fileName) {
   QFile file(fileName);
   if (!file.open(QFile::ReadOnly | QFile::Text)) {
     QMessageBox::warning(
@@ -492,7 +492,7 @@ void TextEdit::loadFile(const QString &fileName) {
   // statusBar()->showMessage(tr("File loaded"), 2000);
 }
 
-QString TextEdit::strippedName(const QString &fullFileName) {
+QString TextEdit::strippedName(const QString& fullFileName) {
   return QFileInfo(fullFileName).fileName();
 }
 
@@ -502,13 +502,13 @@ void TextEdit::slotPrint() {
   }
 
 #ifndef QT_NO_PRINTER
-  QTextDocument *document;
+  QTextDocument* document;
   if (curTextPage() != nullptr) {
     document = curTextPage()->document();
   }
   QPrinter printer;
 
-  auto *dlg = new QPrintDialog(&printer, this);
+  auto* dlg = new QPrintDialog(&printer, this);
   if (dlg->exec() != QDialog::Accepted) {
     return;
   }
@@ -549,11 +549,11 @@ void TextEdit::slotSwitchTabDown() const {
  *   return a hash of tabindexes and title of unsaved tabs
  */
 QHash<int, QString> TextEdit::unsavedDocuments() const {
-  QHash<int, QString> unsavedDocs; // this list could be used to implement gedit
-                                   // like "unsaved changed"-dialog
+  QHash<int, QString> unsavedDocs;  // this list could be used to implement
+                                    // gedit like "unsaved changed"-dialog
 
   for (int i = 0; i < tabWidget->count(); i++) {
-    auto *ep = qobject_cast<EditorPage *>(tabWidget->widget(i));
+    auto* ep = qobject_cast<EditorPage*>(tabWidget->widget(i));
     if (ep != nullptr && ep->getTextPage()->document()->isModified()) {
       QString docname = tabWidget->tabText(i);
       // remove * before name of modified doc
@@ -633,7 +633,7 @@ void TextEdit::slotSelectAll() const {
   curTextPage()->selectAll();
 }
 
-void TextEdit::slotFilePagePathChanged(const QString &path) {
+void TextEdit::slotFilePagePathChanged(const QString& path) {
   int index = tabWidget->currentIndex();
   QString mPath;
   QFileInfo fileInfo(path);
@@ -647,3 +647,5 @@ void TextEdit::slotFilePagePathChanged(const QString &path) {
   mPath.append("/");
   tabWidget->setTabText(index, mPath);
 }
+
+}  // namespace GpgFrontend::UI

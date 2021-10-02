@@ -24,21 +24,22 @@
 
 #include "ui/keypair_details/KeyDetailsDialog.h"
 
-KeyDetailsDialog::KeyDetailsDialog(GpgFrontend::GpgContext *ctx, const GpgKey& key, QWidget *parent)
-        : QDialog(parent) {
+namespace GpgFrontend::UI {
+KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
+    : QDialog(parent) {
+  tabWidget = new QTabWidget();
+  tabWidget->addTab(new KeyPairDetailTab(key.id(), tabWidget), tr("KeyPair"));
+  tabWidget->addTab(new KeyPairUIDTab(key.id(), tabWidget), tr("UIDs"));
+  tabWidget->addTab(new KeyPairSubkeyTab(key.id(), tabWidget), tr("Subkeys"));
 
-    tabWidget = new QTabWidget();
-    tabWidget->addTab(new KeyPairDetailTab(ctx, key, tabWidget), tr("KeyPair"));
-    tabWidget->addTab(new KeyPairUIDTab(ctx, key, tabWidget), tr("UIDs"));
-    tabWidget->addTab(new KeyPairSubkeyTab(ctx, key, tabWidget), tr("Subkeys"));
+  auto* mainLayout = new QVBoxLayout;
+  mainLayout->addWidget(tabWidget);
 
-    auto *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(tabWidget);
-
-    this->setAttribute(Qt::WA_DeleteOnClose, true);
-    this->setLayout(mainLayout);
-    this->setWindowTitle(tr("Key Details"));
-    this->setModal(true);
-    this->setMinimumSize(380, 620);
-    this->show();
+  this->setAttribute(Qt::WA_DeleteOnClose, true);
+  this->setLayout(mainLayout);
+  this->setWindowTitle(tr("Key Details"));
+  this->setModal(true);
+  this->setMinimumSize(380, 620);
+  this->show();
 }
+}  // namespace GpgFrontend::UI
