@@ -25,6 +25,7 @@
 #include "gpg/GpgConstants.h"
 
 #include <gpg-error.h>
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <filesystem>
 
@@ -115,8 +116,7 @@ std::string GpgFrontend::read_all_data_in_file(const std::string& path) {
 
   std::ifstream in_file;
   in_file.open(path, std::ios::in);
-  if (!in_file.good())
-    throw std::runtime_error("cannot open file");
+  if (!in_file.good()) throw std::runtime_error("cannot open file");
   std::istreambuf_iterator<char> begin(in_file);
   std::istreambuf_iterator<char> end;
   std::string in_buffer(begin, end);
@@ -126,10 +126,8 @@ std::string GpgFrontend::read_all_data_in_file(const std::string& path) {
 
 bool GpgFrontend::write_buffer_to_file(const std::string& path,
                                        const std::string& out_buffer) {
-  std::ofstream out_file(path);
-  out_file.open(path.c_str(), std::ios::out);
-  if (!out_file.good())
-    return false;
+  std::ofstream out_file(std::filesystem::path(path), std::ios::out);
+  if (!out_file.good()) return false;
   out_file.write(out_buffer.c_str(), out_buffer.size());
   out_file.close();
   return true;

@@ -33,26 +33,23 @@ namespace GpgFrontend {
 
 class GpgFileOpera : public SingletonFunctionObject<GpgFileOpera> {
  public:
-  GpgError EncryptFile(KeyArgsList&& keys,
-                       const std::string& path,
-                       GpgEncrResult& result);
+  static GpgError EncryptFile(KeyArgsList&& keys, const std::string& path,
+                              GpgEncrResult& result);
 
-  GpgError DecryptFile(const std::string& path, GpgDecrResult& result);
+  static GpgError DecryptFile(const std::string& path, GpgDecrResult& result);
 
-  GpgError SignFile(KeyArgsList&& keys,
-                    const std::string& path,
-                    GpgSignResult& result);
+  static GpgError SignFile(KeyArgsList&& keys, const std::string& path,
+                           GpgSignResult& result);
 
-  GpgError VerifyFile(const std::string& path, GpgVerifyResult& result);
+  static GpgError VerifyFile(const std::string& path, GpgVerifyResult& result);
 
-  GpgError EncryptSignFile(KeyArgsList&& keys,
-                           const std::string& path,
-                           GpgEncrResult& encr_res,
-                           GpgSignResult& sign_res);
+  static GpgError EncryptSignFile(KeyArgsList&& keys, const std::string& path,
+                                  GpgEncrResult& encr_res,
+                                  GpgSignResult& sign_res);
 
-  GpgError DecryptVerifyFile(const std::string& path,
-                             GpgDecrResult& decr_res,
-                             GpgVerifyResult& verify_res);
+  static GpgError DecryptVerifyFile(const std::string& path,
+                                    GpgDecrResult& decr_res,
+                                    GpgVerifyResult& verify_res);
 };
 
 }  // namespace GpgFrontend

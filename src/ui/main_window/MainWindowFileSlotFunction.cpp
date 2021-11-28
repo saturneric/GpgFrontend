@@ -25,40 +25,9 @@
 #include "MainWindow.h"
 #include "gpg/function/GpgFileOpera.h"
 #include "gpg/function/GpgKeyGetter.h"
+#include "ui/UserInterfaceUtils.h"
 
 namespace GpgFrontend::UI {
-
-void refresh_info_board(InfoBoardWidget* info_board, int status,
-                        const std::string& report_text) {
-  if (status < 0)
-    info_board->slotRefresh(QString::fromStdString(report_text),
-                            INFO_ERROR_CRITICAL);
-  else if (status > 0)
-    info_board->slotRefresh(QString::fromStdString(report_text), INFO_ERROR_OK);
-  else
-    info_board->slotRefresh(QString::fromStdString(report_text),
-                            INFO_ERROR_WARN);
-}
-
-void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
-                            const ResultAnalyse& result_analyse) {
-  info_board->associateTabWidget(edit->tabWidget);
-  info_board->associateFileTreeView(edit->curFilePage());
-  refresh_info_board(info_board, result_analyse.getStatus(),
-                     result_analyse.getResultReport());
-}
-
-void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
-                            const ResultAnalyse& result_analyse_a,
-                            const ResultAnalyse& result_analyse_b) {
-  info_board->associateTabWidget(edit->tabWidget);
-  info_board->associateFileTreeView(edit->curFilePage());
-
-  refresh_info_board(
-      info_board,
-      std::min(result_analyse_a.getStatus(), result_analyse_a.getStatus()),
-      result_analyse_a.getResultReport() + result_analyse_a.getResultReport());
-}
 
 bool file_pre_check(QWidget* parent, const QString& path) {
   QFileInfo file_info(path);
@@ -79,21 +48,6 @@ bool file_pre_check(QWidget* parent, const QString& path) {
     return false;
   }
   return true;
-}
-
-void process_operation(QWidget* parent, const std::string& waiting_title,
-                       const std::function<void()>& func) {
-  auto thread = QThread::create(func);
-  QApplication::connect(thread, SIGNAL(finished()), thread,
-                        SLOT(deleteLater()));
-  thread->start();
-
-  auto* dialog =
-      new WaitingDialog(QString::fromStdString(waiting_title), parent);
-  while (thread->isRunning()) {
-    QApplication::processEvents();
-  }
-  dialog->close();
 }
 
 void MainWindow::slotFileEncrypt() {
@@ -135,8 +89,8 @@ void MainWindow::slotFileEncrypt() {
   bool if_error = false;
   process_operation(this, tr("Encrypting").toStdString(), [&]() {
     try {
-      error = GpgFileOpera::GetInstance().EncryptFile(
-          std::move(*keys), path.toStdString(), result);
+      error = GpgFileOpera::EncryptFile(std::move(*keys), path.toStdString(),
+                                        result);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
@@ -183,8 +137,7 @@ void MainWindow::slotFileDecrypt() {
   bool if_error = false;
   process_operation(this, tr("Decrypting").toStdString(), [&]() {
     try {
-      error =
-          GpgFileOpera::GetInstance().DecryptFile(path.toStdString(), result);
+      error = GpgFileOpera::DecryptFile(path.toStdString(), result);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
@@ -244,8 +197,8 @@ void MainWindow::slotFileSign() {
 
   process_operation(this, tr("Signing").toStdString(), [&]() {
     try {
-      error = GpgFileOpera::GetInstance().SignFile(std::move(*keys),
-                                                   path.toStdString(), result);
+      error =
+          GpgFileOpera::SignFile(std::move(*keys), path.toStdString(), result);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
@@ -312,8 +265,7 @@ void MainWindow::slotFileVerify() {
   bool if_error = false;
   process_operation(this, tr("Verifying").toStdString(), [&]() {
     try {
-      error = GpgFileOpera::GetInstance().VerifyFile(dataFilePath.toStdString(),
-                                                     result);
+      error = GpgFileOpera::VerifyFile(dataFilePath.toStdString(), result);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
@@ -404,7 +356,7 @@ void MainWindow::slotFileEncryptSign() {
 
   process_operation(this, tr("Encrypting and Signing").toStdString(), [&]() {
     try {
-      error = GpgFileOpera::GetInstance().EncryptSignFile(
+      error = GpgFileOpera::EncryptSignFile(
           std::move(*keys), path.toStdString(), encr_result, sign_result);
     } catch (const std::runtime_error& e) {
       if_error = true;
@@ -448,8 +400,8 @@ void MainWindow::slotFileDecryptVerify() {
   bool if_error = false;
   process_operation(this, tr("Decrypting and Verifying").toStdString(), [&]() {
     try {
-      error = GpgFileOpera::GetInstance().DecryptVerifyFile(path.toStdString(),
-                                                            d_result, v_result);
+      error = GpgFileOpera::DecryptVerifyFile(path.toStdString(), d_result,
+                                              v_result);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
