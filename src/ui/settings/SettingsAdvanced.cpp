@@ -22,7 +22,7 @@
  *
  */
 
-#include "ui/SettingsDialog.h"
+#include "SettingsAdvanced.h"
 
 namespace GpgFrontend::UI {
 

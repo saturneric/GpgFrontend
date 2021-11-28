@@ -25,6 +25,9 @@
 #include "GpgFrontendBuildInfo.h"
 #include "ui/MainWindow.h"
 
+// Easy Logging Cpp
+INITIALIZE_EASYLOGGINGPP
+
 int main(int argc, char* argv[]) {
   Q_INIT_RESOURCE(gpgfrontend);
 
@@ -77,12 +80,10 @@ int main(int argc, char* argv[]) {
     }
     qDebug() << "Language set" << lang;
     translator.load(RESOURCE_DIR(appPath) + "/ts/" + "gpgfrontend_" + lang);
-    qDebug() << "Translator" << translator.filePath();
     QApplication::installTranslator(&translator);
 
     // set qt translations
     translator2.load(RESOURCE_DIR(appPath) + "/ts/qt_" + lang);
-    qDebug() << "Translator2" << translator2.filePath();
     QApplication::installTranslator(&translator2);
 
     QApplication::setQuitOnLastWindowClosed(true);
@@ -108,7 +109,7 @@ int main(int argc, char* argv[]) {
     gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
 #endif
 
-    MainWindow window;
+    GpgFrontend::UI::MainWindow window;
     return_from_event_loop_code = QApplication::exec();
 
   } while (return_from_event_loop_code == RESTART_CODE);

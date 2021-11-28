@@ -22,41 +22,40 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
-#define GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
+#ifndef GPGFRONTEND_SETTINGSKEYSERVER_H
+#define GPGFRONTEND_SETTINGSKEYSERVER_H
 
-#include "gpg/GpgContext.h"
-#include "gpg/model/GpgKey.h"
-#include "gpg/model/GpgSubKey.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
-
-class KeySetExpireDateDialog : public QDialog {
+class KeyserverTab : public QWidget {
   Q_OBJECT
- public:
-  explicit KeySetExpireDateDialog(const KeyId& key_id,
-                                  QWidget* parent = nullptr);
 
-  explicit KeySetExpireDateDialog(const KeyId& key_id,
-                                  std::string subkey_id,
-                                  QWidget* parent = nullptr);
+ public:
+  explicit KeyserverTab(QWidget* parent = nullptr);
+
+  void setSettings();
+
+  void applySettings();
 
  private:
-  void init();
-
-  const GpgKey mKey;
-  const SubkeyId mSubkey;
-
-  QDateTimeEdit* dateTimeEdit{};
-  QPushButton* confirmButton{};
-  QCheckBox* nonExpiredCheck{};
+  QString appPath;
+  QSettings settings;
+  QComboBox* comboBox;
+  QLineEdit* newKeyServerEdit;
+  QTableWidget* keyServerTable;
+  QStringList keyServerStrList;
 
  private slots:
-  void slotConfirm();
-  void slotNonExpiredChecked(int state);
+
+  void addKeyServer();
+
+  void refreshTable();
+
+ signals:
+
+  void signalRestartNeeded(bool needed);
 };
+}
 
-}  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
+#endif  // GPGFRONTEND_SETTINGSKEYSERVER_H

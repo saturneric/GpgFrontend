@@ -126,6 +126,9 @@ MainWindow::MainWindow()
     }
   }
   edit->curTextPage()->setFocus();
+
+  waitingDialog->close();
+
   this->setMinimumSize(1200, 700);
   this->setWindowTitle(qApp->applicationName());
   this->show();
@@ -210,7 +213,7 @@ void MainWindow::saveSettings() {
     auto keyIds = mKeyList->getChecked();
     if (!keyIds->empty()) {
       QStringList key_ids_str_list;
-      for (const auto& key_id : keyIds)
+      for (const auto& key_id : *keyIds)
         key_ids_str_list << QString::fromStdString(key_id);
       settings.setValue("keys/savedCheckedKeyList", key_ids_str_list);
     } else {

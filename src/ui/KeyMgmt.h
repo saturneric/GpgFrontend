@@ -57,7 +57,7 @@ class KeyMgmt : public QMainWindow {
 
   void slotImportKeyFromKeyServer();
 
-  void slotImportKeys(GpgFrontend::ByteArrayPtr in_buffer);
+  void slotImportKeys(const std::string& in_buffer);
 
   void slotExportKeyToFile();
 

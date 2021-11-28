@@ -264,7 +264,7 @@ void KeyPairDetailTab::slotCopyFingerprint() {
 }
 
 void KeyPairDetailTab::slotModifyEditDatetime() {
-  auto dialog = new KeySetExpireDateDialog(mKey, this);
+  auto dialog = new KeySetExpireDateDialog(mKey.id(), this);
   dialog->show();
 }
 

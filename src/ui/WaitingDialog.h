@@ -22,6 +22,9 @@
  *
  */
 
+#ifndef __UI_WAITING_DIALOG_H__
+#define __UI_WAITING_DIALOG_H__
+
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
@@ -39,3 +42,5 @@ class WaitingDialog : public QDialog {
 };
 
 }  // namespace GpgFrontend::UI
+
+#endif  // __UI_WAITING_DIALOG_H__

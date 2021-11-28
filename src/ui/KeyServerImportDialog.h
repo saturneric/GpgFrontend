@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef __KEYSERVERIMPORTDIALOG_H__
-#define __KEYSERVERIMPORTDIALOG_H__
+#ifndef __KEY_SERVER_IMPORT_DIALOG_H__
+#define __KEY_SERVER_IMPORT_DIALOG_H__
 
 #include "KeyImportDetailDialog.h"
 #include "gpg/GpgContext.h"
@@ -40,7 +40,7 @@ class KeyServerImportDialog : public QDialog {
 
   KeyServerImportDialog(QWidget* parent);
 
-  void slotImport(const QStringList& keyIds);
+  void slotImport(const KeyIdArgsListPtr& keys);
 
   void slotImport(const QStringList& keyIds, const QUrl& keyserverUrl);
 
@@ -91,4 +91,4 @@ class KeyServerImportDialog : public QDialog {
 
 }  // namespace GpgFrontend::UI
 
-#endif  // __KEYSERVERIMPORTDIALOG_H__
+#endif  // __KEY_SERVER_IMPORT_DIALOG_H__

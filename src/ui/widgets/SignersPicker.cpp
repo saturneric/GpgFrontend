@@ -26,18 +26,17 @@
 
 namespace GpgFrontend::UI {
 
-SignersPicker::SignersPicker(GpgFrontend::GpgContext* ctx, QWidget* parent)
-    : mCtx(ctx), QDialog(parent) {
+SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
   auto confirmButton = new QPushButton(tr("Confirm"));
   connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(accept()));
 
   /*Setup KeyList*/
   mKeyList = new KeyList(
-      mCtx, KeyListRow::ONLY_SECRET_KEY,
+      KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage);
 
   mKeyList->setFilter([](const GpgKey& key) -> bool {
-    if (!GpgFrontend::GpgContext::checkIfKeyCanSign(key))
+    if (!key.CanSignActual())
       return false;
     else
       return true;
@@ -58,8 +57,8 @@ SignersPicker::SignersPicker(GpgFrontend::GpgContext* ctx, QWidget* parent)
   this->show();
 }
 
-void SignersPicker::getCheckedSigners(QVector<GpgKey>& keys) {
-  mKeyList->getPrivateCheckedKeys(keys);
+GpgFrontend::KeyIdArgsListPtr SignersPicker::getCheckedSigners() {
+  return mKeyList->getPrivateChecked();
 }
 
 }  // namespace GpgFrontend::UI

@@ -22,15 +22,16 @@
  *
  */
 
-#include "ui/SettingsDialog.h"
-
-#include "rapidjson/prettywriter.h"
+#include "SettingsGeneral.h"
 
 #ifdef SERVER_SUPPORT
 #include "server/ComUtils.h"
 #endif
+
+#include "SettingsDialog.h"
 #include "gpg/function/GpgKeyGetter.h"
-#include "ui/WaitingDialog.h"
+#include "rapidjson/prettywriter.h"
+#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
@@ -114,8 +115,7 @@ GeneralTab::GeneralTab(QWidget* parent)
 
   for (const auto& keyid : *private_keys) {
     auto key = GpgKeyGetter::GetInstance().GetKey(keyid);
-    if (!key.good())
-      continue;
+    if (!key.good()) continue;
     keyIds.insert({key.id(), key.uids()->front().uid()});
   }
   for (const auto& k : keyIds) {
@@ -167,8 +167,7 @@ void GeneralTab::setSettings() {
     serverList.append("service.gpgfrontend.pub");
     serverList.append("localhost");
   }
-  for (const auto& s : serverList)
-    serverSelectBox->addItem(s);
+  for (const auto& s : serverList) serverSelectBox->addItem(s);
 
   qDebug() << "Current Gpgfrontend Server"
            << settings.value("general/currentGpgfrontendServer").toString();
@@ -241,9 +240,7 @@ void GeneralTab::applySettings() {
                     importConfirmationCheckBox->isChecked());
 }
 
-void GeneralTab::slotLanguageChanged() {
-  emit signalRestartNeeded(true);
-}
+void GeneralTab::slotLanguageChanged() { emit signalRestartNeeded(true); }
 
 void GeneralTab::slotOwnKeyIdChanged() {
   // Set ownKeyId to currently selected

@@ -74,7 +74,9 @@ class GpgKey {
   }
 
   [[nodiscard]] boost::gregorian::date last_update() const {
-    return boost::posix_time::from_time_t(_key_ref->last_update).date();
+    return boost::posix_time::from_time_t(
+               static_cast<time_t>(_key_ref->last_update))
+        .date();
   }
 
   [[nodiscard]] boost::gregorian::date expires() const {
