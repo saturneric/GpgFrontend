@@ -22,7 +22,7 @@
  *
  */
 
-#include "ui/SendMailDialog.h"
+#include "SendMailDialog.h"
 
 #include <utility>
 
@@ -149,8 +149,7 @@ void SendMailDialog::slotConfirm() {
 
   message.setSender(new EmailAddress(senderEdit->text()));
   for (const auto& reci : rcptStringList) {
-    if (!reci.isEmpty())
-      message.addRecipient(new EmailAddress(reci.trimmed()));
+    if (!reci.isEmpty()) message.addRecipient(new EmailAddress(reci.trimmed()));
   }
   message.setSubject(subjectEdit->text());
 

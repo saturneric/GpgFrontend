@@ -28,8 +28,7 @@
 
 namespace GpgFrontend::UI {
 
-VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget* parent,
-                                       KeyList* keyList,
+VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget* parent, KeyList* keyList,
                                        gpgme_signature_t signature)
     : QGroupBox(parent), mKeyList(keyList), fpr(signature->fpr) {
   auto* vbox = new QVBoxLayout();
@@ -150,7 +149,9 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget* parent,
 
 void VerifyKeyDetailBox::slotImportFormKeyserver() {
   auto* importDialog = new KeyServerImportDialog(mKeyList, false, this);
-  importDialog->slotImport(QStringList(fpr));
+  auto key_ids = std::make_unique<KeyIdArgsList>();
+  key_ids->push_back(fpr.toStdString());
+  importDialog->slotImport(key_ids);
 }
 
 QString VerifyKeyDetailBox::beautifyFingerprint(QString fingerprint) {
@@ -166,8 +167,7 @@ QGridLayout* VerifyKeyDetailBox::createKeyInfoGrid(
   auto grid = new QGridLayout();
   GpgKey key = GpgKeyGetter::GetInstance().GetKey(signature->fpr);
 
-  if (!key.good())
-    return nullptr;
+  if (!key.good()) return nullptr;
   grid->addWidget(new QLabel(tr("Signer Name:")), 0, 0);
   grid->addWidget(new QLabel(tr("Signer Email:")), 1, 0);
   grid->addWidget(new QLabel(tr("Key's Fingerprint:")), 2, 0);

@@ -47,7 +47,7 @@ if (BUILD_CONFIG)
         message(STATUS "Switch TEST_BUILD")
         set(TEST_BUILD 1)
         set(AppName GpgFrontendTest)
-        # Test Build With Coverage Test
+    # Test Build With Coverage Test
     elseif (${BUILD_CONFIG} STREQUAL "test_coverage")
         message(STATUS "Switch TEST_COVERAGE_BUILD")
         set(TEST_BUILD 1)
@@ -59,7 +59,9 @@ if (BUILD_CONFIG)
             message(WARNING "Please use gcc or clang for branch coverage test.")
         endif ()
         set(AppName GpgFrontendTest)
+    # Test Build with minimum UI
     elseif (${BUILD_CONFIG} STREQUAL "test_ui")
+        message(STATUS "Switch TEST_MINIMUM_UI_BUILD")
         set(MINIMUM_APPLICATION_BUILD 1)
         set(AppName GpgFrontend)
     endif ()
@@ -214,7 +216,8 @@ if (FULL_APPLICATION_BUILD)
     set(ADVANCE_SUPPORT 1)
     set(APPLICATION_BUILD 1)
     set(BASIC_ENV_CONFIG 1)
-    set(MULTI_LANG_SUPPORT 1)
+    # Disable Qt MULTI_LANG_SUPPORT
+    # set(MULTI_LANG_SUPPORT 1)
 elseif (MINIMUM_APPLICATION_BUILD)
     set(QT5_ENV_SUPPORT 1)
     set(QT_MOC_CONFIG 1)
@@ -234,9 +237,10 @@ elseif (TEST_BUILD)
 endif ()
 
 if (QT5_ENV_SUPPORT)
-    # Find
-    find_package(Qt5 5.15.2 EXACT COMPONENTS Core Test Widgets PrintSupport Network LinguistTools REQUIRED)
-    # Qt
+    # Support Qt version Both 5.12.x and 5.15.x
+    find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    # find_package(Qt5 5.15.2 EXACT COMPONENTS Core Test Widgets PrintSupport Network LinguistTools REQUIRED)
+    # Qt configuration
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
     set(CMAKE_AUTOUIC ON)

@@ -28,8 +28,7 @@
 namespace GpgFrontend::UI {
 
 KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
-    : mKey(std::move(GpgKeyGetter::GetInstance().GetKey(key_id))),
-      QWidget(parent) {
+    : QWidget(parent), mKey(GpgKeyGetter::GetInstance().GetKey(key_id)) {
   createSubkeyList();
   createSubkeyOperaMenu();
 
@@ -179,7 +178,7 @@ void KeyPairSubkeyTab::slotRefreshSubkeyList() {
 }
 
 void KeyPairSubkeyTab::slotAddSubkey() {
-  auto dialog = new SubkeyGenerateDialog(mKey, this);
+  auto dialog = new SubkeyGenerateDialog(mKey.id(), this);
   dialog->show();
 }
 
@@ -252,12 +251,9 @@ void KeyPairSubkeyTab::createSubkeyOperaMenu() {
 }
 
 void KeyPairSubkeyTab::slotEditSubkey() {
-  qDebug() << "Slot Edit Subkry";
-  auto subkey_id = std::make_unique<std::string>(getSelectedSubkey().id());
-  if (*subkey_id == buffered_subkeys[0].id()) {
-    subkey_id = nullptr;
-  }
-  auto dialog = new KeySetExpireDateDialog(mKey, subkey_id, this);
+  qDebug() << "Slot Edit Subkey";
+  auto dialog =
+      new KeySetExpireDateDialog(mKey.id(), getSelectedSubkey().id(), this);
   dialog->show();
 }
 

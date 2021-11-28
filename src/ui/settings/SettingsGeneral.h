@@ -22,41 +22,52 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
-#define GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
+#ifndef GPGFRONTEND_SETTINGSGENERAL_H
+#define GPGFRONTEND_SETTINGSGENERAL_H
 
-#include "gpg/GpgContext.h"
-#include "gpg/model/GpgKey.h"
-#include "gpg/model/GpgSubKey.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
+class KeyList;
 
-class KeySetExpireDateDialog : public QDialog {
+class GeneralTab : public QWidget {
   Q_OBJECT
- public:
-  explicit KeySetExpireDateDialog(const KeyId& key_id,
-                                  QWidget* parent = nullptr);
 
-  explicit KeySetExpireDateDialog(const KeyId& key_id,
-                                  std::string subkey_id,
-                                  QWidget* parent = nullptr);
+ public:
+  explicit GeneralTab(QWidget* parent = nullptr);
+
+  void setSettings();
+
+  void applySettings();
 
  private:
-  void init();
+  QString appPath;
+  QSettings settings;
 
-  const GpgKey mKey;
-  const SubkeyId mSubkey;
+  QComboBox* serverSelectBox;
+  QCheckBox* saveCheckedKeysCheckBox;
+  QCheckBox* importConfirmationCheckBox;
+  QComboBox* langSelectBox;
+  QComboBox* ownKeySelectBox;
+  QPushButton* getServiceTokenButton;
+  QLabel* serviceTokenLabel;
+  QHash<QString, QString> lang;
 
-  QDateTimeEdit* dateTimeEdit{};
-  QPushButton* confirmButton{};
-  QCheckBox* nonExpiredCheck{};
+  std::unordered_map<std::string, std::string> keyIds;
+  std::vector<std::string> keyIdsList;
+  std::string serviceToken;
+  KeyList* mKeyList;
 
  private slots:
-  void slotConfirm();
-  void slotNonExpiredChecked(int state);
-};
 
+  void slotOwnKeyIdChanged();
+
+  void slotLanguageChanged();
+
+ signals:
+
+  void signalRestartNeeded(bool needed);
+};
 }  // namespace GpgFrontend::UI
 
-#endif  // GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
+#endif  // GPGFRONTEND_SETTINGSGENERAL_H

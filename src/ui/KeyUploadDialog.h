@@ -41,7 +41,7 @@ class KeyUploadDialog : public QDialog {
 
  private slots:
 
-  void uploadKeyToServer(GpgFrontend::ByteArrayPtr keys_data);
+  void uploadKeyToServer(const GpgFrontend::ByteArray& keys_data);
 
   void slotUploadFinished();
 

@@ -71,8 +71,7 @@ void MainWindow::slotCheckAttachmentFolder() {
 void MainWindow::slotImportKeyFromEdit() {
   if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr)
     return;
-  keyMgmt->slotImportKeys(std::make_unique<ByteArray>(
-      edit->curTextPage()->toPlainText().toStdString()));
+  keyMgmt->slotImportKeys(edit->curTextPage()->toPlainText().toStdString());
 }
 
 void MainWindow::slotOpenKeyManagement() {

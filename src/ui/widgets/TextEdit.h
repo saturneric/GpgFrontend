@@ -84,13 +84,13 @@ class TextEdit : public QWidget {
    * @details Return pointer to the currently activated text edit tab page.
    *
    */
-  [[nodiscard]] EditorPage* slotCurPageTextEdit() const;
+  EditorPage* slotCurPageTextEdit() const;
 
   /**
    * @details Return pointer to the currently activated file treeview tab page.
    *
    */
-  [[nodiscard]] FilePage* slotCurPageFileTreeView() const;
+  FilePage* slotCurPageFileTreeView() const;
 
   /**
    * @details Insert a ">" at the begining of every line of current textedit.

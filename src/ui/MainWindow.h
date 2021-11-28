@@ -26,21 +26,20 @@
 #define __GPGWIN_H__
 
 #include "gpg/GpgConstants.h"
+#include "gpg/result_analyse/DecryptResultAnalyse.h"
+#include "gpg/result_analyse/EncryptResultAnalyse.h"
+#include "gpg/result_analyse/SignResultAnalyse.h"
 #include "ui/FileEncryptionDialog.h"
 #include "ui/FindWidget.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/KeyMgmt.h"
 #include "ui/KeyUploadDialog.h"
-#include "ui/SettingsDialog.h"
 #include "ui/WaitingDialog.h"
 #include "ui/Wizard.h"
 #include "ui/help/AboutDialog.h"
+#include "ui/settings/SettingsDialog.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/TextEdit.h"
-
-#include "gpg/result_analyse/DecryptResultAnalyse.h"
-#include "gpg/result_analyse/EncryptResultAnalyse.h"
-#include "gpg/result_analyse/SignResultAnalyse.h"
 
 namespace GpgFrontend::UI {
 /**
@@ -318,6 +317,8 @@ class MainWindow : public QMainWindow {
    */
   void saveSettings();
 
+#ifdef ADVANCE_SUPPORT
+
   /**
    * @details Get full crypto text
    */
@@ -327,6 +328,8 @@ class MainWindow : public QMainWindow {
    * @details Shorten crypto text
    */
   void shortenCryptText();
+
+#endif
 
   /**
    * @brief return true, if restart is needed

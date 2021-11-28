@@ -22,8 +22,16 @@
  *
  */
 
-#include "ui/SettingsDialog.h"
-#include "ui/WaitingDialog.h"
+#include "SettingsDialog.h"
+
+#include "SettingsAdvanced.h"
+#include "SettingsAppearance.h"
+#include "SettingsGeneral.h"
+#include "SettingsKeyServer.h"
+
+#ifdef SMTP_SUPPORT
+#include "SettingsSendMail.h"
+#endif
 
 namespace GpgFrontend::UI {
 
@@ -31,14 +39,18 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
   tabWidget = new QTabWidget;
   generalTab = new GeneralTab();
   appearanceTab = new AppearanceTab;
+#ifdef SMTP_SUPPORT
   sendMailTab = new SendMailTab;
+#endif
   keyserverTab = new KeyserverTab;
   advancedTab = new AdvancedTab;
   gpgPathsTab = new GpgPathsTab;
 
   tabWidget->addTab(generalTab, tr("General"));
   tabWidget->addTab(appearanceTab, tr("Appearance"));
+#ifdef SMTP_SUPPORT
   tabWidget->addTab(sendMailTab, tr("Send Mail"));
+#endif
   tabWidget->addTab(keyserverTab, tr("Key Server"));
   // tabWidget->addTab(gpgPathsTab, tr("Gpg paths"));
   tabWidget->addTab(advancedTab, tr("Advanced"));
@@ -64,8 +76,10 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
           SLOT(slotSetRestartNeeded(bool)));
   connect(appearanceTab, SIGNAL(signalRestartNeeded(bool)), this,
           SLOT(slotSetRestartNeeded(bool)));
+#ifdef SMTP_SUPPORT
   connect(sendMailTab, SIGNAL(signalRestartNeeded(bool)), this,
           SLOT(slotSetRestartNeeded(bool)));
+#endif
   connect(keyserverTab, SIGNAL(signalRestartNeeded(bool)), this,
           SLOT(slotSetRestartNeeded(bool)));
   connect(advancedTab, SIGNAL(signalRestartNeeded(bool)), this,
@@ -78,9 +92,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
   this->show();
 }
 
-bool SettingsDialog::getRestartNeeded() const {
-  return this->restartNeeded;
-}
+bool SettingsDialog::getRestartNeeded() const { return this->restartNeeded; }
 
 void SettingsDialog::slotSetRestartNeeded(bool needed) {
   this->restartNeeded = needed;
@@ -88,7 +100,9 @@ void SettingsDialog::slotSetRestartNeeded(bool needed) {
 
 void SettingsDialog::slotAccept() {
   generalTab->applySettings();
+#ifdef SMTP_SUPPORT
   sendMailTab->applySettings();
+#endif
   appearanceTab->applySettings();
   keyserverTab->applySettings();
   advancedTab->applySettings();

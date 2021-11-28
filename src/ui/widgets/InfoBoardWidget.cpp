@@ -86,7 +86,11 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
 
 void InfoBoardWidget::slotImportFromKeyserver() {
   auto* importDialog = new KeyServerImportDialog(mKeyList, false, this);
-  importDialog->slotImport(*keysNotInList);
+  auto key_ids = std::make_unique<KeyIdArgsList>();
+  for (const auto& key_id : *keysNotInList) {
+    key_ids->push_back(key_id.toStdString());
+  }
+  importDialog->slotImport(key_ids);
 }
 
 void InfoBoardWidget::setInfoBoard(const QString& text,

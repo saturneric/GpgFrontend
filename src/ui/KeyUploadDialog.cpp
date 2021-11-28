@@ -57,10 +57,11 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
 void KeyUploadDialog::slotUpload() {
   auto out_data = std::make_unique<ByteArray>();
   GpgKeyImportExportor::GetInstance().ExportKeys(*mKeys, out_data);
-  uploadKeyToServer(std::move(out_data));
+  uploadKeyToServer(*out_data);
 }
 
-void KeyUploadDialog::uploadKeyToServer(ByteArrayPtr keys_data) {
+void KeyUploadDialog::uploadKeyToServer(
+    const GpgFrontend::ByteArray& keys_data) {
   // set default keyserver
   QString keyserver = settings.value("keyserver/defaultKeyServer").toString();
 
@@ -70,7 +71,7 @@ void KeyUploadDialog::uploadKeyToServer(ByteArrayPtr keys_data) {
   // Building Post Data
   QByteArray postData;
 
-  auto& data = *keys_data;
+  auto data = std::string(keys_data);
 
   boost::algorithm::replace_all(data, "\n", "%0A");
   boost::algorithm::replace_all(data, "\r", "%0D");
@@ -79,8 +80,8 @@ void KeyUploadDialog::uploadKeyToServer(ByteArrayPtr keys_data) {
   boost::algorithm::replace_all(data, "/", "%2F");
   boost::algorithm::replace_all(data, ":", "%3A");
   boost::algorithm::replace_all(data, "+", "%2B");
-  boost::algorithm::replace_all(data, '=', "%3D");
-  boost::algorithm::replace_all(data, ' ', '+');
+  boost::algorithm::replace_all(data, "=", "%3D");
+  boost::algorithm::replace_all(data, " ", "+");
 
   QNetworkRequest request(reqUrl);
   request.setHeader(QNetworkRequest::ContentTypeHeader,

@@ -30,15 +30,14 @@
 
 namespace GpgFrontend::UI {
 
-KeyServerImportDialog::KeyServerImportDialog(KeyList* keyList,
-                                             bool automatic,
+KeyServerImportDialog::KeyServerImportDialog(KeyList* keyList, bool automatic,
                                              QWidget* parent)
     : QDialog(parent),
+      mAutomatic(automatic),
       appPath(qApp->applicationDirPath()),
       settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
                QSettings::IniFormat),
-      mKeyList(keyList),
-      mAutomatic(automatic) {
+      mKeyList(keyList) {
   if (automatic) {
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
   }
@@ -79,8 +78,7 @@ KeyServerImportDialog::KeyServerImportDialog(KeyList* keyList,
   // Layout for import and close button
   auto* buttonsLayout = new QHBoxLayout;
   buttonsLayout->addStretch();
-  if (!automatic)
-    buttonsLayout->addWidget(importButton);
+  if (!automatic) buttonsLayout->addWidget(importButton);
   buttonsLayout->addWidget(closeButton);
 
   auto* mainLayout = new QGridLayout;
@@ -353,10 +351,14 @@ void KeyServerImportDialog::slotImport() {
   }
 }
 
-void KeyServerImportDialog::slotImport(const QStringList& keyIds) {
+void KeyServerImportDialog::slotImport(const KeyIdArgsListPtr& keys) {
   QString keyserver = settings.value("keyserver/defaultKeyServer").toString();
   qDebug() << "Select Key Server" << keyserver;
-  slotImport(keyIds, QUrl(keyserver));
+  auto key_ids = QStringList();
+  for (const auto& key_id : *keys) {
+    key_ids.append(QString::fromStdString(key_id));
+  }
+  slotImport(key_ids, QUrl(keyserver));
 }
 
 void KeyServerImportDialog::slotImportKey(const KeyIdArgsListPtr& keys) {

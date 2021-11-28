@@ -27,7 +27,6 @@
 
 #include "GpgFrontend.h"
 #include "gpg/GpgContext.h"
-
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
@@ -36,13 +35,11 @@ class SignersPicker : public QDialog {
   Q_OBJECT
 
  public:
-  explicit SignersPicker(GpgFrontend::GpgContext* ctx,
-                         QWidget* parent = nullptr);
+  explicit SignersPicker(QWidget* parent = nullptr);
 
-  void getCheckedSigners(QVector<GpgKey>& keys);
+  GpgFrontend::KeyIdArgsListPtr getCheckedSigners();
 
  private:
-  GpgFrontend::GpgContext* mCtx;
   KeyList* mKeyList;
 };
 

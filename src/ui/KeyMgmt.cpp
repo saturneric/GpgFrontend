@@ -218,9 +218,9 @@ void KeyMgmt::createToolBars() {
   keyToolBar->addAction(exportKeyToClipboardAct);
 }
 
-void KeyMgmt::slotImportKeys(ByteArrayPtr in_buffer) {
-  GpgImportInformation result =
-      GpgKeyImportExportor::GetInstance().ImportKey(std::move(in_buffer));
+void KeyMgmt::slotImportKeys(const std::string& in_buffer) {
+  GpgImportInformation result = GpgKeyImportExportor::GetInstance().ImportKey(
+      std::make_unique<ByteArray>(in_buffer));
   new KeyImportDetailDialog(result, false, this);
 }
 
@@ -230,8 +230,7 @@ void KeyMgmt::slotImportKeyFromFile() {
       tr("Key Files") + " (*.asc *.txt);;" + tr("Keyring files") +
           " (*.gpg);;All Files (*)");
   if (!file_name.isNull()) {
-    slotImportKeys(std::make_unique<ByteArray>(
-        read_all_data_in_file(file_name.toStdString())));
+    slotImportKeys(read_all_data_in_file(file_name.toStdString()));
   }
 }
 
@@ -242,8 +241,7 @@ void KeyMgmt::slotImportKeyFromKeyServer() {
 
 void KeyMgmt::slotImportKeyFromClipboard() {
   QClipboard* cb = QApplication::clipboard();
-  slotImportKeys(std::make_unique<ByteArray>(
-      cb->text(QClipboard::Clipboard).toUtf8().toStdString()));
+  slotImportKeys(cb->text(QClipboard::Clipboard).toUtf8().toStdString());
 }
 
 void KeyMgmt::slotDeleteSelectedKeys() {

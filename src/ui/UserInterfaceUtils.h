@@ -22,41 +22,33 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
-#define GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
+#ifndef GPGFRONTEND_USER_INTERFACE_UTILS_H
+#define GPGFRONTEND_USER_INTERFACE_UTILS_H
 
-#include "gpg/GpgContext.h"
-#include "gpg/model/GpgKey.h"
-#include "gpg/model/GpgSubKey.h"
 #include "ui/GpgFrontendUI.h"
+
+namespace GpgFrontend {
+class ResultAnalyse;
+}
 
 namespace GpgFrontend::UI {
 
-class KeySetExpireDateDialog : public QDialog {
-  Q_OBJECT
- public:
-  explicit KeySetExpireDateDialog(const KeyId& key_id,
-                                  QWidget* parent = nullptr);
+class InfoBoardWidget;
+class TextEdit;
 
-  explicit KeySetExpireDateDialog(const KeyId& key_id,
-                                  std::string subkey_id,
-                                  QWidget* parent = nullptr);
+void refresh_info_board(InfoBoardWidget* info_board, int status,
+                        const std::string& report_text);
 
- private:
-  void init();
+void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
+                            const ResultAnalyse& result_analyse);
 
-  const GpgKey mKey;
-  const SubkeyId mSubkey;
+void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
+                            const ResultAnalyse& result_analyse_a,
+                            const ResultAnalyse& result_analyse_b);
 
-  QDateTimeEdit* dateTimeEdit{};
-  QPushButton* confirmButton{};
-  QCheckBox* nonExpiredCheck{};
-
- private slots:
-  void slotConfirm();
-  void slotNonExpiredChecked(int state);
-};
+void process_operation(QWidget* parent, const std::string& waiting_title,
+                       const std::function<void()>& func);
 
 }  // namespace GpgFrontend::UI
 
-#endif  // GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
+#endif  // GPGFRONTEND_USER_INTERFACE_UTILS_H

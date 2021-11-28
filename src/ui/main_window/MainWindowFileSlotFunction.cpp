@@ -23,14 +23,12 @@
  */
 
 #include "MainWindow.h"
-
 #include "gpg/function/GpgFileOpera.h"
 #include "gpg/function/GpgKeyGetter.h"
 
 namespace GpgFrontend::UI {
 
-void refresh_info_board(InfoBoardWidget* info_board,
-                        int status,
+void refresh_info_board(InfoBoardWidget* info_board, int status,
                         const std::string& report_text) {
   if (status < 0)
     info_board->slotRefresh(QString::fromStdString(report_text),
@@ -42,8 +40,7 @@ void refresh_info_board(InfoBoardWidget* info_board,
                             INFO_ERROR_WARN);
 }
 
-void process_result_analyse(TextEdit* edit,
-                            InfoBoardWidget* info_board,
+void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
                             const ResultAnalyse& result_analyse) {
   info_board->associateTabWidget(edit->tabWidget);
   info_board->associateFileTreeView(edit->curFilePage());
@@ -51,8 +48,7 @@ void process_result_analyse(TextEdit* edit,
                      result_analyse.getResultReport());
 }
 
-void process_result_analyse(TextEdit* edit,
-                            InfoBoardWidget* info_board,
+void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
                             const ResultAnalyse& result_analyse_a,
                             const ResultAnalyse& result_analyse_b) {
   info_board->associateTabWidget(edit->tabWidget);
@@ -85,9 +81,8 @@ bool file_pre_check(QWidget* parent, const QString& path) {
   return true;
 }
 
-void process_operation(QWidget* parent,
-                       std::string waiting_title,
-                       std::function<void()> func) {
+void process_operation(QWidget* parent, const std::string& waiting_title,
+                       const std::function<void()>& func) {
   GpgEncrResult result = nullptr;
 
   gpgme_error_t error;
@@ -109,8 +104,7 @@ void MainWindow::slotFileEncrypt() {
   auto fileTreeView = edit->slotCurPageFileTreeView();
   auto path = fileTreeView->getSelected();
 
-  if (!file_pre_check(this, path))
-    return;
+  if (!file_pre_check(this, path)) return;
 
   if (QFile::exists(path + ".asc")) {
     auto ret = QMessageBox::warning(
@@ -118,8 +112,7 @@ void MainWindow::slotFileEncrypt() {
         tr("The target file already exists, do you need to overwrite it?"),
         QMessageBox::Ok | QMessageBox::Cancel);
 
-    if (ret == QMessageBox::Cancel)
-      return;
+    if (ret == QMessageBox::Cancel) return;
   }
 
   auto key_ids = mKeyList->getChecked();
@@ -169,8 +162,7 @@ void MainWindow::slotFileDecrypt() {
   auto fileTreeView = edit->slotCurPageFileTreeView();
   auto path = fileTreeView->getSelected();
 
-  if (!file_pre_check(this, path))
-    return;
+  if (!file_pre_check(this, path)) return;
 
   QString outFileName, fileExtension = QFileInfo(path).suffix();
 
@@ -187,8 +179,7 @@ void MainWindow::slotFileDecrypt() {
         tr("The target file already exists, do you need to overwrite it?"),
         QMessageBox::Ok | QMessageBox::Cancel);
 
-    if (ret == QMessageBox::Cancel)
-      return;
+    if (ret == QMessageBox::Cancel) return;
   }
 
   GpgDecrResult result = nullptr;
@@ -220,8 +211,7 @@ void MainWindow::slotFileSign() {
   auto fileTreeView = edit->slotCurPageFileTreeView();
   auto path = fileTreeView->getSelected();
 
-  if (!file_pre_check(this, path))
-    return;
+  if (!file_pre_check(this, path)) return;
 
   if (QFile::exists(path + ".sig")) {
     auto ret = QMessageBox::warning(
@@ -229,8 +219,7 @@ void MainWindow::slotFileSign() {
         tr("The target file already exists, do you need to overwrite it?"),
         QMessageBox::Ok | QMessageBox::Cancel);
 
-    if (ret == QMessageBox::Cancel)
-      return;
+    if (ret == QMessageBox::Cancel) return;
   }
 
   auto key_ids = mKeyList->getChecked();
@@ -359,8 +348,7 @@ void MainWindow::slotFileEncryptSign() {
   auto fileTreeView = edit->slotCurPageFileTreeView();
   auto path = fileTreeView->getSelected();
 
-  if (!file_pre_check(this, path))
-    return;
+  if (!file_pre_check(this, path)) return;
 
   if (QFile::exists(path + ".gpg")) {
     auto ret = QMessageBox::warning(
@@ -368,8 +356,7 @@ void MainWindow::slotFileEncryptSign() {
         tr("The target file already exists, do you need to overwrite it?"),
         QMessageBox::Ok | QMessageBox::Cancel);
 
-    if (ret == QMessageBox::Cancel)
-      return;
+    if (ret == QMessageBox::Cancel) return;
   }
 
   auto key_ids = mKeyList->getChecked();
@@ -396,10 +383,8 @@ void MainWindow::slotFileEncryptSign() {
       return;
     }
 
-    if (key_can_sign)
-      can_sign = true;
-    if (key_can_encr)
-      can_encr = true;
+    if (key_can_sign) can_sign = true;
+    if (key_can_encr) can_encr = true;
   }
 
   if (!can_encr) {
@@ -450,8 +435,7 @@ void MainWindow::slotFileDecryptVerify() {
   auto fileTreeView = edit->slotCurPageFileTreeView();
   auto path = fileTreeView->getSelected();
 
-  if (!file_pre_check(this, path))
-    return;
+  if (!file_pre_check(this, path)) return;
 
   QString outFileName, fileExtension = QFileInfo(path).suffix();
 

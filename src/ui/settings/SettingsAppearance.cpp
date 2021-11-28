@@ -22,7 +22,7 @@
  *
  */
 
-#include "ui/SettingsDialog.h"
+#include "SettingsAppearance.h"
 
 namespace GpgFrontend::UI {
 
@@ -149,8 +149,7 @@ void AppearanceTab::setSettings() {
   // infoBoardFontSize
   auto infoBoardFontSize =
       settings.value("informationBoard/fontSize", 10).toInt();
-  if (infoBoardFontSize < 9 || infoBoardFontSize > 18)
-    infoBoardFontSize = 10;
+  if (infoBoardFontSize < 9 || infoBoardFontSize > 18) infoBoardFontSize = 10;
   infoBoardFontSizeSpin->setValue(infoBoardFontSize);
 }
 

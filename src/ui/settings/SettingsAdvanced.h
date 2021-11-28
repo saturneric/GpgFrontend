@@ -22,41 +22,33 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
-#define GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
+#ifndef GPGFRONTEND_SETTINGSADVANCED_H
+#define GPGFRONTEND_SETTINGSADVANCED_H
 
-#include "gpg/GpgContext.h"
-#include "gpg/model/GpgKey.h"
-#include "gpg/model/GpgSubKey.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
-
-class KeySetExpireDateDialog : public QDialog {
+class AdvancedTab : public QWidget {
   Q_OBJECT
- public:
-  explicit KeySetExpireDateDialog(const KeyId& key_id,
-                                  QWidget* parent = nullptr);
 
-  explicit KeySetExpireDateDialog(const KeyId& key_id,
-                                  std::string subkey_id,
-                                  QWidget* parent = nullptr);
+ public:
+  explicit AdvancedTab(QWidget* parent = nullptr);
+
+  void setSettings();
+
+  void applySettings();
 
  private:
-  void init();
+  QString appPath;
+  QSettings settings;
 
-  const GpgKey mKey;
-  const SubkeyId mSubkey;
+  QCheckBox* steganoCheckBox;
+  QCheckBox* autoPubkeyExchangeCheckBox;
 
-  QDateTimeEdit* dateTimeEdit{};
-  QPushButton* confirmButton{};
-  QCheckBox* nonExpiredCheck{};
+ signals:
 
- private slots:
-  void slotConfirm();
-  void slotNonExpiredChecked(int state);
+  void signalRestartNeeded(bool needed);
 };
-
 }  // namespace GpgFrontend::UI
 
-#endif  // GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
+#endif  // GPGFRONTEND_SETTINGSADVANCED_H

@@ -24,6 +24,8 @@
 
 #include "ui/keypair_details/KeySetExpireDateDialog.h"
 
+#include <utility>
+
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyOpera.h"
 
@@ -36,11 +38,11 @@ KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
 }
 
 KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
-                                               const std::string& subkey_id,
+                                               std::string subkey_id,
                                                QWidget* parent)
     : QDialog(parent),
       mKey(GpgKeyGetter::GetInstance().GetKey(key_id)),
-      mSubkey(subkey_id) {
+      mSubkey(std::move(subkey_id)) {
   init();
 }
 

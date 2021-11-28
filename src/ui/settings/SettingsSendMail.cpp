@@ -22,10 +22,11 @@
  *
  */
 
+#include "SettingsSendMail.h"
+
 #ifdef SMTP_SUPPORT
 #include "smtp/SmtpMime"
 #endif
-#include "ui/SettingsDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -92,8 +93,6 @@ SendMailTab::SendMailTab(QWidget* parent)
 
   connect(enableCheckBox, SIGNAL(stateChanged(int)), this,
           SLOT(slotCheckBoxSetEnableDisable(int)));
-  connect(checkConnectionButton, SIGNAL(clicked(bool)), this,
-          SLOT(slotCheckConnection()));
 
   this->setLayout(vBox);
   setSettings();
