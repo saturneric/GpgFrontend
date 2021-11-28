@@ -25,8 +25,8 @@
 #ifndef GPGFRONTEND_SUBKEYGENERATEDIALOG_H
 #define GPGFRONTEND_SUBKEYGENERATEDIALOG_H
 
-#include <gpg/GpgGenKeyInfo.h>
 #include "gpg/GpgContext.h"
+#include "gpg/GpgGenKeyInfo.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
@@ -37,10 +37,13 @@ class SubkeyGenerateDialog : public QDialog {
  public:
   explicit SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent);
 
+ signals:
+  void SubKeyGenerated();
+
  private:
   GpgKey mKey;
 
-  std::unique_ptr<GenKeyInfo> genKeyInfo = std::make_unique<GenKeyInfo>();
+  std::unique_ptr<GenKeyInfo> genKeyInfo = std::make_unique<GenKeyInfo>(true);
 
   QGroupBox* keyUsageGroupBox{};
   QDialogButtonBox* buttonBox;  /** Box for standardbuttons */

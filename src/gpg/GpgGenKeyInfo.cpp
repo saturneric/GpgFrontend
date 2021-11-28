@@ -23,10 +23,12 @@
  */
 
 #include "gpg/GpgGenKeyInfo.h"
+
+#include <easyloggingpp/easylogging++.h>
+
 #include <boost/date_time/gregorian/greg_date.hpp>
 #include <boost/date_time/gregorian/greg_duration.hpp>
 #include <boost/date_time/gregorian/gregorian_types.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
 #include <string>
 #include <vector>
 
@@ -37,6 +39,7 @@ const std::vector<std::string> GpgFrontend::GenKeyInfo::SupportedSubkeyAlgo = {
     "RSA", "DSA", "ED25519", "ELG"};
 
 void GpgFrontend::GenKeyInfo::setAlgo(const std::string &m_algo) {
+  LOG(INFO) << "GpgFrontend::GenKeyInfo::setAlgo m_algo" << m_algo;
 
   reset_options();
 
@@ -48,9 +51,10 @@ void GpgFrontend::GenKeyInfo::setAlgo(const std::string &m_algo) {
 
   this->allowChangeCertification = false;
 
-  std::string lower_algo;
-  std::transform(m_algo.begin(), m_algo.end(), lower_algo.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
+  std::string lower_algo = std::string(m_algo);
+  boost::algorithm::to_lower(lower_algo);
+
+  LOG(INFO) << "GpgFrontend::GenKeyInfo::setAlgo lower_algo" << lower_algo;
 
   if (lower_algo == "rsa") {
     /**
@@ -108,11 +112,10 @@ void GpgFrontend::GenKeyInfo::setAlgo(const std::string &m_algo) {
     suggestSizeAdditionStep = 1024;
     setKeySize(2048);
   }
-  GenKeyInfo::algo = lower_algo;
+  this->algo = lower_algo;
 }
 
 void GpgFrontend::GenKeyInfo::reset_options() {
-
   allowChangeEncryption = true;
   setAllowEncryption(true);
 
@@ -154,14 +157,12 @@ void GpgFrontend::GenKeyInfo::setExpired(
 
 void GpgFrontend::GenKeyInfo::setNonExpired(bool m_non_expired) {
   using namespace boost::posix_time;
-  if (!m_non_expired)
-    this->expired = from_time_t(0).date();
+  if (!m_non_expired) this->expired = from_time_t(0).date();
   GenKeyInfo::nonExpired = m_non_expired;
 }
 
 void GpgFrontend::GenKeyInfo::setAllowEncryption(bool m_allow_encryption) {
-  if (allowChangeEncryption)
-    GenKeyInfo::allowEncryption = m_allow_encryption;
+  if (allowChangeEncryption) GenKeyInfo::allowEncryption = m_allow_encryption;
 }
 
 void GpgFrontend::GenKeyInfo::setAllowCertification(

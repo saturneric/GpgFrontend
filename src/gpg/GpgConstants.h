@@ -25,18 +25,18 @@
 #ifndef GPG_CONSTANTS_H
 #define GPG_CONSTANTS_H
 
-#include "GpgFrontend.h"
-
-#include <functional>
-
+#define ELPP_DEFAULT_LOGGING_FLAGS 8192
+#include <easyloggingpp/easylogging++.h>
 #include <gpg-error.h>
 #include <gpgme.h>
+
 #include <cassert>
+#include <functional>
+#include <libconfig.h++>
 #include <memory>
 #include <string>
 
-#include <easyloggingpp/easylogging++.h>
-#include <libconfig.h++>
+#include "GpgFrontend.h"
 
 const int RESTART_CODE = 1000;
 
@@ -73,8 +73,7 @@ using GpgVerifyResult =
 GpgError check_gpg_error(GpgError err);
 GpgError check_gpg_error(GpgError gpgmeError, const std::string& comment);
 gpg_err_code_t check_gpg_error_2_err_code(
-    gpgme_error_t err,
-    gpgme_error_t predict = GPG_ERR_NO_ERROR);
+    gpgme_error_t err, gpgme_error_t predict = GPG_ERR_NO_ERROR);
 
 // Fingerprint
 std::string beautify_fingerprint(BypeArrayConstRef fingerprint);

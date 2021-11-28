@@ -23,15 +23,16 @@
  */
 
 #include "ui/widgets/KeyList.h"
-#include "gpg/function/GpgKeyGetter.h"
 
 #include <utility>
+
+#include "gpg/function/GpgKeyGetter.h"
+#include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {
 
 KeyList::KeyList(KeyListRow::KeyType selectType,
-                 KeyListColumn::InfoType infoType,
-                 QWidget* parent)
+                 KeyListColumn::InfoType infoType, QWidget* parent)
     : QWidget(parent),
       appPath(qApp->applicationDirPath()),
       settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
@@ -48,10 +49,10 @@ KeyList::KeyList(KeyListRow::KeyType selectType,
   mKeyList->setSelectionBehavior(QAbstractItemView::SelectRows);
   mKeyList->setSelectionMode(QAbstractItemView::SingleSelection);
 
-  // tableitems not editable
+  // table items not editable
   mKeyList->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  // no focus (rectangle around tableitems)
-  // may be it should focus on whole row
+  // no focus (rectangle around table items)
+  // maybe it should focus on whole row
   mKeyList->setFocusPolicy(Qt::NoFocus);
 
   mKeyList->setAlternatingRowColors(true);
@@ -91,13 +92,20 @@ KeyList::KeyList(KeyListRow::KeyType selectType,
 
   popupMenu = new QMenu(this);
 
+  // register key database refresh signal
+  connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
+          SLOT(slotRefresh()));
   connect(mKeyList, SIGNAL(doubleClicked(const QModelIndex&)), this,
           SLOT(slotDoubleClicked(const QModelIndex&)));
+
   setAcceptDrops(true);
   slotRefresh();
 }
 
 void KeyList::slotRefresh() {
+
+  LOG(INFO) << "KeyList::slotRefresh Called";
+
   auto keyList = getChecked();
   // while filling the table, sort enabled causes errors
   mKeyList->setSortingEnabled(false);
@@ -178,14 +186,10 @@ void KeyList::slotRefresh() {
     QString usage;
     QTextStream usage_steam(&usage);
 
-    if (it->CanCertActual())
-      usage_steam << "C";
-    if (it->CanEncrActual())
-      usage_steam << "E";
-    if (it->CanSignActual())
-      usage_steam << "S";
-    if (it->CanAuthActual())
-      usage_steam << "A";
+    if (it->CanCertActual()) usage_steam << "C";
+    if (it->CanEncrActual()) usage_steam << "E";
+    if (it->CanSignActual()) usage_steam << "S";
+    if (it->CanAuthActual()) usage_steam << "A";
 
     auto* temp_usage = new QTableWidgetItem(usage);
     temp_usage->setTextAlignment(Qt::AlignCenter);
@@ -291,13 +295,9 @@ void KeyList::contextMenuEvent(QContextMenuEvent* event) {
   }
 }
 
-void KeyList::addSeparator() {
-  popupMenu->addSeparator();
-}
+void KeyList::addSeparator() { popupMenu->addSeparator(); }
 
-void KeyList::addMenuAction(QAction* act) {
-  popupMenu->addAction(act);
-}
+void KeyList::addMenuAction(QAction* act) { popupMenu->addAction(act); }
 
 void KeyList::dropEvent(QDropEvent* event) {
   auto* dialog = new QDialog();

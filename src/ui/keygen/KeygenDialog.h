@@ -44,6 +44,9 @@ class KeyGenDialog : public QDialog {
    */
   explicit KeyGenDialog(QWidget* parent = nullptr);
 
+  signals:
+   void KeyGenerated();
+
  private:
   QGroupBox* create_key_usage_group_box();
 

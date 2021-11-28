@@ -76,6 +76,8 @@ class KeyPairSubkeyTab : public QWidget {
 
   void slotRevokeSubkey();
 
+  void slotRefreshKeyInfo();
+
  protected:
   void contextMenuEvent(QContextMenuEvent* event) override;
 };
