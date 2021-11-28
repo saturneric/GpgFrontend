@@ -26,6 +26,7 @@
 
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyOpera.h"
+#include "ui/SignalStation.h"
 #include "ui/WaitingDialog.h"
 
 namespace GpgFrontend::UI {
@@ -50,9 +51,11 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
   vbox2->addWidget(buttonBox);
 
   this->setWindowTitle(tr("Generate New Subkey"));
-
   this->setLayout(vbox2);
   this->setModal(true);
+
+  connect(this, SIGNAL(SubKeyGenerated()), SignalStation::GetInstance(),
+          SIGNAL(KeyDatabaseRefresh()));
 
   set_signal_slot();
   refresh_widgets_state();
@@ -233,8 +236,9 @@ void SubkeyGenerateDialog::slotKeyGenAccept() {
               .date());
     }
 
-    gpgme_error_t error = false;
+    GpgError error;
     auto thread = QThread::create([&]() {
+      LOG(INFO) << "SubkeyGenerateDialog::slotKeyGenAccept() Thread Started";
       error = GpgKeyOpera::GetInstance().GenerateSubkey(mKey, genKeyInfo);
     });
     thread->start();
@@ -245,12 +249,18 @@ void SubkeyGenerateDialog::slotKeyGenAccept() {
     while (thread->isRunning()) {
       QCoreApplication::processEvents();
     }
-
     dialog->close();
 
-    if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
-      QMessageBox::information(nullptr, tr("Success"),
-                               tr("The new subkey has been generated."));
+    if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR) {
+      auto* msg_box = new QMessageBox(nullptr);
+      msg_box->setAttribute(Qt::WA_DeleteOnClose);
+      msg_box->setStandardButtons(QMessageBox::Ok);
+      msg_box->setWindowTitle(tr("Success"));
+      msg_box->setText(tr("The new subkey has been generated."));
+      msg_box->setModal(false);
+      msg_box->open();
+
+      emit SubKeyGenerated();
       this->close();
     } else
       QMessageBox::critical(this, tr("Failure"), tr(gpgme_strerror(error)));

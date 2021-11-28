@@ -29,6 +29,9 @@
 INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char* argv[]) {
+
+  el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
+
   Q_INIT_RESOURCE(gpgfrontend);
 
   QApplication app(argc, argv);

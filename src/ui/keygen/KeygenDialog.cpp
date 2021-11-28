@@ -23,7 +23,9 @@
  */
 
 #include "ui/keygen/KeygenDialog.h"
+
 #include "gpg/function/GpgKeyOpera.h"
+#include "ui/SignalStation.h"
 #include "ui/WaitingDialog.h"
 
 namespace GpgFrontend::UI {
@@ -34,6 +36,10 @@ KeyGenDialog::KeyGenDialog(QWidget* parent) : QDialog(parent) {
 
   this->setWindowTitle(tr("Generate Key"));
   this->setModal(true);
+
+  connect(this, SIGNAL(KeyGenerated()), SignalStation::GetInstance(),
+          SIGNAL(KeyDatabaseRefresh()));
+
   generateKeyDialog();
 }
 
@@ -86,7 +92,7 @@ void KeyGenDialog::slotKeyGenAccept() {
      */
 
     genKeyInfo->setUserid(
-        QString("%1 (%3) <%2>")
+        QString("%1(%3)<%2>")
             .arg(nameEdit->text(), emailEdit->text(), commentEdit->text())
             .toStdString());
 
@@ -115,11 +121,19 @@ void KeyGenDialog::slotKeyGenAccept() {
     dialog->close();
 
     if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
-      QMessageBox::information(this, tr("Success"),
-                               tr("The new key pair has been generated."));
+      auto* msg_box = new QMessageBox(nullptr);
+      msg_box->setAttribute(Qt::WA_DeleteOnClose);
+      msg_box->setStandardButtons(QMessageBox::Ok);
+      msg_box->setWindowTitle(tr("Success"));
+      msg_box->setText(tr("The new key pair has been generated."));
+      msg_box->setModal(false);
+      msg_box->open();
+
+      emit KeyGenerated();
       this->close();
-    } else
+    } else {
       QMessageBox::critical(this, tr("Failure"), tr(gpgme_strerror(error)));
+    }
 
   } else {
     /**

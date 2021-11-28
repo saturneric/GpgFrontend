@@ -23,7 +23,9 @@
  */
 
 #include "ui/keypair_details/KeyPairSubkeyTab.h"
+
 #include "gpg/function/GpgKeyGetter.h"
+#include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -93,6 +95,12 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
   connect(subkeyList, SIGNAL(itemSelectionChanged()), this,
           SLOT(slotRefreshSubkeyDetail()));
 
+  // key database refresh signal
+  connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
+          SLOT(slotRefreshKeyInfo()));
+  connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
+          SLOT(slotRefreshSubkeyList()));
+
   baseLayout->setContentsMargins(0, 0, 0, 0);
 
   setLayout(baseLayout);
@@ -128,6 +136,7 @@ void KeyPairSubkeyTab::createSubkeyList() {
 }
 
 void KeyPairSubkeyTab::slotRefreshSubkeyList() {
+  LOG(INFO) << "KeyPairSubkeyTab::slotRefreshSubkeyList Called";
   int row = 0;
 
   subkeyList->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -135,8 +144,7 @@ void KeyPairSubkeyTab::slotRefreshSubkeyList() {
   this->buffered_subkeys.clear();
   auto sub_keys = mKey.subKeys();
   for (auto& sub_key : *sub_keys) {
-    if (sub_key.disabled() || sub_key.revoked())
-      continue;
+    if (sub_key.disabled() || sub_key.revoked()) continue;
     this->buffered_subkeys.push_back(std::move(sub_key));
   }
 
@@ -213,14 +221,10 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
   QString usage;
   QTextStream usage_steam(&usage);
 
-  if (subkey.can_certify())
-    usage_steam << "Cert ";
-  if (subkey.can_encrypt())
-    usage_steam << "Encr ";
-  if (subkey.can_sign())
-    usage_steam << "Sign ";
-  if (subkey.can_authenticate())
-    usage_steam << "Auth ";
+  if (subkey.can_certify()) usage_steam << "Cert ";
+  if (subkey.can_encrypt()) usage_steam << "Encr ";
+  if (subkey.can_sign()) usage_steam << "Sign ";
+  if (subkey.can_authenticate()) usage_steam << "Auth ";
 
   usageVarLabel->setText(usage);
 
@@ -269,12 +273,14 @@ const GpgSubKey& KeyPairSubkeyTab::getSelectedSubkey() {
   int row = 0;
 
   for (int i = 0; i < subkeyList->rowCount(); i++) {
-    if (subkeyList->item(row, 0)->isSelected())
-      break;
+    if (subkeyList->item(row, 0)->isSelected()) break;
     row++;
   }
 
   return buffered_subkeys[row];
+}
+void KeyPairSubkeyTab::slotRefreshKeyInfo() {
+  mKey = GpgKeyGetter::GetInstance().GetKey(mKey.id());
 }
 
 }  // namespace GpgFrontend::UI

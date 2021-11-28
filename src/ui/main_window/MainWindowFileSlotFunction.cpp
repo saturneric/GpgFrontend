@@ -83,10 +83,6 @@ bool file_pre_check(QWidget* parent, const QString& path) {
 
 void process_operation(QWidget* parent, const std::string& waiting_title,
                        const std::function<void()>& func) {
-  GpgEncrResult result = nullptr;
-
-  gpgme_error_t error;
-  bool if_error = false;
   auto thread = QThread::create(func);
   QApplication::connect(thread, SIGNAL(finished()), thread,
                         SLOT(deleteLater()));

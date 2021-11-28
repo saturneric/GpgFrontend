@@ -22,19 +22,17 @@
  *
  */
 
-#ifndef GPG4USB_GPGGENKEYINFO_H
-#define GPG4USB_GPGGENKEYINFO_H
+#ifndef GPGFRONTEND_GPGGENKEYINFO_H
+#define GPGFRONTEND_GPGGENKEYINFO_H
 
+#include <boost/date_time.hpp>
 #include <boost/date_time/gregorian/greg_duration_types.hpp>
 #include <string>
 #include <vector>
 
-#include <boost/date_time.hpp>
-
 namespace GpgFrontend {
 
 class GenKeyInfo {
-
   bool subKey = true;
   std::string userid;
   std::string algo;
@@ -46,13 +44,13 @@ class GenKeyInfo {
   bool noPassPhrase = false;
   bool allowNoPassPhrase = true;
 
-  int suggestMaxKeySize = 1024;
+  int suggestMaxKeySize = 4096;
   int suggestSizeAdditionStep = 1024;
-  int suggestMinKeySize = 4096;
+  int suggestMinKeySize = 1024;
 
   std::string passPhrase;
 
-public:
+ public:
   static const std::vector<std::string> SupportedKeyAlgo;
 
   static const std::vector<std::string> SupportedSubkeyAlgo;
@@ -96,8 +94,7 @@ public:
   [[nodiscard]] bool isAllowNoPassPhrase() const { return allowNoPassPhrase; }
 
   void setAllowSigning(bool m_allow_signing) {
-    if (allowChangeSigning)
-      GenKeyInfo::allowSigning = m_allow_signing;
+    if (allowChangeSigning) GenKeyInfo::allowSigning = m_allow_signing;
   }
 
   [[nodiscard]] bool isAllowEncryption() const { return allowEncryption; }
@@ -144,7 +141,7 @@ public:
     return suggestSizeAdditionStep;
   }
 
-private:
+ private:
   bool allowEncryption = true;
   bool allowChangeEncryption = true;
 
@@ -159,12 +156,12 @@ private:
 
   void reset_options();
 
-public:
+ public:
   explicit GenKeyInfo(bool m_is_sub_key = false) : subKey(m_is_sub_key) {
     setAlgo("rsa");
   }
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPG4USB_GPGGENKEYINFO_H
+#endif  // GPGFRONTEND_GPGGENKEYINFO_H
