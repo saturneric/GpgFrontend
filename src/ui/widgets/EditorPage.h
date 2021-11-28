@@ -89,11 +89,14 @@ class EditorPage : public QWidget {
 
   const QString uuid = QUuid::createUuid().toString();
 
+  void readFile();
+
  private:
   QTextEdit* textPage;     /** The textedit of the tab */
   QVBoxLayout* mainLayout; /** The layout for the tab */
   QString fullFilePath;    /** The path to the file handled in the tab */
   bool signMarked{}; /** true, if the signed header is marked, false if not */
+  QThread* readThread = nullptr;
 
  private slots:
 

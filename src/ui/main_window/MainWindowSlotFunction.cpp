@@ -235,10 +235,11 @@ void MainWindow::slotVerify() {
   if (edit->tabCount() == 0) return;
 
   if (edit->slotCurPageTextEdit() != nullptr) {
-    QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
+    auto text = edit->curTextPage()->toPlainText().toUtf8();
     // TODO(Saturneric) PreventNoDataErr
 
-    auto sig_buffer = std::make_unique<ByteArray>(nullptr);
+    auto sig_buffer = std::make_unique<ByteArray>();
+    sig_buffer.reset();
 
     GpgVerifyResult result = nullptr;
     GpgError error;
@@ -303,10 +304,7 @@ void MainWindow::slotEncryptSign() {
       }
     }
 
-    QVector<GpgKey> signerKeys;
-
     auto signersPicker = new SignersPicker(this);
-
     QEventLoop loop;
     connect(signersPicker, SIGNAL(finished(int)), &loop, SLOT(quit()));
     loop.exec();
@@ -315,11 +313,11 @@ void MainWindow::slotEncryptSign() {
     auto signer_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
     for (const auto& key : *keys) {
-      qDebug() << "Keys " << QString::fromStdString(key.email());
+      LOG(INFO) << "Keys " << key.email();
     }
 
     for (const auto& signer : *signer_keys) {
-      qDebug() << "Signers " << QString::fromStdString(signer.email());
+      LOG(INFO) << "Signers " << signer.email();
     }
 
     GpgEncrResult encr_result = nullptr;
@@ -354,7 +352,7 @@ void MainWindow::slotEncryptSign() {
         }
       }
 #endif
-
+      LOG(INFO) << "ResultAnalyse Started";
       auto encrypt_res = EncryptResultAnalyse(error, std::move(encr_result));
       auto sign_res = SignResultAnalyse(error, std::move(sign_result));
       encrypt_res.analyse();

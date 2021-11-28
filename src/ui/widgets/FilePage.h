@@ -25,6 +25,8 @@
 #ifndef GPGFRONTEND_FILEPAGE_H
 #define GPGFRONTEND_FILEPAGE_H
 
+#include <boost/filesystem.hpp>
+
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
@@ -65,8 +67,10 @@ class FilePage : public QWidget {
   QFileSystemModel* dirModel;
   QTreeView* dirTreeView;
   QLineEdit* pathEdit;
-  QString mPath;
-  QString selectedPath;
+
+  // using boost path
+  boost::filesystem::path mPath;
+  boost::filesystem::path selectedPath;
 
   QPushButton* upLevelButton;
   QPushButton* goPathButton;

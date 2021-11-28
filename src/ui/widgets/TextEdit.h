@@ -178,23 +178,6 @@ class TextEdit : public QWidget {
    */
   void slotSwitchTabDown() const;
 
-  /**
-   * @details Insert text in target Text Edit
-   */
-  void slotInsertTargetTextPage(const QString& pagePtr, const QString& text);
-
-  void slotReadTargetTextPageStart(const QString& pageStr);
-
-  void slotReadTargetTextPageDone(const QString& pagePtr);
-
- signals:
-
-  void readTargetTextPageStart(const QString& pagePtr);
-
-  void insertTargetTextPage(const QString& pagePtr, const QString& text);
-
-  void readTargetTextPageDone(const QString& pagePtr);
-
  private:
   /**
    * @details return just a filename stripped of a whole path
@@ -217,11 +200,9 @@ class TextEdit : public QWidget {
    */
   int countPage; /* TODO */
 
-  QHash<const QString, QWidget*> pagesHashMap;
-
  private slots:
 
-  void slotFilePagePathChanged(const QString& path);
+  void slotFilePagePathChanged(const QString& path) const;
 
   /**
    * @details Remove the tab with given index

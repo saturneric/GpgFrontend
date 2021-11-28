@@ -53,13 +53,16 @@ void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
 void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
                             const ResultAnalyse& result_analyse_a,
                             const ResultAnalyse& result_analyse_b) {
+
+  LOG(INFO) << "process_result_analyse Started";
+
   info_board->associateTabWidget(edit->tabWidget);
   info_board->associateFileTreeView(edit->curFilePage());
 
   refresh_info_board(
       info_board,
-      std::min(result_analyse_a.getStatus(), result_analyse_a.getStatus()),
-      result_analyse_a.getResultReport() + result_analyse_a.getResultReport());
+      std::min(result_analyse_a.getStatus(), result_analyse_b.getStatus()),
+      result_analyse_a.getResultReport() + result_analyse_b.getResultReport());
 }
 
 void process_operation(QWidget* parent, const std::string& waiting_title,

@@ -24,6 +24,8 @@
 
 #include "ui/widgets/FilePage.h"
 
+#include <boost/filesystem.hpp>
+
 #include "MainWindow.h"
 
 namespace GpgFrontend::UI {
@@ -43,7 +45,7 @@ FilePage::FilePage(QWidget* parent) : QWidget(parent) {
   dirTreeView->setIndentation(20);
   dirTreeView->setRootIndex(dirModel->index(QDir::currentPath()));
   dirTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
-  mPath = dirModel->rootPath();
+  mPath = boost::filesystem::path(dirModel->rootPath().toStdString());
 
   createPopupMenu();
 
@@ -105,60 +107,61 @@ FilePage::FilePage(QWidget* parent) : QWidget(parent) {
   connect(dirTreeView, SIGNAL(customContextMenuRequested(const QPoint&)), this,
           SLOT(onCustomContextMenu(const QPoint&)));
 
-  emit pathChanged(mPath);
+  emit pathChanged(mPath.c_str());
 }
 
 void FilePage::fileTreeViewItemClicked(const QModelIndex& index) {
-  selectedPath = dirModel->fileInfo(index).absoluteFilePath();
-  qDebug() << "selectedPath" << selectedPath;
+  selectedPath = boost::filesystem::path(
+      dirModel->fileInfo(index).absoluteFilePath().toStdString());
+  LOG(INFO) << "FilePage::fileTreeViewItemClicked selectedPath" << selectedPath;
 }
 
 void FilePage::slotUpLevel() {
   QModelIndex currentRoot = dirTreeView->rootIndex();
 
-  mPath = dirModel->fileInfo(currentRoot).absoluteFilePath();
-  QDir dir(mPath);
-  dir.makeAbsolute();
-  dir.setPath(QDir::cleanPath(dir.filePath(QStringLiteral(".."))));
-  mPath = dir.absolutePath();
-  auto fileInfo = QFileInfo(dir.absolutePath());
-  if (fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
-    pathEdit->setText(mPath);
-    slotGoPath();
+  mPath = boost::filesystem::path(
+      dirModel->fileInfo(currentRoot).absoluteFilePath().toStdString());
+
+  if (mPath.has_parent_path()) {
+    mPath = mPath.parent_path();
+    auto fileInfo = QFileInfo(mPath.c_str());
+    if (fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
+      pathEdit->setText(mPath.c_str());
+      slotGoPath();
+    }
+    LOG(INFO) << "FilePage::slotUpLevel Current Root mPath" << mPath;
+    emit pathChanged(mPath.c_str());
   }
-  qDebug() << "Current Root mPath" << mPath;
-  emit pathChanged(mPath);
 }
 
 void FilePage::fileTreeViewItemDoubleClicked(const QModelIndex& index) {
-  mPath = dirModel->fileInfo(index).absoluteFilePath();
-  auto fileInfo = QFileInfo(mPath);
+  mPath = boost::filesystem::path(
+      dirModel->fileInfo(index).absoluteFilePath().toStdString());
+  auto fileInfo = QFileInfo(mPath.c_str());
   auto targetModelIndex =
       dirTreeView->model()->index(index.row(), 0, index.parent());
   if (fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
     dirTreeView->setRootIndex(targetModelIndex);
-    pathEdit->setText(mPath);
+    pathEdit->setText(mPath.c_str());
   }
-  qDebug() << "Index mPath" << mPath;
-  emit pathChanged(mPath);
+  LOG(INFO) << "FilePage::fileTreeViewItemDoubleClicked Index mPath" << mPath;
+  emit pathChanged(mPath.c_str());
 }
 
-QString FilePage::getSelected() const {
-  return selectedPath;
-}
+QString FilePage::getSelected() const { return selectedPath.c_str(); }
 
 void FilePage::slotGoPath() {
   qDebug() << "getSelected" << pathEdit->text();
   auto fileInfo = QFileInfo(pathEdit->text());
   if (fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
-    mPath = fileInfo.filePath();
-    qDebug() << "Set Path" << mPath;
+    mPath = boost::filesystem::path(fileInfo.filePath().toStdString());
+    LOG(INFO) << "FilePage::slotGoPath Set Path" << mPath;
     dirTreeView->setRootIndex(dirModel->index(fileInfo.filePath()));
   } else {
     QMessageBox::critical(this, "Error",
                           "The path is unprivileged or unreachable.");
   }
-  emit pathChanged(mPath);
+  emit pathChanged(mPath.c_str());
 }
 
 void FilePage::createPopupMenu() {
@@ -188,10 +191,11 @@ void FilePage::createPopupMenu() {
 
 void FilePage::onCustomContextMenu(const QPoint& point) {
   QModelIndex index = dirTreeView->indexAt(point);
-  selectedPath = dirModel->fileInfo(index).absoluteFilePath();
-  qDebug() << "Right Click" << selectedPath;
+  selectedPath = boost::filesystem::path(
+      dirModel->fileInfo(index).absoluteFilePath().toStdString());
+  LOG(INFO) << "FilePage::onCustomContextMenu Right Click" << selectedPath;
   if (index.isValid()) {
-    QFileInfo info(selectedPath);
+    QFileInfo info(selectedPath.c_str());
     encryptItemAct->setEnabled(
         info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig"));
     decryptItemAct->setEnabled(info.isFile() && info.suffix() == "gpg");
@@ -205,11 +209,13 @@ void FilePage::onCustomContextMenu(const QPoint& point) {
 }
 
 void FilePage::slotOpenItem() {
-  QFileInfo info(mPath);
+  QFileInfo info(selectedPath.c_str());
   if (info.isDir()) {
-    qDebug() << "getSelected" << pathEdit->text();
+    LOG(INFO) << "FilePage::slotOpenItem getSelected"
+              << pathEdit->text().toStdString();
     if (info.isReadable() && info.isExecutable()) {
-      qDebug() << "Set Path" << info.filePath();
+      LOG(INFO) << "FilePage::slotOpenItem Set Path"
+                << info.filePath().toStdString();
       dirTreeView->setRootIndex(dirModel->index(info.filePath()));
     } else {
       QMessageBox::critical(this, "Error",
@@ -217,9 +223,9 @@ void FilePage::slotOpenItem() {
     }
   } else {
     auto mainWindow = qobject_cast<MainWindow*>(firstParent);
-    qDebug() << "Open Item" << mPath;
-    if (mainWindow != nullptr)
-      mainWindow->slotOpenFile(mPath);
+    LOG(INFO) << "FilePage::slotOpenItem Open Item" << selectedPath;
+    auto qt_path = QString::fromStdString(selectedPath.string());
+    if (mainWindow != nullptr) mainWindow->slotOpenFile(qt_path);
   }
 }
 
@@ -231,8 +237,7 @@ void FilePage::slotDeleteItem() {
                                   tr("Are you sure you want to delete it?"),
                                   QMessageBox::Ok | QMessageBox::Cancel);
 
-  if (ret == QMessageBox::Cancel)
-    return;
+  if (ret == QMessageBox::Cancel) return;
 
   qDebug() << "Delete Item" << data.toString();
 
@@ -244,26 +249,22 @@ void FilePage::slotDeleteItem() {
 
 void FilePage::slotEncryptItem() {
   auto mainWindow = qobject_cast<MainWindow*>(firstParent);
-  if (mainWindow != nullptr)
-    mainWindow->slotFileEncryptSign();
+  if (mainWindow != nullptr) mainWindow->slotFileEncryptSign();
 }
 
 void FilePage::slotDecryptItem() {
   auto mainWindow = qobject_cast<MainWindow*>(firstParent);
-  if (mainWindow != nullptr)
-    mainWindow->slotFileDecryptVerify();
+  if (mainWindow != nullptr) mainWindow->slotFileDecryptVerify();
 }
 
 void FilePage::slotSignItem() {
   auto mainWindow = qobject_cast<MainWindow*>(firstParent);
-  if (mainWindow != nullptr)
-    mainWindow->slotFileSign();
+  if (mainWindow != nullptr) mainWindow->slotFileSign();
 }
 
 void FilePage::slotVerifyItem() {
   auto mainWindow = qobject_cast<MainWindow*>(firstParent);
-  if (mainWindow != nullptr)
-    mainWindow->slotFileVerify();
+  if (mainWindow != nullptr) mainWindow->slotFileVerify();
 }
 
 void FilePage::keyPressEvent(QKeyEvent* event) {

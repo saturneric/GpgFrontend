@@ -22,19 +22,15 @@
  *
  */
 #include "gpg/function/GpgFileOpera.h"
-#include "GpgConstants.h"
-#include "gpg/function/BasicOperator.h"
 
-#include <boost/process/detail/config.hpp>
-
-#include <iterator>
 #include <memory>
 #include <string>
 
+#include "GpgConstants.h"
+#include "gpg/function/BasicOperator.h"
+
 GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
-    KeyArgsList&& keys,
-    const std::string& path,
-    GpgEncrResult& result) {
+    KeyArgsList&& keys, const std::string& path, GpgEncrResult& result) {
   std::string in_buffer = read_all_data_in_file(path);
   std::unique_ptr<std::string> out_buffer;
 
@@ -48,8 +44,7 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
 }
 
 GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
-    const std::string& path,
-    GpgDecrResult& result) {
+    const std::string& path, GpgDecrResult& result) {
   std::string in_buffer = read_all_data_in_file(path);
   std::unique_ptr<std::string> out_buffer;
 
@@ -96,7 +91,7 @@ gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(const std::string& path,
     assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
     return err;
   } else {
-    auto sign_buffer =
+    sign_buffer =
         std::make_unique<std::string>(read_all_data_in_file(path + ".sig"));
 
     auto err =
@@ -108,9 +103,7 @@ gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(const std::string& path,
 // TODO
 
 gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
-    KeyArgsList&& keys,
-    const std::string& path,
-    GpgEncrResult& encr_res,
+    KeyArgsList&& keys, const std::string& path, GpgEncrResult& encr_res,
     GpgSignResult& sign_res) {
   auto in_buffer = read_all_data_in_file(path);
   std::unique_ptr<std::string> out_buffer = nullptr;
@@ -123,16 +116,20 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
       std::move(keys), std::move(signerKeys), in_buffer, out_buffer, encr_res,
       sign_res);
 
-  assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
+  auto out_path = path + ".gpg";
+  LOG(INFO) << "EncryptSignFile out_path" << out_path;
+  LOG(INFO) << "EncryptSignFile out_buffer size" << out_buffer->size();
 
-  write_buffer_to_file(path + ".gpg", *out_buffer);
-
-  return err;
+  bool result = write_buffer_to_file(out_path, *out_buffer);
+  LOG(INFO) << "EncryptSignFile write_buffer_to_file result" << result;
+  if (result)
+    return err;
+  else
+    throw std::runtime_error("write_buffer_to_file failed.");
 }
 
 gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
-    const std::string& path,
-    GpgDecrResult& decr_res,
+    const std::string& path, GpgDecrResult& decr_res,
     GpgVerifyResult& verify_res) {
   auto in_buffer = read_all_data_in_file(path);
   std::unique_ptr<std::string> out_buffer = nullptr;

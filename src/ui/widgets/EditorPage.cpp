@@ -24,6 +24,7 @@
 
 #include "ui/widgets/EditorPage.h"
 
+#include <boost/filesystem.hpp>
 #include <utility>
 
 namespace GpgFrontend::UI {
@@ -40,21 +41,17 @@ EditorPage::EditorPage(QString filePath, QWidget* parent)
   mainLayout->addWidget(textPage);
   mainLayout->setContentsMargins(0, 0, 0, 0);
   setLayout(mainLayout);
-
-  setAttribute(Qt::WA_DeleteOnClose);
+  
   textPage->setFocus();
 
   // Front in same width
   this->setFont({"Courier"});
+  this->setAttribute(Qt::WA_DeleteOnClose);
 }
 
-const QString& EditorPage::getFilePath() const {
-  return fullFilePath;
-}
+const QString& EditorPage::getFilePath() const { return fullFilePath; }
 
-QTextEdit* EditorPage::getTextPage() {
-  return textPage;
-}
+QTextEdit* EditorPage::getTextPage() { return textPage; }
 
 void EditorPage::setFilePath(const QString& filePath) {
   fullFilePath = filePath;
@@ -106,6 +103,54 @@ void EditorPage::slotFormatGpgHeader() {
   cursor.setPosition(start, QTextCursor::MoveAnchor);
   cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, headEnd);
   cursor.setCharFormat(signFormat);
+}
+
+void EditorPage::readFile() {
+  if (this->readThread != nullptr) {
+    this->readThread->requestInterruption();
+    this->readThread = nullptr;
+  }
+  LOG(INFO) << "EditorPage::readFile Started";
+  this->readThread = QThread::create([&]() {
+    LOG(INFO) << "EditorPage::readFile read_thread Started";
+    boost::filesystem::path read_file_path(this->fullFilePath.toStdString());
+    if (is_regular_file(read_file_path)) {
+      LOG(INFO) << "EditorPage::readFile read_thread Read Open";
+
+      auto fp = fopen(read_file_path.c_str(), "r");
+      size_t read_size;
+      qDebug() << "Thread Start Reading";
+      // Event loop
+      this->getTextPage()->setReadOnly(true);
+      char buffer[8192];
+      while ((read_size = fread(buffer, sizeof(char), sizeof buffer, fp)) > 0) {
+        // Check isInterruptionRequested
+        if (QThread::currentThread()->isInterruptionRequested()) {
+          LOG(INFO)
+              << "EditorPage::readFile ReadThread isInterruptionRequested ";
+          fclose(fp);
+          return;
+        }
+
+        LOG(INFO) << "EditorPage::readFile read_thread Read block size"
+                  << read_size;
+        this->getTextPage()->insertPlainText(
+            QString::fromLocal8Bit(buffer, read_size));
+
+        QThread::msleep(32);
+      }
+      fclose(fp);
+      this->getTextPage()->setReadOnly(false);
+      LOG(INFO) << "Thread End Reading";
+    }
+  });
+  connect(this->readThread, SIGNAL(finished()), this->readThread,
+          SLOT(deleteLater()));
+  connect(this, &QWidget::destroyed, [&]() {
+    LOG(INFO) << "QWidget::destroyed RequestInterruption for readThread";
+    this->readThread->requestInterruption();
+  });
+  this->readThread->start();
 }
 
 }  // namespace GpgFrontend::UI
