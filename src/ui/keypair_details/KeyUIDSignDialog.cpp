@@ -23,15 +23,16 @@
  */
 
 #include "ui/keypair_details/KeyUIDSignDialog.h"
+
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyManager.h"
+#include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {
 
-KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key,
-                                   const UIDArgsListPtr& uid,
+KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
                                    QWidget* parent)
-    : mKey(key), mUids(uid), QDialog(parent) {
+    : QDialog(parent), mUids(std::move(uid)), mKey(key) {
   mKeyList =
       new KeyList(KeyListRow::ONLY_SECRET_KEY,
                   KeyListColumn::NAME | KeyListColumn::EmailAddress, this);
@@ -90,18 +91,26 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key,
   this->adjustSize();
 
   setAttribute(Qt::WA_DeleteOnClose, true);
+
+  connect(this, SIGNAL(signalKeyUIDSignUpdate()), SignalStation::GetInstance(),
+          SIGNAL(KeyDatabaseRefresh()));
 }
 
 void KeyUIDSignDialog::slotSignKey(bool clicked) {
+  LOG(INFO) << "KeyUIDSignDialog::slotSignKey Called";
+
   // Set Signers
   auto key_ids = mKeyList->getChecked();
-  auto keys = GpgKeyGetter::GetInstance().GetKeys(std::move(key_ids));
+  auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
+  LOG(INFO) << "KeyUIDSignDialog::slotSignKey Key Info Got";
   auto expires = std::make_unique<boost::gregorian::date>(
       boost::posix_time::from_time_t(expiresEdit->dateTime().toTime_t())
           .date());
 
+  LOG(INFO) << "KeyUIDSignDialog::slotSignKey Sign Start";
   for (const auto& uid : *mUids) {
+    LOG(INFO) << "KeyUIDSignDialog::slotSignKey Sign UID" << uid;
     // Sign For mKey
     if (!GpgKeyManager::GetInstance().signKey(mKey, *keys, uid, expires)) {
       QMessageBox::critical(
@@ -114,8 +123,8 @@ void KeyUIDSignDialog::slotSignKey(bool clicked) {
   QMessageBox::information(
       nullptr, tr("Operation Complete"),
       tr("The signature operation of the UID is complete"));
-
   this->close();
+  emit signalKeyUIDSignUpdate();
 }
 
 }  // namespace GpgFrontend::UI

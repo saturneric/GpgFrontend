@@ -25,11 +25,10 @@
 #ifndef GPGFRONTEND_KEYPAIRUIDTAB_H
 #define GPGFRONTEND_KEYPAIRUIDTAB_H
 
-#include "gpg/GpgContext.h"
-#include "ui/GpgFrontendUI.h"
-
 #include "KeyNewUIDDialog.h"
 #include "KeyUIDSignDialog.h"
+#include "gpg/GpgContext.h"
+#include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
 
@@ -38,6 +37,9 @@ class KeyPairUIDTab : public QWidget {
 
  public:
   KeyPairUIDTab(const std::string& key_id, QWidget* parent);
+
+ signals:
+  void signalUpdateUIDInfo();
 
  private:
   GpgKey mKey;

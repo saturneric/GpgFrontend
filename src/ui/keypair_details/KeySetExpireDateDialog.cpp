@@ -48,7 +48,6 @@ KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
 }
 
 void KeySetExpireDateDialog::slotConfirm() {
-
   LOG(INFO) << "KeySetExpireDateDialog::slotConfirm Called";
 
   std::unique_ptr<boost::gregorian::date> expires = nullptr;
@@ -57,10 +56,12 @@ void KeySetExpireDateDialog::slotConfirm() {
         boost::posix_time::from_time_t(
             this->dateTimeEdit->dateTime().toTime_t())
             .date());
+    LOG(INFO) << "KeySetExpireDateDialog::slotConfirm" << mKey.id() << mSubkey
+              << *expires;
+  } else {
+    LOG(INFO) << "KeySetExpireDateDialog::slotConfirm" << mKey.id() << mSubkey
+              << "Non Expired";
   }
-
-  LOG(INFO) << "KeySetExpireDateDialog::slotConfirm" << mKey.id() << mSubkey
-            << *expires;
 
   auto err = GpgKeyOpera::GetInstance().SetExpire(mKey, mSubkey, expires);
 

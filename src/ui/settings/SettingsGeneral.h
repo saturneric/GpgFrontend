@@ -44,25 +44,35 @@ class GeneralTab : public QWidget {
   QString appPath;
   QSettings settings;
 
-  QComboBox* serverSelectBox;
   QCheckBox* saveCheckedKeysCheckBox;
   QCheckBox* importConfirmationCheckBox;
+
+#ifdef MULT_LANGUAGE_SUPPORT
   QComboBox* langSelectBox;
+  QHash<QString, QString> lang;
+#endif
+
+#ifdef SERVER_SUPPORT
+  QComboBox* serverSelectBox;
   QComboBox* ownKeySelectBox;
   QPushButton* getServiceTokenButton;
   QLabel* serviceTokenLabel;
-  QHash<QString, QString> lang;
-
-  std::unordered_map<std::string, std::string> keyIds;
-  std::vector<std::string> keyIdsList;
   std::string serviceToken;
-  KeyList* mKeyList;
+  std::unordered_map<std::string, std::string> keyIds;
+#endif
+
+  std::vector<std::string> keyIdsList;
+
+  KeyList* mKeyList{};
 
  private slots:
-
+#ifdef MULT_LANGUAGE_SUPPORT
   void slotOwnKeyIdChanged();
+#endif
 
+#ifdef SERVER_SUPPORT
   void slotLanguageChanged();
+#endif
 
  signals:
 

@@ -177,6 +177,12 @@ void KeyPairSubkeyTab::slotRefreshSubkeyList() {
     tmp4->setTextAlignment(Qt::AlignCenter);
     subkeyList->setItem(row, 4, tmp4);
 
+    if (!row) {
+      for (auto i = 0; i < subkeyList->columnCount(); i++) {
+        subkeyList->item(row, i)->setTextColor(QColor(65, 105, 255));
+      }
+    }
+
     row++;
   }
 
@@ -255,7 +261,8 @@ void KeyPairSubkeyTab::createSubkeyOperaMenu() {
 }
 
 void KeyPairSubkeyTab::slotEditSubkey() {
-  LOG(INFO) << "KeyPairSubkeyTab::slotEditSubkey Fpr" << getSelectedSubkey().fpr();
+  LOG(INFO) << "KeyPairSubkeyTab::slotEditSubkey Fpr"
+            << getSelectedSubkey().fpr();
 
   auto dialog =
       new KeySetExpireDateDialog(mKey.id(), getSelectedSubkey().fpr(), this);
