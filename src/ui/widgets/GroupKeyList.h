@@ -22,33 +22,13 @@
  *
  */
 
-#ifndef _GPGKEYOPERA_H
-#define _GPGKEYOPERA_H
+#ifndef GPGFRONTEND_GROUPKEYLIST_H
+#define GPGFRONTEND_GROUPKEYLIST_H
 
-#include "gpg/GpgConstants.h"
-#include "gpg/GpgContext.h"
-#include "gpg/GpgModel.h"
+#include "ui/GpgFrontendUI.h"
 
-namespace GpgFrontend {
-class GenKeyInfo;
-class GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
- public:
-  void DeleteKeys(KeyIdArgsListPtr key_ids);
-
-  GpgError SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
-                     std::unique_ptr<boost::gregorian::date>& expires);
-
-  void GenerateRevokeCert(const GpgKey& key,
-                          const std::string& output_file_name);
-
-  GpgFrontend::GpgError GenerateKey(const std::unique_ptr<GenKeyInfo>& params);
-
-  GpgFrontend::GpgError GenerateSubkey(
-      const GpgKey& key, const std::unique_ptr<GenKeyInfo>& params);
-
- private:
-  GpgContext& ctx = GpgContext::GetInstance();
+class GroupKeyList : public QWidget {
+  Q_OBJECT
 };
-}  // namespace GpgFrontend
 
-#endif  // _GPGKEYOPERA_H
+#endif  // GPGFRONTEND_GROUPKEYLIST_H

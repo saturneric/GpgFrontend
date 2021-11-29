@@ -23,16 +23,20 @@
  */
 
 #include "gpg/function/GpgKeyGetter.h"
+
 #include <gpg-error.h>
+
 #include "GpgConstants.h"
 
 GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr) {
   gpgme_key_t _p_key;
   gpgme_get_key(ctx, fpr.c_str(), &_p_key, 1);
-  if (_p_key == nullptr)
-    DLOG(WARNING) << "GpgKeyGetter GetKey _p_key Null";
-  assert(_p_key != nullptr);
-  return GpgKey(std::move(_p_key));
+  if (_p_key == nullptr) {
+    DLOG(WARNING) << "GpgKeyGetter GetKey Private _p_key Null fpr" << fpr;
+    return GetPubkey(fpr);
+  } else {
+    return GpgKey(std::move(_p_key));
+  }
 }
 
 GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetPubkey(
@@ -40,7 +44,7 @@ GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetPubkey(
   gpgme_key_t _p_key;
   gpgme_get_key(ctx, fpr.c_str(), &_p_key, 0);
   if (_p_key == nullptr)
-    DLOG(WARNING) << "GpgKeyGetter GetKey _p_key Null";
+    DLOG(WARNING) << "GpgKeyGetter GetKey _p_key Null" << fpr;
   return GpgKey(std::move(_p_key));
 }
 
@@ -66,7 +70,6 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
 GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeys(
     const KeyIdArgsListPtr& ids) {
   auto keys = std::make_unique<KeyArgsList>();
-  for (const auto& id : *ids)
-    keys->push_back(GetKey(id));
+  for (const auto& id : *ids) keys->push_back(GetKey(id));
   return keys;
 }

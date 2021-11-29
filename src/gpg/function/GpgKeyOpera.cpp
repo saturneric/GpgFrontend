@@ -61,23 +61,28 @@ void GpgFrontend::GpgKeyOpera::DeleteKeys(
  * @param expires date and time
  * @return if successful
  */
-void GpgFrontend::GpgKeyOpera::SetExpire(
-    const GpgKey& key, const SubkeyId& subkey_id,
+GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::SetExpire(
+    const GpgKey& key, const SubkeyId& subkey_fpr,
     std::unique_ptr<boost::gregorian::date>& expires) {
   unsigned long expires_time = 0;
   if (expires != nullptr) {
     using namespace boost::posix_time;
-    expires_time = to_time_t(ptime(*expires));
+    using namespace std::chrono;
+    expires_time = to_time_t(ptime(*expires)) -
+                   system_clock::to_time_t(system_clock::now());
   }
 
+  LOG(INFO) << "GpgFrontend::GpgKeyOpera::SetExpire" << key.id() << subkey_fpr
+            << expires_time;
+
   GpgError err;
-  if (subkey_id.empty())
+  if (subkey_fpr.empty())
     err = gpgme_op_setexpire(ctx, gpgme_key_t(key), expires_time, nullptr, 0);
   else
     err = gpgme_op_setexpire(ctx, gpgme_key_t(key), expires_time,
-                             subkey_id.c_str(), 0);
+                             subkey_fpr.c_str(), 0);
 
-  assert(gpg_err_code(err) != GPG_ERR_NO_ERROR);
+  return err;
 }
 
 /**
@@ -124,7 +129,9 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
   unsigned long expires = 0;
   {
     using namespace boost::posix_time;
-    expires = to_time_t(ptime(params->getExpired()));
+    using namespace std::chrono;
+    expires = to_time_t(ptime(params->getExpired())) -
+              system_clock::to_time_t(system_clock::now());
   }
 
   unsigned int flags = 0;
@@ -158,7 +165,9 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateSubkey(
   unsigned long expires = 0;
   {
     using namespace boost::posix_time;
-    expires = to_time_t(ptime(params->getExpired()));
+    using namespace std::chrono;
+    expires = to_time_t(ptime(params->getExpired())) -
+              system_clock::to_time_t(system_clock::now());
   }
   unsigned int flags = 0;
 

@@ -25,10 +25,9 @@
 #ifndef GPGFRONTEND_KEYPAIRDETAILTAB_H
 #define GPGFRONTEND_KEYPAIRDETAILTAB_H
 
+#include "KeySetExpireDateDialog.h"
 #include "gpg/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
-
-#include "KeySetExpireDateDialog.h"
 #include "ui/KeyServerImportDialog.h"
 #include "ui/KeyUploadDialog.h"
 
@@ -68,6 +67,8 @@ class KeyPairDetailTab : public QWidget {
 
   void slotGenRevokeCert();
 
+  void slotRefreshKey();
+
  private:
   std::string keyid; /** The id of the key the details should be shown for */
 
@@ -92,7 +93,7 @@ class KeyPairDetailTab : public QWidget {
   QLabel* actualUsageVarLabel;
   QLabel* masterKeyExistVarLabel;
 
-  QMenu* keyServerOperaMenu;
+  QMenu* keyServerOperaMenu{};
 
  public:
   explicit KeyPairDetailTab(const std::string& key_id,

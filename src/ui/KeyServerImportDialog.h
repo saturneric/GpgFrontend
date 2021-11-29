@@ -46,6 +46,9 @@ class KeyServerImportDialog : public QDialog {
 
   void slotImportKey(const KeyIdArgsListPtr& keys);
 
+ signals:
+  void signalKeyImported();
+
  private slots:
 
   void slotImport();

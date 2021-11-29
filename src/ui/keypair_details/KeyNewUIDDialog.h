@@ -35,6 +35,9 @@ class KeyNewUIDDialog : public QDialog {
  public:
   KeyNewUIDDialog(const KeyId& key, QWidget* parent = nullptr);
 
+  signals:
+   void signalUIDCreated();
+
  private slots:
 
   void slotCreateNewUID();

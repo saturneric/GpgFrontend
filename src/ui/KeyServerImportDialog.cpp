@@ -27,6 +27,7 @@
 #include <utility>
 
 #include "gpg/function/GpgKeyImportExportor.h"
+#include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -45,6 +46,7 @@ KeyServerImportDialog::KeyServerImportDialog(KeyList* keyList, bool automatic,
   // Buttons
   closeButton = createButton(tr("&Close"), SLOT(close()));
   importButton = createButton(tr("&Import ALL"), SLOT(slotImport()));
+  importButton->setDisabled(true);
   searchButton = createButton(tr("&Search"), SLOT(slotSearch()));
 
   // Line edit for search string
@@ -111,7 +113,7 @@ KeyServerImportDialog::KeyServerImportDialog(KeyList* keyList, bool automatic,
       QPoint pos =
           settings.value("ImportKeyFromServer/pos", QPoint(150, 150)).toPoint();
       QSize size =
-          settings.value("ImportKeyFromServer/size", QSize(500, 300)).toSize();
+          settings.value("ImportKeyFromServer/size", QSize(800, 500)).toSize();
       qDebug() << "Settings size" << size << "pos" << pos;
       this->setMinimumSize(size);
       this->move(pos);
@@ -128,6 +130,9 @@ KeyServerImportDialog::KeyServerImportDialog(KeyList* keyList, bool automatic,
   }
 
   this->setModal(true);
+
+  connect(this, SIGNAL(signalKeyImported()), SignalStation::GetInstance(),
+          SIGNAL(KeyDatabaseRefresh()));
 }
 
 QPushButton* KeyServerImportDialog::createButton(const QString& text,
@@ -189,29 +194,39 @@ void KeyServerImportDialog::slotSearch() {
     return;
   }
 
-  QUrl urlFromRemote = keyServerComboBox->currentText() +
-                       "/pks/lookup?search=" + searchLineEdit->text() +
-                       "&op=index&options=mr";
+  QUrl url_from_remote = keyServerComboBox->currentText() +
+                         "/pks/lookup?search=" + searchLineEdit->text() +
+                         "&op=index&options=mr";
   qnam = new QNetworkAccessManager(this);
-  QNetworkReply* reply = qnam->get(QNetworkRequest(urlFromRemote));
+  QNetworkReply* reply = qnam->get(QNetworkRequest(url_from_remote));
 
   connect(reply, SIGNAL(finished()), this, SLOT(slotSearchFinished()));
 
   setLoading(true);
+  this->searchButton->setDisabled(true);
+  this->keyServerComboBox->setDisabled(true);
+  this->searchLineEdit->setReadOnly(true);
+  this->importButton->setDisabled(true);
 
   while (reply->isRunning()) {
     QApplication::processEvents();
   }
 
+  this->searchButton->setDisabled(false);
+  this->keyServerComboBox->setDisabled(false);
+  this->searchLineEdit->setReadOnly(false);
+  this->importButton->setDisabled(false);
   setLoading(false);
 }
 
 void KeyServerImportDialog::slotSearchFinished() {
+  LOG(INFO) << "KeyServerImportDialog::slotSearchFinished Called";
+
   auto* reply = qobject_cast<QNetworkReply*>(sender());
 
   keysTable->clearContents();
   keysTable->setRowCount(0);
-  QString firstLine = QString(reply->readLine(1024));
+  QString first_line = QString(reply->readLine(1024));
 
   auto error = reply->error();
   if (error != QNetworkReply::NoError) {
@@ -232,7 +247,7 @@ void KeyServerImportDialog::slotSearchFinished() {
     return;
   }
 
-  if (firstLine.contains("Error")) {
+  if (first_line.contains("Error")) {
     QString text = QString(reply->readLine(1024));
     if (text.contains("Too many responses")) {
       setMessage("<h4>" + tr("Too many responses from keyserver!") + "</h4>",
@@ -340,11 +355,14 @@ void KeyServerImportDialog::slotSearchFinished() {
                  false);
     }
     keysTable->resizeColumnsToContents();
+    importButton->setDisabled(keysTable->size().isEmpty());
   }
   reply->deleteLater();
 }
 
 void KeyServerImportDialog::slotImport() {
+  LOG(INFO) << "KeyServerImportDialog::slotImport currentRow"
+            << keysTable->currentRow();
   if (keysTable->currentRow() > -1) {
     QString keyid = keysTable->item(keysTable->currentRow(), 2)->text();
     slotImport(QStringList(keyid), keyServerComboBox->currentText());
@@ -434,6 +452,7 @@ void KeyServerImportDialog::slotImportFinished() {
   reply->deleteLater();
 
   this->importKeys(std::make_unique<ByteArray>(key.constData(), key.length()));
+
   if (mAutomatic) {
     setMessage(tr("<h4>Key Updated</h4>"), false);
   } else {
@@ -444,6 +463,7 @@ void KeyServerImportDialog::slotImportFinished() {
 void KeyServerImportDialog::importKeys(ByteArrayPtr in_data) {
   GpgImportInformation result =
       GpgKeyImportExportor::GetInstance().ImportKey(std::move(in_data));
+  emit signalKeyImported();
   if (mAutomatic) {
     new KeyImportDetailDialog(result, true, this);
     this->accept();

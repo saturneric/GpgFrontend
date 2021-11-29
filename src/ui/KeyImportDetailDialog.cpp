@@ -28,8 +28,7 @@
 
 namespace GpgFrontend::UI {
 KeyImportDetailDialog::KeyImportDetailDialog(GpgImportInformation result,
-                                             bool automatic,
-                                             QWidget* parent)
+                                             bool automatic, QWidget* parent)
     : QDialog(parent), mResult(std::move(result)) {
   // If no key for import found, just show a message
   if (mResult.considered == 0) {
@@ -115,6 +114,8 @@ void KeyImportDetailDialog::createGeneralInfoBox() {
 }
 
 void KeyImportDetailDialog::createKeysTable() {
+  LOG(INFO) << "KeyImportDetailDialog::createKeysTable() Called";
+  
   keysTable = new QTableWidget(this);
   keysTable->setRowCount(0);
   keysTable->setColumnCount(4);
@@ -132,8 +133,7 @@ void KeyImportDetailDialog::createKeysTable() {
   for (const auto& imp_key : mResult.importedKeys) {
     keysTable->setRowCount(row + 1);
     GpgKey key = GpgKeyGetter::GetInstance().GetKey(imp_key.fpr);
-    if (!key.good())
-      continue;
+    if (!key.good()) continue;
     keysTable->setItem(
         row, 0, new QTableWidgetItem(QString::fromStdString(key.name())));
     keysTable->setItem(

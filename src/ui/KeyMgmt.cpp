@@ -29,6 +29,7 @@
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExportor.h"
 #include "gpg/function/GpgKeyOpera.h"
+#include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent)
@@ -90,6 +91,9 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   setWindowTitle(tr("Key Pair Management"));
   mKeyList->addMenuAction(deleteSelectedKeysAct);
   mKeyList->addMenuAction(showKeyDetailsAct);
+
+  connect(this, SIGNAL(signalKeyStatusUpdated()), SignalStation::GetInstance(),
+          SIGNAL(KeyDatabaseRefresh()));
 }
 
 void KeyMgmt::createActions() {
@@ -221,6 +225,7 @@ void KeyMgmt::createToolBars() {
 void KeyMgmt::slotImportKeys(const std::string& in_buffer) {
   GpgImportInformation result = GpgKeyImportExportor::GetInstance().ImportKey(
       std::make_unique<ByteArray>(in_buffer));
+  emit signalKeyStatusUpdated();
   new KeyImportDetailDialog(result, false, this);
 }
 
@@ -258,13 +263,13 @@ void KeyMgmt::deleteKeysWithWarning(KeyIdArgsListPtr key_ids) {
    * more than one selected... compare to seahorse "delete-dialog"
    */
 
-  if (key_ids->empty())
-    return;
+  LOG(INFO) << "KeyMgmt::deleteKeysWithWarning Called";
+
+  if (key_ids->empty()) return;
   QString keynames;
   for (const auto& key_id : *key_ids) {
     auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
-    if (!key.good())
-      continue;
+    if (!key.good()) continue;
     keynames.append(QString::fromStdString(key.name()));
     keynames.append("<i> &lt;");
     keynames.append(QString::fromStdString(key.email()));
@@ -278,14 +283,15 @@ void KeyMgmt::deleteKeysWithWarning(KeyIdArgsListPtr key_ids) {
           tr("The action can not be undone."),
       QMessageBox::No | QMessageBox::Yes);
 
-  if (ret == QMessageBox::Yes)
+  if (ret == QMessageBox::Yes) {
     GpgKeyOpera::GetInstance().DeleteKeys(std::move(key_ids));
+    emit signalKeyStatusUpdated();
+  }
 }
 
 void KeyMgmt::slotShowKeyDetails() {
   auto keys_selected = mKeyList->getSelected();
-  if (keys_selected->empty())
-    return;
+  if (keys_selected->empty()) return;
 
   auto key = GpgKeyGetter::GetInstance().GetKey(keys_selected->front());
 
@@ -337,9 +343,7 @@ void KeyMgmt::slotGenerateKeyDialog() {
   keyGenDialog->show();
 }
 
-void KeyMgmt::closeEvent(QCloseEvent* event) {
-  QMainWindow::closeEvent(event);
-}
+void KeyMgmt::closeEvent(QCloseEvent* event) { QMainWindow::closeEvent(event); }
 
 void KeyMgmt::slotGenerateSubKey() {
   auto keys_selected = mKeyList->getSelected();
