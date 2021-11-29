@@ -145,13 +145,13 @@ std::string GpgFrontend::get_file_extension(const std::string& path) {
   return {};
 }
 
-std::string GpgFrontend::get_file_name_with_path(const std::string& path) {
+std::string GpgFrontend::get_only_file_name_with_path(const std::string& path) {
   // Create a Path object from given string
   std::filesystem::path path_obj(path);
   // Check if file name in the path object has extension
   if (path_obj.has_filename()) {
     // Fetch the extension from path object and return
-    return path_obj.parent_path() / path_obj.filename();
+    return path_obj.parent_path() / path_obj.stem();
   }
   // In case of no extension return empty string
   throw std::runtime_error("invalid file path");

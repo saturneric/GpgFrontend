@@ -29,7 +29,6 @@
 INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char* argv[]) {
-
   el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
 
   Q_INIT_RESOURCE(gpgfrontend);
@@ -48,7 +47,7 @@ int main(int argc, char* argv[]) {
   // unicode in source
   QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
 
-#ifdef WINDOWS
+#if (OS_PLATFORM == WINDOWS)
   // css
   QFile file(RESOURCE_DIR(qApp->applicationDirPath()) + "/css/default.qss");
   file.open(QFile::ReadOnly);

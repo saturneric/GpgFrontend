@@ -35,9 +35,11 @@ class KeyUIDSignDialog : public QDialog {
   Q_OBJECT
 
  public:
-  explicit KeyUIDSignDialog(const GpgKey& key,
-                            const UIDArgsListPtr& uid,
+  explicit KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
                             QWidget* parent = nullptr);
+
+ signals:
+  void signalKeyUIDSignUpdate();
 
  private:
   KeyList* mKeyList;
@@ -48,7 +50,7 @@ class KeyUIDSignDialog : public QDialog {
 
   QCheckBox* nonExpireCheck;
 
-  const UIDArgsListPtr& mUids;
+  UIDArgsListPtr mUids;
 
   const GpgKey& mKey;
 

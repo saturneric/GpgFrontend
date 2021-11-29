@@ -84,7 +84,7 @@ bool write_buffer_to_file(const std::string& path,
                           const std::string& out_buffer);
 
 std::string get_file_extension(const std::string& path);
-std::string get_file_name_with_path(const std::string& path);
+std::string get_only_file_name_with_path(const std::string& path);
 
 // Check
 int text_is_signed(BypeArrayRef text);

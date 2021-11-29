@@ -40,6 +40,8 @@ GeneralTab::GeneralTab(QWidget* parent)
       appPath(qApp->applicationDirPath()),
       settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
                QSettings::IniFormat) {
+#ifdef SERVER_SUPPORT
+
   /*****************************************
    * GpgFrontend Server
    *****************************************/
@@ -51,6 +53,7 @@ GeneralTab::GeneralTab(QWidget* parent)
       tr("Server that provides short key and key exchange services")));
 
   serverBox->setLayout(serverBoxLayout);
+#endif
 
   /*****************************************
    * Save-Checked-Keys-Box
@@ -74,6 +77,7 @@ GeneralTab::GeneralTab(QWidget* parent)
   importConfirmationBoxLayout->addWidget(importConfirmationCheckBox);
   importConfirmationBox->setLayout(importConfirmationBoxLayout);
 
+#ifdef MULT_LANGUAGE_SUPPORT
   /*****************************************
    * Language Select Box
    *****************************************/
@@ -93,7 +97,9 @@ GeneralTab::GeneralTab(QWidget* parent)
   langBox->setLayout(langBoxLayout);
   connect(langSelectBox, SIGNAL(currentIndexChanged(int)), this,
           SLOT(slotLanguageChanged()));
+#endif
 
+#ifdef SERVER_SUPPORT
   /*****************************************
    * Own Key Select Box
    *****************************************/
@@ -106,6 +112,7 @@ GeneralTab::GeneralTab(QWidget* parent)
   serviceTokenLabel->setAlignment(Qt::AlignCenter);
 
   ownKeyBox->setLayout(ownKeyBoxLayout);
+
   mKeyList = new KeyList();
 
   // Fill the keyid hashmap
@@ -135,15 +142,23 @@ GeneralTab::GeneralTab(QWidget* parent)
   ownKeyServiceTokenLayout->addWidget(serviceTokenLabel);
   ownKeyServiceTokenLayout->stretch(0);
 
+#endif
+
   /*****************************************
    * Mainlayout
    *****************************************/
   auto* mainLayout = new QVBoxLayout;
+#ifdef SERVER_SUPPORT
   mainLayout->addWidget(serverBox);
+#endif
   mainLayout->addWidget(saveCheckedKeysBox);
   mainLayout->addWidget(importConfirmationBox);
+#ifdef MULT_LANGUAGE_SUPPORT
   mainLayout->addWidget(langBox);
+#endif
+#ifdef SERVER_SUPPORT
   mainLayout->addWidget(ownKeyBox);
+#endif
 
   setSettings();
   mainLayout->addStretch(1);
@@ -161,6 +176,7 @@ void GeneralTab::setSettings() {
     saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
   }
 
+#ifdef SERVER_SUPPORT
   auto serverList =
       settings.value("general/gpgfrontendServerList").toStringList();
   if (serverList.empty()) {
@@ -181,6 +197,9 @@ void GeneralTab::setSettings() {
           [&](const QString& current) -> void {
             settings.setValue("general/currentGpgfrontendServer", current);
           });
+#endif
+
+#ifdef MULT_LANGUAGE_SUPPORT
 
   // Language setting
   QString langKey = settings.value("int/lang").toString();
@@ -188,6 +207,10 @@ void GeneralTab::setSettings() {
   if (langKey != "") {
     langSelectBox->setCurrentIndex(langSelectBox->findText(langValue));
   }
+
+#endif
+
+#ifdef SERVER_SUPPORT
 
   auto own_key_id = settings.value("general/ownKeyId").toString().toStdString();
   if (own_key_id.empty()) {
@@ -203,6 +226,8 @@ void GeneralTab::setSettings() {
     serviceTokenLabel->setText(QString::fromStdString(serviceToken));
   }
 
+#endif
+
   // Get own key information from keydb/gpg.conf (if contained)
   if (settings.value("general/confirmImportKeys", Qt::Checked).toBool()) {
     importConfirmationCheckBox->setCheckState(Qt::Checked);
@@ -216,7 +241,7 @@ void GeneralTab::setSettings() {
 void GeneralTab::applySettings() {
   settings.setValue("keys/saveKeyChecked",
                     saveCheckedKeysCheckBox->isChecked());
-
+#ifdef SERVER_SUPPORT
   qDebug() << "serverSelectBox currentText" << serverSelectBox->currentText();
   settings.setValue("general/currentGpgfrontendServer",
                     serverSelectBox->currentText());
@@ -226,27 +251,36 @@ void GeneralTab::applySettings() {
     serverList->append(serverSelectBox->itemText(i));
   settings.setValue("general/gpgfrontendServerList", *serverList);
   delete serverList;
+#endif
 
+#ifdef MULT_LANGUAGE_SUPPORT
   settings.setValue("int/lang", lang.key(langSelectBox->currentText()));
+#endif
 
+#ifdef SERVER_SUPPORT
   settings.setValue(
       "general/ownKeyId",
       QString::fromStdString(keyIdsList[ownKeySelectBox->currentIndex()]));
 
   settings.setValue("general/serviceToken",
                     QString::fromStdString(serviceToken));
+#endif
 
   settings.setValue("general/confirmImportKeys",
                     importConfirmationCheckBox->isChecked());
 }
 
+#ifdef MULT_LANGUAGE_SUPPORT
 void GeneralTab::slotLanguageChanged() { emit signalRestartNeeded(true); }
+#endif
 
+#ifdef SERVER_SUPPORT
 void GeneralTab::slotOwnKeyIdChanged() {
   // Set ownKeyId to currently selected
   this->serviceTokenLabel->setText(tr("No Service Token Found"));
   serviceToken.clear();
 }
+#endif
 
 #ifdef SERVER_SUPPORT
 void GeneralTab::slotGetServiceToken() {

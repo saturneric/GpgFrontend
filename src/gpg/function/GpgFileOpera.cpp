@@ -53,7 +53,7 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
 
   assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
-  std::string out_file_name = get_file_name_with_path(path),
+  std::string out_file_name = get_only_file_name_with_path(path),
               file_extension = get_file_extension(path);
 
   if (!(file_extension == ".asc" || file_extension == ".gpg"))
@@ -131,20 +131,27 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
 gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
     const std::string& path, GpgDecrResult& decr_res,
     GpgVerifyResult& verify_res) {
+  LOG(INFO) << "GpgFrontend::GpgFileOpera::DecryptVerifyFile Called";
+
   auto in_buffer = read_all_data_in_file(path);
+
+  LOG(INFO) << "GpgFrontend::GpgFileOpera::DecryptVerifyFile in_buffer"
+            << in_buffer.size();
   std::unique_ptr<std::string> out_buffer = nullptr;
 
   auto err = BasicOperator::GetInstance().DecryptVerify(in_buffer, out_buffer,
                                                         decr_res, verify_res);
-  assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
-  std::string out_file_name = get_file_name_with_path(path),
+  std::string out_file_name = get_only_file_name_with_path(path),
               file_extension = get_file_extension(path);
 
   if (!(file_extension == ".asc" || file_extension == ".gpg"))
     out_file_name = path + ".out";
-
-  write_buffer_to_file(out_file_name, *out_buffer);
+  LOG(INFO) << "GpgFrontend::GpgFileOpera::DecryptVerifyFile out_file_name"
+            << out_file_name;
+  if (!write_buffer_to_file(out_file_name, *out_buffer)) {
+    throw std::runtime_error("write_buffer_to_file error");
+  };
 
   return err;
 }

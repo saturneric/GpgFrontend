@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(GpgFrontend VERSION 1.3.1 LANGUAGES CXX)
+project(GpgFrontend VERSION 2.0.1 LANGUAGES CXX)
 
 message(STATUS "GPGFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
@@ -47,7 +47,7 @@ if (BUILD_CONFIG)
         message(STATUS "Switch TEST_BUILD")
         set(TEST_BUILD 1)
         set(AppName GpgFrontendTest)
-    # Test Build With Coverage Test
+        # Test Build With Coverage Test
     elseif (${BUILD_CONFIG} STREQUAL "test_coverage")
         message(STATUS "Switch TEST_COVERAGE_BUILD")
         set(TEST_BUILD 1)
@@ -59,7 +59,7 @@ if (BUILD_CONFIG)
             message(WARNING "Please use gcc or clang for branch coverage test.")
         endif ()
         set(AppName GpgFrontendTest)
-    # Test Build with minimum UI
+        # Test Build with minimum UI
     elseif (${BUILD_CONFIG} STREQUAL "test_ui")
         message(STATUS "Switch TEST_MINIMUM_UI_BUILD")
         set(MINIMUM_APPLICATION_BUILD 1)

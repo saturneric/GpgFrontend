@@ -335,14 +335,15 @@ void KeyPairDetailTab::createKeyServerOperaMenu() {
           SLOT(slotUpdateKeyToServer()));
 
   keyServerOperaMenu->addAction(uploadKeyPair);
-  // TODO Solve Refresh Problem
-  //    keyServerOperaMenu->addAction(updateKeyPair);
+  keyServerOperaMenu->addAction(updateKeyPair);
 }
 
 void KeyPairDetailTab::slotUploadKeyToServer() {
   auto keys = std::make_unique<KeyIdArgsList>();
   keys->push_back(mKey.id());
   auto* dialog = new KeyUploadDialog(keys, this);
+  dialog->show();
+  dialog->slotUpload();
 }
 
 void KeyPairDetailTab::slotUpdateKeyToServer() {

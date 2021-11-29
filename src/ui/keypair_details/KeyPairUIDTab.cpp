@@ -84,6 +84,9 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
   connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
           SLOT(slotRefreshKey()));
 
+  connect(this, SIGNAL(signalUpdateUIDInfo()), SignalStation::GetInstance(),
+          SIGNAL(KeyDatabaseRefresh()));
+
   setLayout(vboxLayout);
   setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -172,6 +175,12 @@ void KeyPairUIDTab::slotRefreshUIDList() {
     tmp3->setCheckState(Qt::Unchecked);
     uidList->setItem(row, 0, tmp3);
 
+    if (!row) {
+      for (auto i = 0; i < uidList->columnCount(); i++) {
+        uidList->item(row, i)->setTextColor(QColor(65, 105, 255));
+      }
+    }
+
     row++;
   }
 
@@ -249,7 +258,8 @@ void KeyPairUIDTab::slotAddSign() {
     return;
   }
 
-  auto keySignDialog = new KeyUIDSignDialog(mKey, selected_uids, this);
+  auto keySignDialog =
+      new KeyUIDSignDialog(mKey, std::move(selected_uids), this);
   keySignDialog->show();
 }
 
@@ -318,19 +328,22 @@ void KeyPairUIDTab::slotDelUID() {
           tr("The action can not be undone."),
       QMessageBox::No | QMessageBox::Yes);
 
-  bool if_success = true;
+  bool if_all_success = true;
 
   if (ret == QMessageBox::Yes) {
     for (const auto& uid : *selected_uids) {
-      if (UidOperator::GetInstance().revUID(mKey, uid)) {
-        if_success = false;
+      LOG(INFO) << "KeyPairUIDTab::slotDelUID UID" << uid;
+      if (!UidOperator::GetInstance().revUID(mKey, uid)) {
+        if_all_success = false;
       }
     }
 
-    if (!if_success) {
-      QMessageBox::critical(nullptr, tr("Operation Failed"),
-                            tr("An error occurred during the operation."));
+    if (!if_all_success) {
+      QMessageBox::critical(
+          nullptr, tr("Operation Failed"),
+          tr("At least an error occurred during the operation."));
     }
+    emit signalUpdateUIDInfo();
   }
 }
 
@@ -361,6 +374,8 @@ void KeyPairUIDTab::slotSetPrimaryUID() {
                                                   selected_uids->front())) {
       QMessageBox::critical(nullptr, tr("Operation Failed"),
                             tr("An error occurred during the operation."));
+    } else {
+      emit signalUpdateUIDInfo();
     }
   }
 }
@@ -425,7 +440,8 @@ void KeyPairUIDTab::slotAddSignSingle() {
     return;
   }
 
-  auto keySignDialog = new KeyUIDSignDialog(mKey, selected_uids, this);
+  auto keySignDialog =
+      new KeyUIDSignDialog(mKey, std::move(selected_uids), this);
   keySignDialog->show();
 }
 
@@ -454,6 +470,8 @@ void KeyPairUIDTab::slotDelUIDSingle() {
     if (!UidOperator::GetInstance().revUID(mKey, selected_uids->front())) {
       QMessageBox::critical(nullptr, tr("Operation Failed"),
                             tr("An error occurred during the operation."));
+    } else {
+      emit signalUpdateUIDInfo();
     }
   }
 }
