@@ -26,6 +26,7 @@
 
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/UidOperator.h"
+#include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {
 KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
@@ -49,7 +50,10 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
   gridLayout->addWidget(comment, 2, 1);
 
   gridLayout->addWidget(createButton, 3, 0, 1, 2);
-  gridLayout->addWidget(errorLabel, 4, 0, 1, 2);
+  gridLayout->addWidget(
+      new QLabel(tr("Notice: The New UID Created will be set as Primary.")), 4,
+      0, 1, 2);
+  gridLayout->addWidget(errorLabel, 5, 0, 1, 2);
 
   connect(createButton, SIGNAL(clicked(bool)), this, SLOT(slotCreateNewUID()));
 
@@ -57,6 +61,9 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
   this->setWindowTitle(tr("Create New UID"));
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setModal(true);
+
+  connect(this, SIGNAL(signalUIDCreated()), SignalStation::GetInstance(),
+          SIGNAL(KeyDatabaseRefresh()));
 }
 
 void KeyNewUIDDialog::slotCreateNewUID() {
@@ -75,9 +82,10 @@ void KeyNewUIDDialog::slotCreateNewUID() {
   if (errorString.isEmpty()) {
     if (UidOperator::GetInstance().addUID(mKey, name->text().toStdString(),
                                           comment->text().toStdString(),
-                                          email->text().toStdString()))
+                                          email->text().toStdString())) {
       emit finished(1);
-    else
+      emit signalUIDCreated();
+    } else
       emit finished(-1);
 
   } else {

@@ -38,9 +38,11 @@ class KeySetExpireDateDialog : public QDialog {
   explicit KeySetExpireDateDialog(const KeyId& key_id,
                                   QWidget* parent = nullptr);
 
-  explicit KeySetExpireDateDialog(const KeyId& key_id,
-                                  std::string subkey_id,
+  explicit KeySetExpireDateDialog(const KeyId& key_id, std::string subkey_fpr,
                                   QWidget* parent = nullptr);
+
+ signals:
+  void signalKeyExpireDateUpdated();
 
  private:
   void init();

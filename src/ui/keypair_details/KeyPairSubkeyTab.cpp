@@ -255,9 +255,10 @@ void KeyPairSubkeyTab::createSubkeyOperaMenu() {
 }
 
 void KeyPairSubkeyTab::slotEditSubkey() {
-  qDebug() << "Slot Edit Subkey";
+  LOG(INFO) << "KeyPairSubkeyTab::slotEditSubkey Fpr" << getSelectedSubkey().fpr();
+
   auto dialog =
-      new KeySetExpireDateDialog(mKey.id(), getSelectedSubkey().id(), this);
+      new KeySetExpireDateDialog(mKey.id(), getSelectedSubkey().fpr(), this);
   dialog->show();
 }
 

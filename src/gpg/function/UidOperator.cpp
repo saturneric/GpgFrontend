@@ -58,6 +58,7 @@ bool GpgFrontend::UidOperator::addUID(const GpgFrontend::GpgKey& key,
                                       const std::string& name,
                                       const std::string& comment,
                                       const std::string& email) {
-  auto uid = boost::format("%1 (%2) <%3>") % name % comment % email;
+  LOG(INFO) << "GpgFrontend::UidOperator::addUID" << name << comment << email;
+  auto uid = boost::format("%1%(%2%)<%3%>") % name % comment % email;
   return addUID(key, uid.str());
 }

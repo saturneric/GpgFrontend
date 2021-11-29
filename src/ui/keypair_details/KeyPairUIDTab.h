@@ -85,6 +85,8 @@ class KeyPairUIDTab : public QWidget {
 
   void slotDelSign();
 
+  void slotRefreshKey();
+
   static void slotAddUIDResult(int result);
 
  protected:

@@ -75,6 +75,8 @@ class KeyMgmt : public QMainWindow {
 
   void signalStatusBarChanged(QString);
 
+  void signalKeyStatusUpdated();
+
  private:
   void createMenus();
 

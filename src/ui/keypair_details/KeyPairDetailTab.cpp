@@ -23,14 +23,15 @@
  */
 
 #include "ui/keypair_details/KeyPairDetailTab.h"
+
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExportor.h"
+#include "ui/SignalStation.h"
 #include "ui/WaitingDialog.h"
 
 namespace GpgFrontend::UI {
 KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
-    : QWidget(parent),
-      mKey(std::move(GpgKeyGetter::GetInstance().GetKey(key_id))) {
+    : QWidget(parent), mKey(GpgKeyGetter::GetInstance().GetKey(key_id)) {
   keyid = mKey.id();
 
   ownerBox = new QGroupBox(tr("Owner"));
@@ -200,6 +201,10 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
     mvbox->addLayout(expBox);
   }
 
+  // when key database updated
+  connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
+          SLOT(slotRefreshKey()));
+
   mvbox->setContentsMargins(0, 0, 0, 0);
 
   slotRefreshKeyInfo();
@@ -212,7 +217,7 @@ void KeyPairDetailTab::slotExportPrivateKey() {
   int ret = QMessageBox::information(
       this, tr("Exporting private Key"),
       "<h3>" + tr("You are about to export your") + "<font color=\"red\">" +
-          tr("PRIVATE KEY") + "</font>!</h3>\n" +
+          tr(" PRIVATE KEY ") + "</font>!</h3>\n" +
           tr("This is NOT your Public Key, so DON'T give it away.") + "<br />" +
           tr("Do you REALLY want to export your PRIVATE KEY?"),
       QMessageBox::Cancel | QMessageBox::Ok);
@@ -278,28 +283,20 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
   QString usage;
   QTextStream usage_steam(&usage);
 
-  if (mKey.can_certify())
-    usage_steam << "Cert ";
-  if (mKey.can_encrypt())
-    usage_steam << "Encr ";
-  if (mKey.can_sign())
-    usage_steam << "Sign ";
-  if (mKey.can_authenticate())
-    usage_steam << "Auth ";
+  if (mKey.can_certify()) usage_steam << "Cert ";
+  if (mKey.can_encrypt()) usage_steam << "Encr ";
+  if (mKey.can_sign()) usage_steam << "Sign ";
+  if (mKey.can_authenticate()) usage_steam << "Auth ";
 
   usageVarLabel->setText(usage);
 
   QString actualUsage;
   QTextStream actual_usage_steam(&actualUsage);
 
-  if (mKey.CanCertActual())
-    actual_usage_steam << "Cert ";
-  if (mKey.CanEncrActual())
-    actual_usage_steam << "Encr ";
-  if (mKey.CanSignActual())
-    actual_usage_steam << "Sign ";
-  if (mKey.CanAuthActual())
-    actual_usage_steam << "Auth ";
+  if (mKey.CanCertActual()) actual_usage_steam << "Cert ";
+  if (mKey.CanEncrActual()) actual_usage_steam << "Encr ";
+  if (mKey.CanSignActual()) actual_usage_steam << "Sign ";
+  if (mKey.CanAuthActual()) actual_usage_steam << "Auth ";
 
   actualUsageVarLabel->setText(actualUsage);
 
@@ -363,6 +360,11 @@ void KeyPairDetailTab::slotGenRevokeCert() {
 
   //  if (!mOutputFileName.isEmpty())
   //    mCtx->generateRevokeCert(mKey, mOutputFileName);
+}
+void KeyPairDetailTab::slotRefreshKey() {
+  LOG(INFO) << "KeyPairDetailTab::slotRefreshKey Called";
+  this->mKey = GpgKeyGetter::GetInstance().GetKey(mKey.id());
+  this->slotRefreshKeyInfo();
 }
 
 }  // namespace GpgFrontend::UI

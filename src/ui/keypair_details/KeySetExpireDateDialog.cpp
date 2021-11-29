@@ -28,6 +28,7 @@
 
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyOpera.h"
+#include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -38,15 +39,18 @@ KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
 }
 
 KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
-                                               std::string subkey_id,
+                                               std::string subkey_fpr,
                                                QWidget* parent)
     : QDialog(parent),
       mKey(GpgKeyGetter::GetInstance().GetKey(key_id)),
-      mSubkey(std::move(subkey_id)) {
+      mSubkey(std::move(subkey_fpr)) {
   init();
 }
 
 void KeySetExpireDateDialog::slotConfirm() {
+
+  LOG(INFO) << "KeySetExpireDateDialog::slotConfirm Called";
+
   std::unique_ptr<boost::gregorian::date> expires = nullptr;
   if (this->nonExpiredCheck->checkState() == Qt::Unchecked) {
     expires = std::make_unique<boost::gregorian::date>(
@@ -54,7 +58,27 @@ void KeySetExpireDateDialog::slotConfirm() {
             this->dateTimeEdit->dateTime().toTime_t())
             .date());
   }
-  GpgKeyOpera::GetInstance().SetExpire(mKey, mSubkey, expires);
+
+  LOG(INFO) << "KeySetExpireDateDialog::slotConfirm" << mKey.id() << mSubkey
+            << *expires;
+
+  auto err = GpgKeyOpera::GetInstance().SetExpire(mKey, mSubkey, expires);
+
+  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR) {
+    auto* msg_box = new QMessageBox(nullptr);
+    msg_box->setAttribute(Qt::WA_DeleteOnClose);
+    msg_box->setStandardButtons(QMessageBox::Ok);
+    msg_box->setWindowTitle(tr("Success"));
+    msg_box->setText(tr("The expire date of the key pair has been updated."));
+    msg_box->setModal(false);
+    msg_box->open();
+
+    emit signalKeyExpireDateUpdated();
+
+  } else {
+    QMessageBox::critical(this, tr("Failure"), tr(gpgme_strerror(err)));
+  }
+
   this->close();
 }
 
@@ -81,6 +105,9 @@ void KeySetExpireDateDialog::init() {
   this->setWindowTitle("Edit Expire Datetime");
   this->setModal(true);
   this->setAttribute(Qt::WA_DeleteOnClose, true);
+
+  connect(this, SIGNAL(signalKeyExpireDateUpdated()),
+          SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()));
 }
 
 void KeySetExpireDateDialog::slotNonExpiredChecked(int state) {

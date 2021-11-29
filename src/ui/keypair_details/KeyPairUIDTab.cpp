@@ -23,15 +23,16 @@
  */
 
 #include "ui/keypair_details/KeyPairUIDTab.h"
+
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyManager.h"
 #include "gpg/function/UidOperator.h"
+#include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {
 
 KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
-    : QWidget(parent),
-      mKey(std::move(GpgKeyGetter::GetInstance().GetKey(key_id))) {
+    : QWidget(parent), mKey(GpgKeyGetter::GetInstance().GetKey(key_id)) {
   createUIDList();
   createSignList();
   createManageUIDMenu();
@@ -78,6 +79,10 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
   connect(addUIDButton, SIGNAL(clicked(bool)), this, SLOT(slotAddUID()));
   connect(uidList, SIGNAL(itemSelectionChanged()), this,
           SLOT(slotRefreshSigList()));
+
+  // Key Database Refresh
+  connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
+          SLOT(slotRefreshKey()));
 
   setLayout(vboxLayout);
   setAttribute(Qt::WA_DeleteOnClose, true);
@@ -367,7 +372,7 @@ UIDArgsListPtr KeyPairUIDTab::getUIDSelected() {
       uids->push_back(buffered_uids[i].uid());
     }
   }
-  return std::move(uids);
+  return uids;
 }
 
 SignIdArgsListPtr KeyPairUIDTab::getSignSelected() {
@@ -500,6 +505,11 @@ void KeyPairUIDTab::slotDelSign() {
                             tr("An error occurred during the operation."));
     }
   }
+}
+void KeyPairUIDTab::slotRefreshKey() {
+  this->mKey = GpgKeyGetter::GetInstance().GetKey(this->mKey.id());
+  this->slotRefreshUIDList();
+  this->slotRefreshSigList();
 }
 
 }  // namespace GpgFrontend::UI
