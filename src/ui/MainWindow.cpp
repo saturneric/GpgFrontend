@@ -23,14 +23,13 @@
  */
 
 #include "MainWindow.h"
+
 #include "ui/help/VersionCheckThread.h"
+#include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
-MainWindow::MainWindow()
-    : appPath(qApp->applicationDirPath()),
-      settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-               QSettings::IniFormat) {
+MainWindow::MainWindow() {
   networkAccessManager = new QNetworkAccessManager(this);
 
   auto waitingDialog = new WaitingDialog(tr("Loading Gnupg"), this);
@@ -43,6 +42,7 @@ MainWindow::MainWindow()
 
   QNetworkReply* replay = networkAccessManager->get(request);
 
+#ifdef RELEASE
   auto version_thread = new VersionCheckThread(replay);
 
   connect(version_thread, SIGNAL(finished()), version_thread,
@@ -52,6 +52,7 @@ MainWindow::MainWindow()
           SLOT(slotVersionUpgrade(const QString&, const QString&)));
 
   version_thread->start();
+#endif
 
   // Check Context Status
   if (!GpgContext::GetInstance().good()) {
@@ -96,7 +97,8 @@ MainWindow::MainWindow()
   keyMgmt->hide();
   /* test attachmentdir for files alll 15s */
   auto* timer = new QTimer(this);
-  connect(timer, SIGNAL(timeout()), this, SLOT(slotCheckAttachmentFolder()));
+  //  connect(timer, SIGNAL(timeout()), this,
+  //  SLOT(slotCheckAttachmentFolder()));
   timer->start(5000);
 
   createActions();
@@ -121,8 +123,7 @@ MainWindow::MainWindow()
   QStringList args = qApp->arguments();
   if (args.size() > 1) {
     if (!args[1].startsWith("-")) {
-      if (QFile::exists(args[1]))
-        edit->loadFile(args[1]);
+      if (QFile::exists(args[1])) edit->loadFile(args[1]);
     }
   }
   edit->curTextPage()->setFocus();
@@ -133,95 +134,221 @@ MainWindow::MainWindow()
   this->setWindowTitle(qApp->applicationName());
   this->show();
 
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+  if (!settings.exists("wizard") ||
+      settings.lookup("wizard").getType() != libconfig::Setting::TypeGroup)
+    settings.add("wizard", libconfig::Setting::TypeGroup);
+
+  auto& wizard = settings["wizard"];
+
   // Show wizard, if the don't show wizard message box wasn't checked
   // and keylist doesn't contain a private key
-  qDebug() << "wizard/showWizard"
-           << settings.value("wizard/showWizard", true).toBool();
-  qDebug() << "wizard/nextPage" << settings.value("wizard/nextPage").isNull();
-  if (settings.value("wizard/showWizard", true).toBool() ||
-      !settings.value("wizard/nextPage").isNull()) {
+
+  if (!wizard.exists("show_wizard"))
+    wizard.add("show_wizard", libconfig::Setting::TypeBoolean) = true;
+
+  bool show_wizard = true;
+  wizard.lookupValue("show_wizard", show_wizard);
+
+  LOG(INFO) << "wizard show_wizard" << show_wizard;
+
+  if (show_wizard) {
     slotStartWizard();
   }
 }
 
 void MainWindow::restoreSettings() {
-  // state sets pos & size of dock-widgets
-  this->restoreState(settings.value("window/windowState").toByteArray());
+  try {
+    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
-  // Restore window size & location
-  if (settings.value("window/windowSave").toBool()) {
-    QPoint pos = settings.value("window/pos", QPoint(100, 100)).toPoint();
-    QSize size = settings.value("window/size", QSize(800, 450)).toSize();
-    this->resize(size);
-    this->move(pos);
-  } else {
-    this->resize(QSize(800, 450));
-    this->move(QPoint(100, 100));
+    if (!settings.exists("window") ||
+        settings.lookup("window").getType() != libconfig::Setting::TypeGroup)
+      settings.add("window", libconfig::Setting::TypeGroup);
+
+    auto& window = settings["window"];
+
+    if (!window.exists("window_state"))
+      window.add("window_state", libconfig::Setting::TypeString) =
+          saveState().toBase64().toStdString();
+
+    std::string window_state = settings.lookup("window.window_state");
+    // state sets pos & size of dock-widgets
+    this->restoreState(
+        QByteArray::fromBase64(QByteArray::fromStdString(window_state)));
+
+    if (!window.exists("window_save"))
+      window.add("window_save", libconfig::Setting::TypeBoolean) = true;
+
+    bool window_save;
+    window.lookupValue("window_save", window_save);
+
+    // Restore window size & location
+    if (window_save) {
+      if (!window.exists("window_pos"))
+        window.add("window_pos", libconfig::Setting::TypeGroup);
+
+      auto& window_pos = window["window_pos"];
+
+      if (!window_pos.exists("x"))
+        window_pos.add("x", libconfig::Setting::TypeInt) = 100;
+
+      if (!window_pos.exists("y"))
+        window_pos.add("y", libconfig::Setting::TypeInt) = 100;
+
+      int x, y;
+      window_pos.lookupValue("x", x);
+      window_pos.lookupValue("y", y);
+
+      auto pos = QPoint(x, y);
+
+      if (!window.exists("window_size"))
+        window.add("window_size", libconfig::Setting::TypeGroup);
+
+      auto& window_size = window["window_size"];
+
+      if (!window_size.exists("width"))
+        window_size.add("width", libconfig::Setting::TypeInt) = 800;
+
+      if (!window_size.exists("height"))
+        window_size.add("height", libconfig::Setting::TypeInt) = 450;
+
+      int width, height;
+      window_size.lookupValue("width", width);
+      window_size.lookupValue("height", height);
+
+      auto size = QSize(width, height);
+      this->resize(size);
+      this->move(pos);
+    } else {
+      this->resize(QSize(800, 450));
+      this->move(QPoint(100, 100));
+    }
+
+    if (!window.exists("icon_size"))
+      window.add("icon_size", libconfig::Setting::TypeGroup);
+
+    auto& icon_size = window["icon_size"];
+
+    if (!icon_size.exists("width"))
+      icon_size.add("width", libconfig::Setting::TypeInt) = 24;
+
+    if (!icon_size.exists("height"))
+      icon_size.add("height", libconfig::Setting::TypeInt) = 24;
+
+    int width = icon_size["width"], height = icon_size["height"];
+    LOG(INFO) << "icon_size" << width << height;
+
+    // icons ize
+    this->setIconSize(QSize(width, height));
+    importButton->setIconSize(QSize(width, height));
+    fileEncButton->setIconSize(QSize(width, height));
+
+    if (!settings.exists("keyserver") ||
+        settings.lookup("keyserver").getType() != libconfig::Setting::TypeGroup)
+      settings.add("keyserver", libconfig::Setting::TypeGroup);
+
+    auto& keyserver = settings["keyserver"];
+
+    if (!keyserver.exists("server_list")) {
+      keyserver.add("server_list", libconfig::Setting::TypeList);
+
+      auto& server_list = keyserver["server_list"];
+      server_list.add(libconfig::Setting::TypeString) = "http://keys.gnupg.net";
+      server_list.add(libconfig::Setting::TypeString) =
+          "https://keyserver.ubuntu.com";
+      server_list.add(libconfig::Setting::TypeString) =
+          "http://pool.sks-keyservers.net";
+    }
+
+    if (!keyserver.exists("default_server")) {
+      keyserver.add("default_server", libconfig::Setting::TypeString) =
+          "https://keyserver.ubuntu.com";
+    }
+
+    if (!window.exists("icon_style")) {
+      window.add("icon_style", libconfig::Setting::TypeInt) =
+          Qt::ToolButtonTextUnderIcon;
+    }
+
+    int s_icon_style = window.lookup("icon_style");
+
+    // icon_style
+    auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
+    this->setToolButtonStyle(icon_style);
+    importButton->setToolButtonStyle(icon_style);
+    fileEncButton->setToolButtonStyle(icon_style);
+
+    if (!settings.exists("general") ||
+        settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
+      settings.add("general", libconfig::Setting::TypeGroup);
+
+    auto& general = settings["general"];
+
+    if (!general.exists("save_key_checked")) {
+      general.add("save_key_checked", libconfig::Setting::TypeBoolean) = true;
+    }
+
+    bool save_key_checked = true;
+    general.lookupValue("save_key_checked", save_key_checked);
+
+    // Checked Keys
+    if (save_key_checked) {
+      if (!general.exists("save_key_checked_key_ids")) {
+        general.add("save_key_checked_key_ids", libconfig::Setting::TypeList);
+      }
+      auto key_ids_ptr = std::make_unique<KeyIdArgsList>();
+      ;
+      auto& save_key_checked_key_ids = general["save_key_checked_key_ids"];
+      const auto key_ids_size =
+          general.lookup("save_key_checked_key_ids").getLength();
+      for (auto i = 0; i < key_ids_size; i++) {
+        std::string key_id = save_key_checked_key_ids[i];
+        key_ids_ptr->push_back(key_id);
+      }
+      mKeyList->setChecked(key_ids_ptr);
+    }
+  } catch (...) {
+    LOG(ERROR) << "cannot resolve settings";
   }
 
-  // Iconsize
-  QSize iconSize = settings.value("toolbar/iconsize", QSize(24, 24)).toSize();
-  this->setIconSize(iconSize);
-
-  importButton->setIconSize(iconSize);
-  fileEncButton->setIconSize(iconSize);
-  // set list of keyserver if not defined
-  QStringList* keyServerDefaultList;
-  keyServerDefaultList = new QStringList("http://keys.gnupg.net");
-  keyServerDefaultList->append("https://keyserver.ubuntu.com");
-  keyServerDefaultList->append("http://pool.sks-keyservers.net");
-
-  QStringList keyServerList =
-      settings.value("keyserver/keyServerList", *keyServerDefaultList)
-          .toStringList();
-  settings.setValue("keyserver/keyServerList", keyServerList);
-
-  // set default keyserver, if it's not set
-  QString defaultKeyServer = settings
-                                 .value("keyserver/defaultKeyServer",
-                                        QString("https://keyserver.ubuntu.com"))
-                                 .toString();
-  settings.setValue("keyserver/defaultKeyServer", defaultKeyServer);
-
-  // Iconstyle
-  Qt::ToolButtonStyle buttonStyle = static_cast<Qt::ToolButtonStyle>(
-      settings.value("toolbar/iconstyle", Qt::ToolButtonTextUnderIcon)
-          .toUInt());
-  this->setToolButtonStyle(buttonStyle);
-  importButton->setToolButtonStyle(buttonStyle);
-  fileEncButton->setToolButtonStyle(buttonStyle);
-
-  // Checked Keys
-  if (settings.value("keys/saveKeyChecked").toBool()) {
-    QStringList keyIds =
-        settings.value("keys/savedCheckedKeyList").toStringList();
-    auto key_ids_ptr = std::make_unique<KeyIdArgsList>();
-    for (auto& key_id : keyIds)
-      key_ids_ptr->push_back(key_id.toStdString());
-    mKeyList->setChecked(key_ids_ptr);
-  }
+  GlobalSettingStation::GetInstance().Sync();
 }
 
 void MainWindow::saveSettings() {
-  // window position and size
-  settings.setValue("window/windowState", saveState());
-  settings.setValue("window/pos", pos());
-  settings.setValue("window/size", size());
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
-  // keyid-list of private checked keys
-  if (settings.value("keys/saveKeyChecked").toBool()) {
-    auto keyIds = mKeyList->getChecked();
-    if (!keyIds->empty()) {
-      QStringList key_ids_str_list;
-      for (const auto& key_id : *keyIds)
-        key_ids_str_list << QString::fromStdString(key_id);
-      settings.setValue("keys/savedCheckedKeyList", key_ids_str_list);
+  try {
+    // window position and size
+    settings["window"]["window_state"] = saveState().toBase64().toStdString();
+    settings["window"]["window_pos"]["x"] = pos().x();
+    settings["window"]["window_pos"]["y"] = pos().y();
+
+    settings["window"]["window_size"]["width"] = size().width();
+    settings["window"]["window_size"]["height"] = size().height();
+
+    bool save_key_checked = settings.lookup("general.save_key_checked");
+
+    // keyid-list of private checked keys
+    if (save_key_checked) {
+      auto& key_ids = settings.lookup("general.save_key_checked_key_ids");
+      const int key_ids_size = key_ids.getLength();
+      for (auto i = 0; i < key_ids_size; i++) key_ids.remove(i);
+      auto key_ids_need_to_store = mKeyList->getChecked();
+
+      for (size_t i = 0; i < key_ids_need_to_store->size(); i++) {
+        std::string key_id = (*key_ids_need_to_store)[i];
+        key_ids.add(libconfig::Setting::TypeString) = key_id;
+      }
+
     } else {
-      settings.setValue("keys/savedCheckedKeyList", "");
+      settings["general"].remove("save_key_checked");
     }
-  } else {
-    settings.remove("keys/savedCheckedKeyList");
-  }
+  } catch (...) {
+    LOG(ERROR) << "cannot save settings";
+  };
+
+  GlobalSettingStation::GetInstance().Sync();
 }
 
 void MainWindow::closeAttachmentDock() {

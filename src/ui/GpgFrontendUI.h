@@ -26,6 +26,7 @@
 #define GPGFRONTEND_GPGFRONTENDUI_H
 
 #include <GpgFrontend.h>
+#include <easyloggingpp/easylogging++.h>
 
 #include <QtCore>
 #include <QtNetwork>

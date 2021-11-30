@@ -24,19 +24,21 @@
 
 #include "GpgFrontendBuildInfo.h"
 #include "ui/MainWindow.h"
+#include "ui/settings/GlobalSettingStation.h"
 
 // Easy Logging Cpp
 INITIALIZE_EASYLOGGINGPP
 
+void init_logging();
+
 int main(int argc, char* argv[]) {
-  el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
-
   Q_INIT_RESOURCE(gpgfrontend);
-
   QApplication app(argc, argv);
 
+  init_logging();
+
   // get application path
-  QString appPath = qApp->applicationDirPath();
+  auto app_path = GlobalSettingStation::GetInstance().GetAppDir();
 
   QApplication::setApplicationVersion(BUILD_VERSION);
   QApplication::setApplicationName(PROJECT_NAME);
@@ -47,7 +49,7 @@ int main(int argc, char* argv[]) {
   // unicode in source
   QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
 
-#if (OS_PLATFORM == WINDOWS)
+#ifdef WINDOWS
   // css
   QFile file(RESOURCE_DIR(qApp->applicationDirPath()) + "/css/default.qss");
   file.open(QFile::ReadOnly);
@@ -60,32 +62,40 @@ int main(int argc, char* argv[]) {
    * internationalisation. loop to restart mainwindow
    * with changed translation when settings change.
    */
-  if (!QDir(RESOURCE_DIR(appPath) + "/conf").exists()) {
-    QDir().mkdir(RESOURCE_DIR(appPath) + "/conf");
-  }
-  QSettings::setDefaultFormat(QSettings::IniFormat);
-  QSettings settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-                     QSettings::IniFormat);
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+  if (!settings.exists("general") ||
+      settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
+    settings.add("general", libconfig::Setting::TypeGroup);
+
+  auto& general = settings["general"];
+  if (!general.exists("lang"))
+    general.add("lang", libconfig::Setting::TypeString) =
+        QLocale::system().name().toStdString();
+
+  GlobalSettingStation::GetInstance().Sync();
+
   QTranslator translator, translator2;
   int return_from_event_loop_code;
 
-  qDebug() << "Resource Directory" << RESOURCE_DIR(appPath);
+  LOG(INFO) << "Resource Directory" << RESOURCE_DIR(app_path);
 
   do {
     QApplication::removeTranslator(&translator);
     QApplication::removeTranslator(&translator2);
 
-    QString lang =
-        settings.value("int/lang", QLocale::system().name()).toString();
-    if (lang.isEmpty()) {
-      lang = QLocale::system().name();
-    }
-    qDebug() << "Language set" << lang;
-    translator.load(RESOURCE_DIR(appPath) + "/ts/" + "gpgfrontend_" + lang);
+    std::string lang;
+    if (!general.lookupValue("lang", lang)) {
+      LOG(ERROR) << "could not read properly from configure file";
+    };
+
+    translator.load(QString::fromStdString(RESOURCE_DIR(app_path).string() +
+                                           "/ts/" + "gpgfrontend_" + lang));
     QApplication::installTranslator(&translator);
 
     // set qt translations
-    translator2.load(RESOURCE_DIR(appPath) + "/ts/qt_" + lang);
+    translator2.load(QString::fromStdString(RESOURCE_DIR(app_path).string() +
+                                            "/ts/qt_" + lang));
     QApplication::installTranslator(&translator2);
 
     QApplication::setQuitOnLastWindowClosed(true);
@@ -99,14 +109,10 @@ int main(int argc, char* argv[]) {
     // the locale set here is used for the other setlocale calls which have
     // nullptr
     // -> nullptr means use default, which is configured here
-    setlocale(
-        LC_ALL,
-        settings.value("int/lang").toLocale().name().toUtf8().constData());
+    setlocale(LC_ALL, lang.c_str());
 
     /** set locale, because tests do also */
     gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
-// qDebug() << "Locale set to" << LC_CTYPE << " - " << setlocale(LC_CTYPE,
-// nullptr);
 #ifndef _WIN32
     gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
 #endif
@@ -117,4 +123,29 @@ int main(int argc, char* argv[]) {
   } while (return_from_event_loop_code == RESTART_CODE);
 
   return return_from_event_loop_code;
+}
+
+void init_logging() {
+  using namespace boost::posix_time;
+  using namespace boost::gregorian;
+
+  ptime now = second_clock::local_time();
+
+  el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
+  el::Configurations defaultConf;
+  defaultConf.setToDefault();
+  el::Loggers::reconfigureLogger("default", defaultConf);
+
+  defaultConf.setGlobally(el::ConfigurationType::Format,
+                          "%datetime %level %func %msg");
+
+  auto logfile_path =
+      (GlobalSettingStation::GetInstance().GetLogDir() / to_iso_string(now));
+  logfile_path.replace_extension(".log");
+  defaultConf.setGlobally(el::ConfigurationType::Filename,
+                          logfile_path.string());
+
+  el::Loggers::reconfigureLogger("default", defaultConf);
+
+  LOG(INFO) << "Logfile Path" << logfile_path;
 }
