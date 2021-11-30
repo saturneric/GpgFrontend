@@ -25,27 +25,14 @@
 #ifndef GPGFRONTEND_H_IN
 #define GPGFRONTEND_H_IN
 
-/**
- * Platform Vars
- */
-#define WINDOWS 0
-#define MACOS 1
-#define LINUX 2
-
 #define OS_PLATFORM @OS_PLATFORM@
-
-/**
- * Build Options Vars
- */
-#define RELEASE 0
-#define DEBUG 1
 
 /**
  * Resources File(s) Path Vars
  */
-#if OS_PLATFORM == MACOS && BUILD_FLAG == RELEASE
+#if  defined(MACOS)  && defined(RELEASE)
 #define RESOURCE_DIR(appDir) (appDir + "/../Resources/")
-#elif OS_PLATFORM == LINUX && BUILD_FLAG == RELEASE
+#elif defined(LINUX) && defined(RELEASE)
 #define RESOURCE_DIR(appDir) (appDir + "/../share/")
 #else
 #define RESOURCE_DIR(appDir) (appDir)

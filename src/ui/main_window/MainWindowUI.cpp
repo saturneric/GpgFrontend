@@ -365,10 +365,12 @@ void MainWindow::createMenus() {
   steganoMenu->addAction(cutPgpHeaderAct);
   steganoMenu->addAction(addPgpHeaderAct);
 
+#ifdef ADVANCED_SUPPORT
   // Hide menu, when steganography menu is disabled in settings
   if (!settings.value("advanced/steganography").toBool()) {
     this->menuBar()->removeAction(steganoMenu->menuAction());
   }
+#endif
 
   viewMenu = menuBar()->addMenu(tr("&View"));
 

@@ -84,10 +84,12 @@ message(STATUS "Define CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
     set(BUILD_FLAG 0)
+    ADD_DEFINITIONS(-DRELEASE)
     message(STATUS "Build Type RELEASE")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 else ()
     set(BUILD_FLAG 1)
+    ADD_DEFINITIONS(-DDEBUG)
     message(STATUS "Build Type DEBUG")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
     # Generate branch coverage information using gcc
@@ -140,6 +142,7 @@ IF (MINGW)
     message(STATUS "Build Environment MINGW")
 
     set(OS_PLATFORM 0)
+    ADD_DEFINITIONS(-DWINDOWS)
 
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
 
@@ -159,6 +162,7 @@ if (APPLE)
     message(STATUS "Configuration For OS Platform MacOS")
 
     set(OS_PLATFORM 1)
+    ADD_DEFINITIONS(-DMACOS)
 
     set(ENV{Qt5_DIR} /usr/local/opt/qt5/lib/cmake)
 
@@ -180,7 +184,10 @@ endif ()
 if (LINUX)
 
     message(STATUS "Configuration For OS Platform LINUX")
+
     set(OS_PLATFORM 2)
+    ADD_DEFINITIONS(-DLINUX)
+
     include_directories(
             ${CMAKE_CURRENT_SOURCE_DIR}/src
             ${CMAKE_CURRENT_SOURCE_DIR}/third_party

@@ -23,16 +23,13 @@
  */
 
 #include "MainWindow.h"
+#include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
-void MainWindow::slotAbout() {
-  new AboutDialog(0, this);
-}
+void MainWindow::slotAbout() { new AboutDialog(0, this); }
 
-void MainWindow::slotCheckUpdate() {
-  new AboutDialog(2, this);
-}
+void MainWindow::slotCheckUpdate() { new AboutDialog(2, this); }
 
 void MainWindow::slotSetStatusBarText(const QString& text) {
   statusBar()->showMessage(text, 20000);
@@ -44,33 +41,32 @@ void MainWindow::slotStartWizard() {
   wizard->setModal(true);
 }
 
-void MainWindow::slotCheckAttachmentFolder() {
-  // TODO: always check?
-  if (!settings.value("mime/parseMime").toBool()) {
-    return;
-  }
-
-  QString attachmentDir = qApp->applicationDirPath() + "/attachments/";
-  // filenum minus . and ..
-  uint filenum = QDir(attachmentDir).count() - 2;
-  if (filenum > 0) {
-    QString statusText;
-    if (filenum == 1) {
-      statusText = tr("There is one unencrypted file in attachment folder");
-    } else {
-      statusText = tr("There are ") + QString::number(filenum) +
-                   tr(" unencrypted files in attachment folder");
-    }
-    statusBarIcon->setStatusTip(statusText);
-    statusBarIcon->show();
-  } else {
-    statusBarIcon->hide();
-  }
-}
+// void MainWindow::slotCheckAttachmentFolder() {
+//   // TODO: always check?
+//   if (!settings.value("mime/parseMime").toBool()) {
+//     return;
+//   }
+//
+//   QString attachmentDir = qApp->applicationDirPath() + "/attachments/";
+//   // filenum minus . and ..
+//   uint filenum = QDir(attachmentDir).count() - 2;
+//   if (filenum > 0) {
+//     QString statusText;
+//     if (filenum == 1) {
+//       statusText = tr("There is one unencrypted file in attachment folder");
+//     } else {
+//       statusText = tr("There are ") + QString::number(filenum) +
+//                    tr(" unencrypted files in attachment folder");
+//     }
+//     statusBarIcon->setStatusTip(statusText);
+//     statusBarIcon->show();
+//   } else {
+//     statusBarIcon->hide();
+//   }
+// }
 
 void MainWindow::slotImportKeyFromEdit() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr)
-    return;
+  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
   keyMgmt->slotImportKeys(edit->curTextPage()->toPlainText().toStdString());
 }
 
@@ -80,9 +76,7 @@ void MainWindow::slotOpenKeyManagement() {
   keyMgmt->activateWindow();
 }
 
-void MainWindow::slotOpenFileTab() {
-  edit->slotNewFileTab();
-}
+void MainWindow::slotOpenFileTab() { edit->slotNewFileTab(); }
 
 void MainWindow::slotDisableTabActions(int number) {
   bool disable;
@@ -130,21 +124,24 @@ void MainWindow::slotOpenSettingsDialog() {
   auto dialog = new SettingsDialog(this);
 
   connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
-    qDebug() << "Setting Dialog Finished";
+    LOG(INFO) << "Setting Dialog Finished";
 
-    // Iconsize
-    QSize iconSize = settings.value("toolbar/iconsize", QSize(32, 32)).toSize();
-    this->setIconSize(iconSize);
-    importButton->setIconSize(iconSize);
-    fileEncButton->setIconSize(iconSize);
+    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+    int icon_width = settings["window"]["icon_size"]["width"];
+    int icon_height = settings["window"]["icon_size"]["height"];
+
+    this->setIconSize(QSize(icon_width, icon_height));
+    importButton->setIconSize(QSize(icon_width, icon_height));
+    fileEncButton->setIconSize(QSize(icon_width, icon_height));
 
     // Iconstyle
-    Qt::ToolButtonStyle buttonStyle = static_cast<Qt::ToolButtonStyle>(
-        settings.value("toolbar/iconstyle", Qt::ToolButtonTextUnderIcon)
-            .toUInt());
-    this->setToolButtonStyle(buttonStyle);
-    importButton->setToolButtonStyle(buttonStyle);
-    fileEncButton->setToolButtonStyle(buttonStyle);
+
+    int icon_style = settings["window"]["icon_style"];
+    auto button_style = static_cast<Qt::ToolButtonStyle>(icon_style);
+    this->setToolButtonStyle(button_style);
+    importButton->setToolButtonStyle(button_style);
+    fileEncButton->setToolButtonStyle(button_style);
 
     // restart mainwindow if necessary
     if (getRestartNeeded()) {
@@ -153,7 +150,7 @@ void MainWindow::slotOpenSettingsDialog() {
         qApp->exit(RESTART_CODE);
       }
     }
-
+#ifdef ADVANCED_SUPPORT
     // steganography hide/show
     if (!settings.value("advanced/steganography").toBool()) {
       this->menuBar()->removeAction(steganoMenu->menuAction());
@@ -161,6 +158,7 @@ void MainWindow::slotOpenSettingsDialog() {
       this->menuBar()->insertAction(viewMenu->menuAction(),
                                     steganoMenu->menuAction());
     }
+#endif
   });
 }
 
@@ -215,8 +213,6 @@ void MainWindow::slotSetRestartNeeded(bool needed) {
   this->restartNeeded = needed;
 }
 
-bool MainWindow::getRestartNeeded() const {
-  return this->restartNeeded;
-}
+bool MainWindow::getRestartNeeded() const { return this->restartNeeded; }
 
 }  // namespace GpgFrontend::UI

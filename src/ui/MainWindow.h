@@ -230,11 +230,11 @@ class MainWindow : public QMainWindow {
    */
   void slotOpenSettingsDialog();
 
-  /**
-   * @details Show a warn message in status bar, if there are files in
-   * attachment folder.
-   */
-  void slotCheckAttachmentFolder();
+//  /**
+//   * @details Show a warn message in status bar, if there are files in
+//   * attachment folder.
+//   */
+//  void slotCheckAttachmentFolder();
 
   /**
    * @details Replace double linebreaks by single linebreaks in currently active
@@ -409,8 +409,6 @@ class MainWindow : public QMainWindow {
 
   QLabel* statusBarIcon; /**< TODO */
 
-  QString appPath;
-  QSettings settings;
   KeyList* mKeyList;
 
   InfoBoardWidget* infoBoard;
