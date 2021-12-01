@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -53,10 +53,10 @@ void MainWindow::slotStartWizard() {
 //   if (filenum > 0) {
 //     QString statusText;
 //     if (filenum == 1) {
-//       statusText = tr("There is one unencrypted file in attachment folder");
+//       statusText = _("There is one unencrypted file in attachment folder");
 //     } else {
-//       statusText = tr("There are ") + QString::number(filenum) +
-//                    tr(" unencrypted files in attachment folder");
+//       statusText = _("There are ") + QString::number(filenum) +
+//                    _(" unencrypted files in attachment folder");
 //     }
 //     statusBarIcon->setStatusTip(statusText);
 //     statusBarIcon->show();

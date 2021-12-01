@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -26,6 +26,7 @@
 
 #include <gpg-error.h>
 #include <gpgme.h>
+
 #include <functional>
 #include <string>
 
@@ -43,8 +44,7 @@ namespace GpgFrontend {
  * Constructor
  *  Set up gpgme-context, set paths to app-run path
  */
-GpgContext::GpgContext(bool independent_database,
-                       std::string db_path,
+GpgContext::GpgContext(bool independent_database, std::string db_path,
                        int channel)
     : SingletonFunctionObject<GpgContext>(channel) {
   static bool _first = true;
@@ -80,8 +80,7 @@ GpgContext::GpgContext(bool independent_database,
     if (engineInfo->protocol == GPGME_PROTOCOL_CMS &&
         strcmp(engineInfo->version, "1.0.0") != 0)
       find_cms = true;
-    if (engineInfo->protocol == GPGME_PROTOCOL_ASSUAN)
-      find_assuan = true;
+    if (engineInfo->protocol == GPGME_PROTOCOL_ASSUAN) find_assuan = true;
     engineInfo = engineInfo->next;
   }
 
@@ -115,9 +114,7 @@ GpgContext::GpgContext(bool independent_database,
   }
 }
 
-bool GpgContext::good() const {
-  return good_;
-}
+bool GpgContext::good() const { return good_; }
 
 void GpgContext::SetPassphraseCb(decltype(test_passphrase_cb) cb) const {
   gpgme_set_passphrase_cb(*this, cb, nullptr);

@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -26,11 +26,24 @@
 #define GPGFRONTEND_GPGFRONTENDUI_H
 
 #include <GpgFrontend.h>
-#include <easyloggingpp/easylogging++.h>
 
 #include <QtCore>
 #include <QtNetwork>
 #include <QtPrintSupport>
 #include <QtWidgets>
+
+/**
+ * Resources File(s) Path Vars
+ */
+#if defined(MACOS) && defined(RELEASE)
+#define RESOURCE_DIR(appDir) (appDir + "/../Resources/")
+#define RESOURCE_DIR_BOOST_PATH(appDir) (appDir / ".." / "Resources")
+#elif defined(LINUX) && defined(RELEASE)
+#define RESOURCE_DIR(appDir) (appDir + "/../share/")
+#define RESOURCE_DIR_BOOST_PATH(appDir) (appDir / ".." / "share")
+#else
+#define RESOURCE_DIR(appDir) (appDir)
+#define RESOURCE_DIR_BOOST_PATH(appDir) (appDir)
+#endif
 
 #endif  // GPGFRONTEND_GPGFRONTENDUI_H

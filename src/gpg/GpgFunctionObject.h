@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -25,14 +25,14 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
 #define GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
 
+#include <easyloggingpp/easylogging++.h>
+
 #include <map>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
 #include <stdexcept>
 #include <string>
-
-#include <easyloggingpp/easylogging++.h>
 
 namespace GpgFrontend {
 
@@ -42,8 +42,7 @@ class SingletonFunctionObject {
   static T& GetInstance(int channel = 0) {
     if (!channel) {
       std::lock_guard<std::mutex> guard(_instance_mutex);
-      if (_instance == nullptr)
-        _instance = std::make_unique<T>();
+      if (_instance == nullptr) _instance = std::make_unique<T>();
       return *_instance;
     } else {
       // read _instances_map
@@ -60,8 +59,7 @@ class SingletonFunctionObject {
   }
 
   static T& CreateInstance(int channel, std::unique_ptr<T> p_obj = nullptr) {
-    if (!channel)
-      return *_instance;
+    if (!channel) return *_instance;
 
     // read _instances_map
     decltype(_instances_map.end()) _it;
@@ -74,8 +72,7 @@ class SingletonFunctionObject {
         std::lock_guard<std::mutex> guard(_default_channel_mutex);
         int tmp = channel;
         std::swap(_default_channel, tmp);
-        if (p_obj == nullptr)
-          p_obj = std::make_unique<T>();
+        if (p_obj == nullptr) p_obj = std::make_unique<T>();
         std::swap(_default_channel, tmp);
       }
       T* obj = p_obj.get();

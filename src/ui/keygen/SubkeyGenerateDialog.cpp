@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -50,7 +50,7 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
   vbox2->addWidget(errorLabel);
   vbox2->addWidget(buttonBox);
 
-  this->setWindowTitle(tr("Generate New Subkey"));
+  this->setWindowTitle(_("Generate New Subkey"));
   this->setLayout(vbox2);
   this->setModal(true);
 
@@ -67,16 +67,16 @@ QGroupBox* SubkeyGenerateDialog::create_key_usage_group_box() {
 
   groupBox->setTitle("Key Usage");
 
-  auto* encrypt = new QCheckBox(tr("Encryption"), groupBox);
+  auto* encrypt = new QCheckBox(_("Encryption"), groupBox);
   encrypt->setTristate(false);
 
-  auto* sign = new QCheckBox(tr("Signing"), groupBox);
+  auto* sign = new QCheckBox(_("Signing"), groupBox);
   sign->setTristate(false);
 
-  auto* cert = new QCheckBox(tr("Certification"), groupBox);
+  auto* cert = new QCheckBox(_("Certification"), groupBox);
   cert->setTristate(false);
 
-  auto* auth = new QCheckBox(tr("Authentication"), groupBox);
+  auto* auth = new QCheckBox(_("Authentication"), groupBox);
   auth->setTristate(false);
 
   keyUsageCheckBoxes.push_back(encrypt);
@@ -95,7 +95,7 @@ QGroupBox* SubkeyGenerateDialog::create_key_usage_group_box() {
 }
 
 QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
-  errorLabel = new QLabel(tr(""));
+  errorLabel = new QLabel();
   keySizeSpinBox = new QSpinBox(this);
   keyTypeComboBox = new QComboBox(this);
 
@@ -120,10 +120,10 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
 
   auto* vbox1 = new QGridLayout;
 
-  vbox1->addWidget(new QLabel(tr("Expiration Date:")), 2, 0);
-  vbox1->addWidget(new QLabel(tr("Never Expire")), 2, 3);
-  vbox1->addWidget(new QLabel(tr("KeySize (in Bit):")), 1, 0);
-  vbox1->addWidget(new QLabel(tr("Key Type:")), 0, 0);
+  vbox1->addWidget(new QLabel(QString(_("Expiration Date")) + ": "), 2, 0);
+  vbox1->addWidget(new QLabel(QString(_("Never Expire")) + ": "), 2, 3);
+  vbox1->addWidget(new QLabel(QString(_("KeySize (in Bit)")) + ": "), 1, 0);
+  vbox1->addWidget(new QLabel(QString(_("Key Type")) + ": "), 0, 0);
 
   vbox1->addWidget(dateEdit, 2, 1);
   vbox1->addWidget(expireCheckBox, 2, 2);
@@ -132,7 +132,7 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
 
   auto basicInfoGroupBox = new QGroupBox();
   basicInfoGroupBox->setLayout(vbox1);
-  basicInfoGroupBox->setTitle(tr("Basic Information"));
+  basicInfoGroupBox->setTitle(_("Basic Information"));
 
   return basicInfoGroupBox;
 }
@@ -215,17 +215,19 @@ void SubkeyGenerateDialog::refresh_widgets_state() {
 }
 
 void SubkeyGenerateDialog::slotKeyGenAccept() {
-  QString errorString = "";
+  std::stringstream err_stream;
 
   /**
    * primary keys should have a reasonable expiration date (no more than 2 years
    * in the future)
    */
   if (dateEdit->dateTime() > QDateTime::currentDateTime().addYears(2)) {
-    errorString.append(tr("  Expiration time no more than 2 years.  "));
+    err_stream << "  " << _("Expiration time no more than 2 years.") << "  ";
   }
 
-  if (errorString.isEmpty()) {
+  auto err_string = err_stream.str();
+
+  if (err_string.empty()) {
     genKeyInfo->setKeySize(keySizeSpinBox->value());
 
     if (expireCheckBox->checkState()) {
@@ -255,15 +257,15 @@ void SubkeyGenerateDialog::slotKeyGenAccept() {
       auto* msg_box = new QMessageBox(nullptr);
       msg_box->setAttribute(Qt::WA_DeleteOnClose);
       msg_box->setStandardButtons(QMessageBox::Ok);
-      msg_box->setWindowTitle(tr("Success"));
-      msg_box->setText(tr("The new subkey has been generated."));
+      msg_box->setWindowTitle(_("Success"));
+      msg_box->setText(_("The new subkey has been generated."));
       msg_box->setModal(false);
       msg_box->open();
 
       emit SubKeyGenerated();
       this->close();
     } else
-      QMessageBox::critical(this, tr("Failure"), tr(gpgme_strerror(error)));
+      QMessageBox::critical(this, _("Failure"), _(gpgme_strerror(error)));
 
   } else {
     /**
@@ -273,7 +275,7 @@ void SubkeyGenerateDialog::slotKeyGenAccept() {
     QPalette error = errorLabel->palette();
     error.setColor(QPalette::Window, "#ff8080");
     errorLabel->setPalette(error);
-    errorLabel->setText(errorString);
+    errorLabel->setText(err_string.c_str());
 
     this->show();
   }

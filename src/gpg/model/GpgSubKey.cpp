@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -23,4 +23,5 @@
  */
 #include "gpg/model/GpgSubKey.h"
 
-GpgFrontend::GpgSubKey::GpgSubKey(gpgme_subkey_t subkey) : _subkey_ref(subkey, [&](gpgme_subkey_t subkey) {}) {}
+GpgFrontend::GpgSubKey::GpgSubKey(gpgme_subkey_t subkey)
+    : _subkey_ref(subkey, [&](gpgme_subkey_t subkey) {}) {}

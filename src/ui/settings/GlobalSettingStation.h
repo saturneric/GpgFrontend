@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -33,8 +33,6 @@
 
 class GlobalSettingStation : public QObject {
   Q_OBJECT
-  static std::unique_ptr<GlobalSettingStation> _instance;
-
  public:
   static GlobalSettingStation& GetInstance();
 
@@ -46,6 +44,10 @@ class GlobalSettingStation : public QObject {
 
   [[nodiscard]] boost::filesystem::path GetLogDir() const {
     return app_log_path;
+  }
+
+  [[nodiscard]] boost::filesystem::path GetLocaleDir() const {
+    return app_locale_path;
   }
 
   void Sync() noexcept;
@@ -62,6 +64,10 @@ class GlobalSettingStation : public QObject {
   // Program Data Location
   boost::filesystem::path app_log_path = app_data_path / "logs";
 
+  // Program Data Location
+  boost::filesystem::path app_locale_path =
+      RESOURCE_DIR_BOOST_PATH(app_path) / "locales";
+
   // Program Configure Location
   boost::filesystem::path app_configure_path =
       QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
@@ -75,6 +81,8 @@ class GlobalSettingStation : public QObject {
   boost::filesystem::path ui_config_path = ui_config_dir_path / "ui.cfg";
 
   libconfig::Config ui_cfg;
+
+  static std::unique_ptr<GlobalSettingStation> _instance;
 };
 
 #endif  // GPGFRONTEND_GLOBALSETTINGSTATION_H

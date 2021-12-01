@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -24,17 +24,17 @@
 
 #include "ui/VerifyDetailsDialog.h"
 
+#include <boost/format.hpp>
+
 namespace GpgFrontend::UI {
 
-VerifyDetailsDialog::VerifyDetailsDialog(QWidget* parent,
-                                         KeyList* keyList,
-                                         GpgError error,
-                                         GpgVerifyResult result)
+VerifyDetailsDialog::VerifyDetailsDialog(QWidget* parent, KeyList* keyList,
+                                         GpgError error, GpgVerifyResult result)
     : QDialog(parent),
       mKeyList(keyList),
       mResult(std::move(result)),
       error(error) {
-  this->setWindowTitle(tr("Signature Details"));
+  this->setWindowTitle(_("Signature Details"));
 
   mainLayout = new QHBoxLayout();
   this->setLayout(mainLayout);
@@ -53,12 +53,13 @@ void VerifyDetailsDialog::slotRefresh() {
   buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
   connect(buttonBox, SIGNAL(rejected()), this, SLOT(close()));
 
-  mVboxLayout->addWidget(new QLabel(tr("Status: ") + gpgme_strerror(error)));
+  mVboxLayout->addWidget(new QLabel(QString::fromStdString(
+      std::string(_("Status")) + ": " + gpgme_strerror(error))));
 
   auto sign = mResult->signatures;
 
   if (sign == nullptr) {
-    mVboxLayout->addWidget(new QLabel(tr("No valid input found")));
+    mVboxLayout->addWidget(new QLabel(_("No valid input found")));
     mVboxLayout->addWidget(buttonBox);
     return;
   }
@@ -69,15 +70,19 @@ void VerifyDetailsDialog::slotRefresh() {
 
   // Set the title widget depending on sign status
   if (gpg_err_code(sign->status) == GPG_ERR_BAD_SIGNATURE) {
-    mVboxLayout->addWidget(new QLabel(tr("Error Validating signature")));
+    mVboxLayout->addWidget(new QLabel(_("Error Validating signature")));
   } else if (mInputSignature != nullptr) {
-    mVboxLayout->addWidget(
-        new QLabel(tr("File was signed on %1 <br/> It Contains:<br/><br/>")
-                       .arg(QLocale::system().toString(timestamp))));
+    const auto info = (boost::format(_("File was signed on %1%")) %
+                       QLocale::system().toString(timestamp).toStdString())
+                          .str() +
+                      "<br/>" + _("It Contains") + ": " + "<br/><br/>";
+    mVboxLayout->addWidget(new QLabel(info.c_str()));
   } else {
-    mVboxLayout->addWidget(
-        new QLabel(tr("Signed on %1 <br/> It Contains:<br /><br/>")
-                       .arg(QLocale::system().toString(timestamp))));
+    const auto info = (boost::format(_("Signed on %1%")) %
+                       QLocale::system().toString(timestamp).toStdString())
+                          .str() +
+                      "<br/>" + _("It Contains") + ": " + "<br/><br/>";
+    mVboxLayout->addWidget(new QLabel(info.c_str()));
   }
   // Add information box for every single key
   while (sign) {

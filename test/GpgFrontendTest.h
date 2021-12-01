@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -26,9 +26,9 @@
 #define _GPGFRONTENDTEST_H
 
 #include <easyloggingpp/easylogging++.h>
-
 #include <gpg-error.h>
 #include <gtest/gtest.h>
+
 #include <boost/date_time/gregorian/parsers.hpp>
 #include <boost/dll.hpp>
 #include <boost/filesystem/operations.hpp>

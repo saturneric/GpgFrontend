@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(GpgFrontend VERSION 2.0.1 LANGUAGES CXX)
 
-message(STATUS "GPGFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
+message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
 # C++
 #Detect Compiler
@@ -232,6 +232,7 @@ elseif (MINIMUM_APPLICATION_BUILD)
     set(UI_CORE 1)
     set(APPLICATION_BUILD 1)
     set(BASIC_ENV_CONFIG 1)
+    set(MULTI_LANG_SUPPORT 1)
 elseif (TEST_BUILD)
     message(STATUS "Build Test Cases")
 

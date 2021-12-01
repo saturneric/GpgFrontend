@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -45,10 +45,10 @@ QString MainWindow::getCryptText(const QString& shortenCryptoText) {
 
   GpgKey key = mCtx->getKeyRefById(ownKeyId);
   if (!key.good) {
-    QMessageBox::critical(this, tr("Invalid Own Key"),
-                          tr("Own Key can not be use to do any operation. "
-                             "Please go to the setting interface to select an "
-                             "OwnKey and get a ServiceToken."));
+    QMessageBox::critical(this, _("Invalid Own Key"),
+                          _("Own Key can not be use to do any operation. "
+                            "Please go to the setting interface to select an "
+                            "OwnKey and get a ServiceToken."));
     return {};
   }
 
@@ -57,8 +57,8 @@ QString MainWindow::getCryptText(const QString& shortenCryptoText) {
   QString serviceToken = settings.value("general/serviceToken").toString();
   if (serviceToken.isEmpty() || !utils->checkServiceTokenFormat(serviceToken)) {
     QMessageBox::critical(
-        this, tr("Error"),
-        tr("Please obtain a Service Token from the server in the settings."));
+        this, _("Error"),
+        _("Please obtain a Service Token from the server in the settings."));
     return {};
   }
 
@@ -95,11 +95,10 @@ QString MainWindow::getCryptText(const QString& shortenCryptoText) {
 
   QNetworkReply* reply = utils->getNetworkManager().post(request, postData);
 
-  auto dialog = new WaitingDialog(tr("Getting Cpt From Server"), this);
+  auto dialog = new WaitingDialog(_("Getting Cpt From Server"), this);
   dialog->show();
 
-  while (reply->isRunning())
-    QApplication::processEvents();
+  while (reply->isRunning()) QApplication::processEvents();
 
   dialog->close();
 
@@ -117,9 +116,9 @@ QString MainWindow::getCryptText(const QString& shortenCryptoText) {
     if (!utils->checkDataValueStr("cryptoText") ||
         !utils->checkDataValueStr("sha") ||
         !utils->checkDataValueStr("serviceToken")) {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("The communication content with the server does "
-                               "not meet the requirements"));
+      QMessageBox::critical(this, _("Error"),
+                            _("The communication content with the server does "
+                              "not meet the requirements"));
       return {};
     }
 
@@ -134,7 +133,7 @@ QString MainWindow::getCryptText(const QString& shortenCryptoText) {
         serviceToken == serviceTokenFromServer) {
       return cryptoText;
     } else
-      QMessageBox::critical(this, tr("Error"), tr("Invalid short ciphertext"));
+      QMessageBox::critical(this, _("Error"), _("Invalid short ciphertext"));
 
     return {};
   }
@@ -156,8 +155,8 @@ void MainWindow::shortenCryptText() {
 
   if (serviceToken.isEmpty() || !utils->checkServiceTokenFormat(serviceToken)) {
     QMessageBox::critical(
-        this, tr("Invalid Service Token"),
-        tr("Please go to the setting interface to get a ServiceToken."));
+        this, _("Invalid Service Token"),
+        _("Please go to the setting interface to get a ServiceToken."));
     return;
   }
 
@@ -167,8 +166,8 @@ void MainWindow::shortenCryptText() {
 
   GpgKey key = mCtx->getKeyRefById(ownKeyId);
   if (!key.good) {
-    QMessageBox::critical(this, tr("Invalid Own Key"),
-                          tr("Own Key can not be use to do any operation."));
+    QMessageBox::critical(this, _("Invalid Own Key"),
+                          _("Own Key can not be use to do any operation."));
     return;
   }
 
@@ -217,10 +216,9 @@ void MainWindow::shortenCryptText() {
 
   QNetworkReply* reply = networkAccessManager->post(request, postData);
 
-  auto* dialog = new WaitingDialog(tr("Getting Scpt From Server"), this);
+  auto* dialog = new WaitingDialog(_("Getting Scpt From Server"), this);
   dialog->show();
-  while (reply->isRunning())
-    QApplication::processEvents();
+  while (reply->isRunning()) QApplication::processEvents();
   dialog->close();
 
   if (utils->checkServerReply(reply->readAll().constData())) {
@@ -233,9 +231,9 @@ void MainWindow::shortenCryptText() {
 
     if (!utils->checkDataValueStr("shortenText") ||
         !utils->checkDataValueStr("md5")) {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("The communication content with the server does "
-                               "not meet the requirements"));
+      QMessageBox::critical(this, _("Error"),
+                            _("The communication content with the server does "
+                              "not meet the requirements"));
       return;
     }
 
@@ -246,14 +244,14 @@ void MainWindow::shortenCryptText() {
     if (md5_generator.result().toHex() == utils->getDataValueStr("md5")) {
       auto* dialog =
           new ShowCopyDialog(shortenText,
-                             tr("Notice: Use Decrypt & Verify operation to "
-                                "decrypt this short crypto text."),
+                             _("Notice: Use Decrypt & Verify operation to "
+                               "decrypt this short crypto text."),
                              this);
       dialog->show();
     } else {
       QMessageBox::critical(
-          this, tr("Error"),
-          tr("There is a problem with the communication with the server"));
+          this, _("Error"),
+          _("There is a problem with the communication with the server"));
       return;
     }
   }

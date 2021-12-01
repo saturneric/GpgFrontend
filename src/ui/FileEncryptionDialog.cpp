@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -29,17 +29,16 @@
 
 namespace GpgFrontend::UI {
 FileEncryptionDialog::FileEncryptionDialog(KeyIdArgsListPtr keyList,
-                                           DialogAction action,
-                                           QWidget* parent)
+                                           DialogAction action, QWidget* parent)
     : QDialog(parent), mAction(action) {
   if (mAction == Decrypt) {
-    setWindowTitle(tr("Decrypt File"));
+    setWindowTitle(_("Decrypt File"));
   } else if (mAction == Encrypt) {
-    setWindowTitle(tr("Encrypt File"));
+    setWindowTitle(_("Encrypt File"));
   } else if (mAction == Sign) {
-    setWindowTitle(tr("Sign File"));
+    setWindowTitle(_("Sign File"));
   } else if (mAction == Verify) {
-    setWindowTitle(tr("Verify File"));
+    setWindowTitle(_("Verify File"));
   }
 
   setModal(true);
@@ -49,19 +48,19 @@ FileEncryptionDialog::FileEncryptionDialog(KeyIdArgsListPtr keyList,
   connect(buttonBox, SIGNAL(accepted()), this, SLOT(slotExecuteAction()));
   connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
-  auto* groupBox1 = new QGroupBox(tr("Input Parameters"));
+  auto* groupBox1 = new QGroupBox(_("Input Parameters"));
 
   /* Setup input & Outputfileselection*/
   inputFileEdit = new QLineEdit();
   auto* fb1 = new QPushButton("Select");
   connect(fb1, SIGNAL(clicked()), this, SLOT(slotSelectInputFile()));
-  auto* fl1 = new QLabel(tr("Target File"));
+  auto* fl1 = new QLabel(_("Target File"));
   fl1->setBuddy(inputFileEdit);
 
   outputFileEdit = new QLineEdit();
   auto* fb2 = new QPushButton("Select");
   connect(fb2, SIGNAL(clicked()), this, SLOT(slotSelectOutputFile()));
-  auto* fl2 = new QLabel(tr("Output File"));
+  auto* fl2 = new QLabel(_("Output File"));
   fl2->setBuddy(outputFileEdit);
 
   auto* gLayout = new QGridLayout();
@@ -77,7 +76,7 @@ FileEncryptionDialog::FileEncryptionDialog(KeyIdArgsListPtr keyList,
   } else {
     auto* sfb1 = new QPushButton("Select");
     connect(sfb1, SIGNAL(clicked()), this, SLOT(slotSelectSignFile()));
-    auto* sfl1 = new QLabel(tr("Signature File(.sig) Path"));
+    auto* sfl1 = new QLabel(_("Signature File(.sig) Path"));
     sfl1->setBuddy(signFileEdit);
 
     gLayout->addWidget(sfl1, 1, 0);
@@ -114,8 +113,7 @@ FileEncryptionDialog::FileEncryptionDialog(KeyIdArgsListPtr keyList,
         return true;
     });
 
-  if (mAction == Decrypt)
-    mKeyList->setDisabled(true);
+  if (mAction == Decrypt) mKeyList->setDisabled(true);
 
   mKeyList->slotRefresh();
   mKeyList->setChecked(keyList);
@@ -136,15 +134,14 @@ FileEncryptionDialog::FileEncryptionDialog(KeyIdArgsListPtr keyList,
 }
 
 void FileEncryptionDialog::slotSelectInputFile() {
-  QString path = "";
+  QString path;
   if (inputFileEdit->text().size() > 0) {
     path = QFileInfo(inputFileEdit->text()).absolutePath();
   }
 
-  //    QString infileName = QFileDialog::getOpenFileName(this, tr("Open File"),
-  //    path, tr("Files") + tr("All Files (*)"));
-  QString infileName =
-      QFileDialog::getOpenFileName(this, tr("Open File"), path);
+  //    QString infileName = QFileDialog::getOpenFileName(this, _("Open File"),
+  //    path, _("Files") + _("All Files (*)"));
+  QString infileName = QFileDialog::getOpenFileName(this, _("Open File"), path);
   inputFileEdit->setText(infileName);
 
   // try to find a matching output-filename, if not yet done
@@ -169,26 +166,26 @@ void FileEncryptionDialog::slotSelectInputFile() {
 }
 
 void FileEncryptionDialog::slotSelectOutputFile() {
-  QString path = "";
+  QString path;
   if (outputFileEdit->text().size() > 0) {
     path = QFileInfo(outputFileEdit->text()).absolutePath();
   }
 
   QString outfileName =
-      QFileDialog::getSaveFileName(this, tr("Save File"), path, nullptr,
-                                   nullptr, QFileDialog::DontConfirmOverwrite);
+      QFileDialog::getSaveFileName(this, _("Save File"), path, nullptr, nullptr,
+                                   QFileDialog::DontConfirmOverwrite);
   outputFileEdit->setText(outfileName);
 }
 
 void FileEncryptionDialog::slotSelectSignFile() {
-  QString path = "";
+  QString path;
   if (signFileEdit->text().size() > 0) {
     path = QFileInfo(signFileEdit->text()).absolutePath();
   }
 
   QString signfileName =
-      QFileDialog::getSaveFileName(this, tr("Open File"), path, nullptr,
-                                   nullptr, QFileDialog::DontConfirmOverwrite);
+      QFileDialog::getSaveFileName(this, _("Open File"), path, nullptr, nullptr,
+                                   QFileDialog::DontConfirmOverwrite);
   signFileEdit->setText(signfileName);
 
   if (inputFileEdit->text().size() == 0 &&
@@ -203,7 +200,7 @@ void FileEncryptionDialog::slotExecuteAction() {
   QFile infile;
   infile.setFileName(inputFileEdit->text());
   if (!infile.open(QIODevice::ReadOnly)) {
-    statusLabel->setText(tr("Couldn't open file"));
+    statusLabel->setText(_("Couldn't open file"));
     inputFileEdit->setStyleSheet("QLineEdit { background: yellow }");
     return;
   }
@@ -223,8 +220,8 @@ void FileEncryptionDialog::slotExecuteAction() {
     if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) {
       qDebug() << "Error" << gpgme_strerror(err);
 
-      QMessageBox::warning(this, tr("Error"),
-                           tr("Error Occurred During Encryption"));
+      QMessageBox::warning(this, _("Error"),
+                           _("Error Occurred During Encryption"));
       return;
     }
   }
@@ -236,8 +233,8 @@ void FileEncryptionDialog::slotExecuteAction() {
         BasicOperator::GetInstance().Decrypt(in_data, out_data, result);
     if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) {
       qDebug() << "Error" << gpgme_strerror(err);
-      QMessageBox::warning(this, tr("Error"),
-                           tr("Error Occurred During Decryption"));
+      QMessageBox::warning(this, _("Error"),
+                           _("Error Occurred During Decryption"));
       return;
     }
   }
@@ -249,8 +246,8 @@ void FileEncryptionDialog::slotExecuteAction() {
         std::move(keys), in_data, out_data, GPGME_SIG_MODE_DETACH, result);
     if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) {
       qDebug() << "Error" << gpgme_strerror(err);
-      QMessageBox::warning(this, tr("Error"),
-                           tr("Error Occurred During Signature"));
+      QMessageBox::warning(this, _("Error"),
+                           _("Error Occurred During Signature"));
       return;
     }
   }
@@ -270,12 +267,8 @@ void FileEncryptionDialog::slotExecuteAction() {
   accept();
 }
 
-void FileEncryptionDialog::slotShowKeyList() {
-  mKeyList->show();
-}
+void FileEncryptionDialog::slotShowKeyList() { mKeyList->show(); }
 
-void FileEncryptionDialog::slotHideKeyList() {
-  mKeyList->hide();
-}
+void FileEncryptionDialog::slotHideKeyList() { mKeyList->hide(); }
 
 }  // namespace GpgFrontend::UI

@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -34,15 +34,15 @@ AdvancedTab::AdvancedTab(QWidget* parent)
   /*****************************************
    * Steganography Box
    *****************************************/
-  auto* steganoBox = new QGroupBox(tr("Show Steganography Options"));
+  auto* steganoBox = new QGroupBox(_("Show Steganography Options"));
   auto* steganoBoxLayout = new QHBoxLayout();
-  steganoCheckBox = new QCheckBox(tr("Show Steganographic Options."), this);
+  steganoCheckBox = new QCheckBox(_("Show Steganographic Options."), this);
   steganoBoxLayout->addWidget(steganoCheckBox);
   steganoBox->setLayout(steganoBoxLayout);
 
-  auto* pubkeyExchangeBox = new QGroupBox(tr("Pubkey Exchange"));
+  auto* pubkeyExchangeBox = new QGroupBox(_("Pubkey Exchange"));
   auto* pubkeyExchangeBoxLayout = new QHBoxLayout();
-  autoPubkeyExchangeCheckBox = new QCheckBox(tr("Auto Pubkey Exchange"), this);
+  autoPubkeyExchangeCheckBox = new QCheckBox(_("Auto Pubkey Exchange"), this);
   pubkeyExchangeBoxLayout->addWidget(autoPubkeyExchangeCheckBox);
   pubkeyExchangeBox->setLayout(pubkeyExchangeBoxLayout);
 

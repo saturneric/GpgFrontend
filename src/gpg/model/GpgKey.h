@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -25,11 +25,11 @@
 #ifndef GPGFRONTEND_GPGKEY_H
 #define GPGFRONTEND_GPGKEY_H
 
-#include "GpgSubKey.h"
-#include "GpgUID.h"
-
 #include <boost/date_time.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
+
+#include "GpgSubKey.h"
+#include "GpgUID.h"
 
 namespace GpgFrontend {
 
@@ -148,8 +148,7 @@ class GpgKey {
  private:
   struct _key_ref_deletor {
     void operator()(gpgme_key_t _key) {
-      if (_key != nullptr)
-        gpgme_key_unref(_key);
+      if (_key != nullptr) gpgme_key_unref(_key);
     }
   };
 

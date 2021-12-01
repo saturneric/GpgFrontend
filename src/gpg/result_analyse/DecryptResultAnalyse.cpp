@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -23,6 +23,7 @@
  */
 
 #include "gpg/result_analyse/DecryptResultAnalyse.h"
+
 #include "gpg/function/GpgKeyGetter.h"
 
 GpgFrontend::DecryptResultAnalyse::DecryptResultAnalyse(GpgError error,
@@ -30,16 +31,16 @@ GpgFrontend::DecryptResultAnalyse::DecryptResultAnalyse(GpgError error,
     : error(error), result(std::move(result)) {}
 
 void GpgFrontend::DecryptResultAnalyse::do_analyse() {
-  stream << "[#] Decrypt Operation ";
+  stream << "[#]" << _("Decrypt Operation");
 
   if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
-    stream << "[Success]" << std::endl;
+    stream << "[" << _("Success") << "]" << std::endl;
   } else {
-    stream << "[Failed] " << gpgme_strerror(error) << std::endl;
+    stream << "[" << _("Failed") << "] " << gpgme_strerror(error) << std::endl;
     setStatus(-1);
     if (result != nullptr && result->unsupported_algorithm != nullptr) {
       stream << "------------>" << std::endl;
-      stream << "Unsupported Algo: " << result->unsupported_algorithm
+      stream << _("Unsupported Algo") << ": " << result->unsupported_algorithm
              << std::endl;
     }
   }
@@ -47,13 +48,12 @@ void GpgFrontend::DecryptResultAnalyse::do_analyse() {
   if (result != nullptr && result->recipients != nullptr) {
     stream << "------------>" << std::endl;
     if (result->file_name != nullptr) {
-      stream << "File Name: " << result->file_name << std::endl;
+      stream << _("File Name") << ": " << result->file_name << std::endl;
       stream << std::endl;
     }
 
     auto reci = result->recipients;
-    if (reci != nullptr)
-      stream << "Recipient(s): " << std::endl;
+    if (reci != nullptr) stream << _("Recipient(s)") << ": " << std::endl;
     while (reci != nullptr) {
       print_reci(stream, reci);
       reci = reci->next;
@@ -67,7 +67,7 @@ void GpgFrontend::DecryptResultAnalyse::do_analyse() {
 bool GpgFrontend::DecryptResultAnalyse::print_reci(std::stringstream &stream,
                                                    gpgme_recipient_t reci) {
   bool keyFound = true;
-  stream << "  {>} Recipient: ";
+  stream << "  {>} " << _("Recipient") << ": ";
 
   auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(reci->keyid);
   if (key.good()) {
@@ -76,16 +76,16 @@ bool GpgFrontend::DecryptResultAnalyse::print_reci(std::stringstream &stream,
       stream << "<" << key.email().c_str() << ">";
     }
   } else {
-    stream << "<Unknown>";
+    stream << "<" << _("Unknown") << ">";
     setStatus(0);
     keyFound = false;
   }
 
   stream << std::endl;
 
-  stream << "      Keu ID: " << key.id().c_str() << std::endl;
-  stream << "      Public Algo: " << gpgme_pubkey_algo_name(reci->pubkey_algo)
-         << std::endl;
+  stream << "      " << _("Keu ID") << ": " << key.id().c_str() << std::endl;
+  stream << "      " << _("Public Algo") << ": "
+         << gpgme_pubkey_algo_name(reci->pubkey_algo) << std::endl;
 
   return keyFound;
 }

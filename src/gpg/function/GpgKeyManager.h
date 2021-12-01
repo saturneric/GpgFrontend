@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -40,16 +40,13 @@ class GpgKeyManager : public SingletonFunctionObject<GpgKeyManager> {
    * @param expires expire date and time of the signature
    * @return if successful
    */
-  bool signKey(const GpgKey& target,
-               KeyArgsList& keys,
-               const std::string& uid,
+  bool signKey(const GpgKey& target, KeyArgsList& keys, const std::string& uid,
                const std::unique_ptr<boost::gregorian::date>& expires);
 
   bool revSign(const GpgFrontend::GpgKey& key,
                const GpgFrontend::SignIdArgsListPtr& signature_id);
 
-  bool setExpire(const GpgKey& key,
-                 std::unique_ptr<GpgSubKey>& subkey,
+  bool setExpire(const GpgKey& key, std::unique_ptr<GpgSubKey>& subkey,
                  std::unique_ptr<boost::gregorian::date>& expires);
 
  private:

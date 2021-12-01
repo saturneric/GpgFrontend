@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -31,19 +31,19 @@
 namespace GpgFrontend {
 
 class VerifyResultAnalyse : public ResultAnalyse {
-public:
+ public:
   explicit VerifyResultAnalyse(GpgError error, GpgVerifyResult result);
 
-private:
+ private:
   void do_analyse();
 
-private:
+ private:
   bool print_signer(std::stringstream &stream, gpgme_signature_t sign);
 
   GpgError error;
   GpgVerifyResult result;
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_VERIFYRESULTANALYSE_H
+#endif  // GPGFRONTEND_VERIFYRESULTANALYSE_H

@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -53,7 +53,6 @@ void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
 void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
                             const ResultAnalyse& result_analyse_a,
                             const ResultAnalyse& result_analyse_b) {
-
   LOG(INFO) << "process_result_analyse Started";
 
   info_board->associateTabWidget(edit->tabWidget);

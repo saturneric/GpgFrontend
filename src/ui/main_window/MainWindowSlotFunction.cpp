@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -52,8 +52,8 @@ void MainWindow::slotEncrypt() {
     auto key_ids = mKeyList->getChecked();
 
     if (key_ids->empty()) {
-      QMessageBox::critical(nullptr, tr("No Key Selected"),
-                            tr("No Key Selected"));
+      QMessageBox::critical(nullptr, _("No Key Selected"),
+                            _("No Key Selected"));
       return;
     }
 
@@ -62,10 +62,11 @@ void MainWindow::slotEncrypt() {
     for (const auto& key : *keys) {
       if (!key.CanEncrActual()) {
         QMessageBox::information(
-            nullptr, tr("Invalid Operation"),
-            tr("The selected key contains a key that does not actually have a "
-               "encrypt usage.<br/>") +
-                tr("<br/>For example the Following Key: <br/>") +
+            nullptr, _("Invalid Operation"),
+            QString(_(
+                "The selected key contains a key that does not actually have a "
+                "encrypt usage.")) +
+                "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
                 QString::fromStdString(key.uids()->front().uid()));
         return;
       }
@@ -76,7 +77,7 @@ void MainWindow::slotEncrypt() {
     GpgEncrResult result = nullptr;
     GpgError error;
     bool if_error = false;
-    process_operation(this, tr("Encrypting").toStdString(), [&]() {
+    process_operation(this, _("Encrypting"), [&]() {
       try {
         auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
         error = GpgFrontend::BasicOperator::GetInstance().Encrypt(
@@ -100,17 +101,17 @@ void MainWindow::slotEncrypt() {
           if (settings.value("sendMail/enable", false).toBool())
             new SendMailDialog(edit->curTextPage()->toPlainText(), this);
           else {
-            QMessageBox::warning(nullptr, tr("Function Disabled"),
-                                 tr("Please go to the settings interface to "
-                                    "enable and configure this function."));
+            QMessageBox::warning(nullptr, _("Function Disabled"),
+                                 _("Please go to the settings interface to "
+                                   "enable and configure this function."));
           }
         });
       }
 #endif
 
     } else {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("An error occurred during operation."));
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
       return;
     }
 
@@ -126,7 +127,7 @@ void MainWindow::slotSign() {
     auto key_ids = mKeyList->getPrivateChecked();
 
     if (key_ids->empty()) {
-      QMessageBox::critical(this, tr("No Key Selected"), tr("No Key Selected"));
+      QMessageBox::critical(this, _("No Key Selected"), _("No Key Selected"));
       return;
     }
 
@@ -134,11 +135,12 @@ void MainWindow::slotSign() {
     for (const auto& key : *keys) {
       if (!key.CanSignActual()) {
         QMessageBox::information(
-            this, tr("Invalid Operation"),
-            tr("The selected key contains a key that does not actually have a "
-               "signature usage.<br/>") +
-                tr("<br/>For example the Following Key: <br/>") +
-                QString::fromStdString(key.uids()->front().uid()));
+            this, _("Invalid Operation"),
+            QString(_(
+                "The selected key contains a key that does not actually have a "
+                "signature usage.")) +
+                "<br/><br/>" + _("For example the Following Key:") + "<br/>" +
+                key.uids()->front().uid().c_str());
         return;
       }
     }
@@ -149,7 +151,7 @@ void MainWindow::slotSign() {
     gpgme_error_t error;
     bool if_error = false;
 
-    process_operation(this, tr("Signing").toStdString(), [&]() {
+    process_operation(this, _("Signing"), [&]() {
       try {
         auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
         error = GpgFrontend::BasicOperator::GetInstance().Sign(
@@ -165,8 +167,8 @@ void MainWindow::slotSign() {
       process_result_analyse(edit, infoBoard, resultAnalyse);
       edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
     } else {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("An error occurred during operation."));
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
       return;
     }
   } else if (edit->slotCurPageFileTreeView() != nullptr) {
@@ -184,15 +186,15 @@ void MainWindow::slotDecrypt() {
     if (text.trimmed().startsWith(
             GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD)) {
       QMessageBox::critical(
-          this, tr("Notice"),
-          tr("Short Crypto Text only supports Decrypt & Verify."));
+          this, _("Notice"),
+          _("Short Crypto Text only supports Decrypt & Verify."));
       return;
     }
 
     GpgDecrResult result = nullptr;
     gpgme_error_t error;
     bool if_error = false;
-    process_operation(this, tr("Decrypting").toStdString(), [&]() {
+    process_operation(this, _("Decrypting"), [&]() {
       try {
         auto buffer = text.toStdString();
         error = GpgFrontend::BasicOperator::GetInstance().Decrypt(
@@ -210,8 +212,8 @@ void MainWindow::slotDecrypt() {
       if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
         edit->slotFillTextEditWithText(QString::fromStdString(*decrypted));
     } else {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("An error occurred during operation."));
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
       return;
     }
   } else if (edit->slotCurPageFileTreeView() != nullptr) {
@@ -244,7 +246,7 @@ void MainWindow::slotVerify() {
     GpgVerifyResult result = nullptr;
     GpgError error;
     bool if_error = false;
-    process_operation(this, tr("Verifying").toStdString(), [&]() {
+    process_operation(this, _("Verifying"), [&]() {
       try {
         auto buffer = text.toStdString();
         error = GpgFrontend::BasicOperator::GetInstance().Verify(
@@ -268,8 +270,8 @@ void MainWindow::slotVerify() {
       //    }
 
     } else {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("An error occurred during operation."));
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
       return;
     }
   } else if (edit->slotCurPageFileTreeView() != nullptr) {
@@ -284,8 +286,8 @@ void MainWindow::slotEncryptSign() {
     auto key_ids = mKeyList->getChecked();
 
     if (key_ids->empty()) {
-      QMessageBox::critical(nullptr, tr("No Key Selected"),
-                            tr("No Key Selected"));
+      QMessageBox::critical(nullptr, _("No Key Selected"),
+                            _("No Key Selected"));
       return;
     }
 
@@ -296,9 +298,9 @@ void MainWindow::slotEncryptSign() {
 
       if (!key_can_encrypt) {
         QMessageBox::critical(
-            nullptr, tr("Invalid KeyPair"),
-            tr("The selected keypair cannot be used for encryption.<br/>") +
-                tr("<br/>For example the Following Key: <br/>") +
+            nullptr, _("Invalid KeyPair"),
+            QString(_("The selected keypair cannot be used for encryption.")) +
+                "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
                 QString::fromStdString(key.uids()->front().uid()));
         return;
       }
@@ -326,7 +328,7 @@ void MainWindow::slotEncryptSign() {
     bool if_error = false;
 
     auto tmp = std::make_unique<ByteArray>();
-    process_operation(this, tr("Encrypting and Signing").toStdString(), [&]() {
+    process_operation(this, _("Encrypting and Signing"), [&]() {
       try {
         auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
         error = GpgFrontend::BasicOperator::GetInstance().EncryptSign(
@@ -344,11 +346,11 @@ void MainWindow::slotEncryptSign() {
         pubkeyUploader.start();
         if (!pubkeyUploader.result()) {
           QMessageBox::warning(
-              nullptr, tr("Automatic Key Exchange Warning"),
-              tr("Part of the automatic key exchange failed, "
-                 "which may be related to your key.") +
-                  tr("If possible, try to use the RSA algorithm "
-                     "compatible with the server for signing."));
+              nullptr, _("Automatic Key Exchange Warning"),
+              _("Part of the automatic key exchange failed, "
+                "which may be related to your key.") +
+                  _("If possible, try to use the RSA algorithm "
+                    "compatible with the server for signing."));
         }
       }
 #endif
@@ -366,9 +368,9 @@ void MainWindow::slotEncryptSign() {
         if (settings.value("sendMail/enable", false).toBool())
           new SendMailDialog(edit->curTextPage()->toPlainText(), this);
         else {
-          QMessageBox::warning(nullptr, tr("Function Disabled"),
-                               tr("Please go to the settings interface to "
-                                  "enable and configure this function."));
+          QMessageBox::warning(nullptr, _("Function Disabled"),
+                               _("Please go to the settings interface to "
+                                 "enable and configure this function."));
         }
       });
 #endif
@@ -376,9 +378,9 @@ void MainWindow::slotEncryptSign() {
 #ifdef ADVANCE_SUPPORT
       infoBoard->addOptionalAction("Shorten Ciphertext", [this]() {
         if (settings.value("general/serviceToken").toString().isEmpty())
-          QMessageBox::warning(nullptr, tr("Service Token Empty"),
-                               tr("Please go to the settings interface to set "
-                                  "Own Key and get Service Token."));
+          QMessageBox::warning(nullptr, _("Service Token Empty"),
+                               _("Please go to the settings interface to set "
+                                 "Own Key and get Service Token."));
         else {
           shortenCryptText();
         }
@@ -386,8 +388,8 @@ void MainWindow::slotEncryptSign() {
 #endif
 
     } else {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("An error occurred during operation."));
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
       return;
     }
   } else if (edit->slotCurPageFileTreeView() != nullptr) {
@@ -432,16 +434,15 @@ void MainWindow::slotDecryptVerify() {
     }
 #endif
     auto decrypted = std::make_unique<ByteArray>();
-    process_operation(this, tr("Decrypting and Verifying").toStdString(),
-                      [&]() {
-                        try {
-                          auto buffer = text.toStdString();
-                          error = BasicOperator::GetInstance().DecryptVerify(
-                              buffer, decrypted, d_result, v_result);
-                        } catch (const std::runtime_error& e) {
-                          if_error = true;
-                        }
-                      });
+    process_operation(this, _("Decrypting and Verifying"), [&]() {
+      try {
+        auto buffer = text.toStdString();
+        error = BasicOperator::GetInstance().DecryptVerify(buffer, decrypted,
+                                                           d_result, v_result);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
 
     if (!if_error) {
       infoBoard->associateFileTreeView(edit->curFilePage());
@@ -463,8 +464,8 @@ void MainWindow::slotDecryptVerify() {
       //                });
       //          }
     } else {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("An error occurred during operation."));
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
       return;
     }
 
@@ -494,7 +495,7 @@ void MainWindow::slotCopyMailAddressToClipboard() {
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
   if (!key.good()) {
-    QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
+    QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
     return;
   }
   QClipboard* cb = QApplication::clipboard();
@@ -509,7 +510,7 @@ void MainWindow::slotShowKeyDetails() {
   if (key.good()) {
     new KeyDetailsDialog(key, this);
   } else {
-    QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
+    QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
   }
 }
 
@@ -534,21 +535,24 @@ void MainWindow::slotOpenFile(QString& path) { edit->slotOpenFile(path); }
 void MainWindow::slotVersionUpgrade(const QString& currentVersion,
                                     const QString& latestVersion) {
   if (currentVersion < latestVersion) {
-    QMessageBox::warning(this, tr("Outdated Version"),
-                         tr("This version(%1) is out of date, please update "
-                            "the latest version in time. ")
-                                 .arg(currentVersion) +
-                             tr("You can download the latest version(%1) on "
-                                "Github Releases Page.<br/>")
-                                 .arg(latestVersion));
+    QMessageBox::warning(
+        this, _("Outdated Version"),
+        QString(_("This version(%1) is out of date, please update "
+                  "the latest version in time. "))
+                .arg(currentVersion) +
+            QString(_("You can download the latest version(%1) on "
+                      "Github Releases Page.<br/>"))
+                .arg(latestVersion));
   } else if (currentVersion > latestVersion) {
     QMessageBox::warning(
-        this, tr("Unreleased Version"),
-        tr("This version(%1) has not been officially released and is not "
-           "recommended for use in a production environment. <br/>")
+        this, _("Unreleased Version"),
+        QString(
+            _("This version(%1) has not been officially released and is not "
+              "recommended for use in a production environment. <br/>"))
                 .arg(currentVersion) +
-            tr("You can download the latest version(%1) on Github Releases "
-               "Page.<br/>")
+            QString(
+                _("You can download the latest version(%1) on Github Releases "
+                  "Page.<br/>"))
                 .arg(latestVersion));
   }
 }

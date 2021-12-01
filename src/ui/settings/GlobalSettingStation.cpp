@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -37,11 +37,11 @@ void GlobalSettingStation::Sync() noexcept {
   using namespace libconfig;
   try {
     ui_cfg.writeFile(ui_config_path.c_str());
-    LOG(INFO) << "Updated ui configuration successfully written to: "
+    LOG(INFO) << _("Updated ui configuration successfully written to")
               << ui_config_path;
 
   } catch (const FileIOException& fioex) {
-    LOG(ERROR) << "I/O error while writing ui configuration file: "
+    LOG(ERROR) << _("I/O error while writing ui configuration file")
                << ui_config_path;
   }
 }
@@ -50,9 +50,13 @@ GlobalSettingStation::GlobalSettingStation() noexcept {
   using namespace boost::filesystem;
   using namespace libconfig;
 
-  LOG(INFO) << "App Configure Path" << app_configure_path;
-  LOG(INFO) << "App Data Path" << app_data_path;
-  LOG(INFO) << "App Log Path" << app_log_path;
+  el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
+
+  LOG(INFO) << _("App Path") << app_path;
+  LOG(INFO) << _("App Configure Path") << app_configure_path;
+  LOG(INFO) << _("App Data Path") << app_data_path;
+  LOG(INFO) << _("App Log Path") << app_log_path;
+  LOG(INFO) << _("App Locale Path") << app_locale_path;
 
   if (!is_directory(app_configure_path)) create_directory(app_configure_path);
 
@@ -65,23 +69,24 @@ GlobalSettingStation::GlobalSettingStation() noexcept {
   if (!exists(ui_config_path)) {
     try {
       this->ui_cfg.writeFile(ui_config_path.c_str());
-      LOG(INFO) << "UserInterface configuration successfully written to: "
+      LOG(INFO) << _("UserInterface configuration successfully written to")
                 << ui_config_path;
 
     } catch (const FileIOException& fioex) {
-      LOG(ERROR) << "I/O error while writing UserInterface configuration file: "
-                 << ui_config_path;
+      LOG(ERROR)
+          << _("I/O error while writing UserInterface configuration file")
+          << ui_config_path;
     }
   } else {
     try {
       this->ui_cfg.readFile(ui_config_path.c_str());
-      LOG(INFO) << "UserInterface configuration successfully read from: "
+      LOG(INFO) << _("UserInterface configuration successfully read from")
                 << ui_config_path;
     } catch (const FileIOException& fioex) {
-      LOG(ERROR) << "I/O error while reading UserInterface configure file";
+      LOG(ERROR) << _("I/O error while reading UserInterface configure file");
     } catch (const ParseException& pex) {
-      LOG(ERROR) << "Parse error at " << pex.getFile() << ":" << pex.getLine()
-                 << " - " << pex.getError();
+      LOG(ERROR) << _("Parse error at ") << pex.getFile() << ":"
+                 << pex.getLine() << " - " << pex.getError();
     }
   }
 }

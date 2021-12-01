@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -26,33 +26,26 @@
 #define GPGFRONTEND_ZH_CN_TS_PUBKEYUPLOADER_H
 
 #include "GpgFrontend.h"
-#include "server/BaseAPI.h"
 #include "gpg/GpgContext.h"
-
 #include "rapidjson/document.h"
+#include "server/BaseAPI.h"
 
 /**
  * Upload pubkey into server
  */
 class PubkeyUploader : public BaseAPI {
-public:
+ public:
+  PubkeyUploader(GpgFrontend::GpgContext *ctx, const QVector<GpgKey> &keys);
 
-    PubkeyUploader(GpgFrontend::GpgContext *ctx, const QVector<GpgKey> &keys);
+ private:
+  const QVector<GpgKey> &mKeys;
 
-private:
+  GpgFrontend::GpgContext *mCtx;
 
-    const QVector<GpgKey> &mKeys;
+ protected:
+  void construct_json() final;
 
-    GpgFrontend::GpgContext *mCtx;
-
-protected:
-
-    void construct_json() final;
-
-    void deal_reply() final;
-
-
+  void deal_reply() final;
 };
 
-
-#endif //GPGFRONTEND_ZH_CN_TS_PUBKEYUPLOADER_H
+#endif  // GPGFRONTEND_ZH_CN_TS_PUBKEYUPLOADER_H

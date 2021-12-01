@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -50,7 +50,7 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
   this->setLayout(layout);
 
   this->setModal(true);
-  this->setWindowTitle(tr("Uploading Public Key"));
+  this->setWindowTitle(_("Uploading Public Key"));
   this->setFixedSize(240, 42);
 }
 
@@ -116,16 +116,16 @@ void KeyUploadDialog::slotUploadFinished() {
     QString message;
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
-        message = tr("Key Not Found");
+        message = _("Key Not Found");
         break;
       case QNetworkReply::TimeoutError:
-        message = tr("Timeout");
+        message = _("Timeout");
         break;
       case QNetworkReply::HostNotFoundError:
-        message = tr("Key Server Not Found");
+        message = _("Key Server Not Found");
         break;
       default:
-        message = tr("Connection Error");
+        message = _("Connection Error");
     }
     QMessageBox::critical(this, "Upload Failed", message);
     return;

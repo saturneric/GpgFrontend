@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -46,14 +46,14 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
   advancedTab = new AdvancedTab;
   gpgPathsTab = new GpgPathsTab;
 
-  tabWidget->addTab(generalTab, tr("General"));
-  tabWidget->addTab(appearanceTab, tr("Appearance"));
+  tabWidget->addTab(generalTab, _("General"));
+  tabWidget->addTab(appearanceTab, _("Appearance"));
 #ifdef SMTP_SUPPORT
-  tabWidget->addTab(sendMailTab, tr("Send Mail"));
+  tabWidget->addTab(sendMailTab, _("Send Mail"));
 #endif
-  tabWidget->addTab(keyserverTab, tr("Key Server"));
-  // tabWidget->addTab(gpgPathsTab, tr("Gpg paths"));
-  tabWidget->addTab(advancedTab, tr("Advanced"));
+  tabWidget->addTab(keyserverTab, _("Key Server"));
+  // tabWidget->addTab(gpgPathsTab, _("Gpg paths"));
+  tabWidget->addTab(advancedTab, _("Advanced"));
 
   buttonBox =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
@@ -68,7 +68,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
   mainLayout->stretch(0);
   setLayout(mainLayout);
 
-  setWindowTitle(tr("Settings"));
+  setWindowTitle(_("Settings"));
 
   // slots for handling the restartneeded member
   this->slotSetRestartNeeded(false);
@@ -118,7 +118,7 @@ void SettingsDialog::slotAccept() {
 QHash<QString, QString> SettingsDialog::listLanguages() {
   QHash<QString, QString> languages;
 
-  languages.insert("", tr("System Default"));
+  languages.insert(QString(), _("System Default"));
 
   QString appPath = qApp->applicationDirPath();
   QDir qmDir = QDir(RESOURCE_DIR(appPath) + "/ts/");
@@ -153,26 +153,29 @@ GpgPathsTab::GpgPathsTab(QWidget* parent)
   /*****************************************
    * Keydb Box
    *****************************************/
-  auto* keydbBox = new QGroupBox(tr("Relative path to keydb"));
+  auto* keydbBox = new QGroupBox(_("Relative path to Key Database"));
   auto* keydbBoxLayout = new QGridLayout();
 
   // Label containing the current keydbpath relative to default keydb path
   keydbLabel = new QLabel(accKeydbPath, this);
 
-  auto* keydbButton = new QPushButton("Change keydb path", this);
+  auto* keydbButton = new QPushButton(_("Change Key Database path"), this);
   connect(keydbButton, SIGNAL(clicked()), this, SLOT(chooseKeydbDir()));
-  auto* keydbDefaultButton = new QPushButton("Set keydb to default path", this);
+  auto* keydbDefaultButton =
+      new QPushButton(_("Set Key Database to default path"), this);
   connect(keydbDefaultButton, SIGNAL(clicked()), this,
           SLOT(setKeydbPathToDefault()));
 
   keydbBox->setLayout(keydbBoxLayout);
-  keydbBoxLayout->addWidget(new QLabel(tr("Current keydb path: ")), 1, 1);
+  keydbBoxLayout->addWidget(
+      new QLabel(QString(_("Current Key Database path")) + ": "), 1, 1);
   keydbBoxLayout->addWidget(keydbLabel, 1, 2);
   keydbBoxLayout->addWidget(keydbButton, 1, 3);
   keydbBoxLayout->addWidget(keydbDefaultButton, 2, 3);
   keydbBoxLayout->addWidget(
-      new QLabel(tr("<b>NOTE: </b> Gpg4usb will restart automatically if you "
-                    "change the keydb path!")),
+      new QLabel(QString("<b>") + _("NOTE") + ": </b> " +
+                 _("GpgFrontend will restart automatically if you change the "
+                   "Key Database path!")),
       3, 1, 1, 3);
 
   auto* mainLayout = new QVBoxLayout;
@@ -200,12 +203,12 @@ void GpgPathsTab::setKeydbPathToDefault() {
 
 QString GpgPathsTab::chooseKeydbDir() {
   QString dir = QFileDialog::getExistingDirectory(
-      this, tr("Choose keydb directory"), accKeydbPath,
+      this, _("Choose keydb directory"), accKeydbPath,
       QFileDialog::ShowDirsOnly);
 
   accKeydbPath = getRelativePath(defKeydbPath, dir);
   keydbLabel->setText(accKeydbPath);
-  return "";
+  return {};
 }
 
 void GpgPathsTab::setSettings() {

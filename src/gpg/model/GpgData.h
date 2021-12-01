@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -42,8 +42,7 @@ class GpgData {
  private:
   struct __data_ref_deletor {
     void operator()(gpgme_data_t _data) {
-      if (_data != nullptr)
-        gpgme_data_release(_data);
+      if (_data != nullptr) gpgme_data_release(_data);
     }
   };
 

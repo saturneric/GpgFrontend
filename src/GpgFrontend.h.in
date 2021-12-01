@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -25,7 +25,18 @@
 #ifndef GPGFRONTEND_H_IN
 #define GPGFRONTEND_H_IN
 
+// i18n
+#include <libintl.h>
+#define _(String) gettext (String)
+#define gettext_noop(String) String
+#define N_(String) gettext_noop (String)
+
+// logging
+#include <easyloggingpp/easylogging++.h>
+
+#define PROJECT_NAME "@CMAKE_PROJECT_NAME@"
 #define OS_PLATFORM @OS_PLATFORM@
+#define LOCALE_DIR "@LOCALE_DIR@"
 
 /**
  * Resources File(s) Path Vars

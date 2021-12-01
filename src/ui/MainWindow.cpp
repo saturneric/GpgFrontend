@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -32,7 +32,7 @@ namespace GpgFrontend::UI {
 MainWindow::MainWindow() {
   networkAccessManager = new QNetworkAccessManager(this);
 
-  auto waitingDialog = new WaitingDialog(tr("Loading Gnupg"), this);
+  auto waitingDialog = new WaitingDialog(_("Loading Gnupg"), this);
 
   QString baseUrl =
       "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
@@ -57,9 +57,9 @@ MainWindow::MainWindow() {
   // Check Context Status
   if (!GpgContext::GetInstance().good()) {
     QMessageBox::critical(
-        nullptr, tr("ENV Loading Failed"),
-        tr("Gnupg is not installed correctly, please follow the ReadME "
-           "instructions to install gnupg and then open GPGFrontend."));
+        nullptr, _("ENV Loading Failed"),
+        _("Gnupg is not installed correctly, please follow the ReadME "
+          "instructions to install gnupg and then open GpgFrontend."));
     QCoreApplication::quit();
     exit(0);
   }

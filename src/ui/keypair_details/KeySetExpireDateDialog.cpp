@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -69,15 +69,15 @@ void KeySetExpireDateDialog::slotConfirm() {
     auto* msg_box = new QMessageBox(nullptr);
     msg_box->setAttribute(Qt::WA_DeleteOnClose);
     msg_box->setStandardButtons(QMessageBox::Ok);
-    msg_box->setWindowTitle(tr("Success"));
-    msg_box->setText(tr("The expire date of the key pair has been updated."));
+    msg_box->setWindowTitle(_("Success"));
+    msg_box->setText(_("The expire date of the key pair has been updated."));
     msg_box->setModal(false);
     msg_box->open();
 
     emit signalKeyExpireDateUpdated();
 
   } else {
-    QMessageBox::critical(this, tr("Failure"), tr(gpgme_strerror(err)));
+    QMessageBox::critical(this, _("Failure"), _(gpgme_strerror(err)));
   }
 
   this->close();
@@ -90,12 +90,12 @@ void KeySetExpireDateDialog::init() {
   dateTimeEdit->setMaximumDateTime(maxDateTime);
   nonExpiredCheck = new QCheckBox();
   nonExpiredCheck->setTristate(false);
-  confirmButton = new QPushButton(tr("Confirm"));
+  confirmButton = new QPushButton(_("Confirm"));
 
   auto* gridLayout = new QGridLayout();
   gridLayout->addWidget(dateTimeEdit, 0, 0, 1, 2);
   gridLayout->addWidget(nonExpiredCheck, 0, 2, 1, 1, Qt::AlignRight);
-  gridLayout->addWidget(new QLabel(tr("Never Expire")), 0, 3);
+  gridLayout->addWidget(new QLabel(_("Never Expire")), 0, 3);
   gridLayout->addWidget(confirmButton, 1, 3);
 
   connect(nonExpiredCheck, SIGNAL(stateChanged(int)), this,

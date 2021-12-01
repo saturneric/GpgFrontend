@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -25,15 +25,15 @@
 #ifndef GPGFRONTEND_GPGKEYSIGNATURE_H
 #define GPGFRONTEND_GPGKEYSIGNATURE_H
 
-#include "gpg/GpgConstants.h"
-
 #include <boost/date_time.hpp>
 #include <string>
+
+#include "gpg/GpgConstants.h"
 
 namespace GpgFrontend {
 
 class GpgKeySignature {
-public:
+ public:
   [[nodiscard]] bool revoked() const { return _signature_ref->revoked; }
   [[nodiscard]] bool expired() const { return _signature_ref->expired; }
   [[nodiscard]] bool invalid() const { return _signature_ref->invalid; }
@@ -72,7 +72,7 @@ public:
 
   GpgKeySignature &operator=(const GpgKeySignature &) = delete;
 
-private:
+ private:
   using KeySignatrueRefHandler =
       std::unique_ptr<struct _gpgme_key_sig,
                       std::function<void(gpgme_key_sig_t)>>;
@@ -80,6 +80,6 @@ private:
   KeySignatrueRefHandler _signature_ref = nullptr;
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_GPGKEYSIGNATURE_H
+#endif  // GPGFRONTEND_GPGKEYSIGNATURE_H

@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -24,11 +24,13 @@
 
 #include "ui/QuitDialog.h"
 
+#include <boost/format.hpp>
+
 namespace GpgFrontend::UI {
 
 QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
     : QDialog(parent) {
-  setWindowTitle(tr("Unsaved Files"));
+  setWindowTitle(_("Unsaved Files"));
   setModal(true);
   discarded = false;
 
@@ -75,10 +77,12 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   pixmap = pixmap.scaled(50, 50, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   auto* warn_icon = new QLabel();
   warn_icon->setPixmap(pixmap);
-  auto* warn_label =
-      new QLabel(tr("%1 files contain unsaved information.<br/>Save the "
-                    "changes before closing?")
-                     .arg(row));
+
+  const auto info =
+      boost::format(_("%1% files contain unsaved information.<br/>Save the "
+                      "changes before closing?")) %
+      std::to_string(row);
+  auto* warn_label = new QLabel(QString::fromStdString(info.str()));
   auto* warnBoxLayout = new QHBoxLayout();
   warnBoxLayout->addWidget(warn_icon);
   warnBoxLayout->addWidget(warn_label);
@@ -89,10 +93,10 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   /*
    *  Two labels on top and under the filelist
    */
-  auto* checkLabel = new QLabel(tr("Check the files you want to save:"));
-  auto* note_label =
-      new QLabel(tr("<b>Note:</b> If you don't save these files, all changes "
-                    "are lost.<br/>"));
+  auto* checkLabel = new QLabel(_("Check the files you want to save:"));
+  auto* note_label = new QLabel(
+      "<b>" + QString(_("Note")) + ":</b>" +
+      _("If you don't save these files, all changes are lost.") + "<br/>");
 
   /*
    *  Buttonbox
@@ -122,9 +126,7 @@ void QuitDialog::slotMyDiscard() {
   reject();
 }
 
-bool QuitDialog::isDiscarded() const {
-  return discarded;
-}
+bool QuitDialog::isDiscarded() const { return discarded; }
 
 QList<int> QuitDialog::getTabIdsToSave() {
   QList<int> tabIdsToSave;

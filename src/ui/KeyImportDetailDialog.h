@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -26,6 +26,7 @@
 #define __KEYIMPORTDETAILSDIALOG_H__
 
 #include <gpg/function/GpgKeyImportExportor.h>
+
 #include "gpg/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 
@@ -34,8 +35,7 @@ class KeyImportDetailDialog : public QDialog {
   Q_OBJECT
 
  public:
-  KeyImportDetailDialog(GpgImportInformation result,
-                        bool automatic,
+  KeyImportDetailDialog(GpgImportInformation result, bool automatic,
                         QWidget* parent = nullptr);
 
  private:
