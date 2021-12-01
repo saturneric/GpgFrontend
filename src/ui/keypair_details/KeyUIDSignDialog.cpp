@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -78,7 +78,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
 
   layout->addWidget(mKeyList, 0, 0);
   layout->addWidget(signKeyButton, 2, 0, Qt::AlignRight);
-  timeLayout->addWidget(new QLabel(tr("Expire Date")), 0, 0);
+  timeLayout->addWidget(new QLabel(_("Expire Date")), 0, 0);
   timeLayout->addWidget(expiresEdit, 0, 1);
   timeLayout->addWidget(nonExpireCheck, 0, 2);
   layout->addLayout(timeLayout, 1, 0);
@@ -87,7 +87,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
 
   this->setLayout(layout);
   this->setModal(true);
-  this->setWindowTitle(tr("Sign For Key's UID(s)"));
+  this->setWindowTitle(_("Sign For Key's UID(s)"));
   this->adjustSize();
 
   setAttribute(Qt::WA_DeleteOnClose, true);
@@ -114,15 +114,13 @@ void KeyUIDSignDialog::slotSignKey(bool clicked) {
     // Sign For mKey
     if (!GpgKeyManager::GetInstance().signKey(mKey, *keys, uid, expires)) {
       QMessageBox::critical(
-          nullptr, tr("Unsuccessful Operation"),
-          QString(tr("Signature operation failed for UID ") + "%1")
-              .arg(uid.c_str()));
+          nullptr, _("Unsuccessful Operation"),
+          QString(_("Signature operation failed for UID %1")).arg(uid.c_str()));
     }
   }
 
-  QMessageBox::information(
-      nullptr, tr("Operation Complete"),
-      tr("The signature operation of the UID is complete"));
+  QMessageBox::information(nullptr, _("Operation Complete"),
+                           _("The signature operation of the UID is complete"));
   this->close();
   emit signalKeyUIDSignUpdate();
 }

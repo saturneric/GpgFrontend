@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -39,7 +39,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
 
   auto uidButtonsLayout = new QGridLayout();
 
-  auto addSubkeyButton = new QPushButton(tr("Generate A New Subkey"));
+  auto addSubkeyButton = new QPushButton(_("Generate A New Subkey"));
   if (!mKey.is_private_key() || !mKey.has_master_key()) {
     addSubkeyButton->setDisabled(true);
     setHidden(addSubkeyButton);
@@ -56,14 +56,20 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
 
   auto* subkeyDetailLayout = new QGridLayout();
 
-  subkeyDetailLayout->addWidget(new QLabel(tr("Key ID: ")), 0, 0);
-  subkeyDetailLayout->addWidget(new QLabel(tr("Algorithm: ")), 1, 0);
-  subkeyDetailLayout->addWidget(new QLabel(tr("Key Size:")), 2, 0);
-  subkeyDetailLayout->addWidget(new QLabel(tr("Usage: ")), 3, 0);
-  subkeyDetailLayout->addWidget(new QLabel(tr("Expires On ")), 4, 0);
-  subkeyDetailLayout->addWidget(new QLabel(tr("Last Update: ")), 5, 0);
-  subkeyDetailLayout->addWidget(new QLabel(tr("Existence: ")), 6, 0);
-  subkeyDetailLayout->addWidget(new QLabel(tr("Fingerprint: ")), 7, 0);
+  subkeyDetailLayout->addWidget(new QLabel(QString(_("Key ID")) + ": "), 0, 0);
+  subkeyDetailLayout->addWidget(new QLabel(QString(_("Algorithm")) + ": "), 1,
+                                0);
+  subkeyDetailLayout->addWidget(new QLabel(QString(_("Key Size")) + ": "), 2,
+                                0);
+  subkeyDetailLayout->addWidget(new QLabel(QString(_("Usage")) + ": "), 3, 0);
+  subkeyDetailLayout->addWidget(new QLabel(QString(_("Expires On")) + ": "), 4,
+                                0);
+  subkeyDetailLayout->addWidget(new QLabel(QString(_("Last Update")) + ": "), 5,
+                                0);
+  subkeyDetailLayout->addWidget(new QLabel(QString(_("Existence")) + ": "), 6,
+                                0);
+  subkeyDetailLayout->addWidget(new QLabel(QString(_("Fingerprint")) + ": "), 7,
+                                0);
 
   keyidVarLabel = new QLabel();
   keySizeVarLabel = new QLabel();
@@ -128,8 +134,8 @@ void KeyPairSubkeyTab::createSubkeyList() {
   subkeyList->setAlternatingRowColors(true);
 
   QStringList labels;
-  labels << tr("Subkey ID") << tr("Key Size") << tr("Algo") << tr("Create Date")
-         << tr("Expire Date");
+  labels << _("Subkey ID") << _("Key Size") << _("Algo") << _("Create Date")
+         << _("Expire Date");
 
   subkeyList->setHorizontalHeaderLabels(labels);
   subkeyList->horizontalHeader()->setStretchLastSection(false);
@@ -172,7 +178,7 @@ void KeyPairSubkeyTab::slotRefreshSubkeyList() {
     auto* tmp4 = new QTableWidgetItem(
         boost::posix_time::to_time_t(
             boost::posix_time::ptime(subkeys.expires())) == 0
-            ? tr("Never Expire")
+            ? _("Never Expire")
             : QString::fromStdString(to_iso_string(subkeys.expires())));
     tmp4->setTextAlignment(Qt::AlignCenter);
     subkeyList->setItem(row, 4, tmp4);
@@ -207,7 +213,7 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
 
   expireVarLabel->setText(
       subkey_time_t == 0
-          ? tr("Never Expires")
+          ? _("Never Expires")
           : QString::fromStdString(to_iso_string(subkey.expires())));
   if (subkey_time_t != 0 &&
       subkey.expires() < boost::posix_time::second_clock::local_time().date()) {
@@ -227,15 +233,16 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
   QString usage;
   QTextStream usage_steam(&usage);
 
-  if (subkey.can_certify()) usage_steam << "Cert ";
-  if (subkey.can_encrypt()) usage_steam << "Encr ";
-  if (subkey.can_sign()) usage_steam << "Sign ";
-  if (subkey.can_authenticate()) usage_steam << "Auth ";
+  if (subkey.can_certify()) usage_steam << _("Cert") << " ";
+  if (subkey.can_encrypt()) usage_steam << _("Encr") << " ";
+  if (subkey.can_sign()) usage_steam << _("Sign") << " ";
+  if (subkey.can_authenticate()) usage_steam << _("Auth") << " ";
 
   usageVarLabel->setText(usage);
 
   // Show the situation that master key not exists.
-  masterKeyExistVarLabel->setText(subkey.secret() ? "Exists" : "Not Exists");
+  masterKeyExistVarLabel->setText(subkey.secret() ? _("Exists")
+                                                  : _("Not Exists"));
   if (!subkey.secret()) {
     auto paletteExpired = masterKeyExistVarLabel->palette();
     paletteExpired.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::red);
@@ -252,8 +259,8 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
 
 void KeyPairSubkeyTab::createSubkeyOperaMenu() {
   subkeyOperaMenu = new QMenu(this);
-  // auto *revokeSubkeyAct = new QAction(tr("Revoke Subkey"));
-  auto* editSubkeyAct = new QAction(tr("Edit Expire Date"));
+  // auto *revokeSubkeyAct = new QAction(_("Revoke Subkey"));
+  auto* editSubkeyAct = new QAction(_("Edit Expire Date"));
   connect(editSubkeyAct, SIGNAL(triggered(bool)), this, SLOT(slotEditSubkey()));
 
   // subkeyOperaMenu->addAction(revokeSubkeyAct);

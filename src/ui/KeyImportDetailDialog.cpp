@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -33,11 +33,11 @@ KeyImportDetailDialog::KeyImportDetailDialog(GpgImportInformation result,
   // If no key for import found, just show a message
   if (mResult.considered == 0) {
     if (automatic)
-      QMessageBox::information(nullptr, tr("Key Update Details"),
-                               tr("No keys found"));
+      QMessageBox::information(nullptr, _("Key Update Details"),
+                               _("No keys found"));
     else
-      QMessageBox::information(nullptr, tr("Key Import Details"),
-                               tr("No keys found to import"));
+      QMessageBox::information(nullptr, _("Key Import Details"),
+                               _("No keys found to import"));
     return;
   }
 
@@ -54,9 +54,9 @@ KeyImportDetailDialog::KeyImportDetailDialog(GpgImportInformation result,
 
   this->setLayout(mvbox);
   if (automatic)
-    this->setWindowTitle(tr("Key Update Details"));
+    this->setWindowTitle(_("Key Update Details"));
   else
-    this->setWindowTitle(tr("Key Import Details"));
+    this->setWindowTitle(_("Key Import Details"));
 
   this->resize(QSize(600, 300));
   this->setModal(true);
@@ -65,48 +65,52 @@ KeyImportDetailDialog::KeyImportDetailDialog(GpgImportInformation result,
 
 void KeyImportDetailDialog::createGeneralInfoBox() {
   // GridBox for general import information
-  generalInfoBox = new QGroupBox(tr("General key info"));
+  generalInfoBox = new QGroupBox(_("General key info"));
   auto* generalInfoBoxLayout = new QGridLayout(generalInfoBox);
 
-  generalInfoBoxLayout->addWidget(new QLabel(tr("Considered:")), 1, 0);
+  generalInfoBoxLayout->addWidget(new QLabel(QString(_("Considered")) + ": "),
+                                  1, 0);
   generalInfoBoxLayout->addWidget(
       new QLabel(QString::number(mResult.considered)), 1, 1);
   int row = 2;
   if (mResult.unchanged != 0) {
-    generalInfoBoxLayout->addWidget(new QLabel(tr("Public unchanged:")), row,
-                                    0);
+    generalInfoBoxLayout->addWidget(
+        new QLabel(QString(_("Public unchanged")) + ": "), row, 0);
     generalInfoBoxLayout->addWidget(
         new QLabel(QString::number(mResult.unchanged)), row, 1);
     row++;
   }
   if (mResult.imported != 0) {
-    generalInfoBoxLayout->addWidget(new QLabel(tr("Imported:")), row, 0);
+    generalInfoBoxLayout->addWidget(new QLabel(QString(_("Imported")) + ": "),
+                                    row, 0);
     generalInfoBoxLayout->addWidget(
         new QLabel(QString::number(mResult.imported)), row, 1);
     row++;
   }
   if (mResult.not_imported != 0) {
-    generalInfoBoxLayout->addWidget(new QLabel(tr("Not imported:")), row, 0);
+    generalInfoBoxLayout->addWidget(
+        new QLabel(QString(_("Not Imported")) + ": "), row, 0);
     generalInfoBoxLayout->addWidget(
         new QLabel(QString::number(mResult.not_imported)), row, 1);
     row++;
   }
   if (mResult.secret_read != 0) {
-    generalInfoBoxLayout->addWidget(new QLabel(tr("Private read:")), row, 0);
+    generalInfoBoxLayout->addWidget(
+        new QLabel(QString(_("Private Read")) + ": "), row, 0);
     generalInfoBoxLayout->addWidget(
         new QLabel(QString::number(mResult.secret_read)), row, 1);
     row++;
   }
   if (mResult.secret_imported != 0) {
-    generalInfoBoxLayout->addWidget(new QLabel(tr("Private imported:")), row,
-                                    0);
+    generalInfoBoxLayout->addWidget(
+        new QLabel(QString(_("Private Imported")) + ": "), row, 0);
     generalInfoBoxLayout->addWidget(
         new QLabel(QString::number(mResult.secret_imported)), row, 1);
     row++;
   }
   if (mResult.secret_unchanged != 0) {
-    generalInfoBoxLayout->addWidget(new QLabel(tr("Private unchanged:")), row,
-                                    0);
+    generalInfoBoxLayout->addWidget(
+        new QLabel(QString(_("Private Unchanged")) + ": "), row, 0);
     generalInfoBoxLayout->addWidget(
         new QLabel(QString::number(mResult.secret_unchanged)), row, 1);
     row++;
@@ -115,7 +119,7 @@ void KeyImportDetailDialog::createGeneralInfoBox() {
 
 void KeyImportDetailDialog::createKeysTable() {
   LOG(INFO) << "KeyImportDetailDialog::createKeysTable() Called";
-  
+
   keysTable = new QTableWidget(this);
   keysTable->setRowCount(0);
   keysTable->setColumnCount(4);
@@ -124,8 +128,7 @@ void KeyImportDetailDialog::createKeysTable() {
   keysTable->setSelectionMode(QAbstractItemView::NoSelection);
 
   QStringList headerLabels;
-  headerLabels << tr("Name") << tr("Email") << tr("Status")
-               << tr("Fingerprint");
+  headerLabels << _("Name") << _("Email") << _("Status") << _("Fingerprint");
   keysTable->verticalHeader()->hide();
 
   keysTable->setHorizontalHeaderLabels(headerLabels);
@@ -154,27 +157,27 @@ QString KeyImportDetailDialog::getStatusString(int keyStatus) {
   QString statusString;
   // keystatus is greater than 15, if key is private
   if (keyStatus > 15) {
-    statusString.append(tr("private"));
+    statusString.append(_("Private"));
     keyStatus = keyStatus - 16;
   } else {
-    statusString.append(tr("public"));
+    statusString.append(_("Public"));
   }
   if (keyStatus == 0) {
-    statusString.append(", " + tr("unchanged"));
+    statusString.append(", " + QString(_("Unchanged")));
   } else {
     if (keyStatus == 1) {
-      statusString.append(", " + tr("new key"));
+      statusString.append(", " + QString(_("New Key")));
     } else {
       if (keyStatus > 7) {
-        statusString.append(", " + tr("new subkey"));
+        statusString.append(", " + QString(_("New Subkey")));
         keyStatus = keyStatus - 8;
       }
       if (keyStatus > 3) {
-        statusString.append(", " + tr("new signature"));
+        statusString.append(", " + QString(_("New Signature")));
         keyStatus = keyStatus - 4;
       }
       if (keyStatus > 1) {
-        statusString.append(", " + tr("new uid"));
+        statusString.append(", " + QString(_("New UID")));
         keyStatus = keyStatus - 2;
       }
     }

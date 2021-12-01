@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -34,11 +34,11 @@ AppearanceTab::AppearanceTab(QWidget* parent)
   /*****************************************
    * Icon-Size-Box
    *****************************************/
-  auto* iconSizeBox = new QGroupBox(tr("Iconsize"));
+  auto* iconSizeBox = new QGroupBox(_("Icon Size"));
   iconSizeGroup = new QButtonGroup();
-  iconSizeSmall = new QRadioButton(tr("small"));
-  iconSizeMedium = new QRadioButton(tr("medium"));
-  iconSizeLarge = new QRadioButton(tr("large"));
+  iconSizeSmall = new QRadioButton(_("small"));
+  iconSizeMedium = new QRadioButton(_("medium"));
+  iconSizeLarge = new QRadioButton(_("large"));
 
   iconSizeGroup->addButton(iconSizeSmall, 1);
   iconSizeGroup->addButton(iconSizeMedium, 2);
@@ -54,11 +54,11 @@ AppearanceTab::AppearanceTab(QWidget* parent)
   /*****************************************
    * Icon-Style-Box
    *****************************************/
-  auto* iconStyleBox = new QGroupBox(tr("Iconstyle"));
+  auto* iconStyleBox = new QGroupBox(_("Icon Style"));
   iconStyleGroup = new QButtonGroup();
-  iconTextButton = new QRadioButton(tr("just text"));
-  iconIconsButton = new QRadioButton(tr("just icons"));
-  iconAllButton = new QRadioButton(tr("text and icons"));
+  iconTextButton = new QRadioButton(_("just text"));
+  iconIconsButton = new QRadioButton(_("just icons"));
+  iconAllButton = new QRadioButton(_("text and icons"));
 
   iconStyleGroup->addButton(iconTextButton, 1);
   iconStyleGroup->addButton(iconIconsButton, 2);
@@ -74,10 +74,10 @@ AppearanceTab::AppearanceTab(QWidget* parent)
   /*****************************************
    * Window-Size-Box
    *****************************************/
-  auto* windowSizeBox = new QGroupBox(tr("Windowstate"));
+  auto* windowSizeBox = new QGroupBox(_("Window State"));
   auto* windowSizeBoxLayout = new QHBoxLayout();
   windowSizeCheckBox =
-      new QCheckBox(tr("Save window size and position on exit."), this);
+      new QCheckBox(_("Save window size and position on exit."), this);
   windowSizeBoxLayout->addWidget(windowSizeCheckBox);
   windowSizeBox->setLayout(windowSizeBoxLayout);
 
@@ -85,13 +85,13 @@ AppearanceTab::AppearanceTab(QWidget* parent)
    * Info-Board-Font-Size-Box
    *****************************************/
 
-  auto* infoBoardBox = new QGroupBox(tr("Information Board"));
+  auto* infoBoardBox = new QGroupBox(_("Information Board"));
   auto* infoBoardLayout = new QHBoxLayout();
   infoBoardFontSizeSpin = new QSpinBox();
   infoBoardFontSizeSpin->setRange(9, 18);
   infoBoardFontSizeSpin->setValue(10);
   infoBoardFontSizeSpin->setSingleStep(1);
-  infoBoardLayout->addWidget(new QLabel(tr(" Front Size")));
+  infoBoardLayout->addWidget(new QLabel(_("Front Size")));
   infoBoardLayout->addWidget(infoBoardFontSizeSpin);
   infoBoardBox->setLayout(infoBoardLayout);
 

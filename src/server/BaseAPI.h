@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -25,49 +25,42 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_BASEAPI_H
 #define GPGFRONTEND_ZH_CN_TS_BASEAPI_H
 
-#include "GpgFrontend.h"
 #include "ComUtils.h"
-
+#include "GpgFrontend.h"
 #include "rapidjson/document.h"
 
 class BaseAPI : public QObject {
-Q_OBJECT
-public:
+  Q_OBJECT
+ public:
+  explicit BaseAPI(ComUtils::ServiceType serviceType);
 
-    explicit BaseAPI(ComUtils::ServiceType serviceType);
+  ~BaseAPI() override;
 
-    ~BaseAPI() override;
+  void start();
 
-    void start();
+  void refresh();
 
-    void refresh();
+  [[nodiscard]] bool result() const;
 
-    [[nodiscard]] bool result() const;
+ private:
+  ComUtils *utils;
 
-private:
+  QUrl reqUrl;
 
-    ComUtils *utils;
+  QNetworkRequest request;
 
-    QUrl reqUrl;
+  QNetworkReply *send_json_data();
 
-    QNetworkRequest request;
+ protected:
+  bool good = false;
 
-    QNetworkReply *send_json_data();
+  rapidjson::Document document;
 
-protected:
+  const ComUtils &getUtils() { return *utils; };
 
-    bool good = false;
+  virtual void construct_json() = 0;
 
-    rapidjson::Document document;
-
-    const ComUtils &getUtils() { return *utils; };
-
-    virtual void construct_json() = 0;
-
-    virtual void deal_reply() = 0;
-
-
+  virtual void deal_reply() = 0;
 };
 
-
-#endif //GPGFRONTEND_ZH_CN_TS_BASEAPI_H
+#endif  // GPGFRONTEND_ZH_CN_TS_BASEAPI_H

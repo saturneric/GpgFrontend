@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -30,7 +30,7 @@
 namespace GpgFrontend {
 
 class GpgUID {
-public:
+ public:
   [[nodiscard]] std::string name() const { return _uid_ref->name; }
 
   [[nodiscard]] std::string email() const { return _uid_ref->email; }
@@ -43,8 +43,8 @@ public:
 
   [[nodiscard]] bool invalid() const { return _uid_ref->invalid; }
 
-  [[nodiscard]] std::unique_ptr<std::vector<GpgKeySignature>>
-  signatures() const {
+  [[nodiscard]] std::unique_ptr<std::vector<GpgKeySignature>> signatures()
+      const {
     auto sigs = std::make_unique<std::vector<GpgKeySignature>>();
     auto sig_next = _uid_ref->signatures;
     while (sig_next != nullptr) {
@@ -69,13 +69,13 @@ public:
 
   GpgUID &operator=(const GpgUID &) = delete;
 
-private:
+ private:
   using UidRefHandler = std::unique_ptr<struct _gpgme_user_id,
                                         std::function<void(gpgme_user_id_t)>>;
 
   UidRefHandler _uid_ref = nullptr;
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_GPGUID_H
+#endif  // GPGFRONTEND_GPGUID_H

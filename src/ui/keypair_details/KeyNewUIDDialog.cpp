@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -41,9 +41,9 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
   errorLabel = new QLabel();
 
   auto gridLayout = new QGridLayout();
-  gridLayout->addWidget(new QLabel(tr("Name")), 0, 0);
-  gridLayout->addWidget(new QLabel(tr("Email")), 1, 0);
-  gridLayout->addWidget(new QLabel(tr("Comment")), 2, 0);
+  gridLayout->addWidget(new QLabel(_("Name")), 0, 0);
+  gridLayout->addWidget(new QLabel(_("Email")), 1, 0);
+  gridLayout->addWidget(new QLabel(_("Comment")), 2, 0);
 
   gridLayout->addWidget(name, 0, 1);
   gridLayout->addWidget(email, 1, 1);
@@ -51,14 +51,14 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
 
   gridLayout->addWidget(createButton, 3, 0, 1, 2);
   gridLayout->addWidget(
-      new QLabel(tr("Notice: The New UID Created will be set as Primary.")), 4,
+      new QLabel(_("Notice: The New UID Created will be set as Primary.")), 4,
       0, 1, 2);
   gridLayout->addWidget(errorLabel, 5, 0, 1, 2);
 
   connect(createButton, SIGNAL(clicked(bool)), this, SLOT(slotCreateNewUID()));
 
   this->setLayout(gridLayout);
-  this->setWindowTitle(tr("Create New UID"));
+  this->setWindowTitle(_("Create New UID"));
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setModal(true);
 
@@ -67,19 +67,20 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
 }
 
 void KeyNewUIDDialog::slotCreateNewUID() {
-  QString errorString = "";
+  std::stringstream error_stream;
 
   /**
    * check for errors in keygen dialog input
    */
   if ((name->text()).size() < 5) {
-    errorString.append(tr("  Name must contain at least five characters.  \n"));
+    error_stream << "  " << _("Name must contain at least five characters.")
+                 << std::endl;
   }
   if (email->text().isEmpty() || !check_email_address(email->text())) {
-    errorString.append(tr("  Please give a email address.   \n"));
+    error_stream << "  " << _("Please give a email address.") << std::endl;
   }
-
-  if (errorString.isEmpty()) {
+  auto error_string = error_stream.str();
+  if (error_string.empty()) {
     if (UidOperator::GetInstance().addUID(mKey, name->text().toStdString(),
                                           comment->text().toStdString(),
                                           email->text().toStdString())) {
@@ -96,7 +97,7 @@ void KeyNewUIDDialog::slotCreateNewUID() {
     QPalette error = errorLabel->palette();
     error.setColor(QPalette::Window, "#ff8080");
     errorLabel->setPalette(error);
-    errorLabel->setText(errorString);
+    errorLabel->setText(error_string.c_str());
 
     this->show();
   }

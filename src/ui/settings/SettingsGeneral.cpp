@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -45,12 +45,12 @@ GeneralTab::GeneralTab(QWidget* parent)
   /*****************************************
    * GpgFrontend Server
    *****************************************/
-  auto* serverBox = new QGroupBox(tr("GpgFrontend Server"));
+  auto* serverBox = new QGroupBox(_("GpgFrontend Server"));
   auto* serverBoxLayout = new QVBoxLayout();
   serverSelectBox = new QComboBox();
   serverBoxLayout->addWidget(serverSelectBox);
   serverBoxLayout->addWidget(new QLabel(
-      tr("Server that provides short key and key exchange services")));
+      _("Server that provides short key and key exchange services")));
 
   serverBox->setLayout(serverBoxLayout);
 #endif
@@ -58,10 +58,10 @@ GeneralTab::GeneralTab(QWidget* parent)
   /*****************************************
    * Save-Checked-Keys-Box
    *****************************************/
-  auto* saveCheckedKeysBox = new QGroupBox(tr("Save Checked Keys"));
+  auto* saveCheckedKeysBox = new QGroupBox(_("Save Checked Keys"));
   auto* saveCheckedKeysBoxLayout = new QHBoxLayout();
   saveCheckedKeysCheckBox = new QCheckBox(
-      tr("Save checked private keys on exit and restore them on next start."),
+      _("Save checked private keys on exit and restore them on next start."),
       this);
   saveCheckedKeysBoxLayout->addWidget(saveCheckedKeysCheckBox);
   saveCheckedKeysBox->setLayout(saveCheckedKeysBoxLayout);
@@ -70,10 +70,10 @@ GeneralTab::GeneralTab(QWidget* parent)
    * Key-Impport-Confirmation Box
    *****************************************/
   auto* importConfirmationBox =
-      new QGroupBox(tr("Confirm drag'n'drop key import"));
+      new QGroupBox(_("Confirm drag'n'drop key import"));
   auto* importConfirmationBoxLayout = new QHBoxLayout();
   importConfirmationCheckBox = new QCheckBox(
-      tr("Import files dropped on the keylist without confirmation."), this);
+      _("Import files dropped on the Key List without confirmation."), this);
   importConfirmationBoxLayout->addWidget(importConfirmationCheckBox);
   importConfirmationBox->setLayout(importConfirmationBoxLayout);
 
@@ -81,7 +81,7 @@ GeneralTab::GeneralTab(QWidget* parent)
   /*****************************************
    * Language Select Box
    *****************************************/
-  auto* langBox = new QGroupBox(tr("Language"));
+  auto* langBox = new QGroupBox(_("Language"));
   auto* langBoxLayout = new QVBoxLayout();
   langSelectBox = new QComboBox;
   lang = SettingsDialog::listLanguages();
@@ -91,9 +91,9 @@ GeneralTab::GeneralTab(QWidget* parent)
   }
 
   langBoxLayout->addWidget(langSelectBox);
-  langBoxLayout->addWidget(
-      new QLabel(tr("<b>NOTE: </b> GpgFrontend will restart automatically if "
-                    "you change the language!")));
+  langBoxLayout->addWidget(new QLabel(
+      "<b>" + QString(_("NOTE")) + _(": ") + "</b>" +
+      _("GpgFrontend will restart automatically if you change the language!")));
   langBox->setLayout(langBoxLayout);
   connect(langSelectBox, SIGNAL(currentIndexChanged(int)), this,
           SLOT(slotLanguageChanged()));
@@ -103,12 +103,12 @@ GeneralTab::GeneralTab(QWidget* parent)
   /*****************************************
    * Own Key Select Box
    *****************************************/
-  auto* ownKeyBox = new QGroupBox(tr("Own key"));
+  auto* ownKeyBox = new QGroupBox(_("Own key"));
   auto* ownKeyBoxLayout = new QVBoxLayout();
   auto* ownKeyServiceTokenLayout = new QHBoxLayout();
   ownKeySelectBox = new QComboBox;
-  getServiceTokenButton = new QPushButton(tr("Get Service Token"));
-  serviceTokenLabel = new QLabel(tr("No Service Token Found"));
+  getServiceTokenButton = new QPushButton(_("Get Service Token"));
+  serviceTokenLabel = new QLabel(_("No Service Token Found"));
   serviceTokenLabel->setAlignment(Qt::AlignCenter);
 
   ownKeyBox->setLayout(ownKeyBoxLayout);
@@ -116,7 +116,7 @@ GeneralTab::GeneralTab(QWidget* parent)
   mKeyList = new KeyList();
 
   // Fill the keyid hashmap
-  keyIds.insert({"", "<none>"});
+  keyIds.insert({QString(), "<none>"});
 
   auto private_keys = mKeyList->getAllPrivateKeys();
 
@@ -135,7 +135,7 @@ GeneralTab::GeneralTab(QWidget* parent)
           SLOT(slotGetServiceToken()));
 
   ownKeyBoxLayout->addWidget(new QLabel(
-      tr("Key pair for synchronization and identity authentication")));
+      _("Key pair for synchronization and identity authentication")));
   ownKeyBoxLayout->addWidget(ownKeySelectBox);
   ownKeyBoxLayout->addLayout(ownKeyServiceTokenLayout);
   ownKeyServiceTokenLayout->addWidget(getServiceTokenButton);
@@ -204,7 +204,7 @@ void GeneralTab::setSettings() {
   // Language setting
   QString langKey = settings.value("int/lang").toString();
   QString langValue = lang.value(langKey);
-  if (langKey != "") {
+  if (!langKey.isEmpty()) {
     langSelectBox->setCurrentIndex(langSelectBox->findText(langValue));
   }
 
@@ -277,7 +277,7 @@ void GeneralTab::slotLanguageChanged() { emit signalRestartNeeded(true); }
 #ifdef SERVER_SUPPORT
 void GeneralTab::slotOwnKeyIdChanged() {
   // Set ownKeyId to currently selected
-  this->serviceTokenLabel->setText(tr("No Service Token Found"));
+  this->serviceTokenLabel->setText(_("No Service Token Found"));
   serviceToken.clear();
 }
 #endif
@@ -296,8 +296,8 @@ void GeneralTab::slotGetServiceToken() {
 
   if (keyId.isEmpty()) {
     QMessageBox::critical(
-        this, tr("Invalid Operation"),
-        tr("Own Key can not be None while getting service token."));
+        this, _("Invalid Operation"),
+        _("Own Key can not be None while getting service token."));
     return;
   }
 
@@ -309,7 +309,7 @@ void GeneralTab::slotGetServiceToken() {
   GpgKey key = mCtx->getKeyRefById(keyId);
 
   if (!key.good) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Exists"));
+    QMessageBox::critical(this, _("Error"), _("Key Not Exists"));
     return;
   }
 
@@ -380,9 +380,9 @@ void GeneralTab::slotGetServiceToken() {
 
     if (!utils->checkDataValueStr("serviceToken") ||
         !utils->checkDataValueStr("fpr")) {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("The communication content with the server does "
-                               "not meet the requirements"));
+      QMessageBox::critical(this, _("Error"),
+                            _("The communication content with the server does "
+                              "not meet the requirements"));
       return;
     }
 
@@ -395,12 +395,12 @@ void GeneralTab::slotGetServiceToken() {
       // Auto update settings
       settings.setValue("general/serviceToken", serviceToken);
       serviceTokenLabel->setText(serviceToken);
-      QMessageBox::information(this, tr("Notice"),
-                               tr("Succeed in getting service token"));
+      QMessageBox::information(this, _("Notice"),
+                               _("Succeed in getting service token"));
     } else {
       QMessageBox::critical(
-          this, tr("Error"),
-          tr("There is a problem with the communication with the server"));
+          this, _("Error"),
+          _("There is a problem with the communication with the server"));
     }
   }
 }

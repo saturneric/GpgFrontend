@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -167,17 +167,17 @@ void FilePage::slotGoPath() {
 void FilePage::createPopupMenu() {
   popUpMenu = new QMenu();
 
-  auto openItemAct = new QAction(tr("Open"), this);
+  auto openItemAct = new QAction(_("Open"), this);
   connect(openItemAct, SIGNAL(triggered()), this, SLOT(slotOpenItem()));
-  auto deleteItemAct = new QAction(tr("Delete"), this);
+  auto deleteItemAct = new QAction(_("Delete"), this);
   connect(deleteItemAct, SIGNAL(triggered()), this, SLOT(slotDeleteItem()));
-  encryptItemAct = new QAction(tr("Encrypt and Sign"), this);
+  encryptItemAct = new QAction(_("Encrypt and Sign"), this);
   connect(encryptItemAct, SIGNAL(triggered()), this, SLOT(slotEncryptItem()));
-  decryptItemAct = new QAction(tr("Decrypt and Verify"), this);
+  decryptItemAct = new QAction(_("Decrypt and Verify"), this);
   connect(decryptItemAct, SIGNAL(triggered()), this, SLOT(slotDecryptItem()));
-  signItemAct = new QAction(tr("Only Sign"), this);
+  signItemAct = new QAction(_("Only Sign"), this);
   connect(signItemAct, SIGNAL(triggered()), this, SLOT(slotSignItem()));
-  verifyItemAct = new QAction(tr("Only Verify"), this);
+  verifyItemAct = new QAction(_("Only Verify"), this);
   connect(verifyItemAct, SIGNAL(triggered()), this, SLOT(slotVerifyItem()));
 
   popUpMenu->addAction(openItemAct);
@@ -233,8 +233,8 @@ void FilePage::slotDeleteItem() {
   QModelIndex index = dirTreeView->currentIndex();
   QVariant data = dirTreeView->model()->data(index);
 
-  auto ret = QMessageBox::warning(this, tr("Warning"),
-                                  tr("Are you sure you want to delete it?"),
+  auto ret = QMessageBox::warning(this, _("Warning"),
+                                  _("Are you sure you want to delete it?"),
                                   QMessageBox::Ok | QMessageBox::Cancel);
 
   if (ret == QMessageBox::Cancel) return;
@@ -242,8 +242,8 @@ void FilePage::slotDeleteItem() {
   qDebug() << "Delete Item" << data.toString();
 
   if (!dirModel->remove(index)) {
-    QMessageBox::critical(this, tr("Error"),
-                          tr("Unable to delete the file or folder."));
+    QMessageBox::critical(this, _("Error"),
+                          _("Unable to delete the file or folder."));
   }
 }
 

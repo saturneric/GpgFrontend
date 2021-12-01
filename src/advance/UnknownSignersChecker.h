@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -28,25 +28,22 @@
 #include "server/api/PubkeyGetter.h"
 
 class UnknownSignersChecker : public QObject {
-Q_OBJECT
-public:
+  Q_OBJECT
+ public:
+  UnknownSignersChecker(GpgFrontend::GpgContext *ctx,
+                        gpgme_verify_result_t result);
 
-    UnknownSignersChecker(GpgFrontend::GpgContext *ctx, gpgme_verify_result_t result);
+  void start();
 
-    void start();
+ private:
+  QString appPath;
+  QSettings settings;
+  GpgFrontend::GpgContext *mCtx;
+  gpgme_verify_result_t mResult;
 
-private:
+  QVector<QString> unknownFprs;
 
-    QString appPath;
-    QSettings settings;
-    GpgFrontend::GpgContext *mCtx;
-    gpgme_verify_result_t mResult;
-
-    QVector<QString> unknownFprs;
-
-    void check_signer(gpgme_signature_t sign);
-
+  void check_signer(gpgme_signature_t sign);
 };
 
-
-#endif //GPGFRONTEND_ZH_CN_TS_UNKNOWNSIGNERSCHECKER_H
+#endif  // GPGFRONTEND_ZH_CN_TS_UNKNOWNSIGNERSCHECKER_H

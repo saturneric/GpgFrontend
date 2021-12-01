@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -40,9 +40,9 @@ SendMailDialog::SendMailDialog(QString text, QWidget* parent)
       mText(std::move(text)) {
   if (smtpAddress.isEmpty()) {
     QMessageBox::critical(
-        this, tr("Incomplete configuration"),
-        tr("The SMTP address is empty, please go to the setting interface to "
-           "complete the configuration."));
+        this, _("Incomplete configuration"),
+        _("The SMTP address is empty, please go to the setting interface to "
+          "complete the configuration."));
 
     deleteLater();
     return;
@@ -96,21 +96,23 @@ void SendMailDialog::slotConfirm() {
   QStringList rcptStringList = recipientEdit->toPlainText().split(';');
 
   if (rcptStringList.isEmpty()) {
-    errString.append(tr("  Recipient cannot be empty  \n"));
+    errString.append(QString("  ") + _("Recipient cannot be empty") + "  \n");
   } else {
     for (const auto& reci : rcptStringList) {
       qDebug() << "Receiver" << reci.trimmed();
       if (!check_email_address(reci.trimmed())) {
-        errString.append(
-            tr("  One or more Recipient's Email Address is invalid  \n"));
+        errString.append(QString("  ") +
+                         _("One or more Recipient's Email Address is invalid") +
+                         "  \n");
         break;
       }
     }
   }
   if (senderEdit->text().isEmpty()) {
-    errString.append(tr("  Sender cannot be empty  \n"));
+    errString.append(QString("  ") + _("Sender cannot be empty") + "  \n");
   } else if (!check_email_address(senderEdit->text())) {
-    errString.append(tr("  Sender's Email Address is invalid  \n"));
+    errString.append(QString("  ") + _("Sender's Email Address is invalid") +
+                     "  \n");
   }
 
   if (!errString.isEmpty()) {
@@ -166,26 +168,25 @@ void SendMailDialog::slotConfirm() {
   // Now we can send the mail
   if (!smtp.connectToHost()) {
     qDebug() << "Connect to SMTP Server Failed";
-    QMessageBox::critical(this, tr("Fail"), tr("Fail to Connect SMTP Server"));
+    QMessageBox::critical(this, _("Fail"), _("Fail to Connect SMTP Server"));
     return;
   }
   if (!smtp.login()) {
     qDebug() << "Login to SMTP Server Failed";
-    QMessageBox::critical(this, tr("Fail"),
-                          tr("Fail to Login into SMTP Server"));
+    QMessageBox::critical(this, _("Fail"), _("Fail to Login into SMTP Server"));
     return;
   }
   if (!smtp.sendMail(message)) {
     qDebug() << "Send Mail to SMTP Server Failed";
-    QMessageBox::critical(this, tr("Fail"),
-                          tr("Fail to Send Mail to SMTP Server"));
+    QMessageBox::critical(this, _("Fail"),
+                          _("Fail to Send Mail to SMTP Server"));
     return;
   }
   smtp.quit();
 
   // Close after sending email
-  QMessageBox::information(this, tr("Success"),
-                           tr("Succeed in Sending Mail to SMTP Server"));
+  QMessageBox::information(this, _("Success"),
+                           _("Succeed in Sending Mail to SMTP Server"));
   deleteLater();
 }
 

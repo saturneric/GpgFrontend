@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -23,11 +23,11 @@
  */
 
 #include <gtest/gtest.h>
-#include "GpgFrontendTest.h"
 
 #include <string>
 #include <vector>
 
+#include "GpgFrontendTest.h"
 #include "gpg/GpgConstants.h"
 #include "gpg/function/BasicOperator.h"
 #include "gpg/function/GpgKeyGetter.h"

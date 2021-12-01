@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -23,20 +23,19 @@
  */
 
 #include "gpg/function/BasicOperator.h"
+
 #include <vector>
+
 #include "gpg/function/GpgKeyGetter.h"
 
 GpgFrontend::GpgError GpgFrontend::BasicOperator::Encrypt(
-    GpgFrontend::KeyArgsList&& keys,
-    GpgFrontend::BypeArrayRef in_buffer,
-    GpgFrontend::ByteArrayPtr& out_buffer,
-    GpgFrontend::GpgEncrResult& result) {
+    GpgFrontend::KeyArgsList&& keys, GpgFrontend::BypeArrayRef in_buffer,
+    GpgFrontend::ByteArrayPtr& out_buffer, GpgFrontend::GpgEncrResult& result) {
   // gpgme_encrypt_result_t e_result;
   gpgme_key_t recipients[keys.size() + 1];
 
   int index = 0;
-  for (const auto& key : keys)
-    recipients[index++] = gpgme_key_t(key);
+  for (const auto& key : keys) recipients[index++] = gpgme_key_t(key);
 
   // Last entry data_in array has to be nullptr
   recipients[keys.size()] = nullptr;
@@ -56,8 +55,7 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Encrypt(
 }
 
 GpgFrontend::GpgError GpgFrontend::BasicOperator::Decrypt(
-    BypeArrayRef in_buffer,
-    GpgFrontend::ByteArrayPtr& out_buffer,
+    BypeArrayRef in_buffer, GpgFrontend::ByteArrayPtr& out_buffer,
     GpgFrontend::GpgDecrResult& result) {
   gpgme_error_t err;
 
@@ -74,8 +72,7 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Decrypt(
 }
 
 GpgFrontend::GpgError GpgFrontend::BasicOperator::Verify(
-    BypeArrayRef& in_buffer,
-    ByteArrayPtr& sig_buffer,
+    BypeArrayRef& in_buffer, ByteArrayPtr& sig_buffer,
     GpgVerifyResult& result) const {
   gpgme_error_t err;
 
@@ -131,10 +128,8 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Sign(KeyArgsList&& keys,
 }
 
 gpgme_error_t GpgFrontend::BasicOperator::DecryptVerify(
-    BypeArrayRef in_buffer,
-    ByteArrayPtr& out_buffer,
-    GpgDecrResult& decrypt_result,
-    GpgVerifyResult& verify_result) {
+    BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
+    GpgDecrResult& decrypt_result, GpgVerifyResult& verify_result) {
   gpgme_error_t err;
 
   GpgData data_in(in_buffer.data(), in_buffer.size()), data_out;
@@ -154,11 +149,8 @@ gpgme_error_t GpgFrontend::BasicOperator::DecryptVerify(
 }
 
 gpgme_error_t GpgFrontend::BasicOperator::EncryptSign(
-    KeyArgsList&& keys,
-    KeyArgsList&& signers,
-    BypeArrayRef in_buffer,
-    ByteArrayPtr& out_buffer,
-    GpgEncrResult& encr_result,
+    KeyArgsList&& keys, KeyArgsList&& signers, BypeArrayRef in_buffer,
+    ByteArrayPtr& out_buffer, GpgEncrResult& encr_result,
     GpgSignResult& sign_result) {
   gpgme_error_t err;
   SetSigners(signers);
@@ -168,8 +160,7 @@ gpgme_error_t GpgFrontend::BasicOperator::EncryptSign(
 
   // set key for user
   int index = 0;
-  for (const auto& key : keys)
-    recipients[index++] = gpgme_key_t(key);
+  for (const auto& key : keys) recipients[index++] = gpgme_key_t(key);
 
   // Last entry dataIn array has to be nullptr
   recipients[keys.size()] = nullptr;

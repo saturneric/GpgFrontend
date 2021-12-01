@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -34,7 +34,7 @@ KeyGenDialog::KeyGenDialog(QWidget* parent) : QDialog(parent) {
   buttonBox =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
-  this->setWindowTitle(tr("Generate Key"));
+  this->setWindowTitle(_("Generate Key"));
   this->setModal(true);
 
   connect(this, SIGNAL(KeyGenerated()), SignalStation::GetInstance(),
@@ -66,16 +66,17 @@ void KeyGenDialog::generateKeyDialog() {
 }
 
 void KeyGenDialog::slotKeyGenAccept() {
-  QString errorString = "";
+  std::stringstream error_stream;
 
   /**
    * check for errors in keygen dialog input
    */
   if ((nameEdit->text()).size() < 5) {
-    errorString.append(tr("  Name must contain at least five characters.  \n"));
+    error_stream << "  " << _("Name must contain at least five characters.")
+                 << std::endl;
   }
   if (emailEdit->text().isEmpty() || !check_email_address(emailEdit->text())) {
-    errorString.append(tr("  Please give a email address.   \n"));
+    error_stream << "  " << _("Please give a email address.") << std::endl;
   }
 
   /**
@@ -83,10 +84,13 @@ void KeyGenDialog::slotKeyGenAccept() {
    * in the future)
    */
   if (dateEdit->dateTime() > QDateTime::currentDateTime().addYears(2)) {
-    errorString.append(tr("  Expiration time no more than 2 years.  \n"));
+    error_stream << "  " << _("Expiration time no more than 2 years.")
+                 << std::endl;
   }
 
-  if (errorString.isEmpty()) {
+  auto err_string = error_stream.str();
+
+  if (err_string.empty()) {
     /**
      * create the string for key generation
      */
@@ -124,15 +128,15 @@ void KeyGenDialog::slotKeyGenAccept() {
       auto* msg_box = new QMessageBox(nullptr);
       msg_box->setAttribute(Qt::WA_DeleteOnClose);
       msg_box->setStandardButtons(QMessageBox::Ok);
-      msg_box->setWindowTitle(tr("Success"));
-      msg_box->setText(tr("The new key pair has been generated."));
+      msg_box->setWindowTitle(_("Success"));
+      msg_box->setText(_("The new key pair has been generated."));
       msg_box->setModal(false);
       msg_box->open();
 
       emit KeyGenerated();
       this->close();
     } else {
-      QMessageBox::critical(this, tr("Failure"), tr(gpgme_strerror(error)));
+      QMessageBox::critical(this, _("Failure"), _(gpgme_strerror(error)));
     }
 
   } else {
@@ -143,7 +147,7 @@ void KeyGenDialog::slotKeyGenAccept() {
     QPalette error = errorLabel->palette();
     error.setColor(QPalette::Window, "#ff8080");
     errorLabel->setPalette(error);
-    errorLabel->setText(errorString);
+    errorLabel->setText(err_string.c_str());
 
     this->show();
   }
@@ -161,18 +165,18 @@ QGroupBox* KeyGenDialog::create_key_usage_group_box() {
   auto* groupBox = new QGroupBox(this);
   auto* grid = new QGridLayout(this);
 
-  groupBox->setTitle(tr("Key Usage"));
+  groupBox->setTitle(_("Key Usage"));
 
-  auto* encrypt = new QCheckBox(tr("Encryption"), groupBox);
+  auto* encrypt = new QCheckBox(_("Encryption"), groupBox);
   encrypt->setTristate(false);
 
-  auto* sign = new QCheckBox(tr("Signing"), groupBox);
+  auto* sign = new QCheckBox(_("Signing"), groupBox);
   sign->setTristate(false);
 
-  auto* cert = new QCheckBox(tr("Certification"), groupBox);
+  auto* cert = new QCheckBox(_("Certification"), groupBox);
   cert->setTristate(false);
 
-  auto* auth = new QCheckBox(tr("Authentication"), groupBox);
+  auto* auth = new QCheckBox(_("Authentication"), groupBox);
   auth->setTristate(false);
 
   keyUsageCheckBoxes.push_back(encrypt);
@@ -317,7 +321,7 @@ bool KeyGenDialog::check_email_address(const QString& str) {
 }
 
 QGroupBox* KeyGenDialog::create_basic_info_group_box() {
-  errorLabel = new QLabel(tr(""));
+  errorLabel = new QLabel();
   nameEdit = new QLineEdit(this);
   emailEdit = new QLineEdit(this);
   commentEdit = new QLineEdit(this);
@@ -348,14 +352,14 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
 
   auto* vbox1 = new QGridLayout;
 
-  vbox1->addWidget(new QLabel(tr("Name:")), 0, 0);
-  vbox1->addWidget(new QLabel(tr("Email Address:")), 1, 0);
-  vbox1->addWidget(new QLabel(tr("Comment:")), 2, 0);
-  vbox1->addWidget(new QLabel(tr("Expiration Date:")), 3, 0);
-  vbox1->addWidget(new QLabel(tr("Never Expire")), 3, 3);
-  vbox1->addWidget(new QLabel(tr("KeySize (in Bit):")), 4, 0);
-  vbox1->addWidget(new QLabel(tr("Key Type:")), 5, 0);
-  vbox1->addWidget(new QLabel(tr("Non Pass Phrase")), 6, 0);
+  vbox1->addWidget(new QLabel(QString(_("Name")) + ": "), 0, 0);
+  vbox1->addWidget(new QLabel(QString(_("Email Address")) + ": "), 1, 0);
+  vbox1->addWidget(new QLabel(QString(_("Comment")) + ": "), 2, 0);
+  vbox1->addWidget(new QLabel(QString(_("Expiration Date")) + ": "), 3, 0);
+  vbox1->addWidget(new QLabel(QString(_("Never Expire")) + ": "), 3, 3);
+  vbox1->addWidget(new QLabel(QString(_("KeySize (in Bit)")) + ": "), 4, 0);
+  vbox1->addWidget(new QLabel(QString(_("Key Type")) + ": "), 5, 0);
+  vbox1->addWidget(new QLabel(QString(_("Non Pass Phrase")) + ": "), 6, 0);
 
   vbox1->addWidget(nameEdit, 0, 1, 1, 3);
   vbox1->addWidget(emailEdit, 1, 1, 1, 3);
@@ -368,7 +372,7 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
 
   auto basicInfoGroupBox = new QGroupBox();
   basicInfoGroupBox->setLayout(vbox1);
-  basicInfoGroupBox->setTitle(tr("Basic Information"));
+  basicInfoGroupBox->setTitle(_("Basic Information"));
 
   return basicInfoGroupBox;
 }

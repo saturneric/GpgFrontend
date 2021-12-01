@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -44,17 +44,17 @@ KeyServerImportDialog::KeyServerImportDialog(KeyList* keyList, bool automatic,
   }
 
   // Buttons
-  closeButton = createButton(tr("&Close"), SLOT(close()));
-  importButton = createButton(tr("&Import ALL"), SLOT(slotImport()));
+  closeButton = createButton(_("Close"), SLOT(close()));
+  importButton = createButton(_("Import ALL"), SLOT(slotImport()));
   importButton->setDisabled(true);
-  searchButton = createButton(tr("&Search"), SLOT(slotSearch()));
+  searchButton = createButton(_("Search"), SLOT(slotSearch()));
 
   // Line edit for search string
-  searchLabel = new QLabel(tr("Search String:"));
+  searchLabel = new QLabel(QString(_("Search String")) + _(": "));
   searchLineEdit = new QLineEdit();
 
   // combobox for keyserverlist
-  keyServerLabel = new QLabel(tr("Key Server:"));
+  keyServerLabel = new QLabel(QString(_("Key Server")) + _(": "));
   keyServerComboBox = createComboBox();
 
   // table containing the keys found
@@ -101,9 +101,9 @@ KeyServerImportDialog::KeyServerImportDialog(KeyList* keyList, bool automatic,
 
   this->setLayout(mainLayout);
   if (automatic)
-    this->setWindowTitle(tr("Update Keys from Keyserver"));
+    this->setWindowTitle(_("Update Keys from Keyserver"));
   else
-    this->setWindowTitle(tr("Import Keys from Keyserver"));
+    this->setWindowTitle(_("Import Keys from Keyserver"));
 
   if (automatic) {
     this->setFixedSize(240, 42);
@@ -168,7 +168,7 @@ void KeyServerImportDialog::createKeysTable() {
   keysTable->setSelectionMode(QAbstractItemView::SingleSelection);
 
   QStringList labels;
-  labels << tr("UID") << tr("Creation date") << tr("KeyID") << tr("Tag");
+  labels << _("UID") << _("Creation date") << _("KeyID") << _("Tag");
   keysTable->horizontalHeader()->setSectionResizeMode(
       0, QHeaderView::ResizeToContents);
   keysTable->setHorizontalHeaderLabels(labels);
@@ -190,7 +190,7 @@ void KeyServerImportDialog::setMessage(const QString& text, bool error) {
 
 void KeyServerImportDialog::slotSearch() {
   if (searchLineEdit->text().isEmpty()) {
-    setMessage("<h4>" + tr("Text is empty.") + "</h4>", false);
+    setMessage("<h4>" + QString(_("Text is empty.")) + "</h4>", false);
     return;
   }
 
@@ -233,16 +233,16 @@ void KeyServerImportDialog::slotSearchFinished() {
     qDebug() << "Error From Reply" << reply->errorString();
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
-        setMessage(tr("Not Key Found"), true);
+        setMessage(_("Not Key Found"), true);
         break;
       case QNetworkReply::TimeoutError:
-        setMessage(tr("Timeout"), true);
+        setMessage(_("Timeout"), true);
         break;
       case QNetworkReply::HostNotFoundError:
-        setMessage(tr("Key Server Not Found"), true);
+        setMessage(_("Key Server Not Found"), true);
         break;
       default:
-        setMessage(tr("Connection Error"), true);
+        setMessage(_("Connection Error"), true);
     }
     return;
   }
@@ -250,32 +250,35 @@ void KeyServerImportDialog::slotSearchFinished() {
   if (first_line.contains("Error")) {
     QString text = QString(reply->readLine(1024));
     if (text.contains("Too many responses")) {
-      setMessage("<h4>" + tr("Too many responses from keyserver!") + "</h4>",
-                 true);
+      setMessage(
+          "<h4>" + QString(_("Too many responses from keyserver!")) + "</h4>",
+          true);
       return;
     } else if (text.contains("No keys found")) {
       // if string looks like hex string, search again with 0x prepended
       QRegExp rx("[0-9A-Fa-f]*");
       QString query = searchLineEdit->text();
       if (rx.exactMatch(query)) {
-        setMessage("<h4>" +
-                       tr("No keys found, input may be kexId, retrying search "
-                          "with 0x.") +
-                       "</h4>",
-                   true);
+        setMessage(
+            "<h4>" +
+                QString(_("No keys found, input may be kexId, retrying search "
+                          "with 0x.")) +
+                "</h4>",
+            true);
         searchLineEdit->setText(query.prepend("0x"));
         this->slotSearch();
         return;
       } else {
-        setMessage("<h4>" + tr("No keys found containing the search string!") +
-                       "</h4>",
-                   true);
+        setMessage(
+            "<h4>" + QString(_("No keys found containing the search string!")) +
+                "</h4>",
+            true);
         return;
       }
     } else if (text.contains("Insufficiently specific words")) {
-      setMessage(
-          "<h4>" + tr("Insufficiently specific search string!") + "</h4>",
-          true);
+      setMessage("<h4>" + QString(_("Insufficiently specific search string!")) +
+                     "</h4>",
+                 true);
       return;
     } else {
       setMessage(text, true);
@@ -306,11 +309,11 @@ void KeyServerImportDialog::slotSearchFinished() {
           }
           if (flags.contains("r")) {
             keysTable->setItem(row, 3,
-                               new QTableWidgetItem(QString(tr("revoked"))));
+                               new QTableWidgetItem(QString(_("revoked"))));
           }
           if (flags.contains("d")) {
             keysTable->setItem(row, 3,
-                               new QTableWidgetItem(QString(tr("disabled"))));
+                               new QTableWidgetItem(QString(_("disabled"))));
           }
         }
 
@@ -350,9 +353,12 @@ void KeyServerImportDialog::slotSearchFinished() {
           }
         }
       }
-      setMessage(tr("<h4>%1 keys found. Double click a key to import it.</h4>")
-                     .arg(row),
-                 false);
+      setMessage(
+          QString("<h4>") +
+              QString(_("%1 keys found. Double click a key to import it."))
+                  .arg(row) +
+              "</h4>",
+          false);
     }
     keysTable->resizeColumnsToContents();
     importButton->setDisabled(keysTable->size().isEmpty());
@@ -424,16 +430,16 @@ void KeyServerImportDialog::slotImportFinished() {
     qDebug() << "Error From Reply" << reply->errorString();
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
-        setMessage(tr("Key Not Found"), true);
+        setMessage(_("Key Not Found"), true);
         break;
       case QNetworkReply::TimeoutError:
-        setMessage(tr("Timeout"), true);
+        setMessage(_("Timeout"), true);
         break;
       case QNetworkReply::HostNotFoundError:
-        setMessage(tr("Key Server Not Found"), true);
+        setMessage(_("Key Server Not Found"), true);
         break;
       default:
-        setMessage(tr("Connection Error"), true);
+        setMessage(_("Connection Error"), true);
     }
     if (mAutomatic) {
       setWindowFlags(Qt::Window | Qt::WindowTitleHint |
@@ -454,9 +460,9 @@ void KeyServerImportDialog::slotImportFinished() {
   this->importKeys(std::make_unique<ByteArray>(key.constData(), key.length()));
 
   if (mAutomatic) {
-    setMessage(tr("<h4>Key Updated</h4>"), false);
+    setMessage(QString("<h4>") + _("Key Updated") + "</h4>", false);
   } else {
-    setMessage(tr("<h4>Key Imported</h4>"), false);
+    setMessage(QString("<h4>") + _("Key Imported") + "</h4>", false);
   }
 }
 
@@ -518,7 +524,7 @@ KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)
   mainLayout->addLayout(messageLayout, 0, 0, 1, 3);
 
   this->setLayout(mainLayout);
-  this->setWindowTitle(tr("Upload Keys from Keyserver"));
+  this->setWindowTitle(_("Upload Keys from Keyserver"));
   this->setFixedSize(200, 42);
   this->setModal(true);
 }

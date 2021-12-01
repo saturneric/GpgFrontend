@@ -54,18 +54,40 @@ endif ()
 # Get ALL SOURCE FILES
 file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
+# i18n
 if (MULTI_LANG_SUPPORT)
     # Set Translation Files
-    set(QT_TS_FILES
-            gpgfrontend_en_us.ts gpgfrontend_zh_cn.ts
-            gpgfrontend_fr.ts gpgfrontend_ru.ts gpgfrontend_es.ts)
-    list(TRANSFORM QT_TS_FILES PREPEND ${CMAKE_SOURCE_DIR}/resource/ts/)
-    message(STATUS "QT_TS_FILES ${QT_TS_FILES}")
-    set(QT_QM_FILES_OUTPUT_DIR ${RESOURCE_OUTPUT_DIRECTORY}/ts)
-    set_source_files_properties(${QT_TS_FILES} PROPERTIES OUTPUT_LOCATION ${QT_QM_FILES_OUTPUT_DIR})
-    QT5_create_translation(QON_QM_FILES ${CMAKE_SOURCE_DIR} ${QT_TS_FILES})
-    message(STATUS "QON_QM_FILES ${QON_QM_FILES}")
-    add_custom_target(translations DEPENDS ${QON_QM_FILES})
+    find_package(Gettext REQUIRED)
+    FIND_PROGRAM(GETTEXT_MSGFMT_EXECUTABLE msgfmt)
+    FIND_PROGRAM(GETTEXT_XGETTEXT_EXECUTABLE xgettext)
+    if (NOT GETTEXT_MSGFMT_EXECUTABLE OR NOT GETTEXT_XGETTEXT_EXECUTABLE)
+        message(ERROR "msgfmt or xgettext not found. Translations will *not* be installed")
+    else (NOT GETTEXT_MSGFMT_EXECUTABLE)
+        message(STATUS "Setting target translations")
+        add_custom_target(translations)
+        set(OUTPUT_POT_PATH ${CMAKE_SOURCE_DIR}/resource/locale/template/${PROJECT_NAME}.pot)
+        add_custom_command(
+                TARGET translations
+                COMMAND find ${CMAKE_SOURCE_DIR}/src -iname \"*.cpp\" | xargs xgettext --package-name=${PROJECT_NAME} --copyright-holder=Saturneric --package-version=${PROJECT_VERSION} --msgid-bugs-address=eric@bktus.com --add-comments="/*" --c++ -k_ -o ${OUTPUT_POT_PATH}
+        )
+
+        file(GLOB ALL_PO_FILES ${CMAKE_SOURCE_DIR}/resource/locale/po/*.po)
+        SET(GMO_FILES)
+        message(STATUS "ALL_PO_FILES ${ALL_PO_FILES}")
+
+        foreach (_poFile ${ALL_PO_FILES})
+            GET_FILENAME_COMPONENT(_poFileName ${_poFile} NAME)
+            string(REGEX REPLACE "\\.[^.]*$" "" _langName ${_poFileName})
+            message(STATUS "_poFileName ${_langName}")
+            make_directory(${CMAKE_SOURCE_DIR}/resource/locale/out/${_langName}/LC_MESSAGES)
+            add_custom_command(
+                    TARGET translations
+                    COMMAND msgfmt --check --verbose --output-file ${CMAKE_SOURCE_DIR}/resource/locale/out/${_langName}/LC_MESSAGES/GpgFrontend.mo ${_poFile}
+            )
+        endforeach ()
+
+
+    endif ()
 endif ()
 
 if (BASIC_ENV_CONFIG)
@@ -79,6 +101,10 @@ if (APPLICATION_BUILD)
     file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/resource/conf DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+    if (MULTI_LANG_SUPPORT)
+        make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales)
+        file(COPY ${CMAKE_SOURCE_DIR}/resource/locale/out/ DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/locales FOLLOW_SYMLINK_CHAIN)
+    endif ()
 endif ()
 
 if (APPLICATION_BUILD)
@@ -185,7 +211,7 @@ if (APPLICATION_BUILD)
                 ${QT_DEPENDENCY_LIBS}
                 crypto ssl)
     else ()
-        message(STATUS "Link Application Static Library For UNIX")
+        message(STATUS "Link Application Static Library For UNIX ")
         target_link_libraries(${AppName}
                 ${GPGFRONTEND_LIBS}
                 ${QT_DEPENDENCY_LIBS}

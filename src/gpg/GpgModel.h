@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -25,11 +25,11 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
 #define GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
 
-#include "gpg/model/GpgData.h"
-#include "gpg/model/GpgKey.h"
-
 #include <list>
 #include <utility>
+
+#include "gpg/model/GpgData.h"
+#include "gpg/model/GpgKey.h"
 
 namespace GpgFrontend {
 

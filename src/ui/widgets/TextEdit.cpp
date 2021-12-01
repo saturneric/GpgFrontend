@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -23,6 +23,8 @@
  */
 
 #include "ui/widgets/TextEdit.h"
+
+#include <boost/format.hpp>
 
 namespace GpgFrontend::UI {
 
@@ -46,7 +48,7 @@ TextEdit::TextEdit(QWidget* parent) : QWidget(parent) {
 }
 
 void TextEdit::slotNewTab() {
-  QString header = tr("untitled") + QString::number(++countPage) + ".txt";
+  QString header = _("untitled") + QString::number(++countPage) + ".txt";
 
   auto* page = new EditorPage();
   tabWidget->addTab(page, header);
@@ -83,9 +85,11 @@ void TextEdit::slotOpenFile(QString& path) {
     page->getTextPage()->setFocus();
     page->readFile();
   } else {
-    QMessageBox::warning(
-        this, tr("Warning"),
-        tr("Cannot read file %1:\n%2.").arg(path).arg(file.errorString()));
+    QMessageBox::warning(this, _("Warning"),
+                         (boost::format(_("Cannot read file %1%:\n%2%.")) %
+                          path.toStdString() % file.errorString().toStdString())
+                             .str()
+                             .c_str());
   }
 
   file.close();
@@ -93,7 +97,7 @@ void TextEdit::slotOpenFile(QString& path) {
 
 void TextEdit::slotOpen() {
   QStringList fileNames =
-      QFileDialog::getOpenFileNames(this, tr("Open file"), QDir::currentPath());
+      QFileDialog::getOpenFileNames(this, _("Open file"), QDir::currentPath());
   for (const auto& fileName : fileNames) {
     if (!fileName.isEmpty()) {
       QFile file(fileName);
@@ -118,10 +122,12 @@ void TextEdit::slotOpen() {
         // enableAction(true)
         file.close();
       } else {
-        QMessageBox::warning(this, tr("Warning"),
-                             tr("Cannot read file %1:\n%2.")
-                                 .arg(fileName)
-                                 .arg(file.errorString()));
+        QMessageBox::warning(
+            this, _("Warning"),
+            (boost::format(_("Cannot read file %1%:\n%2%.")) %
+             fileName.toStdString() % file.errorString().toStdString())
+                .str()
+                .c_str());
       }
     }
   }
@@ -164,13 +170,16 @@ bool TextEdit::saveFile(const QString& fileName) {
     int curIndex = tabWidget->currentIndex();
     tabWidget->setTabText(curIndex, strippedName(fileName));
     page->setFilePath(fileName);
-    //      statusBar()->showMessage(tr("File saved"), 2000);
+    //      statusBar()->showMessage(_("File saved"), 2000);
     file.close();
     return true;
   } else {
     QMessageBox::warning(
-        this, tr("File"),
-        tr("Cannot write file %1:\n%2.").arg(fileName).arg(file.errorString()));
+        this, _("Warning"),
+        (boost::format(_("Cannot read file %1%:\n%2%.")) %
+         fileName.toStdString() % file.errorString().toStdString())
+            .str()
+            .c_str());
     return false;
   }
 }
@@ -182,13 +191,13 @@ bool TextEdit::slotSaveAs() {
 
   EditorPage* page = slotCurPageTextEdit();
   QString path;
-  if (page->getFilePath() != "") {
+  if (!page->getFilePath().isEmpty()) {
     path = page->getFilePath();
   } else {
     path = tabWidget->tabText(tabWidget->currentIndex()).remove(0, 2);
   }
 
-  QString fileName = QFileDialog::getSaveFileName(this, tr("Save file"), path);
+  QString fileName = QFileDialog::getSaveFileName(this, _("Save file"), path);
   return saveFile(fileName);
 }
 
@@ -250,16 +259,18 @@ bool TextEdit::maybeSaveCurrentTab(bool askToSave) {
     const QString& filePath = page->getFilePath();
     if (askToSave) {
       result = QMessageBox::warning(
-          this, tr("Unsaved document"),
-          tr("The document \"%1\" has been modified. Do you want to "
-             "save your changes?<br/>")
+          this, _("Unsaved document"),
+          QString(_("The document \"%1\" has been modified. Do you want to "
+                    "save your changes?"))
                   .arg(docname) +
-              tr("<b>Note:</b> If you don't save these files, all changes are "
-                 "lost.<br/>"),
+              "<br/><b>" + _("Note:") + "</b>" +
+              _("If you don't save these files, all changes are "
+                "lost.") +
+              "<br/>",
           QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     }
     if ((result == QMessageBox::Save) || (!askToSave)) {
-      if (filePath == "") {
+      if (filePath.isEmpty()) {
         // QString docname = tabWidget->tabText(tabWidget->currentIndex());
         // docname.remove(0,2);
         return slotSaveAs();
@@ -398,8 +409,11 @@ void TextEdit::loadFile(const QString& fileName) {
   QFile file(fileName);
   if (!file.open(QFile::ReadOnly | QFile::Text)) {
     QMessageBox::warning(
-        this, tr("Application"),
-        tr("Cannot read file %1:\n%2.").arg(fileName).arg(file.errorString()));
+        this, _("Warning"),
+        (boost::format(_("Cannot read file %1%:\n%2%.")) %
+         fileName.toStdString() % file.errorString().toStdString())
+            .str()
+            .c_str());
     return;
   }
   QTextStream in(&file);
@@ -409,7 +423,7 @@ void TextEdit::loadFile(const QString& fileName) {
   slotCurPageTextEdit()->setFilePath(fileName);
   tabWidget->setTabText(tabWidget->currentIndex(), strippedName(fileName));
   file.close();
-  // statusBar()->showMessage(tr("File loaded"), 2000);
+  // statusBar()->showMessage(_("File loaded"), 2000);
 }
 
 QString TextEdit::strippedName(const QString& fullFileName) {
@@ -434,7 +448,7 @@ void TextEdit::slotPrint() {
   }
   document->print(&printer);
 
-  // statusBar()->showMessage(tr("Ready"), 2000);
+  // statusBar()->showMessage(_("Ready"), 2000);
 #endif
 }
 

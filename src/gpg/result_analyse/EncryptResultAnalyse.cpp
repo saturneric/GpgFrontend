@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -29,25 +29,26 @@ GpgFrontend::EncryptResultAnalyse::EncryptResultAnalyse(GpgError error,
     : error(error), result(std::move(result)) {}
 
 void GpgFrontend::EncryptResultAnalyse::do_analyse() {
-  LOG(INFO) << "Start Encrypt Result Analyse";
+  LOG(INFO) << _("Start Encrypt Result Analyse");
 
-  stream << "[#] Encrypt Operation ";
+  stream << "[#] " << _("Encrypt Operation") << " ";
 
   if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
-    stream << "[Success]" << std::endl;
+    stream << "[" << _("Success") << "]" << std::endl;
   else {
-    stream << "[Failed] " << gpgme_strerror(error) << std::endl;
+    stream << "[" << _("Failed") << "] " << gpgme_strerror(error) << std::endl;
     setStatus(-1);
   }
 
   if (!~status) {
     stream << "------------>" << std::endl;
     if (result != nullptr) {
-      stream << "Invalid Recipients: " << std::endl;
+      stream << _("Invalid Recipients") << ": " << std::endl;
       auto inv_reci = result->invalid_recipients;
       while (inv_reci != nullptr) {
-        stream << "Fingerprint: " << inv_reci->fpr << std::endl;
-        stream << "Reason: " << gpgme_strerror(inv_reci->reason) << std::endl;
+        stream << _("Fingerprint") << ": " << inv_reci->fpr << std::endl;
+        stream << _("Reason") << ": " << gpgme_strerror(inv_reci->reason)
+               << std::endl;
         stream << std::endl;
 
         inv_reci = inv_reci->next;

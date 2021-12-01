@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -41,7 +41,7 @@ EditorPage::EditorPage(QString filePath, QWidget* parent)
   mainLayout->addWidget(textPage);
   mainLayout->setContentsMargins(0, 0, 0, 0);
   setLayout(mainLayout);
-  
+
   textPage->setFocus();
 
   // Front in same width

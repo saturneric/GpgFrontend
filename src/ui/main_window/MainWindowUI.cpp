@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -29,256 +29,255 @@ namespace GpgFrontend::UI {
 void MainWindow::createActions() {
   /* Main Menu
    */
-  newTabAct = new QAction(tr("&New"), this);
+  newTabAct = new QAction(_("New"), this);
   newTabAct->setIcon(QIcon(":misc_doc.png"));
   QList<QKeySequence> newTabActShortcutList;
   newTabActShortcutList.append(QKeySequence(Qt::CTRL + Qt::Key_N));
   newTabActShortcutList.append(QKeySequence(Qt::CTRL + Qt::Key_T));
   newTabAct->setShortcuts(newTabActShortcutList);
-  newTabAct->setToolTip(tr("Open a new file"));
+  newTabAct->setToolTip(_("Open a new file"));
   connect(newTabAct, SIGNAL(triggered()), edit, SLOT(slotNewTab()));
 
-  openAct = new QAction(tr("&Open..."), this);
+  openAct = new QAction(_("Open..."), this);
   openAct->setIcon(QIcon(":fileopen.png"));
   openAct->setShortcut(QKeySequence::Open);
-  openAct->setToolTip(tr("Open an existing file"));
+  openAct->setToolTip(_("Open an existing file"));
   connect(openAct, SIGNAL(triggered()), edit, SLOT(slotOpen()));
 
-  browserAct = new QAction(tr("&Browser"), this);
+  browserAct = new QAction(_("Browser"), this);
   browserAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
-  browserAct->setToolTip(tr("Open a file browser"));
+  browserAct->setToolTip(_("Open a file browser"));
   connect(browserAct, SIGNAL(triggered()), this, SLOT(slotOpenFileTab()));
 
-  saveAct = new QAction(tr("&Save"), this);
+  saveAct = new QAction(_("Save"), this);
   saveAct->setIcon(QIcon(":filesave.png"));
   saveAct->setShortcut(QKeySequence::Save);
-  saveAct->setToolTip(tr("Save the current File"));
+  saveAct->setToolTip(_("Save the current File"));
   connect(saveAct, SIGNAL(triggered()), edit, SLOT(slotSave()));
 
-  saveAsAct = new QAction(tr("Save &As") + "...", this);
+  saveAsAct = new QAction(QString(_("Save As")) + "...", this);
   saveAsAct->setIcon(QIcon(":filesaveas.png"));
   saveAsAct->setShortcut(QKeySequence::SaveAs);
-  saveAsAct->setToolTip(tr("Save the current File as..."));
+  saveAsAct->setToolTip(_("Save the current File as..."));
   connect(saveAsAct, SIGNAL(triggered()), edit, SLOT(slotSaveAs()));
 
-  printAct = new QAction(tr("&Print"), this);
+  printAct = new QAction(_("Print"), this);
   printAct->setIcon(QIcon(":fileprint.png"));
   printAct->setShortcut(QKeySequence::Print);
-  printAct->setToolTip(tr("Print Document"));
+  printAct->setToolTip(_("Print Document"));
   connect(printAct, SIGNAL(triggered()), edit, SLOT(slotPrint()));
 
-  closeTabAct = new QAction(tr("&Close"), this);
+  closeTabAct = new QAction(_("Close"), this);
   closeTabAct->setShortcut(QKeySequence::Close);
-  closeTabAct->setToolTip(tr("Close file"));
+  closeTabAct->setToolTip(_("Close file"));
   connect(closeTabAct, SIGNAL(triggered()), edit, SLOT(slotCloseTab()));
 
-  quitAct = new QAction(tr("&Quit"), this);
+  quitAct = new QAction(_("Quit"), this);
   quitAct->setShortcut(QKeySequence::Quit);
   quitAct->setIcon(QIcon(":exit.png"));
-  quitAct->setToolTip(tr("Quit Program"));
+  quitAct->setToolTip(_("Quit Program"));
   connect(quitAct, SIGNAL(triggered()), this, SLOT(close()));
 
   /* Edit Menu
    */
-  undoAct = new QAction(tr("&Undo"), this);
+  undoAct = new QAction(_("Undo"), this);
   undoAct->setShortcut(QKeySequence::Undo);
-  undoAct->setToolTip(tr("Undo Last Edit Action"));
+  undoAct->setToolTip(_("Undo Last Edit Action"));
   connect(undoAct, SIGNAL(triggered()), edit, SLOT(slotUndo()));
 
-  redoAct = new QAction(tr("&Redo"), this);
+  redoAct = new QAction(_("Redo"), this);
   redoAct->setShortcut(QKeySequence::Redo);
-  redoAct->setToolTip(tr("Redo Last Edit Action"));
+  redoAct->setToolTip(_("Redo Last Edit Action"));
   connect(redoAct, SIGNAL(triggered()), edit, SLOT(slotRedo()));
 
-  zoomInAct = new QAction(tr("Zoom In"), this);
+  zoomInAct = new QAction(_("Zoom In"), this);
   zoomInAct->setShortcut(QKeySequence::ZoomIn);
   connect(zoomInAct, SIGNAL(triggered()), edit, SLOT(slotZoomIn()));
 
-  zoomOutAct = new QAction(tr("Zoom Out"), this);
+  zoomOutAct = new QAction(_("Zoom Out"), this);
   zoomOutAct->setShortcut(QKeySequence::ZoomOut);
   connect(zoomOutAct, SIGNAL(triggered()), edit, SLOT(slotZoomOut()));
 
-  pasteAct = new QAction(tr("&Paste"), this);
+  pasteAct = new QAction(_("Paste"), this);
   pasteAct->setIcon(QIcon(":button_paste.png"));
   pasteAct->setShortcut(QKeySequence::Paste);
-  pasteAct->setToolTip(tr("Paste Text From Clipboard"));
+  pasteAct->setToolTip(_("Paste Text From Clipboard"));
   connect(pasteAct, SIGNAL(triggered()), edit, SLOT(slotPaste()));
 
-  cutAct = new QAction(tr("Cu&t"), this);
+  cutAct = new QAction(_("Cut"), this);
   cutAct->setIcon(QIcon(":button_cut.png"));
   cutAct->setShortcut(QKeySequence::Cut);
   cutAct->setToolTip(
-      tr("Cut the current selection's contents to the "
-         "clipboard"));
+      _("Cut the current selection's contents to the "
+        "clipboard"));
   connect(cutAct, SIGNAL(triggered()), edit, SLOT(slotCut()));
 
-  copyAct = new QAction(tr("&Copy"), this);
+  copyAct = new QAction(_("Copy"), this);
   copyAct->setIcon(QIcon(":button_copy.png"));
   copyAct->setShortcut(QKeySequence::Copy);
   copyAct->setToolTip(
-      tr("Copy the current selection's contents to the "
-         "clipboard"));
+      _("Copy the current selection's contents to the "
+        "clipboard"));
   connect(copyAct, SIGNAL(triggered()), edit, SLOT(slotCopy()));
 
-  quoteAct = new QAction(tr("&Quote"), this);
+  quoteAct = new QAction(_("Quote"), this);
   quoteAct->setIcon(QIcon(":quote.png"));
-  quoteAct->setToolTip(tr("Quote whole text"));
+  quoteAct->setToolTip(_("Quote whole text"));
   connect(quoteAct, SIGNAL(triggered()), edit, SLOT(slotQuote()));
 
-  selectAllAct = new QAction(tr("Select &All"), this);
+  selectAllAct = new QAction(_("Select All"), this);
   selectAllAct->setIcon(QIcon(":edit.png"));
   selectAllAct->setShortcut(QKeySequence::SelectAll);
-  selectAllAct->setToolTip(tr("Select the whole text"));
+  selectAllAct->setToolTip(_("Select the whole text"));
   connect(selectAllAct, SIGNAL(triggered()), edit, SLOT(slotSelectAll()));
 
-  findAct = new QAction(tr("&Find"), this);
+  findAct = new QAction(_("Find"), this);
   findAct->setShortcut(QKeySequence::Find);
-  findAct->setToolTip(tr("Find a word"));
+  findAct->setToolTip(_("Find a word"));
   connect(findAct, SIGNAL(triggered()), this, SLOT(slotFind()));
 
-  cleanDoubleLinebreaksAct = new QAction(tr("Remove &spacing"), this);
+  cleanDoubleLinebreaksAct = new QAction(_("Remove spacing"), this);
   cleanDoubleLinebreaksAct->setIcon(QIcon(":format-line-spacing-triple.png"));
   // cleanDoubleLineBreaksAct->setShortcut(QKeySequence::SelectAll);
   cleanDoubleLinebreaksAct->setToolTip(
-      tr("Remove double linebreaks, e.g. in pasted text from webmailer"));
+      _("Remove double linebreaks, e.g. in pasted text from Web Mailer"));
   connect(cleanDoubleLinebreaksAct, SIGNAL(triggered()), this,
           SLOT(slotCleanDoubleLinebreaks()));
 
-  openSettingsAct = new QAction(tr("Se&ttings"), this);
-  openSettingsAct->setToolTip(tr("Open settings dialog"));
+  openSettingsAct = new QAction(_("Settings"), this);
+  openSettingsAct->setToolTip(_("Open settings dialog"));
   openSettingsAct->setShortcut(QKeySequence::Preferences);
   connect(openSettingsAct, SIGNAL(triggered()), this,
           SLOT(slotOpenSettingsDialog()));
 
   /* Crypt Menu
    */
-  encryptAct = new QAction(tr("&Encrypt"), this);
+  encryptAct = new QAction(_("Encrypt"), this);
   encryptAct->setIcon(QIcon(":encrypted.png"));
   encryptAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
-  encryptAct->setToolTip(tr("Encrypt Message"));
+  encryptAct->setToolTip(_("Encrypt Message"));
   connect(encryptAct, SIGNAL(triggered()), this, SLOT(slotEncrypt()));
 
-  encryptSignAct = new QAction(tr("&Encrypt &Sign"), this);
+  encryptSignAct = new QAction(_("Encrypt Sign"), this);
   encryptSignAct->setIcon(QIcon(":encrypted_signed.png"));
   encryptSignAct->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_E));
-  encryptSignAct->setToolTip(tr("Encrypt and Sign Message"));
+  encryptSignAct->setToolTip(_("Encrypt and Sign Message"));
   connect(encryptSignAct, SIGNAL(triggered()), this, SLOT(slotEncryptSign()));
 
-  decryptAct = new QAction(tr("&Decrypt"), this);
+  decryptAct = new QAction(_("Decrypt"), this);
   decryptAct->setIcon(QIcon(":decrypted.png"));
   decryptAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
-  decryptAct->setToolTip(tr("Decrypt Message"));
+  decryptAct->setToolTip(_("Decrypt Message"));
   connect(decryptAct, SIGNAL(triggered()), this, SLOT(slotDecrypt()));
 
-  decryptVerifyAct = new QAction(tr("&Decrypt &Verify"), this);
+  decryptVerifyAct = new QAction(_("Decrypt Verify"), this);
   decryptVerifyAct->setIcon(QIcon(":decrypted_verified.png"));
   decryptVerifyAct->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
-  decryptVerifyAct->setToolTip(tr("Decrypt and Verify Message"));
+  decryptVerifyAct->setToolTip(_("Decrypt and Verify Message"));
   connect(decryptVerifyAct, SIGNAL(triggered()), this,
           SLOT(slotDecryptVerify()));
 
   /*
    * File encryption submenu
    */
-  fileEncryptAct = new QAction(tr("&Encrypt File"), this);
-  fileEncryptAct->setToolTip(tr("Encrypt File"));
+  fileEncryptAct = new QAction(_("Encrypt File"), this);
+  fileEncryptAct->setToolTip(_("Encrypt File"));
   connect(fileEncryptAct, SIGNAL(triggered()), this,
           SLOT(slotFileEncryptCustom()));
 
-  fileDecryptAct = new QAction(tr("&Decrypt File"), this);
-  fileDecryptAct->setToolTip(tr("Decrypt File"));
+  fileDecryptAct = new QAction(_("Decrypt File"), this);
+  fileDecryptAct->setToolTip(_("Decrypt File"));
   connect(fileDecryptAct, SIGNAL(triggered()), this,
           SLOT(slotFileDecryptCustom()));
 
-  fileSignAct = new QAction(tr("&Sign File"), this);
-  fileSignAct->setToolTip(tr("Sign File"));
+  fileSignAct = new QAction(_("Sign File"), this);
+  fileSignAct->setToolTip(_("Sign File"));
   connect(fileSignAct, SIGNAL(triggered()), this, SLOT(slotFileSignCustom()));
 
-  fileVerifyAct = new QAction(tr("&Verify File"), this);
-  fileVerifyAct->setToolTip(tr("Verify File"));
+  fileVerifyAct = new QAction(_("Verify File"), this);
+  fileVerifyAct->setToolTip(_("Verify File"));
   connect(fileVerifyAct, SIGNAL(triggered()), this,
           SLOT(slotFileVerifyCustom()));
 
-  signAct = new QAction(tr("&Sign"), this);
+  signAct = new QAction(_("Sign"), this);
   signAct->setIcon(QIcon(":signature.png"));
   signAct->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
-  signAct->setToolTip(tr("Sign Message"));
+  signAct->setToolTip(_("Sign Message"));
   connect(signAct, SIGNAL(triggered()), this, SLOT(slotSign()));
 
-  verifyAct = new QAction(tr("&Verify"), this);
+  verifyAct = new QAction(_("Verify"), this);
   verifyAct->setIcon(QIcon(":verify.png"));
   verifyAct->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
-  verifyAct->setToolTip(tr("Verify Message"));
+  verifyAct->setToolTip(_("Verify Message"));
   connect(verifyAct, SIGNAL(triggered()), this, SLOT(slotVerify()));
 
   /* Key Menu
    */
 
-  importKeyFromEditAct = new QAction(tr("&Editor"), this);
+  importKeyFromEditAct = new QAction(_("Editor"), this);
   importKeyFromEditAct->setIcon(QIcon(":txt.png"));
-  importKeyFromEditAct->setToolTip(tr("Import New Key From Editor"));
+  importKeyFromEditAct->setToolTip(_("Import New Key From Editor"));
   connect(importKeyFromEditAct, SIGNAL(triggered()), this,
           SLOT(slotImportKeyFromEdit()));
 
-  openKeyManagementAct = new QAction(tr("Manage &Keys"), this);
+  openKeyManagementAct = new QAction(_("Manage Keys"), this);
   openKeyManagementAct->setIcon(QIcon(":keymgmt.png"));
-  openKeyManagementAct->setToolTip(tr("Open Keymanagement"));
+  openKeyManagementAct->setToolTip(_("Open Key Management"));
   connect(openKeyManagementAct, SIGNAL(triggered()), this,
           SLOT(slotOpenKeyManagement()));
 
   /*
    * About Menu
    */
-  aboutAct = new QAction(tr("&About"), this);
+  aboutAct = new QAction(_("About"), this);
   aboutAct->setIcon(QIcon(":help.png"));
-  aboutAct->setToolTip(tr("Show the application's About box"));
+  aboutAct->setToolTip(_("Show the application's About box"));
   connect(aboutAct, SIGNAL(triggered()), this, SLOT(slotAbout()));
 
   /*
    * Check Update Menu
    */
-  checkUpdateAct = new QAction(tr("&Check for Updates"), this);
+  checkUpdateAct = new QAction(_("Check for Updates"), this);
   checkUpdateAct->setIcon(QIcon(":help.png"));
-  checkUpdateAct->setToolTip(tr("Check for updates"));
+  checkUpdateAct->setToolTip(_("Check for updates"));
   connect(checkUpdateAct, SIGNAL(triggered()), this, SLOT(slotCheckUpdate()));
 
-  startWizardAct = new QAction(tr("Open &Wizard"), this);
-  startWizardAct->setToolTip(tr("Open the wizard"));
+  startWizardAct = new QAction(_("Open Wizard"), this);
+  startWizardAct->setToolTip(_("Open the wizard"));
   connect(startWizardAct, SIGNAL(triggered()), this, SLOT(slotStartWizard()));
 
   /* Popup-Menu-Action for KeyList
    */
   appendSelectedKeysAct =
-      new QAction(tr("Append Selected Key(s) To Text"), this);
+      new QAction(_("Append Selected Key(s) To Text"), this);
   appendSelectedKeysAct->setToolTip(
-      tr("Append The Selected Keys To Text in Editor"));
+      _("Append The Selected Keys To Text in Editor"));
   connect(appendSelectedKeysAct, SIGNAL(triggered()), this,
           SLOT(slotAppendSelectedKeys()));
 
-  copyMailAddressToClipboardAct = new QAction(tr("Copy Email"), this);
+  copyMailAddressToClipboardAct = new QAction(_("Copy Email"), this);
   copyMailAddressToClipboardAct->setToolTip(
-      tr("Copy selected Email to clipboard"));
+      _("Copy selected Email to clipboard"));
   connect(copyMailAddressToClipboardAct, SIGNAL(triggered()), this,
           SLOT(slotCopyMailAddressToClipboard()));
 
   // TODO: find central place for shared actions, to avoid code-duplication with
   // keymgmt.cpp
-  showKeyDetailsAct = new QAction(tr("Show Key Details"), this);
-  showKeyDetailsAct->setToolTip(tr("Show Details for this Key"));
+  showKeyDetailsAct = new QAction(_("Show Key Details"), this);
+  showKeyDetailsAct->setToolTip(_("Show Details for this Key"));
   connect(showKeyDetailsAct, SIGNAL(triggered()), this,
           SLOT(slotShowKeyDetails()));
 
   refreshKeysFromKeyserverAct =
-      new QAction(tr("Refresh Key From Key Server"), this);
+      new QAction(_("Refresh Key From Key Server"), this);
   refreshKeysFromKeyserverAct->setToolTip(
-      tr("Refresh key from default key server"));
+      _("Refresh key from default key server"));
   connect(refreshKeysFromKeyserverAct, SIGNAL(triggered()), this,
           SLOT(refreshKeysFromKeyserver()));
 
-  uploadKeyToServerAct =
-      new QAction(tr("Upload Public Key(s) To Server"), this);
+  uploadKeyToServerAct = new QAction(_("Upload Public Key(s) To Server"), this);
   uploadKeyToServerAct->setToolTip(
-      tr("Upload The Selected Public Keys To Server"));
+      _("Upload The Selected Public Keys To Server"));
   connect(uploadKeyToServerAct, SIGNAL(triggered()), this,
           SLOT(uploadKeyToServer()));
 
@@ -295,15 +294,15 @@ void MainWindow::createActions() {
           SLOT(slotSwitchTabDown()));
   this->addAction(switchTabDownAct);
 
-  cutPgpHeaderAct = new QAction(tr("Remove PGP Header"), this);
+  cutPgpHeaderAct = new QAction(_("Remove PGP Header"), this);
   connect(cutPgpHeaderAct, SIGNAL(triggered()), this, SLOT(slotCutPgpHeader()));
 
-  addPgpHeaderAct = new QAction(tr("Add PGP Header"), this);
+  addPgpHeaderAct = new QAction(_("Add PGP Header"), this);
   connect(addPgpHeaderAct, SIGNAL(triggered()), this, SLOT(slotAddPgpHeader()));
 }
 
 void MainWindow::createMenus() {
-  fileMenu = menuBar()->addMenu(tr("&File"));
+  fileMenu = menuBar()->addMenu(_("File"));
   fileMenu->addAction(newTabAct);
   fileMenu->addAction(browserAct);
   fileMenu->addAction(openAct);
@@ -316,7 +315,7 @@ void MainWindow::createMenus() {
   fileMenu->addAction(closeTabAct);
   fileMenu->addAction(quitAct);
 
-  editMenu = menuBar()->addMenu(tr("&Edit"));
+  editMenu = menuBar()->addMenu(_("Edit"));
   editMenu->addAction(undoAct);
   editMenu->addAction(redoAct);
   editMenu->addSeparator();
@@ -334,13 +333,13 @@ void MainWindow::createMenus() {
   editMenu->addSeparator();
   editMenu->addAction(openSettingsAct);
 
-  fileEncMenu = new QMenu(tr("&File..."));
+  fileEncMenu = new QMenu(_("File..."));
   fileEncMenu->addAction(fileEncryptAct);
   fileEncMenu->addAction(fileDecryptAct);
   fileEncMenu->addAction(fileSignAct);
   fileEncMenu->addAction(fileVerifyAct);
 
-  cryptMenu = menuBar()->addMenu(tr("&Crypt"));
+  cryptMenu = menuBar()->addMenu(_("Crypt"));
   cryptMenu->addAction(encryptAct);
   cryptMenu->addAction(encryptSignAct);
   cryptMenu->addAction(decryptAct);
@@ -351,8 +350,8 @@ void MainWindow::createMenus() {
   cryptMenu->addSeparator();
   cryptMenu->addMenu(fileEncMenu);
 
-  keyMenu = menuBar()->addMenu(tr("&Keys"));
-  importKeyMenu = keyMenu->addMenu(tr("&Import Key"));
+  keyMenu = menuBar()->addMenu(_("Keys"));
+  importKeyMenu = keyMenu->addMenu(_("Import Key"));
   importKeyMenu->setIcon(QIcon(":key_import.png"));
   importKeyMenu->addAction(keyMgmt->importKeyFromFileAct);
   importKeyMenu->addAction(importKeyFromEditAct);
@@ -361,7 +360,7 @@ void MainWindow::createMenus() {
   importKeyMenu->addAction(keyMgmt->importKeyFromKeyServerAct);
   keyMenu->addAction(openKeyManagementAct);
 
-  steganoMenu = menuBar()->addMenu(tr("&Steganography"));
+  steganoMenu = menuBar()->addMenu(_("Steganography"));
   steganoMenu->addAction(cutPgpHeaderAct);
   steganoMenu->addAction(addPgpHeaderAct);
 
@@ -372,9 +371,9 @@ void MainWindow::createMenus() {
   }
 #endif
 
-  viewMenu = menuBar()->addMenu(tr("&View"));
+  viewMenu = menuBar()->addMenu(_("View"));
 
-  helpMenu = menuBar()->addMenu(tr("&Help"));
+  helpMenu = menuBar()->addMenu(_("Help"));
   helpMenu->addAction(startWizardAct);
   helpMenu->addSeparator();
   helpMenu->addAction(checkUpdateAct);
@@ -382,7 +381,7 @@ void MainWindow::createMenus() {
 }
 
 void MainWindow::createToolBars() {
-  fileToolBar = addToolBar(tr("File"));
+  fileToolBar = addToolBar(_("File"));
   fileToolBar->setObjectName("fileToolBar");
   fileToolBar->addAction(newTabAct);
   fileToolBar->addAction(openAct);
@@ -390,7 +389,7 @@ void MainWindow::createToolBars() {
   fileToolBar->hide();
   viewMenu->addAction(fileToolBar->toggleViewAction());
 
-  cryptToolBar = addToolBar(tr("Crypt"));
+  cryptToolBar = addToolBar(_("Crypt"));
   cryptToolBar->setObjectName("cryptToolBar");
   cryptToolBar->addAction(encryptAct);
   cryptToolBar->addAction(encryptSignAct);
@@ -400,19 +399,19 @@ void MainWindow::createToolBars() {
   cryptToolBar->addAction(verifyAct);
   viewMenu->addAction(cryptToolBar->toggleViewAction());
 
-  keyToolBar = addToolBar(tr("Key"));
+  keyToolBar = addToolBar(_("Key"));
   keyToolBar->setObjectName("keyToolBar");
   keyToolBar->addAction(openKeyManagementAct);
   viewMenu->addAction(keyToolBar->toggleViewAction());
 
-  editToolBar = addToolBar(tr("Edit"));
+  editToolBar = addToolBar(_("Edit"));
   editToolBar->setObjectName("editToolBar");
   editToolBar->addAction(copyAct);
   editToolBar->addAction(pasteAct);
   editToolBar->addAction(selectAllAct);
   viewMenu->addAction(editToolBar->toggleViewAction());
 
-  specialEditToolBar = addToolBar(tr("Special Edit"));
+  specialEditToolBar = addToolBar(_("Special Edit"));
   specialEditToolBar->setObjectName("specialEditToolBar");
   specialEditToolBar->addAction(quoteAct);
   specialEditToolBar->addAction(cleanDoubleLinebreaksAct);
@@ -424,8 +423,8 @@ void MainWindow::createToolBars() {
   importButton->setMenu(importKeyMenu);
   importButton->setPopupMode(QToolButton::InstantPopup);
   importButton->setIcon(QIcon(":key_import.png"));
-  importButton->setToolTip(tr("Import key from..."));
-  importButton->setText(tr("Import key"));
+  importButton->setToolTip(_("Import key from..."));
+  importButton->setText(_("Import key"));
   keyToolBar->addWidget(importButton);
 
   // Add dropdown menu for file encryption/decryption to crypttoolbar
@@ -433,8 +432,8 @@ void MainWindow::createToolBars() {
   connect(fileEncButton, SIGNAL(clicked(bool)), this, SLOT(slotOpenFileTab()));
   fileEncButton->setPopupMode(QToolButton::InstantPopup);
   fileEncButton->setIcon(QIcon(":fileencryption.png"));
-  fileEncButton->setToolTip(tr("Browser to view and operate file"));
-  fileEncButton->setText(tr("Browser"));
+  fileEncButton->setToolTip(_("Browser to view and operate file"));
+  fileEncButton->setText(_("Browser"));
   fileToolBar->addWidget(fileEncButton);
 }
 
@@ -451,14 +450,14 @@ void MainWindow::createStatusBar() {
   statusBarIcon->setPixmap(*pixmap);
   statusBar()->insertPermanentWidget(0, statusBarIcon, 0);
   statusBarIcon->hide();
-  statusBar()->showMessage(tr("Ready"), 2000);
+  statusBar()->showMessage(_("Ready"), 2000);
   statusBarBox->setLayout(statusBarBoxLayout);
 }
 
 void MainWindow::createDockWindows() {
   /* KeyList-Dockwindow
    */
-  keyListDock = new QDockWidget(tr("Key ToolBox"), this);
+  keyListDock = new QDockWidget(_("Key ToolBox"), this);
   keyListDock->setObjectName("EncryptDock");
   keyListDock->setAllowedAreas(Qt::LeftDockWidgetArea |
                                Qt::RightDockWidgetArea);
@@ -467,7 +466,7 @@ void MainWindow::createDockWindows() {
   keyListDock->setWidget(mKeyList);
   viewMenu->addAction(keyListDock->toggleViewAction());
 
-  infoBoardDock = new QDockWidget(tr("Information Board"), this);
+  infoBoardDock = new QDockWidget(_("Information Board"), this);
   infoBoardDock->setObjectName("Information Board");
   infoBoardDock->setAllowedAreas(Qt::BottomDockWidgetArea);
   addDockWidget(Qt::BottomDockWidgetArea, infoBoardDock);

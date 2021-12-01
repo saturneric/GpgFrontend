@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -28,16 +28,16 @@ namespace GpgFrontend::UI {
 KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
     : QDialog(parent) {
   tabWidget = new QTabWidget();
-  tabWidget->addTab(new KeyPairDetailTab(key.id(), tabWidget), tr("KeyPair"));
-  tabWidget->addTab(new KeyPairUIDTab(key.id(), tabWidget), tr("UIDs"));
-  tabWidget->addTab(new KeyPairSubkeyTab(key.id(), tabWidget), tr("Subkeys"));
+  tabWidget->addTab(new KeyPairDetailTab(key.id(), tabWidget), _("KeyPair"));
+  tabWidget->addTab(new KeyPairUIDTab(key.id(), tabWidget), _("UIDs"));
+  tabWidget->addTab(new KeyPairSubkeyTab(key.id(), tabWidget), _("Subkeys"));
 
   auto* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(tabWidget);
 
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setLayout(mainLayout);
-  this->setWindowTitle(tr("Key Details"));
+  this->setWindowTitle(_("Key Details"));
   this->setModal(true);
   this->setMinimumSize(380, 620);
   this->show();

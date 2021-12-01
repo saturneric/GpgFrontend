@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -39,7 +39,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
   infoBoard->setContentsMargins(0, 0, 0, 0);
 
   importFromKeyserverAct =
-      new QAction(tr("Import missing key from Keyserver"), this);
+      new QAction(_("Import missing key from Keyserver"), this);
   connect(importFromKeyserverAct, SIGNAL(triggered()), this,
           SLOT(slotImportFromKeyserver()));
 
@@ -57,7 +57,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
   actionButtonLayout->setSpacing(0);
   actionButtonMenu->setLayout(actionButtonLayout);
 
-  auto label = new QLabel(tr("Optional Actions"));
+  auto label = new QLabel(_("Optional Actions"));
   label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   label->setContentsMargins(0, 0, 0, 0);
 

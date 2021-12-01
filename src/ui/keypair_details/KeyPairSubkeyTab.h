@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -25,10 +25,9 @@
 #ifndef GPGFRONTEND_KEYPAIRSUBKEYTAB_H
 #define GPGFRONTEND_KEYPAIRSUBKEYTAB_H
 
-#include "ui/GpgFrontendUI.h"
-
 #include "KeySetExpireDateDialog.h"
 #include "gpg/GpgContext.h"
+#include "ui/GpgFrontendUI.h"
 #include "ui/keygen/SubkeyGenerateDialog.h"
 
 namespace GpgFrontend::UI {

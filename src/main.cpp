@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -30,16 +30,25 @@
 INITIALIZE_EASYLOGGINGPP
 
 void init_logging();
+void init_locale();
 
 int main(int argc, char* argv[]) {
+  // Qt
   Q_INIT_RESOURCE(gpgfrontend);
-  QApplication app(argc, argv);
 
-  init_logging();
+  // Qt App
+  QApplication app(argc, argv);
 
   // get application path
   auto app_path = GlobalSettingStation::GetInstance().GetAppDir();
 
+  // logging system
+  init_logging();
+
+  // i18n
+  init_locale();
+
+  // App config
   QApplication::setApplicationVersion(BUILD_VERSION);
   QApplication::setApplicationName(PROJECT_NAME);
 
@@ -62,42 +71,11 @@ int main(int argc, char* argv[]) {
    * internationalisation. loop to restart mainwindow
    * with changed translation when settings change.
    */
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-
-  if (!settings.exists("general") ||
-      settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
-    settings.add("general", libconfig::Setting::TypeGroup);
-
-  auto& general = settings["general"];
-  if (!general.exists("lang"))
-    general.add("lang", libconfig::Setting::TypeString) =
-        QLocale::system().name().toStdString();
-
-  GlobalSettingStation::GetInstance().Sync();
-
-  QTranslator translator, translator2;
   int return_from_event_loop_code;
 
-  LOG(INFO) << "Resource Directory" << RESOURCE_DIR(app_path);
+  LOG(INFO) << _("Resource Directory") << RESOURCE_DIR(app_path);
 
   do {
-    QApplication::removeTranslator(&translator);
-    QApplication::removeTranslator(&translator2);
-
-    std::string lang;
-    if (!general.lookupValue("lang", lang)) {
-      LOG(ERROR) << "could not read properly from configure file";
-    };
-
-    translator.load(QString::fromStdString(RESOURCE_DIR(app_path).string() +
-                                           "/ts/" + "gpgfrontend_" + lang));
-    QApplication::installTranslator(&translator);
-
-    // set qt translations
-    translator2.load(QString::fromStdString(RESOURCE_DIR(app_path).string() +
-                                            "/ts/qt_" + lang));
-    QApplication::installTranslator(&translator2);
-
     QApplication::setQuitOnLastWindowClosed(true);
 
     /**
@@ -105,11 +83,6 @@ int main(int argc, char* argv[]) {
      *  function in the library, because it initializes the thread support
      *  subsystem in GPGME. (from the info page) */
     gpgme_check_version(nullptr);
-
-    // the locale set here is used for the other setlocale calls which have
-    // nullptr
-    // -> nullptr means use default, which is configured here
-    setlocale(LC_ALL, lang.c_str());
 
     /** set locale, because tests do also */
     gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
@@ -147,5 +120,33 @@ void init_logging() {
 
   el::Loggers::reconfigureLogger("default", defaultConf);
 
-  LOG(INFO) << "Logfile Path" << logfile_path;
+  LOG(INFO) << _("Logfile Path") << logfile_path;
+}
+
+void init_locale() {
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+  if (!settings.exists("general") ||
+      settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
+    settings.add("general", libconfig::Setting::TypeGroup);
+
+  auto& general = settings["general"];
+  if (!general.exists("lang"))
+    general.add("lang", libconfig::Setting::TypeString) =
+        QLocale::system().name().toStdString();
+
+  GlobalSettingStation::GetInstance().Sync();
+
+  std::string lang;
+  if (!general.lookupValue("lang", lang)) {
+    LOG(ERROR) << _("Could not read properly from configure file");
+  };
+  
+  LOG(INFO) << "lang" << lang;
+
+  // GNU gettext settings
+  setlocale(LC_ALL, lang.c_str());
+  bindtextdomain(PROJECT_NAME,
+                 GlobalSettingStation::GetInstance().GetLocaleDir().c_str());
+  textdomain(PROJECT_NAME);
 }

@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -31,53 +31,58 @@
 
 namespace GpgFrontend {
 
-    class ComUtils : public QWidget {
-        Q_OBJECT
-    public:
+class ComUtils : public QWidget {
+  Q_OBJECT
+ public:
+  enum ServiceType {
+    GetServiceToken,
+    ShortenCryptText,
+    GetFullCryptText,
+    UploadPubkey,
+    GetPubkey
+  };
 
-        enum ServiceType { GetServiceToken, ShortenCryptText, GetFullCryptText, UploadPubkey, GetPubkey };
-
-        explicit ComUtils(QWidget *parent) : QWidget(parent), appPath(qApp->applicationDirPath()),
+  explicit ComUtils(QWidget *parent)
+      : QWidget(parent),
+        appPath(qApp->applicationDirPath()),
         settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-                 QSettings::IniFormat) {
+                 QSettings::IniFormat) {}
 
-        }
+  [[nodiscard]] QString getUrl(ServiceType type) const;
 
-        [[nodiscard]] QString getUrl(ServiceType type) const;
+  bool checkServerReply(const QByteArray &reply);
 
-        bool checkServerReply(const QByteArray &reply);
+  [[nodiscard]] QString getDataValueStr(const QString &key) const;
 
-        [[nodiscard]] QString getDataValueStr(const QString &key) const;
+  [[nodiscard]] bool checkDataValueStr(const QString &key) const;
 
-        [[nodiscard]] bool checkDataValueStr(const QString &key) const;
+  [[nodiscard]] const rapidjson::Value &getDataValue(const QString &key) const;
 
-        [[nodiscard]] const rapidjson::Value &getDataValue(const QString &key) const;
+  [[nodiscard]] bool checkDataValue(const QString &key) const;
 
-        [[nodiscard]] bool checkDataValue(const QString &key) const;
+  [[nodiscard]] bool checkServiceTokenFormat(const QString &serviceToken) const;
 
-        [[nodiscard]] bool checkServiceTokenFormat(const QString& serviceToken) const;
+  static QByteArray getSignStringBase64(GpgFrontend::GpgContext *ctx,
+                                        const QString &str, const GpgKey &key);
 
-        static QByteArray getSignStringBase64(GpgFrontend::GpgContext *ctx, const QString &str, const GpgKey& key);
+  [[nodiscard]] bool good() const { return is_good; }
 
-        [[nodiscard]] bool good() const { return is_good; }
+  QNetworkAccessManager &getNetworkManager() { return networkMgr; }
 
-        QNetworkAccessManager &getNetworkManager() {return networkMgr;}
+  void clear();
 
-        void clear();
+ private:
+  QString appPath;
+  QSettings settings;
+  rapidjson::Document replyDoc;
+  rapidjson::Value dataVal;
+  QNetworkAccessManager networkMgr;
+  QRegularExpression re_uuid{
+      R"(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)"};
 
-    private:
+  bool is_good = false;
+};
 
-        QString appPath;
-        QSettings settings;
-        rapidjson::Document replyDoc;
-        rapidjson::Value dataVal;
-        QNetworkAccessManager networkMgr;
-        QRegularExpression re_uuid{R"(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)"};
+}  // namespace GpgFrontend
 
-        bool is_good = false;
-    };
-
-}
-
-
-#endif //GPGFRONTEND_ZH_CN_TS_COMUTILS_H
+#endif  // GPGFRONTEND_ZH_CN_TS_COMUTILS_H

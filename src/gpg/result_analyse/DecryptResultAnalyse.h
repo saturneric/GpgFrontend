@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -31,19 +31,19 @@
 namespace GpgFrontend {
 
 class DecryptResultAnalyse : public ResultAnalyse {
-public:
+ public:
   explicit DecryptResultAnalyse(GpgError error, GpgDecrResult result);
 
-protected:
+ protected:
   void do_analyse() final;
 
-private:
+ private:
   bool print_reci(std::stringstream &stream, gpgme_recipient_t reci);
 
   GpgError error;
   GpgDecrResult result;
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_DECRYPTRESULTANALYSE_H
+#endif  // GPGFRONTEND_DECRYPTRESULTANALYSE_H

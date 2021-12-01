@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -30,16 +30,16 @@
 
 namespace GpgFrontend {
 class EncryptResultAnalyse : public ResultAnalyse {
-public:
+ public:
   explicit EncryptResultAnalyse(GpgError error, GpgEncrResult result);
 
-protected:
+ protected:
   void do_analyse() final;
 
-private:
+ private:
   GpgError error;
   GpgEncrResult result;
 };
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_ENCRYPTRESULTANALYSE_H
+#endif  // GPGFRONTEND_ENCRYPTRESULTANALYSE_H

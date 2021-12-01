@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -35,7 +35,7 @@ SendMailTab::SendMailTab(QWidget* parent)
       appPath(qApp->applicationDirPath()),
       settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
                QSettings::IniFormat) {
-  enableCheckBox = new QCheckBox(tr("Enable"));
+  enableCheckBox = new QCheckBox(_("Enable"));
   enableCheckBox->setTristate(false);
 
   smtpAddress = new QLineEdit();
@@ -54,31 +54,31 @@ SendMailTab::SendMailTab(QWidget* parent)
 
   defaultSender = new QLineEdit();
   ;
-  checkConnectionButton = new QPushButton(tr("Check Connection"));
+  checkConnectionButton = new QPushButton(_("Check Connection"));
 
-  auto generalGroupBox = new QGroupBox(tr("General"));
-  auto connectGroupBox = new QGroupBox(tr("Connection"));
-  auto preferenceGroupBox = new QGroupBox(tr("Preference"));
+  auto generalGroupBox = new QGroupBox(_("General"));
+  auto connectGroupBox = new QGroupBox(_("Connection"));
+  auto preferenceGroupBox = new QGroupBox(_("Preference"));
 
   auto generalLayout = new QGridLayout();
   generalLayout->addWidget(enableCheckBox);
 
   auto connectLayout = new QGridLayout();
-  connectLayout->addWidget(new QLabel(tr("SMTP Address")), 1, 0);
+  connectLayout->addWidget(new QLabel(_("SMTP Address")), 1, 0);
   connectLayout->addWidget(smtpAddress, 1, 1, 1, 4);
-  connectLayout->addWidget(new QLabel(tr("Username")), 2, 0);
+  connectLayout->addWidget(new QLabel(_("Username")), 2, 0);
   connectLayout->addWidget(username, 2, 1, 1, 4);
-  connectLayout->addWidget(new QLabel(tr("Password")), 3, 0);
+  connectLayout->addWidget(new QLabel(_("Password")), 3, 0);
   connectLayout->addWidget(password, 3, 1, 1, 4);
-  connectLayout->addWidget(new QLabel(tr("Port")), 4, 0);
+  connectLayout->addWidget(new QLabel(_("Port")), 4, 0);
   connectLayout->addWidget(portSpin, 4, 1, 1, 1);
-  connectLayout->addWidget(new QLabel(tr("Connection Security")), 5, 0);
+  connectLayout->addWidget(new QLabel(_("Connection Security")), 5, 0);
   connectLayout->addWidget(connectionTypeComboBox, 5, 1, 1, 1);
   connectLayout->addWidget(checkConnectionButton, 6, 0);
 
   auto preferenceLayout = new QGridLayout();
 
-  preferenceLayout->addWidget(new QLabel(tr("Default Sender")), 0, 0);
+  preferenceLayout->addWidget(new QLabel(_("Default Sender")), 0, 0);
   preferenceLayout->addWidget(defaultSender, 0, 1, 1, 4);
 
   generalGroupBox->setLayout(generalLayout);
@@ -164,17 +164,17 @@ void SendMailTab::slotCheckConnection() {
   bool if_success = true;
 
   if (!smtp.connectToHost()) {
-    QMessageBox::critical(this, tr("Fail"), tr("Fail to Connect SMTP Server"));
+    QMessageBox::critical(this, _("Fail"), _("Fail to Connect SMTP Server"));
     if_success = false;
   }
   if (if_success && !smtp.login()) {
-    QMessageBox::critical(this, tr("Fail"), tr("Fail to Login"));
+    QMessageBox::critical(this, _("Fail"), _("Fail to Login"));
     if_success = false;
   }
 
   if (if_success)
-    QMessageBox::information(this, tr("Success"),
-                             tr("Succeed in connecting and login"));
+    QMessageBox::information(this, _("Success"),
+                             _("Succeed in connecting and login"));
 }
 #endif
 

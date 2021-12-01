@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -25,23 +25,23 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
 #define GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
 
+#include <boost/process.hpp>
+
 #include "gpg/GpgContext.h"
 #include "gpg/GpgFunctionObject.h"
 
-#include <boost/process.hpp>
-
 namespace GpgFrontend {
 class GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
-public:
+ public:
   void Execute(StringArgsRef arguments,
                const std::function<void(boost::process::async_pipe &in,
                                         boost::process::async_pipe &out)>
                    &interact_func);
 
-private:
+ private:
   GpgContext &ctx = GpgContext::GetInstance();
 };
 
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
+#endif  // GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H

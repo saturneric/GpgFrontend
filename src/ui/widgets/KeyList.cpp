@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -78,8 +78,8 @@ KeyList::KeyList(KeyListRow::KeyType selectType,
   }
 
   QStringList labels;
-  labels << tr("Select") << tr("Type") << tr("Name") << tr("Email Address")
-         << tr("Usage") << tr("Validity") << tr("Finger Print");
+  labels << _("Select") << _("Type") << _("Name") << _("Email Address")
+         << _("Usage") << _("Validity") << _("Finger Print");
 
   mKeyList->setHorizontalHeaderLabels(labels);
   mKeyList->horizontalHeader()->setStretchLastSection(false);
@@ -103,7 +103,6 @@ KeyList::KeyList(KeyListRow::KeyType selectType,
 }
 
 void KeyList::slotRefresh() {
-
   LOG(INFO) << "KeyList::slotRefresh Called";
 
   auto keyList = getChecked();
@@ -302,14 +301,16 @@ void KeyList::addMenuAction(QAction* act) { popupMenu->addAction(act); }
 void KeyList::dropEvent(QDropEvent* event) {
   auto* dialog = new QDialog();
 
-  dialog->setWindowTitle(tr("Import Keys"));
+  dialog->setWindowTitle(_("Import Keys"));
   QLabel* label;
-  label = new QLabel(tr("You've dropped something on the table.\n GpgFrontend "
-                        "will now try to import key(s).") +
-                     "\n");
+  label =
+      new QLabel(QString(_("You've dropped something on the table.")) + "\n " +
+                 _("GpgFrontend "
+                   "will now try to import key(s).") +
+                 "\n");
 
   // "always import keys"-CheckBox
-  auto* checkBox = new QCheckBox(tr("Always import without bothering."));
+  auto* checkBox = new QCheckBox(_("Always import without bothering."));
   if (settings.value("general/confirmImportKeys").toBool())
     checkBox->setCheckState(Qt::Unchecked);
 
@@ -343,7 +344,8 @@ void KeyList::dropEvent(QDropEvent* event) {
       QFile file;
       file.setFileName(tmp.toLocalFile());
       if (!file.open(QIODevice::ReadOnly)) {
-        qDebug() << tr("Couldn't Open File: ") + tmp.toString();
+        LOG(INFO) << _("Couldn't Open File") << ":"
+                  << tmp.toString().toStdString();
       }
       QByteArray inBuffer = file.readAll();
       this->importKeys(inBuffer);

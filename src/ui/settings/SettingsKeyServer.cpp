@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -31,7 +31,7 @@ KeyserverTab::KeyserverTab(QWidget* parent)
       appPath(qApp->applicationDirPath()),
       settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
                QSettings::IniFormat) {
-  auto generalGroupBox = new QGroupBox(tr("General"));
+  auto generalGroupBox = new QGroupBox(_("General"));
   auto generalLayout = new QVBoxLayout();
 
   keyServerTable = new QTableWidget();
@@ -53,11 +53,11 @@ KeyserverTab::KeyserverTab(QWidget* parent)
   keyServerTable->setAlternatingRowColors(true);
 
   QStringList labels;
-  labels << tr("No.") << tr("Address") << tr("Available");
+  labels << _("No.") << _("Address") << _("Available");
   keyServerTable->setHorizontalHeaderLabels(labels);
 
   auto* mainLayout = new QVBoxLayout(this);
-  auto* label = new QLabel(tr("Default Key Server for Import:"));
+  auto* label = new QLabel(QString(_("Default Key Server for Import")) + ": ");
 
   comboBox = new QComboBox;
   comboBox->setEditable(false);
@@ -67,7 +67,7 @@ KeyserverTab::KeyserverTab(QWidget* parent)
   auto* addKeyServerLayout = new QHBoxLayout(addKeyServerBox);
   auto* http = new QLabel("URL: ");
   newKeyServerEdit = new QLineEdit(this);
-  auto* newKeyServerButton = new QPushButton(tr("Add"), this);
+  auto* newKeyServerButton = new QPushButton(_("Add"), this);
   connect(newKeyServerButton, SIGNAL(clicked()), this, SLOT(addKeyServer()));
   addKeyServerLayout->addWidget(http);
   addKeyServerLayout->addWidget(newKeyServerEdit);
@@ -140,7 +140,7 @@ void KeyserverTab::refreshTable() {
     auto* tmp2 = new QTableWidgetItem(server);
     tmp2->setTextAlignment(Qt::AlignCenter);
     keyServerTable->setItem(index, 1, tmp2);
-    auto* tmp3 = new QTableWidgetItem("");
+    auto* tmp3 = new QTableWidgetItem();
     tmp3->setTextAlignment(Qt::AlignCenter);
     keyServerTable->setItem(index, 2, tmp3);
     index++;

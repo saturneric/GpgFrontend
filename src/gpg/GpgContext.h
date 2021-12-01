@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -37,8 +37,7 @@ namespace GpgFrontend {
 class GpgContext : public SingletonFunctionObject<GpgContext> {
  public:
   GpgContext(bool independent_database = false,
-             std::string path = std::string(),
-             int channel = 0);
+             std::string path = std::string(), int channel = 0);
 
   ~GpgContext() override = default;
 
@@ -55,8 +54,7 @@ class GpgContext : public SingletonFunctionObject<GpgContext> {
 
   struct _ctx_ref_deletor {
     void operator()(gpgme_ctx_t _ctx) {
-      if (_ctx != nullptr)
-        gpgme_release(_ctx);
+      if (_ctx != nullptr) gpgme_release(_ctx);
     }
   };
 
@@ -66,11 +64,9 @@ class GpgContext : public SingletonFunctionObject<GpgContext> {
   bool good_ = true;
 
  public:
-  static gpgme_error_t test_passphrase_cb(void* opaque,
-                                          const char* uid_hint,
+  static gpgme_error_t test_passphrase_cb(void* opaque, const char* uid_hint,
                                           const char* passphrase_info,
-                                          int last_was_bad,
-                                          int fd) {
+                                          int last_was_bad, int fd) {
     LOG(INFO) << "test_passphrase_cb Called";
     size_t res;
     char pass[] = "abcdefg\n";
@@ -84,8 +80,7 @@ class GpgContext : public SingletonFunctionObject<GpgContext> {
 
     do {
       res = gpgme_io_write(fd, &pass[off], pass_len - off);
-      if (res > 0)
-        off += res;
+      if (res > 0) off += res;
     } while (res > 0 && off != pass_len);
 
     return off == pass_len ? 0 : gpgme_error_from_errno(errno);

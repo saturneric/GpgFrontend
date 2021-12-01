@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -30,13 +30,14 @@ FindWidget::FindWidget(QWidget* parent, QTextEdit* edit) : QWidget(parent) {
   mTextpage = edit;
   findEdit = new QLineEdit(this);
   auto* closeButton = new QPushButton(
-      this->style()->standardIcon(QStyle::SP_TitleBarCloseButton), "", this);
-  auto* nextButton = new QPushButton(QIcon(":button_next.png"), "");
+      this->style()->standardIcon(QStyle::SP_TitleBarCloseButton), QString(),
+      this);
+  auto* nextButton = new QPushButton(QIcon(":button_next.png"), QString());
   auto* previousButton = new QPushButton(QIcon(":button_previous.png"), "");
 
   auto* notificationWidgetLayout = new QHBoxLayout(this);
   notificationWidgetLayout->setContentsMargins(10, 0, 0, 0);
-  notificationWidgetLayout->addWidget(new QLabel(tr("Find:")));
+  notificationWidgetLayout->addWidget(new QLabel(QString(_("Find")) + ": "));
   notificationWidgetLayout->addWidget(findEdit, 2);
   notificationWidgetLayout->addWidget(nextButton);
   notificationWidgetLayout->addWidget(previousButton);

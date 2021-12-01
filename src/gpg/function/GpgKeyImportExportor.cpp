@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -33,8 +33,7 @@
  */
 GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExportor::ImportKey(
     StdBypeArrayPtr in_buffer) {
-  if (in_buffer->empty())
-    return GpgImportInformation();
+  if (in_buffer->empty()) return GpgImportInformation();
 
   GpgData data_in(in_buffer->data(), in_buffer->size());
   auto err = check_gpg_error(gpgme_op_import(ctx, data_in));
@@ -60,10 +59,8 @@ GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExportor::ImportKey(
  * @return if success
  */
 bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
-    KeyIdArgsListPtr& uid_list,
-    ByteArrayPtr& out_buffer) const {
-  if (uid_list->empty())
-    return false;
+    KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer) const {
+  if (uid_list->empty()) return false;
 
   // Alleviate another crash problem caused by an unknown array out-of-bounds
   // access
@@ -89,11 +86,9 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
  * @return if success
  */
 bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
-    const KeyArgsList& keys,
-    ByteArrayPtr& out_buffer) const {
+    const KeyArgsList& keys, ByteArrayPtr& out_buffer) const {
   KeyIdArgsListPtr key_ids = std::make_unique<std::vector<std::string>>();
-  for (const auto& key : keys)
-    key_ids->push_back(key.id());
+  for (const auto& key : keys) key_ids->push_back(key.id());
   return ExportKeys(key_ids, out_buffer);
 }
 
@@ -104,8 +99,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
  * @return if successful
  */
 bool GpgFrontend::GpgKeyImportExportor::ExportSecretKey(
-    const GpgKey& key,
-    ByteArrayPtr& out_buffer) const {
+    const GpgKey& key, ByteArrayPtr& out_buffer) const {
   DLOG(INFO) << "Export Secret Key" << key.id().c_str();
 
   gpgme_key_t target_key[2] = {gpgme_key_t(key), nullptr};

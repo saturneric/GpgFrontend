@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -41,8 +41,8 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
 
   auto uidButtonsLayout = new QGridLayout();
 
-  auto addUIDButton = new QPushButton(tr("New UID"));
-  auto manageUIDButton = new QPushButton(tr("UID Management"));
+  auto addUIDButton = new QPushButton(_("New UID"));
+  auto manageUIDButton = new QPushButton(_("UID Management"));
 
   if (mKey.has_master_key()) {
     manageUIDButton->setMenu(manageSelectedUIDMenu);
@@ -61,7 +61,7 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
 
   auto uidGroupBox = new QGroupBox();
   uidGroupBox->setLayout(gridLayout);
-  uidGroupBox->setTitle(tr("UIDs"));
+  uidGroupBox->setTitle(_("UIDs"));
 
   auto signGridLayout = new QGridLayout();
   signGridLayout->addWidget(sigList, 0, 0);
@@ -69,7 +69,7 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
 
   auto signGroupBox = new QGroupBox();
   signGroupBox->setLayout(signGridLayout);
-  signGroupBox->setTitle(tr("Signature of Selected UID"));
+  signGroupBox->setTitle(_("Signature of Selected UID"));
 
   auto vboxLayout = new QVBoxLayout();
   vboxLayout->addWidget(uidGroupBox);
@@ -112,7 +112,7 @@ void KeyPairUIDTab::createUIDList() {
   uidList->setAlternatingRowColors(true);
 
   QStringList labels;
-  labels << tr("Select") << tr("Name") << tr("Email") << tr("Comment");
+  labels << _("Select") << _("Name") << _("Email") << _("Comment");
   uidList->setHorizontalHeaderLabels(labels);
   uidList->horizontalHeader()->setStretchLastSection(true);
 }
@@ -135,8 +135,8 @@ void KeyPairUIDTab::createSignList() {
   sigList->setAlternatingRowColors(true);
 
   QStringList labels;
-  labels << tr("Key ID") << tr("Name") << tr("Email") << tr("Create Date")
-         << tr("Expired Date");
+  labels << _("Key ID") << _("Name") << _("Email") << _("Create Date")
+         << _("Expired Date");
   sigList->setHorizontalHeaderLabels(labels);
   sigList->horizontalHeader()->setStretchLastSection(false);
 }
@@ -235,7 +235,7 @@ void KeyPairUIDTab::slotRefreshSigList() {
       auto* tmp5 = new QTableWidgetItem(
           boost::posix_time::to_time_t(
               boost::posix_time::ptime(sig.expire_time())) == 0
-              ? tr("Never Expires")
+              ? _("Never Expires")
               : QString::fromStdString(
                     boost::gregorian::to_iso_string(sig.expire_time())));
       tmp5->setTextAlignment(Qt::AlignCenter);
@@ -253,8 +253,8 @@ void KeyPairUIDTab::slotAddSign() {
 
   if (selected_uids->empty()) {
     QMessageBox::information(
-        nullptr, tr("Invalid Operation"),
-        tr("Please select one or more UIDs before doing this operation."));
+        nullptr, _("Invalid Operation"),
+        _("Please select one or more UIDs before doing this operation."));
     return;
   }
 
@@ -275,9 +275,9 @@ UIDArgsListPtr KeyPairUIDTab::getUIDChecked() {
 void KeyPairUIDTab::createManageUIDMenu() {
   manageSelectedUIDMenu = new QMenu(this);
 
-  auto* signUIDAct = new QAction(tr("Sign Selected UID(s)"), this);
+  auto* signUIDAct = new QAction(_("Sign Selected UID(s)"), this);
   connect(signUIDAct, SIGNAL(triggered()), this, SLOT(slotAddSign()));
-  auto* delUIDAct = new QAction(tr("Delete Selected UID(s)"), this);
+  auto* delUIDAct = new QAction(_("Delete Selected UID(s)"), this);
   connect(delUIDAct, SIGNAL(triggered()), this, SLOT(slotDelUID()));
 
   if (mKey.has_master_key()) {
@@ -297,11 +297,11 @@ void KeyPairUIDTab::slotAddUID() {
 
 void KeyPairUIDTab::slotAddUIDResult(int result) {
   if (result == 1) {
-    QMessageBox::information(nullptr, tr("Successful Operation"),
-                             tr("Successfully added a new UID."));
+    QMessageBox::information(nullptr, _("Successful Operation"),
+                             _("Successfully added a new UID."));
   } else if (result == -1) {
-    QMessageBox::critical(nullptr, tr("Operation Failed"),
-                          tr("An error occurred during the operation."));
+    QMessageBox::critical(nullptr, _("Operation Failed"),
+                          _("An error occurred during the operation."));
   }
 }
 
@@ -310,8 +310,8 @@ void KeyPairUIDTab::slotDelUID() {
 
   if (selected_uids->empty()) {
     QMessageBox::information(
-        nullptr, tr("Invalid Operation"),
-        tr("Please select one or more UIDs before doing this operation."));
+        nullptr, _("Invalid Operation"),
+        _("Please select one or more UIDs before doing this operation."));
     return;
   }
 
@@ -322,10 +322,12 @@ void KeyPairUIDTab::slotDelUID() {
   }
 
   int ret = QMessageBox::warning(
-      this, tr("Deleting UIDs"),
-      "<b>" + tr("Are you sure that you want to delete the following uids?") +
+      this, _("Deleting UIDs"),
+      "<b>" +
+          QString(
+              _("Are you sure that you want to delete the following UIDs?")) +
           "</b><br/><br/>" + keynames + +"<br/>" +
-          tr("The action can not be undone."),
+          _("The action can not be undone."),
       QMessageBox::No | QMessageBox::Yes);
 
   bool if_all_success = true;
@@ -340,8 +342,8 @@ void KeyPairUIDTab::slotDelUID() {
 
     if (!if_all_success) {
       QMessageBox::critical(
-          nullptr, tr("Operation Failed"),
-          tr("At least an error occurred during the operation."));
+          nullptr, _("Operation Failed"),
+          _("At least an error occurred during the operation."));
     }
     emit signalUpdateUIDInfo();
   }
@@ -363,17 +365,18 @@ void KeyPairUIDTab::slotSetPrimaryUID() {
   keynames.append("<br/>");
 
   int ret = QMessageBox::warning(
-      this, tr("Set Primary UID"),
-      "<b>" + tr("Are you sure that you want to set the Primary UID to?") +
+      this, _("Set Primary UID"),
+      "<b>" +
+          QString(_("Are you sure that you want to set the Primary UID to?")) +
           "</b><br/><br/>" + keynames + +"<br/>" +
-          tr("The action can not be undone."),
+          _("The action can not be undone."),
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
     if (!UidOperator::GetInstance().setPrimaryUID(mKey,
                                                   selected_uids->front())) {
-      QMessageBox::critical(nullptr, tr("Operation Failed"),
-                            tr("An error occurred during the operation."));
+      QMessageBox::critical(nullptr, _("Operation Failed"),
+                            _("An error occurred during the operation."));
     } else {
       emit signalUpdateUIDInfo();
     }
@@ -404,12 +407,12 @@ SignIdArgsListPtr KeyPairUIDTab::getSignSelected() {
 void KeyPairUIDTab::createUIDPopupMenu() {
   uidPopupMenu = new QMenu(this);
 
-  auto* serPrimaryUIDAct = new QAction(tr("Set As Primary"), this);
+  auto* serPrimaryUIDAct = new QAction(_("Set As Primary"), this);
   connect(serPrimaryUIDAct, SIGNAL(triggered()), this,
           SLOT(slotSetPrimaryUID()));
-  auto* signUIDAct = new QAction(tr("Sign UID"), this);
+  auto* signUIDAct = new QAction(_("Sign UID"), this);
   connect(signUIDAct, SIGNAL(triggered()), this, SLOT(slotAddSignSingle()));
-  auto* delUIDAct = new QAction(tr("Delete UID"), this);
+  auto* delUIDAct = new QAction(_("Delete UID"), this);
   connect(delUIDAct, SIGNAL(triggered()), this, SLOT(slotDelUIDSingle()));
 
   if (mKey.has_master_key()) {
@@ -435,8 +438,8 @@ void KeyPairUIDTab::slotAddSignSingle() {
 
   if (selected_uids->empty()) {
     QMessageBox::information(
-        nullptr, tr("Invalid Operation"),
-        tr("Please select one UID before doing this operation."));
+        nullptr, _("Invalid Operation"),
+        _("Please select one UID before doing this operation."));
     return;
   }
 
@@ -449,8 +452,8 @@ void KeyPairUIDTab::slotDelUIDSingle() {
   auto selected_uids = getUIDSelected();
   if (selected_uids->empty()) {
     QMessageBox::information(
-        nullptr, tr("Invalid Operation"),
-        tr("Please select one UID before doing this operation."));
+        nullptr, _("Invalid Operation"),
+        _("Please select one UID before doing this operation."));
     return;
   }
 
@@ -460,16 +463,18 @@ void KeyPairUIDTab::slotDelUIDSingle() {
   keynames.append("<br/>");
 
   int ret = QMessageBox::warning(
-      this, tr("Deleting UID"),
-      "<b>" + tr("Are you sure that you want to delete the following uid?") +
+      this, _("Deleting UID"),
+      "<b>" +
+          QString(
+              _("Are you sure that you want to delete the following uid?")) +
           "</b><br/><br/>" + keynames + +"<br/>" +
-          tr("The action can not be undone."),
+          _("The action can not be undone."),
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
     if (!UidOperator::GetInstance().revUID(mKey, selected_uids->front())) {
-      QMessageBox::critical(nullptr, tr("Operation Failed"),
-                            tr("An error occurred during the operation."));
+      QMessageBox::critical(nullptr, _("Operation Failed"),
+                            _("An error occurred during the operation."));
     } else {
       emit signalUpdateUIDInfo();
     }
@@ -479,7 +484,7 @@ void KeyPairUIDTab::slotDelUIDSingle() {
 void KeyPairUIDTab::createSignPopupMenu() {
   signPopupMenu = new QMenu(this);
 
-  auto* delSignAct = new QAction(tr("Delete(Revoke) Key Signature"), this);
+  auto* delSignAct = new QAction(_("Delete(Revoke) Key Signature"), this);
   connect(delSignAct, SIGNAL(triggered()), this, SLOT(slotDelSign()));
 
   signPopupMenu->addAction(delSignAct);
@@ -489,8 +494,8 @@ void KeyPairUIDTab::slotDelSign() {
   auto selected_signs = getSignSelected();
   if (selected_signs->empty()) {
     QMessageBox::information(
-        nullptr, tr("Invalid Operation"),
-        tr("Please select one Key Signature before doing this operation."));
+        nullptr, _("Invalid Operation"),
+        _("Please select one Key Signature before doing this operation."));
     return;
   }
 
@@ -498,9 +503,9 @@ void KeyPairUIDTab::slotDelSign() {
            .GetKey(selected_signs->front().first)
            .good()) {
     QMessageBox::critical(
-        nullptr, tr("Invalid Operation"),
-        tr("To delete the signature, you need to have its corresponding public "
-           "key in the local database."));
+        nullptr, _("Invalid Operation"),
+        _("To delete the signature, you need to have its corresponding public "
+          "key in the local database."));
     return;
   }
 
@@ -509,18 +514,19 @@ void KeyPairUIDTab::slotDelSign() {
   keynames.append(QString::fromStdString(selected_signs->front().second));
   keynames.append("<br/>");
 
-  int ret = QMessageBox::warning(
-      this, tr("Deleting Key Signature"),
-      "<b>" +
-          tr("Are you sure that you want to delete the following signature?") +
-          "</b><br/><br/>" + keynames + +"<br/>" +
-          tr("The action can not be undone."),
-      QMessageBox::No | QMessageBox::Yes);
+  int ret =
+      QMessageBox::warning(this, _("Deleting Key Signature"),
+                           "<b>" +
+                               QString(_("Are you sure that you want to delete "
+                                         "the following signature?")) +
+                               "</b><br/><br/>" + keynames + +"<br/>" +
+                               _("The action can not be undone."),
+                           QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
     if (!GpgKeyManager::GetInstance().revSign(mKey, selected_signs)) {
-      QMessageBox::critical(nullptr, tr("Operation Failed"),
-                            tr("An error occurred during the operation."));
+      QMessageBox::critical(nullptr, _("Operation Failed"),
+                            _("An error occurred during the operation."));
     }
   }
 }

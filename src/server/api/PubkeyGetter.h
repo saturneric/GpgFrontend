@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -26,8 +26,8 @@
 #define GPGFRONTEND_ZH_CN_TS_PUBKEYGETTER_H
 
 #include "GpgFrontend.h"
-#include "server/BaseAPI.h"
 #include "gpg/GpgContext.h"
+#include "server/BaseAPI.h"
 
 class ComUtils;
 
@@ -35,23 +35,18 @@ class ComUtils;
  * Get and Import Pubkey from server
  */
 class PubkeyGetter : public BaseAPI {
-public:
+ public:
+  PubkeyGetter(GpgFrontend::GpgContext *ctx, const QVector<QString> &fprs);
 
-    PubkeyGetter(GpgFrontend::GpgContext *ctx, const QVector<QString> &fprs);
+ private:
+  GpgFrontend::GpgContext *mCtx;
 
-private:
+  const QVector<QString> &mFprs;
 
-    GpgFrontend::GpgContext *mCtx;
+ protected:
+  void construct_json() final;
 
-    const QVector<QString> &mFprs;
-
-protected:
-
-    void construct_json() final;
-
-    void deal_reply() final;
-
+  void deal_reply() final;
 };
 
-
-#endif //GPGFRONTEND_ZH_CN_TS_PUBKEYGETTER_H
+#endif  // GPGFRONTEND_ZH_CN_TS_PUBKEYGETTER_H

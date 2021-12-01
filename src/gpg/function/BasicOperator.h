@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -34,35 +34,26 @@ namespace GpgFrontend {
 
 class BasicOperator : public SingletonFunctionObject<BasicOperator> {
  public:
-  gpg_error_t Encrypt(KeyArgsList&& keys,
-                      BypeArrayRef in_buffer,
-                      ByteArrayPtr& out_buffer,
-                      GpgEncrResult& result);
+  gpg_error_t Encrypt(KeyArgsList&& keys, BypeArrayRef in_buffer,
+                      ByteArrayPtr& out_buffer, GpgEncrResult& result);
 
-  gpgme_error_t EncryptSign(KeyArgsList&& keys,
-                            KeyArgsList&& signers,
-                            BypeArrayRef in_buffer,
-                            ByteArrayPtr& out_buffer,
+  gpgme_error_t EncryptSign(KeyArgsList&& keys, KeyArgsList&& signers,
+                            BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
                             GpgEncrResult& encr_result,
                             GpgSignResult& sign_result);
 
-  gpgme_error_t Decrypt(BypeArrayRef in_buffer,
-                        ByteArrayPtr& out_buffer,
+  gpgme_error_t Decrypt(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
                         GpgDecrResult& result);
 
-  gpgme_error_t DecryptVerify(BypeArrayRef in_buffer,
-                              ByteArrayPtr& out_buffer,
+  gpgme_error_t DecryptVerify(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
                               GpgDecrResult& decrypt_result,
                               GpgVerifyResult& verify_result);
 
-  gpgme_error_t Verify(BypeArrayRef in_buffer,
-                       ByteArrayPtr& sig_buffer,
+  gpgme_error_t Verify(BypeArrayRef in_buffer, ByteArrayPtr& sig_buffer,
                        GpgVerifyResult& result) const;
 
-  gpg_error_t Sign(KeyArgsList&& key_fprs,
-                   BypeArrayRef in_buffer,
-                   ByteArrayPtr& out_buffer,
-                   gpgme_sig_mode_t mode,
+  gpg_error_t Sign(KeyArgsList&& key_fprs, BypeArrayRef in_buffer,
+                   ByteArrayPtr& out_buffer, gpgme_sig_mode_t mode,
                    GpgSignResult& result);
 
   void SetSigners(KeyArgsList& keys);
