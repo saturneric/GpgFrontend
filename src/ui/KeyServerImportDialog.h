@@ -36,15 +36,13 @@ class KeyServerImportDialog : public QDialog {
   Q_OBJECT
 
  public:
-  KeyServerImportDialog(KeyList* keyList, bool automatic, QWidget* parent);
+  KeyServerImportDialog(bool automatic, QWidget* parent);
 
   KeyServerImportDialog(QWidget* parent);
 
   void slotImport(const KeyIdArgsListPtr& keys);
 
   void slotImport(const QStringList& keyIds, const QUrl& keyserverUrl);
-
-  void slotImportKey(const KeyIdArgsListPtr& keys);
 
  signals:
   void signalKeyImported();
@@ -59,6 +57,8 @@ class KeyServerImportDialog : public QDialog {
 
   void slotSearch();
 
+  void slotSaveWindowState();
+
  private:
   void createKeysTable();
 
@@ -72,12 +72,8 @@ class KeyServerImportDialog : public QDialog {
 
   QComboBox* createComboBox();
 
-  bool mAutomatic;
+  bool mAutomatic = false;
 
-  QString appPath;
-  QSettings settings;
-
-  KeyList* mKeyList{};
   QLineEdit* searchLineEdit{};
   QComboBox* keyServerComboBox{};
   QProgressBar* waitingBar;

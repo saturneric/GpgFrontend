@@ -49,6 +49,31 @@ void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
 void process_operation(QWidget* parent, const std::string& waiting_title,
                        const std::function<void()>& func);
 
+class CommonUtils : public QWidget {
+  Q_OBJECT
+ public:
+  static CommonUtils* GetInstance();
+
+  CommonUtils();
+
+ signals:
+  void signalKeyStatusUpdated();
+
+ public slots:
+
+  void slotImportKeys(QWidget* parent, const std::string& in_buffer);
+
+  void slotImportKeyFromFile(QWidget* parent);
+
+  void slotImportKeyFromKeyServer(QWidget* parent);
+
+  void slotImportKeyFromClipboard(QWidget* parent);
+
+ private:
+  static std::unique_ptr<CommonUtils> _instance;
+
+};
+
 }  // namespace GpgFrontend::UI
 
 #endif  // GPGFRONTEND_USER_INTERFACE_UTILS_H

@@ -30,13 +30,11 @@
 #include "gpg/function/GpgKeyImportExportor.h"
 #include "gpg/function/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
+#include "ui/UserInterfaceUtils.h"
+#include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
-KeyMgmt::KeyMgmt(QWidget* parent)
-    : QMainWindow(parent),
-      appPath(qApp->applicationDirPath()),
-      settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-               QSettings::IniFormat) {
+KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   /* the list of Keys available*/
   mKeyList = new KeyList();
   mKeyList->setColumnWidth(2, 250);
@@ -52,43 +50,57 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   connect(this, SIGNAL(signalStatusBarChanged(QString)), this->parent(),
           SLOT(slotSetStatusBarText(QString)));
 
-  /* Restore the iconstyle */
-  this->settings.sync();
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
-  QSize iconSize = settings.value("toolbar/iconsize", QSize(24, 24)).toSize();
-  settings.setValue("toolbar/iconsize", iconSize);
+  try {
+    int width = settings.lookup("window.icon_size.width");
+    int height = settings.lookup("window.icon_size.height");
 
-  Qt::ToolButtonStyle buttonStyle = static_cast<Qt::ToolButtonStyle>(
-      settings.value("toolbar/iconstyle", Qt::ToolButtonTextUnderIcon)
-          .toUInt());
-  this->setIconSize(iconSize);
-  this->setToolButtonStyle(buttonStyle);
+    this->setIconSize(QSize(width, height));
 
-  // state sets pos & size of dock-widgets
-  this->restoreState(this->settings.value("keymgmt/windowState").toByteArray());
-
-  qDebug() << "windows/windowSave"
-           << this->settings.value("window/windowSave").toBool();
-
-  // Restore window size & location
-  if (this->settings.value("keymgmt/setWindowSize").toBool()) {
-    QPoint pos = settings.value("keymgmt/pos", QPoint(100, 100)).toPoint();
-    QSize size = settings.value("keymgmt/size", QSize(900, 600)).toSize();
-    qDebug() << "Settings size" << size << "pos" << pos;
-    this->setMinimumSize(size);
-    this->move(pos);
-  } else {
-    qDebug() << "Use default min windows size and pos";
-    QPoint defaultPoint(100, 100);
-    QSize defaultMinSize(900, 600);
-    this->setMinimumSize(defaultMinSize);
-    this->move(defaultPoint);
-    this->settings.setValue("keymgmt/pos", defaultPoint);
-    this->settings.setValue("keymgmt/size", defaultMinSize);
-    this->settings.setValue("keymgmt/setWindowSize", true);
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("icon_size");
   }
 
-  setWindowTitle(_("Key Pair Management"));
+  // icon_style
+  try {
+    int s_icon_style = settings.lookup("window.icon_style");
+    auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
+    this->setToolButtonStyle(icon_style);
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("icon_style");
+  }
+
+  auto pos = QPoint(50, 50);
+  LOG(INFO) << "parent" << parent;
+  if (parent) pos += parent->pos();
+  LOG(INFO) << "pos default" << pos.x() << pos.y();
+  auto size = QSize(900, 600);
+
+  try {
+    int x, y, width, height;
+    x = settings.lookup("window.key_management.position.x");
+    y = settings.lookup("window.key_management.position.y");
+    width = settings.lookup("window.key_management.size.width");
+    height = settings.lookup("window.key_management.size.height");
+    pos = QPoint(x, y);
+    size = QSize(width, height);
+
+    std::string window_state =
+        settings.lookup("window.key_management.window_state");
+
+    // state sets pos & size of dock-widgets
+    this->restoreState(
+        QByteArray::fromBase64(QByteArray::fromStdString(window_state)));
+
+  } catch (...) {
+    LOG(WARNING) << "cannot read pos or size from settings";
+  }
+
+  this->resize(size);
+  this->move(pos);
+
+  setWindowTitle(_("KeyPair Management"));
   mKeyList->addMenuAction(deleteSelectedKeysAct);
   mKeyList->addMenuAction(showKeyDetailsAct);
 
@@ -100,8 +112,8 @@ void KeyMgmt::createActions() {
   openKeyFileAct = new QAction(_("Open"), this);
   openKeyFileAct->setShortcut(QKeySequence(_("Ctrl+O")));
   openKeyFileAct->setToolTip(_("Open Key File"));
-  connect(openKeyFileAct, SIGNAL(triggered()), this,
-          SLOT(slotImportKeyFromFile()));
+  connect(importKeyFromFileAct, &QAction::triggered, this,
+          [&]() { CommonUtils::GetInstance()->slotImportKeyFromFile(this); });
 
   closeAct = new QAction(_("Close"), this);
   closeAct->setShortcut(QKeySequence(_("Ctrl+Q")));
@@ -126,20 +138,22 @@ void KeyMgmt::createActions() {
   importKeyFromFileAct = new QAction(_("File"), this);
   importKeyFromFileAct->setIcon(QIcon(":import_key_from_file.png"));
   importKeyFromFileAct->setToolTip(_("Import New Key From File"));
-  connect(importKeyFromFileAct, SIGNAL(triggered()), this,
-          SLOT(slotImportKeyFromFile()));
+  connect(importKeyFromFileAct, &QAction::triggered, this,
+          [&]() { CommonUtils::GetInstance()->slotImportKeyFromFile(this); });
 
   importKeyFromClipboardAct = new QAction(_("Clipboard"), this);
   importKeyFromClipboardAct->setIcon(QIcon(":import_key_from_clipboard.png"));
   importKeyFromClipboardAct->setToolTip(_("Import New Key From Clipboard"));
-  connect(importKeyFromClipboardAct, SIGNAL(triggered()), this,
-          SLOT(slotImportKeyFromClipboard()));
+  connect(importKeyFromClipboardAct, &QAction::triggered, this, [&]() {
+    CommonUtils::GetInstance()->slotImportKeyFromClipboard(this);
+  });
 
   importKeyFromKeyServerAct = new QAction(_("Keyserver"), this);
   importKeyFromKeyServerAct->setIcon(QIcon(":import_key_from_server.png"));
   importKeyFromKeyServerAct->setToolTip(_("Import New Key From Keyserver"));
-  connect(importKeyFromKeyServerAct, SIGNAL(triggered()), this,
-          SLOT(slotImportKeyFromKeyServer()));
+  connect(importKeyFromKeyServerAct, &QAction::triggered, this, [&]() {
+    CommonUtils::GetInstance()->slotImportKeyFromKeyServer(this);
+  });
 
   exportKeyToClipboardAct = new QAction(_("Export To Clipboard"), this);
   exportKeyToClipboardAct->setIcon(QIcon(":export_key_to_clipboard.png"));
@@ -219,33 +233,6 @@ void KeyMgmt::createToolBars() {
   keyToolBar->addSeparator();
   keyToolBar->addAction(exportKeyToFileAct);
   keyToolBar->addAction(exportKeyToClipboardAct);
-}
-
-void KeyMgmt::slotImportKeys(const std::string& in_buffer) {
-  GpgImportInformation result = GpgKeyImportExportor::GetInstance().ImportKey(
-      std::make_unique<ByteArray>(in_buffer));
-  emit signalKeyStatusUpdated();
-  new KeyImportDetailDialog(result, false, this);
-}
-
-void KeyMgmt::slotImportKeyFromFile() {
-  QString file_name = QFileDialog::getOpenFileName(
-      this, _("Open Key"), QString(),
-      QString(_("Key Files")) + " (*.asc *.txt);;" + _("Keyring files") +
-          " (*.gpg);;All Files (*)");
-  if (!file_name.isNull()) {
-    slotImportKeys(read_all_data_in_file(file_name.toStdString()));
-  }
-}
-
-void KeyMgmt::slotImportKeyFromKeyServer() {
-  importDialog = new KeyServerImportDialog(mKeyList, false, this);
-  importDialog->show();
-}
-
-void KeyMgmt::slotImportKeyFromClipboard() {
-  QClipboard* cb = QApplication::clipboard();
-  slotImportKeys(cb->text(QClipboard::Clipboard).toUtf8().toStdString());
 }
 
 void KeyMgmt::slotDeleteSelectedKeys() {
@@ -344,7 +331,10 @@ void KeyMgmt::slotGenerateKeyDialog() {
   keyGenDialog->show();
 }
 
-void KeyMgmt::closeEvent(QCloseEvent* event) { QMainWindow::closeEvent(event); }
+void KeyMgmt::closeEvent(QCloseEvent* event) {
+  slotSaveWindowState();
+  QMainWindow::closeEvent(event);
+}
 
 void KeyMgmt::slotGenerateSubKey() {
   auto keys_selected = mKeyList->getSelected();
@@ -368,6 +358,52 @@ void KeyMgmt::slotGenerateSubKey() {
 
   auto dialog = new SubkeyGenerateDialog(key.id(), this);
   dialog->show();
+}
+void KeyMgmt::slotSaveWindowState() {
+  auto& settings =
+      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
+
+  if (!settings.exists("window") ||
+      settings.lookup("window").getType() != libconfig::Setting::TypeGroup)
+    settings.add("window", libconfig::Setting::TypeGroup);
+
+  auto& window = settings["window"];
+
+  if (!window.exists("key_management") ||
+      window.lookup("key_management").getType() !=
+          libconfig::Setting::TypeGroup)
+    window.add("key_management", libconfig::Setting::TypeGroup);
+
+  auto& key_management = window["key_management"];
+
+  if (!key_management.exists("position") ||
+      key_management.lookup("position").getType() !=
+          libconfig::Setting::TypeGroup) {
+    auto& position =
+        key_management.add("position", libconfig::Setting::TypeGroup);
+    position.add("x", libconfig::Setting::TypeInt) = pos().x();
+    position.add("y", libconfig::Setting::TypeInt) = pos().y();
+  } else {
+    key_management["position"]["x"] = pos().x();
+    key_management["position"]["y"] = pos().y();
+  }
+
+  if (!key_management.exists("size") ||
+      key_management.lookup("size").getType() !=
+          libconfig::Setting::TypeGroup) {
+    auto& size = key_management.add("size", libconfig::Setting::TypeGroup);
+    size.add("width", libconfig::Setting::TypeInt) = QWidget::width();
+    size.add("height", libconfig::Setting::TypeInt) = QWidget::height();
+  } else {
+    key_management["size"]["width"] = QWidget::width();
+    key_management["size"]["height"] = QWidget::height();
+  }
+
+  if (!key_management.exists("window_state"))
+    key_management.add("window_state", libconfig::Setting::TypeString) =
+        saveState().toBase64().toStdString();
+
+  GlobalSettingStation::GetInstance().Sync();
 }
 
 }  // namespace GpgFrontend::UI

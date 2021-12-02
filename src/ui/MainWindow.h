@@ -56,6 +56,14 @@ class MainWindow : public QMainWindow {
    */
   MainWindow();
 
+  /**
+   * ONLY Called from main()
+   */
+  void init() noexcept;
+
+ signals:
+  void loaded();
+
  public slots:
 
   void slotSetStatusBarText(const QString& text);
@@ -336,89 +344,92 @@ class MainWindow : public QMainWindow {
    */
   [[nodiscard]] bool getRestartNeeded() const;
 
-  TextEdit* edit;               /** Tabwidget holding the edit-windows */
-  QMenu* fileMenu;              /** Submenu for file-operations*/
-  QMenu* editMenu;              /** Submenu for text-operations*/
-  QMenu* cryptMenu;             /** Submenu for crypt-operations */
-  QMenu* fileEncMenu;           /** Submenu for file crypt operations */
-  QMenu* helpMenu;              /** Submenu for help-operations */
-  QMenu* keyMenu;               /** Submenu for key-operations */
-  QMenu* viewMenu;              /** Submenu for view operations */
-  QMenu* importKeyMenu;         /** Sumenu for import operations */
-  QMenu* steganoMenu;           /** Submenu for steganographic operations*/
-  QToolBar* cryptToolBar;       /** Toolbar holding crypt actions */
-  QToolBar* fileToolBar;        /** Toolbar holding file actions */
-  QToolBar* editToolBar;        /** Toolbar holding edit actions */
-  QToolBar* specialEditToolBar; /** Toolbar holding special edit actions */
-  QToolBar* keyToolBar;         /** Toolbar holding key operations */
+  TextEdit* edit{};               /** Tabwidget holding the edit-windows */
+  QMenu* fileMenu{};              /** Submenu for file-operations*/
+  QMenu* editMenu{};              /** Submenu for text-operations*/
+  QMenu* cryptMenu{};             /** Submenu for crypt-operations */
+  QMenu* fileEncMenu{};           /** Submenu for file crypt operations */
+  QMenu* helpMenu{};              /** Submenu for help-operations */
+  QMenu* keyMenu{};               /** Submenu for key-operations */
+  QMenu* viewMenu{};              /** Submenu for view operations */
+  QMenu* importKeyMenu{};         /** Sumenu for import operations */
+  QMenu* steganoMenu{};           /** Submenu for steganographic operations*/
+  QToolBar* cryptToolBar{};       /** Toolbar holding crypt actions */
+  QToolBar* fileToolBar{};        /** Toolbar holding file actions */
+  QToolBar* editToolBar{};        /** Toolbar holding edit actions */
+  QToolBar* specialEditToolBar{}; /** Toolbar holding special edit actions */
+  QToolBar* keyToolBar{};         /** Toolbar holding key operations */
   QToolButton*
-      importButton; /** Toolbutton for import dropdown menu in toolbar */
-  QToolButton* fileEncButton;  /** Toolbutton for file cryption dropdown menu in
-                                  toolbar */
-  QDockWidget* keyListDock;    /** Encrypt Dock*/
-  QDockWidget* attachmentDock; /** Attachment Dock */
-  QDockWidget* infoBoardDock;
+      importButton{}; /** Toolbutton for import dropdown menu in toolbar */
+  QToolButton* fileEncButton{};  /** Toolbutton for file cryption dropdown menu
+                                  in  toolbar */
+  QDockWidget* keyListDock{};    /** Encrypt Dock*/
+  QDockWidget* attachmentDock{}; /** Attachment Dock */
+  QDockWidget* infoBoardDock{};
 
-  QAction* newTabAct;                /** Action to create new tab */
-  QAction* switchTabUpAct;           /** Action to switch tab up*/
-  QAction* switchTabDownAct;         /** Action to switch tab down */
-  QAction* openAct;                  /** Action to open file */
-  QAction* browserAct;               /** Action to open file browser*/
-  QAction* saveAct;                  /** Action to save file */
-  QAction* saveAsAct;                /** Action to save file as */
-  QAction* printAct;                 /** Action to print */
-  QAction* closeTabAct;              /** Action to print */
-  QAction* quitAct;                  /** Action to quit application */
-  QAction* encryptAct;               /** Action to encrypt text */
-  QAction* encryptSignAct;           /** Action to encrypt and sign text */
-  QAction* decryptVerifyAct;         /** Action to encrypt and sign text */
-  QAction* decryptAct;               /** Action to decrypt text */
-  QAction* signAct;                  /** Action to sign text */
-  QAction* verifyAct;                /** Action to verify text */
-  QAction* importKeyFromEditAct;     /** Action to import key from edit */
-  QAction* cleanDoubleLinebreaksAct; /** Action to remove double line breaks */
-
-  QAction* appendSelectedKeysAct; /** Action to append selected keys to edit */
+  QAction* newTabAct{};            /** Action to create new tab */
+  QAction* switchTabUpAct{};       /** Action to switch tab up*/
+  QAction* switchTabDownAct{};     /** Action to switch tab down */
+  QAction* openAct{};              /** Action to open file */
+  QAction* browserAct{};           /** Action to open file browser*/
+  QAction* saveAct{};              /** Action to save file */
+  QAction* saveAsAct{};            /** Action to save file as */
+  QAction* printAct{};             /** Action to print */
+  QAction* closeTabAct{};          /** Action to print */
+  QAction* quitAct{};              /** Action to quit application */
+  QAction* encryptAct{};           /** Action to encrypt text */
+  QAction* encryptSignAct{};       /** Action to encrypt and sign text */
+  QAction* decryptVerifyAct{};     /** Action to encrypt and sign text */
+  QAction* decryptAct{};           /** Action to decrypt text */
+  QAction* signAct{};              /** Action to sign text */
+  QAction* verifyAct{};            /** Action to verify text */
+  QAction* importKeyFromEditAct{}; /** Action to import key from edit */
   QAction*
-      copyMailAddressToClipboardAct; /** Action to copy mail to clipboard */
-  QAction* openKeyManagementAct;     /** Action to open key management */
-  QAction* copyAct;                  /** Action to copy text */
-  QAction* quoteAct;                 /** Action to quote text */
-  QAction* cutAct;                   /** Action to cut text */
-  QAction* pasteAct;                 /** Action to paste text */
-  QAction* selectAllAct;             /** Action to select whole text */
-  QAction* findAct;                  /** Action to find text */
-  QAction* undoAct;                  /** Action to undo last action */
-  QAction* redoAct;                  /** Action to redo last action */
-  QAction* zoomInAct;                /** Action to zoom in */
-  QAction* zoomOutAct;               /** Action to zoom out */
-  QAction* aboutAct;                 /** Action to open about dialog */
-  QAction* checkUpdateAct;           /** Action to open about dialog */
-  QAction* fileEncryptAct;    /** Action to open dialog for encrypting file */
-  QAction* fileDecryptAct;    /** Action to open dialog for decrypting file */
-  QAction* fileSignAct;       /** Action to open dialog for signing file */
-  QAction* fileVerifyAct;     /** Action to open dialog for verifying file */
-  QAction* openSettingsAct;   /** Action to open settings dialog */
-  QAction* showKeyDetailsAct; /** Action to open key-details dialog */
+      cleanDoubleLinebreaksAct{}; /** Action to remove double line breaks */
+
   QAction*
-      refreshKeysFromKeyserverAct; /** Action to refresh a key from keyserver */
-  QAction* uploadKeyToServerAct;   /** Action to append selected keys to edit */
-  QAction* startWizardAct;         /** Action to open the wizard */
-  QAction* cutPgpHeaderAct;        /** Action for cutting the PGP header */
-  QAction* addPgpHeaderAct;        /** Action for adding the PGP header */
+      appendSelectedKeysAct{}; /** Action to append selected keys to edit */
+  QAction*
+      copyMailAddressToClipboardAct{}; /** Action to copy mail to clipboard */
+  QAction* openKeyManagementAct{};     /** Action to open key management */
+  QAction* copyAct{};                  /** Action to copy text */
+  QAction* quoteAct{};                 /** Action to quote text */
+  QAction* cutAct{};                   /** Action to cut text */
+  QAction* pasteAct{};                 /** Action to paste text */
+  QAction* selectAllAct{};             /** Action to select whole text */
+  QAction* findAct{};                  /** Action to find text */
+  QAction* undoAct{};                  /** Action to undo last action */
+  QAction* redoAct{};                  /** Action to redo last action */
+  QAction* zoomInAct{};                /** Action to zoom in */
+  QAction* zoomOutAct{};               /** Action to zoom out */
+  QAction* aboutAct{};                 /** Action to open about dialog */
+  QAction* checkUpdateAct{};           /** Action to open about dialog */
+  QAction* fileEncryptAct{};    /** Action to open dialog for encrypting file */
+  QAction* fileDecryptAct{};    /** Action to open dialog for decrypting file */
+  QAction* fileSignAct{};       /** Action to open dialog for signing file */
+  QAction* fileVerifyAct{};     /** Action to open dialog for verifying file */
+  QAction* openSettingsAct{};   /** Action to open settings dialog */
+  QAction* showKeyDetailsAct{}; /** Action to open key-details dialog */
+  QAction* refreshKeysFromKeyserverAct{}; /** Action to refresh a key from
+                                             keyserver */
+  QAction* uploadKeyToServerAct{}; /** Action to append selected keys to edit */
+  QAction* startWizardAct{};       /** Action to open the wizard */
+  QAction* cutPgpHeaderAct{};      /** Action for cutting the PGP header */
+  QAction* addPgpHeaderAct{};      /** Action for adding the PGP header */
 
-  QLabel* statusBarIcon; /**< TODO */
+  QAction* importKeyFromFileAct{};
+  QAction* importKeyFromClipboardAct{};
+  QAction* importKeyFromKeyServerAct{};
 
-  KeyList* mKeyList;
+  QLabel* statusBarIcon{}; /**< TODO */
 
-  InfoBoardWidget* infoBoard;
-  KeyMgmt* keyMgmt;
-  KeyServerImportDialog* importDialog; /**< TODO */
+  KeyList* mKeyList{};
+  InfoBoardWidget* infoBoard{};
 
-  QNetworkAccessManager* networkAccessManager;
+  QNetworkAccessManager* networkAccessManager{};
 
-  bool attachmentDockCreated;
-  bool restartNeeded;
+  bool attachmentDockCreated{};
+  bool restartNeeded{};
 };
 
 }  // namespace GpgFrontend::UI

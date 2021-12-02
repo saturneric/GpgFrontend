@@ -24,13 +24,11 @@
 
 #include "SettingsKeyServer.h"
 
+#include "GlobalSettingStation.h"
+
 namespace GpgFrontend::UI {
 
-KeyserverTab::KeyserverTab(QWidget* parent)
-    : QWidget(parent),
-      appPath(qApp->applicationDirPath()),
-      settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-               QSettings::IniFormat) {
+KeyserverTab::KeyserverTab(QWidget* parent) : QWidget(parent) {
   auto generalGroupBox = new QGroupBox(_("General"));
   auto generalLayout = new QVBoxLayout();
 
@@ -95,15 +93,26 @@ KeyserverTab::KeyserverTab(QWidget* parent)
  * appropriately
  **********************************/
 void KeyserverTab::setSettings() {
-  keyServerStrList = settings.value("keyserver/keyServerList").toStringList();
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
-  for (const auto& keyServer : keyServerStrList) {
-    comboBox->addItem(keyServer);
-    qDebug() << "KeyserverTab Get ListItemText" << keyServer;
+  try {
+    auto& server_list = settings.lookup("keyserver.server_list");
+    const auto server_list_size = server_list.getLength();
+    for (int i = 0; i < server_list_size; i++) {
+      std::string server_url = server_list[i];
+      comboBox->addItem(server_url.c_str());
+      keyServerStrList.append(server_url.c_str());
+    }
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("server_list");
   }
 
-  comboBox->setCurrentText(
-      settings.value("keyserver/defaultKeyServer").toString());
+  try {
+    std::string default_server = settings.lookup("keyserver.default_server");
+    comboBox->setCurrentText(default_server.c_str());
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("default_server");
+  }
 }
 
 void KeyserverTab::addKeyServer() {
@@ -123,12 +132,35 @@ void KeyserverTab::addKeyServer() {
  * write them to settings-file
  *************************************/
 void KeyserverTab::applySettings() {
-  settings.setValue("keyserver/keyServerList", keyServerStrList);
-  settings.setValue("keyserver/defaultKeyServer", comboBox->currentText());
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+  if (!settings.exists("keyserver") ||
+      settings.lookup("keyserver").getType() != libconfig::Setting::TypeGroup)
+    settings.add("keyserver", libconfig::Setting::TypeGroup);
+
+  auto& keyserver = settings["keyserver"];
+
+  if (keyserver.exists("server_list"))
+    keyserver.remove("server_list");
+
+  keyserver.add("server_list", libconfig::Setting::TypeList);
+
+  auto& server_list = keyserver["server_list"];
+  for (const auto& key_server_url : keyServerStrList) {
+    server_list.add(libconfig::Setting::TypeString) =
+        key_server_url.toStdString();
+  }
+
+  if (!keyserver.exists("default_server")) {
+    keyserver.add("default_server", libconfig::Setting::TypeString) =
+        comboBox->currentText().toStdString();
+  } else {
+    keyserver["default_server"] = comboBox->currentText().toStdString();
+  }
 }
 
 void KeyserverTab::refreshTable() {
-  qDebug() << "Start Refreshing Key Server Table";
+  LOG(INFO) << "Start Refreshing Key Server Table";
 
   keyServerTable->setRowCount(keyServerStrList.size());
 

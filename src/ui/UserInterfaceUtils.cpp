@@ -25,11 +25,16 @@
 #include "UserInterfaceUtils.h"
 
 #include "gpg/result_analyse/ResultAnalyse.h"
+#include "ui/SignalStation.h"
 #include "ui/WaitingDialog.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
+
+std::unique_ptr<GpgFrontend::UI::CommonUtils>
+    GpgFrontend::UI::CommonUtils::_instance = nullptr;
+
 void refresh_info_board(InfoBoardWidget* info_board, int status,
                         const std::string& report_text) {
   if (status < 0)
@@ -77,6 +82,47 @@ void process_operation(QWidget* parent, const std::string& waiting_title,
     QApplication::processEvents();
   }
   dialog->close();
+}
+
+CommonUtils* CommonUtils::GetInstance() {
+  if (_instance == nullptr) {
+    _instance = std::make_unique<CommonUtils>();
+  }
+  return _instance.get();
+}
+
+CommonUtils::CommonUtils() : QWidget(nullptr) {
+  connect(this, SIGNAL(signalKeyStatusUpdated()), SignalStation::GetInstance(),
+          SIGNAL(KeyDatabaseRefresh()));
+}
+
+void CommonUtils::slotImportKeys(QWidget* parent,
+                                 const std::string& in_buffer) {
+  GpgImportInformation result = GpgKeyImportExportor::GetInstance().ImportKey(
+      std::make_unique<ByteArray>(in_buffer));
+  emit signalKeyStatusUpdated();
+  new KeyImportDetailDialog(result, false, parent);
+}
+
+void CommonUtils::slotImportKeyFromFile(QWidget* parent) {
+  QString file_name = QFileDialog::getOpenFileName(
+      this, _("Open Key"), QString(),
+      QString(_("Key Files")) + " (*.asc *.txt);;" + _("Keyring files") +
+          " (*.gpg);;All Files (*)");
+  if (!file_name.isNull()) {
+    slotImportKeys(parent, read_all_data_in_file(file_name.toStdString()));
+  }
+}
+
+void CommonUtils::slotImportKeyFromKeyServer(QWidget* parent) {
+  auto dialog = new KeyServerImportDialog(false, parent);
+  dialog->show();
+}
+
+void CommonUtils::slotImportKeyFromClipboard(QWidget* parent) {
+  QClipboard* cb = QApplication::clipboard();
+  slotImportKeys(parent,
+                 cb->text(QClipboard::Clipboard).toUtf8().toStdString());
 }
 
 }  // namespace GpgFrontend::UI

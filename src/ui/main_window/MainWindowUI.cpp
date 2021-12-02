@@ -23,6 +23,7 @@
  */
 
 #include "MainWindow.h"
+#include "ui/UserInterfaceUtils.h"
 
 namespace GpgFrontend::UI {
 
@@ -214,6 +215,26 @@ void MainWindow::createActions() {
   /* Key Menu
    */
 
+  importKeyFromFileAct = new QAction(_("File"), this);
+  importKeyFromFileAct->setIcon(QIcon(":import_key_from_file.png"));
+  importKeyFromFileAct->setToolTip(_("Import New Key From File"));
+  connect(importKeyFromFileAct, &QAction::triggered, this,
+          [&]() { CommonUtils::GetInstance()->slotImportKeyFromFile(this); });
+
+  importKeyFromClipboardAct = new QAction(_("Clipboard"), this);
+  importKeyFromClipboardAct->setIcon(QIcon(":import_key_from_clipboard.png"));
+  importKeyFromClipboardAct->setToolTip(_("Import New Key From Clipboard"));
+  connect(importKeyFromClipboardAct, &QAction::triggered, this, [&]() {
+    CommonUtils::GetInstance()->slotImportKeyFromClipboard(this);
+  });
+
+  importKeyFromKeyServerAct = new QAction(_("Keyserver"), this);
+  importKeyFromKeyServerAct->setIcon(QIcon(":import_key_from_server.png"));
+  importKeyFromKeyServerAct->setToolTip(_("Import New Key From Keyserver"));
+  connect(importKeyFromKeyServerAct, &QAction::triggered, this, [&]() {
+    CommonUtils::GetInstance()->slotImportKeyFromKeyServer(this);
+  });
+
   importKeyFromEditAct = new QAction(_("Editor"), this);
   importKeyFromEditAct->setIcon(QIcon(":txt.png"));
   importKeyFromEditAct->setToolTip(_("Import New Key From Editor"));
@@ -353,11 +374,10 @@ void MainWindow::createMenus() {
   keyMenu = menuBar()->addMenu(_("Keys"));
   importKeyMenu = keyMenu->addMenu(_("Import Key"));
   importKeyMenu->setIcon(QIcon(":key_import.png"));
-  importKeyMenu->addAction(keyMgmt->importKeyFromFileAct);
+  importKeyMenu->addAction(importKeyFromFileAct);
   importKeyMenu->addAction(importKeyFromEditAct);
-  importKeyMenu->addAction(keyMgmt->importKeyFromClipboardAct);
-  importKeyMenu->addAction(keyMgmt->importKeyFromKeyServerAct);
-  importKeyMenu->addAction(keyMgmt->importKeyFromKeyServerAct);
+  importKeyMenu->addAction(importKeyFromClipboardAct);
+  importKeyMenu->addAction(importKeyFromKeyServerAct);
   keyMenu->addAction(openKeyManagementAct);
 
   steganoMenu = menuBar()->addMenu(_("Steganography"));
@@ -455,7 +475,7 @@ void MainWindow::createStatusBar() {
 }
 
 void MainWindow::createDockWindows() {
-  /* KeyList-Dockwindow
+  /* KeyList-Dock window
    */
   keyListDock = new QDockWidget(_("Key ToolBox"), this);
   keyListDock->setObjectName("EncryptDock");

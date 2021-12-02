@@ -284,20 +284,20 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
   QString usage;
   QTextStream usage_steam(&usage);
 
-  if (mKey.can_certify()) usage_steam << "Cert ";
-  if (mKey.can_encrypt()) usage_steam << "Encr ";
-  if (mKey.can_sign()) usage_steam << "Sign ";
-  if (mKey.can_authenticate()) usage_steam << "Auth ";
+  if (mKey.can_certify()) usage_steam << _("Cert") << " ";
+  if (mKey.can_encrypt()) usage_steam << _("Encr") << " ";
+  if (mKey.can_sign()) usage_steam << _("Sign") << " ";
+  if (mKey.can_authenticate()) usage_steam << _("Auth") << " ";
 
   usageVarLabel->setText(usage);
 
   QString actualUsage;
   QTextStream actual_usage_steam(&actualUsage);
 
-  if (mKey.CanCertActual()) actual_usage_steam << "Cert ";
-  if (mKey.CanEncrActual()) actual_usage_steam << "Encr ";
-  if (mKey.CanSignActual()) actual_usage_steam << "Sign ";
-  if (mKey.CanAuthActual()) actual_usage_steam << "Auth ";
+  if (mKey.CanCertActual()) actual_usage_steam << _("Cert") << " ";
+  if (mKey.CanEncrActual()) actual_usage_steam << _("Encr") << " ";
+  if (mKey.CanSignActual()) actual_usage_steam << _("Sign") << " ";
+  if (mKey.CanAuthActual()) actual_usage_steam << _("Auth") << " ";
 
   actualUsageVarLabel->setText(actualUsage);
 
@@ -352,7 +352,7 @@ void KeyPairDetailTab::slotUpdateKeyToServer() {
   keys->push_back(mKey.id());
   auto* dialog = new KeyServerImportDialog(this);
   dialog->show();
-  dialog->slotImportKey(keys);
+  dialog->slotImport(keys);
 }
 
 void KeyPairDetailTab::slotGenRevokeCert() {

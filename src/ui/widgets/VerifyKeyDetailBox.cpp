@@ -153,7 +153,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(QWidget* parent, KeyList* keyList,
 }
 
 void VerifyKeyDetailBox::slotImportFormKeyserver() {
-  auto* importDialog = new KeyServerImportDialog(mKeyList, false, this);
+  auto* importDialog = new KeyServerImportDialog(false, this);
   auto key_ids = std::make_unique<KeyIdArgsList>();
   key_ids->push_back(fpr.toStdString());
   importDialog->slotImport(key_ids);
