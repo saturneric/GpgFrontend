@@ -25,18 +25,15 @@
 #ifndef GPG_CONSTANTS_H
 #define GPG_CONSTANTS_H
 
-#define ELPP_DEFAULT_LOGGING_FLAGS 8192
-#include <easyloggingpp/easylogging++.h>
+#include "GpgFrontend.h"
+
 #include <gpg-error.h>
 #include <gpgme.h>
 
 #include <cassert>
 #include <functional>
-#include <libconfig.h++>
 #include <memory>
 #include <string>
-
-#include "GpgFrontend.h"
 
 const int RESTART_CODE = 1000;
 

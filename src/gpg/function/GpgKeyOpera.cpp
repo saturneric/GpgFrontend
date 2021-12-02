@@ -24,7 +24,7 @@
 
 #include "gpg/function/GpgKeyOpera.h"
 
-#include <boost/asio/read_until.hpp>
+#include <boost/asio.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
 #include <boost/process/async_pipe.hpp>
 #include <memory>
@@ -99,38 +99,45 @@ void GpgFrontend::GpgKeyOpera::GenerateRevokeCert(
 
   using boost::asio::async_write;
   using boost::process::async_pipe;
+#ifndef WINDOWS
   GpgCommandExecutor::GetInstance().Execute(
       args, [](async_pipe& in, async_pipe& out) -> void {
-        boost::asio::streambuf buff;
-        boost::asio::read_until(in, buff, '\n');
-
-        std::istream is(&buff);
-
-        while (!is.eof()) {
-          std::string line;
-          is >> line;
-          LOG(INFO) << "line" << line;
-          boost::algorithm::trim(line);
-          if (line == std::string("[GNUPG:] GET_BOOL gen_revoke.okay")) {
-
-          } else if (line ==
-                     std::string(
-                         "[GNUPG:] GET_LINE ask_revocation_reason.code")) {
-
-          } else if (line ==
-                     std::string(
-                         "[GNUPG:] GET_LINE ask_revocation_reason.text")) {
-
-          } else if (line ==
-                     std::string("[GNUPG:] GET_BOOL openfile.overwrite.okay")) {
-
-          } else if (line ==
-                     std::string(
-                         "[GNUPG:] GET_BOOL ask_revocation_reason.okay")) {
-
-          }
-        }
+        //        boost::asio::streambuf buff;
+        //        boost::asio::read_until(in, buff, '\n');
+        //
+        //        std::istream is(&buff);
+        //
+        //        while (!is.eof()) {
+        //          std::string line;
+        //          is >> line;
+        //          LOG(INFO) << "line" << line;
+        //          boost::algorithm::trim(line);
+        //          if (line == std::string("[GNUPG:] GET_BOOL
+        //          gen_revoke.okay")) {
+        //
+        //          } else if (line ==
+        //                     std::string(
+        //                         "[GNUPG:] GET_LINE
+        //                         ask_revocation_reason.code")) {
+        //
+        //          } else if (line ==
+        //                     std::string(
+        //                         "[GNUPG:] GET_LINE
+        //                         ask_revocation_reason.text")) {
+        //
+        //          } else if (line ==
+        //                     std::string("[GNUPG:] GET_BOOL
+        //                     openfile.overwrite.okay")) {
+        //
+        //          } else if (line ==
+        //                     std::string(
+        //                         "[GNUPG:] GET_BOOL
+        //                         ask_revocation_reason.okay")) {
+        //
+        //          }
+        //        }
       });
+#endif
 }
 
 /**

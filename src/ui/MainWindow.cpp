@@ -26,7 +26,7 @@
 
 #include "ui/UserInterfaceUtils.h"
 #ifdef RELEASE
-#include "ui/help/VersionCheckThread.h"
+#include "ui/function/VersionCheckThread.h"
 #endif
 #include "ui/settings/GlobalSettingStation.h"
 

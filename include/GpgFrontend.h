@@ -1,7 +1,7 @@
 /**
- * This file is part of GpgFrontend.
+ * This file is part of GPGFrontend.
  *
- * GpgFrontend is free software: you can redistribute it and/or modify
+ * GPGFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -22,32 +22,58 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDUI_H
-#define GPGFRONTEND_GPGFRONTENDUI_H
+#ifndef GPGFRONTEND_H_IN
+#define GPGFRONTEND_H_IN
 
-#include "GpgFrontend.h"
+/**
+ * STD Headers
+ */
+#include <iostream>
+#include <string>
+#include <cmath>
+#include <clocale>
+#include <cerrno>
+#include <utility>
+#include <list>
 
+/**
+ * QT Headers
+ */
 #include <QtCore>
-#include <QtNetwork>
-#include <QtPrintSupport>
 #include <QtWidgets>
+#include <QtNetwork/QtNetwork>
+#include <QtPrintSupport/QtPrintSupport>
 
-#undef LIBCONFIGXX_STATIC
-#define LIBCONFIGXX_STATIC
-#include <libconfig.h++>
+/**
+ * GpgME Headers
+ */
+#include <gpgme.h>
+
+/**
+ * Platform Vars
+ */
+#define WINDOWS 0
+#define MACOS 1
+#define LINUX 2
+
+#define OS_PLATFORM 1
+
+/**
+ * Build Options Vars
+ */
+#define RELEASE 0
+#define DEBUG 1
 
 /**
  * Resources File(s) Path Vars
  */
-#if defined(MACOS) && defined(RELEASE)
-#define RESOURCE_DIR(appDir) (appDir + "/../Resources/")
-#define RESOURCE_DIR_BOOST_PATH(appDir) (appDir / ".." / "Resources")
-#elif defined(LINUX) && defined(RELEASE)
-#define RESOURCE_DIR(appDir) (appDir + "/../share/")
-#define RESOURCE_DIR_BOOST_PATH(appDir) (appDir / ".." / "share")
+#if OS_PLATFORM == MACOS && BUILD_FLAG == RELEASE
+# define RESOURCE_DIR(appDir) (appDir + "/../Resources/")
+#elif OS_PLATFORM == LINUX && BUILD_FLAG == RELEASE
+# define RESOURCE_DIR(appDir) (appDir + "/../share/")
 #else
-#define RESOURCE_DIR(appDir) (appDir)
-#define RESOURCE_DIR_BOOST_PATH(appDir) (appDir)
+# define RESOURCE_DIR(appDir) (appDir)
 #endif
 
-#endif  // GPGFRONTEND_GPGFRONTENDUI_H
+
+#endif //GPGFRONTEND_H_IN

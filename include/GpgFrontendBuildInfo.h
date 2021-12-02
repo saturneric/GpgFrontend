@@ -1,7 +1,7 @@
 /**
- * This file is part of GpgFrontend.
+ * This file is part of GPGFrontend.
  *
- * GpgFrontend is free software: you can redistribute it and/or modify
+ * GPGFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -22,32 +22,33 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDUI_H
-#define GPGFRONTEND_GPGFRONTENDUI_H
-
-#include "GpgFrontend.h"
-
-#include <QtCore>
-#include <QtNetwork>
-#include <QtPrintSupport>
-#include <QtWidgets>
-
-#undef LIBCONFIGXX_STATIC
-#define LIBCONFIGXX_STATIC
-#include <libconfig.h++>
+#ifndef GPGFRONTEND_BUILD_INFO_H_IN
+#define GPGFRONTEND_BUILD_INFO_H_IN
 
 /**
- * Resources File(s) Path Vars
+ * Logic Version (*.*.*)
  */
-#if defined(MACOS) && defined(RELEASE)
-#define RESOURCE_DIR(appDir) (appDir + "/../Resources/")
-#define RESOURCE_DIR_BOOST_PATH(appDir) (appDir / ".." / "Resources")
-#elif defined(LINUX) && defined(RELEASE)
-#define RESOURCE_DIR(appDir) (appDir + "/../share/")
-#define RESOURCE_DIR_BOOST_PATH(appDir) (appDir / ".." / "share")
-#else
-#define RESOURCE_DIR(appDir) (appDir)
-#define RESOURCE_DIR_BOOST_PATH(appDir) (appDir)
-#endif
+#define VERSION_MAJOR 1
+#define VERSION_MINOR 3
+#define VERSION_PATCH 1
 
-#endif  // GPGFRONTEND_GPGFRONTENDUI_H
+/**
+ * Code Version (According to Git)
+ */
+#define GIT_BRANCH_NAME "main"
+#define GIT_COMMIT_HASH "d0146c8c640b2a7ec9a62c3c87a8f5e7c84f1fe7"
+
+/**
+ * Generated Information (According to CMake)
+ */
+#define PROJECT_NAME "GpgFrontend"
+#define BUILD_VERSION "1.3.1_Darwin-20.5.0_x86_64_Debug"
+#define GIT_VERSION "main_d0146c8c640b2a7ec9a62c3c87a8f5e7c84f1fe7"
+
+/**
+ * Build Information
+ */
+#define BUILD_FLAG 1
+#define BUILD_TIMESTAMP "2021-08-28 12:37:33"
+
+#endif // GPGFRONTEND_BUILD_INFO_H_IN

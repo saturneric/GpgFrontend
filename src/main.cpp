@@ -74,8 +74,6 @@ int main(int argc, char* argv[]) {
    */
   int return_from_event_loop_code;
 
-  LOG(INFO) << _("Resource Directory") << RESOURCE_DIR(app_path);
-
   do {
     QApplication::setQuitOnLastWindowClosed(true);
 
@@ -135,25 +133,41 @@ void init_locale() {
       settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
     settings.add("general", libconfig::Setting::TypeGroup);
 
+  // set system default at first
   auto& general = settings["general"];
   if (!general.exists("lang"))
-    general.add("lang", libconfig::Setting::TypeString) =
-        QLocale::system().name().toStdString();
+    general.add("lang", libconfig::Setting::TypeString) = "";
 
   GpgFrontend::UI::GlobalSettingStation::GetInstance().Sync();
 
+  auto* locale_name = setlocale(LC_ALL, nullptr);
+  LOG(INFO) << "current system locale" << locale_name;
+
+  // read from settings file
   std::string lang;
   if (!general.lookupValue("lang", lang)) {
     LOG(ERROR) << _("Could not read properly from configure file");
   };
 
   LOG(INFO) << "lang" << lang;
+  LOG(INFO) << "PROJECT_NAME" << PROJECT_NAME;
+  LOG(INFO) << "locales path"
+            << GpgFrontend::UI::GlobalSettingStation::GetInstance()
+                   .GetLocaleDir()
+                   .c_str();
 
+  if (!lang.empty()) lang += ".UTF8";
   // GNU gettext settings
-  setlocale(LC_ALL, lang.c_str());
+  locale_name = setlocale(LC_ALL, lang.c_str());
+  if (locale_name == nullptr) {
+    LOG(WARNING) << "set locale name failed";
+  } else {
+    LOG(INFO) << "locale name now" << locale_name;
+  }
+
   bindtextdomain(PROJECT_NAME,
                  GpgFrontend::UI::GlobalSettingStation::GetInstance()
                      .GetLocaleDir()
-                     .c_str());
+                     .string().c_str());
   textdomain(PROJECT_NAME);
 }

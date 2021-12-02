@@ -25,6 +25,7 @@ endif ()
 # Using Standard C++-17 (Consider compatibility)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # CMake
@@ -87,6 +88,9 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
     ADD_DEFINITIONS(-DRELEASE)
     message(STATUS "Build Type RELEASE")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+    # Release Version Build MINIMUM_APPLICATION_BUILD
+    set(FULL_APPLICATION_BUILD 0)
+    set(MINIMUM_APPLICATION_BUILD 1)
 else ()
     set(BUILD_FLAG 1)
     ADD_DEFINITIONS(-DDEBUG)
@@ -137,13 +141,13 @@ message(STATUS "Build Version ${BUILD_VERSION}")
 message(STATUS "Git Version ${GIT_VERSION}")
 
 IF (MINGW)
-
     message(STATUS "Configuration For OS Platform Microsoft Windows")
     message(STATUS "Build Environment MINGW")
 
     set(OS_PLATFORM 0)
-    ADD_DEFINITIONS(-DWINDOWS)
+    add_definitions(-DWINDOWS)
 
+    set(Boost_USE_STATIC_LIBS ON)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
 
     include_directories(

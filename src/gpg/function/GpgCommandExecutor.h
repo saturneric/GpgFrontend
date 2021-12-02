@@ -25,7 +25,9 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
 #define GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
 
+#ifndef WINDOWS
 #include <boost/process.hpp>
+#endif
 
 #include "gpg/GpgContext.h"
 #include "gpg/GpgFunctionObject.h"
@@ -33,10 +35,13 @@
 namespace GpgFrontend {
 class GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
  public:
+
+#ifndef WINDOWS
   void Execute(StringArgsRef arguments,
                const std::function<void(boost::process::async_pipe &in,
                                         boost::process::async_pipe &out)>
                    &interact_func);
+#endif
 
  private:
   GpgContext &ctx = GpgContext::GetInstance();

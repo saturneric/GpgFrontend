@@ -107,8 +107,10 @@ void EditorPage::slotFormatGpgHeader() {
   cursor.setCharFormat(signFormat);
 }
 
-void EditorPage::readFile() {
+void EditorPage::ReadFile() {
   LOG(INFO) << "Called";
+
+  readDone = false;
 
   auto text_page = this->getTextPage();
   text_page->setReadOnly(true);
@@ -126,19 +128,27 @@ void EditorPage::readFile() {
   connect(thread, &FileReadThread::finished, this, [=]() {
     LOG(INFO) << "Thread finished";
     thread->deleteLater();
+    readDone = true;
+    readThread = nullptr;
   });
 
-  connect(this, &FileReadThread::destroyed, [=]() {
+  connect(this, &EditorPage::destroyed, [=]() {
     LOG(INFO) << "RequestInterruption for readThread";
     thread->requestInterruption();
-    thread->deleteLater();
+    readThread = nullptr;
   });
-
+  this->readThread = thread;
   thread->start();
 }
 
 void EditorPage::slotInsertText(const QString& text) {
   this->getTextPage()->insertPlainText(text);
+}
+void EditorPage::PrepareToDestroy() {
+  if (readThread) {
+    readThread->requestInterruption();
+    readThread = nullptr;
+  }
 }
 
 }  // namespace GpgFrontend::UI

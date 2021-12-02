@@ -195,6 +195,8 @@ void KeyServerImportDialog::createKeysTable() {
 }
 
 void KeyServerImportDialog::setMessage(const QString& text, bool error) {
+  if (mAutomatic) return;
+  
   message->setText(text);
   if (error) {
     icon->setPixmap(
@@ -429,7 +431,8 @@ void KeyServerImportDialog::slotImport(const QStringList& keyIds,
     auto manager = new QNetworkAccessManager(this);
 
     QNetworkReply* reply = manager->get(QNetworkRequest(req_url));
-    connect(reply, SIGNAL(finished()), this, SLOT(slotImportFinished()));
+    connect(reply, &QNetworkReply::finished, this,
+            [&, keyId]() { this->slotImportFinished(keyId); });
     LOG(INFO) << "loading start";
     setLoading(true);
     while (reply->isRunning()) QApplication::processEvents();
@@ -438,7 +441,7 @@ void KeyServerImportDialog::slotImport(const QStringList& keyIds,
   }
 }
 
-void KeyServerImportDialog::slotImportFinished() {
+void KeyServerImportDialog::slotImportFinished(QString keyid) {
   LOG(INFO) << _("Called");
 
   auto* reply = qobject_cast<QNetworkReply*>(sender());
@@ -448,18 +451,39 @@ void KeyServerImportDialog::slotImportFinished() {
   auto error = reply->error();
   if (error != QNetworkReply::NoError) {
     LOG(ERROR) << "Error From Reply" << reply->errorString().toStdString();
-    switch (error) {
-      case QNetworkReply::ContentNotFoundError:
-        setMessage(_("Key Not Found"), true);
-        break;
-      case QNetworkReply::TimeoutError:
-        setMessage(_("Timeout"), true);
-        break;
-      case QNetworkReply::HostNotFoundError:
-        setMessage(_("Key Server Not Found"), true);
-        break;
-      default:
-        setMessage(_("Connection Error"), true);
+    if (!mAutomatic) {
+      switch (error) {
+        case QNetworkReply::ContentNotFoundError:
+          setMessage(_("Key Not Found"), true);
+          break;
+        case QNetworkReply::TimeoutError:
+          setMessage(_("Timeout"), true);
+          break;
+        case QNetworkReply::HostNotFoundError:
+          setMessage(_("Key Server Not Found"), true);
+          break;
+        default:
+          setMessage(_("Connection Error"), true);
+      }
+    } else {
+      switch (error) {
+        case QNetworkReply::ContentNotFoundError:
+          QMessageBox::critical(
+              nullptr, _("Public key Not Found"),
+              QString(_("Public key fingerprint %1 not found in the Keyserver"))
+                  .arg(keyid));
+          break;
+        case QNetworkReply::TimeoutError:
+          QMessageBox::critical(nullptr, _("Timeout"), "Connection timeout");
+          break;
+        case QNetworkReply::HostNotFoundError:
+          QMessageBox::critical(nullptr, _("Host Not Found"),
+                                "cannot resolve the default Keyserver");
+          break;
+        default:
+          QMessageBox::critical(nullptr, _("Connection Error"),
+                                _("General Connection Error"));
+      }
     }
     if (mAutomatic) {
       setWindowFlags(Qt::Window | Qt::WindowTitleHint |
