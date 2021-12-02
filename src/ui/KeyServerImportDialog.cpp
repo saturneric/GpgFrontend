@@ -492,10 +492,10 @@ void KeyServerImportDialog::setLoading(bool status) {
 
 KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)
     : QDialog(parent),
+      mAutomatic(true),
       appPath(qApp->applicationDirPath()),
       settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-               QSettings::IniFormat),
-      mAutomatic(true) {
+               QSettings::IniFormat) {
   setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
 
   message = new QLabel;

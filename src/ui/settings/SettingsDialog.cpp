@@ -24,6 +24,7 @@
 
 #include "SettingsDialog.h"
 
+#include "GlobalSettingStation.h"
 #include "SettingsAdvanced.h"
 #include "SettingsAppearance.h"
 #include "SettingsGeneral.h"
@@ -120,23 +121,25 @@ QHash<QString, QString> SettingsDialog::listLanguages() {
 
   languages.insert(QString(), _("System Default"));
 
-  QString appPath = qApp->applicationDirPath();
-  QDir qmDir = QDir(RESOURCE_DIR(appPath) + "/ts/");
-  QStringList fileNames = qmDir.entryList(QStringList("gpgfrontend_*.qm"));
+  auto locale_path = GlobalSettingStation::GetInstance().GetLocaleDir();
 
-  for (int i = 0; i < fileNames.size(); ++i) {
-    QString locale = fileNames[i];
-    locale.truncate(locale.lastIndexOf('.'));
-    locale.remove(0, locale.indexOf('_') + 1);
+  auto locale_dir = QDir(locale_path.c_str());
+  QStringList file_names = locale_dir.entryList(QStringList("*"));
+
+  for (int i = 0; i < file_names.size(); ++i) {
+    QString locale = file_names[i];
+    LOG(INFO) << "locale" << locale.toStdString();
+    if (locale == "." || locale == "..") continue;
 
     // this works in qt 4.8
-    QLocale qloc(locale);
+    QLocale q_locale(locale);
+    if (q_locale.nativeCountryName().isEmpty()) continue;
 #if QT_VERSION < 0x040800
     QString language =
-        QLocale::languageToString(qloc.language()) + " (" + locale +
-        ")";  //+ " (" + QLocale::languageToString(qloc.language()) + ")";
+        QLocale::languageToString(q_locale.language()) + " (" + locale +
+        ")";  //+ " (" + QLocale::languageToString(q_locale.language()) + ")";
 #else
-    QString language = qloc.nativeLanguageName() + " (" + locale + ")";
+    auto language = q_locale.nativeLanguageName() + " (" + locale + ")";
 #endif
     languages.insert(locale, language);
   }

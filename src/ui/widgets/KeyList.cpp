@@ -153,8 +153,7 @@ void KeyList::slotRefresh() {
   buffered_keys.clear();
 
   while (it != keys->end()) {
-    buffered_keys.push_back(
-        std::move(GpgKeyGetter::GetInstance().GetKey(it->id())));
+    buffered_keys.push_back(GpgKeyGetter::GetInstance().GetKey(it->id()));
 
     auto* tmp0 = new QTableWidgetItem(QString::number(row_index));
     tmp0->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled |
@@ -219,7 +218,7 @@ void KeyList::slotRefresh() {
     ++row_index;
   }
 
-  setChecked(std::move(keyList));
+  setChecked(keyList);
 }
 
 KeyIdArgsListPtr KeyList::getChecked() {
@@ -229,7 +228,7 @@ KeyIdArgsListPtr KeyList::getChecked() {
       ret->push_back(buffered_keys[i].id());
     }
   }
-  return std::move(ret);
+  return ret;
 }
 
 KeyIdArgsListPtr KeyList::getAllPrivateKeys() {
@@ -239,7 +238,7 @@ KeyIdArgsListPtr KeyList::getAllPrivateKeys() {
       ret->push_back(buffered_keys[i].id());
     }
   }
-  return std::move(ret);
+  return ret;
 }
 
 KeyIdArgsListPtr KeyList::getPrivateChecked() {
@@ -250,7 +249,7 @@ KeyIdArgsListPtr KeyList::getPrivateChecked() {
       ret->push_back(buffered_keys[i].id());
     }
   }
-  return std::move(ret);
+  return ret;
 }
 
 void KeyList::setChecked(const KeyIdArgsListPtr& keyIds) {
@@ -272,7 +271,7 @@ KeyIdArgsListPtr KeyList::getSelected() {
       ret->push_back(buffered_keys[i].id());
     }
   }
-  return std::move(ret);
+  return ret;
 }
 
 [[maybe_unused]] bool KeyList::containsPrivateKeys() {

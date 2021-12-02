@@ -10,16 +10,19 @@ endif ()
 
 if (SMTP_SUPPORT)
     message(STATUS "Build SMTP Support")
+    add_compile_definitions(SMTP_SUPPORT)
     add_subdirectory(smtp)
 endif ()
 
 if (SERVER_SUPPORT)
     message(STATUS "Build Server Support")
+    add_compile_definitions(SERVER_SUPPORT)
     add_subdirectory(server)
 endif ()
 
 if (ADVANCE_SUPPORT)
     message(STATUS "Build Advance Support")
+    add_compile_definitions(ADVANCE_SUPPORT)
     add_subdirectory(advance)
 endif ()
 
@@ -56,6 +59,7 @@ file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
 # i18n
 if (MULTI_LANG_SUPPORT)
+    message(STATUS "Build Multiply Languages Support")
     # Set Translation Files
     find_package(Gettext REQUIRED)
     FIND_PROGRAM(GETTEXT_MSGFMT_EXECUTABLE msgfmt)
@@ -82,10 +86,13 @@ if (MULTI_LANG_SUPPORT)
             make_directory(${CMAKE_SOURCE_DIR}/resource/locale/out/${_langName}/LC_MESSAGES)
             add_custom_command(
                     TARGET translations
+                    COMMAND echo Processing po LANG ${_langName}
+            )
+            add_custom_command(
+                    TARGET translations
                     COMMAND msgfmt --check --verbose --output-file ${CMAKE_SOURCE_DIR}/resource/locale/out/${_langName}/LC_MESSAGES/GpgFrontend.mo ${_poFile}
             )
         endforeach ()
-
 
     endif ()
 endif ()
@@ -180,6 +187,10 @@ if (APPLICATION_BUILD)
     else ()
         add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
     endif ()
+
+    # Make app build with resources
+    add_dependencies(${AppName} resources)
+
 endif ()
 
 if (APPLICATION_BUILD)

@@ -32,7 +32,7 @@ using namespace rapidjson;
 namespace GpgFrontend::UI {
 
 void VersionCheckThread::run() {
-  qDebug() << "Start Version Thread to get latest version from Github";
+  LOG(INFO) << "Start Version Thread to get latest version from Github";
 
   auto currentVersion = "v" + QString::number(VERSION_MAJOR) + "." +
                         QString::number(VERSION_MINOR) + "." +
@@ -43,7 +43,7 @@ void VersionCheckThread::run() {
   }
 
   if (mNetworkReply->error() != QNetworkReply::NoError) {
-    qDebug() << "VersionCheckThread Found Network Error";
+    LOG(ERROR) << "VersionCheckThread Found Network Error";
     return;
   }
 
@@ -54,16 +54,16 @@ void VersionCheckThread::run() {
 
   QString latestVersion = d["tag_name"].GetString();
 
-  qDebug() << "Latest Version From Github" << latestVersion;
+  LOG(INFO) << "Latest Version From Github" << latestVersion.toStdString();
 
-  QRegularExpression re("^[vV](\\d+\\.)?(\\d+\\.)?(\\*|\\d+)");
+  QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
   QRegularExpressionMatch match = re.match(latestVersion);
   if (match.hasMatch()) {
     latestVersion = match.captured(0);  // matched == "23 def"
-    qDebug() << "Latest Version Matched" << latestVersion;
+    LOG(INFO) << "Latest Version Matched" << latestVersion.toStdString();
   } else {
     latestVersion = currentVersion;
-    qDebug() << "Latest Version Unknown" << latestVersion;
+    LOG(WARNING) << "Latest Version Unknown" << latestVersion.toStdString();
   }
 
   if (latestVersion != currentVersion) {

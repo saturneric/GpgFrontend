@@ -24,16 +24,18 @@
 
 #include "GlobalSettingStation.h"
 
-std::unique_ptr<GlobalSettingStation> GlobalSettingStation::_instance = nullptr;
+std::unique_ptr<GpgFrontend::UI::GlobalSettingStation>
+    GpgFrontend::UI::GlobalSettingStation::_instance = nullptr;
 
-GlobalSettingStation& GlobalSettingStation::GetInstance() {
+GpgFrontend::UI::GlobalSettingStation&
+GpgFrontend::UI::GlobalSettingStation::GetInstance() {
   if (_instance == nullptr) {
     _instance = std::make_unique<GlobalSettingStation>();
   }
   return *_instance;
 }
 
-void GlobalSettingStation::Sync() noexcept {
+void GpgFrontend::UI::GlobalSettingStation::Sync() noexcept {
   using namespace libconfig;
   try {
     ui_cfg.writeFile(ui_config_path.c_str());
@@ -46,7 +48,7 @@ void GlobalSettingStation::Sync() noexcept {
   }
 }
 
-GlobalSettingStation::GlobalSettingStation() noexcept {
+GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept {
   using namespace boost::filesystem;
   using namespace libconfig;
 

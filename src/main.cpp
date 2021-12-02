@@ -40,7 +40,8 @@ int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
 
   // get application path
-  auto app_path = GlobalSettingStation::GetInstance().GetAppDir();
+  auto app_path =
+      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetAppDir();
 
   // logging system
   init_logging();
@@ -113,7 +114,8 @@ void init_logging() {
                           "%datetime %level %func %msg");
 
   auto logfile_path =
-      (GlobalSettingStation::GetInstance().GetLogDir() / to_iso_string(now));
+      (GpgFrontend::UI::GlobalSettingStation::GetInstance().GetLogDir() /
+       to_iso_string(now));
   logfile_path.replace_extension(".log");
   defaultConf.setGlobally(el::ConfigurationType::Filename,
                           logfile_path.string());
@@ -124,7 +126,8 @@ void init_logging() {
 }
 
 void init_locale() {
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  auto& settings =
+      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
 
   if (!settings.exists("general") ||
       settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
@@ -135,18 +138,20 @@ void init_locale() {
     general.add("lang", libconfig::Setting::TypeString) =
         QLocale::system().name().toStdString();
 
-  GlobalSettingStation::GetInstance().Sync();
+  GpgFrontend::UI::GlobalSettingStation::GetInstance().Sync();
 
   std::string lang;
   if (!general.lookupValue("lang", lang)) {
     LOG(ERROR) << _("Could not read properly from configure file");
   };
-  
+
   LOG(INFO) << "lang" << lang;
 
   // GNU gettext settings
   setlocale(LC_ALL, lang.c_str());
   bindtextdomain(PROJECT_NAME,
-                 GlobalSettingStation::GetInstance().GetLocaleDir().c_str());
+                 GpgFrontend::UI::GlobalSettingStation::GetInstance()
+                     .GetLocaleDir()
+                     .c_str());
   textdomain(PROJECT_NAME);
 }

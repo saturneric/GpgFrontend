@@ -28,20 +28,19 @@
 #include "server/ComUtils.h"
 #endif
 
+#ifdef MULTI_LANG_SUPPORT
 #include "SettingsDialog.h"
+#endif
+
+#include "GlobalSettingStation.h"
 #include "gpg/function/GpgKeyGetter.h"
 #include "rapidjson/prettywriter.h"
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
-GeneralTab::GeneralTab(QWidget* parent)
-    : QWidget(parent),
-      appPath(qApp->applicationDirPath()),
-      settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-               QSettings::IniFormat) {
+GeneralTab::GeneralTab(QWidget* parent) : QWidget(parent) {
 #ifdef SERVER_SUPPORT
-
   /*****************************************
    * GpgFrontend Server
    *****************************************/
@@ -77,7 +76,7 @@ GeneralTab::GeneralTab(QWidget* parent)
   importConfirmationBoxLayout->addWidget(importConfirmationCheckBox);
   importConfirmationBox->setLayout(importConfirmationBoxLayout);
 
-#ifdef MULT_LANGUAGE_SUPPORT
+#ifdef MULTI_LANG_SUPPORT
   /*****************************************
    * Language Select Box
    *****************************************/
@@ -141,7 +140,6 @@ GeneralTab::GeneralTab(QWidget* parent)
   ownKeyServiceTokenLayout->addWidget(getServiceTokenButton);
   ownKeyServiceTokenLayout->addWidget(serviceTokenLabel);
   ownKeyServiceTokenLayout->stretch(0);
-
 #endif
 
   /*****************************************
@@ -153,7 +151,7 @@ GeneralTab::GeneralTab(QWidget* parent)
 #endif
   mainLayout->addWidget(saveCheckedKeysBox);
   mainLayout->addWidget(importConfirmationBox);
-#ifdef MULT_LANGUAGE_SUPPORT
+#ifdef MULTI_LANG_SUPPORT
   mainLayout->addWidget(langBox);
 #endif
 #ifdef SERVER_SUPPORT
@@ -171,9 +169,12 @@ GeneralTab::GeneralTab(QWidget* parent)
  * appropriately
  **********************************/
 void GeneralTab::setSettings() {
-  // Keysaving
-  if (settings.value("keys/saveKeyChecked").toBool()) {
-    saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  try {
+    bool save_key_checked = settings.lookup("general.save_key_checked");
+    if (save_key_checked) saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("save_key_checked");
   }
 
 #ifdef SERVER_SUPPORT
@@ -199,19 +200,19 @@ void GeneralTab::setSettings() {
           });
 #endif
 
-#ifdef MULT_LANGUAGE_SUPPORT
-
-  // Language setting
-  QString langKey = settings.value("int/lang").toString();
-  QString langValue = lang.value(langKey);
-  if (!langKey.isEmpty()) {
-    langSelectBox->setCurrentIndex(langSelectBox->findText(langValue));
+#ifdef MULTI_LANG_SUPPORT
+  try {
+    std::string lang_key = settings.lookup("general.lang");
+    QString lang_value = lang.value(lang_key.c_str());
+    if (!lang.empty()) {
+      langSelectBox->setCurrentIndex(langSelectBox->findText(lang_value));
+    }
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("lang");
   }
-
 #endif
 
 #ifdef SERVER_SUPPORT
-
   auto own_key_id = settings.value("general/ownKeyId").toString().toStdString();
   if (own_key_id.empty()) {
     ownKeySelectBox->setCurrentText("<none>");
@@ -225,12 +226,15 @@ void GeneralTab::setSettings() {
   if (!serviceToken.empty()) {
     serviceTokenLabel->setText(QString::fromStdString(serviceToken));
   }
-
 #endif
 
-  // Get own key information from keydb/gpg.conf (if contained)
-  if (settings.value("general/confirmImportKeys", Qt::Checked).toBool()) {
-    importConfirmationCheckBox->setCheckState(Qt::Checked);
+  try {
+    bool confirm_import_keys = settings.lookup("general.confirm_import_keys");
+    LOG(INFO) << "confirm_import_keys" << confirm_import_keys;
+    if (confirm_import_keys)
+      importConfirmationCheckBox->setCheckState(Qt::Checked);
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("confirm_import_keys");
   }
 }
 
@@ -239,8 +243,22 @@ void GeneralTab::setSettings() {
  * write them to settings-file
  *************************************/
 void GeneralTab::applySettings() {
-  settings.setValue("keys/saveKeyChecked",
-                    saveCheckedKeysCheckBox->isChecked());
+  auto& settings =
+      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
+
+  if (!settings.exists("general") ||
+      settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
+    settings.add("general", libconfig::Setting::TypeGroup);
+
+  auto& general = settings["general"];
+
+  if (!general.exists("save_key_checked"))
+    general.add("save_key_checked", libconfig::Setting::TypeBoolean) =
+        saveCheckedKeysCheckBox->isChecked();
+  else {
+    general["save_key_checked"] = saveCheckedKeysCheckBox->isChecked();
+  }
+
 #ifdef SERVER_SUPPORT
   qDebug() << "serverSelectBox currentText" << serverSelectBox->currentText();
   settings.setValue("general/currentGpgfrontendServer",
@@ -253,8 +271,15 @@ void GeneralTab::applySettings() {
   delete serverList;
 #endif
 
-#ifdef MULT_LANGUAGE_SUPPORT
-  settings.setValue("int/lang", lang.key(langSelectBox->currentText()));
+#ifdef MULTI_LANG_SUPPORT
+
+  if (!general.exists("lang"))
+    general.add("lang", libconfig::Setting::TypeBoolean) =
+        langSelectBox->currentText().toStdString();
+  else {
+    general["lang"] = langSelectBox->currentText().toStdString();
+  }
+  
 #endif
 
 #ifdef SERVER_SUPPORT
@@ -266,11 +291,17 @@ void GeneralTab::applySettings() {
                     QString::fromStdString(serviceToken));
 #endif
 
-  settings.setValue("general/confirmImportKeys",
-                    importConfirmationCheckBox->isChecked());
+  if (!general.exists("confirm_import_keys"))
+    general.add("confirm_import_keys", libconfig::Setting::TypeBoolean) =
+        importConfirmationCheckBox->isChecked();
+  else {
+    general["confirm_import_keys"] = importConfirmationCheckBox->isChecked();
+  }
+
+  GlobalSettingStation::GetInstance().Sync();
 }
 
-#ifdef MULT_LANGUAGE_SUPPORT
+#ifdef MULTI_LANG_SUPPORT
 void GeneralTab::slotLanguageChanged() { emit signalRestartNeeded(true); }
 #endif
 

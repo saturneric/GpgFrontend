@@ -31,6 +31,8 @@
 
 #include "ui/GpgFrontendUI.h"
 
+namespace GpgFrontend::UI {
+
 class GlobalSettingStation : public QObject {
   Q_OBJECT
  public:
@@ -84,5 +86,6 @@ class GlobalSettingStation : public QObject {
 
   static std::unique_ptr<GlobalSettingStation> _instance;
 };
+}  // namespace GpgFrontend::UI
 
 #endif  // GPGFRONTEND_GLOBALSETTINGSTATION_H

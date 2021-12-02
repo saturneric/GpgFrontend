@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.1\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2021-12-02 01:52+0800\n"
+"POT-Creation-Date: 2021-12-02 14:50+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,15 +17,15 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:76
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:77
 msgid "Resource Directory"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:125
 msgid "Logfile Path"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:142
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:145
 msgid "Could not read properly from configure file"
 msgstr ""
 
@@ -67,9 +67,9 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:317
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:359
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:238
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:312
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:383
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:402
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:343
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:414
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:433
 msgid "Error"
 msgstr ""
 
@@ -103,13 +103,13 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:91
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:120
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:235
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:384
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:415
 msgid ""
 "The communication content with the server does not meet the requirements"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:37
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:135
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:178
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:179
 msgid "Generate Key"
 msgstr ""
@@ -349,23 +349,23 @@ msgstr ""
 msgid "Finger Print"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:304
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:303
 msgid "Import Keys"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:307
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:306
 msgid "You've dropped something on the table."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:308
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:307
 msgid "GpgFrontend will now try to import key(s)."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:313
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:312
 msgid "Always import without bothering."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:347
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:346
 msgid "Couldn't Open File"
 msgstr ""
 
@@ -596,98 +596,110 @@ msgstr ""
 msgid "Optional Actions"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:43
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:41
 msgid "First Start Wizard"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:70
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:53
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:76
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:177
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:211
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:237
+msgid "Setting Operation Error"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:61
+msgid "Called"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:84
 msgid "Getting Started..."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:71
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:85
 msgid "... with GpgFrontend"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:88
 msgid "Welcome to use GpgFrontend for decrypting and signing text or file!"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:91
 msgid ""
 "is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free "
 "OpenPGP Crypto Tool."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:93
 msgid "For brief information have a look at the"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:81
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:95
 msgid "Overview"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:96
 msgid "by clicking the link, the page will open in the web browser"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:90
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:104
 msgid "Choose a Language"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:169
 msgid "Choose your action..."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:127
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:170
 msgid "...by clicking on the appropriate link."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:174
 msgid ""
 "If you have never used GpgFrontend before and also don't own a gpg key yet "
 "you may possibly want to read how to"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:186
 msgid ""
 "If you want to learn how to encrypt, decrypt, sign and verify text, you can "
 "read "
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:148
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:191
 msgid "Encrypt & Decrypt Text"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:148
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:163
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:191
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:206
 msgid "or"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:151
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:194
 msgid "Sign & Verify Text"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:159
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:202
 msgid "If you want to operate file, you can read "
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:163
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:206
 msgid "Encrypt & Sign File"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:166
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:209
 msgid "Sign & Verify File"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:192
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:235
 msgid "Create a keypair..."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:193
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:236
 msgid "...for decrypting and signing messages"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:195
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:238
 msgid ""
 "You should create a new keypair.The pair consists of a public and a private "
 "key.<br>Other users can use the public key to encrypt messages for you and "
@@ -696,40 +708,40 @@ msgid ""
 "(which then is shown in the main window):"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:207
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:250
 msgid "Offline tutorial"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:215
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:258
 msgid "Create New Key"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:237
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:280
 msgid "Ready."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:238
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:281
 msgid "Have fun with GpgFrontend!"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:284
 msgid "You are ready to use GpgFrontend now.<br><br>"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:245
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:288
 msgid "The Online Document"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:289
 msgid ""
 " will get you started with GpgFrontend. It will open in the main window."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:255
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:298
 msgid "Open offline help."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:258
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:301
 msgid "Dont show the wizard again."
 msgstr ""
 
@@ -778,7 +790,7 @@ msgid ""
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:254
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:403
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:434
 msgid "There is a problem with the communication with the server"
 msgstr ""
 
@@ -824,7 +836,7 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:455
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:497
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:506
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:299
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:330
 msgid "Invalid Operation"
 msgstr ""
 
@@ -1080,7 +1092,7 @@ msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:147
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:71
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:72
 msgid "Settings"
 msgstr ""
 
@@ -1325,7 +1337,7 @@ msgid ""
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:189
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:398
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:429
 msgid "Notice"
 msgstr ""
 
@@ -2026,7 +2038,7 @@ msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:43
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:34
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:49
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:50
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:59
 msgid "General"
 msgstr ""
@@ -2079,7 +2091,7 @@ msgid "Current Version"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:144
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:95
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:53
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:57
 msgid ": "
@@ -2193,51 +2205,51 @@ msgstr ""
 msgid "Add"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:40
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:42
 msgid "Updated ui configuration successfully written to"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:44
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:46
 msgid "I/O error while writing ui configuration file"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:55
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:57
 msgid "App Path"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:58
 msgid "App Configure Path"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:57
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:59
 msgid "App Data Path"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:58
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:60
 msgid "App Log Path"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:61
 msgid "App Locale Path"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:72
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:74
 msgid "UserInterface configuration successfully written to"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:79
 msgid "I/O error while writing UserInterface configuration file"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:83
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:85
 msgid "UserInterface configuration successfully read from"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:86
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:88
 msgid "I/O error while reading UserInterface configure file"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:88
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:90
 msgid "Parse error at "
 msgstr ""
 
@@ -2285,54 +2297,54 @@ msgstr ""
 msgid "Front Size"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:51
 msgid "Appearance"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:52
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:53
 msgid "Send Mail"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:55
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:57
 msgid "Key Server"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:57
 msgid "Advanced"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:121
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:122
 msgid "System Default"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:159
 msgid "Relative path to Key Database"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:162
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:165
 msgid "Change Key Database path"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:168
 msgid "Set Key Database to default path"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:174
 msgid "Current Key Database path"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:176
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:95
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:179
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
 msgid "NOTE"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:177
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:180
 msgid ""
 "GpgFrontend will restart automatically if you change the Key Database path!"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:206
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:209
 msgid "Choose keydb directory"
 msgstr ""
 
@@ -2352,64 +2364,76 @@ msgstr ""
 msgid "Auto Pubkey Exchange"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:48
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:47
 msgid "GpgFrontend Server"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:53
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:52
 msgid "Server that provides short key and key exchange services"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:61
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:60
 msgid "Save Checked Keys"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:64
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:63
 msgid "Save checked private keys on exit and restore them on next start."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:72
 msgid "Confirm drag'n'drop key import"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:76
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:75
 msgid "Import files dropped on the Key List without confirmation."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:84
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:83
 msgid "Language"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:95
 msgid "GpgFrontend will restart automatically if you change the language!"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:106
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:105
 msgid "Own key"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:110
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
 msgid "Get Service Token"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:111
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:280
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:110
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:311
 msgid "No Service Token Found"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:138
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:137
 msgid "Key pair for synchronization and identity authentication"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:300
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:177
+msgid "save_key_checked"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:211
+msgid "lang"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:237
+msgid "confirm_import_keys"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:331
 msgid "Own Key can not be None while getting service token."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:312
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:343
 msgid "Key Not Exists"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:399
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:430
 msgid "Succeed in getting service token"
 msgstr ""
 

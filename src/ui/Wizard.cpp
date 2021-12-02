@@ -24,13 +24,11 @@
 
 #include "ui/Wizard.h"
 
+#include "ui/settings/GlobalSettingStation.h"
+
 namespace GpgFrontend::UI {
 
-Wizard::Wizard(KeyMgmt* keyMgmt, QWidget* parent)
-    : QWizard(parent),
-      appPath(qApp->applicationDirPath()),
-      settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-               QSettings::IniFormat) {
+Wizard::Wizard(KeyMgmt* keyMgmt, QWidget* parent) : QWizard(parent) {
   mKeyMgmt = keyMgmt;
 
   setPage(Page_Intro, new IntroPage(this));
@@ -47,26 +45,42 @@ Wizard::Wizard(KeyMgmt* keyMgmt, QWidget* parent)
   setPixmap(QWizard::LogoPixmap, QPixmap(":/logo_small.png"));
   setPixmap(QWizard::BannerPixmap, QPixmap(":/banner.png"));
 
-  setStartId(settings.value("wizard/nextPage", -1).toInt());
-  settings.remove("wizard/nextPage");
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  int next_page_id = -1;
+  try {
+    next_page_id = settings.lookup("wizard.next_page");
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error");
+  }
+  setStartId(next_page_id);
 
   connect(this, SIGNAL(accepted()), this, SLOT(slotWizardAccepted()));
 }
 
 void Wizard::slotWizardAccepted() {
+  LOG(INFO) << _("Called");
   // Don't show is mapped to show -> negation
-  settings.setValue("wizard/showWizard", !field("showWizard").toBool());
-
+  try {
+    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+    if (!settings.exists("wizard")) {
+      settings.add("wizard", libconfig::Setting::TypeGroup);
+    }
+    auto& wizard = settings["wizard"];
+    if (!wizard.exists("show_wizard")) {
+      wizard.add("show_wizard", libconfig::Setting::TypeBoolean) = false;
+    } else {
+      wizard["show_wizard"] = false;
+    }
+    GlobalSettingStation::GetInstance().Sync();
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error");
+  }
   if (field("openHelp").toBool()) {
     emit signalOpenHelp("docu.html#content");
   }
 }
 
-IntroPage::IntroPage(QWidget* parent)
-    : QWizardPage(parent),
-      appPath(qApp->applicationDirPath()),
-      settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-               QSettings::IniFormat) {
+IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   setTitle(_("Getting Started..."));
   setSubTitle(_("... with GpgFrontend"));
 
@@ -97,7 +111,16 @@ IntroPage::IntroPage(QWidget* parent)
     langSelectBox->addItem(l);
   }
   // selected entry from config
-  QString langKey = settings.value("int/lang").toString();
+
+  auto lang = "en_US";
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  try {
+    lang = settings.lookup("general.lang");
+  } catch (...) {
+    LOG(INFO) << "Read for general.lang failed";
+  }
+
+  QString langKey = lang;
   QString langValue = languages.value(langKey);
   if (!langKey.isEmpty()) {
     langSelectBox->setCurrentIndex(langSelectBox->findText(langValue));
@@ -115,8 +138,28 @@ IntroPage::IntroPage(QWidget* parent)
 }
 
 void IntroPage::slotLangChange(const QString& lang) {
-  settings.setValue("int/lang", languages.key(lang));
-  settings.setValue("wizard/nextPage", this->wizard()->currentId());
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+  if (!settings.exists("general") ||
+      settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
+    settings.add("general", libconfig::Setting::TypeGroup);
+
+  auto& general = settings["general"];
+  if (!general.exists("lang"))
+    general.add("lang", libconfig::Setting::TypeString) =
+        languages.key(lang).toStdString();
+
+  if (!settings.exists("wizard") ||
+      settings.lookup("wizard").getType() != libconfig::Setting::TypeGroup)
+    settings.add("wizard", libconfig::Setting::TypeGroup);
+
+  auto& wizard = settings["wizard"];
+  if (!wizard.exists("next_page"))
+    wizard.add("next_page", libconfig::Setting::TypeInt) =
+        this->wizard()->currentId();
+
+  GlobalSettingStation::GetInstance().Sync();
+
   qApp->exit(RESTART_CODE);
 }
 
@@ -228,7 +271,7 @@ KeyGenPage::KeyGenPage(QWidget* parent) : QWizardPage(parent) {
 int KeyGenPage::nextId() const { return Wizard::Page_Conclusion; }
 
 void KeyGenPage::slotGenerateKeyDialog() {
-  qDebug() << "Try Opening KeyGenDialog";
+  LOG(INFO) << "Try Opening KeyGenDialog";
   (new KeyGenDialog(this))->show();
   wizard()->next();
 }
