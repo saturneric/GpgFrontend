@@ -69,9 +69,12 @@ class CommonUtils : public QWidget {
 
   void slotImportKeyFromClipboard(QWidget* parent);
 
+  void slotExecuteGpgCommand(
+      const QStringList& arguments,
+      const std::function<void(QProcess*)>& interact_func);
+
  private:
   static std::unique_ptr<CommonUtils> _instance;
-
 };
 
 }  // namespace GpgFrontend::UI
