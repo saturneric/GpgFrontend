@@ -27,6 +27,7 @@
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExportor.h"
 #include "ui/SignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/WaitingDialog.h"
 
 namespace GpgFrontend::UI {
@@ -228,8 +229,9 @@ void KeyPairDetailTab::slotExportPrivateKey() {
     ByteArrayPtr keyArray = nullptr;
 
     if (!GpgKeyImportExportor::GetInstance().ExportSecretKey(mKey, keyArray)) {
-      QMessageBox::critical(this, "Error",
-                            "An error occurred during the export operation.");
+      QMessageBox::critical(
+          this, _("Error"),
+          _("An error occurred during the export operation."));
       return;
     }
 
@@ -356,15 +358,47 @@ void KeyPairDetailTab::slotUpdateKeyToServer() {
 }
 
 void KeyPairDetailTab::slotGenRevokeCert() {
-  auto mOutputFileName = QFileDialog::getSaveFileName(
-      this, _("Generate revocation certificate"), QString(),
-      QStringLiteral("%1 (*.rev)").arg(_("Revocation Certificates")));
+  auto literal = QStringLiteral("%1 (*.rev)").arg(_("Revocation Certificates"));
+  QString m_output_file_name;
 
-  //  if (!mOutputFileName.isEmpty())
-  //    mCtx->generateRevokeCert(mKey, mOutputFileName);
+  QFileDialog dialog(this, "Generate revocation certificate", QString(),
+                     literal);
+  dialog.setDefaultSuffix(".rev");
+  dialog.setAcceptMode(QFileDialog::AcceptSave);
+
+  if (dialog.exec()) m_output_file_name = dialog.selectedFiles().front();
+
+  if (!m_output_file_name.isEmpty())
+    CommonUtils::GetInstance()->slotExecuteGpgCommand(
+        {"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o",
+         m_output_file_name, "--gen-revoke", mKey.fpr().c_str()},
+        [](QProcess* proc) -> void {
+          // Code From Gpg4Win
+          while (proc->canReadLine()) {
+            const QString line = QString::fromUtf8(proc->readLine()).trimmed();
+            LOG(INFO) << "line" << line.toStdString();
+            if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
+              proc->write("y\n");
+            } else if (line == QLatin1String("[GNUPG:] GET_LINE "
+                                             "ask_revocation_reason.code")) {
+              proc->write("0\n");
+            } else if (line == QLatin1String("[GNUPG:] GET_LINE "
+                                             "ask_revocation_reason.text")) {
+              proc->write("\n");
+            } else if (line ==
+                       QLatin1String(
+                           "[GNUPG:] GET_BOOL openfile.overwrite.okay")) {
+              // We asked before
+              proc->write("y\n");
+            } else if (line == QLatin1String("[GNUPG:] GET_BOOL "
+                                             "ask_revocation_reason.okay")) {
+              proc->write("y\n");
+            }
+          }
+        });
 }
 void KeyPairDetailTab::slotRefreshKey() {
-  LOG(INFO) << "KeyPairDetailTab::slotRefreshKey Called";
+  LOG(INFO) << _("Called");
   this->mKey = GpgKeyGetter::GetInstance().GetKey(mKey.id());
   this->slotRefreshKeyInfo();
 }

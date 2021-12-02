@@ -38,8 +38,8 @@ class GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
   GpgError SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
                      std::unique_ptr<boost::gregorian::date>& expires);
 
-  void GenerateRevokeCert(const GpgKey& key,
-                          const std::string& output_file_name);
+  static void GenerateRevokeCert(const GpgKey& key,
+                                 const std::string& output_file_name);
 
   GpgFrontend::GpgError GenerateKey(const std::unique_ptr<GenKeyInfo>& params);
 

@@ -93,21 +93,43 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::SetExpire(
  */
 void GpgFrontend::GpgKeyOpera::GenerateRevokeCert(
     const GpgKey& key, const std::string& output_file_name) {
-  auto args = std::vector<std::string>{"--command-fd", "0",
-                                       "--status-fd",  "1",
-                                       "-o",           output_file_name.c_str(),
-                                       "--gen-revoke", key.fpr().c_str()};
+  auto args = std::vector<std::string>{
+      "--no-tty",       "--command-fd", "0",      "--status-fd", "1", "-o",
+      output_file_name, "--gen-revoke", key.fpr()};
 
+  using boost::asio::async_write;
   using boost::process::async_pipe;
   GpgCommandExecutor::GetInstance().Execute(
       args, [](async_pipe& in, async_pipe& out) -> void {
         boost::asio::streambuf buff;
         boost::asio::read_until(in, buff, '\n');
 
-        std::string line;
         std::istream is(&buff);
-        is >> line;
-        // Code From Gpg4Win
+
+        while (!is.eof()) {
+          std::string line;
+          is >> line;
+          LOG(INFO) << "line" << line;
+          boost::algorithm::trim(line);
+          if (line == std::string("[GNUPG:] GET_BOOL gen_revoke.okay")) {
+
+          } else if (line ==
+                     std::string(
+                         "[GNUPG:] GET_LINE ask_revocation_reason.code")) {
+
+          } else if (line ==
+                     std::string(
+                         "[GNUPG:] GET_LINE ask_revocation_reason.text")) {
+
+          } else if (line ==
+                     std::string("[GNUPG:] GET_BOOL openfile.overwrite.okay")) {
+
+          } else if (line ==
+                     std::string(
+                         "[GNUPG:] GET_BOOL ask_revocation_reason.okay")) {
+
+          }
+        }
       });
 }
 

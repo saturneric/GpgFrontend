@@ -125,4 +125,47 @@ void CommonUtils::slotImportKeyFromClipboard(QWidget* parent) {
                  cb->text(QClipboard::Clipboard).toUtf8().toStdString());
 }
 
+void CommonUtils::slotExecuteGpgCommand(
+    const QStringList& arguments,
+    const std::function<void(QProcess*)>& interact_func) {
+  QEventLoop looper;
+  auto dialog = new WaitingDialog(_("Processing"), nullptr);
+  dialog->show();
+  auto* gpgProcess = new QProcess(&looper);
+  gpgProcess->setProcessChannelMode(QProcess::MergedChannels);
+
+  connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+          &looper, &QEventLoop::quit);
+  connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+          dialog, &WaitingDialog::deleteLater);
+  connect(gpgProcess, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
+  connect(gpgProcess, &QProcess::started,
+          []() -> void { LOG(ERROR) << "Gpg Process Started Success"; });
+  connect(gpgProcess, &QProcess::readyReadStandardOutput,
+          [interact_func, gpgProcess]() { interact_func(gpgProcess); });
+  connect(gpgProcess, &QProcess::errorOccurred, this, [=]() -> void {
+    LOG(ERROR) << "Error in Process";
+    dialog->close();
+    QMessageBox::critical(nullptr, _("Failure"),
+                          _("Failed to execute command."));
+  });
+  connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+          this, [=](int, QProcess::ExitStatus status) {
+            dialog->close();
+            if (status == QProcess::NormalExit)
+              QMessageBox::information(nullptr, _("Success"),
+                                       _("Succeed in executing command."));
+            else
+              QMessageBox::information(nullptr, _("Warning"),
+                                       _("Finished executing command."));
+          });
+
+  gpgProcess->setProgram(GpgContext::GetInstance().GetInfo().AppPath.c_str());
+  gpgProcess->setArguments(arguments);
+  gpgProcess->start();
+  looper.exec();
+  dialog->close();
+  dialog->deleteLater();
+}
+
 }  // namespace GpgFrontend::UI
