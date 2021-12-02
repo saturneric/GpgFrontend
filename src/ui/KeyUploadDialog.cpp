@@ -33,11 +33,11 @@ namespace GpgFrontend::UI {
 
 KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
                                  QWidget* parent)
-    : appPath(qApp->applicationDirPath()),
+    : QDialog(parent),
+      appPath(qApp->applicationDirPath()),
       settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
                QSettings::IniFormat),
-      mKeys(GpgKeyGetter::GetInstance().GetKeys(keys_ids)),
-      QDialog(parent) {
+      mKeys(GpgKeyGetter::GetInstance().GetKeys(keys_ids)) {
   auto* pb = new QProgressBar();
   pb->setRange(0, 0);
   pb->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);

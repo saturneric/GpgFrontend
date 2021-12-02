@@ -254,8 +254,26 @@ if (QT5_ENV_SUPPORT)
     set(CMAKE_AUTOUIC ON)
 endif ()
 
-add_subdirectory(third_party)
 
+if (SMTP_SUPPORT)
+    add_compile_definitions(SMTP_SUPPORT)
+endif ()
+
+if (SERVER_SUPPORT)
+    add_compile_definitions(SERVER_SUPPORT)
+endif ()
+
+if (ADVANCE_SUPPORT)
+    add_compile_definitions(ADVANCE_SUPPORT)
+endif ()
+
+
+if (MULTI_LANG_SUPPORT)
+    add_compile_definitions(MULTI_LANG_SUPPORT)
+endif ()
+
+
+add_subdirectory(third_party)
 add_subdirectory(src)
 
 if (TEST_BUILD)

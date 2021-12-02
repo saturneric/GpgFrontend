@@ -51,8 +51,6 @@ class Wizard : public QWizard {
 
  private:
   KeyMgmt* mKeyMgmt;
-  QString appPath;
-  QSettings settings;
 
  private slots:
 
@@ -74,9 +72,6 @@ class IntroPage : public QWizardPage {
   [[nodiscard]] int nextId() const override;
 
  private:
-  QString appPath;
-  QSettings settings;
-
  private slots:
 
   void slotLangChange(const QString& lang);

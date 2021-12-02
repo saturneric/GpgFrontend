@@ -41,13 +41,10 @@ class GeneralTab : public QWidget {
   void applySettings();
 
  private:
-  QString appPath;
-  QSettings settings;
-
   QCheckBox* saveCheckedKeysCheckBox;
   QCheckBox* importConfirmationCheckBox;
 
-#ifdef MULT_LANGUAGE_SUPPORT
+#ifdef MULTI_LANG_SUPPORT
   QComboBox* langSelectBox;
   QHash<QString, QString> lang;
 #endif
@@ -66,12 +63,17 @@ class GeneralTab : public QWidget {
   KeyList* mKeyList{};
 
  private slots:
-#ifdef MULT_LANGUAGE_SUPPORT
-  void slotOwnKeyIdChanged();
+
+#ifdef MULTI_LANG_SUPPORT
+
+  void slotLanguageChanged();
+
 #endif
 
 #ifdef SERVER_SUPPORT
-  void slotLanguageChanged();
+
+  void slotOwnKeyIdChanged();
+
 #endif
 
  signals:
