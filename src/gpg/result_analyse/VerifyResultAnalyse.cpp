@@ -113,7 +113,7 @@ void GpgFrontend::VerifyResultAnalyse::do_analyse() {
         case GPG_ERR_NO_PUBKEY:
           stream << _("A signature could NOT be verified due to a Missing Key")
                  << std::endl;
-          setStatus(-1);
+          setStatus(-2);
           break;
         case GPG_ERR_CERT_REVOKED:
           stream << _("A signature is valid but the key used to verify the "
@@ -183,4 +183,11 @@ bool GpgFrontend::VerifyResultAnalyse::print_signer(std::stringstream &stream,
          << std::endl;
   stream << std::endl;
   return keyFound;
+}
+
+gpgme_signature_t GpgFrontend::VerifyResultAnalyse::GetSignatures() {
+  if (result)
+    return result->signatures;
+  else
+    return nullptr;
 }

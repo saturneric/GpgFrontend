@@ -206,7 +206,9 @@ void GeneralTab::setSettings() {
     QString lang_value = lang.value(lang_key.c_str());
     LOG(INFO) << "lang settings current" << lang_value.toStdString();
     if (!lang.empty()) {
-      langSelectBox->setCurrentIndex(langSelectBox->findText(lang_key.c_str()));
+      langSelectBox->setCurrentIndex(langSelectBox->findText(lang_value));
+    } else {
+      langSelectBox->setCurrentIndex(0);
     }
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("lang");
@@ -275,26 +277,26 @@ void GeneralTab::applySettings() {
 #ifdef MULTI_LANG_SUPPORT
   if (!general.exists("lang"))
     general.add("lang", libconfig::Setting::TypeBoolean) =
-        langSelectBox->currentText().toStdString();
+        lang.key(langSelectBox->currentText()).toStdString();
   else {
-    general["lang"] = langSelectBox->currentText().toStdString();
+    general["lang"] = lang.key(langSelectBox->currentText()).toStdString();
 #endif
+  }
 
 #ifdef SERVER_SUPPORT
-    settings.setValue(
-        "general/ownKeyId",
-        QString::fromStdString(keyIdsList[ownKeySelectBox->currentIndex()]));
+  settings.setValue(
+      "general/ownKeyId",
+      QString::fromStdString(keyIdsList[ownKeySelectBox->currentIndex()]));
 
-    settings.setValue("general/serviceToken",
-                      QString::fromStdString(serviceToken));
+  settings.setValue("general/serviceToken",
+                    QString::fromStdString(serviceToken));
 #endif
 
-    if (!general.exists("confirm_import_keys"))
-      general.add("confirm_import_keys", libconfig::Setting::TypeBoolean) =
-          importConfirmationCheckBox->isChecked();
-    else {
-      general["confirm_import_keys"] = importConfirmationCheckBox->isChecked();
-    }
+  if (!general.exists("confirm_import_keys"))
+    general.add("confirm_import_keys", libconfig::Setting::TypeBoolean) =
+        importConfirmationCheckBox->isChecked();
+  else {
+    general["confirm_import_keys"] = importConfirmationCheckBox->isChecked();
   }
 }
 

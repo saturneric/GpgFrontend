@@ -25,6 +25,8 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
 #define GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
 
+#include "GpgConstants.h"
+
 #include <list>
 #include <utility>
 

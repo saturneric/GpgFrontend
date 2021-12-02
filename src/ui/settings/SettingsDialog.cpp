@@ -131,7 +131,7 @@ QHash<QString, QString> SettingsDialog::listLanguages() {
 
   auto locale_path = GlobalSettingStation::GetInstance().GetLocaleDir();
 
-  auto locale_dir = QDir(locale_path.c_str());
+  auto locale_dir = QDir(QString::fromStdString(locale_path.string()) );
   QStringList file_names = locale_dir.entryList(QStringList("*"));
 
   for (int i = 0; i < file_names.size(); ++i) {

@@ -25,6 +25,8 @@
 #ifndef __SGPGMEPP_CONTEXT_H__
 #define __SGPGMEPP_CONTEXT_H__
 
+#include "GpgConstants.h"
+
 #include "GpgFunctionObject.h"
 #include "GpgInfo.h"
 #include "GpgModel.h"
@@ -36,7 +38,7 @@ namespace GpgFrontend {
  */
 class GpgContext : public SingletonFunctionObject<GpgContext> {
  public:
-  GpgContext(bool independent_database = false,
+  explicit GpgContext(bool independent_database = false,
              std::string path = std::string(), int channel = 0);
 
   ~GpgContext() override = default;

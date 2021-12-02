@@ -27,7 +27,6 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
-#include <libconfig.h++>
 
 #include "ui/GpgFrontendUI.h"
 

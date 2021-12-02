@@ -32,15 +32,15 @@ namespace GpgFrontend::UI {
 FileReadThread::FileReadThread(std::string path) : path(std::move(path)) {}
 
 void FileReadThread::run() {
-  LOG(INFO) << "read_thread Started";
+  LOG(INFO) << "Started";
   boost::filesystem::path read_file_path(this->path);
   if (is_regular_file(read_file_path)) {
-    LOG(INFO) << "read_thread Read Open";
+    LOG(INFO) << "Read Open";
 
-    auto fp = fopen(read_file_path.c_str(), "r");
+    auto fp = fopen(read_file_path.string().c_str(), "r");
     size_t read_size;
     LOG(INFO) << "Thread Start Reading";
-    
+
     char buffer[8192];
     while ((read_size = fread(buffer, sizeof(char), sizeof buffer, fp)) > 0) {
       // Check isInterruptionRequested
@@ -53,6 +53,11 @@ void FileReadThread::run() {
       std::string buffer_str(buffer, read_size);
 
       emit sendReadBlock(QString::fromStdString(buffer_str));
+#ifdef RELEASE
+      QThread::msleep(16);
+#else
+      QThread::msleep(24);
+#endif
     }
     fclose(fp);
     emit readDone();

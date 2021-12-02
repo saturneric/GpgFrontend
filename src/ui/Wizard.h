@@ -64,7 +64,7 @@ class IntroPage : public QWizardPage {
  private:
  private slots:
 
-  void slotLangChange(const QString& lang);
+  //  void slotLangChange(const QString& lang);
 };
 
 class ChoosePage : public QWizardPage {

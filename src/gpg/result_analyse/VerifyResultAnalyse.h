@@ -34,6 +34,8 @@ class VerifyResultAnalyse : public ResultAnalyse {
  public:
   explicit VerifyResultAnalyse(GpgError error, GpgVerifyResult result);
 
+  gpgme_signature_t GetSignatures();
+
  private:
   void do_analyse();
 

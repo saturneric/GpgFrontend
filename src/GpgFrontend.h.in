@@ -26,12 +26,23 @@
 #define GPGFRONTEND_H_IN
 
 // i18n
+#ifdef WINDOWS
+#include <winsock2.h>
+#include <windows.h>
+#endif
+
 #include <libintl.h>
 #define _(String) gettext (String)
 #define gettext_noop(String) String
 #define N_(String) gettext_noop (String)
 
+#ifdef WINDOWS
+#include <clocale>
+#undef vsnprintf
+#endif
+
 // logging
+#define ELPP_DEFAULT_LOGGING_FLAGS 8192
 #include <easyloggingpp/easylogging++.h>
 
 #define PROJECT_NAME "@CMAKE_PROJECT_NAME@"

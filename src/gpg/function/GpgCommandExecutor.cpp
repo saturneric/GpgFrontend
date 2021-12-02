@@ -22,8 +22,11 @@
  *
  */
 #include "gpg/function/GpgCommandExecutor.h"
-
+#ifndef WINDOWS
 #include <boost/asio.hpp>
+#endif
+
+#ifndef WINDOWS
 
 using boost::process::async_pipe;
 
@@ -52,3 +55,5 @@ void GpgFrontend::GpgCommandExecutor::Execute(
   child_process.wait();
   child_process.exit_code();
 }
+
+#endif

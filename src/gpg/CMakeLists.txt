@@ -23,11 +23,16 @@ if (MINGW)
     target_link_libraries(gpg_core ${THIRD_PARTY_LIBS}
             ${BOOST_LIBS}
             gpgme gpg-error assuan wsock32)
+    target_compile_features(gpg_core PUBLIC cxx_std_17)
 elseif (APPLE)
+    find_library(libgpgme NAMES libgpgme.a)
+    find_library(libgpg-error NAMES libgpg-error.a)
+    find_library(libassuan NAMES libassuan.a)
     message(STATUS "Link GPG Static Library For macOS")
     target_link_libraries(gpg_core ${THIRD_PARTY_LIBS}
             ${BOOST_LIBS}
-            libgpgme.a libgpg-error.a libassuan.a dl)
+            ${libgpgme} ${libgpg-error} ${libassuan}
+            dl)
 else ()
     message(STATUS "Link GPG Static Library For Unix")
     target_link_libraries(gpg_core ${THIRD_PARTY_LIBS}

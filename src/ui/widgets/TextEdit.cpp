@@ -83,7 +83,7 @@ void TextEdit::slotOpenFile(QString& path) {
     tabWidget->setCurrentIndex(tabWidget->count() - 1);
     QApplication::restoreOverrideCursor();
     page->getTextPage()->setFocus();
-    page->readFile();
+    page->ReadFile();
   } else {
     QMessageBox::warning(this, _("Warning"),
                          (boost::format(_("Cannot read file %1%:\n%2%.")) %
@@ -250,7 +250,7 @@ bool TextEdit::maybeSaveCurrentTab(bool askToSave) {
   }
   QTextDocument* document = page->getTextPage()->document();
 
-  if (document->isModified()) {
+  if (page->ReadDone() && document->isModified()) {
     QMessageBox::StandardButton result = QMessageBox::Cancel;
 
     // write title of tab to docname and remove the leading *
@@ -284,6 +284,9 @@ bool TextEdit::maybeSaveCurrentTab(bool askToSave) {
       return false;
     }
   }
+
+  // destroy
+  page->PrepareToDestroy();
   return true;
 }
 
@@ -326,20 +329,16 @@ bool TextEdit::maybeSaveAnyTab() {
         return false;
       }
     } else {
-      bool allsaved = true;
+      bool all_saved = true;
       QList<int> tabIdsToSave = dialog->getTabIdsToSave();
 
-      foreach (int tabId, tabIdsToSave) {
+      for (const auto& tabId : tabIdsToSave) {
         tabWidget->setCurrentIndex(tabId);
         if (!maybeSaveCurrentTab(false)) {
-          allsaved = false;
+          all_saved = false;
         }
       }
-      if (allsaved) {
-        return true;
-      } else {
-        return false;
-      }
+      return all_saved;
     }
   }
   // code should never reach this statement
@@ -489,11 +488,14 @@ QHash<int, QString> TextEdit::unsavedDocuments() const {
 
   for (int i = 0; i < tabWidget->count(); i++) {
     auto* ep = qobject_cast<EditorPage*>(tabWidget->widget(i));
-    if (ep != nullptr && ep->getTextPage()->document()->isModified()) {
-      QString docname = tabWidget->tabText(i);
+    if (ep != nullptr && ep->ReadDone() &&
+        ep->getTextPage()->document()->isModified()) {
+      QString doc_name = tabWidget->tabText(i);
+      LOG(INFO) << "unsaved" << doc_name.toStdString();
+
       // remove * before name of modified doc
-      docname.remove(0, 2);
-      unsavedDocs.insert(i, docname);
+      doc_name.remove(0, 2);
+      unsavedDocs.insert(i, doc_name);
     }
   }
   return unsavedDocs;

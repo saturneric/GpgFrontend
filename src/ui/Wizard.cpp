@@ -99,7 +99,9 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   topLabel->setWordWrap(true);
 
   // QComboBox for language selection
-  auto* langLabel = new QLabel(_("Choose a Language"));
+  auto* langLabel =
+      new QLabel(_("If it supports the language currently being used in your "
+                   "system, GpgFrontend will automatically set it."));
   langLabel->setWordWrap(true);
 
   languages = SettingsDialog::listLanguages();
@@ -110,56 +112,64 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   }
   // selected entry from config
 
-  auto lang = "en_US";
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-  try {
-    lang = settings.lookup("general.lang");
-  } catch (...) {
-    LOG(INFO) << "Read for general.lang failed";
-  }
+  //  auto lang = "";
+  //  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  //  try {
+  //    lang = settings.lookup("general.lang");
+  //  } catch (...) {
+  //    LOG(INFO) << "Read for general.lang failed";
+  //  }
+  //
+  //  QString langKey = lang;
+  //  QString langValue = languages.value(langKey);
+  //  LOG(INFO) << "lang key" << langKey.toStdString() << "lang value"
+  //            << langValue.toStdString();
+  //  langSelectBox->setCurrentIndex(langSelectBox->findText(langValue));
 
-  QString langKey = lang;
-  QString langValue = languages.value(langKey);
-  if (!langKey.isEmpty()) {
-    langSelectBox->setCurrentIndex(langSelectBox->findText(langValue));
-  }
-
-  connect(langSelectBox, SIGNAL(currentIndexChanged(QString)), this,
-          SLOT(slotLangChange(QString)));
+  //  connect(langSelectBox, SIGNAL(currentIndexChanged(QString)), this,
+  //          SLOT(slotLangChange(QString)));
 
   // set layout and add widgets
   auto* layout = new QVBoxLayout;
   layout->addWidget(topLabel);
+  layout->addStretch();
   layout->addWidget(langLabel);
-  layout->addWidget(langSelectBox);
+  // layout->addWidget(langSelectBox);
+
   setLayout(layout);
 }
 
-void IntroPage::slotLangChange(const QString& lang) {
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-
-  if (!settings.exists("general") ||
-      settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
-    settings.add("general", libconfig::Setting::TypeGroup);
-
-  auto& general = settings["general"];
-  if (!general.exists("lang"))
-    general.add("lang", libconfig::Setting::TypeString) =
-        languages.key(lang).toStdString();
-
-  if (!settings.exists("wizard") ||
-      settings.lookup("wizard").getType() != libconfig::Setting::TypeGroup)
-    settings.add("wizard", libconfig::Setting::TypeGroup);
-
-  auto& wizard = settings["wizard"];
-  if (!wizard.exists("next_page"))
-    wizard.add("next_page", libconfig::Setting::TypeInt) =
-        this->wizard()->currentId();
-
-  GlobalSettingStation::GetInstance().Sync();
-
-  qApp->exit(RESTART_CODE);
-}
+// void IntroPage::slotLangChange(const QString& lang) {
+//   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+//
+//   if (!settings.exists("general") ||
+//       settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
+//     settings.add("general", libconfig::Setting::TypeGroup);
+//
+//   auto& general = settings["general"];
+//   if (!general.exists("lang"))
+//     general.add("lang", libconfig::Setting::TypeString) =
+//         languages.key(lang).toStdString();
+//   else {
+//     general["lang"] = languages.key(lang).toStdString();
+//   }
+//
+//   if (!settings.exists("wizard") ||
+//       settings.lookup("wizard").getType() != libconfig::Setting::TypeGroup)
+//     settings.add("wizard", libconfig::Setting::TypeGroup);
+//
+//   auto& wizard = settings["wizard"];
+//   if (!wizard.exists("next_page"))
+//     wizard.add("next_page", libconfig::Setting::TypeInt) =
+//         this->wizard()->currentId();
+//   else {
+//     wizard["next_page"] = this->wizard()->currentId();
+//   }
+//
+//   GlobalSettingStation::GetInstance().Sync();
+//
+//   qApp->exit(RESTART_CODE);
+// }
 
 int IntroPage::nextId() const { return Wizard::Page_Choose; }
 

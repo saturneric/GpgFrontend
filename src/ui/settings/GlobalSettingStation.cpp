@@ -38,7 +38,7 @@ GpgFrontend::UI::GlobalSettingStation::GetInstance() {
 void GpgFrontend::UI::GlobalSettingStation::Sync() noexcept {
   using namespace libconfig;
   try {
-    ui_cfg.writeFile(ui_config_path.c_str());
+    ui_cfg.writeFile(ui_config_path.string().c_str());
     LOG(INFO) << _("Updated ui configuration successfully written to")
               << ui_config_path;
 
@@ -70,7 +70,7 @@ GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept {
 
   if (!exists(ui_config_path)) {
     try {
-      this->ui_cfg.writeFile(ui_config_path.c_str());
+      this->ui_cfg.writeFile(ui_config_path.string().c_str());
       LOG(INFO) << _("UserInterface configuration successfully written to")
                 << ui_config_path;
 
@@ -81,7 +81,7 @@ GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept {
     }
   } else {
     try {
-      this->ui_cfg.readFile(ui_config_path.c_str());
+      this->ui_cfg.readFile(ui_config_path.string().c_str());
       LOG(INFO) << _("UserInterface configuration successfully read from")
                 << ui_config_path;
     } catch (const FileIOException& fioex) {

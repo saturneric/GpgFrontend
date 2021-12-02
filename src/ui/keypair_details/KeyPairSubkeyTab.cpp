@@ -185,7 +185,7 @@ void KeyPairSubkeyTab::slotRefreshSubkeyList() {
 
     if (!row) {
       for (auto i = 0; i < subkeyList->columnCount(); i++) {
-        subkeyList->item(row, i)->setTextColor(QColor(65, 105, 255));
+        subkeyList->item(row, i)->setForeground(QColor(65, 105, 255));
       }
     }
 

@@ -107,7 +107,6 @@ if (APPLICATION_BUILD)
     # Copy Resource Files
     file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/conf DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     if (MULTI_LANG_SUPPORT)
         make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales)
         file(COPY ${CMAKE_SOURCE_DIR}/resource/locale/out/ DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/locales FOLLOW_SYMLINK_CHAIN)
@@ -174,11 +173,11 @@ if (APPLICATION_BUILD)
         elseif (LINUX)
             add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/mkdir ./gpgfrontend/usr/bin && /bin/mv -f ./${AppName} ./gpgfrontend/usr/bin/
+                    COMMAND /bin/mkdir -p ./gpgfrontend/usr/bin && /bin/mv -f ./${AppName} ./gpgfrontend/usr/bin/
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Copying Binary into App Image")
             add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/mkdir ./gpgfrontend/usr/lib
+                    COMMAND /bin/mkdir -p ./gpgfrontend/usr/lib
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Complement to build the required architecture")
         else ()
@@ -205,22 +204,25 @@ if (APPLICATION_BUILD)
         set(GPGFRONTEND_AFTER_UI_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} server)
     endif ()
 
-
     set(GPGFRONTEND_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} gpgfrontend-ui ${GPGFRONTEND_BEFORE_UI_LIBS} gpg_core easy_logging_pp)
-
     set(QT_DEPENDENCY_LIBS Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+
     IF (MINGW)
         message(STATUS "Link Application Static Library For MINGW")
+        find_library(libconfig NAMES libconfig++.a)
+        find_library(libintl NAMES libintl.a)
+        find_library(libiconv NAMES libiconv.a)
+
         target_link_libraries(${AppName}
                 ${GPGFRONTEND_LIBS}
                 ${QT_DEPENDENCY_LIBS}
-                crypto ssl)
+                ${libintl} ${libiconv} ${libconfig} crypto ssl)
     elseif (APPLE)
         message(STATUS "Link Application Static Library For macOS")
         target_link_libraries(${AppName}
                 ${GPGFRONTEND_LIBS}
                 ${QT_DEPENDENCY_LIBS}
-                crypto ssl)
+                crypto ssl intl)
     else ()
         message(STATUS "Link Application Static Library For UNIX ")
         target_link_libraries(${AppName}

@@ -27,7 +27,7 @@
 #include <gpg-error.h>
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <filesystem>
+#include <boost/filesystem.hpp>
 
 const char* GpgFrontend::GpgConstants::PGP_CRYPT_BEGIN =
     "-----BEGIN PGP MESSAGE-----";
@@ -78,9 +78,9 @@ gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
 std::string GpgFrontend::beautify_fingerprint(
     GpgFrontend::BypeArrayConstRef fingerprint) {
   auto _fingerprint = fingerprint;
-  uint len = fingerprint.size();
+  unsigned len = fingerprint.size();
   if ((len > 0) && (len % 4 == 0))
-    for (uint n = 0; 4 * (n + 1) < len; ++n)
+    for (unsigned n = 0; 4 * (n + 1) < len; ++n)
       _fingerprint.insert(static_cast<int>(5u * n + 4u), " ");
   return fingerprint;
 }
@@ -108,7 +108,7 @@ static inline std::string trim(std::string& s) {
 }
 
 std::string GpgFrontend::read_all_data_in_file(const std::string& path) {
-  using namespace std::filesystem;
+  using namespace boost::filesystem;
   class path file_info(path.c_str());
 
   if (!exists(file_info) || !is_regular_file(path))
@@ -126,7 +126,7 @@ std::string GpgFrontend::read_all_data_in_file(const std::string& path) {
 
 bool GpgFrontend::write_buffer_to_file(const std::string& path,
                                        const std::string& out_buffer) {
-  std::ofstream out_file(std::filesystem::path(path), std::ios::out);
+  std::ofstream out_file(boost::filesystem::path(path).string(), std::ios::out);
   if (!out_file.good()) return false;
   out_file.write(out_buffer.c_str(), out_buffer.size());
   out_file.close();
@@ -135,7 +135,7 @@ bool GpgFrontend::write_buffer_to_file(const std::string& path,
 
 std::string GpgFrontend::get_file_extension(const std::string& path) {
   // Create a Path object from given string
-  std::filesystem::path path_obj(path);
+  boost::filesystem::path path_obj(path);
   // Check if file name in the path object has extension
   if (path_obj.has_extension()) {
     // Fetch the extension from path object and return
@@ -147,11 +147,11 @@ std::string GpgFrontend::get_file_extension(const std::string& path) {
 
 std::string GpgFrontend::get_only_file_name_with_path(const std::string& path) {
   // Create a Path object from given string
-  std::filesystem::path path_obj(path);
+  boost::filesystem::path path_obj(path);
   // Check if file name in the path object has extension
   if (path_obj.has_filename()) {
     // Fetch the extension from path object and return
-    return path_obj.parent_path() / path_obj.stem();
+    return (path_obj.parent_path() / path_obj.stem()).string();
   }
   // In case of no extension return empty string
   throw std::runtime_error("invalid file path");

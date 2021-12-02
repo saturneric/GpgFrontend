@@ -17,3 +17,5 @@ add_library(gpgfrontend-ui STATIC ${UI_SOURCE})
 
 target_link_libraries(gpgfrontend-ui
         Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+
+target_compile_features(gpgfrontend-ui PUBLIC cxx_std_17)

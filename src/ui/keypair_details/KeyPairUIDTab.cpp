@@ -177,7 +177,7 @@ void KeyPairUIDTab::slotRefreshUIDList() {
 
     if (!row) {
       for (auto i = 0; i < uidList->columnCount(); i++) {
-        uidList->item(row, i)->setTextColor(QColor(65, 105, 255));
+        uidList->item(row, i)->setForeground(QColor(65, 105, 255));
       }
     }
 
