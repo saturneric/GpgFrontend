@@ -33,17 +33,18 @@ namespace GpgFrontend {
 
 class GpgFileOpera : public SingletonFunctionObject<GpgFileOpera> {
  public:
-  static GpgError EncryptFile(KeyArgsList&& keys, const std::string& path,
+  static GpgError EncryptFile(KeyListPtr keys, const std::string& path,
                               GpgEncrResult& result);
 
   static GpgError DecryptFile(const std::string& path, GpgDecrResult& result);
 
-  static GpgError SignFile(KeyArgsList&& keys, const std::string& path,
+  static GpgError SignFile(KeyListPtr keys, const std::string& path,
                            GpgSignResult& result);
 
   static GpgError VerifyFile(const std::string& path, GpgVerifyResult& result);
 
-  static GpgError EncryptSignFile(KeyArgsList&& keys, const std::string& path,
+  static GpgError EncryptSignFile(KeyListPtr keys, KeyListPtr signer_keys,
+                                  const std::string& path,
                                   GpgEncrResult& encr_res,
                                   GpgSignResult& sign_res);
 

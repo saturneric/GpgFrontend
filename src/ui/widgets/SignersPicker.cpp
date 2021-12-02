@@ -45,11 +45,16 @@ SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
   mKeyList->slotRefresh();
 
   auto* vbox2 = new QVBoxLayout();
-  vbox2->addWidget(new QLabel("Select Signer(s): "));
+  vbox2->addWidget(new QLabel(QString(_("Select Signer(s)")) + ": "));
   vbox2->addWidget(mKeyList);
+  vbox2->addWidget(new QLabel(
+      _("Selecting Nothing will eventually use default key to sign.")));
   vbox2->addWidget(confirmButton);
   vbox2->addStretch(0);
   setLayout(vbox2);
+
+  this->setWindowFlags(Qt::Window | Qt::WindowTitleHint |
+                       Qt::CustomizeWindowHint);
 
   this->setModal(true);
   this->setWindowTitle("Signers Picker");

@@ -81,18 +81,19 @@ void MainWindow::slotEncrypt() {
       try {
         auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
         error = GpgFrontend::BasicOperator::GetInstance().Encrypt(
-            std::move(*keys), buffer, tmp, result);
+            std::move(keys), buffer, tmp, result);
       } catch (const std::runtime_error& e) {
         if_error = true;
       }
     });
 
     if (!if_error) {
-      edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
       auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));
       resultAnalyse.analyse();
       process_result_analyse(edit, infoBoard, resultAnalyse);
-
+      
+      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+        edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
 #ifdef SMTP_SUPPORT
       // set optional actions
       if (resultAnalyse.getStatus() >= 0) {
@@ -155,7 +156,7 @@ void MainWindow::slotSign() {
       try {
         auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
         error = GpgFrontend::BasicOperator::GetInstance().Sign(
-            std::move(*keys), buffer, tmp, GPGME_SIG_MODE_CLEAR, result);
+            std::move(keys), buffer, tmp, GPGME_SIG_MODE_CLEAR, result);
       } catch (const std::runtime_error& e) {
         if_error = true;
       }
@@ -165,7 +166,9 @@ void MainWindow::slotSign() {
       auto resultAnalyse = SignResultAnalyse(error, std::move(result));
       resultAnalyse.analyse();
       process_result_analyse(edit, infoBoard, resultAnalyse);
-      edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
+
+      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+        edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
     } else {
       QMessageBox::critical(this, _("Error"),
                             _("An error occurred during operation."));
@@ -209,7 +212,7 @@ void MainWindow::slotDecrypt() {
       resultAnalyse.analyse();
       process_result_analyse(edit, infoBoard, resultAnalyse);
 
-      if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
+      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
         edit->slotFillTextEditWithText(QString::fromStdString(*decrypted));
     } else {
       QMessageBox::critical(this, _("Error"),
@@ -312,7 +315,7 @@ void MainWindow::slotEncryptSign() {
     loop.exec();
 
     auto signer_key_ids = signersPicker->getCheckedSigners();
-    auto signer_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+    auto signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
 
     for (const auto& key : *keys) {
       LOG(INFO) << "Keys " << key.email();
@@ -332,7 +335,7 @@ void MainWindow::slotEncryptSign() {
       try {
         auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
         error = GpgFrontend::BasicOperator::GetInstance().EncryptSign(
-            std::move(*keys), std::move(*signer_keys), buffer, tmp, encr_result,
+            std::move(keys), std::move(signer_keys), buffer, tmp, encr_result,
             sign_result);
       } catch (const std::runtime_error& e) {
         if_error = true;
@@ -360,7 +363,8 @@ void MainWindow::slotEncryptSign() {
       encrypt_res.analyse();
       sign_res.analyse();
       process_result_analyse(edit, infoBoard, encrypt_res, sign_res);
-      edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
+      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+        edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
 
 #ifdef SMTP_SUPPORT
       infoBoard->resetOptionActionsMenu();

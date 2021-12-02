@@ -208,9 +208,7 @@ void FileEncryptionDialog::slotExecuteAction() {
   auto out_data = std::make_unique<ByteArray>();
 
   auto key_ids = mKeyList->getChecked();
-  auto keys = std::vector<GpgKey>();
-  for (const auto& key_id : *key_ids)
-    keys.push_back(GpgKeyGetter::GetInstance().GetKey(key_id));
+  auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
   if (mAction == Encrypt) {
     qDebug() << "Action Encrypt";
