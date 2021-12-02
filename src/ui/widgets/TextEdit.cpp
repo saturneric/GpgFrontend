@@ -74,7 +74,7 @@ void TextEdit::slotNewFileTab() const {
 
 void TextEdit::slotOpenFile(QString& path) {
   QFile file(path);
-  LOG(INFO) << "TextEdit::slotOpenFile path" << path.toStdString();
+  LOG(INFO) << " path" << path.toStdString();
   auto result = file.open(QIODevice::ReadOnly | QIODevice::Text);
   if (result) {
     auto* page = new EditorPage(path);
@@ -93,6 +93,7 @@ void TextEdit::slotOpenFile(QString& path) {
   }
 
   file.close();
+  LOG(INFO) << "done";
 }
 
 void TextEdit::slotOpen() {

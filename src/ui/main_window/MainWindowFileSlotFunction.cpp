@@ -26,6 +26,7 @@
 #include "gpg/function/GpgFileOpera.h"
 #include "gpg/function/GpgKeyGetter.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/widgets/SignersPicker.h"
 
 namespace GpgFrontend::UI {
 
@@ -90,7 +91,7 @@ void MainWindow::slotFileEncrypt() {
   bool if_error = false;
   process_operation(this, _("Encrypting"), [&]() {
     try {
-      error = GpgFileOpera::EncryptFile(std::move(*keys), path.toStdString(),
+      error = GpgFileOpera::EncryptFile(std::move(keys), path.toStdString(),
                                         result);
     } catch (const std::runtime_error& e) {
       if_error = true;
@@ -199,7 +200,7 @@ void MainWindow::slotFileSign() {
   process_operation(this, _("Signing"), [&]() {
     try {
       error =
-          GpgFileOpera::SignFile(std::move(*keys), path.toStdString(), result);
+          GpgFileOpera::SignFile(std::move(keys), path.toStdString(), result);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
@@ -309,45 +310,40 @@ void MainWindow::slotFileEncryptSign() {
   }
 
   auto key_ids = mKeyList->getChecked();
-  auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+  auto p_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
-  if (keys->empty()) {
+  if (p_keys->empty()) {
     QMessageBox::critical(this, _("No Key Selected"), _("No Key Selected"));
     return;
   }
 
-  bool can_sign = false, can_encr = false;
+  for (const auto& key : *p_keys) {
+    bool key_can_encrypt = key.CanEncrActual();
 
-  for (const auto& key : *keys) {
-    bool key_can_sign = key.CanSignActual();
-    bool key_can_encr = key.CanEncrActual();
-
-    if (!key_can_sign && !key_can_encr) {
+    if (!key_can_encrypt) {
       QMessageBox::critical(
           nullptr, _("Invalid KeyPair"),
-          QString(_(
-              "The selected keypair cannot be used for signing and encryption "
-              "at the same time.")) +
+          QString(_("The selected keypair cannot be used for encryption.")) +
               "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
               QString::fromStdString(key.uids()->front().uid()));
       return;
     }
-
-    if (key_can_sign) can_sign = true;
-    if (key_can_encr) can_encr = true;
   }
 
-  if (!can_encr) {
-    QMessageBox::critical(nullptr, _("Incomplete Operation"),
-                          _("None of the selected key pairs can provide the "
-                            "encryption function."));
-    return;
+  auto signersPicker = new SignersPicker(this);
+  QEventLoop loop;
+  connect(signersPicker, SIGNAL(finished(int)), &loop, SLOT(quit()));
+  loop.exec();
+
+  auto signer_key_ids = signersPicker->getCheckedSigners();
+  auto p_signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
+
+  for (const auto& key : *p_keys) {
+    LOG(INFO) << "Keys " << key.email();
   }
 
-  if (!can_sign) {
-    QMessageBox::warning(nullptr, _("Incomplete Operation"),
-                         _("None of the selected key pairs can provide the "
-                           "signature function."));
+  for (const auto& signer : *p_signer_keys) {
+    LOG(INFO) << "Signers " << signer.email();
   }
 
   GpgEncrResult encr_result = nullptr;
@@ -359,7 +355,8 @@ void MainWindow::slotFileEncryptSign() {
   process_operation(this, _("Encrypting and Signing"), [&]() {
     try {
       error = GpgFileOpera::EncryptSignFile(
-          std::move(*keys), path.toStdString(), encr_result, sign_result);
+          std::move(p_keys), std::move(p_signer_keys), path.toStdString(),
+          encr_result, sign_result);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }

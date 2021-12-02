@@ -27,6 +27,8 @@
 #include <boost/filesystem.hpp>
 #include <utility>
 
+#include "ui/function/FileReadThread.h"
+
 namespace GpgFrontend::UI {
 
 EditorPage::EditorPage(QString filePath, QWidget* parent)
@@ -106,51 +108,37 @@ void EditorPage::slotFormatGpgHeader() {
 }
 
 void EditorPage::readFile() {
-  if (this->readThread != nullptr) {
-    this->readThread->requestInterruption();
-    this->readThread = nullptr;
-  }
-  LOG(INFO) << "EditorPage::readFile Started";
-  this->readThread = QThread::create([&]() {
-    LOG(INFO) << "EditorPage::readFile read_thread Started";
-    boost::filesystem::path read_file_path(this->fullFilePath.toStdString());
-    if (is_regular_file(read_file_path)) {
-      LOG(INFO) << "EditorPage::readFile read_thread Read Open";
+  LOG(INFO) << "Called";
 
-      auto fp = fopen(read_file_path.c_str(), "r");
-      size_t read_size;
-      qDebug() << "Thread Start Reading";
-      // Event loop
-      this->getTextPage()->setReadOnly(true);
-      char buffer[8192];
-      while ((read_size = fread(buffer, sizeof(char), sizeof buffer, fp)) > 0) {
-        // Check isInterruptionRequested
-        if (QThread::currentThread()->isInterruptionRequested()) {
-          LOG(INFO)
-              << "EditorPage::readFile ReadThread isInterruptionRequested ";
-          fclose(fp);
-          return;
-        }
+  auto text_page = this->getTextPage();
+  text_page->setReadOnly(true);
+  auto thread = new FileReadThread(this->fullFilePath.toStdString());
 
-        LOG(INFO) << "EditorPage::readFile read_thread Read block size"
-                  << read_size;
-        this->getTextPage()->insertPlainText(
-            QString::fromLocal8Bit(buffer, read_size));
+  connect(thread, &FileReadThread::sendReadBlock, this,
+          &EditorPage::slotInsertText);
 
-        QThread::msleep(32);
-      }
-      fclose(fp);
-      this->getTextPage()->setReadOnly(false);
-      LOG(INFO) << "Thread End Reading";
-    }
+  connect(thread, &FileReadThread::readDone, this, [=]() {
+    LOG(INFO) << "Thread read done";
+    text_page->document()->setModified(false);
+    text_page->setReadOnly(false);
   });
-  connect(this->readThread, SIGNAL(finished()), this->readThread,
-          SLOT(deleteLater()));
-  connect(this, &QWidget::destroyed, [&]() {
-    LOG(INFO) << "QWidget::destroyed RequestInterruption for readThread";
-    this->readThread->requestInterruption();
+
+  connect(thread, &FileReadThread::finished, this, [=]() {
+    LOG(INFO) << "Thread finished";
+    thread->deleteLater();
   });
-  this->readThread->start();
+
+  connect(this, &FileReadThread::destroyed, [=]() {
+    LOG(INFO) << "RequestInterruption for readThread";
+    thread->requestInterruption();
+    thread->deleteLater();
+  });
+
+  thread->start();
+}
+
+void EditorPage::slotInsertText(const QString& text) {
+  this->getTextPage()->insertPlainText(text);
 }
 
 }  // namespace GpgFrontend::UI

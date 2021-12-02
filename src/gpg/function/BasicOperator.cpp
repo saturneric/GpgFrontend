@@ -29,16 +29,16 @@
 #include "gpg/function/GpgKeyGetter.h"
 
 GpgFrontend::GpgError GpgFrontend::BasicOperator::Encrypt(
-    GpgFrontend::KeyArgsList&& keys, GpgFrontend::BypeArrayRef in_buffer,
+    KeyListPtr keys, GpgFrontend::BypeArrayRef in_buffer,
     GpgFrontend::ByteArrayPtr& out_buffer, GpgFrontend::GpgEncrResult& result) {
   // gpgme_encrypt_result_t e_result;
-  gpgme_key_t recipients[keys.size() + 1];
+  gpgme_key_t recipients[keys->size() + 1];
 
   int index = 0;
-  for (const auto& key : keys) recipients[index++] = gpgme_key_t(key);
+  for (const auto& key : *keys) recipients[index++] = gpgme_key_t(key);
 
   // Last entry data_in array has to be nullptr
-  recipients[keys.size()] = nullptr;
+  recipients[keys->size()] = nullptr;
 
   GpgData data_in(in_buffer.data(), in_buffer.size()), data_out;
 
@@ -90,7 +90,7 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Verify(
   return err;
 }
 
-GpgFrontend::GpgError GpgFrontend::BasicOperator::Sign(KeyArgsList&& keys,
+GpgFrontend::GpgError GpgFrontend::BasicOperator::Sign(KeyListPtr keys,
                                                        BypeArrayRef in_buffer,
                                                        ByteArrayPtr& out_buffer,
                                                        gpgme_sig_mode_t mode,
@@ -98,7 +98,7 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Sign(KeyArgsList&& keys,
   gpgme_error_t err;
 
   // Set Singers of this opera
-  SetSigners(keys);
+  SetSigners(*keys);
 
   GpgData data_in(in_buffer.data(), in_buffer.size()), data_out;
 
@@ -149,21 +149,21 @@ gpgme_error_t GpgFrontend::BasicOperator::DecryptVerify(
 }
 
 gpgme_error_t GpgFrontend::BasicOperator::EncryptSign(
-    KeyArgsList&& keys, KeyArgsList&& signers, BypeArrayRef in_buffer,
+    KeyListPtr keys, KeyListPtr signers, BypeArrayRef in_buffer,
     ByteArrayPtr& out_buffer, GpgEncrResult& encr_result,
     GpgSignResult& sign_result) {
   gpgme_error_t err;
-  SetSigners(signers);
+  SetSigners(*signers);
 
   // gpgme_encrypt_result_t e_result;
-  gpgme_key_t recipients[keys.size() + 1];
+  gpgme_key_t recipients[keys->size() + 1];
 
   // set key for user
   int index = 0;
-  for (const auto& key : keys) recipients[index++] = gpgme_key_t(key);
+  for (const auto& key : *keys) recipients[index++] = gpgme_key_t(key);
 
   // Last entry dataIn array has to be nullptr
-  recipients[keys.size()] = nullptr;
+  recipients[keys->size()] = nullptr;
 
   GpgData data_in(in_buffer.data(), in_buffer.size()), data_out;
 

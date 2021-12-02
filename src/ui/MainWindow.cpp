@@ -65,10 +65,7 @@ void MainWindow::init() noexcept {
                                KeyListColumn::Usage | KeyListColumn::Validity,
                            this);
     mKeyList->setFilter([](const GpgKey& key) -> bool {
-      if (key.revoked() || key.disabled() || key.expired())
-        return false;
-      else
-        return true;
+      return !(key.revoked() || key.disabled() || key.expired());
     });
 
     mKeyList->slotRefresh();

@@ -30,11 +30,8 @@
 
 QT_BEGIN_NAMESPACE
 class QVBoxLayout;
-
 class QHBoxLayout;
-
 class QString;
-
 class QLabel;
 QT_END_NAMESPACE
 
@@ -58,7 +55,7 @@ class EditorPage : public QWidget {
   /**
    * @details Get the filepath of the currently activated tab.
    */
-  const QString& getFilePath() const;
+  [[nodiscard]] const QString& getFilePath() const;
 
   /**
    * @details Set filepath of currently activated tab.
@@ -87,8 +84,6 @@ class EditorPage : public QWidget {
    */
   void closeNoteByClass(const char* className);
 
-  const QString uuid = QUuid::createUuid().toString();
-
   void readFile();
 
  private:
@@ -96,7 +91,6 @@ class EditorPage : public QWidget {
   QVBoxLayout* mainLayout; /** The layout for the tab */
   QString fullFilePath;    /** The path to the file handled in the tab */
   bool signMarked{}; /** true, if the signed header is marked, false if not */
-  QThread* readThread = nullptr;
 
  private slots:
 
@@ -104,6 +98,8 @@ class EditorPage : public QWidget {
    * @details Format the gpg header in another font-style
    */
   void slotFormatGpgHeader();
+
+  void slotInsertText(const QString& text);
 };
 
 }  // namespace GpgFrontend::UI

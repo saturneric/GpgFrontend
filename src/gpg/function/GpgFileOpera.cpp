@@ -30,16 +30,18 @@
 #include "gpg/function/BasicOperator.h"
 
 GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
-    KeyArgsList&& keys, const std::string& path, GpgEncrResult& result) {
+    KeyListPtr keys, const std::string& path, GpgEncrResult& result) {
   std::string in_buffer = read_all_data_in_file(path);
   std::unique_ptr<std::string> out_buffer;
 
   auto err = BasicOperator::GetInstance().Encrypt(std::move(keys), in_buffer,
                                                   out_buffer, result);
 
-  assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
-
-  write_buffer_to_file(path + ".asc", *out_buffer);
+  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
+    if (!write_buffer_to_file(path + ".asc", *out_buffer)) {
+      throw std::runtime_error("write_buffer_to_file error");
+    };
+  
   return err;
 }
 
@@ -59,12 +61,15 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
   if (!(file_extension == ".asc" || file_extension == ".gpg"))
     out_file_name += ".out";
 
-  write_buffer_to_file(out_file_name, *out_buffer);
+  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
+    if (!write_buffer_to_file(out_file_name, *out_buffer)) {
+      throw std::runtime_error("write_buffer_to_file error");
+    };
 
   return err;
 }
 
-gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyArgsList&& keys,
+gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
                                                   const std::string& path,
                                                   GpgSignResult& result) {
   auto in_buffer = read_all_data_in_file(path);
@@ -73,9 +78,10 @@ gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyArgsList&& keys,
   auto err = BasicOperator::GetInstance().Sign(
       std::move(keys), in_buffer, out_buffer, GPGME_SIG_MODE_DETACH, result);
 
-  assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
-
-  write_buffer_to_file(path + ".sig", *out_buffer);
+  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
+    if (!write_buffer_to_file(path + ".sig", *out_buffer)) {
+      throw std::runtime_error("write_buffer_to_file error");
+    };
 
   return err;
 }
@@ -103,29 +109,26 @@ gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(const std::string& path,
 // TODO
 
 gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
-    KeyArgsList&& keys, const std::string& path, GpgEncrResult& encr_res,
-    GpgSignResult& sign_res) {
+    KeyListPtr keys, KeyListPtr signer_keys, const std::string& path,
+    GpgEncrResult& encr_res, GpgSignResult& sign_res) {
   auto in_buffer = read_all_data_in_file(path);
   std::unique_ptr<std::string> out_buffer = nullptr;
 
-  // TODO Fill the vector
-  std::vector<GpgKey> signerKeys;
-
   // TODO dealing with signer keys
   auto err = BasicOperator::GetInstance().EncryptSign(
-      std::move(keys), std::move(signerKeys), in_buffer, out_buffer, encr_res,
+      std::move(keys), std::move(signer_keys), in_buffer, out_buffer, encr_res,
       sign_res);
 
   auto out_path = path + ".gpg";
   LOG(INFO) << "EncryptSignFile out_path" << out_path;
   LOG(INFO) << "EncryptSignFile out_buffer size" << out_buffer->size();
 
-  bool result = write_buffer_to_file(out_path, *out_buffer);
-  LOG(INFO) << "EncryptSignFile write_buffer_to_file result" << result;
-  if (result)
-    return err;
-  else
-    throw std::runtime_error("write_buffer_to_file failed.");
+  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
+    if (!write_buffer_to_file(out_path, *out_buffer)) {
+      throw std::runtime_error("write_buffer_to_file error");
+    };
+
+  return err;
 }
 
 gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
@@ -149,9 +152,11 @@ gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
     out_file_name = path + ".out";
   LOG(INFO) << "GpgFrontend::GpgFileOpera::DecryptVerifyFile out_file_name"
             << out_file_name;
-  if (!write_buffer_to_file(out_file_name, *out_buffer)) {
-    throw std::runtime_error("write_buffer_to_file error");
-  };
+
+  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
+    if (!write_buffer_to_file(out_file_name, *out_buffer)) {
+      throw std::runtime_error("write_buffer_to_file error");
+    };
 
   return err;
 }

@@ -34,10 +34,10 @@ namespace GpgFrontend {
 
 class BasicOperator : public SingletonFunctionObject<BasicOperator> {
  public:
-  gpg_error_t Encrypt(KeyArgsList&& keys, BypeArrayRef in_buffer,
+  gpg_error_t Encrypt(KeyListPtr keys, BypeArrayRef in_buffer,
                       ByteArrayPtr& out_buffer, GpgEncrResult& result);
 
-  gpgme_error_t EncryptSign(KeyArgsList&& keys, KeyArgsList&& signers,
+  gpgme_error_t EncryptSign(KeyListPtr keys, KeyListPtr signers,
                             BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
                             GpgEncrResult& encr_result,
                             GpgSignResult& sign_result);
@@ -52,7 +52,7 @@ class BasicOperator : public SingletonFunctionObject<BasicOperator> {
   gpgme_error_t Verify(BypeArrayRef in_buffer, ByteArrayPtr& sig_buffer,
                        GpgVerifyResult& result) const;
 
-  gpg_error_t Sign(KeyArgsList&& key_fprs, BypeArrayRef in_buffer,
+  gpg_error_t Sign(KeyListPtr keys, BypeArrayRef in_buffer,
                    ByteArrayPtr& out_buffer, gpgme_sig_mode_t mode,
                    GpgSignResult& result);
 

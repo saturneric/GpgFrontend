@@ -22,7 +22,7 @@
  *
  */
 
-#include "ui/help/VersionCheckThread.h"
+#include "VersionCheckThread.h"
 
 #include "GpgFrontendBuildInfo.h"
 #include "rapidjson/document.h"

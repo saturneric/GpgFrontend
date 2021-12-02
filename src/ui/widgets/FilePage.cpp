@@ -53,7 +53,7 @@ FilePage::FilePage(QWidget* parent) : QWidget(parent) {
   connect(upLevelButton, SIGNAL(clicked(bool)), this, SLOT(slotUpLevel()));
 
   QString buttonStyle =
-      "QPushButton{border:none;background-color:rgba(255, 255, 255,100);}";
+      "QPushButton{border:none;background-color:rgba(255, 255, 255, 0);}";
 
   auto upPixmap = QPixmap(":up.png");
   upPixmap =
@@ -113,7 +113,7 @@ FilePage::FilePage(QWidget* parent) : QWidget(parent) {
 void FilePage::fileTreeViewItemClicked(const QModelIndex& index) {
   selectedPath = boost::filesystem::path(
       dirModel->fileInfo(index).absoluteFilePath().toStdString());
-  LOG(INFO) << "FilePage::fileTreeViewItemClicked selectedPath" << selectedPath;
+  LOG(INFO) << "selected path" << selectedPath;
 }
 
 void FilePage::slotUpLevel() {
@@ -129,7 +129,7 @@ void FilePage::slotUpLevel() {
       pathEdit->setText(mPath.c_str());
       slotGoPath();
     }
-    LOG(INFO) << "FilePage::slotUpLevel Current Root mPath" << mPath;
+    LOG(INFO) << "Current Root mPath" << mPath;
     emit pathChanged(mPath.c_str());
   }
 }
@@ -144,7 +144,7 @@ void FilePage::fileTreeViewItemDoubleClicked(const QModelIndex& index) {
     dirTreeView->setRootIndex(targetModelIndex);
     pathEdit->setText(mPath.c_str());
   }
-  LOG(INFO) << "FilePage::fileTreeViewItemDoubleClicked Index mPath" << mPath;
+  LOG(INFO) << "Index mPath" << mPath;
   emit pathChanged(mPath.c_str());
 }
 
@@ -155,7 +155,7 @@ void FilePage::slotGoPath() {
   auto fileInfo = QFileInfo(pathEdit->text());
   if (fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
     mPath = boost::filesystem::path(fileInfo.filePath().toStdString());
-    LOG(INFO) << "FilePage::slotGoPath Set Path" << mPath;
+    LOG(INFO) << "Set Path" << mPath;
     dirTreeView->setRootIndex(dirModel->index(fileInfo.filePath()));
   } else {
     QMessageBox::critical(this, "Error",
