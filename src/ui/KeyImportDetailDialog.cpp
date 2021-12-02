@@ -33,34 +33,40 @@ KeyImportDetailDialog::KeyImportDetailDialog(GpgImportInformation result,
   // If no key for import found, just show a message
   if (mResult.considered == 0) {
     if (automatic)
-      QMessageBox::information(nullptr, _("Key Update Details"),
+      QMessageBox::information(parent, _("Key Update Details"),
                                _("No keys found"));
     else
-      QMessageBox::information(nullptr, _("Key Import Details"),
+      QMessageBox::information(parent, _("Key Import Details"),
                                _("No keys found to import"));
-    return;
+    emit finished(0);
+    this->close();
+    this->deleteLater();
+  } else {
+    auto* mv_box = new QVBoxLayout();
+
+    this->createGeneralInfoBox();
+    mv_box->addWidget(generalInfoBox);
+
+    this->createKeysTable();
+    mv_box->addWidget(keysTable);
+
+    this->createButtonBox();
+    mv_box->addWidget(buttonBox);
+
+    this->setLayout(mv_box);
+    if (automatic)
+      this->setWindowTitle(_("Key Update Details"));
+    else
+      this->setWindowTitle(_("Key Import Details"));
+
+    auto pos = QPoint(100, 100);
+    LOG(INFO) << "parent" << parent;
+    if (parent) pos += parent->pos();
+    this->move(pos);
+    this->resize(QSize(600, 300));
+    this->setModal(true);
+    this->show();
   }
-
-  auto* mvbox = new QVBoxLayout();
-
-  this->createGeneralInfoBox();
-  mvbox->addWidget(generalInfoBox);
-
-  this->createKeysTable();
-  mvbox->addWidget(keysTable);
-
-  this->createButtonBox();
-  mvbox->addWidget(buttonBox);
-
-  this->setLayout(mvbox);
-  if (automatic)
-    this->setWindowTitle(_("Key Update Details"));
-  else
-    this->setWindowTitle(_("Key Import Details"));
-
-  this->resize(QSize(600, 300));
-  this->setModal(true);
-  this->exec();
 }
 
 void KeyImportDetailDialog::createGeneralInfoBox() {

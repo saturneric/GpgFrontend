@@ -23,6 +23,7 @@
  */
 
 #include "MainWindow.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
@@ -36,44 +37,21 @@ void MainWindow::slotSetStatusBarText(const QString& text) {
 }
 
 void MainWindow::slotStartWizard() {
-  auto* wizard = new Wizard(keyMgmt, this);
+  auto* wizard = new Wizard(this);
   wizard->show();
   wizard->setModal(true);
 }
 
-// void MainWindow::slotCheckAttachmentFolder() {
-//   // TODO: always check?
-//   if (!settings.value("mime/parseMime").toBool()) {
-//     return;
-//   }
-//
-//   QString attachmentDir = qApp->applicationDirPath() + "/attachments/";
-//   // filenum minus . and ..
-//   uint filenum = QDir(attachmentDir).count() - 2;
-//   if (filenum > 0) {
-//     QString statusText;
-//     if (filenum == 1) {
-//       statusText = _("There is one unencrypted file in attachment folder");
-//     } else {
-//       statusText = _("There are ") + QString::number(filenum) +
-//                    _(" unencrypted files in attachment folder");
-//     }
-//     statusBarIcon->setStatusTip(statusText);
-//     statusBarIcon->show();
-//   } else {
-//     statusBarIcon->hide();
-//   }
-// }
-
 void MainWindow::slotImportKeyFromEdit() {
   if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
-  keyMgmt->slotImportKeys(edit->curTextPage()->toPlainText().toStdString());
+  CommonUtils::GetInstance()->slotImportKeys(
+      this, edit->curTextPage()->toPlainText().toStdString());
 }
 
 void MainWindow::slotOpenKeyManagement() {
-  keyMgmt->show();
-  keyMgmt->raise();
-  keyMgmt->activateWindow();
+  auto* dialog = new KeyMgmt(this);
+  dialog->show();
+  dialog->raise();
 }
 
 void MainWindow::slotOpenFileTab() { edit->slotNewFileTab(); }

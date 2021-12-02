@@ -38,19 +38,9 @@ class Wizard : public QWizard {
   Q_ENUMS(WizardPages)
 
  public:
-  enum WizardPages {
-    Page_Intro,
-    Page_Choose,
-    Page_ImportFromGpg4usb,
-    Page_ImportFromGnupg,
-    Page_GenKey,
-    Page_Conclusion
-  };
+  enum WizardPages { Page_Intro, Page_Choose, Page_GenKey, Page_Conclusion };
 
-  Wizard(KeyMgmt* keyMgmt, QWidget* parent = nullptr);
-
- private:
-  KeyMgmt* mKeyMgmt;
+  Wizard(QWidget* parent = nullptr);
 
  private slots:
 

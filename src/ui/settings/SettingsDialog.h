@@ -38,33 +38,10 @@ class SendMailTab;
 
 class AppearanceTab;
 class KeyserverTab;
+
+#ifdef ADVANCED_SUPPORT
 class AdvancedTab;
-
-class GpgPathsTab : public QWidget {
-  Q_OBJECT
- public:
-  explicit GpgPathsTab(QWidget* parent = nullptr);
-
-  void applySettings();
-
- private:
-  static QString getRelativePath(const QString& dir1, const QString& dir2);
-
-  QString appPath;
-  QSettings settings;
-
-  QString defKeydbPath; /** The default keydb path used by gpg4usb */
-  QString accKeydbPath; /** The currently used keydb path */
-  QLabel* keydbLabel;
-
-  void setSettings();
-
- private slots:
-
-  QString chooseKeydbDir();
-
-  void setKeydbPathToDefault();
-};
+#endif
 
 class SettingsDialog : public QDialog {
   Q_OBJECT
@@ -78,8 +55,9 @@ class SettingsDialog : public QDialog {
 #endif
   AppearanceTab* appearanceTab;
   KeyserverTab* keyserverTab;
+#ifdef ADVANCED_SUPPORT
   AdvancedTab* advancedTab;
-  GpgPathsTab* gpgPathsTab;
+#endif
 
   static QHash<QString, QString> listLanguages();
 

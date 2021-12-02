@@ -24,137 +24,137 @@
 
 #include "MainWindow.h"
 
+#include "ui/UserInterfaceUtils.h"
+#ifdef RELEASE
 #include "ui/help/VersionCheckThread.h"
+#endif
 #include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
 MainWindow::MainWindow() {
-  networkAccessManager = new QNetworkAccessManager(this);
-
-  auto waitingDialog = new WaitingDialog(_("Loading Gnupg"), this);
-
-  QString baseUrl =
-      "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
-
-  QNetworkRequest request;
-  request.setUrl(QUrl(baseUrl));
-
-  QNetworkReply* replay = networkAccessManager->get(request);
-
-#ifdef RELEASE
-  auto version_thread = new VersionCheckThread(replay);
-
-  connect(version_thread, SIGNAL(finished()), version_thread,
-          SLOT(deleteLater()));
-  connect(version_thread,
-          SIGNAL(upgradeVersion(const QString&, const QString&)), this,
-          SLOT(slotVersionUpgrade(const QString&, const QString&)));
-
-  version_thread->start();
-#endif
-
-  // Check Context Status
-  if (!GpgContext::GetInstance().good()) {
-    QMessageBox::critical(
-        nullptr, _("ENV Loading Failed"),
-        _("Gnupg is not installed correctly, please follow the ReadME "
-          "instructions to install gnupg and then open GpgFrontend."));
-    QCoreApplication::quit();
-    exit(0);
-  }
-
-  /* get path were app was started */
-  setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
-  setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-
-  edit = new TextEdit(this);
-  setCentralWidget(edit);
-
-  /* the list of Keys available*/
-  mKeyList = new KeyList(KeyListRow::SECRET_OR_PUBLIC_KEY,
-                         KeyListColumn::TYPE | KeyListColumn::NAME |
-                             KeyListColumn::EmailAddress |
-                             KeyListColumn::Usage | KeyListColumn::Validity,
-                         this);
-  mKeyList->setFilter([](const GpgKey& key) -> bool {
-    if (key.revoked() || key.disabled() || key.expired())
-      return false;
-    else
-      return true;
-  });
-  mKeyList->slotRefresh();
-
-  infoBoard = new InfoBoardWidget(this, mKeyList);
-
-  /* List of binary Attachments */
-  attachmentDockCreated = false;
-
-  /* Variable containing if restart is needed */
-  this->slotSetRestartNeeded(false);
-
-  keyMgmt = new KeyMgmt(this);
-  keyMgmt->hide();
-  /* test attachmentdir for files alll 15s */
-  auto* timer = new QTimer(this);
-  //  connect(timer, SIGNAL(timeout()), this,
-  //  SLOT(slotCheckAttachmentFolder()));
-  timer->start(5000);
-
-  createActions();
-  createMenus();
-  createToolBars();
-  createStatusBar();
-  createDockWindows();
-
-  connect(edit->tabWidget, SIGNAL(currentChanged(int)), this,
-          SLOT(slotDisableTabActions(int)));
-
-  mKeyList->addMenuAction(appendSelectedKeysAct);
-  mKeyList->addMenuAction(copyMailAddressToClipboardAct);
-  mKeyList->addMenuAction(showKeyDetailsAct);
-  mKeyList->addSeparator();
-  mKeyList->addMenuAction(refreshKeysFromKeyserverAct);
-  mKeyList->addMenuAction(uploadKeyToServerAct);
-
-  restoreSettings();
-
-  // open filename if provided as first command line parameter
-  QStringList args = qApp->arguments();
-  if (args.size() > 1) {
-    if (!args[1].startsWith("-")) {
-      if (QFile::exists(args[1])) edit->loadFile(args[1]);
-    }
-  }
-  edit->curTextPage()->setFocus();
-
-  waitingDialog->close();
-
   this->setMinimumSize(1200, 700);
   this->setWindowTitle(qApp->applicationName());
-  this->show();
+}
 
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+void MainWindow::init() noexcept {
+  try {
+    // Check Context Status
+    if (!GpgContext::GetInstance().good()) {
+      QMessageBox::critical(
+          nullptr, _("ENV Loading Failed"),
+          _("Gnupg is not installed correctly, please follow the ReadME "
+            "instructions to install gnupg and then open GpgFrontend."));
+      QCoreApplication::quit();
+      exit(0);
+    }
 
-  if (!settings.exists("wizard") ||
-      settings.lookup("wizard").getType() != libconfig::Setting::TypeGroup)
-    settings.add("wizard", libconfig::Setting::TypeGroup);
+    networkAccessManager = new QNetworkAccessManager(this);
 
-  auto& wizard = settings["wizard"];
+    /* get path were app was started */
+    setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+    setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
-  // Show wizard, if the don't show wizard message box wasn't checked
-  // and keylist doesn't contain a private key
+    edit = new TextEdit(this);
+    setCentralWidget(edit);
 
-  if (!wizard.exists("show_wizard"))
-    wizard.add("show_wizard", libconfig::Setting::TypeBoolean) = true;
+    /* the list of Keys available*/
+    mKeyList = new KeyList(KeyListRow::SECRET_OR_PUBLIC_KEY,
+                           KeyListColumn::TYPE | KeyListColumn::NAME |
+                               KeyListColumn::EmailAddress |
+                               KeyListColumn::Usage | KeyListColumn::Validity,
+                           this);
+    mKeyList->setFilter([](const GpgKey& key) -> bool {
+      if (key.revoked() || key.disabled() || key.expired())
+        return false;
+      else
+        return true;
+    });
 
-  bool show_wizard = true;
-  wizard.lookupValue("show_wizard", show_wizard);
+    mKeyList->slotRefresh();
 
-  LOG(INFO) << "wizard show_wizard" << show_wizard;
+    infoBoard = new InfoBoardWidget(this, mKeyList);
 
-  if (show_wizard) {
-    slotStartWizard();
+    /* List of binary Attachments */
+    attachmentDockCreated = false;
+
+    /* Variable containing if restart is needed */
+    this->slotSetRestartNeeded(false);
+
+    createActions();
+    createMenus();
+    createToolBars();
+    createStatusBar();
+    createDockWindows();
+
+    connect(edit->tabWidget, SIGNAL(currentChanged(int)), this,
+            SLOT(slotDisableTabActions(int)));
+
+    mKeyList->addMenuAction(appendSelectedKeysAct);
+    mKeyList->addMenuAction(copyMailAddressToClipboardAct);
+    mKeyList->addMenuAction(showKeyDetailsAct);
+    mKeyList->addSeparator();
+    mKeyList->addMenuAction(refreshKeysFromKeyserverAct);
+    mKeyList->addMenuAction(uploadKeyToServerAct);
+
+    restoreSettings();
+
+    // open filename if provided as first command line parameter
+    QStringList args = qApp->arguments();
+    if (args.size() > 1) {
+      if (!args[1].startsWith("-")) {
+        if (QFile::exists(args[1])) edit->loadFile(args[1]);
+      }
+    }
+    edit->curTextPage()->setFocus();
+
+    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+    if (!settings.exists("wizard") ||
+        settings.lookup("wizard").getType() != libconfig::Setting::TypeGroup)
+      settings.add("wizard", libconfig::Setting::TypeGroup);
+
+    auto& wizard = settings["wizard"];
+
+    // Show wizard, if the don't show wizard message box wasn't checked
+    // and keylist doesn't contain a private key
+
+    if (!wizard.exists("show_wizard"))
+      wizard.add("show_wizard", libconfig::Setting::TypeBoolean) = true;
+
+    bool show_wizard = true;
+    wizard.lookupValue("show_wizard", show_wizard);
+
+    LOG(INFO) << "wizard show_wizard" << show_wizard;
+
+    if (show_wizard) {
+      slotStartWizard();
+    }
+
+    emit loaded();
+
+#ifdef RELEASE
+    QString baseUrl =
+        "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
+    QNetworkRequest request;
+    request.setUrl(QUrl(baseUrl));
+    auto* replay = networkAccessManager->get(request);
+    auto version_thread = new VersionCheckThread(replay);
+
+    connect(version_thread, SIGNAL(finished()), version_thread,
+            SLOT(deleteLater()));
+    connect(version_thread,
+            SIGNAL(upgradeVersion(const QString&, const QString&)), this,
+            SLOT(slotVersionUpgrade(const QString&, const QString&)));
+
+    version_thread->start();
+#endif
+  } catch (...) {
+    LOG(FATAL) << _("Critical error occur while loading GpgFrontend.");
+    QMessageBox::critical(nullptr, _("Loading Failed"),
+                          _("Critical error occur while loading GpgFrontend."));
+    QCoreApplication::quit();
+    exit(0);
   }
 }
 
@@ -238,6 +238,10 @@ void MainWindow::restoreSettings() {
 
     int width = icon_size["width"], height = icon_size["height"];
     LOG(INFO) << "icon_size" << width << height;
+
+    // info board font size
+    if (!window.exists("info_font_size"))
+      window.add("info_font_size", libconfig::Setting::TypeInt) = 10;
 
     // icons ize
     this->setIconSize(QSize(width, height));

@@ -39,8 +39,6 @@ class KeyserverTab : public QWidget {
   void applySettings();
 
  private:
-  QString appPath;
-  QSettings settings;
   QComboBox* comboBox;
   QLineEdit* newKeyServerEdit;
   QTableWidget* keyServerTable;

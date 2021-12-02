@@ -24,14 +24,12 @@
 
 #include "ui/widgets/InfoBoardWidget.h"
 
+#include "ui/settings/GlobalSettingStation.h"
+
 namespace GpgFrontend::UI {
 
 InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
-    : QWidget(parent),
-      mKeyList(keyList),
-      appPath(qApp->applicationDirPath()),
-      settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-               QSettings::IniFormat) {
+    : QWidget(parent), mKeyList(keyList) {
   infoBoard = new QTextEdit(this);
   infoBoard->setReadOnly(true);
   infoBoard->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
@@ -82,10 +80,14 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
   notificationWidgetLayout->setStretchFactor(line, 1);
   notificationWidgetLayout->addStretch(0);
   this->setLayout(notificationWidgetLayout);
+
+  // set default size
+  infoBoard->resize(480, 120);
+  resize(480, 120);
 }
 
 void InfoBoardWidget::slotImportFromKeyserver() {
-  auto* importDialog = new KeyServerImportDialog(mKeyList, false, this);
+  auto* importDialog = new KeyServerImportDialog(false, this);
   auto key_ids = std::make_unique<KeyIdArgsList>();
   for (const auto& key_id : *keysNotInList) {
     key_ids->push_back(key_id.toStdString());
@@ -116,9 +118,18 @@ void InfoBoardWidget::setInfoBoard(const QString& text,
   QPalette status = infoBoard->palette();
   status.setColor(QPalette::Text, color);
   infoBoard->setPalette(status);
-  auto infoBoardFontSize =
-      settings.value("informationBoard/fontSize", 10).toInt();
-  infoBoard->setFont(QFont("Times", infoBoardFontSize));
+
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+  // info board font size
+  auto info_font_size = 10;
+  try {
+    info_font_size = settings.lookup("window.info_font_size");
+    if (info_font_size < 9 || info_font_size > 18) info_font_size = 10;
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("info_font_size");
+  }
+  infoBoard->setFont(QFont("Times", info_font_size));
 }
 
 void InfoBoardWidget::slotRefresh(const QString& text, InfoBoardStatus status) {

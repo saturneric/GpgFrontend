@@ -40,10 +40,33 @@ WaitingDialog::WaitingDialog(const QString& title, QWidget* parent)
   this->setLayout(layout);
 
   this->setModal(true);
+  this->raise();
   this->setWindowFlags(Qt::Window | Qt::WindowTitleHint |
                        Qt::CustomizeWindowHint);
   this->setWindowTitle(title);
+  this->setAttribute(Qt::WA_DeleteOnClose);
   this->setFixedSize(240, 42);
+
+  if (parentWidget() == nullptr) {
+    auto* screen = QGuiApplication::primaryScreen();
+    QRect geo = screen->availableGeometry();
+    int screen_width = geo.width();
+    int screen_height = geo.height();
+
+    LOG(INFO) << "primary screen available geometry" << screen_width
+              << screen_height;
+
+    auto pos = QPoint((screen_width - QWidget::width()) / 2,
+                      (screen_height - QWidget::height()) / 2);
+    this->move(pos);
+
+  } else {
+    auto pos = QPoint(parent->x() + (parent->width() - QWidget::width()) / 2,
+                      parent->y() + (parent->height() - QWidget::height()) / 2);
+    LOG(INFO) << "pos" << pos.x() << pos.y();
+    this->move(pos);
+  }
+
   this->show();
 }
 

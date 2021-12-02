@@ -28,9 +28,7 @@
 
 namespace GpgFrontend::UI {
 
-Wizard::Wizard(KeyMgmt* keyMgmt, QWidget* parent) : QWizard(parent) {
-  mKeyMgmt = keyMgmt;
-
+Wizard::Wizard(QWidget* parent) : QWizard(parent) {
   setPage(Page_Intro, new IntroPage(this));
   setPage(Page_Choose, new ChoosePage(this));
   setPage(Page_GenKey, new KeyGenPage(this));

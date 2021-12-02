@@ -33,7 +33,6 @@ class AppearanceTab : public QWidget {
   Q_OBJECT
 
  public:
-  // void setSettings();
   explicit AppearanceTab(QWidget* parent = nullptr);
 
   void setSettings();
@@ -41,9 +40,6 @@ class AppearanceTab : public QWidget {
   void applySettings();
 
  private:
-  QString appPath;
-  QSettings settings;
-
   QButtonGroup* iconStyleGroup;
   QRadioButton* iconSizeSmall;
   QRadioButton* iconSizeMedium;

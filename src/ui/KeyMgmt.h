@@ -40,24 +40,9 @@ class KeyMgmt : public QMainWindow {
  public:
   explicit KeyMgmt(QWidget* parent = nullptr);
 
-  QAction* importKeyFromClipboardAct{};
-  QAction* importKeyFromFileAct{};
-  QAction* importKeyFromKeyServerAct{};
-
-  QAction* generateKeyPairAct{};
-  QAction* generateSubKeyAct{};
-
  public slots:
 
   void slotGenerateSubKey();
-
-  void slotImportKeyFromFile();
-
-  void slotImportKeyFromClipboard();
-
-  void slotImportKeyFromKeyServer();
-
-  void slotImportKeys(const std::string& in_buffer);
 
   void slotExportKeyToFile();
 
@@ -70,6 +55,8 @@ class KeyMgmt : public QMainWindow {
   void slotGenerateKeyDialog();
 
   void slotShowKeyDetails();
+
+  void slotSaveWindowState();
 
  signals:
 
@@ -86,9 +73,6 @@ class KeyMgmt : public QMainWindow {
 
   void deleteKeysWithWarning(GpgFrontend::KeyIdArgsListPtr uidList);
 
-  QString appPath;
-  QSettings settings;
-
   KeyList* mKeyList;
   QMenu* fileMenu{};
   QMenu* keyMenu{};
@@ -100,6 +84,11 @@ class KeyMgmt : public QMainWindow {
   QAction* deleteCheckedKeysAct{};
   QAction* deleteSelectedKeysAct{};
   QAction* generateKeyDialogAct{};
+  QAction* generateKeyPairAct{};
+  QAction* generateSubKeyAct{};
+  QAction* importKeyFromClipboardAct{};
+  QAction* importKeyFromFileAct{};
+  QAction* importKeyFromKeyServerAct{};
   QAction* closeAct{};
   QAction* showKeyDetailsAct{};
   KeyServerImportDialog* importDialog{};

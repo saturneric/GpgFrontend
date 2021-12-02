@@ -91,7 +91,9 @@ int main(int argc, char* argv[]) {
     gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
 #endif
 
-    GpgFrontend::UI::MainWindow window;
+    auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
+    main_window->init();
+    main_window->show();
     return_from_event_loop_code = QApplication::exec();
 
   } while (return_from_event_loop_code == RESTART_CODE);

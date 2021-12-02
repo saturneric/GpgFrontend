@@ -45,7 +45,6 @@ class KeyImportDetailDialog : public QDialog {
   static QString getStatusString(int keyStatus);
 
   QTableWidget* keysTable{};
-  GpgFrontend::GpgContext* mCtx;
   QGroupBox* generalInfoBox{};
   QGroupBox* keyInfoBox{};
   QDialogButtonBox* buttonBox{};

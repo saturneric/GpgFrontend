@@ -518,7 +518,7 @@ void MainWindow::refreshKeysFromKeyserver() {
   auto key_ids = mKeyList->getSelected();
   if (key_ids->empty()) return;
 
-  auto* dialog = new KeyServerImportDialog(mKeyList, true, this);
+  auto* dialog = new KeyServerImportDialog(true, this);
   dialog->show();
   dialog->slotImport(key_ids);
 }
