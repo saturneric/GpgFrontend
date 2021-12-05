@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -29,67 +29,71 @@
  * @param reply reply data in byte array
  * @return if successful
  */
-bool ComUtils::checkServerReply(const QByteArray &reply) {
-
-    if(reply.isEmpty()) {
-        QMessageBox::critical(this, tr("Error"), tr("Nothing Reply. Please check the Internet connection."));
-        return false;
-    }
-
-    qDebug() << "Reply" << reply;
-
-    /**
-     * Server Reply Format(Except Timeout)
-     * {
-     *      "status": 200,
-     *      "msg": "OK",
-     *      "timestamp": 1628652783895
-     *      "data" : {
-     *          ...
-     *      }
-     * }
-     */
-
-    // check if reply is a json object
-    if (replyDoc.Parse(reply).HasParseError() || !replyDoc.IsObject()) {
-        QMessageBox::critical(this, tr("Error"), tr("Unknown Error"));
-        return false;
-    }
-
-    // check status(int) and message(string)
-    if (replyDoc.HasMember("status") && replyDoc.HasMember("msg") && replyDoc.HasMember("timestamp") &&
-        replyDoc.HasMember("data")
-        && replyDoc["status"].IsNumber() && replyDoc["msg"].IsString() && replyDoc["timestamp"].IsNumber() &&
-        replyDoc["data"].IsObject()) {
-
-        int status = replyDoc["status"].GetInt();
-        QDateTime time;
-        time.setMSecsSinceEpoch(replyDoc["timestamp"].GetInt64());
-        auto message = replyDoc["msg"].GetString();
-        dataVal = replyDoc["data"].GetObject();
-
-        qDebug() << "Reply Date & Time" << time;
-
-        // check reply timestamp
-        if (time < QDateTime::currentDateTime().addSecs(-10)) {
-            QMessageBox::critical(this, tr("Network Error"), tr("Outdated Reply"));
-            return false;
-        }
-
-        // check status code if successful (200-299)
-        // check data object
-        if (status / 100 == 2) {
-            is_good = true;
-            return true;
-        } else  {
-            if (dataVal.HasMember("exceptionMessage") && dataVal["exceptionMessage"].IsString())
-                QMessageBox::critical(this, message, dataVal["exceptionMessage"].GetString());
-            else QMessageBox::critical(this, message, tr("Unknown Reason"));
-        }
-
-    } else QMessageBox::critical(this, tr("Network Error"), tr("Unknown Reply Format"));
-
+bool GpgFrontend::ComUtils::checkServerReply(const QByteArray &reply) {
+  if (reply.isEmpty()) {
+    QMessageBox::critical(
+        this, _("Error"),
+        _("Nothing Reply. Please check the Internet connection."));
     return false;
+  }
+
+  qDebug() << "Reply" << reply;
+
+  /**
+   * Server Reply Format(Except Timeout)
+   * {
+   *      "status": 200,
+   *      "msg": "OK",
+   *      "timestamp": 1628652783895
+   *      "data" : {
+   *          ...
+   *      }
+   * }
+   */
+
+  // check if reply is a json object
+  if (replyDoc.Parse(reply).HasParseError() || !replyDoc.IsObject()) {
+    QMessageBox::critical(this, _("Error"), _("Unknown Error"));
+    return false;
+  }
+
+  // check status(int) and message(string)
+  if (replyDoc.HasMember("status") && replyDoc.HasMember("msg") &&
+      replyDoc.HasMember("timestamp") && replyDoc.HasMember("data") &&
+      replyDoc["status"].IsNumber() && replyDoc["msg"].IsString() &&
+      replyDoc["timestamp"].IsNumber() && replyDoc["data"].IsObject()) {
+    int status = replyDoc["status"].GetInt();
+    QDateTime time;
+    time.setMSecsSinceEpoch(replyDoc["timestamp"].GetInt64());
+    auto message = replyDoc["msg"].GetString();
+    dataVal = replyDoc["data"].GetObject();
+
+    qDebug() << "Reply Date & Time" << time;
+
+    // check reply timestamp
+    if (time < QDateTime::currentDateTime().addSecs(-10)) {
+      QMessageBox::critical(this, _("Network Error"), _("Outdated Reply"));
+      return false;
+    }
+
+    // check status code if successful (200-299)
+    // check data object
+    if (status / 100 == 2) {
+      is_good = true;
+      return true;
+    } else {
+      if (dataVal.HasMember("exceptionMessage") &&
+          dataVal["exceptionMessage"].IsString())
+        QMessageBox::critical(this, message,
+                              dataVal["exceptionMessage"].GetString());
+      else
+        QMessageBox::critical(this, message, _("Unknown Reason"));
+    }
+
+  } else
+    QMessageBox::critical(this, _("Network Error"), _("Unknown Reply Format"));
+
+  return false;
 }
 
 /**
@@ -97,13 +101,15 @@ bool ComUtils::checkServerReply(const QByteArray &reply) {
  * @param key key of value
  * @return value in string format
  */
-QString ComUtils::getDataValueStr(const QString &key) const {
-    if (is_good) {
-        auto k_byte_array = key.toUtf8();
-        if (dataVal.HasMember(k_byte_array.data())) {
-            return dataVal[k_byte_array.data()].GetString();
-        } else return {};
-    } else return {};
+QString GpgFrontend::ComUtils::getDataValueStr(const QString &key) const {
+  if (is_good) {
+    auto k_byte_array = key.toUtf8();
+    if (dataVal.HasMember(k_byte_array.data())) {
+      return dataVal[k_byte_array.data()].GetString();
+    } else
+      return {};
+  } else
+    return {};
 }
 
 /**
@@ -111,87 +117,97 @@ QString ComUtils::getDataValueStr(const QString &key) const {
  * @param type service which server provides
  * @return url
  */
-QString ComUtils::getUrl(ComUtils::ServiceType type) const {
-    auto host = settings.value("general/currentGpgfrontendServer",
-                               "service.gpgfrontend.pub").toString();
+QString GpgFrontend::ComUtils::getUrl(ComUtils::ServiceType type) const {
+  auto host =
+      settings
+          .value("general/currentGpgfrontendServer", "service.gpgfrontend.pub")
+          .toString();
 
-    auto protocol = QString();
-    // Localhost Debug Server
-    if (host == "localhost") protocol = "http://";
-    else protocol = "https://";
+  auto protocol = QString();
+  // Localhost Debug Server
+  if (host == "localhost")
+    protocol = "http://";
+  else
+    protocol = "https://";
 
-    auto url = protocol + host + ":9049/";
+  auto url = protocol + host + ":9049/";
 
-    switch (type) {
-        case GetServiceToken:
-            url += "/user";
-            break;
-        case ShortenCryptText:
-            url += "/text/new";
-            break;
-        case GetFullCryptText:
-            url += "/text/get";
-            break;
-        case UploadPubkey:
-            url += "/key/upload";
-            break;
-        case GetPubkey:
-            url += "/key/get";
-            break;
+  switch (type) {
+    case GetServiceToken:
+      url += "/user";
+      break;
+    case ShortenCryptText:
+      url += "/text/new";
+      break;
+    case GetFullCryptText:
+      url += "/text/get";
+      break;
+    case UploadPubkey:
+      url += "/key/upload";
+      break;
+    case GetPubkey:
+      url += "/key/get";
+      break;
+  }
+
+  qDebug() << "ComUtils getUrl" << url;
+
+  return url;
+}
+
+bool GpgFrontend::ComUtils::checkDataValueStr(const QString &key) const {
+  auto key_byte_array_data = key.toUtf8().constData();
+  if (is_good) {
+    return dataVal.HasMember(key_byte_array_data) &&
+           dataVal[key_byte_array_data].IsString();
+  } else
+    return false;
+}
+
+bool GpgFrontend::ComUtils::checkServiceTokenFormat(const QString &uuid) const {
+  return re_uuid.match(uuid).hasMatch();
+}
+
+QByteArray GpgFrontend::ComUtils::getSignStringBase64(
+    GpgFrontend::GpgContext *ctx, const QString &str, const GpgKey &key) {
+  std::vector<GpgKey> keys{key};
+  QByteArray outSignText;
+  auto signData = str.toUtf8();
+
+  // The use of multi-threading brings an improvement in UI smoothness
+  gpgme_error_t error;
+  auto thread = QThread::create([&]() {
+    error = ctx->sign(keys, signData, &outSignText, GPGME_SIG_MODE_NORMAL,
+                      nullptr, false);
+  });
+  thread->start();
+  while (thread->isRunning()) QApplication::processEvents();
+  thread->deleteLater();
+
+  return outSignText.toBase64();
+}
+
+const rapidjson::Value &GpgFrontend::ComUtils::getDataValue(
+    const QString &key) const {
+  if (is_good) {
+    auto k_byte_array = key.toUtf8();
+    if (dataVal.HasMember(k_byte_array.data())) {
+      return dataVal[k_byte_array.data()];
     }
-
-    qDebug() << "ComUtils getUrl" << url;
-
-    return url;
+  }
+  throw std::runtime_error("Inner Error");
 }
 
-bool ComUtils::checkDataValueStr(const QString &key) const {
-    auto key_byte_array_data = key.toUtf8().constData();
-    if (is_good) {
-        return dataVal.HasMember(key_byte_array_data) && dataVal[key_byte_array_data].IsString();
-    } else return false;
+bool GpgFrontend::ComUtils::checkDataValue(const QString &key) const {
+  auto key_byte_array_data = key.toUtf8().constData();
+  if (is_good) {
+    return dataVal.HasMember(key_byte_array_data);
+  } else
+    return false;
 }
 
-bool ComUtils::checkServiceTokenFormat(const QString &uuid) const {
-    return re_uuid.match(uuid).hasMatch();
-}
-
-QByteArray ComUtils::getSignStringBase64(GpgME::GpgContext *ctx, const QString &str, const GpgKey &key) {
-    QVector<GpgKey> keys{key};
-    QByteArray outSignText;
-    auto signData = str.toUtf8();
-
-    // The use of multi-threading brings an improvement in UI smoothness
-    gpgme_error_t error;
-    auto thread = QThread::create([&]() {
-        error = ctx->sign(keys, signData, &outSignText, GPGME_SIG_MODE_NORMAL, nullptr, false);
-    });
-    thread->start();
-    while (thread->isRunning()) QApplication::processEvents();
-    thread->deleteLater();
-
-    return outSignText.toBase64();
-}
-
-const rapidjson::Value &ComUtils::getDataValue(const QString &key) const {
-    if (is_good) {
-        auto k_byte_array = key.toUtf8();
-        if (dataVal.HasMember(k_byte_array.data())) {
-            return dataVal[k_byte_array.data()];
-        }
-    }
-    throw std::runtime_error("Inner Error");
-}
-
-bool ComUtils::checkDataValue(const QString &key) const{
-    auto key_byte_array_data = key.toUtf8().constData();
-    if (is_good) {
-        return dataVal.HasMember(key_byte_array_data);
-    } else return false;
-}
-
-void ComUtils::clear() {
-    this->dataVal.Clear();
-    this->replyDoc.Clear();
-    is_good = false;
+void GpgFrontend::ComUtils::clear() {
+  this->dataVal.Clear();
+  this->replyDoc.Clear();
+  is_good = false;
 }

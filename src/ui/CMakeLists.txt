@@ -5,10 +5,17 @@ aux_source_directory(./keygen UI_SOURCE)
 aux_source_directory(./main_window UI_SOURCE)
 aux_source_directory(./help UI_SOURCE)
 aux_source_directory(./settings UI_SOURCE)
+aux_source_directory(./function UI_SOURCE)
+
+if (SMTP_SUPPORT)
+    message(STATUS "Build SMTP Support")
+    aux_source_directory(./smtp UI_SOURCE)
+endif ()
+
 
 add_library(gpgfrontend-ui STATIC ${UI_SOURCE})
 
 target_link_libraries(gpgfrontend-ui
         Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
 
-message(STATUS "UI SOURCE ${UI_SOURCE}")
+target_compile_features(gpgfrontend-ui PUBLIC cxx_std_17)

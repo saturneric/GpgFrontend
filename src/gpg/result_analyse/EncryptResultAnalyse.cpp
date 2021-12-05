@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -24,35 +24,38 @@
 
 #include "gpg/result_analyse/EncryptResultAnalyse.h"
 
-EncryptResultAnalyse::EncryptResultAnalyse(gpgme_error_t error, gpgme_encrypt_result_t result) {
+GpgFrontend::EncryptResultAnalyse::EncryptResultAnalyse(GpgError error,
+                                                        GpgEncrResult result)
+    : error(error), result(std::move(result)) {}
 
-    qDebug() << "Start Encrypt Result Analyse";
+void GpgFrontend::EncryptResultAnalyse::do_analyse() {
+  LOG(INFO) << _("Start Encrypt Result Analyse");
 
-    stream << "[#] Encrypt Operation ";
+  stream << "[#] " << _("Encrypt Operation") << " ";
 
-    if(gpgme_err_code(error) == GPG_ERR_NO_ERROR)
-        stream << "[Success]" << Qt::endl;
-    else {
-        stream << "[Failed] " << gpgme_strerror(error) << Qt::endl;
-        setStatus(-1);
+  if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
+    stream << "[" << _("Success") << "]" << std::endl;
+  else {
+    stream << "[" << _("Failed") << "] " << gpgme_strerror(error) << std::endl;
+    setStatus(-1);
+  }
+
+  if (!~status) {
+    stream << "------------>" << std::endl;
+    if (result != nullptr) {
+      stream << _("Invalid Recipients") << ": " << std::endl;
+      auto inv_reci = result->invalid_recipients;
+      while (inv_reci != nullptr) {
+        stream << _("Fingerprint") << ": " << inv_reci->fpr << std::endl;
+        stream << _("Reason") << ": " << gpgme_strerror(inv_reci->reason)
+               << std::endl;
+        stream << std::endl;
+
+        inv_reci = inv_reci->next;
+      }
     }
+    stream << "<------------" << std::endl;
+  }
 
-    if(!~status) {
-        stream << "------------>" << Qt::endl;
-        if (result != nullptr) {
-            stream << tr("Invalid Recipients: ") << Qt::endl;
-            auto inv_reci = result->invalid_recipients;
-            while (inv_reci != nullptr) {
-                stream << tr("Fingerprint: ") << inv_reci->fpr << Qt::endl;
-                stream << tr("Reason: ") << gpgme_strerror(inv_reci->reason) << Qt::endl;
-                stream << Qt::endl;
-
-                inv_reci = inv_reci->next;
-            }
-        }
-        stream << "<------------" << Qt::endl;
-    }
-
-    stream << Qt::endl;
-
+  stream << std::endl;
 }

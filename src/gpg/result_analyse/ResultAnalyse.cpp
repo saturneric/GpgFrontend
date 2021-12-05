@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -24,15 +24,19 @@
 
 #include "gpg/result_analyse/ResultAnalyse.h"
 
-const QString &ResultAnalyse::getResultReport() const{
-    return resultText;
+const std::string GpgFrontend::ResultAnalyse::getResultReport() const {
+  return stream.str();
 }
 
-int ResultAnalyse::getStatus() const {
-    return status;
+int GpgFrontend::ResultAnalyse::getStatus() const { return status; }
+
+void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
+  if (mStatus < status) status = mStatus;
 }
 
-void ResultAnalyse::setStatus(int mStatus) {
-    if(mStatus < status)
-        status = mStatus;
+void GpgFrontend::ResultAnalyse::analyse() {
+  if (!analysed_) {
+    do_analyse();
+    analysed_ = true;
+  }
 }
