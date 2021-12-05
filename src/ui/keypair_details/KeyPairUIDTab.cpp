@@ -329,21 +329,16 @@ void KeyPairUIDTab::slotDelUID() {
           "</b><br/><br/>" + keynames + +"<br/>" +
           _("The action can not be undone."),
       QMessageBox::No | QMessageBox::Yes);
-
-  bool if_all_success = true;
-
+  
   if (ret == QMessageBox::Yes) {
     for (const auto& uid : *selected_uids) {
       LOG(INFO) << "KeyPairUIDTab::slotDelUID UID" << uid;
       if (!UidOperator::GetInstance().revUID(mKey, uid)) {
-        if_all_success = false;
+        QMessageBox::critical(
+            nullptr, _("Operation Failed"),
+            QString(_("An error occurred during the delete %1 operation."))
+                .arg(uid.c_str()));
       }
-    }
-
-    if (!if_all_success) {
-      QMessageBox::critical(
-          nullptr, _("Operation Failed"),
-          _("At least an error occurred during the operation."));
     }
     emit signalUpdateUIDInfo();
   }

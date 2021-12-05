@@ -56,13 +56,13 @@ jobs:
           # Prefix the list here with "+" to use these queries and those in the config file.
           # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
-      - name: Install Dependence (Linux)
+      - name: Install Dependence
         run: |
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-          sudo apt-get -y install gcc g++
+          sudo apt-get -y install gcc g++ libconfig++-dev libboost-all-dev
           sudo apt-get -y install gpgsm
-        
+
       - name: Cache Qt
         id: cache-qt
         uses: actions/cache@v1

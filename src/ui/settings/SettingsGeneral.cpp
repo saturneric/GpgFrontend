@@ -280,9 +280,9 @@ void GeneralTab::applySettings() {
         lang.key(langSelectBox->currentText()).toStdString();
   else {
     general["lang"] = lang.key(langSelectBox->currentText()).toStdString();
-#endif
   }
-
+#endif
+  
 #ifdef SERVER_SUPPORT
   settings.setValue(
       "general/ownKeyId",

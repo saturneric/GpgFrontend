@@ -463,19 +463,16 @@ void MainWindow::slotFileEncryptCustom() {
 }
 
 void MainWindow::slotFileDecryptCustom() {
-  auto key_ids = mKeyList->getChecked();
   new FileEncryptionDialog(mKeyList->getChecked(),
                            FileEncryptionDialog::Decrypt, this);
 }
 
 void MainWindow::slotFileSignCustom() {
-  auto key_ids = mKeyList->getChecked();
   new FileEncryptionDialog(mKeyList->getChecked(), FileEncryptionDialog::Sign,
                            this);
 }
 
 void MainWindow::slotFileVerifyCustom() {
-  auto key_ids = mKeyList->getChecked();
   new FileEncryptionDialog(mKeyList->getChecked(), FileEncryptionDialog::Verify,
                            this);
 }

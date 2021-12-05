@@ -53,7 +53,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent) : QDialog(parent) {
 
   auto* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
   connect(buttonBox, SIGNAL(accepted()), this, SLOT(close()));
-
+  
   auto* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(tabWidget);
   mainLayout->addWidget(buttonBox);

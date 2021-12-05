@@ -52,12 +52,10 @@ GpgFrontend::GpgData::GpgData(void* buffer, size_t size, bool copy) {
 
 GpgFrontend::ByteArrayPtr GpgFrontend::GpgData::Read2Buffer() {
   gpgme_off_t ret = gpgme_data_seek(*this, 0, SEEK_SET);
-  gpgme_error_t err = gpg_error(GPG_ERR_NO_ERROR);
-
   ByteArrayPtr out_buffer = std::make_unique<std::string>();
 
   if (ret) {
-    err = gpgme_err_code_from_errno(errno);
+    gpgme_error_t err = gpgme_err_code_from_errno(errno);
     assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
   } else {
     char buf[BUF_SIZE + 2];
@@ -68,7 +66,7 @@ GpgFrontend::ByteArrayPtr GpgFrontend::GpgData::Read2Buffer() {
       memcpy(out_buffer->data() + size, buf, ret);
     }
     if (ret < 0) {
-      err = gpgme_err_code_from_errno(errno);
+      gpgme_error_t err = gpgme_err_code_from_errno(errno);
       assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
     }
   }
