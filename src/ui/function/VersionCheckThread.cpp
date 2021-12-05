@@ -24,51 +24,54 @@
 
 #include "VersionCheckThread.h"
 
-#include "GpgFrontendBuildInfo.h"
-#include "rapidjson/document.h"
+#include <iterator>
+#include <regex>
 
-using namespace rapidjson;
+#include "GpgFrontendBuildInfo.h"
+#include "json/json.hpp"
 
 namespace GpgFrontend::UI {
 
 void VersionCheckThread::run() {
-  LOG(INFO) << "Start Version Thread to get latest version from Github";
+  using namespace nlohmann;
 
-  auto currentVersion = "v" + QString::number(VERSION_MAJOR) + "." +
-                        QString::number(VERSION_MINOR) + "." +
-                        QString::number(VERSION_PATCH);
+  LOG(INFO) << "get latest version from Github";
+
+  auto current_version = std::string("v") + std::to_string(VERSION_MAJOR) +
+                         "." + std::to_string(VERSION_MINOR) + "." +
+                         std::to_string(VERSION_PATCH);
 
   while (mNetworkReply->isRunning()) {
     QApplication::processEvents();
   }
 
   if (mNetworkReply->error() != QNetworkReply::NoError) {
-    LOG(ERROR) << "VersionCheckThread Found Network Error";
+    LOG(ERROR) << "network error";
     return;
   }
 
-  QByteArray bytes = mNetworkReply->readAll();
+  auto bytes = mNetworkReply->readAll();
 
-  Document d;
-  d.Parse(bytes.constData());
+  auto reply_json = nlohmann::json::parse(bytes.toStdString());
 
-  QString latestVersion = d["tag_name"].GetString();
+  std::string latest_version = reply_json["tag_name"];
 
-  LOG(INFO) << "Latest Version From Github" << latestVersion.toStdString();
+  LOG(INFO) << "latest version from Github" << latest_version;
 
-  QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
-  QRegularExpressionMatch match = re.match(latestVersion);
-  if (match.hasMatch()) {
-    latestVersion = match.captured(0);  // matched == "23 def"
-    LOG(INFO) << "Latest Version Matched" << latestVersion.toStdString();
+  std::regex re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
+  auto version_begin =
+      std::sregex_iterator(latest_version.begin(), latest_version.end(), re);
+  auto version_end = std::sregex_iterator();
+  if (std::distance(version_begin, version_end)) {
+    std::smatch match = *version_begin;
+    latest_version = match.str();
+    LOG(INFO) << "latest version matched" << latest_version;
   } else {
-    latestVersion = currentVersion;
-    LOG(WARNING) << "Latest Version Unknown" << latestVersion.toStdString();
+    latest_version = current_version;
+    LOG(WARNING) << "latest version unknown";
   }
 
-  if (latestVersion != currentVersion) {
-    emit upgradeVersion(currentVersion, latestVersion);
-  }
+  emit upgradeVersion(current_version.c_str(), latest_version.c_str());
 }
 
 VersionCheckThread::VersionCheckThread(QNetworkReply* networkReply)

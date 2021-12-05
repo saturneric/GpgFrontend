@@ -34,7 +34,6 @@
 
 #include "GlobalSettingStation.h"
 #include "gpg/function/GpgKeyGetter.h"
-#include "rapidjson/prettywriter.h"
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
@@ -282,7 +281,7 @@ void GeneralTab::applySettings() {
     general["lang"] = lang.key(langSelectBox->currentText()).toStdString();
   }
 #endif
-  
+
 #ifdef SERVER_SUPPORT
   settings.setValue(
       "general/ownKeyId",

@@ -68,14 +68,15 @@ class UpdateTab : public QWidget {
 
   QString currentVersion;
 
+  QNetworkAccessManager* manager = new QNetworkAccessManager(this);
+
  public:
   explicit UpdateTab(QWidget* parent = nullptr);
 
   void getLatestVersion();
 
  private slots:
-  void processReplyDataFromUpdateServer(const QByteArray& data);
-  ;
+  void slotShowVersionStatus(const QString& current, const QString& server);
 
  signals:
   void replyFromUpdateServer(QByteArray data);
