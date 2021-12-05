@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -24,63 +24,68 @@
 
 #include "gpg/result_analyse/DecryptResultAnalyse.h"
 
-DecryptResultAnalyse::DecryptResultAnalyse(GpgME::GpgContext *ctx, gpgme_error_t error, gpgme_decrypt_result_t result)
-        : mCtx(ctx) {
+#include "gpg/function/GpgKeyGetter.h"
 
-    stream << tr("[#] Decrypt Operation ");
+GpgFrontend::DecryptResultAnalyse::DecryptResultAnalyse(GpgError error,
+                                                        GpgDecrResult result)
+    : error(error), result(std::move(result)) {}
 
-    if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
-        stream << tr("[Success]") << Qt::endl;
-    } else {
-        stream << tr("[Failed] ") << gpgme_strerror(error) << Qt::endl;
-        setStatus(-1);
-        if (result != nullptr && result->unsupported_algorithm != nullptr) {
-            stream << "------------>" << Qt::endl;
-            stream << tr("Unsupported Algo: ") << result->unsupported_algorithm << Qt::endl;
-        }
+void GpgFrontend::DecryptResultAnalyse::do_analyse() {
+  stream << "[#]" << _("Decrypt Operation");
+
+  if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
+    stream << "[" << _("Success") << "]" << std::endl;
+  } else {
+    stream << "[" << _("Failed") << "] " << gpgme_strerror(error) << std::endl;
+    setStatus(-1);
+    if (result != nullptr && result->unsupported_algorithm != nullptr) {
+      stream << "------------>" << std::endl;
+      stream << _("Unsupported Algo") << ": " << result->unsupported_algorithm
+             << std::endl;
+    }
+  }
+
+  if (result != nullptr && result->recipients != nullptr) {
+    stream << "------------>" << std::endl;
+    if (result->file_name != nullptr) {
+      stream << _("File Name") << ": " << result->file_name << std::endl;
+      stream << std::endl;
     }
 
-    if (result != nullptr && result->recipients != nullptr) {
-        stream << "------------>" << Qt::endl;
-        if (result->file_name != nullptr) {
-            stream << tr("File Name: ") << result->file_name << Qt::endl;
-            stream << Qt::endl;
-        }
-
-        auto reci = result->recipients;
-        if (reci != nullptr)
-            stream << tr("Recipient(s): ") << Qt::endl;
-        while (reci != nullptr) {
-            printReci(stream, reci);
-            reci = reci->next;
-        }
-        stream << "<------------" << Qt::endl;
+    auto reci = result->recipients;
+    if (reci != nullptr) stream << _("Recipient(s)") << ": " << std::endl;
+    while (reci != nullptr) {
+      print_reci(stream, reci);
+      reci = reci->next;
     }
+    stream << "<------------" << std::endl;
+  }
 
-    stream << Qt::endl;
-
+  stream << std::endl;
 }
 
-bool DecryptResultAnalyse::printReci(QTextStream &stream, gpgme_recipient_t reci) {
-    bool keyFound = true;
-    stream << QApplication::tr("  {>} Recipient: ");
+bool GpgFrontend::DecryptResultAnalyse::print_reci(std::stringstream &stream,
+                                                   gpgme_recipient_t reci) {
+  bool keyFound = true;
+  stream << "  {>} " << _("Recipient") << ": ";
 
-    auto key = mCtx->getKeyById(reci->keyid);
-    if(key.good) {
-        stream << key.name;
-        if (!key.email.isEmpty()) {
-            stream << "<" << key.email << ">";
-        }
-    } else {
-        stream << "<Unknown>";
-        setStatus(0);
-        keyFound = false;
+  auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(reci->keyid);
+  if (key.good()) {
+    stream << key.name().c_str();
+    if (!key.email().empty()) {
+      stream << "<" << key.email().c_str() << ">";
     }
+  } else {
+    stream << "<" << _("Unknown") << ">";
+    setStatus(0);
+    keyFound = false;
+  }
 
-    stream << Qt::endl;
+  stream << std::endl;
 
-    stream << tr("      Keu ID: ") << reci->keyid << Qt::endl;
-    stream << tr("      Public Algo: ") << gpgme_pubkey_algo_name(reci->pubkey_algo) << Qt::endl;
+  stream << "      " << _("Keu ID") << ": " << key.id().c_str() << std::endl;
+  stream << "      " << _("Public Algo") << ": "
+         << gpgme_pubkey_algo_name(reci->pubkey_algo) << std::endl;
 
-    return keyFound;
+  return keyFound;
 }

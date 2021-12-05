@@ -17,14 +17,15 @@
 */
 
 #include "smtp/mimepart.h"
+
 #include "smtp/quotedprintable.h"
 
 /* [1] Constructors and Destructors */
 
 MimePart::MimePart() {
-    cEncoding = _7Bit;
-    prepared = false;
-    cBoundary = "";
+  cEncoding = _7Bit;
+  prepared = false;
+  cBoundary.clear();
 }
 
 /* [1] --- */
@@ -32,13 +33,13 @@ MimePart::MimePart() {
 /* [2] Getters and Setters */
 
 void MimePart::setContent(const QByteArray &content) {
-    this->content = content;
+  this->content = content;
 }
 
 void MimePart::setHeader(const QString &header) { this->header = header; }
 
 void MimePart::addHeaderLine(const QString &line) {
-    this->header += line + "\r\n";
+  this->header += line + "\r\n";
 }
 
 const QString &MimePart::getHeader() const { return header; }
@@ -66,7 +67,7 @@ void MimePart::setEncoding(Encoding enc) { this->cEncoding = enc; }
 MimePart::Encoding MimePart::getEncoding() const { return this->cEncoding; }
 
 MimeContentFormatter &MimePart::getContentFormatter() {
-    return this->formatter;
+  return this->formatter;
 }
 
 /* [2] --- */
@@ -74,10 +75,9 @@ MimeContentFormatter &MimePart::getContentFormatter() {
 /* [3] Public methods */
 
 QString MimePart::toString() {
-    if (!prepared)
-        prepare();
+  if (!prepared) prepare();
 
-    return mimeString;
+  return mimeString;
 }
 
 /* [3] --- */
@@ -85,75 +85,74 @@ QString MimePart::toString() {
 /* [4] Protected methods */
 
 void MimePart::prepare() {
-    mimeString = QString();
+  mimeString = QString();
 
-    /* === Header Prepare === */
+  /* === Header Prepare === */
 
-    /* Content-Type */
-    mimeString.append("Content-Type: ").append(cType);
+  /* Content-Type */
+  mimeString.append("Content-Type: ").append(cType);
 
-    if (cName != "")
-        mimeString.append("; name=\"").append(cName).append("\"");
+  if (!cName.isEmpty())
+    mimeString.append("; name=\"").append(cName).append("\"");
 
-    if (cCharset != "")
-        mimeString.append("; charset=").append(cCharset);
+  if (!cCharset.isEmpty()) mimeString.append("; charset=").append(cCharset);
 
-    if (cBoundary != "")
-        mimeString.append("; boundary=").append(cBoundary);
+  if (!cBoundary.isEmpty()) mimeString.append("; boundary=").append(cBoundary);
 
-    mimeString.append("\r\n");
-    /* ------------ */
+  mimeString.append("\r\n");
+  /* ------------ */
 
-    /* Content-Transfer-Encoding */
-    mimeString.append("Content-Transfer-Encoding: ");
-    switch (cEncoding) {
-        case _7Bit:
-            mimeString.append("7bit\r\n");
-            break;
-        case _8Bit:
-            mimeString.append("8bit\r\n");
-            break;
-        case Base64:
-            mimeString.append("base64\r\n");
-            break;
-        case QuotedPrintable:
-            mimeString.append("quoted-printable\r\n");
-            break;
-    }
-    /* ------------------------ */
+  /* Content-Transfer-Encoding */
+  mimeString.append("Content-Transfer-Encoding: ");
+  switch (cEncoding) {
+    case _7Bit:
+      mimeString.append("7bit\r\n");
+      break;
+    case _8Bit:
+      mimeString.append("8bit\r\n");
+      break;
+    case Base64:
+      mimeString.append("base64\r\n");
+      break;
+    case QuotedPrintable:
+      mimeString.append("quoted-printable\r\n");
+      break;
+  }
+  /* ------------------------ */
 
-    /* Content-Id */
-    if (cId != NULL)
-        mimeString.append("Content-ID: <").append(cId).append(">\r\n");
-    /* ---------- */
+  /* Content-Id */
+  if (cId != nullptr)
+    mimeString.append("Content-ID: <").append(cId).append(">\r\n");
+  /* ---------- */
 
-    /* Addition header lines */
+  /* Addition header lines */
 
-    mimeString.append(header).append("\r\n");
+  mimeString.append(header).append("\r\n");
 
-    /* ------------------------- */
+  /* ------------------------- */
 
-    /* === End of Header Prepare === */
+  /* === End of Header Prepare === */
 
-    /* === Content === */
-    switch (cEncoding) {
-        case _7Bit:
-            mimeString.append(QString(content).toLatin1());
-            break;
-        case _8Bit:
-            mimeString.append(content);
-            break;
-        case Base64:
-            mimeString.append(formatter.format(content.toBase64()));
-            break;
-        case QuotedPrintable:
-            mimeString.append(formatter.format(QuotedPrintable::encode(content), true));
-            break;
-    }
-    mimeString.append("\r\n");
-    /* === End of Content === */
+  /* === Content === */
+  switch (cEncoding) {
+    case _7Bit:
+      mimeString.append(QString(content).toLatin1());
+      break;
+    case _8Bit:
+      mimeString.append(content);
+      break;
+    case Base64:
+      mimeString.append(formatter.format(content.toBase64()));
+      break;
+    case QuotedPrintable:
+      mimeString.append(
+          formatter.format(QuotedPrintable::encode(content), true));
+      break;
+  }
+  mimeString.append("\r\n");
+  /* === End of Content === */
 
-    prepared = true;
+  prepared = true;
 }
 
 /* [4] --- */

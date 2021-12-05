@@ -1,6 +1,12 @@
 # Project
-include/GpgFrontend.h
-include/GpgFrontendBuildInfo.h
+src/GpgFrontend.h
+src/GpgFrontendBuildInfo.h
+
+# gettext
+*.mo
+
+#Vscode
+.vscode/*
 
 #CLion
 .idea/*
@@ -10,7 +16,6 @@ include/GpgFrontendBuildInfo.h
 
 # Clangd
 .cache/
-test/
 
 
 # C++
