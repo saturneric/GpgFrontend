@@ -39,6 +39,11 @@ jobs:
           sudo apt-get -y install gpgsm
         if: matrix.os == 'ubuntu-latest'
 
+      - name: Git Sumbodule Update
+        run: |
+          git pull --recurse-submodules
+          git submodule update --init --recursive
+
       - name: Codesign Configuration (macOS)
         run: |
           echo ${{secrets.MACOS_CERTIFICATE}} | base64 --decode > certificate.p12
@@ -90,9 +95,7 @@ jobs:
 
       - name: Build gpg-error (Linux)
         run: |
-          cd  ${{github.workspace}}/..
-          git clone https://github.com/saturneric/libgpg-error
-          cd libgpg-error
+          cd  ${{github.workspace}}/third_party/libgpg-error
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-static=yes && make -j2
           sudo make install
@@ -101,9 +104,7 @@ jobs:
 
       - name: Build assuan (Linux)
         run: |
-          cd  ${{github.workspace}}/..
-          git clone https://github.com/saturneric/libassuan
-          cd libassuan
+          cd ${{github.workspace}}/third_party/libassuan
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-static=yes && make -j2
           sudo make install
@@ -112,9 +113,7 @@ jobs:
 
       - name: Build GpgME (Linux)
         run: |
-          cd  ${{github.workspace}}/..
-          git clone https://github.com/saturneric/gpgme
-          cd gpgme
+          cd  ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
           sudo make install
@@ -134,7 +133,7 @@ jobs:
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}}
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}} -DBUILD_CONFIG="test_ui"
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
 
       - name: Build GpgFrontend

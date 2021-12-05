@@ -42,7 +42,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent) : QDialog(parent) {
   tabWidget->addTab(updateTab, _("Update"));
 
   connect(tabWidget, &QTabWidget::currentChanged, this,
-          [&](int index) { qDebug() << "Current Index" << index; });
+          [&](int index) { LOG(INFO) << "Current Index" << index; });
 
   if (defaultIndex < tabWidget->count() && defaultIndex >= 0) {
     tabWidget->setCurrentIndex(defaultIndex);
