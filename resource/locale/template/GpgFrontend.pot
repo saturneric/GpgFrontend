@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.1\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2021-12-05 16:09+0800\n"
+"POT-Creation-Date: 2021-12-05 17:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1441,7 +1441,7 @@ msgid "called"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:544
-msgid "GpgFrontend Upgradeable(New Version: %1)."
+msgid "GpgFrontend Upgradeable (New Version: %1)."
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:549
@@ -1483,22 +1483,22 @@ msgstr ""
 msgid "Signed on %1%"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:45
 msgid "ENV Loading Failed"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:46
 msgid ""
 "Gnupg is not installed correctly, please follow the ReadME instructions to "
 "install gnupg and then open GpgFrontend."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:150
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:152
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:151
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:153
 msgid "Critical error occur while loading GpgFrontend."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:151
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:152
 msgid "Loading Failed"
 msgstr ""
 

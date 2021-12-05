@@ -140,9 +140,8 @@ void MainWindow::init() noexcept {
 
     connect(version_thread, SIGNAL(finished()), version_thread,
             SLOT(deleteLater()));
-    connect(version_thread,
-            &VersionCheckThread::upgradeVersion, this,
-            &MainWindow::slotVersionUpgrade));
+    connect(version_thread, &VersionCheckThread::upgradeVersion, this,
+            &MainWindow::slotVersionUpgrade);
 
     version_thread->start();
 

@@ -1,0 +1,12 @@
+[submodule "third_party/AppImageUpdate"]
+	path = third_party/AppImageUpdate
+	url = https://github.com/AppImage/AppImageUpdate
+[submodule "third_party/gpgme"]
+	path = third_party/gpgme
+	url = https://github.com/saturneric/gpgme
+[submodule "third_party/libassuan"]
+	path = third_party/libassuan
+	url = https://github.com/saturneric/libassuan
+[submodule "third_party/libgpg-error"]
+	path = third_party/libgpg-error
+	url = https://github.com/saturneric/libgpg-error
