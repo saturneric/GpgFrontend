@@ -25,6 +25,8 @@
 #ifndef __KEYLIST_H__
 #define __KEYLIST_H__
 
+#include <utility>
+
 #include "gpg/GpgContext.h"
 #include "ui/KeyImportDetailDialog.h"
 namespace GpgFrontend::UI {
@@ -48,6 +50,31 @@ struct KeyListColumn {
   static constexpr InfoType FingerPrint = 1 << 5;
 };
 
+struct KeyTable {
+  QTableWidget* key_list;
+  KeyListRow::KeyType select_type;
+  KeyListColumn::InfoType info_type;
+  std::vector<GpgKey> buffered_keys;
+  std::function<bool(const GpgKey&)> filter;
+
+  KeyTable(
+      QTableWidget* _key_list, KeyListRow::KeyType _select_type,
+      KeyListColumn::InfoType _info_type,
+      std::function<bool(const GpgKey&)> _filter = [](const GpgKey&) -> bool {
+        return true;
+      })
+      : key_list(_key_list),
+        select_type(_select_type),
+        info_type(_info_type),
+        filter(std::move(_filter)) {}
+
+  void Refresh();
+
+  KeyIdArgsListPtr GetChecked();
+
+  void SetChecked(const KeyIdArgsListPtr& key_ids);
+};
+
 class KeyList : public QWidget {
   Q_OBJECT
 
@@ -55,31 +82,34 @@ class KeyList : public QWidget {
   explicit KeyList(
       KeyListRow::KeyType selectType = KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::InfoType infoType = KeyListColumn::ALL,
+      const std::function<bool(const GpgKey&)>& filter =
+          [](const GpgKey&) -> bool { return true; },
       QWidget* parent = nullptr);
 
-  void setExcludeKeys(std::initializer_list<std::string> key_ids);
+  explicit KeyList(QWidget* parent);
 
-  void setFilter(std::function<bool(const GpgKey&)> filter);
+  void addListGroupTab(
+      const QString& name,
+      KeyListRow::KeyType selectType = KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::InfoType infoType = KeyListColumn::ALL,
+      const std::function<bool(const GpgKey&)>& filter =
+          [](const GpgKey&) -> bool { return true; });
 
   void setDoubleClickedAction(
       std::function<void(const GpgKey&, QWidget*)> action);
 
   void setColumnWidth(int row, int size);
-
   void addMenuAction(QAction* act);
-
   void addSeparator();
 
   KeyIdArgsListPtr getChecked();
-
+  static KeyIdArgsListPtr getChecked(const KeyTable& key_table);
   KeyIdArgsListPtr getPrivateChecked();
-
   KeyIdArgsListPtr getAllPrivateKeys();
-
   void setChecked(const KeyIdArgsListPtr& keyIds);
-
+  static void setChecked(const KeyIdArgsListPtr& keyIds,
+                         const KeyTable& key_table);
   KeyIdArgsListPtr getSelected();
-
   std::string getSelectedKey();
 
   [[maybe_unused]] static void markKeys(QStringList* keyIds);
@@ -91,20 +121,19 @@ class KeyList : public QWidget {
   void slotRefresh();
 
  private:
+  void init();
   void importKeys(const QByteArray& inBuffer);
 
   QString appPath;
   QSettings settings;
 
-  QTableWidget* mKeyList;
-  QMenu* popupMenu;
-  QNetworkAccessManager* qnam{};
-  std::vector<GpgKey> buffered_keys;
-  KeyListRow::KeyType mSelectType;
-  KeyListColumn::InfoType mInfoType;
-  std::vector<std::string> excluded_key_ids;
+  QTabWidget* mGroupTab{};
+  QTableWidget* mKeyList{};
 
-  std::function<bool(const GpgKey&)> mFilter = nullptr;
+  std::vector<KeyTable> mKeyTables;
+
+  QMenu* popupMenu{};
+
   std::function<void(const GpgKey&, QWidget*)> mAction = nullptr;
 
  private slots:

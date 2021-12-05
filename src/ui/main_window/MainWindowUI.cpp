@@ -45,7 +45,8 @@ void MainWindow::createActions() {
   openAct->setToolTip(_("Open an existing file"));
   connect(openAct, SIGNAL(triggered()), edit, SLOT(slotOpen()));
 
-  browserAct = new QAction(_("Browser"), this);
+  browserAct = new QAction(_("File Browser"), this);
+  browserAct->setIcon(QIcon(":file-browser.png"));
   browserAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
   browserAct->setToolTip(_("Open a file browser"));
   connect(browserAct, SIGNAL(triggered()), this, SLOT(slotOpenFileTab()));
@@ -406,7 +407,7 @@ void MainWindow::createToolBars() {
   fileToolBar->addAction(newTabAct);
   fileToolBar->addAction(openAct);
   fileToolBar->addAction(saveAct);
-  fileToolBar->hide();
+  fileToolBar->addAction(browserAct);
   viewMenu->addAction(fileToolBar->toggleViewAction());
 
   cryptToolBar = addToolBar(_("Crypt"));
@@ -429,6 +430,7 @@ void MainWindow::createToolBars() {
   editToolBar->addAction(copyAct);
   editToolBar->addAction(pasteAct);
   editToolBar->addAction(selectAllAct);
+  editToolBar->hide();
   viewMenu->addAction(editToolBar->toggleViewAction());
 
   specialEditToolBar = addToolBar(_("Special Edit"));
@@ -446,15 +448,6 @@ void MainWindow::createToolBars() {
   importButton->setToolTip(_("Import key from..."));
   importButton->setText(_("Import key"));
   keyToolBar->addWidget(importButton);
-
-  // Add dropdown menu for file encryption/decryption to crypttoolbar
-  fileEncButton = new QToolButton();
-  connect(fileEncButton, SIGNAL(clicked(bool)), this, SLOT(slotOpenFileTab()));
-  fileEncButton->setPopupMode(QToolButton::InstantPopup);
-  fileEncButton->setIcon(QIcon(":fileencryption.png"));
-  fileEncButton->setToolTip(_("Browser to view and operate file"));
-  fileEncButton->setText(_("Browser"));
-  fileToolBar->addWidget(fileEncButton);
 }
 
 void MainWindow::createStatusBar() {
@@ -469,7 +462,6 @@ void MainWindow::createStatusBar() {
 
   statusBarIcon->setPixmap(*pixmap);
   statusBar()->insertPermanentWidget(0, statusBarIcon, 0);
-  statusBarIcon->hide();
   statusBar()->showMessage(_("Ready"), 2000);
   statusBarBox->setLayout(statusBarBoxLayout);
 }
@@ -483,6 +475,33 @@ void MainWindow::createDockWindows() {
                                Qt::RightDockWidgetArea);
   keyListDock->setMinimumWidth(460);
   addDockWidget(Qt::RightDockWidgetArea, keyListDock);
+
+  mKeyList->addListGroupTab(
+      _("Default"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
+          KeyListColumn::Usage | KeyListColumn::Validity,
+      [](const GpgKey& key) -> bool {
+        return !(key.revoked() || key.disabled() || key.expired());
+      });
+
+  mKeyList->addListGroupTab(
+      _("Only Public Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
+          KeyListColumn::Usage | KeyListColumn::Validity,
+      [](const GpgKey& key) -> bool {
+        return !key.is_private_key() &&
+               !(key.revoked() || key.disabled() || key.expired());
+      });
+
+  mKeyList->addListGroupTab(
+      _("Has Private Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
+          KeyListColumn::Usage | KeyListColumn::Validity,
+      [](const GpgKey& key) -> bool {
+        return key.is_private_key() &&
+               !(key.revoked() || key.disabled() || key.expired());
+      });
+
   keyListDock->setWidget(mKeyList);
   viewMenu->addAction(keyListDock->toggleViewAction());
 

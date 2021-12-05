@@ -30,6 +30,8 @@ jobs:
     steps:
 
       - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
 
       - name: Install Dependence (Linux)
         run: |
@@ -41,7 +43,6 @@ jobs:
 
       - name: Git Sumbodule Update
         run: |
-          git pull --recurse-submodules
           git submodule update --init --recursive
 
       - name: Codesign Configuration (macOS)
