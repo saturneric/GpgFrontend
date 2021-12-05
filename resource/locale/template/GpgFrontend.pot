@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.1\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2021-12-05 14:57+0800\n"
+"POT-Creation-Date: 2021-12-05 15:48+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -64,9 +64,9 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:349
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:233
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:240
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:342
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:413
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:432
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:341
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:412
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:431
 msgid "Error"
 msgstr ""
 
@@ -100,7 +100,7 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:91
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:120
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:235
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:414
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:413
 msgid ""
 "The communication content with the server does not meet the requirements"
 msgstr ""
@@ -619,9 +619,9 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:177
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:214
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:240
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:176
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:213
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:239
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
 msgid "Setting Operation Error"
@@ -823,7 +823,7 @@ msgid ""
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:254
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:433
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:432
 msgid "There is a problem with the communication with the server"
 msgstr ""
 
@@ -869,7 +869,7 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:450
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:492
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:501
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:329
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:328
 msgid "Invalid Operation"
 msgstr ""
 
@@ -1231,7 +1231,7 @@ msgid "Open Key Management"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:253
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:36
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:34
 msgid "About"
 msgstr ""
 
@@ -1395,7 +1395,7 @@ msgid ""
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:192
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:428
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:427
 msgid "Notice"
 msgstr ""
 
@@ -2085,22 +2085,22 @@ msgstr ""
 msgid "The expire date of the key pair has been updated."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:43
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:41
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:32
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:51
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:59
 msgid "General"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:44
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:42
 msgid "Translators"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:45
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:43
 msgid "Update"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:75
 msgid ""
 "<br><center>GpgFrontend is an easy-to-use, compact, cross-platform, <br>and "
 "installation-free gpg front-end tool.<br>It visualizes most of the common "
@@ -2111,55 +2111,55 @@ msgid ""
 "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:88
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:86
 msgid "Built with Qt"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:87
 msgid "and GPGME"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:91
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:89
 msgid "Built at"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:135
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:133
 msgid ""
 "It is recommended that you always check the version of GpgFrontend and "
 "upgrade to the latest version."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:138
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:136
 msgid ""
 "New versions not only represent new features, but also often represent "
 "functional and security fixes."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:144
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:142
 msgid "Current Version"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:145
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:93
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
 msgid ": "
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:154
 msgid "The current version is inconsistent with the latest version on github."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:158
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:156
 msgid "Please click"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:161
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:159
 msgid "to download the latest version."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:216
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:234
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:214
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:232
 msgid "Latest Version From Github"
 msgstr ""
 
@@ -2421,80 +2421,80 @@ msgstr ""
 msgid "Auto Pubkey Exchange"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:46
 msgid "GpgFrontend Server"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:52
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:51
 msgid "Server that provides short key and key exchange services"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:60
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:59
 msgid "Save Checked Keys"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:63
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:62
 msgid "Save checked private keys on exit and restore them on next start."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:72
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:71
 msgid "Confirm drag'n'drop key import"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:74
 msgid "Import files dropped on the Key List without confirmation."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:83
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:82
 msgid "Language"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:93
 msgid "NOTE"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:95
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
 msgid "GpgFrontend will restart automatically if you change the language!"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:105
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:104
 msgid "Own key"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:108
 msgid "Get Service Token"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:110
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:310
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:309
 msgid "No Service Token Found"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:136
 msgid "Key pair for synchronization and identity authentication"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:177
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:176
 msgid "save_key_checked"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:214
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:213
 msgid "lang"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:240
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:239
 msgid "confirm_import_keys"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:330
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:329
 msgid "Own Key can not be None while getting service token."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:342
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:341
 msgid "Key Not Exists"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:429
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:428
 msgid "Succeed in getting service token"
 msgstr ""
 
