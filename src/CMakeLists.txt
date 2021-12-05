@@ -225,6 +225,10 @@ if (APPLICATION_BUILD)
                 crypto ssl intl)
     else ()
         message(STATUS "Link Application Static Library For UNIX ")
+        if (APP_IMAGE_UPDATE)
+            target_link_libraries(${AppName}
+                    libappimageupdate)
+        endif ()
         target_link_libraries(${AppName}
                 ${GPGFRONTEND_LIBS}
                 ${QT_DEPENDENCY_LIBS}
