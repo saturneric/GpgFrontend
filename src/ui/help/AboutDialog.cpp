@@ -25,10 +25,7 @@
 #include "ui/help/AboutDialog.h"
 
 #include "GpgFrontendBuildInfo.h"
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-
-using namespace rapidjson;
+#include "function/VersionCheckThread.h"
 
 namespace GpgFrontend::UI {
 
@@ -53,7 +50,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent) : QDialog(parent) {
 
   auto* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
   connect(buttonBox, SIGNAL(accepted()), this, SLOT(close()));
-  
+
   auto* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(tabWidget);
   mainLayout->addWidget(buttonBox);
@@ -185,56 +182,29 @@ UpdateTab::UpdateTab(QWidget* parent) {
 void UpdateTab::getLatestVersion() {
   this->pb->setHidden(false);
 
-  qDebug() << "Try to get latest version";
+  LOG(INFO) << "try to get latest version";
 
-  QString baseUrl =
+  QString base_url =
       "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
-
-  auto manager = new QNetworkAccessManager(this);
-
   QNetworkRequest request;
-  request.setUrl(QUrl(baseUrl));
-  QNetworkReply* replay = manager->get(request);
-  auto thread = QThread::create([replay, this]() {
-    while (replay->isRunning()) QApplication::processEvents();
-    emit replyFromUpdateServer(replay->readAll());
-  });
-  connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-  thread->start();
+  request.setUrl(QUrl(base_url));
+  auto version_thread = new VersionCheckThread(manager->get(request));
+
+  connect(version_thread, SIGNAL(finished()), version_thread,
+          SLOT(deleteLater()));
+  connect(version_thread, &VersionCheckThread::upgradeVersion, this,
+          &UpdateTab::slotShowVersionStatus);
+
+  version_thread->start();
 }
 
-void UpdateTab::processReplyDataFromUpdateServer(const QByteArray& data) {
-  qDebug() << "Try to Process Reply Data From Update Server";
-
+void UpdateTab::slotShowVersionStatus(const QString& current,
+                                      const QString& server) {
   this->pb->setHidden(true);
-
-  Document d;
-  if (d.Parse(data.constData()).HasParseError() || !d.IsObject()) {
-    qDebug() << "VersionCheckThread Found Network Error";
-    auto latestVersion = "Unknown";
-    latestVersionLabel->setText(QString("<center><b>") +
-                                _("Latest Version From Github") + ": " +
-                                latestVersion + "</b></center>");
-    return;
-  }
-
-  QString latestVersion = d["tag_name"].GetString();
-
-  qDebug() << "Latest Version From Github" << latestVersion;
-
-  QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
-  QRegularExpressionMatch match = re.match(latestVersion);
-  if (match.hasMatch()) {
-    latestVersion = match.captured(0);
-    qDebug() << "Latest Version Matched" << latestVersion;
-  } else
-    latestVersion = "Unknown";
 
   latestVersionLabel->setText("<center><b>" +
                               QString(_("Latest Version From Github")) + ": " +
-                              latestVersion + "</b></center>");
-
-  if (latestVersion > currentVersion) upgradeLabel->setHidden(false);
+                              server + "</b></center>");
 }
 
 }  // namespace GpgFrontend::UI
