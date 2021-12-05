@@ -34,9 +34,12 @@ elseif (APPLE)
             ${libgpgme} ${libgpg-error} ${libassuan}
             dl)
 else ()
+    find_library(libgpgme NAMES libgpgme.a)
+    find_library(libgpg-error NAMES libgpg-error.a)
+    find_library(libassuan NAMES libassuan.a)
     message(STATUS "Link GPG Static Library For Unix")
     target_link_libraries(gpg_core ${THIRD_PARTY_LIBS}
-            libgpgme.a libgpg-error.a libassuan.a
+            ${libgpgme} ${libgpg-error} ${libassuan}
             ${BOOST_LIBS}
             pthread dl)
 endif ()

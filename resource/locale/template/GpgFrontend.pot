@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.1\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2021-12-05 15:48+0800\n"
+"POT-Creation-Date: 2021-12-05 17:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1231,7 +1231,7 @@ msgid "Open Key Management"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:253
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:34
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:33
 msgid "About"
 msgstr ""
 
@@ -1436,28 +1436,26 @@ msgstr ""
 msgid "Key Not Found."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:543
-msgid "Outdated Version"
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:541
+msgid "called"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:544
-msgid ""
-"This version(%1) is out of date, please update the latest version in time. "
+msgid "GpgFrontend Upgradeable (New Version: %1)."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:547
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:558
-msgid "You can download the latest version(%1) on Github Releases Page.<br/>"
-msgstr ""
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:552
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:549
 msgid "Unreleased Version"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:554
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:551
 msgid ""
 "This version(%1) has not been officially released and is not recommended for "
 "use in a production environment. <br/>"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:555
+msgid "You can download the latest version(%1) on Github Releases Page.<br/>"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/VerifyDetailsDialog.cpp:37
@@ -1495,12 +1493,12 @@ msgid ""
 "install gnupg and then open GpgFrontend."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:150
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:152
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:151
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:153
 msgid "Critical error occur while loading GpgFrontend."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:151
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:152
 msgid "Loading Failed"
 msgstr ""
 
@@ -2085,22 +2083,22 @@ msgstr ""
 msgid "The expire date of the key pair has been updated."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:41
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:40
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:32
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:51
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:59
 msgid "General"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:42
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:41
 msgid "Translators"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:43
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:42
 msgid "Update"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:74
 msgid ""
 "<br><center>GpgFrontend is an easy-to-use, compact, cross-platform, <br>and "
 "installation-free gpg front-end tool.<br>It visualizes most of the common "
@@ -2111,55 +2109,54 @@ msgid ""
 "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:86
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:85
 msgid "Built with Qt"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:87
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:86
 msgid "and GPGME"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:88
 msgid "Built at"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:132
 msgid ""
 "It is recommended that you always check the version of GpgFrontend and "
 "upgrade to the latest version."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:136
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:135
 msgid ""
 "New versions not only represent new features, but also often represent "
 "functional and security fixes."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:142
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:141
 msgid "Current Version"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:142
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:93
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
 msgid ": "
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:154
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:153
 msgid "The current version is inconsistent with the latest version on github."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:155
 msgid "Please click"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:159
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:158
 msgid "to download the latest version."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:214
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:232
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:206
 msgid "Latest Version From Github"
 msgstr ""
 

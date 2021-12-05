@@ -92,9 +92,9 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
     ADD_DEFINITIONS(-DRELEASE)
     message(STATUS "Build Type RELEASE")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
-    # Release Version Build MINIMUM_APPLICATION_BUILD
+    # Release Version force to build using option STABLE_APPLICATION_BUILD
     set(FULL_APPLICATION_BUILD 0)
-    set(MINIMUM_APPLICATION_BUILD 1)
+    set(STABLE_APPLICATION_BUILD 1)
 else ()
     set(BUILD_FLAG 1)
     ADD_DEFINITIONS(-DDEBUG)
@@ -196,6 +196,12 @@ if (LINUX)
     set(OS_PLATFORM 2)
     ADD_DEFINITIONS(-DLINUX)
 
+    message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION}")
+    if (CMAKE_CXX_COMPILER_VERSION LESS 9)
+        message(STATUS "GCC CXX_FLAGS add filesystem support manually")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -lstdc++fs")
+    endif ()
+
     include_directories(
             ${CMAKE_CURRENT_SOURCE_DIR}/src
             ${CMAKE_CURRENT_SOURCE_DIR}/third_party
@@ -213,8 +219,6 @@ endif ()
 
 message(STATUS "OS_PLATFORM ${OS_PLATFORM}")
 
-find_package(Boost COMPONENTS date_time filesystem REQUIRED)
-
 # Basic Envirnoment Configure
 set(BASIC_ENV_CONFIG 1)
 set(QT_MOC_CONFIG 1)
@@ -231,8 +235,7 @@ if (FULL_APPLICATION_BUILD)
     set(ADVANCE_SUPPORT 1)
     set(APPLICATION_BUILD 1)
     set(BASIC_ENV_CONFIG 1)
-    # Disable Qt MULTI_LANG_SUPPORT
-    # set(MULTI_LANG_SUPPORT 1)
+    set(MULTI_LANG_SUPPORT 1)
 elseif (MINIMUM_APPLICATION_BUILD)
     set(QT5_ENV_SUPPORT 1)
     set(QT_MOC_CONFIG 1)
@@ -241,6 +244,10 @@ elseif (MINIMUM_APPLICATION_BUILD)
     set(APPLICATION_BUILD 1)
     set(BASIC_ENV_CONFIG 1)
     set(MULTI_LANG_SUPPORT 1)
+    # Disable APP_IMAGE_UPDATE because of too many issues
+    #    if (LINUX)
+    #        set(APP_IMAGE_UPDATE 1)
+    #    endif ()
 elseif (STABLE_APPLICATION_BUILD)
     set(QT5_ENV_SUPPORT 1)
     set(QT_MOC_CONFIG 1)
@@ -258,6 +265,9 @@ elseif (TEST_BUILD)
     endif ()
 
 endif ()
+
+# Introduce boost
+find_package(Boost COMPONENTS date_time filesystem REQUIRED)
 
 if (QT5_ENV_SUPPORT)
     # Support Qt version Both 5.12.x and 5.15.x

@@ -91,7 +91,7 @@ void MainWindow::slotEncrypt() {
       auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));
       resultAnalyse.analyse();
       process_result_analyse(edit, infoBoard, resultAnalyse);
-      
+
       if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
         edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
 #ifdef SMTP_SUPPORT
@@ -538,15 +538,12 @@ void MainWindow::slotOpenFile(QString& path) { edit->slotOpenFile(path); }
 
 void MainWindow::slotVersionUpgrade(const QString& currentVersion,
                                     const QString& latestVersion) {
+  LOG(INFO) << _("called");
   if (currentVersion < latestVersion) {
-    QMessageBox::warning(
-        this, _("Outdated Version"),
-        QString(_("This version(%1) is out of date, please update "
-                  "the latest version in time. "))
-                .arg(currentVersion) +
-            QString(_("You can download the latest version(%1) on "
-                      "Github Releases Page.<br/>"))
-                .arg(latestVersion));
+    statusBar()->showMessage(
+        QString(_("GpgFrontend Upgradeable (New Version: %1)."))
+            .arg(latestVersion),
+        30000);
   } else if (currentVersion > latestVersion) {
     QMessageBox::warning(
         this, _("Unreleased Version"),

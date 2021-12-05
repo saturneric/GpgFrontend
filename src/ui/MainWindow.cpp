@@ -51,7 +51,7 @@ void MainWindow::init() noexcept {
 
     networkAccessManager = new QNetworkAccessManager(this);
 
-    /* get path were app was started */
+    /* get path where app was started */
     setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
@@ -140,12 +140,13 @@ void MainWindow::init() noexcept {
 
     connect(version_thread, SIGNAL(finished()), version_thread,
             SLOT(deleteLater()));
-    connect(version_thread,
-            SIGNAL(upgradeVersion(const QString&, const QString&)), this,
-            SLOT(slotVersionUpgrade(const QString&, const QString&)));
+    connect(version_thread, &VersionCheckThread::upgradeVersion, this,
+            &MainWindow::slotVersionUpgrade);
 
     version_thread->start();
+
 #endif
+
   } catch (...) {
     LOG(FATAL) << _("Critical error occur while loading GpgFrontend.");
     QMessageBox::critical(nullptr, _("Loading Failed"),

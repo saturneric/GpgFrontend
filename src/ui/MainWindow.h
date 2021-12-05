@@ -421,7 +421,7 @@ class MainWindow : public QMainWindow {
   QAction* importKeyFromClipboardAct{};
   QAction* importKeyFromKeyServerAct{};
 
-  QLabel* statusBarIcon{}; /**< TODO */
+  QLabel* statusBarIcon{};
 
   KeyList* mKeyList{};
   InfoBoardWidget* infoBoard{};
