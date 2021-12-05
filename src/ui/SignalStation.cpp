@@ -24,6 +24,8 @@
 
 #include "SignalStation.h"
 
+namespace GpgFrontend::UI {
+
 std::unique_ptr<SignalStation> SignalStation::_instance = nullptr;
 
 SignalStation* SignalStation::GetInstance() {
@@ -32,3 +34,5 @@ SignalStation* SignalStation::GetInstance() {
   }
   return _instance.get();
 }
+
+}  // namespace GpgFrontend::UI

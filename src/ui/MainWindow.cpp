@@ -59,14 +59,7 @@ void MainWindow::init() noexcept {
     setCentralWidget(edit);
 
     /* the list of Keys available*/
-    mKeyList = new KeyList(KeyListRow::SECRET_OR_PUBLIC_KEY,
-                           KeyListColumn::TYPE | KeyListColumn::NAME |
-                               KeyListColumn::EmailAddress |
-                               KeyListColumn::Usage | KeyListColumn::Validity,
-                           this);
-    mKeyList->setFilter([](const GpgKey& key) -> bool {
-      return !(key.revoked() || key.disabled() || key.expired());
-    });
+    mKeyList = new KeyList(this);
 
     mKeyList->slotRefresh();
 
@@ -144,7 +137,6 @@ void MainWindow::init() noexcept {
             &MainWindow::slotVersionUpgrade);
 
     version_thread->start();
-
 #endif
 
   } catch (...) {
@@ -244,7 +236,6 @@ void MainWindow::restoreSettings() {
     // icons ize
     this->setIconSize(QSize(width, height));
     importButton->setIconSize(QSize(width, height));
-    fileEncButton->setIconSize(QSize(width, height));
 
     if (!settings.exists("keyserver") ||
         settings.lookup("keyserver").getType() != libconfig::Setting::TypeGroup)
@@ -279,7 +270,6 @@ void MainWindow::restoreSettings() {
     auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
     this->setToolButtonStyle(icon_style);
     importButton->setToolButtonStyle(icon_style);
-    fileEncButton->setToolButtonStyle(icon_style);
 
     if (!settings.exists("general") ||
         settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
@@ -300,12 +290,12 @@ void MainWindow::restoreSettings() {
         general.add("save_key_checked_key_ids", libconfig::Setting::TypeList);
       }
       auto key_ids_ptr = std::make_unique<KeyIdArgsList>();
-      ;
       auto& save_key_checked_key_ids = general["save_key_checked_key_ids"];
       const auto key_ids_size =
           general.lookup("save_key_checked_key_ids").getLength();
       for (auto i = 0; i < key_ids_size; i++) {
         std::string key_id = save_key_checked_key_ids[i];
+        LOG(INFO) << "get checked key id" << key_id;
         key_ids_ptr->push_back(key_id);
       }
       mKeyList->setChecked(key_ids_ptr);
