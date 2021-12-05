@@ -28,6 +28,7 @@
 #include <boost/filesystem.hpp>
 
 #include "ui/GpgFrontendUI.h"
+#include "ui/widgets/InfoBoardWidget.h"
 
 namespace GpgFrontend::UI {
 
@@ -38,10 +39,14 @@ class FilePage : public QWidget {
 
   [[nodiscard]] QString getSelected() const;
 
-  void createPopupMenu();
+ public slots:
+  void slotGoPath();
 
  signals:
   void pathChanged(const QString& path);
+
+  void signalRefreshInfoBoard(const QString& text,
+                              InfoBoardStatus verify_label_status);
 
  private slots:
 
@@ -49,14 +54,15 @@ class FilePage : public QWidget {
   void fileTreeViewItemDoubleClicked(const QModelIndex& index);
 
   void slotUpLevel();
-  void slotGoPath();
-
+  
   void slotOpenItem();
+  void slotRenameItem();
   void slotDeleteItem();
   void slotEncryptItem();
   void slotDecryptItem();
   void slotSignItem();
   void slotVerifyItem();
+  void slotCalculateHash();
 
   void onCustomContextMenu(const QPoint& point);
 
@@ -64,6 +70,8 @@ class FilePage : public QWidget {
   void keyPressEvent(QKeyEvent* event) override;
 
  private:
+  void createPopupMenu();
+
   QFileSystemModel* dirModel;
   QTreeView* dirTreeView;
   QLineEdit* pathEdit;

@@ -33,18 +33,18 @@ namespace GpgFrontend::UI {
 KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
                                    QWidget* parent)
     : QDialog(parent), mUids(std::move(uid)), mKey(key) {
-  mKeyList =
-      new KeyList(KeyListRow::ONLY_SECRET_KEY,
-                  KeyListColumn::NAME | KeyListColumn::EmailAddress, this);
-
-  mKeyList->setFilter([](const GpgKey& key) -> bool {
-    if (key.disabled() || !key.can_certify() || !key.has_master_key() ||
-        key.expired() || key.revoked())
-      return false;
-    else
-      return true;
-  });
-  mKeyList->setExcludeKeys({key.id()});
+  const auto key_id = mKey.id();
+  mKeyList = new KeyList(
+      KeyListRow::ONLY_SECRET_KEY,
+      KeyListColumn::NAME | KeyListColumn::EmailAddress,
+      [key_id](const GpgKey& key) -> bool {
+        if (key.disabled() || !key.can_certify() || !key.has_master_key() ||
+            key.expired() || key.revoked() || key_id == key.id())
+          return false;
+        else
+          return true;
+      },
+      this);
   mKeyList->slotRefresh();
 
   signKeyButton = new QPushButton("Sign");
