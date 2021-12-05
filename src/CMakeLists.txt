@@ -1,146 +1,234 @@
-add_subdirectory(gpg)
-add_subdirectory(ui)
-add_subdirectory(smtp)
-add_subdirectory(server)
-add_subdirectory(advance)
+if (GPG_CORE)
+    message(STATUS "Build Gpg Core")
+    add_subdirectory(gpg)
+endif ()
 
-aux_source_directory(. BASE_SOURCE)
+if (UI_CORE)
+    message(STATUS "Build UI Core")
+    add_subdirectory(ui)
+endif ()
 
-set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
-set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
+if (SMTP_SUPPORT)
+    message(STATUS "Build SMTP Support")
+    add_compile_definitions(SMTP_SUPPORT)
+    add_subdirectory(smtp)
+endif ()
+
+if (SERVER_SUPPORT)
+    message(STATUS "Build Server Support")
+    add_compile_definitions(SERVER_SUPPORT)
+    add_subdirectory(server)
+endif ()
+
+if (ADVANCE_SUPPORT)
+    message(STATUS "Build Advance Support")
+    add_compile_definitions(ADVANCE_SUPPORT)
+    add_subdirectory(advance)
+endif ()
+
+if (APPLICATION_BUILD)
+    aux_source_directory(. BASE_SOURCE)
+    set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
+    set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
+
+    # Set Binary Output Path
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
+    message(STATUS "CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+endif ()
 
 
-file(GLOB_RECURSE GPGFRONTEND_HEADER_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/include/*.h)
-qt5_wrap_cpp(QT5_MOCS ${GPGFRONTEND_HEADER_FILES} TARGET ${AppName})
-
-# Set Binary Output Path
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
-message(STATUS "CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-
-# Set Resource Output Path
-if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-    if(APPLE)
-        set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
-    elseif(LINUX)
-    	file(COPY ${CMAKE_SOURCE_DIR}/resource/gpgfrontend DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-	    set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share)
-    else()
+if (APPLICATION_BUILD)
+    # Set Resource Output Path
+    if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+        if (APPLE)
+            set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
+        elseif (LINUX)
+            file(COPY ${CMAKE_SOURCE_DIR}/resource/gpgfrontend DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+            set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share)
+        else ()
+            set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+        endif ()
+    else ()
         set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-    endif()
-else()
-    set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-endif()
-message(STATUS "RESOURCE_OUTPUT_DIRECTORY ${RESOURCE_OUTPUT_DIRECTORY}")
+    endif ()
+    message(STATUS "RESOURCE_OUTPUT_DIRECTORY ${RESOURCE_OUTPUT_DIRECTORY}")
+endif ()
 
 # Get ALL SOURCE FILES
 file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
-# Set Translation Files
-set(QT_TS_FILES
-        gpgfrontend_en_us.ts gpgfrontend_zh_cn.ts
-        gpgfrontend_fr.ts gpgfrontend_ru.ts gpgfrontend_es.ts)
-list(TRANSFORM QT_TS_FILES PREPEND ${CMAKE_SOURCE_DIR}/resource/ts/)
-message(STATUS "QT_TS_FILES ${QT_TS_FILES}")
-set(QT_QM_FILES_OUTPUT_DIR ${RESOURCE_OUTPUT_DIRECTORY}/ts)
-set_source_files_properties(${QT_TS_FILES} PROPERTIES OUTPUT_LOCATION ${QT_QM_FILES_OUTPUT_DIR})
-QT5_create_translation(QON_QM_FILES ${CMAKE_SOURCE_DIR} ${QT_TS_FILES})
-message(STATUS "QON_QM_FILES ${QON_QM_FILES}")
-add_custom_target(translations DEPENDS ${QON_QM_FILES})
+# i18n
+if (MULTI_LANG_SUPPORT)
+    message(STATUS "Build Multiply Languages Support")
+    # Set Translation Files
+    find_package(Gettext REQUIRED)
+    FIND_PROGRAM(GETTEXT_MSGFMT_EXECUTABLE msgfmt)
+    FIND_PROGRAM(GETTEXT_XGETTEXT_EXECUTABLE xgettext)
+    if (NOT GETTEXT_MSGFMT_EXECUTABLE OR NOT GETTEXT_XGETTEXT_EXECUTABLE)
+        message(ERROR "msgfmt or xgettext not found. Translations will *not* be installed")
+    else (NOT GETTEXT_MSGFMT_EXECUTABLE)
+        message(STATUS "Setting target translations")
+        add_custom_target(translations)
+        set(OUTPUT_POT_PATH ${CMAKE_SOURCE_DIR}/resource/locale/template/${PROJECT_NAME}.pot)
+        add_custom_command(
+                TARGET translations
+                COMMAND find ${CMAKE_SOURCE_DIR}/src -iname \"*.cpp\" | xargs xgettext --package-name=${PROJECT_NAME} --copyright-holder=Saturneric --package-version=${PROJECT_VERSION} --msgid-bugs-address=eric@bktus.com --add-comments="/*" --c++ -k_ -o ${OUTPUT_POT_PATH}
+        )
 
-# Set Build Information
-configure_file(${CMAKE_SOURCE_DIR}/include/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/include/GpgFrontend.h @ONLY)
-configure_file(${CMAKE_SOURCE_DIR}/include/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/include/GpgFrontendBuildInfo.h @ONLY)
+        file(GLOB ALL_PO_FILES ${CMAKE_SOURCE_DIR}/resource/locale/po/*.po)
+        SET(GMO_FILES)
+        message(STATUS "ALL_PO_FILES ${ALL_PO_FILES}")
 
-# Copy Resource Files
-file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-file(COPY ${CMAKE_SOURCE_DIR}/resource/conf DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+        foreach (_poFile ${ALL_PO_FILES})
+            GET_FILENAME_COMPONENT(_poFileName ${_poFile} NAME)
+            string(REGEX REPLACE "\\.[^.]*$" "" _langName ${_poFileName})
+            message(STATUS "_poFileName ${_langName}")
+            make_directory(${CMAKE_SOURCE_DIR}/resource/locale/out/${_langName}/LC_MESSAGES)
+            add_custom_command(
+                    TARGET translations
+                    COMMAND echo Processing po LANG ${_langName}
+            )
+            add_custom_command(
+                    TARGET translations
+                    COMMAND msgfmt --check --verbose --output-file ${CMAKE_SOURCE_DIR}/resource/locale/out/${_langName}/LC_MESSAGES/GpgFrontend.mo ${_poFile}
+            )
+        endforeach ()
 
-if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-    if(APPLE)
-        file(COPY ${CMAKE_SOURCE_DIR}/gpgfrontend.icns DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        # Refresh App Bundle
-        file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.app)
-    elseif(LINUX)
-        file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/bin/${AppName})
-    endif()
-endif()
+    endif ()
+endif ()
 
-# Copy Utils Files
-if(MINGW)
-    message(STATUS "Copying Dependent DLL For Windows Runtime Env")
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/lib/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/gpgme/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/bearer DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/iconengines DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/imageformats DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/printsupport DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/platforms DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/openssl/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-endif()
+if (BASIC_ENV_CONFIG)
+    # Set Build Information
+    configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
+    configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
+endif ()
 
-set(RESOURCE_FILES ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc ${APP_ICON_RESOURCE_WINDOWS} ${QON_QM_FILES})
-add_custom_target(resources ALL DEPENDS ${RESOURCE_FILES})
-add_dependencies(resources translations)
+if (APPLICATION_BUILD)
+    # Copy Resource Files
+    file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+    file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+    if (MULTI_LANG_SUPPORT)
+        make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales)
+        file(COPY ${CMAKE_SOURCE_DIR}/resource/locale/out/ DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/locales FOLLOW_SYMLINK_CHAIN)
+    endif ()
+endif ()
 
-if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-    if(MINGW)
-        add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
-    elseif(APPLE)
-        add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
-        set_target_properties(${AppName} PROPERTIES
-            BUNDLE True
-            MACOSX_BUNDLE_GUI_IDENTIFIER pub.gpgfrontend.gpgfrontend
-            MACOSX_BUNDLE_BUNDLE_NAME ${AppName}
-            MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
-            MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
-            MACOSX_BUNDLE_BUNDLE_VERSION ${BUILD_VERSION}
-            MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns")
-        add_custom_command(TARGET ${AppName} POST_BUILD
-            COMMAND  /bin/rm -rf ./${AppName}.app/Contents/Resources
-            WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-            COMMENT "Deleting Resources in App Bundle")
-        add_custom_command(TARGET ${AppName} POST_BUILD
-            COMMAND  /bin/mv -n ./Resources ./${AppName}.app/Contents/
-            WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-            COMMENT "Copying Resources into App Bundle Resource")
-    elseif(LINUX)
+if (APPLICATION_BUILD)
+    if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+        if (APPLE)
+            file(COPY ${CMAKE_SOURCE_DIR}/gpgfrontend.icns DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+            # Refresh App Bundle
+            file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.app)
+        elseif (LINUX)
+            file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/bin/${AppName})
+        endif ()
+    endif ()
+endif ()
+
+if (APPLICATION_BUILD)
+    # Copy Utils Files
+    if (MINGW)
+        message(STATUS "Copying Dependent DLL For Windows Runtime Env")
+        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/lib/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/gpgme/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/bearer DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/iconengines DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/imageformats DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/printsupport DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/platforms DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/openssl/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+    endif ()
+endif ()
+
+if (APPLICATION_BUILD)
+    set(RESOURCE_FILES ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc ${APP_ICON_RESOURCE_WINDOWS} ${QON_QM_FILES})
+    add_custom_target(resources ALL DEPENDS ${RESOURCE_FILES})
+    if (MULTI_LANG_SUPPORT)
+        add_dependencies(resources translations)
+    endif ()
+endif ()
+
+if (APPLICATION_BUILD)
+    if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+        if (MINGW)
+            add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+        elseif (APPLE)
+            add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            set_target_properties(${AppName} PROPERTIES
+                    BUNDLE True
+                    MACOSX_BUNDLE_GUI_IDENTIFIER pub.gpgfrontend.gpgfrontend
+                    MACOSX_BUNDLE_BUNDLE_NAME ${AppName}
+                    MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
+                    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+                    MACOSX_BUNDLE_BUNDLE_VERSION ${BUILD_VERSION}
+                    MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns")
+            add_custom_command(TARGET ${AppName} POST_BUILD
+                    COMMAND /bin/rm -rf ./${AppName}.app/Contents/Resources
+                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                    COMMENT "Deleting Resources in App Bundle")
+            add_custom_command(TARGET ${AppName} POST_BUILD
+                    COMMAND /bin/mv -n ./Resources ./${AppName}.app/Contents/
+                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                    COMMENT "Copying Resources into App Bundle Resource")
+        elseif (LINUX)
+            add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            add_custom_command(TARGET ${AppName} POST_BUILD
+                    COMMAND /bin/mkdir -p ./gpgfrontend/usr/bin && /bin/mv -f ./${AppName} ./gpgfrontend/usr/bin/
+                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                    COMMENT "Copying Binary into App Image")
+            add_custom_command(TARGET ${AppName} POST_BUILD
+                    COMMAND /bin/mkdir -p ./gpgfrontend/usr/lib
+                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                    COMMENT "Complement to build the required architecture")
+        else ()
+            add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+        endif ()
+    else ()
         add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
-        add_custom_command(TARGET ${AppName} POST_BUILD
-            COMMAND /bin/mkdir ./gpgfrontend/usr/bin && /bin/mv -f ./${AppName} ./gpgfrontend/usr/bin/
-            WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-            COMMENT "Copying Binary into App Image")
-        add_custom_command(TARGET ${AppName} POST_BUILD
-                COMMAND /bin/mkdir ./gpgfrontend/usr/lib
-                WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                COMMENT "Complement to build the required architecture")
-    else()
-        add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
-    endif()
-else()
-    add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
-endif()
+    endif ()
 
-set(GPGFRONTEND_LIBS smtp gpgfrontend-ui advance server gpg)
-set(QT_DEPENDENCY_LIBS Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+    # Make app build with resources
+    add_dependencies(${AppName} resources)
 
-IF (MINGW)
-    message(STATUS "Link Application Static Library For MINGW")
-    target_link_libraries(${AppName}
-            ${GPGFRONTEND_LIBS}
-            ${QT_DEPENDENCY_LIBS}
-            crypto ssl)
-elseif(APPLE)
-    message(STATUS "Link Application Static Library For macOS")
-    target_link_libraries(${AppName}
-            ${GPGFRONTEND_LIBS}
-            ${QT_DEPENDENCY_LIBS}
-            crypto ssl)
-else()
-    message(STATUS "Link Application Static Library For UNIX")
-    target_link_libraries(${AppName}
-            ${GPGFRONTEND_LIBS}
-            ${QT_DEPENDENCY_LIBS}
-            crypto ssl pthread)
-endif()
+endif ()
+
+if (APPLICATION_BUILD)
+
+    if (ADVANCE_SUPPORT)
+        set(GPGFRONTEND_BEFORE_UI_LIBS ${GPGFRONTEND_BEFORE_UI_LIBS} advance)
+    endif ()
+    if (ADVANCE_SUPPORT)
+        set(GPGFRONTEND_BEFORE_UI_LIBS ${GPGFRONTEND_BEFORE_UI_LIBS} server)
+    endif ()
+    if (SMTP_SUPPORT)
+        set(GPGFRONTEND_AFTER_UI_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} server)
+    endif ()
+
+    set(GPGFRONTEND_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} gpgfrontend-ui ${GPGFRONTEND_BEFORE_UI_LIBS} gpg_core easy_logging_pp)
+    set(QT_DEPENDENCY_LIBS Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+
+    IF (MINGW)
+        message(STATUS "Link Application Static Library For MINGW")
+        find_library(libconfig NAMES libconfig++.a)
+        find_library(libintl NAMES libintl.a)
+        find_library(libiconv NAMES libiconv.a)
+
+        target_link_libraries(${AppName}
+                ${GPGFRONTEND_LIBS}
+                ${QT_DEPENDENCY_LIBS}
+                ${libintl} ${libiconv} ${libconfig} crypto ssl)
+    elseif (APPLE)
+        message(STATUS "Link Application Static Library For macOS")
+        target_link_libraries(${AppName}
+                ${GPGFRONTEND_LIBS}
+                ${QT_DEPENDENCY_LIBS}
+                crypto ssl intl)
+    else ()
+        message(STATUS "Link Application Static Library For UNIX ")
+        target_link_libraries(${AppName}
+                ${GPGFRONTEND_LIBS}
+                ${QT_DEPENDENCY_LIBS}
+                crypto ssl pthread)
+    endif ()
+endif ()
 

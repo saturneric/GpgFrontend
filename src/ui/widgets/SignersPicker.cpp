@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -24,36 +24,46 @@
 
 #include "ui/widgets/SignersPicker.h"
 
-SignersPicker::SignersPicker(GpgME::GpgContext *ctx, QWidget *parent) : mCtx(ctx), QDialog(parent) {
-    auto confirmButton = new QPushButton(tr("Confirm"));
-    connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(accept()));
+namespace GpgFrontend::UI {
 
-    /*Setup KeyList*/
-    mKeyList = new KeyList(mCtx, KeyListRow::ONLY_SECRET_KEY,
-                           KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage);
+SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
+  auto confirmButton = new QPushButton(_("Confirm"));
+  connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(accept()));
 
-    mKeyList->setFilter([](const GpgKey &key) -> bool {
-        if (!GpgME::GpgContext::checkIfKeyCanSign(key)) return false;
-        else return true;
-    });
+  /*Setup KeyList*/
+  mKeyList = new KeyList(
+      KeyListRow::ONLY_SECRET_KEY,
+      KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage);
 
-    mKeyList->slotRefresh();
+  mKeyList->setFilter([](const GpgKey& key) -> bool {
+    if (!key.CanSignActual())
+      return false;
+    else
+      return true;
+  });
 
-    auto *vbox2 = new QVBoxLayout();
-    vbox2->addWidget(new QLabel("Select Signer(s): "));
-    vbox2->addWidget(mKeyList);
-    vbox2->addWidget(confirmButton);
-    vbox2->addStretch(0);
-    setLayout(vbox2);
+  mKeyList->slotRefresh();
 
-    this->setModal(true);
-    this->setWindowTitle("Signers Picker");
-    this->setMinimumWidth(480);
-    this->show();
+  auto* vbox2 = new QVBoxLayout();
+  vbox2->addWidget(new QLabel(QString(_("Select Signer(s)")) + ": "));
+  vbox2->addWidget(mKeyList);
+  vbox2->addWidget(new QLabel(
+      _("Selecting Nothing will eventually use default key to sign.")));
+  vbox2->addWidget(confirmButton);
+  vbox2->addStretch(0);
+  setLayout(vbox2);
 
+  this->setWindowFlags(Qt::Window | Qt::WindowTitleHint |
+                       Qt::CustomizeWindowHint);
 
+  this->setModal(true);
+  this->setWindowTitle("Signers Picker");
+  this->setMinimumWidth(480);
+  this->show();
 }
 
-void SignersPicker::getCheckedSigners(QVector<GpgKey> &keys) {
-    mKeyList->getPrivateCheckedKeys(keys);
+GpgFrontend::KeyIdArgsListPtr SignersPicker::getCheckedSigners() {
+  return mKeyList->getPrivateChecked();
 }
+
+}  // namespace GpgFrontend::UI

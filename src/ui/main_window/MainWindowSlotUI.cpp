@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -23,198 +23,174 @@
  */
 
 #include "MainWindow.h"
+#include "ui/UserInterfaceUtils.h"
+#include "ui/settings/GlobalSettingStation.h"
 
-void MainWindow::slotAbout() {
-    new AboutDialog(0, this);
-}
+namespace GpgFrontend::UI {
 
-void MainWindow::slotCheckUpdate() {
-    new AboutDialog(2, this);
-}
+void MainWindow::slotAbout() { new AboutDialog(0, this); }
 
-void MainWindow::slotSetStatusBarText(const QString &text) {
-    statusBar()->showMessage(text, 20000);
+void MainWindow::slotCheckUpdate() { new AboutDialog(2, this); }
+
+void MainWindow::slotSetStatusBarText(const QString& text) {
+  statusBar()->showMessage(text, 20000);
 }
 
 void MainWindow::slotStartWizard() {
-    auto *wizard = new Wizard(mCtx, keyMgmt, this);
-    wizard->show();
-    wizard->setModal(true);
-}
-
-
-void MainWindow::slotCheckAttachmentFolder() {
-    // TODO: always check?
-    if (!settings.value("mime/parseMime").toBool()) {
-        return;
-    }
-
-    QString attachmentDir = qApp->applicationDirPath() + "/attachments/";
-    // filenum minus . and ..
-    uint filenum = QDir(attachmentDir).count() - 2;
-    if (filenum > 0) {
-        QString statusText;
-        if (filenum == 1) {
-            statusText = tr("There is one unencrypted file in attachment folder");
-        } else {
-            statusText = tr("There are ") + QString::number(filenum) + tr(" unencrypted files in attachment folder");
-        }
-        statusBarIcon->setStatusTip(statusText);
-        statusBarIcon->show();
-    } else {
-        statusBarIcon->hide();
-    }
+  auto* wizard = new Wizard(this);
+  wizard->show();
+  wizard->setModal(true);
 }
 
 void MainWindow::slotImportKeyFromEdit() {
-    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr)
-        return;
-    keyMgmt->slotImportKeys(edit->curTextPage()->toPlainText().toUtf8());
+  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
+  CommonUtils::GetInstance()->slotImportKeys(
+      this, edit->curTextPage()->toPlainText().toStdString());
 }
 
 void MainWindow::slotOpenKeyManagement() {
-    keyMgmt->show();
-    keyMgmt->raise();
-    keyMgmt->activateWindow();
+  auto* dialog = new KeyMgmt(this);
+  dialog->show();
+  dialog->raise();
 }
 
-void MainWindow::slotOpenFileTab() {
-    edit->slotNewFileTab();
-}
+void MainWindow::slotOpenFileTab() { edit->slotNewFileTab(); }
 
 void MainWindow::slotDisableTabActions(int number) {
-    bool disable;
+  bool disable;
 
-    if (number == -1)
-        disable = true;
-    else
-        disable = false;
+  if (number == -1)
+    disable = true;
+  else
+    disable = false;
 
-    if(edit->curFilePage() != nullptr) {
-        disable = true;
-    }
+  if (edit->curFilePage() != nullptr) {
+    disable = true;
+  }
 
-    printAct->setDisabled(disable);
-    saveAct->setDisabled(disable);
-    saveAsAct->setDisabled(disable);
-    quoteAct->setDisabled(disable);
-    cutAct->setDisabled(disable);
-    copyAct->setDisabled(disable);
-    pasteAct->setDisabled(disable);
-    closeTabAct->setDisabled(disable);
-    selectAllAct->setDisabled(disable);
-    findAct->setDisabled(disable);
-    verifyAct->setDisabled(disable);
-    signAct->setDisabled(disable);
-    encryptAct->setDisabled(disable);
-    encryptSignAct->setDisabled(disable);
-    decryptAct->setDisabled(disable);
-    decryptVerifyAct->setDisabled(disable);
+  printAct->setDisabled(disable);
+  saveAct->setDisabled(disable);
+  saveAsAct->setDisabled(disable);
+  quoteAct->setDisabled(disable);
+  cutAct->setDisabled(disable);
+  copyAct->setDisabled(disable);
+  pasteAct->setDisabled(disable);
+  closeTabAct->setDisabled(disable);
+  selectAllAct->setDisabled(disable);
+  findAct->setDisabled(disable);
+  verifyAct->setDisabled(disable);
+  signAct->setDisabled(disable);
+  encryptAct->setDisabled(disable);
+  encryptSignAct->setDisabled(disable);
+  decryptAct->setDisabled(disable);
+  decryptVerifyAct->setDisabled(disable);
 
-    redoAct->setDisabled(disable);
-    undoAct->setDisabled(disable);
-    zoomOutAct->setDisabled(disable);
-    zoomInAct->setDisabled(disable);
-    cleanDoubleLinebreaksAct->setDisabled(disable);
-    quoteAct->setDisabled(disable);
-    appendSelectedKeysAct->setDisabled(disable);
-    importKeyFromEditAct->setDisabled(disable);
+  redoAct->setDisabled(disable);
+  undoAct->setDisabled(disable);
+  zoomOutAct->setDisabled(disable);
+  zoomInAct->setDisabled(disable);
+  cleanDoubleLinebreaksAct->setDisabled(disable);
+  quoteAct->setDisabled(disable);
+  appendSelectedKeysAct->setDisabled(disable);
+  importKeyFromEditAct->setDisabled(disable);
 
-    cutPgpHeaderAct->setDisabled(disable);
-    addPgpHeaderAct->setDisabled(disable);
+  cutPgpHeaderAct->setDisabled(disable);
+  addPgpHeaderAct->setDisabled(disable);
 }
 
 void MainWindow::slotOpenSettingsDialog() {
+  auto dialog = new SettingsDialog(this);
 
-    auto dialog = new SettingsDialog(mCtx, this);
+  connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
+    LOG(INFO) << "Setting Dialog Finished";
 
-    connect(dialog, &SettingsDialog::finished, this, [&] () -> void {
+    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
-        qDebug() << "Setting Dialog Finished";
+    int icon_width = settings["window"]["icon_size"]["width"];
+    int icon_height = settings["window"]["icon_size"]["height"];
 
-        // Iconsize
-        QSize iconSize = settings.value("toolbar/iconsize", QSize(32, 32)).toSize();
-        this->setIconSize(iconSize);
-        importButton->setIconSize(iconSize);
-        fileEncButton->setIconSize(iconSize);
+    this->setIconSize(QSize(icon_width, icon_height));
+    importButton->setIconSize(QSize(icon_width, icon_height));
+    fileEncButton->setIconSize(QSize(icon_width, icon_height));
 
-        // Iconstyle
-        Qt::ToolButtonStyle buttonStyle = static_cast<Qt::ToolButtonStyle>(settings.value("toolbar/iconstyle",
-                                                                                          Qt::ToolButtonTextUnderIcon).toUInt());
-        this->setToolButtonStyle(buttonStyle);
-        importButton->setToolButtonStyle(buttonStyle);
-        fileEncButton->setToolButtonStyle(buttonStyle);
+    // Iconstyle
 
-        // restart mainwindow if necessary
-        if (getRestartNeeded()) {
-            if (edit->maybeSaveAnyTab()) {
-                saveSettings();
-                qApp->exit(RESTART_CODE);
-            }
-        }
+    int icon_style = settings["window"]["icon_style"];
+    auto button_style = static_cast<Qt::ToolButtonStyle>(icon_style);
+    this->setToolButtonStyle(button_style);
+    importButton->setToolButtonStyle(button_style);
+    fileEncButton->setToolButtonStyle(button_style);
 
-        // steganography hide/show
-        if (!settings.value("advanced/steganography").toBool()) {
-            this->menuBar()->removeAction(steganoMenu->menuAction());
-        } else {
-            this->menuBar()->insertAction(viewMenu->menuAction(), steganoMenu->menuAction());
-        }
-    });
-
+    // restart mainwindow if necessary
+    if (getRestartNeeded()) {
+      if (edit->maybeSaveAnyTab()) {
+        saveSettings();
+        qApp->exit(RESTART_CODE);
+      }
+    }
+#ifdef ADVANCED_SUPPORT
+    // steganography hide/show
+    if (!settings.value("advanced/steganography").toBool()) {
+      this->menuBar()->removeAction(steganoMenu->menuAction());
+    } else {
+      this->menuBar()->insertAction(viewMenu->menuAction(),
+                                    steganoMenu->menuAction());
+    }
+#endif
+  });
 }
 
 void MainWindow::slotCleanDoubleLinebreaks() {
-    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
-        return;
-    }
+  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
+    return;
+  }
 
-    QString content = edit->curTextPage()->toPlainText();
-    content.replace("\n\n", "\n");
-    edit->slotFillTextEditWithText(content);
+  QString content = edit->curTextPage()->toPlainText();
+  content.replace("\n\n", "\n");
+  edit->slotFillTextEditWithText(content);
 }
 
 void MainWindow::slotAddPgpHeader() {
-    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
-        return;
-    }
+  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
+    return;
+  }
 
-    QString content = edit->curTextPage()->toPlainText().trimmed();
+  QString content = edit->curTextPage()->toPlainText().trimmed();
 
-    content.prepend("\n\n").prepend(GpgConstants::PGP_CRYPT_BEGIN);
-    content.append("\n").append(GpgConstants::PGP_CRYPT_END);
+  content.prepend("\n\n").prepend(GpgConstants::PGP_CRYPT_BEGIN);
+  content.append("\n").append(GpgConstants::PGP_CRYPT_END);
 
-    edit->slotFillTextEditWithText(content);
+  edit->slotFillTextEditWithText(content);
 }
 
 void MainWindow::slotCutPgpHeader() {
+  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
+    return;
+  }
 
-    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
-        return;
-    }
+  QString content = edit->curTextPage()->toPlainText();
+  int start = content.indexOf(GpgConstants::PGP_CRYPT_BEGIN);
+  int end = content.indexOf(GpgConstants::PGP_CRYPT_END);
 
-    QString content = edit->curTextPage()->toPlainText();
-    int start = content.indexOf(GpgConstants::PGP_CRYPT_BEGIN);
-    int end = content.indexOf(GpgConstants::PGP_CRYPT_END);
+  if (start < 0 || end < 0) {
+    return;
+  }
 
-    if (start < 0 || end < 0) {
-        return;
-    }
+  // remove head
+  int headEnd = content.indexOf("\n\n", start) + 2;
+  content.remove(start, headEnd - start);
 
-    // remove head
-    int headEnd = content.indexOf("\n\n", start) + 2;
-    content.remove(start, headEnd - start);
+  // remove tail
+  end = content.indexOf(GpgConstants::PGP_CRYPT_END);
+  content.remove(end, QString(GpgConstants::PGP_CRYPT_END).size());
 
-    // remove tail
-    end = content.indexOf(GpgConstants::PGP_CRYPT_END);
-    content.remove(end, QString(GpgConstants::PGP_CRYPT_END).size());
-
-    edit->slotFillTextEditWithText(content.trimmed());
+  edit->slotFillTextEditWithText(content.trimmed());
 }
 
 void MainWindow::slotSetRestartNeeded(bool needed) {
-    this->restartNeeded = needed;
+  this->restartNeeded = needed;
 }
 
-bool MainWindow::getRestartNeeded() const {
-    return this->restartNeeded;
-}
+bool MainWindow::getRestartNeeded() const { return this->restartNeeded; }
+
+}  // namespace GpgFrontend::UI

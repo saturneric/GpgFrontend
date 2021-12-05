@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -24,73 +24,72 @@
 
 #include "server/api/PubkeyGetter.h"
 
-PubkeyGetter::PubkeyGetter(GpgME::GpgContext *ctx, const QVector<QString> &fprs) : BaseAPI(ComUtils::GetPubkey),
-                                                                                   mCtx(ctx), mFprs(fprs) {
-}
+PubkeyGetter::PubkeyGetter(GpgFrontend::GpgContext *ctx,
+                           const QVector<QString> &fprs)
+    : BaseAPI(ComUtils::GetPubkey), mCtx(ctx), mFprs(fprs) {}
 
 void PubkeyGetter::construct_json() {
-    document.SetArray();
-    QStringList keyIds;
+  document.SetArray();
+  QStringList keyIds;
 
-    rapidjson::Document::AllocatorType &allocator = document.GetAllocator();
+  rapidjson::Document::AllocatorType &allocator = document.GetAllocator();
 
-    for (const auto &fprStr : mFprs) {
-        rapidjson::Value fpr;
+  for (const auto &fprStr : mFprs) {
+    rapidjson::Value fpr;
 
-        auto fprByteArray = fprStr.toUtf8();
-        fpr.SetString(fprByteArray.constData(), fprByteArray.count());
+    auto fprByteArray = fprStr.toUtf8();
+    fpr.SetString(fprByteArray.constData(), fprByteArray.count());
 
-        document.PushBack(fpr, allocator);
-        keyIds.clear();
-    }
+    document.PushBack(fpr, allocator);
+    keyIds.clear();
+  }
 }
 
 void PubkeyGetter::deal_reply() {
+  const auto &utils = getUtils();
 
-    const auto &utils = getUtils();
+  /**
+   * {
+   *      "pubkeys" : [
+   *          {
+   *              "publicKey" : ...,
+   *              "fpr" : ...,
+   *              "sha" : ...
+   *          },
+   *          ...
+   *      ]
+   * }
+   */
 
-    /**
-     * {
-     *      "pubkeys" : [
-     *          {
-     *              "publicKey" : ...,
-     *              "fpr" : ...,
-     *              "sha" : ...
-     *          },
-     *          ...
-     *      ]
-     * }
-     */
+  if (!utils.checkDataValue("pubkeys")) {
+    QMessageBox::critical(nullptr, _("Error"),
+                          _("The communication content with the server does "
+                            "not meet the requirements"));
+  } else {
+    auto &pubkeys = utils.getDataValue("pubkeys");
+    qDebug() << "Pubkey Getter" << pubkeys.IsArray()
+             << pubkeys.GetArray().Size();
+    if (pubkeys.IsArray()) {
+      for (const auto &pubkey : pubkeys.GetArray()) {
+        if (pubkey.IsObject() && pubkey.HasMember("publicKey") &&
+            pubkey.HasMember("fpr") && pubkey.HasMember("sha") &&
+            pubkey["publicKey"].IsString() && pubkey["fpr"].IsString() &&
+            pubkey["sha"].IsString()) {
+          auto pubkeyData = QString(pubkey["publicKey"].GetString());
 
-    if (!utils.checkDataValue("pubkeys")) {
-        QMessageBox::critical(nullptr, tr("Error"),
-                              tr("The communication content with the server does not meet the requirements"));
-    } else {
-        auto &pubkeys = utils.getDataValue("pubkeys");
-        qDebug() << "Pubkey Getter" << pubkeys.IsArray() << pubkeys.GetArray().Size();
-        if (pubkeys.IsArray()) {
-            for (const auto &pubkey : pubkeys.GetArray()) {
-                if (pubkey.IsObject()
-                    && pubkey.HasMember("publicKey") && pubkey.HasMember("fpr") && pubkey.HasMember("sha")
-                    && pubkey["publicKey"].IsString() && pubkey["fpr"].IsString() && pubkey["sha"].IsString()) {
+          QCryptographicHash shaGen(QCryptographicHash::Sha256);
+          shaGen.addData(pubkeyData.toUtf8());
 
-                    auto pubkeyData = QString(pubkey["publicKey"].GetString());
-
-                    QCryptographicHash shaGen(QCryptographicHash::Sha256);
-                    shaGen.addData(pubkeyData.toUtf8());
-
-                    if (shaGen.result().toHex() == pubkey["sha"].GetString()) {
-                        mCtx->importKey(pubkeyData.toUtf8());
-                    }
-
-                }
-            }
-
-        } else {
-            QMessageBox::critical(nullptr, tr("Error"),
-                                  tr("The communication content with the server does not meet the requirements"));
+          if (shaGen.result().toHex() == pubkey["sha"].GetString()) {
+            mCtx->importKey(pubkeyData.toUtf8());
+          }
         }
+      }
+
+    } else {
+      QMessageBox::critical(nullptr, _("Error"),
+                            _("The communication content with the server does "
+                              "not meet the requirements"));
     }
+  }
 }
-
-

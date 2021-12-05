@@ -25,7 +25,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ 'ubuntu-16.04', 'macos-latest', 'windows-latest' ]
+        os: [ 'ubuntu-18.04', 'macos-latest', 'windows-latest' ]
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -35,12 +35,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-          sudo apt-get -y install gcc g++
+          sudo apt-get -y install gcc g++ libconfig++-dev libboost-all-dev
           sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
           sudo apt-get -y install libgcrypt11-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp ninja-build
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-image0
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-*
-        if: matrix.os == 'ubuntu-16.04'
+        if: matrix.os == 'ubuntu-18.04'
 
       - name: Codesign Configuration (macOS)
         run: |
@@ -50,11 +50,14 @@ jobs:
           security unlock-keychain -p gpgfrontend build.keychain
           security import certificate.p12 -k build.keychain -P ${{secrets.MAOS_CERTIFICATE_PWD}} -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
+          security set-keychain-settings -lut 3600
         if: matrix.os == 'macos-latest'
-        
+
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5 gcc texinfo gettext libgpg-error libassuan gpgme openssl
+          brew install cmake git autoconf automake qt@5 gcc texinfo gettext libgpg-error libassuan gpgme openssl 
+          brew install boost libconfig gettext
+          brew unlink gettext && brew link --force gettext
           brew link qt@5
           brew link gcc
           brew link openssl --force
@@ -66,13 +69,13 @@ jobs:
         with:
           path: ../Qt
           key: ${{ runner.os }}-QtCache
-        if: matrix.os == 'ubuntu-16.04'
+        if: matrix.os == 'ubuntu-18.04'
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
         with:
           cached: ${{ steps.cache-qt.outputs.cache-hit }}
-        if: matrix.os == 'ubuntu-16.04'
+        if: matrix.os == 'ubuntu-18.04'
 
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
@@ -85,7 +88,7 @@ jobs:
         shell: msys2 {0}
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-qt-creator mingw-w64-x86_64-gpgme
-          pacman --noconfirm -S --needed make texinfo
+          pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost mingw-w64-x86_64-gnupg gettext-devel libintl msys2-runtime-devel
         if: matrix.os == 'windows-latest'
 
       - name: Build gpg-error (Linux)
@@ -97,7 +100,7 @@ jobs:
           ./configure --enable-maintainer-mode --enable-static=yes && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-16.04'
+        if: matrix.os == 'ubuntu-18.04'
 
       - name: Build assuan (Linux)
         run: |
@@ -108,7 +111,7 @@ jobs:
           ./configure --enable-maintainer-mode --enable-static=yes && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-16.04'
+        if: matrix.os == 'ubuntu-18.04'
 
       - name: Build GpgME (Linux)
         run: |
@@ -119,7 +122,7 @@ jobs:
           ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-16.04'
+        if: matrix.os == 'ubuntu-18.04'
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}
@@ -127,7 +130,7 @@ jobs:
           git clone https://github.com/saturneric/gpgme
           cd gpgme
           ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp LDFLAGS="-static" && make -j2
+          ./configure --enable-maintainer-mode --enable-static=yes --disable-gpg-test --enable-languages=cpp LDFLAGS="-static" && make -j2
           make install
         if: matrix.os == 'windows-latest'
 
@@ -135,15 +138,16 @@ jobs:
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}}
-        if: matrix.os == 'ubuntu-16.04' || matrix.os == 'macos-latest'
+        if: matrix.os == 'ubuntu-18.04' || matrix.os == 'macos-latest'
 
       - name: Build GpgFrontend
         # Build your program with the given configuration
         run: cmake --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -j 2
-        if: matrix.os == 'ubuntu-16.04' || matrix.os == 'macos-latest'
+        if: matrix.os == 'ubuntu-18.04' || matrix.os == 'macos-latest'
 
       - name: Build & Sign App Bundle (macOS)
         run: |
+          security -v unlock-keychain -p gpgfrontend
           macdeployqt ${{github.workspace}}/build/release/GpgFrontend.app
           codesign --deep --force --options=runtime -s "Developer ID Application: Yu Hu (4279AWUL3X)" ${{github.workspace}}/build/release/GpgFrontend.app -v
           mkdir ${{github.workspace}}/build/tmp/
@@ -151,11 +155,12 @@ jobs:
 
       - name: Package & Sign App Bundle (macOS)
         run: |
+          security -v unlock-keychain -p gpgfrontend
           hdiutil create ${{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/release/
           mkdir ${{github.workspace}}/build/artifactOut
           hdiutil convert ${{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
           codesign -s "Developer ID Application: Yu Hu (4279AWUL3X)" ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
-          mv ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg 
+          mv ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg
         if: matrix.os == 'macos-latest'
 
       - name: Notarize Release Build (macOS)
@@ -170,7 +175,7 @@ jobs:
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
           ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/release/gpgfrontend/usr/share/applications/*.desktop -appimage
-        if: matrix.os == 'ubuntu-16.04'
+        if: matrix.os == 'ubuntu-18.04'
 
       - name: Configure CMake & Build Binary(Windows)
         shell: msys2 {0}
@@ -191,7 +196,7 @@ jobs:
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
           path: ${{github.workspace}}/build/artifactOut/GpgFrontend*.AppImage*
-        if: matrix.os == 'ubuntu-16.04'
+        if: matrix.os == 'ubuntu-18.04'
 
       - name: Upload Artifact(macOS)
         uses: actions/upload-artifact@master

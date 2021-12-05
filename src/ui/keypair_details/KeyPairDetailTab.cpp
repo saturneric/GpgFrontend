@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -23,330 +23,384 @@
  */
 
 #include "ui/keypair_details/KeyPairDetailTab.h"
+
+#include "gpg/function/GpgKeyGetter.h"
+#include "gpg/function/GpgKeyImportExportor.h"
+#include "ui/SignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/WaitingDialog.h"
 
-KeyPairDetailTab::KeyPairDetailTab(GpgME::GpgContext *ctx, const GpgKey &mKey, QWidget *parent) : mKey(mKey),
-                                                                                                  QWidget(parent) {
+namespace GpgFrontend::UI {
+KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
+    : QWidget(parent), mKey(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+  keyid = mKey.id();
 
-    mCtx = ctx;
-    keyid = new QString(mKey.id);
+  ownerBox = new QGroupBox(_("Owner"));
+  keyBox = new QGroupBox(_("Master Key"));
+  fingerprintBox = new QGroupBox(_("Fingerprint"));
+  additionalUidBox = new QGroupBox(_("Additional UIDs"));
 
-    ownerBox = new QGroupBox(tr("Owner"));
-    keyBox = new QGroupBox(tr("Master Key"));
-    fingerprintBox = new QGroupBox(tr("Fingerprint"));
-    additionalUidBox = new QGroupBox(tr("Additional UIDs"));
+  nameVarLabel = new QLabel();
+  nameVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  emailVarLabel = new QLabel();
+  emailVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
-    nameVarLabel = new QLabel();
-    nameVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    emailVarLabel = new QLabel();
-    emailVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  commentVarLabel = new QLabel();
+  commentVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  keyidVarLabel = new QLabel();
+  keyidVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
-    commentVarLabel = new QLabel();
-    commentVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    keyidVarLabel = new QLabel();
-    keyidVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  usageVarLabel = new QLabel();
+  actualUsageVarLabel = new QLabel();
 
-    usageVarLabel = new QLabel();
-    actualUsageVarLabel = new QLabel();
+  keySizeVarLabel = new QLabel();
+  expireVarLabel = new QLabel();
+  createdVarLabel = new QLabel();
+  algorithmVarLabel = new QLabel();
 
-    keySizeVarLabel = new QLabel();
-    expireVarLabel = new QLabel();
-    createdVarLabel = new QLabel();
-    algorithmVarLabel = new QLabel();
+  // Show the situation that master key not exists.
+  masterKeyExistVarLabel =
+      new QLabel(mKey.has_master_key() ? _("Exists") : _("Not Exists"));
+  if (!mKey.has_master_key()) {
+    auto paletteExpired = masterKeyExistVarLabel->palette();
+    paletteExpired.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::red);
+    masterKeyExistVarLabel->setPalette(paletteExpired);
+  } else {
+    auto paletteValid = masterKeyExistVarLabel->palette();
+    paletteValid.setColor(masterKeyExistVarLabel->foregroundRole(),
+                          Qt::darkGreen);
+    masterKeyExistVarLabel->setPalette(paletteValid);
+  }
 
-    // Show the situation that master key not exists.
-    masterKeyExistVarLabel = new QLabel(mKey.has_master_key ? tr("Exists") : tr("Not Exists"));
-    if (!mKey.has_master_key) {
-        auto paletteExpired = masterKeyExistVarLabel->palette();
-        paletteExpired.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::red);
-        masterKeyExistVarLabel->setPalette(paletteExpired);
-    } else {
-        auto paletteValid = masterKeyExistVarLabel->palette();
-        paletteValid.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::darkGreen);
-        masterKeyExistVarLabel->setPalette(paletteValid);
+  if (mKey.expired()) {
+    auto paletteExpired = expireVarLabel->palette();
+    paletteExpired.setColor(expireVarLabel->foregroundRole(), Qt::red);
+    expireVarLabel->setPalette(paletteExpired);
+  } else {
+    auto paletteValid = expireVarLabel->palette();
+    paletteValid.setColor(expireVarLabel->foregroundRole(), Qt::darkGreen);
+    expireVarLabel->setPalette(paletteValid);
+  }
+
+  auto* mvbox = new QVBoxLayout();
+  auto* vboxKD = new QGridLayout();
+  auto* vboxOD = new QGridLayout();
+
+  vboxOD->addWidget(new QLabel(QString(_("Name")) + ": "), 0, 0);
+  vboxOD->addWidget(new QLabel(QString(_("Email Address")) + ": "), 1, 0);
+  vboxOD->addWidget(new QLabel(QString(_("Comment")) + ": "), 2, 0);
+  vboxOD->addWidget(nameVarLabel, 0, 1);
+  vboxOD->addWidget(emailVarLabel, 1, 1);
+  vboxOD->addWidget(commentVarLabel, 2, 1);
+
+  vboxKD->addWidget(new QLabel(QString(_("Key ID")) + ": "), 0, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Algorithm")) + ": "), 1, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Key Size")) + ": "), 2, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Nominal Usage")) + ": "), 3, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Actual Usage")) + ": "), 4, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Expires on")) + ": "), 5, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Last Update")) + ": "), 6, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Secret Key Existence")) + ": "), 7,
+                    0);
+
+  vboxKD->addWidget(keySizeVarLabel, 2, 1);
+  vboxKD->addWidget(expireVarLabel, 5, 1);
+  vboxKD->addWidget(algorithmVarLabel, 1, 1);
+  vboxKD->addWidget(createdVarLabel, 6, 1);
+  vboxKD->addWidget(keyidVarLabel, 0, 1);
+  vboxKD->addWidget(usageVarLabel, 3, 1);
+  vboxKD->addWidget(actualUsageVarLabel, 4, 1);
+  vboxKD->addWidget(masterKeyExistVarLabel, 7, 1);
+
+  ownerBox->setLayout(vboxOD);
+  mvbox->addWidget(ownerBox);
+  keyBox->setLayout(vboxKD);
+  mvbox->addWidget(keyBox);
+
+  fingerPrintVarLabel =
+      new QLabel(beautifyFingerprint(QString::fromStdString(mKey.fpr())));
+  fingerPrintVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  fingerPrintVarLabel->setStyleSheet("margin-left: 0; margin-right: 5;");
+  auto* hboxFP = new QHBoxLayout();
+
+  hboxFP->addWidget(fingerPrintVarLabel);
+
+  auto* copyFingerprintButton = new QPushButton(_("Copy"));
+  copyFingerprintButton->setFlat(true);
+  copyFingerprintButton->setToolTip(_("copy fingerprint to clipboard"));
+  connect(copyFingerprintButton, SIGNAL(clicked()), this,
+          SLOT(slotCopyFingerprint()));
+
+  hboxFP->addWidget(copyFingerprintButton);
+
+  fingerprintBox->setLayout(hboxFP);
+  mvbox->addWidget(fingerprintBox);
+  mvbox->addStretch();
+
+  if (mKey.is_private_key()) {
+    auto* privKeyBox = new QGroupBox(_("Operations"));
+    auto* vboxPK = new QVBoxLayout();
+
+    auto* exportButton =
+        new QPushButton(_("Export Private Key (Include Subkey)"));
+    vboxPK->addWidget(exportButton);
+    connect(exportButton, SIGNAL(clicked()), this,
+            SLOT(slotExportPrivateKey()));
+
+    if (mKey.has_master_key()) {
+      auto* editExpiresButton =
+          new QPushButton(_("Modify Expiration Datetime (Master Key)"));
+      vboxPK->addWidget(editExpiresButton);
+      connect(editExpiresButton, SIGNAL(clicked()), this,
+              SLOT(slotModifyEditDatetime()));
+
+      auto hBoxLayout = new QHBoxLayout();
+      auto* keyServerOperaButton =
+          new QPushButton(_("Key Server Operation (Pubkey)"));
+      keyServerOperaButton->setStyleSheet("text-align:center;");
+
+      auto* revokeCertGenButton =
+          new QPushButton(_("Generate Revoke Certificate"));
+      connect(revokeCertGenButton, SIGNAL(clicked()), this,
+              SLOT(slotGenRevokeCert()));
+
+      hBoxLayout->addWidget(keyServerOperaButton);
+      hBoxLayout->addWidget(revokeCertGenButton);
+
+      vboxPK->addLayout(hBoxLayout);
+      connect(keyServerOperaButton, SIGNAL(clicked()), this,
+              SLOT(slotModifyEditDatetime()));
+
+      // Set Menu
+      createKeyServerOperaMenu();
+      keyServerOperaButton->setMenu(keyServerOperaMenu);
     }
 
-    if (mKey.expired) {
-        auto paletteExpired = expireVarLabel->palette();
-        paletteExpired.setColor(expireVarLabel->foregroundRole(), Qt::red);
-        expireVarLabel->setPalette(paletteExpired);
-    } else {
-        auto paletteValid = expireVarLabel->palette();
-        paletteValid.setColor(expireVarLabel->foregroundRole(), Qt::darkGreen);
-        expireVarLabel->setPalette(paletteValid);
+    privKeyBox->setLayout(vboxPK);
+    mvbox->addWidget(privKeyBox);
+  }
+
+  if ((mKey.expired()) || (mKey.revoked())) {
+    auto* expBox = new QHBoxLayout();
+    QPixmap pixmap(":warning.png");
+
+    auto* expLabel = new QLabel();
+    auto* iconLabel = new QLabel();
+    if (mKey.expired()) {
+      expLabel->setText(_("Warning: The Master Key has expired."));
+    }
+    if (mKey.revoked()) {
+      expLabel->setText(_("Warning: The Master Key has been revoked"));
     }
 
-    auto *mvbox = new QVBoxLayout();
-    auto *vboxKD = new QGridLayout();
-    auto *vboxOD = new QGridLayout();
+    iconLabel->setPixmap(pixmap.scaled(24, 24, Qt::KeepAspectRatio));
+    QFont font = expLabel->font();
+    font.setBold(true);
+    expLabel->setFont(font);
+    expLabel->setAlignment(Qt::AlignCenter);
+    expBox->addWidget(iconLabel);
+    expBox->addWidget(expLabel);
+    mvbox->addLayout(expBox);
+  }
 
-    vboxOD->addWidget(new QLabel(tr("Name:")), 0, 0);
-    vboxOD->addWidget(new QLabel(tr("Email Address:")), 1, 0);
-    vboxOD->addWidget(new QLabel(tr("Comment:")), 2, 0);
-    vboxOD->addWidget(nameVarLabel, 0, 1);
-    vboxOD->addWidget(emailVarLabel, 1, 1);
-    vboxOD->addWidget(commentVarLabel, 2, 1);
+  // when key database updated
+  connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
+          SLOT(slotRefreshKey()));
 
-    vboxKD->addWidget(new QLabel(tr("Key ID: ")), 0, 0);
-    vboxKD->addWidget(new QLabel(tr("Algorithm: ")), 1, 0);
-    vboxKD->addWidget(new QLabel(tr("Key Size:")), 2, 0);
-    vboxKD->addWidget(new QLabel(tr("Nominal Usage: ")), 3, 0);
-    vboxKD->addWidget(new QLabel(tr("Actual Usage: ")), 4, 0);
-    vboxKD->addWidget(new QLabel(tr("Expires on: ")), 5, 0);
-    vboxKD->addWidget(new QLabel(tr("Last Update: ")), 6, 0);
-    vboxKD->addWidget(new QLabel(tr("Secret Key Existence: ")), 7, 0);
+  mvbox->setContentsMargins(0, 0, 0, 0);
 
-
-    vboxKD->addWidget(keySizeVarLabel, 2, 1);
-    vboxKD->addWidget(expireVarLabel, 5, 1);
-    vboxKD->addWidget(algorithmVarLabel, 1, 1);
-    vboxKD->addWidget(createdVarLabel, 6, 1);
-    vboxKD->addWidget(keyidVarLabel, 0, 1);
-    vboxKD->addWidget(usageVarLabel, 3, 1);
-    vboxKD->addWidget(actualUsageVarLabel, 4, 1);
-    vboxKD->addWidget(masterKeyExistVarLabel, 7, 1);
-
-    ownerBox->setLayout(vboxOD);
-    mvbox->addWidget(ownerBox);
-    keyBox->setLayout(vboxKD);
-    mvbox->addWidget(keyBox);
-
-    fingerPrintVarLabel = new QLabel(beautifyFingerprint(mKey.fpr));
-    fingerPrintVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    fingerPrintVarLabel->setStyleSheet("margin-left: 0; margin-right: 5;");
-    auto *hboxFP = new QHBoxLayout();
-
-    hboxFP->addWidget(fingerPrintVarLabel);
-
-    auto *copyFingerprintButton = new QPushButton(tr("Copy"));
-    copyFingerprintButton->setFlat(true);
-    copyFingerprintButton->setToolTip(tr("copy fingerprint to clipboard"));
-    connect(copyFingerprintButton, SIGNAL(clicked()), this, SLOT(slotCopyFingerprint()));
-
-    hboxFP->addWidget(copyFingerprintButton);
-
-    fingerprintBox->setLayout(hboxFP);
-    mvbox->addWidget(fingerprintBox);
-    mvbox->addStretch();
-
-    if (mKey.is_private_key) {
-        auto *privKeyBox = new QGroupBox(tr("Operations"));
-        auto *vboxPK = new QVBoxLayout();
-
-        auto *exportButton = new QPushButton(tr("Export Private Key (Include Subkey)"));
-        vboxPK->addWidget(exportButton);
-        connect(exportButton, SIGNAL(clicked()), this, SLOT(slotExportPrivateKey()));
-
-        if (mKey.has_master_key) {
-            auto *editExpiresButton = new QPushButton(tr("Modify Expiration Datetime (Master Key)"));
-            vboxPK->addWidget(editExpiresButton);
-            connect(editExpiresButton, SIGNAL(clicked()), this, SLOT(slotModifyEditDatetime()));
-
-            auto hBoxLayout = new QHBoxLayout();
-            auto *keyServerOperaButton = new QPushButton(tr("Key Server Operation (Pubkey)"));
-            keyServerOperaButton->setStyleSheet("text-align:center;");
-
-            auto *revokeCertGenButton = new QPushButton(tr("Generate Revoke Certificate"));
-            connect(revokeCertGenButton, SIGNAL(clicked()), this, SLOT(slotGenRevokeCert()));
-
-            hBoxLayout->addWidget(keyServerOperaButton);
-            hBoxLayout->addWidget(revokeCertGenButton);
-
-            vboxPK->addLayout(hBoxLayout);
-            connect(keyServerOperaButton, SIGNAL(clicked()), this, SLOT(slotModifyEditDatetime()));
-
-            // Set Menu
-            createKeyServerOperaMenu();
-            keyServerOperaButton->setMenu(keyServerOperaMenu);
-        }
-
-        privKeyBox->setLayout(vboxPK);
-        mvbox->addWidget(privKeyBox);
-    }
-
-    if ((mKey.expired) || (mKey.revoked)) {
-        auto *expBox = new QHBoxLayout();
-        QPixmap pixmap(":warning.png");
-
-        auto *expLabel = new QLabel();
-        auto *iconLabel = new QLabel();
-        if (mKey.expired) {
-            expLabel->setText(tr("Warning: The Master Key has expired."));
-        }
-        if (mKey.revoked) {
-            expLabel->setText(tr("Warning: The Master Key has been revoked"));
-        }
-
-        iconLabel->setPixmap(pixmap.scaled(24, 24, Qt::KeepAspectRatio));
-        QFont font = expLabel->font();
-        font.setBold(true);
-        expLabel->setFont(font);
-        expLabel->setAlignment(Qt::AlignCenter);
-        expBox->addWidget(iconLabel);
-        expBox->addWidget(expLabel);
-        mvbox->addLayout(expBox);
-    }
-
-    mvbox->setContentsMargins(0, 0, 0, 0);
-
-    connect(mCtx, SIGNAL(signalKeyInfoChanged()), this, SLOT(slotRefreshKeyInfo()));
-
-    slotRefreshKeyInfo();
-    setAttribute(Qt::WA_DeleteOnClose, true);
-    setLayout(mvbox);
+  slotRefreshKeyInfo();
+  setAttribute(Qt::WA_DeleteOnClose, true);
+  setLayout(mvbox);
 }
 
 void KeyPairDetailTab::slotExportPrivateKey() {
-    // Show a information box with explanation about private key
-    int ret = QMessageBox::information(this, tr("Exporting private Key"),
-                                       "<h3>" + tr("You are about to export your") + "<font color=\"red\">" +
-                                       tr("PRIVATE KEY") + "</font>!</h3>\n" +
-                                       tr("This is NOT your Public Key, so DON'T give it away.") + "<br />" +
-                                       tr("Do you REALLY want to export your PRIVATE KEY?"),
-                                       QMessageBox::Cancel | QMessageBox::Ok);
+  // Show a information box with explanation about private key
+  int ret = QMessageBox::information(
+      this, _("Exporting private Key"),
+      "<h3>" + QString(_("You are about to export your")) +
+          "<font color=\"red\">" + _(" PRIVATE KEY ") + "</font>!</h3>\n" +
+          _("This is NOT your Public Key, so DON'T give it away.") + "<br />" +
+          _("Do you REALLY want to export your PRIVATE KEY?"),
+      QMessageBox::Cancel | QMessageBox::Ok);
 
-    // export key, if ok was clicked
-    if (ret == QMessageBox::Ok) {
-        auto *keyArray = new QByteArray();
+  // export key, if ok was clicked
+  if (ret == QMessageBox::Ok) {
+    ByteArrayPtr keyArray = nullptr;
 
-        if (!mCtx->exportSecretKey(mKey, keyArray)) {
-            QMessageBox::critical(this, "Error", "An error occurred during the export operation.");
-            return;
-        }
-
-        auto key = mCtx->getKeyById(*keyid);
-        if (!key.good) {
-            QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
-            return;
-        }
-        QString fileString = key.name + " " + key.email + "(" +
-                             key.id + ")_secret.asc";
-        QString fileName = QFileDialog::getSaveFileName(this, tr("Export Key To File"), fileString,
-                                                        tr("Key Files") + " (*.asc *.txt);;All Files (*)");
-        QFile file(fileName);
-        if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            QMessageBox::critical(nullptr, tr("Export Error"), tr("Couldn't open %1 for writing").arg(fileName));
-            return;
-        }
-        QTextStream stream(&file);
-        stream << *keyArray;
-        file.close();
-        delete keyArray;
+    if (!GpgKeyImportExportor::GetInstance().ExportSecretKey(mKey, keyArray)) {
+      QMessageBox::critical(
+          this, _("Error"),
+          _("An error occurred during the export operation."));
+      return;
     }
+
+    auto key = GpgKeyGetter::GetInstance().GetKey(keyid);
+    if (!key.good()) {
+      QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
+      return;
+    }
+    auto fileString =
+        key.name() + " " + key.email() + "(" + key.id() + ")_secret.asc";
+    auto fileName =
+        QFileDialog::getSaveFileName(
+            this, _("Export Key To File"), QString::fromStdString(fileString),
+            QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)")
+            .toStdString();
+
+    if (!write_buffer_to_file(fileName, *keyArray)) {
+      QMessageBox::critical(
+          nullptr, _("Export Error"),
+          QString(_("Couldn't open %1 for writing")).arg(fileName.c_str()));
+      return;
+    }
+  }
 }
 
 QString KeyPairDetailTab::beautifyFingerprint(QString fingerprint) {
-    uint len = fingerprint.length();
-    if ((len > 0) && (len % 4 == 0))
-        for (uint n = 0; 4 * (n + 1) < len; ++n)
-            fingerprint.insert(static_cast<int>(5u * n + 4u), ' ');
-    return fingerprint;
+  uint len = fingerprint.length();
+  if ((len > 0) && (len % 4 == 0))
+    for (uint n = 0; 4 * (n + 1) < len; ++n)
+      fingerprint.insert(static_cast<int>(5u * n + 4u), ' ');
+  return fingerprint;
 }
 
 void KeyPairDetailTab::slotCopyFingerprint() {
-    QString fpr = fingerPrintVarLabel->text().trimmed().replace(" ", "");
-    QClipboard *cb = QApplication::clipboard();
-    cb->setText(fpr);
+  QString fpr = fingerPrintVarLabel->text().trimmed().replace(" ", QString());
+  QClipboard* cb = QApplication::clipboard();
+  cb->setText(fpr);
 }
 
 void KeyPairDetailTab::slotModifyEditDatetime() {
-    auto dialog = new KeySetExpireDateDialog(mCtx, mKey, nullptr, this);
-    dialog->show();
+  auto dialog = new KeySetExpireDateDialog(mKey.id(), this);
+  dialog->show();
 }
 
 void KeyPairDetailTab::slotRefreshKeyInfo() {
+  nameVarLabel->setText(QString::fromStdString(mKey.name()));
+  emailVarLabel->setText(QString::fromStdString(mKey.email()));
 
-    nameVarLabel->setText(mKey.name);
-    emailVarLabel->setText(mKey.email);
+  commentVarLabel->setText(QString::fromStdString(mKey.comment()));
+  keyidVarLabel->setText(QString::fromStdString(mKey.id()));
 
-    commentVarLabel->setText(mKey.comment);
-    keyidVarLabel->setText(mKey.id);
+  QString usage;
+  QTextStream usage_steam(&usage);
 
-    QString usage;
-    QTextStream usage_steam(&usage);
+  if (mKey.can_certify()) usage_steam << _("Cert") << " ";
+  if (mKey.can_encrypt()) usage_steam << _("Encr") << " ";
+  if (mKey.can_sign()) usage_steam << _("Sign") << " ";
+  if (mKey.can_authenticate()) usage_steam << _("Auth") << " ";
 
-    if (mKey.can_certify)
-        usage_steam << "Cert ";
-    if (mKey.can_encrypt)
-        usage_steam << "Encr ";
-    if (mKey.can_sign)
-        usage_steam << "Sign ";
-    if (mKey.can_authenticate)
-        usage_steam << "Auth ";
+  usageVarLabel->setText(usage);
 
-    usageVarLabel->setText(usage);
+  QString actualUsage;
+  QTextStream actual_usage_steam(&actualUsage);
 
-    QString actualUsage;
-    QTextStream actual_usage_steam(&actualUsage);
+  if (mKey.CanCertActual()) actual_usage_steam << _("Cert") << " ";
+  if (mKey.CanEncrActual()) actual_usage_steam << _("Encr") << " ";
+  if (mKey.CanSignActual()) actual_usage_steam << _("Sign") << " ";
+  if (mKey.CanAuthActual()) actual_usage_steam << _("Auth") << " ";
 
-    if (GpgME::GpgContext::checkIfKeyCanCert(mKey))
-        actual_usage_steam << "Cert ";
-    if (GpgME::GpgContext::checkIfKeyCanEncr(mKey))
-        actual_usage_steam << "Encr ";
-    if (GpgME::GpgContext::checkIfKeyCanSign(mKey))
-        actual_usage_steam << "Sign ";
-    if (GpgME::GpgContext::checkIfKeyCanAuth(mKey))
-        actual_usage_steam << "Auth ";
+  actualUsageVarLabel->setText(actualUsage);
 
-    actualUsageVarLabel->setText(actualUsage);
+  QString keySizeVal, keyExpireVal, keyCreateTimeVal, keyAlgoVal;
 
-    QString keySizeVal, keyExpireVal, keyCreateTimeVal, keyAlgoVal;
+  keySizeVal = QString::number(mKey.length());
 
-    keySizeVal = QString::number(mKey.length);
+  if (to_time_t(boost::posix_time::ptime(mKey.expires())) == 0) {
+    keyExpireVal = _("Never Expire");
+  } else {
+    keyExpireVal =
+        QString::fromStdString(boost::gregorian::to_iso_string(mKey.expires()));
+  }
 
-    if (mKey.expires.toTime_t() == 0) {
-        keyExpireVal = tr("Never Expire");
-    } else {
-        keyExpireVal = mKey.expires.toString();
-    }
+  keyAlgoVal = QString::fromStdString(mKey.pubkey_algo());
+  keyCreateTimeVal = QString::fromStdString(to_iso_string(mKey.create_time()));
 
-    keyAlgoVal = mKey.pubkey_algo;
-    keyCreateTimeVal = mKey.create_time.toString();
+  keySizeVarLabel->setText(keySizeVal);
+  expireVarLabel->setText(keyExpireVal);
+  createdVarLabel->setText(keyCreateTimeVal);
+  algorithmVarLabel->setText(keyAlgoVal);
 
-    keySizeVarLabel->setText(keySizeVal);
-    expireVarLabel->setText(keyExpireVal);
-    createdVarLabel->setText(keyCreateTimeVal);
-    algorithmVarLabel->setText(keyAlgoVal);
-
-    fingerPrintVarLabel->setText(beautifyFingerprint(mKey.fpr));
-
+  auto key_fpr = mKey.fpr();
+  fingerPrintVarLabel->setText(
+      QString::fromStdString(beautify_fingerprint(key_fpr)));
 }
 
 void KeyPairDetailTab::createKeyServerOperaMenu() {
-    keyServerOperaMenu = new QMenu(this);
+  keyServerOperaMenu = new QMenu(this);
 
-    auto *uploadKeyPair = new QAction(tr("Upload Key Pair to Key Server"), this);
-    connect(uploadKeyPair, SIGNAL(triggered()), this, SLOT(slotUploadKeyToServer()));
-    auto *updateKeyPair = new QAction(tr("Update Key Pair"), this);
-    connect(updateKeyPair, SIGNAL(triggered()), this, SLOT(slotUpdateKeyToServer()));
+  auto* uploadKeyPair = new QAction(_("Upload Key Pair to Key Server"), this);
+  connect(uploadKeyPair, SIGNAL(triggered()), this,
+          SLOT(slotUploadKeyToServer()));
+  auto* updateKeyPair = new QAction(_("Update Key Pair"), this);
+  connect(updateKeyPair, SIGNAL(triggered()), this,
+          SLOT(slotUpdateKeyToServer()));
 
-    keyServerOperaMenu->addAction(uploadKeyPair);
-    // TODO Solve Refresh Problem
-//    keyServerOperaMenu->addAction(updateKeyPair);
+  keyServerOperaMenu->addAction(uploadKeyPair);
+  keyServerOperaMenu->addAction(updateKeyPair);
 }
 
 void KeyPairDetailTab::slotUploadKeyToServer() {
-    QVector<GpgKey> keys;
-    keys.append(mKey);
-    auto *dialog = new KeyUploadDialog(mCtx, keys);
+  auto keys = std::make_unique<KeyIdArgsList>();
+  keys->push_back(mKey.id());
+  auto* dialog = new KeyUploadDialog(keys, this);
+  dialog->show();
+  dialog->slotUpload();
 }
 
 void KeyPairDetailTab::slotUpdateKeyToServer() {
-    QVector<GpgKey> keys;
-    keys.append(mKey);
-    auto *dialog = new KeyServerImportDialog(mCtx, this);
-    dialog->show();
-    dialog->slotImportKey(keys);
+  auto keys = std::make_unique<KeyIdArgsList>();
+  keys->push_back(mKey.id());
+  auto* dialog = new KeyServerImportDialog(this);
+  dialog->show();
+  dialog->slotImport(keys);
 }
 
 void KeyPairDetailTab::slotGenRevokeCert() {
-    auto mOutputFileName = QFileDialog::getSaveFileName(this, tr("Generate revocation certificate"),
-                                                        QString(),
-                                                        QStringLiteral("%1 (*.rev)").arg(
-                                                                tr("Revocation Certificates")));
+  auto literal = QStringLiteral("%1 (*.rev)").arg(_("Revocation Certificates"));
+  QString m_output_file_name;
 
-    if (!mOutputFileName.isEmpty())
-        mCtx->generateRevokeCert(mKey, mOutputFileName);
+  QFileDialog dialog(this, "Generate revocation certificate", QString(),
+                     literal);
+  dialog.setDefaultSuffix(".rev");
+  dialog.setAcceptMode(QFileDialog::AcceptSave);
 
+  if (dialog.exec()) m_output_file_name = dialog.selectedFiles().front();
+
+  if (!m_output_file_name.isEmpty())
+    CommonUtils::GetInstance()->slotExecuteGpgCommand(
+        {"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o",
+         m_output_file_name, "--gen-revoke", mKey.fpr().c_str()},
+        [](QProcess* proc) -> void {
+          // Code From Gpg4Win
+          while (proc->canReadLine()) {
+            const QString line = QString::fromUtf8(proc->readLine()).trimmed();
+            LOG(INFO) << "line" << line.toStdString();
+            if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
+              proc->write("y\n");
+            } else if (line == QLatin1String("[GNUPG:] GET_LINE "
+                                             "ask_revocation_reason.code")) {
+              proc->write("0\n");
+            } else if (line == QLatin1String("[GNUPG:] GET_LINE "
+                                             "ask_revocation_reason.text")) {
+              proc->write("\n");
+            } else if (line ==
+                       QLatin1String(
+                           "[GNUPG:] GET_BOOL openfile.overwrite.okay")) {
+              // We asked before
+              proc->write("y\n");
+            } else if (line == QLatin1String("[GNUPG:] GET_BOOL "
+                                             "ask_revocation_reason.okay")) {
+              proc->write("y\n");
+            }
+          }
+        });
+}
+void KeyPairDetailTab::slotRefreshKey() {
+  LOG(INFO) << _("Called");
+  this->mKey = GpgKeyGetter::GetInstance().GetKey(mKey.id());
+  this->slotRefreshKeyInfo();
 }
 
+}  // namespace GpgFrontend::UI

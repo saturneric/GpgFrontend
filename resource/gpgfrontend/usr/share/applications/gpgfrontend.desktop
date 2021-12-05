@@ -3,5 +3,5 @@ Type=Application
 Name=GpgFrontend
 Comment=A Cross-Platform OpenPGP Frontend Software
 Exec=GpgFrontend
-Icon=gpgfrontend-appimage-icon
+Icon=GpgFrontend
 Categories=Utility;
