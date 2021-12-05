@@ -30,6 +30,8 @@ jobs:
     steps:
 
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
       - name: Install Dependence (Linux)
         run: |
@@ -111,14 +113,14 @@ jobs:
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-latest'
 
-      - name: Build GpgME (Linux)
+      - name: Build GpgME (Linux & macOS)
         run: |
           cd  ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}
