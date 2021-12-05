@@ -50,7 +50,6 @@ void refresh_info_board(InfoBoardWidget* info_board, int status,
 void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
                             const ResultAnalyse& result_analyse) {
   info_board->associateTabWidget(edit->tabWidget);
-  info_board->associateFileTreeView(edit->curFilePage());
   refresh_info_board(info_board, result_analyse.getStatus(),
                      result_analyse.getResultReport());
 }
@@ -61,8 +60,7 @@ void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
   LOG(INFO) << "process_result_analyse Started";
 
   info_board->associateTabWidget(edit->tabWidget);
-  info_board->associateFileTreeView(edit->curFilePage());
-
+  
   refresh_info_board(
       info_board,
       std::min(result_analyse_a.getStatus(), result_analyse_b.getStatus()),

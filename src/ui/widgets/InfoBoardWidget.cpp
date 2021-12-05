@@ -24,6 +24,7 @@
 
 #include "ui/widgets/InfoBoardWidget.h"
 
+#include "ui/SignalStation.h"
 #include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
@@ -80,6 +81,9 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
   notificationWidgetLayout->setStretchFactor(line, 1);
   notificationWidgetLayout->addStretch(0);
   this->setLayout(notificationWidgetLayout);
+
+  connect(SignalStation::GetInstance(), &SignalStation::signalRefreshInfoBoard,
+          this, &InfoBoardWidget::slotRefresh);
 
   // set default size
   infoBoard->resize(480, 120);
@@ -145,15 +149,6 @@ void InfoBoardWidget::associateTextEdit(QTextEdit* edit) {
   connect(edit, SIGNAL(textChanged()), this, SLOT(slotReset()));
 }
 
-void InfoBoardWidget::associateFileTreeView(FilePage* treeView) {
-  //    if (mFileTreeView != nullptr)
-  //        disconnect(mFileTreeView, &FilePage::pathChanged, this,
-  //        &InfoBoardWidget::slotReset);
-  //    this->mFileTreeView = treeView;
-  //    connect(treeView, &FilePage::pathChanged, this,
-  //    &InfoBoardWidget::slotReset);
-}
-
 void InfoBoardWidget::associateTabWidget(QTabWidget* tab) {
   if (mTextPage != nullptr)
     disconnect(mTextPage, SIGNAL(textChanged()), this, SLOT(slotReset()));
@@ -167,7 +162,6 @@ void InfoBoardWidget::associateTabWidget(QTabWidget* tab) {
   }
 
   mTextPage = nullptr;
-  mFileTreeView = nullptr;
   mTabWidget = tab;
   connect(tab, SIGNAL(tabBarClicked(int)), this, SLOT(slotReset()));
   connect(tab, SIGNAL(tabCloseRequested(int)), this, SLOT(slotReset()));

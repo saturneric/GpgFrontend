@@ -164,15 +164,6 @@ void MainWindow::slotFileSign() {
 
   if (!file_pre_check(this, path)) return;
 
-  if (QFile::exists(path + ".sig")) {
-    auto ret = QMessageBox::warning(
-        this, _("Warning"),
-        _("The target file already exists, do you need to overwrite it?"),
-        QMessageBox::Ok | QMessageBox::Cancel);
-
-    if (ret == QMessageBox::Cancel) return;
-  }
-
   auto key_ids = mKeyList->getChecked();
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
@@ -191,6 +182,18 @@ void MainWindow::slotFileSign() {
               QString::fromStdString(key.uids()->front().uid()));
       return;
     }
+  }
+
+  auto sig_file_path = boost::filesystem::path(path.toStdString() + ".sig");
+  if (QFile::exists(sig_file_path.string().c_str())) {
+    auto ret = QMessageBox::warning(
+        this, _("Warning"),
+        QString(_("The signature file \"%1\" exists, "
+                  "do you need to overwrite it?"))
+            .arg(sig_file_path.filename().string().c_str()),
+        QMessageBox::Ok | QMessageBox::Cancel);
+
+    if (ret == QMessageBox::Cancel) return;
   }
 
   GpgSignResult result = nullptr;
@@ -242,12 +245,22 @@ void MainWindow::slotFileVerify() {
     signFilePath = path + ".sig";
   }
 
+  bool ok;
+  QString text =
+      QInputDialog::getText(this, _("Origin file to verify"), _("Filepath"),
+                            QLineEdit::Normal, dataFilePath, &ok);
+  if (ok && !text.isEmpty()) {
+    dataFilePath = text;
+  } else {
+    return;
+  }
+
   QFileInfo dataFileInfo(dataFilePath), signFileInfo(signFilePath);
 
   if (!dataFileInfo.isFile() || !signFileInfo.isFile()) {
     QMessageBox::critical(
         this, _("Error"),
-        _("Please select the appropriate target file or signature file. "
+        _("Please select the appropriate origin file or signature file. "
           "Ensure that both are in this directory."));
     return;
   }
@@ -433,8 +446,6 @@ void MainWindow::slotFileDecryptVerify() {
   });
 
   if (!if_error) {
-    infoBoard->associateFileTreeView(edit->curFilePage());
-
     auto decrypt_res = DecryptResultAnalyse(error, std::move(d_result));
     auto verify_res = VerifyResultAnalyse(error, std::move(v_result));
     decrypt_res.analyse();
