@@ -26,7 +26,6 @@
 #define __SGPGMEPP_CONTEXT_H__
 
 #include "GpgConstants.h"
-
 #include "GpgFunctionObject.h"
 #include "GpgInfo.h"
 #include "GpgModel.h"
@@ -39,7 +38,7 @@ namespace GpgFrontend {
 class GpgContext : public SingletonFunctionObject<GpgContext> {
  public:
   explicit GpgContext(bool independent_database = false,
-             std::string path = std::string(), int channel = 0);
+                      std::string path = std::string(), int channel = 0);
 
   ~GpgContext() override = default;
 
@@ -71,8 +70,9 @@ class GpgContext : public SingletonFunctionObject<GpgContext> {
                                           int last_was_bad, int fd) {
     LOG(INFO) << "test_passphrase_cb Called";
     size_t res;
-    char pass[] = "abcdefg\n";
-    size_t pass_len = strlen(pass);
+    std::string pass = "abcdefg\n";
+    auto pass_len = pass.size();
+
     size_t off = 0;
 
     (void)opaque;

@@ -39,10 +39,6 @@ int main(int argc, char* argv[]) {
   // Qt App
   QApplication app(argc, argv);
 
-  // get application path
-  auto app_path =
-      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetAppDir();
-
   // logging system
   init_logging();
 
@@ -53,7 +49,7 @@ int main(int argc, char* argv[]) {
   QApplication::setApplicationVersion(BUILD_VERSION);
   QApplication::setApplicationName(PROJECT_NAME);
 
-  // dont show icons in menus
+  // don't show icons in menus
   QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
 
   // unicode in source
@@ -168,6 +164,7 @@ void init_locale() {
   bindtextdomain(PROJECT_NAME,
                  GpgFrontend::UI::GlobalSettingStation::GetInstance()
                      .GetLocaleDir()
-                     .string().c_str());
+                     .string()
+                     .c_str());
   textdomain(PROJECT_NAME);
 }
