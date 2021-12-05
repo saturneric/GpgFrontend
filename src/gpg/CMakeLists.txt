@@ -1,28 +1,42 @@
 aux_source_directory(./result_analyse GPG_SOURCE)
-aux_source_directory(./gpg_context GPG_SOURCE)
+aux_source_directory(./function GPG_SOURCE)
+aux_source_directory(./model GPG_SOURCE)
 aux_source_directory(. GPG_SOURCE)
 
-add_library(gpg STATIC ${GPG_SOURCE})
+add_library(gpg_core STATIC ${GPG_SOURCE})
 
 set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
 
 set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 
+if (ESAY_LOGGING_PP)
+    message(STATUS "Link ESAY_LOGGING_PP")
+    set(THIRD_PARTY_LIBS easy_logging_pp config++)
+endif ()
+
+set(BOOST_LIBS Boost::date_time Boost::filesystem)
+
+message(STATUS "Third Party Libraries " ${THIRD_PARTY_LIBS})
+
 if (MINGW)
     message(STATUS "Link GPG Static Library For MINGW")
-    target_link_libraries(gpg
-            gpgme gpg-error assuan
-            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core
-            wsock32)
-elseif(APPLE)
+    target_link_libraries(gpg_core ${THIRD_PARTY_LIBS}
+            ${BOOST_LIBS}
+            gpgme gpg-error assuan wsock32)
+    target_compile_features(gpg_core PUBLIC cxx_std_17)
+elseif (APPLE)
+    find_library(libgpgme NAMES libgpgme.a)
+    find_library(libgpg-error NAMES libgpg-error.a)
+    find_library(libassuan NAMES libassuan.a)
     message(STATUS "Link GPG Static Library For macOS")
-    target_link_libraries(gpg
-            /usr/local/lib/libgpgme.a /usr/local/lib/libgpg-error.a /usr/local/lib/libassuan.a
-            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
-else()
-        
+    target_link_libraries(gpg_core ${THIRD_PARTY_LIBS}
+            ${BOOST_LIBS}
+            ${libgpgme} ${libgpg-error} ${libassuan}
+            dl)
+else ()
     message(STATUS "Link GPG Static Library For Unix")
-    target_link_libraries(gpg
-            /usr/local/lib/libgpgme.a /usr/local/lib/libgpg-error.a /usr/local/lib/libassuan.a
-            Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
-endif()
+    target_link_libraries(gpg_core ${THIRD_PARTY_LIBS}
+            libgpgme.a libgpg-error.a libassuan.a
+            ${BOOST_LIBS}
+            pthread dl)
+endif ()

@@ -19,7 +19,7 @@ on:
     branches: [ main ]
   schedule:
     - cron: '19 14 * * 2'
-    
+
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Debug
@@ -43,86 +43,87 @@ jobs:
         # https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#changing-the-languages-that-are-analyzed
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: ${{ matrix.language }}
+          # If you wish to specify custom queries, you can do so here or in a config file.
+          # By default, queries listed here will override any specified in a config file.
+          # Prefix the list here with "+" to use these queries and those in the config file.
+          # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
-    # Initializes the CodeQL tools for scanning.
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
-      with:
-        languages: ${{ matrix.language }}
-        # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file.
-        # Prefix the list here with "+" to use these queries and those in the config file.
-        # queries: ./path/to/local/query, your-org/your-repo/queries@main
-        
-    - name: Install Dependence (Linux)
-      run: |
-        sudo apt-get update
-        sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-        sudo apt-get -y install gcc g++
-        sudo apt-get -y install gpgsm
-    - name: Cache Qt
-      id: cache-qt
-      uses: actions/cache@v1
-      with:
-        path: ../Qt
-        key: ${{ runner.os }}-QtCache
+      - name: Install Dependence
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
+          sudo apt-get -y install gcc g++ libconfig++-dev libboost-all-dev
+          sudo apt-get -y install gpgsm
 
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v2
-      with:
-        cached: ${{ steps.cache-qt.outputs.cache-hit }}
+      - name: Cache Qt
+        id: cache-qt
+        uses: actions/cache@v1
+        with:
+          path: ../Qt
+          key: ${{ runner.os }}-QtCache
 
-    - name: Build gpg-error (Linux)
-      run: |
-        cd  ${{github.workspace}}/..
-        git clone https://github.com/saturneric/libgpg-error
-        cd libgpg-error
-        ./autogen.sh
-        ./configure --enable-maintainer-mode --enable-static=yes && make -j2
-        sudo make install
-        cd ${{github.workspace}}
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v2
+        with:
+          cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
-    - name: Build assuan (Linux)
-      run: |
-        cd  ${{github.workspace}}/..
-        git clone https://github.com/saturneric/libassuan
-        cd libassuan
-        ./autogen.sh
-        ./configure --enable-maintainer-mode --enable-static=yes && make -j2
-        sudo make install
-        cd ${{github.workspace}}
+      - name: Build gpg-error (Linux)
+        run: |
+          cd  ${{github.workspace}}/..
+          git clone https://github.com/saturneric/libgpg-error
+          cd libgpg-error
+          ./autogen.sh
+          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
+          sudo make install
+          cd ${{github.workspace}}
 
-    - name: Build GpgME (Linux)
-      run: |
-        cd  ${{github.workspace}}/..
-        git clone https://github.com/saturneric/gpgme
-        cd gpgme
-        ./autogen.sh
-        ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
-        sudo make install
-        cd ${{github.workspace}}
+      - name: Build assuan (Linux)
+        run: |
+          cd  ${{github.workspace}}/..
+          git clone https://github.com/saturneric/libassuan
+          cd libassuan
+          ./autogen.sh
+          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
+          sudo make install
+          cd ${{github.workspace}}
 
-    - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}}
+      - name: Build GpgME (Linux)
+        run: |
+          cd  ${{github.workspace}}/..
+          git clone https://github.com/saturneric/gpgme
+          cd gpgme
+          ./autogen.sh
+          ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
+          sudo make install
+          cd ${{github.workspace}}
 
-    - name: Build GpgFrontend
-      # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}}  -- -j 2
+      - name: Configure CMake
+        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}}
 
-    # ℹ️ Command-line programs to run using the OS shell.
-    # 📚 https://git.io/JvXDl
+      - name: Build GpgFrontend
+        # Build your program with the given configuration
+        run: cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}}  -- -j 2
+      
+      # ℹ️ Command-line programs to run using the OS shell.
+      # 📚 https://git.io/JvXDl
+      
+      # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
+      #    and modify them (or add more) to build your code if your project
+      #    uses a compiled language
+      
+      #- run: |
+      #   make bootstrap
+      #   make release
 
-    # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
-    #    and modify them (or add more) to build your code if your project
-    #    uses a compiled language
-
-    #- run: |
-    #   make bootstrap
-    #   make release
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1

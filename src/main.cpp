@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -22,77 +22,149 @@
  *
  */
 
-#include "MainWindow.h"
 #include "GpgFrontendBuildInfo.h"
+#include "ui/MainWindow.h"
+#include "ui/settings/GlobalSettingStation.h"
 
-int main(int argc, char *argv[]) {
+// Easy Logging Cpp
+INITIALIZE_EASYLOGGINGPP
 
-    Q_INIT_RESOURCE(gpgfrontend);
+void init_logging();
+void init_locale();
 
-    QApplication app(argc, argv);
+int main(int argc, char* argv[]) {
+  // Qt
+  Q_INIT_RESOURCE(gpgfrontend);
 
-    // get application path
-    QString appPath = qApp->applicationDirPath();
+  // Qt App
+  QApplication app(argc, argv);
 
-    QApplication::setApplicationVersion(BUILD_VERSION);
-    QApplication::setApplicationName(PROJECT_NAME);
+  // logging system
+  init_logging();
 
-    // dont show icons in menus
-    QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
+  // i18n
+  init_locale();
 
-    // unicode in source
-    QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
+  // App config
+  QApplication::setApplicationVersion(BUILD_VERSION);
+  QApplication::setApplicationName(PROJECT_NAME);
 
-#if OS_PLATFORM == WINDOWS
-    // load css file
-    QFile file(RESOURCE_DIR(qApp->applicationDirPath()) + "/css/default.qss");
-    file.open(QFile::ReadOnly);
-    QString styleSheet = QLatin1String(file.readAll());
-    qApp->setStyleSheet(styleSheet);
-    file.close();
+  // don't show icons in menus
+  QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
+
+  // unicode in source
+  QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
+
+#ifdef WINDOWS
+  // css
+  QFile file(RESOURCE_DIR(qApp->applicationDirPath()) + "/css/default.qss");
+  file.open(QFile::ReadOnly);
+  QString styleSheet = QLatin1String(file.readAll());
+  qApp->setStyleSheet(styleSheet);
+  file.close();
 #endif
 
+  /**
+   * internationalisation. loop to restart mainwindow
+   * with changed translation when settings change.
+   */
+  int return_from_event_loop_code;
+
+  do {
+    QApplication::setQuitOnLastWindowClosed(true);
+
     /**
-     * internationalisation. loop to restart mainwindow
-     * with changed translation when settings change.
-     */
-    if(!QDir(RESOURCE_DIR(appPath) + "/conf").exists()) {
-        QDir().mkdir(RESOURCE_DIR(appPath) + "/conf");
-    }
-    QSettings::setDefaultFormat(QSettings::IniFormat);
-    QSettings settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini", QSettings::IniFormat);
-    QTranslator translator, translator2;
-    int return_from_event_loop_code;
+     * The function `gpgme_check_version' must be called before any other
+     *  function in the library, because it initializes the thread support
+     *  subsystem in GPGME. (from the info page) */
+    gpgme_check_version(nullptr);
 
-    qDebug() << "Resource Directory" << RESOURCE_DIR(appPath);
+    /** set locale, because tests do also */
+    gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
+#ifndef _WIN32
+    gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
+#endif
 
-    do {
-        QApplication::removeTranslator(&translator);
-        QApplication::removeTranslator(&translator2);
+    auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
+    main_window->init();
+    main_window->show();
+    return_from_event_loop_code = QApplication::exec();
 
-        QString lang = settings.value("int/lang", QLocale::system().name()).toString();
-        if (lang.isEmpty()) {
-            lang = QLocale::system().name();
-        }
-        qDebug() << "Language set" << lang;
-        translator.load(RESOURCE_DIR(appPath) + "/ts/" + "gpgfrontend_" + lang);
-        qDebug() << "Translator" << translator.filePath();
-        QApplication::installTranslator(&translator);
+  } while (return_from_event_loop_code == RESTART_CODE);
 
-        // set qt translations
-        translator2.load(RESOURCE_DIR(appPath) + "/ts/qt_" + lang);
-        qDebug() << "Translator2" << translator2.filePath();
-        QApplication::installTranslator(&translator2);
-
-        QApplication::setQuitOnLastWindowClosed(true);
-
-        MainWindow window;
-        return_from_event_loop_code = QApplication::exec();
-
-    } while (return_from_event_loop_code == RESTART_CODE);
-
-    return return_from_event_loop_code;
+  return return_from_event_loop_code;
 }
 
+void init_logging() {
+  using namespace boost::posix_time;
+  using namespace boost::gregorian;
 
+  ptime now = second_clock::local_time();
 
+  el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
+  el::Configurations defaultConf;
+  defaultConf.setToDefault();
+  el::Loggers::reconfigureLogger("default", defaultConf);
+
+  defaultConf.setGlobally(el::ConfigurationType::Format,
+                          "%datetime %level %func %msg");
+
+  auto logfile_path =
+      (GpgFrontend::UI::GlobalSettingStation::GetInstance().GetLogDir() /
+       to_iso_string(now));
+  logfile_path.replace_extension(".log");
+  defaultConf.setGlobally(el::ConfigurationType::Filename,
+                          logfile_path.string());
+
+  el::Loggers::reconfigureLogger("default", defaultConf);
+
+  LOG(INFO) << _("Logfile Path") << logfile_path;
+}
+
+void init_locale() {
+  auto& settings =
+      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
+
+  if (!settings.exists("general") ||
+      settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
+    settings.add("general", libconfig::Setting::TypeGroup);
+
+  // set system default at first
+  auto& general = settings["general"];
+  if (!general.exists("lang"))
+    general.add("lang", libconfig::Setting::TypeString) = "";
+
+  GpgFrontend::UI::GlobalSettingStation::GetInstance().Sync();
+
+  auto* locale_name = setlocale(LC_ALL, nullptr);
+  LOG(INFO) << "current system locale" << locale_name;
+
+  // read from settings file
+  std::string lang;
+  if (!general.lookupValue("lang", lang)) {
+    LOG(ERROR) << _("Could not read properly from configure file");
+  };
+
+  LOG(INFO) << "lang" << lang;
+  LOG(INFO) << "PROJECT_NAME" << PROJECT_NAME;
+  LOG(INFO) << "locales path"
+            << GpgFrontend::UI::GlobalSettingStation::GetInstance()
+                   .GetLocaleDir()
+                   .c_str();
+
+  if (!lang.empty()) lang += ".UTF8";
+  // GNU gettext settings
+  locale_name = setlocale(LC_ALL, lang.c_str());
+  if (locale_name == nullptr) {
+    LOG(WARNING) << "set locale name failed";
+  } else {
+    LOG(INFO) << "locale name now" << locale_name;
+  }
+
+  bindtextdomain(PROJECT_NAME,
+                 GpgFrontend::UI::GlobalSettingStation::GetInstance()
+                     .GetLocaleDir()
+                     .string()
+                     .c_str());
+  textdomain(PROJECT_NAME);
+}

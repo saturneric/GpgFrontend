@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -24,84 +24,131 @@
 
 #include "ui/widgets/EditorPage.h"
 
+#include <boost/filesystem.hpp>
 #include <utility>
 
-EditorPage::EditorPage(QString filePath, QWidget *parent) : QWidget(parent),
-                                                            fullFilePath(std::move(filePath)) {
-    // Set the Textedit properties
-    textPage = new QTextEdit();
-    textPage->setAcceptRichText(false);
+#include "ui/function/FileReadThread.h"
 
-    // Set the layout style
-    mainLayout = new QVBoxLayout();
-    mainLayout->setSpacing(0);
-    mainLayout->addWidget(textPage);
-    mainLayout->setContentsMargins(0, 0, 0, 0);
-    setLayout(mainLayout);
+namespace GpgFrontend::UI {
 
-    setAttribute(Qt::WA_DeleteOnClose);
-    textPage->setFocus();
+EditorPage::EditorPage(QString filePath, QWidget* parent)
+    : QWidget(parent), fullFilePath(std::move(filePath)) {
+  // Set the Textedit properties
+  textPage = new QTextEdit();
+  textPage->setAcceptRichText(false);
 
-    // Front in same width
-    this->setFont({"Courier"});
+  // Set the layout style
+  mainLayout = new QVBoxLayout();
+  mainLayout->setSpacing(0);
+  mainLayout->addWidget(textPage);
+  mainLayout->setContentsMargins(0, 0, 0, 0);
+  setLayout(mainLayout);
+
+  textPage->setFocus();
+
+  // Front in same width
+  this->setFont({"Courier"});
+  this->setAttribute(Qt::WA_DeleteOnClose);
 }
 
-const QString &EditorPage::getFilePath() const {
-    return fullFilePath;
+const QString& EditorPage::getFilePath() const { return fullFilePath; }
+
+QTextEdit* EditorPage::getTextPage() { return textPage; }
+
+void EditorPage::setFilePath(const QString& filePath) {
+  fullFilePath = filePath;
 }
 
-QTextEdit *EditorPage::getTextPage() {
-    return textPage;
+void EditorPage::showNotificationWidget(QWidget* widget,
+                                        const char* className) {
+  widget->setProperty(className, true);
+  mainLayout->addWidget(widget);
 }
 
-void EditorPage::setFilePath(const QString &filePath) {
-    fullFilePath = filePath;
-}
-
-void EditorPage::showNotificationWidget(QWidget *widget, const char *className) {
-    widget->setProperty(className, true);
-    mainLayout->addWidget(widget);
-}
-
-void EditorPage::closeNoteByClass(const char *className) {
-    QList<QWidget *> widgets = findChildren<QWidget *>();
-    for (QWidget *widget:  widgets) {
-        if (widget->property(className) == true) {
-            widget->close();
-        }
+void EditorPage::closeNoteByClass(const char* className) {
+  QList<QWidget*> widgets = findChildren<QWidget*>();
+  for (QWidget* widget : widgets) {
+    if (widget->property(className) == true) {
+      widget->close();
     }
+  }
 }
 
 void EditorPage::slotFormatGpgHeader() {
+  QString content = textPage->toPlainText();
 
-    QString content = textPage->toPlainText();
+  // Get positions of the gpg-headers, if they exist
+  int start = content.indexOf(GpgFrontend::GpgConstants::PGP_SIGNED_BEGIN);
+  int startSig =
+      content.indexOf(GpgFrontend::GpgConstants::PGP_SIGNATURE_BEGIN);
+  int endSig = content.indexOf(GpgFrontend::GpgConstants::PGP_SIGNATURE_END);
 
-    // Get positions of the gpg-headers, if they exist
-    int start = content.indexOf(GpgConstants::PGP_SIGNED_BEGIN);
-    int startSig = content.indexOf(GpgConstants::PGP_SIGNATURE_BEGIN);
-    int endSig = content.indexOf(GpgConstants::PGP_SIGNATURE_END);
+  if (start < 0 || startSig < 0 || endSig < 0 || signMarked) {
+    return;
+  }
 
-    if (start < 0 || startSig < 0 || endSig < 0 || signMarked) {
-        return;
-    }
+  signMarked = true;
 
-    signMarked = true;
+  // Set the fontstyle for the header
+  QTextCharFormat signFormat;
+  signFormat.setForeground(QBrush(QColor::fromRgb(80, 80, 80)));
+  signFormat.setFontPointSize(9);
 
-    // Set the fontstyle for the header
-    QTextCharFormat signFormat;
-    signFormat.setForeground(QBrush(QColor::fromRgb(80, 80, 80)));
-    signFormat.setFontPointSize(9);
+  // set font style for the signature
+  QTextCursor cursor(textPage->document());
+  cursor.setPosition(startSig, QTextCursor::MoveAnchor);
+  cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, endSig);
+  cursor.setCharFormat(signFormat);
 
-    // set font style for the signature
-    QTextCursor cursor(textPage->document());
-    cursor.setPosition(startSig, QTextCursor::MoveAnchor);
-    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, endSig);
-    cursor.setCharFormat(signFormat);
-
-    // set the font style for the header
-    int headEnd = content.indexOf("\n\n", start);
-    cursor.setPosition(start, QTextCursor::MoveAnchor);
-    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, headEnd);
-    cursor.setCharFormat(signFormat);
-
+  // set the font style for the header
+  int headEnd = content.indexOf("\n\n", start);
+  cursor.setPosition(start, QTextCursor::MoveAnchor);
+  cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, headEnd);
+  cursor.setCharFormat(signFormat);
 }
+
+void EditorPage::ReadFile() {
+  LOG(INFO) << "Called";
+
+  readDone = false;
+
+  auto text_page = this->getTextPage();
+  text_page->setReadOnly(true);
+  auto thread = new FileReadThread(this->fullFilePath.toStdString());
+
+  connect(thread, &FileReadThread::sendReadBlock, this,
+          &EditorPage::slotInsertText);
+
+  connect(thread, &FileReadThread::readDone, this, [=]() {
+    LOG(INFO) << "Thread read done";
+    text_page->document()->setModified(false);
+    text_page->setReadOnly(false);
+  });
+
+  connect(thread, &FileReadThread::finished, this, [=]() {
+    LOG(INFO) << "Thread finished";
+    thread->deleteLater();
+    readDone = true;
+    readThread = nullptr;
+  });
+
+  connect(this, &EditorPage::destroyed, [=]() {
+    LOG(INFO) << "RequestInterruption for readThread";
+    thread->requestInterruption();
+    readThread = nullptr;
+  });
+  this->readThread = thread;
+  thread->start();
+}
+
+void EditorPage::slotInsertText(const QString& text) {
+  this->getTextPage()->insertPlainText(text);
+}
+void EditorPage::PrepareToDestroy() {
+  if (readThread) {
+    readThread->requestInterruption();
+    readThread = nullptr;
+  }
+}
+
+}  // namespace GpgFrontend::UI

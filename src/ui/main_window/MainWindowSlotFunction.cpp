@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -23,559 +23,542 @@
  */
 
 #include "MainWindow.h"
-#include "ui/SendMailDialog.h"
-#include "ui/widgets/SignersPicker.h"
-#include "server/api/PubkeyUploader.h"
+
+#ifdef ADVANCE_SUPPORT
 #include "advance/UnknownSignersChecker.h"
+#endif
+#ifdef SERVER_SUPPORT
+#include "server/api/PubkeyUploader.h"
+#endif
 
+#ifdef SMTP_SUPPORT
+#include "ui/smtp/SendMailDialog.h"
+#endif
 
+#include "gpg/function/BasicOperator.h"
+#include "gpg/function/GpgKeyGetter.h"
+#include "gpg/function/GpgKeyImportExportor.h"
+#include "ui/UserInterfaceUtils.h"
+#include "ui/widgets/SignersPicker.h"
+
+namespace GpgFrontend::UI {
 /**
  * Encrypt Entry(Text & File)
  */
 void MainWindow::slotEncrypt() {
+  if (edit->tabCount() == 0) return;
 
-    if (edit->tabCount() == 0) return;
+  if (edit->slotCurPageTextEdit() != nullptr) {
+    auto key_ids = mKeyList->getChecked();
 
-    if (edit->slotCurPageTextEdit() != nullptr) {
-
-        QVector<GpgKey> keys;
-        mKeyList->getCheckedKeys(keys);
-
-        if (keys.count() == 0) {
-            QMessageBox::critical(nullptr, tr("No Key Selected"), tr("No Key Selected"));
-            return;
-        }
-
-        for (const auto &key : keys) {
-            if (!GpgME::GpgContext::checkIfKeyCanEncr(key)) {
-                QMessageBox::information(nullptr,
-                                         tr("Invalid Operation"),
-                                         tr("The selected key contains a key that does not actually have a encrypt usage.<br/>")
-                                         + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
-                return;
-
-            }
-        }
-
-        auto tmp = QByteArray();
-
-        gpgme_encrypt_result_t result = nullptr;
-
-        gpgme_error_t error;
-
-        auto thread = QThread::create([&]() {
-            error = mCtx->encrypt(keys, edit->curTextPage()->toPlainText().toUtf8(), &tmp, &result);
-        });
-        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-        thread->start();
-
-        auto *dialog = new WaitingDialog(tr("Encrypting"), this);
-
-        while (thread->isRunning())
-            QApplication::processEvents();
-
-        dialog->close();
-
-        auto resultAnalyse = new EncryptResultAnalyse(error, result);
-        auto &reportText = resultAnalyse->getResultReport();
-
-        auto tmp2 = QString(tmp);
-        edit->slotFillTextEditWithText(tmp2);
-        infoBoard->associateTextEdit(edit->curTextPage());
-
-        // check result analyse status
-        if (resultAnalyse->getStatus() < 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-        else if (resultAnalyse->getStatus() > 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-        else
-            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-        // set optional actions
-        if (resultAnalyse->getStatus() >= 0) {
-            infoBoard->resetOptionActionsMenu();
-            infoBoard->addOptionalAction("Send Mail", [this]() {
-                if (settings.value("sendMail/enable", false).toBool())
-                    new SendMailDialog(edit->curTextPage()->toPlainText(), this);
-                else {
-                    QMessageBox::warning(nullptr,
-                                         tr("Function Disabled"),
-                                         tr("Please go to the settings interface to enable and configure this function."));
-                }
-            });
-        }
-
-        delete resultAnalyse;
-    } else if (edit->slotCurPageFileTreeView() != nullptr) {
-        this->slotFileEncrypt();
+    if (key_ids->empty()) {
+      QMessageBox::critical(nullptr, _("No Key Selected"),
+                            _("No Key Selected"));
+      return;
     }
+
+    auto key_getter = GpgFrontend::GpgKeyGetter::GetInstance();
+    auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+    for (const auto& key : *keys) {
+      if (!key.CanEncrActual()) {
+        QMessageBox::information(
+            nullptr, _("Invalid Operation"),
+            QString(_(
+                "The selected key contains a key that does not actually have a "
+                "encrypt usage.")) +
+                "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
+                QString::fromStdString(key.uids()->front().uid()));
+        return;
+      }
+    }
+
+    auto tmp = std::make_unique<ByteArray>();
+
+    GpgEncrResult result = nullptr;
+    GpgError error;
+    bool if_error = false;
+    process_operation(this, _("Encrypting"), [&]() {
+      try {
+        auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
+        error = GpgFrontend::BasicOperator::GetInstance().Encrypt(
+            std::move(keys), buffer, tmp, result);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
+
+    if (!if_error) {
+      auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));
+      resultAnalyse.analyse();
+      process_result_analyse(edit, infoBoard, resultAnalyse);
+      
+      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+        edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
+#ifdef SMTP_SUPPORT
+      // set optional actions
+      if (resultAnalyse.getStatus() >= 0) {
+        infoBoard->resetOptionActionsMenu();
+        infoBoard->addOptionalAction("Send Mail", [this]() {
+          if (settings.value("sendMail/enable", false).toBool())
+            new SendMailDialog(edit->curTextPage()->toPlainText(), this);
+          else {
+            QMessageBox::warning(nullptr, _("Function Disabled"),
+                                 _("Please go to the settings interface to "
+                                   "enable and configure this function."));
+          }
+        });
+      }
+#endif
+
+    } else {
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
+      return;
+    }
+
+  } else if (edit->slotCurPageFileTreeView() != nullptr) {
+    this->slotFileEncrypt();
+  }
 }
 
 void MainWindow::slotSign() {
+  if (edit->tabCount() == 0) return;
 
-    if (edit->tabCount() == 0) return;
+  if (edit->slotCurPageTextEdit() != nullptr) {
+    auto key_ids = mKeyList->getPrivateChecked();
 
-    if (edit->slotCurPageTextEdit() != nullptr) {
-
-        QVector<GpgKey> keys;
-
-        mKeyList->getPrivateCheckedKeys(keys);
-
-        if (keys.isEmpty()) {
-            QMessageBox::critical(this, tr("No Key Selected"), tr("No Key Selected"));
-            return;
-        }
-
-        for (const auto &key : keys) {
-            if (!GpgME::GpgContext::checkIfKeyCanSign(key)) {
-                QMessageBox::information(this,
-                                         tr("Invalid Operation"),
-                                         tr("The selected key contains a key that does not actually have a signature usage.<br/>")
-                                         + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
-                return;
-            }
-        }
-
-        auto tmp = QByteArray();
-
-        gpgme_sign_result_t result = nullptr;
-
-        gpgme_error_t error;
-        auto thread = QThread::create([&]() {
-            error = mCtx->sign(keys, edit->curTextPage()->toPlainText().toUtf8(), &tmp, GPGME_SIG_MODE_CLEAR, &result);
-        });
-        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-        thread->start();
-
-        auto *dialog = new WaitingDialog(tr("Signing"), this);
-        while (thread->isRunning()) {
-            QApplication::processEvents();
-        }
-        dialog->close();
-
-        infoBoard->associateTextEdit(edit->curTextPage());
-        edit->slotFillTextEditWithText(QString::fromUtf8(tmp));
-
-        auto resultAnalyse = new SignResultAnalyse(mCtx, error, result);
-
-        auto &reportText = resultAnalyse->getResultReport();
-        if (resultAnalyse->getStatus() < 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-        else if (resultAnalyse->getStatus() > 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-        else
-            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-        delete resultAnalyse;
-    } else if (edit->slotCurPageFileTreeView() != nullptr) {
-        this->slotFileSign();
+    if (key_ids->empty()) {
+      QMessageBox::critical(this, _("No Key Selected"), _("No Key Selected"));
+      return;
     }
+
+    auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+    for (const auto& key : *keys) {
+      if (!key.CanSignActual()) {
+        QMessageBox::information(
+            this, _("Invalid Operation"),
+            QString(_(
+                "The selected key contains a key that does not actually have a "
+                "signature usage.")) +
+                "<br/><br/>" + _("For example the Following Key:") + "<br/>" +
+                key.uids()->front().uid().c_str());
+        return;
+      }
+    }
+
+    auto tmp = std::make_unique<ByteArray>();
+
+    GpgSignResult result = nullptr;
+    gpgme_error_t error;
+    bool if_error = false;
+
+    process_operation(this, _("Signing"), [&]() {
+      try {
+        auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
+        error = GpgFrontend::BasicOperator::GetInstance().Sign(
+            std::move(keys), buffer, tmp, GPGME_SIG_MODE_CLEAR, result);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
+
+    if (!if_error) {
+      auto resultAnalyse = SignResultAnalyse(error, std::move(result));
+      resultAnalyse.analyse();
+      process_result_analyse(edit, infoBoard, resultAnalyse);
+
+      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+        edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
+    } else {
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
+      return;
+    }
+  } else if (edit->slotCurPageFileTreeView() != nullptr) {
+    this->slotFileSign();
+  }
 }
 
 void MainWindow::slotDecrypt() {
-    if (edit->tabCount() == 0) return;
+  if (edit->tabCount() == 0) return;
 
-    if (edit->slotCurPageTextEdit() != nullptr) {
+  if (edit->slotCurPageTextEdit() != nullptr) {
+    auto decrypted = std::make_unique<ByteArray>();
+    QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
 
-        auto decrypted = QByteArray();
-        QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
-        GpgME::GpgContext::preventNoDataErr(&text);
-
-        if (text.trimmed().startsWith(GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD)) {
-            QMessageBox::critical(this, tr("Notice"), tr("Short Crypto Text only supports Decrypt & Verify."));
-            return;
-        }
-
-        gpgme_decrypt_result_t result = nullptr;
-
-        gpgme_error_t error;
-        auto thread = QThread::create([&]() {
-            // try decrypt, if fail do nothing, especially don't replace text
-            error = mCtx->decrypt(text, &decrypted, &result);
-        });
-        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-        thread->start();
-
-        auto *dialog = new WaitingDialog(tr("Decrypting"), this);
-        while (thread->isRunning()) {
-            QApplication::processEvents();
-        }
-
-        dialog->close();
-
-        infoBoard->associateTextEdit(edit->curTextPage());
-
-        if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
-            edit->slotFillTextEditWithText(QString::fromUtf8(decrypted));
-
-        auto resultAnalyse = new DecryptResultAnalyse(mCtx, error, result);
-
-        auto &reportText = resultAnalyse->getResultReport();
-        if (resultAnalyse->getStatus() < 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-        else if (resultAnalyse->getStatus() > 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-        else
-            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-        delete resultAnalyse;
-    } else if (edit->slotCurPageFileTreeView() != nullptr) {
-        this->slotFileDecrypt();
+    if (text.trimmed().startsWith(
+            GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD)) {
+      QMessageBox::critical(
+          this, _("Notice"),
+          _("Short Crypto Text only supports Decrypt & Verify."));
+      return;
     }
+
+    GpgDecrResult result = nullptr;
+    gpgme_error_t error;
+    bool if_error = false;
+    process_operation(this, _("Decrypting"), [&]() {
+      try {
+        auto buffer = text.toStdString();
+        error = GpgFrontend::BasicOperator::GetInstance().Decrypt(
+            buffer, decrypted, result);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
+
+    if (!if_error) {
+      auto resultAnalyse = DecryptResultAnalyse(error, std::move(result));
+      resultAnalyse.analyse();
+      process_result_analyse(edit, infoBoard, resultAnalyse);
+
+      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+        edit->slotFillTextEditWithText(QString::fromStdString(*decrypted));
+    } else {
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
+      return;
+    }
+  } else if (edit->slotCurPageFileTreeView() != nullptr) {
+    this->slotFileDecrypt();
+  }
 }
 
 void MainWindow::slotFind() {
-    if (edit->tabCount() == 0 || edit->curTextPage() == nullptr) {
-        return;
-    }
+  if (edit->tabCount() == 0 || edit->curTextPage() == nullptr) {
+    return;
+  }
 
-    // At first close verifynotification, if existing
-    edit->slotCurPageTextEdit()->closeNoteByClass("findwidget");
+  // At first close verifynotification, if existing
+  edit->slotCurPageTextEdit()->closeNoteByClass("findwidget");
 
-    auto *fw = new FindWidget(this, edit->curTextPage());
-    edit->slotCurPageTextEdit()->showNotificationWidget(fw, "findWidget");
-
+  auto* fw = new FindWidget(this, edit->curTextPage());
+  edit->slotCurPageTextEdit()->showNotificationWidget(fw, "findWidget");
 }
 
 void MainWindow::slotVerify() {
+  if (edit->tabCount() == 0) return;
 
-    if (edit->tabCount() == 0) return;
+  if (edit->slotCurPageTextEdit() != nullptr) {
+    auto text = edit->curTextPage()->toPlainText().toUtf8();
+    // TODO(Saturneric) PreventNoDataErr
 
-    if (edit->slotCurPageTextEdit() != nullptr) {
+    auto sig_buffer = std::make_unique<ByteArray>();
+    sig_buffer.reset();
 
-        QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
-        GpgME::GpgContext::preventNoDataErr(&text);
+    GpgVerifyResult result = nullptr;
+    GpgError error;
+    bool if_error = false;
+    process_operation(this, _("Verifying"), [&]() {
+      try {
+        auto buffer = text.toStdString();
+        error = GpgFrontend::BasicOperator::GetInstance().Verify(
+            buffer, sig_buffer, result);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
 
-        gpgme_verify_result_t result;
+    if (!if_error) {
+      auto resultAnalyse = VerifyResultAnalyse(error, std::move(result));
+      resultAnalyse.analyse();
+      process_result_analyse(edit, infoBoard, resultAnalyse);
 
-        gpgme_error_t error;
-        auto thread = QThread::create([&]() {
-            error = mCtx->verify(&text, nullptr, &result);
-        });
-        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-        thread->start();
+      //    if (resultAnalyse->getStatus() >= 0) {
+      //      infoBoard->resetOptionActionsMenu();
+      //      infoBoard->addOptionalAction(
+      //          "Show Verify Details", [this, error, result]() {
+      //            VerifyDetailsDialog(this, mCtx, mKeyList, error, result);
+      //          });
+      //    }
 
-        auto *dialog = new WaitingDialog(tr("Verifying"), this);
-        while (thread->isRunning())
-            QApplication::processEvents();
-        dialog->close();
-
-        auto resultAnalyse = new VerifyResultAnalyse(mCtx, error, result);
-        infoBoard->associateTextEdit(edit->curTextPage());
-
-        auto &reportText = resultAnalyse->getResultReport();
-        if (resultAnalyse->getStatus() < 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-        else if (resultAnalyse->getStatus() > 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-        else
-            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-        if (resultAnalyse->getStatus() >= 0) {
-            infoBoard->resetOptionActionsMenu();
-            infoBoard->addOptionalAction("Show Verify Details", [this, error, result]() {
-                VerifyDetailsDialog(this, mCtx, mKeyList, error, result);
-            });
-        }
-        delete resultAnalyse;
-    } else if (edit->slotCurPageFileTreeView() != nullptr) {
-        this->slotFileVerify();
+    } else {
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
+      return;
     }
+  } else if (edit->slotCurPageFileTreeView() != nullptr) {
+    this->slotFileVerify();
+  }
 }
 
 void MainWindow::slotEncryptSign() {
+  if (edit->tabCount() == 0) return;
 
-    if (edit->tabCount() == 0) return;
+  if (edit->slotCurPageTextEdit() != nullptr) {
+    auto key_ids = mKeyList->getChecked();
 
-    if (edit->slotCurPageTextEdit() != nullptr) {
-
-        QVector<GpgKey> keys;
-        mKeyList->getCheckedKeys(keys);
-
-        if (keys.empty()) {
-            QMessageBox::critical(nullptr, tr("No Key Selected"), tr("No Key Selected"));
-            return;
-        }
-
-        for (const auto &key : keys) {
-            bool key_can_encr = GpgME::GpgContext::checkIfKeyCanEncr(key);
-
-            if (!key_can_encr) {
-                QMessageBox::critical(nullptr,
-                                      tr("Invalid KeyPair"),
-                                      tr("The selected keypair cannot be used for encryption.<br/>")
-                                      + tr("<br/>For example the Following Key: <br/>") + key.uids.first().uid);
-                return;
-            }
-
-        }
-
-        QVector<GpgKey> signerKeys;
-
-        auto signersPicker = new SignersPicker(mCtx, this);
-
-        QEventLoop loop;
-        connect(signersPicker, SIGNAL(finished(int)), &loop, SLOT(quit()));
-        loop.exec();
-
-        signersPicker->getCheckedSigners(signerKeys);
-
-        for (const auto &key : keys) {
-            qDebug() << "Keys " << key.email;
-        }
-
-        for (const auto &signer : signerKeys) {
-            qDebug() << "Signers " << signer.email;
-        }
-
-
-        auto tmp = QByteArray();
-        gpgme_encrypt_result_t encr_result = nullptr;
-        gpgme_sign_result_t sign_result = nullptr;
-
-        gpgme_error_t error;
-        auto thread = QThread::create([&]() {
-            error = mCtx->encryptSign(keys, signerKeys, edit->curTextPage()->toPlainText().toUtf8(), &tmp,
-                                      &encr_result,
-                                      &sign_result);
-        });
-        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-        thread->start();
-
-        auto *dialog = new WaitingDialog(tr("Encrypting and Signing"), this);
-        while (thread->isRunning()) {
-            QApplication::processEvents();
-        }
-
-        if (settings.value("advanced/autoPubkeyExchange").toBool()) {
-            PubkeyUploader pubkeyUploader(mCtx, signerKeys);
-            pubkeyUploader.start();
-            if (!pubkeyUploader.result()) {
-                QMessageBox::warning(nullptr,
-                                     tr("Automatic Key Exchange Warning"),
-                                     tr("Part of the automatic key exchange failed, which may be related to your key.")
-                                     +
-                                     tr("If possible, try to use the RSA algorithm compatible with the server for signing."));
-            }
-        }
-
-        dialog->close();
-
-        if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
-            auto tmp2 = QString(tmp);
-            edit->slotFillTextEditWithText(tmp2);
-        }
-
-        qDebug() << "Start Analyse Result";
-
-        auto resultAnalyseEncr = new EncryptResultAnalyse(error, encr_result);
-        auto resultAnalyseSign = new SignResultAnalyse(mCtx, error, sign_result);
-        int status = std::min(resultAnalyseEncr->getStatus(), resultAnalyseSign->getStatus());
-        auto reportText = resultAnalyseEncr->getResultReport() + resultAnalyseSign->getResultReport();
-
-        infoBoard->associateTextEdit(edit->curTextPage());
-
-        if (status < 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-        else if (status > 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-        else
-            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-        qDebug() << "End Analyse Result";
-
-        if (status >= 0) {
-            infoBoard->resetOptionActionsMenu();
-            infoBoard->addOptionalAction("Send Mail", [this]() {
-                if (settings.value("sendMail/enable", false).toBool())
-                    new SendMailDialog(edit->curTextPage()->toPlainText(), this);
-                else {
-                    QMessageBox::warning(nullptr,
-                                         tr("Function Disabled"),
-                                         tr("Please go to the settings interface to enable and configure this function."));
-                }
-            });
-            infoBoard->addOptionalAction("Shorten Ciphertext", [this]() {
-                if (settings.value("general/serviceToken").toString().isEmpty())
-                    QMessageBox::warning(nullptr,
-                                         tr("Service Token Empty"),
-                                         tr("Please go to the settings interface to set Own Key and get Service Token."));
-                else {
-                    shortenCryptText();
-                }
-            });
-        }
-
-        delete resultAnalyseEncr;
-        delete resultAnalyseSign;
-    } else if (edit->slotCurPageFileTreeView() != nullptr) {
-        this->slotFileEncryptSign();
+    if (key_ids->empty()) {
+      QMessageBox::critical(nullptr, _("No Key Selected"),
+                            _("No Key Selected"));
+      return;
     }
+
+    auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+
+    for (const auto& key : *keys) {
+      bool key_can_encrypt = key.CanEncrActual();
+
+      if (!key_can_encrypt) {
+        QMessageBox::critical(
+            nullptr, _("Invalid KeyPair"),
+            QString(_("The selected keypair cannot be used for encryption.")) +
+                "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
+                QString::fromStdString(key.uids()->front().uid()));
+        return;
+      }
+    }
+
+    auto signersPicker = new SignersPicker(this);
+    QEventLoop loop;
+    connect(signersPicker, SIGNAL(finished(int)), &loop, SLOT(quit()));
+    loop.exec();
+
+    auto signer_key_ids = signersPicker->getCheckedSigners();
+    auto signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
+
+    for (const auto& key : *keys) {
+      LOG(INFO) << "Keys " << key.email();
+    }
+
+    for (const auto& signer : *signer_keys) {
+      LOG(INFO) << "Signers " << signer.email();
+    }
+
+    GpgEncrResult encr_result = nullptr;
+    GpgSignResult sign_result = nullptr;
+    GpgError error;
+    bool if_error = false;
+
+    auto tmp = std::make_unique<ByteArray>();
+    process_operation(this, _("Encrypting and Signing"), [&]() {
+      try {
+        auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
+        error = GpgFrontend::BasicOperator::GetInstance().EncryptSign(
+            std::move(keys), std::move(signer_keys), buffer, tmp, encr_result,
+            sign_result);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
+
+    if (!if_error) {
+#ifdef ADVANCE_SUPPORT
+      if (settings.value("advanced/autoPubkeyExchange").toBool()) {
+        PubkeyUploader pubkeyUploader(mCtx, signerKeys);
+        pubkeyUploader.start();
+        if (!pubkeyUploader.result()) {
+          QMessageBox::warning(
+              nullptr, _("Automatic Key Exchange Warning"),
+              _("Part of the automatic key exchange failed, "
+                "which may be related to your key.") +
+                  _("If possible, try to use the RSA algorithm "
+                    "compatible with the server for signing."));
+        }
+      }
+#endif
+      LOG(INFO) << "ResultAnalyse Started";
+      auto encrypt_res = EncryptResultAnalyse(error, std::move(encr_result));
+      auto sign_res = SignResultAnalyse(error, std::move(sign_result));
+      encrypt_res.analyse();
+      sign_res.analyse();
+      process_result_analyse(edit, infoBoard, encrypt_res, sign_res);
+      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+        edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
+
+#ifdef SMTP_SUPPORT
+      infoBoard->resetOptionActionsMenu();
+      infoBoard->addOptionalAction("Send Mail", [this]() {
+        if (settings.value("sendMail/enable", false).toBool())
+          new SendMailDialog(edit->curTextPage()->toPlainText(), this);
+        else {
+          QMessageBox::warning(nullptr, _("Function Disabled"),
+                               _("Please go to the settings interface to "
+                                 "enable and configure this function."));
+        }
+      });
+#endif
+
+#ifdef ADVANCE_SUPPORT
+      infoBoard->addOptionalAction("Shorten Ciphertext", [this]() {
+        if (settings.value("general/serviceToken").toString().isEmpty())
+          QMessageBox::warning(nullptr, _("Service Token Empty"),
+                               _("Please go to the settings interface to set "
+                                 "Own Key and get Service Token."));
+        else {
+          shortenCryptText();
+        }
+      });
+#endif
+
+    } else {
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
+      return;
+    }
+  } else if (edit->slotCurPageFileTreeView() != nullptr) {
+    this->slotFileEncryptSign();
+  }
 }
 
 void MainWindow::slotDecryptVerify() {
+  if (edit->tabCount() == 0) return;
 
-    if (edit->tabCount() == 0) return;
+  if (edit->slotCurPageTextEdit() != nullptr) {
+    QString plainText = edit->curTextPage()->toPlainText();
 
-    if (edit->slotCurPageTextEdit() != nullptr) {
-
-        auto decrypted = QByteArray();
-        QString plainText = edit->curTextPage()->toPlainText();
-
-
-        if (plainText.trimmed().startsWith(GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD)) {
-            auto cryptoText = getCryptText(plainText);
-            if (!cryptoText.isEmpty()) {
-                plainText = cryptoText;
-            }
-        }
-
-        QByteArray text = plainText.toUtf8();
-
-        GpgME::GpgContext::preventNoDataErr(&text);
-
-        gpgme_decrypt_result_t d_result = nullptr;
-        gpgme_verify_result_t v_result = nullptr;
-
-        auto *dialog = new WaitingDialog(tr("Decrypting and Verifying"), this);
-
-        // Automatically import public keys that are not stored locally
-        if (settings.value("advanced/autoPubkeyExchange").toBool()) {
-            gpgme_verify_result_t tmp_v_result = nullptr;
-            auto thread = QThread::create([&]() {
-                mCtx->verify(&text, nullptr, &tmp_v_result);
-            });
-            thread->start();
-            while (thread->isRunning()) QApplication::processEvents();
-            auto *checker = new UnknownSignersChecker(mCtx, tmp_v_result);
-            checker->start();
-            checker->deleteLater();
-        }
-
-        gpgme_error_t error;
-        auto thread = QThread::create([&]() {
-            error = mCtx->decryptVerify(text, &decrypted, &d_result, &v_result);
-        });
-        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-        thread->start();
-
-        while (thread->isRunning()) QApplication::processEvents();
-
-        dialog->close();
-
-        qDebug() << "Start Analyse Result";
-
-        infoBoard->associateTextEdit(edit->curTextPage());
-
-        if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
-            edit->slotFillTextEditWithText(QString::fromUtf8(decrypted));
-
-        auto resultAnalyseDecrypt = new DecryptResultAnalyse(mCtx, error, d_result);
-        auto resultAnalyseVerify = new VerifyResultAnalyse(mCtx, error, v_result);
-
-        int status = std::min(resultAnalyseDecrypt->getStatus(), resultAnalyseVerify->getStatus());
-        auto &reportText = resultAnalyseDecrypt->getResultReport() + resultAnalyseVerify->getResultReport();
-        if (status < 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_CRITICAL);
-        else if (status > 0)
-            infoBoard->slotRefresh(reportText, INFO_ERROR_OK);
-        else
-            infoBoard->slotRefresh(reportText, INFO_ERROR_WARN);
-
-        if (resultAnalyseVerify->getStatus() >= 0) {
-            infoBoard->resetOptionActionsMenu();
-            infoBoard->addOptionalAction("Show Verify Details", [this, error, v_result]() {
-                VerifyDetailsDialog(this, mCtx, mKeyList, error, v_result);
-            });
-        }
-        delete resultAnalyseDecrypt;
-        delete resultAnalyseVerify;
-
-        qDebug() << "End Analyse Result";
-
-    } else if (edit->slotCurPageFileTreeView() != nullptr) {
-        this->slotFileDecryptVerify();
+#ifdef ADVANCE_SUPPORT
+    if (plainText.trimmed().startsWith(
+            GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD)) {
+      auto cryptoText = getCryptText(plainText);
+      if (!cryptoText.isEmpty()) {
+        plainText = cryptoText;
+      }
     }
-}
+#endif
 
+    QByteArray text = plainText.toUtf8();
+
+    GpgDecrResult d_result = nullptr;
+    GpgVerifyResult v_result = nullptr;
+    gpgme_error_t error;
+    bool if_error = false;
+
+#ifdef ADVANCE_SUPPORT
+    // Automatically import public keys that are not stored locally
+    if (settings.value("advanced/autoPubkeyExchange").toBool()) {
+      gpgme_verify_result_t tmp_v_result = nullptr;
+      auto thread = QThread::create(
+          [&]() { mCtx->verify(&text, nullptr, &tmp_v_result); });
+      thread->start();
+      while (thread->isRunning()) QApplication::processEvents();
+      auto* checker = new UnknownSignersChecker(mCtx, tmp_v_result);
+      checker->start();
+      checker->deleteLater();
+    }
+#endif
+    auto decrypted = std::make_unique<ByteArray>();
+    process_operation(this, _("Decrypting and Verifying"), [&]() {
+      try {
+        auto buffer = text.toStdString();
+        error = BasicOperator::GetInstance().DecryptVerify(buffer, decrypted,
+                                                           d_result, v_result);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
+
+    if (!if_error) {
+      infoBoard->associateFileTreeView(edit->curFilePage());
+
+      auto decrypt_res = DecryptResultAnalyse(error, std::move(d_result));
+      auto verify_res = VerifyResultAnalyse(error, std::move(v_result));
+      decrypt_res.analyse();
+      verify_res.analyse();
+      process_result_analyse(edit, infoBoard, decrypt_res, verify_res);
+
+      edit->slotFillTextEditWithText(QString::fromStdString(*decrypted));
+
+      //          if (verify_res.getStatus() >= 0) {
+      //            infoBoard->resetOptionActionsMenu();
+      //            infoBoard->addOptionalAction(
+      //                "Show Verify Details", [this, error, v_result]() {
+      //                  VerifyDetailsDialog(this, mCtx, mKeyList, error,
+      //                  v_result);
+      //                });
+      //          }
+    } else {
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
+      return;
+    }
+
+  } else if (edit->slotCurPageFileTreeView() != nullptr) {
+    this->slotFileDecryptVerify();
+  }
+}
 
 /*
  * Append the selected (not checked!) Key(s) To Textedit
  */
 void MainWindow::slotAppendSelectedKeys() {
-    if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
-        return;
-    }
+  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
+    return;
+  }
 
-    auto *keyArray = new QByteArray();
-    mCtx->exportKeys(mKeyList->getSelected(), keyArray);
-    edit->curTextPage()->append(*keyArray);
+  auto exported = std::make_unique<ByteArray>();
+  auto key_ids = mKeyList->getSelected();
+
+  GpgKeyImportExportor::GetInstance().ExportKeys(key_ids, exported);
+  edit->curTextPage()->append(QString::fromStdString(*exported));
 }
 
 void MainWindow::slotCopyMailAddressToClipboard() {
-    if (mKeyList->getSelected()->isEmpty()) {
-        return;
-    }
-    auto key = mCtx->getKeyById(mKeyList->getSelected()->first());
-    if (!key.good) {
-        QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
-        return;
-    }
-    QClipboard *cb = QApplication::clipboard();
-    QString mail = key.email;
-    cb->setText(mail);
+  auto key_ids = mKeyList->getSelected();
+  if (key_ids->empty()) return;
+
+  auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
+  if (!key.good()) {
+    QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
+    return;
+  }
+  QClipboard* cb = QApplication::clipboard();
+  cb->setText(QString::fromStdString(key.email()));
 }
 
 void MainWindow::slotShowKeyDetails() {
-    if (mKeyList->getSelected()->isEmpty()) {
-        return;
-    }
-    auto key = mCtx->getKeyById(mKeyList->getSelected()->first());
-    if (key.good) {
-        new KeyDetailsDialog(mCtx, key, this);
-    } else {
-        QMessageBox::critical(nullptr, tr("Error"), tr("Key Not Found."));
-    }
+  auto key_ids = mKeyList->getSelected();
+  if (key_ids->empty()) return;
+
+  auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
+  if (key.good()) {
+    new KeyDetailsDialog(key, this);
+  } else {
+    QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
+  }
 }
 
 void MainWindow::refreshKeysFromKeyserver() {
-    if (mKeyList->getSelected()->isEmpty()) {
-        return;
-    }
+  auto key_ids = mKeyList->getSelected();
+  if (key_ids->empty()) return;
 
-    auto *dialog = new KeyServerImportDialog(mCtx, mKeyList, true, this);
-    dialog->show();
-    dialog->slotImport(*mKeyList->getSelected());
-
+  auto* dialog = new KeyServerImportDialog(true, this);
+  dialog->show();
+  dialog->slotImport(key_ids);
 }
 
 void MainWindow::uploadKeyToServer() {
-    QVector<GpgKey> keys;
-    keys.append(mKeyList->getSelectedKey());
-    auto *dialog = new KeyUploadDialog(mCtx, keys, this);
-    dialog->show();
-    dialog->slotUpload();
+  auto key_ids = mKeyList->getSelected();
+  auto* dialog = new KeyUploadDialog(key_ids, this);
+  dialog->show();
+  dialog->slotUpload();
 }
 
+void MainWindow::slotOpenFile(QString& path) { edit->slotOpenFile(path); }
 
-void MainWindow::slotOpenFile(QString &path) {
-    edit->slotOpenFile(path);
+void MainWindow::slotVersionUpgrade(const QString& currentVersion,
+                                    const QString& latestVersion) {
+  if (currentVersion < latestVersion) {
+    QMessageBox::warning(
+        this, _("Outdated Version"),
+        QString(_("This version(%1) is out of date, please update "
+                  "the latest version in time. "))
+                .arg(currentVersion) +
+            QString(_("You can download the latest version(%1) on "
+                      "Github Releases Page.<br/>"))
+                .arg(latestVersion));
+  } else if (currentVersion > latestVersion) {
+    QMessageBox::warning(
+        this, _("Unreleased Version"),
+        QString(
+            _("This version(%1) has not been officially released and is not "
+              "recommended for use in a production environment. <br/>"))
+                .arg(currentVersion) +
+            QString(
+                _("You can download the latest version(%1) on Github Releases "
+                  "Page.<br/>"))
+                .arg(latestVersion));
+  }
 }
 
-void MainWindow::slotVersionUpgrade(const QString &currentVersion, const QString &latestVersion) {
-    if (currentVersion < latestVersion) {
-        QMessageBox::warning(this,
-                             tr("Outdated Version"),
-                             tr("This version(%1) is out of date, please update the latest version in time. ").arg(
-                                     currentVersion)
-                             + tr("You can download the latest version(%1) on Github Releases Page.<br/>").arg(
-                                     latestVersion));
-    } else if (currentVersion > latestVersion) {
-        QMessageBox::warning(this,
-                             tr("Unreleased Version"),
-                             tr("This version(%1) has not been officially released and is not recommended for use in a production environment. <br/>").arg(
-                                     currentVersion)
-                             + tr("You can download the latest version(%1) on Github Releases Page.<br/>").arg(
-                                     latestVersion));
-    }
-}
+}  // namespace GpgFrontend::UI

@@ -1,7 +1,7 @@
 /**
- * This file is part of GPGFrontend.
+ * This file is part of GpgFrontend.
  *
- * GPGFrontend is free software: you can redistribute it and/or modify
+ * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -22,122 +22,144 @@
  *
  */
 
-#include "ui/SettingsDialog.h"
-#include "ui/WaitingDialog.h"
+#include "SettingsGeneral.h"
+
+#ifdef SERVER_SUPPORT
 #include "server/ComUtils.h"
+#endif
 
-#include "rapidjson/prettywriter.h"
+#ifdef MULTI_LANG_SUPPORT
+#include "SettingsDialog.h"
+#endif
 
-GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
-        : QWidget(parent), appPath(qApp->applicationDirPath()),
-          settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-                   QSettings::IniFormat) {
-    mCtx = ctx;
+#include "GlobalSettingStation.h"
+#include "gpg/function/GpgKeyGetter.h"
+#include "ui/widgets/KeyList.h"
 
-    /*****************************************
-     * GpgFrontend Server
-     *****************************************/
-    auto *serverBox = new QGroupBox(tr("GpgFrontend Server"));
-    auto *serverBoxLayout = new QVBoxLayout();
-    serverSelectBox = new QComboBox();
-    serverBoxLayout->addWidget(serverSelectBox);
-    serverBoxLayout->addWidget(new QLabel(
-            tr("Server that provides short key and key exchange services")));
+namespace GpgFrontend::UI {
 
-    serverBox->setLayout(serverBoxLayout);
+GeneralTab::GeneralTab(QWidget* parent) : QWidget(parent) {
+#ifdef SERVER_SUPPORT
+  /*****************************************
+   * GpgFrontend Server
+   *****************************************/
+  auto* serverBox = new QGroupBox(_("GpgFrontend Server"));
+  auto* serverBoxLayout = new QVBoxLayout();
+  serverSelectBox = new QComboBox();
+  serverBoxLayout->addWidget(serverSelectBox);
+  serverBoxLayout->addWidget(new QLabel(
+      _("Server that provides short key and key exchange services")));
 
-    /*****************************************
-     * Save-Checked-Keys-Box
-     *****************************************/
-    auto *saveCheckedKeysBox = new QGroupBox(tr("Save Checked Keys"));
-    auto *saveCheckedKeysBoxLayout = new QHBoxLayout();
-    saveCheckedKeysCheckBox = new QCheckBox(
-            tr("Save checked private keys on exit and restore them on next start."),
-            this);
-    saveCheckedKeysBoxLayout->addWidget(saveCheckedKeysCheckBox);
-    saveCheckedKeysBox->setLayout(saveCheckedKeysBoxLayout);
+  serverBox->setLayout(serverBoxLayout);
+#endif
 
-    /*****************************************
-     * Key-Impport-Confirmation Box
-     *****************************************/
-    auto *importConfirmationBox =
-            new QGroupBox(tr("Confirm drag'n'drop key import"));
-    auto *importConfirmationBoxLayout = new QHBoxLayout();
-    importConfirmationCheckBox = new QCheckBox(
-            tr("Import files dropped on the keylist without confirmation."), this);
-    importConfirmationBoxLayout->addWidget(importConfirmationCheckBox);
-    importConfirmationBox->setLayout(importConfirmationBoxLayout);
+  /*****************************************
+   * Save-Checked-Keys-Box
+   *****************************************/
+  auto* saveCheckedKeysBox = new QGroupBox(_("Save Checked Keys"));
+  auto* saveCheckedKeysBoxLayout = new QHBoxLayout();
+  saveCheckedKeysCheckBox = new QCheckBox(
+      _("Save checked private keys on exit and restore them on next start."),
+      this);
+  saveCheckedKeysBoxLayout->addWidget(saveCheckedKeysCheckBox);
+  saveCheckedKeysBox->setLayout(saveCheckedKeysBoxLayout);
 
-    /*****************************************
-     * Language Select Box
-     *****************************************/
-    auto *langBox = new QGroupBox(tr("Language"));
-    auto *langBoxLayout = new QVBoxLayout();
-    langSelectBox = new QComboBox;
-    lang = SettingsDialog::listLanguages();
+  /*****************************************
+   * Key-Impport-Confirmation Box
+   *****************************************/
+  auto* importConfirmationBox =
+      new QGroupBox(_("Confirm drag'n'drop key import"));
+  auto* importConfirmationBoxLayout = new QHBoxLayout();
+  importConfirmationCheckBox = new QCheckBox(
+      _("Import files dropped on the Key List without confirmation."), this);
+  importConfirmationBoxLayout->addWidget(importConfirmationCheckBox);
+  importConfirmationBox->setLayout(importConfirmationBoxLayout);
 
-    for (const auto &l: lang) { langSelectBox->addItem(l); }
+#ifdef MULTI_LANG_SUPPORT
+  /*****************************************
+   * Language Select Box
+   *****************************************/
+  auto* langBox = new QGroupBox(_("Language"));
+  auto* langBoxLayout = new QVBoxLayout();
+  langSelectBox = new QComboBox;
+  lang = SettingsDialog::listLanguages();
 
-    langBoxLayout->addWidget(langSelectBox);
-    langBoxLayout->addWidget(
-            new QLabel(tr("<b>NOTE: </b> GpgFrontend will restart automatically if "
-                          "you change the language!")));
-    langBox->setLayout(langBoxLayout);
-    connect(langSelectBox, SIGNAL(currentIndexChanged(int)), this,
-            SLOT(slotLanguageChanged()));
+  for (const auto& l : lang) {
+    langSelectBox->addItem(l);
+  }
 
-    /*****************************************
-     * Own Key Select Box
-     *****************************************/
-    auto *ownKeyBox = new QGroupBox(tr("Own key"));
-    auto *ownKeyBoxLayout = new QVBoxLayout();
-    auto *ownKeyServiceTokenLayout = new QHBoxLayout();
-    ownKeySelectBox = new QComboBox;
-    getServiceTokenButton = new QPushButton(tr("Get Service Token"));
-    serviceTokenLabel = new QLabel(tr("No Service Token Found"));
-    serviceTokenLabel->setAlignment(Qt::AlignCenter);
+  langBoxLayout->addWidget(langSelectBox);
+  langBoxLayout->addWidget(new QLabel(
+      "<b>" + QString(_("NOTE")) + _(": ") + "</b>" +
+      _("GpgFrontend will restart automatically if you change the language!")));
+  langBox->setLayout(langBoxLayout);
+  connect(langSelectBox, SIGNAL(currentIndexChanged(int)), this,
+          SLOT(slotLanguageChanged()));
+#endif
 
-    ownKeyBox->setLayout(ownKeyBoxLayout);
-    mKeyList = new KeyList(mCtx);
+#ifdef SERVER_SUPPORT
+  /*****************************************
+   * Own Key Select Box
+   *****************************************/
+  auto* ownKeyBox = new QGroupBox(_("Own key"));
+  auto* ownKeyBoxLayout = new QVBoxLayout();
+  auto* ownKeyServiceTokenLayout = new QHBoxLayout();
+  ownKeySelectBox = new QComboBox;
+  getServiceTokenButton = new QPushButton(_("Get Service Token"));
+  serviceTokenLabel = new QLabel(_("No Service Token Found"));
+  serviceTokenLabel->setAlignment(Qt::AlignCenter);
 
-    // Fill the keyid hashmap
-    keyIds.insert("", tr("<none>"));
+  ownKeyBox->setLayout(ownKeyBoxLayout);
 
-    for (const auto &keyid : *mKeyList->getAllPrivateKeys()) {
-        auto key = mCtx->getKeyById(keyid);
-        if (!key.good) continue;
-        keyIds.insert(key.id, key.uids.first().uid);
-    }
-    for (const auto &k : keyIds.keys()) {
-        ownKeySelectBox->addItem(keyIds.find(k).value());
-        keyIdsList.append(k);
-    }
-    connect(ownKeySelectBox, SIGNAL(currentIndexChanged(int)), this,
-            SLOT(slotOwnKeyIdChanged()));
-    connect(getServiceTokenButton, SIGNAL(clicked(bool)), this,
-            SLOT(slotGetServiceToken()));
+  mKeyList = new KeyList();
 
-    ownKeyBoxLayout->addWidget(new QLabel(
-            tr("Key pair for synchronization and identity authentication")));
-    ownKeyBoxLayout->addWidget(ownKeySelectBox);
-    ownKeyBoxLayout->addLayout(ownKeyServiceTokenLayout);
-    ownKeyServiceTokenLayout->addWidget(getServiceTokenButton);
-    ownKeyServiceTokenLayout->addWidget(serviceTokenLabel);
-    ownKeyServiceTokenLayout->stretch(0);
+  // Fill the keyid hashmap
+  keyIds.insert({QString(), "<none>"});
 
-    /*****************************************
-     * Mainlayout
-     *****************************************/
-    auto *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(serverBox);
-    mainLayout->addWidget(saveCheckedKeysBox);
-    mainLayout->addWidget(importConfirmationBox);
-    mainLayout->addWidget(langBox);
-    mainLayout->addWidget(ownKeyBox);
+  auto private_keys = mKeyList->getAllPrivateKeys();
 
-    setSettings();
-    mainLayout->addStretch(1);
-    setLayout(mainLayout);
+  for (const auto& keyid : *private_keys) {
+    auto key = GpgKeyGetter::GetInstance().GetKey(keyid);
+    if (!key.good()) continue;
+    keyIds.insert({key.id(), key.uids()->front().uid()});
+  }
+  for (const auto& k : keyIds) {
+    ownKeySelectBox->addItem(QString::fromStdString(k.second));
+    keyIdsList.push_back(k.first);
+  }
+  connect(ownKeySelectBox, SIGNAL(currentIndexChanged(int)), this,
+          SLOT(slotOwnKeyIdChanged()));
+  connect(getServiceTokenButton, SIGNAL(clicked(bool)), this,
+          SLOT(slotGetServiceToken()));
+
+  ownKeyBoxLayout->addWidget(new QLabel(
+      _("Key pair for synchronization and identity authentication")));
+  ownKeyBoxLayout->addWidget(ownKeySelectBox);
+  ownKeyBoxLayout->addLayout(ownKeyServiceTokenLayout);
+  ownKeyServiceTokenLayout->addWidget(getServiceTokenButton);
+  ownKeyServiceTokenLayout->addWidget(serviceTokenLabel);
+  ownKeyServiceTokenLayout->stretch(0);
+#endif
+
+  /*****************************************
+   * Mainlayout
+   *****************************************/
+  auto* mainLayout = new QVBoxLayout;
+#ifdef SERVER_SUPPORT
+  mainLayout->addWidget(serverBox);
+#endif
+  mainLayout->addWidget(saveCheckedKeysBox);
+  mainLayout->addWidget(importConfirmationBox);
+#ifdef MULTI_LANG_SUPPORT
+  mainLayout->addWidget(langBox);
+#endif
+#ifdef SERVER_SUPPORT
+  mainLayout->addWidget(ownKeyBox);
+#endif
+
+  setSettings();
+  mainLayout->addStretch(1);
+  setLayout(mainLayout);
 }
 
 /**********************************
@@ -146,55 +168,76 @@ GeneralTab::GeneralTab(GpgME::GpgContext *ctx, QWidget *parent)
  * appropriately
  **********************************/
 void GeneralTab::setSettings() {
-    // Keysaving
-    if (settings.value("keys/saveKeyChecked").toBool()) {
-        saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
-    }
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  try {
+    bool save_key_checked = settings.lookup("general.save_key_checked");
+    if (save_key_checked) saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("save_key_checked");
+  }
 
-    auto serverList = settings.value("general/gpgfrontendServerList").toStringList();
-    if (serverList.empty()) {
-        serverList.append("service.gpgfrontend.pub");
-        serverList.append("localhost");
-    }
-    for (const auto &s : serverList)
-        serverSelectBox->addItem(s);
+#ifdef SERVER_SUPPORT
+  auto serverList =
+      settings.value("general/gpgfrontendServerList").toStringList();
+  if (serverList.empty()) {
+    serverList.append("service.gpgfrontend.pub");
+    serverList.append("localhost");
+  }
+  for (const auto& s : serverList) serverSelectBox->addItem(s);
 
-    qDebug() << "Current Gpgfrontend Server" << settings.value("general/currentGpgfrontendServer").toString();
-    serverSelectBox->setCurrentText(settings.value("general/currentGpgfrontendServer",
-                                                   "service.gpgfrontend.pub").toString());
+  qDebug() << "Current Gpgfrontend Server"
+           << settings.value("general/currentGpgfrontendServer").toString();
+  serverSelectBox->setCurrentText(
+      settings
+          .value("general/currentGpgfrontendServer", "service.gpgfrontend.pub")
+          .toString());
 
-    connect(serverSelectBox, QOverload<const QString &>::of(&QComboBox::currentTextChanged),
-            this, [&](const QString &current) -> void {
-        settings.setValue("general/currentGpgfrontendServer", current);
-    });
+  connect(serverSelectBox,
+          QOverload<const QString&>::of(&QComboBox::currentTextChanged), this,
+          [&](const QString& current) -> void {
+            settings.setValue("general/currentGpgfrontendServer", current);
+          });
+#endif
 
-    // Language setting
-    QString langKey = settings.value("int/lang").toString();
-    QString langValue = lang.value(langKey);
-    if (langKey != "") {
-        langSelectBox->setCurrentIndex(langSelectBox->findText(langValue));
-    }
-
-    QString own_key_id = settings.value("general/ownKeyId").toString();
-    qDebug() << "OwnKeyId" << own_key_id;
-    if (own_key_id.isEmpty()) {
-        ownKeySelectBox->setCurrentText("<none>");
+#ifdef MULTI_LANG_SUPPORT
+  try {
+    std::string lang_key = settings.lookup("general.lang");
+    QString lang_value = lang.value(lang_key.c_str());
+    LOG(INFO) << "lang settings current" << lang_value.toStdString();
+    if (!lang.empty()) {
+      langSelectBox->setCurrentIndex(langSelectBox->findText(lang_value));
     } else {
-        const auto text = keyIds.find(own_key_id).value();
-        qDebug() << "OwnKey" << own_key_id << text;
-        ownKeySelectBox->setCurrentText(text);
+      langSelectBox->setCurrentIndex(0);
     }
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("lang");
+  }
+#endif
 
-    serviceToken = settings.value("general/serviceToken").toString();
-    qDebug() << "Load Service Token" << serviceToken;
-    if (!serviceToken.isEmpty()) {
-        serviceTokenLabel->setText(serviceToken);
-    }
+#ifdef SERVER_SUPPORT
+  auto own_key_id = settings.value("general/ownKeyId").toString().toStdString();
+  if (own_key_id.empty()) {
+    ownKeySelectBox->setCurrentText("<none>");
+  } else {
+    const auto uid = keyIds.find(own_key_id)->second;
+    ownKeySelectBox->setCurrentText(QString::fromStdString(uid));
+  }
 
-    // Get own key information from keydb/gpg.conf (if contained)
-    if (settings.value("general/confirmImportKeys", Qt::Checked).toBool()) {
-        importConfirmationCheckBox->setCheckState(Qt::Checked);
-    }
+  serviceToken =
+      settings.value("general/serviceToken").toString().toStdString();
+  if (!serviceToken.empty()) {
+    serviceTokenLabel->setText(QString::fromStdString(serviceToken));
+  }
+#endif
+
+  try {
+    bool confirm_import_keys = settings.lookup("general.confirm_import_keys");
+    LOG(INFO) << "confirm_import_keys" << confirm_import_keys;
+    if (confirm_import_keys)
+      importConfirmationCheckBox->setCheckState(Qt::Checked);
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("confirm_import_keys");
+  }
 }
 
 /***********************************
@@ -202,157 +245,194 @@ void GeneralTab::setSettings() {
  * write them to settings-file
  *************************************/
 void GeneralTab::applySettings() {
-    settings.setValue("keys/saveKeyChecked",
-                      saveCheckedKeysCheckBox->isChecked());
+  auto& settings =
+      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
 
-    qDebug() << "serverSelectBox currentText" << serverSelectBox->currentText();
-    settings.setValue("general/currentGpgfrontendServer",
-                      serverSelectBox->currentText());
+  if (!settings.exists("general") ||
+      settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
+    settings.add("general", libconfig::Setting::TypeGroup);
 
-    auto *serverList = new QStringList();
-    for (int i = 0; i < serverSelectBox->count(); i++)
-        serverList->append(serverSelectBox->itemText(i));
-    settings.setValue("general/gpgfrontendServerList",
-                      *serverList);
-    delete serverList;
+  auto& general = settings["general"];
 
-    settings.setValue("int/lang", lang.key(langSelectBox->currentText()));
+  if (!general.exists("save_key_checked"))
+    general.add("save_key_checked", libconfig::Setting::TypeBoolean) =
+        saveCheckedKeysCheckBox->isChecked();
+  else {
+    general["save_key_checked"] = saveCheckedKeysCheckBox->isChecked();
+  }
 
-    settings.setValue("general/ownKeyId",
-                      keyIdsList[ownKeySelectBox->currentIndex()]);
+#ifdef SERVER_SUPPORT
+  qDebug() << "serverSelectBox currentText" << serverSelectBox->currentText();
+  settings.setValue("general/currentGpgfrontendServer",
+                    serverSelectBox->currentText());
 
-    settings.setValue("general/serviceToken",
-                      serviceToken);
+  auto* serverList = new QStringList();
+  for (int i = 0; i < serverSelectBox->count(); i++)
+    serverList->append(serverSelectBox->itemText(i));
+  settings.setValue("general/gpgfrontendServerList", *serverList);
+  delete serverList;
+#endif
 
-    settings.setValue("general/confirmImportKeys",
-                      importConfirmationCheckBox->isChecked());
+#ifdef MULTI_LANG_SUPPORT
+  if (!general.exists("lang"))
+    general.add("lang", libconfig::Setting::TypeBoolean) =
+        lang.key(langSelectBox->currentText()).toStdString();
+  else {
+    general["lang"] = lang.key(langSelectBox->currentText()).toStdString();
+  }
+#endif
+
+#ifdef SERVER_SUPPORT
+  settings.setValue(
+      "general/ownKeyId",
+      QString::fromStdString(keyIdsList[ownKeySelectBox->currentIndex()]));
+
+  settings.setValue("general/serviceToken",
+                    QString::fromStdString(serviceToken));
+#endif
+
+  if (!general.exists("confirm_import_keys"))
+    general.add("confirm_import_keys", libconfig::Setting::TypeBoolean) =
+        importConfirmationCheckBox->isChecked();
+  else {
+    general["confirm_import_keys"] = importConfirmationCheckBox->isChecked();
+  }
 }
 
+#ifdef MULTI_LANG_SUPPORT
 void GeneralTab::slotLanguageChanged() { emit signalRestartNeeded(true); }
+#endif
 
+#ifdef SERVER_SUPPORT
 void GeneralTab::slotOwnKeyIdChanged() {
-    // Set ownKeyId to currently selected
-    this->serviceTokenLabel->setText(tr("No Service Token Found"));
-    serviceToken.clear();
+  // Set ownKeyId to currently selected
+  this->serviceTokenLabel->setText(_("No Service Token Found"));
+  serviceToken.clear();
 }
+#endif
 
+#ifdef SERVER_SUPPORT
 void GeneralTab::slotGetServiceToken() {
+  auto utils = new ComUtils(this);
 
-    auto utils = new ComUtils(this);
+  QUrl reqUrl(utils->getUrl(ComUtils::GetServiceToken));
+  QNetworkRequest request(reqUrl);
+  request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    QUrl reqUrl(utils->getUrl(ComUtils::GetServiceToken));
-    QNetworkRequest request(reqUrl);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+  const auto keyId = keyIdsList[ownKeySelectBox->currentIndex()];
 
+  qDebug() << "KeyId" << keyIdsList[ownKeySelectBox->currentIndex()];
 
-    const auto keyId = keyIdsList[ownKeySelectBox->currentIndex()];
+  if (keyId.isEmpty()) {
+    QMessageBox::critical(
+        this, _("Invalid Operation"),
+        _("Own Key can not be None while getting service token."));
+    return;
+  }
 
-    qDebug() << "KeyId" << keyIdsList[ownKeySelectBox->currentIndex()];
+  QStringList selectedKeyIds(keyIdsList[ownKeySelectBox->currentIndex()]);
 
-    if (keyId.isEmpty()) {
-        QMessageBox::critical(this, tr("Invalid Operation"),
-                              tr("Own Key can not be None while getting service token."));
-        return;
-    }
+  QByteArray keyDataBuf;
+  mCtx->exportKeys(&selectedKeyIds, &keyDataBuf);
 
-    QStringList selectedKeyIds(keyIdsList[ownKeySelectBox->currentIndex()]);
+  GpgKey key = mCtx->getKeyRefById(keyId);
 
-    QByteArray keyDataBuf;
-    mCtx->exportKeys(&selectedKeyIds, &keyDataBuf);
+  if (!key.good) {
+    QMessageBox::critical(this, _("Error"), _("Key Not Exists"));
+    return;
+  }
 
-    GpgKey key = mCtx->getKeyById(keyId);
+  qDebug() << "keyDataBuf" << keyDataBuf;
 
-    if (!key.good) {
-        QMessageBox::critical(this, tr("Error"),
-                              tr("Key Not Exists"));
-        return;
-    }
+  /**
+   * {
+   *      "publicKey" : ...
+   *      "sha": ...
+   *      "signedFpr": ...
+   *      "version": ...
+   * }
+   */
 
-    qDebug() << "keyDataBuf" << keyDataBuf;
+  QCryptographicHash shaGen(QCryptographicHash::Sha256);
+  shaGen.addData(keyDataBuf);
 
+  auto shaStr = shaGen.result().toHex();
+
+  auto signFprStr = ComUtils::getSignStringBase64(mCtx, key.fpr, key);
+
+  rapidjson::Value pubkey, ver, sha, signFpr;
+
+  rapidjson::Document doc;
+  doc.SetObject();
+
+  pubkey.SetString(keyDataBuf.constData(), keyDataBuf.count());
+
+  auto version = qApp->applicationVersion();
+  ver.SetString(version.toUtf8().constData(),
+                qApp->applicationVersion().count());
+
+  sha.SetString(shaStr.constData(), shaStr.count());
+  signFpr.SetString(signFprStr.constData(), signFprStr.count());
+
+  rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+
+  doc.AddMember("publicKey", pubkey, allocator);
+  doc.AddMember("sha", sha, allocator);
+  doc.AddMember("signedFpr", signFpr, allocator);
+  doc.AddMember("version", ver, allocator);
+
+  rapidjson::StringBuffer sb;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
+  doc.Accept(writer);
+
+  QByteArray postData(sb.GetString());
+
+  QNetworkReply* reply = utils->getNetworkManager().post(request, postData);
+
+  // Show Waiting Dailog
+  auto dialog = new WaitingDialog("Getting Token From Server", this);
+  dialog->show();
+
+  while (reply->isRunning()) {
+    QApplication::processEvents();
+  }
+
+  dialog->close();
+
+  if (utils->checkServerReply(reply->readAll().constData())) {
     /**
      * {
-     *      "publicKey" : ...
-     *      "sha": ...
-     *      "signedFpr": ...
-     *      "version": ...
+     *      "serviceToken" : ...
+     *      "fpr": ...
      * }
      */
 
-    QCryptographicHash shaGen(QCryptographicHash::Sha256);
-    shaGen.addData(keyDataBuf);
-
-    auto shaStr = shaGen.result().toHex();
-
-    auto signFprStr = ComUtils::getSignStringBase64(mCtx, key.fpr, key);
-
-    rapidjson::Value pubkey, ver, sha, signFpr;
-
-    rapidjson::Document doc;
-    doc.SetObject();
-
-    pubkey.SetString(keyDataBuf.constData(), keyDataBuf.count());
-
-    auto version = qApp->applicationVersion();
-    ver.SetString(version.toUtf8().constData(), qApp->applicationVersion().count());
-
-    sha.SetString(shaStr.constData(), shaStr.count());
-    signFpr.SetString(signFprStr.constData(), signFprStr.count());
-
-    rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
-
-    doc.AddMember("publicKey", pubkey, allocator);
-    doc.AddMember("sha", sha, allocator);
-    doc.AddMember("signedFpr", signFpr, allocator);
-    doc.AddMember("version", ver, allocator);
-
-    rapidjson::StringBuffer sb;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(sb);
-    doc.Accept(writer);
-
-    QByteArray postData(sb.GetString());
-
-    QNetworkReply *reply = utils->getNetworkManager().post(request, postData);
-
-    // Show Waiting Dailog
-    auto dialog = new WaitingDialog("Getting Token From Server", this);
-    dialog->show();
-
-    while (reply->isRunning()) {
-        QApplication::processEvents();
+    if (!utils->checkDataValueStr("serviceToken") ||
+        !utils->checkDataValueStr("fpr")) {
+      QMessageBox::critical(this, _("Error"),
+                            _("The communication content with the server does "
+                              "not meet the requirements"));
+      return;
     }
 
-    dialog->close();
-
-    if (utils->checkServerReply(reply->readAll().constData())) {
-
-        /**
-         * {
-         *      "serviceToken" : ...
-         *      "fpr": ...
-         * }
-         */
-
-        if (!utils->checkDataValueStr("serviceToken") || !utils->checkDataValueStr("fpr")) {
-            QMessageBox::critical(this, tr("Error"),
-                                  tr("The communication content with the server does not meet the requirements"));
-            return;
-        }
-
-        QString serviceTokenTemp = utils->getDataValueStr("serviceToken");
-        QString fpr = utils->getDataValueStr("fpr");
-        auto key = mCtx->getKeyByFpr(fpr);
-        if (utils->checkServiceTokenFormat(serviceTokenTemp) && key.good) {
-            serviceToken = serviceTokenTemp;
-            qDebug() << "Get Service Token" << serviceToken;
-            // Auto update settings
-            settings.setValue("general/serviceToken", serviceToken);
-            serviceTokenLabel->setText(serviceToken);
-            QMessageBox::information(this, tr("Notice"),
-                                     tr("Succeed in getting service token"));
-        } else {
-            QMessageBox::critical(this, tr("Error"), tr("There is a problem with the communication with the server"));
-        }
+    QString serviceTokenTemp = utils->getDataValueStr("serviceToken");
+    QString fpr = utils->getDataValueStr("fpr");
+    auto key = mCtx->getKeyRefByFpr(fpr);
+    if (utils->checkServiceTokenFormat(serviceTokenTemp) && key.good) {
+      serviceToken = serviceTokenTemp;
+      qDebug() << "Get Service Token" << serviceToken;
+      // Auto update settings
+      settings.setValue("general/serviceToken", serviceToken);
+      serviceTokenLabel->setText(serviceToken);
+      QMessageBox::information(this, _("Notice"),
+                               _("Succeed in getting service token"));
+    } else {
+      QMessageBox::critical(
+          this, _("Error"),
+          _("There is a problem with the communication with the server"));
     }
-
+  }
 }
+#endif
+
+}  // namespace GpgFrontend::UI
