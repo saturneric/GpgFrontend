@@ -200,3 +200,7 @@ gpgme_signature_t GpgFrontend::VerifyResultAnalyse::GetSignatures() {
   else
     return nullptr;
 }
+GpgFrontend::GpgVerifyResult
+GpgFrontend::VerifyResultAnalyse::TakeChargeOfResult() {
+  return std::move(result);
+}

@@ -27,7 +27,7 @@
 
 #include "EditorPage.h"
 #include "gpg/result_analyse/VerifyResultAnalyse.h"
-#include "ui/VerifyDetailsDialog.h"
+#include "ui/details/VerifyDetailsDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -102,6 +102,7 @@ class InfoBoardWidget : public QWidget {
       nullptr}; /** TreeView associated to the notification */
 
   QHBoxLayout* actionButtonLayout;
+  QButtonGroup* mButtonGroup;
 
   void deleteWidgetsInLayout(QLayout* layout, int start_index = 0);
 };

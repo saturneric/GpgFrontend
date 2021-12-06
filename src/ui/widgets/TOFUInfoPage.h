@@ -18,28 +18,25 @@
  * Their source code version also complies with GNU General Public License.
  *
  * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGINFO_H
-#define GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#ifndef GPGFRONTEND_TOFUINFOPAGE_H
+#define GPGFRONTEND_TOFUINFOPAGE_H
 
-#include <string>
+#include "gpg/GpgModel.h"
+#include "ui/GpgFrontendUI.h"
 
-/**
- * Use to record some info about gnupg
- */
-class GpgInfo {
+namespace GpgFrontend::UI {
+class TOFUInfoPage : public QWidget {
+  Q_OBJECT
  public:
-  /**
-   * executable binary path of gnupg
-   */
-  std::string AppPath;
+  explicit TOFUInfoPage(const GpgTOFUInfo &tofu_info,
+                        QWidget *parent = nullptr);
 
-  std::string DatabasePath;
-
-  std::string GnupgVersion;
+ private:
 };
+}  // namespace GpgFrontend::UI
 
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#endif  // GPGFRONTEND_TOFUINFOPAGE_H

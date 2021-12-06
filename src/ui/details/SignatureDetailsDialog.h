@@ -22,24 +22,14 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGINFO_H
-#define GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#ifndef GPGFRONTEND_SIGNATUREDETAILSDIALOG_H
+#define GPGFRONTEND_SIGNATUREDETAILSDIALOG_H
+#include "ui/GpgFrontendUI.h"
 
-#include <string>
-
-/**
- * Use to record some info about gnupg
- */
-class GpgInfo {
+class SignatureDetailsDialog : public QDialog {
+  Q_OBJECT
  public:
-  /**
-   * executable binary path of gnupg
-   */
-  std::string AppPath;
 
-  std::string DatabasePath;
-
-  std::string GnupgVersion;
 };
 
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#endif  // GPGFRONTEND_SIGNATUREDETAILSDIALOG_H

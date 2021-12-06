@@ -361,8 +361,6 @@ class MainWindow : public QMainWindow {
   QToolBar* keyToolBar{};         /** Toolbar holding key operations */
   QToolButton*
       importButton{}; /** Toolbutton for import dropdown menu in toolbar */
-  QToolButton* fileEncButton{};  /** Toolbutton for file cryption dropdown menu
-                                  in  toolbar */
   QDockWidget* keyListDock{};    /** Encrypt Dock*/
   QDockWidget* attachmentDock{}; /** Attachment Dock */
   QDockWidget* infoBoardDock{};

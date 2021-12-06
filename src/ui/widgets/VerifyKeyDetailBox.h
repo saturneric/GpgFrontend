@@ -33,21 +33,16 @@ namespace GpgFrontend::UI {
 class VerifyKeyDetailBox : public QGroupBox {
   Q_OBJECT
  public:
-  explicit VerifyKeyDetailBox(QWidget* parent, KeyList* mKeyList,
-                              gpgme_signature_t signature);
+  explicit VerifyKeyDetailBox(const GpgSignature& signature, QWidget* parent);
 
  private slots:
 
   void slotImportFormKeyserver();
 
  private:
-  KeyList* mKeyList;
+  QGridLayout* createKeyInfoGrid(const GpgSignature& signature);
 
-  static QString beautifyFingerprint(QString fingerprint);
-
-  static QGridLayout* createKeyInfoGrid(gpgme_signature_t& signature);
-
-  QString fpr;
+  std::string fpr;
 };
 
 }  // namespace GpgFrontend::UI

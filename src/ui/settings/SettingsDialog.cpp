@@ -105,6 +105,8 @@ void SettingsDialog::slotSetRestartNeeded(bool needed) {
 }
 
 void SettingsDialog::slotAccept() {
+  LOG(INFO) << "called";
+
   generalTab->applySettings();
 #ifdef SMTP_SUPPORT
   sendMailTab->applySettings();
@@ -115,9 +117,12 @@ void SettingsDialog::slotAccept() {
   advancedTab->applySettings();
 #endif
 
+  LOG(INFO) << "apply done";
+
   // write settings to filesystem
   GlobalSettingStation::GetInstance().Sync();
 
+  LOG(INFO) << "restart needed" << getRestartNeeded();
   if (getRestartNeeded()) {
     emit signalRestartNeeded(true);
   }
@@ -131,7 +136,7 @@ QHash<QString, QString> SettingsDialog::listLanguages() {
 
   auto locale_path = GlobalSettingStation::GetInstance().GetLocaleDir();
 
-  auto locale_dir = QDir(QString::fromStdString(locale_path.string()) );
+  auto locale_dir = QDir(QString::fromStdString(locale_path.string()));
   QStringList file_names = locale_dir.entryList(QStringList("*"));
 
   for (int i = 0; i < file_names.size(); ++i) {

@@ -41,6 +41,11 @@ class GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
   static void GenerateRevokeCert(const GpgKey& key,
                                  const std::string& output_file_name);
 
+  GpgFrontend::GpgError ModifyPassword(const GpgKey& key);
+
+  GpgFrontend::GpgError ModifyTOFUPolicy(const GpgKey& key,
+                                         gpgme_tofu_policy_t tofu_policy);
+
   GpgFrontend::GpgError GenerateKey(const std::unique_ptr<GenKeyInfo>& params);
 
   GpgFrontend::GpgError GenerateSubkey(

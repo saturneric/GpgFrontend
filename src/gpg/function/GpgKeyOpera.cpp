@@ -215,3 +215,22 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateSubkey(
       gpgme_op_createsubkey(ctx, gpgme_key_t(key), algo, 0, expires, flags);
   return check_gpg_error(err);
 }
+
+GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyPassword(
+    const GpgFrontend::GpgKey& key) {
+  if (ctx.GetInfo().GnupgVersion < "2.0.15") {
+    LOG(ERROR) << _("operator not support");
+    return GPG_ERR_NOT_SUPPORTED;
+  }
+  auto err = gpgme_op_passwd(ctx, gpgme_key_t(key), 0);
+  return check_gpg_error(err);
+}
+GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyTOFUPolicy(
+    const GpgFrontend::GpgKey& key, gpgme_tofu_policy_t tofu_policy) {
+  if (ctx.GetInfo().GnupgVersion < "2.1.10") {
+    LOG(ERROR) << _("operator not support");
+    return GPG_ERR_NOT_SUPPORTED;
+  }
+  auto err = gpgme_op_tofu_policy(ctx, gpgme_key_t(key), tofu_policy);
+  return check_gpg_error(err);
+}

@@ -22,36 +22,7 @@
  *
  */
 
-#ifndef __VERIFYDETAILSDIALOG_H__
-#define __VERIFYDETAILSDIALOG_H__
+#include "GpgTOFUInfo.h"
 
-#include "ui/GpgFrontendUI.h"
-#include "ui/widgets/EditorPage.h"
-#include "ui/widgets/VerifyKeyDetailBox.h"
-
-namespace GpgFrontend::UI {
-
-class VerifyDetailsDialog : public QDialog {
-  Q_OBJECT
- public:
-  explicit VerifyDetailsDialog(QWidget* parent, KeyList* keyList,
-                               GpgError error, GpgVerifyResult result);
-
- private slots:
-
-  void slotRefresh();
-
- private:
-  KeyList* mKeyList;
-  QHBoxLayout* mainLayout;
-  QWidget* mVbox{};
-  QByteArray* mInputData{};      /** Data to be verified */
-  QByteArray* mInputSignature{}; /** Data to be verified */
-  QDialogButtonBox* buttonBox{};
-  GpgVerifyResult mResult;
-  gpgme_error_t error;
-};
-
-}  // namespace GpgFrontend::UI
-
-#endif  // __VERIFYDETAILSDIALOG_H__
+GpgFrontend::GpgTOFUInfo::GpgTOFUInfo(gpgme_tofu_info_t tofu_info)
+    : _tofu_info_ref(tofu_info, [&](gpgme_tofu_info_t tofu_info) {}) {}

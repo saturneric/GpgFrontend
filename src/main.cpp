@@ -38,6 +38,7 @@ int main(int argc, char* argv[]) {
 
   // Qt App
   QApplication app(argc, argv);
+  QApplication::setWindowIcon(QIcon(":gpgfrontend.png"));
 
   // logging system
   init_logging();
@@ -65,7 +66,7 @@ int main(int argc, char* argv[]) {
 #endif
 
   /**
-   * internationalisation. loop to restart mainwindow
+   * internationalisation. loop to restart main window
    * with changed translation when settings change.
    */
   int return_from_event_loop_code;

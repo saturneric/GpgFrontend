@@ -26,6 +26,7 @@
 #define GPGFRONTEND_GPGUID_H
 
 #include "GpgKeySignature.h"
+#include "GpgTOFUInfo.h"
 
 namespace GpgFrontend {
 
@@ -42,6 +43,16 @@ class GpgUID {
   [[nodiscard]] bool revoked() const { return _uid_ref->revoked; }
 
   [[nodiscard]] bool invalid() const { return _uid_ref->invalid; }
+
+  [[nodiscard]] std::unique_ptr<std::vector<GpgTOFUInfo>> tofu_infos() const {
+    auto infos = std::make_unique<std::vector<GpgTOFUInfo>>();
+    auto info_next = _uid_ref->tofu;
+    while (info_next != nullptr) {
+      infos->push_back(GpgTOFUInfo(info_next));
+      info_next = info_next->next;
+    }
+    return infos;
+  }
 
   [[nodiscard]] std::unique_ptr<std::vector<GpgKeySignature>> signatures()
       const {

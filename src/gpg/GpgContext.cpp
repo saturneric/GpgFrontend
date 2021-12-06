@@ -76,7 +76,7 @@ GpgContext::GpgContext(bool independent_database, std::string db_path,
     if (engineInfo->protocol == GPGME_PROTOCOL_OpenPGP &&
         strcmp(engineInfo->version, "1.0.0") != 0)
       find_openpgp = true, info.AppPath = engineInfo->file_name,
-      info.DatabasePath = "default";
+      info.DatabasePath = "default", info.GnupgVersion = engineInfo->version;
     if (engineInfo->protocol == GPGME_PROTOCOL_CMS &&
         strcmp(engineInfo->version, "1.0.0") != 0)
       find_cms = true;
@@ -91,6 +91,8 @@ GpgContext::GpgContext(bool independent_database, std::string db_path,
     good_ = false;
     return;
   } else {
+    LOG(INFO) << "Gnupg Version" << info.GnupgVersion;
+
     // Set Independent Database
     if (independent_database) {
       info.DatabasePath = db_path;

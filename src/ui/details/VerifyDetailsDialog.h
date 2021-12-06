@@ -22,24 +22,36 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGINFO_H
-#define GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#ifndef __VERIFYDETAILSDIALOG_H__
+#define __VERIFYDETAILSDIALOG_H__
 
-#include <string>
+#include "ui/GpgFrontendUI.h"
+#include "ui/widgets/EditorPage.h"
+#include "ui/widgets/VerifyKeyDetailBox.h"
 
-/**
- * Use to record some info about gnupg
- */
-class GpgInfo {
+namespace GpgFrontend::UI {
+
+class VerifyDetailsDialog : public QDialog {
+  Q_OBJECT
  public:
-  /**
-   * executable binary path of gnupg
-   */
-  std::string AppPath;
+  explicit VerifyDetailsDialog(QWidget* parent, GpgError error,
+                               GpgVerifyResult result);
 
-  std::string DatabasePath;
+ private slots:
 
-  std::string GnupgVersion;
+  void slotRefresh();
+
+ private:
+  KeyList* mKeyList;
+  QHBoxLayout* mainLayout;
+  QWidget* mVbox{};
+  QByteArray* mInputData{};      /** Data to be verified */
+  QByteArray* mInputSignature{}; /** Data to be verified */
+  QDialogButtonBox* buttonBox{};
+  GpgVerifyResult mResult;
+  gpgme_error_t error;
 };
 
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+}  // namespace GpgFrontend::UI
+
+#endif  // __VERIFYDETAILSDIALOG_H__

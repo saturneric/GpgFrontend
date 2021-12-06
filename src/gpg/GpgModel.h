@@ -25,13 +25,13 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
 #define GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
 
-#include "GpgConstants.h"
-
 #include <list>
 #include <utility>
 
+#include "GpgConstants.h"
 #include "gpg/model/GpgData.h"
 #include "gpg/model/GpgKey.h"
+#include "gpg/model/GpgSignature.h"
 
 namespace GpgFrontend {
 

@@ -36,21 +36,16 @@ namespace GpgFrontend::UI {
 class KeyPairDetailTab : public QWidget {
   Q_OBJECT
 
-  /**
-   * @details Return QString with a space inserted at every fourth character
-   *
-   * @param fingerprint The fingerprint to be beautified
-   */
-  static QString beautifyFingerprint(QString fingerprint);
-
   void createKeyServerOperaMenu();
 
  private slots:
 
   /**
-   * @details Export the key to a file, which is choosen in a file dialog
+   * @details Export the key to a file, which is chosen in a file dialog
    */
   void slotExportPrivateKey();
+
+  void slotExportPublicKey();
 
   /**
    * @details Copy the fingerprint to clipboard
@@ -59,19 +54,21 @@ class KeyPairDetailTab : public QWidget {
 
   void slotModifyEditDatetime();
 
+  void slotModifyPassword();
+
   void slotRefreshKeyInfo();
 
   void slotUploadKeyToServer();
 
-  void slotUpdateKeyToServer();
+  void slotUpdateKeyFromServer();
 
   void slotGenRevokeCert();
 
   void slotRefreshKey();
 
- private:
-  std::string keyid; /** The id of the key the details should be shown for */
+  void slotModifyTOFUPolicy();
 
+ private:
   GpgKey mKey;
 
   QGroupBox* ownerBox;       /** Groupbox containing owner information */

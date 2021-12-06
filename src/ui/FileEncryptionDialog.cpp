@@ -267,7 +267,7 @@ void FileEncryptionDialog::slotExecuteAction() {
     GpgVerifyResult result = nullptr;
     auto error =
         BasicOperator::GetInstance().Verify(in_data, sign_data, result);
-    new VerifyDetailsDialog(this, mKeyList, error, std::move(result));
+    new VerifyDetailsDialog(this, error, std::move(result));
     return;
   }
 

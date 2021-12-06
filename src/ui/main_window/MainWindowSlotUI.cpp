@@ -111,7 +111,6 @@ void MainWindow::slotOpenSettingsDialog() {
 
     this->setIconSize(QSize(icon_width, icon_height));
     importButton->setIconSize(QSize(icon_width, icon_height));
-    fileEncButton->setIconSize(QSize(icon_width, icon_height));
 
     // Iconstyle
 
@@ -119,7 +118,6 @@ void MainWindow::slotOpenSettingsDialog() {
     auto button_style = static_cast<Qt::ToolButtonStyle>(icon_style);
     this->setToolButtonStyle(button_style);
     importButton->setToolButtonStyle(button_style);
-    fileEncButton->setToolButtonStyle(button_style);
 
     // restart mainwindow if necessary
     if (getRestartNeeded()) {

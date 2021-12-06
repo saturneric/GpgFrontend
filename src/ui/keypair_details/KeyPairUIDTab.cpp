@@ -28,6 +28,7 @@
 #include "gpg/function/GpgKeyManager.h"
 #include "gpg/function/UidOperator.h"
 #include "ui/SignalStation.h"
+#include "ui/widgets/TOFUInfoPage.h"
 
 namespace GpgFrontend::UI {
 
@@ -53,30 +54,46 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
   uidButtonsLayout->addWidget(addUIDButton, 0, 1);
   uidButtonsLayout->addWidget(manageUIDButton, 0, 2);
 
-  auto gridLayout = new QGridLayout();
+  auto grid_layout = new QGridLayout();
 
-  gridLayout->addWidget(uidList, 0, 0);
-  gridLayout->addLayout(uidButtonsLayout, 1, 0);
-  gridLayout->setContentsMargins(0, 10, 0, 0);
+  grid_layout->addWidget(uidList, 0, 0);
+  grid_layout->addLayout(uidButtonsLayout, 1, 0);
+  grid_layout->setContentsMargins(0, 10, 0, 0);
 
-  auto uidGroupBox = new QGroupBox();
-  uidGroupBox->setLayout(gridLayout);
-  uidGroupBox->setTitle(_("UIDs"));
+  auto uid_group_box = new QGroupBox();
+  uid_group_box->setLayout(grid_layout);
+  uid_group_box->setTitle(_("UIDs"));
 
-  auto signGridLayout = new QGridLayout();
-  signGridLayout->addWidget(sigList, 0, 0);
-  signGridLayout->setContentsMargins(0, 10, 0, 0);
+  auto tofu_group_box = new QGroupBox();
+  auto tofu_vbox_layout = new QVBoxLayout();
+  tofu_group_box->setLayout(tofu_vbox_layout);
+  tofu_group_box->setTitle(_("TOFU"));
+#if !defined(RELEASE)
+  tofuTabs = new QTabWidget(this);
+  tofu_vbox_layout->addWidget(tofuTabs);
+#endif
 
-  auto signGroupBox = new QGroupBox();
-  signGroupBox->setLayout(signGridLayout);
-  signGroupBox->setTitle(_("Signature of Selected UID"));
+  auto sign_grid_layout = new QGridLayout();
+  sign_grid_layout->addWidget(sigList, 0, 0);
+  sign_grid_layout->setContentsMargins(0, 10, 0, 0);
+
+  auto sign_group_box = new QGroupBox();
+  sign_group_box->setLayout(sign_grid_layout);
+  sign_group_box->setTitle(_("Signature of Selected UID"));
 
   auto vboxLayout = new QVBoxLayout();
-  vboxLayout->addWidget(uidGroupBox);
-  vboxLayout->addWidget(signGroupBox);
+  vboxLayout->addWidget(uid_group_box);
+#if !defined(RELEASE)
+  // Function needed testing
+  vboxLayout->addWidget(tofu_group_box);
+#endif
+  vboxLayout->addWidget(sign_group_box);
+
   vboxLayout->setContentsMargins(0, 0, 0, 0);
 
   connect(addUIDButton, SIGNAL(clicked(bool)), this, SLOT(slotAddUID()));
+  connect(uidList, SIGNAL(itemSelectionChanged()), this,
+          SLOT(slotRefreshTOFUInfo()));
   connect(uidList, SIGNAL(itemSelectionChanged()), this,
           SLOT(slotRefreshSigList()));
 
@@ -189,6 +206,32 @@ void KeyPairUIDTab::slotRefreshUIDList() {
   }
 
   slotRefreshSigList();
+  slotRefreshTOFUInfo();
+}
+
+void KeyPairUIDTab::slotRefreshTOFUInfo() {
+  if (this->tofuTabs == nullptr) return;
+
+  int uidRow = 0;
+  tofuTabs->clear();
+  for (const auto& uid : buffered_uids) {
+    // Only Show Selected UID Signatures
+    if (!uidList->item(uidRow++, 0)->isSelected()) {
+      continue;
+    }
+    auto tofu_infos = uid.tofu_infos();
+    LOG(INFO) << "tofu info size" << tofu_infos->size();
+    if (tofu_infos->empty()) {
+      tofuTabs->hide();
+    } else {
+      tofuTabs->show();
+    }
+    int index = 1;
+    for (const auto& tofu_info : *tofu_infos) {
+      tofuTabs->addTab(new TOFUInfoPage(tofu_info, this),
+                       QString(_("TOFU %1")).arg(index++));
+    }
+  }
 }
 
 void KeyPairUIDTab::slotRefreshSigList() {
@@ -329,7 +372,7 @@ void KeyPairUIDTab::slotDelUID() {
           "</b><br/><br/>" + keynames + +"<br/>" +
           _("The action can not be undone."),
       QMessageBox::No | QMessageBox::Yes);
-  
+
   if (ret == QMessageBox::Yes) {
     for (const auto& uid : *selected_uids) {
       LOG(INFO) << "KeyPairUIDTab::slotDelUID UID" << uid;
@@ -423,9 +466,9 @@ void KeyPairUIDTab::contextMenuEvent(QContextMenuEvent* event) {
     uidPopupMenu->exec(event->globalPos());
   }
 
-  if (!sigList->selectedItems().isEmpty()) {
-    signPopupMenu->exec(event->globalPos());
-  }
+  //  if (!sigList->selectedItems().isEmpty()) {
+  //    signPopupMenu->exec(event->globalPos());
+  //  }
 }
 
 void KeyPairUIDTab::slotAddSignSingle() {
@@ -528,6 +571,7 @@ void KeyPairUIDTab::slotDelSign() {
 void KeyPairUIDTab::slotRefreshKey() {
   this->mKey = GpgKeyGetter::GetInstance().GetKey(this->mKey.id());
   this->slotRefreshUIDList();
+  this->slotRefreshTOFUInfo();
   this->slotRefreshSigList();
 }
 

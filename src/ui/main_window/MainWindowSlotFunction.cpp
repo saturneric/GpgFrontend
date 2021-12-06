@@ -39,6 +39,7 @@
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExportor.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/help/AboutDialog.h"
 #include "ui/widgets/SignersPicker.h"
 
 namespace GpgFrontend::UI {
@@ -244,17 +245,21 @@ void MainWindow::slotVerify() {
   });
 
   if (!if_error) {
-    auto resultAnalyse = VerifyResultAnalyse(error, std::move(result));
-    resultAnalyse.analyse();
-    process_result_analyse(edit, infoBoard, resultAnalyse);
+    auto result_analyse = VerifyResultAnalyse(error, std::move(result));
+    result_analyse.analyse();
+    process_result_analyse(edit, infoBoard, result_analyse);
 
-    //    if (resultAnalyse->getStatus() >= 0) {
-    //      infoBoard->resetOptionActionsMenu();
-    //      infoBoard->addOptionalAction(
-    //          "Show Verify Details", [this, error, result]() {
-    //            VerifyDetailsDialog(this, mCtx, mKeyList, error, result);
-    //          });
-    //    }
+    if (result_analyse.getStatus() >= 0) {
+      // take out result
+      auto _result = result_analyse.TakeChargeOfResult();
+      auto _result_ptr = _result.get();
+      _result.reset(nullptr);
+      infoBoard->resetOptionActionsMenu();
+      infoBoard->addOptionalAction(
+          "Show Verify Details", [this, error, _result_ptr]() {
+            VerifyDetailsDialog(this, error, GpgVerifyResult(_result_ptr));
+          });
+    }
   }
 }
 
@@ -423,8 +428,8 @@ void MainWindow::slotDecryptVerify() {
     decrypt_res.analyse();
     verify_res.analyse();
     process_result_analyse(edit, infoBoard, decrypt_res, verify_res);
-
-    edit->slotFillTextEditWithText(QString::fromStdString(*decrypted));
+    if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+      edit->slotFillTextEditWithText(QString::fromStdString(*decrypted));
 
     //          if (verify_res.getStatus() >= 0) {
     //            infoBoard->resetOptionActionsMenu();
@@ -507,6 +512,12 @@ void MainWindow::slotVersionUpgrade(const QString& currentVersion,
         QString(_("GpgFrontend Upgradeable (New Version: %1)."))
             .arg(latestVersion),
         30000);
+    auto update_button = new QPushButton("Update GpgFrontend", this);
+    connect(update_button, &QPushButton::clicked, [=]() {
+      auto* about_dialog = new AboutDialog(2, this);
+      about_dialog->show();
+    });
+    statusBar()->addPermanentWidget(update_button, 0);
   } else if (currentVersion > latestVersion) {
     QMessageBox::warning(
         this, _("Unreleased Version"),
