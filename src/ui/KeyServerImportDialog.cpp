@@ -196,7 +196,7 @@ void KeyServerImportDialog::createKeysTable() {
 
 void KeyServerImportDialog::setMessage(const QString& text, bool error) {
   if (mAutomatic) return;
-  
+
   message->setText(text);
   if (error) {
     icon->setPixmap(
@@ -527,34 +527,24 @@ KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)
     : QDialog(parent), mAutomatic(true) {
   setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
 
-  message = new QLabel;
-  message->setFixedHeight(24);
-  icon = new QLabel;
-  icon->setFixedHeight(24);
-
   // Network Waiting
   waitingBar = new QProgressBar();
   waitingBar->setVisible(false);
   waitingBar->setRange(0, 0);
-  waitingBar->setFixedHeight(24);
-  waitingBar->setFixedWidth(200);
+  waitingBar->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  waitingBar->setTextVisible(false);
 
   // Layout for messagebox
-  auto* messageLayout = new QHBoxLayout;
-  messageLayout->addWidget(icon);
-  messageLayout->addWidget(message);
-  messageLayout->addWidget(waitingBar);
-  messageLayout->addStretch();
+  auto* layout = new QHBoxLayout();
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(0);
+  layout->addWidget(waitingBar);
 
   keyServerComboBox = createComboBox();
 
-  auto* mainLayout = new QGridLayout;
-
-  mainLayout->addLayout(messageLayout, 0, 0, 1, 3);
-
-  this->setLayout(mainLayout);
-  this->setWindowTitle(_("Upload Keys from Keyserver"));
-  this->setFixedSize(200, 42);
+  this->setLayout(layout);
+  this->setWindowTitle(_("Update Keys from Keyserver"));
+  this->setFixedSize(240, 42);
   this->setModal(true);
 }
 

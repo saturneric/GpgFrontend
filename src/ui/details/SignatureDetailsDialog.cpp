@@ -22,24 +22,4 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGINFO_H
-#define GPGFRONTEND_ZH_CN_TS_GPGINFO_H
-
-#include <string>
-
-/**
- * Use to record some info about gnupg
- */
-class GpgInfo {
- public:
-  /**
-   * executable binary path of gnupg
-   */
-  std::string AppPath;
-
-  std::string DatabasePath;
-
-  std::string GnupgVersion;
-};
-
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#include "SignatureDetailsDialog.h"

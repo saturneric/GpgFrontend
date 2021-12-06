@@ -36,6 +36,8 @@ class VerifyResultAnalyse : public ResultAnalyse {
 
   gpgme_signature_t GetSignatures();
 
+  GpgVerifyResult TakeChargeOfResult();
+
  private:
   void do_analyse();
 

@@ -77,12 +77,15 @@ gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
 
 std::string GpgFrontend::beautify_fingerprint(
     GpgFrontend::BypeArrayConstRef fingerprint) {
-  auto _fingerprint = fingerprint;
-  unsigned len = fingerprint.size();
-  if ((len > 0) && (len % 4 == 0))
-    for (unsigned n = 0; 4 * (n + 1) < len; ++n)
-      _fingerprint.insert(static_cast<int>(5u * n + 4u), " ");
-  return fingerprint;
+  auto len = fingerprint.size();
+  std::stringstream out;
+  decltype(len) count = 0;
+  while (count < len) {
+    if (count && !(count % 5)) out << " ";
+    out << fingerprint[count];
+    count++;
+  }
+  return out.str();
 }
 
 // trim from start (in place)

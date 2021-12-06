@@ -49,19 +49,22 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
   auto* actionButtonMenu = new QWidget();
   actionButtonMenu->setContentsMargins(0, 0, 0, 0);
   actionButtonMenu->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
-  actionButtonMenu->setFixedHeight(36);
+  actionButtonMenu->setFixedHeight(40);
 
   actionButtonLayout = new QHBoxLayout();
-  actionButtonLayout->setContentsMargins(5, 5, 5, 5);
+  actionButtonLayout->setContentsMargins(0, 0, 0, 0);
   actionButtonLayout->setSpacing(0);
-  actionButtonMenu->setLayout(actionButtonLayout);
 
-  auto label = new QLabel(_("Optional Actions"));
+  auto* label = new QLabel(_("Board Actions"));
   label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   label->setContentsMargins(0, 0, 0, 0);
+  mButtonGroup = new QButtonGroup(this);
 
-  actionButtonLayout->addWidget(label);
+  auto* bottom_layout = new QHBoxLayout(this);
+  bottom_layout->addWidget(label);
   actionButtonLayout->addStretch();
+  bottom_layout->addLayout(actionButtonLayout);
+  actionButtonMenu->setLayout(bottom_layout);
 
   QFrame* line;
   line = new QFrame(this);

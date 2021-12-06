@@ -21,6 +21,7 @@
  * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
+
 #ifndef GPGFRONTEND_GPGSUBKEY_H
 #define GPGFRONTEND_GPGSUBKEY_H
 

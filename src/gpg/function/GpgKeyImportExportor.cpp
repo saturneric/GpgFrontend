@@ -33,11 +33,12 @@
  */
 GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExportor::ImportKey(
     StdBypeArrayPtr in_buffer) {
-  if (in_buffer->empty()) return GpgImportInformation();
+  if (in_buffer->empty()) return {};
 
   GpgData data_in(in_buffer->data(), in_buffer->size());
   auto err = check_gpg_error(gpgme_op_import(ctx, data_in));
-  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
+  if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
+
   gpgme_import_result_t result;
   result = gpgme_op_import_result(ctx);
   gpgme_import_status_t status = result->imports;
@@ -49,6 +50,7 @@ GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExportor::ImportKey(
     import_info->importedKeys.emplace_back(key);
     status = status->next;
   }
+
   return *import_info;
 }
 
@@ -64,11 +66,11 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
 
   // Alleviate another crash problem caused by an unknown array out-of-bounds
   // access
+  auto all_success = true;
   for (size_t i = 0; i < uid_list->size(); i++) {
     GpgData data_out;
     auto err = gpgme_op_export(ctx, (*uid_list)[i].c_str(), 0, data_out);
-    assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
-
+    if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) all_success = false;
     DLOG(INFO) << "exportKeys read_bytes"
                << gpgme_data_seek(data_out, 0, SEEK_END);
 
@@ -76,7 +78,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
     std::swap(out_buffer, temp_out_buffer);
   }
 
-  return true;
+  return all_success;
 }
 
 /**
@@ -105,7 +107,6 @@ bool GpgFrontend::GpgKeyImportExportor::ExportSecretKey(
   gpgme_key_t target_key[2] = {gpgme_key_t(key), nullptr};
 
   GpgData data_out;
-
   // export private key to outBuffer
   gpgme_error_t err =
       gpgme_op_export_keys(ctx, target_key, GPGME_EXPORT_MODE_SECRET, data_out);
@@ -113,5 +114,19 @@ bool GpgFrontend::GpgKeyImportExportor::ExportSecretKey(
   auto temp_out_buffer = data_out.Read2Buffer();
   std::swap(out_buffer, temp_out_buffer);
 
+  return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
+}
+
+bool GpgFrontend::GpgKeyImportExportor::ExportKey(
+    const GpgFrontend::GpgKey& key,
+    GpgFrontend::ByteArrayPtr& out_buffer) const {
+  GpgData data_out;
+  auto err = gpgme_op_export(ctx, key.id().c_str(), 0, data_out);
+
+  DLOG(INFO) << "exportKeys read_bytes"
+             << gpgme_data_seek(data_out, 0, SEEK_END);
+
+  auto temp_out_buffer = data_out.Read2Buffer();
+  std::swap(out_buffer, temp_out_buffer);
   return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
 }

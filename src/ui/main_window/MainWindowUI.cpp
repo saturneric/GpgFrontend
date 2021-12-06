@@ -453,15 +453,15 @@ void MainWindow::createToolBars() {
 void MainWindow::createStatusBar() {
   auto* statusBarBox = new QWidget();
   auto* statusBarBoxLayout = new QHBoxLayout();
-  QPixmap* pixmap;
+  // QPixmap* pixmap;
 
   // icon which should be shown if there are files in attachments-folder
-  pixmap = new QPixmap(":statusbar_icon.png");
-  statusBarIcon = new QLabel();
-  statusBar()->addWidget(statusBarIcon);
-
-  statusBarIcon->setPixmap(*pixmap);
-  statusBar()->insertPermanentWidget(0, statusBarIcon, 0);
+  //  pixmap = new QPixmap(":statusbar_icon.png");
+  //  statusBarIcon = new QLabel();
+  //  statusBar()->addWidget(statusBarIcon);
+  //
+  //  statusBarIcon->setPixmap(*pixmap);
+  //  statusBar()->insertPermanentWidget(0, statusBarIcon, 0);
   statusBar()->showMessage(_("Ready"), 2000);
   statusBarBox->setLayout(statusBarBoxLayout);
 }

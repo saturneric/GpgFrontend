@@ -35,6 +35,7 @@
         <file alias="format-line-spacing-double.png">resource/icons/format-line-spacing-double.png</file>
         <file alias="format-line-spacing-normal.png">resource/icons/format-line-spacing-normal.png</file>
         <file alias="format-line-spacing-triple.png">resource/icons/format-line-spacing-triple.png</file>
+        <file alias="gpgfrontend.png">resource/icons/gpgfrontend.png</file>
         <file alias="importkey_editor.png">resource/icons/importkey_editor.png</file>
         <file alias="import_key_from_clipboard.png">resource/icons/import_key_from_clipboard.png</file>
         <file alias="import_key_from_file.png">resource/icons/import_key_from_file.png</file>
