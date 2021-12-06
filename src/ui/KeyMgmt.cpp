@@ -36,9 +36,49 @@
 namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   /* the list of Keys available*/
-  mKeyList = new KeyList();
-  mKeyList->setColumnWidth(2, 250);
-  mKeyList->setColumnWidth(3, 250);
+  mKeyList = new KeyList(this);
+
+  mKeyList->addListGroupTab(_("All"), KeyListRow::SECRET_OR_PUBLIC_KEY);
+
+  mKeyList->addListGroupTab(
+      _("Only Public Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
+          KeyListColumn::Usage | KeyListColumn::Validity,
+      [](const GpgKey& key) -> bool {
+        return !key.is_private_key() &&
+               !(key.revoked() || key.disabled() || key.expired());
+      });
+
+  mKeyList->addListGroupTab(
+      _("Has Private Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
+          KeyListColumn::Usage | KeyListColumn::Validity,
+      [](const GpgKey& key) -> bool {
+        return key.is_private_key() &&
+               !(key.revoked() || key.disabled() || key.expired());
+      });
+
+  mKeyList->addListGroupTab(
+      _("No Master Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
+          KeyListColumn::Usage | KeyListColumn::Validity,
+      [](const GpgKey& key) -> bool {
+        return !key.has_master_key() &&
+               !(key.revoked() || key.disabled() || key.expired());
+      });
+
+  mKeyList->addListGroupTab(
+      _("Revoked"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
+          KeyListColumn::Usage | KeyListColumn::Validity,
+      [](const GpgKey& key) -> bool { return key.revoked(); });
+
+  mKeyList->addListGroupTab(
+      _("Expired"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
+          KeyListColumn::Usage | KeyListColumn::Validity,
+      [](const GpgKey& key) -> bool { return key.expired(); });
+
   setCentralWidget(mKeyList);
   mKeyList->setDoubleClickedAction([this](const GpgKey& key, QWidget* parent) {
     new KeyDetailsDialog(key, parent);
