@@ -33,14 +33,13 @@ SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
   /*Setup KeyList*/
   mKeyList = new KeyList(
       KeyListRow::ONLY_SECRET_KEY,
-      KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage);
-
-  mKeyList->setFilter([](const GpgKey& key) -> bool {
-    if (!key.CanSignActual())
-      return false;
-    else
-      return true;
-  });
+      KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage,
+      [](const GpgKey& key) -> bool {
+        if (!key.CanSignActual())
+          return false;
+        else
+          return true;
+      });
 
   mKeyList->slotRefresh();
 

@@ -51,7 +51,8 @@ void TextEdit::slotNewTab() {
   QString header = _("untitled") + QString::number(++countPage) + ".txt";
 
   auto* page = new EditorPage();
-  tabWidget->addTab(page, header);
+  auto index = tabWidget->addTab(page, header);
+  tabWidget->setTabIcon(index, QIcon(":file.png"));
   tabWidget->setCurrentIndex(tabWidget->count() - 1);
   page->getTextPage()->setFocus();
   connect(page->getTextPage()->document(), SIGNAL(modificationChanged(bool)),
@@ -66,10 +67,12 @@ void TextEdit::slotNewHelpTab(const QString& title, const QString& path) const {
 
 void TextEdit::slotNewFileTab() const {
   auto* page = new FilePage(qobject_cast<QWidget*>(parent()));
-  tabWidget->addTab(page, "[Browser]");
+  auto index = tabWidget->addTab(page, QString());
+  tabWidget->setTabIcon(index, QIcon(":file-browser.png"));
   tabWidget->setCurrentIndex(tabWidget->count() - 1);
-  connect(page, SIGNAL(pathChanged(const QString&)), this,
-          SLOT(slotFilePagePathChanged(const QString&)));
+  connect(page, &FilePage::pathChanged, this,
+          &TextEdit::slotFilePagePathChanged);
+  page->slotGoPath();
 }
 
 void TextEdit::slotOpenFile(QString& path) {
@@ -580,7 +583,6 @@ void TextEdit::slotFilePagePathChanged(const QString& path) const {
   } else {
     mPath = tPath;
   }
-  mPath.prepend("[Browser] ");
   tabWidget->setTabText(index, mPath);
 }
 
