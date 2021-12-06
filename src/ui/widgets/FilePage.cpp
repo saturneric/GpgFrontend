@@ -79,6 +79,13 @@ FilePage::FilePage(QWidget* parent) : QWidget(parent) {
   pathEdit = new QLineEdit();
   pathEdit->setText(dirModel->rootPath());
 
+  pathEditCompleter = new QCompleter(this);
+  pathCompleteModel = new QStringListModel();
+  pathEditCompleter->setModel(pathCompleteModel);
+  pathEditCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+  pathEditCompleter->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
+  pathEdit->setCompleter(pathEditCompleter);
+
   auto* menuLayout = new QHBoxLayout();
   menuLayout->addWidget(upLevelButton);
   menuLayout->setStretchFactor(upLevelButton, 1);
@@ -103,6 +110,17 @@ FilePage::FilePage(QWidget* parent) : QWidget(parent) {
           &FilePage::fileTreeViewItemDoubleClicked);
   connect(dirTreeView, &QTreeView::customContextMenuRequested, this,
           &FilePage::onCustomContextMenu);
+
+  connect(pathEdit, &QLineEdit::textChanged, [=]() {
+    auto dir = QDir(pathEdit->text());
+    if (dir.isReadable()) {
+      auto dir_list = dir.entryInfoList(QDir::AllEntries);
+      QStringList paths;
+      for (int i = 1; i < dir_list.size(); i++)
+        paths.append(dir_list.at(i).filePath());
+      pathCompleteModel->setStringList(paths);
+    }
+  });
 
   connect(this, &FilePage::signalRefreshInfoBoard, SignalStation::GetInstance(),
           &SignalStation::signalRefreshInfoBoard);
@@ -151,9 +169,11 @@ void FilePage::slotGoPath() {
       dirTreeView->resizeColumnToContents(i);
     }
     pathEdit->setText(mPath.generic_path().string().c_str());
+
   } else {
-    QMessageBox::critical(this, _("Error"),
-                          _("The path is unprivileged or unreachable."));
+    QMessageBox::critical(
+        this, _("Error"),
+        _("The path is not exists, unprivileged or unreachable."));
   }
   emit pathChanged(mPath.string().c_str());
 }
@@ -178,8 +198,9 @@ void FilePage::createPopupMenu() {
       new QAction(QString(_("Verify")) + " " + _("(.sig .gpg .asc)"), this);
   connect(verifyItemAct, SIGNAL(triggered()), this, SLOT(slotVerifyItem()));
 
-  auto hashItemAct = new QAction(_("Calculate Hash"), this);
-  connect(hashItemAct, SIGNAL(triggered()), this, SLOT(slotCalculateHash()));
+  hashCalculateAct = new QAction(_("Calculate Hash"), this);
+  connect(hashCalculateAct, SIGNAL(triggered()), this,
+          SLOT(slotCalculateHash()));
 
   popUpMenu->addAction(openItemAct);
   popUpMenu->addAction(renameItemAct);
@@ -190,7 +211,7 @@ void FilePage::createPopupMenu() {
   popUpMenu->addAction(signItemAct);
   popUpMenu->addAction(verifyItemAct);
   popUpMenu->addSeparator();
-  popUpMenu->addAction(hashItemAct);
+  popUpMenu->addAction(hashCalculateAct);
 }
 
 void FilePage::onCustomContextMenu(const QPoint& point) {
@@ -209,6 +230,7 @@ void FilePage::onCustomContextMenu(const QPoint& point) {
                             (info.suffix() != "gpg" && info.suffix() != "sig"));
     verifyItemAct->setEnabled(
         info.isFile() && (info.suffix() == "sig" || info.suffix() == "gpg"));
+    hashCalculateAct->setEnabled(info.isFile() && info.isReadable());
 
     popUpMenu->exec(dirTreeView->viewport()->mapToGlobal(point));
   }
@@ -308,7 +330,7 @@ void FilePage::slotCalculateHash() {
   if (info.isFile() && info.isReadable()) {
     std::stringstream ss;
 
-    ss << "[#] " << _("File Hash") << std::endl;
+    ss << "[#] " << _("File Hash Information") << std::endl;
     ss << "    " << _("filename") << _(": ")
        << selectedPath.filename().string().c_str() << std::endl;
 
@@ -323,21 +345,24 @@ void FilePage::slotCalculateHash() {
       hash_md5.addData(buffer);
       auto md5 = hash_md5.result().toHex().toStdString();
       LOG(INFO) << "md5" << md5;
-      ss << "    " << _("md5") << _(": ") << md5 << std::endl;
+      ss << "    "
+         << "md5" << _(": ") << md5 << std::endl;
 
       auto hash_sha1 = QCryptographicHash(QCryptographicHash::Sha1);
       // sha1
       hash_sha1.addData(buffer);
       auto sha1 = hash_sha1.result().toHex().toStdString();
       LOG(INFO) << "sha1" << sha1;
-      ss << "    " << _("sha1") << _(": ") << sha1 << std::endl;
+      ss << "    "
+         << "sha1" << _(": ") << sha1 << std::endl;
 
       auto hash_sha256 = QCryptographicHash(QCryptographicHash::Sha256);
       // sha1
       hash_sha256.addData(buffer);
       auto sha256 = hash_sha256.result().toHex().toStdString();
       LOG(INFO) << "sha256" << sha256;
-      ss << "    " << _("sha256") << _(": ") << sha256 << std::endl;
+      ss << "    "
+         << "sha256" << _(": ") << sha256 << std::endl;
 
       ss << std::endl;
 

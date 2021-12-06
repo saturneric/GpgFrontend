@@ -106,8 +106,7 @@ void KeyGenDialog::slotKeyGenAccept() {
       genKeyInfo->setNonExpired(true);
     } else {
       genKeyInfo->setExpired(
-          boost::posix_time::from_time_t(dateEdit->dateTime().toTime_t())
-              .date());
+          boost::posix_time::from_time_t(dateEdit->dateTime().toTime_t()));
     }
 
     gpgme_error_t error = false;

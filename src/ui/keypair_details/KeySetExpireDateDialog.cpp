@@ -48,19 +48,16 @@ KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
 }
 
 void KeySetExpireDateDialog::slotConfirm() {
-  LOG(INFO) << "KeySetExpireDateDialog::slotConfirm Called";
-
-  std::unique_ptr<boost::gregorian::date> expires = nullptr;
+  LOG(INFO) << "Called"
+            << this->dateTimeEdit->dateTime().toLocalTime().toTime_t();
+  std::unique_ptr<boost::posix_time::ptime> expires = nullptr;
   if (this->nonExpiredCheck->checkState() == Qt::Unchecked) {
-    expires = std::make_unique<boost::gregorian::date>(
+    expires = std::make_unique<boost::posix_time::ptime>(
         boost::posix_time::from_time_t(
-            this->dateTimeEdit->dateTime().toTime_t())
-            .date());
-    LOG(INFO) << "KeySetExpireDateDialog::slotConfirm" << mKey.id() << mSubkey
-              << *expires;
+            this->dateTimeEdit->dateTime().toLocalTime().toTime_t()));
+    LOG(INFO) << "keyid" << mKey.id() << mSubkey << *expires;
   } else {
-    LOG(INFO) << "KeySetExpireDateDialog::slotConfirm" << mKey.id() << mSubkey
-              << "Non Expired";
+    LOG(INFO) << "keyid" << mKey.id() << mSubkey << "Non Expired";
   }
 
   auto err = GpgKeyOpera::GetInstance().SetExpire(mKey, mSubkey, expires);
@@ -84,10 +81,15 @@ void KeySetExpireDateDialog::slotConfirm() {
 }
 
 void KeySetExpireDateDialog::init() {
-  QDateTime maxDateTime = QDateTime::currentDateTime().addYears(2);
+  QDateTime maxDateTime =
+      QDateTime::currentDateTime().toLocalTime().addYears(2);
   dateTimeEdit = new QDateTimeEdit(maxDateTime);
+  dateTimeEdit->setTimeSpec(Qt::TimeSpec::TimeZone);
+  LOG(INFO) << "timespec" << Qt::TimeSpec::TimeZone;
+  dateTimeEdit->setCalendarPopup(true);
   dateTimeEdit->setMinimumDateTime(QDateTime::currentDateTime().addSecs(1));
   dateTimeEdit->setMaximumDateTime(maxDateTime);
+
   nonExpiredCheck = new QCheckBox();
   nonExpiredCheck->setTristate(false);
   confirmButton = new QPushButton(_("Confirm"));
@@ -103,7 +105,7 @@ void KeySetExpireDateDialog::init() {
   connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(slotConfirm()));
 
   this->setLayout(gridLayout);
-  this->setWindowTitle("Edit Expire Datetime");
+  this->setWindowTitle(_("Edit Expire Datetime"));
   this->setModal(true);
   this->setAttribute(Qt::WA_DeleteOnClose, true);
 

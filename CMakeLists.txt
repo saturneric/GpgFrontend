@@ -267,7 +267,7 @@ elseif (TEST_BUILD)
 endif ()
 
 # Introduce boost
-find_package(Boost COMPONENTS date_time filesystem REQUIRED)
+find_package(Boost COMPONENTS date_time filesystem locale REQUIRED)
 
 if (QT5_ENV_SUPPORT)
     # Support Qt version Both 5.12.x and 5.15.x

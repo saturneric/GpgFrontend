@@ -73,18 +73,17 @@ class GpgKey {
     return gpgme_pubkey_algo_name(_key_ref->subkeys->pubkey_algo);
   }
 
-  [[nodiscard]] boost::gregorian::date last_update() const {
+  [[nodiscard]] boost::posix_time::ptime last_update() const {
     return boost::posix_time::from_time_t(
-               static_cast<time_t>(_key_ref->last_update))
-        .date();
+        static_cast<time_t>(_key_ref->last_update));
   }
 
-  [[nodiscard]] boost::gregorian::date expires() const {
-    return boost::posix_time::from_time_t(_key_ref->subkeys->expires).date();
+  [[nodiscard]] boost::posix_time::ptime expires() const {
+    return boost::posix_time::from_time_t(_key_ref->subkeys->expires);
   };
 
-  [[nodiscard]] boost::gregorian::date create_time() const {
-    return boost::posix_time::from_time_t(_key_ref->subkeys->timestamp).date();
+  [[nodiscard]] boost::posix_time::ptime create_time() const {
+    return boost::posix_time::from_time_t(_key_ref->subkeys->timestamp);
   };
 
   [[nodiscard]] unsigned int length() const {

@@ -181,32 +181,31 @@ QGridLayout* VerifyKeyDetailBox::createKeyInfoGrid(
     grid->addWidget(new QLabel(_("NOT Fully Valid")), 3, 1);
   }
 
-  QString flags;
-  QTextStream textStream(&flags);
+  std::stringstream text_stream;
 
   if (signature.summary() & GPGME_SIGSUM_GREEN) {
-    textStream << _("Good") << " ";
+    text_stream << _("Good") << " ";
   }
   if (signature.summary() & GPGME_SIGSUM_RED) {
-    textStream << _("Bad") << " ";
+    text_stream << _("Bad") << " ";
   }
   if (signature.summary() & GPGME_SIGSUM_SIG_EXPIRED) {
-    textStream << _("Expired") << " ";
+    text_stream << _("Expired") << " ";
   }
   if (signature.summary() & GPGME_SIGSUM_KEY_MISSING) {
-    textStream << _("Missing Key") << " ";
+    text_stream << _("Missing Key") << " ";
   }
   if (signature.summary() & GPGME_SIGSUM_KEY_REVOKED) {
-    textStream << _("Revoked Key") << " ";
+    text_stream << _("Revoked Key") << " ";
   }
   if (signature.summary() & GPGME_SIGSUM_KEY_EXPIRED) {
-    textStream << _("Expired Key") << " ";
+    text_stream << _("Expired Key") << " ";
   }
   if (signature.summary() & GPGME_SIGSUM_CRL_MISSING) {
-    textStream << _("Missing CRL") << " ";
+    text_stream << _("Missing CRL") << " ";
   }
 
-  grid->addWidget(new QLabel(flags.toStdString().c_str()), 4, 1);
+  grid->addWidget(new QLabel(text_stream.str().c_str()), 4, 1);
   return grid;
 }
 

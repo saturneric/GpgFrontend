@@ -232,15 +232,15 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   setTitle(_("Ready."));
   setSubTitle(_("Have fun with GpgFrontend!"));
 
-  auto* bottomLabel =
-      new QLabel(QString(_("You are ready to use GpgFrontend now.<br><br>")) +
-                 "<a "
-                 "href=\"https://saturneric.github.io/GpgFrontend/index.html#/"
-                 "overview\">" +
-                 _("The Online Document") + "</a>" +
-                 _(" will get you started with GpgFrontend. It will open in "
-                   "the main window.") +
-                 "<br>");
+  auto* bottomLabel = new QLabel(
+      QString(_("You are ready to use GpgFrontend now.<br><br>")) +
+      "<a "
+      "href=\"https://saturneric.github.io/GpgFrontend/index.html#/"
+      "overview\">" +
+      _("The Online Document") + "</a>" +
+      _(" will get you started with GpgFrontend. Anytime you encounter "
+        "problems, please try to find help from the documentation") +
+      "<br>");
 
   bottomLabel->setTextFormat(Qt::RichText);
   bottomLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);

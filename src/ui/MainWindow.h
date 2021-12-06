@@ -219,16 +219,6 @@ class MainWindow : public QMainWindow {
   void slotOpenKeyManagement();
 
   /**
-   * @details Open about-dialog.
-   */
-  void slotAbout();
-
-  /**
-   * @details Open check-update-tab in about-dialog.
-   */
-  void slotCheckUpdate();
-
-  /**
    * @details Open File Opera Tab
    */
   void slotOpenFileTab();
@@ -402,6 +392,7 @@ class MainWindow : public QMainWindow {
   QAction* zoomOutAct{};               /** Action to zoom out */
   QAction* aboutAct{};                 /** Action to open about dialog */
   QAction* checkUpdateAct{};           /** Action to open about dialog */
+  QAction* translateAct{};             /** Action to open about dialog */
   QAction* fileEncryptAct{};    /** Action to open dialog for encrypting file */
   QAction* fileDecryptAct{};    /** Action to open dialog for decrypting file */
   QAction* fileSignAct{};       /** Action to open dialog for signing file */

@@ -54,7 +54,7 @@ class FilePage : public QWidget {
   void fileTreeViewItemDoubleClicked(const QModelIndex& index);
 
   void slotUpLevel();
-  
+
   void slotOpenItem();
   void slotRenameItem();
   void slotDeleteItem();
@@ -75,6 +75,8 @@ class FilePage : public QWidget {
   QFileSystemModel* dirModel;
   QTreeView* dirTreeView;
   QLineEdit* pathEdit;
+  QCompleter* pathEditCompleter;
+  QStringListModel* pathCompleteModel;
 
   // using boost path
   boost::filesystem::path mPath;
@@ -89,7 +91,7 @@ class FilePage : public QWidget {
   QAction* decryptItemAct{};
   QAction* signItemAct{};
   QAction* verifyItemAct{};
-
+  QAction* hashCalculateAct{};
   QWidget* firstParent;
 };
 

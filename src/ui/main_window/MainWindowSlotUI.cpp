@@ -28,10 +28,6 @@
 
 namespace GpgFrontend::UI {
 
-void MainWindow::slotAbout() { new AboutDialog(0, this); }
-
-void MainWindow::slotCheckUpdate() { new AboutDialog(2, this); }
-
 void MainWindow::slotSetStatusBarText(const QString& text) {
   statusBar()->showMessage(text, 20000);
 }

@@ -33,7 +33,7 @@
 bool GpgFrontend::GpgKeyManager::signKey(
     const GpgFrontend::GpgKey& target, GpgFrontend::KeyArgsList& keys,
     const std::string& uid,
-    const std::unique_ptr<boost::gregorian::date>& expires) {
+    const std::unique_ptr<boost::posix_time::ptime>& expires) {
   using namespace boost::posix_time;
 
   BasicOperator::GetInstance().SetSigners(keys);
@@ -44,7 +44,7 @@ bool GpgFrontend::GpgKeyManager::signKey(
   if (expires == nullptr)
     flags |= GPGME_KEYSIGN_NOEXPIRE;
   else
-    expires_time_t = to_time_t(ptime(*expires));
+    expires_time_t = to_time_t(*expires);
 
   auto err = check_gpg_error(gpgme_op_keysign(
       ctx, gpgme_key_t(target), uid.c_str(), expires_time_t, flags));
@@ -70,7 +70,7 @@ bool GpgFrontend::GpgKeyManager::revSign(
 
 bool GpgFrontend::GpgKeyManager::setExpire(
     const GpgFrontend::GpgKey& key, std::unique_ptr<GpgSubKey>& subkey,
-    std::unique_ptr<boost::gregorian::date>& expires) {
+    std::unique_ptr<boost::posix_time::ptime>& expires) {
   using namespace boost::posix_time;
 
   unsigned long expires_time = 0;

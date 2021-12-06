@@ -36,7 +36,7 @@ class GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
   void DeleteKeys(KeyIdArgsListPtr key_ids);
 
   GpgError SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
-                     std::unique_ptr<boost::gregorian::date>& expires);
+                     std::unique_ptr<boost::posix_time::ptime>& expires);
 
   static void GenerateRevokeCert(const GpgKey& key,
                                  const std::string& output_file_name);

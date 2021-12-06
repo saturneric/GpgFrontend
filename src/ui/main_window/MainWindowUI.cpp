@@ -254,7 +254,14 @@ void MainWindow::createActions() {
   aboutAct = new QAction(_("About"), this);
   aboutAct->setIcon(QIcon(":help.png"));
   aboutAct->setToolTip(_("Show the application's About box"));
-  connect(aboutAct, SIGNAL(triggered()), this, SLOT(slotAbout()));
+  connect(aboutAct, &QAction::triggered, this,
+          [=]() { new AboutDialog(0, this); });
+
+  translateAct = new QAction(_("Translate"), this);
+  translateAct->setIcon(QIcon(":help.png"));
+  translateAct->setToolTip(_("Information about translation"));
+  connect(translateAct, &QAction::triggered, this,
+          [=]() { new AboutDialog(1, this); });
 
   /*
    * Check Update Menu
@@ -262,7 +269,8 @@ void MainWindow::createActions() {
   checkUpdateAct = new QAction(_("Check for Updates"), this);
   checkUpdateAct->setIcon(QIcon(":help.png"));
   checkUpdateAct->setToolTip(_("Check for updates"));
-  connect(checkUpdateAct, SIGNAL(triggered()), this, SLOT(slotCheckUpdate()));
+  connect(checkUpdateAct, &QAction::triggered, this,
+          [=]() { new AboutDialog(2, this); });
 
   startWizardAct = new QAction(_("Open Wizard"), this);
   startWizardAct->setToolTip(_("Open the wizard"));
@@ -398,6 +406,7 @@ void MainWindow::createMenus() {
   helpMenu->addAction(startWizardAct);
   helpMenu->addSeparator();
   helpMenu->addAction(checkUpdateAct);
+  helpMenu->addAction(translateAct);
   helpMenu->addAction(aboutAct);
 }
 
@@ -410,7 +419,7 @@ void MainWindow::createToolBars() {
   fileToolBar->addAction(browserAct);
   viewMenu->addAction(fileToolBar->toggleViewAction());
 
-  cryptToolBar = addToolBar(_("Crypt"));
+  cryptToolBar = addToolBar(_("Operations"));
   cryptToolBar->setObjectName("cryptToolBar");
   cryptToolBar->addAction(encryptAct);
   cryptToolBar->addAction(encryptSignAct);

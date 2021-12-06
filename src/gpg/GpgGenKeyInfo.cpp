@@ -147,9 +147,9 @@ void GpgFrontend::GenKeyInfo::setKeySize(int m_key_size) {
 }
 
 void GpgFrontend::GenKeyInfo::setExpired(
-    const boost::gregorian::date &m_expired) {
+    const boost::posix_time::ptime &m_expired) {
   using namespace boost::gregorian;
-  auto current = day_clock::local_day();
+  auto current = boost::posix_time::second_clock::local_time();
   if (isNonExpired() && m_expired < current + years(2)) {
     GenKeyInfo::expired = m_expired;
   }
@@ -157,7 +157,7 @@ void GpgFrontend::GenKeyInfo::setExpired(
 
 void GpgFrontend::GenKeyInfo::setNonExpired(bool m_non_expired) {
   using namespace boost::posix_time;
-  if (!m_non_expired) this->expired = from_time_t(0).date();
+  if (!m_non_expired) this->expired = from_time_t(0);
   GenKeyInfo::nonExpired = m_non_expired;
 }
 

@@ -46,11 +46,11 @@ class GpgKeySignature {
     return gpgme_pubkey_algo_name(_signature_ref->pubkey_algo);
   }
 
-  [[nodiscard]] boost::gregorian::date create_time() const {
-    return boost::posix_time::from_time_t(_signature_ref->timestamp).date();
+  [[nodiscard]] boost::posix_time::ptime create_time() const {
+    return boost::posix_time::from_time_t(_signature_ref->timestamp);
   }
-  [[nodiscard]] boost::gregorian::date expire_time() const {
-    return boost::posix_time::from_time_t(_signature_ref->expires).date();
+  [[nodiscard]] boost::posix_time::ptime expire_time() const {
+    return boost::posix_time::from_time_t(_signature_ref->expires);
   }
 
   [[nodiscard]] std::string uid() const { return _signature_ref->uid; }
