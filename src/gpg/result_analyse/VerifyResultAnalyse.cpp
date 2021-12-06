@@ -56,8 +56,9 @@ void GpgFrontend::VerifyResultAnalyse::do_analyse() {
       return;
     }
 
-    stream << "[>] " << _("Signed On") << " "
-           << boost::posix_time::to_iso_string(
+    stream << "[>] " << _("Signed On") << "(" << _("UTC") << ")"
+           << " "
+           << boost::posix_time::to_iso_extended_string(
                   boost::posix_time::from_time_t(sign->timestamp))
            << std::endl;
 
@@ -186,15 +187,16 @@ bool GpgFrontend::VerifyResultAnalyse::print_signer(std::stringstream &stream,
     stream << "    " << _("Hash Algo") << ": "
            << gpgme_hash_algo_name(sign->hash_algo) << std::endl;
   if (sign->timestamp)
-    stream << "    " << _("Date & Time") << ": "
-           << boost::posix_time::to_iso_string(
+    stream << "    " << _("Date") << "(" << _("UTC") << ")"
+           << ": "
+           << boost::posix_time::to_iso_extended_string(
                   boost::posix_time::from_time_t(sign->timestamp))
            << std::endl;
   stream << std::endl;
   return keyFound;
 }
 
-gpgme_signature_t GpgFrontend::VerifyResultAnalyse::GetSignatures() {
+gpgme_signature_t GpgFrontend::VerifyResultAnalyse::GetSignatures() const {
   if (result)
     return result->signatures;
   else

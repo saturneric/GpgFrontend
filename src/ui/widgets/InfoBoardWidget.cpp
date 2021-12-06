@@ -46,10 +46,11 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
   detailMenu->addAction(importFromKeyserverAct);
   importFromKeyserverAct->setVisible(false);
 
-  auto* actionButtonMenu = new QWidget();
-  actionButtonMenu->setContentsMargins(0, 0, 0, 0);
-  actionButtonMenu->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
-  actionButtonMenu->setFixedHeight(40);
+  auto* action_button_menu = new QWidget();
+  action_button_menu->setContentsMargins(0, 0, 0, 0);
+  action_button_menu->setSizePolicy(QSizePolicy::Preferred,
+                                    QSizePolicy::Minimum);
+  action_button_menu->setFixedHeight(40);
 
   actionButtonLayout = new QHBoxLayout();
   actionButtonLayout->setContentsMargins(0, 0, 0, 0);
@@ -64,7 +65,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
   bottom_layout->addWidget(label);
   actionButtonLayout->addStretch();
   bottom_layout->addLayout(actionButtonLayout);
-  actionButtonMenu->setLayout(bottom_layout);
+  action_button_menu->setLayout(bottom_layout);
 
   QFrame* line;
   line = new QFrame(this);
@@ -78,8 +79,8 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
 
   notificationWidgetLayout->addWidget(infoBoard);
   notificationWidgetLayout->setStretchFactor(infoBoard, 10);
-  notificationWidgetLayout->addWidget(actionButtonMenu);
-  notificationWidgetLayout->setStretchFactor(actionButtonMenu, 1);
+  notificationWidgetLayout->addWidget(action_button_menu);
+  notificationWidgetLayout->setStretchFactor(action_button_menu, 1);
   notificationWidgetLayout->addWidget(line);
   notificationWidgetLayout->setStretchFactor(line, 1);
   notificationWidgetLayout->addStretch(0);
@@ -186,7 +187,8 @@ void InfoBoardWidget::addOptionalAction(const QString& name,
  * Delete All item in actionButtonLayout
  */
 void InfoBoardWidget::resetOptionActionsMenu() {
-  deleteWidgetsInLayout(actionButtonLayout, 2);
+  // skip stretch
+  deleteWidgetsInLayout(actionButtonLayout, 1);
 }
 
 void InfoBoardWidget::slotReset() {
@@ -199,6 +201,8 @@ void InfoBoardWidget::slotReset() {
  * @param layout target layout
  */
 void InfoBoardWidget::deleteWidgetsInLayout(QLayout* layout, int start_index) {
+  LOG(INFO) << "Called";
+
   QLayoutItem* item;
   while ((item = layout->layout()->takeAt(start_index)) != nullptr) {
     layout->removeItem(item);

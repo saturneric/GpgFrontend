@@ -114,7 +114,7 @@ void KeyGenDialog::slotKeyGenAccept() {
         [&]() { error = GpgKeyOpera::GetInstance().GenerateKey(genKeyInfo); });
     thread->start();
 
-    auto* dialog = new WaitingDialog("Generating", this);
+    auto* dialog = new WaitingDialog(_("Generating"), this);
     dialog->show();
 
     while (thread->isRunning()) {

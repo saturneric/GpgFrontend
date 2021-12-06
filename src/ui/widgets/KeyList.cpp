@@ -39,7 +39,7 @@ KeyList::KeyList(KeyListRow::KeyType selectType,
                  QWidget* parent)
     : QWidget(parent) {
   init();
-  addListGroupTab("Default", selectType, infoType, filter);
+  addListGroupTab(_("Default"), selectType, infoType, filter);
 }
 
 void KeyList::init() {

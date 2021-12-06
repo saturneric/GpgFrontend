@@ -22,7 +22,11 @@
  *
  */
 
+#include <stdlib.h>
+
 #include <boost/locale.hpp>
+#include <clocale>
+#include <locale>
 
 #include "GpgFrontendBuildInfo.h"
 #include "ui/MainWindow.h"
@@ -44,9 +48,6 @@ int main(int argc, char* argv[]) {
 
   // logging system
   init_logging();
-
-  // i18n
-  init_locale();
 
   // App config
   QApplication::setApplicationVersion(BUILD_VERSION);
@@ -74,19 +75,10 @@ int main(int argc, char* argv[]) {
   int return_from_event_loop_code;
 
   do {
+    // i18n
+    init_locale();
+
     QApplication::setQuitOnLastWindowClosed(true);
-
-    /**
-     * The function `gpgme_check_version' must be called before any other
-     *  function in the library, because it initializes the thread support
-     *  subsystem in GPGME. (from the info page) */
-    gpgme_check_version(nullptr);
-
-    /** set locale, because tests do also */
-    gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
-#ifndef _WIN32
-    gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
-#endif
 
     auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
     main_window->init();
@@ -139,11 +131,7 @@ void init_locale() {
 
   GpgFrontend::UI::GlobalSettingStation::GetInstance().Sync();
 
-  auto* locale_name = setlocale(LC_ALL, nullptr);
-  boost::locale::generator gen;
-  // Create locale generator
-  std::locale::global(gen(locale_name));
-  LOG(INFO) << "current system locale" << locale_name;
+  LOG(INFO) << "current system locale" << setlocale(LC_ALL, nullptr);
 
   // read from settings file
   std::string lang;
@@ -151,21 +139,29 @@ void init_locale() {
     LOG(ERROR) << _("Could not read properly from configure file");
   };
 
-  LOG(INFO) << "lang" << lang;
+  LOG(INFO) << "lang from settings" << lang;
   LOG(INFO) << "PROJECT_NAME" << PROJECT_NAME;
   LOG(INFO) << "locales path"
             << GpgFrontend::UI::GlobalSettingStation::GetInstance()
                    .GetLocaleDir()
                    .c_str();
 
-  if (!lang.empty()) lang += ".UTF8";
-  // GNU gettext settings
-  locale_name = setlocale(LC_ALL, lang.c_str());
-  if (locale_name == nullptr) {
-    LOG(WARNING) << "set locale name failed";
-  } else {
-    LOG(INFO) << "locale name now" << locale_name;
-  }
+  if (lang.empty()) return;
+  std::string lc = lang.empty() ? "" : lang + ".UTF-8";
+
+  // set LC_ALL
+  auto* locale_name = setlocale(LC_ALL, lc.c_str());
+  if (locale_name == nullptr) LOG(WARNING) << "set LC_ALL failed" << lc;
+  boost::locale::generator gen;
+  // Create locale generator
+  std::locale::global(gen(locale_name != nullptr ? lc : ""));
+  // set LANGUAGE
+  std::string language_env = getenv("LANGUAGE");
+  language_env.insert(0, lang + ":");
+  LOG(INFO) << "language env" << language_env;
+  if (setenv("LANGUAGE", language_env.c_str(), 1)) {
+    LOG(WARNING) << "set LANGUAGE failed" << language_env;
+  };
 
   bindtextdomain(PROJECT_NAME,
                  GpgFrontend::UI::GlobalSettingStation::GetInstance()

@@ -38,6 +38,7 @@ MainWindow::MainWindow() {
 }
 
 void MainWindow::init() noexcept {
+  LOG(INFO) << _("Called");
   try {
     // Check Context Status
     if (!GpgContext::GetInstance().good()) {
@@ -149,6 +150,8 @@ void MainWindow::init() noexcept {
 }
 
 void MainWindow::restoreSettings() {
+  LOG(INFO) << _("Called");
+
   try {
     auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 

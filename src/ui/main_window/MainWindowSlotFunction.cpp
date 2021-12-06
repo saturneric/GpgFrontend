@@ -249,17 +249,11 @@ void MainWindow::slotVerify() {
     result_analyse.analyse();
     process_result_analyse(edit, infoBoard, result_analyse);
 
-    if (result_analyse.getStatus() >= 0) {
-      // take out result
-      auto _result = result_analyse.TakeChargeOfResult();
-      auto _result_ptr = _result.get();
-      _result.reset(nullptr);
-      infoBoard->resetOptionActionsMenu();
-      infoBoard->addOptionalAction(
-          "Show Verify Details", [this, error, _result_ptr]() {
-            VerifyDetailsDialog(this, error, GpgVerifyResult(_result_ptr));
-          });
-    }
+    if (result_analyse.getStatus() == -2)
+      import_unknown_key_from_keyserver(this, result_analyse);
+
+    if (result_analyse.getStatus() >= 0)
+      show_verify_details(this, infoBoard, error, result_analyse);
   }
 }
 
@@ -431,14 +425,12 @@ void MainWindow::slotDecryptVerify() {
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
       edit->slotFillTextEditWithText(QString::fromStdString(*decrypted));
 
-    //          if (verify_res.getStatus() >= 0) {
-    //            infoBoard->resetOptionActionsMenu();
-    //            infoBoard->addOptionalAction(
-    //                "Show Verify Details", [this, error, v_result]() {
-    //                  VerifyDetailsDialog(this, mCtx, mKeyList, error,
-    //                  v_result);
-    //                });
-    //          }
+    if (verify_res.getStatus() == -2)
+      import_unknown_key_from_keyserver(this, verify_res);
+
+    if (verify_res.getStatus() >= 0)
+      show_verify_details(this, infoBoard, error, verify_res);
+
   } else {
     QMessageBox::critical(this, _("Error"),
                           _("An error occurred during operation."));
