@@ -25,6 +25,7 @@
 #ifndef GPGFRONTEND_USER_INTERFACE_UTILS_H
 #define GPGFRONTEND_USER_INTERFACE_UTILS_H
 
+#include "gpg/result_analyse/VerifyResultAnalyse.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend {
@@ -35,6 +36,12 @@ namespace GpgFrontend::UI {
 
 class InfoBoardWidget;
 class TextEdit;
+
+void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
+                         GpgError error, VerifyResultAnalyse& verify_res);
+
+void import_unknown_key_from_keyserver(QWidget* parent,
+                                       const VerifyResultAnalyse& verify_res);
 
 void refresh_info_board(InfoBoardWidget* info_board, int status,
                         const std::string& report_text);

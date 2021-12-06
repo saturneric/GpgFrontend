@@ -505,12 +505,13 @@ void KeyServerImportDialog::importKeys(ByteArrayPtr in_data) {
   GpgImportInformation result =
       GpgKeyImportExportor::GetInstance().ImportKey(std::move(in_data));
   emit signalKeyImported();
+  QWidget* _parent = qobject_cast<QWidget*>(parent());
   if (mAutomatic) {
-    auto dialog = new KeyImportDetailDialog(result, true, nullptr);
+    auto dialog = new KeyImportDetailDialog(result, true, _parent);
     dialog->show();
     this->accept();
   } else {
-    auto dialog = new KeyImportDetailDialog(result, false, this);
+    auto dialog = new KeyImportDetailDialog(result, false, _parent);
     dialog->exec();
   }
 }

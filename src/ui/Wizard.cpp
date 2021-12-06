@@ -248,10 +248,10 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   bottomLabel->setWordWrap(true);
 
   openHelpCheckBox = new QCheckBox(_("Open offline help."));
-  openHelpCheckBox->setChecked(Qt::Checked);
+  openHelpCheckBox->setChecked(true);
 
   dontShowWizardCheckBox = new QCheckBox(_("Dont show the wizard again."));
-  dontShowWizardCheckBox->setChecked(Qt::Checked);
+  dontShowWizardCheckBox->setChecked(true);
 
   registerField("showWizard", dontShowWizardCheckBox);
   // registerField("openHelp", openHelpCheckBox);

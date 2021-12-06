@@ -51,7 +51,7 @@ GpgContext::GpgContext(bool independent_database, std::string db_path,
 
   if (_first) {
     /* Initialize the locale environment. */
-    setlocale(LC_ALL, "");
+    LOG(INFO) << "locale" << setlocale(LC_CTYPE, nullptr);
     gpgme_check_version(nullptr);
     gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
 #ifdef LC_MESSAGES

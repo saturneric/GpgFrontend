@@ -108,11 +108,11 @@ void KeyUploadDialog::slotUploadFinished() {
   auto* reply = qobject_cast<QNetworkReply*>(sender());
 
   QByteArray response = reply->readAll();
-  qDebug() << "Response: " << response.data();
+  LOG(INFO) << "Response: " << response.toStdString();
 
   auto error = reply->error();
   if (error != QNetworkReply::NoError) {
-    qDebug() << "Error From Reply" << reply->errorString();
+    LOG(INFO) << "Error From Reply" << reply->errorString().toStdString();
     QString message;
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
@@ -130,9 +130,9 @@ void KeyUploadDialog::slotUploadFinished() {
     QMessageBox::critical(this, "Upload Failed", message);
     return;
   } else {
-    QMessageBox::information(this, "Upload Success",
-                             "Upload Public Key Successfully");
-    qDebug() << "Success while contacting keyserver!";
+    QMessageBox::information(this, _("Upload Success"),
+                             _("Upload Public Key Successfully"));
+    LOG(INFO) << "Success while contacting keyserver!";
   }
   reply->deleteLater();
 }

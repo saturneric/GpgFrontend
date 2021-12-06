@@ -287,43 +287,15 @@ void MainWindow::slotFileVerify() {
   });
 
   if (!if_error) {
-    auto resultAnalyse = VerifyResultAnalyse(error, std::move(result));
-    resultAnalyse.analyse();
-    process_result_analyse(edit, infoBoard, resultAnalyse);
+    auto result_analyse = VerifyResultAnalyse(error, std::move(result));
+    result_analyse.analyse();
+    process_result_analyse(edit, infoBoard, result_analyse);
 
-    if (resultAnalyse.getStatus() == -2) {
-      QMessageBox::StandardButton reply;
-      reply = QMessageBox::question(
-          this, _("Public key not found locally"),
-          _("There is no target public key content in local for GpgFrontend to "
-            "gather enough information about this Signature. Do you want to "
-            "import the public key from Keyserver now?"),
-          QMessageBox::Yes | QMessageBox::No);
-      if (reply == QMessageBox::Yes) {
-        qDebug() << "Yes was clicked";
-        auto dialog = KeyServerImportDialog(true, this);
-        auto key_ids = std::make_unique<KeyIdArgsList>();
-        auto* signature = resultAnalyse.GetSignatures();
-        while (signature != nullptr) {
-          LOG(INFO) << "signature fpr" << signature->fpr;
-          key_ids->push_back(signature->fpr);
-          signature = signature->next;
-        }
-        dialog.slotImport(key_ids);
-        dialog.show();
+    if (result_analyse.getStatus() == -2)
+      import_unknown_key_from_keyserver(this, result_analyse);
 
-      } else {
-        qDebug() << "Yes was *not* clicked";
-      }
-    }
-
-    //    if (resultAnalyse.getStatus() >= 0) {
-    //      infoBoard->resetOptionActionsMenu();
-    //      infoBoard->addOptionalAction(
-    //          "Show Verify Details", [this, error, &result]() {
-    //            VerifyDetailsDialog(this, mKeyList, error, result);
-    //          });
-    //    }
+    if (result_analyse.getStatus() >= 0)
+      show_verify_details(this, infoBoard, error, result_analyse);
 
     fileTreeView->update();
   } else {
@@ -452,13 +424,11 @@ void MainWindow::slotFileDecryptVerify() {
     verify_res.analyse();
     process_result_analyse(edit, infoBoard, decrypt_res, verify_res);
 
-    //    if (verify_res.getStatus() >= 0) {
-    //      infoBoard->resetOptionActionsMenu();
-    //      infoBoard->addOptionalAction(
-    //          "Show Verify Details", [this, error, v_result]() {
-    //            VerifyDetailsDialog(this, mCtx, mKeyList, error, v_result);
-    //          });
-    //    }
+    if (verify_res.getStatus() == -2)
+      import_unknown_key_from_keyserver(this, verify_res);
+
+    if (verify_res.getStatus() >= 0)
+      show_verify_details(this, infoBoard, error, verify_res);
 
     fileTreeView->update();
   } else {

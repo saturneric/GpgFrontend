@@ -65,7 +65,7 @@ QGroupBox* SubkeyGenerateDialog::create_key_usage_group_box() {
   auto* groupBox = new QGroupBox(this);
   auto* grid = new QGridLayout(this);
 
-  groupBox->setTitle("Key Usage");
+  groupBox->setTitle(_("Key Usage"));
 
   auto* encrypt = new QCheckBox(_("Encryption"), groupBox);
   encrypt->setTristate(false);
@@ -239,12 +239,12 @@ void SubkeyGenerateDialog::slotKeyGenAccept() {
 
     GpgError error;
     auto thread = QThread::create([&]() {
-      LOG(INFO) << "SubkeyGenerateDialog::slotKeyGenAccept() Thread Started";
+      LOG(INFO) << "Thread Started";
       error = GpgKeyOpera::GetInstance().GenerateSubkey(mKey, genKeyInfo);
     });
     thread->start();
 
-    auto* dialog = new WaitingDialog("Generating", this);
+    auto* dialog = new WaitingDialog(_("Generating"), this);
     dialog->show();
 
     while (thread->isRunning()) {

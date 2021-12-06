@@ -104,7 +104,7 @@ jobs:
           ./configure --enable-maintainer-mode --enable-static=yes && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-18.04'
 
       - name: Build assuan (Linux)
         run: |
@@ -113,7 +113,7 @@ jobs:
           ./configure --enable-maintainer-mode --enable-static=yes && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-18.04'
 
       - name: Build GpgME (Linux & macOS)
         run: |
@@ -122,7 +122,7 @@ jobs:
           ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        if: matrix.os == 'ubuntu-18.04' || matrix.os == 'macos-latest'
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}

@@ -83,14 +83,14 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   vboxKD->addWidget(new QLabel(QString(_("Master Key Existence")) + ": "), 8,
                     0);
 
-  vboxKD->addWidget(keySizeVarLabel, 2, 1);
-  vboxKD->addWidget(expireVarLabel, 6, 1);
-  vboxKD->addWidget(algorithmVarLabel, 1, 1);
-  vboxKD->addWidget(createdVarLabel, 5, 1);
-  vboxKD->addWidget(lastUpdateVarLabel, 7, 1);
   vboxKD->addWidget(keyidVarLabel, 0, 1);
+  vboxKD->addWidget(algorithmVarLabel, 1, 1);
+  vboxKD->addWidget(keySizeVarLabel, 2, 1);
   vboxKD->addWidget(usageVarLabel, 3, 1);
   vboxKD->addWidget(actualUsageVarLabel, 4, 1);
+  vboxKD->addWidget(createdVarLabel, 5, 1);
+  vboxKD->addWidget(expireVarLabel, 6, 1);
+  vboxKD->addWidget(lastUpdateVarLabel, 7, 1);
   vboxKD->addWidget(masterKeyExistVarLabel, 8, 1);
 
   ownerBox->setLayout(vboxOD);
@@ -102,8 +102,10 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   fingerPrintVarLabel->setWordWrap(false);
   fingerPrintVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
   fingerPrintVarLabel->setStyleSheet("margin-left: 0; margin-right: 5;");
+  fingerPrintVarLabel->setAlignment(Qt::AlignCenter);
   auto* hboxFP = new QHBoxLayout();
 
+  hboxFP->addStretch();
   hboxFP->addWidget(fingerPrintVarLabel);
 
   auto* copyFingerprintButton = new QPushButton(_("Copy"));
@@ -113,10 +115,11 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
           SLOT(slotCopyFingerprint()));
 
   hboxFP->addWidget(copyFingerprintButton);
+  hboxFP->addStretch();
 
   fingerprintBox->setLayout(hboxFP);
-  mvbox->addWidget(fingerprintBox);
   mvbox->addStretch();
+  mvbox->addWidget(fingerprintBox);
 
   auto* opera_key_box = new QGroupBox(_("Operations"));
   auto* vbox_p_k = new QVBoxLayout();
@@ -180,28 +183,19 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   mvbox->addWidget(opera_key_box);
   vbox_p_k->addWidget(modify_tofu_button);
 
-  if ((mKey.expired()) || (mKey.revoked())) {
-    auto* expBox = new QHBoxLayout();
-    QPixmap pixmap(":warning.png");
+  auto* expBox = new QHBoxLayout();
+  QPixmap pixmap(":warning.png");
 
-    auto* expLabel = new QLabel();
-    auto* iconLabel = new QLabel();
-    if (mKey.expired()) {
-      expLabel->setText(_("Warning: The Master Key has expired."));
-    }
-    if (mKey.revoked()) {
-      expLabel->setText(_("Warning: The Master Key has been revoked"));
-    }
+  expLabel = new QLabel();
+  iconLabel = new QLabel();
 
-    iconLabel->setPixmap(pixmap.scaled(24, 24, Qt::KeepAspectRatio));
-    QFont font = expLabel->font();
-    font.setBold(true);
-    expLabel->setFont(font);
-    expLabel->setAlignment(Qt::AlignCenter);
-    expBox->addWidget(iconLabel);
-    expBox->addWidget(expLabel);
-    mvbox->addLayout(expBox);
-  }
+  iconLabel->setPixmap(pixmap.scaled(24, 24, Qt::KeepAspectRatio));
+  expLabel->setAlignment(Qt::AlignCenter);
+  expBox->addStretch();
+  expBox->addWidget(iconLabel);
+  expBox->addWidget(expLabel);
+  expBox->addStretch();
+  mvbox->addLayout(expBox);
 
   // when key database updated
   connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
@@ -362,6 +356,20 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
   keySizeVarLabel->setText(key_size_val.c_str());
   algorithmVarLabel->setText(key_algo_val.c_str());
   fingerPrintVarLabel->setText(beautify_fingerprint(mKey.fpr()).c_str());
+
+  iconLabel->hide();
+  expLabel->hide();
+
+  if (mKey.expired()) {
+    iconLabel->show();
+    expLabel->show();
+    expLabel->setText(_("Warning: The Master Key has expired."));
+  }
+  if (mKey.revoked()) {
+    iconLabel->show();
+    expLabel->show();
+    expLabel->setText(_("Warning: The Master Key has been revoked."));
+  }
 }
 
 void KeyPairDetailTab::createKeyServerOperaMenu() {

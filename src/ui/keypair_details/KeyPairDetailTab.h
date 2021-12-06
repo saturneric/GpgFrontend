@@ -91,6 +91,9 @@ class KeyPairDetailTab : public QWidget {
   QLabel* actualUsageVarLabel;
   QLabel* masterKeyExistVarLabel;
 
+  QLabel* iconLabel;
+  QLabel* expLabel;
+
   QMenu* keyServerOperaMenu{};
 
  public:

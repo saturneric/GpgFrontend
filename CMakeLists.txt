@@ -255,6 +255,7 @@ elseif (STABLE_APPLICATION_BUILD)
     set(UI_CORE 1)
     set(APPLICATION_BUILD 1)
     set(BASIC_ENV_CONFIG 1)
+    set(MULTI_LANG_SUPPORT 1)
 elseif (TEST_BUILD)
     message(STATUS "Build Test Cases")
 
