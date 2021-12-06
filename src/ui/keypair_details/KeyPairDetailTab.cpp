@@ -24,6 +24,8 @@
 
 #include "ui/keypair_details/KeyPairDetailTab.h"
 
+#include <boost/locale.hpp>
+
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExportor.h"
 #include "gpg/function/GpgKeyOpera.h"
@@ -55,31 +57,9 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   keySizeVarLabel = new QLabel();
   expireVarLabel = new QLabel();
   createdVarLabel = new QLabel();
+  lastUpdateVarLabel = new QLabel();
   algorithmVarLabel = new QLabel();
-
-  // Show the situation that master key not exists.
-  masterKeyExistVarLabel =
-      new QLabel(mKey.has_master_key() ? _("Exists") : _("Not Exists"));
-  if (!mKey.has_master_key()) {
-    auto paletteExpired = masterKeyExistVarLabel->palette();
-    paletteExpired.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::red);
-    masterKeyExistVarLabel->setPalette(paletteExpired);
-  } else {
-    auto paletteValid = masterKeyExistVarLabel->palette();
-    paletteValid.setColor(masterKeyExistVarLabel->foregroundRole(),
-                          Qt::darkGreen);
-    masterKeyExistVarLabel->setPalette(paletteValid);
-  }
-
-  if (mKey.expired()) {
-    auto paletteExpired = expireVarLabel->palette();
-    paletteExpired.setColor(expireVarLabel->foregroundRole(), Qt::red);
-    expireVarLabel->setPalette(paletteExpired);
-  } else {
-    auto paletteValid = expireVarLabel->palette();
-    paletteValid.setColor(expireVarLabel->foregroundRole(), Qt::darkGreen);
-    expireVarLabel->setPalette(paletteValid);
-  }
+  masterKeyExistVarLabel = new QLabel();
 
   auto* mvbox = new QVBoxLayout();
   auto* vboxKD = new QGridLayout();
@@ -97,26 +77,28 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   vboxKD->addWidget(new QLabel(QString(_("Key Size")) + ": "), 2, 0);
   vboxKD->addWidget(new QLabel(QString(_("Nominal Usage")) + ": "), 3, 0);
   vboxKD->addWidget(new QLabel(QString(_("Actual Usage")) + ": "), 4, 0);
-  vboxKD->addWidget(new QLabel(QString(_("Expires on")) + ": "), 5, 0);
-  vboxKD->addWidget(new QLabel(QString(_("Last Update")) + ": "), 6, 0);
-  vboxKD->addWidget(new QLabel(QString(_("Secret Key Existence")) + ": "), 7,
+  vboxKD->addWidget(new QLabel(QString(_("Create Date")) + ": "), 5, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Expires on")) + ": "), 6, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Last Update")) + ": "), 7, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Master Key Existence")) + ": "), 8,
                     0);
 
   vboxKD->addWidget(keySizeVarLabel, 2, 1);
-  vboxKD->addWidget(expireVarLabel, 5, 1);
+  vboxKD->addWidget(expireVarLabel, 6, 1);
   vboxKD->addWidget(algorithmVarLabel, 1, 1);
-  vboxKD->addWidget(createdVarLabel, 6, 1);
+  vboxKD->addWidget(createdVarLabel, 5, 1);
+  vboxKD->addWidget(lastUpdateVarLabel, 7, 1);
   vboxKD->addWidget(keyidVarLabel, 0, 1);
   vboxKD->addWidget(usageVarLabel, 3, 1);
   vboxKD->addWidget(actualUsageVarLabel, 4, 1);
-  vboxKD->addWidget(masterKeyExistVarLabel, 7, 1);
+  vboxKD->addWidget(masterKeyExistVarLabel, 8, 1);
 
   ownerBox->setLayout(vboxOD);
   mvbox->addWidget(ownerBox);
   keyBox->setLayout(vboxKD);
   mvbox->addWidget(keyBox);
 
-  fingerPrintVarLabel = new QLabel(beautify_fingerprint(mKey.fpr()).c_str());
+  fingerPrintVarLabel = new QLabel();
   fingerPrintVarLabel->setWordWrap(false);
   fingerPrintVarLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
   fingerPrintVarLabel->setStyleSheet("margin-left: 0; margin-right: 5;");
@@ -305,51 +287,80 @@ void KeyPairDetailTab::slotModifyEditDatetime() {
 }
 
 void KeyPairDetailTab::slotRefreshKeyInfo() {
+  // Show the situation that master key not exists.
+  masterKeyExistVarLabel->setText(mKey.has_master_key() ? _("Exists")
+                                                        : _("Not Exists"));
+  if (!mKey.has_master_key()) {
+    auto paletteExpired = masterKeyExistVarLabel->palette();
+    paletteExpired.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::red);
+    masterKeyExistVarLabel->setPalette(paletteExpired);
+  } else {
+    auto paletteValid = masterKeyExistVarLabel->palette();
+    paletteValid.setColor(masterKeyExistVarLabel->foregroundRole(),
+                          Qt::darkGreen);
+    masterKeyExistVarLabel->setPalette(paletteValid);
+  }
+
+  if (mKey.expired()) {
+    auto paletteExpired = expireVarLabel->palette();
+    paletteExpired.setColor(expireVarLabel->foregroundRole(), Qt::red);
+    expireVarLabel->setPalette(paletteExpired);
+  } else {
+    auto paletteValid = expireVarLabel->palette();
+    paletteValid.setColor(expireVarLabel->foregroundRole(), Qt::darkGreen);
+    expireVarLabel->setPalette(paletteValid);
+  }
+
   nameVarLabel->setText(QString::fromStdString(mKey.name()));
   emailVarLabel->setText(QString::fromStdString(mKey.email()));
 
   commentVarLabel->setText(QString::fromStdString(mKey.comment()));
   keyidVarLabel->setText(QString::fromStdString(mKey.id()));
 
-  QString usage;
-  QTextStream usage_steam(&usage);
+  std::stringstream usage_steam;
 
-  if (mKey.can_certify()) usage_steam << _("Cert") << " ";
-  if (mKey.can_encrypt()) usage_steam << _("Encr") << " ";
+  if (mKey.can_certify()) usage_steam << _("Certificate") << " ";
+  if (mKey.can_encrypt()) usage_steam << _("Encrypt") << " ";
   if (mKey.can_sign()) usage_steam << _("Sign") << " ";
   if (mKey.can_authenticate()) usage_steam << _("Auth") << " ";
 
-  usageVarLabel->setText(usage);
+  usageVarLabel->setText(usage_steam.str().c_str());
 
-  QString actualUsage;
-  QTextStream actual_usage_steam(&actualUsage);
+  std::stringstream actual_usage_steam;
 
-  if (mKey.CanCertActual()) actual_usage_steam << _("Cert") << " ";
-  if (mKey.CanEncrActual()) actual_usage_steam << _("Encr") << " ";
+  if (mKey.CanCertActual()) actual_usage_steam << _("Certificate") << " ";
+  if (mKey.CanEncrActual()) actual_usage_steam << _("Encrypt") << " ";
   if (mKey.CanSignActual()) actual_usage_steam << _("Sign") << " ";
   if (mKey.CanAuthActual()) actual_usage_steam << _("Auth") << " ";
 
-  actualUsageVarLabel->setText(actualUsage);
+  actualUsageVarLabel->setText(actual_usage_steam.str().c_str());
 
-  QString keySizeVal, keyExpireVal, keyCreateTimeVal, keyAlgoVal;
+  std::string key_size_val, key_expire_val, key_create_time_val, key_algo_val,
+      key_last_update_val;
 
-  keySizeVal = QString::number(mKey.length());
+  key_size_val = std::to_string(mKey.length());
 
   if (to_time_t(boost::posix_time::ptime(mKey.expires())) == 0) {
-    keyExpireVal = _("Never Expire");
+    expireVarLabel->setText(_("Never Expire"));
   } else {
-    keyExpireVal =
-        QString::fromStdString(boost::gregorian::to_iso_string(mKey.expires()));
+    expireVarLabel->setText(QLocale::system().toString(
+        QDateTime::fromTime_t(to_time_t(mKey.expires()))));
   }
 
-  keyAlgoVal = QString::fromStdString(mKey.pubkey_algo());
-  keyCreateTimeVal = QString::fromStdString(to_iso_string(mKey.create_time()));
+  key_algo_val = mKey.pubkey_algo();
 
-  keySizeVarLabel->setText(keySizeVal);
-  expireVarLabel->setText(keyExpireVal);
-  createdVarLabel->setText(keyCreateTimeVal);
-  algorithmVarLabel->setText(keyAlgoVal);
+  createdVarLabel->setText(QLocale::system().toString(
+      QDateTime::fromTime_t(to_time_t(mKey.create_time()))));
 
+  if (to_time_t(boost::posix_time::ptime(mKey.last_update())) == 0) {
+    lastUpdateVarLabel->setText(_("No Data"));
+  } else {
+    lastUpdateVarLabel->setText(QLocale::system().toString(
+        QDateTime::fromTime_t(to_time_t(mKey.last_update()))));
+  }
+
+  keySizeVarLabel->setText(key_size_val.c_str());
+  algorithmVarLabel->setText(key_algo_val.c_str());
   fingerPrintVarLabel->setText(beautify_fingerprint(mKey.fpr()).c_str());
 }
 

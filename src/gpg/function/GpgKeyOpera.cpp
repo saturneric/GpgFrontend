@@ -63,17 +63,19 @@ void GpgFrontend::GpgKeyOpera::DeleteKeys(
  */
 GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::SetExpire(
     const GpgKey& key, const SubkeyId& subkey_fpr,
-    std::unique_ptr<boost::gregorian::date>& expires) {
+    std::unique_ptr<boost::posix_time::ptime>& expires) {
   unsigned long expires_time = 0;
+
+  LOG(INFO) << "expires" << *expires;
+
   if (expires != nullptr) {
     using namespace boost::posix_time;
     using namespace std::chrono;
-    expires_time = to_time_t(ptime(*expires)) -
-                   system_clock::to_time_t(system_clock::now());
+    expires_time =
+        to_time_t(*expires) - system_clock::to_time_t(system_clock::now());
   }
 
-  LOG(INFO) << "GpgFrontend::GpgKeyOpera::SetExpire" << key.id() << subkey_fpr
-            << expires_time;
+  LOG(INFO) << key.id() << subkey_fpr << expires_time;
 
   GpgError err;
   if (subkey_fpr.empty())

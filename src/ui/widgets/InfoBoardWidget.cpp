@@ -55,7 +55,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
   actionButtonLayout->setContentsMargins(0, 0, 0, 0);
   actionButtonLayout->setSpacing(0);
 
-  auto* label = new QLabel(_("Board Actions"));
+  auto* label = new QLabel(_("Actions"));
   label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   label->setContentsMargins(0, 0, 0, 0);
   mButtonGroup = new QButtonGroup(this);

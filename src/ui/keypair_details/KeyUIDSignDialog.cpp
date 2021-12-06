@@ -97,20 +97,19 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
 }
 
 void KeyUIDSignDialog::slotSignKey(bool clicked) {
-  LOG(INFO) << "KeyUIDSignDialog::slotSignKey Called";
+  LOG(INFO) << "Called";
 
   // Set Signers
   auto key_ids = mKeyList->getChecked();
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
-  LOG(INFO) << "KeyUIDSignDialog::slotSignKey Key Info Got";
-  auto expires = std::make_unique<boost::gregorian::date>(
-      boost::posix_time::from_time_t(expiresEdit->dateTime().toTime_t())
-          .date());
+  LOG(INFO) << "Key Info Got";
+  auto expires = std::make_unique<boost::posix_time::ptime>(
+      boost::posix_time::from_time_t(expiresEdit->dateTime().toTime_t()));
 
-  LOG(INFO) << "KeyUIDSignDialog::slotSignKey Sign Start";
+  LOG(INFO) << "Sign Start";
   for (const auto& uid : *mUids) {
-    LOG(INFO) << "KeyUIDSignDialog::slotSignKey Sign UID" << uid;
+    LOG(INFO) << "Sign UID" << uid;
     // Sign For mKey
     if (!GpgKeyManager::GetInstance().signKey(mKey, *keys, uid, expires)) {
       QMessageBox::critical(

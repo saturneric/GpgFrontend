@@ -22,6 +22,8 @@
  *
  */
 
+#include <boost/locale.hpp>
+
 #include "GpgFrontendBuildInfo.h"
 #include "ui/MainWindow.h"
 #include "ui/settings/GlobalSettingStation.h"
@@ -138,6 +140,9 @@ void init_locale() {
   GpgFrontend::UI::GlobalSettingStation::GetInstance().Sync();
 
   auto* locale_name = setlocale(LC_ALL, nullptr);
+  boost::locale::generator gen;
+  // Create locale generator
+  std::locale::global(gen(locale_name));
   LOG(INFO) << "current system locale" << locale_name;
 
   // read from settings file

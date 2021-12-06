@@ -51,11 +51,11 @@ class GpgSignature {
     return gpgme_hash_algo_name(_signature_ref->hash_algo);
   }
 
-  [[nodiscard]] boost::gregorian::date create_time() const {
-    return boost::posix_time::from_time_t(_signature_ref->timestamp).date();
+  [[nodiscard]] boost::posix_time::ptime create_time() const {
+    return boost::posix_time::from_time_t(_signature_ref->timestamp);
   }
-  [[nodiscard]] boost::gregorian::date expire_time() const {
-    return boost::posix_time::from_time_t(_signature_ref->exp_timestamp).date();
+  [[nodiscard]] boost::posix_time::ptime expire_time() const {
+    return boost::posix_time::from_time_t(_signature_ref->exp_timestamp);
   }
 
   [[nodiscard]] std::string fpr() const { return _signature_ref->fpr; }

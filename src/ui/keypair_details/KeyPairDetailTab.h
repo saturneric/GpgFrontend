@@ -77,12 +77,13 @@ class KeyPairDetailTab : public QWidget {
   QGroupBox* additionalUidBox; /** Groupbox containing information about
                                   additional uids */
 
-  QLabel* nameVarLabel;        /** Label containng the keys name */
-  QLabel* emailVarLabel;       /** Label containng the keys email */
-  QLabel* commentVarLabel;     /** Label containng the keys commment */
-  QLabel* keySizeVarLabel;     /** Label containng the keys keysize */
-  QLabel* expireVarLabel;      /** Label containng the keys expiration date */
-  QLabel* createdVarLabel;     /** Label containng the keys creation date */
+  QLabel* nameVarLabel;    /** Label containng the keys name */
+  QLabel* emailVarLabel;   /** Label containng the keys email */
+  QLabel* commentVarLabel; /** Label containng the keys commment */
+  QLabel* keySizeVarLabel; /** Label containng the keys keysize */
+  QLabel* expireVarLabel;  /** Label containng the keys expiration date */
+  QLabel* createdVarLabel; /** Label containng the keys creation date */
+  QLabel* lastUpdateVarLabel;
   QLabel* algorithmVarLabel;   /** Label containng the keys algorithm */
   QLabel* keyidVarLabel;       /** Label containng the keys keyid */
   QLabel* fingerPrintVarLabel; /** Label containng the keys fingerprint */
