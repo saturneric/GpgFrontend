@@ -149,8 +149,9 @@ void init_locale() {
     auto* locale_name = setlocale(LC_ALL, lc.c_str());
     if (locale_name == nullptr) LOG(WARNING) << "set LC_ALL failed" << lc;
 #ifndef WINDOWS
+    auto language = getenv("LANGUAGE");
     // set LANGUAGE
-    std::string language_env = getenv("LANGUAGE");
+    std::string language_env = language == nullptr ? "en" : language;
     language_env.insert(0, lang + ":");
     LOG(INFO) << "language env" << language_env;
     if (setenv("LANGUAGE", language_env.c_str(), 1)) {
