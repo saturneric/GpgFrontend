@@ -218,7 +218,7 @@ void UpdateTab::slotShowVersionStatus(const QString& current,
                               QString(_("Latest Version From Github")) + ": " +
                               server + "</b></center>");
 
-  if (true || current < server) {
+  if (current < server) {
     upgradeLabel->show();
   }
 }
