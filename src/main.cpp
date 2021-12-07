@@ -22,11 +22,7 @@
  *
  */
 
-#include <stdlib.h>
-
-#include <boost/locale.hpp>
-#include <clocale>
-#include <locale>
+#include <cstdlib>
 
 #include "GpgFrontendBuildInfo.h"
 #include "ui/MainWindow.h"
@@ -146,22 +142,22 @@ void init_locale() {
                    .GetLocaleDir()
                    .c_str();
 
-  if (lang.empty()) return;
-  std::string lc = lang.empty() ? "" : lang + ".UTF-8";
+  if (!lang.empty()) {
+    std::string lc = lang.empty() ? "" : lang + ".UTF-8";
 
-  // set LC_ALL
-  auto* locale_name = setlocale(LC_ALL, lc.c_str());
-  if (locale_name == nullptr) LOG(WARNING) << "set LC_ALL failed" << lc;
-  boost::locale::generator gen;
-  // Create locale generator
-  std::locale::global(gen(locale_name != nullptr ? lc : ""));
-  // set LANGUAGE
-  std::string language_env = getenv("LANGUAGE");
-  language_env.insert(0, lang + ":");
-  LOG(INFO) << "language env" << language_env;
-  if (setenv("LANGUAGE", language_env.c_str(), 1)) {
-    LOG(WARNING) << "set LANGUAGE failed" << language_env;
-  };
+    // set LC_ALL
+    auto* locale_name = setlocale(LC_ALL, lc.c_str());
+    if (locale_name == nullptr) LOG(WARNING) << "set LC_ALL failed" << lc;
+#ifndef WINDOWS
+    // set LANGUAGE
+    std::string language_env = getenv("LANGUAGE");
+    language_env.insert(0, lang + ":");
+    LOG(INFO) << "language env" << language_env;
+    if (setenv("LANGUAGE", language_env.c_str(), 1)) {
+      LOG(WARNING) << "set LANGUAGE failed" << language_env;
+    };
+#endif
+  }
 
   bindtextdomain(PROJECT_NAME,
                  GpgFrontend::UI::GlobalSettingStation::GetInstance()

@@ -24,8 +24,6 @@
 
 #include "ui/keypair_details/KeyPairUIDTab.h"
 
-#include <boost/locale.hpp>
-
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyManager.h"
 #include "gpg/function/UidOperator.h"
@@ -273,19 +271,16 @@ void KeyPairUIDTab::slotRefreshSigList() {
         sigList->setItem(sigRow, 2, tmp3);
       }
 
-      std::stringstream ss;
-      ss << boost::locale::as::datetime << sig.create_time();
-      auto* tmp4 = new QTableWidgetItem(ss.str().c_str());
+      auto* tmp4 = new QTableWidgetItem(QLocale::system().toString(
+          QDateTime::fromTime_t(to_time_t(sig.create_time()))));
       sigList->setItem(sigRow, 3, tmp4);
-
-      ss.str(std::string());
-      ss << boost::locale::as::datetime << sig.expire_time();
 
       auto* tmp5 = new QTableWidgetItem(
           boost::posix_time::to_time_t(
               boost::posix_time::ptime(sig.expire_time())) == 0
               ? _("Never Expires")
-              : ss.str().c_str());
+              : QLocale::system().toString(
+                    QDateTime::fromTime_t(to_time_t(sig.expire_time()))));
       tmp5->setTextAlignment(Qt::AlignCenter);
       sigList->setItem(sigRow, 4, tmp5);
 

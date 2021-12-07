@@ -255,7 +255,10 @@ elseif (STABLE_APPLICATION_BUILD)
     set(UI_CORE 1)
     set(APPLICATION_BUILD 1)
     set(BASIC_ENV_CONFIG 1)
-    set(MULTI_LANG_SUPPORT 1)
+    # MULTI_LANG_SUPPORT now work only on Linux and macOS
+    if (LINUX OR APPLE)
+        set(MULTI_LANG_SUPPORT 1)
+    endif ()
 elseif (TEST_BUILD)
     message(STATUS "Build Test Cases")
 
@@ -268,7 +271,7 @@ elseif (TEST_BUILD)
 endif ()
 
 # Introduce boost
-find_package(Boost COMPONENTS date_time filesystem locale REQUIRED)
+find_package(Boost COMPONENTS date_time filesystem REQUIRED)
 
 if (QT5_ENV_SUPPORT)
     # Support Qt version Both 5.12.x and 5.15.x

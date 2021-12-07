@@ -24,8 +24,6 @@
 
 #include "ui/keypair_details/KeyPairDetailTab.h"
 
-#include <boost/locale.hpp>
-
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExportor.h"
 #include "gpg/function/GpgKeyOpera.h"
