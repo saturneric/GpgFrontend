@@ -30,6 +30,8 @@ jobs:
     steps:
 
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
       - name: Install Dependence (Linux)
         run: |
@@ -40,6 +42,10 @@ jobs:
           sudo apt-get -y install libgcrypt11-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp ninja-build
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-image0
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-*
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 8
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 8
+          sudo update-alternatives --set gcc "/usr/bin/gcc-8"
+          sudo update-alternatives --set g++ "/usr/bin/g++-8"
         if: matrix.os == 'ubuntu-18.04'
 
       - name: Codesign Configuration (macOS)
@@ -93,9 +99,7 @@ jobs:
 
       - name: Build gpg-error (Linux)
         run: |
-          cd  ${{github.workspace}}/..
-          git clone https://github.com/saturneric/libgpg-error
-          cd libgpg-error
+          cd  ${{github.workspace}}/third_party/libgpg-error
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-static=yes && make -j2
           sudo make install
@@ -104,25 +108,21 @@ jobs:
 
       - name: Build assuan (Linux)
         run: |
-          cd  ${{github.workspace}}/..
-          git clone https://github.com/saturneric/libassuan
-          cd libassuan
+          cd ${{github.workspace}}/third_party/libassuan
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-static=yes && make -j2
           sudo make install
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-18.04'
 
-      - name: Build GpgME (Linux)
+      - name: Build GpgME (Linux & macOS)
         run: |
-          cd  ${{github.workspace}}/..
-          git clone https://github.com/saturneric/gpgme
-          cd gpgme
+          cd  ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-18.04'
+        if: matrix.os == 'ubuntu-18.04' || matrix.os == 'macos-latest'
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}

@@ -25,9 +25,9 @@
 #ifndef __FILEENCRYPTIONDIALOG_H__
 #define __FILEENCRYPTIONDIALOG_H__
 
-#include "VerifyDetailsDialog.h"
 #include "gpg/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
+#include "ui/details/VerifyDetailsDialog.h"
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {

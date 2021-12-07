@@ -26,6 +26,9 @@
 #define GPGFRONTEND_SIGNALSTATION_H
 
 #include "ui/GpgFrontendUI.h"
+#include "ui/widgets/InfoBoardWidget.h"
+
+namespace GpgFrontend::UI {
 
 class SignalStation : public QObject {
   Q_OBJECT
@@ -36,6 +39,11 @@ class SignalStation : public QObject {
 
  signals:
   void KeyDatabaseRefresh();
+
+  void signalRefreshInfoBoard(const QString& text,
+                              InfoBoardStatus verify_label_status);
 };
+
+}  // namespace GpgFrontend::UI
 
 #endif  // GPGFRONTEND_SIGNALSTATION_H

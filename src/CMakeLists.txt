@@ -92,6 +92,8 @@ if (MULTI_LANG_SUPPORT)
                     TARGET translations
                     COMMAND msgfmt --check --verbose --output-file ${CMAKE_SOURCE_DIR}/resource/locale/out/${_langName}/LC_MESSAGES/GpgFrontend.mo ${_poFile}
             )
+            add_custom_command(TARGET translations
+                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/resource/locale/out/ ${RESOURCE_OUTPUT_DIRECTORY}/locales)
         endforeach ()
 
     endif ()
@@ -111,6 +113,7 @@ if (APPLICATION_BUILD)
         make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales)
         file(COPY ${CMAKE_SOURCE_DIR}/resource/locale/out/ DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/locales FOLLOW_SYMLINK_CHAIN)
     endif ()
+    file(COPY ${CMAKE_SOURCE_DIR}/TRANSLATORS DESTINATION ${RESOURCE_OUTPUT_DIRECTORY} FOLLOW_SYMLINK_CHAIN)
 endif ()
 
 if (APPLICATION_BUILD)
@@ -204,8 +207,9 @@ if (APPLICATION_BUILD)
         set(GPGFRONTEND_AFTER_UI_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} server)
     endif ()
 
-    set(GPGFRONTEND_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} gpgfrontend-ui ${GPGFRONTEND_BEFORE_UI_LIBS} gpg_core easy_logging_pp)
+    set(GPGFRONTEND_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} gpgfrontend-ui gpg_core ${GPGFRONTEND_BEFORE_UI_LIBS} easy_logging_pp)
     set(QT_DEPENDENCY_LIBS Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+    message(STATUS "Boost Libraries ${Boost_LIBRARIES}")
 
     IF (MINGW)
         message(STATUS "Link Application Static Library For MINGW")
@@ -216,12 +220,14 @@ if (APPLICATION_BUILD)
         target_link_libraries(${AppName}
                 ${GPGFRONTEND_LIBS}
                 ${QT_DEPENDENCY_LIBS}
+                ${Boost_LIBRARIES}
                 ${libintl} ${libiconv} ${libconfig} crypto ssl)
     elseif (APPLE)
         message(STATUS "Link Application Static Library For macOS")
         target_link_libraries(${AppName}
                 ${GPGFRONTEND_LIBS}
                 ${QT_DEPENDENCY_LIBS}
+                ${Boost_LIBRARIES}
                 crypto ssl intl)
     else ()
         message(STATUS "Link Application Static Library For UNIX ")
@@ -232,6 +238,7 @@ if (APPLICATION_BUILD)
         target_link_libraries(${AppName}
                 ${GPGFRONTEND_LIBS}
                 ${QT_DEPENDENCY_LIBS}
+                ${Boost_LIBRARIES}
                 crypto ssl pthread)
     endif ()
 endif ()

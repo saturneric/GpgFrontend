@@ -34,8 +34,8 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
   createSubkeyList();
   createSubkeyOperaMenu();
 
-  listBox = new QGroupBox("Subkey List");
-  detailBox = new QGroupBox("Detail of Selected Subkey");
+  listBox = new QGroupBox(_("Subkey List"));
+  detailBox = new QGroupBox(_("Detail of Selected Subkey"));
 
   auto uidButtonsLayout = new QGridLayout();
 
@@ -90,7 +90,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
   subkeyDetailLayout->addWidget(fingerPrintVarLabel, 7, 1);
 
   listBox->setLayout(subkeyListLayout);
-  listBox->setContentsMargins(0, 5, 0, 0);
+  listBox->setContentsMargins(0, 12, 0, 0);
   detailBox->setLayout(subkeyDetailLayout);
 
   baseLayout->addWidget(listBox);
@@ -142,7 +142,7 @@ void KeyPairSubkeyTab::createSubkeyList() {
 }
 
 void KeyPairSubkeyTab::slotRefreshSubkeyList() {
-  LOG(INFO) << "KeyPairSubkeyTab::slotRefreshSubkeyList Called";
+  LOG(INFO) << "Called";
   int row = 0;
 
   subkeyList->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -212,11 +212,11 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
       boost::posix_time::to_time_t(boost::posix_time::ptime(subkey.expires()));
 
   expireVarLabel->setText(
-      subkey_time_t == 0
-          ? _("Never Expires")
-          : QString::fromStdString(to_iso_string(subkey.expires())));
+      subkey_time_t == 0 ? _("Never Expires")
+                         : QLocale::system().toString(QDateTime::fromTime_t(
+                               to_time_t(subkey.expires()))));
   if (subkey_time_t != 0 &&
-      subkey.expires() < boost::posix_time::second_clock::local_time().date()) {
+      subkey.expires() < boost::posix_time::second_clock::local_time()) {
     auto paletteExpired = expireVarLabel->palette();
     paletteExpired.setColor(expireVarLabel->foregroundRole(), Qt::red);
     expireVarLabel->setPalette(paletteExpired);
@@ -227,18 +227,17 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
   }
 
   algorithmVarLabel->setText(QString::fromStdString(subkey.pubkey_algo()));
-  createdVarLabel->setText(
-      QString::fromStdString(to_iso_string(subkey.timestamp())));
+  createdVarLabel->setText(QLocale::system().toString(
+      QDateTime::fromTime_t(to_time_t(subkey.timestamp()))));
 
-  QString usage;
-  QTextStream usage_steam(&usage);
+  std::stringstream usage_steam;
 
-  if (subkey.can_certify()) usage_steam << _("Cert") << " ";
-  if (subkey.can_encrypt()) usage_steam << _("Encr") << " ";
+  if (subkey.can_certify()) usage_steam << _("Certificate") << " ";
+  if (subkey.can_encrypt()) usage_steam << _("Encrypt") << " ";
   if (subkey.can_sign()) usage_steam << _("Sign") << " ";
   if (subkey.can_authenticate()) usage_steam << _("Auth") << " ";
 
-  usageVarLabel->setText(usage);
+  usageVarLabel->setText(usage_steam.str().c_str());
 
   // Show the situation that master key not exists.
   masterKeyExistVarLabel->setText(subkey.secret() ? _("Exists")
@@ -268,8 +267,7 @@ void KeyPairSubkeyTab::createSubkeyOperaMenu() {
 }
 
 void KeyPairSubkeyTab::slotEditSubkey() {
-  LOG(INFO) << "KeyPairSubkeyTab::slotEditSubkey Fpr"
-            << getSelectedSubkey().fpr();
+  LOG(INFO) << "Fpr" << getSelectedSubkey().fpr();
 
   auto dialog =
       new KeySetExpireDateDialog(mKey.id(), getSelectedSubkey().fpr(), this);

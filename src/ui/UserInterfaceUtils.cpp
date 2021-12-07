@@ -35,6 +35,41 @@ namespace GpgFrontend::UI {
 std::unique_ptr<GpgFrontend::UI::CommonUtils>
     GpgFrontend::UI::CommonUtils::_instance = nullptr;
 
+void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
+                         GpgError error, VerifyResultAnalyse& verify_res) {
+  // take out result
+  auto _result = verify_res.TakeChargeOfResult();
+  info_board->resetOptionActionsMenu();
+  info_board->addOptionalAction(
+      "Show Verify Details", [parent, error, _result_ptr = _result.get()]() {
+        VerifyDetailsDialog(parent, error, GpgVerifyResult(_result_ptr));
+      });
+  _result.reset(nullptr);
+}
+
+void import_unknown_key_from_keyserver(QWidget* parent,
+                                       const VerifyResultAnalyse& verify_res) {
+  QMessageBox::StandardButton reply;
+  reply = QMessageBox::question(
+      parent, _("Public key not found locally"),
+      _("There is no target public key content in local for GpgFrontend to "
+        "gather enough information about this Signature. Do you want to "
+        "import the public key from Keyserver now?"),
+      QMessageBox::Yes | QMessageBox::No);
+  if (reply == QMessageBox::Yes) {
+    auto dialog = KeyServerImportDialog(true, parent);
+    auto key_ids = std::make_unique<KeyIdArgsList>();
+    auto* signature = verify_res.GetSignatures();
+    while (signature != nullptr) {
+      LOG(INFO) << "signature fpr" << signature->fpr;
+      key_ids->push_back(signature->fpr);
+      signature = signature->next;
+    }
+    dialog.show();
+    dialog.slotImport(key_ids);
+  }
+}
+
 void refresh_info_board(InfoBoardWidget* info_board, int status,
                         const std::string& report_text) {
   if (status < 0)
@@ -50,7 +85,6 @@ void refresh_info_board(InfoBoardWidget* info_board, int status,
 void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
                             const ResultAnalyse& result_analyse) {
   info_board->associateTabWidget(edit->tabWidget);
-  info_board->associateFileTreeView(edit->curFilePage());
   refresh_info_board(info_board, result_analyse.getStatus(),
                      result_analyse.getResultReport());
 }
@@ -61,7 +95,6 @@ void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
   LOG(INFO) << "process_result_analyse Started";
 
   info_board->associateTabWidget(edit->tabWidget);
-  info_board->associateFileTreeView(edit->curFilePage());
 
   refresh_info_board(
       info_board,

@@ -28,15 +28,13 @@
 
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExportor.h"
+#include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
 KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
                                  QWidget* parent)
     : QDialog(parent),
-      appPath(qApp->applicationDirPath()),
-      settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-               QSettings::IniFormat),
       mKeys(GpgKeyGetter::GetInstance().GetKeys(keys_ids)) {
   auto* pb = new QProgressBar();
   pb->setRange(0, 0);
@@ -62,10 +60,27 @@ void KeyUploadDialog::slotUpload() {
 
 void KeyUploadDialog::uploadKeyToServer(
     const GpgFrontend::ByteArray& keys_data) {
-  // set default keyserver
-  QString keyserver = settings.value("keyserver/defaultKeyServer").toString();
 
-  QUrl reqUrl(keyserver + "/pks/add");
+  std::string target_keyserver;
+  if (target_keyserver.empty()) {
+    try {
+      auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+      target_keyserver = settings.lookup("keyserver.default_server").c_str();
+
+      LOG(INFO) << _("Set target Key Server to default Key Server")
+                << target_keyserver;
+    } catch (...) {
+      LOG(ERROR) << _("Cannot read default_keyserver From Settings");
+      QMessageBox::critical(
+          nullptr, _("Default Keyserver Not Found"),
+          _("Cannot read default keyserver from your settings, "
+            "please set a default keyserver first"));
+      return;
+    }
+  }
+
+  QUrl req_url(QString::fromStdString(target_keyserver + "/pks/add"));
   auto qnam = new QNetworkAccessManager(this);
 
   // Building Post Data
@@ -83,7 +98,7 @@ void KeyUploadDialog::uploadKeyToServer(
   boost::algorithm::replace_all(data, "=", "%3D");
   boost::algorithm::replace_all(data, " ", "+");
 
-  QNetworkRequest request(reqUrl);
+  QNetworkRequest request(req_url);
   request.setHeader(QNetworkRequest::ContentTypeHeader,
                     "application/x-www-form-urlencoded");
 
@@ -108,11 +123,11 @@ void KeyUploadDialog::slotUploadFinished() {
   auto* reply = qobject_cast<QNetworkReply*>(sender());
 
   QByteArray response = reply->readAll();
-  qDebug() << "Response: " << response.data();
+  LOG(INFO) << "Response: " << response.toStdString();
 
   auto error = reply->error();
   if (error != QNetworkReply::NoError) {
-    qDebug() << "Error From Reply" << reply->errorString();
+    LOG(INFO) << "Error From Reply" << reply->errorString().toStdString();
     QString message;
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
@@ -130,9 +145,9 @@ void KeyUploadDialog::slotUploadFinished() {
     QMessageBox::critical(this, "Upload Failed", message);
     return;
   } else {
-    QMessageBox::information(this, "Upload Success",
-                             "Upload Public Key Successfully");
-    qDebug() << "Success while contacting keyserver!";
+    QMessageBox::information(this, _("Upload Success"),
+                             _("Upload Public Key Successfully"));
+    LOG(INFO) << "Success while contacting keyserver!";
   }
   reply->deleteLater();
 }

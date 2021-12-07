@@ -54,12 +54,12 @@ class KeyPairSubkeyTab : public QWidget {
 
   QMenu* subkeyOperaMenu{};
 
-  QLabel* keySizeVarLabel;     /** Label containng the keys keysize */
-  QLabel* expireVarLabel;      /** Label containng the keys expiration date */
-  QLabel* createdVarLabel;     /** Label containng the keys creation date */
-  QLabel* algorithmVarLabel;   /** Label containng the keys algorithm */
-  QLabel* keyidVarLabel;       /** Label containng the keys keyid */
-  QLabel* fingerPrintVarLabel; /** Label containng the keys fingerprint */
+  QLabel* keySizeVarLabel;     /** Label containing the keys key size */
+  QLabel* expireVarLabel;      /** Label containing the keys expiration date */
+  QLabel* createdVarLabel;     /** Label containing the keys creation date */
+  QLabel* algorithmVarLabel;   /** Label containing the keys algorithm */
+  QLabel* keyidVarLabel;       /** Label containing the keys keyid */
+  QLabel* fingerPrintVarLabel; /** Label containing the keys fingerprint */
   QLabel* usageVarLabel;
   QLabel* masterKeyExistVarLabel;
 

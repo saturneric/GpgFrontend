@@ -40,14 +40,12 @@ class Wizard : public QWizard {
  public:
   enum WizardPages { Page_Intro, Page_Choose, Page_GenKey, Page_Conclusion };
 
-  Wizard(QWidget* parent = nullptr);
+  explicit Wizard(QWidget* parent = nullptr);
 
  private slots:
-
   void slotWizardAccepted();
 
  signals:
-
   void signalOpenHelp(QString page);
 };
 
@@ -57,14 +55,7 @@ class IntroPage : public QWizardPage {
  public:
   explicit IntroPage(QWidget* parent = nullptr);
 
-  QHash<QString, QString> languages;
-
   [[nodiscard]] int nextId() const override;
-
- private:
- private slots:
-
-  //  void slotLangChange(const QString& lang);
 };
 
 class ChoosePage : public QWizardPage {

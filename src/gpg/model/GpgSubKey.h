@@ -21,6 +21,7 @@
  * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
+
 #ifndef GPGFRONTEND_GPGSUBKEY_H
 #define GPGFRONTEND_GPGSUBKEY_H
 
@@ -65,12 +66,12 @@ class GpgSubKey {
 
   [[nodiscard]] bool is_cardkey() const { return _subkey_ref->is_cardkey; }
 
-  [[nodiscard]] boost::gregorian::date timestamp() const {
-    return boost::posix_time::from_time_t(_subkey_ref->timestamp).date();
+  [[nodiscard]] boost::posix_time::ptime timestamp() const {
+    return boost::posix_time::from_time_t(_subkey_ref->timestamp);
   }
 
-  [[nodiscard]] boost::gregorian::date expires() const {
-    return boost::posix_time::from_time_t(_subkey_ref->expires).date();
+  [[nodiscard]] boost::posix_time::ptime expires() const {
+    return boost::posix_time::from_time_t(_subkey_ref->expires);
   }
 
   GpgSubKey() = default;

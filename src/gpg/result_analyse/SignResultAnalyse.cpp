@@ -76,8 +76,9 @@ void GpgFrontend::SignResultAnalyse::do_analyse() {
              << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << std::endl;
       stream << "    " << _("Hash Algo") << ": "
              << gpgme_hash_algo_name(new_sign->hash_algo) << std::endl;
-      stream << "    " << _("Date & Time") << ": "
-             << boost::posix_time::to_iso_string(
+      stream << "    " << _("Date") << "(" << _("UTC") << ")"
+             << ": "
+             << boost::posix_time::to_iso_extended_string(
                     boost::posix_time::from_time_t(new_sign->timestamp))
              << std::endl;
 

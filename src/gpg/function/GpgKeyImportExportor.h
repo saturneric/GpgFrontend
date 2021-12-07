@@ -88,6 +88,8 @@ class GpgKeyImportExportor
 
   bool ExportKeys(const KeyArgsList& keys, ByteArrayPtr& outBuffer) const;
 
+  bool ExportKey(const GpgKey& key, ByteArrayPtr& out_buffer) const;
+
   bool ExportSecretKey(const GpgKey& key, ByteArrayPtr& outBuffer) const;
 
  private:

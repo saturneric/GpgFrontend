@@ -46,8 +46,6 @@ class KeyUploadDialog : public QDialog {
   void slotUploadFinished();
 
  private:
-  QString appPath;
-  QSettings settings;
   KeyListPtr mKeys;
   QByteArray mKeyData;
 };

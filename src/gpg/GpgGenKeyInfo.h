@@ -37,8 +37,9 @@ class GenKeyInfo {
   std::string userid;
   std::string algo;
   int keySize = 2048;
-  boost::gregorian::date expired =
-      boost::gregorian::day_clock::local_day() + boost::gregorian::years(2);
+  boost::posix_time::ptime expired =
+      boost::posix_time::second_clock::local_time() +
+      boost::gregorian::years(2);
   bool nonExpired = false;
 
   bool noPassPhrase = false;
@@ -73,11 +74,11 @@ class GenKeyInfo {
 
   void setKeySize(int m_key_size);
 
-  [[nodiscard]] const boost::gregorian::date &getExpired() const {
+  [[nodiscard]] const boost::posix_time::ptime &getExpired() const {
     return expired;
   }
 
-  void setExpired(const boost::gregorian::date &m_expired);
+  void setExpired(const boost::posix_time::ptime &m_expired);
 
   [[nodiscard]] bool isNonExpired() const { return nonExpired; }
 

@@ -22,19 +22,16 @@
  *
  */
 
-#include "ui/VerifyDetailsDialog.h"
+#include "VerifyDetailsDialog.h"
 
 #include <boost/format.hpp>
 
 namespace GpgFrontend::UI {
 
-VerifyDetailsDialog::VerifyDetailsDialog(QWidget* parent, KeyList* keyList,
-                                         GpgError error, GpgVerifyResult result)
-    : QDialog(parent),
-      mKeyList(keyList),
-      mResult(std::move(result)),
-      error(error) {
-  this->setWindowTitle(_("Signature Details"));
+VerifyDetailsDialog::VerifyDetailsDialog(QWidget* parent, GpgError error,
+                                         GpgVerifyResult result)
+    : QDialog(parent), mResult(std::move(result)), error(error) {
+  this->setWindowTitle(_("Signatures Details"));
 
   mainLayout = new QHBoxLayout();
   this->setLayout(mainLayout);
@@ -86,7 +83,8 @@ void VerifyDetailsDialog::slotRefresh() {
   }
   // Add information box for every single key
   while (sign) {
-    auto* sign_box = new VerifyKeyDetailBox(this, mKeyList, sign);
+    GpgSignature signature(sign);
+    auto* sign_box = new VerifyKeyDetailBox(signature, this);
     sign = sign->next;
     mVboxLayout->addWidget(sign_box);
   }
