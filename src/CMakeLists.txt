@@ -93,7 +93,7 @@ if (MULTI_LANG_SUPPORT)
                     COMMAND msgfmt --check --verbose --output-file ${CMAKE_SOURCE_DIR}/resource/locale/out/${_langName}/LC_MESSAGES/GpgFrontend.mo ${_poFile}
             )
             add_custom_command(TARGET translations
-                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/resource/locale/out/ ${RESOURCE_OUTPUT_DIRECTORY}/locales)
+                    COMMAND cp -rf ${CMAKE_SOURCE_DIR}/resource/locale/out/ ${RESOURCE_OUTPUT_DIRECTORY}/locales)
         endforeach ()
 
     endif ()
