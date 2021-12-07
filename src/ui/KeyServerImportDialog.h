@@ -38,7 +38,7 @@ class KeyServerImportDialog : public QDialog {
  public:
   KeyServerImportDialog(bool automatic, QWidget* parent);
 
-  KeyServerImportDialog(QWidget* parent);
+  explicit KeyServerImportDialog(QWidget* parent);
 
   void slotImport(const KeyIdArgsListPtr& keys);
 

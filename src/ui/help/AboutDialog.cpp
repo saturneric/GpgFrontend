@@ -26,6 +26,7 @@
 
 #include "GpgFrontendBuildInfo.h"
 #include "function/VersionCheckThread.h"
+#include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -37,7 +38,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent) : QDialog(parent) {
   auto* translatorsTab = new TranslatorsTab();
   updateTab = new UpdateTab();
 
-  tabWidget->addTab(infoTab, _("General"));
+  tabWidget->addTab(infoTab, _("About Software"));
   tabWidget->addTab(translatorsTab, _("Translators"));
   tabWidget->addTab(updateTab, _("Update"));
 
@@ -56,7 +57,8 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent) : QDialog(parent) {
   mainLayout->addWidget(buttonBox);
   setLayout(mainLayout);
 
-  this->resize(320, 580);
+  this->resize(450, 580);
+  this->setMinimumWidth(450);
   this->show();
 }
 
@@ -70,20 +72,20 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   auto* text = new QString(
       "<center><h2>" + qApp->applicationName() + "</h2></center>" +
       "<center><b>" + qApp->applicationVersion() + "</b></center>" +
-      "<center>" + GIT_VERSION + "</center>" +
-      _("<br><center>GpgFrontend is an easy-to-use, compact, cross-platform, "
-        "<br>"
-        "and installation-free gpg front-end tool.<br>"
-        "It visualizes most of the common operations of gpg commands.<br>"
-        "It's licensed under the GPL v3<br><br>"
-        "<b>Developer:</b><br>"
-        "Saturneric<br><br>"
-        "If you have any questions or suggestions, raise an issue<br/>"
-        "at <a href=\"https://github.com/saturneric/GpgFrontend\">GitHub</a> "
-        "or send a mail to my mailing list at <a "
-        "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>.") +
-      "<br><br> " + _("Built with Qt") + " " + qVersion() + " " +
-      _("and GPGME") + " " +
+      "<center>" + GIT_VERSION + "</center>" + "<br><center>" +
+      _("GpgFrontend is an easy-to-use, compact, cross-platform, "
+        "and installation-free gpg front-end tool."
+        "It visualizes most of the common operations of gpg commands."
+        "It's licensed under the GPL v3") +
+      "<br><br>"
+      "<b>" +
+      _("Developer:") + "</b><br>" + "Saturneric" + "<br><br>" +
+      _("If you have any questions or suggestions, raise an issue at") +
+      "<br/>"
+      " <a href=\"https://github.com/saturneric/GpgFrontend\">GitHub</a> " +
+      _("or send a mail to my mailing list at") + " <a " +
+      "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
+      _("Built with Qt") + " " + qVersion() + " " + _("and GPGME") + " " +
       GpgFrontend::GpgContext::getGpgmeVersion().c_str() + "<br>" +
       _("Built at") + " " + BUILD_TIMESTAMP + "</center>");
 
@@ -93,6 +95,7 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   layout->addWidget(pixmapLabel, 0, 0, 1, -1, Qt::AlignCenter);
   auto* aboutLabel = new QLabel();
   aboutLabel->setText(*text);
+  aboutLabel->setWordWrap(true);
   aboutLabel->setOpenExternalLinks(true);
   layout->addWidget(aboutLabel, 1, 0, 1, -1);
   layout->addItem(
@@ -104,18 +107,31 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
 
 TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
   QFile translatorsFile;
-  translatorsFile.setFileName(qApp->applicationDirPath() + "/About");
+  auto translators_file =
+      GlobalSettingStation::GetInstance().GetResourceDir() / "TRANSLATORS";
+  translatorsFile.setFileName(translators_file.string().c_str());
   translatorsFile.open(QIODevice::ReadOnly);
   QByteArray inBuffer = translatorsFile.readAll();
 
   auto* label = new QLabel(inBuffer);
+
   auto* mainLayout = new QVBoxLayout(this);
   mainLayout->addWidget(label);
+  mainLayout->addStretch();
+
+  auto notice_label = new QLabel(
+      _("If you think there are any problems with the translation, why not "
+        "participate in the translation work? If you want to participate, "
+        "please "
+        "read the document or contact me via email."),
+      this);
+  notice_label->setWordWrap(true);
+  mainLayout->addWidget(notice_label);
 
   setLayout(mainLayout);
 }
 
-UpdateTab::UpdateTab(QWidget* parent) {
+UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
   auto* pixmap = new QPixmap(":gpgfrontend-logo.png");
   auto* layout = new QGridLayout();
   auto* pixmapLabel = new QLabel();
@@ -131,7 +147,7 @@ UpdateTab::UpdateTab(QWidget* parent) {
       "<center>" +
       QString(_("It is recommended that you always check the version "
                 "of GpgFrontend and upgrade to the latest version.")) +
-      "</center><br><center>" +
+      "</center><center>" +
       _("New versions not only represent new features, but "
         "also often represent functional and security fixes.") +
       "</center>");
@@ -149,13 +165,12 @@ UpdateTab::UpdateTab(QWidget* parent) {
   upgradeLabel = new QLabel();
   upgradeLabel->setText(
       "<center>" +
-      QString(
-          _("The current version is inconsistent with the latest version on "
-            "github.")) +
-      "</center><br><center>" + _("Please click") +
+      QString(_("The current version is less than the latest version on "
+                "github.")) +
+      "</center><center>" + _("Please click") +
       " <a "
-      "href=\"https://github.com/saturneric/GpgFrontend/releases\">here</a> " +
-      _("to download the latest version.") + "</center>");
+      "href=\"https://github.com/saturneric/GpgFrontend/releases\">" +
+      _("Here") + "</a> " + _("to download the latest version.") + "</center>");
   upgradeLabel->setWordWrap(true);
   upgradeLabel->setOpenExternalLinks(true);
   upgradeLabel->setHidden(true);
@@ -173,16 +188,13 @@ UpdateTab::UpdateTab(QWidget* parent) {
       new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed), 2, 1,
       1, 1);
 
-  connect(this, SIGNAL(replyFromUpdateServer(QByteArray)), this,
-          SLOT(processReplyDataFromUpdateServer(QByteArray)));
-
   setLayout(layout);
 }
 
 void UpdateTab::getLatestVersion() {
   this->pb->setHidden(false);
 
-  LOG(INFO) << "try to get latest version";
+  LOG(INFO) << _("try to get latest version");
 
   QString base_url =
       "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
@@ -205,6 +217,10 @@ void UpdateTab::slotShowVersionStatus(const QString& current,
   latestVersionLabel->setText("<center><b>" +
                               QString(_("Latest Version From Github")) + ": " +
                               server + "</b></center>");
+
+  if (current < server) {
+    upgradeLabel->show();
+  }
 }
 
 }  // namespace GpgFrontend::UI

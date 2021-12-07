@@ -26,11 +26,11 @@
 #define __VERIFYNOTIFICATION_H__
 
 #include "EditorPage.h"
-#include "FilePage.h"
 #include "gpg/result_analyse/VerifyResultAnalyse.h"
-#include "ui/VerifyDetailsDialog.h"
+#include "ui/details/VerifyDetailsDialog.h"
 
 namespace GpgFrontend::UI {
+
 /**
  * @details Enumeration for the status of Verifylabel
  */
@@ -56,8 +56,6 @@ class InfoBoardWidget : public QWidget {
   explicit InfoBoardWidget(QWidget* parent, KeyList* keyList);
 
   void associateTextEdit(QTextEdit* edit);
-
-  void associateFileTreeView(FilePage* treeView);
 
   void associateTabWidget(QTabWidget* tab);
 
@@ -100,12 +98,11 @@ class InfoBoardWidget : public QWidget {
   KeyList* mKeyList; /** Table holding the keys */
 
   QTextEdit* mTextPage{nullptr}; /** TextEdit associated to the notification */
-  FilePage* mFileTreeView{
-      nullptr}; /** TreeView associated to the notification */
   QTabWidget* mTabWidget{
       nullptr}; /** TreeView associated to the notification */
 
   QHBoxLayout* actionButtonLayout;
+  QButtonGroup* mButtonGroup;
 
   void deleteWidgetsInLayout(QLayout* layout, int start_index = 0);
 };

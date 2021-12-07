@@ -255,6 +255,10 @@ elseif (STABLE_APPLICATION_BUILD)
     set(UI_CORE 1)
     set(APPLICATION_BUILD 1)
     set(BASIC_ENV_CONFIG 1)
+    # MULTI_LANG_SUPPORT now work only on Linux and macOS
+    if (LINUX OR APPLE)
+        set(MULTI_LANG_SUPPORT 1)
+    endif ()
 elseif (TEST_BUILD)
     message(STATUS "Build Test Cases")
 

@@ -41,13 +41,13 @@ class GpgKeyManager : public SingletonFunctionObject<GpgKeyManager> {
    * @return if successful
    */
   bool signKey(const GpgKey& target, KeyArgsList& keys, const std::string& uid,
-               const std::unique_ptr<boost::gregorian::date>& expires);
+               const std::unique_ptr<boost::posix_time::ptime>& expires);
 
   bool revSign(const GpgFrontend::GpgKey& key,
                const GpgFrontend::SignIdArgsListPtr& signature_id);
 
   bool setExpire(const GpgKey& key, std::unique_ptr<GpgSubKey>& subkey,
-                 std::unique_ptr<boost::gregorian::date>& expires);
+                 std::unique_ptr<boost::posix_time::ptime>& expires);
 
  private:
   GpgContext& ctx = GpgContext::GetInstance();

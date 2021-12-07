@@ -26,13 +26,13 @@
 
 #include <boost/filesystem.hpp>
 
-#include "MainWindow.h"
+#include "ui/MainWindow.h"
+#include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {
 
 FilePage::FilePage(QWidget* parent) : QWidget(parent) {
   firstParent = parent;
-  LOG(INFO) << "New File Page";
 
   dirModel = new QFileSystemModel();
   dirModel->setRootPath(QDir::currentPath());
@@ -79,6 +79,13 @@ FilePage::FilePage(QWidget* parent) : QWidget(parent) {
   pathEdit = new QLineEdit();
   pathEdit->setText(dirModel->rootPath());
 
+  pathEditCompleter = new QCompleter(this);
+  pathCompleteModel = new QStringListModel();
+  pathEditCompleter->setModel(pathCompleteModel);
+  pathEditCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+  pathEditCompleter->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
+  pathEdit->setCompleter(pathEditCompleter);
+
   auto* menuLayout = new QHBoxLayout();
   menuLayout->addWidget(upLevelButton);
   menuLayout->setStretchFactor(upLevelButton, 1);
@@ -86,8 +93,6 @@ FilePage::FilePage(QWidget* parent) : QWidget(parent) {
   menuLayout->setStretchFactor(pathEdit, 10);
   menuLayout->addWidget(goPathButton);
   menuLayout->setStretchFactor(goPathButton, 1);
-  // menuLayout->addWidget(refreshButton);
-  // menuLayout->setStretchFactor(refreshButton, 1);
 
   auto* layout = new QVBoxLayout();
   layout->setContentsMargins(0, 0, 0, 0);
@@ -99,20 +104,32 @@ FilePage::FilePage(QWidget* parent) : QWidget(parent) {
 
   this->setLayout(layout);
 
-  connect(dirTreeView, SIGNAL(clicked(const QModelIndex&)), this,
-          SLOT(fileTreeViewItemClicked(const QModelIndex&)));
-  connect(dirTreeView, SIGNAL(doubleClicked(const QModelIndex&)), this,
-          SLOT(fileTreeViewItemDoubleClicked(const QModelIndex&)));
-  connect(dirTreeView, SIGNAL(customContextMenuRequested(const QPoint&)), this,
-          SLOT(onCustomContextMenu(const QPoint&)));
+  connect(dirTreeView, &QTreeView::clicked, this,
+          &FilePage::fileTreeViewItemClicked);
+  connect(dirTreeView, &QTreeView::doubleClicked, this,
+          &FilePage::fileTreeViewItemDoubleClicked);
+  connect(dirTreeView, &QTreeView::customContextMenuRequested, this,
+          &FilePage::onCustomContextMenu);
 
-  // refresh
-  slotGoPath();
+  connect(pathEdit, &QLineEdit::textChanged, [=]() {
+    auto dir = QDir(pathEdit->text());
+    if (dir.isReadable()) {
+      auto dir_list = dir.entryInfoList(QDir::AllEntries);
+      QStringList paths;
+      for (int i = 1; i < dir_list.size(); i++)
+        paths.append(dir_list.at(i).filePath());
+      pathCompleteModel->setStringList(paths);
+    }
+  });
+
+  connect(this, &FilePage::signalRefreshInfoBoard, SignalStation::GetInstance(),
+          &SignalStation::signalRefreshInfoBoard);
 }
 
 void FilePage::fileTreeViewItemClicked(const QModelIndex& index) {
   selectedPath = boost::filesystem::path(
       dirModel->fileInfo(index).absoluteFilePath().toStdString());
+  mPath = selectedPath;
   LOG(INFO) << "selected path" << selectedPath;
 }
 
@@ -121,51 +138,44 @@ void FilePage::slotUpLevel() {
 
   mPath = boost::filesystem::path(
       dirModel->fileInfo(currentRoot).absoluteFilePath().toStdString());
-
+  LOG(INFO) << "get path" << mPath;
   if (mPath.has_parent_path()) {
     mPath = mPath.parent_path();
-    auto fileInfo = QFileInfo(QString::fromStdString(mPath.string()));
-    if (fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
-      pathEdit->setText(QString::fromStdString(mPath.string()));
-      slotGoPath();
-    }
-    LOG(INFO) << "Current Root mPath" << mPath;
-    emit pathChanged(QString::fromStdString(mPath.string()));
+    LOG(INFO) << "parent path" << mPath;
+    pathEdit->setText(mPath.string().c_str());
+    slotGoPath();
   }
 }
 
 void FilePage::fileTreeViewItemDoubleClicked(const QModelIndex& index) {
-  mPath = boost::filesystem::path(
-      dirModel->fileInfo(index).absoluteFilePath().toStdString());
-  auto fileInfo = QFileInfo(QString::fromStdString(mPath.string()));
-  auto targetModelIndex =
-      dirTreeView->model()->index(index.row(), 0, index.parent());
-  if (fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
-    dirTreeView->setRootIndex(targetModelIndex);
-    pathEdit->setText(QString::fromStdString(mPath.string()));
-  }
-  for (int i = 1; i < dirModel->columnCount(); ++i)
-    dirTreeView->resizeColumnToContents(i);
-  LOG(INFO) << "Index mPath" << mPath;
-  emit pathChanged(QString::fromStdString(mPath.string()));
+  pathEdit->setText(dirModel->fileInfo(index).absoluteFilePath());
+  slotGoPath();
 }
 
-QString FilePage::getSelected() const { return QString::fromStdString(selectedPath.string()); }
+QString FilePage::getSelected() const {
+  return QString::fromStdString(selectedPath.string());
+}
 
 void FilePage::slotGoPath() {
-  qDebug() << "getSelected" << pathEdit->text();
-  auto fileInfo = QFileInfo(pathEdit->text());
+  const auto path_edit = pathEdit->text().toStdString();
+  LOG(INFO) << "get path edit" << path_edit;
+  if (mPath.string() != path_edit) mPath = path_edit;
+  auto fileInfo = QFileInfo(mPath.string().c_str());
   if (fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
     mPath = boost::filesystem::path(fileInfo.filePath().toStdString());
-    LOG(INFO) << "Set Path" << mPath;
+    LOG(INFO) << "set path" << mPath;
     dirTreeView->setRootIndex(dirModel->index(fileInfo.filePath()));
-    for (int i = 1; i < dirModel->columnCount(); ++i)
+    for (int i = 1; i < dirModel->columnCount(); ++i) {
       dirTreeView->resizeColumnToContents(i);
+    }
+    pathEdit->setText(mPath.generic_path().string().c_str());
+
   } else {
-    QMessageBox::critical(this, "Error",
-                          "The path is unprivileged or unreachable.");
+    QMessageBox::critical(
+        this, _("Error"),
+        _("The path is not exists, unprivileged or unreachable."));
   }
-  emit pathChanged(QString::fromStdString(mPath.string()));
+  emit pathChanged(mPath.string().c_str());
 }
 
 void FilePage::createPopupMenu() {
@@ -173,33 +183,46 @@ void FilePage::createPopupMenu() {
 
   auto openItemAct = new QAction(_("Open"), this);
   connect(openItemAct, SIGNAL(triggered()), this, SLOT(slotOpenItem()));
+  auto renameItemAct = new QAction(_("Rename"), this);
+  connect(renameItemAct, SIGNAL(triggered()), this, SLOT(slotRenameItem()));
   auto deleteItemAct = new QAction(_("Delete"), this);
   connect(deleteItemAct, SIGNAL(triggered()), this, SLOT(slotDeleteItem()));
-  encryptItemAct = new QAction(_("Encrypt and Sign"), this);
+  encryptItemAct = new QAction(_("Encrypt Sign"), this);
   connect(encryptItemAct, SIGNAL(triggered()), this, SLOT(slotEncryptItem()));
-  decryptItemAct = new QAction(_("Decrypt and Verify"), this);
+  decryptItemAct =
+      new QAction(QString(_("Decrypt Verify")) + " " + _("(.gpg .asc)"), this);
   connect(decryptItemAct, SIGNAL(triggered()), this, SLOT(slotDecryptItem()));
-  signItemAct = new QAction(_("Only Sign"), this);
+  signItemAct = new QAction(_("Sign"), this);
   connect(signItemAct, SIGNAL(triggered()), this, SLOT(slotSignItem()));
-  verifyItemAct = new QAction(_("Only Verify"), this);
+  verifyItemAct =
+      new QAction(QString(_("Verify")) + " " + _("(.sig .gpg .asc)"), this);
   connect(verifyItemAct, SIGNAL(triggered()), this, SLOT(slotVerifyItem()));
 
+  hashCalculateAct = new QAction(_("Calculate Hash"), this);
+  connect(hashCalculateAct, SIGNAL(triggered()), this,
+          SLOT(slotCalculateHash()));
+
   popUpMenu->addAction(openItemAct);
+  popUpMenu->addAction(renameItemAct);
   popUpMenu->addAction(deleteItemAct);
   popUpMenu->addSeparator();
   popUpMenu->addAction(encryptItemAct);
   popUpMenu->addAction(decryptItemAct);
   popUpMenu->addAction(signItemAct);
   popUpMenu->addAction(verifyItemAct);
+  popUpMenu->addSeparator();
+  popUpMenu->addAction(hashCalculateAct);
 }
 
 void FilePage::onCustomContextMenu(const QPoint& point) {
   QModelIndex index = dirTreeView->indexAt(point);
   selectedPath = boost::filesystem::path(
       dirModel->fileInfo(index).absoluteFilePath().toStdString());
-  LOG(INFO) << "FilePage::onCustomContextMenu Right Click" << selectedPath;
+  LOG(INFO) << "right click" << selectedPath;
   if (index.isValid()) {
     QFileInfo info(QString::fromStdString(selectedPath.string()));
+    encryptItemAct->setEnabled(
+        info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig"));
     encryptItemAct->setEnabled(
         info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig"));
     decryptItemAct->setEnabled(info.isFile() && info.suffix() == "gpg");
@@ -207,6 +230,7 @@ void FilePage::onCustomContextMenu(const QPoint& point) {
                             (info.suffix() != "gpg" && info.suffix() != "sig"));
     verifyItemAct->setEnabled(
         info.isFile() && (info.suffix() == "sig" || info.suffix() == "gpg"));
+    hashCalculateAct->setEnabled(info.isFile() && info.isReadable());
 
     popUpMenu->exec(dirTreeView->viewport()->mapToGlobal(point));
   }
@@ -215,21 +239,49 @@ void FilePage::onCustomContextMenu(const QPoint& point) {
 void FilePage::slotOpenItem() {
   QFileInfo info(QString::fromStdString(selectedPath.string()));
   if (info.isDir()) {
-    LOG(INFO) << "FilePage::slotOpenItem getSelected"
-              << pathEdit->text().toStdString();
     if (info.isReadable() && info.isExecutable()) {
-      LOG(INFO) << "FilePage::slotOpenItem Set Path"
-                << info.filePath().toStdString();
-      dirTreeView->setRootIndex(dirModel->index(info.filePath()));
+      const auto file_path = info.filePath().toStdString();
+      LOG(INFO) << "set path" << file_path;
+      pathEdit->setText(info.filePath());
+      slotGoPath();
     } else {
-      QMessageBox::critical(this, "Error",
-                            "The path is unprivileged or unreachable.");
+      QMessageBox::critical(this, _("Error"),
+                            _("The directory is unprivileged or unreachable."));
     }
   } else {
-    auto mainWindow = qobject_cast<MainWindow*>(firstParent);
-    LOG(INFO) << "FilePage::slotOpenItem Open Item" << selectedPath;
-    auto qt_path = QString::fromStdString(selectedPath.string());
-    if (mainWindow != nullptr) mainWindow->slotOpenFile(qt_path);
+    if (info.isReadable()) {
+      auto mainWindow = qobject_cast<MainWindow*>(firstParent);
+      LOG(INFO) << "open item" << selectedPath;
+      auto qt_path = QString::fromStdString(selectedPath.string());
+      if (mainWindow != nullptr) mainWindow->slotOpenFile(qt_path);
+    } else {
+      QMessageBox::critical(this, _("Error"),
+                            _("The file is unprivileged or unreachable."));
+    }
+  }
+}
+
+void FilePage::slotRenameItem() {
+  auto new_name_path = selectedPath, old_name_path = selectedPath;
+  auto old_name = old_name_path.filename();
+  new_name_path = new_name_path.remove_filename();
+
+  bool ok;
+  auto text =
+      QInputDialog::getText(this, _("Rename"), _("New Filename"),
+                            QLineEdit::Normal, old_name.string().c_str(), &ok);
+  if (ok && !text.isEmpty()) {
+    try {
+      new_name_path /= text.toStdString();
+      LOG(INFO) << "new name path" << new_name_path;
+      boost::filesystem::rename(old_name_path, new_name_path);
+      // refresh
+      this->slotGoPath();
+    } catch (...) {
+      LOG(ERROR) << "rename error" << new_name_path;
+      QMessageBox::critical(this, _("Error"),
+                            _("Unable to rename the file or folder."));
+    }
   }
 }
 
@@ -269,6 +321,55 @@ void FilePage::slotSignItem() {
 void FilePage::slotVerifyItem() {
   auto mainWindow = qobject_cast<MainWindow*>(firstParent);
   if (mainWindow != nullptr) mainWindow->slotFileVerify();
+}
+
+void FilePage::slotCalculateHash() {
+  // Returns empty QByteArray() on failure.
+  QFileInfo info(QString::fromStdString(selectedPath.string()));
+
+  if (info.isFile() && info.isReadable()) {
+    std::stringstream ss;
+
+    ss << "[#] " << _("File Hash Information") << std::endl;
+    ss << "    " << _("filename") << _(": ")
+       << selectedPath.filename().string().c_str() << std::endl;
+
+    QFile f(info.filePath());
+    f.open(QFile::ReadOnly);
+    auto buffer = f.readAll();
+    LOG(INFO) << "buffer size" << buffer.size();
+    f.close();
+    if (f.open(QFile::ReadOnly)) {
+      auto hash_md5 = QCryptographicHash(QCryptographicHash::Md5);
+      // md5
+      hash_md5.addData(buffer);
+      auto md5 = hash_md5.result().toHex().toStdString();
+      LOG(INFO) << "md5" << md5;
+      ss << "    "
+         << "md5" << _(": ") << md5 << std::endl;
+
+      auto hash_sha1 = QCryptographicHash(QCryptographicHash::Sha1);
+      // sha1
+      hash_sha1.addData(buffer);
+      auto sha1 = hash_sha1.result().toHex().toStdString();
+      LOG(INFO) << "sha1" << sha1;
+      ss << "    "
+         << "sha1" << _(": ") << sha1 << std::endl;
+
+      auto hash_sha256 = QCryptographicHash(QCryptographicHash::Sha256);
+      // sha1
+      hash_sha256.addData(buffer);
+      auto sha256 = hash_sha256.result().toHex().toStdString();
+      LOG(INFO) << "sha256" << sha256;
+      ss << "    "
+         << "sha256" << _(": ") << sha256 << std::endl;
+
+      ss << std::endl;
+
+      emit signalRefreshInfoBoard(ss.str().c_str(),
+                                  InfoBoardStatus::INFO_ERROR_OK);
+    }
+  }
 }
 
 void FilePage::keyPressEvent(QKeyEvent* event) {

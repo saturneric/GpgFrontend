@@ -51,6 +51,10 @@ class GlobalSettingStation : public QObject {
     return app_locale_path;
   }
 
+  [[nodiscard]] boost::filesystem::path GetResourceDir() const {
+    return app_resource_path;
+  }
+
   void Sync() noexcept;
 
  private:
@@ -66,8 +70,10 @@ class GlobalSettingStation : public QObject {
   boost::filesystem::path app_log_path = app_data_path / "logs";
 
   // Program Data Location
-  boost::filesystem::path app_locale_path =
-      RESOURCE_DIR_BOOST_PATH(app_path) / "locales";
+  boost::filesystem::path app_resource_path = RESOURCE_DIR_BOOST_PATH(app_path);
+
+  // Program Data Location
+  boost::filesystem::path app_locale_path = app_resource_path / "locales";
 
   // Program Configure Location
   boost::filesystem::path app_configure_path =

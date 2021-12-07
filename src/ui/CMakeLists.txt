@@ -6,6 +6,7 @@ aux_source_directory(./main_window UI_SOURCE)
 aux_source_directory(./help UI_SOURCE)
 aux_source_directory(./settings UI_SOURCE)
 aux_source_directory(./function UI_SOURCE)
+aux_source_directory(./details UI_SOURCE)
 
 if (SMTP_SUPPORT)
     message(STATUS "Build SMTP Support")

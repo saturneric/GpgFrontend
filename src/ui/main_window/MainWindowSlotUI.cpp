@@ -28,10 +28,6 @@
 
 namespace GpgFrontend::UI {
 
-void MainWindow::slotAbout() { new AboutDialog(0, this); }
-
-void MainWindow::slotCheckUpdate() { new AboutDialog(2, this); }
-
 void MainWindow::slotSetStatusBarText(const QString& text) {
   statusBar()->showMessage(text, 20000);
 }
@@ -111,7 +107,6 @@ void MainWindow::slotOpenSettingsDialog() {
 
     this->setIconSize(QSize(icon_width, icon_height));
     importButton->setIconSize(QSize(icon_width, icon_height));
-    fileEncButton->setIconSize(QSize(icon_width, icon_height));
 
     // Iconstyle
 
@@ -119,7 +114,6 @@ void MainWindow::slotOpenSettingsDialog() {
     auto button_style = static_cast<Qt::ToolButtonStyle>(icon_style);
     this->setToolButtonStyle(button_style);
     importButton->setToolButtonStyle(button_style);
-    fileEncButton->setToolButtonStyle(button_style);
 
     // restart mainwindow if necessary
     if (getRestartNeeded()) {

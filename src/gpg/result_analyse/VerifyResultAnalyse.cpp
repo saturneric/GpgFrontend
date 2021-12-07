@@ -24,6 +24,8 @@
 
 #include "gpg/result_analyse/VerifyResultAnalyse.h"
 
+#include <boost/format.hpp>
+
 #include "GpgFrontend.h"
 #include "gpg/GpgConstants.h"
 #include "gpg/function/GpgKeyGetter.h"
@@ -54,19 +56,24 @@ void GpgFrontend::VerifyResultAnalyse::do_analyse() {
       return;
     }
 
-    stream << "[>] " << _("Signed On") << " "
-           << boost::posix_time::to_iso_string(
+    stream << "[>] " << _("Signed On") << "(" << _("UTC") << ")"
+           << " "
+           << boost::posix_time::to_iso_extended_string(
                   boost::posix_time::from_time_t(sign->timestamp))
            << std::endl;
 
-    stream << std::endl << "[>] " << _("Signatures") << ":" << std::endl;
+    stream << std::endl << "[>] " << _("Signatures List") << ":" << std::endl;
 
     bool canContinue = true;
 
+    int count = 1;
     while (sign && canContinue) {
+      stream << boost::format(_("Signature [%1%]:")) % count++ << std::endl;
       switch (gpg_err_code(sign->status)) {
         case GPG_ERR_BAD_SIGNATURE:
-          stream << _("One or More Bad Signatures.") << std::endl;
+          stream << _("A Bad Signature.") << std::endl;
+          print_signer(stream, sign);
+          stream << _("This Signature is invalid.") << std::endl;
           canContinue = false;
           setStatus(-1);
           break;
@@ -173,21 +180,29 @@ bool GpgFrontend::VerifyResultAnalyse::print_signer(std::stringstream &stream,
     stream << "    " << _("Signed By") << ": " << key.uids()->front().uid()
            << std::endl;
   }
-  stream << "    " << _("Public Key Algo") << ": "
-         << gpgme_pubkey_algo_name(sign->pubkey_algo) << std::endl;
-  stream << "    " << _("Hash Algo") << ": "
-         << gpgme_hash_algo_name(sign->hash_algo) << std::endl;
-  stream << "    " << _("Date & Time") << ": "
-         << boost::posix_time::to_iso_string(
-                boost::posix_time::from_time_t(sign->timestamp))
-         << std::endl;
+  if (sign->pubkey_algo)
+    stream << "    " << _("Public Key Algo") << ": "
+           << gpgme_pubkey_algo_name(sign->pubkey_algo) << std::endl;
+  if (sign->hash_algo)
+    stream << "    " << _("Hash Algo") << ": "
+           << gpgme_hash_algo_name(sign->hash_algo) << std::endl;
+  if (sign->timestamp)
+    stream << "    " << _("Date") << "(" << _("UTC") << ")"
+           << ": "
+           << boost::posix_time::to_iso_extended_string(
+                  boost::posix_time::from_time_t(sign->timestamp))
+           << std::endl;
   stream << std::endl;
   return keyFound;
 }
 
-gpgme_signature_t GpgFrontend::VerifyResultAnalyse::GetSignatures() {
+gpgme_signature_t GpgFrontend::VerifyResultAnalyse::GetSignatures() const {
   if (result)
     return result->signatures;
   else
     return nullptr;
+}
+GpgFrontend::GpgVerifyResult
+GpgFrontend::VerifyResultAnalyse::TakeChargeOfResult() {
+  return std::move(result);
 }

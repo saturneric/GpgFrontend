@@ -45,6 +45,7 @@ class KeyPairUIDTab : public QWidget {
   GpgKey mKey;
   QTableWidget* uidList{};
   QTableWidget* sigList{};
+  QTabWidget* tofuTabs{};
   QMenu* manageSelectedUIDMenu{};
   QMenu* uidPopupMenu{};
   QMenu* signPopupMenu{};
@@ -70,6 +71,8 @@ class KeyPairUIDTab : public QWidget {
  private slots:
 
   void slotRefreshUIDList();
+
+  void slotRefreshTOFUInfo();
 
   void slotRefreshSigList();
 

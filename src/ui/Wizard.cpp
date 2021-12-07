@@ -104,72 +104,16 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
                    "system, GpgFrontend will automatically set it."));
   langLabel->setWordWrap(true);
 
-  languages = SettingsDialog::listLanguages();
-  auto* langSelectBox = new QComboBox();
-
-  for (const auto& l : languages) {
-    langSelectBox->addItem(l);
-  }
-  // selected entry from config
-
-  //  auto lang = "";
-  //  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-  //  try {
-  //    lang = settings.lookup("general.lang");
-  //  } catch (...) {
-  //    LOG(INFO) << "Read for general.lang failed";
-  //  }
-  //
-  //  QString langKey = lang;
-  //  QString langValue = languages.value(langKey);
-  //  LOG(INFO) << "lang key" << langKey.toStdString() << "lang value"
-  //            << langValue.toStdString();
-  //  langSelectBox->setCurrentIndex(langSelectBox->findText(langValue));
-
-  //  connect(langSelectBox, SIGNAL(currentIndexChanged(QString)), this,
-  //          SLOT(slotLangChange(QString)));
-
   // set layout and add widgets
   auto* layout = new QVBoxLayout;
   layout->addWidget(topLabel);
   layout->addStretch();
+#ifdef MULTI_LANG_SUPPORT
   layout->addWidget(langLabel);
-  // layout->addWidget(langSelectBox);
+#endif
 
   setLayout(layout);
 }
-
-// void IntroPage::slotLangChange(const QString& lang) {
-//   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-//
-//   if (!settings.exists("general") ||
-//       settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
-//     settings.add("general", libconfig::Setting::TypeGroup);
-//
-//   auto& general = settings["general"];
-//   if (!general.exists("lang"))
-//     general.add("lang", libconfig::Setting::TypeString) =
-//         languages.key(lang).toStdString();
-//   else {
-//     general["lang"] = languages.key(lang).toStdString();
-//   }
-//
-//   if (!settings.exists("wizard") ||
-//       settings.lookup("wizard").getType() != libconfig::Setting::TypeGroup)
-//     settings.add("wizard", libconfig::Setting::TypeGroup);
-//
-//   auto& wizard = settings["wizard"];
-//   if (!wizard.exists("next_page"))
-//     wizard.add("next_page", libconfig::Setting::TypeInt) =
-//         this->wizard()->currentId();
-//   else {
-//     wizard["next_page"] = this->wizard()->currentId();
-//   }
-//
-//   GlobalSettingStation::GetInstance().Sync();
-//
-//   qApp->exit(RESTART_CODE);
-// }
 
 int IntroPage::nextId() const { return Wizard::Page_Choose; }
 
@@ -288,15 +232,15 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   setTitle(_("Ready."));
   setSubTitle(_("Have fun with GpgFrontend!"));
 
-  auto* bottomLabel =
-      new QLabel(QString(_("You are ready to use GpgFrontend now.<br><br>")) +
-                 "<a "
-                 "href=\"https://saturneric.github.io/GpgFrontend/index.html#/"
-                 "overview\">" +
-                 _("The Online Document") + "</a>" +
-                 _(" will get you started with GpgFrontend. It will open in "
-                   "the main window.") +
-                 "<br>");
+  auto* bottomLabel = new QLabel(
+      QString(_("You are ready to use GpgFrontend now.<br><br>")) +
+      "<a "
+      "href=\"https://saturneric.github.io/GpgFrontend/index.html#/"
+      "overview\">" +
+      _("The Online Document") + "</a>" +
+      _(" will get you started with GpgFrontend. Anytime you encounter "
+        "problems, please try to find help from the documentation") +
+      "<br>");
 
   bottomLabel->setTextFormat(Qt::RichText);
   bottomLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -304,10 +248,10 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   bottomLabel->setWordWrap(true);
 
   openHelpCheckBox = new QCheckBox(_("Open offline help."));
-  openHelpCheckBox->setChecked(Qt::Checked);
+  openHelpCheckBox->setChecked(true);
 
   dontShowWizardCheckBox = new QCheckBox(_("Dont show the wizard again."));
-  dontShowWizardCheckBox->setChecked(Qt::Checked);
+  dontShowWizardCheckBox->setChecked(true);
 
   registerField("showWizard", dontShowWizardCheckBox);
   // registerField("openHelp", openHelpCheckBox);

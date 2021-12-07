@@ -63,17 +63,19 @@ void GpgFrontend::GpgKeyOpera::DeleteKeys(
  */
 GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::SetExpire(
     const GpgKey& key, const SubkeyId& subkey_fpr,
-    std::unique_ptr<boost::gregorian::date>& expires) {
+    std::unique_ptr<boost::posix_time::ptime>& expires) {
   unsigned long expires_time = 0;
+
+  LOG(INFO) << "expires" << *expires;
+
   if (expires != nullptr) {
     using namespace boost::posix_time;
     using namespace std::chrono;
-    expires_time = to_time_t(ptime(*expires)) -
-                   system_clock::to_time_t(system_clock::now());
+    expires_time =
+        to_time_t(*expires) - system_clock::to_time_t(system_clock::now());
   }
 
-  LOG(INFO) << "GpgFrontend::GpgKeyOpera::SetExpire" << key.id() << subkey_fpr
-            << expires_time;
+  LOG(INFO) << key.id() << subkey_fpr << expires_time;
 
   GpgError err;
   if (subkey_fpr.empty())
@@ -213,5 +215,24 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateSubkey(
 
   auto err =
       gpgme_op_createsubkey(ctx, gpgme_key_t(key), algo, 0, expires, flags);
+  return check_gpg_error(err);
+}
+
+GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyPassword(
+    const GpgFrontend::GpgKey& key) {
+  if (ctx.GetInfo().GnupgVersion < "2.0.15") {
+    LOG(ERROR) << _("operator not support");
+    return GPG_ERR_NOT_SUPPORTED;
+  }
+  auto err = gpgme_op_passwd(ctx, gpgme_key_t(key), 0);
+  return check_gpg_error(err);
+}
+GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyTOFUPolicy(
+    const GpgFrontend::GpgKey& key, gpgme_tofu_policy_t tofu_policy) {
+  if (ctx.GetInfo().GnupgVersion < "2.1.10") {
+    LOG(ERROR) << _("operator not support");
+    return GPG_ERR_NOT_SUPPORTED;
+  }
+  auto err = gpgme_op_tofu_policy(ctx, gpgme_key_t(key), tofu_policy);
   return check_gpg_error(err);
 }

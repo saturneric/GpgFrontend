@@ -24,6 +24,7 @@
 
 #include "ui/widgets/InfoBoardWidget.h"
 
+#include "ui/SignalStation.h"
 #include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
@@ -45,22 +46,26 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
   detailMenu->addAction(importFromKeyserverAct);
   importFromKeyserverAct->setVisible(false);
 
-  auto* actionButtonMenu = new QWidget();
-  actionButtonMenu->setContentsMargins(0, 0, 0, 0);
-  actionButtonMenu->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
-  actionButtonMenu->setFixedHeight(36);
+  auto* action_button_menu = new QWidget();
+  action_button_menu->setContentsMargins(0, 0, 0, 0);
+  action_button_menu->setSizePolicy(QSizePolicy::Preferred,
+                                    QSizePolicy::Minimum);
+  action_button_menu->setFixedHeight(40);
 
   actionButtonLayout = new QHBoxLayout();
-  actionButtonLayout->setContentsMargins(5, 5, 5, 5);
+  actionButtonLayout->setContentsMargins(0, 0, 0, 0);
   actionButtonLayout->setSpacing(0);
-  actionButtonMenu->setLayout(actionButtonLayout);
 
-  auto label = new QLabel(_("Optional Actions"));
+  auto* label = new QLabel(_("Actions"));
   label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   label->setContentsMargins(0, 0, 0, 0);
+  mButtonGroup = new QButtonGroup(this);
 
-  actionButtonLayout->addWidget(label);
+  auto* bottom_layout = new QHBoxLayout(this);
+  bottom_layout->addWidget(label);
   actionButtonLayout->addStretch();
+  bottom_layout->addLayout(actionButtonLayout);
+  action_button_menu->setLayout(bottom_layout);
 
   QFrame* line;
   line = new QFrame(this);
@@ -74,12 +79,15 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
 
   notificationWidgetLayout->addWidget(infoBoard);
   notificationWidgetLayout->setStretchFactor(infoBoard, 10);
-  notificationWidgetLayout->addWidget(actionButtonMenu);
-  notificationWidgetLayout->setStretchFactor(actionButtonMenu, 1);
+  notificationWidgetLayout->addWidget(action_button_menu);
+  notificationWidgetLayout->setStretchFactor(action_button_menu, 1);
   notificationWidgetLayout->addWidget(line);
   notificationWidgetLayout->setStretchFactor(line, 1);
   notificationWidgetLayout->addStretch(0);
   this->setLayout(notificationWidgetLayout);
+
+  connect(SignalStation::GetInstance(), &SignalStation::signalRefreshInfoBoard,
+          this, &InfoBoardWidget::slotRefresh);
 
   // set default size
   infoBoard->resize(480, 120);
@@ -145,15 +153,6 @@ void InfoBoardWidget::associateTextEdit(QTextEdit* edit) {
   connect(edit, SIGNAL(textChanged()), this, SLOT(slotReset()));
 }
 
-void InfoBoardWidget::associateFileTreeView(FilePage* treeView) {
-  //    if (mFileTreeView != nullptr)
-  //        disconnect(mFileTreeView, &FilePage::pathChanged, this,
-  //        &InfoBoardWidget::slotReset);
-  //    this->mFileTreeView = treeView;
-  //    connect(treeView, &FilePage::pathChanged, this,
-  //    &InfoBoardWidget::slotReset);
-}
-
 void InfoBoardWidget::associateTabWidget(QTabWidget* tab) {
   if (mTextPage != nullptr)
     disconnect(mTextPage, SIGNAL(textChanged()), this, SLOT(slotReset()));
@@ -167,7 +166,6 @@ void InfoBoardWidget::associateTabWidget(QTabWidget* tab) {
   }
 
   mTextPage = nullptr;
-  mFileTreeView = nullptr;
   mTabWidget = tab;
   connect(tab, SIGNAL(tabBarClicked(int)), this, SLOT(slotReset()));
   connect(tab, SIGNAL(tabCloseRequested(int)), this, SLOT(slotReset()));
@@ -189,7 +187,8 @@ void InfoBoardWidget::addOptionalAction(const QString& name,
  * Delete All item in actionButtonLayout
  */
 void InfoBoardWidget::resetOptionActionsMenu() {
-  deleteWidgetsInLayout(actionButtonLayout, 2);
+  // skip stretch
+  deleteWidgetsInLayout(actionButtonLayout, 1);
 }
 
 void InfoBoardWidget::slotReset() {
@@ -202,6 +201,8 @@ void InfoBoardWidget::slotReset() {
  * @param layout target layout
  */
 void InfoBoardWidget::deleteWidgetsInLayout(QLayout* layout, int start_index) {
+  LOG(INFO) << "Called";
+
   QLayoutItem* item;
   while ((item = layout->layout()->takeAt(start_index)) != nullptr) {
     layout->removeItem(item);

@@ -45,7 +45,8 @@ void MainWindow::createActions() {
   openAct->setToolTip(_("Open an existing file"));
   connect(openAct, SIGNAL(triggered()), edit, SLOT(slotOpen()));
 
-  browserAct = new QAction(_("Browser"), this);
+  browserAct = new QAction(_("File Browser"), this);
+  browserAct->setIcon(QIcon(":file-browser.png"));
   browserAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
   browserAct->setToolTip(_("Open a file browser"));
   connect(browserAct, SIGNAL(triggered()), this, SLOT(slotOpenFileTab()));
@@ -253,7 +254,14 @@ void MainWindow::createActions() {
   aboutAct = new QAction(_("About"), this);
   aboutAct->setIcon(QIcon(":help.png"));
   aboutAct->setToolTip(_("Show the application's About box"));
-  connect(aboutAct, SIGNAL(triggered()), this, SLOT(slotAbout()));
+  connect(aboutAct, &QAction::triggered, this,
+          [=]() { new AboutDialog(0, this); });
+
+  translateAct = new QAction(_("Translate"), this);
+  translateAct->setIcon(QIcon(":help.png"));
+  translateAct->setToolTip(_("Information about translation"));
+  connect(translateAct, &QAction::triggered, this,
+          [=]() { new AboutDialog(1, this); });
 
   /*
    * Check Update Menu
@@ -261,7 +269,8 @@ void MainWindow::createActions() {
   checkUpdateAct = new QAction(_("Check for Updates"), this);
   checkUpdateAct->setIcon(QIcon(":help.png"));
   checkUpdateAct->setToolTip(_("Check for updates"));
-  connect(checkUpdateAct, SIGNAL(triggered()), this, SLOT(slotCheckUpdate()));
+  connect(checkUpdateAct, &QAction::triggered, this,
+          [=]() { new AboutDialog(2, this); });
 
   startWizardAct = new QAction(_("Open Wizard"), this);
   startWizardAct->setToolTip(_("Open the wizard"));
@@ -397,6 +406,7 @@ void MainWindow::createMenus() {
   helpMenu->addAction(startWizardAct);
   helpMenu->addSeparator();
   helpMenu->addAction(checkUpdateAct);
+  helpMenu->addAction(translateAct);
   helpMenu->addAction(aboutAct);
 }
 
@@ -406,10 +416,10 @@ void MainWindow::createToolBars() {
   fileToolBar->addAction(newTabAct);
   fileToolBar->addAction(openAct);
   fileToolBar->addAction(saveAct);
-  fileToolBar->hide();
+  fileToolBar->addAction(browserAct);
   viewMenu->addAction(fileToolBar->toggleViewAction());
 
-  cryptToolBar = addToolBar(_("Crypt"));
+  cryptToolBar = addToolBar(_("Operations"));
   cryptToolBar->setObjectName("cryptToolBar");
   cryptToolBar->addAction(encryptAct);
   cryptToolBar->addAction(encryptSignAct);
@@ -429,6 +439,7 @@ void MainWindow::createToolBars() {
   editToolBar->addAction(copyAct);
   editToolBar->addAction(pasteAct);
   editToolBar->addAction(selectAllAct);
+  editToolBar->hide();
   viewMenu->addAction(editToolBar->toggleViewAction());
 
   specialEditToolBar = addToolBar(_("Special Edit"));
@@ -446,30 +457,20 @@ void MainWindow::createToolBars() {
   importButton->setToolTip(_("Import key from..."));
   importButton->setText(_("Import key"));
   keyToolBar->addWidget(importButton);
-
-  // Add dropdown menu for file encryption/decryption to crypttoolbar
-  fileEncButton = new QToolButton();
-  connect(fileEncButton, SIGNAL(clicked(bool)), this, SLOT(slotOpenFileTab()));
-  fileEncButton->setPopupMode(QToolButton::InstantPopup);
-  fileEncButton->setIcon(QIcon(":fileencryption.png"));
-  fileEncButton->setToolTip(_("Browser to view and operate file"));
-  fileEncButton->setText(_("Browser"));
-  fileToolBar->addWidget(fileEncButton);
 }
 
 void MainWindow::createStatusBar() {
   auto* statusBarBox = new QWidget();
   auto* statusBarBoxLayout = new QHBoxLayout();
-  QPixmap* pixmap;
+  // QPixmap* pixmap;
 
   // icon which should be shown if there are files in attachments-folder
-  pixmap = new QPixmap(":statusbar_icon.png");
-  statusBarIcon = new QLabel();
-  statusBar()->addWidget(statusBarIcon);
-
-  statusBarIcon->setPixmap(*pixmap);
-  statusBar()->insertPermanentWidget(0, statusBarIcon, 0);
-  statusBarIcon->hide();
+  //  pixmap = new QPixmap(":statusbar_icon.png");
+  //  statusBarIcon = new QLabel();
+  //  statusBar()->addWidget(statusBarIcon);
+  //
+  //  statusBarIcon->setPixmap(*pixmap);
+  //  statusBar()->insertPermanentWidget(0, statusBarIcon, 0);
   statusBar()->showMessage(_("Ready"), 2000);
   statusBarBox->setLayout(statusBarBoxLayout);
 }
@@ -483,6 +484,33 @@ void MainWindow::createDockWindows() {
                                Qt::RightDockWidgetArea);
   keyListDock->setMinimumWidth(460);
   addDockWidget(Qt::RightDockWidgetArea, keyListDock);
+
+  mKeyList->addListGroupTab(
+      _("Default"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
+          KeyListColumn::Usage | KeyListColumn::Validity,
+      [](const GpgKey& key) -> bool {
+        return !(key.revoked() || key.disabled() || key.expired());
+      });
+
+  mKeyList->addListGroupTab(
+      _("Only Public Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
+          KeyListColumn::Usage | KeyListColumn::Validity,
+      [](const GpgKey& key) -> bool {
+        return !key.is_private_key() &&
+               !(key.revoked() || key.disabled() || key.expired());
+      });
+
+  mKeyList->addListGroupTab(
+      _("Has Private Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
+          KeyListColumn::Usage | KeyListColumn::Validity,
+      [](const GpgKey& key) -> bool {
+        return key.is_private_key() &&
+               !(key.revoked() || key.disabled() || key.expired());
+      });
+
   keyListDock->setWidget(mKeyList);
   viewMenu->addAction(keyListDock->toggleViewAction());
 

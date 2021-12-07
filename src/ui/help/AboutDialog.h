@@ -59,14 +59,11 @@ class UpdateTab : public QWidget {
   Q_OBJECT
 
   QLabel* currentVersionLabel;
-
   QLabel* latestVersionLabel;
-
   QLabel* upgradeLabel;
-
   QProgressBar* pb;
-
   QString currentVersion;
+  QPushButton* downloadButton;
 
   QNetworkAccessManager* manager = new QNetworkAccessManager(this);
 
