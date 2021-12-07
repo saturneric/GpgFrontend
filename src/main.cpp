@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
   // unicode in source
   QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
 
-#ifdef WINDOWS
+#if !defined(RELEASE)
   // css
   QFile file(RESOURCE_DIR(qApp->applicationDirPath()) + "/css/default.qss");
   file.open(QFile::ReadOnly);

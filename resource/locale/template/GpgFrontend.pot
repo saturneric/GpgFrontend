@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.1\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2021-12-07 14:59+0800\n"
+"POT-Creation-Date: 2021-12-08 08:12+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1682,40 +1682,62 @@ msgstr ""
 msgid "Create New UID"
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:53
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:51
 msgid "Uploading Public Key"
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:119
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:71
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:407
+msgid "Set target Key Server to default Key Server"
+msgstr ""
+
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:74
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:410
+msgid "Cannot read default_keyserver From Settings"
+msgstr ""
+
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:76
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:412
+msgid "Default Keyserver Not Found"
+msgstr ""
+
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:77
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:413
+msgid ""
+"Cannot read default keyserver from your settings, please set a default "
+"keyserver first"
+msgstr ""
+
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:134
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:457
 msgid "Key Not Found"
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:122
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:137
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:258
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:460
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:477
 msgid "Timeout"
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:125
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:140
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:261
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:463
 msgid "Key Server Not Found"
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:128
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:143
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:264
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:466
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:484
 msgid "Connection Error"
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:133
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:148
 msgid "Upload Success"
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:134
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyUploadDialog.cpp:149
 msgid "Upload Public Key Successfully"
 msgstr ""
 
@@ -1794,24 +1816,6 @@ msgstr ""
 
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:389
 msgid "Current Row"
-msgstr ""
-
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:407
-msgid "Set target Key Server to default Key Server"
-msgstr ""
-
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:410
-msgid "Cannot read default_keyserver From Settings"
-msgstr ""
-
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:412
-msgid "Default Keyserver Not Found"
-msgstr ""
-
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:413
-msgid ""
-"Cannot read default keyserver from your settings, please set a default "
-"keyserver first"
 msgstr ""
 
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/KeyServerImportDialog.cpp:472
