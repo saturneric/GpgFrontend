@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.1\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2021-12-08 08:12+0800\n"
+"POT-Creation-Date: 2021-12-08 09:11+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -554,7 +554,7 @@ msgstr ""
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:44
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:114
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:115
 msgid "Name"
 msgstr ""
 
@@ -920,7 +920,7 @@ msgstr ""
 
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/keygen/KeygenDialog.cpp:355
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:67
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:114
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:115
 msgid "Email Address"
 msgstr ""
 
@@ -1517,7 +1517,7 @@ msgid "Signature of Selected UID"
 msgstr ""
 
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:114
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:115
 msgid "Select"
 msgstr ""
 
@@ -1650,7 +1650,7 @@ msgid "Generate A New Subkey"
 msgstr ""
 
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:64
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:115
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:116
 msgid "Usage"
 msgstr ""
 
@@ -2065,7 +2065,7 @@ msgid "Decrypting and Verifying"
 msgstr ""
 
 #: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:501
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:128
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:129
 msgid "called"
 msgstr ""
 
@@ -2471,35 +2471,35 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:114
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:115
 msgid "Type"
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:115
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:116
 msgid "Validity"
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:115
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:116
 msgid "Finger Print"
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:267
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:268
 msgid "Import Keys"
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:270
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:271
 msgid "You've dropped something on the table."
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:271
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:272
 msgid "GpgFrontend will now try to import key(s)."
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:276
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:277
 msgid "Always import without bothering."
 msgstr ""
 
-#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:310
+#: /Users/saturneric/Documents/Develop/GPGFrontend/src/ui/widgets/KeyList.cpp:311
 msgid "Couldn't Open File"
 msgstr ""
 
