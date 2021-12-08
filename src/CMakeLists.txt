@@ -83,17 +83,16 @@ if (MULTI_LANG_SUPPORT)
             GET_FILENAME_COMPONENT(_poFileName ${_poFile} NAME)
             string(REGEX REPLACE "\\.[^.]*$" "" _langName ${_poFileName})
             message(STATUS "_poFileName ${_langName}")
-            make_directory(${CMAKE_SOURCE_DIR}/resource/locale/out/${_langName}/LC_MESSAGES)
+            make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales)
+            make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales/${_langName}/LC_MESSAGES)
             add_custom_command(
                     TARGET translations
                     COMMAND echo Processing po LANG ${_langName}
             )
             add_custom_command(
                     TARGET translations
-                    COMMAND msgfmt --check --verbose --output-file ${CMAKE_SOURCE_DIR}/resource/locale/out/${_langName}/LC_MESSAGES/GpgFrontend.mo ${_poFile}
+                    COMMAND msgfmt --check --verbose --output-file ${RESOURCE_OUTPUT_DIRECTORY}/locales/${_langName}/LC_MESSAGES/GpgFrontend.mo ${_poFile}
             )
-            add_custom_command(TARGET translations
-                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/resource/locale/out/ ${RESOURCE_OUTPUT_DIRECTORY}/locales)
         endforeach ()
 
     endif ()
@@ -109,10 +108,6 @@ if (APPLICATION_BUILD)
     # Copy Resource Files
     file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    if (MULTI_LANG_SUPPORT)
-        make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/locale/out/ DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/locales FOLLOW_SYMLINK_CHAIN)
-    endif ()
     file(COPY ${CMAKE_SOURCE_DIR}/TRANSLATORS DESTINATION ${RESOURCE_OUTPUT_DIRECTORY} FOLLOW_SYMLINK_CHAIN)
 endif ()
 

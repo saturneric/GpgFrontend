@@ -112,12 +112,17 @@ FilePage::FilePage(QWidget* parent) : QWidget(parent) {
           &FilePage::onCustomContextMenu);
 
   connect(pathEdit, &QLineEdit::textChanged, [=]() {
-    auto dir = QDir(pathEdit->text());
-    if (dir.isReadable()) {
+    auto path = pathEdit->text();
+    auto dir = QDir(path);
+    if (path.endsWith("/") && dir.isReadable()) {
       auto dir_list = dir.entryInfoList(QDir::AllEntries);
       QStringList paths;
-      for (int i = 1; i < dir_list.size(); i++)
-        paths.append(dir_list.at(i).filePath());
+      for (int i = 1; i < dir_list.size(); i++) {
+        const auto file_path = dir_list.at(i).filePath();
+        const auto file_name = dir_list.at(i).fileName();
+        if (file_name == "." || file_name == "..") continue;
+        paths.append(file_path);
+      }
       pathCompleteModel->setStringList(paths);
     }
   });
