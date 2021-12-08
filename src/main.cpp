@@ -42,6 +42,11 @@ int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
   QApplication::setWindowIcon(QIcon(":gpgfrontend.png"));
 
+#ifdef MACOS
+  // support retina screen  
+  QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
+
   // logging system
   init_logging();
 
