@@ -29,6 +29,7 @@
 
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/InfoBoardWidget.h"
+#include "ui_FilePage.h"
 
 namespace GpgFrontend::UI {
 
