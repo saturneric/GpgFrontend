@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
   QApplication::setWindowIcon(QIcon(":gpgfrontend.png"));
 
 #ifdef MACOS
-  // support retina screen  
+  // support retina screen
   QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
 
@@ -180,14 +180,14 @@ void init_locale() {
     if (putenv(language_env.c_str())) {
       LOG(WARNING) << "set LANGUAGE failed" << language_env;
     };
-  } 
+  }
 #endif
-
 
   bindtextdomain(PROJECT_NAME,
                  GpgFrontend::UI::GlobalSettingStation::GetInstance()
                      .GetLocaleDir()
                      .string()
                      .c_str());
+  bind_textdomain_codeset(PROJECT_NAME, "utf-8");
   textdomain(PROJECT_NAME);
 }

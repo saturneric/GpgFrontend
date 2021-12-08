@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.1\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2021-12-08 22:12+0800\n"
+"POT-Creation-Date: 2021-12-08 22:36+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,11 +33,11 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:232
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:245
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:258
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:181
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:254
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:264
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:288
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:307
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:180
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:263
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:287
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:306
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:60
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:119
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:136
@@ -453,7 +453,7 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:130
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:182
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:415
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:298
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:297
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:62
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:130
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:190
@@ -496,39 +496,39 @@ msgstr ""
 msgid "Refresh"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:181
 msgid "The path is not exists, unprivileged or unreachable."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:189
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:152
 msgid "Open"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:192
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:277
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:191
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:276
 msgid "Rename"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:194
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:193
 msgid "Delete"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:196
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:195
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:163
 msgid "Encrypt Sign"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:199
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:198
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:175
 msgid "Decrypt Verify"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:199
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:198
 msgid "(.gpg .asc)"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:201
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:200
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:204
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:237
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:316
@@ -536,55 +536,55 @@ msgstr ""
 msgid "Sign"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:204
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:203
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:210
 msgid "Verify"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:204
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:203
 msgid "(.sig .gpg .asc)"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:207
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:206
 msgid "Calculate Hash"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:255
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:254
 msgid "The directory is unprivileged or unreachable."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:265
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:264
 msgid "The file is unprivileged or unreachable."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:277
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:276
 msgid "New Filename"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:289
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:288
 msgid "Unable to rename the file or folder."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:299
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:298
 msgid "Are you sure you want to delete it?"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:308
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:307
 msgid "Unable to delete the file or folder."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:339
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:338
 msgid "File Hash Information"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:340
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:339
 msgid "filename"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:340
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:355
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:363
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:371
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:339
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:362
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:370
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:158
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:93
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
