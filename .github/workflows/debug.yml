@@ -25,7 +25,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
+        os: [ 'ubuntu-latest', 'macos-10.15', 'windows-latest' ]
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -54,7 +54,7 @@ jobs:
           security import certificate.p12 -k build.keychain -P ${{secrets.MAOS_CERTIFICATE_PWD}} -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
           security set-keychain-settings -lut 3600
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-10.15'
 
       - name: Install Dependence (macOS)
         run: |
@@ -64,7 +64,7 @@ jobs:
           brew link qt@5
           brew link gcc
           brew link openssl --force
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-10.15'
 
       - name: Cache Qt
         id: cache-qt
@@ -119,7 +119,7 @@ jobs:
           ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-10.15'
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}
@@ -135,12 +135,12 @@ jobs:
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}} -DBUILD_CONFIG="test_ui"
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-10.15'
 
       - name: Build GpgFrontend
         # Build your program with the given configuration
         run: cmake --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -j 2
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-10.15'
 
       - name: Configure CMake & Build Binary(Windows)
         shell: msys2 {0}
@@ -168,7 +168,7 @@ jobs:
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
           path: ${{github.workspace}}/build/release/*
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-10.15'
 
       - name: Upload Artifact(Windows)
         uses: actions/upload-artifact@master
