@@ -147,13 +147,13 @@ void init_locale() {
                    .GetLocaleDir()
                    .c_str();
 
+#ifndef WINDOWS
   if (!lang.empty()) {
     std::string lc = lang.empty() ? "" : lang + ".UTF-8";
 
     // set LC_ALL
     auto* locale_name = setlocale(LC_ALL, lc.c_str());
     if (locale_name == nullptr) LOG(WARNING) << "set LC_ALL failed" << lc;
-#ifndef WINDOWS
     auto language = getenv("LANGUAGE");
     // set LANGUAGE
     std::string language_env = language == nullptr ? "en" : language;
@@ -162,8 +162,27 @@ void init_locale() {
     if (setenv("LANGUAGE", language_env.c_str(), 1)) {
       LOG(WARNING) << "set LANGUAGE failed" << language_env;
     };
-#endif
   }
+#else
+  if (!lang.empty()) {
+    std::string lc = lang.empty() ? "" : lang;
+
+    // set LC_ALL
+    auto* locale_name = setlocale(LC_ALL, lc.c_str());
+    if (locale_name == nullptr) LOG(WARNING) << "set LC_ALL failed" << lc;
+
+    auto language = getenv("LANGUAGE");
+    // set LANGUAGE
+    std::string language_env = language == nullptr ? "en" : language;
+    language_env.insert(0, lang + ":");
+    language_env.insert(0, "LANGUAGE=");
+    LOG(INFO) << "language env" << language_env;
+    if (putenv(language_env.c_str())) {
+      LOG(WARNING) << "set LANGUAGE failed" << language_env;
+    };
+  } 
+#endif
+
 
   bindtextdomain(PROJECT_NAME,
                  GpgFrontend::UI::GlobalSettingStation::GetInstance()
