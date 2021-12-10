@@ -153,7 +153,6 @@ IF (MINGW)
 
     set(Boost_USE_STATIC_LIBS ON)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
-
     include_directories(
             ${CMAKE_CURRENT_SOURCE_DIR}/src
             ${CMAKE_CURRENT_SOURCE_DIR}/third_party
@@ -162,7 +161,6 @@ IF (MINGW)
     link_directories(
             /mingw64/lib
     )
-
 endif ()
 
 if (APPLE)
@@ -279,6 +277,7 @@ if (QT5_ENV_SUPPORT)
     
     set(CMAKE_AUTORCC_OPTIONS "--compress;9")
     set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
+    message(STATUS "CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS}")
 
 endif ()
 
