@@ -26,81 +26,22 @@
 
 #include "ui/SignalStation.h"
 #include "ui/settings/GlobalSettingStation.h"
+#include "ui_InfoBoard.h"
 
 namespace GpgFrontend::UI {
 
-InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
-    : QWidget(parent), mKeyList(keyList) {
-  infoBoard = new QTextEdit(this);
-  infoBoard->setReadOnly(true);
-  infoBoard->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-  infoBoard->setMinimumWidth(480);
-  infoBoard->setContentsMargins(0, 0, 0, 0);
+InfoBoardWidget::InfoBoardWidget(QWidget* parent)
+    : QWidget(parent), Ui_InfoBoard() {
+  setupUi(this);
 
-  importFromKeyserverAct =
-      new QAction(_("Import missing key from Keyserver"), this);
-  connect(importFromKeyserverAct, SIGNAL(triggered()), this,
-          SLOT(slotImportFromKeyserver()));
-
-  detailMenu = new QMenu(this);
-  detailMenu->addAction(importFromKeyserverAct);
-  importFromKeyserverAct->setVisible(false);
-
-  auto* action_button_menu = new QWidget();
-  action_button_menu->setContentsMargins(0, 0, 0, 0);
-  action_button_menu->setSizePolicy(QSizePolicy::Preferred,
-                                    QSizePolicy::Minimum);
-  action_button_menu->setFixedHeight(40);
-
-  actionButtonLayout = new QHBoxLayout();
-  actionButtonLayout->setContentsMargins(0, 0, 0, 0);
-  actionButtonLayout->setSpacing(0);
-
-  auto* label = new QLabel(_("Actions"));
-  label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-  label->setContentsMargins(0, 0, 0, 0);
-  mButtonGroup = new QButtonGroup(this);
-
-  auto* bottom_layout = new QHBoxLayout(this);
-  bottom_layout->addWidget(label);
   actionButtonLayout->addStretch();
-  bottom_layout->addLayout(actionButtonLayout);
-  action_button_menu->setLayout(bottom_layout);
-
-  QFrame* line;
-  line = new QFrame(this);
-  line->setFrameShape(QFrame::HLine);
-  line->setFrameShadow(QFrame::Sunken);
-  line->setContentsMargins(0, 0, 0, 0);
-
-  auto* notificationWidgetLayout = new QVBoxLayout(this);
-  notificationWidgetLayout->setContentsMargins(0, 0, 0, 0);
-  notificationWidgetLayout->setSpacing(0);
-
-  notificationWidgetLayout->addWidget(infoBoard);
-  notificationWidgetLayout->setStretchFactor(infoBoard, 10);
-  notificationWidgetLayout->addWidget(action_button_menu);
-  notificationWidgetLayout->setStretchFactor(action_button_menu, 1);
-  notificationWidgetLayout->addWidget(line);
-  notificationWidgetLayout->setStretchFactor(line, 1);
-  notificationWidgetLayout->addStretch(0);
-  this->setLayout(notificationWidgetLayout);
+  actionLabel->setText(_("Actions Menu"));
+  copyButton->setText(_("Copy"));
+  saveButton->setText(_("Save"));
+  clearButton->setText(_("Clear"));
 
   connect(SignalStation::GetInstance(), &SignalStation::signalRefreshInfoBoard,
           this, &InfoBoardWidget::slotRefresh);
-
-  // set default size
-  infoBoard->resize(480, 120);
-  resize(480, 120);
-}
-
-void InfoBoardWidget::slotImportFromKeyserver() {
-  auto* importDialog = new KeyServerImportDialog(false, this);
-  auto key_ids = std::make_unique<KeyIdArgsList>();
-  for (const auto& key_id : *keysNotInList) {
-    key_ids->push_back(key_id.toStdString());
-  }
-  importDialog->slotImport(key_ids);
 }
 
 void InfoBoardWidget::setInfoBoard(const QString& text,
@@ -156,9 +97,6 @@ void InfoBoardWidget::associateTextEdit(QTextEdit* edit) {
 void InfoBoardWidget::associateTabWidget(QTabWidget* tab) {
   if (mTextPage != nullptr)
     disconnect(mTextPage, SIGNAL(textChanged()), this, SLOT(slotReset()));
-  //    if (mFileTreeView != nullptr)
-  //        disconnect(mFileTreeView, &FilePage::pathChanged, this,
-  //        &InfoBoardWidget::slotReset);
   if (mTabWidget != nullptr) {
     disconnect(mTabWidget, SIGNAL(tabBarClicked(int)), this, SLOT(slotReset()));
     connect(mTabWidget, SIGNAL(tabCloseRequested(int)), this,
@@ -173,6 +111,7 @@ void InfoBoardWidget::associateTabWidget(QTabWidget* tab) {
 
 void InfoBoardWidget::addOptionalAction(const QString& name,
                                         const std::function<void()>& action) {
+  LOG(INFO) << "add option" << name.toStdString();
   auto actionButton = new QPushButton(name);
   auto layout = new QHBoxLayout();
   layout->setContentsMargins(5, 0, 5, 0);
