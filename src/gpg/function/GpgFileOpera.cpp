@@ -41,7 +41,7 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
     if (!write_buffer_to_file(path + ".asc", *out_buffer)) {
       throw std::runtime_error("write_buffer_to_file error");
     };
-  
+
   return err;
 }
 
@@ -94,7 +94,6 @@ gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(const std::string& path,
   if (get_file_extension(path) == ".gpg") {
     auto err =
         BasicOperator::GetInstance().Verify(in_buffer, sign_buffer, result);
-    assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
     return err;
   } else {
     sign_buffer =
@@ -150,8 +149,7 @@ gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
 
   if (!(file_extension == ".asc" || file_extension == ".gpg"))
     out_file_name = path + ".out";
-  LOG(INFO) << "GpgFrontend::GpgFileOpera::DecryptVerifyFile out_file_name"
-            << out_file_name;
+  LOG(INFO) << "out_file_name" << out_file_name;
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
     if (!write_buffer_to_file(out_file_name, *out_buffer)) {

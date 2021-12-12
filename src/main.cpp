@@ -40,7 +40,10 @@ int main(int argc, char* argv[]) {
 
   // Qt App
   QApplication app(argc, argv);
+
+#ifndef MACOS
   QApplication::setWindowIcon(QIcon(":gpgfrontend.png"));
+#endif
 
 #ifdef MACOS
   // support retina screen
@@ -60,7 +63,7 @@ int main(int argc, char* argv[]) {
   // unicode in source
   QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
 
-#if !defined(RELEASE)
+#if !defined(RELEASE) && defined(WINDOWS)
   // css
   QFile file(RESOURCE_DIR(qApp->applicationDirPath()) + "/css/default.qss");
   file.open(QFile::ReadOnly);

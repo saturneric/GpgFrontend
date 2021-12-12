@@ -51,40 +51,56 @@ void MainWindow::slotEncrypt() {
 
   auto key_ids = mKeyList->getChecked();
 
-  if (key_ids->empty()) {
-    QMessageBox::critical(nullptr, _("No Key Selected"), _("No Key Selected"));
-    return;
-  }
-
-  auto key_getter = GpgFrontend::GpgKeyGetter::GetInstance();
-  auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
-  for (const auto& key : *keys) {
-    if (!key.CanEncrActual()) {
-      QMessageBox::information(
-          nullptr, _("Invalid Operation"),
-          QString(
-              _("The selected key contains a key that does not actually have a "
-                "encrypt usage.")) +
-              "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.uids()->front().uid()));
-      return;
-    }
-  }
-
-  auto tmp = std::make_unique<ByteArray>();
-
   GpgEncrResult result = nullptr;
   GpgError error;
   bool if_error = false;
-  process_operation(this, _("Encrypting"), [&]() {
-    try {
-      auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
-      error = GpgFrontend::BasicOperator::GetInstance().Encrypt(
-          std::move(keys), buffer, tmp, result);
-    } catch (const std::runtime_error& e) {
-      if_error = true;
+  auto tmp = std::make_unique<ByteArray>();
+
+  if (key_ids->empty()) {
+    // Symmetric Encrypt
+    auto ret =
+        QMessageBox::warning(this, _("Warning"),
+                             _("No Key Selected. Do you want to encrypt with a "
+                               "symmetric cipher using a passphrase?"),
+                             QMessageBox::Ok | QMessageBox::Cancel);
+
+    if (ret == QMessageBox::Cancel) return;
+
+    process_operation(this, _("Symmetrically Encrypting"), [&]() {
+      try {
+        auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
+        error = GpgFrontend::BasicOperator::GetInstance().EncryptSymmetric(
+            buffer, tmp, result);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
+  } else {
+    auto key_getter = GpgFrontend::GpgKeyGetter::GetInstance();
+    auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+    for (const auto& key : *keys) {
+      if (!key.CanEncrActual()) {
+        QMessageBox::information(
+            nullptr, _("Invalid Operation"),
+            QString(_(
+                "The selected key contains a key that does not actually have a "
+                "encrypt usage.")) +
+                "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
+                QString::fromStdString(key.uids()->front().uid()));
+        return;
+      }
     }
-  });
+
+    process_operation(this, _("Encrypting"), [&]() {
+      try {
+        auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
+        error = GpgFrontend::BasicOperator::GetInstance().Encrypt(
+            std::move(keys), buffer, tmp, result);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
+  }
 
   if (!if_error) {
     auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));

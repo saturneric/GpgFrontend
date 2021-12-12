@@ -33,7 +33,7 @@
 
 namespace GpgFrontend::UI {
 
-class FilePage : public QWidget {
+class FilePage : public QWidget, private Ui_FilePage {
   Q_OBJECT
  public:
   explicit FilePage(QWidget* parent = nullptr);
@@ -64,6 +64,8 @@ class FilePage : public QWidget {
   void slotSignItem();
   void slotVerifyItem();
   void slotCalculateHash();
+  void slotMkdir();
+  void slotCreateEmptyFile();
 
   void onCustomContextMenu(const QPoint& point);
 
@@ -74,8 +76,6 @@ class FilePage : public QWidget {
   void createPopupMenu();
 
   QFileSystemModel* dirModel;
-  QTreeView* dirTreeView;
-  QLineEdit* pathEdit;
   QCompleter* pathEditCompleter;
   QStringListModel* pathCompleteModel;
 
@@ -83,16 +83,18 @@ class FilePage : public QWidget {
   boost::filesystem::path mPath;
   boost::filesystem::path selectedPath;
 
-  QPushButton* upLevelButton;
-  QPushButton* goPathButton;
-  QPushButton* refreshButton;
-
   QMenu* popUpMenu{};
+  QMenu* optionPopUpMenu{};
   QAction* encryptItemAct{};
   QAction* decryptItemAct{};
   QAction* signItemAct{};
   QAction* verifyItemAct{};
   QAction* hashCalculateAct{};
+  QAction* mkdirAct{};
+  QAction* openItemAct{};
+  QAction* renameItemAct{};
+  QAction* deleteItemAct{};
+  QAction* createEmptyFileAct{};
   QWidget* firstParent;
 };
 

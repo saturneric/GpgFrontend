@@ -64,7 +64,7 @@ void MainWindow::init() noexcept {
 
     mKeyList->slotRefresh();
 
-    infoBoard = new InfoBoardWidget(this, mKeyList);
+    infoBoard = new InfoBoardWidget(this);
 
     /* List of binary Attachments */
     attachmentDockCreated = false;

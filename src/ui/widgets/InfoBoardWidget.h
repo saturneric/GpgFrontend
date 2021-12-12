@@ -28,6 +28,7 @@
 #include "EditorPage.h"
 #include "gpg/result_analyse/VerifyResultAnalyse.h"
 #include "ui/details/VerifyDetailsDialog.h"
+#include "ui_InfoBoard.h"
 
 namespace GpgFrontend::UI {
 
@@ -44,7 +45,7 @@ typedef enum {
 /**
  * @brief Class for handling the verifylabel shown at buttom of a textedit-page
  */
-class InfoBoardWidget : public QWidget {
+class InfoBoardWidget : public QWidget, private Ui_InfoBoard {
   Q_OBJECT
  public:
   /**
@@ -53,7 +54,7 @@ class InfoBoardWidget : public QWidget {
    * @param ctx The GPGme-Context
    * @param parent The parent widget
    */
-  explicit InfoBoardWidget(QWidget* parent, KeyList* keyList);
+  explicit InfoBoardWidget(QWidget* parent);
 
   void associateTextEdit(QTextEdit* edit);
 
@@ -72,16 +73,7 @@ class InfoBoardWidget : public QWidget {
    */
   void setInfoBoard(const QString& text, InfoBoardStatus verifyLabelStatus);
 
-  QStringList* keysNotInList; /** List with keys, which are in signature but not
-                                 in keylist */
-
  public slots:
-
-  /**
-   * @details Import the keys contained in keysNotInList from keyserver
-   *
-   */
-  void slotImportFromKeyserver();
 
   void slotReset();
 
@@ -91,18 +83,9 @@ class InfoBoardWidget : public QWidget {
   void slotRefresh(const QString& text, InfoBoardStatus status);
 
  private:
-  QMenu* detailMenu; /** Menu for te Button in verfiyNotification */
-  QAction* importFromKeyserverAct; /** Action for importing keys from keyserver
-                                      which are notin keylist */
-  QTextEdit* infoBoard;
-  KeyList* mKeyList; /** Table holding the keys */
 
   QTextEdit* mTextPage{nullptr}; /** TextEdit associated to the notification */
-  QTabWidget* mTabWidget{
-      nullptr}; /** TreeView associated to the notification */
-
-  QHBoxLayout* actionButtonLayout;
-  QButtonGroup* mButtonGroup;
+  QTabWidget* mTabWidget{nullptr};
 
   void deleteWidgetsInLayout(QLayout* layout, int start_index = 0);
 };
