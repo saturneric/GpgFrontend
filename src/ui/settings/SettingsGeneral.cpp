@@ -81,12 +81,15 @@ GeneralTab::GeneralTab(QWidget* parent) : QWidget(parent) {
    *****************************************/
   auto* langBox = new QGroupBox(_("Language"));
   auto* langBoxLayout = new QVBoxLayout();
-  langSelectBox = new QComboBox;
+  langSelectBox = new QComboBox();
+  langSelectBox->setMaxVisibleItems(8);
+  langSelectBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   lang = SettingsDialog::listLanguages();
 
   for (const auto& l : lang) {
     langSelectBox->addItem(l);
   }
+  langSelectBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLength);
 
   langBoxLayout->addWidget(langSelectBox);
   langBoxLayout->addWidget(new QLabel(

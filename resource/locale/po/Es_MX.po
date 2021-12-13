@@ -1,36 +1,36 @@
-# Japanese translations for GpgFrontend package.
+# Language Es translations for GpgFrontend package.
 # Copyright (C) 2021 Saturneric
 # This file is distributed under the same license as the GpgFrontend package.
 # Automatically generated, 2021.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: GpgFrontend 2.0.1\n"
+"Project-Id-Version: GpgFrontend 2.0.2\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
 "POT-Creation-Date: 2021-12-14 00:41+0800\n"
-"PO-Revision-Date: 2021-12-07 04:40+0800\n"
+"PO-Revision-Date: 2021-12-14 00:41+0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
-"Language: ja\n"
+"Language: Es_MX\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:81
 msgid "ENV Loading Failed"
-msgstr "ENVの読み込みに失敗しました"
+msgstr "Error al cargar ENV"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:82
 msgid ""
 "Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
 " in Github to install Gnupg and then open GpgFrontend."
 msgstr ""
-"Gnupg（gpg）が正しくインストールされていません。GithubのReadMEの手順に従って、Gnupgをインストールしてから、GpgFrontendを開いてください。"
+"Gnupg (gpg) no está instalado correctamente, siga las instrucciones ReadME "
+"en Github para instalar Gnupg y luego abra GpgFrontend."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:101
 msgid "Loading Gnupg Info..."
-msgstr "Gnupg情報を読み込んでいます..."
+msgstr "Cargando información de Gnupg ..."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:102
 msgid ""
@@ -38,25 +38,29 @@ msgid ""
 " in the gnupg configuration file (depending on the network situation in your"
 " country or region)."
 msgstr ""
-"このプロセスが遅すぎる場合は、gnupg構成ファイルでキーサーバーアドレスを適切に設定してください（国または地域のネットワーク状況によって異なります）。"
+"Si este proceso es demasiado lento, establezca la dirección del servidor "
+"clave de forma adecuada en el archivo de configuración de gnupg (según la "
+"situación de la red en su país o región)."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:144
 msgid "Unhandled Exception Thrown"
-msgstr "スローされた未処理の例外"
+msgstr "Excepción no controlada lanzada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:145
 msgid ""
 "Oops, an unhandled exception was thrown during the running of the program, "
 "and now it needs to be restarted."
-msgstr "プログラムの実行中に未処理の例外がスローされたため、再起動する必要があります。"
+msgstr ""
+"Vaya, se lanzó una excepción no controlada durante la ejecución del programa"
+" y ahora debe reiniciarse."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:178
 msgid "Logfile Path"
-msgstr "ログファイルパス"
+msgstr "Ruta del archivo de registro"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:201
 msgid "Could not read properly from configure file"
-msgstr "設定ファイルから正しく読み取ることができませんでした"
+msgstr "No se pudo leer correctamente desde el archivo de configuración"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:35
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:56
@@ -111,32 +115,32 @@ msgstr "設定ファイルから正しく読み取ることができませんで
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:412
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:431
 msgid "Error"
-msgstr "エラー"
+msgstr "Error"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:36
 msgid "Nothing Reply. Please check the Internet connection."
-msgstr "何も返信しません。インターネット接続を確認してください。"
+msgstr "Nada Responder. Comprueba la conexión a Internet."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:56
 msgid "Unknown Error"
-msgstr "未知のエラー"
+msgstr "Error desconocido"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:75
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:94
 msgid "Network Error"
-msgstr "ネットワークエラー"
+msgstr "Error de red"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:75
 msgid "Outdated Reply"
-msgstr "時代遅れの返信"
+msgstr "Respuesta desactualizada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:90
 msgid "Unknown Reason"
-msgstr "不明な理由"
+msgstr "Razón desconocida"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:94
 msgid "Unknown Reply Format"
-msgstr "不明な返信形式"
+msgstr "Formato de respuesta desconocido"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyUploader.cpp:94
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:66
@@ -146,33 +150,35 @@ msgstr "不明な返信形式"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:413
 msgid ""
 "The communication content with the server does not meet the requirements"
-msgstr "サーバーとの通信内容が要件を満たしていない"
+msgstr ""
+"El contenido de la comunicación con el servidor no cumple con los "
+"requisitos."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:37
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:130
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:240
 msgid "Generate Key"
-msgstr "キーの生成"
+msgstr "Generar clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:75
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:76
 msgid "Name must contain at least five characters."
-msgstr "名前には少なくとも5文字が含まれている必要があります。"
+msgstr "El nombre debe contener al menos cinco caracteres."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:79
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:80
 msgid "Please give a email address."
-msgstr "メールアドレスを教えてください。"
+msgstr "Proporcione una dirección de correo electrónico."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:87
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:225
 msgid "Expiration time no more than 2 years."
-msgstr "有効期限は2年以内です。"
+msgstr "El tiempo de vencimiento no más de 2 años."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:117
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:247
 msgid "Generating"
-msgstr "生成"
+msgstr "Generando"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:130
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:259
@@ -185,45 +191,45 @@ msgstr "生成"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:39
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:43
 msgid "Success"
-msgstr "成功"
+msgstr "Éxito"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:131
 msgid "The new key pair has been generated."
-msgstr "新しいキーペアが生成されました。"
+msgstr "Se ha generado el nuevo par de claves."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:138
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:267
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:77
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:182
 msgid "Failure"
-msgstr "失敗"
+msgstr "Falla"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:167
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:68
 msgid "Key Usage"
-msgstr "主な使用法"
+msgstr "Uso de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:169
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:70
 msgid "Encryption"
-msgstr "暗号化"
+msgstr "Cifrado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:172
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:73
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:203
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:165
 msgid "Signing"
-msgstr "署名"
+msgstr "Firma"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:175
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:76
 msgid "Certification"
-msgstr "認証"
+msgstr "Certificación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:178
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:79
 msgid "Authentication"
-msgstr "認証"
+msgstr "Autenticación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:354
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:115
@@ -233,25 +239,25 @@ msgstr "認証"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:66
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
 msgid "Name"
-msgstr "名前"
+msgstr "Nombre"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:355
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:115
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:67
 msgid "Email Address"
-msgstr "電子メールアドレス"
+msgstr "Dirección de correo electrónico"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:356
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:46
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:68
 msgid "Comment"
-msgstr "コメント"
+msgstr "Comentario"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:357
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:123
 msgid "Expiration Date"
-msgstr "有効期限"
+msgstr "Fecha de caducidad"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:358
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:124
@@ -259,225 +265,229 @@ msgstr "有効期限"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:389
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:100
 msgid "Never Expire"
-msgstr "期限切れにならない"
+msgstr "Nunca expira"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:359
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:125
 msgid "KeySize (in Bit)"
-msgstr "KeySize（ビット単位）"
+msgstr "KeySize (en bits)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:360
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:126
 msgid "Key Type"
-msgstr "キータイプ"
+msgstr "Tipo de clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:361
 msgid "Non Pass Phrase"
-msgstr "ノンパスフレーズ"
+msgstr "Frase sin contraseña"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:374
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:135
 msgid "Basic Information"
-msgstr "基本情報"
+msgstr "Información básica"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:53
 msgid "Generate New Subkey"
-msgstr "新しいサブキーを生成する"
+msgstr "Generar nueva subclave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:260
 msgid "The new subkey has been generated."
-msgstr "新しいサブキーが生成されました。"
+msgstr "Se ha generado la nueva subclave."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:35
 msgid "Decrypt File"
-msgstr "ファイルの復号化"
+msgstr "Descifrar archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:37
 msgid "Encrypt File"
-msgstr "ファイルを暗号化する"
+msgstr "Cifrar archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:39
 msgid "Sign File"
-msgstr "サインファイル"
+msgstr "Firmar archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:41
 msgid "Verify File"
-msgstr "ファイルの確認"
+msgstr "Verificar archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:51
 msgid "Input Parameters"
-msgstr "入力パラメータ"
+msgstr "Parámetros de entrada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:57
 msgid "Target File"
-msgstr "ターゲットファイル"
+msgstr "Archivo de destino"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:63
 msgid "Output File"
-msgstr "出力ファイル"
+msgstr "Archivo de salida"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:79
 msgid "Signature File(.sig) Path"
-msgstr "署名ファイル（.sig）パス"
+msgstr "Ruta del archivo de firma (.sig)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:155
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:198
 msgid "Open File"
-msgstr "ファイルを開く"
+msgstr "Abrir documento"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:186
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:54
 msgid "Save File"
-msgstr "ファイルを保存"
+msgstr "Guardar el archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:214
 msgid "Couldn't open file"
-msgstr "ファイルを開けませんでした"
+msgstr "No se pudo abrir el archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:233
 msgid "Error Occurred During Encryption"
-msgstr "暗号化中にエラーが発生しました"
+msgstr "Se produjo un error durante el cifrado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:246
 msgid "Error Occurred During Decryption"
-msgstr "復号化中にエラーが発生しました"
+msgstr "Se produjo un error durante el descifrado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:259
 msgid "Error Occurred During Signature"
-msgstr "署名中にエラーが発生しました"
+msgstr "Se produjo un error durante la firma"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:33
 msgid "Unsaved Files"
-msgstr "保存されていないファイル"
+msgstr "Archivos no guardados"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:82
 msgid ""
 "%1% files contain unsaved information.<br/>Save the changes before closing?"
-msgstr "％1％のファイルには、保存されていない情報が含まれています。<br/>閉じる前に変更を保存しますか？"
+msgstr ""
+"% 1% archivos contienen información no guardada. <br/> ¿Guardar los cambios "
+"antes de cerrar?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:96
 msgid "Check the files you want to save:"
-msgstr "保存するファイルを確認します。"
+msgstr "Verifique los archivos que desea guardar:"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:98
 msgid "Note"
-msgstr "ノート"
+msgstr "Nota"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:99
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:271
 msgid "If you don't save these files, all changes are lost."
-msgstr "これらのファイルを保存しないと、すべての変更が失われます。"
+msgstr "Si no guarda estos archivos, se perderán todos los cambios."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:42
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:460
 msgid "Default"
-msgstr "ディフォルト"
+msgstr "Defecto"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:115
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
 msgid "Select"
-msgstr "選択する"
+msgstr "Seleccione"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:115
 msgid "Type"
-msgstr "タイプ"
+msgstr "Escribe"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:116
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:64
 msgid "Usage"
-msgstr "使用法"
+msgstr "Uso"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:116
 msgid "Validity"
-msgstr "有効"
+msgstr "Validez"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:116
 msgid "Finger Print"
-msgstr "指紋"
+msgstr "Huella dactilar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:129
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:517
 msgid "called"
-msgstr "と呼ばれる"
+msgstr "llamado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:268
 msgid "Import Keys"
-msgstr "キーのインポート"
+msgstr "Importar claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:271
 msgid "You've dropped something on the table."
-msgstr "あなたはテーブルに何かを落としました。"
+msgstr "Dejaste caer algo sobre la mesa."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:272
 msgid "GpgFrontend will now try to import key(s)."
-msgstr "GpgFrontendは、キーのインポートを試行します。"
+msgstr "GpgFrontend ahora intentará importar claves."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:277
 msgid "Always import without bothering."
-msgstr "常に気にせずにインポートします。"
+msgstr "Importe siempre sin molestarse."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:311
 msgid "Couldn't Open File"
-msgstr "ファイルを開けませんでした"
+msgstr "No se pudo abrir el archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:30
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:95
 msgid "Confirm"
-msgstr "確認"
+msgstr "Confirmar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:47
 msgid "Select Signer(s)"
-msgstr "署名者を選択します"
+msgstr "Seleccionar firmante (s)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:50
 msgid "Selecting Nothing will eventually use default key to sign."
-msgstr "[なし]を選択すると、最終的にデフォルトのキーを使用して署名します。"
+msgstr ""
+"Al seleccionar Nada, eventualmente se usará la clave predeterminada para "
+"firmar."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:32
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:59
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:73
 msgid "Key ID"
-msgstr "キーID"
+msgstr "ID de clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:33
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:60
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:74
 msgid "Algorithm"
-msgstr "アルゴリズム"
+msgstr "Algoritmo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:34
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:62
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:75
 msgid "Key Size"
-msgstr "キーサイズ"
+msgstr "Tamaño de clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:35
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:76
 msgid "Nominal Usage"
-msgstr "公称使用量"
+msgstr "Uso nominal"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:36
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:77
 msgid "Actual Usage"
-msgstr "実際の使用法"
+msgstr "Uso actual"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
 msgid "Expires on"
-msgstr "有効期限"
+msgstr "Expira el"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:38
 msgid "Last Update"
-msgstr "最後の更新"
+msgstr "Última actualización"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:39
 msgid "Secret Key Existence"
-msgstr "シークレットキーの存在"
+msgstr "Existencia de la clave secreta"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:51
 msgid "untitled"
-msgstr "無題"
+msgstr "intitulado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:92
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:130
@@ -492,7 +502,7 @@ msgstr "無題"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:62
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Warning"
-msgstr "警告"
+msgstr "Advertencia"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:93
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:131
@@ -502,60 +512,60 @@ msgid ""
 "Cannot read file %1%:\n"
 "%2%."
 msgstr ""
-"ファイル％1％を読み取れません：\n"
-"％2％。"
+"No se puede leer el archivo% 1%:\n"
+"% 2%."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:104
 msgid "Open file"
-msgstr "ファイルを開く"
+msgstr "Abrir documento"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:204
 msgid "Save file"
-msgstr "ファイルを保存"
+msgstr "Guardar el archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:266
 msgid "Unsaved document"
-msgstr "保存されていないドキュメント"
+msgstr "Documento no guardado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:267
 msgid "The document \"%1\" has been modified. Do you want to save your changes?"
-msgstr "ドキュメント「％1」が変更されました。変更を保存しますか？"
+msgstr "Se ha modificado el documento \"% 1\". ¿Quieres guardar tus cambios?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:270
 msgid "Note:"
-msgstr "ノート："
+msgstr "Nota:"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:151
 msgid "The path is not exists, unprivileged or unreachable."
-msgstr "パスは存在せず、特権がなく、到達できません。"
+msgstr "El camino no existe, sin privilegios o inalcanzable."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:159
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:152
 msgid "Open"
-msgstr "開ける"
+msgstr "Abierto"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:161
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:297
 msgid "Rename"
-msgstr "名前を変更"
+msgstr "Rebautizar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:163
 msgid "Delete"
-msgstr "消去"
+msgstr "Borrar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:165
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:163
 msgid "Encrypt Sign"
-msgstr "サインを暗号化する"
+msgstr "Cifrar signo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:169
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:175
 msgid "Decrypt Verify"
-msgstr "復号化検証"
+msgstr "Descifrar Verificar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:169
 msgid "(.gpg .asc)"
-msgstr "（.gpg .asc）"
+msgstr "(.gpg .asc)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:172
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:182
@@ -563,70 +573,70 @@ msgstr "（.gpg .asc）"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:369
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:378
 msgid "Sign"
-msgstr "サイン"
+msgstr "Firmar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:175
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:188
 msgid "Verify"
-msgstr "確認"
+msgstr "Verificar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:175
 msgid "(.sig .gpg .asc)"
-msgstr "（.sig .gpg .asc）"
+msgstr "(.sig .gpg .asc)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:178
 msgid "Calculate Hash"
-msgstr "ハッシュを計算する"
+msgstr "Calcular hash"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:182
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:407
 msgid "Make New Directory"
-msgstr "新しいディレクトリを作成する"
+msgstr "Crear nuevo directorio"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:185
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:420
 msgid "Create Empty File"
-msgstr "空のファイルを作成する"
+msgstr "Crear archivo vacío"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:204
 msgid "Show Hidden File"
-msgstr "隠しファイルを表示する"
+msgstr "Mostrar archivo oculto"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:216
 msgid "Show System File"
-msgstr "システムファイルを表示"
+msgstr "Mostrar archivo de sistema"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:275
 msgid "The directory is unprivileged or unreachable."
-msgstr "ディレクトリに特権がないか、到達できません。"
+msgstr "El directorio no tiene privilegios o es inaccesible."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:285
 msgid "The file is unprivileged or unreachable."
-msgstr "ファイルは特権がないか、到達できません。"
+msgstr "El archivo no tiene privilegios o es inaccesible."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:297
 msgid "New Filename"
-msgstr "新しいファイル名"
+msgstr "Nuevo nombre de archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:309
 msgid "Unable to rename the file or folder."
-msgstr "ファイルまたはフォルダの名前を変更できません。"
+msgstr "No se puede cambiar el nombre del archivo o carpeta."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:319
 msgid "Are you sure you want to delete it?"
-msgstr "削除してもよろしいですか？"
+msgstr "¿Estás seguro de que quieres eliminarlo?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:328
 msgid "Unable to delete the file or folder."
-msgstr "ファイルまたはフォルダを削除できません。"
+msgstr "No se puede eliminar el archivo o la carpeta."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:359
 msgid "File Hash Information"
-msgstr "ファイルハッシュ情報"
+msgstr "Información de hash de archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:360
 msgid "filename"
-msgstr "ファイル名"
+msgstr "Nombre del archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:360
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:375
@@ -637,27 +647,27 @@ msgstr "ファイル名"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
 msgid ": "
-msgstr "："
+msgstr ":"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:407
 msgid "Directory Name"
-msgstr "ディレクトリ名"
+msgstr "Nombre del directorio"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:421
 msgid "Filename (you can given extension)"
-msgstr "ファイル名（拡張子を付けることができます）"
+msgstr "Nombre de archivo (puede dar extensión)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:427
 msgid "Unable to create the file."
-msgstr "ファイルを作成できません。"
+msgstr "No se pudo crear el archivo."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:39
 msgid "Import from keyserver"
-msgstr "キーサーバーからインポート"
+msgstr "Importar desde el servidor de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:43
 msgid "Key not present with id 0x"
-msgstr "ID0xでキーが存在しない"
+msgstr "Clave no presente con id 0x"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:47
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:73
@@ -669,19 +679,19 @@ msgstr "ID0xでキーが存在しない"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:54
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
 msgid "Status"
-msgstr "状態"
+msgstr "Estado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:47
 msgid ":"
-msgstr "："
+msgstr ":"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:49
 msgid "Key not present in key list"
-msgstr "キーリストにキーがありません"
+msgstr "Clave no presente en la lista de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:57
 msgid "A Signature"
-msgstr "サイン"
+msgstr "Una firma"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:62
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:78
@@ -690,7 +700,7 @@ msgstr "サイン"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:128
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:143
 msgid "Key Information is NOT Available"
-msgstr "重要な情報は利用できません"
+msgstr "La información clave NO está disponible"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:64
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:80
@@ -704,92 +714,92 @@ msgstr "重要な情報は利用できません"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:49
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:100
 msgid "Fingerprint"
-msgstr "指紋"
+msgstr "Huella dactilar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:73
 msgid "Cert Revoked"
-msgstr "証明書が取り消されました"
+msgstr "Certificado revocado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:89
 msgid "Signature Expired"
-msgstr "署名の有効期限が切れました"
+msgstr "Firma caducada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:105
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:107
 msgid "Key Expired"
-msgstr "キーの有効期限が切れました"
+msgstr "Clave caducada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:123
 msgid "General Error"
-msgstr "一般的なエラー"
+msgstr "Error general"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:138
 msgid "Unknown Error "
-msgstr "未知のエラー"
+msgstr "Error desconocido"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:168
 msgid "Signer Name"
-msgstr "署名者名"
+msgstr "Nombre del firmante"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:169
 msgid "Signer Email"
-msgstr "署名者の電子メール"
+msgstr "Correo electrónico del firmante"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:170
 msgid "Key's Fingerprint"
-msgstr "キーの指紋"
+msgstr "Huella digital de la llave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:171
 msgid "Valid"
-msgstr "有効"
+msgstr "Válido"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:172
 msgid "Flags"
-msgstr "フラグ"
+msgstr "Banderas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:179
 msgid "Fully Valid"
-msgstr "完全に有効"
+msgstr "Totalmente Válido"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:181
 msgid "NOT Fully Valid"
-msgstr "完全に有効ではありません"
+msgstr "NO es totalmente válido"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:187
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:83
 msgid "Good"
-msgstr "良い"
+msgstr "Bien"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:190
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:86
 msgid "Bad"
-msgstr "悪い"
+msgstr "Malo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:193
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:77
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:89
 msgid "Expired"
-msgstr "期限切れ"
+msgstr "Caducado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:196
 msgid "Missing Key"
-msgstr "キーがありません"
+msgstr "Falta clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:199
 msgid "Revoked Key"
-msgstr "取り消されたキー"
+msgstr "Llave revocada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:202
 msgid "Expired Key"
-msgstr "期限切れのキー"
+msgstr "Clave caducada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:205
 msgid "Missing CRL"
-msgstr "CRLがありません"
+msgstr "Falta CRL"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:38
 msgid "InfoBoard's Actions Menu"
-msgstr "InfoBoardのアクションメニュー"
+msgstr "Menú de acciones de InfoBoard"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:39
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:117
@@ -797,16 +807,16 @@ msgstr "InfoBoardのアクションメニュー"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:98
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:123
 msgid "Copy"
-msgstr "コピー"
+msgstr "Dupdo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:40
 msgid "Save"
-msgstr "保存する"
+msgstr "Ahorrar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:41
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:60
 msgid "Clear"
-msgstr "クリア"
+msgstr "Claro"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:86
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:51
@@ -825,7 +835,7 @@ msgstr "クリア"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
 msgid "Setting Operation Error"
-msgstr "設定動作エラー"
+msgstr "Error de operación de configuración"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:86
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
@@ -834,15 +844,15 @@ msgstr "info_font_size"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:170
 msgid "Save Information Board's Content"
-msgstr "情報ボードのコンテンツを保存する"
+msgstr "Guardar el contenido del tablero de información"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:178
 msgid "The file path is not exists, unprivileged or unreachable."
-msgstr "ファイルパスが存在しないか、特権がないか、到達できません。"
+msgstr "La ruta del archivo no existe, no tiene privilegios o es inaccesible."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:39
 msgid "First Start Wizard"
-msgstr "ファーストスタートウィザード"
+msgstr "Asistente de primer inicio"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:59
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:141
@@ -850,96 +860,104 @@ msgstr "ファーストスタートウィザード"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:445
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:553
 msgid "Called"
-msgstr "と呼ばれる"
+msgstr "Llamado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:82
 msgid "Getting Started..."
-msgstr "入門..."
+msgstr "Empezando..."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:83
 msgid "... with GpgFrontend"
-msgstr "... GpgFrontendを使用"
+msgstr "... con GpgFrontend"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:86
 msgid "Welcome to use GpgFrontend for decrypting and signing text or file!"
-msgstr "テキストまたはファイルの復号化と署名にGpgFrontendを使用することを歓迎します！"
+msgstr ""
+"¡Bienvenido a usar GpgFrontend para descifrar y firmar texto o archivo!"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:89
 msgid ""
 "is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free "
 "OpenPGP Crypto Tool."
-msgstr "は、強力で使いやすく、コンパクトで、クロスプラットフォームで、インストール不要のOpenPGP暗号化ツールです。"
+msgstr ""
+"es una herramienta de cifrado OpenPGP potente, fácil de usar, compacta, "
+"multiplataforma y sin instalación."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:91
 msgid "For brief information have a look at the"
-msgstr "簡単な情報については、"
+msgstr "Para obtener una breve información, eche un vistazo a la"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:93
 msgid "Overview"
-msgstr "概要"
+msgstr "Descripción general"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:94
 msgid "by clicking the link, the page will open in the web browser"
-msgstr "リンクをクリックすると、ページがWebブラウザで開きます"
+msgstr "al hacer clic en el enlace, la página se abrirá en el navegador web"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:103
 msgid ""
 "If it supports the language currently being used in your system, GpgFrontend"
 " will automatically set it."
-msgstr "システムで現在使用されている言語をサポートしている場合、GpgFrontendは自動的に設定します。"
+msgstr ""
+"Si es compatible con el idioma que se usa actualmente en su sistema, "
+"GpgFrontend lo configurará automáticamente."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:121
 msgid "Choose your action..."
-msgstr "アクションを選択してください..."
+msgstr "Elige tu acción ..."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:122
 msgid "...by clicking on the appropriate link."
-msgstr "...適切なリンクをクリックして。"
+msgstr "... haciendo clic en el enlace correspondiente."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:126
 msgid ""
 "If you have never used GpgFrontend before and also don't own a gpg key yet "
 "you may possibly want to read how to"
-msgstr "これまでにGpgFrontendを使用したことがなく、gpgキーをまだ所有していない場合は、次の方法を読むことをお勧めします。"
+msgstr ""
+"Si nunca ha usado GpgFrontend antes y tampoco posee una clave gpg, es "
+"posible que desee leer cómo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:138
 msgid ""
 "If you want to learn how to encrypt, decrypt, sign and verify text, you can "
 "read "
-msgstr "テキストの暗号化、復号化、署名、検証の方法を学びたい場合は、次のように読むことができます。"
+msgstr ""
+"Si desea aprender a cifrar, descifrar, firmar y verificar texto, puede leer"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:143
 msgid "Encrypt & Decrypt Text"
-msgstr "テキストの暗号化と復号化"
+msgstr "Encriptar y desencriptar texto"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:143
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:158
 msgid "or"
-msgstr "また"
+msgstr "o"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:146
 msgid "Sign & Verify Text"
-msgstr "テキストに署名して確認する"
+msgstr "Firmar y verificar texto"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:154
 msgid "If you want to operate file, you can read "
-msgstr "ファイルを操作したい場合は、"
+msgstr "Si desea operar el archivo, puede leer"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:158
 msgid "Encrypt & Sign File"
-msgstr "ファイルの暗号化と署名"
+msgstr "Cifrar y firmar archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:161
 msgid "Sign & Verify File"
-msgstr "ファイルに署名して確認する"
+msgstr "Firmar y verificar archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:187
 msgid "Create a keypair..."
-msgstr "キーペアを作成します..."
+msgstr "Crear un par de claves ..."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:188
 msgid "...for decrypting and signing messages"
-msgstr "...メッセージの復号化と署名用"
+msgstr "... para descifrar y firmar mensajes"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:190
 msgid ""
@@ -949,113 +967,124 @@ msgid ""
 "sign messages.<br>For more information have a look at the offline tutorial "
 "(which then is shown in the main window):"
 msgstr ""
-"新しいキーペアを作成する必要があります。ペアは公開キーと秘密キーで構成されます。<br>他のユーザーは、公開キーを使用してメッセージを暗号化し、署名したメッセージを確認できます。秘密キーを使用して、復号化と署名を行うことができます。メッセージ。<br>詳細については、オフラインチュートリアル（メインウィンドウに表示されます）を参照してください。"
+"Debe crear un nuevo par de claves. El par consta de una clave pública y una "
+"privada. <br> Otros usuarios pueden usar la clave pública para encriptar "
+"mensajes por usted y verificar los mensajes firmados por usted. Puede usar "
+"la clave privada para desencriptar y firmar mensajes. <br> Para obtener más "
+"información, consulte el tutorial sin conexión (que luego se muestra en la "
+"ventana principal):"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:202
 msgid "Offline tutorial"
-msgstr "オフラインチュートリアル"
+msgstr "Tutorial sin conexión"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:210
 msgid "Create New Key"
-msgstr "新しいキーを作成する"
+msgstr "Crear nueva clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:232
 msgid "Ready."
-msgstr "準備。"
+msgstr "Listo."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:233
 msgid "Have fun with GpgFrontend!"
-msgstr "GpgFrontendを楽しんでください！"
+msgstr "¡Diviértete con GpgFrontend!"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:236
 msgid "You are ready to use GpgFrontend now.<br><br>"
-msgstr "これでGpgFrontendを使用する準備が整いました。<br> <br>"
+msgstr "Ya está listo para usar GpgFrontend. <br> <br>"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:240
 msgid "The Online Document"
-msgstr "オンラインドキュメント"
+msgstr "El documento en línea"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:241
 msgid ""
 " will get you started with GpgFrontend. Anytime you encounter problems, "
 "please try to find help from the documentation"
-msgstr " GpgFrontendを使い始めることができます。問題が発生した場合は、ドキュメントからヘルプを見つけてください。"
+msgstr ""
+" le ayudará a empezar con GpgFrontend. Siempre que tenga problemas, intente "
+"buscar ayuda en la documentación."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:250
 msgid "Open offline help."
-msgstr "オフラインヘルプを開きます。"
+msgstr "Abra la ayuda sin conexión."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:253
 msgid "Dont show the wizard again."
-msgstr "ウィザードを再度表示しないでください。"
+msgstr "No vuelvas a mostrarle al asistente."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:48
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:169
 msgid "Invalid Own Key"
-msgstr "無効な自分のキー"
+msgstr "Clave propia no válida"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:49
 msgid ""
 "Own Key can not be use to do any operation. Please go to the setting "
 "interface to select an OwnKey and get a ServiceToken."
 msgstr ""
-"自分のキーを使用して操作を行うことはできません。設定インターフェースに移動してOwnKeyを選択し、ServiceTokenを取得してください。"
+"Own Key no se puede utilizar para realizar ninguna operación. Vaya a la "
+"interfaz de configuración para seleccionar una OwnKey y obtener un "
+"ServiceToken."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:61
 msgid "Please obtain a Service Token from the server in the settings."
-msgstr "設定でサーバーからサービストークンを取得してください。"
+msgstr "Obtenga un token de servicio del servidor en la configuración."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:98
 msgid "Getting Cpt From Server"
-msgstr "サーバーからのCptの取得"
+msgstr "Obtener Cpt del servidor"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:136
 msgid "Invalid short ciphertext"
-msgstr "無効な短い暗号文"
+msgstr "Texto cifrado corto no válido"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:158
 msgid "Invalid Service Token"
-msgstr "無効なサービストークン"
+msgstr "Token de servicio no válido"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:159
 msgid "Please go to the setting interface to get a ServiceToken."
-msgstr "ServiceTokenを取得するには、設定インターフェイスに移動してください。"
+msgstr "Vaya a la interfaz de configuración para obtener un ServiceToken."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:170
 msgid "Own Key can not be use to do any operation."
-msgstr "自分のキーを使用して操作を行うことはできません。"
+msgstr "Own Key no se puede utilizar para realizar ninguna operación."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:219
 msgid "Getting Scpt From Server"
-msgstr "サーバーからScptを取得する"
+msgstr "Obtener Scpt del servidor"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:247
 msgid ""
 "Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
-msgstr "注意：この短い暗号化テキストを復号化するには、復号化と検証操作を使用します。"
+msgstr ""
+"Aviso: Utilice la operación Descifrar y verificar para descifrar este breve "
+"texto criptográfico."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:254
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:432
 msgid "There is a problem with the communication with the server"
-msgstr "サーバーとの通信に問題があります"
+msgstr "Hay un problema con la comunicación con el servidor."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:38
 msgid "Select a file before doing it."
-msgstr "それを行う前にファイルを選択してください。"
+msgstr "Seleccione un archivo antes de hacerlo."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:43
 msgid "No permission to read this file."
-msgstr "このファイルを読み取る権限がありません。"
+msgstr "Sin permiso para leer este archivo."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:48
 msgid "No permission to create file."
-msgstr "ファイルを作成する権限がありません。"
+msgstr "Sin permiso para crear archivos."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:63
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:131
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:319
 msgid "The target file already exists, do you need to overwrite it?"
-msgstr "ターゲットファイルはすでに存在しますが、上書きする必要がありますか？"
+msgstr "El archivo de destino ya existe, ¿necesita sobrescribirlo?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:72
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:171
@@ -1063,7 +1092,7 @@ msgstr "ターゲットファイルはすでに存在しますが、上書きす
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:141
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:282
 msgid "No Key Selected"
-msgstr "キーが選択されていません"
+msgstr "No se ha seleccionado ninguna tecla"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:79
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:178
@@ -1079,13 +1108,15 @@ msgstr "キーが選択されていません"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:544
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:328
 msgid "Invalid Operation"
-msgstr "無効な操作"
+msgstr "Operación inválida"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:81
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:86
 msgid ""
 "The selected key contains a key that does not actually have a encrypt usage."
-msgstr "選択したキーには、実際には暗号化の使用法がないキーが含まれています。"
+msgstr ""
+"La clave seleccionada contiene una clave que en realidad no tiene un uso de "
+"cifrado."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:83
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:340
@@ -1093,12 +1124,12 @@ msgstr "選択したキーには、実際には暗号化の使用法がないキ
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:153
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:295
 msgid "For example the Following Key:"
-msgstr "たとえば、次のキー："
+msgstr "Por ejemplo, la siguiente clave:"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:92
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:94
 msgid "Encrypting"
-msgstr "暗号化"
+msgstr "Encriptando"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:108
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:156
@@ -1112,260 +1143,265 @@ msgstr "暗号化"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:384
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:452
 msgid "An error occurred during operation."
-msgstr "動作中にエラーが発生しました。"
+msgstr "Ocurrió un error durante la operación."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:140
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:205
 msgid "Decrypting"
-msgstr "復号化"
+msgstr "Descifrando"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:179
 msgid ""
 "The selected key contains a key that does not actually have a sign usage."
-msgstr "選択したキーには、実際には記号が使用されていないキーが含まれています。"
+msgstr ""
+"La clave seleccionada contiene una clave que en realidad no tiene un uso de "
+"señal."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:181
 msgid "for example the Following Key:"
-msgstr "たとえば、次のキー："
+msgstr "por ejemplo, la siguiente clave:"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:191
 msgid "The signature file \"%1\" exists, do you need to overwrite it?"
-msgstr "署名ファイル「％1」が存在しますが、上書きする必要がありますか？"
+msgstr "El archivo de firma \"% 1\" existe, ¿necesita sobrescribirlo?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
 msgid "Origin file to verify"
-msgstr "確認するオリジンファイル"
+msgstr "Archivo de origen para verificar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
 msgid "Filepath"
-msgstr "ファイルパス"
+msgstr "Ruta de archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:265
 msgid ""
 "Please select the appropriate origin file or signature file. Ensure that "
 "both are in this directory."
-msgstr "適切なオリジンファイルまたは署名ファイルを選択してください。両方がこのディレクトリにあることを確認してください。"
+msgstr ""
+"Seleccione el archivo de origen o el archivo de firma apropiado. Asegúrese "
+"de que ambos estén en este directorio."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:271
 msgid "No permission to read target file."
-msgstr "ターゲットファイルを読み取る権限がありません。"
+msgstr "Sin permiso para leer el archivo de destino."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:276
 msgid "No permission to read signature file."
-msgstr "署名ファイルを読み取る権限がありません。"
+msgstr "Sin permiso para leer el archivo de firmas."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:283
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:253
 msgid "Verifying"
-msgstr "確認中"
+msgstr "Verificando"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:338
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:293
 msgid "Invalid KeyPair"
-msgstr "無効なKeyPair"
+msgstr "KeyPair no válido"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:339
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:294
 msgid "The selected keypair cannot be used for encryption."
-msgstr "選択したキーペアは暗号化に使用できません。"
+msgstr "El par de claves seleccionado no se puede utilizar para el cifrado."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:368
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:323
 msgid "Encrypting and Signing"
-msgstr "暗号化と署名"
+msgstr "Cifrado y firma"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:411
 msgid "The output file %1 already exists, do you need to overwrite it?"
-msgstr "出力ファイル％1はすでに存在しますが、上書きする必要がありますか？"
+msgstr "El archivo de salida% 1 ya existe, ¿necesita sobrescribirlo?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:423
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:425
 msgid "Decrypting and Verifying"
-msgstr "復号化と検証"
+msgstr "Descifrar y verificar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:33
 msgid "New"
-msgstr "新しい"
+msgstr "Nuevo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:39
 msgid "Open a new file"
-msgstr "新しいファイルを開く"
+msgstr "Abrir un archivo nuevo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:42
 msgid "Open..."
-msgstr "開ける..."
+msgstr "Abierto..."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:45
 msgid "Open an existing file"
-msgstr "既存のファイルを開く"
+msgstr "Abrir un archivo existente"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:48
 msgid "File Browser"
-msgstr "ファイルブラウザ"
+msgstr "Explorador de archivos"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:51
 msgid "Open a file browser"
-msgstr "ファイルブラウザを開く"
+msgstr "Abra un explorador de archivos"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:57
 msgid "Save the current File"
-msgstr "現在のファイルを保存します"
+msgstr "Guardar el archivo actual"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:60
 msgid "Save As"
-msgstr "名前を付けて保存"
+msgstr "Guardar como"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:63
 msgid "Save the current File as..."
-msgstr "現在のファイルを次のように保存します..."
+msgstr "Guarde el archivo actual como ..."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:66
 msgid "Print"
-msgstr "印刷"
+msgstr "Impresión"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:69
 msgid "Print Document"
-msgstr "ドキュメントを印刷する"
+msgstr "Imprimir documento"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:72
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:158
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:161
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:44
 msgid "Close"
-msgstr "選ぶ"
+msgstr "Cerca"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:74
 msgid "Close file"
-msgstr "ファイルを閉じる"
+msgstr "Cerrar el archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:77
 msgid "Quit"
-msgstr "終了する"
+msgstr "Renunciar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:80
 msgid "Quit Program"
-msgstr "プログラムを終了する"
+msgstr "Salir del programa"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:85
 msgid "Undo"
-msgstr "元に戻す"
+msgstr "Deshacer"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:87
 msgid "Undo Last Edit Action"
-msgstr "最後の編集アクションを元に戻す"
+msgstr "Deshacer la última acción de edición"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:90
 msgid "Redo"
-msgstr "やり直し"
+msgstr "Rehacer"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:92
 msgid "Redo Last Edit Action"
-msgstr "最後の編集アクションをやり直す"
+msgstr "Rehacer la última acción de edición"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:95
 msgid "Zoom In"
-msgstr "ズームイン"
+msgstr "Acercarse"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:99
 msgid "Zoom Out"
-msgstr "ズームアウトする"
+msgstr "Disminuir el zoom"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:103
 msgid "Paste"
-msgstr "ペースト"
+msgstr "Pegar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:106
 msgid "Paste Text From Clipboard"
-msgstr "クリップボードからテキストを貼り付ける"
+msgstr "Pegar texto del portapapeles"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:109
 msgid "Cut"
-msgstr "切る"
+msgstr "Cortar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:113
 msgid "Cut the current selection's contents to the clipboard"
-msgstr "現在の選択内容をクリップボードに切り取ります"
+msgstr "Cortar el contenido de la selección actual al portapapeles"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:121
 msgid "Copy the current selection's contents to the clipboard"
-msgstr "現在の選択内容をクリップボードにコピーします"
+msgstr "Copiar el contenido de la selección actual al portapapeles"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:125
 msgid "Quote"
-msgstr "見積もり"
+msgstr "Cita"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:127
 msgid "Quote whole text"
-msgstr "全文を引用する"
+msgstr "Citar texto completo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:130
 msgid "Select All"
-msgstr "すべて選択"
+msgstr "Seleccionar todo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:133
 msgid "Select the whole text"
-msgstr "テキスト全体を選択"
+msgstr "Seleccionar el texto completo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:136
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FindWidget.cpp:40
 msgid "Find"
-msgstr "探す"
+msgstr "Encontrar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:138
 msgid "Find a word"
-msgstr "単語を探す"
+msgstr "Encontrar una palabra"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:141
 msgid "Remove spacing"
-msgstr "間隔を削除します"
+msgstr "Quitar espaciado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:145
 msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
-msgstr "二重の改行を削除します。例： Webメーラーから貼り付けられたテキスト"
+msgstr ""
+"Elimina los saltos de línea dobles, p. Ej. en texto pegado de Web Mailer"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:149
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:75
 msgid "Settings"
-msgstr "設定"
+msgstr "Ajustes"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:150
 msgid "Open settings dialog"
-msgstr "設定ダイアログを開く"
+msgstr "Abrir diálogo de configuración"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:157
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:245
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:368
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:377
 msgid "Encrypt"
-msgstr "暗号化"
+msgstr "Cifrar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:160
 msgid "Encrypt Message"
-msgstr "メッセージを暗号化する"
+msgstr "Encriptar mensaje"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:166
 msgid "Encrypt and Sign Message"
-msgstr "メッセージの暗号化と署名"
+msgstr "Cifrar y firmar mensaje"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:169
 msgid "Decrypt"
-msgstr "復号化"
+msgstr "Descifrar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:172
 msgid "Decrypt Message"
-msgstr "メッセージの復号化"
+msgstr "Descifrar mensaje"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:178
 msgid "Decrypt and Verify Message"
-msgstr "メッセージの復号化と検証"
+msgstr "Descifrar y verificar mensaje"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:185
 msgid "Sign Message"
-msgstr "サインメッセージ"
+msgstr "Firmar mensaje"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:191
 msgid "Verify Message"
-msgstr "メッセージの確認"
+msgstr "Verificar mensaje"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:197
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:313
@@ -1373,269 +1409,281 @@ msgstr "メッセージの確認"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:178
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:235
 msgid "File"
-msgstr "ファイル"
+msgstr "Archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:199
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:180
 msgid "Import New Key From File"
-msgstr "ファイルから新しいキーをインポートする"
+msgstr "Importar nueva clave desde archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:203
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:184
 msgid "Clipboard"
-msgstr "クリップボード"
+msgstr "Portapapeles"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:205
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:186
 msgid "Import New Key From Clipboard"
-msgstr "クリップボードから新しいキーをインポートする"
+msgstr "Importar nueva clave desde el portapapeles"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:210
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:191
 msgid "Keyserver"
-msgstr "キーサーバー"
+msgstr "Servidor de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:212
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:193
 msgid "Import New Key From Keyserver"
-msgstr "キーサーバーから新しいキーをインポートする"
+msgstr "Importar nueva clave desde el servidor de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:217
 msgid "Editor"
-msgstr "編集者"
+msgstr "Editor"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:219
 msgid "Import New Key From Editor"
-msgstr "エディタから新しいキーをインポートする"
+msgstr "Importar nueva clave desde el editor"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:223
 msgid "Manage Keys"
-msgstr "キーの管理"
+msgstr "Administrar claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:225
 msgid "Open Key Management"
-msgstr "オープンキー管理"
+msgstr "Gestión de claves abiertas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:232
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:34
 msgid "About"
-msgstr "だいたい"
+msgstr "Acerca de"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:234
 msgid "Show the application's About box"
-msgstr "アプリケーションの[バージョン情報]ボックスを表示する"
+msgstr "Mostrar el cuadro Acerca de de la aplicación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:238
 msgid "Translate"
-msgstr "翻訳"
+msgstr "Traducir"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:240
 msgid "Information about translation"
-msgstr "翻訳に関する情報"
+msgstr "Información sobre traducción"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
 msgid "Check for Updates"
-msgstr "アップデートを確認する"
+msgstr "Buscar actualizaciones"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:249
 msgid "Check for updates"
-msgstr "アップデートを確認する"
+msgstr "Buscar actualizaciones"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:253
 msgid "Open Wizard"
-msgstr "ウィザードを開く"
+msgstr "Asistente abierto"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
 msgid "Open the wizard"
-msgstr "ウィザードを開く"
+msgstr "Abre el asistente"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:260
 msgid "Append Selected Key(s) To Text"
-msgstr "選択したキーをテキストに追加"
+msgstr "Agregar clave (s) seleccionada (s) al texto"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:262
 msgid "Append The Selected Keys To Text in Editor"
-msgstr "選択したキーをエディタのテキストに追加します"
+msgstr "Agregar las claves seleccionadas al texto en el editor"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:266
 msgid "Copy Email"
-msgstr "メールをコピー"
+msgstr "Copiar correo electrónico"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:268
 msgid "Copy selected Email to clipboard"
-msgstr "選択したメールをクリップボードにコピー"
+msgstr "Copiar el correo electrónico seleccionado al portapapeles"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:274
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:228
 msgid "Show Key Details"
-msgstr "キーの詳細を表示"
+msgstr "Mostrar detalles clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:275
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:229
 msgid "Show Details for this Key"
-msgstr "このキーの詳細を表示"
+msgstr "Mostrar detalles de esta clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:280
 msgid "Refresh Key From Key Server"
-msgstr "キーサーバーからキーを更新"
+msgstr "Actualizar clave desde el servidor de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
 msgid "Refresh key from default key server"
-msgstr "デフォルトのキーサーバーからキーを更新します"
+msgstr "Actualizar la clave del servidor de claves predeterminado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:286
 msgid "Upload Public Key(s) To Server"
-msgstr "公開鍵をサーバーにアップロードする"
+msgstr "Cargar claves públicas al servidor"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:288
 msgid "Upload The Selected Public Keys To Server"
-msgstr "選択した公開鍵をサーバーにアップロードする"
+msgstr "Cargar las claves públicas seleccionadas al servidor"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:305
 msgid "Remove PGP Header"
-msgstr "PGPヘッダーを削除する"
+msgstr "Quitar encabezado PGP"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:308
 msgid "Add PGP Header"
-msgstr "PGPヘッダーを追加する"
+msgstr "Agregar encabezado PGP"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:326
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:408
 msgid "Edit"
-msgstr "編集"
+msgstr "Editar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:344
 msgid "Crypt"
-msgstr "クリプト"
+msgstr "Cripta"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:354
 msgid "Keys"
-msgstr "キー"
+msgstr "Teclas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:355
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:244
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:275
 msgid "Import Key"
-msgstr "キーのインポート"
+msgstr "Importar clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:363
 msgid "Steganography"
-msgstr "ステガノグラフィ"
+msgstr "Esteganografía"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:374
 msgid "View"
-msgstr "意見"
+msgstr "Vista"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:376
 msgid "Help"
-msgstr "ヘルプ"
+msgstr "Ayudar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:393
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:139
 msgid "Operations"
-msgstr "オペレーション"
+msgstr "Operaciones"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:403
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:239
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:256
 msgid "Key"
-msgstr "鍵"
+msgstr "Llave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:416
 msgid "Special Edit"
-msgstr "特別編集"
+msgstr "Edición especial"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:428
 msgid "Import key from..."
-msgstr "からキーをインポート..."
+msgstr "Importar clave de ..."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:429
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:274
 msgid "Import key"
-msgstr "インポートキー"
+msgstr "Importar clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:445
 msgid "Ready"
-msgstr "準備"
+msgstr "Listo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:452
 msgid "Key ToolBox"
-msgstr "キーツールボックス"
+msgstr "Caja de herramientas clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:468
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:44
 msgid "Only Public Key"
-msgstr "公開鍵のみ"
+msgstr "Solo clave pública"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:477
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:53
 msgid "Has Private Key"
-msgstr "秘密鍵を持っている"
+msgstr "Tiene clave privada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:488
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:86
 msgid "Information Board"
-msgstr "情報板"
+msgstr "Tarjeta de la información"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:63
 msgid ""
 "No Key Selected. Do you want to encrypt with a symmetric cipher using a "
 "passphrase?"
-msgstr "キーが選択されていません。パスフレーズを使用して対称暗号で暗号化しますか？"
+msgstr ""
+"No se ha seleccionado ninguna tecla. ¿Quiere cifrar con un cifrado simétrico"
+" utilizando una frase de contraseña?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:69
 msgid "Symmetrically Encrypting"
-msgstr "対称暗号化"
+msgstr "Cifrado simétrico"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:120
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:363
 msgid "Function Disabled"
-msgstr "機能無効"
+msgstr "Función desactivada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:121
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:364
 msgid ""
 "Please go to the settings interface to enable and configure this function."
-msgstr "この機能を有効にして構成するには、設定インターフェイスに移動してください。"
+msgstr ""
+"Vaya a la interfaz de configuración para habilitar y configurar esta "
+"función."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:151
 msgid ""
 "The selected key contains a key that does not actually have a signature "
 "usage."
-msgstr "選択したキーには、実際には署名が使用されていないキーが含まれています。"
+msgstr ""
+"La clave seleccionada contiene una clave que en realidad no tiene un uso de "
+"firma."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:197
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:427
 msgid "Notice"
-msgstr "知らせ"
+msgstr "Aviso"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:198
 msgid "Short Crypto Text only supports Decrypt & Verify."
-msgstr "短い暗号テキストは、復号化と検証のみをサポートします。"
+msgstr "El texto criptográfico corto solo admite Descifrar y verificar."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:340
 msgid "Automatic Key Exchange Warning"
-msgstr "自動鍵交換警告"
+msgstr "Advertencia de intercambio automático de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:341
 msgid ""
 "Part of the automatic key exchange failed, which may be related to your key."
-msgstr "自動キー交換の一部が失敗しました。これは、キーに関連している可能性があります。"
+msgstr ""
+"Parte del intercambio automático de claves falló, lo que puede estar "
+"relacionado con su clave."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:343
 msgid ""
 "If possible, try to use the RSA algorithm compatible with the server for "
 "signing."
-msgstr "可能であれば、サーバーと互換性のあるRSAアルゴリズムを使用して署名してください。"
+msgstr ""
+"Si es posible, intente utilizar el algoritmo RSA compatible con el servidor "
+"para firmar."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:373
 msgid "Service Token Empty"
-msgstr "サービストークンが空です"
+msgstr "Token de servicio vacío"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:374
 msgid ""
 "Please go to the settings interface to set Own Key and get Service Token."
-msgstr "設定インターフェースに移動して、独自のキーを設定し、サービストークンを取得してください。"
+msgstr ""
+"Vaya a la interfaz de configuración para configurar la clave propia y "
+"obtener el token de servicio."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:478
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:493
@@ -1644,51 +1692,55 @@ msgstr "設定インターフェースに移動して、独自のキーを設定
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:398
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:485
 msgid "Key Not Found."
-msgstr "キーが見つかりません。"
+msgstr "Clave no encontrada."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:520
 msgid "GpgFrontend Upgradeable (New Version: %1)."
-msgstr "GpgFrontendアップグレード可能（新しいバージョン：％1）。"
+msgstr "GpgFrontend actualizable (nueva versión:% 1)."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:531
 msgid "Unreleased Version"
-msgstr "未リリースバージョン"
+msgstr "Versión inédita"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:533
 msgid ""
 "This version(%1) has not been officially released and is not recommended for"
 " use in a production environment. <br/>"
-msgstr "このバージョン（％1）は正式にリリースされていないため、実稼働環境での使用は推奨されていません。 <br/>"
+msgstr ""
+"Esta versión (% 1) no se ha lanzado oficialmente y no se recomienda su uso "
+"en un entorno de producción. <br/>"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:537
 msgid "You can download the latest version(%1) on Github Releases Page.<br/>"
-msgstr "最新バージョン（％1）はGithubリリースページからダウンロードできます。<br/>"
+msgstr ""
+"Puede descargar la última versión (% 1) en la página de lanzamientos de "
+"Github. <br/>"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:132
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:134
 msgid "Critical error occur while loading GpgFrontend."
-msgstr "GpgFrontendのロード中に重大なエラーが発生します。"
+msgstr "Ocurre un error crítico al cargar GpgFrontend."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:133
 msgid "Loading Failed"
-msgstr "読み込みに失敗しました"
+msgstr "Carga fallida"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:41
 msgid "All"
-msgstr "全て"
+msgstr "Todo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:62
 msgid "No Master Key"
-msgstr "マスターキーなし"
+msgstr "Sin llave maestra"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:71
 msgid "Revoked"
-msgstr "取り消された"
+msgstr "Revocado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:102
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
 msgid "icon_size"
-msgstr "icon_size"
+msgstr "tamaño de ícono"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:111
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
@@ -1697,7 +1749,7 @@ msgstr "icon_style"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:143
 msgid "KeyPair Management"
-msgstr "KeyPair管理"
+msgstr "Gestión de pares de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:153
 msgid "Ctrl+O"
@@ -1705,7 +1757,7 @@ msgstr "Ctrl + O"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:154
 msgid "Open Key File"
-msgstr "キーファイルを開く"
+msgstr "Abrir archivo de clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:159
 msgid "Ctrl+Q"
@@ -1713,7 +1765,7 @@ msgstr "Ctrl + Q"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:164
 msgid "New Keypair"
-msgstr "新しいキーペア"
+msgstr "Nuevo par de llaves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:165
 msgid "Ctrl+N"
@@ -1721,76 +1773,76 @@ msgstr "Ctrl + N"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:167
 msgid "Generate KeyPair"
-msgstr "KeyPairを生成する"
+msgstr "Generar par de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:171
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:178
 msgid "New Subkey"
-msgstr "新しいサブキー"
+msgstr "Nueva subclave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:172
 msgid "Ctrl+Shift+N"
-msgstr "Ctrl + Shift + N"
+msgstr "Ctrl + Mayús + N"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:174
 msgid "Generate Subkey For Selected KeyPair"
-msgstr "選択したKeyPairのサブキーを生成"
+msgstr "Generar subclave para el par de claves seleccionado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:198
 msgid "Export To Clipboard"
-msgstr "クリップボードにエクスポート"
+msgstr "Exportar al portapapeles"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:200
 msgid "Export Selected Key(s) To Clipboard"
-msgstr "選択したキーをクリップボードにエクスポート"
+msgstr "Exportar las claves seleccionadas al portapapeles"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:204
 msgid "Export To File"
-msgstr "ファイルにエクスポート"
+msgstr "Exportar a archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:206
 msgid "Export Selected Key(s) To File"
-msgstr "選択したキーをファイルにエクスポート"
+msgstr "Exportar las claves seleccionadas a un archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:210
 msgid "Export As OpenSSH"
-msgstr "OpenSSHとしてエクスポート"
+msgstr "Exportar como OpenSSH"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:213
 msgid "Export Selected Key(s) As OpenSSH Format to File"
-msgstr "選択したキーをOpenSSH形式でファイルにエクスポート"
+msgstr "Exportar las claves seleccionadas como formato OpenSSH a un archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:217
 msgid "Delete Selected Key(s)"
-msgstr "選択したキーを削除します"
+msgstr "Eliminar clave (s) seleccionada (s)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:218
 msgid "Delete the Selected keys"
-msgstr "選択したキーを削除します"
+msgstr "Eliminar las claves seleccionadas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:222
 msgid "Delete Checked Key(s)"
-msgstr "チェックされたキーを削除します"
+msgstr "Eliminar clave (s) marcadas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:223
 msgid "Delete the Checked keys"
-msgstr "チェックされたキーを削除します"
+msgstr "Eliminar las claves marcadas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:264
 msgid "Generate"
-msgstr "生成"
+msgstr "Generar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:265
 msgid "Generate A New Keypair or Subkey"
-msgstr "新しいキーペアまたはサブキーを生成する"
+msgstr "Generar un nuevo par de claves o subclave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:315
 msgid "Deleting Keys"
-msgstr "キーの削除"
+msgstr "Eliminar claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:318
 msgid "Are you sure that you want to delete the following keys?"
-msgstr "次のキーを削除してもよろしいですか？"
+msgstr "¿Está seguro de que desea eliminar las siguientes claves?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:320
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:373
@@ -1798,14 +1850,14 @@ msgstr "次のキーを削除してもよろしいですか？"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:509
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:561
 msgid "The action can not be undone."
-msgstr "アクションを元に戻すことはできません。"
+msgstr "La acción no se puede deshacer."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:360
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:232
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:273
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:310
 msgid "Export Key To File"
-msgstr "キーをファイルにエクスポート"
+msgstr "Exportar clave a archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:361
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:233
@@ -1813,70 +1865,76 @@ msgstr "キーをファイルにエクスポート"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:311
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:143
 msgid "Key Files"
-msgstr "キーファイル"
+msgstr "Archivos clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:365
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:497
 msgid "key(s) exported"
-msgstr "エクスポートされたキー"
+msgstr "clave (s) exportadas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:393
 msgid "Please select one KeyPair before doing this operation."
-msgstr "この操作を行う前に、KeyPairを1つ選択してください。"
+msgstr "Seleccione un par de claves antes de realizar esta operación."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:403
 msgid ""
 "If a key pair does not have a private key then it will not be able to "
 "generate sub-keys."
-msgstr "キーペアに秘密キーがない場合、サブキーを生成できません。"
+msgstr ""
+"Si un par de claves no tiene una clave privada, no podrá generar subclaves."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:463
 msgid "No Key Checked."
-msgstr "キーはチェックされていません。"
+msgstr "No se marcó ninguna clave."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:471
 msgid "An error occur in exporting."
-msgstr "エクスポート中にエラーが発生しました。"
+msgstr "Ocurrió un error al exportar."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:478
 msgid ""
 "This key may not be able to export as OpenSSH format. Please check the key-"
 "size of the subkey(s) used to sign."
-msgstr "このキーは、OpenSSH形式としてエクスポートできない場合があります。署名に使用したサブキーのキーサイズを確認してください。"
+msgstr ""
+"Es posible que esta clave no se pueda exportar como formato OpenSSH. "
+"Compruebe el tamaño de clave de las subclaves utilizadas para firmar."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:492
 msgid "Export OpenSSH Key To File"
-msgstr "OpenSSHキーをファイルにエクスポート"
+msgstr "Exportar clave OpenSSH a archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:493
 msgid "OpenSSH Public Key Files"
-msgstr "OpenSSH公開鍵ファイル"
+msgstr "Archivos de clave pública OpenSSH"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:43
 msgid "Incomplete configuration"
-msgstr "不完全な構成"
+msgstr "Configuración incompleta"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:44
 msgid ""
 "The SMTP address is empty, please go to the setting interface to complete "
 "the configuration."
-msgstr "SMTPアドレスが空です。設定インターフェースに移動して構成を完了してください。"
+msgstr ""
+"La dirección SMTP está vacía, vaya a la interfaz de configuración para "
+"completar la configuración."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:99
 msgid "Recipient cannot be empty"
-msgstr "受信者を空にすることはできません"
+msgstr "El destinatario no puede estar vacío"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:105
 msgid "One or more Recipient's Email Address is invalid"
-msgstr "1人以上の受信者のメールアドレスが無効です"
+msgstr ""
+"La dirección de correo electrónico de uno o más destinatarios no es válida"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:112
 msgid "Sender cannot be empty"
-msgstr "送信者を空にすることはできません"
+msgstr "El remitente no puede estar vacío"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:114
 msgid "Sender's Email Address is invalid"
-msgstr "送信者のメールアドレスが無効です"
+msgstr "La dirección de correo electrónico del remitente no es válida"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:171
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:176
@@ -1884,92 +1942,96 @@ msgstr "送信者のメールアドレスが無効です"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:167
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:171
 msgid "Fail"
-msgstr "失敗"
+msgstr "Fallar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:171
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:167
 msgid "Fail to Connect SMTP Server"
-msgstr "SMTPサーバーの接続に失敗する"
+msgstr "Error al conectar el servidor SMTP"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:176
 msgid "Fail to Login into SMTP Server"
-msgstr "SMTPサーバーへのログインに失敗する"
+msgstr "Error al iniciar sesión en el servidor SMTP"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:182
 msgid "Fail to Send Mail to SMTP Server"
-msgstr "SMTPサーバーへのメールの送信に失敗する"
+msgstr "Error al enviar correo al servidor SMTP"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:189
 msgid "Succeed in Sending Mail to SMTP Server"
-msgstr "SMTPサーバーへのメール送信に成功"
+msgstr "Tener éxito en el envío de correo al servidor SMTP"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:51
 msgid "Uploading Public Key"
-msgstr "公開鍵のアップロード"
+msgstr "Subiendo clave pública"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:71
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:407
 msgid "Set target Key Server to default Key Server"
-msgstr "ターゲットキーサーバーをデフォルトのキーサーバーに設定します"
+msgstr ""
+"Establecer el servidor de claves de destino en el servidor de claves "
+"predeterminado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:74
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:410
 msgid "Cannot read default_keyserver From Settings"
-msgstr "設定からdefault_keyserverを読み取れません"
+msgstr "No se puede leer default_keyserver desde la configuración"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:76
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:412
 msgid "Default Keyserver Not Found"
-msgstr "デフォルトのキーサーバーが見つかりません"
+msgstr "Servidor de claves predeterminado no encontrado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:77
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:413
 msgid ""
 "Cannot read default keyserver from your settings, please set a default "
 "keyserver first"
-msgstr "設定からデフォルトのキーサーバーを読み取ることができません。最初にデフォルトのキーサーバーを設定してください"
+msgstr ""
+"No se puede leer el servidor de claves predeterminado desde su "
+"configuración, primero configure un servidor de claves predeterminado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:134
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:457
 msgid "Key Not Found"
-msgstr "キーが見つかりません"
+msgstr "Clave no encontrada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:137
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:258
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:460
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:477
 msgid "Timeout"
-msgstr "タイムアウト"
+msgstr "Se acabó el tiempo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:140
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:261
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:463
 msgid "Key Server Not Found"
-msgstr "キーサーバーが見つかりません"
+msgstr "Servidor de claves no encontrado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:143
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:264
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:466
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:484
 msgid "Connection Error"
-msgstr "接続エラー"
+msgstr "Error de conexión"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:148
 msgid "Upload Success"
-msgstr "アップロードの成功"
+msgstr "Subida exitosa"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:149
 msgid "Upload Public Key Successfully"
-msgstr "公開鍵を正常にアップロードする"
+msgstr "Cargar clave pública con éxito"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:45
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:186
 msgid "New UID"
-msgstr "新しいUID"
+msgstr "Nuevo UID"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:46
 msgid "UID Management"
-msgstr "UID管理"
+msgstr "Gestión de UID"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:65
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:32
@@ -1978,57 +2040,57 @@ msgstr "UID"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:70
 msgid "TOFU"
-msgstr "豆腐"
+msgstr "TOFU"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:82
 msgid "Signature of Selected UID"
-msgstr "選択したUIDの署名"
+msgstr "Firma del UID seleccionado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:45
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
 msgid "Email"
-msgstr "Eメール"
+msgstr "Correo electrónico"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:147
 msgid "Create Date (UTC)"
-msgstr "作成日（UTC）"
+msgstr "Fecha de creación (UTC)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:156
 msgid "Expired Date (UTC)"
-msgstr "有効期限（UTC）"
+msgstr "Fecha de vencimiento (UTC)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:232
 msgid "TOFU %1"
-msgstr "豆腐％1"
+msgstr "TOFU% 1"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:281
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:224
 msgid "Never Expires"
-msgstr "期限切れにならない"
+msgstr "Nunca expira"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:300
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:357
 msgid "Please select one or more UIDs before doing this operation."
-msgstr "この操作を行う前に、1つ以上のUIDを選択してください。"
+msgstr "Seleccione uno o más UID antes de realizar esta operación."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:321
 msgid "Sign Selected UID(s)"
-msgstr "選択したUIDに署名します"
+msgstr "Firmar los UID seleccionados"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:323
 msgid "Delete Selected UID(s)"
-msgstr "選択したUIDを削除します"
+msgstr "Eliminar UID (s) seleccionados"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:343
 msgid "Successful Operation"
-msgstr "正常な操作"
+msgstr "Operación exitosa"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:344
 msgid "Successfully added a new UID."
-msgstr "新しいUIDが正常に追加されました。"
+msgstr "Se agregó correctamente un nuevo UID."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:346
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:381
@@ -2036,397 +2098,401 @@ msgstr "新しいUIDが正常に追加されました。"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:514
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:566
 msgid "Operation Failed"
-msgstr "操作に失敗しました"
+msgstr "Operación fallida"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:347
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:417
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:515
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:567
 msgid "An error occurred during the operation."
-msgstr "操作中にエラーが発生しました。"
+msgstr "Ocurrió un error durante la operación."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:368
 msgid "Deleting UIDs"
-msgstr "UIDの削除"
+msgstr "Eliminar UID"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:371
 msgid "Are you sure that you want to delete the following UIDs?"
-msgstr "次のUIDを削除してもよろしいですか？"
+msgstr "¿Está seguro de que desea eliminar los siguientes UID?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:382
 msgid "An error occurred during the delete %1 operation."
-msgstr "％1の削除操作中にエラーが発生しました。"
+msgstr "Se produjo un error durante la operación de eliminación de% 1."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:406
 msgid "Set Primary UID"
-msgstr "プライマリUIDを設定する"
+msgstr "Establecer UID principal"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:408
 msgid "Are you sure that you want to set the Primary UID to?"
-msgstr "プライマリUIDを設定してもよろしいですか？"
+msgstr "¿Está seguro de que desea establecer el UID principal en?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:448
 msgid "Set As Primary"
-msgstr "初期設定"
+msgstr "Establecer como primario"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:451
 msgid "Sign UID"
-msgstr "UIDに署名"
+msgstr "Firmar UID"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:453
 msgid "Delete UID"
-msgstr "UIDを削除する"
+msgstr "Eliminar UID"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:480
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:494
 msgid "Please select one UID before doing this operation."
-msgstr "この操作を行う前に、1つのUIDを選択してください。"
+msgstr "Seleccione un UID antes de realizar esta operación."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:504
 msgid "Deleting UID"
-msgstr "UIDの削除"
+msgstr "Eliminando UID"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:507
 msgid "Are you sure that you want to delete the following uid?"
-msgstr "次のuidを削除してもよろしいですか？"
+msgstr "¿Está seguro de que desea eliminar el siguiente uid?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:525
 msgid "Delete(Revoke) Key Signature"
-msgstr "調号の削除（取り消し）"
+msgstr "Eliminar (revocar) la firma de clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:536
 msgid "Please select one Key Signature before doing this operation."
-msgstr "この操作を行う前に、調号を1つ選択してください。"
+msgstr "Seleccione una Firma de clave antes de realizar esta operación."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:545
 msgid ""
 "To delete the signature, you need to have its corresponding public key in "
 "the local database."
-msgstr "署名を削除するには、ローカルデータベースに対応する公開鍵が必要です。"
+msgstr ""
+"Para eliminar la firma, debe tener su clave pública correspondiente en la "
+"base de datos local."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:556
 msgid "Deleting Key Signature"
-msgstr "調号の削除"
+msgstr "Eliminar la firma de clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:558
 msgid "Are you sure that you want to delete the following signature?"
-msgstr "次の署名を削除してもよろしいですか？"
+msgstr "¿Está seguro de que desea eliminar la siguiente firma?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:54
 msgid "Notice: The New UID Created will be set as Primary."
-msgstr "注意：作成された新しいUIDはプライマリとして設定されます。"
+msgstr "Aviso: El nuevo UID creado se establecerá como principal."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:61
 msgid "Create New UID"
-msgstr "新しいUIDを作成する"
+msgstr "Crear nuevo UID"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:81
 msgid "Expire Date"
-msgstr "有効期限"
+msgstr "Fecha de caducidad"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:90
 msgid "Sign For Key's UID(s)"
-msgstr "キーのUIDに署名する"
+msgstr "Firmar para el (los) UID (s) de Key"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:116
 msgid "Unsuccessful Operation"
-msgstr "失敗した操作"
+msgstr "Operación fallida"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:117
 msgid "Signature operation failed for UID %1"
-msgstr "UID％1の署名操作が失敗しました"
+msgstr "Error en la operación de firma para UID% 1"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:121
 msgid "Operation Complete"
-msgstr "操作が完了しました"
+msgstr "Operación completa"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:122
 msgid "The signature operation of the UID is complete"
-msgstr "UIDの署名操作が完了しました"
+msgstr "La operación de firma del UID está completa."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:37
 msgid "Subkey List"
-msgstr "サブキーリスト"
+msgstr "Lista de subclaves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:38
 msgid "Detail of Selected Subkey"
-msgstr "選択したサブキーの詳細"
+msgstr "Detalle de la subclave seleccionada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:42
 msgid "Generate A New Subkey"
-msgstr "新しいサブキーを生成する"
+msgstr "Generar una nueva subclave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:66
 msgid "Expires On (Local Time)"
-msgstr "有効期限（現地時間）"
+msgstr "Caduca el (hora local)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:68
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:78
 msgid "Create Date (Local Time)"
-msgstr "作成日（現地時間）"
+msgstr "Fecha de creación (hora local)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:69
 msgid "Existence"
-msgstr "存在"
+msgstr "Existencia"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
 msgid "Subkey ID"
-msgstr "サブキーID"
+msgstr "ID de subclave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
 msgid "Algo"
-msgstr "アルゴ"
+msgstr "Algo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:147
 msgid "Expire Date (UTC)"
-msgstr "有効期限（UTC）"
+msgstr "Fecha de vencimiento (UTC)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:244
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:367
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:376
 msgid "Certificate"
-msgstr "証明書"
+msgstr "Certificado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:247
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:370
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:379
 msgid "Auth"
-msgstr "認証"
+msgstr "Auth"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:252
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:336
 msgid "Exists"
-msgstr "存在する"
+msgstr "Existe"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:253
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:337
 msgid "Not Exists"
-msgstr "存在しません"
+msgstr "No existe"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:271
 msgid "Edit Expire Date"
-msgstr "有効期限の編集"
+msgstr "Editar fecha de caducidad"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:31
 msgid "KeyPair"
-msgstr "KeyPair"
+msgstr "Par de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:33
 msgid "Subkeys"
-msgstr "サブキー"
+msgstr "Subclaves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:43
 msgid "Key Details"
-msgstr "主な詳細"
+msgstr "Detalles clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:37
 msgid "Owner"
-msgstr "オーナー"
+msgstr "Dueño"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:38
 msgid "Master Key"
-msgstr "マスターキー"
+msgstr "Llave maestra"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:40
 msgid "Additional UIDs"
-msgstr "追加のUID"
+msgstr "UID adicionales"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:80
 msgid "Expires on (Local Time)"
-msgstr "（現地時間）に有効期限が切れます"
+msgstr "Caduca el (hora local)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:82
 msgid "Last Update (Local Time)"
-msgstr "最終更新（現地時間）"
+msgstr "Última actualización (hora local)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:84
 msgid "Master Key Existence"
-msgstr "マスターキーの存在"
+msgstr "Existencia de la llave maestra"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:125
 msgid "copy fingerprint to clipboard"
-msgstr "指紋をクリップボードにコピーする"
+msgstr "copiar huella digital al portapapeles"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:145
 msgid "Export Public Key"
-msgstr "公開鍵のエクスポート"
+msgstr "Exportar clave pública"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:151
 msgid "Export Private Key"
-msgstr "秘密鍵のエクスポート"
+msgstr "Exportar clave privada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:158
 msgid "Modify Expiration Datetime (Master Key)"
-msgstr "有効期限の変更日時（マスターキー）"
+msgstr "Modificar fecha y hora de vencimiento (clave maestra)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:161
 msgid "Modify Password"
-msgstr "パスワードの変更"
+msgstr "Modificar la contraseña"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:174
 msgid "Key Server Operation (Pubkey)"
-msgstr "キーサーバー操作（Pubkey）"
+msgstr "Operación del servidor de claves (clave de publicación)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:181
 msgid "Generate Revoke Certificate"
-msgstr "失効証明書の生成"
+msgstr "Generar certificado de revocación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:187
 msgid "Modify TOFU Policy"
-msgstr "TOFUポリシーを変更する"
+msgstr "Modificar la política de TOFU"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:225
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:266
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:303
 msgid "An error occurred during the export operation."
-msgstr "エクスポート操作中にエラーが発生しました。"
+msgstr "Ocurrió un error durante la operación de exportación."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:238
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:279
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:316
 msgid "Export Error"
-msgstr "エクスポートエラー"
+msgstr "Error de exportación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:239
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:280
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:317
 msgid "Couldn't open %1 for writing"
-msgstr "書き込み用に％1を開くことができませんでした"
+msgstr "No se pudo abrir% 1 para escritura."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:247
 msgid "Exporting short private Key"
-msgstr "短い秘密鍵のエクスポート"
+msgstr "Exportación de clave privada corta"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:248
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:290
 msgid "You are about to export your"
-msgstr "エクスポートしようとしています"
+msgstr "Estás a punto de exportar tu"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:249
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:291
 msgid " PRIVATE KEY "
-msgstr " 秘密鍵"
+msgstr " LLAVE PRIVADA"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:250
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:292
 msgid "This is NOT your Public Key, so DON'T give it away."
-msgstr "これは公開鍵ではないので、公開しないでください。"
+msgstr "Esta NO es su clave pública, así que NO la entregue."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:251
 msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
-msgstr "本当に秘密鍵を最小サイズでエクスポートしますか？"
+msgstr "¿REALMENTE desea exportar su LLAVE PRIVADA en un tamaño mínimo?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:254
 msgid ""
 "For OpenPGP keys it removes all signatures except for the latest self-"
 "signatures."
-msgstr "OpenPGPキーの場合、最新の自己署名を除くすべての署名が削除されます。"
+msgstr ""
+"Para las claves OpenPGP, elimina todas las firmas excepto las últimas "
+"autofirmas."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:289
 msgid "Exporting private Key"
-msgstr "秘密鍵のエクスポート"
+msgstr "Exportando clave privada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:293
 msgid "Do you REALLY want to export your PRIVATE KEY?"
-msgstr "本当に秘密鍵をエクスポートしますか？"
+msgstr "¿REALMENTE desea exportar su LLAVE PRIVADA?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:401
 msgid "No Data"
-msgstr "データなし"
+msgstr "Sin datos"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:417
 msgid "Warning: The Master Key has expired."
-msgstr "警告：マスターキーの有効期限が切れています。"
+msgstr "Advertencia: la clave maestra ha caducado."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:422
 msgid "Warning: The Master Key has been revoked."
-msgstr "警告：マスターキーは取り消されました。"
+msgstr "Advertencia: la llave maestra ha sido revocada."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:429
 msgid "Upload Key Pair to Key Server"
-msgstr "キーペアをキーサーバーにアップロードする"
+msgstr "Cargar par de claves al servidor de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:434
 msgid "Update Key Pair"
-msgstr "キーペアを更新する"
+msgstr "Actualizar par de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:443
 msgid "Export Full Secret Key"
-msgstr "完全な秘密鍵をエクスポートする"
+msgstr "Exportar clave secreta completa"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:449
 msgid "Export Shortest Secret Key"
-msgstr "最短の秘密鍵をエクスポートする"
+msgstr "Exportar la clave secreta más corta"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:474
 msgid "Revocation Certificates"
-msgstr "失効証明書"
+msgstr "Certificados de revocación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:522
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:552
 msgid "Not Successful"
-msgstr "成功していない"
+msgstr "Sin éxito"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:523
 msgid "Modify password not successfully."
-msgstr "パスワードの変更に失敗しました。"
+msgstr "No se modificó la contraseña correctamente."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:539
 msgid "Policy Auto"
-msgstr "ポリシーオート"
+msgstr "Política automática"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:541
 msgid "Policy Good"
-msgstr "ポリシーグッド"
+msgstr "Política buena"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:543
 msgid "Policy Bad"
-msgstr "ポリシーが悪い"
+msgstr "Política mala"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:530
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:545
 msgid "Policy Ask"
-msgstr "ポリシーアスク"
+msgstr "Preguntar política"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:530
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:547
 msgid "Policy Unknown"
-msgstr "ポリシー不明"
+msgstr "Política desconocida"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:534
 msgid "Modify TOFU Policy(Default is Auto)"
-msgstr "TOFUポリシーの変更（デフォルトは自動）"
+msgstr "Modificar la política de TOFU (el valor predeterminado es automático)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:535
 msgid "Policy for the Key Pair:"
-msgstr "キーペアのポリシー："
+msgstr "Política para el par de claves:"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:553
 msgid "Modify TOFU policy not successfully."
-msgstr "TOFUポリシーの変更に失敗しました。"
+msgstr "Modificar la política de TOFU no se ha realizado correctamente."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:70
 msgid "The expire date of the key pair has been updated."
-msgstr "キーペアの有効期限が更新されました。"
+msgstr "Se actualizó la fecha de vencimiento del par de claves."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:108
 msgid "Edit Expire Datetime"
-msgstr "有効期限の編集"
+msgstr "Editar fecha de caducidad"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:41
 msgid "About Software"
-msgstr "ソフトウェアについて"
+msgstr "Acerca del software"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:42
 msgid "Translators"
-msgstr "翻訳者"
+msgstr "Traductores"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:43
 msgid "Update"
-msgstr "アップデート"
+msgstr "Actualizar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:76
 msgid ""
@@ -2434,178 +2500,187 @@ msgid ""
 "free gpg front-end tool.It visualizes most of the common operations of gpg "
 "commands.It's licensed under the GPL v3"
 msgstr ""
-"GpgFrontendは、使いやすく、コンパクトで、クロスプラットフォームで、インストール不要のgpgフロントエンドツールです。gpgコマンドの一般的な操作のほとんどを視覚化します。GPLv3の下でライセンスされています。"
+"GpgFrontend es una herramienta front-end gpg fácil de usar, compacta, "
+"multiplataforma y sin instalación. Visualiza la mayoría de las operaciones "
+"comunes de los comandos gpg. Tiene licencia de GPL v3."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:82
 msgid "Developer:"
-msgstr "デベロッパー："
+msgstr "Desarrollador:"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:83
 msgid "If you have any questions or suggestions, raise an issue at"
-msgstr "質問や提案がある場合は、で問題を提起してください"
+msgstr "Si tiene alguna pregunta o sugerencia, plantee un problema en"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:86
 msgid "or send a mail to my mailing list at"
-msgstr "または、次のメーリングリストにメールを送信してください。"
+msgstr "o envíe un correo a mi lista de correo a"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:88
 msgid "Built with Qt"
-msgstr "Qtで構築"
+msgstr "Construido con Qt"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:88
 msgid "and GPGME"
-msgstr "およびGPGME"
+msgstr "y GPGME"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:90
 msgid "Built at"
-msgstr "で建てられた"
+msgstr "Construido en"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:123
 msgid ""
 "If you think there are any problems with the translation, why not "
 "participate in the translation work? If you want to participate, please read"
 " the document or contact me via email."
-msgstr "翻訳に問題があると思われる場合は、翻訳作業に参加してみませんか？参加をご希望の場合は、資料をお読みいただくか、メールでご連絡ください。"
+msgstr ""
+"Si cree que hay algún problema con la traducción, ¿por qué no participar en "
+"el trabajo de traducción? Si desea participar, lea el documento o "
+"comuníquese conmigo por correo electrónico."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:148
 msgid ""
 "It is recommended that you always check the version of GpgFrontend and "
 "upgrade to the latest version."
-msgstr "常にGpgFrontendのバージョンを確認し、最新バージョンにアップグレードすることをお勧めします。"
+msgstr ""
+"Se recomienda que siempre verifique la versión de GpgFrontend y actualice a "
+"la última versión."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:151
 msgid ""
 "New versions not only represent new features, but also often represent "
 "functional and security fixes."
-msgstr "新しいバージョンは、新機能を表すだけでなく、多くの場合、機能およびセキュリティの修正を表します。"
+msgstr ""
+"Las nuevas versiones no solo representan nuevas características, sino que "
+"también suelen representar arreglos funcionales y de seguridad."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:157
 msgid "Current Version"
-msgstr "現行版"
+msgstr "Versión actual"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:168
 msgid "The current version is less than the latest version on github."
-msgstr "現在のバージョンは、githubの最新バージョンよりも少なくなっています。"
+msgstr "La versión actual es menor que la última versión de github."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:170
 msgid "Please click"
-msgstr "クリックしてください"
+msgstr "Por favor haz click"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:173
 msgid "Here"
-msgstr "ここ"
+msgstr "Aquí"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:173
 msgid "to download the latest version."
-msgstr "最新バージョンをダウンロードします。"
+msgstr "para descargar la última versión."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:197
 msgid "try to get latest version"
-msgstr "最新バージョンを入手してみてください"
+msgstr "intenta obtener la última versión"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:218
 msgid "Latest Version From Github"
-msgstr "Githubからの最新バージョン"
+msgstr "Última versión de Github"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:34
 msgid "Signatures Details"
-msgstr "署名の詳細"
+msgstr "Detalles de las firmas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:59
 msgid "No valid input found"
-msgstr "有効な入力が見つかりません"
+msgstr "No se encontró una entrada válida"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:70
 msgid "Error Validating signature"
-msgstr "署名の検証中にエラーが発生しました"
+msgstr "Error al validar la firma"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:72
 msgid "File was signed on %1%"
-msgstr "ファイルは％1％で署名されました"
+msgstr "El archivo se firmó el% 1%"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:75
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:81
 msgid "It Contains"
-msgstr "を含む"
+msgstr "Contiene"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:78
 msgid "Signed on %1%"
-msgstr "％1％にサインオン"
+msgstr "Firmado en% 1%"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:36
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:58
 msgid "Key Update Details"
-msgstr "主な更新の詳細"
+msgstr "Detalles clave de la actualización"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:37
 msgid "No keys found"
-msgstr "キーが見つかりません"
+msgstr "No se encontraron claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:39
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:60
 msgid "Key Import Details"
-msgstr "主なインポートの詳細"
+msgstr "Detalles de importación clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:40
 msgid "No keys found to import"
-msgstr "インポートするキーが見つかりません"
+msgstr "No se encontraron claves para importar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:74
 msgid "General key info"
-msgstr "一般的な重要な情報"
+msgstr "Información clave general"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:77
 msgid "Considered"
-msgstr "考慮"
+msgstr "Considerado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:84
 msgid "Public unchanged"
-msgstr "パブリック変更なし"
+msgstr "Público sin cambios"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:90
 msgid "Imported"
-msgstr "インポート"
+msgstr "Importado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:98
 msgid "Not Imported"
-msgstr "インポートされません"
+msgstr "No importado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:105
 msgid "Private Read"
-msgstr "プライベートリード"
+msgstr "Lectura privada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:112
 msgid "Private Imported"
-msgstr "プライベートインポート"
+msgstr "Privado importado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:119
 msgid "Private Unchanged"
-msgstr "プライベート変更なし"
+msgstr "Privado Sin cambios"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:166
 msgid "Private"
-msgstr "プライベート"
+msgstr "Privado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:169
 msgid "Public"
-msgstr "公衆"
+msgstr "Público"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:172
 msgid "Unchanged"
-msgstr "変更なし"
+msgstr "Sin alterar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:175
 msgid "New Key"
-msgstr "新しいキー"
+msgstr "Nueva llave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:182
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:52
 msgid "New Signature"
-msgstr "新しい署名"
+msgstr "Nueva firma"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:54
 msgid "Public key not found locally"
-msgstr "公開鍵がローカルで見つかりません"
+msgstr "Clave pública no encontrada localmente"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:55
 msgid ""
@@ -2613,253 +2688,263 @@ msgid ""
 "enough information about this Signature. Do you want to import the public "
 "key from Keyserver now?"
 msgstr ""
-"GpgFrontendがこの署名に関する十分な情報を収集するためのターゲット公開鍵コンテンツはローカルにありません。今すぐKeyserverから公開鍵をインポートしますか？"
+"No hay contenido de clave pública de destino en local para que GpgFrontend "
+"recopile suficiente información sobre esta firma. ¿Quiere importar la clave "
+"pública de Keyserver ahora?"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:142
 msgid "Open Key"
-msgstr "オープンキー"
+msgstr "Llave abierta"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:143
 msgid "Keyring files"
-msgstr "キーリングファイル"
+msgstr "Archivos de llavero"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:165
 msgid "Processing"
-msgstr "処理"
+msgstr "Procesando"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:183
 msgid "Failed to execute command."
-msgstr "コマンドの実行に失敗しました。"
+msgstr "No se pudo ejecutar el comando."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:190
 msgid "Succeed in executing command."
-msgstr "コマンドの実行に成功します。"
+msgstr "Lograr ejecutar el comando."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:193
 msgid "Finished executing command."
-msgstr "コマンドの実行を終了しました。"
+msgstr "Terminó de ejecutar el comando."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:32
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:51
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:59
 msgid "General"
-msgstr "全般的"
+msgstr "General"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
 msgid "No."
-msgstr "いいえ。"
+msgstr "No."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
 msgid "Address"
-msgstr "住所"
+msgstr "Habla a"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
 msgid "Available"
-msgstr "利用可能"
+msgstr "Disponible"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:58
 msgid "Default Key Server for Import"
-msgstr "インポート用のデフォルトのキーサーバー"
+msgstr "Servidor de claves predeterminado para la importación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:68
 msgid "Add"
-msgstr "追加"
+msgstr "Agregar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:107
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
 msgid "server_list"
-msgstr "server_list"
+msgstr "lista de servidores"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:114
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
 msgid "default_server"
-msgstr "default_server"
+msgstr "servidor_predeterminado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:42
 msgid "Updated ui configuration successfully written to"
-msgstr "更新されたUI構成が正常に書き込まれました"
+msgstr ""
+"La configuración de la interfaz de usuario actualizada se ha escrito "
+"correctamente en"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:46
 msgid "I/O error while writing ui configuration file"
-msgstr "UI構成ファイルの書き込み中にI / Oエラーが発生しました"
+msgstr ""
+"Error de E / S al escribir el archivo de configuración de la interfaz de "
+"usuario"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:57
 msgid "App Path"
-msgstr "アプリパス"
+msgstr "Ruta de la aplicación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:58
 msgid "App Configure Path"
-msgstr "アプリの構成パス"
+msgstr "Ruta de configuración de la aplicación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:59
 msgid "App Data Path"
-msgstr "アプリのデータパス"
+msgstr "Ruta de datos de la aplicación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:60
 msgid "App Log Path"
-msgstr "アプリのログパス"
+msgstr "Ruta de registro de la aplicación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:61
 msgid "App Locale Path"
-msgstr "アプリロケールパス"
+msgstr "Ruta de configuración regional de la aplicación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:74
 msgid "UserInterface configuration successfully written to"
-msgstr "UserInterface構成が正常に書き込まれました"
+msgstr "La configuración de UserInterface se ha escrito correctamente en"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:79
 msgid "I/O error while writing UserInterface configuration file"
-msgstr "UserInterface構成ファイルの書き込み中にI / Oエラーが発生しました"
+msgstr ""
+"Error de E / S al escribir el archivo de configuración de UserInterface"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:85
 msgid "UserInterface configuration successfully read from"
-msgstr "UserInterface構成が正常に読み取られました"
+msgstr "La configuración de UserInterface se leyó correctamente desde"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:88
 msgid "I/O error while reading UserInterface configure file"
-msgstr "UserInterface構成ファイルの読み取り中にI / Oエラーが発生しました"
+msgstr "Error de E / S al leer el archivo de configuración de UserInterface"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:90
 msgid "Parse error at "
-msgstr "での解析エラー"
+msgstr "Error de análisis en"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:35
 msgid "Icon Size"
-msgstr "アイコンサイズ"
+msgstr "Tamaño de ícono"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:37
 msgid "small"
-msgstr "小さな"
+msgstr "pequeña"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:38
 msgid "medium"
-msgstr "中くらい"
+msgstr "medio"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:39
 msgid "large"
-msgstr "大きい"
+msgstr "grande"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:55
 msgid "Icon Style"
-msgstr "アイコンスタイル"
+msgstr "Estilo de icono"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:57
 msgid "just text"
-msgstr "ただのテキスト"
+msgstr "Solo texto"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:58
 msgid "just icons"
-msgstr "アイコンだけ"
+msgstr "solo iconos"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:59
 msgid "text and icons"
-msgstr "テキストとアイコン"
+msgstr "texto e iconos"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:75
 msgid "Window State"
-msgstr "ウィンドウの状態"
+msgstr "Estado de la ventana"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:78
 msgid "Save window size and position on exit."
-msgstr "ウィンドウのサイズと終了時の位置を保存します。"
+msgstr "Guarde el tamaño y la posición de la ventana al salir."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:92
 msgid "Font Size in Information Board"
-msgstr "インフォメーションボードのフォントサイズ"
+msgstr "Tamaño de fuente en el panel de información"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
 msgid "window_save"
-msgstr "window_save"
+msgstr "guardar_ventanas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:52
 msgid "Appearance"
-msgstr "外観"
+msgstr "Apariencia"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
 msgid "Send Mail"
-msgstr "メールを送る"
+msgstr "Enviar correo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:56
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
 msgid "Key Server"
-msgstr "キーサーバー"
+msgstr "Servidor de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:59
 msgid "Advanced"
-msgstr "高度"
+msgstr "Avanzado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:135
 msgid "System Default"
-msgstr "システムのデフォルト"
+msgstr "Sistema por defecto"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:37
 msgid "Show Steganography Options"
-msgstr "ステガノグラフィオプションを表示する"
+msgstr "Mostrar opciones de esteganografía"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:39
 msgid "Show Steganographic Options."
-msgstr "ステガノグラフィオプションを表示します。"
+msgstr "Mostrar opciones esteganográficas."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:43
 msgid "Pubkey Exchange"
-msgstr "パブキーエクスチェンジ"
+msgstr "Intercambio de claves públicas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:45
 msgid "Auto Pubkey Exchange"
-msgstr "Auto Pubkey Exchange"
+msgstr "Intercambio automático de claves públicas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:46
 msgid "GpgFrontend Server"
-msgstr "GpgFrontendサーバー"
+msgstr "Servidor GpgFrontend"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:51
 msgid "Server that provides short key and key exchange services"
-msgstr "ショートキーおよびキー交換サービスを提供するサーバー"
+msgstr ""
+"Servidor que proporciona servicios de intercambio de claves y claves breves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:59
 msgid "Save Checked Keys"
-msgstr "チェックされたキーを保存します"
+msgstr "Guardar claves marcadas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:62
 msgid "Save checked private keys on exit and restore them on next start."
-msgstr "チェックした秘密鍵を終了時に保存し、次回の起動時に復元します。"
+msgstr ""
+"Guarde las claves privadas comprobadas al salir y restáurelas en el próximo "
+"inicio."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:71
 msgid "Confirm drag'n'drop key import"
-msgstr "ドラッグアンドドロップキーのインポートを確認します"
+msgstr "Confirmar importación de clave de arrastrar y soltar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:74
 msgid "Import files dropped on the Key List without confirmation."
-msgstr "確認なしでキーリストにドロップされたインポートファイル。"
+msgstr "Importar archivos colocados en la lista de claves sin confirmación."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:82
 msgid "Language"
-msgstr "言語"
+msgstr "Idioma"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:93
 msgid "NOTE"
-msgstr "ノート"
+msgstr "NOTA"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
 msgid "GpgFrontend will restart automatically if you change the language!"
-msgstr "言語を変更すると、GpgFrontendが自動的に再起動します。"
+msgstr "¡GpgFrontend se reiniciará automáticamente si cambia el idioma!"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:104
 msgid "Own key"
-msgstr "自分の鍵"
+msgstr "Llave propia"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:108
 msgid "Get Service Token"
-msgstr "サービストークンを取得する"
+msgstr "Obtener token de servicio"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:309
 msgid "No Service Token Found"
-msgstr "サービストークンが見つかりません"
+msgstr "No se ha encontrado ningún token de servicio"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:136
 msgid "Key pair for synchronization and identity authentication"
-msgstr "同期とID認証用のキーペア"
+msgstr "Par de claves para sincronización y autenticación de identidad"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:176
 msgid "save_key_checked"
@@ -2875,84 +2960,84 @@ msgstr "confirm_import_keys"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:329
 msgid "Own Key can not be None while getting service token."
-msgstr "サービストークンを取得している間は、自分のキーをNoneにすることはできません。"
+msgstr "La clave propia no puede ser Ninguna al obtener el token de servicio."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:341
 msgid "Key Not Exists"
-msgstr "キーが存在しない"
+msgstr "La clave no existe"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:428
 msgid "Succeed in getting service token"
-msgstr "サービストークンの取得に成功"
+msgstr "Tener éxito en la obtención del token de servicio"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:38
 msgid "Enable"
-msgstr "有効"
+msgstr "Permitir"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:57
 msgid "Check Connection"
-msgstr "接続を確認してください"
+msgstr "Verifica la conexión"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:60
 msgid "Connection"
-msgstr "繋がり"
+msgstr "Conexión"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:61
 msgid "Preference"
-msgstr "好み"
+msgstr "Preferencia"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:67
 msgid "SMTP Address"
-msgstr "SMTPアドレス"
+msgstr "Dirección SMTP"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:69
 msgid "Username"
-msgstr "ユーザー名"
+msgstr "Nombre de usuario"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:71
 msgid "Password"
-msgstr "パスワード"
+msgstr "Contraseña"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:73
 msgid "Port"
-msgstr "港"
+msgstr "Puerto"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:75
 msgid "Connection Security"
-msgstr "接続セキュリティ"
+msgstr "Seguridad de conexión"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:81
 msgid "Default Sender"
-msgstr "デフォルトの送信者"
+msgstr "Remitente predeterminado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:171
 msgid "Fail to Login"
-msgstr "ログインに失敗する"
+msgstr "Error al iniciar sesión"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:177
 msgid "Succeed in connecting and login"
-msgstr "接続とログインに成功する"
+msgstr "Lograr conectarse e iniciar sesión"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:45
 msgid "Import ALL"
-msgstr "すべてインポート"
+msgstr "Importar TODO"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:47
 msgid "Search"
-msgstr "検索"
+msgstr "Búsqueda"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
 msgid "Search String"
-msgstr "検索文字列"
+msgstr "Cadena de búsqueda"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:100
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:547
 msgid "Update Keys from Keyserver"
-msgstr "キーサーバーからキーを更新する"
+msgstr "Actualizar claves desde el servidor de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:102
 msgid "Import Keys from Keyserver"
-msgstr "キーサーバーからキーをインポートする"
+msgstr "Importar claves desde el servidor de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
 msgid "UID"
@@ -2960,7 +3045,7 @@ msgstr "UID"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
 msgid "Creation date"
-msgstr "作成日"
+msgstr "Fecha de creación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
 msgid "KeyID"
@@ -2968,181 +3053,184 @@ msgstr "KeyID"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
 msgid "Tag"
-msgstr "鬼ごっこ"
+msgstr "Etiqueta"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:212
 msgid "Text is empty."
-msgstr "テキストは空です。"
+msgstr "El texto está vacío."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:255
 msgid "Not Key Found"
-msgstr "キーが見つかりません"
+msgstr "Clave no encontrada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:273
 msgid "Too many responses from keyserver!"
-msgstr "キーサーバーからの応答が多すぎます！"
+msgstr "¡Demasiadas respuestas del servidor de claves!"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:283
 msgid "No keys found, input may be kexId, retrying search with 0x."
-msgstr "キーが見つかりません。入力はkexIdである可能性があり、0xで検索を再試行します。"
+msgstr ""
+"No se encontraron claves, la entrada puede ser kexId, reintentando la "
+"búsqueda con 0x."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:292
 msgid "No keys found containing the search string!"
-msgstr "検索文字列を含むキーが見つかりません！"
+msgstr "¡No se encontraron claves que contengan la cadena de búsqueda!"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:298
 msgid "Insufficiently specific search string!"
-msgstr "不十分な特定の検索文字列！"
+msgstr "Cadena de búsqueda insuficientemente específica."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:331
 msgid "revoked"
-msgstr "取り消された"
+msgstr "revocado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:335
 msgid "disabled"
-msgstr "無効"
+msgstr "discapacitado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:377
 msgid "%1 keys found. Double click a key to import it."
-msgstr "％1個のキーが見つかりました。キーをダブルクリックしてインポートします。"
+msgstr "% 1 claves encontradas. Haga doble clic en una clave para importarla."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:389
 msgid "Current Row"
-msgstr "現在の行"
+msgstr "Fila actual"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:472
 msgid "Public key Not Found"
-msgstr "公開鍵が見つかりません"
+msgstr "Clave pública no encontrada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:473
 msgid "Public key fingerprint %1 not found in the Keyserver"
-msgstr "キーサーバーに公開鍵フィンガープリント％1が見つかりません"
+msgstr ""
+"Huella digital de clave pública% 1 no encontrada en el servidor de claves"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:480
 msgid "Host Not Found"
-msgstr "ホストが見つかりません"
+msgstr "Host no encontrado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:485
 msgid "General Connection Error"
-msgstr "一般的な接続エラー"
+msgstr "Error de conexión general"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:500
 msgid "Key Imported"
-msgstr "インポートされたキー"
+msgstr "Clave importada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:34
 msgid "Decrypt Operation"
-msgstr "復号化操作"
+msgstr "Descifrar operación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:39
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:39
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:41
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:45
 msgid "Failed"
-msgstr "失敗した"
+msgstr "Fallido"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:43
 msgid "Unsupported Algo"
-msgstr "サポートされていないAlgo"
+msgstr "Algo no admitido"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:51
 msgid "File Name"
-msgstr "ファイル名"
+msgstr "Nombre del archivo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
 msgid "MIME"
-msgstr "MIME"
+msgstr "MÍMICA"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
 msgid "true"
-msgstr "true"
+msgstr "cierto"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:59
 msgid "Recipient(s)"
-msgstr "受信者）"
+msgstr "Destinatario (s)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:73
 msgid "Recipient"
-msgstr "受信者"
+msgstr "Recipiente"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:82
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:176
 msgid "Unknown"
-msgstr "わからない"
+msgstr "Desconocido"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:89
 msgid "Keu ID"
-msgstr "Keu ID"
+msgstr "ID de Keu"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:90
 msgid "Public Algo"
-msgstr "パブリックアルゴ"
+msgstr "Algo público"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:32
 msgid "Start Encrypt Result Analyse"
-msgstr "暗号化結果分析を開始します"
+msgstr "Iniciar el análisis de resultados cifrados"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:34
 msgid "Encrypt Operation"
-msgstr "暗号化操作"
+msgstr "Operación de cifrado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:46
 msgid "Invalid Recipients"
-msgstr "無効な受信者"
+msgstr "Destinatarios inválidos"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:50
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:102
 msgid "Reason"
-msgstr "理由"
+msgstr "Razón"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:34
 msgid "Start Sign Result Analyse"
-msgstr "サイン結果分析を開始します"
+msgstr "Iniciar análisis de resultado de signo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:36
 msgid "Sign Operation"
-msgstr "サイン操作"
+msgstr "Operación de señal"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:47
 msgid "Sign Result Analyse Getting Result"
-msgstr "署名結果分析取得結果"
+msgstr "Firmar Resultado Analizar Obteniendo Resultado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:54
 msgid "Signers Fingerprint"
-msgstr "署名者の指紋"
+msgstr "Huella digital de los firmantes"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:56
 msgid "Sign Mode"
-msgstr "サインモード"
+msgstr "Modo de señal"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:58
 msgid "Normal"
-msgstr "普通"
+msgstr "Normal"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:62
 msgid "Detach"
-msgstr "切り離す"
+msgstr "Despegar"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:69
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:72
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:99
 msgid "Signer"
-msgstr "歌手"
+msgstr "Firmante"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:75
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:184
 msgid "Public Key Algo"
-msgstr "公開鍵アルゴ"
+msgstr "Algo de clave pública"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:77
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:187
 msgid "Hash Algo"
-msgstr "ハッシュアルゴ"
+msgstr "Hash Algo"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:79
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:190
 msgid "Date"
-msgstr "日にち"
+msgstr "Fecha"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:79
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:59
@@ -3152,127 +3240,113 @@ msgstr "UTC"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:90
 msgid "Sign Result Analyse Getting Invalid Signer"
-msgstr "署名結果分析無効な署名者の取得"
+msgstr "Firmar Resultado Analizar Obtener firmante no válido"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:95
 msgid "Invalid Signers"
-msgstr "無効な署名者"
+msgstr "Firmantes no válidos"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:38
 msgid "Verify Result Analyse Started"
-msgstr "結果分析の開始を確認します"
+msgstr "Verificar el análisis de resultados iniciado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:40
 msgid "Verify Operation"
-msgstr "動作の確認"
+msgstr "Verificar operación"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:54
 msgid "Not Signature Found"
-msgstr "署名が見つかりません"
+msgstr "Firma no encontrada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:59
 msgid "Signed On"
-msgstr "サインオン"
+msgstr "Firmado"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:65
 msgid "Signatures List"
-msgstr "署名リスト"
+msgstr "Lista de firmas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:71
 msgid "Signature [%1%]:"
-msgstr "署名[％1％]："
+msgstr "Firma [% 1%]:"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:74
 msgid "A Bad Signature."
-msgstr "悪い署名。"
+msgstr "Una mala firma."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:76
 msgid "This Signature is invalid."
-msgstr "この署名は無効です。"
+msgstr "Esta firma no es válida."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:81
 msgid "A"
-msgstr "NS"
+msgstr "A"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:92
 msgid "Missing Key's"
-msgstr "キーがありません"
+msgstr "Llaves perdidas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:95
 msgid "Revoked Key's"
-msgstr "取り消されたキー"
+msgstr "Llave revocada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:98
 msgid "Expired Key's"
-msgstr "期限切れのキー"
+msgstr "Claves caducadas"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:101
 msgid "Missing CRL's"
-msgstr "欠落しているCRL"
+msgstr "Faltan CRL"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:105
 msgid "Signature Fully Valid."
-msgstr "署名は完全に有効です。"
+msgstr "Firma Totalmente Válida."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:107
 msgid "Signature Not Fully Valid."
-msgstr "署名が完全に有効ではありません。"
+msgstr "Firma no totalmente válida."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:113
 msgid "Key is NOT present with ID 0x"
-msgstr "キーはID0xでは存在しません"
+msgstr "La clave NO está presente con ID 0x"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:121
 msgid "A signature could NOT be verified due to a Missing Key"
-msgstr "キーがないため、署名を確認できませんでした"
+msgstr "NO se pudo verificar una firma debido a la falta de una clave"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:126
 msgid ""
 "A signature is valid but the key used to verify the signature has been "
 "revoked"
-msgstr "署名は有効ですが、署名の検証に使用されたキーが取り消されています"
+msgstr ""
+"Una firma es válida pero la clave utilizada para verificar la firma ha sido "
+"revocada"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:135
 msgid "A signature is valid but expired"
-msgstr "署名は有効ですが、有効期限が切れています"
+msgstr "Una firma es válida pero vencida"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:142
 msgid ""
 "A signature is valid but the key used to verify the signature has expired."
-msgstr "署名は有効ですが、署名の検証に使用されるキーの有効期限が切れています。"
+msgstr ""
+"Una firma es válida pero la clave utilizada para verificar la firma ha "
+"caducado."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:150
 msgid "There was some other error which prevented the signature verification."
-msgstr "署名の検証を妨げる他のエラーがありました。"
+msgstr "Hubo algún otro error que impidió la verificación de la firma."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:158
 msgid "Error for key with fingerprint"
-msgstr "指紋付きキーのエラー"
+msgstr "Error de clave con huella digital"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:175
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:180
 msgid "Signed By"
-msgstr "によって署名されました"
+msgstr "Firmado por"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/function/GpgKeyOpera.cpp:224
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/function/GpgKeyOpera.cpp:233
 msgid "operator not support"
-msgstr "オペレーターはサポートしていません"
-
-#~ msgid "File..."
-#~ msgstr "ファイル..."
-
-#~ msgid "Refresh"
-#~ msgstr "更新"
-
-#~ msgid "Import missing key from Keyserver"
-#~ msgstr "キーサーバーから不足しているキーをインポートします"
-
-#~ msgid "Actions"
-#~ msgstr "行動"
-
-#~ msgid "Export Private Key (Include Subkey)"
-#~ msgstr "秘密鍵のエクスポート（サブキーを含む）"
-
-#~ msgid "Date & Time"
-#~ msgstr "日付時刻"
+msgstr "operador no es compatible"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.1\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2021-12-13 17:24+0800\n"
+"POT-Creation-Date: 2021-12-14 00:41+0800\n"
 "PO-Revision-Date: 2021-12-07 04:40+0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
@@ -16,11 +16,48 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:81
+msgid "ENV Loading Failed"
+msgstr "فشل تحميل ENV"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:82
+msgid ""
+"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
+" in Github to install Gnupg and then open GpgFrontend."
+msgstr ""
+"لم يتم تثبيت Gnupg (gpg) بشكل صحيح ، يرجى اتباع إرشادات ReadME في Github "
+"لتثبيت Gnupg ثم فتح GpgFrontend."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:101
+msgid "Loading Gnupg Info..."
+msgstr "جارٍ تحميل معلومات Gnupg ..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:102
+msgid ""
+"If this process is too slow, please set the key server address appropriately"
+" in the gnupg configuration file (depending on the network situation in your"
+" country or region)."
+msgstr ""
+"إذا كانت هذه العملية بطيئة جدًا ، فيرجى تعيين عنوان الخادم الرئيسي بشكل "
+"مناسب في ملف تكوين gnupg (اعتمادًا على حالة الشبكة في بلدك أو منطقتك)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:144
+msgid "Unhandled Exception Thrown"
+msgstr "تم طرح استثناء غير معالج"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:145
+msgid ""
+"Oops, an unhandled exception was thrown during the running of the program, "
+"and now it needs to be restarted."
+msgstr ""
+"عفوًا ، تم طرح استثناء غير معالج أثناء تشغيل البرنامج ، والآن يحتاج إلى "
+"إعادة التشغيل."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:178
 msgid "Logfile Path"
 msgstr "مسار ملف السجل"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:201
 msgid "Could not read properly from configure file"
 msgstr "تعذرت القراءة بشكل صحيح من ملف التكوين"
 
@@ -32,12 +69,12 @@ msgstr "تعذرت القراءة بشكل صحيح من ملف التكوين"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:232
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:245
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:258
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:167
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:291
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:301
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:325
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:344
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:449
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:274
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:284
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:308
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:327
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:427
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:177
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:60
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:119
@@ -70,9 +107,9 @@ msgstr "تعذرت القراءة بشكل صحيح من ملف التكوين"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:470
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:477
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:485
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:213
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:254
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:291
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:224
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:265
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:302
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:341
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:412
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:431
@@ -221,8 +258,8 @@ msgstr "تاريخ الإنتهاء"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:358
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:124
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:181
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:378
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:389
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:100
 msgid "Never Expire"
 msgstr "لا تنتهي"
@@ -255,26 +292,18 @@ msgid "The new subkey has been generated."
 msgstr "تم إنشاء المفتاح الفرعي الجديد."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:35
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:190
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:191
 msgid "Decrypt File"
 msgstr "فك تشفير الملف"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:37
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:185
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:186
 msgid "Encrypt File"
 msgstr "تشفير الملف"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:39
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:195
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:196
 msgid "Sign File"
 msgstr "توقيع الملف"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:41
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:199
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:200
 msgid "Verify File"
 msgstr "تحقق من الملف"
 
@@ -300,6 +329,7 @@ msgid "Open File"
 msgstr "افتح ملف"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:186
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:54
 msgid "Save File"
 msgstr "احفظ الملف"
 
@@ -344,7 +374,7 @@ msgid "If you don't save these files, all changes are lost."
 msgstr "إذا لم تقم بحفظ هذه الملفات ، فستفقد جميع التغييرات."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:42
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:489
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:460
 msgid "Default"
 msgstr "تقصير"
 
@@ -423,7 +453,7 @@ msgstr "الخوارزمية"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:34
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:62
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:75
 msgid "Key Size"
 msgstr "حجم المفتاح"
@@ -439,12 +469,10 @@ msgid "Actual Usage"
 msgstr "الاستخدام الفعلي"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:79
 msgid "Expires on"
 msgstr "تنتهي صلاحيته في"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:38
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:80
 msgid "Last Update"
 msgstr "اخر تحديث"
 
@@ -460,7 +488,7 @@ msgstr "بلا عنوان"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:130
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:182
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:415
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:335
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:318
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:62
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:130
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:190
@@ -502,113 +530,113 @@ msgstr "تم تعديل المستند \"٪ 1\". هل تريد حفظ التغي
 msgid "Note:"
 msgstr "ملحوظة:"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:168
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:151
 msgid "The path is not exists, unprivileged or unreachable."
 msgstr "المسار غير موجود أو غير مميز أو لا يمكن الوصول إليه."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:176
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:159
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:152
 msgid "Open"
 msgstr "افتح"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:178
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:314
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:161
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:297
 msgid "Rename"
 msgstr "إعادة تسمية"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:180
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:163
 msgid "Delete"
 msgstr "حذف"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:165
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:163
 msgid "Encrypt Sign"
 msgstr "تشفير التوقيع"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:186
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:169
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:175
 msgid "Decrypt Verify"
 msgstr "فك تشفير التحقق"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:186
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:169
 msgid "(.gpg .asc)"
 msgstr "(.gpg .asc)"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:189
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:204
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:237
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:358
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:367
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:369
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:378
 msgid "Sign"
 msgstr "لافتة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:192
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:210
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:188
 msgid "Verify"
 msgstr "التحقق"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:192
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:175
 msgid "(.sig .gpg .asc)"
 msgstr "(.sig .gpg .asc)"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:195
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:178
 msgid "Calculate Hash"
 msgstr "حساب التجزئة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:199
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:424
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:407
 msgid "Make New Directory"
 msgstr "إنشاء دليل جديد"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:202
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:442
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:185
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:420
 msgid "Create Empty File"
 msgstr "إنشاء ملف فارغ"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:221
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:204
 msgid "Show Hidden File"
 msgstr "إظهار الملف المخفي"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:233
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:216
 msgid "Show System File"
 msgstr "عرض ملف النظام"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:292
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:275
 msgid "The directory is unprivileged or unreachable."
 msgstr "الدليل غير مميز أو لا يمكن الوصول إليه."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:302
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:285
 msgid "The file is unprivileged or unreachable."
 msgstr "الملف ليس له امتيازات أو لا يمكن الوصول إليه."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:314
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:297
 msgid "New Filename"
 msgstr "اسم ملف جديد"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:326
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:309
 msgid "Unable to rename the file or folder."
 msgstr "غير قادر على إعادة تسمية الملف أو المجلد."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:336
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:319
 msgid "Are you sure you want to delete it?"
 msgstr "هل أنت متأكد أنك تريد حذف ذلك؟"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:345
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:328
 msgid "Unable to delete the file or folder."
 msgstr "تعذر حذف الملف أو المجلد."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:376
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:359
 msgid "File Hash Information"
 msgstr "ملف تجزئة المعلومات"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:377
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:360
 msgid "filename"
 msgstr "اسم الملف"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:377
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:392
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:400
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:408
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:375
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:383
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:391
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:158
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:93
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
@@ -616,15 +644,15 @@ msgstr "اسم الملف"
 msgid ": "
 msgstr ":"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:424
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:407
 msgid "Directory Name"
 msgstr "اسم الدليل"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:443
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:421
 msgid "Filename (you can given extension)"
 msgstr "اسم الملف (يمكنك إعطاء امتداد)"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:449
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:427
 msgid "Unable to create the file."
 msgstr "تعذر إنشاء الملف."
 
@@ -770,12 +798,13 @@ msgstr "قائمة إجراءات InfoBoard"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:39
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:117
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:109
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:98
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:123
 msgid "Copy"
 msgstr "ينسخ"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:40
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:54
 msgid "Save"
 msgstr "يحفظ"
 
@@ -821,9 +850,8 @@ msgid "First Start Wizard"
 msgstr "معالج البدء الأول"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:59
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:41
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:153
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:503
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:141
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:514
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:445
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:553
 msgid "Called"
@@ -1329,9 +1357,9 @@ msgid "Open settings dialog"
 msgstr "فتح مربع حوار الإعدادات"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:157
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:236
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:357
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:366
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:245
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:377
 msgid "Encrypt"
 msgstr "تشفير"
 
@@ -1355,224 +1383,220 @@ msgstr "فك تشفير الرسالة"
 msgid "Decrypt and Verify Message"
 msgstr "فك تشفير الرسالة والتحقق منها"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:207
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:185
 msgid "Sign Message"
 msgstr "توقيع الرسالة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:213
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:191
 msgid "Verify Message"
 msgstr "تحقق من الرسالة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:219
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:335
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:414
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:197
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:313
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:385
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:178
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:235
 msgid "File"
 msgstr "ملف"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:221
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:199
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:180
 msgid "Import New Key From File"
 msgstr "استيراد مفتاح جديد من ملف"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:225
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:203
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:184
 msgid "Clipboard"
 msgstr "الحافظة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:227
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:205
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:186
 msgid "Import New Key From Clipboard"
 msgstr "استيراد مفتاح جديد من الحافظة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:232
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:210
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:191
 msgid "Keyserver"
 msgstr "خادم المفاتيح"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:234
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:212
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:193
 msgid "Import New Key From Keyserver"
 msgstr "استيراد مفتاح جديد من Keyserver"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:239
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:217
 msgid "Editor"
 msgstr "محرر"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:219
 msgid "Import New Key From Editor"
 msgstr "استيراد مفتاح جديد من المحرر"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:245
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:223
 msgid "Manage Keys"
 msgstr "إدارة المفاتيح"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:225
 msgid "Open Key Management"
 msgstr "افتح إدارة المفاتيح"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:232
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:34
 msgid "About"
 msgstr "عن"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:256
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:234
 msgid "Show the application's About box"
 msgstr "إظهار مربع \"حول\" الخاص بالتطبيق"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:260
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:238
 msgid "Translate"
 msgstr "ترجمة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:262
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:240
 msgid "Information about translation"
 msgstr "معلومات عن الترجمة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:269
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
 msgid "Check for Updates"
 msgstr "تحقق من وجود تحديثات"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:271
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:249
 msgid "Check for updates"
 msgstr "تحقق من وجود تحديثات"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:275
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:253
 msgid "Open Wizard"
 msgstr "افتح المعالج"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
 msgid "Open the wizard"
 msgstr "افتح المعالج"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:260
 msgid "Append Selected Key(s) To Text"
 msgstr "إلحاق مفتاح (مفاتيح) محددة بالنص"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:284
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:262
 msgid "Append The Selected Keys To Text in Editor"
 msgstr "إلحاق المفاتيح المحددة بالنص في المحرر"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:288
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:266
 msgid "Copy Email"
 msgstr "نسخ البريد الإلكتروني"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:268
 msgid "Copy selected Email to clipboard"
 msgstr "نسخ البريد الإلكتروني المحدد إلى الحافظة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:296
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:274
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:228
 msgid "Show Key Details"
 msgstr "إظهار التفاصيل الرئيسية"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:297
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:275
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:229
 msgid "Show Details for this Key"
 msgstr "إظهار التفاصيل لهذا المفتاح"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:302
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:280
 msgid "Refresh Key From Key Server"
 msgstr "تحديث المفتاح من خادم المفتاح"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:304
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
 msgid "Refresh key from default key server"
 msgstr "تحديث المفتاح من خادم المفاتيح الافتراضي"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:308
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:286
 msgid "Upload Public Key(s) To Server"
 msgstr "تحميل المفتاح (المفاتيح) العامة إلى الخادم"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:310
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:288
 msgid "Upload The Selected Public Keys To Server"
 msgstr "تحميل المفاتيح العامة المحددة إلى الخادم"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:327
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:305
 msgid "Remove PGP Header"
 msgstr "قم بإزالة رأس PGP"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:330
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:308
 msgid "Add PGP Header"
 msgstr "أضف رأس PGP"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:348
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:437
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:326
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:408
 msgid "Edit"
 msgstr "يحرر"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:366
-msgid "File..."
-msgstr "ملف..."
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:372
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:344
 msgid "Crypt"
 msgstr "سرداب"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:383
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:354
 msgid "Keys"
 msgstr "مفاتيح"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:384
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:355
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:244
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:275
 msgid "Import Key"
 msgstr "مفتاح الاستيراد"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:392
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:363
 msgid "Steganography"
 msgstr "إخفاء المعلومات"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:403
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:374
 msgid "View"
 msgstr "رأي"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:405
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:376
 msgid "Help"
 msgstr "يساعد"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:422
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:125
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:393
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:139
 msgid "Operations"
 msgstr "عمليات"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:432
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:403
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:239
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:256
 msgid "Key"
 msgstr "مفتاح"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:445
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:416
 msgid "Special Edit"
 msgstr "تحرير خاص"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:457
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:428
 msgid "Import key from..."
 msgstr "استيراد مفتاح من ..."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:458
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:429
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:274
 msgid "Import key"
 msgstr "مفتاح الاستيراد"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:474
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:445
 msgid "Ready"
 msgstr "مستعد"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:481
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:452
 msgid "Key ToolBox"
 msgstr "مفتاح الأدوات"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:497
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:468
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:44
 msgid "Only Public Key"
 msgstr "المفتاح العمومي فقط"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:506
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:477
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:53
 msgid "Has Private Key"
 msgstr "لديه مفتاح خاص"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:517
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:488
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:86
 msgid "Information Board"
 msgstr "لوحة المعلومات"
@@ -1669,24 +1693,12 @@ msgstr ""
 msgid "You can download the latest version(%1) on Github Releases Page.<br/>"
 msgstr "يمكنك تنزيل أحدث إصدار (٪ 1) على صفحة إصدارات Github. <br/>"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:46
-msgid "ENV Loading Failed"
-msgstr "فشل تحميل ENV"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:47
-msgid ""
-"Gnupg is not installed correctly, please follow the ReadME instructions to "
-"install gnupg and then open GpgFrontend."
-msgstr ""
-"لم يتم تثبيت Gnupg بشكل صحيح ، يرجى اتباع إرشادات ReadME لتثبيت gnupg ثم فتح"
-" GpgFrontend."
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:144
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:146
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:134
 msgid "Critical error occur while loading GpgFrontend."
 msgstr "حدث خطأ فادح أثناء تحميل GpgFrontend."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:145
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:133
 msgid "Loading Failed"
 msgstr "فشل التحميل"
 
@@ -1818,16 +1830,16 @@ msgid "The action can not be undone."
 msgstr "لا يمكن التراجع عن هذا الإجراء."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:360
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:221
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:262
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:299
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:232
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:273
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:310
 msgid "Export Key To File"
 msgstr "تصدير مفتاح إلى ملف"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:361
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:222
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:263
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:300
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:233
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:274
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:311
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:143
 msgid "Key Files"
 msgstr "الملفات الرئيسية"
@@ -2015,22 +2027,20 @@ msgid "Email"
 msgstr "بريد الالكتروني"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:67
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:137
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:78
-msgid "Create Date"
-msgstr "تاريخ الإنشاء"
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:147
+msgid "Create Date (UTC)"
+msgstr "تاريخ الإنشاء (التوقيت العالمي المنسق)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:156
-msgid "Expired Date"
-msgstr "منتهي الصلاحية"
+msgid "Expired Date (UTC)"
+msgstr "تاريخ انتهاء الصلاحية (UTC)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:232
 msgid "TOFU %1"
 msgstr "TOFU٪ 1"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:281
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:215
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:224
 msgid "Never Expires"
 msgstr "لا تنتهي صلاحيته"
 
@@ -2148,7 +2158,6 @@ msgid "Create New UID"
 msgstr "إنشاء UID جديد"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:81
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:138
 msgid "Expire Date"
 msgstr "تاريخ انتهاء الصلاحية"
 
@@ -2184,45 +2193,54 @@ msgstr "تفاصيل المفتاح الفرعي المحدد"
 msgid "Generate A New Subkey"
 msgstr "توليد مفتاح فرعي جديد"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:65
-msgid "Expires On"
-msgstr "تنتهي صلاحيته في"
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:66
+msgid "Expires On (Local Time)"
+msgstr "تنتهي في (بالتوقيت المحلي)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:68
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:78
+msgid "Create Date (Local Time)"
+msgstr "تاريخ الإنشاء (التوقيت المحلي)"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:69
 msgid "Existence"
 msgstr "وجود"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
 msgid "Subkey ID"
 msgstr "معرف المفتاح الفرعي"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
 msgid "Algo"
 msgstr "Algo"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:235
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:356
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:365
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:147
+msgid "Expire Date (UTC)"
+msgstr "تاريخ انتهاء الصلاحية (UTC)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:244
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:367
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:376
 msgid "Certificate"
 msgstr "شهادة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:238
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:359
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:370
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:379
 msgid "Auth"
 msgstr "المصادقة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:243
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:325
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:252
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:336
 msgid "Exists"
 msgstr "موجود"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:244
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:326
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:337
 msgid "Not Exists"
 msgstr "لا يوجد"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:262
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:271
 msgid "Edit Expire Date"
 msgstr "تحرير تاريخ انتهاء الصلاحية"
 
@@ -2234,7 +2252,7 @@ msgstr "زوج المفتاح"
 msgid "Subkeys"
 msgstr "مفاتيح فرعية"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:40
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:43
 msgid "Key Details"
 msgstr "التفاصيل الرئيسية"
 
@@ -2250,84 +2268,92 @@ msgstr "المفتاح الرئيسي"
 msgid "Additional UIDs"
 msgstr "معرفات فريدة إضافية"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:81
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:80
+msgid "Expires on (Local Time)"
+msgstr "تنتهي في (بالتوقيت المحلي)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:82
+msgid "Last Update (Local Time)"
+msgstr "آخر تحديث (بالتوقيت المحلي)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:84
 msgid "Master Key Existence"
 msgstr "وجود المفتاح الرئيسي"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:111
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:125
 msgid "copy fingerprint to clipboard"
 msgstr "نسخ البصمة إلى الحافظة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:145
 msgid "Export Public Key"
 msgstr "تصدير المفتاح العام"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:151
 msgid "Export Private Key"
 msgstr "تصدير المفتاح الخاص"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:158
 msgid "Modify Expiration Datetime (Master Key)"
 msgstr "تعديل تاريخ انتهاء الصلاحية (المفتاح الرئيسي)"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:146
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:161
 msgid "Modify Password"
 msgstr "تعديل كلمة المرور"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:159
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:174
 msgid "Key Server Operation (Pubkey)"
 msgstr "عملية خادم المفتاح (Pubkey)"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:169
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:181
 msgid "Generate Revoke Certificate"
 msgstr "إنشاء شهادة إبطال"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:187
 msgid "Modify TOFU Policy"
 msgstr "تعديل سياسة TOFU"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:214
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:255
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:292
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:225
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:266
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:303
 msgid "An error occurred during the export operation."
 msgstr "حدث خطأ أثناء عملية التصدير."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:227
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:268
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:305
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:238
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:279
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:316
 msgid "Export Error"
 msgstr "خطأ في التصدير"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:228
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:269
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:306
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:239
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:280
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:317
 msgid "Couldn't open %1 for writing"
 msgstr "تعذر فتح٪ 1 للكتابة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:236
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:247
 msgid "Exporting short private Key"
 msgstr "تصدير مفتاح خاص قصير"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:237
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:279
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:248
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:290
 msgid "You are about to export your"
 msgstr "أنت على وشك تصدير ملف"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:238
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:280
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:249
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:291
 msgid " PRIVATE KEY "
 msgstr " مفتاح سري"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:239
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:281
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:250
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:292
 msgid "This is NOT your Public Key, so DON'T give it away."
 msgstr "هذا ليس مفتاحك العام ، لذا لا تتنازل عنه."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:240
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:251
 msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
 msgstr "هل تريد حقًا تصدير مفتاحك الخاص بأدنى حجم؟"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:243
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:254
 msgid ""
 "For OpenPGP keys it removes all signatures except for the latest self-"
 "signatures."
@@ -2335,89 +2361,89 @@ msgstr ""
 "بالنسبة لمفاتيح OpenPGP ، فإنه يزيل جميع التوقيعات باستثناء أحدث التوقيعات "
 "الذاتية."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:278
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:289
 msgid "Exporting private Key"
 msgstr "تصدير مفتاح خاص"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:282
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:293
 msgid "Do you REALLY want to export your PRIVATE KEY?"
 msgstr "هل تريد حقًا تصدير مفتاحك الخاص؟"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:390
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:401
 msgid "No Data"
 msgstr "لايوجد بيانات"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:406
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:417
 msgid "Warning: The Master Key has expired."
 msgstr "تحذير: انتهت صلاحية المفتاح الرئيسي."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:411
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:422
 msgid "Warning: The Master Key has been revoked."
 msgstr "تحذير: تم إبطال المفتاح الرئيسي."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:418
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:429
 msgid "Upload Key Pair to Key Server"
 msgstr "تحميل مفتاح زوج إلى خادم المفاتيح"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:423
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:434
 msgid "Update Key Pair"
 msgstr "تحديث زوج المفاتيح"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:432
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:443
 msgid "Export Full Secret Key"
 msgstr "تصدير المفتاح السري الكامل"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:438
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:449
 msgid "Export Shortest Secret Key"
 msgstr "تصدير أقصر مفتاح سري"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:463
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:474
 msgid "Revocation Certificates"
 msgstr "شهادات الإبطال"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:511
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:541
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:522
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:552
 msgid "Not Successful"
 msgstr "غير ناجح"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:512
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:523
 msgid "Modify password not successfully."
 msgstr "لم يتم تعديل كلمة المرور بنجاح."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:518
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:528
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:539
 msgid "Policy Auto"
 msgstr "سياسة السيارات"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:518
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:530
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:541
 msgid "Policy Good"
 msgstr "سياسة جيدة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:518
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:532
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:543
 msgid "Policy Bad"
 msgstr "سياسة سيئة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:519
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:534
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:530
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:545
 msgid "Policy Ask"
 msgstr "اسأل السياسة"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:519
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:536
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:530
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:547
 msgid "Policy Unknown"
 msgstr "نهج غير معروف"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:523
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:534
 msgid "Modify TOFU Policy(Default is Auto)"
 msgstr "تعديل سياسة TOFU (الافتراضي هو تلقائي)"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:524
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:535
 msgid "Policy for the Key Pair:"
 msgstr "نهج زوج المفاتيح:"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:542
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:553
 msgid "Modify TOFU policy not successfully."
 msgstr "لم يتم تعديل سياسة TOFU بنجاح."
 
@@ -3072,24 +3098,32 @@ msgstr "Algo غير مدعوم"
 msgid "File Name"
 msgstr "اسم الملف"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
+msgid "MIME"
+msgstr "التمثيل الصامت"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
+msgid "true"
+msgstr "صحيح"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:59
 msgid "Recipient(s)"
 msgstr "المستلم (المستلمون)"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:70
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:73
 msgid "Recipient"
 msgstr "متلقي"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:82
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:176
 msgid "Unknown"
 msgstr "مجهول"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:86
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:89
 msgid "Keu ID"
 msgstr "معرف Keu"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:87
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:90
 msgid "Public Algo"
 msgstr "العامة Algo"
 
@@ -3275,6 +3309,9 @@ msgstr "موقعة من قبل"
 msgid "operator not support"
 msgstr "عامل لا يدعم"
 
+#~ msgid "File..."
+#~ msgstr "ملف..."
+
 #~ msgid "Refresh"
 #~ msgstr "ينعش"
 
@@ -3285,7 +3322,7 @@ msgstr "عامل لا يدعم"
 #~ msgstr "أجراءات"
 
 #~ msgid "Export Private Key (Include Subkey)"
-#~ msgstr "تصدير المفتاح الخاص (تضمين مفتاح فرعي)"
+#~ msgstr "تصدير مفتاح خاص (تضمين مفتاح فرعي)"
 
 #~ msgid "Date & Time"
 #~ msgstr "التاريخ والوقت"
