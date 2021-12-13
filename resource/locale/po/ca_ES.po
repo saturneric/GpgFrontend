@@ -1,0 +1,3348 @@
+# Catalan translations for GpgFrontend package.
+# Copyright (C) 2021 Saturneric
+# This file is distributed under the same license as the GpgFrontend package.
+# Automatically generated, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GpgFrontend 2.0.2\n"
+"Report-Msgid-Bugs-To: eric@bktus.com\n"
+"POT-Creation-Date: 2021-12-14 00:41+0800\n"
+"PO-Revision-Date: 2021-12-14 00:41+0800\n"
+"Last-Translator: Google Translation <eric@bktus.com>\n"
+"Language-Team: Google Translation <eric@bktus.com>\n"
+"Language: ca\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:81
+msgid "ENV Loading Failed"
+msgstr "S'ha produït un error en carregar ENV"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:82
+msgid ""
+"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
+" in Github to install Gnupg and then open GpgFrontend."
+msgstr ""
+"Gnupg(gpg) no està instal·lat correctament, si us plau, seguiu les "
+"instruccions ReadME a Github per instal·lar Gnupg i, a continuació, obriu "
+"GpgFrontend."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:101
+msgid "Loading Gnupg Info..."
+msgstr "S'està carregant la informació de Gnupg..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:102
+msgid ""
+"If this process is too slow, please set the key server address appropriately"
+" in the gnupg configuration file (depending on the network situation in your"
+" country or region)."
+msgstr ""
+"Si aquest procés és massa lent, configureu l'adreça del servidor de claus "
+"adequadament al fitxer de configuració gnupg (segons la situació de la xarxa"
+" al vostre país o regió)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:144
+msgid "Unhandled Exception Thrown"
+msgstr "S'ha llançat una excepció no gestionada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:145
+msgid ""
+"Oops, an unhandled exception was thrown during the running of the program, "
+"and now it needs to be restarted."
+msgstr ""
+"Vaja, s'ha produït una excepció no gestionada durant l'execució del programa"
+" i ara cal reiniciar-lo."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:178
+msgid "Logfile Path"
+msgstr "Ruta del fitxer de registre"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:201
+msgid "Could not read properly from configure file"
+msgstr "No s'ha pogut llegir correctament des del fitxer de configuració"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:35
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyUploader.cpp:93
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:65
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:90
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:232
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:245
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:258
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:274
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:284
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:308
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:327
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:427
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:177
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:60
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:119
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:136
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:234
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:42
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:220
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:264
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:270
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:275
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:304
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:388
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:447
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:129
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:223
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:383
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:451
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:478
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:493
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:336
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:353
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:398
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:463
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:470
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:477
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:485
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:224
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:265
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:302
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:341
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:412
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:431
+msgid "Error"
+msgstr "Error"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:36
+msgid "Nothing Reply. Please check the Internet connection."
+msgstr "Res Respon. Si us plau, comproveu la connexió a Internet."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:56
+msgid "Unknown Error"
+msgstr "Error desconegut"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:94
+msgid "Network Error"
+msgstr "Error de connexió"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:75
+msgid "Outdated Reply"
+msgstr "Resposta obsoleta"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:90
+msgid "Unknown Reason"
+msgstr "Motiu desconegut"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:94
+msgid "Unknown Reply Format"
+msgstr "Format de resposta desconegut"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyUploader.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:66
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:91
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:235
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:413
+msgid ""
+"The communication content with the server does not meet the requirements"
+msgstr "El contingut de comunicació amb el servidor no compleix els requisits"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:240
+msgid "Generate Key"
+msgstr "Genera clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:76
+msgid "Name must contain at least five characters."
+msgstr "El nom ha de contenir almenys cinc caràcters."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:80
+msgid "Please give a email address."
+msgstr "Si us plau, proporcioneu una adreça de correu electrònic."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:87
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:225
+msgid "Expiration time no more than 2 years."
+msgstr "Termini de caducitat no superior a 2 anys."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:117
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:247
+msgid "Generating"
+msgstr "Generant"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:259
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:188
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:69
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:189
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:176
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:43
+msgid "Success"
+msgstr "Èxit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:131
+msgid "The new key pair has been generated."
+msgstr "S'ha generat el nou parell de claus."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:138
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:267
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:182
+msgid "Failure"
+msgstr "El fracàs"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:167
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:68
+msgid "Key Usage"
+msgstr "Ús de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:169
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:70
+msgid "Encryption"
+msgstr "Encriptació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:203
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:165
+msgid "Signing"
+msgstr "Signatura"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:76
+msgid "Certification"
+msgstr "Certificació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:79
+msgid "Authentication"
+msgstr "Autenticació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:115
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:44
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:66
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+msgid "Name"
+msgstr "Nom"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:355
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:115
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:67
+msgid "Email Address"
+msgstr "Correu electrònic"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:68
+msgid "Comment"
+msgstr "Comenta"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:357
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:123
+msgid "Expiration Date"
+msgstr "Data de caducitat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:358
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:389
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:100
+msgid "Never Expire"
+msgstr "Mai caduqui"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:359
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:125
+msgid "KeySize (in Bit)"
+msgstr "Mida de la clau (en bits)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:126
+msgid "Key Type"
+msgstr "Tipus de clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:361
+msgid "Non Pass Phrase"
+msgstr "Frase sense pas"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:374
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:135
+msgid "Basic Information"
+msgstr "Informació bàsica"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:53
+msgid "Generate New Subkey"
+msgstr "Genera una subclau nova"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:260
+msgid "The new subkey has been generated."
+msgstr "S'ha generat la nova subclau."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:35
+msgid "Decrypt File"
+msgstr "Desxifrar el fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:37
+msgid "Encrypt File"
+msgstr "Xifra el fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:39
+msgid "Sign File"
+msgstr "Fitxer de signatura"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:41
+msgid "Verify File"
+msgstr "Verifica el fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:51
+msgid "Input Parameters"
+msgstr "Paràmetres d'entrada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:57
+msgid "Target File"
+msgstr "Fitxer objectiu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:63
+msgid "Output File"
+msgstr "Fitxer de sortida"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:79
+msgid "Signature File(.sig) Path"
+msgstr "Ruta del fitxer de signatura (.sig)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:198
+msgid "Open File"
+msgstr "Arxiu obert"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:186
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:54
+msgid "Save File"
+msgstr "Guardar arxiu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:214
+msgid "Couldn't open file"
+msgstr "No s'ha pogut obrir el fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:233
+msgid "Error Occurred During Encryption"
+msgstr "S'ha produït un error durant el xifratge"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:246
+msgid "Error Occurred During Decryption"
+msgstr "S'ha produït un error durant el desxifrat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:259
+msgid "Error Occurred During Signature"
+msgstr "S'ha produït un error durant la signatura"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:33
+msgid "Unsaved Files"
+msgstr "Fitxers no desats"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:82
+msgid ""
+"%1% files contain unsaved information.<br/>Save the changes before closing?"
+msgstr ""
+"Els fitxers %1% contenen informació no desada.<br/>Vols desar els canvis "
+"abans de tancar-los?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:96
+msgid "Check the files you want to save:"
+msgstr "Comproveu els fitxers que voleu desar:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:98
+msgid "Note"
+msgstr "Nota"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:271
+msgid "If you don't save these files, all changes are lost."
+msgstr "Si no deseu aquests fitxers, es perdran tots els canvis."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:42
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:460
+msgid "Default"
+msgstr "Per defecte"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:115
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+msgid "Select"
+msgstr "Seleccioneu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:115
+msgid "Type"
+msgstr "Tipus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:116
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:64
+msgid "Usage"
+msgstr "Ús"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:116
+msgid "Validity"
+msgstr "Validesa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:116
+msgid "Finger Print"
+msgstr "Empremta digital"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:129
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:517
+msgid "called"
+msgstr "va trucar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:268
+msgid "Import Keys"
+msgstr "Importa les claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:271
+msgid "You've dropped something on the table."
+msgstr "Has deixat alguna cosa a la taula."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:272
+msgid "GpgFrontend will now try to import key(s)."
+msgstr "GpgFrontend ara intentarà importar les claus."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:277
+msgid "Always import without bothering."
+msgstr "Importa sempre sense molestar-te."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:311
+msgid "Couldn't Open File"
+msgstr "No s'ha pogut obrir el fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:30
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:95
+msgid "Confirm"
+msgstr "Confirmeu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:47
+msgid "Select Signer(s)"
+msgstr "Seleccioneu signants"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:50
+msgid "Selecting Nothing will eventually use default key to sign."
+msgstr ""
+"Si seleccioneu Res, finalment utilitzarà la clau predeterminada per signar."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:32
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:73
+msgid "Key ID"
+msgstr "ID de clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:33
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:60
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:74
+msgid "Algorithm"
+msgstr "Algorisme"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:34
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:75
+msgid "Key Size"
+msgstr "Mida de la clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:35
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:76
+msgid "Nominal Usage"
+msgstr "Ús nominal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:36
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:77
+msgid "Actual Usage"
+msgstr "Ús real"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
+msgid "Expires on"
+msgstr "Caduca el"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:38
+msgid "Last Update"
+msgstr "Darrera actualització"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:39
+msgid "Secret Key Existence"
+msgstr "Existència de clau secreta"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:51
+msgid "untitled"
+msgstr "sense títol"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:415
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:318
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:318
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:410
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
+msgid "Warning"
+msgstr "Avís"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:93
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:416
+msgid ""
+"Cannot read file %1%:\n"
+"%2%."
+msgstr ""
+"No es pot llegir el fitxer % 1%:\n"
+"%2%."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:104
+msgid "Open file"
+msgstr "Arxiu obert"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:204
+msgid "Save file"
+msgstr "Guardar arxiu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:266
+msgid "Unsaved document"
+msgstr "Document no desat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:267
+msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgstr "S'ha modificat el document \"%1\". Voleu desar els vostres canvis?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:270
+msgid "Note:"
+msgstr "Nota:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:151
+msgid "The path is not exists, unprivileged or unreachable."
+msgstr "El camí no existeix, no és privilegiat o inabastable."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:159
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:152
+msgid "Open"
+msgstr "Obert"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:161
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:297
+msgid "Rename"
+msgstr "Canvia el nom"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:163
+msgid "Delete"
+msgstr "Suprimeix"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:163
+msgid "Encrypt Sign"
+msgstr "Signe xifrat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:169
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:175
+msgid "Decrypt Verify"
+msgstr "Desxifrar la verificació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:169
+msgid "(.gpg .asc)"
+msgstr "(.gpg .asc)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:369
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:378
+msgid "Sign"
+msgstr "Signe"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:188
+msgid "Verify"
+msgstr "Verificar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:175
+msgid "(.sig .gpg .asc)"
+msgstr "(.sig .gpg .asc)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:178
+msgid "Calculate Hash"
+msgstr "Calcula Hash"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:407
+msgid "Make New Directory"
+msgstr "Crea un nou directori"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:185
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:420
+msgid "Create Empty File"
+msgstr "Crea un fitxer buit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:204
+msgid "Show Hidden File"
+msgstr "Mostra el fitxer ocult"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:216
+msgid "Show System File"
+msgstr "Mostra el fitxer del sistema"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:275
+msgid "The directory is unprivileged or unreachable."
+msgstr "El directori no té privilegis o no és accessible."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:285
+msgid "The file is unprivileged or unreachable."
+msgstr "El fitxer no té privilegis o no és accessible."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:297
+msgid "New Filename"
+msgstr "Nom de fitxer nou"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:309
+msgid "Unable to rename the file or folder."
+msgstr "No es pot canviar el nom del fitxer o la carpeta."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:319
+msgid "Are you sure you want to delete it?"
+msgstr "Esteu segur que voleu suprimir-lo?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:328
+msgid "Unable to delete the file or folder."
+msgstr "No es pot suprimir el fitxer o la carpeta."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:359
+msgid "File Hash Information"
+msgstr "Informació del fitxer hash"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:360
+msgid "filename"
+msgstr "nom de l'arxiu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:375
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:383
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:391
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:158
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:93
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
+msgid ": "
+msgstr ":"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:407
+msgid "Directory Name"
+msgstr "Nom del directori"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:421
+msgid "Filename (you can given extension)"
+msgstr "Nom del fitxer (es pot donar una extensió)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:427
+msgid "Unable to create the file."
+msgstr "No es pot crear el fitxer."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:39
+msgid "Import from keyserver"
+msgstr "Importa des del servidor de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:43
+msgid "Key not present with id 0x"
+msgstr "La clau no està present amb id 0x"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:105
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:138
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:54
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+msgid "Status"
+msgstr "Estat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:47
+msgid ":"
+msgstr ":"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:49
+msgid "Key not present in key list"
+msgstr "La clau no està present a la llista de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:57
+msgid "A Signature"
+msgstr "Una Signatura"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:78
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:112
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:128
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:143
+msgid "Key Information is NOT Available"
+msgstr "La informació clau NO està disponible"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:64
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:80
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:114
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:145
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:71
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:49
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:100
+msgid "Fingerprint"
+msgstr "empremta digital"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:73
+msgid "Cert Revoked"
+msgstr "Certificat revocat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:89
+msgid "Signature Expired"
+msgstr "Signatura caducada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:105
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:107
+msgid "Key Expired"
+msgstr "Clau caducada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:123
+msgid "General Error"
+msgstr "Error general"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:138
+msgid "Unknown Error "
+msgstr "Error desconegut"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:168
+msgid "Signer Name"
+msgstr "Nom del signant"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:169
+msgid "Signer Email"
+msgstr "Correu electrònic del signant"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:170
+msgid "Key's Fingerprint"
+msgstr "L'empremta digital de la clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:171
+msgid "Valid"
+msgstr "Vàlid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:172
+msgid "Flags"
+msgstr "Banderes"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:179
+msgid "Fully Valid"
+msgstr "Totalment vàlid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:181
+msgid "NOT Fully Valid"
+msgstr "NO totalment vàlid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:187
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:83
+msgid "Good"
+msgstr "Bé"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:86
+msgid "Bad"
+msgstr "Dolent"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:193
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:89
+msgid "Expired"
+msgstr "Caducat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:196
+msgid "Missing Key"
+msgstr "Falta la clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:199
+msgid "Revoked Key"
+msgstr "Clau revocada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:202
+msgid "Expired Key"
+msgstr "Clau caducada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:205
+msgid "Missing CRL"
+msgstr "Falta CRL"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:38
+msgid "InfoBoard's Actions Menu"
+msgstr "Menú d'accions d'InfoBoard"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:117
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:98
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:123
+msgid "Copy"
+msgstr "Còpia"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:40
+msgid "Save"
+msgstr "Desa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:41
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:60
+msgid "Clear"
+msgstr "Clar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:86
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:51
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:102
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:111
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:114
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:176
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:213
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:239
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
+msgid "Setting Operation Error"
+msgstr "Error d'operació de configuració"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:86
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
+msgid "info_font_size"
+msgstr "informació_mida_de_font"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:170
+msgid "Save Information Board's Content"
+msgstr "Guarda el contingut del tauler d'informació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:178
+msgid "The file path is not exists, unprivileged or unreachable."
+msgstr "La ruta del fitxer no existeix, no té privilegis o no és accessible."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:39
+msgid "First Start Wizard"
+msgstr "Assistent de primer inici"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:141
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:514
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:445
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:553
+msgid "Called"
+msgstr "Va trucar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:82
+msgid "Getting Started..."
+msgstr "Començant..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:83
+msgid "... with GpgFrontend"
+msgstr "... amb GpgFrontend"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:86
+msgid "Welcome to use GpgFrontend for decrypting and signing text or file!"
+msgstr ""
+"Benvingut a utilitzar GpgFrontend per desxifrar i signar text o fitxer!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:89
+msgid ""
+"is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free "
+"OpenPGP Crypto Tool."
+msgstr ""
+"és una eina de criptografia OpenPGP potent, fàcil d'utilitzar, compacta, "
+"multiplataforma i sense instal·lacions."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:91
+msgid "For brief information have a look at the"
+msgstr "Per obtenir informació breu, feu una ullada a"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:93
+msgid "Overview"
+msgstr "Visió general"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:94
+msgid "by clicking the link, the page will open in the web browser"
+msgstr "fent clic a l'enllaç, la pàgina s'obrirà al navegador web"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:103
+msgid ""
+"If it supports the language currently being used in your system, GpgFrontend"
+" will automatically set it."
+msgstr ""
+"Si admet l'idioma que s'utilitza actualment al vostre sistema, GpgFrontend "
+"l'establirà automàticament."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:121
+msgid "Choose your action..."
+msgstr "Tria la teva acció..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:122
+msgid "...by clicking on the appropriate link."
+msgstr "... fent clic a l'enllaç corresponent."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:126
+msgid ""
+"If you have never used GpgFrontend before and also don't own a gpg key yet "
+"you may possibly want to read how to"
+msgstr ""
+"Si no heu utilitzat mai GpgFrontend abans i encara no teniu cap clau gpg, "
+"potser voldreu llegir com"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:138
+msgid ""
+"If you want to learn how to encrypt, decrypt, sign and verify text, you can "
+"read "
+msgstr ""
+"Si voleu aprendre a xifrar, desxifrar, signar i verificar text, podeu llegir"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:143
+msgid "Encrypt & Decrypt Text"
+msgstr "Xifra i desxifra el text"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:158
+msgid "or"
+msgstr "o"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:146
+msgid "Sign & Verify Text"
+msgstr "Signa i verifica el text"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:154
+msgid "If you want to operate file, you can read "
+msgstr "Si voleu operar fitxer, podeu llegir"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:158
+msgid "Encrypt & Sign File"
+msgstr "Xifrar i signar el fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:161
+msgid "Sign & Verify File"
+msgstr "Signa i verifica el fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:187
+msgid "Create a keypair..."
+msgstr "Crea un parell de tecles..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:188
+msgid "...for decrypting and signing messages"
+msgstr "...per desxifrar i signar missatges"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:190
+msgid ""
+"You should create a new keypair.The pair consists of a public and a private "
+"key.<br>Other users can use the public key to encrypt messages for you and "
+"verify messages signed by you.You can use the private key to decrypt and "
+"sign messages.<br>For more information have a look at the offline tutorial "
+"(which then is shown in the main window):"
+msgstr ""
+"Hauríeu de crear un parell de claus nou. El parell consta d'una clau pública"
+" i una privada.<br>La resta d'usuaris poden utilitzar la clau pública per "
+"xifrar els missatges i verificar els missatges signats per vosaltres. Podeu "
+"utilitzar la clau privada per desxifrar i signar missatges.<br>Per obtenir "
+"més informació, mireu el tutorial fora de línia (que després es mostra a la "
+"finestra principal):"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:202
+msgid "Offline tutorial"
+msgstr "Tutorial fora de línia"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:210
+msgid "Create New Key"
+msgstr "Crea una clau nova"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:232
+msgid "Ready."
+msgstr "A punt."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:233
+msgid "Have fun with GpgFrontend!"
+msgstr "Diverteix-te amb GpgFrontend!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:236
+msgid "You are ready to use GpgFrontend now.<br><br>"
+msgstr "Ja esteu preparat per utilitzar GpgFrontend.<br><br>"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:240
+msgid "The Online Document"
+msgstr "El document en línia"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:241
+msgid ""
+" will get you started with GpgFrontend. Anytime you encounter problems, "
+"please try to find help from the documentation"
+msgstr ""
+" us ajudarà a començar amb GpgFrontend. Sempre que trobeu problemes, proveu "
+"de trobar ajuda a la documentació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:250
+msgid "Open offline help."
+msgstr "Obriu l'ajuda fora de línia."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:253
+msgid "Dont show the wizard again."
+msgstr "No tornis a mostrar l'assistent."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:48
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:169
+msgid "Invalid Own Key"
+msgstr "Clau pròpia no vàlida"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:49
+msgid ""
+"Own Key can not be use to do any operation. Please go to the setting "
+"interface to select an OwnKey and get a ServiceToken."
+msgstr ""
+"La clau pròpia no es pot utilitzar per fer cap operació. Aneu a la "
+"interfície de configuració per seleccionar una OwnKey i obtenir un "
+"ServiceToken."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:61
+msgid "Please obtain a Service Token from the server in the settings."
+msgstr ""
+"Si us plau, obteniu un testimoni de servei del servidor a la configuració."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:98
+msgid "Getting Cpt From Server"
+msgstr "Obtenint Cpt del servidor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:136
+msgid "Invalid short ciphertext"
+msgstr "Text xifrat curt no vàlid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:158
+msgid "Invalid Service Token"
+msgstr "El testimoni de servei no és vàlid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:159
+msgid "Please go to the setting interface to get a ServiceToken."
+msgstr "Aneu a la interfície de configuració per obtenir un ServiceToken."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:170
+msgid "Own Key can not be use to do any operation."
+msgstr "La clau pròpia no es pot utilitzar per fer cap operació."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:219
+msgid "Getting Scpt From Server"
+msgstr "Obtenint Scpt del servidor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:247
+msgid ""
+"Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
+msgstr ""
+"Avís: utilitzeu l'operació Desxifrar i verificar per desxifrar aquest text "
+"criptogràfic breu."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:254
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:432
+msgid "There is a problem with the communication with the server"
+msgstr "Hi ha un problema amb la comunicació amb el servidor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:38
+msgid "Select a file before doing it."
+msgstr "Seleccioneu un fitxer abans de fer-ho."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:43
+msgid "No permission to read this file."
+msgstr "No hi ha permís per llegir aquest fitxer."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:48
+msgid "No permission to create file."
+msgstr "No hi ha permís per crear un fitxer."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:63
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:319
+msgid "The target file already exists, do you need to overwrite it?"
+msgstr "El fitxer de destinació ja existeix, cal sobreescriure-lo?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:72
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:329
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:141
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:282
+msgid "No Key Selected"
+msgstr "No s'ha seleccionat cap clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:84
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:149
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:392
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:402
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:299
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:479
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:493
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:535
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:544
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:328
+msgid "Invalid Operation"
+msgstr "Operació no vàlida"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:81
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:86
+msgid ""
+"The selected key contains a key that does not actually have a encrypt usage."
+msgstr ""
+"La clau seleccionada conté una clau que en realitat no té un ús de xifrat."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:83
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:340
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:88
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:153
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:295
+msgid "For example the Following Key:"
+msgstr "Per exemple, la clau següent:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:94
+msgid "Encrypting"
+msgstr "Encriptació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:108
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:221
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:305
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:389
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:448
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:184
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:224
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:384
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:452
+msgid "An error occurred during operation."
+msgstr "S'ha produït un error durant el funcionament."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:205
+msgid "Decrypting"
+msgstr "Desxifrant"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:179
+msgid ""
+"The selected key contains a key that does not actually have a sign usage."
+msgstr ""
+"La clau seleccionada conté una clau que en realitat no té un ús de signes."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:181
+msgid "for example the Following Key:"
+msgstr "per exemple, la clau següent:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:191
+msgid "The signature file \"%1\" exists, do you need to overwrite it?"
+msgstr "El fitxer de signatura \"% 1\" existeix, el cal sobreescriure?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
+msgid "Origin file to verify"
+msgstr "Fitxer d'origen per verificar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
+msgid "Filepath"
+msgstr "Ruta del fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:265
+msgid ""
+"Please select the appropriate origin file or signature file. Ensure that "
+"both are in this directory."
+msgstr ""
+"Seleccioneu el fitxer d'origen o el fitxer de signatura adequat. Assegureu-"
+"vos que tots dos es troben en aquest directori."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:271
+msgid "No permission to read target file."
+msgstr "No hi ha permís per llegir el fitxer de destinació."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:276
+msgid "No permission to read signature file."
+msgstr "No hi ha permís per llegir el fitxer de signatura."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:283
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:253
+msgid "Verifying"
+msgstr "Verificant"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:338
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:293
+msgid "Invalid KeyPair"
+msgstr "Parell de claus no vàlid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:339
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:294
+msgid "The selected keypair cannot be used for encryption."
+msgstr ""
+"El parell de claus seleccionat no es pot utilitzar per a l'encriptació."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:323
+msgid "Encrypting and Signing"
+msgstr "Encriptació i signatura"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:411
+msgid "The output file %1 already exists, do you need to overwrite it?"
+msgstr "El fitxer de sortida % 1 ja existeix, l'heu de sobreescriure?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:423
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:425
+msgid "Decrypting and Verifying"
+msgstr "Desxifrar i verificar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:33
+msgid "New"
+msgstr "Nou"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:39
+msgid "Open a new file"
+msgstr "Obre un fitxer nou"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:42
+msgid "Open..."
+msgstr "Obre..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:45
+msgid "Open an existing file"
+msgstr "Obre un fitxer existent"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:48
+msgid "File Browser"
+msgstr "Navegador de fitxers"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:51
+msgid "Open a file browser"
+msgstr "Obriu un navegador de fitxers"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:57
+msgid "Save the current File"
+msgstr "Desa el fitxer actual"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:60
+msgid "Save As"
+msgstr "Guardar com"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:63
+msgid "Save the current File as..."
+msgstr "Desa el fitxer actual com a..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:66
+msgid "Print"
+msgstr "Imprimir"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:69
+msgid "Print Document"
+msgstr "Imprimeix document"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:72
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:158
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:161
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:44
+msgid "Close"
+msgstr "Tanca"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:74
+msgid "Close file"
+msgstr "Tanca el fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:77
+msgid "Quit"
+msgstr "Surt"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:80
+msgid "Quit Program"
+msgstr "Surt del programa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:85
+msgid "Undo"
+msgstr "Desfer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:87
+msgid "Undo Last Edit Action"
+msgstr "Desfés l'última acció d'edició"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:90
+msgid "Redo"
+msgstr "Refer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:92
+msgid "Redo Last Edit Action"
+msgstr "Torna a fer l'última acció d'edició"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:95
+msgid "Zoom In"
+msgstr "Ampliar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:99
+msgid "Zoom Out"
+msgstr "Disminuir el zoom"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:103
+msgid "Paste"
+msgstr "Enganxa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:106
+msgid "Paste Text From Clipboard"
+msgstr "Enganxa text des del porta-retalls"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:109
+msgid "Cut"
+msgstr "Tallar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:113
+msgid "Cut the current selection's contents to the clipboard"
+msgstr "Retalla el contingut de la selecció actual al porta-retalls"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:121
+msgid "Copy the current selection's contents to the clipboard"
+msgstr "Copieu el contingut de la selecció actual al porta-retalls"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:125
+msgid "Quote"
+msgstr "Cita"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:127
+msgid "Quote whole text"
+msgstr "Cita el text sencer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:130
+msgid "Select All"
+msgstr "Seleccionar tot"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:133
+msgid "Select the whole text"
+msgstr "Seleccioneu tot el text"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:136
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FindWidget.cpp:40
+msgid "Find"
+msgstr "Troba"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:138
+msgid "Find a word"
+msgstr "Busca una paraula"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:141
+msgid "Remove spacing"
+msgstr "Elimina l'espaiat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:145
+msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
+msgstr "Elimineu els salts de línia dobles, p. en text enganxat de Web Mailer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:149
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:75
+msgid "Settings"
+msgstr "Configuració"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:150
+msgid "Open settings dialog"
+msgstr "Obre el diàleg de configuració"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:157
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:245
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:377
+msgid "Encrypt"
+msgstr "Xifrar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:160
+msgid "Encrypt Message"
+msgstr "Xifra el missatge"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:166
+msgid "Encrypt and Sign Message"
+msgstr "Xifrar i signar el missatge"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:169
+msgid "Decrypt"
+msgstr "Desxifrar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:172
+msgid "Decrypt Message"
+msgstr "Desxifra el missatge"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:178
+msgid "Decrypt and Verify Message"
+msgstr "Desxifrar i verificar el missatge"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:185
+msgid "Sign Message"
+msgstr "Signar missatge"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:191
+msgid "Verify Message"
+msgstr "Verifica el missatge"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:197
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:313
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:385
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:235
+msgid "File"
+msgstr "Dossier"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:199
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:180
+msgid "Import New Key From File"
+msgstr "Importa una nova clau des del fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:203
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:184
+msgid "Clipboard"
+msgstr "Porta-retalls"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:205
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:186
+msgid "Import New Key From Clipboard"
+msgstr "Importa una clau nova des del porta-retalls"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:210
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:191
+msgid "Keyserver"
+msgstr "Servidor de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:212
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:193
+msgid "Import New Key From Keyserver"
+msgstr "Importa una clau nova des del servidor de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:217
+msgid "Editor"
+msgstr "Editor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:219
+msgid "Import New Key From Editor"
+msgstr "Importa una clau nova des de l'editor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:223
+msgid "Manage Keys"
+msgstr "Gestiona les claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:225
+msgid "Open Key Management"
+msgstr "Gestió de claus obertes"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:232
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:34
+msgid "About"
+msgstr "Sobre"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:234
+msgid "Show the application's About box"
+msgstr "Mostra el quadre Quant a l'aplicació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:238
+msgid "Translate"
+msgstr "Traduir"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:240
+msgid "Information about translation"
+msgstr "Informació sobre traducció"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
+msgid "Check for Updates"
+msgstr "Buscar actualitzacions"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:249
+msgid "Check for updates"
+msgstr "Buscar actualitzacions"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:253
+msgid "Open Wizard"
+msgstr "Obriu l'assistent"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+msgid "Open the wizard"
+msgstr "Obriu l'assistent"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:260
+msgid "Append Selected Key(s) To Text"
+msgstr "Afegeix les claus seleccionades al text"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:262
+msgid "Append The Selected Keys To Text in Editor"
+msgstr "Afegiu les tecles seleccionades al text a l'editor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:266
+msgid "Copy Email"
+msgstr "Copia el correu electrònic"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:268
+msgid "Copy selected Email to clipboard"
+msgstr "Copia el correu electrònic seleccionat al porta-retalls"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:274
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:228
+msgid "Show Key Details"
+msgstr "Mostra els detalls clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:275
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:229
+msgid "Show Details for this Key"
+msgstr "Mostra els detalls d'aquesta clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:280
+msgid "Refresh Key From Key Server"
+msgstr "Actualitza la clau del servidor de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
+msgid "Refresh key from default key server"
+msgstr "Actualitza la clau del servidor de claus predeterminat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:286
+msgid "Upload Public Key(s) To Server"
+msgstr "Carregueu les claus públiques al servidor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:288
+msgid "Upload The Selected Public Keys To Server"
+msgstr "Carregueu les claus públiques seleccionades al servidor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:305
+msgid "Remove PGP Header"
+msgstr "Elimina la capçalera PGP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:308
+msgid "Add PGP Header"
+msgstr "Afegeix una capçalera PGP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:326
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:408
+msgid "Edit"
+msgstr "Edita"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:344
+msgid "Crypt"
+msgstr "Cripta"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:354
+msgid "Keys"
+msgstr "Claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:355
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:244
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:275
+msgid "Import Key"
+msgstr "Importa la clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:363
+msgid "Steganography"
+msgstr "Esteganografia"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:374
+msgid "View"
+msgstr "Veure"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:376
+msgid "Help"
+msgstr "Ajuda"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:393
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:139
+msgid "Operations"
+msgstr "Operacions"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:403
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:239
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:256
+msgid "Key"
+msgstr "clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:416
+msgid "Special Edit"
+msgstr "Edició especial"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:428
+msgid "Import key from..."
+msgstr "Importa la clau de..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:429
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:274
+msgid "Import key"
+msgstr "Clau d'importació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:445
+msgid "Ready"
+msgstr "A punt"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:452
+msgid "Key ToolBox"
+msgstr "Caixa d'eines clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:468
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:44
+msgid "Only Public Key"
+msgstr "Només clau pública"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:477
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:53
+msgid "Has Private Key"
+msgstr "Té clau privada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:488
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:86
+msgid "Information Board"
+msgstr "Tauler informatiu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:63
+msgid ""
+"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr ""
+"No s'ha seleccionat cap clau. Voleu xifrar amb un xifrat simètric mitjançant"
+" una contrasenya?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:69
+msgid "Symmetrically Encrypting"
+msgstr "Encriptació simètrica"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:363
+msgid "Function Disabled"
+msgstr "Funció desactivada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:121
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:364
+msgid ""
+"Please go to the settings interface to enable and configure this function."
+msgstr ""
+"Aneu a la interfície de configuració per habilitar i configurar aquesta "
+"funció."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:151
+msgid ""
+"The selected key contains a key that does not actually have a signature "
+"usage."
+msgstr ""
+"La clau seleccionada conté una clau que en realitat no té un ús de "
+"signatura."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:197
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:427
+msgid "Notice"
+msgstr "Avís"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:198
+msgid "Short Crypto Text only supports Decrypt & Verify."
+msgstr "Short Crypto Text només admet Desxifrar i verificar."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:340
+msgid "Automatic Key Exchange Warning"
+msgstr "Avís d'intercanvi automàtic de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:341
+msgid ""
+"Part of the automatic key exchange failed, which may be related to your key."
+msgstr ""
+"Ha fallat una part de l'intercanvi automàtic de claus, que pot estar "
+"relacionat amb la vostra clau."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:343
+msgid ""
+"If possible, try to use the RSA algorithm compatible with the server for "
+"signing."
+msgstr ""
+"Si és possible, proveu d'utilitzar l'algorisme RSA compatible amb el "
+"servidor per signar."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:373
+msgid "Service Token Empty"
+msgstr "Fitxa de servei buida"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:374
+msgid ""
+"Please go to the settings interface to set Own Key and get Service Token."
+msgstr ""
+"Aneu a la interfície de configuració per configurar la clau pròpia i obtenir"
+" el testimoni de servei."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:478
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:493
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:336
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:353
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:398
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:485
+msgid "Key Not Found."
+msgstr "No s'ha trobat la clau."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:520
+msgid "GpgFrontend Upgradeable (New Version: %1)."
+msgstr "GpgFrontend actualitzable (Nova versió: %1)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:531
+msgid "Unreleased Version"
+msgstr "Versió inèdita"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:533
+msgid ""
+"This version(%1) has not been officially released and is not recommended for"
+" use in a production environment. <br/>"
+msgstr ""
+"Aquesta versió (% 1) no s'ha llançat oficialment i no es recomana utilitzar-"
+"la en un entorn de producció. <br/>"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:537
+msgid "You can download the latest version(%1) on Github Releases Page.<br/>"
+msgstr ""
+"Podeu baixar la darrera versió (%1) a la pàgina de versions de Github.<br/>"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:134
+msgid "Critical error occur while loading GpgFrontend."
+msgstr "S'ha produït un error crític en carregar GpgFrontend."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:133
+msgid "Loading Failed"
+msgstr "S'ha produït un error en carregar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:41
+msgid "All"
+msgstr "Tots"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:62
+msgid "No Master Key"
+msgstr "Sense clau mestra"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:71
+msgid "Revoked"
+msgstr "Revocat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:102
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
+msgid "icon_size"
+msgstr "icon_size"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:111
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
+msgid "icon_style"
+msgstr "estil_icona"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:143
+msgid "KeyPair Management"
+msgstr "Gestió de parells de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:153
+msgid "Ctrl+O"
+msgstr "Ctrl+O"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:154
+msgid "Open Key File"
+msgstr "Obre el fitxer de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:159
+msgid "Ctrl+Q"
+msgstr "Ctrl+Q"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:164
+msgid "New Keypair"
+msgstr "Parell de tecles nou"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:165
+msgid "Ctrl+N"
+msgstr "Ctrl+N"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:167
+msgid "Generate KeyPair"
+msgstr "Genera el parell de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:178
+msgid "New Subkey"
+msgstr "Subclau nova"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:172
+msgid "Ctrl+Shift+N"
+msgstr "Ctrl+Maj+N"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:174
+msgid "Generate Subkey For Selected KeyPair"
+msgstr "Genera una subclau per al parell de claus seleccionat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:198
+msgid "Export To Clipboard"
+msgstr "Exporta al porta-retalls"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:200
+msgid "Export Selected Key(s) To Clipboard"
+msgstr "Exporta les tecles seleccionades al porta-retalls"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:204
+msgid "Export To File"
+msgstr "Exporta a un fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:206
+msgid "Export Selected Key(s) To File"
+msgstr "Exporta les claus seleccionades al fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:210
+msgid "Export As OpenSSH"
+msgstr "Exporta com a OpenSSH"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:213
+msgid "Export Selected Key(s) As OpenSSH Format to File"
+msgstr "Exporta les claus seleccionades com a format OpenSSH al fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:217
+msgid "Delete Selected Key(s)"
+msgstr "Suprimeix les claus seleccionades"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:218
+msgid "Delete the Selected keys"
+msgstr "Elimina les tecles seleccionades"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:222
+msgid "Delete Checked Key(s)"
+msgstr "Suprimeix les claus marcades"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:223
+msgid "Delete the Checked keys"
+msgstr "Elimina les claus marcades"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:264
+msgid "Generate"
+msgstr "Generar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:265
+msgid "Generate A New Keypair or Subkey"
+msgstr "Genereu un nou parell de tecles o subclau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:315
+msgid "Deleting Keys"
+msgstr "Eliminació de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:318
+msgid "Are you sure that you want to delete the following keys?"
+msgstr "Esteu segur que voleu suprimir les claus següents?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:320
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:373
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:410
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:509
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:561
+msgid "The action can not be undone."
+msgstr "L'acció no es pot desfer."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:232
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:273
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:310
+msgid "Export Key To File"
+msgstr "Exporta la clau al fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:361
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:233
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:274
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:311
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:143
+msgid "Key Files"
+msgstr "Arxius clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:365
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:497
+msgid "key(s) exported"
+msgstr "clau(s) exportada(s)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:393
+msgid "Please select one KeyPair before doing this operation."
+msgstr "Seleccioneu un parell de claus abans de fer aquesta operació."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:403
+msgid ""
+"If a key pair does not have a private key then it will not be able to "
+"generate sub-keys."
+msgstr ""
+"Si un parell de claus no té una clau privada, no podrà generar subclaus."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:463
+msgid "No Key Checked."
+msgstr "No s'ha comprovat cap clau."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:471
+msgid "An error occur in exporting."
+msgstr "S'ha produït un error en exportar."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:478
+msgid ""
+"This key may not be able to export as OpenSSH format. Please check the key-"
+"size of the subkey(s) used to sign."
+msgstr ""
+"És possible que aquesta clau no es pugui exportar com a format OpenSSH. "
+"Comproveu la mida de la clau de les subclaus utilitzades per signar."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:492
+msgid "Export OpenSSH Key To File"
+msgstr "Exporta la clau OpenSSH al fitxer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:493
+msgid "OpenSSH Public Key Files"
+msgstr "Fitxers de clau pública OpenSSH"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:43
+msgid "Incomplete configuration"
+msgstr "Configuració incompleta"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:44
+msgid ""
+"The SMTP address is empty, please go to the setting interface to complete "
+"the configuration."
+msgstr ""
+"L'adreça SMTP està buida, aneu a la interfície de configuració per completar"
+" la configuració."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:99
+msgid "Recipient cannot be empty"
+msgstr "El destinatari no pot estar buit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:105
+msgid "One or more Recipient's Email Address is invalid"
+msgstr "Una o més adreces de correu electrònic del destinatari no són vàlides"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:112
+msgid "Sender cannot be empty"
+msgstr "El remitent no pot estar buit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:114
+msgid "Sender's Email Address is invalid"
+msgstr "L'adreça electrònica del remitent no és vàlida"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:176
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:181
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:167
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:171
+msgid "Fail"
+msgstr "Falla"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:167
+msgid "Fail to Connect SMTP Server"
+msgstr "No s'ha pogut connectar el servidor SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:176
+msgid "Fail to Login into SMTP Server"
+msgstr "No s'ha pogut iniciar la sessió al servidor SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:182
+msgid "Fail to Send Mail to SMTP Server"
+msgstr "No s'ha pogut enviar el correu al servidor SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:189
+msgid "Succeed in Sending Mail to SMTP Server"
+msgstr "Aconseguiu enviar correu al servidor SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:51
+msgid "Uploading Public Key"
+msgstr "S'està carregant la clau pública"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:71
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:407
+msgid "Set target Key Server to default Key Server"
+msgstr ""
+"Estableix el servidor de claus de destinació al servidor de claus "
+"predeterminat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:410
+msgid "Cannot read default_keyserver From Settings"
+msgstr "No es pot llegir default_keyserver des de la configuració"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:76
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:412
+msgid "Default Keyserver Not Found"
+msgstr "No s'ha trobat el servidor de claus predeterminat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:413
+msgid ""
+"Cannot read default keyserver from your settings, please set a default "
+"keyserver first"
+msgstr ""
+"No es pot llegir el servidor de claus predeterminat des de la vostra "
+"configuració, primer configureu un servidor de claus predeterminat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:457
+msgid "Key Not Found"
+msgstr "No s'ha trobat la clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:258
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:460
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:477
+msgid "Timeout"
+msgstr "Temps mort"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:261
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:463
+msgid "Key Server Not Found"
+msgstr "Servidor de claus no trobat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:264
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:466
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:484
+msgid "Connection Error"
+msgstr "Error de connexió"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:148
+msgid "Upload Success"
+msgstr "Carrega correctament"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:149
+msgid "Upload Public Key Successfully"
+msgstr "Penja la clau pública correctament"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:45
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:186
+msgid "New UID"
+msgstr "Nou UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:46
+msgid "UID Management"
+msgstr "Gestió UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:65
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:32
+msgid "UIDs"
+msgstr "UIDs"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:70
+msgid "TOFU"
+msgstr "TOFU"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:82
+msgid "Signature of Selected UID"
+msgstr "Signatura de l'UID seleccionat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:45
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+msgid "Email"
+msgstr "Correu electrònic"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:147
+msgid "Create Date (UTC)"
+msgstr "Data de creació (UTC)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:156
+msgid "Expired Date (UTC)"
+msgstr "Data de caducitat (UTC)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:232
+msgid "TOFU %1"
+msgstr "TOFU % 1"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:281
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:224
+msgid "Never Expires"
+msgstr "Mai caduca"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:300
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:357
+msgid "Please select one or more UIDs before doing this operation."
+msgstr "Seleccioneu un o més UID abans de fer aquesta operació."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:321
+msgid "Sign Selected UID(s)"
+msgstr "Signar els UID seleccionats"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:323
+msgid "Delete Selected UID(s)"
+msgstr "Suprimeix els UID seleccionats"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:343
+msgid "Successful Operation"
+msgstr "Operació amb èxit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:344
+msgid "Successfully added a new UID."
+msgstr "S'ha afegit correctament un nou UID."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:346
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:381
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:416
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:514
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:566
+msgid "Operation Failed"
+msgstr "L'operació ha fallat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:347
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:417
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:515
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:567
+msgid "An error occurred during the operation."
+msgstr "S'ha produït un error durant l'operació."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:368
+msgid "Deleting UIDs"
+msgstr "Esborrant UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:371
+msgid "Are you sure that you want to delete the following UIDs?"
+msgstr "Esteu segur que voleu suprimir els UID següents?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:382
+msgid "An error occurred during the delete %1 operation."
+msgstr "S'ha produït un error durant l'operació de supressió %1."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:406
+msgid "Set Primary UID"
+msgstr "Estableix l'UID principal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:408
+msgid "Are you sure that you want to set the Primary UID to?"
+msgstr "Esteu segur que voleu establir l'UID principal a?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:448
+msgid "Set As Primary"
+msgstr "Estableix com a principal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:451
+msgid "Sign UID"
+msgstr "Signar UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:453
+msgid "Delete UID"
+msgstr "Suprimeix l'UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:480
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:494
+msgid "Please select one UID before doing this operation."
+msgstr "Seleccioneu un UID abans de fer aquesta operació."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:504
+msgid "Deleting UID"
+msgstr "S'està suprimint l'UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:507
+msgid "Are you sure that you want to delete the following uid?"
+msgstr "Esteu segur que voleu suprimir l'uid següent?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:525
+msgid "Delete(Revoke) Key Signature"
+msgstr "Suprimeix (Revoca) la signatura de la clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:536
+msgid "Please select one Key Signature before doing this operation."
+msgstr ""
+"Si us plau, seleccioneu una signatura de clau abans de fer aquesta operació."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:545
+msgid ""
+"To delete the signature, you need to have its corresponding public key in "
+"the local database."
+msgstr ""
+"Per eliminar la signatura, cal tenir la seva clau pública corresponent a la "
+"base de dades local."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:556
+msgid "Deleting Key Signature"
+msgstr "S'està suprimint la signatura de la clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:558
+msgid "Are you sure that you want to delete the following signature?"
+msgstr "Esteu segur que voleu suprimir la signatura següent?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:54
+msgid "Notice: The New UID Created will be set as Primary."
+msgstr "Avís: el nou UID creat s'establirà com a principal."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:61
+msgid "Create New UID"
+msgstr "Crea un nou UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:81
+msgid "Expire Date"
+msgstr "Data d'expiració"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:90
+msgid "Sign For Key's UID(s)"
+msgstr "Signa per als UID de la clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:116
+msgid "Unsuccessful Operation"
+msgstr "Operació sense èxit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:117
+msgid "Signature operation failed for UID %1"
+msgstr "L'operació de signatura ha fallat per a l'UID % 1"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:121
+msgid "Operation Complete"
+msgstr "Operació completada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:122
+msgid "The signature operation of the UID is complete"
+msgstr "L'operació de signatura de l'UID s'ha completat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:37
+msgid "Subkey List"
+msgstr "Llista de subclaus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:38
+msgid "Detail of Selected Subkey"
+msgstr "Detall de la subclau seleccionada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:42
+msgid "Generate A New Subkey"
+msgstr "Genera una nova subclau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:66
+msgid "Expires On (Local Time)"
+msgstr "Caduca el (hora local)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:68
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:78
+msgid "Create Date (Local Time)"
+msgstr "Crea la data (hora local)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:69
+msgid "Existence"
+msgstr "Existència"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
+msgid "Subkey ID"
+msgstr "ID de subclau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
+msgid "Algo"
+msgstr "Algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:147
+msgid "Expire Date (UTC)"
+msgstr "Data de caducitat (UTC)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:244
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:367
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:376
+msgid "Certificate"
+msgstr "Certificat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:370
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:379
+msgid "Auth"
+msgstr "Auth"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:252
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:336
+msgid "Exists"
+msgstr "Existeix"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:337
+msgid "Not Exists"
+msgstr "No existeix"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:271
+msgid "Edit Expire Date"
+msgstr "Edita la data de caducitat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:31
+msgid "KeyPair"
+msgstr "Parell de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:33
+msgid "Subkeys"
+msgstr "Subclaus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:43
+msgid "Key Details"
+msgstr "Detalls clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:37
+msgid "Owner"
+msgstr "Propietari"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:38
+msgid "Master Key"
+msgstr "Clau mestra"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:40
+msgid "Additional UIDs"
+msgstr "UID addicionals"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:80
+msgid "Expires on (Local Time)"
+msgstr "Caduca el (hora local)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:82
+msgid "Last Update (Local Time)"
+msgstr "Última actualització (hora local)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:84
+msgid "Master Key Existence"
+msgstr "Existència de clau mestra"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:125
+msgid "copy fingerprint to clipboard"
+msgstr "copieu l'empremta digital al porta-retalls"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:145
+msgid "Export Public Key"
+msgstr "Exporta la clau pública"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:151
+msgid "Export Private Key"
+msgstr "Exporta la clau privada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:158
+msgid "Modify Expiration Datetime (Master Key)"
+msgstr "Modifica la data de caducitat (clau mestra)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:161
+msgid "Modify Password"
+msgstr "Modifica la contrasenya"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:174
+msgid "Key Server Operation (Pubkey)"
+msgstr "Funcionament del servidor de claus (Pubkey)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:181
+msgid "Generate Revoke Certificate"
+msgstr "Generar certificat de revocació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:187
+msgid "Modify TOFU Policy"
+msgstr "Modificar la política TOFU"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:225
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:266
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:303
+msgid "An error occurred during the export operation."
+msgstr "S'ha produït un error durant l'operació d'exportació."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:238
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:279
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:316
+msgid "Export Error"
+msgstr "Error d'exportació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:239
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:280
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:317
+msgid "Couldn't open %1 for writing"
+msgstr "No s'ha pogut obrir % 1 per escriure"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:247
+msgid "Exporting short private Key"
+msgstr "S'està exportant la clau privada curta"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:248
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:290
+msgid "You are about to export your"
+msgstr "Esteu a punt d'exportar el vostre"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:249
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:291
+msgid " PRIVATE KEY "
+msgstr " CLAU PRIVADA"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:250
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:292
+msgid "This is NOT your Public Key, so DON'T give it away."
+msgstr "Aquesta NO és la teva clau pública, així que NO la regalis."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:251
+msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
+msgstr "Realment voleu exportar la vostra CLAU PRIVADA en una mida mínima?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:254
+msgid ""
+"For OpenPGP keys it removes all signatures except for the latest self-"
+"signatures."
+msgstr ""
+"Per a les claus OpenPGP, elimina totes les signatures excepte les últimes "
+"autosignatures."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:289
+msgid "Exporting private Key"
+msgstr "S'està exportant la clau privada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:293
+msgid "Do you REALLY want to export your PRIVATE KEY?"
+msgstr "REALMENTE vols exportar la teva CLAU PRIVADA?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:401
+msgid "No Data"
+msgstr "No hi ha informació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:417
+msgid "Warning: The Master Key has expired."
+msgstr "Avís: la clau mestra ha caducat."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:422
+msgid "Warning: The Master Key has been revoked."
+msgstr "Avís: la clau mestra s'ha revocat."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:429
+msgid "Upload Key Pair to Key Server"
+msgstr "Carregueu el parell de claus al servidor de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:434
+msgid "Update Key Pair"
+msgstr "Actualitza el parell de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:443
+msgid "Export Full Secret Key"
+msgstr "Exporta la clau secreta completa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:449
+msgid "Export Shortest Secret Key"
+msgstr "Exporta la clau secreta més curta"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:474
+msgid "Revocation Certificates"
+msgstr "Certificats de revocació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:522
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:552
+msgid "Not Successful"
+msgstr "No reeixit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:523
+msgid "Modify password not successfully."
+msgstr "Modificar la contrasenya no correctament."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:539
+msgid "Policy Auto"
+msgstr "Política Auto"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:541
+msgid "Policy Good"
+msgstr "Política Bona"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:543
+msgid "Policy Bad"
+msgstr "Política dolenta"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:530
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:545
+msgid "Policy Ask"
+msgstr "Política Pregunta"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:530
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:547
+msgid "Policy Unknown"
+msgstr "Política desconeguda"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:534
+msgid "Modify TOFU Policy(Default is Auto)"
+msgstr "Modifica la política TOFU (el valor predeterminat és automàtic)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:535
+msgid "Policy for the Key Pair:"
+msgstr "Política per al parell de claus:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:553
+msgid "Modify TOFU policy not successfully."
+msgstr "Modificar la política TOFU no correctament."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:70
+msgid "The expire date of the key pair has been updated."
+msgstr "La data de caducitat del parell de claus s'ha actualitzat."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:108
+msgid "Edit Expire Datetime"
+msgstr "Edita la data de caducitat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:41
+msgid "About Software"
+msgstr "Sobre el programari"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:42
+msgid "Translators"
+msgstr "Traductors"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:43
+msgid "Update"
+msgstr "Actualització"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:76
+msgid ""
+"GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
+"free gpg front-end tool.It visualizes most of the common operations of gpg "
+"commands.It's licensed under the GPL v3"
+msgstr ""
+"GpgFrontend és una eina frontal de gpg fàcil d'utilitzar, compacta, "
+"multiplataforma i sense instal·lacions. Visualitza la majoria de les "
+"operacions habituals de les ordres gpg. Té llicència sota la GPL v3."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:82
+msgid "Developer:"
+msgstr "Desenvolupador:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:83
+msgid "If you have any questions or suggestions, raise an issue at"
+msgstr "Si teniu cap pregunta o suggeriment, planteja un problema a"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:86
+msgid "or send a mail to my mailing list at"
+msgstr "o enviar un correu a la meva llista de correu a"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:88
+msgid "Built with Qt"
+msgstr "Construït amb Qt"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:88
+msgid "and GPGME"
+msgstr "i GPGME"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:90
+msgid "Built at"
+msgstr "Construït a"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:123
+msgid ""
+"If you think there are any problems with the translation, why not "
+"participate in the translation work? If you want to participate, please read"
+" the document or contact me via email."
+msgstr ""
+"Si creus que hi ha algun problema amb la traducció, per què no participar en"
+" el treball de traducció? Si voleu participar, llegiu el document o poseu-"
+"vos en contacte amb mi per correu electrònic."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:148
+msgid ""
+"It is recommended that you always check the version of GpgFrontend and "
+"upgrade to the latest version."
+msgstr ""
+"Es recomana que comproveu sempre la versió de GpgFrontend i actualitzeu-la a"
+" la darrera versió."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:151
+msgid ""
+"New versions not only represent new features, but also often represent "
+"functional and security fixes."
+msgstr ""
+"Les noves versions no només representen noves característiques, sinó que "
+"sovint representen solucions funcionals i de seguretat."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:157
+msgid "Current Version"
+msgstr "Versió actual"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:168
+msgid "The current version is less than the latest version on github."
+msgstr "La versió actual és inferior a la darrera versió a github."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:170
+msgid "Please click"
+msgstr "Si us plau, feu clic"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:173
+msgid "Here"
+msgstr "Aquí"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:173
+msgid "to download the latest version."
+msgstr "per descarregar la darrera versió."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:197
+msgid "try to get latest version"
+msgstr "intenta obtenir la darrera versió"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:218
+msgid "Latest Version From Github"
+msgstr "Última versió de Github"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:34
+msgid "Signatures Details"
+msgstr "Detalls de signatures"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:59
+msgid "No valid input found"
+msgstr "No s'ha trobat cap entrada vàlida"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:70
+msgid "Error Validating signature"
+msgstr "Error en validar la signatura"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:72
+msgid "File was signed on %1%"
+msgstr "El fitxer s'ha iniciat a %1%"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:81
+msgid "It Contains"
+msgstr "Conté"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:78
+msgid "Signed on %1%"
+msgstr "Iniciat el %1%"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:36
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:58
+msgid "Key Update Details"
+msgstr "Detalls de l'actualització clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:37
+msgid "No keys found"
+msgstr "No s'han trobat claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:60
+msgid "Key Import Details"
+msgstr "Detalls clau d'importació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:40
+msgid "No keys found to import"
+msgstr "No s'han trobat claus per importar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:74
+msgid "General key info"
+msgstr "Informació general clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:77
+msgid "Considered"
+msgstr "Considerat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:84
+msgid "Public unchanged"
+msgstr "Públic sense canvis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:90
+msgid "Imported"
+msgstr "Importat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:98
+msgid "Not Imported"
+msgstr "No importat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:105
+msgid "Private Read"
+msgstr "Lectura privada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:112
+msgid "Private Imported"
+msgstr "Privat importat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:119
+msgid "Private Unchanged"
+msgstr "Privat sense canvis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:166
+msgid "Private"
+msgstr "Privat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:169
+msgid "Public"
+msgstr "Públic"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:172
+msgid "Unchanged"
+msgstr "Sense canvis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:175
+msgid "New Key"
+msgstr "Nova clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:52
+msgid "New Signature"
+msgstr "Nova signatura"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:54
+msgid "Public key not found locally"
+msgstr "La clau pública no s'ha trobat localment"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:55
+msgid ""
+"There is no target public key content in local for GpgFrontend to gather "
+"enough information about this Signature. Do you want to import the public "
+"key from Keyserver now?"
+msgstr ""
+"No hi ha contingut de clau pública objectiu en local perquè GpgFrontend "
+"reuneix prou informació sobre aquesta signatura. Voleu importar ara la clau "
+"pública del servidor de claus?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:142
+msgid "Open Key"
+msgstr "Clau oberta"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:143
+msgid "Keyring files"
+msgstr "Arxius de clauers"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:165
+msgid "Processing"
+msgstr "Tramitació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:183
+msgid "Failed to execute command."
+msgstr "No s'ha pogut executar l'ordre."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:190
+msgid "Succeed in executing command."
+msgstr "Tenir èxit en executar l'ordre."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:193
+msgid "Finished executing command."
+msgstr "S'ha acabat d'executar l'ordre."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:32
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:51
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:59
+msgid "General"
+msgstr "General"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
+msgid "No."
+msgstr "No."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
+msgid "Address"
+msgstr "adreça"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
+msgid "Available"
+msgstr "Disponible"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:58
+msgid "Default Key Server for Import"
+msgstr "Servidor de claus predeterminat per a la importació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:68
+msgid "Add"
+msgstr "Afegeix"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
+msgid "server_list"
+msgstr "llista_servidor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:114
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
+msgid "default_server"
+msgstr "servidor_predeterminat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:42
+msgid "Updated ui configuration successfully written to"
+msgstr ""
+"S'ha actualitzat la configuració de la interfície d'usuari escrita "
+"correctament"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:46
+msgid "I/O error while writing ui configuration file"
+msgstr "Error d'E/S durant l'escriptura del fitxer de configuració de l'UI"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:57
+msgid "App Path"
+msgstr "Ruta de l'aplicació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:58
+msgid "App Configure Path"
+msgstr "Ruta de configuració de l'aplicació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:59
+msgid "App Data Path"
+msgstr "Ruta de dades de l'aplicació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:60
+msgid "App Log Path"
+msgstr "Ruta de registre de l'aplicació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:61
+msgid "App Locale Path"
+msgstr "Ruta de la configuració regional de l'aplicació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:74
+msgid "UserInterface configuration successfully written to"
+msgstr "S'ha escrit correctament la configuració de la interfície d'usuari"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:79
+msgid "I/O error while writing UserInterface configuration file"
+msgstr ""
+"Error d'E/S en escriure el fitxer de configuració de la Interfície d'usuari"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:85
+msgid "UserInterface configuration successfully read from"
+msgstr "La configuració de la interfície d'usuari s'ha llegit correctament"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:88
+msgid "I/O error while reading UserInterface configure file"
+msgstr ""
+"Error d'E/S en llegir el fitxer de configuració de la interfície d'usuari"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:90
+msgid "Parse error at "
+msgstr "Error d'anàlisi a"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:35
+msgid "Icon Size"
+msgstr "Mida de la icona"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:37
+msgid "small"
+msgstr "petit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:38
+msgid "medium"
+msgstr "mitjà"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:39
+msgid "large"
+msgstr "gran"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:55
+msgid "Icon Style"
+msgstr "Estil d'icones"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:57
+msgid "just text"
+msgstr "només text"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:58
+msgid "just icons"
+msgstr "només icones"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:59
+msgid "text and icons"
+msgstr "text i icones"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:75
+msgid "Window State"
+msgstr "Estat de la finestra"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:78
+msgid "Save window size and position on exit."
+msgstr "Desa la mida i la posició de la finestra a la sortida."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:92
+msgid "Font Size in Information Board"
+msgstr "Mida de la lletra al tauler informatiu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
+msgid "window_save"
+msgstr "window_save"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:52
+msgid "Appearance"
+msgstr "Aparença"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
+msgid "Send Mail"
+msgstr "Envia un correu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
+msgid "Key Server"
+msgstr "Servidor de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:59
+msgid "Advanced"
+msgstr "Avançat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:135
+msgid "System Default"
+msgstr "Sistema per defecte"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:37
+msgid "Show Steganography Options"
+msgstr "Mostra les opcions d'esteganografia"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:39
+msgid "Show Steganographic Options."
+msgstr "Mostra les opcions esteganogràfiques."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:43
+msgid "Pubkey Exchange"
+msgstr "Intercanvi Pubkey"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:45
+msgid "Auto Pubkey Exchange"
+msgstr "Intercanvi automàtic de Pubkey"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:46
+msgid "GpgFrontend Server"
+msgstr "Servidor GpgFrontend"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:51
+msgid "Server that provides short key and key exchange services"
+msgstr "Servidor que ofereix claus curtes i serveis d'intercanvi de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:59
+msgid "Save Checked Keys"
+msgstr "Desa les claus marcades"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:62
+msgid "Save checked private keys on exit and restore them on next start."
+msgstr ""
+"Desa les claus privades marcades a la sortida i restaura-les el proper "
+"inici."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:71
+msgid "Confirm drag'n'drop key import"
+msgstr "Confirmeu la importació de claus d'arrossegar i deixar anar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:74
+msgid "Import files dropped on the Key List without confirmation."
+msgstr "Importa fitxers deixats a la llista de claus sense confirmació."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:82
+msgid "Language"
+msgstr "Llenguatge"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:93
+msgid "NOTE"
+msgstr "NOTA"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
+msgid "GpgFrontend will restart automatically if you change the language!"
+msgstr "GpgFrontend es reiniciarà automàticament si canvieu l'idioma!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:104
+msgid "Own key"
+msgstr "Clau pròpia"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:108
+msgid "Get Service Token"
+msgstr "Obteniu el testimoni de servei"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:309
+msgid "No Service Token Found"
+msgstr "No s'ha trobat cap testimoni de servei"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:136
+msgid "Key pair for synchronization and identity authentication"
+msgstr "Parell de claus per a la sincronització i l'autenticació d'identitat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:176
+msgid "save_key_checked"
+msgstr "save_key_checked"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:213
+msgid "lang"
+msgstr "lang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:239
+msgid "confirm_import_keys"
+msgstr "confirm_import_keys"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:329
+msgid "Own Key can not be None while getting service token."
+msgstr "La clau pròpia no pot ser Cap mentre obteniu el testimoni de servei."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:341
+msgid "Key Not Exists"
+msgstr "La clau no existeix"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:428
+msgid "Succeed in getting service token"
+msgstr "Aconseguiu obtenir un testimoni de servei"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:38
+msgid "Enable"
+msgstr "Activa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:57
+msgid "Check Connection"
+msgstr "Comproveu la connexió"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:60
+msgid "Connection"
+msgstr "Connexió"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:61
+msgid "Preference"
+msgstr "Preferència"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:67
+msgid "SMTP Address"
+msgstr "Adreça SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:69
+msgid "Username"
+msgstr "Nom d'usuari"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:71
+msgid "Password"
+msgstr "Contrasenya"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:73
+msgid "Port"
+msgstr "Port"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:75
+msgid "Connection Security"
+msgstr "Seguretat de connexió"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:81
+msgid "Default Sender"
+msgstr "Remitent per defecte"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:171
+msgid "Fail to Login"
+msgstr "No s'ha pogut iniciar la sessió"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:177
+msgid "Succeed in connecting and login"
+msgstr "Aconseguiu connectar-vos i iniciar sessió"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:45
+msgid "Import ALL"
+msgstr "Importa-ho TOT"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:47
+msgid "Search"
+msgstr "Cerca"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
+msgid "Search String"
+msgstr "Cadena de cerca"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:100
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:547
+msgid "Update Keys from Keyserver"
+msgstr "Actualitza les claus des del servidor de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:102
+msgid "Import Keys from Keyserver"
+msgstr "Importa les claus del servidor de claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "UID"
+msgstr "UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "Creation date"
+msgstr "Data de creació"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "KeyID"
+msgstr "KeyID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "Tag"
+msgstr "Etiqueta"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:212
+msgid "Text is empty."
+msgstr "El text està buit."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:255
+msgid "Not Key Found"
+msgstr "No s'ha trobat la clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:273
+msgid "Too many responses from keyserver!"
+msgstr "Massa respostes del servidor de claus!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:283
+msgid "No keys found, input may be kexId, retrying search with 0x."
+msgstr ""
+"No s'han trobat claus, l'entrada pot ser kexId, tornant a provar la cerca "
+"amb 0x."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:292
+msgid "No keys found containing the search string!"
+msgstr "No s'ha trobat cap clau que contingui la cadena de cerca!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:298
+msgid "Insufficiently specific search string!"
+msgstr "Cadena de cerca insuficientment específica!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:331
+msgid "revoked"
+msgstr "revocat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:335
+msgid "disabled"
+msgstr "discapacitat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:377
+msgid "%1 keys found. Double click a key to import it."
+msgstr "S'han trobat %1 claus. Feu doble clic en una tecla per importar-la."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:389
+msgid "Current Row"
+msgstr "Fila actual"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:472
+msgid "Public key Not Found"
+msgstr "No s'ha trobat la clau pública"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:473
+msgid "Public key fingerprint %1 not found in the Keyserver"
+msgstr ""
+"No s'ha trobat l'empremta digital de la clau pública % 1 al servidor de "
+"claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:480
+msgid "Host Not Found"
+msgstr "No s'ha trobat l'amfitrió"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:485
+msgid "General Connection Error"
+msgstr "Error general de connexió"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:500
+msgid "Key Imported"
+msgstr "Clau importada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:34
+msgid "Decrypt Operation"
+msgstr "Operació de desxifrar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:41
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:45
+msgid "Failed"
+msgstr "Fracassat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:43
+msgid "Unsupported Algo"
+msgstr "Algo no compatible"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:51
+msgid "File Name"
+msgstr "Nom de l'arxiu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
+msgid "MIME"
+msgstr "MIME"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
+msgid "true"
+msgstr "veritat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:59
+msgid "Recipient(s)"
+msgstr "Destinataris"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:73
+msgid "Recipient"
+msgstr "Destinatari"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:176
+msgid "Unknown"
+msgstr "Desconegut"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:89
+msgid "Keu ID"
+msgstr "Keu ID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:90
+msgid "Public Algo"
+msgstr "Algo Públic"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:32
+msgid "Start Encrypt Result Analyse"
+msgstr "Inicieu l'anàlisi de resultats de xifrat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:34
+msgid "Encrypt Operation"
+msgstr "Operació de xifrat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:46
+msgid "Invalid Recipients"
+msgstr "Destinataris no vàlids"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:102
+msgid "Reason"
+msgstr "Raó"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:34
+msgid "Start Sign Result Analyse"
+msgstr "Inicia l'anàlisi del resultat del signe"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:36
+msgid "Sign Operation"
+msgstr "Operació de signes"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:47
+msgid "Sign Result Analyse Getting Result"
+msgstr "Signar el resultat Analitzar l'obtenció del resultat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:54
+msgid "Signers Fingerprint"
+msgstr "Empremta digital dels signants"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:56
+msgid "Sign Mode"
+msgstr "Mode de signatura"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:58
+msgid "Normal"
+msgstr "Normal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:62
+msgid "Detach"
+msgstr "Separar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:69
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:72
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:99
+msgid "Signer"
+msgstr "Signant"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:184
+msgid "Public Key Algo"
+msgstr "Algo de clau pública"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:187
+msgid "Hash Algo"
+msgstr "Hash Algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:190
+msgid "Date"
+msgstr "Data"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:190
+msgid "UTC"
+msgstr "UTC"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:90
+msgid "Sign Result Analyse Getting Invalid Signer"
+msgstr "Anàlisi del resultat de la signatura S'obté un signant no vàlid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:95
+msgid "Invalid Signers"
+msgstr "Signants no vàlids"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:38
+msgid "Verify Result Analyse Started"
+msgstr "Comproveu que s'ha iniciat l'anàlisi de resultats"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:40
+msgid "Verify Operation"
+msgstr "Verificar el funcionament"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:54
+msgid "Not Signature Found"
+msgstr "No s'ha trobat la signatura"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:59
+msgid "Signed On"
+msgstr "Iniciat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:65
+msgid "Signatures List"
+msgstr "Llista de signatures"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:71
+msgid "Signature [%1%]:"
+msgstr "Signatura [%1%]:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:74
+msgid "A Bad Signature."
+msgstr "Una mala signatura."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:76
+msgid "This Signature is invalid."
+msgstr "Aquesta signatura no és vàlida."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:81
+msgid "A"
+msgstr "A"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:92
+msgid "Missing Key's"
+msgstr "Falten les claus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:95
+msgid "Revoked Key's"
+msgstr "Clau revocada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:98
+msgid "Expired Key's"
+msgstr "Clau caducada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:101
+msgid "Missing CRL's"
+msgstr "Falten CRL"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:105
+msgid "Signature Fully Valid."
+msgstr "Signatura Totalment vàlida."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:107
+msgid "Signature Not Fully Valid."
+msgstr "La signatura no és totalment vàlida."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:113
+msgid "Key is NOT present with ID 0x"
+msgstr "La clau NO està present amb l'ID 0x"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:121
+msgid "A signature could NOT be verified due to a Missing Key"
+msgstr "NO s'ha pogut verificar una signatura perquè falta una clau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:126
+msgid ""
+"A signature is valid but the key used to verify the signature has been "
+"revoked"
+msgstr ""
+"Una signatura és vàlida, però la clau utilitzada per verificar la signatura "
+"ha estat revocada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:135
+msgid "A signature is valid but expired"
+msgstr "Una signatura és vàlida però ha caducat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:142
+msgid ""
+"A signature is valid but the key used to verify the signature has expired."
+msgstr ""
+"Una signatura és vàlida, però la clau utilitzada per verificar la signatura "
+"ha caducat."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:150
+msgid "There was some other error which prevented the signature verification."
+msgstr ""
+"Hi va haver algun altre error que va impedir la verificació de la signatura."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:158
+msgid "Error for key with fingerprint"
+msgstr "Error per a la clau amb empremta digital"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:180
+msgid "Signed By"
+msgstr "Firmat per"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/function/GpgKeyOpera.cpp:224
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/function/GpgKeyOpera.cpp:233
+msgid "operator not support"
+msgstr "l'operador no és compatible"

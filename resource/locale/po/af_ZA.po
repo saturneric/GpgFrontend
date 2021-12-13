@@ -1,0 +1,3345 @@
+# Afrikaans translations for GpgFrontend package.
+# Copyright (C) 2021 Saturneric
+# This file is distributed under the same license as the GpgFrontend package.
+# Automatically generated, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GpgFrontend 2.0.2\n"
+"Report-Msgid-Bugs-To: eric@bktus.com\n"
+"POT-Creation-Date: 2021-12-14 00:41+0800\n"
+"PO-Revision-Date: 2021-12-14 00:41+0800\n"
+"Last-Translator: Google Translation <eric@bktus.com>\n"
+"Language-Team: Google Translation <eric@bktus.com>\n"
+"Language: af\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:81
+msgid "ENV Loading Failed"
+msgstr "ENV-laai het misluk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:82
+msgid ""
+"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
+" in Github to install Gnupg and then open GpgFrontend."
+msgstr ""
+"Gnupg(gpg) is nie korrek geïnstalleer nie, volg asseblief die ReadME-"
+"instruksies in Github om Gnupg te installeer en maak dan GpgFrontend oop."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:101
+msgid "Loading Gnupg Info..."
+msgstr "Laai tans Gnupg-inligting..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:102
+msgid ""
+"If this process is too slow, please set the key server address appropriately"
+" in the gnupg configuration file (depending on the network situation in your"
+" country or region)."
+msgstr ""
+"As hierdie proses te stadig is, stel asseblief die sleutelbedieneradres "
+"toepaslik in die gnupg-konfigurasielêer (afhangende van die netwerksituasie "
+"in jou land of streek)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:144
+msgid "Unhandled Exception Thrown"
+msgstr "Onbehandelde uitsondering gegooi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:145
+msgid ""
+"Oops, an unhandled exception was thrown during the running of the program, "
+"and now it needs to be restarted."
+msgstr ""
+"Oeps, 'n onbehandelde uitsondering is gegooi tydens die loop van die "
+"program, en nou moet dit herbegin word."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:178
+msgid "Logfile Path"
+msgstr "Loglêerpad"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:201
+msgid "Could not read properly from configure file"
+msgstr "Kon nie behoorlik van konfigurasielêer lees nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:35
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyUploader.cpp:93
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:65
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:90
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:232
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:245
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:258
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:274
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:284
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:308
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:327
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:427
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:177
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:60
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:119
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:136
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:234
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:42
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:220
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:264
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:270
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:275
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:304
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:388
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:447
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:129
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:223
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:383
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:451
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:478
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:493
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:336
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:353
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:398
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:463
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:470
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:477
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:485
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:224
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:265
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:302
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:341
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:412
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:431
+msgid "Error"
+msgstr "Fout"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:36
+msgid "Nothing Reply. Please check the Internet connection."
+msgstr "Niks Antwoord. Kontroleer asseblief die internetverbinding."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:56
+msgid "Unknown Error"
+msgstr "Onbekende fout"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:94
+msgid "Network Error"
+msgstr "Netwerk fout"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:75
+msgid "Outdated Reply"
+msgstr "Verouderde antwoord"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:90
+msgid "Unknown Reason"
+msgstr "Onbekende rede"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:94
+msgid "Unknown Reply Format"
+msgstr "Onbekende antwoordformaat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyUploader.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:66
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:91
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:235
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:413
+msgid ""
+"The communication content with the server does not meet the requirements"
+msgstr ""
+"Die kommunikasie-inhoud met die bediener voldoen nie aan die vereistes nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:240
+msgid "Generate Key"
+msgstr "Genereer sleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:76
+msgid "Name must contain at least five characters."
+msgstr "Naam moet ten minste vyf karakters bevat."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:80
+msgid "Please give a email address."
+msgstr "Gee asseblief 'n e-posadres."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:87
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:225
+msgid "Expiration time no more than 2 years."
+msgstr "Vervaldatum nie meer as 2 jaar nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:117
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:247
+msgid "Generating"
+msgstr "Genereer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:259
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:188
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:69
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:189
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:176
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:43
+msgid "Success"
+msgstr "Sukses"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:131
+msgid "The new key pair has been generated."
+msgstr "Die nuwe sleutelpaar is gegenereer."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:138
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:267
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:182
+msgid "Failure"
+msgstr "Mislukking"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:167
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:68
+msgid "Key Usage"
+msgstr "Sleutelgebruik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:169
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:70
+msgid "Encryption"
+msgstr "Enkripsie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:203
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:165
+msgid "Signing"
+msgstr "Ondertekening"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:76
+msgid "Certification"
+msgstr "Sertifisering"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:79
+msgid "Authentication"
+msgstr "Stawing"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:115
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:44
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:66
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+msgid "Name"
+msgstr "Naam"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:355
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:115
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:67
+msgid "Email Address"
+msgstr "E-pos adres"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:68
+msgid "Comment"
+msgstr "Lewer kommentaar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:357
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:123
+msgid "Expiration Date"
+msgstr "Vervaldatum"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:358
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:389
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:100
+msgid "Never Expire"
+msgstr "Moet nooit verval nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:359
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:125
+msgid "KeySize (in Bit)"
+msgstr "Sleutelgrootte (in bietjie)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:126
+msgid "Key Type"
+msgstr "Tipe sleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:361
+msgid "Non Pass Phrase"
+msgstr "Nie-slaagfrase"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:374
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:135
+msgid "Basic Information"
+msgstr "Basiese inligting"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:53
+msgid "Generate New Subkey"
+msgstr "Genereer nuwe subsleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:260
+msgid "The new subkey has been generated."
+msgstr "Die nuwe subsleutel is gegenereer."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:35
+msgid "Decrypt File"
+msgstr "Dekripteer lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:37
+msgid "Encrypt File"
+msgstr "Enkripteer lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:39
+msgid "Sign File"
+msgstr "Teken lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:41
+msgid "Verify File"
+msgstr "Verifieer lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:51
+msgid "Input Parameters"
+msgstr "Invoerparameters"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:57
+msgid "Target File"
+msgstr "Doellêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:63
+msgid "Output File"
+msgstr "Uitvoer lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:79
+msgid "Signature File(.sig) Path"
+msgstr "Handtekening Lêer(.sig) Pad"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:198
+msgid "Open File"
+msgstr "Oop leêr"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:186
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:54
+msgid "Save File"
+msgstr "Stoor die lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:214
+msgid "Couldn't open file"
+msgstr "Kon nie lêer oopmaak nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:233
+msgid "Error Occurred During Encryption"
+msgstr "Fout het tydens enkripsie voorgekom"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:246
+msgid "Error Occurred During Decryption"
+msgstr "Fout het tydens dekripsie voorgekom"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:259
+msgid "Error Occurred During Signature"
+msgstr "Fout het tydens handtekening voorgekom"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:33
+msgid "Unsaved Files"
+msgstr "Ongestoorde lêers"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:82
+msgid ""
+"%1% files contain unsaved information.<br/>Save the changes before closing?"
+msgstr ""
+"%1% lêers bevat ongestoorde inligting.<br/>Stoor die veranderinge voordat jy"
+" toemaak?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:96
+msgid "Check the files you want to save:"
+msgstr "Kontroleer die lêers wat jy wil stoor:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:98
+msgid "Note"
+msgstr "Let wel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:271
+msgid "If you don't save these files, all changes are lost."
+msgstr "As jy nie hierdie lêers stoor nie, gaan alle veranderinge verlore."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:42
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:460
+msgid "Default"
+msgstr "Verstek"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:115
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+msgid "Select"
+msgstr "Kies"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:115
+msgid "Type"
+msgstr "Tik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:116
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:64
+msgid "Usage"
+msgstr "Gebruik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:116
+msgid "Validity"
+msgstr "Geldigheid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:116
+msgid "Finger Print"
+msgstr "Vingerafdruk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:129
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:517
+msgid "called"
+msgstr "geroep"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:268
+msgid "Import Keys"
+msgstr "Voer sleutels in"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:271
+msgid "You've dropped something on the table."
+msgstr "Jy het iets op die tafel laat val."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:272
+msgid "GpgFrontend will now try to import key(s)."
+msgstr "GpgFrontend sal nou probeer om sleutel(s) in te voer."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:277
+msgid "Always import without bothering."
+msgstr "Voer altyd in sonder om te pla."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:311
+msgid "Couldn't Open File"
+msgstr "Kon nie lêer oopmaak nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:30
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:95
+msgid "Confirm"
+msgstr "Bevestig"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:47
+msgid "Select Signer(s)"
+msgstr "Kies ondertekenaar(s)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:50
+msgid "Selecting Nothing will eventually use default key to sign."
+msgstr "Om Niks te kies, sal uiteindelik versteksleutel gebruik om te teken."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:32
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:73
+msgid "Key ID"
+msgstr "Sleutel-ID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:33
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:60
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:74
+msgid "Algorithm"
+msgstr "Algoritme"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:34
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:75
+msgid "Key Size"
+msgstr "Sleutel Grootte"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:35
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:76
+msgid "Nominal Usage"
+msgstr "Nominale gebruik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:36
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:77
+msgid "Actual Usage"
+msgstr "Werklike gebruik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
+msgid "Expires on"
+msgstr "Verval op"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:38
+msgid "Last Update"
+msgstr "Laaste opdatering"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:39
+msgid "Secret Key Existence"
+msgstr "Geheime sleutelbestaan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:51
+msgid "untitled"
+msgstr "titelloos"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:415
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:318
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:318
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:410
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
+msgid "Warning"
+msgstr "Waarskuwing"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:93
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:416
+msgid ""
+"Cannot read file %1%:\n"
+"%2%."
+msgstr ""
+"Kan nie lêer %1% lees nie:\n"
+"%2%."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:104
+msgid "Open file"
+msgstr "Oop leêr"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:204
+msgid "Save file"
+msgstr "Stoor die lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:266
+msgid "Unsaved document"
+msgstr "Ongestoorde dokument"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:267
+msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgstr "Die dokument \"%1\" is gewysig. Wil jy jou veranderinge stoor?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:270
+msgid "Note:"
+msgstr "Let wel:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:151
+msgid "The path is not exists, unprivileged or unreachable."
+msgstr "Die pad bestaan nie, onbevoorreg of onbereikbaar nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:159
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:152
+msgid "Open"
+msgstr "Maak oop"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:161
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:297
+msgid "Rename"
+msgstr "Hernoem"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:163
+msgid "Delete"
+msgstr "Vee uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:163
+msgid "Encrypt Sign"
+msgstr "Enkripteer teken"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:169
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:175
+msgid "Decrypt Verify"
+msgstr "Dekripteer Verifieer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:169
+msgid "(.gpg .asc)"
+msgstr "(.gpg .asc)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:369
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:378
+msgid "Sign"
+msgstr "Teken"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:188
+msgid "Verify"
+msgstr "Verifieer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:175
+msgid "(.sig .gpg .asc)"
+msgstr "(.sig .gpg .asc)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:178
+msgid "Calculate Hash"
+msgstr "Bereken Hash"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:407
+msgid "Make New Directory"
+msgstr "Maak 'n nuwe gids"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:185
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:420
+msgid "Create Empty File"
+msgstr "Skep leë lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:204
+msgid "Show Hidden File"
+msgstr "Wys versteekte lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:216
+msgid "Show System File"
+msgstr "Wys stelsellêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:275
+msgid "The directory is unprivileged or unreachable."
+msgstr "Die gids is onbevoorreg of onbereikbaar."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:285
+msgid "The file is unprivileged or unreachable."
+msgstr "Die lêer is onbevoorreg of onbereikbaar."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:297
+msgid "New Filename"
+msgstr "Nuwe lêernaam"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:309
+msgid "Unable to rename the file or folder."
+msgstr "Kan nie die lêer of vouer hernoem nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:319
+msgid "Are you sure you want to delete it?"
+msgstr "Is jy seker jy wil dit uitvee?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:328
+msgid "Unable to delete the file or folder."
+msgstr "Kan nie die lêer of vouer uitvee nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:359
+msgid "File Hash Information"
+msgstr "Lêer Hash-inligting"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:360
+msgid "filename"
+msgstr "lêernaam"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:375
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:383
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:391
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:158
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:93
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
+msgid ": "
+msgstr ":"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:407
+msgid "Directory Name"
+msgstr "Gidsnaam"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:421
+msgid "Filename (you can given extension)"
+msgstr "Lêernaam (jy kan uitbreiding gegee word)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:427
+msgid "Unable to create the file."
+msgstr "Kan nie die lêer skep nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:39
+msgid "Import from keyserver"
+msgstr "Voer in vanaf sleutelbediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:43
+msgid "Key not present with id 0x"
+msgstr "Sleutel nie teenwoordig met ID 0x nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:105
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:138
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:54
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+msgid "Status"
+msgstr "Status"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:47
+msgid ":"
+msgstr ":"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:49
+msgid "Key not present in key list"
+msgstr "Sleutel nie teenwoordig in sleutellys nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:57
+msgid "A Signature"
+msgstr "N handtekening"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:78
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:112
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:128
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:143
+msgid "Key Information is NOT Available"
+msgstr "Sleutelinligting is NIE beskikbaar nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:64
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:80
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:114
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:145
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:71
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:49
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:100
+msgid "Fingerprint"
+msgstr "Vingerafdruk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:73
+msgid "Cert Revoked"
+msgstr "Sertifikaat herroep"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:89
+msgid "Signature Expired"
+msgstr "Handtekening het verval"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:105
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:107
+msgid "Key Expired"
+msgstr "Sleutel het verval"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:123
+msgid "General Error"
+msgstr "Algemene fout"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:138
+msgid "Unknown Error "
+msgstr "Onbekende fout"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:168
+msgid "Signer Name"
+msgstr "Ondertekenaar Naam"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:169
+msgid "Signer Email"
+msgstr "Ondertekenaar-e-pos"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:170
+msgid "Key's Fingerprint"
+msgstr "Sleutel se vingerafdruk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:171
+msgid "Valid"
+msgstr "Geldig"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:172
+msgid "Flags"
+msgstr "Vlae"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:179
+msgid "Fully Valid"
+msgstr "Ten volle geldig"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:181
+msgid "NOT Fully Valid"
+msgstr "NIE ten volle geldig nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:187
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:83
+msgid "Good"
+msgstr "Goed"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:86
+msgid "Bad"
+msgstr "Sleg"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:193
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:89
+msgid "Expired"
+msgstr "Verval"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:196
+msgid "Missing Key"
+msgstr "Ontbrekende sleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:199
+msgid "Revoked Key"
+msgstr "Sleutel herroep"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:202
+msgid "Expired Key"
+msgstr "Verval sleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:205
+msgid "Missing CRL"
+msgstr "Ontbreek CRL"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:38
+msgid "InfoBoard's Actions Menu"
+msgstr "InfoBoard se aksies-kieslys"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:117
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:98
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:123
+msgid "Copy"
+msgstr "Kopieer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:40
+msgid "Save"
+msgstr "Stoor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:41
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:60
+msgid "Clear"
+msgstr "Duidelik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:86
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:51
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:102
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:111
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:114
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:176
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:213
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:239
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
+msgid "Setting Operation Error"
+msgstr "Fout instelbewerking"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:86
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
+msgid "info_font_size"
+msgstr "info_font_size"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:170
+msgid "Save Information Board's Content"
+msgstr "Stoor inligtingsbord se inhoud"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:178
+msgid "The file path is not exists, unprivileged or unreachable."
+msgstr "Die lêerpad bestaan nie, onbevoorreg of onbereikbaar nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:39
+msgid "First Start Wizard"
+msgstr "Eerste Begin Wizard"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:141
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:514
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:445
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:553
+msgid "Called"
+msgstr "Gebel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:82
+msgid "Getting Started..."
+msgstr "Aan die gang kom..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:83
+msgid "... with GpgFrontend"
+msgstr "... met GpgFrontend"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:86
+msgid "Welcome to use GpgFrontend for decrypting and signing text or file!"
+msgstr ""
+"Welkom om GpgFrontend te gebruik vir die dekripteer en ondertekening van "
+"teks of lêer!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:89
+msgid ""
+"is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free "
+"OpenPGP Crypto Tool."
+msgstr ""
+"is 'n kragtige, maklik-om-te-gebruik, kompakte, kruis-platform en "
+"installasie-vrye OpenPGP Crypto Tool."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:91
+msgid "For brief information have a look at the"
+msgstr "Vir kort inligting, kyk na die"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:93
+msgid "Overview"
+msgstr "Oorsig"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:94
+msgid "by clicking the link, the page will open in the web browser"
+msgstr "deur op die skakel te klik, sal die bladsy in die webblaaier oopmaak"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:103
+msgid ""
+"If it supports the language currently being used in your system, GpgFrontend"
+" will automatically set it."
+msgstr ""
+"As dit die taal ondersteun wat tans in jou stelsel gebruik word, sal "
+"GpgFrontend dit outomaties stel."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:121
+msgid "Choose your action..."
+msgstr "Kies jou aksie..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:122
+msgid "...by clicking on the appropriate link."
+msgstr "...deur op die toepaslike skakel te klik."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:126
+msgid ""
+"If you have never used GpgFrontend before and also don't own a gpg key yet "
+"you may possibly want to read how to"
+msgstr ""
+"As jy nog nooit GpgFrontend gebruik het nie en ook nog nie 'n gpg-sleutel "
+"besit nie, wil jy dalk lees hoe om"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:138
+msgid ""
+"If you want to learn how to encrypt, decrypt, sign and verify text, you can "
+"read "
+msgstr ""
+"As jy wil leer hoe om teks te enkripteer, dekripteer, onderteken en "
+"verifieer, kan jy lees"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:143
+msgid "Encrypt & Decrypt Text"
+msgstr "Enkripteer en dekripteer teks"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:158
+msgid "or"
+msgstr "of"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:146
+msgid "Sign & Verify Text"
+msgstr "Teken en verifieer teks"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:154
+msgid "If you want to operate file, you can read "
+msgstr "As jy die lêer wil gebruik, kan jy lees"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:158
+msgid "Encrypt & Sign File"
+msgstr "Enkripteer en teken lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:161
+msgid "Sign & Verify File"
+msgstr "Teken en verifieer lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:187
+msgid "Create a keypair..."
+msgstr "Skep 'n sleutelpaar..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:188
+msgid "...for decrypting and signing messages"
+msgstr "...vir die dekripteer en ondertekening van boodskappe"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:190
+msgid ""
+"You should create a new keypair.The pair consists of a public and a private "
+"key.<br>Other users can use the public key to encrypt messages for you and "
+"verify messages signed by you.You can use the private key to decrypt and "
+"sign messages.<br>For more information have a look at the offline tutorial "
+"(which then is shown in the main window):"
+msgstr ""
+"Jy moet 'n nuwe sleutelpaar skep. Die paar bestaan uit 'n publieke en 'n "
+"private sleutel.<br>Ander gebruikers kan die publieke sleutel gebruik om "
+"boodskappe vir jou te enkripteer en boodskappe wat deur jou onderteken is, "
+"te verifieer. Jy kan die private sleutel gebruik om te dekripteer en te "
+"onderteken boodskappe.<br>Vir meer inligting, kyk na die vanlyn tutoriaal "
+"(wat dan in die hoofvenster gewys word):"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:202
+msgid "Offline tutorial"
+msgstr "Vanlyn tutoriaal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:210
+msgid "Create New Key"
+msgstr "Skep nuwe sleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:232
+msgid "Ready."
+msgstr "Gereed."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:233
+msgid "Have fun with GpgFrontend!"
+msgstr "Om pret te hê met GpgFrontend!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:236
+msgid "You are ready to use GpgFrontend now.<br><br>"
+msgstr "Jy is gereed om GpgFrontend nou te gebruik.<br><br>"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:240
+msgid "The Online Document"
+msgstr "Die aanlyn dokument"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:241
+msgid ""
+" will get you started with GpgFrontend. Anytime you encounter problems, "
+"please try to find help from the documentation"
+msgstr ""
+" sal jou aan die gang kry met GpgFrontend. Elke keer as jy probleme "
+"ondervind, probeer asseblief om hulp uit die dokumentasie te kry"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:250
+msgid "Open offline help."
+msgstr "Maak vanlyn hulp oop."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:253
+msgid "Dont show the wizard again."
+msgstr "Moenie die towenaar weer wys nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:48
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:169
+msgid "Invalid Own Key"
+msgstr "Ongeldige eie sleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:49
+msgid ""
+"Own Key can not be use to do any operation. Please go to the setting "
+"interface to select an OwnKey and get a ServiceToken."
+msgstr ""
+"Eie sleutel kan nie gebruik word om enige bewerking uit te voer nie. Gaan "
+"asseblief na die instellingskoppelvlak om 'n OwnKey te kies en 'n "
+"ServiceToken te kry."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:61
+msgid "Please obtain a Service Token from the server in the settings."
+msgstr "Kry asseblief 'n diensteken van die bediener in die instellings."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:98
+msgid "Getting Cpt From Server"
+msgstr "Kry Cpt vanaf bediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:136
+msgid "Invalid short ciphertext"
+msgstr "Ongeldige kort syferteks"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:158
+msgid "Invalid Service Token"
+msgstr "Ongeldige dienstoken"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:159
+msgid "Please go to the setting interface to get a ServiceToken."
+msgstr ""
+"Gaan asseblief na die instellingskoppelvlak om 'n ServiceToken te kry."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:170
+msgid "Own Key can not be use to do any operation."
+msgstr "Eie sleutel kan nie gebruik word om enige bewerking uit te voer nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:219
+msgid "Getting Scpt From Server"
+msgstr "Kry Scpt vanaf bediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:247
+msgid ""
+"Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
+msgstr ""
+"Kennisgewing: Gebruik Decrypt & Verify-bewerking om hierdie kort kripto-teks"
+" te dekripteer."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:254
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:432
+msgid "There is a problem with the communication with the server"
+msgstr "Daar is 'n probleem met die kommunikasie met die bediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:38
+msgid "Select a file before doing it."
+msgstr "Kies 'n lêer voordat u dit doen."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:43
+msgid "No permission to read this file."
+msgstr "Geen toestemming om hierdie lêer te lees nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:48
+msgid "No permission to create file."
+msgstr "Geen toestemming om lêer te skep nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:63
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:319
+msgid "The target file already exists, do you need to overwrite it?"
+msgstr "Die teikenlêer bestaan reeds, moet jy dit oorskryf?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:72
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:329
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:141
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:282
+msgid "No Key Selected"
+msgstr "Geen sleutel gekies nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:84
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:149
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:392
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:402
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:299
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:479
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:493
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:535
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:544
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:328
+msgid "Invalid Operation"
+msgstr "Ongeldige bewerking"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:81
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:86
+msgid ""
+"The selected key contains a key that does not actually have a encrypt usage."
+msgstr ""
+"Die geselekteerde sleutel bevat 'n sleutel wat nie eintlik 'n enkripteer "
+"gebruik het nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:83
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:340
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:88
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:153
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:295
+msgid "For example the Following Key:"
+msgstr "Byvoorbeeld die volgende sleutel:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:94
+msgid "Encrypting"
+msgstr "Enkripteer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:108
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:221
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:305
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:389
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:448
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:184
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:224
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:384
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:452
+msgid "An error occurred during operation."
+msgstr "'n Fout het tydens operasie voorgekom."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:205
+msgid "Decrypting"
+msgstr "Dekripteer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:179
+msgid ""
+"The selected key contains a key that does not actually have a sign usage."
+msgstr ""
+"Die geselekteerde sleutel bevat 'n sleutel wat nie eintlik 'n tekengebruik "
+"het nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:181
+msgid "for example the Following Key:"
+msgstr "byvoorbeeld die volgende sleutel:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:191
+msgid "The signature file \"%1\" exists, do you need to overwrite it?"
+msgstr "Die handtekeninglêer \"%1\" bestaan, moet jy dit oorskryf?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
+msgid "Origin file to verify"
+msgstr "Oorspronglêer om te verifieer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
+msgid "Filepath"
+msgstr "Lêer pad"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:265
+msgid ""
+"Please select the appropriate origin file or signature file. Ensure that "
+"both are in this directory."
+msgstr ""
+"Kies asseblief die toepaslike oorspronglêer of handtekeninglêer. Maak seker "
+"dat albei in hierdie gids is."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:271
+msgid "No permission to read target file."
+msgstr "Geen toestemming om teikenlêer te lees nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:276
+msgid "No permission to read signature file."
+msgstr "Geen toestemming om handtekeninglêer te lees nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:283
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:253
+msgid "Verifying"
+msgstr "Verifieer tans"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:338
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:293
+msgid "Invalid KeyPair"
+msgstr "Ongeldige sleutelpaar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:339
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:294
+msgid "The selected keypair cannot be used for encryption."
+msgstr "Die geselekteerde sleutelpaar kan nie vir enkripsie gebruik word nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:323
+msgid "Encrypting and Signing"
+msgstr "Enkripteer en onderteken"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:411
+msgid "The output file %1 already exists, do you need to overwrite it?"
+msgstr "Die uitvoerlêer %1 bestaan reeds, moet jy dit oorskryf?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:423
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:425
+msgid "Decrypting and Verifying"
+msgstr "Dekripteer en verifieer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:33
+msgid "New"
+msgstr "Nuut"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:39
+msgid "Open a new file"
+msgstr "Maak 'n nuwe lêer oop"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:42
+msgid "Open..."
+msgstr "Maak oop..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:45
+msgid "Open an existing file"
+msgstr "Maak 'n bestaande lêer oop"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:48
+msgid "File Browser"
+msgstr "Lêerblaaier"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:51
+msgid "Open a file browser"
+msgstr "Maak 'n lêerblaaier oop"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:57
+msgid "Save the current File"
+msgstr "Stoor die huidige lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:60
+msgid "Save As"
+msgstr "Stoor as"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:63
+msgid "Save the current File as..."
+msgstr "Stoor die huidige lêer as..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:66
+msgid "Print"
+msgstr "Druk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:69
+msgid "Print Document"
+msgstr "Druk dokument"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:72
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:158
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:161
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:44
+msgid "Close"
+msgstr "Naby"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:74
+msgid "Close file"
+msgstr "Maak lêer toe"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:77
+msgid "Quit"
+msgstr "Hou op"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:80
+msgid "Quit Program"
+msgstr "Verlaat program"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:85
+msgid "Undo"
+msgstr "Ontdoen"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:87
+msgid "Undo Last Edit Action"
+msgstr "Ontdoen laaste wysigingsaksie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:90
+msgid "Redo"
+msgstr "Herhaal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:92
+msgid "Redo Last Edit Action"
+msgstr "Herdoen laaste wysiging-aksie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:95
+msgid "Zoom In"
+msgstr "Zoem in"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:99
+msgid "Zoom Out"
+msgstr "Zoem uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:103
+msgid "Paste"
+msgstr "Plak"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:106
+msgid "Paste Text From Clipboard"
+msgstr "Plak teks vanaf knipbord"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:109
+msgid "Cut"
+msgstr "Sny"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:113
+msgid "Cut the current selection's contents to the clipboard"
+msgstr "Knip die huidige seleksie se inhoud na die knipbord"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:121
+msgid "Copy the current selection's contents to the clipboard"
+msgstr "Kopieer die huidige seleksie se inhoud na die knipbord"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:125
+msgid "Quote"
+msgstr "Kwotasie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:127
+msgid "Quote whole text"
+msgstr "Haal hele teks aan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:130
+msgid "Select All"
+msgstr "Kies Alles"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:133
+msgid "Select the whole text"
+msgstr "Kies die hele teks"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:136
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FindWidget.cpp:40
+msgid "Find"
+msgstr "Vind"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:138
+msgid "Find a word"
+msgstr "Soek 'n woord"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:141
+msgid "Remove spacing"
+msgstr "Verwyder spasiëring"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:145
+msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
+msgstr "Verwyder dubbele lynbreuke, bv. in geplakte teks van Web Mailer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:149
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:75
+msgid "Settings"
+msgstr "Instellings"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:150
+msgid "Open settings dialog"
+msgstr "Maak instellingsdialoog oop"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:157
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:245
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:377
+msgid "Encrypt"
+msgstr "Enkripteer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:160
+msgid "Encrypt Message"
+msgstr "Enkripteer Boodskap"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:166
+msgid "Encrypt and Sign Message"
+msgstr "Enkripteer en teken boodskap"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:169
+msgid "Decrypt"
+msgstr "Dekripteer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:172
+msgid "Decrypt Message"
+msgstr "Dekripteer Boodskap"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:178
+msgid "Decrypt and Verify Message"
+msgstr "Dekripteer en verifieer boodskap"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:185
+msgid "Sign Message"
+msgstr "Teken Boodskap"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:191
+msgid "Verify Message"
+msgstr "Verifieer Boodskap"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:197
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:313
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:385
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:235
+msgid "File"
+msgstr "lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:199
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:180
+msgid "Import New Key From File"
+msgstr "Voer nuwe sleutel vanaf lêer in"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:203
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:184
+msgid "Clipboard"
+msgstr "Knipbord"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:205
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:186
+msgid "Import New Key From Clipboard"
+msgstr "Voer nuwe sleutel vanaf knipbord in"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:210
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:191
+msgid "Keyserver"
+msgstr "Sleutelbediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:212
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:193
+msgid "Import New Key From Keyserver"
+msgstr "Voer nuwe sleutel vanaf sleutelbediener in"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:217
+msgid "Editor"
+msgstr "Redakteur"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:219
+msgid "Import New Key From Editor"
+msgstr "Voer nuwe sleutel vanaf redakteur in"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:223
+msgid "Manage Keys"
+msgstr "Bestuur sleutels"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:225
+msgid "Open Key Management"
+msgstr "Maak sleutelbestuur oop"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:232
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:34
+msgid "About"
+msgstr "Oor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:234
+msgid "Show the application's About box"
+msgstr "Wys die toepassing se About-boks"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:238
+msgid "Translate"
+msgstr "Vertaal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:240
+msgid "Information about translation"
+msgstr "Inligting oor vertaling"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
+msgid "Check for Updates"
+msgstr "Kyk vir opdaterings"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:249
+msgid "Check for updates"
+msgstr "Kyk vir opdaterings"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:253
+msgid "Open Wizard"
+msgstr "Maak Wizard oop"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+msgid "Open the wizard"
+msgstr "Maak die towenaar oop"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:260
+msgid "Append Selected Key(s) To Text"
+msgstr "Voeg geselekteerde sleutel(s) by teks"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:262
+msgid "Append The Selected Keys To Text in Editor"
+msgstr "Voeg die geselekteerde sleutels by teks in redakteur"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:266
+msgid "Copy Email"
+msgstr "Kopieer e-pos"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:268
+msgid "Copy selected Email to clipboard"
+msgstr "Kopieer geselekteerde e-pos na knipbord"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:274
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:228
+msgid "Show Key Details"
+msgstr "Wys sleutelbesonderhede"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:275
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:229
+msgid "Show Details for this Key"
+msgstr "Wys besonderhede vir hierdie sleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:280
+msgid "Refresh Key From Key Server"
+msgstr "Herlaai sleutel vanaf sleutelbediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
+msgid "Refresh key from default key server"
+msgstr "Herlaai sleutel vanaf versteksleutelbediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:286
+msgid "Upload Public Key(s) To Server"
+msgstr "Laai publieke sleutel(s) op na bediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:288
+msgid "Upload The Selected Public Keys To Server"
+msgstr "Laai die geselekteerde publieke sleutels op na die bediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:305
+msgid "Remove PGP Header"
+msgstr "Verwyder PGP-kopskrif"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:308
+msgid "Add PGP Header"
+msgstr "Voeg PGP-kopskrif by"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:326
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:408
+msgid "Edit"
+msgstr "Wysig"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:344
+msgid "Crypt"
+msgstr "Kript"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:354
+msgid "Keys"
+msgstr "Sleutels"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:355
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:244
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:275
+msgid "Import Key"
+msgstr "Voer sleutel in"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:363
+msgid "Steganography"
+msgstr "Steganografie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:374
+msgid "View"
+msgstr "Beskou"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:376
+msgid "Help"
+msgstr "Help"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:393
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:139
+msgid "Operations"
+msgstr "Bedrywighede"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:403
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:239
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:256
+msgid "Key"
+msgstr "Sleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:416
+msgid "Special Edit"
+msgstr "Spesiale wysiging"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:428
+msgid "Import key from..."
+msgstr "Voer sleutel in vanaf..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:429
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:274
+msgid "Import key"
+msgstr "Voer sleutel in"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:445
+msgid "Ready"
+msgstr "Gereed"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:452
+msgid "Key ToolBox"
+msgstr "Sleutel Toolbox"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:468
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:44
+msgid "Only Public Key"
+msgstr "Slegs publieke sleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:477
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:53
+msgid "Has Private Key"
+msgstr "Het privaat sleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:488
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:86
+msgid "Information Board"
+msgstr "Inligtingsraad"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:63
+msgid ""
+"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr ""
+"Geen sleutel gekies nie. Wil jy enkripteer met 'n simmetriese syfer met 'n "
+"wagwoordfrase?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:69
+msgid "Symmetrically Encrypting"
+msgstr "Simmetries enkripteer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:363
+msgid "Function Disabled"
+msgstr "Funksie gedeaktiveer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:121
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:364
+msgid ""
+"Please go to the settings interface to enable and configure this function."
+msgstr ""
+"Gaan asseblief na die instellingskoppelvlak om hierdie funksie te aktiveer "
+"en op te stel."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:151
+msgid ""
+"The selected key contains a key that does not actually have a signature "
+"usage."
+msgstr ""
+"Die geselekteerde sleutel bevat 'n sleutel wat nie eintlik 'n "
+"handtekeninggebruik het nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:197
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:427
+msgid "Notice"
+msgstr "Kennisgewing"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:198
+msgid "Short Crypto Text only supports Decrypt & Verify."
+msgstr "Kort Crypto Text ondersteun slegs Decrypt & Verify."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:340
+msgid "Automatic Key Exchange Warning"
+msgstr "Outomatiese sleuteluitruilwaarskuwing"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:341
+msgid ""
+"Part of the automatic key exchange failed, which may be related to your key."
+msgstr ""
+"'n Deel van die outomatiese sleuteluitruiling het misluk, wat dalk met jou "
+"sleutel verband hou."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:343
+msgid ""
+"If possible, try to use the RSA algorithm compatible with the server for "
+"signing."
+msgstr ""
+"Indien moontlik, probeer om die RSA-algoritme te gebruik wat versoenbaar is "
+"met die bediener vir ondertekening."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:373
+msgid "Service Token Empty"
+msgstr "Diensteken is leeg"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:374
+msgid ""
+"Please go to the settings interface to set Own Key and get Service Token."
+msgstr ""
+"Gaan asseblief na die instellingskoppelvlak om Eie Sleutel te stel en "
+"Dienstoken te kry."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:478
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:493
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:336
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:353
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:398
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:485
+msgid "Key Not Found."
+msgstr "Sleutel nie gevind nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:520
+msgid "GpgFrontend Upgradeable (New Version: %1)."
+msgstr "GpgFrontend Opgradeerbaar (Nuwe weergawe: %1)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:531
+msgid "Unreleased Version"
+msgstr "Onvrygestelde weergawe"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:533
+msgid ""
+"This version(%1) has not been officially released and is not recommended for"
+" use in a production environment. <br/>"
+msgstr ""
+"Hierdie weergawe (%1) is nie amptelik vrygestel nie en word nie aanbeveel "
+"vir gebruik in 'n produksie-omgewing nie. <br/>"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:537
+msgid "You can download the latest version(%1) on Github Releases Page.<br/>"
+msgstr ""
+"Jy kan die nuutste weergawe (%1) op Github-vrystellingsbladsy aflaai.<br/>"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:134
+msgid "Critical error occur while loading GpgFrontend."
+msgstr "Kritiese fout kom voor tydens die laai van GpgFrontend."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:133
+msgid "Loading Failed"
+msgstr "Kon nie laai nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:41
+msgid "All"
+msgstr "Almal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:62
+msgid "No Master Key"
+msgstr "Geen hoofsleutel nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:71
+msgid "Revoked"
+msgstr "Herroep"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:102
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
+msgid "icon_size"
+msgstr "ikoongrootte"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:111
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
+msgid "icon_style"
+msgstr "ikoonstyl"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:143
+msgid "KeyPair Management"
+msgstr "Sleutelpaarbestuur"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:153
+msgid "Ctrl+O"
+msgstr "Ctrl+O"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:154
+msgid "Open Key File"
+msgstr "Maak sleutellêer oop"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:159
+msgid "Ctrl+Q"
+msgstr "Ctrl+Q"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:164
+msgid "New Keypair"
+msgstr "Nuwe sleutelpaar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:165
+msgid "Ctrl+N"
+msgstr "Ctrl+N"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:167
+msgid "Generate KeyPair"
+msgstr "Genereer sleutelpaar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:178
+msgid "New Subkey"
+msgstr "Nuwe subsleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:172
+msgid "Ctrl+Shift+N"
+msgstr "Ctrl+Shift+N"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:174
+msgid "Generate Subkey For Selected KeyPair"
+msgstr "Genereer subsleutel vir geselekteerde sleutelpaar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:198
+msgid "Export To Clipboard"
+msgstr "Voer uit na knipbord"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:200
+msgid "Export Selected Key(s) To Clipboard"
+msgstr "Voer geselekteerde sleutel(s) uit na knipbord"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:204
+msgid "Export To File"
+msgstr "Voer uit na lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:206
+msgid "Export Selected Key(s) To File"
+msgstr "Voer geselekteerde sleutel(s) uit na lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:210
+msgid "Export As OpenSSH"
+msgstr "Voer uit as OpenSSH"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:213
+msgid "Export Selected Key(s) As OpenSSH Format to File"
+msgstr "Voer geselekteerde sleutel(s) uit as OpenSSH-formaat na lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:217
+msgid "Delete Selected Key(s)"
+msgstr "Vee geselekteerde sleutel(s) uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:218
+msgid "Delete the Selected keys"
+msgstr "Vee die geselekteerde sleutels uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:222
+msgid "Delete Checked Key(s)"
+msgstr "Vee gemerkte sleutel(s) uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:223
+msgid "Delete the Checked keys"
+msgstr "Vee die gemerkte sleutels uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:264
+msgid "Generate"
+msgstr "Genereer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:265
+msgid "Generate A New Keypair or Subkey"
+msgstr "Genereer 'n nuwe sleutelpaar of subsleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:315
+msgid "Deleting Keys"
+msgstr "Vee sleutels uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:318
+msgid "Are you sure that you want to delete the following keys?"
+msgstr "Is jy seker jy wil die volgende sleutels uitvee?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:320
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:373
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:410
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:509
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:561
+msgid "The action can not be undone."
+msgstr "Die handeling kan nie ontdoen word nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:232
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:273
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:310
+msgid "Export Key To File"
+msgstr "Voer sleutel uit na lêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:361
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:233
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:274
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:311
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:143
+msgid "Key Files"
+msgstr "Sleutel lêers"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:365
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:497
+msgid "key(s) exported"
+msgstr "sleutel(s) uitgevoer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:393
+msgid "Please select one KeyPair before doing this operation."
+msgstr "Kies asseblief een sleutelpaar voordat u hierdie bewerking doen."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:403
+msgid ""
+"If a key pair does not have a private key then it will not be able to "
+"generate sub-keys."
+msgstr ""
+"As 'n sleutelpaar nie 'n private sleutel het nie, sal dit nie subsleutels "
+"kan genereer nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:463
+msgid "No Key Checked."
+msgstr "Geen sleutel nagegaan nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:471
+msgid "An error occur in exporting."
+msgstr "'n Fout het voorgekom met uitvoer."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:478
+msgid ""
+"This key may not be able to export as OpenSSH format. Please check the key-"
+"size of the subkey(s) used to sign."
+msgstr ""
+"Hierdie sleutel sal dalk nie as OpenSSH-formaat kan uitvoer nie. Kontroleer "
+"asseblief die sleutelgrootte van die subsleutel(s) wat gebruik word om te "
+"onderteken."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:492
+msgid "Export OpenSSH Key To File"
+msgstr "Voer OpenSSH-sleutel na lêer uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:493
+msgid "OpenSSH Public Key Files"
+msgstr "OpenSSH publieke sleutellêers"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:43
+msgid "Incomplete configuration"
+msgstr "Onvolledige konfigurasie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:44
+msgid ""
+"The SMTP address is empty, please go to the setting interface to complete "
+"the configuration."
+msgstr ""
+"Die SMTP-adres is leeg, gaan asseblief na die instellingskoppelvlak om die "
+"konfigurasie te voltooi."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:99
+msgid "Recipient cannot be empty"
+msgstr "Ontvanger kan nie leeg wees nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:105
+msgid "One or more Recipient's Email Address is invalid"
+msgstr "Een of meer ontvanger se e-posadres is ongeldig"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:112
+msgid "Sender cannot be empty"
+msgstr "Sender kan nie leeg wees nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:114
+msgid "Sender's Email Address is invalid"
+msgstr "Sender se e-posadres is ongeldig"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:176
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:181
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:167
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:171
+msgid "Fail"
+msgstr "Misluk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:167
+msgid "Fail to Connect SMTP Server"
+msgstr "Kon nie SMTP-bediener koppel nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:176
+msgid "Fail to Login into SMTP Server"
+msgstr "Versuim om by SMTP-bediener aan te meld"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:182
+msgid "Fail to Send Mail to SMTP Server"
+msgstr "Versuim om e-pos na SMTP-bediener te stuur"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:189
+msgid "Succeed in Sending Mail to SMTP Server"
+msgstr "Slaag daarin om e-pos na SMTP-bediener te stuur"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:51
+msgid "Uploading Public Key"
+msgstr "Laai tans publieke sleutel op"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:71
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:407
+msgid "Set target Key Server to default Key Server"
+msgstr "Stel teikensleutelbediener na versteksleutelbediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:410
+msgid "Cannot read default_keyserver From Settings"
+msgstr "Kan nie default_keyserver vanaf Instellings lees nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:76
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:412
+msgid "Default Keyserver Not Found"
+msgstr "Verstek sleutelbediener nie gevind nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:413
+msgid ""
+"Cannot read default keyserver from your settings, please set a default "
+"keyserver first"
+msgstr ""
+"Kan nie versteksleutelbediener vanaf jou instellings lees nie, stel "
+"asseblief eers 'n versteksleutelbediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:457
+msgid "Key Not Found"
+msgstr "Sleutel nie gevind nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:258
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:460
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:477
+msgid "Timeout"
+msgstr "Uitteltyd"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:261
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:463
+msgid "Key Server Not Found"
+msgstr "Sleutelbediener nie gevind nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:264
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:466
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:484
+msgid "Connection Error"
+msgstr "Konneksie fout"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:148
+msgid "Upload Success"
+msgstr "Sukses oplaai"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:149
+msgid "Upload Public Key Successfully"
+msgstr "Laai publieke sleutel suksesvol op"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:45
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:186
+msgid "New UID"
+msgstr "Nuwe UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:46
+msgid "UID Management"
+msgstr "UID Bestuur"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:65
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:32
+msgid "UIDs"
+msgstr "UID's"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:70
+msgid "TOFU"
+msgstr "TOFU"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:82
+msgid "Signature of Selected UID"
+msgstr "Handtekening van geselekteerde UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:45
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+msgid "Email"
+msgstr "E-pos"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:147
+msgid "Create Date (UTC)"
+msgstr "Skepdatum (UTC)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:156
+msgid "Expired Date (UTC)"
+msgstr "Vervaldatum (UTC)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:232
+msgid "TOFU %1"
+msgstr "TOFU %1"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:281
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:224
+msgid "Never Expires"
+msgstr "Verval nooit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:300
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:357
+msgid "Please select one or more UIDs before doing this operation."
+msgstr "Kies asseblief een of meer UID's voordat u hierdie bewerking doen."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:321
+msgid "Sign Selected UID(s)"
+msgstr "Teken geselekteerde UID(e)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:323
+msgid "Delete Selected UID(s)"
+msgstr "Vee geselekteerde UID(e) uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:343
+msgid "Successful Operation"
+msgstr "Suksesvolle operasie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:344
+msgid "Successfully added a new UID."
+msgstr "'n nuwe UID is suksesvol bygevoeg."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:346
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:381
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:416
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:514
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:566
+msgid "Operation Failed"
+msgstr "Operasie het misluk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:347
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:417
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:515
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:567
+msgid "An error occurred during the operation."
+msgstr "'n Fout het tydens die operasie voorgekom."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:368
+msgid "Deleting UIDs"
+msgstr "Vee UID's uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:371
+msgid "Are you sure that you want to delete the following UIDs?"
+msgstr "Is jy seker jy wil die volgende UID's uitvee?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:382
+msgid "An error occurred during the delete %1 operation."
+msgstr "'n Fout het tydens die uitvee %1-bewerking voorgekom."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:406
+msgid "Set Primary UID"
+msgstr "Stel Primêre UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:408
+msgid "Are you sure that you want to set the Primary UID to?"
+msgstr "Is jy seker jy wil die Primêre UID op stel?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:448
+msgid "Set As Primary"
+msgstr "Stel as Primêr"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:451
+msgid "Sign UID"
+msgstr "Teken UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:453
+msgid "Delete UID"
+msgstr "Vee UID uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:480
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:494
+msgid "Please select one UID before doing this operation."
+msgstr "Kies asseblief een UID voordat u hierdie bewerking doen."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:504
+msgid "Deleting UID"
+msgstr "Vee tans UID uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:507
+msgid "Are you sure that you want to delete the following uid?"
+msgstr "Is jy seker jy wil die volgende uid uitvee?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:525
+msgid "Delete(Revoke) Key Signature"
+msgstr "Verwyder (herroep) sleutelhandtekening"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:536
+msgid "Please select one Key Signature before doing this operation."
+msgstr ""
+"Kies asseblief een sleutelhandtekening voordat u hierdie bewerking doen."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:545
+msgid ""
+"To delete the signature, you need to have its corresponding public key in "
+"the local database."
+msgstr ""
+"Om die handtekening uit te vee, moet jy die ooreenstemmende publieke sleutel"
+" in die plaaslike databasis hê."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:556
+msgid "Deleting Key Signature"
+msgstr "Vee sleutelhandtekening uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:558
+msgid "Are you sure that you want to delete the following signature?"
+msgstr "Is jy seker jy wil die volgende handtekening uitvee?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:54
+msgid "Notice: The New UID Created will be set as Primary."
+msgstr "Kennisgewing: Die Nuwe UID wat geskep is, sal as Primêr gestel word."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:61
+msgid "Create New UID"
+msgstr "Skep nuwe UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:81
+msgid "Expire Date"
+msgstr "Verval datum"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:90
+msgid "Sign For Key's UID(s)"
+msgstr "Teken vir sleutel se UID(e)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:116
+msgid "Unsuccessful Operation"
+msgstr "Onsuksesvolle operasie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:117
+msgid "Signature operation failed for UID %1"
+msgstr "Handtekeningbewerking het misluk vir UID %1"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:121
+msgid "Operation Complete"
+msgstr "Operasie voltooi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:122
+msgid "The signature operation of the UID is complete"
+msgstr "Die handtekeningwerking van die UID is voltooi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:37
+msgid "Subkey List"
+msgstr "Subsleutellys"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:38
+msgid "Detail of Selected Subkey"
+msgstr "Detail van geselekteerde subsleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:42
+msgid "Generate A New Subkey"
+msgstr "Genereer 'n nuwe subsleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:66
+msgid "Expires On (Local Time)"
+msgstr "Verval op (plaaslike tyd)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:68
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:78
+msgid "Create Date (Local Time)"
+msgstr "Skepdatum (plaaslike tyd)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:69
+msgid "Existence"
+msgstr "Bestaan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
+msgid "Subkey ID"
+msgstr "Subsleutel ID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
+msgid "Algo"
+msgstr "Algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:147
+msgid "Expire Date (UTC)"
+msgstr "Vervaldatum (UTC)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:244
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:367
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:376
+msgid "Certificate"
+msgstr "Sertifikaat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:370
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:379
+msgid "Auth"
+msgstr "Auth"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:252
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:336
+msgid "Exists"
+msgstr "Bestaan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:337
+msgid "Not Exists"
+msgstr "Bestaan nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:271
+msgid "Edit Expire Date"
+msgstr "Wysig vervaldatum"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:31
+msgid "KeyPair"
+msgstr "Sleutelpaar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:33
+msgid "Subkeys"
+msgstr "Subsleutels"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:43
+msgid "Key Details"
+msgstr "Sleutelbesonderhede"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:37
+msgid "Owner"
+msgstr "Eienaar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:38
+msgid "Master Key"
+msgstr "Meestersleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:40
+msgid "Additional UIDs"
+msgstr "Bykomende UID's"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:80
+msgid "Expires on (Local Time)"
+msgstr "Verval op (plaaslike tyd)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:82
+msgid "Last Update (Local Time)"
+msgstr "Laaste opdatering (plaaslike tyd)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:84
+msgid "Master Key Existence"
+msgstr "Meestersleutelbestaan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:125
+msgid "copy fingerprint to clipboard"
+msgstr "kopieer vingerafdruk na knipbord"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:145
+msgid "Export Public Key"
+msgstr "Voer publieke sleutel uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:151
+msgid "Export Private Key"
+msgstr "Voer privaat sleutel uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:158
+msgid "Modify Expiration Datetime (Master Key)"
+msgstr "Verander vervaldatum-tyd (hoofsleutel)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:161
+msgid "Modify Password"
+msgstr "Verander wagwoord"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:174
+msgid "Key Server Operation (Pubkey)"
+msgstr "Sleutelbedienerbewerking (Pubkey)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:181
+msgid "Generate Revoke Certificate"
+msgstr "Genereer herroepsertifikaat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:187
+msgid "Modify TOFU Policy"
+msgstr "Verander TOFU-beleid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:225
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:266
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:303
+msgid "An error occurred during the export operation."
+msgstr "'n Fout het tydens die uitvoerbewerking voorgekom."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:238
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:279
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:316
+msgid "Export Error"
+msgstr "Uitvoerfout"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:239
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:280
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:317
+msgid "Couldn't open %1 for writing"
+msgstr "Kon nie %1 oopmaak vir skryf nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:247
+msgid "Exporting short private Key"
+msgstr "Voer tans kort privaat sleutel uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:248
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:290
+msgid "You are about to export your"
+msgstr "Jy is op die punt om jou"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:249
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:291
+msgid " PRIVATE KEY "
+msgstr " PRIVAAT SLEUTEL"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:250
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:292
+msgid "This is NOT your Public Key, so DON'T give it away."
+msgstr "Dit is NIE jou publieke sleutel nie, so MOENIE dit weggee nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:251
+msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
+msgstr "Wil jy REGTIG jou PRIVAAT SLEUTEL in 'n minimum grootte uitvoer?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:254
+msgid ""
+"For OpenPGP keys it removes all signatures except for the latest self-"
+"signatures."
+msgstr ""
+"Vir OpenPGP-sleutels verwyder dit alle handtekeninge behalwe vir die nuutste"
+" selfhandtekeninge."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:289
+msgid "Exporting private Key"
+msgstr "Voer tans privaat sleutel uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:293
+msgid "Do you REALLY want to export your PRIVATE KEY?"
+msgstr "Wil jy REGTIG jou PRIVAAT SLEUTEL uitvoer?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:401
+msgid "No Data"
+msgstr "Geen data"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:417
+msgid "Warning: The Master Key has expired."
+msgstr "Waarskuwing: Die hoofsleutel het verval."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:422
+msgid "Warning: The Master Key has been revoked."
+msgstr "Waarskuwing: Die Meestersleutel is herroep."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:429
+msgid "Upload Key Pair to Key Server"
+msgstr "Laai sleutelpaar op na sleutelbediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:434
+msgid "Update Key Pair"
+msgstr "Dateer sleutelpaar op"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:443
+msgid "Export Full Secret Key"
+msgstr "Voer volledige geheime sleutel uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:449
+msgid "Export Shortest Secret Key"
+msgstr "Voer kortste geheime sleutel uit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:474
+msgid "Revocation Certificates"
+msgstr "Herroepingsertifikate"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:522
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:552
+msgid "Not Successful"
+msgstr "Nie Suksesvol nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:523
+msgid "Modify password not successfully."
+msgstr "Verander wagwoord nie suksesvol nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:539
+msgid "Policy Auto"
+msgstr "Beleid Outo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:541
+msgid "Policy Good"
+msgstr "Beleid Goed"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:543
+msgid "Policy Bad"
+msgstr "Slegte beleid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:530
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:545
+msgid "Policy Ask"
+msgstr "Beleid Vra"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:530
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:547
+msgid "Policy Unknown"
+msgstr "Beleid onbekend"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:534
+msgid "Modify TOFU Policy(Default is Auto)"
+msgstr "Verander TOFU-beleid (verstek is outomaties)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:535
+msgid "Policy for the Key Pair:"
+msgstr "Beleid vir die sleutelpaar:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:553
+msgid "Modify TOFU policy not successfully."
+msgstr "Verander TOFU-beleid nie suksesvol nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:70
+msgid "The expire date of the key pair has been updated."
+msgstr "Die vervaldatum van die sleutelpaar is opgedateer."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:108
+msgid "Edit Expire Datetime"
+msgstr "Wysig vervaldatum en tyd"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:41
+msgid "About Software"
+msgstr "Oor sagteware"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:42
+msgid "Translators"
+msgstr "Vertalers"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:43
+msgid "Update"
+msgstr "Opdateer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:76
+msgid ""
+"GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
+"free gpg front-end tool.It visualizes most of the common operations of gpg "
+"commands.It's licensed under the GPL v3"
+msgstr ""
+"GpgFrontend is 'n maklik-om-te gebruik, kompakte, kruis-platform en "
+"installasie-vrye gpg-voorkant-instrument. Dit visualiseer die meeste van die"
+" algemene bewerkings van gpg-opdragte. Dit is gelisensieer onder die GPL v3"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:82
+msgid "Developer:"
+msgstr "Ontwikkelaar:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:83
+msgid "If you have any questions or suggestions, raise an issue at"
+msgstr "As jy enige vrae of voorstelle het, stel 'n kwessie by"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:86
+msgid "or send a mail to my mailing list at"
+msgstr "of stuur 'n e-pos na my poslys by"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:88
+msgid "Built with Qt"
+msgstr "Gebou met Qt"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:88
+msgid "and GPGME"
+msgstr "en GPGME"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:90
+msgid "Built at"
+msgstr "Gebou by"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:123
+msgid ""
+"If you think there are any problems with the translation, why not "
+"participate in the translation work? If you want to participate, please read"
+" the document or contact me via email."
+msgstr ""
+"As jy dink daar is enige probleme met die vertaling, hoekom neem jy nie deel"
+" aan die vertaalwerk nie? As jy wil deelneem, lees asseblief die dokument of"
+" kontak my per e-pos."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:148
+msgid ""
+"It is recommended that you always check the version of GpgFrontend and "
+"upgrade to the latest version."
+msgstr ""
+"Dit word aanbeveel dat jy altyd die weergawe van GpgFrontend nagaan en "
+"opgradeer na die nuutste weergawe."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:151
+msgid ""
+"New versions not only represent new features, but also often represent "
+"functional and security fixes."
+msgstr ""
+"Nuwe weergawes verteenwoordig nie net nuwe kenmerke nie, maar verteenwoordig"
+" ook dikwels funksionele en sekuriteitsoplossings."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:157
+msgid "Current Version"
+msgstr "Huidige weergawe"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:168
+msgid "The current version is less than the latest version on github."
+msgstr "Die huidige weergawe is minder as die nuutste weergawe op github."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:170
+msgid "Please click"
+msgstr "Klik asseblief"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:173
+msgid "Here"
+msgstr "Hier"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:173
+msgid "to download the latest version."
+msgstr "om die nuutste weergawe af te laai."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:197
+msgid "try to get latest version"
+msgstr "probeer om die nuutste weergawe te kry"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:218
+msgid "Latest Version From Github"
+msgstr "Nuutste weergawe van Github"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:34
+msgid "Signatures Details"
+msgstr "Handtekeninge Besonderhede"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:59
+msgid "No valid input found"
+msgstr "Geen geldige invoer gevind nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:70
+msgid "Error Validating signature"
+msgstr "Fout met validering van handtekening"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:72
+msgid "File was signed on %1%"
+msgstr "Lêer is onderteken op %1%"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:81
+msgid "It Contains"
+msgstr "Dit bevat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:78
+msgid "Signed on %1%"
+msgstr "Geteken op %1%"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:36
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:58
+msgid "Key Update Details"
+msgstr "Sleutelopdateringbesonderhede"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:37
+msgid "No keys found"
+msgstr "Geen sleutels gevind nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:60
+msgid "Key Import Details"
+msgstr "Sleutel invoer besonderhede"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:40
+msgid "No keys found to import"
+msgstr "Geen sleutels gevind om in te voer nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:74
+msgid "General key info"
+msgstr "Algemene sleutel inligting"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:77
+msgid "Considered"
+msgstr "Oorweeg"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:84
+msgid "Public unchanged"
+msgstr "Publiek onveranderd"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:90
+msgid "Imported"
+msgstr "Ingevoer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:98
+msgid "Not Imported"
+msgstr "Nie ingevoer nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:105
+msgid "Private Read"
+msgstr "Privaat Lees"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:112
+msgid "Private Imported"
+msgstr "Privaat ingevoer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:119
+msgid "Private Unchanged"
+msgstr "Privaat Onveranderd"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:166
+msgid "Private"
+msgstr "Privaat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:169
+msgid "Public"
+msgstr "Publiek"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:172
+msgid "Unchanged"
+msgstr "Onveranderd"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:175
+msgid "New Key"
+msgstr "Nuwe sleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:52
+msgid "New Signature"
+msgstr "Nuwe handtekening"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:54
+msgid "Public key not found locally"
+msgstr "Publieke sleutel nie plaaslik gevind nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:55
+msgid ""
+"There is no target public key content in local for GpgFrontend to gather "
+"enough information about this Signature. Do you want to import the public "
+"key from Keyserver now?"
+msgstr ""
+"Daar is geen teiken publieke sleutelinhoud in plaaslik vir GpgFrontend om "
+"genoeg inligting oor hierdie handtekening in te samel nie. Wil jy nou die "
+"publieke sleutel vanaf sleutelbediener invoer?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:142
+msgid "Open Key"
+msgstr "Maak sleutel oop"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:143
+msgid "Keyring files"
+msgstr "Sleutelhouer lêers"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:165
+msgid "Processing"
+msgstr "Verwerking"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:183
+msgid "Failed to execute command."
+msgstr "Kon nie opdrag uitvoer nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:190
+msgid "Succeed in executing command."
+msgstr "Slaag in die uitvoering van opdrag."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:193
+msgid "Finished executing command."
+msgstr "Klaar met die uitvoering van opdrag."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:32
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:51
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:59
+msgid "General"
+msgstr "Algemeen"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
+msgid "No."
+msgstr "Geen."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
+msgid "Address"
+msgstr "Adres"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
+msgid "Available"
+msgstr "Beskikbaar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:58
+msgid "Default Key Server for Import"
+msgstr "Verstek sleutelbediener vir invoer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:68
+msgid "Add"
+msgstr "Voeg by"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
+msgid "server_list"
+msgstr "bediener_lys"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:114
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
+msgid "default_server"
+msgstr "verstekbediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:42
+msgid "Updated ui configuration successfully written to"
+msgstr "Opgedateerde ui-opstelling suksesvol geskryf"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:46
+msgid "I/O error while writing ui configuration file"
+msgstr "I/O-fout tydens die skryf van ui-konfigurasielêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:57
+msgid "App Path"
+msgstr "Toepassingspad"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:58
+msgid "App Configure Path"
+msgstr "Programkonfigureerpad"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:59
+msgid "App Data Path"
+msgstr "Programdatapad"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:60
+msgid "App Log Path"
+msgstr "App-logboekpad"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:61
+msgid "App Locale Path"
+msgstr "App Locale Pad"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:74
+msgid "UserInterface configuration successfully written to"
+msgstr "Gebruikerskoppelvlak-opstelling suksesvol geskryf"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:79
+msgid "I/O error while writing UserInterface configuration file"
+msgstr "I/O-fout tydens die skryf van UserInterface-konfigurasielêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:85
+msgid "UserInterface configuration successfully read from"
+msgstr "Gebruikerskoppelvlak-opstelling suksesvol gelees van"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:88
+msgid "I/O error while reading UserInterface configure file"
+msgstr "I/O-fout tydens die lees van UserInterface-konfigurasielêer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:90
+msgid "Parse error at "
+msgstr "Ontleedfout by"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:35
+msgid "Icon Size"
+msgstr "Ikoon grootte"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:37
+msgid "small"
+msgstr "klein"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:38
+msgid "medium"
+msgstr "medium"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:39
+msgid "large"
+msgstr "groot"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:55
+msgid "Icon Style"
+msgstr "Ikoonstyl"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:57
+msgid "just text"
+msgstr "SMS net"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:58
+msgid "just icons"
+msgstr "net ikone"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:59
+msgid "text and icons"
+msgstr "teks en ikone"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:75
+msgid "Window State"
+msgstr "Vensterstaat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:78
+msgid "Save window size and position on exit."
+msgstr "Stoor venstergrootte en posisie by uitgang."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:92
+msgid "Font Size in Information Board"
+msgstr "Lettergrootte in inligtingsbord"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
+msgid "window_save"
+msgstr "venster_stoor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:52
+msgid "Appearance"
+msgstr "Voorkoms"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
+msgid "Send Mail"
+msgstr "Stuur pos"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
+msgid "Key Server"
+msgstr "Sleutelbediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:59
+msgid "Advanced"
+msgstr "Gevorderd"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:135
+msgid "System Default"
+msgstr "Stelsel verstek"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:37
+msgid "Show Steganography Options"
+msgstr "Wys Steganografie-opsies"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:39
+msgid "Show Steganographic Options."
+msgstr "Wys Steganografiese Opsies."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:43
+msgid "Pubkey Exchange"
+msgstr "Pubkey Exchange"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:45
+msgid "Auto Pubkey Exchange"
+msgstr "Outo Pubkey Exchange"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:46
+msgid "GpgFrontend Server"
+msgstr "GpgFrontend-bediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:51
+msgid "Server that provides short key and key exchange services"
+msgstr "Bediener wat kortsleutel- en sleuteluitruildienste verskaf"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:59
+msgid "Save Checked Keys"
+msgstr "Stoor gemerkte sleutels"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:62
+msgid "Save checked private keys on exit and restore them on next start."
+msgstr ""
+"Stoor gemerkte private sleutels by uitgang en herstel dit met die volgende "
+"begin."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:71
+msgid "Confirm drag'n'drop key import"
+msgstr "Bevestig sleep-en-drop sleutel invoer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:74
+msgid "Import files dropped on the Key List without confirmation."
+msgstr "Invoerlêers wat sonder bevestiging op die sleutellys gelaat is."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:82
+msgid "Language"
+msgstr "Taal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:93
+msgid "NOTE"
+msgstr "LET WEL"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
+msgid "GpgFrontend will restart automatically if you change the language!"
+msgstr "GpgFrontend sal outomaties herbegin as jy die taal verander!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:104
+msgid "Own key"
+msgstr "Eie sleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:108
+msgid "Get Service Token"
+msgstr "Kry diensbewys"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:309
+msgid "No Service Token Found"
+msgstr "Geen diensbewys gevind nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:136
+msgid "Key pair for synchronization and identity authentication"
+msgstr "Sleutelpaar vir sinchronisasie en identiteitstawing"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:176
+msgid "save_key_checked"
+msgstr "save_key_checked"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:213
+msgid "lang"
+msgstr "lang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:239
+msgid "confirm_import_keys"
+msgstr "bevestig_invoer_sleutels"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:329
+msgid "Own Key can not be None while getting service token."
+msgstr "Eie Sleutel kan nie Geen wees terwyl dienstoken word nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:341
+msgid "Key Not Exists"
+msgstr "Sleutel bestaan nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:428
+msgid "Succeed in getting service token"
+msgstr "Slaag daarin om diensbewys te kry"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:38
+msgid "Enable"
+msgstr "Aktiveer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:57
+msgid "Check Connection"
+msgstr "Gaan Verbinding na"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:60
+msgid "Connection"
+msgstr "Verbinding"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:61
+msgid "Preference"
+msgstr "Voorkeur"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:67
+msgid "SMTP Address"
+msgstr "SMTP-adres"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:69
+msgid "Username"
+msgstr "Gebruikersnaam"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:71
+msgid "Password"
+msgstr "Wagwoord"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:73
+msgid "Port"
+msgstr "Port"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:75
+msgid "Connection Security"
+msgstr "Verbinding sekuriteit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:81
+msgid "Default Sender"
+msgstr "Verstek afsender"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:171
+msgid "Fail to Login"
+msgstr "Versuim om aan te meld"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:177
+msgid "Succeed in connecting and login"
+msgstr "Slaag daarin om aan te sluit en aan te meld"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:45
+msgid "Import ALL"
+msgstr "Voer ALLES in"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:47
+msgid "Search"
+msgstr "Soek"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
+msgid "Search String"
+msgstr "Soek String"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:100
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:547
+msgid "Update Keys from Keyserver"
+msgstr "Dateer sleutels op vanaf sleutelbediener"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:102
+msgid "Import Keys from Keyserver"
+msgstr "Voer sleutels vanaf sleutelbediener in"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "UID"
+msgstr "UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "Creation date"
+msgstr "Skeppingsdatum"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "KeyID"
+msgstr "Sleutel-ID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "Tag"
+msgstr "Merk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:212
+msgid "Text is empty."
+msgstr "Teks is leeg."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:255
+msgid "Not Key Found"
+msgstr "Nie sleutel gevind nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:273
+msgid "Too many responses from keyserver!"
+msgstr "Te veel antwoorde vanaf sleutelbediener!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:283
+msgid "No keys found, input may be kexId, retrying search with 0x."
+msgstr ""
+"Geen sleutels gevind nie, invoer kan kexId wees, herprobeer soek met 0x."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:292
+msgid "No keys found containing the search string!"
+msgstr "Geen sleutels gevind wat die soekstring bevat nie!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:298
+msgid "Insufficiently specific search string!"
+msgstr "Onvoldoende spesifieke soekstring!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:331
+msgid "revoked"
+msgstr "herroep"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:335
+msgid "disabled"
+msgstr "gestremd"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:377
+msgid "%1 keys found. Double click a key to import it."
+msgstr "%1 sleutels gevind. Dubbelklik 'n sleutel om dit in te voer."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:389
+msgid "Current Row"
+msgstr "Huidige ry"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:472
+msgid "Public key Not Found"
+msgstr "Publieke sleutel nie gevind nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:473
+msgid "Public key fingerprint %1 not found in the Keyserver"
+msgstr ""
+"Publieke sleutel vingerafdruk %1 nie in die sleutelbediener gevind nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:480
+msgid "Host Not Found"
+msgstr "Gasheer nie gevind nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:485
+msgid "General Connection Error"
+msgstr "Algemene verbindingsfout"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:500
+msgid "Key Imported"
+msgstr "Sleutel ingevoer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:34
+msgid "Decrypt Operation"
+msgstr "Dekripteer werking"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:41
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:45
+msgid "Failed"
+msgstr "Misluk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:43
+msgid "Unsupported Algo"
+msgstr "Ongesteunde Algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:51
+msgid "File Name"
+msgstr "Lêernaam"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
+msgid "MIME"
+msgstr "MIME"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
+msgid "true"
+msgstr "waar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:59
+msgid "Recipient(s)"
+msgstr "Ontvanger(s)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:73
+msgid "Recipient"
+msgstr "Ontvanger"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:176
+msgid "Unknown"
+msgstr "Onbekend"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:89
+msgid "Keu ID"
+msgstr "Keu ID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:90
+msgid "Public Algo"
+msgstr "Openbare Algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:32
+msgid "Start Encrypt Result Analyse"
+msgstr "Begin Enkripteer resultaatontleding"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:34
+msgid "Encrypt Operation"
+msgstr "Enkripteer werking"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:46
+msgid "Invalid Recipients"
+msgstr "Ongeldige ontvangers"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:102
+msgid "Reason"
+msgstr "Rede"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:34
+msgid "Start Sign Result Analyse"
+msgstr "Begin Teken Resultaat Analiseer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:36
+msgid "Sign Operation"
+msgstr "Teken Operasie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:47
+msgid "Sign Result Analyse Getting Result"
+msgstr "Teken Resultaat Ontleed Kry resultaat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:54
+msgid "Signers Fingerprint"
+msgstr "Ondertekenaars Vingerafdruk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:56
+msgid "Sign Mode"
+msgstr "Tekenmodus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:58
+msgid "Normal"
+msgstr "Normaal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:62
+msgid "Detach"
+msgstr "Losmaak"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:69
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:72
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:99
+msgid "Signer"
+msgstr "Ondertekenaar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:184
+msgid "Public Key Algo"
+msgstr "Openbare sleutel Algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:187
+msgid "Hash Algo"
+msgstr "Hash Algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:190
+msgid "Date"
+msgstr "Datum"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:190
+msgid "UTC"
+msgstr "UTC"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:90
+msgid "Sign Result Analyse Getting Invalid Signer"
+msgstr "Teken Resultaat Ontleed Kry ongeldige ondertekenaar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:95
+msgid "Invalid Signers"
+msgstr "Ongeldige ondertekenaars"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:38
+msgid "Verify Result Analyse Started"
+msgstr "Verifieer dat resultaatontleding begin is"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:40
+msgid "Verify Operation"
+msgstr "Verifieer werking"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:54
+msgid "Not Signature Found"
+msgstr "Nie handtekening gevind nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:59
+msgid "Signed On"
+msgstr "Aangeteken"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:65
+msgid "Signatures List"
+msgstr "Handtekening lys"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:71
+msgid "Signature [%1%]:"
+msgstr "Handtekening [%1%]:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:74
+msgid "A Bad Signature."
+msgstr "'n Slegte handtekening."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:76
+msgid "This Signature is invalid."
+msgstr "Hierdie handtekening is ongeldig."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:81
+msgid "A"
+msgstr "A"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:92
+msgid "Missing Key's"
+msgstr "Vermiste sleutels"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:95
+msgid "Revoked Key's"
+msgstr "Sleutels herroep"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:98
+msgid "Expired Key's"
+msgstr "Sleutels wat verval het"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:101
+msgid "Missing CRL's"
+msgstr "Ontbrekende CRL's"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:105
+msgid "Signature Fully Valid."
+msgstr "Handtekening ten volle geldig."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:107
+msgid "Signature Not Fully Valid."
+msgstr "Handtekening nie ten volle geldig nie."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:113
+msgid "Key is NOT present with ID 0x"
+msgstr "Sleutel is NIE teenwoordig met ID 0x nie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:121
+msgid "A signature could NOT be verified due to a Missing Key"
+msgstr ""
+"'n Handtekening kon NIE geverifieer word nie as gevolg van 'n ontbrekende "
+"sleutel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:126
+msgid ""
+"A signature is valid but the key used to verify the signature has been "
+"revoked"
+msgstr ""
+"'n Handtekening is geldig, maar die sleutel wat gebruik is om die "
+"handtekening te verifieer, is herroep"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:135
+msgid "A signature is valid but expired"
+msgstr "'n Handtekening is geldig maar het verval"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:142
+msgid ""
+"A signature is valid but the key used to verify the signature has expired."
+msgstr ""
+"'n Handtekening is geldig, maar die sleutel wat gebruik word om die "
+"handtekening te verifieer, het verval."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:150
+msgid "There was some other error which prevented the signature verification."
+msgstr "Daar was 'n ander fout wat die handtekeningverifikasie verhoed het."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:158
+msgid "Error for key with fingerprint"
+msgstr "Fout vir sleutel met vingerafdruk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:180
+msgid "Signed By"
+msgstr "Onderteken deur"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/function/GpgKeyOpera.cpp:224
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/function/GpgKeyOpera.cpp:233
+msgid "operator not support"
+msgstr "operateur ondersteun nie"

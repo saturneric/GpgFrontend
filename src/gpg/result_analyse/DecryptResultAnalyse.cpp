@@ -51,6 +51,9 @@ void GpgFrontend::DecryptResultAnalyse::do_analyse() {
       stream << _("File Name") << ": " << result->file_name << std::endl;
       stream << std::endl;
     }
+    if (result->is_mime) {
+      stream << _("MIME") << ": " << _("true") << std::endl;
+    }
 
     auto reci = result->recipients;
     if (reci != nullptr) stream << _("Recipient(s)") << ": " << std::endl;

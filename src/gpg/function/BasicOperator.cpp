@@ -76,13 +76,15 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Verify(
     GpgVerifyResult& result) const {
   gpgme_error_t err;
 
+  LOG(INFO) << "in buffer size" << in_buffer.size();
   GpgData data_in(in_buffer.data(), in_buffer.size());
+  GpgData data_out;
 
   if (sig_buffer != nullptr) {
     GpgData sig_data(sig_buffer->data(), sig_buffer->size());
     err = check_gpg_error(gpgme_op_verify(ctx, sig_data, data_in, nullptr));
   } else
-    err = check_gpg_error(gpgme_op_verify(ctx, data_in, nullptr, data_in));
+    err = check_gpg_error(gpgme_op_verify(ctx, data_in, nullptr, data_out));
 
   auto temp_result = GpgVerifyResult(gpgme_op_verify_result(ctx));
   std::swap(result, temp_result);
@@ -203,4 +205,20 @@ GpgFrontend::BasicOperator::GetSigners() {
     signers->push_back(GpgKey(std::move(key)));
   }
   return signers;
+}
+gpg_error_t GpgFrontend::BasicOperator::EncryptSymmetric(
+    GpgFrontend::ByteArray& in_buffer, GpgFrontend::ByteArrayPtr& out_buffer,
+    GpgFrontend::GpgEncrResult& result) {
+  GpgData data_in(in_buffer.data(), in_buffer.size()), data_out;
+
+  gpgme_error_t err = check_gpg_error(gpgme_op_encrypt(
+      ctx, nullptr, GPGME_ENCRYPT_SYMMETRIC, data_in, data_out));
+
+  auto temp_data_out = data_out.Read2Buffer();
+  std::swap(temp_data_out, out_buffer);
+
+  auto temp_result = GpgEncrResult(gpgme_op_encrypt_result(ctx));
+  std::swap(result, temp_result);
+
+  return err;
 }

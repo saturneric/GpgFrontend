@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(GpgFrontend VERSION 2.0.1 LANGUAGES CXX)
+project(GpgFrontend VERSION 2.0.2 LANGUAGES CXX)
 
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
@@ -153,7 +153,6 @@ IF (MINGW)
 
     set(Boost_USE_STATIC_LIBS ON)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
-
     include_directories(
             ${CMAKE_CURRENT_SOURCE_DIR}/src
             ${CMAKE_CURRENT_SOURCE_DIR}/third_party
@@ -162,7 +161,6 @@ IF (MINGW)
     link_directories(
             /mingw64/lib
     )
-
 endif ()
 
 if (APPLE)
@@ -227,7 +225,6 @@ set(ESAY_LOGGING_PP 1)
 if (FULL_APPLICATION_BUILD)
     message(STATUS "Build Full Application")
     set(QT5_ENV_SUPPORT 1)
-    set(QT_MOC_CONFIG 1)
     set(GPG_CORE 1)
     set(UI_CORE 1)
     set(SMTP_SUPPORT 1)
@@ -238,7 +235,6 @@ if (FULL_APPLICATION_BUILD)
     set(MULTI_LANG_SUPPORT 1)
 elseif (MINIMUM_APPLICATION_BUILD)
     set(QT5_ENV_SUPPORT 1)
-    set(QT_MOC_CONFIG 1)
     set(GPG_CORE 1)
     set(UI_CORE 1)
     set(APPLICATION_BUILD 1)
@@ -250,7 +246,6 @@ elseif (MINIMUM_APPLICATION_BUILD)
     #    endif ()
 elseif (STABLE_APPLICATION_BUILD)
     set(QT5_ENV_SUPPORT 1)
-    set(QT_MOC_CONFIG 1)
     set(GPG_CORE 1)
     set(UI_CORE 1)
     set(APPLICATION_BUILD 1)
@@ -279,6 +274,11 @@ if (QT5_ENV_SUPPORT)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
     set(CMAKE_AUTOUIC ON)
+
+    set(CMAKE_AUTORCC_OPTIONS "--compress;9")
+    set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
+    message(STATUS "CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS}")
+
 endif ()
 
 

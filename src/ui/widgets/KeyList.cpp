@@ -46,6 +46,7 @@ void KeyList::init() {
   mGroupTab = new QTabWidget();
   mGroupTab->setMovable(true);
   mGroupTab->setTabsClosable(false);
+  mGroupTab->setDocumentMode(true);
 
   auto* layout = new QVBoxLayout;
   layout->addWidget(mGroupTab);

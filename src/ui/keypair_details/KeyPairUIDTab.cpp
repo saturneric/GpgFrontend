@@ -152,8 +152,8 @@ void KeyPairUIDTab::createSignList() {
   sigList->setAlternatingRowColors(true);
 
   QStringList labels;
-  labels << _("Key ID") << _("Name") << _("Email") << _("Create Date")
-         << _("Expired Date");
+  labels << _("Key ID") << _("Name") << _("Email") << _("Create Date (UTC)")
+         << _("Expired Date (UTC)");
   sigList->setHorizontalHeaderLabels(labels);
   sigList->horizontalHeader()->setStretchLastSection(false);
 }

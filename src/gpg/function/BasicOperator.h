@@ -37,6 +37,9 @@ class BasicOperator : public SingletonFunctionObject<BasicOperator> {
   gpg_error_t Encrypt(KeyListPtr keys, BypeArrayRef in_buffer,
                       ByteArrayPtr& out_buffer, GpgEncrResult& result);
 
+  gpg_error_t EncryptSymmetric(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
+                               GpgEncrResult& result);
+
   gpgme_error_t EncryptSign(KeyListPtr keys, KeyListPtr signers,
                             BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
                             GpgEncrResult& encr_result,
