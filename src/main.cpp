@@ -74,23 +74,59 @@ int main(int argc, char* argv[]) {
   file.close();
 #endif
 
+  auto* init_ctx_thread = QThread::create([]() {
+    // Create & Check Gnupg Context Status
+    if (!GpgFrontend::GpgContext::GetInstance().good()) {
+      QMessageBox::critical(
+          nullptr, _("ENV Loading Failed"),
+          _("Gnupg(gpg) is not installed correctly, please follow the "
+            "ReadME "
+            "instructions in Github to install Gnupg and then open "
+            "GpgFrontend."));
+      QCoreApplication::quit();
+      exit(0);
+    }
+  });
+
+  QApplication::connect(init_ctx_thread, &QThread::finished, init_ctx_thread,
+                        &QThread::deleteLater);
+
+  init_ctx_thread->start();
+
+  // Waiting Dialog
+  auto* waiting_dialog = new QProgressDialog();
+  waiting_dialog->setMaximum(0);
+  waiting_dialog->setMinimum(0);
+  auto waiting_dialog_label =
+      new QLabel(QString(_("Loading Gnupg Info...")) + "<br /><br />" +
+                 _("If this process is too slow, please set the key "
+                   "server address appropriately in the gnupg configuration "
+                   "file (depending "
+                   "on the network situation in your country or region)."));
+  waiting_dialog_label->setWordWrap(true);
+  waiting_dialog->setLabel(waiting_dialog_label);
+  waiting_dialog->resize(420, 120);
+  QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
+    LOG(INFO) << "cancel clicked";
+    init_ctx_thread->terminate();
+    QCoreApplication::quit();
+    exit(0);
+  });
+
+  // Show Waiting Dialog
+  waiting_dialog->show();
+  waiting_dialog->setFocus();
+  while (init_ctx_thread->isRunning()) {
+    QApplication::processEvents();
+  }
+  waiting_dialog->finished(0);
+  waiting_dialog->deleteLater();
+
   /**
    * internationalisation. loop to restart main window
    * with changed translation when settings change.
    */
   int return_from_event_loop_code;
-
-  // Create & Check Gnupg Context Status
-  if (!GpgFrontend::GpgContext::GetInstance().good()) {
-    QMessageBox::critical(
-        nullptr, _("ENV Loading Failed"),
-        _("Gnupg(gpg) is not installed correctly, please follow the "
-          "ReadME "
-          "instructions in Github to install Gnupg and then open "
-          "GpgFrontend."));
-    QCoreApplication::quit();
-    exit(0);
-  }
 
   do {
     try {

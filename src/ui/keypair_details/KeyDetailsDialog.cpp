@@ -35,11 +35,15 @@ KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
   auto* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(tabWidget);
 
+#ifdef MACOS
+  setAttribute(Qt::WA_LayoutUsesWidgetRect);
+#endif
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setLayout(mainLayout);
   this->setWindowTitle(_("Key Details"));
   this->setModal(true);
-  this->setMinimumSize(380, 620);
+  this->setMinimumSize({520, 800});
+  this->resize(this->minimumSize());
   this->show();
 }
 }  // namespace GpgFrontend::UI
