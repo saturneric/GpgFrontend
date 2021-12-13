@@ -25,7 +25,9 @@
 #include <cstdlib>
 
 #include "GpgFrontendBuildInfo.h"
+#include "gpg/GpgContext.h"
 #include "ui/MainWindow.h"
+#include "ui/WaitingDialog.h"
 #include "ui/settings/GlobalSettingStation.h"
 
 // Easy Logging Cpp
@@ -78,17 +80,37 @@ int main(int argc, char* argv[]) {
    */
   int return_from_event_loop_code;
 
+  // Create & Check Gnupg Context Status
+  if (!GpgFrontend::GpgContext::GetInstance().good()) {
+    QMessageBox::critical(
+        nullptr, _("ENV Loading Failed"),
+        _("Gnupg(gpg) is not installed correctly, please follow the "
+          "ReadME "
+          "instructions in Github to install Gnupg and then open "
+          "GpgFrontend."));
+    QCoreApplication::quit();
+    exit(0);
+  }
+
   do {
-    // i18n
-    init_locale();
+    try {
+      // i18n
+      init_locale();
 
-    QApplication::setQuitOnLastWindowClosed(true);
+      QApplication::setQuitOnLastWindowClosed(true);
 
-    auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
-    main_window->init();
-    main_window->show();
-    return_from_event_loop_code = QApplication::exec();
+      auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
+      main_window->init();
+      main_window->show();
+      return_from_event_loop_code = QApplication::exec();
 
+    } catch (...) {
+      QMessageBox::information(nullptr, _("Unhandled Exception Thrown"),
+                               _("Oops, an unhandled exception was thrown "
+                                 "during the running of the "
+                                 "program, and now it needs to be restarted."));
+      continue;
+    }
   } while (return_from_event_loop_code == RESTART_CODE);
 
   return return_from_event_loop_code;
