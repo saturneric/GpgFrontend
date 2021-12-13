@@ -31,14 +31,21 @@
 namespace GpgFrontend::UI {
 
 InfoBoardWidget::InfoBoardWidget(QWidget* parent)
-    : QWidget(parent), Ui_InfoBoard() {
-  setupUi(this);
+    : QWidget(parent), ui(std::make_shared<Ui_InfoBoard>()) {
+  ui->setupUi(this);
 
-  actionButtonLayout->addStretch();
-  actionLabel->setText(_("Actions Menu"));
-  copyButton->setText(_("Copy"));
-  saveButton->setText(_("Save"));
-  clearButton->setText(_("Clear"));
+  ui->actionButtonLayout->addStretch();
+  ui->actionLabel->setText(_("InfoBoard's Actions Menu"));
+  ui->copyButton->setText(_("Copy"));
+  ui->saveButton->setText(_("Save"));
+  ui->clearButton->setText(_("Clear"));
+
+  connect(ui->copyButton, &QPushButton::clicked, this,
+          &InfoBoardWidget::slotCopy);
+  connect(ui->saveButton, &QPushButton::clicked, this,
+          &InfoBoardWidget::slotSave);
+  connect(ui->clearButton, &QPushButton::clicked, this,
+          &InfoBoardWidget::slotReset);
 
   connect(SignalStation::GetInstance(), &SignalStation::signalRefreshInfoBoard,
           this, &InfoBoardWidget::slotRefresh);
@@ -47,7 +54,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent)
 void InfoBoardWidget::setInfoBoard(const QString& text,
                                    InfoBoardStatus verifyLabelStatus) {
   QString color;
-  infoBoard->clear();
+  ui->infoBoard->clear();
   switch (verifyLabelStatus) {
     case INFO_ERROR_OK:
       color = "#008000";
@@ -61,12 +68,12 @@ void InfoBoardWidget::setInfoBoard(const QString& text,
     default:
       break;
   }
-  infoBoard->append(text);
+  ui->infoBoard->append(text);
 
-  infoBoard->setAutoFillBackground(true);
-  QPalette status = infoBoard->palette();
+  ui->infoBoard->setAutoFillBackground(true);
+  QPalette status = ui->infoBoard->palette();
   status.setColor(QPalette::Text, color);
-  infoBoard->setPalette(status);
+  ui->infoBoard->setPalette(status);
 
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
@@ -78,13 +85,13 @@ void InfoBoardWidget::setInfoBoard(const QString& text,
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("info_font_size");
   }
-  infoBoard->setFont(QFont("Times", info_font_size));
+  ui->infoBoard->setFont(QFont("Times", info_font_size));
 }
 
 void InfoBoardWidget::slotRefresh(const QString& text, InfoBoardStatus status) {
-  infoBoard->clear();
+  ui->infoBoard->clear();
   setInfoBoard(text, status);
-  infoBoard->verticalScrollBar()->setValue(0);
+  ui->infoBoard->verticalScrollBar()->setValue(0);
 }
 
 void InfoBoardWidget::associateTextEdit(QTextEdit* edit) {
@@ -115,10 +122,10 @@ void InfoBoardWidget::addOptionalAction(const QString& name,
   auto actionButton = new QPushButton(name);
   auto layout = new QHBoxLayout();
   layout->setContentsMargins(5, 0, 5, 0);
-  infoBoard->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+  ui->infoBoard->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   // set margin from surroundings
   layout->addWidget(actionButton);
-  actionButtonLayout->addLayout(layout);
+  ui->actionButtonLayout->addLayout(layout);
   connect(actionButton, &QPushButton::clicked, this, [=]() { action(); });
 }
 
@@ -127,11 +134,11 @@ void InfoBoardWidget::addOptionalAction(const QString& name,
  */
 void InfoBoardWidget::resetOptionActionsMenu() {
   // skip stretch
-  deleteWidgetsInLayout(actionButtonLayout, 1);
+  deleteWidgetsInLayout(ui->actionButtonLayout, 1);
 }
 
 void InfoBoardWidget::slotReset() {
-  this->infoBoard->clear();
+  ui->infoBoard->clear();
   resetOptionActionsMenu();
 }
 
@@ -151,6 +158,26 @@ void InfoBoardWidget::deleteWidgetsInLayout(QLayout* layout, int start_index) {
       delete item->widget();
     delete item;
   }
+}
+
+void InfoBoardWidget::slotCopy() {
+  auto* clipboard = QGuiApplication::clipboard();
+  clipboard->setText(ui->infoBoard->toPlainText());
+}
+
+void InfoBoardWidget::slotSave() {
+  auto file_path = QFileDialog::getSaveFileName(
+      this, _("Save Information Board's Content"), {}, tr("Text (*.txt)"));
+  LOG(INFO) << "file path" << file_path.toStdString();
+  QFile file(file_path);
+  if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+    file.write(ui->infoBoard->toPlainText().toUtf8());
+  } else {
+    QMessageBox::critical(
+        this, _("Error"),
+        _("The file path is not exists, unprivileged or unreachable."));
+  }
+  file.close();
 }
 
 }  // namespace GpgFrontend::UI

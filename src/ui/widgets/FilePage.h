@@ -29,11 +29,12 @@
 
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/InfoBoardWidget.h"
-#include "ui_FilePage.h"
+
+class Ui_FilePage;
 
 namespace GpgFrontend::UI {
 
-class FilePage : public QWidget, private Ui_FilePage {
+class FilePage : public QWidget {
   Q_OBJECT
  public:
   explicit FilePage(QWidget* parent = nullptr);
@@ -74,6 +75,8 @@ class FilePage : public QWidget, private Ui_FilePage {
 
  private:
   void createPopupMenu();
+
+  std::shared_ptr<Ui_FilePage> ui;
 
   QFileSystemModel* dirModel;
   QCompleter* pathEditCompleter;

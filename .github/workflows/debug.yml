@@ -2,12 +2,13 @@ name: Debug Build & Package
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, develop_ui ]
     paths-ignore:
       - '**/README.md'
       - '**/README_CN.md'
       - 'resource/ts/**'
       - 'docs/**'
+      - '**.md'
   pull_request:
     branches: [ develop ]
     paths-ignore:
@@ -15,6 +16,7 @@ on:
       - '**/README_CN.md'
       - 'resource/ts/**'
       - 'docs/**'
+      - '**.md'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
