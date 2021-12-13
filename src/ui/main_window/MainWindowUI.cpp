@@ -51,7 +51,7 @@ void MainWindow::createActions() {
   browserAct->setToolTip(_("Open a file browser"));
   connect(browserAct, SIGNAL(triggered()), this, SLOT(slotOpenFileTab()));
 
-  saveAct = new QAction(_("Save"), this);
+  saveAct = new QAction(_("Save File"), this);
   saveAct->setIcon(QIcon(":filesave.png"));
   saveAct->setShortcut(QKeySequence::Save);
   saveAct->setToolTip(_("Save the current File"));
@@ -178,28 +178,6 @@ void MainWindow::createActions() {
   decryptVerifyAct->setToolTip(_("Decrypt and Verify Message"));
   connect(decryptVerifyAct, SIGNAL(triggered()), this,
           SLOT(slotDecryptVerify()));
-
-  /*
-   * File encryption submenu
-   */
-  fileEncryptAct = new QAction(_("Encrypt File"), this);
-  fileEncryptAct->setToolTip(_("Encrypt File"));
-  connect(fileEncryptAct, SIGNAL(triggered()), this,
-          SLOT(slotFileEncryptCustom()));
-
-  fileDecryptAct = new QAction(_("Decrypt File"), this);
-  fileDecryptAct->setToolTip(_("Decrypt File"));
-  connect(fileDecryptAct, SIGNAL(triggered()), this,
-          SLOT(slotFileDecryptCustom()));
-
-  fileSignAct = new QAction(_("Sign File"), this);
-  fileSignAct->setToolTip(_("Sign File"));
-  connect(fileSignAct, SIGNAL(triggered()), this, SLOT(slotFileSignCustom()));
-
-  fileVerifyAct = new QAction(_("Verify File"), this);
-  fileVerifyAct->setToolTip(_("Verify File"));
-  connect(fileVerifyAct, SIGNAL(triggered()), this,
-          SLOT(slotFileVerifyCustom()));
 
   signAct = new QAction(_("Sign"), this);
   signAct->setIcon(QIcon(":signature.png"));
@@ -363,12 +341,6 @@ void MainWindow::createMenus() {
   editMenu->addSeparator();
   editMenu->addAction(openSettingsAct);
 
-  fileEncMenu = new QMenu(_("File..."));
-  fileEncMenu->addAction(fileEncryptAct);
-  fileEncMenu->addAction(fileDecryptAct);
-  fileEncMenu->addAction(fileSignAct);
-  fileEncMenu->addAction(fileVerifyAct);
-
   cryptMenu = menuBar()->addMenu(_("Crypt"));
   cryptMenu->addAction(encryptAct);
   cryptMenu->addAction(encryptSignAct);
@@ -378,7 +350,6 @@ void MainWindow::createMenus() {
   cryptMenu->addAction(signAct);
   cryptMenu->addAction(verifyAct);
   cryptMenu->addSeparator();
-  cryptMenu->addMenu(fileEncMenu);
 
   keyMenu = menuBar()->addMenu(_("Keys"));
   importKeyMenu = keyMenu->addMenu(_("Import Key"));

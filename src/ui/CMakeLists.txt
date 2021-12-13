@@ -13,10 +13,11 @@ if (SMTP_SUPPORT)
     aux_source_directory(./smtp UI_SOURCE)
 endif ()
 
-
 add_library(gpgfrontend-ui STATIC ${UI_SOURCE})
-
-target_link_libraries(gpgfrontend-ui
+set(GPGFRONTEND_UI_LIB_NAME gpgfrontend-ui)
+target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
         Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+target_include_directories(gpgfrontend-ui PUBLIC
+       ${CMAKE_CURRENT_BINARY_DIR}/${GPGFRONTEND_UI_LIB_NAME}_autogen/include)
 
 target_compile_features(gpgfrontend-ui PUBLIC cxx_std_17)

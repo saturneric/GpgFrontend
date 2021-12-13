@@ -25,7 +25,9 @@
 #include <cstdlib>
 
 #include "GpgFrontendBuildInfo.h"
+#include "gpg/GpgContext.h"
 #include "ui/MainWindow.h"
+#include "ui/WaitingDialog.h"
 #include "ui/settings/GlobalSettingStation.h"
 
 // Easy Logging Cpp
@@ -40,7 +42,10 @@ int main(int argc, char* argv[]) {
 
   // Qt App
   QApplication app(argc, argv);
+
+#ifndef MACOS
   QApplication::setWindowIcon(QIcon(":gpgfrontend.png"));
+#endif
 
 #ifdef MACOS
   // support retina screen
@@ -60,7 +65,7 @@ int main(int argc, char* argv[]) {
   // unicode in source
   QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
 
-#if !defined(RELEASE)
+#if !defined(RELEASE) && defined(WINDOWS)
   // css
   QFile file(RESOURCE_DIR(qApp->applicationDirPath()) + "/css/default.qss");
   file.open(QFile::ReadOnly);
@@ -69,6 +74,54 @@ int main(int argc, char* argv[]) {
   file.close();
 #endif
 
+  auto* init_ctx_thread = QThread::create([]() {
+    // Create & Check Gnupg Context Status
+    if (!GpgFrontend::GpgContext::GetInstance().good()) {
+      QMessageBox::critical(
+          nullptr, _("ENV Loading Failed"),
+          _("Gnupg(gpg) is not installed correctly, please follow the "
+            "ReadME "
+            "instructions in Github to install Gnupg and then open "
+            "GpgFrontend."));
+      QCoreApplication::quit();
+      exit(0);
+    }
+  });
+
+  QApplication::connect(init_ctx_thread, &QThread::finished, init_ctx_thread,
+                        &QThread::deleteLater);
+
+  init_ctx_thread->start();
+
+  // Waiting Dialog
+  auto* waiting_dialog = new QProgressDialog();
+  waiting_dialog->setMaximum(0);
+  waiting_dialog->setMinimum(0);
+  auto waiting_dialog_label =
+      new QLabel(QString(_("Loading Gnupg Info...")) + "<br /><br />" +
+                 _("If this process is too slow, please set the key "
+                   "server address appropriately in the gnupg configuration "
+                   "file (depending "
+                   "on the network situation in your country or region)."));
+  waiting_dialog_label->setWordWrap(true);
+  waiting_dialog->setLabel(waiting_dialog_label);
+  waiting_dialog->resize(420, 120);
+  QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
+    LOG(INFO) << "cancel clicked";
+    init_ctx_thread->terminate();
+    QCoreApplication::quit();
+    exit(0);
+  });
+
+  // Show Waiting Dialog
+  waiting_dialog->show();
+  waiting_dialog->setFocus();
+  while (init_ctx_thread->isRunning()) {
+    QApplication::processEvents();
+  }
+  waiting_dialog->finished(0);
+  waiting_dialog->deleteLater();
+
   /**
    * internationalisation. loop to restart main window
    * with changed translation when settings change.
@@ -76,16 +129,24 @@ int main(int argc, char* argv[]) {
   int return_from_event_loop_code;
 
   do {
-    // i18n
-    init_locale();
+    try {
+      // i18n
+      init_locale();
 
-    QApplication::setQuitOnLastWindowClosed(true);
+      QApplication::setQuitOnLastWindowClosed(true);
 
-    auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
-    main_window->init();
-    main_window->show();
-    return_from_event_loop_code = QApplication::exec();
+      auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
+      main_window->init();
+      main_window->show();
+      return_from_event_loop_code = QApplication::exec();
 
+    } catch (...) {
+      QMessageBox::information(nullptr, _("Unhandled Exception Thrown"),
+                               _("Oops, an unhandled exception was thrown "
+                                 "during the running of the "
+                                 "program, and now it needs to be restarted."));
+      continue;
+    }
   } while (return_from_event_loop_code == RESTART_CODE);
 
   return return_from_event_loop_code;

@@ -130,3 +130,31 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKey(
   std::swap(out_buffer, temp_out_buffer);
   return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
 }
+
+bool GpgFrontend::GpgKeyImportExportor::ExportKeyOpenSSH(
+    const GpgFrontend::GpgKey& key,
+    GpgFrontend::ByteArrayPtr& out_buffer) const {
+  GpgData data_out;
+  auto err =
+      gpgme_op_export(ctx, key.id().c_str(), GPGME_EXPORT_MODE_SSH, data_out);
+
+  DLOG(INFO) << "read_bytes" << gpgme_data_seek(data_out, 0, SEEK_END);
+
+  auto temp_out_buffer = data_out.Read2Buffer();
+  std::swap(out_buffer, temp_out_buffer);
+  return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
+}
+
+bool GpgFrontend::GpgKeyImportExportor::ExportSecretKeyShortest(
+    const GpgFrontend::GpgKey& key,
+    GpgFrontend::ByteArrayPtr& out_buffer) const {
+  GpgData data_out;
+  auto err = gpgme_op_export(ctx, key.id().c_str(), GPGME_EXPORT_MODE_MINIMAL,
+                             data_out);
+
+  DLOG(INFO) << "read_bytes" << gpgme_data_seek(data_out, 0, SEEK_END);
+
+  auto temp_out_buffer = data_out.Read2Buffer();
+  std::swap(out_buffer, temp_out_buffer);
+  return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
+}

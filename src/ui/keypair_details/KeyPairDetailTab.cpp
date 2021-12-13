@@ -75,21 +75,35 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   vboxKD->addWidget(new QLabel(QString(_("Key Size")) + ": "), 2, 0);
   vboxKD->addWidget(new QLabel(QString(_("Nominal Usage")) + ": "), 3, 0);
   vboxKD->addWidget(new QLabel(QString(_("Actual Usage")) + ": "), 4, 0);
-  vboxKD->addWidget(new QLabel(QString(_("Create Date")) + ": "), 5, 0);
-  vboxKD->addWidget(new QLabel(QString(_("Expires on")) + ": "), 6, 0);
-  vboxKD->addWidget(new QLabel(QString(_("Last Update")) + ": "), 7, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Create Date (Local Time)")) + ": "),
+                    5, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Expires on (Local Time)")) + ": "), 6,
+                    0);
+  vboxKD->addWidget(new QLabel(QString(_("Last Update (Local Time)")) + ": "),
+                    7, 0);
   vboxKD->addWidget(new QLabel(QString(_("Master Key Existence")) + ": "), 8,
                     0);
 
-  vboxKD->addWidget(keyidVarLabel, 0, 1);
-  vboxKD->addWidget(algorithmVarLabel, 1, 1);
-  vboxKD->addWidget(keySizeVarLabel, 2, 1);
-  vboxKD->addWidget(usageVarLabel, 3, 1);
-  vboxKD->addWidget(actualUsageVarLabel, 4, 1);
-  vboxKD->addWidget(createdVarLabel, 5, 1);
-  vboxKD->addWidget(expireVarLabel, 6, 1);
-  vboxKD->addWidget(lastUpdateVarLabel, 7, 1);
-  vboxKD->addWidget(masterKeyExistVarLabel, 8, 1);
+  keyidVarLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  vboxKD->addWidget(keyidVarLabel, 0, 1, 1, 1);
+  vboxKD->addWidget(algorithmVarLabel, 1, 1, 1, 2);
+  vboxKD->addWidget(keySizeVarLabel, 2, 1, 1, 2);
+  vboxKD->addWidget(usageVarLabel, 3, 1, 1, 2);
+  vboxKD->addWidget(actualUsageVarLabel, 4, 1, 1, 2);
+  vboxKD->addWidget(createdVarLabel, 5, 1, 1, 2);
+  vboxKD->addWidget(expireVarLabel, 6, 1, 1, 2);
+  vboxKD->addWidget(lastUpdateVarLabel, 7, 1, 1, 2);
+  vboxKD->addWidget(masterKeyExistVarLabel, 8, 1, 1, 2);
+
+  auto* copyKeyIdButton = new QPushButton(_("Copy"));
+  copyKeyIdButton->setFlat(true);
+  copyKeyIdButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  vboxKD->addWidget(copyKeyIdButton, 0, 2);
+  connect(copyKeyIdButton, &QPushButton::clicked, this, [=]() {
+    QString fpr = keyidVarLabel->text().trimmed();
+    QClipboard* cb = QApplication::clipboard();
+    cb->setText(fpr);
+  });
 
   ownerBox->setLayout(vboxOD);
   mvbox->addWidget(ownerBox);
@@ -116,8 +130,11 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   hboxFP->addStretch();
 
   fingerprintBox->setLayout(hboxFP);
-  mvbox->addStretch();
   mvbox->addWidget(fingerprintBox);
+  mvbox->addStretch();
+
+  // Set Menu
+  createOperaMenu();
 
   auto* opera_key_box = new QGroupBox(_("Operations"));
   auto* vbox_p_k = new QVBoxLayout();
@@ -131,10 +148,9 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
           SLOT(slotExportPublicKey()));
 
   if (mKey.is_private_key()) {
-    auto* export_private_button =
-        new QPushButton(_("Export Private Key (Include Subkey)"));
-    connect(export_private_button, SIGNAL(clicked()), this,
-            SLOT(slotExportPrivateKey()));
+    auto* export_private_button = new QPushButton(_("Export Private Key"));
+    export_private_button->setStyleSheet("text-align:center;");
+    export_private_button->setMenu(secretKeyExportOperaMenu);
     export_h_box_layout->addWidget(export_private_button);
 
     if (mKey.has_master_key()) {
@@ -157,10 +173,6 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   auto* key_server_opera_button =
       new QPushButton(_("Key Server Operation (Pubkey)"));
   key_server_opera_button->setStyleSheet("text-align:center;");
-  connect(key_server_opera_button, SIGNAL(clicked()), this,
-          SLOT(slotModifyEditDatetime()));
-  // Set Menu
-  createKeyServerOperaMenu();
   key_server_opera_button->setMenu(keyServerOperaMenu);
   advance_h_box_layout->addWidget(key_server_opera_button);
 
@@ -194,12 +206,11 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   expBox->addWidget(expLabel);
   expBox->addStretch();
   mvbox->addLayout(expBox);
+  mvbox->setContentsMargins(0, 0, 0, 0);
 
   // when key database updated
   connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
           SLOT(slotRefreshKey()));
-
-  mvbox->setContentsMargins(0, 0, 0, 0);
 
   slotRefreshKeyInfo();
   setAttribute(Qt::WA_DeleteOnClose, true);
@@ -230,6 +241,48 @@ void KeyPairDetailTab::slotExportPublicKey() {
   }
 }
 
+void KeyPairDetailTab::slotExportShortPrivateKey() {
+  // Show a information box with explanation about private key
+  int ret = QMessageBox::information(
+      this, _("Exporting short private Key"),
+      "<h3>" + QString(_("You are about to export your")) +
+          "<font color=\"red\">" + _(" PRIVATE KEY ") + "</font>!</h3>\n" +
+          _("This is NOT your Public Key, so DON'T give it away.") + "<br />" +
+          _("Do you REALLY want to export your PRIVATE KEY in a Minimum "
+            "Size?") +
+          "<br />" +
+          _("For OpenPGP keys it removes all signatures except for the latest "
+            "self-signatures."),
+      QMessageBox::Cancel | QMessageBox::Ok);
+
+  // export key, if ok was clicked
+  if (ret == QMessageBox::Ok) {
+    ByteArrayPtr keyArray = nullptr;
+
+    if (!GpgKeyImportExportor::GetInstance().ExportSecretKeyShortest(
+            mKey, keyArray)) {
+      QMessageBox::critical(
+          this, _("Error"),
+          _("An error occurred during the export operation."));
+      return;
+    }
+    auto fileString = mKey.name() + " " + mKey.email() + "(" + mKey.id() +
+                      ")_short_secret.asc";
+    auto fileName =
+        QFileDialog::getSaveFileName(
+            this, _("Export Key To File"), QString::fromStdString(fileString),
+            QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)")
+            .toStdString();
+
+    if (!write_buffer_to_file(fileName, *keyArray)) {
+      QMessageBox::critical(
+          this, _("Export Error"),
+          QString(_("Couldn't open %1 for writing")).arg(fileName.c_str()));
+      return;
+    }
+  }
+}
+
 void KeyPairDetailTab::slotExportPrivateKey() {
   // Show a information box with explanation about private key
   int ret = QMessageBox::information(
@@ -250,8 +303,8 @@ void KeyPairDetailTab::slotExportPrivateKey() {
           _("An error occurred during the export operation."));
       return;
     }
-    auto fileString =
-        mKey.name() + " " + mKey.email() + "(" + mKey.id() + ")_secret.asc";
+    auto fileString = mKey.name() + " " + mKey.email() + "(" + mKey.id() +
+                      ")_full_secret.asc";
     auto fileName =
         QFileDialog::getSaveFileName(
             this, _("Export Key To File"), QString::fromStdString(fileString),
@@ -370,7 +423,7 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
   }
 }
 
-void KeyPairDetailTab::createKeyServerOperaMenu() {
+void KeyPairDetailTab::createOperaMenu() {
   keyServerOperaMenu = new QMenu(this);
 
   auto* uploadKeyPair = new QAction(_("Upload Key Pair to Key Server"), this);
@@ -384,6 +437,21 @@ void KeyPairDetailTab::createKeyServerOperaMenu() {
 
   keyServerOperaMenu->addAction(uploadKeyPair);
   keyServerOperaMenu->addAction(updateKeyPair);
+
+  secretKeyExportOperaMenu = new QMenu(this);
+
+  auto* exportFullSecretKey = new QAction(_("Export Full Secret Key"), this);
+  connect(exportFullSecretKey, SIGNAL(triggered()), this,
+          SLOT(slotExportPrivateKey()));
+  if (!mKey.is_private_key()) exportFullSecretKey->setDisabled(true);
+
+  auto* exportShortestSecretKey =
+      new QAction(_("Export Shortest Secret Key"), this);
+  connect(exportShortestSecretKey, SIGNAL(triggered()), this,
+          SLOT(slotExportShortPrivateKey()));
+
+  secretKeyExportOperaMenu->addAction(exportFullSecretKey);
+  secretKeyExportOperaMenu->addAction(exportShortestSecretKey);
 }
 
 void KeyPairDetailTab::slotUploadKeyToServer() {
@@ -403,7 +471,7 @@ void KeyPairDetailTab::slotUpdateKeyFromServer() {
 }
 
 void KeyPairDetailTab::slotGenRevokeCert() {
-  auto literal = QStringLiteral("%1 (*.rev)").arg(_("Revocation Certificates"));
+  auto literal = QString("%1 (*.rev)").arg(_("Revocation Certificates"));
   QString m_output_file_name;
 
   QFileDialog dialog(this, "Generate revocation certificate", QString(),
