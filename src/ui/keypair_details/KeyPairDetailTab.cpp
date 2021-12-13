@@ -75,12 +75,16 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   vboxKD->addWidget(new QLabel(QString(_("Key Size")) + ": "), 2, 0);
   vboxKD->addWidget(new QLabel(QString(_("Nominal Usage")) + ": "), 3, 0);
   vboxKD->addWidget(new QLabel(QString(_("Actual Usage")) + ": "), 4, 0);
-  vboxKD->addWidget(new QLabel(QString(_("Create Date")) + ": "), 5, 0);
-  vboxKD->addWidget(new QLabel(QString(_("Expires on")) + ": "), 6, 0);
-  vboxKD->addWidget(new QLabel(QString(_("Last Update")) + ": "), 7, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Create Date (Local Time)")) + ": "),
+                    5, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Expires on (Local Time)")) + ": "), 6,
+                    0);
+  vboxKD->addWidget(new QLabel(QString(_("Last Update (Local Time)")) + ": "),
+                    7, 0);
   vboxKD->addWidget(new QLabel(QString(_("Master Key Existence")) + ": "), 8,
                     0);
 
+  keyidVarLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   vboxKD->addWidget(keyidVarLabel, 0, 1, 1, 1);
   vboxKD->addWidget(algorithmVarLabel, 1, 1, 1, 2);
   vboxKD->addWidget(keySizeVarLabel, 2, 1, 1, 2);
@@ -93,6 +97,7 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
 
   auto* copyKeyIdButton = new QPushButton(_("Copy"));
   copyKeyIdButton->setFlat(true);
+  copyKeyIdButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   vboxKD->addWidget(copyKeyIdButton, 0, 2);
   connect(copyKeyIdButton, &QPushButton::clicked, this, [=]() {
     QString fpr = keyidVarLabel->text().trimmed();
@@ -125,8 +130,8 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   hboxFP->addStretch();
 
   fingerprintBox->setLayout(hboxFP);
-  mvbox->addStretch();
   mvbox->addWidget(fingerprintBox);
+  mvbox->addStretch();
 
   // Set Menu
   createOperaMenu();
@@ -201,12 +206,11 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   expBox->addWidget(expLabel);
   expBox->addStretch();
   mvbox->addLayout(expBox);
+  mvbox->setContentsMargins(0, 0, 0, 0);
 
   // when key database updated
   connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
           SLOT(slotRefreshKey()));
-
-  mvbox->setContentsMargins(0, 0, 0, 0);
 
   slotRefreshKeyInfo();
   setAttribute(Qt::WA_DeleteOnClose, true);

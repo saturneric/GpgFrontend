@@ -450,24 +450,4 @@ void MainWindow::slotFileDecryptVerify() {
   }
 }
 
-void MainWindow::slotFileEncryptCustom() {
-  new FileEncryptionDialog(mKeyList->getChecked(),
-                           FileEncryptionDialog::Encrypt, this);
-}
-
-void MainWindow::slotFileDecryptCustom() {
-  new FileEncryptionDialog(mKeyList->getChecked(),
-                           FileEncryptionDialog::Decrypt, this);
-}
-
-void MainWindow::slotFileSignCustom() {
-  new FileEncryptionDialog(mKeyList->getChecked(), FileEncryptionDialog::Sign,
-                           this);
-}
-
-void MainWindow::slotFileVerifyCustom() {
-  new FileEncryptionDialog(mKeyList->getChecked(), FileEncryptionDialog::Verify,
-                           this);
-}
-
 }  // namespace GpgFrontend::UI

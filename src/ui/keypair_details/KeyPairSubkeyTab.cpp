@@ -62,10 +62,10 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
   subkeyDetailLayout->addWidget(new QLabel(QString(_("Key Size")) + ": "), 2,
                                 0);
   subkeyDetailLayout->addWidget(new QLabel(QString(_("Usage")) + ": "), 3, 0);
-  subkeyDetailLayout->addWidget(new QLabel(QString(_("Expires On")) + ": "), 4,
-                                0);
-  subkeyDetailLayout->addWidget(new QLabel(QString(_("Create Date")) + ": "), 5,
-                                0);
+  subkeyDetailLayout->addWidget(
+      new QLabel(QString(_("Expires On (Local Time)")) + ": "), 4, 0);
+  subkeyDetailLayout->addWidget(
+      new QLabel(QString(_("Create Date (Local Time)")) + ": "), 5, 0);
   subkeyDetailLayout->addWidget(new QLabel(QString(_("Existence")) + ": "), 6,
                                 0);
   subkeyDetailLayout->addWidget(new QLabel(QString(_("Fingerprint")) + ": "), 7,
@@ -143,8 +143,8 @@ void KeyPairSubkeyTab::createSubkeyList() {
   subkeyList->setAlternatingRowColors(true);
 
   QStringList labels;
-  labels << _("Subkey ID") << _("Key Size") << _("Algo") << _("Create Date")
-         << _("Expire Date");
+  labels << _("Subkey ID") << _("Key Size") << _("Algo")
+         << _("Create Date (UTC)") << _("Expire Date (UTC)");
 
   subkeyList->setHorizontalHeaderLabels(labels);
   subkeyList->horizontalHeader()->setStretchLastSection(false);
