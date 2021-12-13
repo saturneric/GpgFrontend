@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(GpgFrontend VERSION 2.0.1 LANGUAGES CXX)
+project(GpgFrontend VERSION 2.0.2 LANGUAGES CXX)
 
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
@@ -274,7 +274,7 @@ if (QT5_ENV_SUPPORT)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
     set(CMAKE_AUTOUIC ON)
-    
+
     set(CMAKE_AUTORCC_OPTIONS "--compress;9")
     set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
     message(STATUS "CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS}")

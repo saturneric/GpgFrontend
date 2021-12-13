@@ -90,7 +90,12 @@ class GpgKeyImportExportor
 
   bool ExportKey(const GpgKey& key, ByteArrayPtr& out_buffer) const;
 
+  bool ExportKeyOpenSSH(const GpgKey& key, ByteArrayPtr& out_buffer) const;
+
   bool ExportSecretKey(const GpgKey& key, ByteArrayPtr& outBuffer) const;
+
+  bool ExportSecretKeyShortest(const GpgKey& key,
+                               ByteArrayPtr& outBuffer) const;
 
  private:
   GpgContext& ctx =

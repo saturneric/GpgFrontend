@@ -28,7 +28,8 @@
 #include "EditorPage.h"
 #include "gpg/result_analyse/VerifyResultAnalyse.h"
 #include "ui/details/VerifyDetailsDialog.h"
-#include "ui_InfoBoard.h"
+
+class Ui_InfoBoard;
 
 namespace GpgFrontend::UI {
 
@@ -45,7 +46,7 @@ typedef enum {
 /**
  * @brief Class for handling the verifylabel shown at buttom of a textedit-page
  */
-class InfoBoardWidget : public QWidget, private Ui_InfoBoard {
+class InfoBoardWidget : public QWidget {
   Q_OBJECT
  public:
   /**
@@ -82,7 +83,14 @@ class InfoBoardWidget : public QWidget, private Ui_InfoBoard {
    */
   void slotRefresh(const QString& text, InfoBoardStatus status);
 
+ private slots:
+
+  void slotCopy();
+
+  void slotSave();
+
  private:
+  std::shared_ptr<Ui_InfoBoard> ui;
 
   QTextEdit* mTextPage{nullptr}; /** TextEdit associated to the notification */
   QTabWidget* mTabWidget{nullptr};

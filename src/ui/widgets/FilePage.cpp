@@ -32,11 +32,13 @@
 
 #include "ui/MainWindow.h"
 #include "ui/SignalStation.h"
+#include "ui_FilePage.h"
 
 namespace GpgFrontend::UI {
 
-FilePage::FilePage(QWidget* parent) : QWidget(parent), Ui_FilePage() {
-  setupUi(this);
+FilePage::FilePage(QWidget* parent)
+    : QWidget(parent), ui(std::make_shared<Ui_FilePage>()) {
+  ui->setupUi(this);
 
   firstParent = parent;
 
@@ -44,35 +46,37 @@ FilePage::FilePage(QWidget* parent) : QWidget(parent), Ui_FilePage() {
   dirModel->setRootPath(QDir::currentPath());
   dirModel->setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
 
-  fileTreeView->setModel(dirModel);
-  fileTreeView->setColumnWidth(0, 320);
-  fileTreeView->sortByColumn(0, Qt::AscendingOrder);
+  ui->fileTreeView->setModel(dirModel);
+  ui->fileTreeView->setColumnWidth(0, 320);
+  ui->fileTreeView->sortByColumn(0, Qt::AscendingOrder);
   mPath = boost::filesystem::path(dirModel->rootPath().toStdString());
 
   createPopupMenu();
 
-  connect(upPathButton, &QPushButton::clicked, this, &FilePage::slotUpLevel);
-  connect(refreshButton, &QPushButton::clicked, this, &FilePage::slotGoPath);
-  optionsButton->setMenu(optionPopUpMenu);
+  connect(ui->upPathButton, &QPushButton::clicked, this,
+          &FilePage::slotUpLevel);
+  connect(ui->refreshButton, &QPushButton::clicked, this,
+          &FilePage::slotGoPath);
+  ui->optionsButton->setMenu(optionPopUpMenu);
 
-  pathEdit->setText(dirModel->rootPath());
+  ui->pathEdit->setText(dirModel->rootPath());
 
   pathEditCompleter = new QCompleter(this);
   pathCompleteModel = new QStringListModel();
   pathEditCompleter->setModel(pathCompleteModel);
   pathEditCompleter->setCaseSensitivity(Qt::CaseInsensitive);
   pathEditCompleter->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
-  pathEdit->setCompleter(pathEditCompleter);
+  ui->pathEdit->setCompleter(pathEditCompleter);
 
-  connect(fileTreeView, &QTreeView::clicked, this,
+  connect(ui->fileTreeView, &QTreeView::clicked, this,
           &FilePage::fileTreeViewItemClicked);
-  connect(fileTreeView, &QTreeView::doubleClicked, this,
+  connect(ui->fileTreeView, &QTreeView::doubleClicked, this,
           &FilePage::fileTreeViewItemDoubleClicked);
-  connect(fileTreeView, &QTreeView::customContextMenuRequested, this,
+  connect(ui->fileTreeView, &QTreeView::customContextMenuRequested, this,
           &FilePage::onCustomContextMenu);
 
-  connect(pathEdit, &QLineEdit::textChanged, [=]() {
-    auto path = pathEdit->text();
+  connect(ui->pathEdit, &QLineEdit::textChanged, [=]() {
+    auto path = ui->pathEdit->text();
     auto dir = QDir(path);
     if (path.endsWith("/") && dir.isReadable()) {
       auto dir_list = dir.entryInfoList(QDir::AllEntries);
@@ -99,7 +103,7 @@ void FilePage::fileTreeViewItemClicked(const QModelIndex& index) {
 }
 
 void FilePage::slotUpLevel() {
-  QModelIndex currentRoot = fileTreeView->rootIndex();
+  QModelIndex currentRoot = ui->fileTreeView->rootIndex();
 
   auto utf8_path =
       dirModel->fileInfo(currentRoot).absoluteFilePath().toStdString();
@@ -117,7 +121,7 @@ void FilePage::slotUpLevel() {
   if (mPath.has_parent_path() && !mPath.parent_path().empty()) {
     mPath = mPath.parent_path();
     LOG(INFO) << "parent path" << mPath;
-    pathEdit->setText(mPath.string().c_str());
+    ui->pathEdit->setText(mPath.string().c_str());
     this->slotGoPath();
   }
 }
@@ -127,7 +131,7 @@ void FilePage::fileTreeViewItemDoubleClicked(const QModelIndex& index) {
   if (file_info.isFile()) {
     slotOpenItem();
   } else {
-    pathEdit->setText(file_info.filePath());
+    ui->pathEdit->setText(file_info.filePath());
     slotGoPath();
   }
 }
@@ -137,7 +141,7 @@ QString FilePage::getSelected() const {
 }
 
 void FilePage::slotGoPath() {
-  const auto path_edit = pathEdit->text().toStdString();
+  const auto path_edit = ui->pathEdit->text().toStdString();
 
 #ifdef WINDOWS
   std::wstring_convert<std::codecvt_utf8_utf16<char16_t>> converter;
@@ -152,12 +156,12 @@ void FilePage::slotGoPath() {
   if (fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
     mPath = boost::filesystem::path(fileInfo.filePath().toStdString());
     LOG(INFO) << "set path" << mPath;
-    fileTreeView->setRootIndex(dirModel->index(fileInfo.filePath()));
+    ui->fileTreeView->setRootIndex(dirModel->index(fileInfo.filePath()));
     dirModel->setRootPath(fileInfo.filePath());
     for (int i = 1; i < dirModel->columnCount(); ++i) {
-      fileTreeView->resizeColumnToContents(i);
+      ui->fileTreeView->resizeColumnToContents(i);
     }
-    pathEdit->setText(mPath.generic_path().string().c_str());
+    ui->pathEdit->setText(mPath.generic_path().string().c_str());
   } else {
     QMessageBox::critical(
         this, _("Error"),
@@ -240,7 +244,7 @@ void FilePage::createPopupMenu() {
 }
 
 void FilePage::onCustomContextMenu(const QPoint& point) {
-  QModelIndex index = fileTreeView->indexAt(point);
+  QModelIndex index = ui->fileTreeView->indexAt(point);
   selectedPath = boost::filesystem::path(
       dirModel->fileInfo(index).absoluteFilePath().toStdString());
   LOG(INFO) << "right click" << selectedPath;
@@ -272,7 +276,7 @@ void FilePage::onCustomContextMenu(const QPoint& point) {
     verifyItemAct->setEnabled(false);
     hashCalculateAct->setEnabled(false);
   }
-  popUpMenu->exec(fileTreeView->viewport()->mapToGlobal(point));
+  popUpMenu->exec(ui->fileTreeView->viewport()->mapToGlobal(point));
 }
 
 void FilePage::slotOpenItem() {
@@ -281,7 +285,7 @@ void FilePage::slotOpenItem() {
     if (info.isReadable() && info.isExecutable()) {
       const auto file_path = info.filePath().toStdString();
       LOG(INFO) << "set path" << file_path;
-      pathEdit->setText(info.filePath());
+      ui->pathEdit->setText(info.filePath());
       slotGoPath();
     } else {
       QMessageBox::critical(this, _("Error"),
@@ -325,8 +329,8 @@ void FilePage::slotRenameItem() {
 }
 
 void FilePage::slotDeleteItem() {
-  QModelIndex index = fileTreeView->currentIndex();
-  QVariant data = fileTreeView->model()->data(index);
+  QModelIndex index = ui->fileTreeView->currentIndex();
+  QVariant data = ui->fileTreeView->model()->data(index);
 
   auto ret = QMessageBox::warning(this, _("Warning"),
                                   _("Are you sure you want to delete it?"),
@@ -412,7 +416,7 @@ void FilePage::slotCalculateHash() {
 }
 
 void FilePage::slotMkdir() {
-  auto index = fileTreeView->rootIndex();
+  auto index = ui->fileTreeView->rootIndex();
 
   QString new_dir_name;
   bool ok;
@@ -450,10 +454,10 @@ void FilePage::slotCreateEmptyFile() {
 
 void FilePage::keyPressEvent(QKeyEvent* event) {
   LOG(INFO) << "Key Press" << event->key();
-  if (pathEdit->hasFocus() &&
+  if (ui->pathEdit->hasFocus() &&
       (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)) {
     slotGoPath();
-  } else if (fileTreeView->currentIndex().isValid()) {
+  } else if (ui->fileTreeView->currentIndex().isValid()) {
     if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)
       slotOpenItem();
     else if (event->key() == Qt::Key_Delete ||
