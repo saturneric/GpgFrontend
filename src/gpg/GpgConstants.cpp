@@ -28,9 +28,6 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
-#include <codecvt>
-#include <iostream>
-#include <locale>
 #include <string>
 
 const char* GpgFrontend::GpgConstants::PGP_CRYPT_BEGIN =
@@ -114,20 +111,16 @@ static inline std::string trim(std::string& s) {
   return s;
 }
 
-std::string GpgFrontend::read_all_data_in_file(const std::string& path) {
+std::string GpgFrontend::read_all_data_in_file(const std::string& utf8_path) {
   using namespace boost::filesystem;
-#ifdef WINDOWS
-  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>> converter;
-  std::wstring w_path = converter.from_bytes(path);
-  class path file_info(w_path.c_str());
-#else
-  class path file_info(path.c_str());
-#endif
-
-  if (!exists(file_info) || !is_regular_file(path)) return {};
-
+  class path file_info(utf8_path.c_str());
+  if (!exists(file_info) || !is_regular_file(file_info)) return {};
   std::ifstream in_file;
-  in_file.open(path, std::ios::in);
+#ifndef WINDOWS
+  in_file.open(file_info.string(), std::ios::in);
+#else
+  in_file.open(file_info.wstring().c_str(), std::ios::in);
+#endif
   if (!in_file.good()) return {};
   std::istreambuf_iterator<char> begin(in_file);
   std::istreambuf_iterator<char> end;
@@ -136,18 +129,16 @@ std::string GpgFrontend::read_all_data_in_file(const std::string& path) {
   return in_buffer;
 }
 
-bool GpgFrontend::write_buffer_to_file(const std::string& path,
+bool GpgFrontend::write_buffer_to_file(const std::string& utf8_path,
                                        const std::string& out_buffer) {
-#ifdef WINDOWS
-  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>> converter;
-  std::wstring w_path = converter.from_bytes(path);
-  std::ofstream out_file(boost::filesystem::path(w_path).string(),
-                         std::ios::out);
+  using namespace boost::filesystem;
+  class path file_info(utf8_path.c_str());
+#ifndef WINDOWS
+  std::ofstream out_file(file_info.string(), std::ios::out | std::ios::trunc);
 #else
-  std::ofstream out_file(boost::filesystem::path(path).string(),
+  std::ofstream out_file(file_info.wstring().c_str(),
                          std::ios::out | std::ios::trunc);
 #endif
-
   if (!out_file.good()) return false;
   out_file.write(out_buffer.c_str(), out_buffer.size());
   out_file.close();
@@ -155,15 +146,8 @@ bool GpgFrontend::write_buffer_to_file(const std::string& path,
 }
 
 std::string GpgFrontend::get_file_extension(const std::string& path) {
-#ifdef WINDOWS
-  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>> converter;
-  std::wstring w_path = converter.from_bytes(path);
-  // Create a path object from given string
-  boost::filesystem::path path_obj(w_path);
-#else
   // Create a path object from given string
   boost::filesystem::path path_obj(path);
-#endif
 
   // Check if file name in the path object has extension
   if (path_obj.has_extension()) {
@@ -175,15 +159,8 @@ std::string GpgFrontend::get_file_extension(const std::string& path) {
 }
 
 std::string GpgFrontend::get_only_file_name_with_path(const std::string& path) {
-#ifdef WINDOWS
-  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>> converter;
-  std::wstring w_path = converter.from_bytes(path);
-  // Create a path object from given string
-  boost::filesystem::path path_obj(w_path);
-#else
   // Create a path object from given string
   boost::filesystem::path path_obj(path);
-#endif
   // Check if file name in the path object has extension
   if (path_obj.has_filename()) {
     // Fetch the extension from path object and return
