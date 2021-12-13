@@ -2,12 +2,13 @@ name: Debug Build & Package
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, develop_ui ]
     paths-ignore:
       - '**/README.md'
       - '**/README_CN.md'
       - 'resource/ts/**'
       - 'docs/**'
+      - '**.md'
   pull_request:
     branches: [ develop ]
     paths-ignore:
@@ -15,6 +16,7 @@ on:
       - '**/README_CN.md'
       - 'resource/ts/**'
       - 'docs/**'
+      - '**.md'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -90,8 +92,9 @@ jobs:
       - name: Set up Dependence (Windows)
         shell: msys2 {0}
         run: |
-          pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-qt-creator mingw-w64-x86_64-gpgme
+          pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-gpgme
           pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost mingw-w64-x86_64-gnupg gettext-devel libintl msys2-runtime-devel
+          pacman --noconfirm -S --needed mingw-w64-x86_64-qt5
         if: matrix.os == 'windows-latest'
 
       - name: Build gpg-error (Linux)

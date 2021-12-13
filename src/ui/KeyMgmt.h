@@ -48,6 +48,8 @@ class KeyMgmt : public QMainWindow {
 
   void slotExportKeyToClipboard();
 
+  void slotExportAsOpenSSHFormat();
+
   void slotDeleteSelectedKeys();
 
   void slotDeleteCheckedKeys();
@@ -80,6 +82,7 @@ class KeyMgmt : public QMainWindow {
   QMenu* importKeyMenu{};
   QAction* openKeyFileAct{};
   QAction* exportKeyToFileAct{};
+  QAction* exportKeyAsOpenSSHFormat{};
   QAction* exportKeyToClipboardAct{};
   QAction* deleteCheckedKeysAct{};
   QAction* deleteSelectedKeysAct{};
