@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.2\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2021-12-13 18:15+0800\n"
+"POT-Creation-Date: 2021-12-13 19:23+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,31 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:86
+msgid "ENV Loading Failed"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:87
+msgid ""
+"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions "
+"in Github to install Gnupg and then open GpgFrontend."
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:108
+msgid "Unhandled Exception Thrown"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:109
+msgid ""
+"Oops, an unhandled exception was thrown during the running of the program, "
+"and now it needs to be restarted."
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:142
 msgid "Logfile Path"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:165
 msgid "Could not read properly from configure file"
 msgstr ""
 
@@ -821,8 +841,7 @@ msgid "First Start Wizard"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:59
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:41
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:153
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:141
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:510
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:445
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:553
@@ -1643,22 +1662,12 @@ msgstr ""
 msgid "You can download the latest version(%1) on Github Releases Page.<br/>"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:46
-msgid "ENV Loading Failed"
-msgstr ""
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:47
-msgid ""
-"Gnupg is not installed correctly, please follow the ReadME instructions to "
-"install gnupg and then open GpgFrontend."
-msgstr ""
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:144
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:146
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:134
 msgid "Critical error occur while loading GpgFrontend."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:145
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:133
 msgid "Loading Failed"
 msgstr ""
 
