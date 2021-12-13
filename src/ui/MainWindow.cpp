@@ -38,18 +38,7 @@ MainWindow::MainWindow() {
 }
 
 void MainWindow::init() noexcept {
-  LOG(INFO) << _("Called");
   try {
-    // Check Context Status
-    if (!GpgContext::GetInstance().good()) {
-      QMessageBox::critical(
-          nullptr, _("ENV Loading Failed"),
-          _("Gnupg is not installed correctly, please follow the ReadME "
-            "instructions to install gnupg and then open GpgFrontend."));
-      QCoreApplication::quit();
-      exit(0);
-    }
-
     networkAccessManager = new QNetworkAccessManager(this);
 
     /* get path where app was started */
@@ -64,7 +53,7 @@ void MainWindow::init() noexcept {
 
     mKeyList->slotRefresh();
 
-    infoBoard = new InfoBoardWidget(this, mKeyList);
+    infoBoard = new InfoBoardWidget(this);
 
     /* List of binary Attachments */
     attachmentDockCreated = false;
@@ -139,7 +128,6 @@ void MainWindow::init() noexcept {
 
     version_thread->start();
 #endif
-
   } catch (...) {
     LOG(FATAL) << _("Critical error occur while loading GpgFrontend.");
     QMessageBox::critical(nullptr, _("Loading Failed"),

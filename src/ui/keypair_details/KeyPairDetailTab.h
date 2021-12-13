@@ -36,7 +36,7 @@ namespace GpgFrontend::UI {
 class KeyPairDetailTab : public QWidget {
   Q_OBJECT
 
-  void createKeyServerOperaMenu();
+  void createOperaMenu();
 
  private slots:
 
@@ -44,6 +44,8 @@ class KeyPairDetailTab : public QWidget {
    * @details Export the key to a file, which is chosen in a file dialog
    */
   void slotExportPrivateKey();
+
+  void slotExportShortPrivateKey();
 
   void slotExportPublicKey();
 
@@ -95,6 +97,7 @@ class KeyPairDetailTab : public QWidget {
   QLabel* expLabel;
 
   QMenu* keyServerOperaMenu{};
+  QMenu* secretKeyExportOperaMenu{};
 
  public:
   explicit KeyPairDetailTab(const std::string& key_id,

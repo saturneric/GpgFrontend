@@ -64,7 +64,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
   subkeyDetailLayout->addWidget(new QLabel(QString(_("Usage")) + ": "), 3, 0);
   subkeyDetailLayout->addWidget(new QLabel(QString(_("Expires On")) + ": "), 4,
                                 0);
-  subkeyDetailLayout->addWidget(new QLabel(QString(_("Last Update")) + ": "), 5,
+  subkeyDetailLayout->addWidget(new QLabel(QString(_("Create Date")) + ": "), 5,
                                 0);
   subkeyDetailLayout->addWidget(new QLabel(QString(_("Existence")) + ": "), 6,
                                 0);
@@ -80,14 +80,23 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
   masterKeyExistVarLabel = new QLabel();
   fingerPrintVarLabel = new QLabel();
 
-  subkeyDetailLayout->addWidget(keyidVarLabel, 0, 1);
-  subkeyDetailLayout->addWidget(keySizeVarLabel, 2, 1);
-  subkeyDetailLayout->addWidget(expireVarLabel, 4, 1);
-  subkeyDetailLayout->addWidget(algorithmVarLabel, 1, 1);
-  subkeyDetailLayout->addWidget(createdVarLabel, 5, 1);
-  subkeyDetailLayout->addWidget(usageVarLabel, 3, 1);
-  subkeyDetailLayout->addWidget(masterKeyExistVarLabel, 6, 1);
-  subkeyDetailLayout->addWidget(fingerPrintVarLabel, 7, 1);
+  subkeyDetailLayout->addWidget(keyidVarLabel, 0, 1, 1, 1);
+  subkeyDetailLayout->addWidget(keySizeVarLabel, 2, 1, 1, 2);
+  subkeyDetailLayout->addWidget(expireVarLabel, 4, 1, 1, 2);
+  subkeyDetailLayout->addWidget(algorithmVarLabel, 1, 1, 1, 2);
+  subkeyDetailLayout->addWidget(createdVarLabel, 5, 1, 1, 2);
+  subkeyDetailLayout->addWidget(usageVarLabel, 3, 1, 1, 2);
+  subkeyDetailLayout->addWidget(masterKeyExistVarLabel, 6, 1, 1, 2);
+  subkeyDetailLayout->addWidget(fingerPrintVarLabel, 7, 1, 1, 2);
+
+  auto* copyKeyIdButton = new QPushButton(_("Copy"));
+  copyKeyIdButton->setFlat(true);
+  subkeyDetailLayout->addWidget(copyKeyIdButton, 0, 2);
+  connect(copyKeyIdButton, &QPushButton::clicked, this, [=]() {
+    QString fpr = keyidVarLabel->text().trimmed();
+    QClipboard* cb = QApplication::clipboard();
+    cb->setText(fpr);
+  });
 
   listBox->setLayout(subkeyListLayout);
   listBox->setContentsMargins(0, 12, 0, 0);
