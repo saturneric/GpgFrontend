@@ -25,9 +25,6 @@
 #include "ui/widgets/FilePage.h"
 
 #include <boost/filesystem.hpp>
-#include <codecvt>
-#include <iostream>
-#include <locale>
 #include <string>
 
 #include "ui/MainWindow.h"
@@ -107,14 +104,7 @@ void FilePage::slotUpLevel() {
 
   auto utf8_path =
       dirModel->fileInfo(currentRoot).absoluteFilePath().toStdString();
-
-#ifdef WINDOWS
-  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>> converter;
-  std::wstring w_path = converter.from_bytes(utf8_path);
-  boost::filesystem::path path_obj(w_path);
-#else
   boost::filesystem::path path_obj(utf8_path);
-#endif
 
   mPath = path_obj;
   LOG(INFO) << "get path" << mPath;
@@ -142,14 +132,7 @@ QString FilePage::getSelected() const {
 
 void FilePage::slotGoPath() {
   const auto path_edit = ui->pathEdit->text().toStdString();
-
-#ifdef WINDOWS
-  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>> converter;
-  std::wstring w_path = converter.from_bytes(path_edit);
-  boost::filesystem::path path_obj(w_path);
-#else
   boost::filesystem::path path_obj(path_edit);
-#endif
 
   if (mPath.string() != path_edit) mPath = path_obj;
   auto fileInfo = QFileInfo(mPath.string().c_str());
@@ -430,13 +413,8 @@ void FilePage::slotMkdir() {
 
 void FilePage::slotCreateEmptyFile() {
   auto root_path_str = dirModel->rootPath().toStdString();
-#ifdef WINDOWS
-  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>> converter;
-  std::wstring w_path = converter.from_bytes(root_path_str);
-  boost::filesystem::path root_path(w_path);
-#else
   boost::filesystem::path root_path(root_path_str);
-#endif
+
   QString new_file_name;
   bool ok;
   new_file_name = QInputDialog::getText(this, _("Create Empty File"),
