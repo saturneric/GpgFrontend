@@ -7,6 +7,8 @@
 
 #include "ui/GpgFrontendUI.h"
 
+class Ui_SendMailSettings;
+
 namespace GpgFrontend::UI {
 class SendMailTab : public QWidget {
   Q_OBJECT
@@ -22,20 +24,10 @@ class SendMailTab : public QWidget {
 
   void slotCheckBoxSetEnableDisable(int state);
 
+  void slotCheckConnection();
+
  private:
-  QString appPath;
-  QSettings settings;
-
-  QCheckBox* enableCheckBox;
-
-  QLineEdit* smtpAddress;
-  QLineEdit* username;
-  QLineEdit* password;
-  QSpinBox* portSpin;
-  QComboBox* connectionTypeComboBox;
-  QLineEdit* defaultSender;
-
-  QPushButton* checkConnectionButton;
+  std::shared_ptr<Ui_SendMailSettings> ui;
 
  signals:
 

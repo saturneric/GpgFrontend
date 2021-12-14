@@ -40,6 +40,7 @@
 #include "gpg/function/GpgKeyImportExportor.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/help/AboutDialog.h"
+#include "ui/settings/GlobalSettingStation.h"
 #include "ui/widgets/SignersPicker.h"
 
 namespace GpgFrontend::UI {
@@ -114,7 +115,16 @@ void MainWindow::slotEncrypt() {
     if (resultAnalyse.getStatus() >= 0) {
       infoBoard->resetOptionActionsMenu();
       infoBoard->addOptionalAction("Send Mail", [this]() {
-        if (settings.value("sendMail/enable", false).toBool())
+        bool smtp_enabled = false;
+        try {
+          smtp_enabled =
+              GlobalSettingStation::GetInstance().GetUISettings().lookup(
+                  "smtp.enable");
+        } catch (...) {
+          LOG(INFO) << "Reading smtp settings error";
+        }
+
+        if (smtp_enabled)
           new SendMailDialog(edit->curTextPage()->toPlainText(), this);
         else {
           QMessageBox::warning(nullptr, _("Function Disabled"),
@@ -357,7 +367,15 @@ void MainWindow::slotEncryptSign() {
 #ifdef SMTP_SUPPORT
     infoBoard->resetOptionActionsMenu();
     infoBoard->addOptionalAction("Send Mail", [this]() {
-      if (settings.value("sendMail/enable", false).toBool())
+      bool smtp_enabled = false;
+      try {
+        smtp_enabled =
+            GlobalSettingStation::GetInstance().GetUISettings().lookup(
+                "smtp.enable");
+      } catch (...) {
+        LOG(INFO) << "Reading smtp settings error";
+      }
+      if (smtp_enabled)
         new SendMailDialog(edit->curTextPage()->toPlainText(), this);
       else {
         QMessageBox::warning(nullptr, _("Function Disabled"),
