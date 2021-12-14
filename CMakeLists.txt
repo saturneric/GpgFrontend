@@ -222,6 +222,18 @@ set(BASIC_ENV_CONFIG 1)
 set(QT_MOC_CONFIG 1)
 set(ESAY_LOGGING_PP 1)
 
+if (LINUX_INSTALL_SOFTWARE)
+    include(GNUInstallDirs)
+    set(INSTALL_GPGFRONTEND_APP 1)
+    set(APP_INSTALL_FLAG LINUX_INSTALL)
+    add_compile_definitions(LINUX_INSTALL_BUILD)
+    set(Boost_USE_STATIC_LIBS ON)
+else ()
+    set(APP_INSTALL_FLAG BUNDLE)
+    add_compile_definitions(BUNDLE_BUILD)
+endif ()
+
+
 if (FULL_APPLICATION_BUILD)
     message(STATUS "Build Full Application")
     set(QT5_ENV_SUPPORT 1)
