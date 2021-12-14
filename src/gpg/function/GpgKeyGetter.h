@@ -43,6 +43,10 @@ class GpgKeyGetter : public SingletonFunctionObject<GpgKeyGetter> {
 
   KeyLinkListPtr FetchKey();
 
+  static KeyListPtr GetKeysCopy(const KeyListPtr& keys);
+
+  static KeyLinkListPtr GetKeysCopy(const KeyLinkListPtr& keys);
+
  private:
   GpgContext& ctx =
       GpgContext::GetInstance(SingletonFunctionObject::GetDefaultChannel());

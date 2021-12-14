@@ -24,6 +24,8 @@
 
 #include "UserInterfaceUtils.h"
 
+#include <utility>
+
 #include "gpg/result_analyse/ResultAnalyse.h"
 #include "ui/SignalStation.h"
 #include "ui/WaitingDialog.h"
@@ -36,15 +38,12 @@ std::unique_ptr<GpgFrontend::UI::CommonUtils>
     GpgFrontend::UI::CommonUtils::_instance = nullptr;
 
 void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
-                         GpgError error, VerifyResultAnalyse& verify_res) {
+                         GpgError error, const GpgVerifyResult& verify_result) {
   // take out result
-  auto _result = verify_res.TakeChargeOfResult();
   info_board->resetOptionActionsMenu();
-  info_board->addOptionalAction(
-      "Show Verify Details", [parent, error, _result_ptr = _result.get()]() {
-        VerifyDetailsDialog(parent, error, GpgVerifyResult(_result_ptr));
-      });
-  _result.reset(nullptr);
+  info_board->addOptionalAction("Show Verify Details", [=]() {
+    VerifyDetailsDialog(parent, error, verify_result);
+  });
 }
 
 void import_unknown_key_from_keyserver(QWidget* parent,

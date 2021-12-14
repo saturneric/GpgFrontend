@@ -190,3 +190,32 @@ int GpgFrontend::text_is_signed(GpgFrontend::BypeArrayRef text) {
   else
     return 0;
 }
+
+GpgFrontend::GpgEncrResult GpgFrontend::_new_result(
+    gpgme_encrypt_result_t&& result) {
+  gpgme_result_ref(result);
+  return {result, _result_ref_deletor()};
+}
+
+GpgFrontend::GpgDecrResult GpgFrontend::_new_result(
+    gpgme_decrypt_result_t&& result) {
+  gpgme_result_ref(result);
+  return {result, _result_ref_deletor()};
+}
+
+GpgFrontend::GpgSignResult GpgFrontend::_new_result(
+    gpgme_sign_result_t&& result) {
+  gpgme_result_ref(result);
+  return {result, _result_ref_deletor()};
+}
+
+GpgFrontend::GpgVerifyResult GpgFrontend::_new_result(
+    gpgme_verify_result_t&& result) {
+  gpgme_result_ref(result);
+  return {result, _result_ref_deletor()};
+}
+
+void GpgFrontend::_result_ref_deletor::operator()(void* _result) {
+  DLOG(INFO) << "Called" << _result;
+  if (_result != nullptr) gpgme_result_unref(_result);
+}

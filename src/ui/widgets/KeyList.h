@@ -68,7 +68,7 @@ struct KeyTable {
         info_type(_info_type),
         filter(std::move(_filter)) {}
 
-  void Refresh();
+  void Refresh(KeyLinkListPtr m_keys = nullptr);
 
   KeyIdArgsListPtr GetChecked();
 
@@ -133,6 +133,8 @@ class KeyList : public QWidget {
   std::vector<KeyTable> mKeyTables;
 
   QMenu* popupMenu{};
+
+  GpgFrontend::KeyLinkListPtr _buffered_keys_list;
 
   std::function<void(const GpgKey&, QWidget*)> mAction = nullptr;
 

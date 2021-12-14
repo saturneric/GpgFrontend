@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(GpgFrontend VERSION 2.0.2 LANGUAGES CXX)
+project(GpgFrontend VERSION 2.0.3 LANGUAGES CXX)
 
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
