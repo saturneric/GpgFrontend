@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+    <id>pub.gpgfrontend.gpgfrontend</id>
+    <metadata_license>MIT</metadata_license>
+    <name>gpgfrontend</name>
+    <summary>An OpenPGP Crypto Tool</summary>
+    <icon type="stock">gpgfrontend</icon>
+    <categories>
+        <category>Utility</category>
+    </categories>
+    <url type="homepage">https://gpgfrontend.pub</url>
+    <launchable type="desktop-id">gpgfrontend.gpgfrontend.desktop</launchable>
+    <description>
+        <p>
+            GpgFrontend is a Free, Open Source, Powerful, Easy-to-Use, Compact, Cross-Platform OpenPGP Crypto Tool.
+            By using GpgFrontend, you can quickly encrypt and decrypt text or files. Or at the same time as the above
+            operations, you can add your own signature to let others know that this document or this paragraph of text
+            was issued by you.
+        </p>
+    </description>
+    <screenshots>
+        <screenshot type="default">
+            <image>https://github.com/saturneric/Blob/blob/master/screenshots/main-ubuntu.png</image>
+            <caption>Main Dialog</caption>
+        </screenshot>
+    </screenshots>
+    <keywords>
+        <keyword>gpg</keyword>
+        <keyword>encrypt</keyword>
+        <keyword>crypto</keyword>
+        <keyword>pgp</keyword>
+        <keyword>gnupg</keyword>
+        <keyword>openpgp</keyword>
+    </keywords>
+    <project_license>GPL-3.0+</project_license>
+    <developer_name>Saturneric</developer_name>
+</component>

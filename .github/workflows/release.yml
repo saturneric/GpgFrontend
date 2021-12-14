@@ -33,6 +33,10 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Get Short SHA of Commit
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
       - name: Install Dependence (Linux)
         run: |
           sudo apt-get update
@@ -143,8 +147,18 @@ jobs:
 
       - name: Build GpgFrontend
         # Build your program with the given configuration
-        run: cmake --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -j 2
+        run: cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'ubuntu-18.04' || matrix.os == 'macos-10.15'
+
+      - name: Build & Package GpgFrontend (Linux DEB Package)
+        # Build your program with the given configuration
+        run: |
+          cmake -B ${{github.workspace}}/build-deb -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}} -DAPP_PACKAGE_DEB=ON -DLINUX_INSTALL_SOFTWARE=ON
+          cmake --build ${{github.workspace}}/build-deb --config {{$env.BUILD_TYPE}}  -- -j 2
+          cd ${{github.workspace}}/build-deb
+          make package
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-18.04'
 
       - name: Build & Sign App Bundle (macOS)
         run: |
@@ -188,15 +202,18 @@ jobs:
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'windows-latest'
 
-      - name: Get Short SHA of Commit
-        id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
           path: ${{github.workspace}}/build/artifactOut/GpgFrontend*.AppImage*
+        if: matrix.os == 'ubuntu-18.04'
+
+      - name: Upload Artifact(Linux DEB)
+        uses: actions/upload-artifact@master
+        with:
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}-deb
+          path: ${{github.workspace}}/build-deb/gpgfrontend*.deb*
         if: matrix.os == 'ubuntu-18.04'
 
       - name: Upload Artifact(macOS)
