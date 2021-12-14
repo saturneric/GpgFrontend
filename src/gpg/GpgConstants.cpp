@@ -47,9 +47,9 @@ const char* GpgFrontend::GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD =
 
 gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    LOG(ERROR) << "[Error " << gpg_err_code(err)
-               << "] Source: " << gpgme_strsource(err)
-               << " Description: " << gpgme_strerror(err);
+    LOG(ERROR) << "[" << _("Error") << " " << gpg_err_code(err) << "] "
+               << _("Source: ") << gpgme_strsource(err) << " "
+               << _("Description: ") << gpgme_strerror(err);
   }
   return err;
 }
@@ -58,9 +58,9 @@ gpg_err_code_t GpgFrontend::check_gpg_error_2_err_code(gpgme_error_t err,
                                                        gpgme_error_t predict) {
   auto err_code = gpg_err_code(err);
   if (err_code != predict) {
-    LOG(ERROR) << "[Error " << gpg_err_code(err)
-               << "] Source: " << gpgme_strsource(err)
-               << " Description: " << gpgme_strerror(err);
+    LOG(ERROR) << "[" << _("Error") << " " << gpg_err_code(err) << "] "
+               << _("Source: ") << gpgme_strsource(err) << " "
+               << _("Description: ") << gpgme_strerror(err);
   }
   return err_code;
 }
@@ -69,9 +69,9 @@ gpg_err_code_t GpgFrontend::check_gpg_error_2_err_code(gpgme_error_t err,
 gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
                                            const std::string& comment) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    LOG(ERROR) << "[Error " << gpg_err_code(err)
-               << "] Source: " << gpgme_strsource(err)
-               << " Description: " << gpgme_strerror(err) << " " << comment;
+    LOG(ERROR) << "[" << _("Error") << " " << gpg_err_code(err) << "] "
+               << _("Source: ") << gpgme_strsource(err) << " "
+               << _("Description: ") << gpgme_strerror(err);
   }
   return err;
 }
@@ -216,6 +216,6 @@ GpgFrontend::GpgVerifyResult GpgFrontend::_new_result(
 }
 
 void GpgFrontend::_result_ref_deletor::operator()(void* _result) {
-  DLOG(INFO) << "Called" << _result;
+  DLOG(INFO) << _("Called") << _result;
   if (_result != nullptr) gpgme_result_unref(_result);
 }

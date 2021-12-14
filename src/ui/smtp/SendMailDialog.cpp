@@ -26,7 +26,7 @@
 
 #include <utility>
 
-#ifdef STMP_ENABLED
+#ifdef SMTP_SUPPORT
 #include "smtp/SmtpMime"
 #endif
 
@@ -72,7 +72,7 @@ SendMailDialog::SendMailDialog(QString text, QWidget* parent)
   layout->addWidget(confirmButton, 3, 1);
   layout->addWidget(errorLabel, 4, 0, 1, 2);
 
-#ifdef STMP_ENABLED
+#ifdef SMTP_SUPPORT
   connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(slotConfirm()));
 #endif
 
@@ -87,7 +87,7 @@ bool SendMailDialog::check_email_address(const QString& str) {
   return re_email.match(str).hasMatch();
 }
 
-#ifdef STMP_ENABLED
+#ifdef SMTP_SUPPORT
 
 void SendMailDialog::slotConfirm() {
   QString errString;

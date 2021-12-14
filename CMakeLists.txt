@@ -164,7 +164,6 @@ IF (MINGW)
 endif ()
 
 if (APPLE)
-
     message(STATUS "Configuration For OS Platform MacOS")
 
     set(OS_PLATFORM 1)
@@ -262,6 +261,7 @@ elseif (STABLE_APPLICATION_BUILD)
     set(UI_CORE 1)
     set(APPLICATION_BUILD 1)
     set(BASIC_ENV_CONFIG 1)
+    set(SMTP_SUPPORT 1)
     # MULTI_LANG_SUPPORT now work only on Linux and macOS
     set(MULTI_LANG_SUPPORT 1)
 elseif (TEST_BUILD)

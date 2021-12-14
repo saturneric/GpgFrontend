@@ -153,7 +153,7 @@ class GpgKey {
  private:
   struct _key_ref_deletor {
     void operator()(gpgme_key_t _key) {
-      DLOG(INFO) << "Called" << _key;
+      DLOG(INFO) << _("Called") << _key;
       if (_key != nullptr) gpgme_key_unref(_key);
     }
   };
