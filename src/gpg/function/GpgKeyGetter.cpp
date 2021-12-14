@@ -67,9 +67,24 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
 
   return keys_list;
 }
+
 GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeys(
     const KeyIdArgsListPtr& ids) {
   auto keys = std::make_unique<KeyArgsList>();
   for (const auto& id : *ids) keys->push_back(GetKey(id));
   return keys;
+}
+
+GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::GetKeysCopy(
+    const GpgFrontend::KeyLinkListPtr& keys) {
+  auto keys_copy = std::make_unique<GpgKeyLinkList>();
+  for (const auto& key : *keys) keys_copy->push_back(key.copy());
+  return keys_copy;
+}
+
+GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeysCopy(
+    const GpgFrontend::KeyListPtr& keys) {
+  auto keys_copy = std::make_unique<KeyArgsList>();
+  for (const auto& key : *keys) keys_copy->push_back(key.copy());
+  return keys_copy;
 }

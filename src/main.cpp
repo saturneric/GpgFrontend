@@ -26,6 +26,7 @@
 
 #include "GpgFrontendBuildInfo.h"
 #include "gpg/GpgContext.h"
+#include "gpg/function/GpgKeyGetter.h"
 #include "ui/MainWindow.h"
 #include "ui/WaitingDialog.h"
 #include "ui/settings/GlobalSettingStation.h"
@@ -86,6 +87,8 @@ int main(int argc, char* argv[]) {
       QCoreApplication::quit();
       exit(0);
     }
+    // Try fetching key
+    GpgFrontend::GpgKeyGetter::GetInstance().FetchKey();
   });
 
   QApplication::connect(init_ctx_thread, &QThread::finished, init_ctx_thread,

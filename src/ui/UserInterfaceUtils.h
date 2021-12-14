@@ -38,7 +38,7 @@ class InfoBoardWidget;
 class TextEdit;
 
 void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
-                         GpgError error, VerifyResultAnalyse& verify_res);
+                         GpgError error, const GpgVerifyResult& verify_result);
 
 void import_unknown_key_from_keyserver(QWidget* parent,
                                        const VerifyResultAnalyse& verify_res);

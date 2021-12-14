@@ -61,12 +61,17 @@ void KeyList::init() {
           SLOT(slotRefresh()));
 
   setAcceptDrops(true);
+
+  // buffered keys list
+  _buffered_keys_list = GpgKeyGetter::GetInstance().FetchKey();
 }
 
 void KeyList::addListGroupTab(
     const QString& name, KeyListRow::KeyType selectType,
     KeyListColumn::InfoType infoType,
     const std::function<bool(const GpgKey&)>& filter) {
+  LOG(INFO) << _("Called") << name.toStdString();
+
   auto key_list = new QTableWidget(this);
   if (mKeyList == nullptr) {
     mKeyList = key_list;
@@ -121,15 +126,18 @@ void KeyList::addListGroupTab(
   connect(key_list, &QTableWidget::doubleClicked, this,
           &KeyList::slotDoubleClicked);
 
-  // refresh
-  mKeyTables.back().Refresh();
+  // refresh Optimization
+  if (_buffered_keys_list != nullptr)
+    mKeyTables.back().Refresh(GpgKeyGetter::GetKeysCopy(_buffered_keys_list));
+  else
+    mKeyTables.back().Refresh();
 }
 
 void KeyList::slotRefresh() {
-  LOG(INFO) << _("called");
-
+  LOG(INFO) << _("Called");
+  _buffered_keys_list = GpgKeyGetter::GetInstance().FetchKey();
   for (auto& key_table : mKeyTables) {
-    key_table.Refresh();
+    key_table.Refresh(GpgKeyGetter::GetKeysCopy(_buffered_keys_list));
   }
 }
 
@@ -389,14 +397,22 @@ void KeyTable::SetChecked(const KeyIdArgsListPtr& key_ids) {
   }
 }
 
-void KeyTable::Refresh() {
+void KeyTable::Refresh(KeyLinkListPtr m_keys) {
+  LOG(INFO) << "Called";
+
   auto checked_key_list = GetChecked();
   // while filling the table, sort enabled causes errors
 
   key_list->setSortingEnabled(false);
   key_list->clearContents();
 
-  auto keys = GpgKeyGetter::GetInstance().FetchKey();
+  // Optimization for copy
+  KeyLinkListPtr keys = nullptr;
+  if (m_keys == nullptr)
+    keys = GpgKeyGetter::GetInstance().FetchKey();
+  else
+    keys = std::move(m_keys);
+
   auto it = keys->begin();
   int row_count = 0;
 
@@ -491,5 +507,7 @@ void KeyTable::Refresh() {
   }
 
   SetChecked(checked_key_list);
+
+  LOG(INFO) << "End";
 }
 }  // namespace GpgFrontend::UI
