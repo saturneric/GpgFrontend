@@ -25,64 +25,81 @@
 #include "SettingsKeyServer.h"
 
 #include "GlobalSettingStation.h"
+#include "ui_KeyServerSettings.h"
 
 namespace GpgFrontend::UI {
 
-KeyserverTab::KeyserverTab(QWidget* parent) : QWidget(parent) {
-  auto generalGroupBox = new QGroupBox(_("General"));
-  auto generalLayout = new QVBoxLayout();
+KeyserverTab::KeyserverTab(QWidget* parent)
+    : QWidget(parent), ui(std::make_shared<Ui_KeyServerSettings>()) {
+  ui->setupUi(this);
+  ui->keyServerListTable->setSizeAdjustPolicy(
+      QAbstractScrollArea::AdjustToContents);
 
-  keyServerTable = new QTableWidget();
-  keyServerTable->setColumnCount(3);
-  keyServerTable->horizontalHeader()->setSectionResizeMode(
-      QHeaderView::ResizeToContents);
-  keyServerTable->horizontalHeader()->setStretchLastSection(false);
-  keyServerTable->verticalHeader()->hide();
-  keyServerTable->setShowGrid(false);
-  keyServerTable->sortByColumn(0, Qt::AscendingOrder);
-  keyServerTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-  keyServerTable->setSelectionMode(QAbstractItemView::SingleSelection);
+  connect(ui->addKeyServerPushButton, &QPushButton::clicked, this,
+          &KeyserverTab::addKeyServer);
+  connect(ui->testKeyServerButton, &QPushButton::clicked, this,
+          &KeyserverTab::slotTestListedKeyServer);
 
-  // tableitems not editable
-  keyServerTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  // no focus (rectangle around tableitems)
-  // may be it should focus on whole row
-  keyServerTable->setFocusPolicy(Qt::NoFocus);
-  keyServerTable->setAlternatingRowColors(true);
+  ui->keyServerListGroupBox->setTitle(_("Keyserver List"));
+  ui->operationsGroupBox->setTitle(_("Operations"));
 
-  QStringList labels;
-  labels << _("No.") << _("Address") << _("Available");
-  keyServerTable->setHorizontalHeaderLabels(labels);
+  ui->keyServerListTable->horizontalHeaderItem(0)->setText(_("Default"));
+  ui->keyServerListTable->horizontalHeaderItem(1)->setText(
+      _("Keyserver Address"));
+  ui->keyServerListTable->horizontalHeaderItem(2)->setText(_("Security"));
+  ui->keyServerListTable->horizontalHeaderItem(3)->setText(_("Available"));
 
-  auto* mainLayout = new QVBoxLayout(this);
-  auto* label = new QLabel(QString(_("Default Key Server for Import")) + ": ");
+  ui->addKeyServerPushButton->setText(_("Add"));
+  ui->testKeyServerButton->setText(_("Test Listed Keyserver"));
 
-  comboBox = new QComboBox;
-  comboBox->setEditable(false);
-  comboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  ui->tipsLabel->setText(_("Tips: Please Double-click table item to edit it."));
+  ui->actionDelete_Selected_Key_Server->setText(_("Delete Selected"));
+  ui->actionDelete_Selected_Key_Server->setToolTip(
+      _("Delete Selected Key Server"));
+  ui->actionSet_As_Default->setText(_("Set As Default"));
+  ui->actionSet_As_Default->setToolTip(_("Set As Default"));
 
-  auto* addKeyServerBox = new QWidget(this);
-  auto* addKeyServerLayout = new QHBoxLayout(addKeyServerBox);
-  auto* http = new QLabel("URL: ");
-  newKeyServerEdit = new QLineEdit(this);
-  auto* newKeyServerButton = new QPushButton(_("Add"), this);
-  connect(newKeyServerButton, SIGNAL(clicked()), this, SLOT(addKeyServer()));
-  addKeyServerLayout->addWidget(http);
-  addKeyServerLayout->addWidget(newKeyServerEdit);
-  addKeyServerLayout->addWidget(newKeyServerButton);
+  popupMenu = new QMenu(this);
+  popupMenu->addAction(ui->actionSet_As_Default);
+  popupMenu->addAction(ui->actionDelete_Selected_Key_Server);
 
-  generalLayout->addWidget(label);
-  generalLayout->addWidget(comboBox);
-  generalLayout->addWidget(keyServerTable);
-  generalLayout->addWidget(addKeyServerBox);
-  generalLayout->addStretch(0);
+  connect(ui->keyServerListTable, &QTableWidget::itemChanged,
+          [=](QTableWidgetItem* item) {
+            LOG(INFO) << "item edited" << item->column();
+            if (item->column() != 1) return;
+            const auto row_size = ui->keyServerListTable->rowCount();
+            // Update Actions
+            if (row_size > 0) {
+              keyServerStrList.clear();
+              for (int i = 0; i < row_size; i++) {
+                const auto key_server =
+                    ui->keyServerListTable->item(i, 1)->text();
+                keyServerStrList.append(key_server);
+              }
+            }
+          });
 
-  generalGroupBox->setLayout(generalLayout);
-  mainLayout->addWidget(generalGroupBox);
-  mainLayout->addStretch(0);
+  connect(ui->actionSet_As_Default, &QAction::triggered, [=]() {
+    const auto row_size = ui->keyServerListTable->rowCount();
+    for (int i = 0; i < row_size; i++) {
+      const auto item = ui->keyServerListTable->item(i, 1);
+      if (!item->isSelected()) continue;
+      this->defaultKeyServer = item->text();
+    }
+    this->refreshTable();
+  });
 
-  setLayout(mainLayout);
-  // Read keylist from ini-file and fill it into combobox
+  connect(ui->actionDelete_Selected_Key_Server, &QAction::triggered, [=]() {
+    const auto row_size = ui->keyServerListTable->rowCount();
+    for (int i = 0; i < row_size; i++) {
+      const auto item = ui->keyServerListTable->item(i, 1);
+      if (!item->isSelected()) continue;
+      this->keyServerStrList.removeAt(i);
+    }
+    this->refreshTable();
+  });
+
+  // Read key-list from ini-file and fill it into combobox
   setSettings();
   refreshTable();
 }
@@ -100,7 +117,6 @@ void KeyserverTab::setSettings() {
     const auto server_list_size = server_list.getLength();
     for (int i = 0; i < server_list_size; i++) {
       std::string server_url = server_list[i];
-      comboBox->addItem(server_url.c_str());
       keyServerStrList.append(server_url.c_str());
     }
   } catch (...) {
@@ -109,28 +125,46 @@ void KeyserverTab::setSettings() {
 
   try {
     std::string default_server = settings.lookup("keyserver.default_server");
-    comboBox->setCurrentText(default_server.c_str());
+    if (!keyServerStrList.contains(default_server.c_str()))
+      keyServerStrList.append(default_server.c_str());
+    defaultKeyServer = QString::fromStdString(default_server);
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("default_server");
   }
 }
 
 void KeyserverTab::addKeyServer() {
-  QString targetUrl;
-  if (newKeyServerEdit->text().startsWith("http://") ||
-      newKeyServerEdit->text().startsWith("https://"))
-    targetUrl = newKeyServerEdit->text();
-  else
-    targetUrl = "http://" + newKeyServerEdit->text();
-  keyServerStrList.append(targetUrl);
-  comboBox->addItem(targetUrl);
+  auto target_url = ui->addKeyServerEdit->text();
+  if (url_reg.match(target_url).hasMatch()) {
+    if (target_url.startsWith("https://")) {
+      ;
+    } else if (target_url.startsWith("http://")) {
+      QMessageBox::warning(
+          this, _("Insecure keyserver address"),
+          _("For security reasons, using HTTP as the communication protocol "
+            "with "
+            "the key server is not recommended. It is recommended to use "
+            "HTTPS."));
+    }
+    keyServerStrList.append(ui->addKeyServerEdit->text());
+  } else {
+    auto ret = QMessageBox::warning(
+        this, _("Warning"),
+        _("You may not use HTTPS or HTTP as the protocol for communicating "
+          "with the key server, which may not be wrong. But please check the "
+          "address you entered again to make sure it is correct. Are you "
+          "sure "
+          "that want to add it into the keyserver list?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
+
+    if (ret == QMessageBox::Cancel)
+      return;
+    else
+      keyServerStrList.append(ui->addKeyServerEdit->text());
+  }
   refreshTable();
 }
 
-/***********************************
- * get the values of the buttons and
- * write them to settings-file
- *************************************/
 void KeyserverTab::applySettings() {
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
@@ -140,42 +174,96 @@ void KeyserverTab::applySettings() {
 
   auto& keyserver = settings["keyserver"];
 
-  if (keyserver.exists("server_list"))
-    keyserver.remove("server_list");
+  if (keyserver.exists("server_list")) keyserver.remove("server_list");
 
   keyserver.add("server_list", libconfig::Setting::TypeList);
 
+  const auto row_size = ui->keyServerListTable->rowCount();
   auto& server_list = keyserver["server_list"];
-  for (const auto& key_server_url : keyServerStrList) {
-    server_list.add(libconfig::Setting::TypeString) =
-        key_server_url.toStdString();
+  for (int i = 0; i < row_size; i++) {
+    const auto key_server = ui->keyServerListTable->item(i, 1)->text();
+    server_list.add(libconfig::Setting::TypeString) = key_server.toStdString();
   }
 
   if (!keyserver.exists("default_server")) {
     keyserver.add("default_server", libconfig::Setting::TypeString) =
-        comboBox->currentText().toStdString();
+        defaultKeyServer.toStdString();
   } else {
-    keyserver["default_server"] = comboBox->currentText().toStdString();
+    keyserver["default_server"] = defaultKeyServer.toStdString();
   }
 }
 
 void KeyserverTab::refreshTable() {
   LOG(INFO) << "Start Refreshing Key Server Table";
 
-  keyServerTable->setRowCount(keyServerStrList.size());
+  ui->keyServerListTable->blockSignals(true);
+  ui->keyServerListTable->setRowCount(keyServerStrList.size());
 
   int index = 0;
   for (const auto& server : keyServerStrList) {
-    auto* tmp1 = new QTableWidgetItem(QString::number(index));
+    auto* tmp1 =
+        new QTableWidgetItem(server == defaultKeyServer ? "*" : QString{});
     tmp1->setTextAlignment(Qt::AlignCenter);
-    keyServerTable->setItem(index, 0, tmp1);
+    ui->keyServerListTable->setItem(index, 0, tmp1);
+    tmp1->setFlags(tmp1->flags() ^ Qt::ItemIsEditable);
+
     auto* tmp2 = new QTableWidgetItem(server);
     tmp2->setTextAlignment(Qt::AlignCenter);
-    keyServerTable->setItem(index, 1, tmp2);
-    auto* tmp3 = new QTableWidgetItem();
+    ui->keyServerListTable->setItem(index, 1, tmp2);
+
+    auto* tmp3 = new QTableWidgetItem(server.startsWith("https") ? _("true")
+                                                                 : _("false"));
     tmp3->setTextAlignment(Qt::AlignCenter);
-    keyServerTable->setItem(index, 2, tmp3);
+    ui->keyServerListTable->setItem(index, 2, tmp3);
+    tmp3->setFlags(tmp3->flags() ^ Qt::ItemIsEditable);
+
+    auto* tmp4 = new QTableWidgetItem(_("unknown"));
+    tmp4->setTextAlignment(Qt::AlignCenter);
+    ui->keyServerListTable->setItem(index, 3, tmp4);
+    tmp4->setFlags(tmp3->flags() ^ Qt::ItemIsEditable);
     index++;
+  }
+  const auto column_count = ui->keyServerListTable->columnCount();
+  for (int i = 0; i < column_count; i++) {
+    ui->keyServerListTable->resizeColumnToContents(i);
+  }
+  ui->keyServerListTable->blockSignals(false);
+}
+
+void KeyserverTab::slotTestListedKeyServer() {
+  ui->keyServerListTable->blockSignals(true);
+  auto timeout =
+      QInputDialog::getInt(this, _("Set TCP Timeout"), tr("timeout(ms): "),
+                           QLineEdit::Normal, 500, 2000);
+
+  const auto row_size = ui->keyServerListTable->rowCount();
+  for (int i = 0; i < row_size; i++) {
+    const auto keyserver = ui->keyServerListTable->item(i, 1)->text();
+    const auto status = ui->keyServerListTable->item(i, 3);
+    if (keyserver == nullptr || status == nullptr) continue;
+
+    auto key_url = QUrl{keyserver};
+
+    LOG(INFO) << "key domain" << key_url.host().toStdString();
+
+    QTcpSocket socket(this);
+    socket.abort();
+    socket.connectToHost(key_url.host(), 80);
+    if (socket.waitForConnected(timeout)) {
+      status->setText(_("Reachable"));
+      status->setForeground(QBrush(QColor::fromRgb(0, 255, 0)));
+    } else {
+      status->setText(_("Not Reachable"));
+      status->setForeground(QBrush(QColor::fromRgb(255, 0, 0)));
+    }
+    socket.close();
+  }
+  ui->keyServerListTable->blockSignals(false);
+}
+void KeyserverTab::contextMenuEvent(QContextMenuEvent* event) {
+  QWidget::contextMenuEvent(event);
+  if (ui->keyServerListTable->selectedItems().length() > 0) {
+    popupMenu->exec(event->globalPos());
   }
 }
 

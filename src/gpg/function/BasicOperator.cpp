@@ -217,8 +217,11 @@ gpg_error_t GpgFrontend::BasicOperator::EncryptSymmetric(
   auto temp_data_out = data_out.Read2Buffer();
   std::swap(temp_data_out, out_buffer);
 
-  auto temp_result = GpgEncrResult(gpgme_op_encrypt_result(ctx));
-  std::swap(result, temp_result);
+  // TODO(Saturneric): maybe a bug of gpgme
+  if (gpgme_err_code(err) == GPG_ERR_NO_ERROR) {
+    auto temp_result = GpgEncrResult(gpgme_op_encrypt_result(ctx));
+    std::swap(result, temp_result);
+  }
 
   return err;
 }

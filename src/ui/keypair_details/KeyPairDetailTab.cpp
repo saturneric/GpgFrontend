@@ -429,11 +429,17 @@ void KeyPairDetailTab::createOperaMenu() {
   auto* uploadKeyPair = new QAction(_("Upload Key Pair to Key Server"), this);
   connect(uploadKeyPair, SIGNAL(triggered()), this,
           SLOT(slotUploadKeyToServer()));
-  if (!mKey.is_private_key()) uploadKeyPair->setDisabled(true);
+  if (!(mKey.is_private_key() && mKey.has_master_key()))
+    uploadKeyPair->setDisabled(true);
 
-  auto* updateKeyPair = new QAction(_("Update Key Pair"), this);
+  auto* updateKeyPair = new QAction(_("Sync Key Pair From Key Server"), this);
   connect(updateKeyPair, SIGNAL(triggered()), this,
           SLOT(slotUpdateKeyFromServer()));
+
+  // when a key has master key, it should always upload to keyserver.
+  if (mKey.has_master_key()) {
+    updateKeyPair->setDisabled(true);
+  }
 
   keyServerOperaMenu->addAction(uploadKeyPair);
   keyServerOperaMenu->addAction(updateKeyPair);

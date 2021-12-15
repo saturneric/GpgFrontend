@@ -54,9 +54,9 @@ void FileReadThread::run() {
 
       emit sendReadBlock(QString::fromStdString(buffer_str));
 #ifdef RELEASE
-      QThread::msleep(16);
+      QThread::msleep(32);
 #else
-      QThread::msleep(24);
+      QThread::msleep(48);
 #endif
     }
     fclose(fp);

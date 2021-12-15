@@ -26,18 +26,20 @@
 
 #include <utility>
 
+#include "ui_SendMailDialog.h"
+
 #ifdef SMTP_SUPPORT
 #include "smtp/SmtpMime"
+#include "ui/settings/GlobalSettingStation.h"
 #endif
 
 namespace GpgFrontend::UI {
 
-SendMailDialog::SendMailDialog(QString text, QWidget* parent)
-    : QDialog(parent),
-      appPath(qApp->applicationDirPath()),
-      settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-               QSettings::IniFormat),
-      mText(std::move(text)) {
+SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
+    : QDialog(parent), ui(std::make_shared<Ui_SendMailDialog>()) {
+  // read from settings
+  initSettings();
+
   if (smtpAddress.isEmpty()) {
     QMessageBox::critical(
         this, _("Incomplete configuration"),
@@ -48,39 +50,37 @@ SendMailDialog::SendMailDialog(QString text, QWidget* parent)
     return;
   }
 
-  senderEdit = new QLineEdit();
-  senderEdit->setText(defaultSender);
-  recipientEdit = new QTextEdit();
-  recipientEdit->setPlaceholderText(
-      "One or more email addresses. Please use ; to separate.");
-  subjectEdit = new QLineEdit();
+  ui->setupUi(this);
 
-  errorLabel = new QLabel();
+  ui->ccInputWidget->setHidden(true);
+  ui->bccInputWidget->setHidden(true);
+  ui->textEdit->setText(text);
+  ui->errorLabel->setHidden(true);
 
-  qDebug() << "Send Mail Settings" << smtpAddress << username << password
-           << defaultSender << connectionTypeSettings;
-
-  confirmButton = new QPushButton("Confirm");
-
-  auto layout = new QGridLayout();
-  layout->addWidget(new QLabel("Sender"), 0, 0);
-  layout->addWidget(senderEdit, 0, 1);
-  layout->addWidget(new QLabel("Recipient"), 1, 0);
-  layout->addWidget(recipientEdit, 1, 1);
-  layout->addWidget(new QLabel("Subject"), 2, 0);
-  layout->addWidget(subjectEdit, 2, 1);
-  layout->addWidget(confirmButton, 3, 1);
-  layout->addWidget(errorLabel, 4, 0, 1, 2);
+  ui->senderEdit->setText(defaultSender);
+  connect(ui->ccButton, &QPushButton::clicked, [=]() {
+    ui->ccInputWidget->setHidden(!ui->ccInputWidget->isHidden());
+  });
+  connect(ui->bccButton, &QPushButton::clicked, [=]() {
+    ui->bccInputWidget->setHidden(!ui->bccInputWidget->isHidden());
+  });
 
 #ifdef SMTP_SUPPORT
-  connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(slotConfirm()));
+  connect(ui->sendMailButton, &QPushButton::clicked, this,
+          &SendMailDialog::slotConfirm);
 #endif
 
-  this->setLayout(layout);
-  this->setWindowTitle("Send Mail");
-  this->setModal(true);
-  this->setFixedWidth(320);
-  this->show();
+  ui->senderLabel->setText(_("Sender"));
+  ui->recipientLabel->setText(_("Recipient"));
+  ui->bccLabel->setText(_("BCC"));
+  ui->ccLabel->setText(_("CC"));
+  ui->tipsLabel->setText(
+      _("Tips: You can fill in multiple email addresses, please separate them "
+        "with \";\"."));
+  ui->sendMailButton->setText(_("Send Mail"));
+
+  this->setWindowTitle(_("Send Mail"));
+  this->setAttribute(Qt::WA_DeleteOnClose);
 }
 
 bool SendMailDialog::check_email_address(const QString& str) {
@@ -91,36 +91,60 @@ bool SendMailDialog::check_email_address(const QString& str) {
 
 void SendMailDialog::slotConfirm() {
   QString errString;
-  errorLabel->clear();
+  ui->errorLabel->clear();
+  ui->errorLabel->setHidden(true);
+  QStringList rcpt_string_list = ui->recipientEdit->text().split(';');
+  QStringList cc_string_list = ui->ccEdit->text().split(';');
+  QStringList bcc_string_list = ui->bccEdit->text().split(';');
 
-  QStringList rcptStringList = recipientEdit->toPlainText().split(';');
-
-  if (rcptStringList.isEmpty()) {
+  if (rcpt_string_list.isEmpty()) {
     errString.append(QString("  ") + _("Recipient cannot be empty") + "  \n");
   } else {
-    for (const auto& reci : rcptStringList) {
-      qDebug() << "Receiver" << reci.trimmed();
+    for (const auto& reci : rcpt_string_list) {
+      LOG(INFO) << "Receiver" << reci.trimmed().toStdString();
       if (!check_email_address(reci.trimmed())) {
         errString.append(QString("  ") +
-                         _("One or more Recipient's Email Address is invalid") +
+                         _("One or more recipient's email is invalid") +
                          "  \n");
         break;
       }
     }
   }
-  if (senderEdit->text().isEmpty()) {
+  if (ui->senderEdit->text().isEmpty()) {
     errString.append(QString("  ") + _("Sender cannot be empty") + "  \n");
-  } else if (!check_email_address(senderEdit->text())) {
-    errString.append(QString("  ") + _("Sender's Email Address is invalid") +
-                     "  \n");
+  } else if (!check_email_address(ui->senderEdit->text())) {
+    errString.append(QString("  ") + _("Sender's email is invalid") + "  \n");
+  }
+
+  if (ui->subjectEdit->text().isEmpty()) {
+    errString.append(QString("  ") + _("Subject cannot be empty") + "  \n");
+  }
+
+  for (const auto& cc : cc_string_list) {
+    LOG(INFO) << "cc" << cc.trimmed().toStdString();
+    if (!check_email_address(cc.trimmed())) {
+      errString.append(QString("  ") + _("One or more cc email is invalid") +
+                       "  \n");
+      break;
+    }
+  }
+
+  for (const auto& bcc : bcc_string_list) {
+    LOG(INFO) << "bcc" << bcc.trimmed().toStdString();
+    if (!check_email_address(bcc.trimmed())) {
+      errString.append(QString("  ") + _("One or more bcc email is invalid") +
+                       "  \n");
+      break;
+    }
   }
 
   if (!errString.isEmpty()) {
-    errorLabel->setAutoFillBackground(true);
-    QPalette error = errorLabel->palette();
+    ui->errorLabel->setAutoFillBackground(true);
+    QPalette error = ui->errorLabel->palette();
     error.setColor(QPalette::Window, "#ff8080");
-    errorLabel->setPalette(error);
-    errorLabel->setText(errString);
+    ui->errorLabel->setPalette(error);
+    ui->errorLabel->setText(errString);
+    ui->errorLabel->setHidden(false);
     return;
   }
 
@@ -149,18 +173,23 @@ void SendMailDialog::slotConfirm() {
 
   MimeMessage message;
 
-  message.setSender(new EmailAddress(senderEdit->text()));
-  for (const auto& reci : rcptStringList) {
+  message.setSender(new EmailAddress(ui->senderEdit->text()));
+  for (const auto& reci : rcpt_string_list) {
     if (!reci.isEmpty()) message.addRecipient(new EmailAddress(reci.trimmed()));
   }
-  message.setSubject(subjectEdit->text());
+  for (const auto& cc : cc_string_list) {
+    if (!cc.isEmpty()) message.addCc(new EmailAddress(cc.trimmed()));
+  }
+  for (const auto& bcc : cc_string_list) {
+    if (!bcc.isEmpty()) message.addBcc(new EmailAddress(bcc.trimmed()));
+  }
+  message.setSubject(ui->subjectEdit->text());
 
   // Now add some text to the email.
   // First we create a MimeText object.
 
   MimeText text;
-
-  text.setText(mText);
+  text.setText(ui->textEdit->toPlainText());
 
   // Now add it to the mail
   message.addPart(&text);
@@ -188,6 +217,58 @@ void SendMailDialog::slotConfirm() {
   QMessageBox::information(this, _("Success"),
                            _("Succeed in Sending Mail to SMTP Server"));
   deleteLater();
+}
+
+void SendMailDialog::initSettings() {
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+  try {
+    ability_enable = settings.lookup("smtp.enable");
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("save_key_checked");
+  }
+
+  try {
+    identity_enable = settings.lookup("smtp.identity_enable");
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("identity_enable");
+  }
+
+  try {
+    smtpAddress = settings.lookup("smtp.mail_address").c_str();
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("mail_address");
+  }
+
+  try {
+    username = settings.lookup("smtp.username").c_str();
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("username");
+  }
+
+  try {
+    password = settings.lookup("smtp.password").c_str();
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("password");
+  }
+
+  try {
+    port = settings.lookup("smtp.port");
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("port");
+  }
+
+  try {
+    connectionTypeSettings = settings.lookup("smtp.connection_type").c_str();
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("connection_type");
+  }
+
+  try {
+    defaultSender = settings.lookup("smtp.default_sender").c_str();
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("default_sender");
+  }
 }
 
 #endif

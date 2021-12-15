@@ -104,37 +104,18 @@ void MainWindow::slotEncrypt() {
   }
 
   if (!if_error) {
+    LOG(INFO) << "result" << result.get();
     auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));
     resultAnalyse.analyse();
     process_result_analyse(edit, infoBoard, resultAnalyse);
 
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
       edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
+    infoBoard->resetOptionActionsMenu();
 #ifdef SMTP_SUPPORT
-    // set optional actions
-    if (resultAnalyse.getStatus() >= 0) {
-      infoBoard->resetOptionActionsMenu();
-      infoBoard->addOptionalAction("Send Mail", [this]() {
-        bool smtp_enabled = false;
-        try {
-          smtp_enabled =
-              GlobalSettingStation::GetInstance().GetUISettings().lookup(
-                  "smtp.enable");
-        } catch (...) {
-          LOG(INFO) << "Reading smtp settings error";
-        }
-
-        if (smtp_enabled)
-          new SendMailDialog(edit->curTextPage()->toPlainText(), this);
-        else {
-          QMessageBox::warning(nullptr, _("Function Disabled"),
-                               _("Please go to the settings interface to "
-                                 "enable and configure this function."));
-        }
-      });
-    }
+    if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+      send_an_email(this, infoBoard, edit->curTextPage()->toPlainText());
 #endif
-
   } else {
     QMessageBox::critical(this, _("Error"),
                           _("An error occurred during operation."));
@@ -364,25 +345,10 @@ void MainWindow::slotEncryptSign() {
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
       edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
 
-#ifdef SMTP_SUPPORT
     infoBoard->resetOptionActionsMenu();
-    infoBoard->addOptionalAction("Send Mail", [this]() {
-      bool smtp_enabled = false;
-      try {
-        smtp_enabled =
-            GlobalSettingStation::GetInstance().GetUISettings().lookup(
-                "smtp.enable");
-      } catch (...) {
-        LOG(INFO) << "Reading smtp settings error";
-      }
-      if (smtp_enabled)
-        new SendMailDialog(edit->curTextPage()->toPlainText(), this);
-      else {
-        QMessageBox::warning(nullptr, _("Function Disabled"),
-                             _("Please go to the settings interface to "
-                               "enable and configure this function."));
-      }
-    });
+#ifdef SMTP_SUPPORT
+    if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+      send_an_email(this, infoBoard, edit->curTextPage()->toPlainText());
 #endif
 
 #ifdef ADVANCE_SUPPORT
@@ -396,7 +362,6 @@ void MainWindow::slotEncryptSign() {
       }
     });
 #endif
-
   } else {
     QMessageBox::critical(this, _("Error"),
                           _("An error occurred during operation."));
