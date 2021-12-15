@@ -314,14 +314,16 @@ class MainWindow : public QMainWindow {
    */
   [[nodiscard]] bool getRestartNeeded() const;
 
-  TextEdit* edit{};               /** Tabwidget holding the edit-windows */
-  QMenu* fileMenu{};              /** Submenu for file-operations*/
-  QMenu* editMenu{};              /** Submenu for text-operations*/
-  QMenu* cryptMenu{};             /** Submenu for crypt-operations */
-  QMenu* helpMenu{};              /** Submenu for help-operations */
-  QMenu* keyMenu{};               /** Submenu for key-operations */
-  QMenu* viewMenu{};              /** Submenu for view operations */
-  QMenu* importKeyMenu{};         /** Sumenu for import operations */
+  TextEdit* edit{};       /** Tabwidget holding the edit-windows */
+  QMenu* fileMenu{};      /** Submenu for file-operations*/
+  QMenu* editMenu{};      /** Submenu for text-operations*/
+  QMenu* cryptMenu{};     /** Submenu for crypt-operations */
+  QMenu* helpMenu{};      /** Submenu for help-operations */
+  QMenu* keyMenu{};       /** Submenu for key-operations */
+  QMenu* viewMenu{};      /** Submenu for view operations */
+  QMenu* importKeyMenu{}; /** Sumenu for import operations */
+  QMenu* emailMenu{};     /** Sumenu for email operations */
+
   QMenu* steganoMenu{};           /** Submenu for steganographic operations*/
   QToolBar* cryptToolBar{};       /** Toolbar holding crypt actions */
   QToolBar* fileToolBar{};        /** Toolbar holding file actions */
@@ -374,12 +376,11 @@ class MainWindow : public QMainWindow {
   QAction* translateAct{};             /** Action to open about dialog */
   QAction* openSettingsAct{};          /** Action to open settings dialog */
   QAction* showKeyDetailsAct{};        /** Action to open key-details dialog */
-  QAction* refreshKeysFromKeyserverAct{}; /** Action to refresh a key from
-                                             keyserver */
-  QAction* uploadKeyToServerAct{}; /** Action to append selected keys to edit */
-  QAction* startWizardAct{};       /** Action to open the wizard */
-  QAction* cutPgpHeaderAct{};      /** Action for cutting the PGP header */
-  QAction* addPgpHeaderAct{};      /** Action for adding the PGP header */
+  QAction* startWizardAct{};           /** Action to open the wizard */
+  QAction* cutPgpHeaderAct{};          /** Action for cutting the PGP header */
+  QAction* addPgpHeaderAct{};          /** Action for adding the PGP header */
+
+  QAction* sendMailAct{}; /** Action for sending a email */
 
   QAction* importKeyFromFileAct{};
   QAction* importKeyFromClipboardAct{};

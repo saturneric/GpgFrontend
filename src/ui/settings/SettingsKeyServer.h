@@ -27,6 +27,8 @@
 
 #include "ui/GpgFrontendUI.h"
 
+class Ui_KeyServerSettings;
+
 namespace GpgFrontend::UI {
 class KeyserverTab : public QWidget {
   Q_OBJECT
@@ -39,10 +41,13 @@ class KeyserverTab : public QWidget {
   void applySettings();
 
  private:
-  QComboBox* comboBox;
-  QLineEdit* newKeyServerEdit;
-  QTableWidget* keyServerTable;
+  std::shared_ptr<Ui_KeyServerSettings> ui;
+  QString defaultKeyServer;
   QStringList keyServerStrList;
+  QMenu* popupMenu{};
+
+  QRegularExpression url_reg{
+      R"(^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$)"};
 
  private slots:
 
@@ -50,9 +55,14 @@ class KeyserverTab : public QWidget {
 
   void refreshTable();
 
+  void slotTestListedKeyServer();
+
  signals:
 
   void signalRestartNeeded(bool needed);
+
+ protected:
+  void contextMenuEvent(QContextMenuEvent* event) override;
 };
 }  // namespace GpgFrontend::UI
 

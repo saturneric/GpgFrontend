@@ -48,16 +48,45 @@ SendMailTab::SendMailTab(QWidget* parent)
 
     ui->defaultSenderEmailEdit->setDisabled(state != Qt::Checked);
     ui->checkConnectionButton->setDisabled(state != Qt::Checked);
-    ui->senTestMailButton->setDisabled(state != Qt::Checked);
   });
 
   connect(ui->checkConnectionButton, &QPushButton::clicked, this,
           &SendMailTab::slotCheckConnection);
+  connect(ui->senTestMailButton, &QPushButton::clicked, this,
+          &SendMailTab::slotSendTestMail);
 
   connect(ui->identityCheckBox, &QCheckBox::stateChanged, this, [=](int state) {
     ui->usernameEdit->setDisabled(state != Qt::Checked);
     ui->passwordEdit->setDisabled(state != Qt::Checked);
   });
+
+  ui->generalGroupBox->setTitle(_("General"));
+  ui->identityGroupBox->setTitle(_("Identity Information"));
+  ui->preferenceGroupBox->setTitle(_("Preference"));
+  ui->operationsGroupBox->setTitle(_("Operations"));
+
+  ui->enableCheckBox->setText(_("Enable Send Mail Ability"));
+  ui->identityCheckBox->setText(_("Need Auth"));
+
+  ui->smtpServerAddressLabel->setText(_("SMTP Server Address"));
+  ui->smtpServerPortLabel->setText(_("SMTP Server Port"));
+  ui->connectionSecurityLabel->setText(_("SMTP Connection Security"));
+  ui->usernameLabel->setText(_("Username"));
+  ui->passwordLabel->setText(_("Password"));
+
+  ui->senderLabel->setText(_("Default Sender Email"));
+  ui->checkConnectionButton->setText(_("Check Connection"));
+  ui->senTestMailButton->setText(_("Send Test Email"));
+  ui->tipsLabel->setText(
+      _("Tips: It is recommended that you build your own mail server or use "
+        "a trusted mail server. If you don't know the detailed configuration "
+        "information, you can get it from the mail service provider."));
+
+  ui->senTestMailButton->setDisabled(true);
+
+  auto* email_validator =
+      new QRegularExpressionValidator(re_email, ui->defaultSenderEmailEdit);
+  ui->defaultSenderEmailEdit->setValidator(email_validator);
 
   setSettings();
 }
@@ -212,23 +241,86 @@ void SendMailTab::slotCheckConnection() {
     smtp.setPassword(ui->passwordEdit->text());
   }
 
-  bool if_success = true;
-
   if (!smtp.connectToHost()) {
     QMessageBox::critical(this, _("Fail"), _("Fail to Connect SMTP Server"));
-    if_success = false;
+    ui->senTestMailButton->setDisabled(true);
+    return;
   }
-  if (if_success && !smtp.login()) {
+  if (!smtp.login()) {
     QMessageBox::critical(this, _("Fail"), _("Fail to Login"));
-    if_success = false;
+    ui->senTestMailButton->setDisabled(true);
+    return;
   }
 
-  if (if_success)
-    QMessageBox::information(this, _("Success"),
-                             _("Succeed in connecting and login"));
+  QMessageBox::information(this, _("Success"),
+                           _("Succeed in connecting and login"));
+  ui->senTestMailButton->setDisabled(false);
 }
 #endif
 
-void SendMailTab::slotCheckBoxSetEnableDisable(int state) {}
+void SendMailTab::slotSendTestMail() {
+  if (ui->defaultSenderEmailEdit->text().isEmpty()) {
+    QMessageBox::critical(this, _("Fail"), _("Given a default sender first"));
+    return;
+  }
+
+  SmtpClient::ConnectionType connectionType;
+  const auto selectedConnType = ui->connextionSecurityComboBox->currentText();
+  if (selectedConnType == "SSL") {
+    connectionType = SmtpClient::ConnectionType::SslConnection;
+  } else if (selectedConnType == "TLS" || selectedConnType == "STARTTLS") {
+    connectionType = SmtpClient::ConnectionType::TlsConnection;
+  } else {
+    connectionType = SmtpClient::ConnectionType::TcpConnection;
+  }
+
+  SmtpClient smtp(ui->smtpServerAddressEdit->text(), ui->portSpin->value(),
+                  connectionType);
+
+  if (ui->identityCheckBox->isChecked()) {
+    smtp.setUser(ui->usernameEdit->text());
+    smtp.setPassword(ui->passwordEdit->text());
+  }
+
+  MimeMessage message;
+
+  auto sender_address = ui->defaultSenderEmailEdit->text();
+  message.setSender(new EmailAddress(sender_address));
+  message.addRecipient(new EmailAddress(sender_address));
+  message.setSubject(_("Test Email from GpgFrontend"));
+
+  MimeText text;
+  text.setText(_("Hello, this is a test email from GpgFrontend."));
+  // Now add it to the mail
+  message.addPart(&text);
+  // Now we can send the mail
+  if (!smtp.connectToHost()) {
+    LOG(INFO) << "Connect to SMTP Server Failed";
+    QMessageBox::critical(this, _("Fail"), _("Fail to Connect SMTP Server"));
+    ui->senTestMailButton->setDisabled(true);
+    return;
+  }
+  if (!smtp.login()) {
+    LOG(INFO) << "Login to SMTP Server Failed";
+    QMessageBox::critical(this, _("Fail"), _("Fail to Login into SMTP Server"));
+    ui->senTestMailButton->setDisabled(true);
+    return;
+  }
+  if (!smtp.sendMail(message)) {
+    LOG(INFO) << "Send Mail to SMTP Server Failed";
+    QMessageBox::critical(
+        this, _("Fail"),
+        _("Fail to send a test email to the SMTP Server, please "
+          "recheck your configuration."));
+    ui->senTestMailButton->setDisabled(true);
+    return;
+  }
+  smtp.quit();
+
+  // Close after sending email
+  QMessageBox::information(
+      this, _("Success"),
+      _("Succeed in sending a test email to the SMTP Server"));
+}
 
 }  // namespace GpgFrontend::UI

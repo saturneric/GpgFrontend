@@ -29,6 +29,9 @@
 
 #include "gpg/GpgContext.h"
 #include "ui/KeyImportDetailDialog.h"
+
+class Ui_KeyList;
+
 namespace GpgFrontend::UI {
 
 struct KeyListRow {
@@ -116,6 +119,10 @@ class KeyList : public QWidget {
 
   [[maybe_unused]] bool containsPrivateKeys();
 
+ signals:
+  void signalRefreshStatusBar(const QString& message, int timeout);
+  void signalRefreshDatabase();
+
  public slots:
 
   void slotRefresh();
@@ -123,24 +130,22 @@ class KeyList : public QWidget {
  private:
   void init();
   void importKeys(const QByteArray& inBuffer);
+  void updateCallbackCalled(ssize_t current_index, size_t all_index);
 
-  QString appPath;
-  QSettings settings;
-
-  QTabWidget* mGroupTab{};
+  std::shared_ptr<Ui_KeyList> ui;
   QTableWidget* mKeyList{};
-
   std::vector<KeyTable> mKeyTables;
-
   QMenu* popupMenu{};
-
   GpgFrontend::KeyLinkListPtr _buffered_keys_list;
-
   std::function<void(const GpgKey&, QWidget*)> mAction = nullptr;
 
  private slots:
 
   void slotDoubleClicked(const QModelIndex& index);
+
+  void slotRefreshUI();
+
+  void slotSyncWithKeyServer();
 
  protected:
   void contextMenuEvent(QContextMenuEvent* event) override;

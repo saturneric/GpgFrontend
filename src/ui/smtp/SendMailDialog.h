@@ -27,38 +27,32 @@
 
 #include "ui/GpgFrontendUI.h"
 
+class Ui_SendMailDialog;
+
 namespace GpgFrontend::UI {
 
 class SendMailDialog : public QDialog {
   Q_OBJECT
  public:
-  explicit SendMailDialog(QString text, QWidget* parent = nullptr);
+  explicit SendMailDialog(const QString& text, QWidget* parent = nullptr);
 
  private slots:
 
   void slotConfirm();
 
  private:
-  QString appPath;
-  QSettings settings;
+  void initSettings();
 
-  QLineEdit* senderEdit;
-  QTextEdit* recipientEdit;
-  QLineEdit* subjectEdit;
-  QPushButton* confirmButton;
+  std::shared_ptr<Ui_SendMailDialog> ui;
 
-  QLabel* errorLabel;
-  QString mText;
-
-  QString smtpAddress =
-      settings.value("sendMail/smtpAddress", QString()).toString();
-  QString username = settings.value("sendMail/username", QString()).toString();
-  QString password = settings.value("sendMail/password", QString()).toString();
-  QString defaultSender =
-      settings.value("sendMail/defaultSender", QString()).toString();
-  QString connectionTypeSettings =
-      settings.value("sendMail/connectionType", QString()).toString();
-  int port = settings.value("sendMail/port", QString()).toInt();
+  bool ability_enable = false;
+  bool identity_enable = false;
+  QString smtpAddress;
+  QString username;
+  QString password;
+  QString defaultSender;
+  QString connectionTypeSettings = "None";
+  int port = 25;
 
   QRegularExpression re_email{
       R"((?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\]))"};

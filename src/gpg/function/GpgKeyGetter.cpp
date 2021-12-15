@@ -29,7 +29,7 @@
 #include "GpgConstants.h"
 
 GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr) {
-  gpgme_key_t _p_key;
+  gpgme_key_t _p_key = nullptr;
   gpgme_get_key(ctx, fpr.c_str(), &_p_key, 1);
   if (_p_key == nullptr) {
     DLOG(WARNING) << "GpgKeyGetter GetKey Private _p_key Null fpr" << fpr;
@@ -41,7 +41,7 @@ GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr) {
 
 GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetPubkey(
     const std::string& fpr) {
-  gpgme_key_t _p_key;
+  gpgme_key_t _p_key = nullptr;
   gpgme_get_key(ctx, fpr.c_str(), &_p_key, 0);
   if (_p_key == nullptr)
     DLOG(WARNING) << "GpgKeyGetter GetKey _p_key Null" << fpr;

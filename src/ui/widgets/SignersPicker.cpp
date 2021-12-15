@@ -40,14 +40,13 @@ SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
         else
           return true;
       });
-
   mKeyList->slotRefresh();
 
   auto* vbox2 = new QVBoxLayout();
   vbox2->addWidget(new QLabel(QString(_("Select Signer(s)")) + ": "));
   vbox2->addWidget(mKeyList);
   vbox2->addWidget(new QLabel(
-      _("Selecting Nothing will eventually use default key to sign.")));
+      _("If any key is selected, the default key will be used for signing.")));
   vbox2->addWidget(confirmButton);
   vbox2->addStretch(0);
   setLayout(vbox2);

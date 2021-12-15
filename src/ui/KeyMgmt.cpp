@@ -84,6 +84,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
     new KeyDetailsDialog(key, parent);
   });
 
+  mKeyList->slotRefresh();
+
   createActions();
   createMenus();
   createToolBars();
@@ -245,6 +247,7 @@ void KeyMgmt::createMenus() {
   importKeyMenu->addAction(importKeyFromFileAct);
   importKeyMenu->addAction(importKeyFromClipboardAct);
   importKeyMenu->addAction(importKeyFromKeyServerAct);
+  
   keyMenu->addAction(exportKeyToFileAct);
   keyMenu->addAction(exportKeyToClipboardAct);
   keyMenu->addAction(exportKeyAsOpenSSHFormat);
