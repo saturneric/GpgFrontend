@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
   // unicode in source
   QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
 
-#if defined(WINDOWS)
+#if !defined(RELEASE) && defined(WINDOWS)
   // css
   boost::filesystem::path css_path = GpgFrontend::UI::GlobalSettingStation::GetInstance().GetResourceDir() / "css" / "default.qss";
   QFile file(css_path.string().c_str());

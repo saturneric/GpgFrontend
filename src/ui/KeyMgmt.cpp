@@ -141,6 +141,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
 
   this->resize(size);
   this->move(pos);
+  this->setWindowModality(Qt::ApplicationModal);
+  this->statusBar()->show();
 
   setWindowTitle(_("KeyPair Management"));
   mKeyList->addMenuAction(deleteSelectedKeysAct);
@@ -148,6 +150,11 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
 
   connect(this, SIGNAL(signalKeyStatusUpdated()), SignalStation::GetInstance(),
           SIGNAL(KeyDatabaseRefresh()));
+  connect(SignalStation::GetInstance(),
+          &SignalStation::signalRefreshStatusBar, this,
+          [=](const QString& message, int timeout) {
+            statusBar()->showMessage(message, timeout);
+          });
 }
 
 void KeyMgmt::createActions() {

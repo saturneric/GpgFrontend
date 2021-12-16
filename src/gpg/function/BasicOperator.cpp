@@ -219,7 +219,7 @@ gpg_error_t GpgFrontend::BasicOperator::EncryptSymmetric(
 
   // TODO(Saturneric): maybe a bug of gpgme
   if (gpgme_err_code(err) == GPG_ERR_NO_ERROR) {
-    auto temp_result = GpgEncrResult(gpgme_op_encrypt_result(ctx));
+    auto temp_result = _new_result(gpgme_op_encrypt_result(ctx));
     std::swap(result, temp_result);
   }
 

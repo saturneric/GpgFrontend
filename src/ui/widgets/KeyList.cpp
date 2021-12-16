@@ -134,7 +134,7 @@ void KeyList::addListGroupTab(
 }
 
 void KeyList::slotRefresh() {
-  LOG(INFO) << _("Called");
+  LOG(INFO) << _("Called") << "_m_key_list_id" << _m_key_list_id;
   emit signalRefreshStatusBar(_("Refreshing Key List..."), 3000);
   auto thread = QThread::create([this, _id = _m_key_list_id]() {
     std::lock_guard<std::mutex> guard(buffered_key_list_mutex);
@@ -512,7 +512,7 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
   table_buffered_keys.clear();
 
   while (it != keys->end()) {
-    table_buffered_keys.push_back(GpgKeyGetter::GetInstance().GetKey(it->id()));
+    table_buffered_keys.push_back(it->copy());
 
     auto* tmp0 = new QTableWidgetItem(QString::number(row_index));
     tmp0->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled |
