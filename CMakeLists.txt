@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(GpgFrontend VERSION 2.0.2 LANGUAGES CXX)
+project(GpgFrontend VERSION 2.0.3 LANGUAGES CXX)
 
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
@@ -164,7 +164,6 @@ IF (MINGW)
 endif ()
 
 if (APPLE)
-
     message(STATUS "Configuration For OS Platform MacOS")
 
     set(OS_PLATFORM 1)
@@ -222,6 +221,18 @@ set(BASIC_ENV_CONFIG 1)
 set(QT_MOC_CONFIG 1)
 set(ESAY_LOGGING_PP 1)
 
+if (LINUX_INSTALL_SOFTWARE)
+    include(GNUInstallDirs)
+    set(INSTALL_GPGFRONTEND_APP 1)
+    set(APP_INSTALL_FLAG LINUX_INSTALL)
+    add_compile_definitions(LINUX_INSTALL_BUILD)
+    set(Boost_USE_STATIC_LIBS ON)
+else ()
+    set(APP_INSTALL_FLAG BUNDLE)
+    add_compile_definitions(BUNDLE_BUILD)
+endif ()
+
+
 if (FULL_APPLICATION_BUILD)
     message(STATUS "Build Full Application")
     set(QT5_ENV_SUPPORT 1)
@@ -239,7 +250,6 @@ elseif (MINIMUM_APPLICATION_BUILD)
     set(UI_CORE 1)
     set(APPLICATION_BUILD 1)
     set(BASIC_ENV_CONFIG 1)
-    set(MULTI_LANG_SUPPORT 1)
     # Disable APP_IMAGE_UPDATE because of too many issues
     #    if (LINUX)
     #        set(APP_IMAGE_UPDATE 1)
@@ -250,7 +260,7 @@ elseif (STABLE_APPLICATION_BUILD)
     set(UI_CORE 1)
     set(APPLICATION_BUILD 1)
     set(BASIC_ENV_CONFIG 1)
-    # MULTI_LANG_SUPPORT now work only on Linux and macOS
+    set(SMTP_SUPPORT 1)
     set(MULTI_LANG_SUPPORT 1)
 elseif (TEST_BUILD)
     message(STATUS "Build Test Cases")
@@ -268,7 +278,11 @@ find_package(Boost COMPONENTS date_time filesystem REQUIRED)
 
 if (QT5_ENV_SUPPORT)
     # Support Qt version Both 5.12.x and 5.15.x
-    find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    if (LINUX_INSTALL_SOFTWARE)
+        find_package(Qt5 5.12 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    else ()
+        find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    endif ()
     # find_package(Qt5 5.15.2 EXACT COMPONENTS Core Test Widgets PrintSupport Network LinguistTools REQUIRED)
     # Qt configuration
     set(CMAKE_AUTOMOC ON)

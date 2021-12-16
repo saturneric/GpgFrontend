@@ -37,7 +37,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent)
   ui->actionButtonLayout->addStretch();
   ui->actionLabel->setText(_("InfoBoard's Actions Menu"));
   ui->copyButton->setText(_("Copy"));
-  ui->saveButton->setText(_("Save"));
+  ui->saveButton->setText(_("Save File"));
   ui->clearButton->setText(_("Clear"));
 
   connect(ui->copyButton, &QPushButton::clicked, this,
@@ -102,18 +102,12 @@ void InfoBoardWidget::associateTextEdit(QTextEdit* edit) {
 }
 
 void InfoBoardWidget::associateTabWidget(QTabWidget* tab) {
-  if (mTextPage != nullptr)
-    disconnect(mTextPage, SIGNAL(textChanged()), this, SLOT(slotReset()));
-  if (mTabWidget != nullptr) {
-    disconnect(mTabWidget, SIGNAL(tabBarClicked(int)), this, SLOT(slotReset()));
-    connect(mTabWidget, SIGNAL(tabCloseRequested(int)), this,
-            SLOT(slotReset()));
-  }
-
   mTextPage = nullptr;
   mTabWidget = tab;
   connect(tab, SIGNAL(tabBarClicked(int)), this, SLOT(slotReset()));
   connect(tab, SIGNAL(tabCloseRequested(int)), this, SLOT(slotReset()));
+  // reset
+  this->slotReset();
 }
 
 void InfoBoardWidget::addOptionalAction(const QString& name,
@@ -169,6 +163,8 @@ void InfoBoardWidget::slotSave() {
   auto file_path = QFileDialog::getSaveFileName(
       this, _("Save Information Board's Content"), {}, tr("Text (*.txt)"));
   LOG(INFO) << "file path" << file_path.toStdString();
+  if(file_path.isEmpty()) return;
+
   QFile file(file_path);
   if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
     file.write(ui->infoBoard->toPlainText().toUtf8());

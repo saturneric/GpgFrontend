@@ -144,6 +144,12 @@ class GpgKey {
 
   explicit operator gpgme_key_t() const { return _key_ref.get(); }
 
+  [[nodiscard]] GpgKey copy() const {
+    gpgme_key_ref(_key_ref.get());
+    auto* _new_key_ref = _key_ref.get();
+    return GpgKey(std::move(_new_key_ref));
+  }
+
  private:
   struct _key_ref_deletor {
     void operator()(gpgme_key_t _key) {

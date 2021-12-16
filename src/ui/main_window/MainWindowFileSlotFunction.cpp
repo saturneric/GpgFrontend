@@ -289,7 +289,7 @@ void MainWindow::slotFileVerify() {
   });
 
   if (!if_error) {
-    auto result_analyse = VerifyResultAnalyse(error, std::move(result));
+    auto result_analyse = VerifyResultAnalyse(error, result);
     result_analyse.analyse();
     process_result_analyse(edit, infoBoard, result_analyse);
 
@@ -297,7 +297,7 @@ void MainWindow::slotFileVerify() {
       import_unknown_key_from_keyserver(this, result_analyse);
 
     if (result_analyse.getStatus() >= 0)
-      show_verify_details(this, infoBoard, error, result_analyse);
+      show_verify_details(this, infoBoard, error, result);
 
     fileTreeView->update();
   } else {
@@ -431,7 +431,7 @@ void MainWindow::slotFileDecryptVerify() {
 
   if (!if_error) {
     auto decrypt_res = DecryptResultAnalyse(error, std::move(d_result));
-    auto verify_res = VerifyResultAnalyse(error, std::move(v_result));
+    auto verify_res = VerifyResultAnalyse(error, v_result);
     decrypt_res.analyse();
     verify_res.analyse();
     process_result_analyse(edit, infoBoard, decrypt_res, verify_res);
@@ -440,7 +440,7 @@ void MainWindow::slotFileDecryptVerify() {
       import_unknown_key_from_keyserver(this, verify_res);
 
     if (verify_res.getStatus() >= 0)
-      show_verify_details(this, infoBoard, error, verify_res);
+      show_verify_details(this, infoBoard, error, v_result);
 
     fileTreeView->update();
   } else {

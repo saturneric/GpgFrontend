@@ -42,6 +42,8 @@ class SignalStation : public QObject {
 
   void signalRefreshInfoBoard(const QString& text,
                               InfoBoardStatus verify_label_status);
+
+  void signalRefreshStatusBar(const QString& message, int timeout);
 };
 
 }  // namespace GpgFrontend::UI

@@ -24,6 +24,7 @@
 
 #include "MainWindow.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/smtp/SendMailDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -276,19 +277,6 @@ void MainWindow::createActions() {
   connect(showKeyDetailsAct, SIGNAL(triggered()), this,
           SLOT(slotShowKeyDetails()));
 
-  refreshKeysFromKeyserverAct =
-      new QAction(_("Refresh Key From Key Server"), this);
-  refreshKeysFromKeyserverAct->setToolTip(
-      _("Refresh key from default key server"));
-  connect(refreshKeysFromKeyserverAct, SIGNAL(triggered()), this,
-          SLOT(refreshKeysFromKeyserver()));
-
-  uploadKeyToServerAct = new QAction(_("Upload Public Key(s) To Server"), this);
-  uploadKeyToServerAct->setToolTip(
-      _("Upload The Selected Public Keys To Server"));
-  connect(uploadKeyToServerAct, SIGNAL(triggered()), this,
-          SLOT(uploadKeyToServer()));
-
   /* Key-Shortcuts for Tab-Switchung-Action
    */
   switchTabUpAct = new QAction(this);
@@ -307,6 +295,15 @@ void MainWindow::createActions() {
 
   addPgpHeaderAct = new QAction(_("Add PGP Header"), this);
   connect(addPgpHeaderAct, SIGNAL(triggered()), this, SLOT(slotAddPgpHeader()));
+
+#ifdef SMTP_SUPPORT
+  sendMailAct = new QAction(_("Send An Email"), this);
+  sendMailAct->setIcon(QIcon(":email.png"));
+  connect(sendMailAct, &QAction::triggered, this, [=]() {
+    auto* dialog = new SendMailDialog({}, this);
+    dialog->show();
+  });
+#endif
 }
 
 void MainWindow::createMenus() {
@@ -363,6 +360,10 @@ void MainWindow::createMenus() {
   steganoMenu = menuBar()->addMenu(_("Steganography"));
   steganoMenu->addAction(cutPgpHeaderAct);
   steganoMenu->addAction(addPgpHeaderAct);
+#ifdef SMTP_SUPPORT
+  emailMenu = menuBar()->addMenu(_("Email"));
+  emailMenu->addAction(sendMailAct);
+#endif
 
 #ifdef ADVANCED_SUPPORT
   // Hide menu, when steganography menu is disabled in settings
@@ -481,6 +482,8 @@ void MainWindow::createDockWindows() {
         return key.is_private_key() &&
                !(key.revoked() || key.disabled() || key.expired());
       });
+
+  mKeyList->slotRefresh();
 
   keyListDock->setWidget(mKeyList);
   viewMenu->addAction(keyListDock->toggleViewAction());

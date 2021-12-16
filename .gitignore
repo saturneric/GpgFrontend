@@ -1,6 +1,7 @@
 # Project
 src/GpgFrontend.h
 src/GpgFrontendBuildInfo.h
+src/GpgFrontendBuildInstallInfo.h
 
 # gettext
 *.mo

@@ -9,7 +9,6 @@ aux_source_directory(./function UI_SOURCE)
 aux_source_directory(./details UI_SOURCE)
 
 if (SMTP_SUPPORT)
-    message(STATUS "Build SMTP Support")
     aux_source_directory(./smtp UI_SOURCE)
 endif ()
 
@@ -18,6 +17,6 @@ set(GPGFRONTEND_UI_LIB_NAME gpgfrontend-ui)
 target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
         Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
 target_include_directories(gpgfrontend-ui PUBLIC
-       ${CMAKE_CURRENT_BINARY_DIR}/${GPGFRONTEND_UI_LIB_NAME}_autogen/include)
+        ${CMAKE_CURRENT_BINARY_DIR}/${GPGFRONTEND_UI_LIB_NAME}_autogen/include)
 
 target_compile_features(gpgfrontend-ui PUBLIC cxx_std_17)

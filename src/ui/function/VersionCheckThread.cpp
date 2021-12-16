@@ -58,13 +58,10 @@ void VersionCheckThread::run() {
 
   LOG(INFO) << "latest version from Github" << latest_version;
 
-  std::regex re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
-  auto version_begin =
-      std::sregex_iterator(latest_version.begin(), latest_version.end(), re);
-  auto version_end = std::sregex_iterator();
-  if (std::distance(version_begin, version_end)) {
-    std::smatch match = *version_begin;
-    latest_version = match.str();
+  QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
+  auto version_match = re.match(latest_version.c_str());
+  if (version_match.hasMatch()) {
+    latest_version = version_match.captured(0).toStdString();
     LOG(INFO) << "latest version matched" << latest_version;
   } else {
     latest_version = current_version;

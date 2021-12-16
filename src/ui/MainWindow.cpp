@@ -28,6 +28,7 @@
 #ifdef RELEASE
 #include "ui/function/VersionCheckThread.h"
 #endif
+#include "ui/SignalStation.h"
 #include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
@@ -49,9 +50,7 @@ void MainWindow::init() noexcept {
     setCentralWidget(edit);
 
     /* the list of Keys available*/
-    mKeyList = new KeyList(this);
-
-    mKeyList->slotRefresh();
+    mKeyList = new KeyList(true, this);
 
     infoBoard = new InfoBoardWidget(this);
 
@@ -69,13 +68,16 @@ void MainWindow::init() noexcept {
 
     connect(edit->tabWidget, SIGNAL(currentChanged(int)), this,
             SLOT(slotDisableTabActions(int)));
+    connect(SignalStation::GetInstance(),
+            &SignalStation::signalRefreshStatusBar, this,
+            [=](const QString& message, int timeout) {
+              statusBar()->showMessage(message, timeout);
+            });
 
     mKeyList->addMenuAction(appendSelectedKeysAct);
     mKeyList->addMenuAction(copyMailAddressToClipboardAct);
-    mKeyList->addMenuAction(showKeyDetailsAct);
     mKeyList->addSeparator();
-    mKeyList->addMenuAction(refreshKeysFromKeyserverAct);
-    mKeyList->addMenuAction(uploadKeyToServerAct);
+    mKeyList->addMenuAction(showKeyDetailsAct);
 
     restoreSettings();
 

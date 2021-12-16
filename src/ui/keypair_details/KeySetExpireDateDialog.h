@@ -30,6 +30,8 @@
 #include "gpg/model/GpgSubKey.h"
 #include "ui/GpgFrontendUI.h"
 
+class Ui_ModifiedExpirationDateTime;
+
 namespace GpgFrontend::UI {
 
 class KeySetExpireDateDialog : public QDialog {
@@ -47,12 +49,9 @@ class KeySetExpireDateDialog : public QDialog {
  private:
   void init();
 
+  std::shared_ptr<Ui_ModifiedExpirationDateTime> ui;
   const GpgKey mKey;
   const SubkeyId mSubkey;
-
-  QDateTimeEdit* dateTimeEdit{};
-  QPushButton* confirmButton{};
-  QCheckBox* nonExpiredCheck{};
 
  private slots:
   void slotConfirm();

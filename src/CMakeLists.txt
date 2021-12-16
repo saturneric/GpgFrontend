@@ -42,7 +42,7 @@ if (APPLICATION_BUILD)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (APPLE)
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
-        elseif (LINUX)
+        elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
             file(COPY ${CMAKE_SOURCE_DIR}/resource/gpgfrontend DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share)
         else ()
@@ -64,6 +64,10 @@ if (MULTI_LANG_SUPPORT)
     find_package(Gettext REQUIRED)
     FIND_PROGRAM(GETTEXT_MSGFMT_EXECUTABLE msgfmt)
     FIND_PROGRAM(GETTEXT_XGETTEXT_EXECUTABLE xgettext)
+
+    set(LOCALE_OUTPUT_PATH ${RESOURCE_OUTPUT_DIRECTORY}/locales)
+    message(STATUS "LOCALE_OUTPUT_PATH ${LOCALE_OUTPUT_PATH}")
+
     if (NOT GETTEXT_MSGFMT_EXECUTABLE OR NOT GETTEXT_XGETTEXT_EXECUTABLE)
         message(ERROR "msgfmt or xgettext not found. Translations will *not* be installed")
     else (NOT GETTEXT_MSGFMT_EXECUTABLE)
@@ -91,7 +95,7 @@ if (MULTI_LANG_SUPPORT)
             )
             add_custom_command(
                     TARGET translations
-                    COMMAND msgfmt --check --verbose --output-file ${RESOURCE_OUTPUT_DIRECTORY}/locales/${_langName}/LC_MESSAGES/GpgFrontend.mo ${_poFile}
+                    COMMAND msgfmt --check --verbose --output-file ${LOCALE_OUTPUT_PATH}/${_langName}/LC_MESSAGES/GpgFrontend.mo ${_poFile}
             )
         endforeach ()
 
@@ -102,6 +106,7 @@ if (BASIC_ENV_CONFIG)
     # Set Build Information
     configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
     configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
+    configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h @ONLY)
 endif ()
 
 if (APPLICATION_BUILD)
@@ -117,7 +122,7 @@ if (APPLICATION_BUILD)
             file(COPY ${CMAKE_SOURCE_DIR}/gpgfrontend.icns DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
             # Refresh App Bundle
             file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.app)
-        elseif (LINUX)
+        elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
             file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/bin/${AppName})
         endif ()
     endif ()
@@ -168,7 +173,7 @@ if (APPLICATION_BUILD)
                     COMMAND /bin/mv -n ./Resources ./${AppName}.app/Contents/
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Copying Resources into App Bundle Resource")
-        elseif (LINUX)
+        elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
             add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             add_custom_command(TARGET ${AppName} POST_BUILD
                     COMMAND /bin/mkdir -p ./gpgfrontend/usr/bin && /bin/mv -f ./${AppName} ./gpgfrontend/usr/bin/
@@ -199,7 +204,7 @@ if (APPLICATION_BUILD)
         set(GPGFRONTEND_BEFORE_UI_LIBS ${GPGFRONTEND_BEFORE_UI_LIBS} server)
     endif ()
     if (SMTP_SUPPORT)
-        set(GPGFRONTEND_AFTER_UI_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} server)
+        set(GPGFRONTEND_BEFORE_UI_LIBS ${GPGFRONTEND_BEFORE_UI_LIBS} smtp)
     endif ()
 
     set(GPGFRONTEND_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} gpgfrontend-ui gpg_core ${GPGFRONTEND_BEFORE_UI_LIBS} easy_logging_pp)
@@ -235,6 +240,46 @@ if (APPLICATION_BUILD)
                 ${QT_DEPENDENCY_LIBS}
                 ${Boost_LIBRARIES}
                 crypto ssl pthread)
+    endif ()
+endif ()
+
+if (LINUX_INSTALL_SOFTWARE)
+    if (LINUX)
+        if (INSTALL_GPGFRONTEND_APP)
+            install(TARGETS ${AppName}
+                    EXPORT GpgFrontendTargets
+                    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                    )
+            install(FILES ${CMAKE_SOURCE_DIR}/resource/meta/pub.gpgfrontend.gpgfrontend.appdata.xml
+                    DESTINATION /usr/share/metainfo/)
+            install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/desktop/
+                    DESTINATION /usr/share/applications/)
+            install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/pixmaps/
+                    DESTINATION /usr/share/pixmaps/)
+            install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/hicolor/
+                    DESTINATION /usr/share/icons/hicolor/)
+        endif ()
+        if (MULTI_LANG_SUPPORT)
+            message(STATUS "Local Output Path ${LOCALE_OUTPUT_PATH}")
+            install(DIRECTORY ${LOCALE_OUTPUT_PATH}/
+                    DESTINATION ${CMAKE_INSTALL_FULL_LOCALEDIR})
+        endif ()
+        if (APP_PACKAGE_DEB)
+            SET(CPACK_GENERATOR "DEB")
+            set(CPACK_INSTALL_PREFIX "/usr/local/")
+            set(CPACK_PACKAGE_NAME "gpgfrontend")
+            set(CPACK_DEBIAN_PACKAGE_NAME "gpgfrontend")
+            set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+            set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
+            SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Saturneric")
+            set(CPACK_DEBIAN_PACKAGE_DEPENDS "gpg (>= 2.2), libqt5core5a (>= 5.9), libqt5gui5 (>= 5.9), libqt5widgets5 (>= 5.9), libqt5network5 (>= 5.9), libqt5printsupport5 (>= 5.9)")
+            set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
+            set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
+            set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+            include(CPack)
+        endif ()
     endif ()
 endif ()
 

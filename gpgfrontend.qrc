@@ -20,6 +20,7 @@
         <file alias="configure.png">resource/icons/configure.png</file>
         <file alias="decrypted.png">resource/icons/decrypted.png</file>
         <file alias="edit.png">resource/icons/edit.png</file>
+        <file alias="email.png">resource/icons/email.png</file>
         <file alias="encrypted.png">resource/icons/encrypted.png</file>
         <file alias="encrypted_signed.png">resource/icons/encrypted_signed.png</file>
         <file alias="decrypted_verified.png">resource/icons/decrypted_verified.png</file>
