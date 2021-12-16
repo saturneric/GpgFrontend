@@ -30,7 +30,7 @@
 #include "gpg/GpgContext.h"
 #include "gpg/function/GpgKeyGetter.h"
 #include "ui/MainWindow.h"
-#include "ui/WaitingDialog.h"
+#include "ui/settings/GlobalSettingStation.h"
 
 // Easy Logging Cpp
 INITIALIZE_EASYLOGGINGPP
@@ -76,9 +76,10 @@ int main(int argc, char* argv[]) {
   // unicode in source
   QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
 
-#if !defined(RELEASE) && defined(WINDOWS)
+#if defined(WINDOWS)
   // css
-  QFile file(RESOURCE_DIR(qApp->applicationDirPath()) + "/css/default.qss");
+  boost::filesystem::path css_path = GpgFrontend::UI::GlobalSettingStation::GetInstance().GetResourceDir() / "css" / "default.qss";
+  QFile file(css_path.string().c_str());
   file.open(QFile::ReadOnly);
   QString styleSheet = QLatin1String(file.readAll());
   qApp->setStyleSheet(styleSheet);
@@ -142,7 +143,11 @@ int main(int argc, char* argv[]) {
   int return_from_event_loop_code;
 
   do {
+#ifndef WINDOWS
     int r = sigsetjmp(recover_env, 1);
+#else
+    int r = setjmp(recover_env);
+#endif
     if (!r) {
 
       try {
