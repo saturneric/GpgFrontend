@@ -29,7 +29,7 @@
 #include "GpgConstants.h"
 
 GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr) {
-  gpgme_key_t _p_key;
+  gpgme_key_t _p_key = nullptr;
   gpgme_get_key(ctx, fpr.c_str(), &_p_key, 1);
   if (_p_key == nullptr) {
     DLOG(WARNING) << "GpgKeyGetter GetKey Private _p_key Null fpr" << fpr;
@@ -41,7 +41,7 @@ GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr) {
 
 GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetPubkey(
     const std::string& fpr) {
-  gpgme_key_t _p_key;
+  gpgme_key_t _p_key = nullptr;
   gpgme_get_key(ctx, fpr.c_str(), &_p_key, 0);
   if (_p_key == nullptr)
     DLOG(WARNING) << "GpgKeyGetter GetKey _p_key Null" << fpr;
@@ -67,9 +67,24 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
 
   return keys_list;
 }
+
 GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeys(
     const KeyIdArgsListPtr& ids) {
   auto keys = std::make_unique<KeyArgsList>();
   for (const auto& id : *ids) keys->push_back(GetKey(id));
   return keys;
+}
+
+GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::GetKeysCopy(
+    const GpgFrontend::KeyLinkListPtr& keys) {
+  auto keys_copy = std::make_unique<GpgKeyLinkList>();
+  for (const auto& key : *keys) keys_copy->push_back(key.copy());
+  return keys_copy;
+}
+
+GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeysCopy(
+    const GpgFrontend::KeyListPtr& keys) {
+  auto keys_copy = std::make_unique<KeyArgsList>();
+  for (const auto& key : *keys) keys_copy->push_back(key.copy());
+  return keys_copy;
 }

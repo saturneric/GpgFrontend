@@ -36,7 +36,7 @@
 namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   /* the list of Keys available*/
-  mKeyList = new KeyList(this);
+  mKeyList = new KeyList(true, this);
 
   mKeyList->addListGroupTab(_("All"), KeyListRow::SECRET_OR_PUBLIC_KEY);
 
@@ -83,6 +83,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   mKeyList->setDoubleClickedAction([this](const GpgKey& key, QWidget* parent) {
     new KeyDetailsDialog(key, parent);
   });
+
+  mKeyList->slotRefresh();
 
   createActions();
   createMenus();
@@ -139,6 +141,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
 
   this->resize(size);
   this->move(pos);
+  this->setWindowModality(Qt::ApplicationModal);
+  this->statusBar()->show();
 
   setWindowTitle(_("KeyPair Management"));
   mKeyList->addMenuAction(deleteSelectedKeysAct);
@@ -146,6 +150,11 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
 
   connect(this, SIGNAL(signalKeyStatusUpdated()), SignalStation::GetInstance(),
           SIGNAL(KeyDatabaseRefresh()));
+  connect(SignalStation::GetInstance(),
+          &SignalStation::signalRefreshStatusBar, this,
+          [=](const QString& message, int timeout) {
+            statusBar()->showMessage(message, timeout);
+          });
 }
 
 void KeyMgmt::createActions() {
@@ -245,6 +254,7 @@ void KeyMgmt::createMenus() {
   importKeyMenu->addAction(importKeyFromFileAct);
   importKeyMenu->addAction(importKeyFromClipboardAct);
   importKeyMenu->addAction(importKeyFromKeyServerAct);
+
   keyMenu->addAction(exportKeyToFileAct);
   keyMenu->addAction(exportKeyToClipboardAct);
   keyMenu->addAction(exportKeyAsOpenSSHFormat);

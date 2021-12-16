@@ -24,9 +24,13 @@
 
 #include "UserInterfaceUtils.h"
 
+#include <utility>
+
 #include "gpg/result_analyse/ResultAnalyse.h"
 #include "ui/SignalStation.h"
 #include "ui/WaitingDialog.h"
+#include "ui/settings/GlobalSettingStation.h"
+#include "ui/smtp/SendMailDialog.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/TextEdit.h"
 
@@ -35,16 +39,36 @@ namespace GpgFrontend::UI {
 std::unique_ptr<GpgFrontend::UI::CommonUtils>
     GpgFrontend::UI::CommonUtils::_instance = nullptr;
 
+#ifdef SMTP_SUPPORT
+void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
+                   const QString& text) {
+  info_board->addOptionalAction(_("Send Encrypted Mail"), [=]() {
+    bool smtp_enabled = false;
+    try {
+      smtp_enabled = GlobalSettingStation::GetInstance().GetUISettings().lookup(
+          "smtp.enable");
+    } catch (...) {
+      LOG(INFO) << "Reading smtp settings error";
+    }
+    if (smtp_enabled) {
+      auto dialog = new SendMailDialog(text, parent);
+      dialog->show();
+    } else {
+      QMessageBox::warning(nullptr, _("Function Disabled"),
+                           _("Please go to the settings interface to "
+                             "enable and configure this function."));
+    }
+  });
+}
+#endif
+
 void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
-                         GpgError error, VerifyResultAnalyse& verify_res) {
+                         GpgError error, const GpgVerifyResult& verify_result) {
   // take out result
-  auto _result = verify_res.TakeChargeOfResult();
   info_board->resetOptionActionsMenu();
-  info_board->addOptionalAction(
-      "Show Verify Details", [parent, error, _result_ptr = _result.get()]() {
-        VerifyDetailsDialog(parent, error, GpgVerifyResult(_result_ptr));
-      });
-  _result.reset(nullptr);
+  info_board->addOptionalAction("Show Verify Details", [=]() {
+    VerifyDetailsDialog(parent, error, verify_result);
+  });
 }
 
 void import_unknown_key_from_keyserver(QWidget* parent,
@@ -164,26 +188,29 @@ void CommonUtils::slotExecuteGpgCommand(
   QEventLoop looper;
   auto dialog = new WaitingDialog(_("Processing"), nullptr);
   dialog->show();
-  auto* gpgProcess = new QProcess(&looper);
-  gpgProcess->setProcessChannelMode(QProcess::MergedChannels);
+  auto* gpg_process = new QProcess(&looper);
+  gpg_process->setProcessChannelMode(QProcess::MergedChannels);
 
-  connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
-          &looper, &QEventLoop::quit);
-  connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
-          dialog, &WaitingDialog::deleteLater);
-  connect(gpgProcess, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
-  connect(gpgProcess, &QProcess::started,
+  connect(gpg_process,
+          qOverload<int, QProcess::ExitStatus>(&QProcess::finished), &looper,
+          &QEventLoop::quit);
+  connect(gpg_process,
+          qOverload<int, QProcess::ExitStatus>(&QProcess::finished), dialog,
+          &WaitingDialog::deleteLater);
+  connect(gpg_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
+  connect(gpg_process, &QProcess::started,
           []() -> void { LOG(ERROR) << "Gpg Process Started Success"; });
-  connect(gpgProcess, &QProcess::readyReadStandardOutput,
-          [interact_func, gpgProcess]() { interact_func(gpgProcess); });
-  connect(gpgProcess, &QProcess::errorOccurred, this, [=]() -> void {
+  connect(gpg_process, &QProcess::readyReadStandardOutput,
+          [interact_func, gpg_process]() { interact_func(gpg_process); });
+  connect(gpg_process, &QProcess::errorOccurred, this, [=]() -> void {
     LOG(ERROR) << "Error in Process";
     dialog->close();
     QMessageBox::critical(nullptr, _("Failure"),
                           _("Failed to execute command."));
   });
-  connect(gpgProcess, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
-          this, [=](int, QProcess::ExitStatus status) {
+  connect(gpg_process,
+          qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
+          [=](int, QProcess::ExitStatus status) {
             dialog->close();
             if (status == QProcess::NormalExit)
               QMessageBox::information(nullptr, _("Success"),
@@ -193,12 +220,101 @@ void CommonUtils::slotExecuteGpgCommand(
                                        _("Finished executing command."));
           });
 
-  gpgProcess->setProgram(GpgContext::GetInstance().GetInfo().AppPath.c_str());
-  gpgProcess->setArguments(arguments);
-  gpgProcess->start();
+  gpg_process->setProgram(GpgContext::GetInstance().GetInfo().AppPath.c_str());
+  gpg_process->setArguments(arguments);
+  gpg_process->start();
   looper.exec();
   dialog->close();
   dialog->deleteLater();
+}
+
+void CommonUtils::slotImportKeyFromKeyServer(
+    int ctx_channel, const KeyIdArgsList& key_ids,
+    const ImportCallbackFunctiopn& callback) {
+  std::string target_keyserver;
+  if (target_keyserver.empty()) {
+    try {
+      auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+      target_keyserver = settings.lookup("keyserver.default_server").c_str();
+
+      LOG(INFO) << _("Set target Key Server to default Key Server")
+                << target_keyserver;
+    } catch (...) {
+      LOG(ERROR) << _("Cannot read default_keyserver From Settings");
+      QMessageBox::critical(
+          nullptr, _("Default Keyserver Not Found"),
+          _("Cannot read default keyserver from your settings, "
+            "please set a default keyserver first"));
+      return;
+    }
+  }
+
+  auto thread =
+      QThread::create([target_keyserver, key_ids, callback, ctx_channel]() {
+        QUrl target_keyserver_url(target_keyserver.c_str());
+
+        auto network_manager = std::make_unique<QNetworkAccessManager>();
+        // LOOP
+        decltype(key_ids.size()) current_index = 1, all_index = key_ids.size();
+        for (const auto& key_id : key_ids) {
+          // New Req Url
+          QUrl req_url(target_keyserver_url.scheme() + "://" +
+                       target_keyserver_url.host() +
+                       "/pks/lookup?op=get&search=0x" + key_id.c_str() +
+                       "&options=mr");
+
+          LOG(INFO) << "request url" << req_url.toString().toStdString();
+
+          // Waiting for reply
+          QNetworkReply* reply = network_manager->get(QNetworkRequest(req_url));
+          QEventLoop loop;
+          connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+          loop.exec();
+
+          // Get Data
+          auto key_data = reply->readAll();
+          auto key_data_ptr =
+              std::make_unique<ByteArray>(key_data.data(), key_data.size());
+
+          // Detect status
+          std::string status;
+          auto error = reply->error();
+          if (error != QNetworkReply::NoError) {
+            switch (error) {
+              case QNetworkReply::ContentNotFoundError:
+                status = _("Key Not Found");
+                break;
+              case QNetworkReply::TimeoutError:
+                status = _("Timeout");
+                break;
+              case QNetworkReply::HostNotFoundError:
+                status = _("Key Server Not Found");
+                break;
+              default:
+                status = _("Connection Error");
+            }
+          }
+
+          reply->deleteLater();
+
+          // Try importing
+          GpgImportInformation result =
+              GpgKeyImportExportor::GetInstance(ctx_channel)
+                  .ImportKey(std::move(key_data_ptr));
+
+          if (result.imported == 1) {
+            status = _("The key has been updated");
+          } else {
+            status = _("No need to update the key");
+          }
+          callback(key_id, status, current_index, all_index);
+          current_index++;
+        }
+      });
+
+  connect(thread, &QThread::finished, thread, &QThread::deleteLater);
+  thread->start();
 }
 
 }  // namespace GpgFrontend::UI

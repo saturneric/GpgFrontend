@@ -40,6 +40,7 @@
 #include "gpg/function/GpgKeyImportExportor.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/help/AboutDialog.h"
+#include "ui/settings/GlobalSettingStation.h"
 #include "ui/widgets/SignersPicker.h"
 
 namespace GpgFrontend::UI {
@@ -103,28 +104,18 @@ void MainWindow::slotEncrypt() {
   }
 
   if (!if_error) {
+    LOG(INFO) << "result" << result.get();
     auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));
     resultAnalyse.analyse();
     process_result_analyse(edit, infoBoard, resultAnalyse);
 
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
       edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
+    infoBoard->resetOptionActionsMenu();
 #ifdef SMTP_SUPPORT
-    // set optional actions
-    if (resultAnalyse.getStatus() >= 0) {
-      infoBoard->resetOptionActionsMenu();
-      infoBoard->addOptionalAction("Send Mail", [this]() {
-        if (settings.value("sendMail/enable", false).toBool())
-          new SendMailDialog(edit->curTextPage()->toPlainText(), this);
-        else {
-          QMessageBox::warning(nullptr, _("Function Disabled"),
-                               _("Please go to the settings interface to "
-                                 "enable and configure this function."));
-        }
-      });
-    }
+    if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+      send_an_email(this, infoBoard, edit->curTextPage()->toPlainText());
 #endif
-
   } else {
     QMessageBox::critical(this, _("Error"),
                           _("An error occurred during operation."));
@@ -261,7 +252,7 @@ void MainWindow::slotVerify() {
   });
 
   if (!if_error) {
-    auto result_analyse = VerifyResultAnalyse(error, std::move(result));
+    auto result_analyse = VerifyResultAnalyse(error, result);
     result_analyse.analyse();
     process_result_analyse(edit, infoBoard, result_analyse);
 
@@ -269,7 +260,7 @@ void MainWindow::slotVerify() {
       import_unknown_key_from_keyserver(this, result_analyse);
 
     if (result_analyse.getStatus() >= 0)
-      show_verify_details(this, infoBoard, error, result_analyse);
+      show_verify_details(this, infoBoard, error, result);
   }
 }
 
@@ -354,17 +345,10 @@ void MainWindow::slotEncryptSign() {
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
       edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
 
-#ifdef SMTP_SUPPORT
     infoBoard->resetOptionActionsMenu();
-    infoBoard->addOptionalAction("Send Mail", [this]() {
-      if (settings.value("sendMail/enable", false).toBool())
-        new SendMailDialog(edit->curTextPage()->toPlainText(), this);
-      else {
-        QMessageBox::warning(nullptr, _("Function Disabled"),
-                             _("Please go to the settings interface to "
-                               "enable and configure this function."));
-      }
-    });
+#ifdef SMTP_SUPPORT
+    if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+      send_an_email(this, infoBoard, edit->curTextPage()->toPlainText());
 #endif
 
 #ifdef ADVANCE_SUPPORT
@@ -378,7 +362,6 @@ void MainWindow::slotEncryptSign() {
       }
     });
 #endif
-
   } else {
     QMessageBox::critical(this, _("Error"),
                           _("An error occurred during operation."));
@@ -434,7 +417,7 @@ void MainWindow::slotDecryptVerify() {
 
   if (!if_error) {
     auto decrypt_res = DecryptResultAnalyse(error, std::move(d_result));
-    auto verify_res = VerifyResultAnalyse(error, std::move(v_result));
+    auto verify_res = VerifyResultAnalyse(error, v_result);
     decrypt_res.analyse();
     verify_res.analyse();
     process_result_analyse(edit, infoBoard, decrypt_res, verify_res);
@@ -445,7 +428,7 @@ void MainWindow::slotDecryptVerify() {
       import_unknown_key_from_keyserver(this, verify_res);
 
     if (verify_res.getStatus() >= 0)
-      show_verify_details(this, infoBoard, error, verify_res);
+      show_verify_details(this, infoBoard, error, v_result);
 
   } else {
     QMessageBox::critical(this, _("Error"),

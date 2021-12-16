@@ -29,12 +29,16 @@
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
+#include "ui/settings/GlobalSettingStation.h"
+#include "ui_ModifiedExpirationDateTime.h"
 
 namespace GpgFrontend::UI {
 
 KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
                                                QWidget* parent)
-    : QDialog(parent), mKey(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+    : QDialog(parent),
+      ui(std::make_shared<Ui_ModifiedExpirationDateTime>()),
+      mKey(GpgKeyGetter::GetInstance().GetKey(key_id)) {
   init();
 }
 
@@ -42,19 +46,20 @@ KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
                                                std::string subkey_fpr,
                                                QWidget* parent)
     : QDialog(parent),
+      ui(std::make_shared<Ui_ModifiedExpirationDateTime>()),
       mKey(GpgKeyGetter::GetInstance().GetKey(key_id)),
       mSubkey(std::move(subkey_fpr)) {
   init();
 }
 
 void KeySetExpireDateDialog::slotConfirm() {
-  LOG(INFO) << "Called"
-            << this->dateTimeEdit->dateTime().toLocalTime().toTime_t();
+  LOG(INFO) << "Called" << ui->dateEdit->date().toString().toStdString()
+            << ui->timeEdit->time().toString().toStdString();
+  auto datetime = QDateTime(ui->dateEdit->date(), ui->timeEdit->time());
   std::unique_ptr<boost::posix_time::ptime> expires = nullptr;
-  if (this->nonExpiredCheck->checkState() == Qt::Unchecked) {
+  if (ui->noExpirationCheckBox->checkState() == Qt::Unchecked) {
     expires = std::make_unique<boost::posix_time::ptime>(
-        boost::posix_time::from_time_t(
-            this->dateTimeEdit->dateTime().toLocalTime().toTime_t()));
+        boost::posix_time::from_time_t(datetime.toLocalTime().toTime_t()));
     LOG(INFO) << "keyid" << mKey.id() << mSubkey << *expires;
   } else {
     LOG(INFO) << "keyid" << mKey.id() << mSubkey << "Non Expired";
@@ -81,44 +86,51 @@ void KeySetExpireDateDialog::slotConfirm() {
 }
 
 void KeySetExpireDateDialog::init() {
-  QDateTime maxDateTime =
-      QDateTime::currentDateTime().toLocalTime().addYears(2);
-  dateTimeEdit = new QDateTimeEdit(maxDateTime);
-  dateTimeEdit->setTimeSpec(Qt::TimeSpec::TimeZone);
-  LOG(INFO) << "timespec" << Qt::TimeSpec::TimeZone;
-  dateTimeEdit->setCalendarPopup(true);
-  dateTimeEdit->setMinimumDateTime(QDateTime::currentDateTime().addSecs(1));
-  dateTimeEdit->setMaximumDateTime(maxDateTime);
+  ui->setupUi(this);
 
-  nonExpiredCheck = new QCheckBox();
-  nonExpiredCheck->setTristate(false);
-  confirmButton = new QPushButton(_("Confirm"));
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
-  auto* gridLayout = new QGridLayout();
-  gridLayout->addWidget(dateTimeEdit, 0, 0, 1, 2);
-  gridLayout->addWidget(nonExpiredCheck, 0, 2, 1, 1, Qt::AlignRight);
-  gridLayout->addWidget(new QLabel(_("Never Expire")), 0, 3);
-  gridLayout->addWidget(confirmButton, 1, 3);
+  bool longer_expiration_date = false;
+  try {
+    longer_expiration_date = settings.lookup("general.longer_expiration_date");
+    LOG(INFO) << "longer_expiration_date" << longer_expiration_date;
 
-  connect(nonExpiredCheck, SIGNAL(stateChanged(int)), this,
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("longer_expiration_date");
+  }
+
+  auto max_date_time =
+      longer_expiration_date
+          ? QDateTime::currentDateTime().toLocalTime().addYears(30)
+          : QDateTime::currentDateTime().toLocalTime().addYears(2);
+
+  auto min_date_time = QDateTime::currentDateTime().addDays(7);
+
+  ui->dateEdit->setMaximumDateTime(max_date_time);
+  ui->dateEdit->setMinimumDateTime(min_date_time);
+
+  ui->dateEdit->setDateTime(max_date_time);
+  ui->timeEdit->setDateTime(max_date_time);
+
+  connect(ui->noExpirationCheckBox, SIGNAL(stateChanged(int)), this,
           SLOT(slotNonExpiredChecked(int)));
-  connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(slotConfirm()));
-
-  this->setLayout(gridLayout);
-  this->setWindowTitle(_("Edit Expire Datetime"));
-  this->setModal(true);
-  this->setAttribute(Qt::WA_DeleteOnClose, true);
-
+  connect(ui->buttonBox, &QDialogButtonBox::accepted, this,
+          &KeySetExpireDateDialog::slotConfirm);
   connect(this, SIGNAL(signalKeyExpireDateUpdated()),
           SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()));
+
+  ui->titleLabel->setText(_("Modified Expiration Date (Local Time)"));
+  ui->label->setText(
+      _("Tips: For the sake of security, the key is valid for up to two years. "
+        "If you are an expert user, please unlock it for a longer time in the "
+        "settings."));
+  ui->noExpirationCheckBox->setText(_("No Expiration"));
+  this->setWindowTitle(_("Modified Expiration Date"));
 }
 
 void KeySetExpireDateDialog::slotNonExpiredChecked(int state) {
-  if (state == 0) {
-    this->dateTimeEdit->setDisabled(false);
-  } else {
-    this->dateTimeEdit->setDisabled(true);
-  }
+  ui->dateEdit->setDisabled(state == Qt::Checked);
+  ui->timeEdit->setDisabled(state == Qt::Checked);
 }
 
 }  // namespace GpgFrontend::UI

@@ -33,6 +33,10 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Get Short SHA of Commit
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
       - name: Install Dependence (Linux)
         run: |
           sudo apt-get update
@@ -143,7 +147,7 @@ jobs:
 
       - name: Build GpgFrontend
         # Build your program with the given configuration
-        run: cmake --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -j 2
+        run: cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'ubuntu-18.04' || matrix.os == 'macos-10.15'
 
       - name: Build & Sign App Bundle (macOS)
@@ -187,10 +191,6 @@ jobs:
           # Build your program with the given configuration
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'windows-latest'
-
-      - name: Get Short SHA of Commit
-        id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@master

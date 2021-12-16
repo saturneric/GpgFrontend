@@ -66,8 +66,6 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::SetExpire(
     std::unique_ptr<boost::posix_time::ptime>& expires) {
   unsigned long expires_time = 0;
 
-  LOG(INFO) << "expires" << *expires;
-
   if (expires != nullptr) {
     using namespace boost::posix_time;
     using namespace std::chrono;
@@ -78,7 +76,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::SetExpire(
   LOG(INFO) << key.id() << subkey_fpr << expires_time;
 
   GpgError err;
-  if (subkey_fpr.empty())
+  if (key.fpr() == subkey_fpr || subkey_fpr.empty())
     err = gpgme_op_setexpire(ctx, gpgme_key_t(key), expires_time, nullptr, 0);
   else
     err = gpgme_op_setexpire(ctx, gpgme_key_t(key), expires_time,

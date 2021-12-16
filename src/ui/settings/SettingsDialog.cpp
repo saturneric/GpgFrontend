@@ -94,7 +94,8 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
   connect(this, SIGNAL(signalRestartNeeded(bool)), parent,
           SLOT(slotSetRestartNeeded(bool)));
 
-  this->resize(480, 640);
+  this->setMinimumSize(480, 680);
+  this->adjustSize();
   this->show();
 }
 
@@ -105,7 +106,7 @@ void SettingsDialog::slotSetRestartNeeded(bool needed) {
 }
 
 void SettingsDialog::slotAccept() {
-  LOG(INFO) << "called";
+  LOG(INFO) << "Called";
 
   generalTab->applySettings();
 #ifdef SMTP_SUPPORT

@@ -29,6 +29,9 @@
 
 #include "gpg/GpgContext.h"
 #include "ui/KeyImportDetailDialog.h"
+
+class Ui_KeyList;
+
 namespace GpgFrontend::UI {
 
 struct KeyListRow {
@@ -68,7 +71,7 @@ struct KeyTable {
         info_type(_info_type),
         filter(std::move(_filter)) {}
 
-  void Refresh();
+  void Refresh(KeyLinkListPtr m_keys = nullptr);
 
   KeyIdArgsListPtr GetChecked();
 
@@ -79,14 +82,7 @@ class KeyList : public QWidget {
   Q_OBJECT
 
  public:
-  explicit KeyList(
-      KeyListRow::KeyType selectType = KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::InfoType infoType = KeyListColumn::ALL,
-      const std::function<bool(const GpgKey&)>& filter =
-          [](const GpgKey&) -> bool { return true; },
-      QWidget* parent = nullptr);
-
-  explicit KeyList(QWidget* parent);
+  explicit KeyList(bool menu, QWidget* parent = nullptr);
 
   void addListGroupTab(
       const QString& name,
@@ -116,6 +112,10 @@ class KeyList : public QWidget {
 
   [[maybe_unused]] bool containsPrivateKeys();
 
+ signals:
+  void signalRefreshStatusBar(const QString& message, int timeout);
+  void signalRefreshDatabase();
+
  public slots:
 
   void slotRefresh();
@@ -124,21 +124,25 @@ class KeyList : public QWidget {
   void init();
   void importKeys(const QByteArray& inBuffer);
 
-  QString appPath;
-  QSettings settings;
+  static int key_list_id;
+  int _m_key_list_id;
+  std::mutex buffered_key_list_mutex;
 
-  QTabWidget* mGroupTab{};
+  std::shared_ptr<Ui_KeyList> ui;
   QTableWidget* mKeyList{};
-
   std::vector<KeyTable> mKeyTables;
-
   QMenu* popupMenu{};
-
+  GpgFrontend::KeyLinkListPtr _buffered_keys_list;
   std::function<void(const GpgKey&, QWidget*)> mAction = nullptr;
+  bool menu_status = false;
 
  private slots:
 
   void slotDoubleClicked(const QModelIndex& index);
+
+  void slotRefreshUI();
+
+  void slotSyncWithKeyServer();
 
  protected:
   void contextMenuEvent(QContextMenuEvent* event) override;
