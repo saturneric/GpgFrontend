@@ -39,6 +39,7 @@ namespace GpgFrontend::UI {
 std::unique_ptr<GpgFrontend::UI::CommonUtils>
     GpgFrontend::UI::CommonUtils::_instance = nullptr;
 
+#ifdef SMTP_SUPPORT
 void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
                    const QString& text) {
   info_board->addOptionalAction(_("Send Encrypted Mail"), [=]() {
@@ -59,6 +60,7 @@ void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
     }
   });
 }
+#endif
 
 void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
                          GpgError error, const GpgVerifyResult& verify_result) {

@@ -296,12 +296,14 @@ void MainWindow::createActions() {
   addPgpHeaderAct = new QAction(_("Add PGP Header"), this);
   connect(addPgpHeaderAct, SIGNAL(triggered()), this, SLOT(slotAddPgpHeader()));
 
+#ifdef SMTP_SUPPORT
   sendMailAct = new QAction(_("Send An Email"), this);
   sendMailAct->setIcon(QIcon(":email.png"));
   connect(sendMailAct, &QAction::triggered, this, [=]() {
     auto* dialog = new SendMailDialog({}, this);
     dialog->show();
   });
+#endif
 }
 
 void MainWindow::createMenus() {
@@ -358,9 +360,10 @@ void MainWindow::createMenus() {
   steganoMenu = menuBar()->addMenu(_("Steganography"));
   steganoMenu->addAction(cutPgpHeaderAct);
   steganoMenu->addAction(addPgpHeaderAct);
-
+#ifdef SMTP_SUPPORT
   emailMenu = menuBar()->addMenu(_("Email"));
   emailMenu->addAction(sendMailAct);
+#endif
 
 #ifdef ADVANCED_SUPPORT
   // Hide menu, when steganography menu is disabled in settings

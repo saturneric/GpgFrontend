@@ -49,11 +49,13 @@ SendMailTab::SendMailTab(QWidget* parent)
     ui->defaultSenderEmailEdit->setDisabled(state != Qt::Checked);
     ui->checkConnectionButton->setDisabled(state != Qt::Checked);
   });
-
+  
+#ifdef SMTP_SUPPORT
   connect(ui->checkConnectionButton, &QPushButton::clicked, this,
           &SendMailTab::slotCheckConnection);
   connect(ui->senTestMailButton, &QPushButton::clicked, this,
           &SendMailTab::slotSendTestMail);
+#endif
 
   connect(ui->identityCheckBox, &QCheckBox::stateChanged, this, [=](int state) {
     ui->usernameEdit->setDisabled(state != Qt::Checked);
@@ -258,6 +260,7 @@ void SendMailTab::slotCheckConnection() {
 }
 #endif
 
+#ifdef SMTP_SUPPORT
 void SendMailTab::slotSendTestMail() {
   if (ui->defaultSenderEmailEdit->text().isEmpty()) {
     QMessageBox::critical(this, _("Fail"), _("Given a default sender first"));
@@ -322,5 +325,6 @@ void SendMailTab::slotSendTestMail() {
       this, _("Success"),
       _("Succeed in sending a test email to the SMTP Server"));
 }
+#endif
 
 }  // namespace GpgFrontend::UI
