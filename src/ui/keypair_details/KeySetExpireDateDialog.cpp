@@ -101,7 +101,7 @@ void KeySetExpireDateDialog::init() {
 
   auto max_date_time =
       longer_expiration_date
-          ? QDateTime::currentDateTime().toLocalTime().addYears(70)
+          ? QDateTime::currentDateTime().toLocalTime().addYears(30)
           : QDateTime::currentDateTime().toLocalTime().addYears(2);
 
   auto min_date_time = QDateTime::currentDateTime().addDays(7);
