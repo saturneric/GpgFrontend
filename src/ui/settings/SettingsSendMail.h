@@ -22,9 +22,11 @@ class SendMailTab : public QWidget {
 
  private slots:
 
+#ifdef SMTP_SUPPORT
   void slotCheckConnection();
 
   void slotSendTestMail();
+#endif
 
  private:
   std::shared_ptr<Ui_SendMailSettings> ui;

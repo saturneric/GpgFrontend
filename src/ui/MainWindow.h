@@ -322,7 +322,9 @@ class MainWindow : public QMainWindow {
   QMenu* keyMenu{};       /** Submenu for key-operations */
   QMenu* viewMenu{};      /** Submenu for view operations */
   QMenu* importKeyMenu{}; /** Sumenu for import operations */
+#ifdef SMTP_SUPPORT
   QMenu* emailMenu{};     /** Sumenu for email operations */
+#endif
 
   QMenu* steganoMenu{};           /** Submenu for steganographic operations*/
   QToolBar* cryptToolBar{};       /** Toolbar holding crypt actions */
@@ -380,7 +382,9 @@ class MainWindow : public QMainWindow {
   QAction* cutPgpHeaderAct{};          /** Action for cutting the PGP header */
   QAction* addPgpHeaderAct{};          /** Action for adding the PGP header */
 
+#ifdef SMTP_SUPPORT
   QAction* sendMailAct{}; /** Action for sending a email */
+#endif
 
   QAction* importKeyFromFileAct{};
   QAction* importKeyFromClipboardAct{};

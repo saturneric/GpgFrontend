@@ -38,8 +38,10 @@ namespace GpgFrontend::UI {
 class InfoBoardWidget;
 class TextEdit;
 
+#ifdef SMTP_SUPPORT
 void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
                    const QString& text);
+#endif
 
 void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
                          GpgError error, const GpgVerifyResult& verify_result);
