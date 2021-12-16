@@ -100,7 +100,7 @@ GeneralTab::GeneralTab(QWidget* parent) : QWidget(parent) {
   for (const auto& l : lang) {
     langSelectBox->addItem(l);
   }
-  langSelectBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLength);
+  langSelectBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
   langBoxLayout->addWidget(langSelectBox);
   langBoxLayout->addWidget(new QLabel(
