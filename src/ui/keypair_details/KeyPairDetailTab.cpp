@@ -225,18 +225,20 @@ void KeyPairDetailTab::slotExportPublicKey() {
                           _("An error occurred during the export operation."));
     return;
   }
-  auto fileString =
+  auto file_string =
       mKey.name() + " " + mKey.email() + "(" + mKey.id() + ")_pub.asc";
-  auto fileName =
+  auto file_name =
       QFileDialog::getSaveFileName(
-          this, _("Export Key To File"), QString::fromStdString(fileString),
+          this, _("Export Key To File"), QString::fromStdString(file_string),
           QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)")
           .toStdString();
 
-  if (!write_buffer_to_file(fileName, *keyArray)) {
+  if (file_name.empty()) return;
+
+  if (!write_buffer_to_file(file_name, *keyArray)) {
     QMessageBox::critical(
         this, _("Export Error"),
-        QString(_("Couldn't open %1 for writing")).arg(fileName.c_str()));
+        QString(_("Couldn't open %1 for writing")).arg(file_name.c_str()));
     return;
   }
 }
@@ -266,18 +268,20 @@ void KeyPairDetailTab::slotExportShortPrivateKey() {
           _("An error occurred during the export operation."));
       return;
     }
-    auto fileString = mKey.name() + " " + mKey.email() + "(" + mKey.id() +
-                      ")_short_secret.asc";
-    auto fileName =
+    auto file_string = mKey.name() + " " + mKey.email() + "(" + mKey.id() +
+                       ")_short_secret.asc";
+    auto file_name =
         QFileDialog::getSaveFileName(
-            this, _("Export Key To File"), QString::fromStdString(fileString),
+            this, _("Export Key To File"), QString::fromStdString(file_string),
             QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)")
             .toStdString();
 
-    if (!write_buffer_to_file(fileName, *keyArray)) {
+    if (file_name.empty()) return;
+
+    if (!write_buffer_to_file(file_name, *keyArray)) {
       QMessageBox::critical(
           this, _("Export Error"),
-          QString(_("Couldn't open %1 for writing")).arg(fileName.c_str()));
+          QString(_("Couldn't open %1 for writing")).arg(file_name.c_str()));
       return;
     }
   }
@@ -303,18 +307,20 @@ void KeyPairDetailTab::slotExportPrivateKey() {
           _("An error occurred during the export operation."));
       return;
     }
-    auto fileString = mKey.name() + " " + mKey.email() + "(" + mKey.id() +
-                      ")_full_secret.asc";
-    auto fileName =
+    auto file_string = mKey.name() + " " + mKey.email() + "(" + mKey.id() +
+                       ")_full_secret.asc";
+    auto file_name =
         QFileDialog::getSaveFileName(
-            this, _("Export Key To File"), QString::fromStdString(fileString),
+            this, _("Export Key To File"), QString::fromStdString(file_string),
             QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)")
             .toStdString();
 
-    if (!write_buffer_to_file(fileName, *keyArray)) {
+    if (file_name.empty()) return;
+
+    if (!write_buffer_to_file(file_name, *keyArray)) {
       QMessageBox::critical(
           this, _("Export Error"),
-          QString(_("Couldn't open %1 for writing")).arg(fileName.c_str()));
+          QString(_("Couldn't open %1 for writing")).arg(file_name.c_str()));
       return;
     }
   }
