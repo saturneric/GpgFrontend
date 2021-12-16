@@ -30,5 +30,9 @@ extern jmp_buf recover_env;
 
 void handle_signal(int sig) {
   LOG(INFO) << "signal caught";
+#ifndef WINDOWS
   siglongjmp(recover_env, 1);
+#else
+  longjmp(recover_env, 1);
+#endif
 }
