@@ -41,7 +41,7 @@ std::unique_ptr<GpgFrontend::UI::CommonUtils>
 
 void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
                    const QString& text) {
-  info_board->addOptionalAction("Send Encrypted Mail", [=]() {
+  info_board->addOptionalAction(_("Send Encrypted Mail"), [=]() {
     bool smtp_enabled = false;
     try {
       smtp_enabled = GlobalSettingStation::GetInstance().GetUISettings().lookup(
