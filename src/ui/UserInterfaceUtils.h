@@ -85,8 +85,8 @@ class CommonUtils : public QWidget {
 
   void slotImportKeyFromClipboard(QWidget* parent);
 
-  void slotImportKeyFromKeyServer(
-      const GpgFrontend::KeyIdArgsList& key_ids,
+  static void slotImportKeyFromKeyServer(
+      int ctx_channel, const GpgFrontend::KeyIdArgsList& key_ids,
       const GpgFrontend::UI::CommonUtils::ImportCallbackFunctiopn& callback);
 
   void slotExecuteGpgCommand(
@@ -94,14 +94,9 @@ class CommonUtils : public QWidget {
       const std::function<void(QProcess*)>& interact_func);
 
  private slots:
-  void slotDoImportKeyFromKeyServer(
-      QNetworkReply* network_reply, const std::string& key_id,
-      size_t current_index, size_t all_index,
-      const GpgFrontend::UI::CommonUtils::ImportCallbackFunctiopn& _callback);
 
  private:
   static std::unique_ptr<CommonUtils> _instance;
-  QNetworkAccessManager* _network_manager = new QNetworkAccessManager(this);
 };
 
 }  // namespace GpgFrontend::UI

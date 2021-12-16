@@ -82,14 +82,7 @@ class KeyList : public QWidget {
   Q_OBJECT
 
  public:
-  explicit KeyList(
-      KeyListRow::KeyType selectType = KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::InfoType infoType = KeyListColumn::ALL,
-      const std::function<bool(const GpgKey&)>& filter =
-          [](const GpgKey&) -> bool { return true; },
-      QWidget* parent = nullptr);
-
-  explicit KeyList(QWidget* parent);
+  explicit KeyList(bool menu, QWidget* parent = nullptr);
 
   void addListGroupTab(
       const QString& name,
@@ -130,7 +123,6 @@ class KeyList : public QWidget {
  private:
   void init();
   void importKeys(const QByteArray& inBuffer);
-  void updateCallbackCalled(ssize_t current_index, size_t all_index);
 
   static int key_list_id;
   int _m_key_list_id;
@@ -142,6 +134,7 @@ class KeyList : public QWidget {
   QMenu* popupMenu{};
   GpgFrontend::KeyLinkListPtr _buffered_keys_list;
   std::function<void(const GpgKey&, QWidget*)> mAction = nullptr;
+  bool menu_status = false;
 
  private slots:
 

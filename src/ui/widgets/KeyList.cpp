@@ -37,26 +37,18 @@ namespace GpgFrontend::UI {
 
 int KeyList::key_list_id = 2048;
 
-KeyList::KeyList(QWidget* parent)
+KeyList::KeyList(bool menu, QWidget* parent)
     : QWidget(parent),
       _m_key_list_id(key_list_id++),
-      ui(std::make_shared<Ui_KeyList>()) {
+      ui(std::make_shared<Ui_KeyList>()),
+      menu_status(menu) {
   init();
-}
-
-KeyList::KeyList(KeyListRow::KeyType selectType,
-                 KeyListColumn::InfoType infoType,
-                 const std::function<bool(const GpgKey&)>& filter,
-                 QWidget* parent)
-    : QWidget(parent),
-      _m_key_list_id(key_list_id++),
-      ui(std::make_shared<Ui_KeyList>()) {
-  init();
-  addListGroupTab(_("Default"), selectType, infoType, filter);
 }
 
 void KeyList::init() {
   ui->setupUi(this);
+
+  ui->menuWidget->setHidden(!menu_status);
   ui->keyGroupTab->clear();
   popupMenu = new QMenu(this);
 
@@ -74,7 +66,7 @@ void KeyList::init() {
 
   setAcceptDrops(true);
 
-  ui->keyListOperationsLabel->setText(_("Key List Operations: "));
+  ui->keyListOperationsLabel->setText(_("Key List Menu: "));
   ui->refreshKeyListButton->setText(_("Refresh"));
   ui->syncButton->setText(_("Sync Public Key"));
   ui->syncButton->setToolTip(_("Sync public key with your default keyserver"));
@@ -153,6 +145,7 @@ void KeyList::slotRefresh() {
   connect(thread, &QThread::finished, this, &KeyList::slotRefreshUI);
   connect(thread, &QThread::finished, thread, &QThread::deleteLater);
   ui->refreshKeyListButton->setDisabled(true);
+  ui->syncButton->setDisabled(true);
   thread->start();
 }
 
@@ -415,6 +408,7 @@ void KeyList::slotRefreshUI() {
   }
   emit signalRefreshStatusBar(_("Key List Refreshed."), 1000);
   ui->refreshKeyListButton->setDisabled(false);
+  ui->syncButton->setDisabled(false);
 }
 
 void KeyList::slotSyncWithKeyServer() {
@@ -426,35 +420,31 @@ void KeyList::slotSyncWithKeyServer() {
         key_ids.push_back(key.id());
     }
   }
-  updateCallbackCalled(-1, key_ids.size());
-  CommonUtils::GetInstance()->slotImportKeyFromKeyServer(
-      key_ids, [=](const std::string& key_id, const std::string& status,
-                   size_t current_index, size_t all_index) {
+
+  ui->refreshKeyListButton->setDisabled(true);
+  ui->syncButton->setDisabled(true);
+
+  emit signalRefreshStatusBar(_("Syncing Key List..."), 3000);
+  CommonUtils::slotImportKeyFromKeyServer(
+      _m_key_list_id, key_ids,
+      [=](const std::string& key_id, const std::string& status,
+          size_t current_index, size_t all_index) {
         LOG(INFO) << _("Called") << key_id << status << current_index
                   << all_index;
         auto key = GpgKeyGetter::GetInstance(_m_key_list_id).GetKey(key_id);
+
         boost::format status_str = boost::format(_("Sync [%1%/%2%] %3% %4%")) %
                                    current_index % all_index %
                                    key.uids()->front().uid() % status;
         emit signalRefreshStatusBar(status_str.str().c_str(), 1500);
-        updateCallbackCalled(current_index, key_ids.size());
+
+        if (current_index == all_index) {
+          ui->syncButton->setDisabled(false);
+          ui->refreshKeyListButton->setDisabled(false);
+          emit signalRefreshStatusBar(_("Key List Sync Done."), 3000);
+          emit signalRefreshDatabase();
+        }
       });
-}
-
-void KeyList::updateCallbackCalled(ssize_t current_index, size_t all_index) {
-  static size_t called_count = 0;
-  if (current_index == -1 && all_index > 0) {
-    called_count = 0;
-    ui->syncButton->setDisabled(true);
-  } else {
-    called_count++;
-  }
-
-  if (called_count == all_index) {
-    ui->syncButton->setDisabled(false);
-    emit signalRefreshStatusBar(_("Key List Sync Done."), 3000);
-    emit signalRefreshDatabase();
-  }
 }
 
 KeyIdArgsListPtr KeyTable::GetChecked() {

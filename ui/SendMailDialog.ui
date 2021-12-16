@@ -32,7 +32,7 @@
       <widget class="QWidget" name="horizontalWidget" native="true">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <property name="spacing">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="leftMargin">
          <number>0</number>
@@ -58,6 +58,22 @@
         </item>
         <item>
          <widget class="QLineEdit" name="senderEdit"/>
+        </item>
+        <item>
+         <widget class="Line" name="line">
+          <property name="toolTipDuration">
+           <number>0</number>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="lineWidth">
+           <number>2</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="ccButton">
@@ -111,6 +127,13 @@
       </widget>
      </item>
      <item>
+      <widget class="Line" name="line_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QWidget" name="horizontalWidget_5" native="true">
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <property name="spacing">
@@ -142,6 +165,13 @@
          <widget class="QLineEdit" name="subjectEdit"/>
         </item>
        </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="Line" name="line_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
       </widget>
      </item>
      <item>
@@ -216,6 +246,13 @@
       <widget class="QLabel" name="tipsLabel">
        <property name="text">
         <string>Tips: You can fill in multiple email addresses, please separate them with &quot;;&quot;.</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Line" name="line_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
       </widget>
      </item>

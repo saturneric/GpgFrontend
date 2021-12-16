@@ -43,6 +43,7 @@ class GeneralTab : public QWidget {
  private:
   QCheckBox* saveCheckedKeysCheckBox;
   QCheckBox* importConfirmationCheckBox;
+  QCheckBox* longerKeyExpirationDateCheckBox;
 
 #ifdef MULTI_LANG_SUPPORT
   QComboBox* langSelectBox;
