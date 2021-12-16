@@ -36,7 +36,7 @@
 namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   /* the list of Keys available*/
-  mKeyList = new KeyList(this);
+  mKeyList = new KeyList(true, this);
 
   mKeyList->addListGroupTab(_("All"), KeyListRow::SECRET_OR_PUBLIC_KEY);
 
@@ -247,7 +247,7 @@ void KeyMgmt::createMenus() {
   importKeyMenu->addAction(importKeyFromFileAct);
   importKeyMenu->addAction(importKeyFromClipboardAct);
   importKeyMenu->addAction(importKeyFromKeyServerAct);
-  
+
   keyMenu->addAction(exportKeyToFileAct);
   keyMenu->addAction(exportKeyToClipboardAct);
   keyMenu->addAction(exportKeyAsOpenSSHFormat);

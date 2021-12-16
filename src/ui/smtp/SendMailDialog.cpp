@@ -76,7 +76,7 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
   ui->bccButton->setText(_("BCC"));
   ui->senderLabel->setText(_("Sender"));
   ui->recipientLabel->setText(_("Recipient"));
-  ui->subjectLabel->setText(_("Subject"));
+  ui->subjectLabel->setText(_("Mail Subject"));
   ui->bccLabel->setText(_("BCC"));
   ui->ccLabel->setText(_("CC"));
   ui->tipsLabel->setText(

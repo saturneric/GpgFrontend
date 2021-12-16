@@ -31,8 +31,9 @@ SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
   connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(accept()));
 
   /*Setup KeyList*/
-  mKeyList = new KeyList(
-      KeyListRow::ONLY_SECRET_KEY,
+  mKeyList = new KeyList(false, this);
+  mKeyList->addListGroupTab(
+      _("Signers"), KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage,
       [](const GpgKey& key) -> bool {
         if (!key.CanSignActual())

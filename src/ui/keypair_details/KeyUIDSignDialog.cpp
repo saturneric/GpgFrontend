@@ -34,17 +34,17 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
                                    QWidget* parent)
     : QDialog(parent), mUids(std::move(uid)), mKey(key) {
   const auto key_id = mKey.id();
-  mKeyList = new KeyList(
-      KeyListRow::ONLY_SECRET_KEY,
-      KeyListColumn::NAME | KeyListColumn::EmailAddress,
-      [key_id](const GpgKey& key) -> bool {
-        if (key.disabled() || !key.can_certify() || !key.has_master_key() ||
-            key.expired() || key.revoked() || key_id == key.id())
-          return false;
-        else
-          return true;
-      },
-      this);
+  mKeyList = new KeyList(false, this);
+  mKeyList->addListGroupTab(_("Signers"), KeyListRow::ONLY_SECRET_KEY,
+                            KeyListColumn::NAME | KeyListColumn::EmailAddress,
+                            [key_id](const GpgKey& key) -> bool {
+                              if (key.disabled() || !key.can_certify() ||
+                                  !key.has_master_key() || key.expired() ||
+                                  key.revoked() || key_id == key.id())
+                                return false;
+                              else
+                                return true;
+                            });
   mKeyList->slotRefresh();
 
   signKeyButton = new QPushButton("Sign");

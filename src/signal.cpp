@@ -22,42 +22,13 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
-#define GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
+#include <easyloggingpp/easylogging++.h>
 
-#include "gpg/GpgContext.h"
-#include "gpg/model/GpgKey.h"
-#include "gpg/model/GpgSubKey.h"
-#include "ui/GpgFrontendUI.h"
+#include <csetjmp>
 
-class Ui_ModifiedExpirationDateTime;
+extern jmp_buf recover_env;
 
-namespace GpgFrontend::UI {
-
-class KeySetExpireDateDialog : public QDialog {
-  Q_OBJECT
- public:
-  explicit KeySetExpireDateDialog(const KeyId& key_id,
-                                  QWidget* parent = nullptr);
-
-  explicit KeySetExpireDateDialog(const KeyId& key_id, std::string subkey_fpr,
-                                  QWidget* parent = nullptr);
-
- signals:
-  void signalKeyExpireDateUpdated();
-
- private:
-  void init();
-
-  std::shared_ptr<Ui_ModifiedExpirationDateTime> ui;
-  const GpgKey mKey;
-  const SubkeyId mSubkey;
-
- private slots:
-  void slotConfirm();
-  void slotNonExpiredChecked(int state);
-};
-
-}  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
+void handle_signal(int sig) {
+  LOG(INFO) << "signal caught";
+  siglongjmp(recover_env, 1);
+}

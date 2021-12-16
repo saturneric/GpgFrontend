@@ -227,54 +227,10 @@ void CommonUtils::slotExecuteGpgCommand(
   dialog->close();
   dialog->deleteLater();
 }
-void CommonUtils::slotDoImportKeyFromKeyServer(
-    QNetworkReply* network_reply, const std::string& key_id,
-    size_t current_index, size_t all_index,
-    const ImportCallbackFunctiopn& _callback) {
-  auto key_data = network_reply->readAll();
-  auto key_data_ptr =
-      std::make_unique<ByteArray>(key_data.data(), key_data.size());
-  LOG(INFO) << "reply data size"
-            << "raw" << key_data.size() << "copy" << key_data_ptr->size();
-  std::string status;
-  auto error = network_reply->error();
-  if (error != QNetworkReply::NoError) {
-    switch (error) {
-      case QNetworkReply::ContentNotFoundError:
-        status = _("Key Not Found");
-        break;
-      case QNetworkReply::TimeoutError:
-        status = _("Timeout");
-        break;
-      case QNetworkReply::HostNotFoundError:
-        status = _("Key Server Not Found");
-        break;
-      default:
-        status = _("Connection Error");
-    }
-  }
-  static int id = 512;
-  id = ++id % 1024;
-  if (!id) id = 512;
-  LOG(INFO) << "id" << id;
-  // fixed for multiply thread
-  // switch to channel 1
-  GpgImportInformation result =
-      GpgKeyImportExportor::GetInstance(id).ImportKey(std::move(key_data_ptr));
-  LOG(INFO) << "import key done";
-  std::string new_status = status;
-  if (result.imported == 1) {
-    new_status = _("The key has been updated");
-  } else {
-    new_status = _("No need to update the key");
-  }
-
-  LOG(INFO) << "call callback" << key_id << current_index << all_index;
-  _callback(key_id, status, current_index, all_index);
-}
 
 void CommonUtils::slotImportKeyFromKeyServer(
-    const KeyIdArgsList& key_ids, const ImportCallbackFunctiopn& callback) {
+    int ctx_channel, const KeyIdArgsList& key_ids,
+    const ImportCallbackFunctiopn& callback) {
   std::string target_keyserver;
   if (target_keyserver.empty()) {
     try {
@@ -293,29 +249,72 @@ void CommonUtils::slotImportKeyFromKeyServer(
       return;
     }
   }
-  QUrl target_keyserver_url(target_keyserver.c_str());
 
-  // LOOP
-  decltype(key_ids.size()) current_index = 1, all_index = key_ids.size();
-  for (const auto& key_id : key_ids) {
-    QUrl req_url(target_keyserver_url.scheme() + "://" +
-                 target_keyserver_url.host() + "/pks/lookup?op=get&search=0x" +
-                 key_id.c_str() + "&options=mr");
+  auto thread =
+      QThread::create([target_keyserver, key_ids, callback, ctx_channel]() {
+        QUrl target_keyserver_url(target_keyserver.c_str());
 
-    LOG(INFO) << "request url" << req_url.toString().toStdString();
+        auto network_manager = std::make_unique<QNetworkAccessManager>();
+        // LOOP
+        decltype(key_ids.size()) current_index = 1, all_index = key_ids.size();
+        for (const auto& key_id : key_ids) {
+          // New Req Url
+          QUrl req_url(target_keyserver_url.scheme() + "://" +
+                       target_keyserver_url.host() +
+                       "/pks/lookup?op=get&search=0x" + key_id.c_str() +
+                       "&options=mr");
 
-    QNetworkReply* reply = _network_manager->get(QNetworkRequest(req_url));
-    connect(reply, &QNetworkReply::finished, this,
-            [this, reply, key_id, current_index, all_index, callback]() {
-              this->slotDoImportKeyFromKeyServer(reply, key_id, current_index,
-                                                 all_index, callback);
-              // Delete network reply
-              reply->deleteLater();
-            });
-    current_index++;
-  }
+          LOG(INFO) << "request url" << req_url.toString().toStdString();
 
-  LOG(INFO) << "request done";
+          // Waiting for reply
+          QNetworkReply* reply = network_manager->get(QNetworkRequest(req_url));
+          QEventLoop loop;
+          connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+          loop.exec();
+
+          // Get Data
+          auto key_data = reply->readAll();
+          auto key_data_ptr =
+              std::make_unique<ByteArray>(key_data.data(), key_data.size());
+
+          // Detect status
+          std::string status;
+          auto error = reply->error();
+          if (error != QNetworkReply::NoError) {
+            switch (error) {
+              case QNetworkReply::ContentNotFoundError:
+                status = _("Key Not Found");
+                break;
+              case QNetworkReply::TimeoutError:
+                status = _("Timeout");
+                break;
+              case QNetworkReply::HostNotFoundError:
+                status = _("Key Server Not Found");
+                break;
+              default:
+                status = _("Connection Error");
+            }
+          }
+
+          reply->deleteLater();
+
+          // Try importing
+          GpgImportInformation result =
+              GpgKeyImportExportor::GetInstance(ctx_channel)
+                  .ImportKey(std::move(key_data_ptr));
+
+          if (result.imported == 1) {
+            status = _("The key has been updated");
+          } else {
+            status = _("No need to update the key");
+          }
+          callback(key_id, status, current_index, all_index);
+          current_index++;
+        }
+      });
+
+  connect(thread, &QThread::finished, thread, &QThread::deleteLater);
+  thread->start();
 }
 
 }  // namespace GpgFrontend::UI
