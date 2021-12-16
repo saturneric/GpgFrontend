@@ -132,6 +132,10 @@ class KeyList : public QWidget {
   void importKeys(const QByteArray& inBuffer);
   void updateCallbackCalled(ssize_t current_index, size_t all_index);
 
+  static int key_list_id;
+  int _m_key_list_id;
+  std::mutex buffered_key_list_mutex;
+
   std::shared_ptr<Ui_KeyList> ui;
   QTableWidget* mKeyList{};
   std::vector<KeyTable> mKeyTables;

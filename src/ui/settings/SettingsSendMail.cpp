@@ -49,7 +49,7 @@ SendMailTab::SendMailTab(QWidget* parent)
     ui->defaultSenderEmailEdit->setDisabled(state != Qt::Checked);
     ui->checkConnectionButton->setDisabled(state != Qt::Checked);
   });
-  
+
 #ifdef SMTP_SUPPORT
   connect(ui->checkConnectionButton, &QPushButton::clicked, this,
           &SendMailTab::slotCheckConnection);
@@ -96,22 +96,6 @@ SendMailTab::SendMailTab(QWidget* parent)
 void SendMailTab::setSettings() {
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
-  ui->enableCheckBox->setCheckState(Qt::Unchecked);
-  try {
-    bool smtp_enable = settings.lookup("smtp.enable");
-    if (smtp_enable) ui->enableCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("save_key_checked");
-  }
-
-  ui->identityCheckBox->setCheckState(Qt::Unchecked);
-  try {
-    bool identity_enable = settings.lookup("smtp.identity_enable");
-    if (identity_enable) ui->identityCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("identity_enable");
-  }
-
   try {
     std::string mail_address = settings.lookup("smtp.mail_address");
     ui->smtpServerAddressEdit->setText(mail_address.c_str());
@@ -153,6 +137,28 @@ void SendMailTab::setSettings() {
     ui->defaultSenderEmailEdit->setText(default_sender.c_str());
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("default_sender");
+  }
+  
+  ui->identityCheckBox->setCheckState(Qt::Unchecked);
+  try {
+    bool identity_enable = settings.lookup("smtp.identity_enable");
+    if (identity_enable)
+      ui->identityCheckBox->setCheckState(Qt::Checked);
+    else
+      ui->identityCheckBox->setCheckState(Qt::Unchecked);
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("identity_enable");
+  }
+
+  ui->enableCheckBox->setCheckState(Qt::Unchecked);
+  try {
+    bool smtp_enable = settings.lookup("smtp.enable");
+    if (smtp_enable)
+      ui->enableCheckBox->setCheckState(Qt::Checked);
+    else
+      ui->enableCheckBox->setCheckState(Qt::Unchecked);
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("save_key_checked");
   }
 }
 

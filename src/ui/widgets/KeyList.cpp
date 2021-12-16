@@ -35,8 +35,12 @@
 
 namespace GpgFrontend::UI {
 
+int KeyList::key_list_id = 2048;
+
 KeyList::KeyList(QWidget* parent)
-    : QWidget(parent), ui(std::make_shared<Ui_KeyList>()) {
+    : QWidget(parent),
+      _m_key_list_id(key_list_id++),
+      ui(std::make_shared<Ui_KeyList>()) {
   init();
 }
 
@@ -44,7 +48,9 @@ KeyList::KeyList(KeyListRow::KeyType selectType,
                  KeyListColumn::InfoType infoType,
                  const std::function<bool(const GpgKey&)>& filter,
                  QWidget* parent)
-    : QWidget(parent), ui(std::make_shared<Ui_KeyList>()) {
+    : QWidget(parent),
+      _m_key_list_id(key_list_id++),
+      ui(std::make_shared<Ui_KeyList>()) {
   init();
   addListGroupTab(_("Default"), selectType, infoType, filter);
 }
@@ -138,10 +144,11 @@ void KeyList::addListGroupTab(
 void KeyList::slotRefresh() {
   LOG(INFO) << _("Called");
   emit signalRefreshStatusBar(_("Refreshing Key List..."), 3000);
-  _buffered_keys_list = nullptr;
-  auto thread = QThread::create([=]() {
+  auto thread = QThread::create([this, _id = _m_key_list_id]() {
+    std::lock_guard<std::mutex> guard(buffered_key_list_mutex);
+    _buffered_keys_list = nullptr;
     // buffered keys list
-    _buffered_keys_list = GpgKeyGetter::GetInstance().FetchKey();
+    _buffered_keys_list = GpgKeyGetter::GetInstance(_id).FetchKey();
   });
   connect(thread, &QThread::finished, this, &KeyList::slotRefreshUI);
   connect(thread, &QThread::finished, thread, &QThread::deleteLater);
@@ -364,7 +371,8 @@ void KeyList::dragEnterEvent(QDragEnterEvent* event) {
 void KeyList::importKeys(const QByteArray& inBuffer) {
   auto std_buffer = std::make_unique<ByteArray>(inBuffer.toStdString());
   GpgImportInformation result =
-      GpgKeyImportExportor::GetInstance().ImportKey(std::move(std_buffer));
+      GpgKeyImportExportor::GetInstance(_m_key_list_id)
+          .ImportKey(std::move(std_buffer));
   new KeyImportDetailDialog(result, false, this);
 }
 
@@ -373,8 +381,8 @@ void KeyList::slotDoubleClicked(const QModelIndex& index) {
   const auto& buffered_keys =
       mKeyTables[ui->keyGroupTab->currentIndex()].buffered_keys;
   if (mAction != nullptr) {
-    const auto key =
-        GpgKeyGetter::GetInstance().GetKey(buffered_keys[index.row()].id());
+    const auto key = GpgKeyGetter::GetInstance(_m_key_list_id)
+                         .GetKey(buffered_keys[index.row()].id());
     mAction(key, this);
   }
 }
@@ -399,19 +407,24 @@ std::string KeyList::getSelectedKey() {
 
 void KeyList::slotRefreshUI() {
   LOG(INFO) << _("Called") << _buffered_keys_list.get();
-  if (_buffered_keys_list != nullptr)
+  if (_buffered_keys_list != nullptr) {
+    std::lock_guard<std::mutex> guard(buffered_key_list_mutex);
     for (auto& key_table : mKeyTables) {
       key_table.Refresh(GpgKeyGetter::GetKeysCopy(_buffered_keys_list));
     }
+  }
   emit signalRefreshStatusBar(_("Key List Refreshed."), 1000);
   ui->refreshKeyListButton->setDisabled(false);
 }
 
 void KeyList::slotSyncWithKeyServer() {
   KeyIdArgsList key_ids;
-  for (const auto& key : *_buffered_keys_list) {
-    if (!(key.is_private_key() && key.has_master_key()))
-      key_ids.push_back(key.id());
+  {
+    std::lock_guard<std::mutex> guard(buffered_key_list_mutex);
+    for (const auto& key : *_buffered_keys_list) {
+      if (!(key.is_private_key() && key.has_master_key()))
+        key_ids.push_back(key.id());
+    }
   }
   updateCallbackCalled(-1, key_ids.size());
   CommonUtils::GetInstance()->slotImportKeyFromKeyServer(
@@ -419,7 +432,7 @@ void KeyList::slotSyncWithKeyServer() {
                    size_t current_index, size_t all_index) {
         LOG(INFO) << _("Called") << key_id << status << current_index
                   << all_index;
-        auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
+        auto key = GpgKeyGetter::GetInstance(_m_key_list_id).GetKey(key_id);
         boost::format status_str = boost::format(_("Sync [%1%/%2%] %3% %4%")) %
                                    current_index % all_index %
                                    key.uids()->front().uid() % status;

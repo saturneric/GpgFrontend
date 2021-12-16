@@ -60,9 +60,11 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
   ui->senderEdit->setText(defaultSender);
   connect(ui->ccButton, &QPushButton::clicked, [=]() {
     ui->ccInputWidget->setHidden(!ui->ccInputWidget->isHidden());
+    ui->ccEdit->clear();
   });
   connect(ui->bccButton, &QPushButton::clicked, [=]() {
     ui->bccInputWidget->setHidden(!ui->bccInputWidget->isHidden());
+    ui->bccEdit->clear();
   });
 
 #ifdef SMTP_SUPPORT
@@ -123,23 +125,25 @@ void SendMailDialog::slotConfirm() {
     errString.append(QString("  ") + _("Subject cannot be empty") + "  \n");
   }
 
-  for (const auto& cc : cc_string_list) {
-    LOG(INFO) << "cc" << cc.trimmed().toStdString();
-    if (!check_email_address(cc.trimmed())) {
-      errString.append(QString("  ") + _("One or more cc email is invalid") +
-                       "  \n");
-      break;
+  if (!ui->ccEdit->text().isEmpty())
+    for (const auto& cc : cc_string_list) {
+      LOG(INFO) << "cc" << cc.trimmed().toStdString();
+      if (!check_email_address(cc.trimmed())) {
+        errString.append(QString("  ") + _("One or more cc email is invalid") +
+                         "  \n");
+        break;
+      }
     }
-  }
 
-  for (const auto& bcc : bcc_string_list) {
-    LOG(INFO) << "bcc" << bcc.trimmed().toStdString();
-    if (!check_email_address(bcc.trimmed())) {
-      errString.append(QString("  ") + _("One or more bcc email is invalid") +
-                       "  \n");
-      break;
+  if (!ui->bccEdit->text().isEmpty())
+    for (const auto& bcc : bcc_string_list) {
+      LOG(INFO) << "bcc" << bcc.trimmed().toStdString();
+      if (!check_email_address(bcc.trimmed())) {
+        errString.append(QString("  ") + _("One or more bcc email is invalid") +
+                         "  \n");
+        break;
+      }
     }
-  }
 
   if (!errString.isEmpty()) {
     ui->errorLabel->setAutoFillBackground(true);

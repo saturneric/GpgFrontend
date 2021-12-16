@@ -233,7 +233,9 @@ void CommonUtils::slotDoImportKeyFromKeyServer(
     const ImportCallbackFunctiopn& _callback) {
   auto key_data = network_reply->readAll();
   auto key_data_ptr =
-      std::make_shared<ByteArray>(key_data.constData(), key_data.length());
+      std::make_unique<ByteArray>(key_data.data(), key_data.size());
+  LOG(INFO) << "reply data size"
+            << "raw" << key_data.size() << "copy" << key_data_ptr->size();
   std::string status;
   auto error = network_reply->error();
   if (error != QNetworkReply::NoError) {
@@ -251,23 +253,24 @@ void CommonUtils::slotDoImportKeyFromKeyServer(
         status = _("Connection Error");
     }
   }
+  static int id = 512;
+  id = ++id % 1024;
+  if (!id) id = 512;
+  LOG(INFO) << "id" << id;
+  // fixed for multiply thread
+  // switch to channel 1
+  GpgImportInformation result =
+      GpgKeyImportExportor::GetInstance(id).ImportKey(std::move(key_data_ptr));
+  LOG(INFO) << "import key done";
+  std::string new_status = status;
+  if (result.imported == 1) {
+    new_status = _("The key has been updated");
+  } else {
+    new_status = _("No need to update the key");
+  }
 
-  auto thread = QThread::create([=]() {
-    // need copy
-    auto unique_key_data_ptr = std::make_unique<ByteArray>(*key_data_ptr);
-    GpgImportInformation result = GpgKeyImportExportor::GetInstance().ImportKey(
-        std::move(unique_key_data_ptr));
-
-    std::string new_status = status;
-    if (result.imported == 1) {
-      new_status = _("The key has been updated");
-    } else {
-      new_status = _("No need to update the key");
-    }
-    _callback(key_id, new_status, current_index, all_index);
-  });
-  connect(thread, &QThread::finished, thread, &QThread::deleteLater);
-  thread->start();
+  LOG(INFO) << "call callback" << key_id << current_index << all_index;
+  _callback(key_id, status, current_index, all_index);
 }
 
 void CommonUtils::slotImportKeyFromKeyServer(
@@ -302,13 +305,17 @@ void CommonUtils::slotImportKeyFromKeyServer(
     LOG(INFO) << "request url" << req_url.toString().toStdString();
 
     QNetworkReply* reply = _network_manager->get(QNetworkRequest(req_url));
-    connect(reply, &QNetworkReply::finished, this, [=]() {
-      this->slotDoImportKeyFromKeyServer(reply, key_id, current_index,
-                                         all_index, callback);
-      reply->deleteLater();
-    });
+    connect(reply, &QNetworkReply::finished, this,
+            [this, reply, key_id, current_index, all_index, callback]() {
+              this->slotDoImportKeyFromKeyServer(reply, key_id, current_index,
+                                                 all_index, callback);
+              // Delete network reply
+              reply->deleteLater();
+            });
     current_index++;
   }
+
+  LOG(INFO) << "request done";
 }
 
 }  // namespace GpgFrontend::UI
