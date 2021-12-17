@@ -86,7 +86,7 @@ bool GpgFrontend::DecryptResultAnalyse::print_reci(std::stringstream &stream,
 
   stream << std::endl;
 
-  stream << "      " << _("Keu ID") << ": " << key.id().c_str() << std::endl;
+  stream << "      " << _("Keu ID") << ": " << reci->keyid << std::endl;
   stream << "      " << _("Public Algo") << ": "
          << gpgme_pubkey_algo_name(reci->pubkey_algo) << std::endl;
 
