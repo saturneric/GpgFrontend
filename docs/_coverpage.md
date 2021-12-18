@@ -1,8 +1,4 @@
-![logo](https://github.com/saturneric/Blob/blob/master/logos/gpgfrontend-logo.jpg?raw=true)
-
-## A Cross-Platform OpenPGP Crypto Tool
-
-> Makes Encrypting, Decrypting and Signing Text and Files more convenient
+## GpgFrontend - A Cross-Platform OpenPGP Crypto Tool
 
 ![Language](https://img.shields.io/badge/language-C%2B%2B-green)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/saturneric/gpgfrontend)
@@ -11,19 +7,28 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=saturneric/GpgFrontend&amp;utm_campaign=Badge_Grade)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_shield)
 
-GpgFrontend is a Powerful, Easy-to-Use, Compact, Cross-Platform, and
-Installation-Free [OpenPGP](https://www.openpgp.org/)
-Crypto Tool.
+GpgFrontend is a Free, Powerful, Easy-to-Use, Compact, Cross-Platform, and
+Installation-Free [OpenPGP](https://www.openpgp.org/) Crypto Tool(using GnuPG).
+
+<img width="400" src="https://github.com/saturneric/Blob/blob/master/screenshots/main-ubuntu.png?raw=true" alt="Ubuntu Main Screenshot"/> 
+
+## Purpose
+
+Let more people all over the world (even if they don't know the command line and programming) can use GnuPG 
+
+to safely send information to the destination in a safe way.
+
+## Features
 
 - Can run on **Windows, Linux and macOS**.
-- Open source, free, no need to install.
-- Shorter ciphertext and automatic pubkey exchange.
-- Just double-click, and then you can use it freely.
-- Supports multiple languages.
-    - If you are interested, you can help
-      me [translate the interface](https://saturneric.github.io/GpgFrontend/index.html#/translate-interface).
+- Open source and free.
+- Even if you don't understand gpg, you can use it with this software.
+- Just download, double-click, and then you can use it freely.
+- Supports multiple languages. Languages spoken by most people in the world.
 
-[Download](https://github.com/saturneric/GpgFrontend/releases/latest)
+
+
+[Download Here](https://github.com/saturneric/GpgFrontend/releases/latest)
 [Quick Start](quick-start.md)
 
 <!-- 背景色 -->

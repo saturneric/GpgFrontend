@@ -19,9 +19,9 @@ gpg and make professional users more convenient. GpgFrontend supports new featur
 
 ## Interface
 
-![Main ScreenShot](https://github.com/saturneric/Blob/blob/master/screenshots/main.png?raw=true)
+![Main ScreenShot](https://github.com/saturneric/Blob/blob/master/screenshots/main-ubuntu.png?raw=true)
 
-## Purpose
+## Origin of GpgFrontend
 
 The GpgFrontend project inherit from a relatively mature but not maintained [gpg4usb](https://www.gpg4usb.org/) project. It inherits the stable,
 easy-to-use, compact, and installation-free features of gpg4usb, and plans to support some new features of OpenPGP based
@@ -31,5 +31,9 @@ GpgFrontend will add more functions in the future to improve the ease of use of 
 same time, the addition of new functions does not affect the old basic functions. My personal strength is always
 limited. GpgFrontend welcomes volunteers to join. You can use the GitHub platform to file an issue, or submit a pull
 request.
+
+## Purpose
+
+Let more people all over the world (even if they don't know the command line and programming) can use GnuPG to safely send information to the destination in a safe way. Free software belongs to the common wealth of all mankind, but there are still many people who cannot use these wealth due to the limitation of knowledge and usage habits. We should break this pattern. GpgFrontend is committed to improving the ease of use and intuitiveness of the free software GnuPG, so that more and more people can use it.
 
 The GpgFrontend project is as open source, and it also insists on using open source codes and libraries.
