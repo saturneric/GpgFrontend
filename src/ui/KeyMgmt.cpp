@@ -36,7 +36,7 @@
 namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   /* the list of Keys available*/
-  mKeyList = new KeyList(this);
+  mKeyList = new KeyList(true, this);
 
   mKeyList->addListGroupTab(_("All"), KeyListRow::SECRET_OR_PUBLIC_KEY);
 
@@ -83,6 +83,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   mKeyList->setDoubleClickedAction([this](const GpgKey& key, QWidget* parent) {
     new KeyDetailsDialog(key, parent);
   });
+
+  mKeyList->slotRefresh();
 
   createActions();
   createMenus();
@@ -139,6 +141,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
 
   this->resize(size);
   this->move(pos);
+  this->setWindowModality(Qt::ApplicationModal);
+  this->statusBar()->show();
 
   setWindowTitle(_("KeyPair Management"));
   mKeyList->addMenuAction(deleteSelectedKeysAct);
@@ -146,6 +150,11 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
 
   connect(this, SIGNAL(signalKeyStatusUpdated()), SignalStation::GetInstance(),
           SIGNAL(KeyDatabaseRefresh()));
+  connect(SignalStation::GetInstance(),
+          &SignalStation::signalRefreshStatusBar, this,
+          [=](const QString& message, int timeout) {
+            statusBar()->showMessage(message, timeout);
+          });
 }
 
 void KeyMgmt::createActions() {
@@ -207,6 +216,13 @@ void KeyMgmt::createActions() {
   connect(exportKeyToFileAct, SIGNAL(triggered()), this,
           SLOT(slotExportKeyToFile()));
 
+  exportKeyAsOpenSSHFormat = new QAction(_("Export As OpenSSH"), this);
+  exportKeyAsOpenSSHFormat->setIcon(QIcon(":ssh-key.png"));
+  exportKeyAsOpenSSHFormat->setToolTip(
+      _("Export Selected Key(s) As OpenSSH Format to File"));
+  connect(exportKeyAsOpenSSHFormat, SIGNAL(triggered()), this,
+          SLOT(slotExportAsOpenSSHFormat()));
+
   deleteSelectedKeysAct = new QAction(_("Delete Selected Key(s)"), this);
   deleteSelectedKeysAct->setToolTip(_("Delete the Selected keys"));
   connect(deleteSelectedKeysAct, SIGNAL(triggered()), this,
@@ -238,8 +254,10 @@ void KeyMgmt::createMenus() {
   importKeyMenu->addAction(importKeyFromFileAct);
   importKeyMenu->addAction(importKeyFromClipboardAct);
   importKeyMenu->addAction(importKeyFromKeyServerAct);
+
   keyMenu->addAction(exportKeyToFileAct);
   keyMenu->addAction(exportKeyToClipboardAct);
+  keyMenu->addAction(exportKeyAsOpenSSHFormat);
   keyMenu->addSeparator();
   keyMenu->addAction(deleteCheckedKeysAct);
 }
@@ -273,6 +291,7 @@ void KeyMgmt::createToolBars() {
   keyToolBar->addSeparator();
   keyToolBar->addAction(exportKeyToFileAct);
   keyToolBar->addAction(exportKeyToClipboardAct);
+  keyToolBar->addAction(exportKeyAsOpenSSHFormat);
 }
 
 void KeyMgmt::slotDeleteSelectedKeys() {
@@ -444,6 +463,49 @@ void KeyMgmt::slotSaveWindowState() {
         saveState().toBase64().toStdString();
 
   GlobalSettingStation::GetInstance().Sync();
+}
+
+void KeyMgmt::slotExportAsOpenSSHFormat() {
+  ByteArrayPtr key_export_data = nullptr;
+  auto keys_checked = mKeyList->getChecked();
+
+  if (keys_checked->empty()) {
+    QMessageBox::critical(nullptr, _("Error"), _("No Key Checked."));
+    return;
+  }
+
+  auto key = GpgKeyGetter::GetInstance().GetKey(keys_checked->front());
+  if (!GpgKeyImportExportor::GetInstance().ExportKeyOpenSSH(key,
+                                                            key_export_data)) {
+    QMessageBox::critical(nullptr, _("Error"),
+                          _("An error occur in exporting."));
+    return;
+  }
+
+  if (key_export_data->empty()) {
+    QMessageBox::critical(
+        nullptr, _("Error"),
+        _("This key may not be able to export as OpenSSH format. Please check "
+          "the key-size of the subkey(s) used to sign."));
+    return;
+  }
+
+  key = GpgKeyGetter::GetInstance().GetKey(keys_checked->front());
+  if (!key.good()) {
+    QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
+    return;
+  }
+  QString fileString = QString::fromStdString(key.name() + " " + key.email() +
+                                              "(" + key.id() + ").pub");
+
+  QString file_name = QFileDialog::getSaveFileName(
+      this, _("Export OpenSSH Key To File"), fileString,
+      QString(_("OpenSSH Public Key Files")) + " (*.pub);;All Files (*)");
+
+  if (!file_name.isEmpty()) {
+    write_buffer_to_file(file_name.toStdString(), *key_export_data);
+    emit signalStatusBarChanged(QString(_("key(s) exported")));
+  }
 }
 
 }  // namespace GpgFrontend::UI

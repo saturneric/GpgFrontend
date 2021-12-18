@@ -28,6 +28,7 @@
 #ifdef RELEASE
 #include "ui/function/VersionCheckThread.h"
 #endif
+#include "ui/SignalStation.h"
 #include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
@@ -38,18 +39,7 @@ MainWindow::MainWindow() {
 }
 
 void MainWindow::init() noexcept {
-  LOG(INFO) << _("Called");
   try {
-    // Check Context Status
-    if (!GpgContext::GetInstance().good()) {
-      QMessageBox::critical(
-          nullptr, _("ENV Loading Failed"),
-          _("Gnupg is not installed correctly, please follow the ReadME "
-            "instructions to install gnupg and then open GpgFrontend."));
-      QCoreApplication::quit();
-      exit(0);
-    }
-
     networkAccessManager = new QNetworkAccessManager(this);
 
     /* get path where app was started */
@@ -60,11 +50,9 @@ void MainWindow::init() noexcept {
     setCentralWidget(edit);
 
     /* the list of Keys available*/
-    mKeyList = new KeyList(this);
+    mKeyList = new KeyList(true, this);
 
-    mKeyList->slotRefresh();
-
-    infoBoard = new InfoBoardWidget(this, mKeyList);
+    infoBoard = new InfoBoardWidget(this);
 
     /* List of binary Attachments */
     attachmentDockCreated = false;
@@ -80,13 +68,16 @@ void MainWindow::init() noexcept {
 
     connect(edit->tabWidget, SIGNAL(currentChanged(int)), this,
             SLOT(slotDisableTabActions(int)));
+    connect(SignalStation::GetInstance(),
+            &SignalStation::signalRefreshStatusBar, this,
+            [=](const QString& message, int timeout) {
+              statusBar()->showMessage(message, timeout);
+            });
 
     mKeyList->addMenuAction(appendSelectedKeysAct);
     mKeyList->addMenuAction(copyMailAddressToClipboardAct);
-    mKeyList->addMenuAction(showKeyDetailsAct);
     mKeyList->addSeparator();
-    mKeyList->addMenuAction(refreshKeysFromKeyserverAct);
-    mKeyList->addMenuAction(uploadKeyToServerAct);
+    mKeyList->addMenuAction(showKeyDetailsAct);
 
     restoreSettings();
 
@@ -139,7 +130,6 @@ void MainWindow::init() noexcept {
 
     version_thread->start();
 #endif
-
   } catch (...) {
     LOG(FATAL) << _("Critical error occur while loading GpgFrontend.");
     QMessageBox::critical(nullptr, _("Loading Failed"),

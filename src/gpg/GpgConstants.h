@@ -25,8 +25,6 @@
 #ifndef GPG_CONSTANTS_H
 #define GPG_CONSTANTS_H
 
-#include "GpgFrontend.h"
-
 #include <gpg-error.h>
 #include <gpgme.h>
 
@@ -34,6 +32,8 @@
 #include <functional>
 #include <memory>
 #include <string>
+
+#include "GpgFrontend.h"
 
 const int RESTART_CODE = 1000;
 
@@ -49,22 +49,21 @@ using StringArgsRef = std::vector<std::string>&;
 
 using GpgError = gpgme_error_t;
 
-// Result Deletor
+// Result Deleter
 struct _result_ref_deletor {
-  void operator()(void* _result) {
-    // if (_result != nullptr)
-    //   gpgme_result_unref(_result);
-  }
+  void operator()(void* _result);
 };
 
-using GpgEncrResult =
-    std::unique_ptr<struct _gpgme_op_encrypt_result, _result_ref_deletor>;
-using GpgDecrResult =
-    std::unique_ptr<struct _gpgme_op_decrypt_result, _result_ref_deletor>;
-using GpgSignResult =
-    std::unique_ptr<struct _gpgme_op_sign_result, _result_ref_deletor>;
-using GpgVerifyResult =
-    std::unique_ptr<struct _gpgme_op_verify_result, _result_ref_deletor>;
+using GpgEncrResult = std::shared_ptr<struct _gpgme_op_encrypt_result>;
+using GpgDecrResult = std::shared_ptr<struct _gpgme_op_decrypt_result>;
+using GpgSignResult = std::shared_ptr<struct _gpgme_op_sign_result>;
+using GpgVerifyResult = std::shared_ptr<struct _gpgme_op_verify_result>;
+
+// Convert from  gpgme_xxx_result to GpgXXXResult
+GpgEncrResult _new_result(gpgme_encrypt_result_t&& result);
+GpgDecrResult _new_result(gpgme_decrypt_result_t&& result);
+GpgSignResult _new_result(gpgme_sign_result_t&& result);
+GpgVerifyResult _new_result(gpgme_verify_result_t&& result);
 
 // Error Info Printer
 GpgError check_gpg_error(GpgError err);

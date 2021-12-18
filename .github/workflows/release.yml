@@ -33,6 +33,10 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Get Short SHA of Commit
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
       - name: Install Dependence (Linux)
         run: |
           sudo apt-get update
@@ -93,8 +97,9 @@ jobs:
       - name: Set up Dependence (Windows)
         shell: msys2 {0}
         run: |
-          pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-qt-creator mingw-w64-x86_64-gpgme
+          pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-gpgme
           pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost mingw-w64-x86_64-gnupg gettext-devel libintl msys2-runtime-devel
+          pacman --noconfirm -S --needed mingw-w64-x86_64-qt5
         if: matrix.os == 'windows-latest'
 
       - name: Build gpg-error (Linux)
@@ -142,7 +147,7 @@ jobs:
 
       - name: Build GpgFrontend
         # Build your program with the given configuration
-        run: cmake --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -j 2
+        run: cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'ubuntu-18.04' || matrix.os == 'macos-10.15'
 
       - name: Build & Sign App Bundle (macOS)
@@ -186,10 +191,6 @@ jobs:
           # Build your program with the given configuration
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'windows-latest'
-
-      - name: Get Short SHA of Commit
-        id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@master

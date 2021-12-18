@@ -86,42 +86,44 @@ FileEncryptionDialog::FileEncryptionDialog(KeyIdArgsListPtr keyList,
   groupBox1->setLayout(gLayout);
 
   /*Setup KeyList*/
-
+  mKeyList = new KeyList(false, this);
   if (mAction == Verify) {
-    mKeyList =
-        new KeyList(KeyListRow::ONLY_SECRET_KEY,
-                    KeyListColumn::NAME | KeyListColumn::EmailAddress |
-                        KeyListColumn::Usage,
-                    [](const GpgKey& key) -> bool {
-                      if (key.disabled() || key.expired() || key.revoked())
-                        return false;
-                      else
-                        return true;
-                    });
+    mKeyList->addListGroupTab(
+        _("Default"), KeyListRow::ONLY_SECRET_KEY,
+        KeyListColumn::NAME | KeyListColumn::EmailAddress |
+            KeyListColumn::Usage,
+        [](const GpgKey& key) -> bool {
+          if (key.disabled() || key.expired() || key.revoked())
+            return false;
+          else
+            return true;
+        });
   }
 
   if (mAction == Encrypt) {
-    mKeyList = new KeyList(KeyListRow::ONLY_SECRET_KEY,
-                           KeyListColumn::NAME | KeyListColumn::EmailAddress |
-                               KeyListColumn::Usage,
-                           [](const GpgKey& key) -> bool {
-                             if (!key.CanEncrActual())
-                               return false;
-                             else
-                               return true;
-                           });
+    mKeyList->addListGroupTab(_("Default"), KeyListRow::ONLY_SECRET_KEY,
+                              KeyListColumn::NAME |
+                                  KeyListColumn::EmailAddress |
+                                  KeyListColumn::Usage,
+                              [](const GpgKey& key) -> bool {
+                                if (!key.CanEncrActual())
+                                  return false;
+                                else
+                                  return true;
+                              });
   }
 
   if (mAction == Encrypt) {
-    mKeyList = new KeyList(KeyListRow::ONLY_SECRET_KEY,
-                           KeyListColumn::NAME | KeyListColumn::EmailAddress |
-                               KeyListColumn::Usage,
-                           [](const GpgKey& key) -> bool {
-                             if (!key.CanSignActual())
-                               return false;
-                             else
-                               return true;
-                           });
+    mKeyList->addListGroupTab(_("Default"), KeyListRow::ONLY_SECRET_KEY,
+                              KeyListColumn::NAME |
+                                  KeyListColumn::EmailAddress |
+                                  KeyListColumn::Usage,
+                              [](const GpgKey& key) -> bool {
+                                if (!key.CanSignActual())
+                                  return false;
+                                else
+                                  return true;
+                              });
   }
 
   if (mAction == Decrypt) mKeyList->setDisabled(true);

@@ -1,0 +1,3693 @@
+# Czech translations for GpgFrontend package.
+# Copyright (C) 2021 Saturneric
+# This file is distributed under the same license as the GpgFrontend package.
+# Automatically generated, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GpgFrontend 2.0.2\n"
+"Report-Msgid-Bugs-To: eric@bktus.com\n"
+"POT-Creation-Date: 2021-12-17 02:18+0800\n"
+"PO-Revision-Date: 2021-12-14 00:41+0800\n"
+"Last-Translator: Google Translation <eric@bktus.com>\n"
+"Language-Team: Google Translation <eric@bktus.com>\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/init.cpp:52
+msgid "Logfile Path"
+msgstr "Cesta k souboru protokolu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/init.cpp:75
+msgid "Could not read properly from configure file"
+msgstr "Nelze správně číst z konfiguračního souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:92
+msgid "ENV Loading Failed"
+msgstr "Načítání ENV se nezdařilo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:93
+msgid ""
+"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
+" in Github to install Gnupg and then open GpgFrontend."
+msgstr ""
+"Gnupg(gpg) není nainstalováno správně, postupujte podle pokynů ReadME v "
+"Github, nainstalujte Gnupg a poté otevřete GpgFrontend."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:112
+msgid "Loading Gnupg Info..."
+msgstr "Načítání informací o Gnupg..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:113
+msgid ""
+"If this process is too slow, please set the key server address appropriately"
+" in the gnupg configuration file (depending on the network situation in your"
+" country or region)."
+msgstr ""
+"Pokud je tento proces příliš pomalý, nastavte adresu klíčového serveru "
+"správně v konfiguračním souboru gnupg (v závislosti na situaci v síti ve "
+"vaší zemi nebo regionu)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:161
+msgid "Unhandled Exception Thrown"
+msgstr "Neošetřená výjimka byla vyvolána"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:162
+msgid ""
+"Oops, an unhandled exception was thrown during the running of the program, "
+"and now it needs to be restarted. This is not a serious problem, it may be "
+"the negligence of the programmer, please report this problem if you can."
+msgstr ""
+"Jejda, během běhu programu byla vyvolána neošetřená výjimka a nyní je třeba "
+"jej restartovat. Nejedná se o vážný problém, může jít o nedbalost "
+"programátora, pokud můžete, nahlaste tento problém."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:172
+msgid "A serious error has occurred"
+msgstr "Došlo k závažné chybě"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:173
+msgid ""
+"Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
+" restarted. If the problem recurs, please manually terminate the program and"
+" report the problem to the developer."
+msgstr ""
+"Ach ne! GpgFrontend zachytil vážnou chybu v softwaru, takže je třeba jej "
+"restartovat. Pokud se problém opakuje, ukončete program ručně a nahlaste "
+"problém vývojáři."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:35
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyUploader.cpp:93
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:65
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:90
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:234
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:260
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:274
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:284
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:308
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:327
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:427
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:60
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:119
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:136
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:234
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:42
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:220
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:264
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:270
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:275
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:304
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:388
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:447
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:174
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:214
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:366
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:434
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:461
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:476
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:339
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:401
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:466
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:473
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:480
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:488
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:224
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:265
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:302
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:374
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:445
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:464
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:61
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:72
+msgid "Error"
+msgstr "Chyba"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:36
+msgid "Nothing Reply. Please check the Internet connection."
+msgstr "Nic Odpovědět. Zkontrolujte prosím připojení k internetu."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:56
+msgid "Unknown Error"
+msgstr "Neznámá chyba"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:94
+msgid "Network Error"
+msgstr "Chyba sítě"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:75
+msgid "Outdated Reply"
+msgstr "Zastaralá odpověď"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:90
+msgid "Unknown Reason"
+msgstr "Neznámý důvod"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:94
+msgid "Unknown Reply Format"
+msgstr "Neznámý formát odpovědi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyUploader.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:66
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:91
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:235
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:446
+msgid ""
+"The communication content with the server does not meet the requirements"
+msgstr "Obsah komunikace se serverem nesplňuje požadavky"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:242
+msgid "Generate Key"
+msgstr "Generovat klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:76
+msgid "Name must contain at least five characters."
+msgstr "Název musí obsahovat alespoň pět znaků."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:80
+msgid "Please give a email address."
+msgstr "Uveďte prosím e-mailovou adresu."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:87
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:225
+msgid "Expiration time no more than 2 years."
+msgstr "Doba použitelnosti ne více než 2 roky."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:117
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:247
+msgid "Generating"
+msgstr "Generování"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:259
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:224
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:216
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:263
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:331
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:43
+msgid "Success"
+msgstr "Úspěch"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:131
+msgid "The new key pair has been generated."
+msgstr "Nový pár klíčů byl vygenerován."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:138
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:267
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:208
+msgid "Failure"
+msgstr "Selhání"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:167
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:68
+msgid "Key Usage"
+msgstr "Použití klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:169
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:70
+msgid "Encryption"
+msgstr "Šifrování"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:203
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:156
+msgid "Signing"
+msgstr "Podepisování"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:76
+msgid "Certification"
+msgstr "Osvědčení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:79
+msgid "Authentication"
+msgstr "Autentizace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:44
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:66
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+msgid "Name"
+msgstr "název"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:355
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:67
+msgid "Email Address"
+msgstr "Emailová adresa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:68
+msgid "Comment"
+msgstr "Komentář"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:357
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:123
+msgid "Expiration Date"
+msgstr "Datum spotřeby"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:358
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:389
+msgid "Never Expire"
+msgstr "Nikdy nevyprší"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:359
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:125
+msgid "KeySize (in Bit)"
+msgstr "Velikost klíče (v bitech)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:126
+msgid "Key Type"
+msgstr "Typ klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:361
+msgid "Non Pass Phrase"
+msgstr "Non Pass Phrase"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:374
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:135
+msgid "Basic Information"
+msgstr "Základní informace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:53
+msgid "Generate New Subkey"
+msgstr "Vygenerovat nový podklíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:260
+msgid "The new subkey has been generated."
+msgstr "Byl vygenerován nový podklíč."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:35
+msgid "Decrypt File"
+msgstr "Dešifrovat soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:37
+msgid "Encrypt File"
+msgstr "Šifrovat soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:39
+msgid "Sign File"
+msgstr "Podepsat soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:41
+msgid "Verify File"
+msgstr "Ověřit soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:51
+msgid "Input Parameters"
+msgstr "Vstupní parametry"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:57
+msgid "Target File"
+msgstr "Cílový soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:63
+msgid "Output File"
+msgstr "Výstupní soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:79
+msgid "Signature File(.sig) Path"
+msgstr "Cesta k souboru podpisu (.sig)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:104
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:117
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:461
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:46
+msgid "Default"
+msgstr "Výchozí"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:157
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:200
+msgid "Open File"
+msgstr "Otevřít soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:188
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:40
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:55
+msgid "Save File"
+msgstr "Uložení souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:216
+msgid "Couldn't open file"
+msgstr "Soubor nelze otevřít"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:235
+msgid "Error Occurred During Encryption"
+msgstr "Během šifrování došlo k chybě"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:248
+msgid "Error Occurred During Decryption"
+msgstr "Během dešifrování došlo k chybě"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:261
+msgid "Error Occurred During Signature"
+msgstr "Při podpisu došlo k chybě"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:33
+msgid "Unsaved Files"
+msgstr "Neuložené soubory"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:82
+msgid ""
+"%1% files contain unsaved information.<br/>Save the changes before closing?"
+msgstr ""
+"%1% souborů obsahuje neuložené informace.<br/>Uložit změny před zavřením?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:96
+msgid "Check the files you want to save:"
+msgstr "Zaškrtněte soubory, které chcete uložit:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:98
+msgid "Note"
+msgstr "Poznámka"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:271
+msgid "If you don't save these files, all changes are lost."
+msgstr "Pokud tyto soubory neuložíte, všechny změny budou ztraceny."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:69
+msgid "Key List Menu: "
+msgstr "Nabídka seznamu klíčů:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:70
+msgid "Refresh"
+msgstr "Obnovit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:71
+msgid "Sync Public Key"
+msgstr "Synchronizovat veřejný klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:72
+msgid "Sync public key with your default keyserver"
+msgstr "Synchronizujte veřejný klíč s výchozím serverem klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:402
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:432
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:520
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:445
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:553
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:219
+msgid "Called"
+msgstr "Volala"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+msgid "Select"
+msgstr "Vybrat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:126
+msgid "Type"
+msgstr "Typ"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:127
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:64
+msgid "Usage"
+msgstr "Používání"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:127
+msgid "Validity"
+msgstr "Platnost"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:127
+msgid "Finger Print"
+msgstr "Otisk prstu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:138
+msgid "Refreshing Key List..."
+msgstr "Obnovování seznamu klíčů..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:284
+msgid "Import Keys"
+msgstr "Importovat klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:287
+msgid "You've dropped something on the table."
+msgstr "Něco jsi upustil na stůl."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:288
+msgid "GpgFrontend will now try to import key(s)."
+msgstr "GpgFrontend se nyní pokusí importovat klíč(y)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:293
+msgid "Always import without bothering."
+msgstr "Vždy importujte bez obtěžování."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:302
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:86
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:51
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:104
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:113
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:235
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:259
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:265
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:271
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:277
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:191
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:201
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:238
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:264
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:103
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:110
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:117
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:139
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:161
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
+msgid "Setting Operation Error"
+msgstr "Chyba operace nastavení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:302
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:264
+msgid "confirm_import_keys"
+msgstr "potvrdit_import_klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:340
+msgid "Couldn't Open File"
+msgstr "Soubor nelze otevřít"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:409
+msgid "Key List Refreshed."
+msgstr "Seznam klíčů byl aktualizován."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:427
+msgid "Syncing Key List..."
+msgstr "Synchronizace seznamu klíčů..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:436
+msgid "Sync [%1%/%2%] %3% %4%"
+msgstr "Synchronizovat [%1%/%2%] %3% %4%"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:444
+msgid "Key List Sync Done."
+msgstr "Synchronizace seznamu klíčů dokončena."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:30
+msgid "Confirm"
+msgstr "Potvrdit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:36
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:38
+msgid "Signers"
+msgstr "Signatáři"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:47
+msgid "Select Signer(s)"
+msgstr "Vyberte signatáře"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:50
+msgid "If any key is selected, the default key will be used for signing."
+msgstr ""
+"Pokud je vybrán jakýkoli klíč, bude pro podepisování použit výchozí klíč."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:32
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:73
+msgid "Key ID"
+msgstr "ID klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:33
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:60
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:74
+msgid "Algorithm"
+msgstr "Algoritmus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:34
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:75
+msgid "Key Size"
+msgstr "Velikost klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:35
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:76
+msgid "Nominal Usage"
+msgstr "Nominální použití"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:36
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:77
+msgid "Actual Usage"
+msgstr "Skutečné použití"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
+msgid "Expires on"
+msgstr "Vyprší dne"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:38
+msgid "Last Update"
+msgstr "Poslední aktualizace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:39
+msgid "Secret Key Existence"
+msgstr "Existence tajného klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:51
+msgid "untitled"
+msgstr "nepojmenovaná"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:415
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:318
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:318
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:410
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:63
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:152
+msgid "Warning"
+msgstr "Varování"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:93
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:416
+msgid ""
+"Cannot read file %1%:\n"
+"%2%."
+msgstr ""
+"Nelze přečíst soubor %1%:\n"
+"%2 %."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:104
+msgid "Open file"
+msgstr "Otevřít soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:204
+msgid "Save file"
+msgstr "Uložení souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:266
+msgid "Unsaved document"
+msgstr "Neuložený dokument"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:267
+msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgstr "Dokument \"%1\" byl změněn. Chcete uložit změny?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:270
+msgid "Note:"
+msgstr "Poznámka:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:151
+msgid "The path is not exists, unprivileged or unreachable."
+msgstr "Cesta neexistuje, není privilegovaná nebo nedostupná."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:159
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:154
+msgid "Open"
+msgstr "Otevřeno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:161
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:297
+msgid "Rename"
+msgstr "Přejmenovat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:163
+msgid "Delete"
+msgstr "Vymazat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:164
+msgid "Encrypt Sign"
+msgstr "Šifrovat znamení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:169
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:176
+msgid "Decrypt Verify"
+msgstr "Dešifrovat ověřit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:169
+msgid "(.gpg .asc)"
+msgstr "(.gpg .asc)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:369
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:378
+msgid "Sign"
+msgstr "Podepsat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:189
+msgid "Verify"
+msgstr "Ověřte"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:175
+msgid "(.sig .gpg .asc)"
+msgstr "(.sig .gpg .asc)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:178
+msgid "Calculate Hash"
+msgstr "Vypočítejte hash"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:407
+msgid "Make New Directory"
+msgstr "Vytvořit nový adresář"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:185
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:420
+msgid "Create Empty File"
+msgstr "Vytvořit prázdný soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:204
+msgid "Show Hidden File"
+msgstr "Zobrazit skrytý soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:216
+msgid "Show System File"
+msgstr "Zobrazit systémový soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:275
+msgid "The directory is unprivileged or unreachable."
+msgstr "Adresář je nepřivilegovaný nebo nedostupný."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:285
+msgid "The file is unprivileged or unreachable."
+msgstr "Soubor je neprivilegovaný nebo nedostupný."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:297
+msgid "New Filename"
+msgstr "Nový název souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:309
+msgid "Unable to rename the file or folder."
+msgstr "Soubor nebo složku nelze přejmenovat."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:319
+msgid "Are you sure you want to delete it?"
+msgstr "Opravdu jej chcete smazat?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:328
+msgid "Unable to delete the file or folder."
+msgstr "Soubor nebo složku nelze odstranit."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:359
+msgid "File Hash Information"
+msgstr "Informace o hash souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:360
+msgid "filename"
+msgstr "název souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:375
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:383
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:391
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:158
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
+msgid ": "
+msgstr ":"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:407
+msgid "Directory Name"
+msgstr "Název adresáře"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:421
+msgid "Filename (you can given extension)"
+msgstr "Název souboru (můžete zadat příponu)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:427
+msgid "Unable to create the file."
+msgstr "Soubor nelze vytvořit."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:39
+msgid "Import from keyserver"
+msgstr "Import z keyserveru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:43
+msgid "Key not present with id 0x"
+msgstr "Klíč není přítomen s ID 0x"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:105
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:138
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:54
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+msgid "Status"
+msgstr "Postavení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:47
+msgid ":"
+msgstr ":"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:49
+msgid "Key not present in key list"
+msgstr "Klíč není uveden v seznamu klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:57
+msgid "A Signature"
+msgstr "Podpis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:78
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:112
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:128
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:143
+msgid "Key Information is NOT Available"
+msgstr "Klíčové informace NENÍ k dispozici"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:64
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:80
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:114
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:145
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:71
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:49
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:100
+msgid "Fingerprint"
+msgstr "otisk prstu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:73
+msgid "Cert Revoked"
+msgstr "Certifikát odvolán"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:89
+msgid "Signature Expired"
+msgstr "Platnost podpisu vypršela"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:105
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:107
+msgid "Key Expired"
+msgstr "Platnost klíče vypršela"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:123
+msgid "General Error"
+msgstr "Obecná chyba"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:138
+msgid "Unknown Error "
+msgstr "Neznámá chyba"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:168
+msgid "Signer Name"
+msgstr "Jméno signatáře"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:169
+msgid "Signer Email"
+msgstr "E-mail signatáře"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:170
+msgid "Key's Fingerprint"
+msgstr "Otisk klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:171
+msgid "Valid"
+msgstr "Platný"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:172
+msgid "Flags"
+msgstr "Vlajky"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:179
+msgid "Fully Valid"
+msgstr "Plně platné"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:181
+msgid "NOT Fully Valid"
+msgstr "NENÍ plně PLATNÉ"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:187
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:83
+msgid "Good"
+msgstr "Dobrý"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:86
+msgid "Bad"
+msgstr "Špatný"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:193
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:89
+msgid "Expired"
+msgstr "Platnost vypršela"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:196
+msgid "Missing Key"
+msgstr "Chybějící klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:199
+msgid "Revoked Key"
+msgstr "Odvolaný klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:202
+msgid "Expired Key"
+msgstr "Platnost klíče vypršela"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:205
+msgid "Missing CRL"
+msgstr "Chybí CRL"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:38
+msgid "InfoBoard's Actions Menu"
+msgstr "Nabídka akcí InfoBoardu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:118
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:98
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:123
+msgid "Copy"
+msgstr "kopírovat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:41
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:60
+msgid "Clear"
+msgstr "Průhledná"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:86
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
+msgid "info_font_size"
+msgstr "info_font_size"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:164
+msgid "Save Information Board's Content"
+msgstr "Uložit obsah informační tabule"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:172
+msgid "The file path is not exists, unprivileged or unreachable."
+msgstr "Cesta k souboru neexistuje, není privilegovaná nebo nedostupná."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:39
+msgid "First Start Wizard"
+msgstr "Průvodce prvním spuštěním"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:82
+msgid "Getting Started..."
+msgstr "Začínáme..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:83
+msgid "... with GpgFrontend"
+msgstr "... s GpgFrontend"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:86
+msgid "Welcome to use GpgFrontend for decrypting and signing text or file!"
+msgstr ""
+"Vítejte v používání GpgFrontend pro dešifrování a podepisování textu nebo "
+"souboru!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:89
+msgid ""
+"is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free "
+"OpenPGP Crypto Tool."
+msgstr ""
+"je výkonný, snadno použitelný, kompaktní, multiplatformní a bezinstalační "
+"OpenPGP krypto nástroj."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:91
+msgid "For brief information have a look at the"
+msgstr "Pro stručné informace se podívejte na"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:93
+msgid "Overview"
+msgstr "Přehled"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:94
+msgid "by clicking the link, the page will open in the web browser"
+msgstr "kliknutím na odkaz se stránka otevře ve webovém prohlížeči"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:103
+msgid ""
+"If it supports the language currently being used in your system, GpgFrontend"
+" will automatically set it."
+msgstr ""
+"Pokud podporuje jazyk aktuálně používaný ve vašem systému, GpgFrontend jej "
+"automaticky nastaví."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:121
+msgid "Choose your action..."
+msgstr "Vyberte si akci..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:122
+msgid "...by clicking on the appropriate link."
+msgstr "...kliknutím na příslušný odkaz."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:126
+msgid ""
+"If you have never used GpgFrontend before and also don't own a gpg key yet "
+"you may possibly want to read how to"
+msgstr ""
+"Pokud jste nikdy předtím nepoužili GpgFrontend a také ještě nevlastníte gpg "
+"klíč, možná si budete chtít přečíst, jak"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:138
+msgid ""
+"If you want to learn how to encrypt, decrypt, sign and verify text, you can "
+"read "
+msgstr ""
+"Pokud se chcete naučit šifrovat, dešifrovat, podepisovat a ověřovat text, "
+"můžete číst"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:143
+msgid "Encrypt & Decrypt Text"
+msgstr "Šifrovat a dešifrovat text"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:158
+msgid "or"
+msgstr "nebo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:146
+msgid "Sign & Verify Text"
+msgstr "Podepište a ověřte text"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:154
+msgid "If you want to operate file, you can read "
+msgstr "Pokud chcete pracovat se souborem, můžete číst"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:158
+msgid "Encrypt & Sign File"
+msgstr "Šifrovat a podepsat soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:161
+msgid "Sign & Verify File"
+msgstr "Podepište a ověřte soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:187
+msgid "Create a keypair..."
+msgstr "Vytvořit pár klíčů..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:188
+msgid "...for decrypting and signing messages"
+msgstr "...pro dešifrování a podepisování zpráv"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:190
+msgid ""
+"You should create a new keypair.The pair consists of a public and a private "
+"key.<br>Other users can use the public key to encrypt messages for you and "
+"verify messages signed by you.You can use the private key to decrypt and "
+"sign messages.<br>For more information have a look at the offline tutorial "
+"(which then is shown in the main window):"
+msgstr ""
+"Měli byste vytvořit nový pár klíčů. Pár se skládá z veřejného a soukromého "
+"klíče.<br>Ostatní uživatelé mohou používat veřejný klíč k šifrování zpráv za"
+" vás a ověřování zpráv, které jste podepsali. Soukromý klíč můžete použít k "
+"dešifrování a podepisování zpráv.<br>Další informace naleznete v offline "
+"tutoriálu (který se pak zobrazí v hlavním okně):"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:202
+msgid "Offline tutorial"
+msgstr "Offline výukový program"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:210
+msgid "Create New Key"
+msgstr "Vytvořit nový klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:232
+msgid "Ready."
+msgstr "Připraveno."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:233
+msgid "Have fun with GpgFrontend!"
+msgstr "Bavte se s GpgFrontend!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:236
+msgid "You are ready to use GpgFrontend now.<br><br>"
+msgstr "Nyní jste připraveni používat GpgFrontend.<br><br>"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:240
+msgid "The Online Document"
+msgstr "Online dokument"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:241
+msgid ""
+" will get you started with GpgFrontend. Anytime you encounter problems, "
+"please try to find help from the documentation"
+msgstr ""
+" vám pomůže začít s GpgFrontend. Kdykoli narazíte na problémy, zkuste prosím"
+" vyhledat pomoc v dokumentaci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:250
+msgid "Open offline help."
+msgstr "Otevřete offline nápovědu."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:253
+msgid "Dont show the wizard again."
+msgstr "Nezobrazovat znovu průvodce."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:48
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:169
+msgid "Invalid Own Key"
+msgstr "Neplatný vlastní klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:49
+msgid ""
+"Own Key can not be use to do any operation. Please go to the setting "
+"interface to select an OwnKey and get a ServiceToken."
+msgstr ""
+"Vlastní klíč nelze použít k provedení žádné operace. Přejděte prosím do "
+"rozhraní nastavení, vyberte OwnKey a získejte ServiceToken."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:61
+msgid "Please obtain a Service Token from the server in the settings."
+msgstr "Získejte servisní token ze serveru v nastavení."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:98
+msgid "Getting Cpt From Server"
+msgstr "Získání Cpt ze serveru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:136
+msgid "Invalid short ciphertext"
+msgstr "Neplatný krátký šifrový text"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:158
+msgid "Invalid Service Token"
+msgstr "Neplatný servisní token"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:159
+msgid "Please go to the setting interface to get a ServiceToken."
+msgstr "Přejděte do rozhraní nastavení a získejte ServiceToken."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:170
+msgid "Own Key can not be use to do any operation."
+msgstr "Vlastní klíč nelze použít k provedení žádné operace."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:219
+msgid "Getting Scpt From Server"
+msgstr "Získání Scpt ze serveru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:247
+msgid ""
+"Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
+msgstr ""
+"Upozornění: K dešifrování tohoto krátkého kryptografického textu použijte "
+"operaci Decrypt & Verify."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:254
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:465
+msgid "There is a problem with the communication with the server"
+msgstr "Vyskytl se problém s komunikací se serverem"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:38
+msgid "Select a file before doing it."
+msgstr "Než to uděláte, vyberte soubor."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:43
+msgid "No permission to read this file."
+msgstr "Nemáte oprávnění číst tento soubor."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:48
+msgid "No permission to create file."
+msgstr "Žádné oprávnění k vytvoření souboru."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:63
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:319
+msgid "The target file already exists, do you need to overwrite it?"
+msgstr "Cílový soubor již existuje, potřebujete jej přepsat?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:72
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:329
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:273
+msgid "No Key Selected"
+msgstr "Není vybrán žádný klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:85
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:395
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:405
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:299
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:479
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:493
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:535
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:544
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:361
+msgid "Invalid Operation"
+msgstr "Neplatná operace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:81
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:87
+msgid ""
+"The selected key contains a key that does not actually have a encrypt usage."
+msgstr ""
+"Vybraný klíč obsahuje klíč, který ve skutečnosti nemá použití šifrování."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:83
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:340
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:144
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:286
+msgid "For example the Following Key:"
+msgstr "Například následující klíč:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:95
+msgid "Encrypting"
+msgstr "Šifrování"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:108
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:221
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:305
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:389
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:448
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:121
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:215
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:367
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:435
+msgid "An error occurred during operation."
+msgstr "Během provozu došlo k chybě."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:196
+msgid "Decrypting"
+msgstr "Dešifrování"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:179
+msgid ""
+"The selected key contains a key that does not actually have a sign usage."
+msgstr "Vybraný klíč obsahuje klíč, který ve skutečnosti nemá použití znaku."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:181
+msgid "for example the Following Key:"
+msgstr "například následující klíč:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:191
+msgid "The signature file \"%1\" exists, do you need to overwrite it?"
+msgstr "Soubor podpisu \"% 1\" existuje, potřebujete jej přepsat?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
+msgid "Origin file to verify"
+msgstr "Původní soubor k ověření"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
+msgid "Filepath"
+msgstr "Cesta k souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:265
+msgid ""
+"Please select the appropriate origin file or signature file. Ensure that "
+"both are in this directory."
+msgstr ""
+"Vyberte prosím příslušný původní soubor nebo soubor podpisu. Ujistěte se, že"
+" jsou oba v tomto adresáři."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:271
+msgid "No permission to read target file."
+msgstr "Žádné oprávnění ke čtení cílového souboru."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:276
+msgid "No permission to read signature file."
+msgstr "Žádné oprávnění ke čtení souboru podpisu."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:283
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:244
+msgid "Verifying"
+msgstr "Ověřování"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:338
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:284
+msgid "Invalid KeyPair"
+msgstr "Neplatný pár klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:339
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:285
+msgid "The selected keypair cannot be used for encryption."
+msgstr "Vybraný pár klíčů nelze použít pro šifrování."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:314
+msgid "Encrypting and Signing"
+msgstr "Šifrování a podepisování"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:411
+msgid "The output file %1 already exists, do you need to overwrite it?"
+msgstr "Výstupní soubor %1 již existuje, potřebujete jej přepsat?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:423
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:408
+msgid "Decrypting and Verifying"
+msgstr "Dešifrování a ověřování"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:34
+msgid "New"
+msgstr "Nový"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:40
+msgid "Open a new file"
+msgstr "Otevřete nový soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:43
+msgid "Open..."
+msgstr "Otevřeno..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:46
+msgid "Open an existing file"
+msgstr "Otevřete existující soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:49
+msgid "File Browser"
+msgstr "Prohlížeč souborů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:52
+msgid "Open a file browser"
+msgstr "Otevřete prohlížeč souborů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:58
+msgid "Save the current File"
+msgstr "Uložit aktuální soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:61
+msgid "Save As"
+msgstr "Uložit jako"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:64
+msgid "Save the current File as..."
+msgstr "Uložit aktuální soubor jako..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:67
+msgid "Print"
+msgstr "Tisk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:70
+msgid "Print Document"
+msgstr "Tisk dokumentu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:160
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:163
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:44
+msgid "Close"
+msgstr "Zavřít"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:75
+msgid "Close file"
+msgstr "Zavřít soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:78
+msgid "Quit"
+msgstr "Přestat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:81
+msgid "Quit Program"
+msgstr "Ukončete program"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:86
+msgid "Undo"
+msgstr "vrátit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:88
+msgid "Undo Last Edit Action"
+msgstr "Vrátit zpět akci poslední úpravy"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:91
+msgid "Redo"
+msgstr "Předělat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:93
+msgid "Redo Last Edit Action"
+msgstr "Znovu proveďte akci poslední úpravy"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:96
+msgid "Zoom In"
+msgstr "Přiblížit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:100
+msgid "Zoom Out"
+msgstr "Oddálit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:104
+msgid "Paste"
+msgstr "Vložit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:107
+msgid "Paste Text From Clipboard"
+msgstr "Vložit Text ze schránky"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:110
+msgid "Cut"
+msgstr "Střih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:114
+msgid "Cut the current selection's contents to the clipboard"
+msgstr "Vyjmout obsah aktuálního výběru do schránky"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:122
+msgid "Copy the current selection's contents to the clipboard"
+msgstr "Zkopírujte obsah aktuálního výběru do schránky"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:126
+msgid "Quote"
+msgstr "Citát"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:128
+msgid "Quote whole text"
+msgstr "Citovat celý text"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:131
+msgid "Select All"
+msgstr "Vybrat vše"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:134
+msgid "Select the whole text"
+msgstr "Vyberte celý text"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FindWidget.cpp:40
+msgid "Find"
+msgstr "Nalézt"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:139
+msgid "Find a word"
+msgstr "Najděte slovo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:142
+msgid "Remove spacing"
+msgstr "Odstraňte mezery"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:146
+msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
+msgstr ""
+"Odstraňte dvojité zalomení řádků, např. ve vloženém textu z Web Mailer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:75
+msgid "Settings"
+msgstr "Nastavení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:151
+msgid "Open settings dialog"
+msgstr "Otevřete dialogové okno nastavení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:158
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:245
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:377
+msgid "Encrypt"
+msgstr "Šifrovat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:161
+msgid "Encrypt Message"
+msgstr "Šifrovat zprávu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:167
+msgid "Encrypt and Sign Message"
+msgstr "Zašifrovat a podepsat zprávu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:170
+msgid "Decrypt"
+msgstr "Dešifrovat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:173
+msgid "Decrypt Message"
+msgstr "Dešifrovat zprávu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:179
+msgid "Decrypt and Verify Message"
+msgstr "Dešifrujte a ověřte zprávu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:186
+msgid "Sign Message"
+msgstr "Podepsat zprávu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:192
+msgid "Verify Message"
+msgstr "Ověřit zprávu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:198
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:310
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:386
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:180
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:237
+msgid "File"
+msgstr "Soubor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:200
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:182
+msgid "Import New Key From File"
+msgstr "Importovat nový klíč ze souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:204
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:186
+msgid "Clipboard"
+msgstr "Schránka"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:206
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:188
+msgid "Import New Key From Clipboard"
+msgstr "Importovat nový klíč ze schránky"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:211
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:193
+msgid "Keyserver"
+msgstr "klíčový server"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:213
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:195
+msgid "Import New Key From Keyserver"
+msgstr "Importujte nový klíč z Keyserveru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:218
+msgid "Editor"
+msgstr "Editor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:220
+msgid "Import New Key From Editor"
+msgstr "Importovat nový klíč z editoru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:224
+msgid "Manage Keys"
+msgstr "Správa klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:226
+msgid "Open Key Management"
+msgstr "Otevřete Správa klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:233
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:34
+msgid "About"
+msgstr "O"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:235
+msgid "Show the application's About box"
+msgstr "Zobrazit pole O aplikaci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:239
+msgid "Translate"
+msgstr "přeložit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:241
+msgid "Information about translation"
+msgstr "Informace o překladu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:248
+msgid "Check for Updates"
+msgstr "Kontrola aktualizací"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:250
+msgid "Check for updates"
+msgstr "Kontrola aktualizací"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+msgid "Open Wizard"
+msgstr "Otevřete průvodce"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:255
+msgid "Open the wizard"
+msgstr "Otevřete průvodce"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:261
+msgid "Append Selected Key(s) To Text"
+msgstr "Připojit vybrané klávesy k textu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:263
+msgid "Append The Selected Keys To Text in Editor"
+msgstr "Připojit vybrané klávesy k textu v Editoru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:267
+msgid "Copy Email"
+msgstr "Kopírovat e-mail"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:269
+msgid "Copy selected Email to clipboard"
+msgstr "Zkopírujte vybraný e-mail do schránky"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:275
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:230
+msgid "Show Key Details"
+msgstr "Zobrazit klíčové podrobnosti"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:231
+msgid "Show Details for this Key"
+msgstr "Zobrazit podrobnosti tohoto klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:293
+msgid "Remove PGP Header"
+msgstr "Odstraňte záhlaví PGP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:296
+msgid "Add PGP Header"
+msgstr "Přidat záhlaví PGP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:300
+msgid "Send An Email"
+msgstr "Poslat email"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:323
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:409
+msgid "Edit"
+msgstr "Upravit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:341
+msgid "Crypt"
+msgstr "Krypta"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:351
+msgid "Keys"
+msgstr "Klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:352
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:278
+msgid "Import Key"
+msgstr "Import klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:360
+msgid "Steganography"
+msgstr "Steganografie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:364
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:45
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+msgid "Email"
+msgstr "E-mailem"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:375
+msgid "View"
+msgstr "Pohled"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:377
+msgid "Help"
+msgstr "Pomoc"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:394
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:139
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:44
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:68
+msgid "Operations"
+msgstr "Operace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:404
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:259
+msgid "Key"
+msgstr "Klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:417
+msgid "Special Edit"
+msgstr "Speciální úprava"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:429
+msgid "Import key from..."
+msgstr "Importovat klíč z..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:430
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:277
+msgid "Import key"
+msgstr "Import klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:446
+msgid "Ready"
+msgstr "Připraveno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:453
+msgid "Key ToolBox"
+msgstr "Key ToolBox"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:469
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:44
+msgid "Only Public Key"
+msgstr "Pouze veřejný klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:478
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:53
+msgid "Has Private Key"
+msgstr "Má soukromý klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:491
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:86
+msgid "Information Board"
+msgstr "Informační tabule"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:64
+msgid ""
+"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr ""
+"Není vybrán žádný klíč. Chcete šifrovat pomocí symetrické šifry pomocí "
+"přístupové fráze?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:70
+msgid "Symmetrically Encrypting"
+msgstr "Symetrické šifrování"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:142
+msgid ""
+"The selected key contains a key that does not actually have a signature "
+"usage."
+msgstr ""
+"Vybraný klíč obsahuje klíč, který ve skutečnosti nemá použití podpisu."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:188
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:460
+msgid "Notice"
+msgstr "Oznámení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:189
+msgid "Short Crypto Text only supports Decrypt & Verify."
+msgstr "Krátký krypto text podporuje pouze dešifrování a ověření."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:331
+msgid "Automatic Key Exchange Warning"
+msgstr "Upozornění na automatickou výměnu klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:332
+msgid ""
+"Part of the automatic key exchange failed, which may be related to your key."
+msgstr ""
+"Část automatické výměny klíče selhala, což může souviset s vaším klíčem."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:334
+msgid ""
+"If possible, try to use the RSA algorithm compatible with the server for "
+"signing."
+msgstr ""
+"Pokud je to možné, zkuste pro podepisování použít algoritmus RSA "
+"kompatibilní se serverem."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:357
+msgid "Service Token Empty"
+msgstr "Token služby je prázdný"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:358
+msgid ""
+"Please go to the settings interface to set Own Key and get Service Token."
+msgstr ""
+"Přejděte do rozhraní nastavení a nastavte vlastní klíč a získejte servisní "
+"token."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:461
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:476
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:339
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:401
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:488
+msgid "Key Not Found."
+msgstr "Klíč nenalezen."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:500
+msgid "called"
+msgstr "volala"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:503
+msgid "GpgFrontend Upgradeable (New Version: %1)."
+msgstr "GpgFrontend lze upgradovat (nová verze: %1)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:514
+msgid "Unreleased Version"
+msgstr "Nevydaná verze"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:516
+msgid ""
+"This version(%1) has not been officially released and is not recommended for"
+" use in a production environment. <br/>"
+msgstr ""
+"Tato verze (%1) nebyla oficiálně vydána a nedoporučuje se ji používat v "
+"produkčním prostředí. <br/>"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:520
+msgid "You can download the latest version(%1) on Github Releases Page.<br/>"
+msgstr ""
+"Nejnovější verzi (%1) si můžete stáhnout na stránce vydání Github.<br/>"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:136
+msgid "Critical error occur while loading GpgFrontend."
+msgstr "Při načítání GpgFrontend došlo ke kritické chybě."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:135
+msgid "Loading Failed"
+msgstr "Načítání se nezdařilo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:41
+msgid "All"
+msgstr "Všechno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:62
+msgid "No Master Key"
+msgstr "Žádný hlavní klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:71
+msgid "Revoked"
+msgstr "Odvoláno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:104
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
+msgid "icon_size"
+msgstr "ikona_velikost"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:113
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
+msgid "icon_style"
+msgstr "icon_style"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:145
+msgid "KeyPair Management"
+msgstr "KeyPair Management"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:155
+msgid "Ctrl+O"
+msgstr "Ctrl+O"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:156
+msgid "Open Key File"
+msgstr "Otevřete soubor klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:161
+msgid "Ctrl+Q"
+msgstr "Ctrl+Q"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:166
+msgid "New Keypair"
+msgstr "Nový klíčový pár"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:167
+msgid "Ctrl+N"
+msgstr "Ctrl+N"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:169
+msgid "Generate KeyPair"
+msgstr "Generovat KeyPair"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:173
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:178
+msgid "New Subkey"
+msgstr "Nový podklíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:174
+msgid "Ctrl+Shift+N"
+msgstr "Ctrl+Shift+N"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:176
+msgid "Generate Subkey For Selected KeyPair"
+msgstr "Generovat podklíč pro vybraný pár klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:200
+msgid "Export To Clipboard"
+msgstr "Exportovat do schránky"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:202
+msgid "Export Selected Key(s) To Clipboard"
+msgstr "Export vybraných klíčů do schránky"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:206
+msgid "Export To File"
+msgstr "Exportovat do souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:208
+msgid "Export Selected Key(s) To File"
+msgstr "Export vybraných klíčů do souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:212
+msgid "Export As OpenSSH"
+msgstr "Exportovat jako OpenSSH"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:215
+msgid "Export Selected Key(s) As OpenSSH Format to File"
+msgstr "Exportujte vybrané klíče jako formát OpenSSH do souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:219
+msgid "Delete Selected Key(s)"
+msgstr "Smazat vybrané klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:220
+msgid "Delete the Selected keys"
+msgstr "Odstraňte vybrané klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:224
+msgid "Delete Checked Key(s)"
+msgstr "Smazat zaškrtnuté klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:225
+msgid "Delete the Checked keys"
+msgstr "Odstraňte zaškrtnuté klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:267
+msgid "Generate"
+msgstr "generovat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:268
+msgid "Generate A New Keypair or Subkey"
+msgstr "Vygenerujte nový klíčový pár nebo podklíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:318
+msgid "Deleting Keys"
+msgstr "Mazání klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:321
+msgid "Are you sure that you want to delete the following keys?"
+msgstr "Opravdu chcete smazat následující klíče?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:323
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:373
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:410
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:509
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:561
+msgid "The action can not be undone."
+msgstr "Akci nelze vrátit zpět."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:363
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:232
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:273
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:310
+msgid "Export Key To File"
+msgstr "Exportovat klíč do souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:364
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:233
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:274
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:311
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:167
+msgid "Key Files"
+msgstr "Klíčové soubory"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:500
+msgid "key(s) exported"
+msgstr "exportován klíč(y)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:396
+msgid "Please select one KeyPair before doing this operation."
+msgstr "Před provedením této operace vyberte jeden KeyPair."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:406
+msgid ""
+"If a key pair does not have a private key then it will not be able to "
+"generate sub-keys."
+msgstr ""
+"Pokud pár klíčů nemá soukromý klíč, nebude schopen generovat podklíče."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:466
+msgid "No Key Checked."
+msgstr "Nebyl zkontrolován žádný klíč."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:474
+msgid "An error occur in exporting."
+msgstr "Při exportu došlo k chybě."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:481
+msgid ""
+"This key may not be able to export as OpenSSH format. Please check the key-"
+"size of the subkey(s) used to sign."
+msgstr ""
+"Tento klíč nemusí být možné exportovat ve formátu OpenSSH. Zkontrolujte "
+"prosím velikost klíče podklíčů použitých k podpisu."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:495
+msgid "Export OpenSSH Key To File"
+msgstr "Exportujte klíč OpenSSH do souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:496
+msgid "OpenSSH Public Key Files"
+msgstr "Soubory veřejného klíče OpenSSH"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:45
+msgid "Incomplete configuration"
+msgstr "Neúplná konfigurace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:46
+msgid ""
+"The SMTP address is empty, please go to the setting interface to complete "
+"the configuration."
+msgstr ""
+"Adresa SMTP je prázdná, přejděte prosím do rozhraní nastavení a dokončete "
+"konfiguraci."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:81
+msgid "CC"
+msgstr "CC"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:76
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:80
+msgid "BCC"
+msgstr "BCC"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:77
+msgid "Sender"
+msgstr "Odesílatel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:78
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:73
+msgid "Recipient"
+msgstr "Příjemce"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:79
+msgid "Mail Subject"
+msgstr "Předmět pošty"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:83
+msgid ""
+"Tips: You can fill in multiple email addresses, please separate them with "
+"\";\"."
+msgstr ""
+"Tipy: Můžete vyplnit více e-mailových adres, oddělte je prosím znakem „;“."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:85
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:87
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
+msgid "Send Mail"
+msgstr "Poslat mail"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:106
+msgid "Recipient cannot be empty"
+msgstr "Příjemce nemůže být prázdný"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:112
+msgid "One or more recipient's email is invalid"
+msgstr "Jeden nebo více e-mailů příjemce je neplatný"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:119
+msgid "Sender cannot be empty"
+msgstr "Odesílatel nemůže být prázdný"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:121
+msgid "Sender's email is invalid"
+msgstr "E-mail odesílatele je neplatný"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:125
+msgid "Subject cannot be empty"
+msgstr "Předmět nemůže být prázdný"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:132
+msgid "One or more cc email is invalid"
+msgstr "Jeden nebo více e-mailů s kopií je neplatných"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:142
+msgid "One or more bcc email is invalid"
+msgstr "Jeden nebo více e-mailů se skrytou kopií je neplatných"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:207
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:212
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:217
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:258
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:272
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:308
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:314
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:321
+msgid "Fail"
+msgstr "Selhat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:207
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:308
+msgid "Fail to Connect SMTP Server"
+msgstr "Připojení k serveru SMTP se nezdařilo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:212
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:314
+msgid "Fail to Login into SMTP Server"
+msgstr "Selhání přihlášení k serveru SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:218
+msgid "Fail to Send Mail to SMTP Server"
+msgstr "Selhání odeslání pošty na server SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:225
+msgid "Succeed in Sending Mail to SMTP Server"
+msgstr "Úspěch v odesílání pošty na server SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:235
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:191
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:161
+msgid "save_key_checked"
+msgstr "save_key_checked"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:150
+msgid "identity_enable"
+msgstr "identity_enable"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:103
+msgid "mail_address"
+msgstr "emailová adresa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:110
+msgid "username"
+msgstr "uživatelské jméno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:259
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:117
+msgid "password"
+msgstr "Heslo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:265
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:124
+msgid "port"
+msgstr "přístav"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:271
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:132
+msgid "connection_type"
+msgstr "typ připojení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:277
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:139
+msgid "default_sender"
+msgstr "výchozí_odesílatel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:51
+msgid "Uploading Public Key"
+msgstr "Nahrávání veřejného klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:71
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:407
+msgid "Set target Key Server to default Key Server"
+msgstr "Nastavte cílový server klíčů na výchozí server klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:244
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:410
+msgid "Cannot read default_keyserver From Settings"
+msgstr "Nelze přečíst default_keyserver z Nastavení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:76
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:412
+msgid "Default Keyserver Not Found"
+msgstr "Výchozí klíčový server nenalezen"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:413
+msgid ""
+"Cannot read default keyserver from your settings, please set a default "
+"keyserver first"
+msgstr ""
+"Z vašich nastavení nelze načíst výchozí server klíčů, nejprve nastavte "
+"výchozí server klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:286
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:457
+msgid "Key Not Found"
+msgstr "Klíč nenalezen"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:289
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:258
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:460
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:477
+msgid "Timeout"
+msgstr "Časový limit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:292
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:261
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:463
+msgid "Key Server Not Found"
+msgstr "Klíčový server nenalezen"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:295
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:264
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:466
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:484
+msgid "Connection Error"
+msgstr "Chyba připojení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:148
+msgid "Upload Success"
+msgstr "Nahrání proběhlo úspěšně"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:149
+msgid "Upload Public Key Successfully"
+msgstr "Nahrání veřejného klíče proběhlo úspěšně"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:45
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:186
+msgid "New UID"
+msgstr "Nové UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:46
+msgid "UID Management"
+msgstr "Správa UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:65
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:32
+msgid "UIDs"
+msgstr "UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:70
+msgid "TOFU"
+msgstr "TOFU"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:82
+msgid "Signature of Selected UID"
+msgstr "Podpis vybraného UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:147
+msgid "Create Date (UTC)"
+msgstr "Datum vytvoření (UTC)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:156
+msgid "Expired Date (UTC)"
+msgstr "Datum vypršení platnosti (UTC)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:232
+msgid "TOFU %1"
+msgstr "TOFU %1"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:281
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:224
+msgid "Never Expires"
+msgstr "Nikdy nevyprší"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:300
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:357
+msgid "Please select one or more UIDs before doing this operation."
+msgstr "Před provedením této operace vyberte jedno nebo více UID."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:321
+msgid "Sign Selected UID(s)"
+msgstr "Podepsat vybrané UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:323
+msgid "Delete Selected UID(s)"
+msgstr "Smazat vybrané UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:343
+msgid "Successful Operation"
+msgstr "Úspěšná operace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:344
+msgid "Successfully added a new UID."
+msgstr "Úspěšně přidáno nové UID."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:346
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:381
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:416
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:514
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:566
+msgid "Operation Failed"
+msgstr "Operace selhala"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:347
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:417
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:515
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:567
+msgid "An error occurred during the operation."
+msgstr "Během operace došlo k chybě."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:368
+msgid "Deleting UIDs"
+msgstr "Mazání UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:371
+msgid "Are you sure that you want to delete the following UIDs?"
+msgstr "Jste si jisti, že chcete smazat následující UID?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:382
+msgid "An error occurred during the delete %1 operation."
+msgstr "Během operace odstranění %1 došlo k chybě."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:406
+msgid "Set Primary UID"
+msgstr "Nastavte primární UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:408
+msgid "Are you sure that you want to set the Primary UID to?"
+msgstr "Opravdu chcete nastavit primární UID na?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:448
+msgid "Set As Primary"
+msgstr "Nastavit jako hlavní"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:451
+msgid "Sign UID"
+msgstr "Podepsat UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:453
+msgid "Delete UID"
+msgstr "Smazat UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:480
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:494
+msgid "Please select one UID before doing this operation."
+msgstr "Před provedením této operace vyberte jedno UID."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:504
+msgid "Deleting UID"
+msgstr "Mazání UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:507
+msgid "Are you sure that you want to delete the following uid?"
+msgstr "Jste si jisti, že chcete smazat následující uid?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:525
+msgid "Delete(Revoke) Key Signature"
+msgstr "Smazat (zrušit) podpis klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:536
+msgid "Please select one Key Signature before doing this operation."
+msgstr "Před provedením této operace vyberte jeden podpis klíče."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:545
+msgid ""
+"To delete the signature, you need to have its corresponding public key in "
+"the local database."
+msgstr ""
+"Chcete-li odstranit podpis, musíte mít jeho odpovídající veřejný klíč v "
+"místní databázi."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:556
+msgid "Deleting Key Signature"
+msgstr "Odstranění podpisu klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:558
+msgid "Are you sure that you want to delete the following signature?"
+msgstr "Opravdu chcete smazat následující podpis?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:54
+msgid "Notice: The New UID Created will be set as Primary."
+msgstr "Upozornění: Vytvořené nové UID bude nastaveno jako Primární."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:61
+msgid "Create New UID"
+msgstr "Vytvořit nové UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:81
+msgid "Expire Date"
+msgstr "Datum spotřeby"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:90
+msgid "Sign For Key's UID(s)"
+msgstr "Podepsat UID klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:116
+msgid "Unsuccessful Operation"
+msgstr "Neúspěšná operace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:117
+msgid "Signature operation failed for UID %1"
+msgstr "Operace podpisu pro UID %1 se nezdařila"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:121
+msgid "Operation Complete"
+msgstr "Operace dokončena"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:122
+msgid "The signature operation of the UID is complete"
+msgstr "Operace podpisu UID je dokončena"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:37
+msgid "Subkey List"
+msgstr "Seznam podklíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:38
+msgid "Detail of Selected Subkey"
+msgstr "Detail vybraného podklíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:42
+msgid "Generate A New Subkey"
+msgstr "Vygenerovat nový podklíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:66
+msgid "Expires On (Local Time)"
+msgstr "Vyprší dne (místního času)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:68
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:78
+msgid "Create Date (Local Time)"
+msgstr "Datum vytvoření (místní čas)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:69
+msgid "Existence"
+msgstr "Existence"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
+msgid "Subkey ID"
+msgstr "ID podklíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
+msgid "Algo"
+msgstr "Algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:147
+msgid "Expire Date (UTC)"
+msgstr "Datum vypršení platnosti (UTC)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:244
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:367
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:376
+msgid "Certificate"
+msgstr "Osvědčení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:370
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:379
+msgid "Auth"
+msgstr "Auth"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:252
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:336
+msgid "Exists"
+msgstr "existuje"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:337
+msgid "Not Exists"
+msgstr "Neexistuje"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:271
+msgid "Edit Expire Date"
+msgstr "Upravit datum vypršení platnosti"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:31
+msgid "KeyPair"
+msgstr "KeyPair"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:33
+msgid "Subkeys"
+msgstr "Podklíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:43
+msgid "Key Details"
+msgstr "Klíčové detaily"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:37
+msgid "Owner"
+msgstr "Majitel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:38
+msgid "Master Key"
+msgstr "Hlavní klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:40
+msgid "Additional UIDs"
+msgstr "Další UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:80
+msgid "Expires on (Local Time)"
+msgstr "Vyprší dne (místního času)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:82
+msgid "Last Update (Local Time)"
+msgstr "Poslední aktualizace (místní čas)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:84
+msgid "Master Key Existence"
+msgstr "Existence hlavního klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:125
+msgid "copy fingerprint to clipboard"
+msgstr "zkopírujte otisk prstu do schránky"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:145
+msgid "Export Public Key"
+msgstr "Export veřejného klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:151
+msgid "Export Private Key"
+msgstr "Exportovat soukromý klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:158
+msgid "Modify Expiration Datetime (Master Key)"
+msgstr "Upravit datum vypršení platnosti (hlavní klíč)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:161
+msgid "Modify Password"
+msgstr "Upravit heslo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:174
+msgid "Key Server Operation (Pubkey)"
+msgstr "Operace klíčového serveru (Pubkey)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:181
+msgid "Generate Revoke Certificate"
+msgstr "Vygenerovat zrušit certifikát"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:187
+msgid "Modify TOFU Policy"
+msgstr "Upravit zásady TOFU"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:225
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:266
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:303
+msgid "An error occurred during the export operation."
+msgstr "Během operace exportu došlo k chybě."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:238
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:279
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:316
+msgid "Export Error"
+msgstr "Chyba exportu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:239
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:280
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:317
+msgid "Couldn't open %1 for writing"
+msgstr "Nelze otevřít %1 pro zápis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:247
+msgid "Exporting short private Key"
+msgstr "Export krátkého soukromého klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:248
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:290
+msgid "You are about to export your"
+msgstr "Chystáte se exportovat svůj"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:249
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:291
+msgid " PRIVATE KEY "
+msgstr " SOUKROMÝ KLÍČ"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:250
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:292
+msgid "This is NOT your Public Key, so DON'T give it away."
+msgstr "Toto NENÍ váš veřejný klíč, takže jej NEDÁVEJTE."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:251
+msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
+msgstr "OPRAVDU chcete exportovat svůj SOUKROMÝ KLÍČ v minimální velikosti?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:254
+msgid ""
+"For OpenPGP keys it removes all signatures except for the latest self-"
+"signatures."
+msgstr ""
+"U klíčů OpenPGP odebere všechny podpisy kromě nejnovějších vlastních "
+"podpisů."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:289
+msgid "Exporting private Key"
+msgstr "Export soukromého klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:293
+msgid "Do you REALLY want to export your PRIVATE KEY?"
+msgstr "OPRAVDU chcete exportovat svůj SOUKROMÝ KLÍČ?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:401
+msgid "No Data"
+msgstr "Žádná data"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:417
+msgid "Warning: The Master Key has expired."
+msgstr "Upozornění: Platnost hlavního klíče vypršela."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:422
+msgid "Warning: The Master Key has been revoked."
+msgstr "Upozornění: Hlavní klíč byl odvolán."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:429
+msgid "Upload Key Pair to Key Server"
+msgstr "Nahrajte pár klíčů na server klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:435
+msgid "Sync Key Pair From Key Server"
+msgstr "Synchronizovat pár klíčů ze serveru klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:449
+msgid "Export Full Secret Key"
+msgstr "Exportovat úplný tajný klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:455
+msgid "Export Shortest Secret Key"
+msgstr "Exportovat nejkratší tajný klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:480
+msgid "Revocation Certificates"
+msgstr "Zrušovací certifikáty"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:528
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:558
+msgid "Not Successful"
+msgstr "Neúspěšný"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
+msgid "Modify password not successfully."
+msgstr "Změna hesla nebyla úspěšná."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:535
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:545
+msgid "Policy Auto"
+msgstr "Zásady Auto"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:535
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:547
+msgid "Policy Good"
+msgstr "Politika Dobrá"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:535
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:549
+msgid "Policy Bad"
+msgstr "Zásady špatné"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:536
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:551
+msgid "Policy Ask"
+msgstr "Zásady Zeptejte se"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:536
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:553
+msgid "Policy Unknown"
+msgstr "Zásady neznámé"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:540
+msgid "Modify TOFU Policy(Default is Auto)"
+msgstr "Upravit zásady TOFU (výchozí je Auto)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:541
+msgid "Policy for the Key Pair:"
+msgstr "Zásady pro klíčový pár:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:559
+msgid "Modify TOFU policy not successfully."
+msgstr "Úprava zásady TOFU nebyla úspěšná."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:75
+msgid "The expire date of the key pair has been updated."
+msgstr "Datum vypršení platnosti páru klíčů bylo aktualizováno."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:201
+msgid "longer_expiration_date"
+msgstr "delší_datum_vypršení platnosti"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:122
+msgid "Modified Expiration Date (Local Time)"
+msgstr "Upravené datum vypršení platnosti (místní čas)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:124
+msgid ""
+"Tips: For the sake of security, the key is valid for up to two years. If you"
+" are an expert user, please unlock it for a longer time in the settings."
+msgstr ""
+"Tipy: Z důvodu bezpečnosti má klíč platnost až dva roky. Pokud jste zkušený "
+"uživatel, odemkněte jej prosím v nastavení na delší dobu."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:127
+msgid "No Expiration"
+msgstr "Bez vypršení platnosti"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:128
+msgid "Modified Expiration Date"
+msgstr "Upravené datum vypršení platnosti"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:41
+msgid "About Software"
+msgstr "O softwaru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:42
+msgid "Translators"
+msgstr "Překladatelé"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:43
+msgid "Update"
+msgstr "Aktualizace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:76
+msgid ""
+"GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
+"free gpg front-end tool.It visualizes most of the common operations of gpg "
+"commands.It's licensed under the GPL v3"
+msgstr ""
+"GpgFrontend je snadno použitelný, kompaktní, multiplatformní a bezinstalační"
+" front-endový nástroj gpg. Vizualizuje většinu běžných operací příkazů gpg. "
+"Je licencován pod licencí GPL v3"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:82
+msgid "Developer:"
+msgstr "Vývojář:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:83
+msgid "If you have any questions or suggestions, raise an issue at"
+msgstr "Máte-li jakékoli dotazy nebo návrhy, uveďte problém na adrese"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:86
+msgid "or send a mail to my mailing list at"
+msgstr "nebo pošlete mail na můj mailing list na"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:88
+msgid "Built with Qt"
+msgstr "Postaveno s Qt"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:88
+msgid "and GPGME"
+msgstr "a GPGME"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:90
+msgid "Built at"
+msgstr "Postaveno na"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:123
+msgid ""
+"If you think there are any problems with the translation, why not "
+"participate in the translation work? If you want to participate, please read"
+" the document or contact me via email."
+msgstr ""
+"Pokud si myslíte, že jsou nějaké problémy s překladem, proč se nezúčastnit "
+"překladatelské práce? Pokud se chcete zúčastnit, přečtěte si prosím dokument"
+" nebo mě kontaktujte e-mailem."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:148
+msgid ""
+"It is recommended that you always check the version of GpgFrontend and "
+"upgrade to the latest version."
+msgstr ""
+"Doporučuje se vždy zkontrolovat verzi GpgFrontend a upgradovat na nejnovější"
+" verzi."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:151
+msgid ""
+"New versions not only represent new features, but also often represent "
+"functional and security fixes."
+msgstr ""
+"Nové verze představují nejen nové funkce, ale často také funkční a "
+"bezpečnostní opravy."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:157
+msgid "Current Version"
+msgstr "Současná verze"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:168
+msgid "The current version is less than the latest version on github."
+msgstr "Aktuální verze je nižší než nejnovější verze na githubu."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:170
+msgid "Please click"
+msgstr "prosím klikněte"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:173
+msgid "Here"
+msgstr "Tady"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:173
+msgid "to download the latest version."
+msgstr "ke stažení nejnovější verze."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:197
+msgid "try to get latest version"
+msgstr "zkuste získat nejnovější verzi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:218
+msgid "Latest Version From Github"
+msgstr "Nejnovější verze z Github"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:34
+msgid "Signatures Details"
+msgstr "Podrobnosti o podpisech"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:59
+msgid "No valid input found"
+msgstr "Nebyl nalezen žádný platný vstup"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:70
+msgid "Error Validating signature"
+msgstr "Chyba při ověřování podpisu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:72
+msgid "File was signed on %1%"
+msgstr "Soubor byl podepsán %1%"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:81
+msgid "It Contains"
+msgstr "Obsahuje"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:78
+msgid "Signed on %1%"
+msgstr "Podepsáno %1%"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:36
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:56
+msgid "Key Update Details"
+msgstr "Podrobnosti o aktualizaci klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:37
+msgid "No keys found"
+msgstr "Nebyly nalezeny žádné klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:58
+msgid "Key Import Details"
+msgstr "Podrobnosti importu klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:40
+msgid "No keys found to import"
+msgstr "Nebyly nalezeny žádné klíče k importu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:74
+msgid "General key info"
+msgstr "Obecné klíčové informace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:77
+msgid "Considered"
+msgstr "Považováno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:84
+msgid "Public unchanged"
+msgstr "Veřejnost beze změny"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:90
+msgid "Imported"
+msgstr "Dovezeno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:98
+msgid "Not Imported"
+msgstr "Neimportováno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:105
+msgid "Private Read"
+msgstr "Soukromé čtení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:112
+msgid "Private Imported"
+msgstr "Soukromé Importováno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:119
+msgid "Private Unchanged"
+msgstr "Soukromé Nezměněno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:166
+msgid "Private"
+msgstr "soukromé"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:169
+msgid "Public"
+msgstr "Veřejnost"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:172
+msgid "Unchanged"
+msgstr "Beze změny"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:175
+msgid "New Key"
+msgstr "Nový klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:52
+msgid "New Signature"
+msgstr "Nový podpis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:45
+msgid "Send Encrypted Mail"
+msgstr "Odeslat šifrovanou poštu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:57
+msgid "Function Disabled"
+msgstr "Funkce zakázána"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:58
+msgid ""
+"Please go to the settings interface to enable and configure this function."
+msgstr ""
+"Chcete-li tuto funkci povolit a nakonfigurovat, přejděte do rozhraní "
+"nastavení."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:78
+msgid "Public key not found locally"
+msgstr "Veřejný klíč nebyl místně nalezen"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:79
+msgid ""
+"There is no target public key content in local for GpgFrontend to gather "
+"enough information about this Signature. Do you want to import the public "
+"key from Keyserver now?"
+msgstr ""
+"Pro GpgFrontend neexistuje žádný cílový obsah veřejného klíče v místním "
+"prostředí, aby bylo možné získat dostatek informací o tomto podpisu. Chcete "
+"nyní importovat veřejný klíč z Keyserveru?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:166
+msgid "Open Key"
+msgstr "Otevřít klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:167
+msgid "Keyring files"
+msgstr "Soubory klíčenky"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:189
+msgid "Processing"
+msgstr "zpracovává se"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:209
+msgid "Failed to execute command."
+msgstr "Nepodařilo se provést příkaz."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:217
+msgid "Succeed in executing command."
+msgstr "Úspěch při provádění příkazu."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:220
+msgid "Finished executing command."
+msgstr "Dokončeno provádění příkazu."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:307
+msgid "The key has been updated"
+msgstr "Klíč byl aktualizován"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:309
+msgid "No need to update the key"
+msgstr "Není třeba aktualizovat klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:43
+msgid "Keyserver List"
+msgstr "Seznam klíčových serverů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:48
+msgid "Keyserver Address"
+msgstr "Adresa klíčového serveru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:49
+msgid "Security"
+msgstr "Bezpečnostní"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:50
+msgid "Available"
+msgstr "Dostupný"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:52
+msgid "Add"
+msgstr "Přidat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:53
+msgid "Test Listed Keyserver"
+msgstr "Testovaný klíčový server"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:55
+msgid "Tips: Please Double-click table item to edit it."
+msgstr "Tipy: Poklepáním na položku tabulky ji upravte."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:56
+msgid "Delete Selected"
+msgstr "Smazat vybrané"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:58
+msgid "Delete Selected Key Server"
+msgstr "Odstranit vybraný server klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:60
+msgid "Set As Default"
+msgstr "Nastavit jako výchozí"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
+msgid "server_list"
+msgstr "seznam_serverů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
+msgid "default_server"
+msgstr "výchozí_server"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:143
+msgid "Insecure keyserver address"
+msgstr "Nezabezpečená adresa klíčového serveru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:144
+msgid ""
+"For security reasons, using HTTP as the communication protocol with the key "
+"server is not recommended. It is recommended to use HTTPS."
+msgstr ""
+"Z bezpečnostních důvodů se nedoporučuje používat HTTP jako komunikační "
+"protokol se serverem klíčů. Doporučuje se používat HTTPS."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:153
+msgid ""
+"You may not use HTTPS or HTTP as the protocol for communicating with the key"
+" server, which may not be wrong. But please check the address you entered "
+"again to make sure it is correct. Are you sure that want to add it into the "
+"keyserver list?"
+msgstr ""
+"Jako protokol pro komunikaci se serverem klíčů nesmíte používat HTTPS nebo "
+"HTTP, což nemusí být špatně. Zkontrolujte však znovu zadanou adresu, abyste "
+"se ujistili, že je správná. Jste si jisti, že jej chcete přidat do seznamu "
+"klíčových serverů?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:214
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
+msgid "true"
+msgstr "skutečný"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:215
+msgid "false"
+msgstr "Nepravdivé"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:220
+msgid "unknown"
+msgstr "neznámý"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:236
+msgid "Set TCP Timeout"
+msgstr "Nastavte časový limit TCP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:253
+msgid "Reachable"
+msgstr "Dosažitelný"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:256
+msgid "Not Reachable"
+msgstr "Nedosažitelný"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:42
+msgid "Updated ui configuration successfully written to"
+msgstr ""
+"Aktualizovaná konfigurace uživatelského rozhraní byla úspěšně zapsána do"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:46
+msgid "I/O error while writing ui configuration file"
+msgstr "Chyba I/O při zápisu konfiguračního souboru uživatelského rozhraní"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:57
+msgid "App Path"
+msgstr "Cesta aplikace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:58
+msgid "App Configure Path"
+msgstr "App Configure Path"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:59
+msgid "App Data Path"
+msgstr "Cesta dat aplikace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:60
+msgid "App Log Path"
+msgstr "Cesta protokolu aplikace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:61
+msgid "App Locale Path"
+msgstr "Cesta k místnímu nastavení aplikace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:74
+msgid "UserInterface configuration successfully written to"
+msgstr "Konfigurace uživatelského rozhraní byla úspěšně zapsána"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:79
+msgid "I/O error while writing UserInterface configuration file"
+msgstr "Chyba I/O při zápisu konfiguračního souboru uživatelského rozhraní"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:85
+msgid "UserInterface configuration successfully read from"
+msgstr "Konfigurace uživatelského rozhraní byla úspěšně načtena z"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:88
+msgid "I/O error while reading UserInterface configure file"
+msgstr "Chyba I/O při čtení konfiguračního souboru uživatelského rozhraní"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:90
+msgid "Parse error at "
+msgstr "Chyba analýzy v"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:35
+msgid "Icon Size"
+msgstr "Velikost ikony"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:37
+msgid "small"
+msgstr "malý"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:38
+msgid "medium"
+msgstr "střední"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:39
+msgid "large"
+msgstr "velký"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:55
+msgid "Icon Style"
+msgstr "Styl ikony"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:57
+msgid "just text"
+msgstr "jen text"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:58
+msgid "just icons"
+msgstr "jen ikony"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:59
+msgid "text and icons"
+msgstr "text a ikony"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:75
+msgid "Window State"
+msgstr "Stav okna"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:78
+msgid "Save window size and position on exit."
+msgstr "Uložte velikost a polohu okna při ukončení."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:92
+msgid "Font Size in Information Board"
+msgstr "Velikost písma na informační tabuli"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
+msgid "window_save"
+msgstr "okno_uložit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:51
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:65
+msgid "General"
+msgstr "Všeobecné"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:52
+msgid "Appearance"
+msgstr "Vzhled"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
+msgid "Key Server"
+msgstr "Klíčový server"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:59
+msgid "Advanced"
+msgstr "Pokročilý"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:136
+msgid "System Default"
+msgstr "Výchozí nastavení systému"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:37
+msgid "Show Steganography Options"
+msgstr "Zobrazit možnosti steganografie"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:39
+msgid "Show Steganographic Options."
+msgstr "Zobrazit steganografické možnosti."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:43
+msgid "Pubkey Exchange"
+msgstr "Výměna klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:45
+msgid "Auto Pubkey Exchange"
+msgstr "Automatická výměna klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:46
+msgid "GpgFrontend Server"
+msgstr "Server GpgFrontend"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:51
+msgid "Server that provides short key and key exchange services"
+msgstr "Server, který poskytuje služby krátkého klíče a výměny klíčů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:59
+msgid "Save Checked Keys"
+msgstr "Uložit zaškrtnuté klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:62
+msgid "Save checked private keys on exit and restore them on next start."
+msgstr ""
+"Uložte zkontrolované soukromé klíče při ukončení a obnovte je při příštím "
+"spuštění."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:71
+msgid "Longer Key Expiration Date"
+msgstr "Delší datum vypršení platnosti klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:74
+msgid "Unlock key expiration date setting up to 30 years."
+msgstr "Nastavení data vypršení platnosti klíče odemknutí až na 30 let."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:82
+msgid "Confirm drag'n'drop key import"
+msgstr "Potvrďte import klíče drag'n'drop"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:85
+msgid "Import files dropped on the Key List without confirmation."
+msgstr "Importujte soubory vynechané v seznamu klíčů bez potvrzení."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:93
+msgid "Language"
+msgstr "Jazyk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:107
+msgid "NOTE"
+msgstr "POZNÁMKA"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:108
+msgid "GpgFrontend will restart automatically if you change the language!"
+msgstr "GpgFrontend se automaticky restartuje, pokud změníte jazyk!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:118
+msgid "Own key"
+msgstr "Vlastní klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:122
+msgid "Get Service Token"
+msgstr "Získejte servisní token"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:342
+msgid "No Service Token Found"
+msgstr "Nebyl nalezen žádný servisní token"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:150
+msgid "Key pair for synchronization and identity authentication"
+msgstr "Klíčový pár pro synchronizaci a ověření identity"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:238
+msgid "lang"
+msgstr "lang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:362
+msgid "Own Key can not be None while getting service token."
+msgstr "Vlastní klíč nemůže být při získávání tokenu služby Žádný."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:374
+msgid "Key Not Exists"
+msgstr "Klíč neexistuje"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:461
+msgid "Succeed in getting service token"
+msgstr "Úspěch v získání tokenu služby"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:66
+msgid "Identity Information"
+msgstr "Informace o identitě"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:67
+msgid "Preference"
+msgstr "Přednost"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:70
+msgid "Enable Send Mail Ability"
+msgstr "Povolit možnost odesílání pošty"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:71
+msgid "Need Auth"
+msgstr "Potřebujete Auth"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:73
+msgid "SMTP Server Address"
+msgstr "Adresa serveru SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:74
+msgid "SMTP Server Port"
+msgstr "Port serveru SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:75
+msgid "SMTP Connection Security"
+msgstr "Zabezpečení připojení SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:76
+msgid "Username"
+msgstr "uživatelské jméno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:77
+msgid "Password"
+msgstr "Heslo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:79
+msgid "Default Sender Email"
+msgstr "Výchozí e-mail odesílatele"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:80
+msgid "Check Connection"
+msgstr "Zkontrolujte připojení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:81
+msgid "Send Test Email"
+msgstr "Odeslat zkušební e-mail"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:83
+msgid ""
+"Tips: It is recommended that you build your own mail server or use a trusted"
+" mail server. If you don't know the detailed configuration information, you "
+"can get it from the mail service provider."
+msgstr ""
+"Tipy: Doporučuje se vytvořit si vlastní poštovní server nebo používat "
+"důvěryhodný poštovní server. Pokud neznáte podrobné informace o konfiguraci,"
+" můžete je získat od poskytovatele poštovních služeb."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:258
+msgid "Fail to Login"
+msgstr "Selhání přihlášení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:264
+msgid "Succeed in connecting and login"
+msgstr "Úspěšné připojení a přihlášení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:272
+msgid "Given a default sender first"
+msgstr "Jako první je uveden výchozí odesílatel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:299
+msgid "Test Email from GpgFrontend"
+msgstr "Testovací e-mail od GpgFrontend"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:302
+msgid "Hello, this is a test email from GpgFrontend."
+msgstr "Dobrý den, toto je testovací e-mail od GpgFrontend."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:322
+msgid ""
+"Fail to send a test email to the SMTP Server, please recheck your "
+"configuration."
+msgstr ""
+"Nepodařilo se odeslat testovací e-mail na server SMTP, znovu zkontrolujte "
+"konfiguraci."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:332
+msgid "Succeed in sending a test email to the SMTP Server"
+msgstr "Úspěšně odeslat testovací e-mail na server SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:45
+msgid "Import ALL"
+msgstr "Importovat VŠECHNY"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:47
+msgid "Search"
+msgstr "Vyhledávání"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
+msgid "Search String"
+msgstr "Hledat řetězec"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:100
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:547
+msgid "Update Keys from Keyserver"
+msgstr "Aktualizujte klíče z Keyserveru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:102
+msgid "Import Keys from Keyserver"
+msgstr "Importujte klíče z Keyserveru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "UID"
+msgstr "UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "Creation date"
+msgstr "Datum vzniku"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "KeyID"
+msgstr "KeyID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "Tag"
+msgstr "Štítek"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:212
+msgid "Text is empty."
+msgstr "Text je prázdný."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:255
+msgid "Not Key Found"
+msgstr "Nenalezen klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:273
+msgid "Too many responses from keyserver!"
+msgstr "Příliš mnoho odpovědí z keyserveru!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:283
+msgid "No keys found, input may be kexId, retrying search with 0x."
+msgstr ""
+"Nebyly nalezeny žádné klíče, vstup může být kexId, opakování vyhledávání s "
+"0x."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:292
+msgid "No keys found containing the search string!"
+msgstr "Nebyly nalezeny žádné klíče obsahující hledaný řetězec!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:298
+msgid "Insufficiently specific search string!"
+msgstr "Nedostatečně konkrétní vyhledávací řetězec!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:331
+msgid "revoked"
+msgstr "odvoláno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:335
+msgid "disabled"
+msgstr "zakázáno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:377
+msgid "%1 keys found. Double click a key to import it."
+msgstr ""
+"Počet nalezených klíčů: %1. Dvojitým kliknutím na klíč jej importujete."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:389
+msgid "Current Row"
+msgstr "Aktuální řádek"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:472
+msgid "Public key Not Found"
+msgstr "Veřejný klíč nenalezen"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:473
+msgid "Public key fingerprint %1 not found in the Keyserver"
+msgstr "Otisk veřejného klíče %1 nebyl na serveru klíčů nalezen"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:480
+msgid "Host Not Found"
+msgstr "Hostitel nenalezen"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:485
+msgid "General Connection Error"
+msgstr "Obecná chyba připojení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:500
+msgid "Key Imported"
+msgstr "Klíč importován"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:34
+msgid "Decrypt Operation"
+msgstr "Operace dešifrování"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:41
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:45
+msgid "Failed"
+msgstr "Nepodařilo se"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:43
+msgid "Unsupported Algo"
+msgstr "Nepodporované Algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:51
+msgid "File Name"
+msgstr "Název souboru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
+msgid "MIME"
+msgstr "MIM"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:59
+msgid "Recipient(s)"
+msgstr "Příjemci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:176
+msgid "Unknown"
+msgstr "Neznámý"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:89
+msgid "Keu ID"
+msgstr "Keu ID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:90
+msgid "Public Algo"
+msgstr "Veřejné Algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:32
+msgid "Start Encrypt Result Analyse"
+msgstr "Spusťte analýzu výsledků šifrování"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:34
+msgid "Encrypt Operation"
+msgstr "Šifrovací operace"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:46
+msgid "Invalid Recipients"
+msgstr "Neplatní příjemci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:102
+msgid "Reason"
+msgstr "Důvod"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:34
+msgid "Start Sign Result Analyse"
+msgstr "Spusťte analýzu výsledků znamení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:36
+msgid "Sign Operation"
+msgstr "Operace znamení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:47
+msgid "Sign Result Analyse Getting Result"
+msgstr "Podepsat Výsledek Analyzovat Získání výsledku"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:54
+msgid "Signers Fingerprint"
+msgstr "Podepisující otisk prstu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:56
+msgid "Sign Mode"
+msgstr "Režim znamení"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:58
+msgid "Normal"
+msgstr "Normální"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:62
+msgid "Detach"
+msgstr "Odpojit"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:69
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:72
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:99
+msgid "Signer"
+msgstr "Signatář"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:184
+msgid "Public Key Algo"
+msgstr "Veřejný klíč Algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:187
+msgid "Hash Algo"
+msgstr "Hash Algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:190
+msgid "Date"
+msgstr "datum"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:190
+msgid "UTC"
+msgstr "UTC"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:90
+msgid "Sign Result Analyse Getting Invalid Signer"
+msgstr "Podepsat Výsledek Analyzovat Získání neplatného podepisujícího"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:95
+msgid "Invalid Signers"
+msgstr "Neplatní signatáři"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:38
+msgid "Verify Result Analyse Started"
+msgstr "Ověřte, že byla zahájena analýza výsledků"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:40
+msgid "Verify Operation"
+msgstr "Ověřte provoz"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:54
+msgid "Not Signature Found"
+msgstr "Nenalezen podpis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:59
+msgid "Signed On"
+msgstr "Podepsáno"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:65
+msgid "Signatures List"
+msgstr "Seznam podpisů"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:71
+msgid "Signature [%1%]:"
+msgstr "Podpis [%1%]:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:74
+msgid "A Bad Signature."
+msgstr "Špatný podpis."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:76
+msgid "This Signature is invalid."
+msgstr "Tento podpis je neplatný."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:81
+msgid "A"
+msgstr "A"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:92
+msgid "Missing Key's"
+msgstr "Chybí klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:95
+msgid "Revoked Key's"
+msgstr "Odvolaný klíč"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:98
+msgid "Expired Key's"
+msgstr "Prošlé klíče"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:101
+msgid "Missing CRL's"
+msgstr "Chybí CRL"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:105
+msgid "Signature Fully Valid."
+msgstr "Podpis plně platný."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:107
+msgid "Signature Not Fully Valid."
+msgstr "Podpis není plně platný."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:113
+msgid "Key is NOT present with ID 0x"
+msgstr "Klíč NENÍ přítomen s ID 0x"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:121
+msgid "A signature could NOT be verified due to a Missing Key"
+msgstr "Podpis NELZE ověřit kvůli chybějícímu klíči"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:126
+msgid ""
+"A signature is valid but the key used to verify the signature has been "
+"revoked"
+msgstr "Podpis je platný, ale klíč použitý k ověření podpisu byl odvolán"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:135
+msgid "A signature is valid but expired"
+msgstr "Podpis je platný, ale jeho platnost vypršela"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:142
+msgid ""
+"A signature is valid but the key used to verify the signature has expired."
+msgstr ""
+"Podpis je platný, ale platnost klíče použitého k ověření podpisu vypršela."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:150
+msgid "There was some other error which prevented the signature verification."
+msgstr "Došlo k jiné chybě, která bránila ověření podpisu."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:158
+msgid "Error for key with fingerprint"
+msgstr "Chyba klíče s otiskem prstu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:180
+msgid "Signed By"
+msgstr "Podepsán"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:51
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:73
+msgid "Source: "
+msgstr "Zdroj:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:52
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:63
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:74
+msgid "Description: "
+msgstr "Popis:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/function/GpgKeyOpera.cpp:222
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/function/GpgKeyOpera.cpp:231
+msgid "operator not support"
+msgstr "operátor nepodporuje"
+
+#~ msgid "Edit Expire Datetime"
+#~ msgstr "Upravit datum vypršení platnosti"
+
+#~ msgid "Selecting Nothing will eventually use default key to sign."
+#~ msgstr ""
+#~ "Pokud vyberete možnost Nic, nakonec se k podpisu použije výchozí klíč."
+
+#~ msgid "Save"
+#~ msgstr "Uložit"
+
+#~ msgid "Refresh Key From Key Server"
+#~ msgstr "Obnovit klíč ze serveru klíčů"
+
+#~ msgid "Upload Public Key(s) To Server"
+#~ msgstr "Nahrajte veřejný klíč(y) na server"
+
+#~ msgid "Upload The Selected Public Keys To Server"
+#~ msgstr "Nahrajte vybrané veřejné klíče na server"
+
+#~ msgid "Update Key Pair"
+#~ msgstr "Aktualizujte pár klíčů"
+
+#~ msgid "No."
+#~ msgstr "Ne."
+
+#~ msgid "Address"
+#~ msgstr "Adresa"
+
+#~ msgid "Default Key Server for Import"
+#~ msgstr "Výchozí klíčový server pro import"
+
+#~ msgid "Enable"
+#~ msgstr "Umožnit"
+
+#~ msgid "Port"
+#~ msgstr "Přístav"

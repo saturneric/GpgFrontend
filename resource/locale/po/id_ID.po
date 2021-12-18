@@ -1,0 +1,3708 @@
+# Indonesian translations for GpgFrontend package.
+# Copyright (C) 2021 Saturneric
+# This file is distributed under the same license as the GpgFrontend package.
+# Automatically generated, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GpgFrontend 2.0.2\n"
+"Report-Msgid-Bugs-To: eric@bktus.com\n"
+"POT-Creation-Date: 2021-12-17 02:18+0800\n"
+"PO-Revision-Date: 2021-12-14 00:41+0800\n"
+"Last-Translator: Google Translation <eric@bktus.com>\n"
+"Language-Team: Google Translation <eric@bktus.com>\n"
+"Language: id\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/init.cpp:52
+msgid "Logfile Path"
+msgstr "Jalur File Log"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/init.cpp:75
+msgid "Could not read properly from configure file"
+msgstr "Tidak dapat membaca dengan benar dari file konfigurasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:92
+msgid "ENV Loading Failed"
+msgstr "Pemuatan ENV Gagal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:93
+msgid ""
+"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
+" in Github to install Gnupg and then open GpgFrontend."
+msgstr ""
+"Gnupg(gpg) tidak terinstal dengan benar, ikuti instruksi ReadME di Github "
+"untuk menginstal Gnupg dan kemudian buka GpgFrontend."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:112
+msgid "Loading Gnupg Info..."
+msgstr "Memuat Info Gnupg..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:113
+msgid ""
+"If this process is too slow, please set the key server address appropriately"
+" in the gnupg configuration file (depending on the network situation in your"
+" country or region)."
+msgstr ""
+"Jika proses ini terlalu lambat, harap atur alamat server kunci dengan tepat "
+"di file konfigurasi gnupg (tergantung pada situasi jaringan di negara atau "
+"wilayah Anda)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:161
+msgid "Unhandled Exception Thrown"
+msgstr "Pengecualian yang Tidak Tertangani Dilempar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:162
+msgid ""
+"Oops, an unhandled exception was thrown during the running of the program, "
+"and now it needs to be restarted. This is not a serious problem, it may be "
+"the negligence of the programmer, please report this problem if you can."
+msgstr ""
+"Ups, pengecualian yang tidak tertangani dilemparkan selama menjalankan "
+"program, dan sekarang perlu dimulai ulang. Ini bukan masalah serius, mungkin"
+" kelalaian programmer, tolong laporkan masalah ini jika Anda bisa."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:172
+msgid "A serious error has occurred"
+msgstr "Terjadi kesalahan serius"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:173
+msgid ""
+"Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
+" restarted. If the problem recurs, please manually terminate the program and"
+" report the problem to the developer."
+msgstr ""
+"Oh tidak! GpgFrontend menemukan kesalahan serius pada perangkat lunak, "
+"sehingga perlu dimulai ulang. Jika masalah berulang, harap hentikan program "
+"secara manual dan laporkan masalahnya ke pengembang."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:35
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyUploader.cpp:93
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:65
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:90
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:234
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:260
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:274
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:284
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:308
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:327
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:427
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:60
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:119
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:136
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:234
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:42
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:220
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:264
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:270
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:275
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:304
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:388
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:447
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:174
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:214
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:366
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:434
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:461
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:476
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:339
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:401
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:466
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:473
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:480
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:488
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:224
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:265
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:302
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:374
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:445
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:464
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:61
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:72
+msgid "Error"
+msgstr "Kesalahan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:36
+msgid "Nothing Reply. Please check the Internet connection."
+msgstr "Tidak ada Balas. Silakan periksa koneksi internet."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:56
+msgid "Unknown Error"
+msgstr "Kesalahan yang tidak diketahui"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:94
+msgid "Network Error"
+msgstr "Kesalahan Jaringan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:75
+msgid "Outdated Reply"
+msgstr "Balasan Kedaluwarsa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:90
+msgid "Unknown Reason"
+msgstr "Alasan yang tidak diketahui"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/ComUtils.cpp:94
+msgid "Unknown Reply Format"
+msgstr "Format Balasan Tidak Diketahui"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyUploader.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:66
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/server/api/PubkeyGetter.cpp:91
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:235
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:446
+msgid ""
+"The communication content with the server does not meet the requirements"
+msgstr "Konten komunikasi dengan server tidak memenuhi persyaratan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:242
+msgid "Generate Key"
+msgstr "Hasilkan Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:76
+msgid "Name must contain at least five characters."
+msgstr "Nama harus mengandung setidaknya lima karakter."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:80
+msgid "Please give a email address."
+msgstr "Tolong beri alamat email."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:87
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:225
+msgid "Expiration time no more than 2 years."
+msgstr "Masa kadaluarsa tidak lebih dari 2 tahun."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:117
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:247
+msgid "Generating"
+msgstr "menghasilkan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:259
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:224
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:216
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:263
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:331
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:43
+msgid "Success"
+msgstr "Kesuksesan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:131
+msgid "The new key pair has been generated."
+msgstr "Pasangan kunci baru telah dibuat."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:138
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:267
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:208
+msgid "Failure"
+msgstr "Kegagalan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:167
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:68
+msgid "Key Usage"
+msgstr "Penggunaan Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:169
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:70
+msgid "Encryption"
+msgstr "Enkripsi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:203
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:156
+msgid "Signing"
+msgstr "Penandatanganan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:76
+msgid "Certification"
+msgstr "Sertifikasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:79
+msgid "Authentication"
+msgstr "Autentikasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:44
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:66
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+msgid "Name"
+msgstr "Nama"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:355
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:67
+msgid "Email Address"
+msgstr "Alamat email"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:68
+msgid "Comment"
+msgstr "Komentar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:357
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:123
+msgid "Expiration Date"
+msgstr "Tanggal habis tempo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:358
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:389
+msgid "Never Expire"
+msgstr "Jangan Pernah Kadaluarsa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:359
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:125
+msgid "KeySize (in Bit)"
+msgstr "Ukuran Kunci (dalam Bit)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:126
+msgid "Key Type"
+msgstr "Jenis Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:361
+msgid "Non Pass Phrase"
+msgstr "Frasa Tidak Lulus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:374
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:135
+msgid "Basic Information"
+msgstr "Informasi dasar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:53
+msgid "Generate New Subkey"
+msgstr "Hasilkan Subkunci Baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:260
+msgid "The new subkey has been generated."
+msgstr "Subkunci baru telah dibuat."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:35
+msgid "Decrypt File"
+msgstr "Dekripsi File"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:37
+msgid "Encrypt File"
+msgstr "Enkripsi File"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:39
+msgid "Sign File"
+msgstr "Masuk File"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:41
+msgid "Verify File"
+msgstr "Verifikasi File"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:51
+msgid "Input Parameters"
+msgstr "Parameter Masukan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:57
+msgid "Target File"
+msgstr "Berkas Sasaran"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:63
+msgid "Output File"
+msgstr "Berkas keluaran"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:79
+msgid "Signature File(.sig) Path"
+msgstr "Jalur File Tanda Tangan (.sig)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:104
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:117
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:461
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:46
+msgid "Default"
+msgstr "Bawaan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:157
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:200
+msgid "Open File"
+msgstr "Membuka file"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:188
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:40
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:55
+msgid "Save File"
+msgstr "Menyimpan file"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:216
+msgid "Couldn't open file"
+msgstr "Tidak dapat membuka file"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:235
+msgid "Error Occurred During Encryption"
+msgstr "Terjadi Kesalahan Selama Enkripsi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:248
+msgid "Error Occurred During Decryption"
+msgstr "Terjadi Kesalahan Selama Dekripsi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FileEncryptionDialog.cpp:261
+msgid "Error Occurred During Signature"
+msgstr "Terjadi Kesalahan Selama Tanda Tangan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:33
+msgid "Unsaved Files"
+msgstr "File yang belum disimpan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:82
+msgid ""
+"%1% files contain unsaved information.<br/>Save the changes before closing?"
+msgstr ""
+"%1% file berisi informasi yang belum disimpan.<br/>Simpan perubahan sebelum "
+"ditutup?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:96
+msgid "Check the files you want to save:"
+msgstr "Periksa file yang ingin Anda simpan:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:98
+msgid "Note"
+msgstr "Catatan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/QuitDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:271
+msgid "If you don't save these files, all changes are lost."
+msgstr "Jika Anda tidak menyimpan file ini, semua perubahan akan hilang."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:69
+msgid "Key List Menu: "
+msgstr "Menu Daftar Kunci:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:70
+msgid "Refresh"
+msgstr "Menyegarkan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:71
+msgid "Sync Public Key"
+msgstr "Sinkronkan Kunci Publik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:72
+msgid "Sync public key with your default keyserver"
+msgstr "Sinkronkan kunci publik dengan server kunci default Anda"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:402
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:432
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:520
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:445
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:553
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:219
+msgid "Called"
+msgstr "Ditelepon"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+msgid "Select"
+msgstr "Pilih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:126
+msgid "Type"
+msgstr "Jenis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:127
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:64
+msgid "Usage"
+msgstr "Penggunaan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:127
+msgid "Validity"
+msgstr "Keabsahan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:127
+msgid "Finger Print"
+msgstr "Sidik Jari"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:138
+msgid "Refreshing Key List..."
+msgstr "Menyegarkan Daftar Kunci..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:284
+msgid "Import Keys"
+msgstr "Impor Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:287
+msgid "You've dropped something on the table."
+msgstr "Anda telah menjatuhkan sesuatu di atas meja."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:288
+msgid "GpgFrontend will now try to import key(s)."
+msgstr "GpgFrontend sekarang akan mencoba mengimpor kunci."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:293
+msgid "Always import without bothering."
+msgstr "Selalu impor tanpa repot."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:302
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:86
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:51
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:104
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:113
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:235
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:259
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:265
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:271
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:277
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:191
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:201
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:238
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:264
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:103
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:110
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:117
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:139
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:161
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
+msgid "Setting Operation Error"
+msgstr "Menyetel Kesalahan Operasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:302
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:264
+msgid "confirm_import_keys"
+msgstr "konfirmasi_impor_kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:340
+msgid "Couldn't Open File"
+msgstr "Tidak Dapat Membuka File"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:409
+msgid "Key List Refreshed."
+msgstr "Daftar Kunci Disegarkan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:427
+msgid "Syncing Key List..."
+msgstr "Menyinkronkan Daftar Kunci..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:436
+msgid "Sync [%1%/%2%] %3% %4%"
+msgstr "Sinkronkan [%1%/%2%] %3% %4%"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:444
+msgid "Key List Sync Done."
+msgstr "Sinkronisasi Daftar Kunci Selesai."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:30
+msgid "Confirm"
+msgstr "Mengonfirmasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:36
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:38
+msgid "Signers"
+msgstr "Penandatangan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:47
+msgid "Select Signer(s)"
+msgstr "Pilih Penandatangan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/SignersPicker.cpp:50
+msgid "If any key is selected, the default key will be used for signing."
+msgstr ""
+"Jika ada kunci yang dipilih, kunci default akan digunakan untuk "
+"penandatanganan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:32
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:73
+msgid "Key ID"
+msgstr "ID kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:33
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:60
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:74
+msgid "Algorithm"
+msgstr "algoritma"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:34
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:75
+msgid "Key Size"
+msgstr "Ukuran Kunci:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:35
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:76
+msgid "Nominal Usage"
+msgstr "Penggunaan Nominal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:36
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:77
+msgid "Actual Usage"
+msgstr "Penggunaan Sebenarnya"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
+msgid "Expires on"
+msgstr "Kadaluarsa pada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:38
+msgid "Last Update"
+msgstr "Pembaharuan Terakhir"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:39
+msgid "Secret Key Existence"
+msgstr "Keberadaan Kunci Rahasia"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:51
+msgid "untitled"
+msgstr "tanpa judul"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:415
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:318
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:318
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:410
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:63
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:152
+msgid "Warning"
+msgstr "Peringatan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:93
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:416
+msgid ""
+"Cannot read file %1%:\n"
+"%2%."
+msgstr ""
+"Tidak dapat membaca file %1%:\n"
+"%2%."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:104
+msgid "Open file"
+msgstr "Membuka file"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:204
+msgid "Save file"
+msgstr "Menyimpan file"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:266
+msgid "Unsaved document"
+msgstr "Dokumen belum disimpan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:267
+msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgstr "Dokumen \"%1\" telah diubah. Apakah Anda ingin menyimpan perubahan Anda?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:270
+msgid "Note:"
+msgstr "Catatan:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:151
+msgid "The path is not exists, unprivileged or unreachable."
+msgstr ""
+"Jalannya tidak ada, tidak memiliki hak istimewa atau tidak dapat dijangkau."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:159
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:154
+msgid "Open"
+msgstr "Membuka"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:161
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:297
+msgid "Rename"
+msgstr "Ganti nama"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:163
+msgid "Delete"
+msgstr "Menghapus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:164
+msgid "Encrypt Sign"
+msgstr "Enkripsi Tanda"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:169
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:176
+msgid "Decrypt Verify"
+msgstr "Dekripsi Verifikasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:169
+msgid "(.gpg .asc)"
+msgstr "(.gpg .asc)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:369
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:378
+msgid "Sign"
+msgstr "Tanda"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:189
+msgid "Verify"
+msgstr "Memeriksa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:175
+msgid "(.sig .gpg .asc)"
+msgstr "(.sig .gpg .asc)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:178
+msgid "Calculate Hash"
+msgstr "Hitung Hash"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:407
+msgid "Make New Directory"
+msgstr "Buat Direktori Baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:185
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:420
+msgid "Create Empty File"
+msgstr "Buat File Kosong"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:204
+msgid "Show Hidden File"
+msgstr "Tampilkan File Tersembunyi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:216
+msgid "Show System File"
+msgstr "Tampilkan File Sistem"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:275
+msgid "The directory is unprivileged or unreachable."
+msgstr "Direktori tidak memiliki hak istimewa atau tidak dapat dijangkau."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:285
+msgid "The file is unprivileged or unreachable."
+msgstr "File tidak memiliki hak istimewa atau tidak dapat dijangkau."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:297
+msgid "New Filename"
+msgstr "Nama File Baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:309
+msgid "Unable to rename the file or folder."
+msgstr "Tidak dapat mengganti nama file atau folder."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:319
+msgid "Are you sure you want to delete it?"
+msgstr "Anda yakin ingin menghapusnya?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:328
+msgid "Unable to delete the file or folder."
+msgstr "Tidak dapat menghapus file atau folder."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:359
+msgid "File Hash Information"
+msgstr "File Informasi Hash"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:360
+msgid "filename"
+msgstr "nama file"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:375
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:383
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:391
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:158
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
+msgid ": "
+msgstr ":"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:407
+msgid "Directory Name"
+msgstr "Nama Direktori"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:421
+msgid "Filename (you can given extension)"
+msgstr "Nama file (Anda dapat diberikan ekstensi)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:427
+msgid "Unable to create the file."
+msgstr "Tidak dapat membuat file."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:39
+msgid "Import from keyserver"
+msgstr "Impor dari server kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:43
+msgid "Key not present with id 0x"
+msgstr "Kunci tidak ada dengan id 0x"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:105
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:138
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:54
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+msgid "Status"
+msgstr "Status"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:47
+msgid ":"
+msgstr ":"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:49
+msgid "Key not present in key list"
+msgstr "Kunci tidak ada dalam daftar kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:57
+msgid "A Signature"
+msgstr "Tanda tangan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:78
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:112
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:128
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:143
+msgid "Key Information is NOT Available"
+msgstr "Informasi Kunci TIDAK Tersedia"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:64
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:80
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:114
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:145
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:71
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:49
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:100
+msgid "Fingerprint"
+msgstr "Sidik jari"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:73
+msgid "Cert Revoked"
+msgstr "Sertifikat Dicabut"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:89
+msgid "Signature Expired"
+msgstr "Tanda Tangan Kedaluwarsa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:105
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:107
+msgid "Key Expired"
+msgstr "Kunci Kedaluwarsa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:123
+msgid "General Error"
+msgstr "Kesalahan Umum"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:138
+msgid "Unknown Error "
+msgstr "Kesalahan yang tidak diketahui"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:168
+msgid "Signer Name"
+msgstr "Nama Penandatangan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:169
+msgid "Signer Email"
+msgstr "Email Penandatangan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:170
+msgid "Key's Fingerprint"
+msgstr "Sidik Jari Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:171
+msgid "Valid"
+msgstr "Sah"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:172
+msgid "Flags"
+msgstr "Bendera"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:179
+msgid "Fully Valid"
+msgstr "Sepenuhnya Valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:181
+msgid "NOT Fully Valid"
+msgstr "TIDAK Sepenuhnya Valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:187
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:83
+msgid "Good"
+msgstr "Bagus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:190
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:86
+msgid "Bad"
+msgstr "Buruk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:193
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:89
+msgid "Expired"
+msgstr "Kedaluwarsa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:196
+msgid "Missing Key"
+msgstr "Kunci yang Hilang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:199
+msgid "Revoked Key"
+msgstr "Kunci yang Dicabut"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:202
+msgid "Expired Key"
+msgstr "Kunci kedaluwarsa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:205
+msgid "Missing CRL"
+msgstr "CRL hilang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:38
+msgid "InfoBoard's Actions Menu"
+msgstr "Menu Tindakan Papan Info"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:118
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:98
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:123
+msgid "Copy"
+msgstr "Salinan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:41
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:60
+msgid "Clear"
+msgstr "Jernih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:86
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
+msgid "info_font_size"
+msgstr "info_font_size"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:164
+msgid "Save Information Board's Content"
+msgstr "Simpan Konten Papan Informasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:172
+msgid "The file path is not exists, unprivileged or unreachable."
+msgstr "Jalur file tidak ada, unprivileged atau unreachable."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:39
+msgid "First Start Wizard"
+msgstr "Penyihir Mulai Pertama"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:82
+msgid "Getting Started..."
+msgstr "Mulai..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:83
+msgid "... with GpgFrontend"
+msgstr "... dengan GpgFrontend"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:86
+msgid "Welcome to use GpgFrontend for decrypting and signing text or file!"
+msgstr ""
+"Selamat menggunakan GpgFrontend untuk mendekripsi dan menandatangani teks "
+"atau file!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:89
+msgid ""
+"is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free "
+"OpenPGP Crypto Tool."
+msgstr ""
+"adalah Alat Kripto OpenPGP yang Kuat, Mudah Digunakan, Ringkas, Lintas "
+"Platform, dan Bebas Instalasi."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:91
+msgid "For brief information have a look at the"
+msgstr "Untuk informasi singkat lihat di"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:93
+msgid "Overview"
+msgstr "Ringkasan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:94
+msgid "by clicking the link, the page will open in the web browser"
+msgstr "dengan mengklik tautan, halaman akan terbuka di browser web"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:103
+msgid ""
+"If it supports the language currently being used in your system, GpgFrontend"
+" will automatically set it."
+msgstr ""
+"Jika mendukung bahasa yang sedang digunakan di sistem Anda, GpgFrontend akan"
+" secara otomatis mengaturnya."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:121
+msgid "Choose your action..."
+msgstr "Pilih tindakan Anda..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:122
+msgid "...by clicking on the appropriate link."
+msgstr "...dengan mengklik link yang sesuai."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:126
+msgid ""
+"If you have never used GpgFrontend before and also don't own a gpg key yet "
+"you may possibly want to read how to"
+msgstr ""
+"Jika Anda belum pernah menggunakan GpgFrontend sebelumnya dan juga belum "
+"memiliki kunci gpg, Anda mungkin ingin membaca caranya"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:138
+msgid ""
+"If you want to learn how to encrypt, decrypt, sign and verify text, you can "
+"read "
+msgstr ""
+"Jika Anda ingin mempelajari cara mengenkripsi, mendekripsi, menandatangani, "
+"dan memverifikasi teks, Anda dapat membaca"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:143
+msgid "Encrypt & Decrypt Text"
+msgstr "Enkripsi & Dekripsi Teks"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:158
+msgid "or"
+msgstr "atau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:146
+msgid "Sign & Verify Text"
+msgstr "Masuk & Verifikasi Teks"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:154
+msgid "If you want to operate file, you can read "
+msgstr "Jika Anda ingin mengoperasikan file, Anda dapat membaca"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:158
+msgid "Encrypt & Sign File"
+msgstr "Enkripsi & Masuk File"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:161
+msgid "Sign & Verify File"
+msgstr "Masuk & Verifikasi File"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:187
+msgid "Create a keypair..."
+msgstr "Buat pasangan kunci..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:188
+msgid "...for decrypting and signing messages"
+msgstr "...untuk mendekripsi dan menandatangani pesan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:190
+msgid ""
+"You should create a new keypair.The pair consists of a public and a private "
+"key.<br>Other users can use the public key to encrypt messages for you and "
+"verify messages signed by you.You can use the private key to decrypt and "
+"sign messages.<br>For more information have a look at the offline tutorial "
+"(which then is shown in the main window):"
+msgstr ""
+"Anda harus membuat pasangan kunci baru. Pasangan ini terdiri dari kunci "
+"publik dan kunci pribadi.<br>Pengguna lain dapat menggunakan kunci publik "
+"untuk mengenkripsi pesan untuk Anda dan memverifikasi pesan yang "
+"ditandatangani oleh Anda. Anda dapat menggunakan kunci pribadi untuk "
+"mendekripsi dan menandatangani pesan.<br>Untuk informasi lebih lanjut, lihat"
+" tutorial offline (yang kemudian ditampilkan di jendela utama):"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:202
+msgid "Offline tutorial"
+msgstr "Tutorial offline"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:210
+msgid "Create New Key"
+msgstr "Buat Kunci Baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:232
+msgid "Ready."
+msgstr "Siap."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:233
+msgid "Have fun with GpgFrontend!"
+msgstr "Bersenang-senang dengan GpgFrontend!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:236
+msgid "You are ready to use GpgFrontend now.<br><br>"
+msgstr "Anda siap menggunakan GpgFrontend sekarang.<br><br>"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:240
+msgid "The Online Document"
+msgstr "Dokumen Daring"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:241
+msgid ""
+" will get you started with GpgFrontend. Anytime you encounter problems, "
+"please try to find help from the documentation"
+msgstr ""
+" akan membantu Anda memulai dengan GpgFrontend. Setiap kali Anda mengalami "
+"masalah, coba cari bantuan dari dokumentasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:250
+msgid "Open offline help."
+msgstr "Buka bantuan offline."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:253
+msgid "Dont show the wizard again."
+msgstr "Jangan tampilkan wizard lagi."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:48
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:169
+msgid "Invalid Own Key"
+msgstr "Kunci Sendiri Tidak Valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:49
+msgid ""
+"Own Key can not be use to do any operation. Please go to the setting "
+"interface to select an OwnKey and get a ServiceToken."
+msgstr ""
+"Kunci Sendiri tidak dapat digunakan untuk melakukan operasi apa pun. Silakan"
+" pergi ke antarmuka pengaturan untuk memilih OwnKey dan mendapatkan "
+"ServiceToken."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:61
+msgid "Please obtain a Service Token from the server in the settings."
+msgstr "Silakan dapatkan Token Layanan dari server di pengaturan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:98
+msgid "Getting Cpt From Server"
+msgstr "Mendapatkan Cpt Dari Server"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:136
+msgid "Invalid short ciphertext"
+msgstr "ciphertext pendek tidak valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:158
+msgid "Invalid Service Token"
+msgstr "Token Layanan Tidak Valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:159
+msgid "Please go to the setting interface to get a ServiceToken."
+msgstr "Silakan buka antarmuka pengaturan untuk mendapatkan ServiceToken."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:170
+msgid "Own Key can not be use to do any operation."
+msgstr "Kunci Sendiri tidak dapat digunakan untuk melakukan operasi apa pun."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:219
+msgid "Getting Scpt From Server"
+msgstr "Mendapatkan Scpt Dari Server"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:247
+msgid ""
+"Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
+msgstr ""
+"Pemberitahuan: Gunakan operasi Dekripsi & Verifikasi untuk mendekripsi teks "
+"kripto pendek ini."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowServerSlotFunction.cpp:254
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:465
+msgid "There is a problem with the communication with the server"
+msgstr "Ada masalah dengan komunikasi dengan server"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:38
+msgid "Select a file before doing it."
+msgstr "Pilih file sebelum melakukannya."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:43
+msgid "No permission to read this file."
+msgstr "Tidak ada izin untuk membaca file ini."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:48
+msgid "No permission to create file."
+msgstr "Tidak ada izin untuk membuat file."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:63
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:319
+msgid "The target file already exists, do you need to overwrite it?"
+msgstr "File target sudah ada, apakah Anda perlu menimpanya?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:72
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:329
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:273
+msgid "No Key Selected"
+msgstr "Tidak Ada Kunci yang Dipilih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:85
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:395
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:405
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:299
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:479
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:493
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:535
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:544
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:361
+msgid "Invalid Operation"
+msgstr "Operasi Tidak Valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:81
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:87
+msgid ""
+"The selected key contains a key that does not actually have a encrypt usage."
+msgstr ""
+"Kunci yang dipilih berisi kunci yang sebenarnya tidak memiliki penggunaan "
+"enkripsi."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:83
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:340
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:144
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:286
+msgid "For example the Following Key:"
+msgstr "Misalnya Kunci Berikut:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:92
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:95
+msgid "Encrypting"
+msgstr "Mengenkripsi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:108
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:221
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:305
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:389
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:448
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:121
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:215
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:367
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:435
+msgid "An error occurred during operation."
+msgstr "Terjadi kesalahan selama pengoperasian."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:196
+msgid "Decrypting"
+msgstr "Mendekripsi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:179
+msgid ""
+"The selected key contains a key that does not actually have a sign usage."
+msgstr ""
+"Kunci yang dipilih berisi kunci yang sebenarnya tidak memiliki tanda "
+"penggunaan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:181
+msgid "for example the Following Key:"
+msgstr "misalnya Kunci Berikut:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:191
+msgid "The signature file \"%1\" exists, do you need to overwrite it?"
+msgstr "File tanda tangan \"%1\" ada, apakah Anda perlu menimpanya?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
+msgid "Origin file to verify"
+msgstr "File asal untuk diverifikasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
+msgid "Filepath"
+msgstr "jalur file"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:265
+msgid ""
+"Please select the appropriate origin file or signature file. Ensure that "
+"both are in this directory."
+msgstr ""
+"Silakan pilih file asal atau file tanda tangan yang sesuai. Pastikan "
+"keduanya ada di direktori ini."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:271
+msgid "No permission to read target file."
+msgstr "Tidak ada izin untuk membaca file target."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:276
+msgid "No permission to read signature file."
+msgstr "Tidak ada izin untuk membaca file tanda tangan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:283
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:244
+msgid "Verifying"
+msgstr "Memverifikasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:338
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:284
+msgid "Invalid KeyPair"
+msgstr "Pasangan Kunci Tidak Valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:339
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:285
+msgid "The selected keypair cannot be used for encryption."
+msgstr "Pasangan kunci yang dipilih tidak dapat digunakan untuk enkripsi."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:314
+msgid "Encrypting and Signing"
+msgstr "Enkripsi dan Penandatanganan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:411
+msgid "The output file %1 already exists, do you need to overwrite it?"
+msgstr "File keluaran %1 sudah ada, apakah Anda perlu menimpanya?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:423
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:408
+msgid "Decrypting and Verifying"
+msgstr "Mendekripsi dan Memverifikasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:34
+msgid "New"
+msgstr "Baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:40
+msgid "Open a new file"
+msgstr "Buka file baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:43
+msgid "Open..."
+msgstr "Membuka..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:46
+msgid "Open an existing file"
+msgstr "Buka file yang ada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:49
+msgid "File Browser"
+msgstr "Peramban Berkas"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:52
+msgid "Open a file browser"
+msgstr "Buka peramban berkas"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:58
+msgid "Save the current File"
+msgstr "Simpan File saat ini"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:61
+msgid "Save As"
+msgstr "Simpan Sebagai"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:64
+msgid "Save the current File as..."
+msgstr "Simpan File saat ini sebagai..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:67
+msgid "Print"
+msgstr "Mencetak"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:70
+msgid "Print Document"
+msgstr "Cetak Dokumen"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:160
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:163
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:44
+msgid "Close"
+msgstr "Menutup"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:75
+msgid "Close file"
+msgstr "Tutup file"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:78
+msgid "Quit"
+msgstr "Berhenti"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:81
+msgid "Quit Program"
+msgstr "Keluar dari Program"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:86
+msgid "Undo"
+msgstr "Membuka"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:88
+msgid "Undo Last Edit Action"
+msgstr "Urungkan Tindakan Edit Terakhir"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:91
+msgid "Redo"
+msgstr "Mengulangi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:93
+msgid "Redo Last Edit Action"
+msgstr "Ulangi Tindakan Edit Terakhir"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:96
+msgid "Zoom In"
+msgstr "Perbesar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:100
+msgid "Zoom Out"
+msgstr "Perkecil"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:104
+msgid "Paste"
+msgstr "Tempel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:107
+msgid "Paste Text From Clipboard"
+msgstr "Tempel Teks Dari Papan Klip"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:110
+msgid "Cut"
+msgstr "Memotong"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:114
+msgid "Cut the current selection's contents to the clipboard"
+msgstr "Potong konten pilihan saat ini ke clipboard"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:122
+msgid "Copy the current selection's contents to the clipboard"
+msgstr "Salin konten pilihan saat ini ke clipboard"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:126
+msgid "Quote"
+msgstr "Mengutip"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:128
+msgid "Quote whole text"
+msgstr "Kutip seluruh teks"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:131
+msgid "Select All"
+msgstr "Pilih Semua"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:134
+msgid "Select the whole text"
+msgstr "Pilih seluruh teks"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/FindWidget.cpp:40
+msgid "Find"
+msgstr "Menemukan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:139
+msgid "Find a word"
+msgstr "Temukan kata"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:142
+msgid "Remove spacing"
+msgstr "Hapus spasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:146
+msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
+msgstr ""
+"Hapus jeda baris ganda, mis. dalam teks yang ditempelkan dari Web Mailer"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:75
+msgid "Settings"
+msgstr "Pengaturan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:151
+msgid "Open settings dialog"
+msgstr "Buka dialog pengaturan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:158
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:245
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:377
+msgid "Encrypt"
+msgstr "enkripsi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:161
+msgid "Encrypt Message"
+msgstr "Enkripsi Pesan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:167
+msgid "Encrypt and Sign Message"
+msgstr "Enkripsi dan Tanda Tangani Pesan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:170
+msgid "Decrypt"
+msgstr "Dekripsi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:173
+msgid "Decrypt Message"
+msgstr "Dekripsi Pesan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:179
+msgid "Decrypt and Verify Message"
+msgstr "Dekripsi dan Verifikasi Pesan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:186
+msgid "Sign Message"
+msgstr "Tanda Tangani Pesan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:192
+msgid "Verify Message"
+msgstr "Verifikasi Pesan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:198
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:310
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:386
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:180
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:237
+msgid "File"
+msgstr "Mengajukan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:200
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:182
+msgid "Import New Key From File"
+msgstr "Impor Kunci Baru Dari File"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:204
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:186
+msgid "Clipboard"
+msgstr "Papan klip"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:206
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:188
+msgid "Import New Key From Clipboard"
+msgstr "Impor Kunci Baru Dari Papan Klip"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:211
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:193
+msgid "Keyserver"
+msgstr "Server kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:213
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:195
+msgid "Import New Key From Keyserver"
+msgstr "Impor Kunci Baru Dari Server Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:218
+msgid "Editor"
+msgstr "Editor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:220
+msgid "Import New Key From Editor"
+msgstr "Impor Kunci Baru Dari Editor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:224
+msgid "Manage Keys"
+msgstr "Kelola Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:226
+msgid "Open Key Management"
+msgstr "Buka Manajemen Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:233
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:34
+msgid "About"
+msgstr "Tentang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:235
+msgid "Show the application's About box"
+msgstr "Tampilkan kotak Tentang aplikasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:239
+msgid "Translate"
+msgstr "Menerjemahkan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:241
+msgid "Information about translation"
+msgstr "Informasi tentang terjemahan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:248
+msgid "Check for Updates"
+msgstr "Periksa Pembaruan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:250
+msgid "Check for updates"
+msgstr "Periksa pembaruan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+msgid "Open Wizard"
+msgstr "Buka Penyihir"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:255
+msgid "Open the wizard"
+msgstr "Buka penyihir"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:261
+msgid "Append Selected Key(s) To Text"
+msgstr "Tambahkan Kunci yang Dipilih Ke Teks"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:263
+msgid "Append The Selected Keys To Text in Editor"
+msgstr "Tambahkan Tombol yang Dipilih Ke Teks di Editor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:267
+msgid "Copy Email"
+msgstr "Salin Email"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:269
+msgid "Copy selected Email to clipboard"
+msgstr "Salin Email yang dipilih ke papan klip"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:275
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:230
+msgid "Show Key Details"
+msgstr "Tampilkan Detail Utama"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:231
+msgid "Show Details for this Key"
+msgstr "Tampilkan Detail untuk Kunci ini"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:293
+msgid "Remove PGP Header"
+msgstr "Hapus Tajuk PGP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:296
+msgid "Add PGP Header"
+msgstr "Tambahkan Tajuk PGP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:300
+msgid "Send An Email"
+msgstr "Kirim Sebuah email"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:323
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:409
+msgid "Edit"
+msgstr "Sunting"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:341
+msgid "Crypt"
+msgstr "Ruang bawah tanah"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:351
+msgid "Keys"
+msgstr "Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:352
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:278
+msgid "Import Key"
+msgstr "Impor Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:360
+msgid "Steganography"
+msgstr "Steganografi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:364
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:45
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:137
+msgid "Email"
+msgstr "Surel"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:375
+msgid "View"
+msgstr "Melihat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:377
+msgid "Help"
+msgstr "Membantu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:394
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:139
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:44
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:68
+msgid "Operations"
+msgstr "Operasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:404
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:259
+msgid "Key"
+msgstr "Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:417
+msgid "Special Edit"
+msgstr "Sunting Khusus"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:429
+msgid "Import key from..."
+msgstr "Impor kunci dari..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:430
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:277
+msgid "Import key"
+msgstr "Impor kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:446
+msgid "Ready"
+msgstr "Siap"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:453
+msgid "Key ToolBox"
+msgstr "Kotak Alat Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:469
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:44
+msgid "Only Public Key"
+msgstr "Hanya Kunci Publik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:478
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:53
+msgid "Has Private Key"
+msgstr "Memiliki Kunci Pribadi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:491
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:86
+msgid "Information Board"
+msgstr "Papan informasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:64
+msgid ""
+"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr ""
+"Tidak Ada Kunci yang Dipilih. Apakah Anda ingin mengenkripsi dengan sandi "
+"simetris menggunakan frasa sandi?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:70
+msgid "Symmetrically Encrypting"
+msgstr "Enkripsi Simetris"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:142
+msgid ""
+"The selected key contains a key that does not actually have a signature "
+"usage."
+msgstr ""
+"Kunci yang dipilih berisi kunci yang sebenarnya tidak memiliki penggunaan "
+"tanda tangan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:188
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:460
+msgid "Notice"
+msgstr "Melihat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:189
+msgid "Short Crypto Text only supports Decrypt & Verify."
+msgstr "Teks Kripto Pendek hanya mendukung Dekripsi & Verifikasi."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:331
+msgid "Automatic Key Exchange Warning"
+msgstr "Peringatan Pertukaran Kunci Otomatis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:332
+msgid ""
+"Part of the automatic key exchange failed, which may be related to your key."
+msgstr ""
+"Bagian dari pertukaran kunci otomatis gagal, yang mungkin terkait dengan "
+"kunci Anda."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:334
+msgid ""
+"If possible, try to use the RSA algorithm compatible with the server for "
+"signing."
+msgstr ""
+"Jika memungkinkan, coba gunakan algoritme RSA yang kompatibel dengan server "
+"untuk penandatanganan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:357
+msgid "Service Token Empty"
+msgstr "Token Layanan Kosong"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:358
+msgid ""
+"Please go to the settings interface to set Own Key and get Service Token."
+msgstr ""
+"Silakan pergi ke antarmuka pengaturan untuk mengatur Kunci Sendiri dan "
+"mendapatkan Token Layanan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:461
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:476
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:339
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:401
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:488
+msgid "Key Not Found."
+msgstr "Kunci Tidak Ditemukan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:500
+msgid "called"
+msgstr "ditelepon"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:503
+msgid "GpgFrontend Upgradeable (New Version: %1)."
+msgstr "GpgFrontend Dapat Diupgrade (Versi Baru: %1)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:514
+msgid "Unreleased Version"
+msgstr "Versi yang belum dirilis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:516
+msgid ""
+"This version(%1) has not been officially released and is not recommended for"
+" use in a production environment. <br/>"
+msgstr ""
+"Versi ini (%1) belum dirilis secara resmi dan tidak direkomendasikan untuk "
+"digunakan dalam lingkungan produksi. <br/>"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:520
+msgid "You can download the latest version(%1) on Github Releases Page.<br/>"
+msgstr "Anda dapat mengunduh versi terbaru (%1) di Halaman Rilis Github.<br/>"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:136
+msgid "Critical error occur while loading GpgFrontend."
+msgstr "Kesalahan kritis terjadi saat memuat GpgFrontend."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:135
+msgid "Loading Failed"
+msgstr "Gagal Memuat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:41
+msgid "All"
+msgstr "Semua"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:62
+msgid "No Master Key"
+msgstr "Tidak Ada Kunci Utama"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:71
+msgid "Revoked"
+msgstr "Dicabut"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:104
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
+msgid "icon_size"
+msgstr "ikon_ukuran"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:113
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
+msgid "icon_style"
+msgstr "ikon_gaya"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:145
+msgid "KeyPair Management"
+msgstr "Manajemen Pasangan Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:155
+msgid "Ctrl+O"
+msgstr "Ctrl+O"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:156
+msgid "Open Key File"
+msgstr "Buka File Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:161
+msgid "Ctrl+Q"
+msgstr "Ctrl+Q"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:166
+msgid "New Keypair"
+msgstr "Pasangan Kunci Baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:167
+msgid "Ctrl+N"
+msgstr "Ctrl+N"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:169
+msgid "Generate KeyPair"
+msgstr "Hasilkan Pasangan Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:173
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:178
+msgid "New Subkey"
+msgstr "Subkunci Baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:174
+msgid "Ctrl+Shift+N"
+msgstr "Ctrl+Shift+N"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:176
+msgid "Generate Subkey For Selected KeyPair"
+msgstr "Hasilkan Subkunci Untuk KeyPair Terpilih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:200
+msgid "Export To Clipboard"
+msgstr "Ekspor Ke Papan Klip"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:202
+msgid "Export Selected Key(s) To Clipboard"
+msgstr "Ekspor Kunci yang Dipilih ke Papan Klip"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:206
+msgid "Export To File"
+msgstr "Ekspor Ke File"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:208
+msgid "Export Selected Key(s) To File"
+msgstr "Ekspor Kunci yang Dipilih Ke File"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:212
+msgid "Export As OpenSSH"
+msgstr "Ekspor Sebagai OpenSSH"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:215
+msgid "Export Selected Key(s) As OpenSSH Format to File"
+msgstr "Ekspor Kunci yang Dipilih Sebagai Format OpenSSH ke File"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:219
+msgid "Delete Selected Key(s)"
+msgstr "Hapus Kunci yang Dipilih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:220
+msgid "Delete the Selected keys"
+msgstr "Hapus tombol yang dipilih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:224
+msgid "Delete Checked Key(s)"
+msgstr "Hapus Kunci yang Dicentang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:225
+msgid "Delete the Checked keys"
+msgstr "Hapus kunci yang Dicentang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:267
+msgid "Generate"
+msgstr "Menghasilkan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:268
+msgid "Generate A New Keypair or Subkey"
+msgstr "Hasilkan Pasangan Kunci atau Subkunci Baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:318
+msgid "Deleting Keys"
+msgstr "Menghapus Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:321
+msgid "Are you sure that you want to delete the following keys?"
+msgstr "Apakah Anda yakin ingin menghapus kunci berikut?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:323
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:373
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:410
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:509
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:561
+msgid "The action can not be undone."
+msgstr "Tindakan tidak dapat dibatalkan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:363
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:232
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:273
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:310
+msgid "Export Key To File"
+msgstr "Ekspor Kunci Ke File"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:364
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:233
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:274
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:311
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:167
+msgid "Key Files"
+msgstr "File Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:500
+msgid "key(s) exported"
+msgstr "kunci diekspor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:396
+msgid "Please select one KeyPair before doing this operation."
+msgstr "Silakan pilih salah satu KeyPair sebelum melakukan operasi ini."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:406
+msgid ""
+"If a key pair does not have a private key then it will not be able to "
+"generate sub-keys."
+msgstr ""
+"Jika pasangan kunci tidak memiliki kunci pribadi maka tidak akan dapat "
+"menghasilkan sub-kunci."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:466
+msgid "No Key Checked."
+msgstr "Tidak Ada Kunci yang Diperiksa."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:474
+msgid "An error occur in exporting."
+msgstr "Terjadi kesalahan dalam mengekspor."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:481
+msgid ""
+"This key may not be able to export as OpenSSH format. Please check the key-"
+"size of the subkey(s) used to sign."
+msgstr ""
+"Kunci ini mungkin tidak dapat diekspor sebagai format OpenSSH. Harap periksa"
+" ukuran kunci dari subkunci yang digunakan untuk menandatangani."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:495
+msgid "Export OpenSSH Key To File"
+msgstr "Ekspor Kunci OpenSSH Ke File"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:496
+msgid "OpenSSH Public Key Files"
+msgstr "File Kunci Publik OpenSSH"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:45
+msgid "Incomplete configuration"
+msgstr "Konfigurasi tidak lengkap"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:46
+msgid ""
+"The SMTP address is empty, please go to the setting interface to complete "
+"the configuration."
+msgstr ""
+"Alamat SMTP kosong, silakan buka antarmuka pengaturan untuk menyelesaikan "
+"konfigurasi."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:81
+msgid "CC"
+msgstr "CC"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:76
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:80
+msgid "BCC"
+msgstr "SM"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:77
+msgid "Sender"
+msgstr "Pengirim"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:78
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:73
+msgid "Recipient"
+msgstr "Penerima"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:79
+msgid "Mail Subject"
+msgstr "Subjek Surat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:83
+msgid ""
+"Tips: You can fill in multiple email addresses, please separate them with "
+"\";\"."
+msgstr ""
+"Tips: Anda dapat mengisi beberapa alamat email, harap pisahkan dengan \";\"."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:85
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:87
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
+msgid "Send Mail"
+msgstr "Kirim Email"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:106
+msgid "Recipient cannot be empty"
+msgstr "Penerima tidak boleh kosong"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:112
+msgid "One or more recipient's email is invalid"
+msgstr "Satu atau beberapa email penerima tidak valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:119
+msgid "Sender cannot be empty"
+msgstr "Pengirim tidak boleh kosong"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:121
+msgid "Sender's email is invalid"
+msgstr "Email pengirim tidak valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:125
+msgid "Subject cannot be empty"
+msgstr "Subjek tidak boleh kosong"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:132
+msgid "One or more cc email is invalid"
+msgstr "Satu atau lebih email cc tidak valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:142
+msgid "One or more bcc email is invalid"
+msgstr "Satu atau lebih email bcc tidak valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:207
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:212
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:217
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:258
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:272
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:308
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:314
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:321
+msgid "Fail"
+msgstr "Gagal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:207
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:308
+msgid "Fail to Connect SMTP Server"
+msgstr "Gagal Menghubungkan Server SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:212
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:314
+msgid "Fail to Login into SMTP Server"
+msgstr "Gagal Masuk ke Server SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:218
+msgid "Fail to Send Mail to SMTP Server"
+msgstr "Gagal Mengirim Email ke Server SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:225
+msgid "Succeed in Sending Mail to SMTP Server"
+msgstr "Berhasil Mengirim Email ke Server SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:235
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:191
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:161
+msgid "save_key_checked"
+msgstr "save_key_checked"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:150
+msgid "identity_enable"
+msgstr "identitas_aktifkan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:103
+msgid "mail_address"
+msgstr "alamat email"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:110
+msgid "username"
+msgstr "nama pengguna"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:259
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:117
+msgid "password"
+msgstr "kata sandi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:265
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:124
+msgid "port"
+msgstr "Pelabuhan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:271
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:132
+msgid "connection_type"
+msgstr "koneksi_tipe"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:277
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:139
+msgid "default_sender"
+msgstr "default_sender"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:51
+msgid "Uploading Public Key"
+msgstr "Mengunggah Kunci Publik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:71
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:407
+msgid "Set target Key Server to default Key Server"
+msgstr "Tetapkan Server Kunci target ke Server Kunci default"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:244
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:410
+msgid "Cannot read default_keyserver From Settings"
+msgstr "Tidak dapat membaca default_keyserver Dari Pengaturan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:76
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:412
+msgid "Default Keyserver Not Found"
+msgstr "Server Kunci Default Tidak Ditemukan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:413
+msgid ""
+"Cannot read default keyserver from your settings, please set a default "
+"keyserver first"
+msgstr ""
+"Tidak dapat membaca server kunci default dari pengaturan Anda, harap atur "
+"server kunci default terlebih dahulu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:286
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:457
+msgid "Key Not Found"
+msgstr "Kunci Tidak Ditemukan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:289
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:258
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:460
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:477
+msgid "Timeout"
+msgstr "Waktu habis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:292
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:261
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:463
+msgid "Key Server Not Found"
+msgstr "Server Kunci Tidak Ditemukan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:143
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:295
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:264
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:466
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:484
+msgid "Connection Error"
+msgstr "Koneksi error"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:148
+msgid "Upload Success"
+msgstr "Unggah Berhasil"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyUploadDialog.cpp:149
+msgid "Upload Public Key Successfully"
+msgstr "Unggah Kunci Publik Berhasil"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:45
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:186
+msgid "New UID"
+msgstr "UID baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:46
+msgid "UID Management"
+msgstr "Manajemen UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:65
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:32
+msgid "UIDs"
+msgstr "UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:70
+msgid "TOFU"
+msgstr "TAHU"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:82
+msgid "Signature of Selected UID"
+msgstr "Tanda Tangan UID Terpilih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:147
+msgid "Create Date (UTC)"
+msgstr "Tanggal Pembuatan (UTC)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:156
+msgid "Expired Date (UTC)"
+msgstr "Tanggal Kedaluwarsa (UTC)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:232
+msgid "TOFU %1"
+msgstr "tahu %1"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:281
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:224
+msgid "Never Expires"
+msgstr "Tidak Pernah Kadaluarsa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:300
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:357
+msgid "Please select one or more UIDs before doing this operation."
+msgstr "Silakan pilih satu atau lebih UID sebelum melakukan operasi ini."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:321
+msgid "Sign Selected UID(s)"
+msgstr "Tandatangani UID yang Dipilih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:323
+msgid "Delete Selected UID(s)"
+msgstr "Hapus UID yang Dipilih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:343
+msgid "Successful Operation"
+msgstr "Operasi yang Berhasil"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:344
+msgid "Successfully added a new UID."
+msgstr "Berhasil menambahkan UID baru."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:346
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:381
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:416
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:514
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:566
+msgid "Operation Failed"
+msgstr "Operasi gagal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:347
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:417
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:515
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:567
+msgid "An error occurred during the operation."
+msgstr "Terjadi kesalahan selama operasi."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:368
+msgid "Deleting UIDs"
+msgstr "Menghapus UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:371
+msgid "Are you sure that you want to delete the following UIDs?"
+msgstr "Apakah Anda yakin ingin menghapus UID berikut?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:382
+msgid "An error occurred during the delete %1 operation."
+msgstr "Terjadi kesalahan selama operasi hapus %1."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:406
+msgid "Set Primary UID"
+msgstr "Setel UID Utama"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:408
+msgid "Are you sure that you want to set the Primary UID to?"
+msgstr "Yakin ingin menyetel UID Utama?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:448
+msgid "Set As Primary"
+msgstr "Tetapkan Sebagai Utama"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:451
+msgid "Sign UID"
+msgstr "Masuk UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:453
+msgid "Delete UID"
+msgstr "Hapus UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:480
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:494
+msgid "Please select one UID before doing this operation."
+msgstr "Silakan pilih satu UID sebelum melakukan operasi ini."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:504
+msgid "Deleting UID"
+msgstr "Menghapus UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:507
+msgid "Are you sure that you want to delete the following uid?"
+msgstr "Apakah Anda yakin ingin menghapus uid berikut?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:525
+msgid "Delete(Revoke) Key Signature"
+msgstr "Hapus (Cabut) Tanda Tangan Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:536
+msgid "Please select one Key Signature before doing this operation."
+msgstr ""
+"Silakan pilih salah satu Tanda Tangan Kunci sebelum melakukan operasi ini."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:545
+msgid ""
+"To delete the signature, you need to have its corresponding public key in "
+"the local database."
+msgstr ""
+"Untuk menghapus tanda tangan, Anda harus memiliki kunci publik yang sesuai "
+"di database lokal."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:556
+msgid "Deleting Key Signature"
+msgstr "Menghapus Tanda Tangan Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:558
+msgid "Are you sure that you want to delete the following signature?"
+msgstr "Apakah Anda yakin ingin menghapus tanda tangan berikut?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:54
+msgid "Notice: The New UID Created will be set as Primary."
+msgstr "Pemberitahuan: UID Baru yang Dibuat akan ditetapkan sebagai Utama."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:61
+msgid "Create New UID"
+msgstr "Buat UID Baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:81
+msgid "Expire Date"
+msgstr "Tanggal kadaluarsa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:90
+msgid "Sign For Key's UID(s)"
+msgstr "Masuk Untuk UID Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:116
+msgid "Unsuccessful Operation"
+msgstr "Operasi Gagal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:117
+msgid "Signature operation failed for UID %1"
+msgstr "Operasi tanda tangan gagal untuk UID %1"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:121
+msgid "Operation Complete"
+msgstr "Operasi Selesai"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:122
+msgid "The signature operation of the UID is complete"
+msgstr "Operasi tanda tangan UID selesai"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:37
+msgid "Subkey List"
+msgstr "Daftar Subkunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:38
+msgid "Detail of Selected Subkey"
+msgstr "Detail Subkunci yang Dipilih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:42
+msgid "Generate A New Subkey"
+msgstr "Hasilkan Subkunci Baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:66
+msgid "Expires On (Local Time)"
+msgstr "Kedaluwarsa Pada (Waktu Setempat)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:68
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:78
+msgid "Create Date (Local Time)"
+msgstr "Buat Tanggal (Waktu Setempat)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:69
+msgid "Existence"
+msgstr "Adanya"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
+msgid "Subkey ID"
+msgstr "ID Subkunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:146
+msgid "Algo"
+msgstr "algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:147
+msgid "Expire Date (UTC)"
+msgstr "Tanggal Kedaluwarsa (UTC)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:244
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:367
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:376
+msgid "Certificate"
+msgstr "Sertifikat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:370
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:379
+msgid "Auth"
+msgstr "Otentik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:252
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:336
+msgid "Exists"
+msgstr "ada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:253
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:337
+msgid "Not Exists"
+msgstr "Tidak ada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:271
+msgid "Edit Expire Date"
+msgstr "Sunting Tanggal Kedaluwarsa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:31
+msgid "KeyPair"
+msgstr "Pasangan Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:33
+msgid "Subkeys"
+msgstr "Subkunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:43
+msgid "Key Details"
+msgstr "Detail Utama"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:37
+msgid "Owner"
+msgstr "Pemilik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:38
+msgid "Master Key"
+msgstr "Kunci utama"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:40
+msgid "Additional UIDs"
+msgstr "UID tambahan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:80
+msgid "Expires on (Local Time)"
+msgstr "Kedaluwarsa pada (Waktu Setempat)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:82
+msgid "Last Update (Local Time)"
+msgstr "Pembaruan Terakhir (Waktu Setempat)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:84
+msgid "Master Key Existence"
+msgstr "Keberadaan Kunci Utama"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:125
+msgid "copy fingerprint to clipboard"
+msgstr "salin sidik jari ke papan klip"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:145
+msgid "Export Public Key"
+msgstr "Ekspor Kunci Publik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:151
+msgid "Export Private Key"
+msgstr "Ekspor Kunci Pribadi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:158
+msgid "Modify Expiration Datetime (Master Key)"
+msgstr "Ubah Tanggal Kedaluwarsa (Kunci Utama)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:161
+msgid "Modify Password"
+msgstr "Ubah Kata Sandi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:174
+msgid "Key Server Operation (Pubkey)"
+msgstr "Operasi Server Kunci (Pubkey)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:181
+msgid "Generate Revoke Certificate"
+msgstr "Hasilkan Cabut Sertifikat"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:187
+msgid "Modify TOFU Policy"
+msgstr "Ubah Kebijakan TOFU"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:225
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:266
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:303
+msgid "An error occurred during the export operation."
+msgstr "Terjadi kesalahan selama operasi ekspor."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:238
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:279
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:316
+msgid "Export Error"
+msgstr "Ekspor Kesalahan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:239
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:280
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:317
+msgid "Couldn't open %1 for writing"
+msgstr "Tidak dapat membuka %1 untuk menulis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:247
+msgid "Exporting short private Key"
+msgstr "Mengekspor Kunci pribadi pendek"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:248
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:290
+msgid "You are about to export your"
+msgstr "Anda akan mengekspor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:249
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:291
+msgid " PRIVATE KEY "
+msgstr " KUNCI PRIBADI"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:250
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:292
+msgid "This is NOT your Public Key, so DON'T give it away."
+msgstr "Ini BUKAN Kunci Publik Anda, jadi JANGAN berikan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:251
+msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
+msgstr ""
+"Apakah Anda BENAR-BENAR ingin mengekspor KUNCI PRIBADI Anda dalam Ukuran "
+"Minimum?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:254
+msgid ""
+"For OpenPGP keys it removes all signatures except for the latest self-"
+"signatures."
+msgstr ""
+"Untuk kunci OpenPGP, ia menghapus semua tanda tangan kecuali tanda tangan "
+"terbaru."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:289
+msgid "Exporting private Key"
+msgstr "Mengekspor Kunci pribadi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:293
+msgid "Do you REALLY want to export your PRIVATE KEY?"
+msgstr "Apakah Anda BENAR-BENAR ingin mengekspor KUNCI PRIBADI Anda?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:401
+msgid "No Data"
+msgstr "Tidak ada data"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:417
+msgid "Warning: The Master Key has expired."
+msgstr "Peringatan: Master Key telah kedaluwarsa."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:422
+msgid "Warning: The Master Key has been revoked."
+msgstr "Peringatan: Master Key telah dicabut."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:429
+msgid "Upload Key Pair to Key Server"
+msgstr "Unggah Pasangan Kunci ke Server Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:435
+msgid "Sync Key Pair From Key Server"
+msgstr "Sinkronkan Pasangan Kunci Dari Server Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:449
+msgid "Export Full Secret Key"
+msgstr "Ekspor Kunci Rahasia Lengkap"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:455
+msgid "Export Shortest Secret Key"
+msgstr "Ekspor Kunci Rahasia Terpendek"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:480
+msgid "Revocation Certificates"
+msgstr "Sertifikat Pencabutan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:528
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:558
+msgid "Not Successful"
+msgstr "Tidak berhasil"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:529
+msgid "Modify password not successfully."
+msgstr "Ubah kata sandi tidak berhasil."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:535
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:545
+msgid "Policy Auto"
+msgstr "Kebijakan Otomatis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:535
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:547
+msgid "Policy Good"
+msgstr "Kebijakan Baik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:535
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:549
+msgid "Policy Bad"
+msgstr "Kebijakan Buruk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:536
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:551
+msgid "Policy Ask"
+msgstr "Tanya Kebijakan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:536
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:553
+msgid "Policy Unknown"
+msgstr "Kebijakan Tidak Diketahui"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:540
+msgid "Modify TOFU Policy(Default is Auto)"
+msgstr "Ubah Kebijakan TOFU (Default adalah Otomatis)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:541
+msgid "Policy for the Key Pair:"
+msgstr "Kebijakan untuk Pasangan Kunci:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:559
+msgid "Modify TOFU policy not successfully."
+msgstr "Ubah kebijakan TOFU tidak berhasil."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:75
+msgid "The expire date of the key pair has been updated."
+msgstr "Tanggal kedaluwarsa pasangan kunci telah diperbarui."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:201
+msgid "longer_expiration_date"
+msgstr "lebih lama_kedaluwarsa_tanggal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:122
+msgid "Modified Expiration Date (Local Time)"
+msgstr "Tanggal Kedaluwarsa yang Diubah (Waktu Setempat)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:124
+msgid ""
+"Tips: For the sake of security, the key is valid for up to two years. If you"
+" are an expert user, please unlock it for a longer time in the settings."
+msgstr ""
+"Tips: Demi keamanan, kunci berlaku hingga dua tahun. Jika Anda adalah "
+"pengguna ahli, harap buka kuncinya untuk waktu yang lebih lama di "
+"pengaturan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:127
+msgid "No Expiration"
+msgstr "Tidak Ada Kedaluwarsa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:128
+msgid "Modified Expiration Date"
+msgstr "Tanggal Kedaluwarsa yang Diubah"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:41
+msgid "About Software"
+msgstr "Tentang Perangkat Lunak"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:42
+msgid "Translators"
+msgstr "Penerjemah"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:43
+msgid "Update"
+msgstr "Memperbarui"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:76
+msgid ""
+"GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
+"free gpg front-end tool.It visualizes most of the common operations of gpg "
+"commands.It's licensed under the GPL v3"
+msgstr ""
+"GpgFrontend adalah alat front-end gpg yang mudah digunakan, ringkas, lintas "
+"platform, dan bebas instalasi. Ini memvisualisasikan sebagian besar operasi "
+"umum perintah gpg. Ini dilisensikan di bawah GPL v3"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:82
+msgid "Developer:"
+msgstr "Pengembang:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:83
+msgid "If you have any questions or suggestions, raise an issue at"
+msgstr "Jika Anda memiliki pertanyaan atau saran, ajukan masalah di"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:86
+msgid "or send a mail to my mailing list at"
+msgstr "atau kirim email ke milis saya di"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:88
+msgid "Built with Qt"
+msgstr "Dibangun dengan Qt"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:88
+msgid "and GPGME"
+msgstr "dan GPGME"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:90
+msgid "Built at"
+msgstr "Dibangun di"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:123
+msgid ""
+"If you think there are any problems with the translation, why not "
+"participate in the translation work? If you want to participate, please read"
+" the document or contact me via email."
+msgstr ""
+"Jika menurut Anda ada masalah dengan penerjemahan, mengapa tidak "
+"berpartisipasi dalam pekerjaan penerjemahan? Jika Anda ingin berpartisipasi,"
+" silakan baca dokumen atau hubungi saya melalui email."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:148
+msgid ""
+"It is recommended that you always check the version of GpgFrontend and "
+"upgrade to the latest version."
+msgstr ""
+"Disarankan agar Anda selalu memeriksa versi GpgFrontend dan meningkatkan ke "
+"versi terbaru."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:151
+msgid ""
+"New versions not only represent new features, but also often represent "
+"functional and security fixes."
+msgstr ""
+"Versi baru tidak hanya mewakili fitur baru, tetapi juga sering mewakili "
+"perbaikan fungsional dan keamanan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:157
+msgid "Current Version"
+msgstr "Versi sekarang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:168
+msgid "The current version is less than the latest version on github."
+msgstr "Versi saat ini kurang dari versi terbaru di github."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:170
+msgid "Please click"
+msgstr "Silahkan klik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:173
+msgid "Here"
+msgstr "Di Sini"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:173
+msgid "to download the latest version."
+msgstr "untuk mengunduh versi terbaru."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:197
+msgid "try to get latest version"
+msgstr "coba dapatkan versi terbaru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:218
+msgid "Latest Version From Github"
+msgstr "Versi Terbaru Dari Github"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:34
+msgid "Signatures Details"
+msgstr "Detail Tanda Tangan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:59
+msgid "No valid input found"
+msgstr "Tidak ada masukan yang valid ditemukan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:70
+msgid "Error Validating signature"
+msgstr "Kesalahan Memvalidasi tanda tangan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:72
+msgid "File was signed on %1%"
+msgstr "File ditandatangani pada %1%"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:81
+msgid "It Contains"
+msgstr "Itu mengandung"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:78
+msgid "Signed on %1%"
+msgstr "Masuk pada %1%"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:36
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:56
+msgid "Key Update Details"
+msgstr "Detail Pembaruan Utama"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:37
+msgid "No keys found"
+msgstr "Tidak ada kunci yang ditemukan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:58
+msgid "Key Import Details"
+msgstr "Detail Impor Utama"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:40
+msgid "No keys found to import"
+msgstr "Tidak ada kunci yang ditemukan untuk diimpor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:74
+msgid "General key info"
+msgstr "Info kunci umum"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:77
+msgid "Considered"
+msgstr "Dipertimbangkan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:84
+msgid "Public unchanged"
+msgstr "Publik tidak berubah"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:90
+msgid "Imported"
+msgstr "Impor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:98
+msgid "Not Imported"
+msgstr "Tidak Diimpor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:105
+msgid "Private Read"
+msgstr "Bacaan Pribadi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:112
+msgid "Private Imported"
+msgstr "Impor Pribadi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:119
+msgid "Private Unchanged"
+msgstr "Pribadi Tidak Berubah"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:166
+msgid "Private"
+msgstr "Pribadi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:169
+msgid "Public"
+msgstr "Publik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:172
+msgid "Unchanged"
+msgstr "tidak berubah"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:175
+msgid "New Key"
+msgstr "Kunci Baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyImportDetailDialog.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:52
+msgid "New Signature"
+msgstr "Tanda Tangan Baru"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:45
+msgid "Send Encrypted Mail"
+msgstr "Kirim Email Terenkripsi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:57
+msgid "Function Disabled"
+msgstr "Fungsi Dinonaktifkan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:58
+msgid ""
+"Please go to the settings interface to enable and configure this function."
+msgstr ""
+"Silakan buka antarmuka pengaturan untuk mengaktifkan dan mengonfigurasi "
+"fungsi ini."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:78
+msgid "Public key not found locally"
+msgstr "Kunci publik tidak ditemukan secara lokal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:79
+msgid ""
+"There is no target public key content in local for GpgFrontend to gather "
+"enough information about this Signature. Do you want to import the public "
+"key from Keyserver now?"
+msgstr ""
+"Tidak ada konten kunci publik target di lokal untuk GpgFrontend untuk "
+"mengumpulkan informasi yang cukup tentang Tanda Tangan ini. Apakah Anda "
+"ingin mengimpor kunci publik dari Keyserver sekarang?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:166
+msgid "Open Key"
+msgstr "Buka Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:167
+msgid "Keyring files"
+msgstr "File gantungan kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:189
+msgid "Processing"
+msgstr "Pengolahan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:209
+msgid "Failed to execute command."
+msgstr "Gagal menjalankan perintah."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:217
+msgid "Succeed in executing command."
+msgstr "Berhasil menjalankan perintah."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:220
+msgid "Finished executing command."
+msgstr "Selesai menjalankan perintah."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:307
+msgid "The key has been updated"
+msgstr "Kuncinya telah diperbarui"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:309
+msgid "No need to update the key"
+msgstr "Tidak perlu memperbarui kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:43
+msgid "Keyserver List"
+msgstr "Daftar server kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:48
+msgid "Keyserver Address"
+msgstr "Alamat server kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:49
+msgid "Security"
+msgstr "Keamanan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:50
+msgid "Available"
+msgstr "Tersedia"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:52
+msgid "Add"
+msgstr "Menambahkan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:53
+msgid "Test Listed Keyserver"
+msgstr "Uji Server Kunci Terdaftar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:55
+msgid "Tips: Please Double-click table item to edit it."
+msgstr "Tips: Silakan klik dua kali item tabel untuk mengeditnya."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:56
+msgid "Delete Selected"
+msgstr "Hapus yang Dipilih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:58
+msgid "Delete Selected Key Server"
+msgstr "Hapus Server Kunci yang Dipilih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:60
+msgid "Set As Default"
+msgstr "Ditetapkan sebagai default"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
+msgid "server_list"
+msgstr "daftar_server"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
+msgid "default_server"
+msgstr "default_server"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:143
+msgid "Insecure keyserver address"
+msgstr "Alamat server kunci tidak aman"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:144
+msgid ""
+"For security reasons, using HTTP as the communication protocol with the key "
+"server is not recommended. It is recommended to use HTTPS."
+msgstr ""
+"Untuk alasan keamanan, tidak disarankan menggunakan HTTP sebagai protokol "
+"komunikasi dengan server kunci. Disarankan untuk menggunakan HTTPS."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:153
+msgid ""
+"You may not use HTTPS or HTTP as the protocol for communicating with the key"
+" server, which may not be wrong. But please check the address you entered "
+"again to make sure it is correct. Are you sure that want to add it into the "
+"keyserver list?"
+msgstr ""
+"Anda tidak boleh menggunakan HTTPS atau HTTP sebagai protokol untuk "
+"berkomunikasi dengan server kunci, yang mungkin tidak salah. Namun harap "
+"periksa kembali alamat yang Anda masukkan untuk memastikannya sudah benar. "
+"Apakah Anda yakin ingin menambahkannya ke dalam daftar server kunci?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:214
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
+msgid "true"
+msgstr "benar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:215
+msgid "false"
+msgstr "Salah"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:220
+msgid "unknown"
+msgstr "tidak dikenal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:236
+msgid "Set TCP Timeout"
+msgstr "Setel Batas Waktu TCP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:253
+msgid "Reachable"
+msgstr "terjangkau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:256
+msgid "Not Reachable"
+msgstr "Tidak Terjangkau"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:42
+msgid "Updated ui configuration successfully written to"
+msgstr "Konfigurasi ui yang diperbarui berhasil ditulis ke"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:46
+msgid "I/O error while writing ui configuration file"
+msgstr "Kesalahan I/O saat menulis file konfigurasi ui"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:57
+msgid "App Path"
+msgstr "Jalur Aplikasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:58
+msgid "App Configure Path"
+msgstr "Jalur Konfigurasi Aplikasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:59
+msgid "App Data Path"
+msgstr "Jalur Data Aplikasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:60
+msgid "App Log Path"
+msgstr "Jalur Log Aplikasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:61
+msgid "App Locale Path"
+msgstr "Jalur Lokal Aplikasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:74
+msgid "UserInterface configuration successfully written to"
+msgstr "Konfigurasi UserInterface berhasil ditulis ke"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:79
+msgid "I/O error while writing UserInterface configuration file"
+msgstr "Kesalahan I/O saat menulis file konfigurasi UserInterface"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:85
+msgid "UserInterface configuration successfully read from"
+msgstr "Konfigurasi UserInterface berhasil dibaca dari"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:88
+msgid "I/O error while reading UserInterface configure file"
+msgstr "Kesalahan I/O saat membaca file konfigurasi UserInterface"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:90
+msgid "Parse error at "
+msgstr "Kesalahan penguraian di"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:35
+msgid "Icon Size"
+msgstr "Ukuran Ikon"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:37
+msgid "small"
+msgstr "kecil"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:38
+msgid "medium"
+msgstr "sedang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:39
+msgid "large"
+msgstr "besar"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:55
+msgid "Icon Style"
+msgstr "Gaya Ikon"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:57
+msgid "just text"
+msgstr "hanya teks"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:58
+msgid "just icons"
+msgstr "hanya ikon"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:59
+msgid "text and icons"
+msgstr "teks dan ikon"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:75
+msgid "Window State"
+msgstr "Keadaan Jendela"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:78
+msgid "Save window size and position on exit."
+msgstr "Simpan ukuran dan posisi jendela saat keluar."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:92
+msgid "Font Size in Information Board"
+msgstr "Ukuran Font di Papan Informasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
+msgid "window_save"
+msgstr "window_save"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:51
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:65
+msgid "General"
+msgstr "Umum"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:52
+msgid "Appearance"
+msgstr "Penampilan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
+msgid "Key Server"
+msgstr "Server Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:59
+msgid "Advanced"
+msgstr "Canggih"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:136
+msgid "System Default"
+msgstr "Default Sistem"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:37
+msgid "Show Steganography Options"
+msgstr "Tampilkan Opsi Steganografi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:39
+msgid "Show Steganographic Options."
+msgstr "Tampilkan Opsi Steganografi."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:43
+msgid "Pubkey Exchange"
+msgstr "Pertukaran Pubkey"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:45
+msgid "Auto Pubkey Exchange"
+msgstr "Pertukaran Pubkey Otomatis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:46
+msgid "GpgFrontend Server"
+msgstr "GpgFrontend Server"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:51
+msgid "Server that provides short key and key exchange services"
+msgstr "Server yang menyediakan layanan pertukaran kunci dan kunci pendek"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:59
+msgid "Save Checked Keys"
+msgstr "Simpan Kunci yang Dicentang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:62
+msgid "Save checked private keys on exit and restore them on next start."
+msgstr ""
+"Simpan kunci pribadi yang dicentang saat keluar dan pulihkan di awal "
+"berikutnya."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:71
+msgid "Longer Key Expiration Date"
+msgstr "Tanggal Kedaluwarsa Kunci Lebih Lama"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:74
+msgid "Unlock key expiration date setting up to 30 years."
+msgstr "Buka kunci pengaturan tanggal kedaluwarsa hingga 30 tahun."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:82
+msgid "Confirm drag'n'drop key import"
+msgstr "Konfirmasi impor kunci drag'n'drop"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:85
+msgid "Import files dropped on the Key List without confirmation."
+msgstr "File impor dijatuhkan di Daftar Kunci tanpa konfirmasi."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:93
+msgid "Language"
+msgstr "Bahasa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:107
+msgid "NOTE"
+msgstr "CATATAN"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:108
+msgid "GpgFrontend will restart automatically if you change the language!"
+msgstr "GpgFrontend akan restart secara otomatis jika Anda mengubah bahasa!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:118
+msgid "Own key"
+msgstr "Kunci sendiri"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:122
+msgid "Get Service Token"
+msgstr "Dapatkan Token Layanan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:342
+msgid "No Service Token Found"
+msgstr "Tidak Ada Token Layanan Ditemukan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:150
+msgid "Key pair for synchronization and identity authentication"
+msgstr "Pasangan kunci untuk sinkronisasi dan otentikasi identitas"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:238
+msgid "lang"
+msgstr "lang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:362
+msgid "Own Key can not be None while getting service token."
+msgstr ""
+"Kunci Sendiri tidak dapat menjadi Tidak Ada saat mendapatkan token layanan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:374
+msgid "Key Not Exists"
+msgstr "Kunci Tidak Ada"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:461
+msgid "Succeed in getting service token"
+msgstr "Berhasil mendapatkan token layanan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:66
+msgid "Identity Information"
+msgstr "Informasi Identitas"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:67
+msgid "Preference"
+msgstr "Pilihan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:70
+msgid "Enable Send Mail Ability"
+msgstr "Aktifkan Kemampuan Kirim Email"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:71
+msgid "Need Auth"
+msgstr "Butuh Otentikasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:73
+msgid "SMTP Server Address"
+msgstr "Alamat Server SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:74
+msgid "SMTP Server Port"
+msgstr "Port Server SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:75
+msgid "SMTP Connection Security"
+msgstr "Keamanan Koneksi SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:76
+msgid "Username"
+msgstr "Nama pengguna"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:77
+msgid "Password"
+msgstr "Kata sandi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:79
+msgid "Default Sender Email"
+msgstr "Email Pengirim Default"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:80
+msgid "Check Connection"
+msgstr "Periksa Koneksi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:81
+msgid "Send Test Email"
+msgstr "Kirim Email Uji"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:83
+msgid ""
+"Tips: It is recommended that you build your own mail server or use a trusted"
+" mail server. If you don't know the detailed configuration information, you "
+"can get it from the mail service provider."
+msgstr ""
+"Tips: Anda disarankan untuk membuat server email sendiri atau menggunakan "
+"server email tepercaya. Jika Anda tidak mengetahui detail informasi "
+"konfigurasi, Anda bisa mendapatkannya dari penyedia layanan email."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:258
+msgid "Fail to Login"
+msgstr "Gagal Masuk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:264
+msgid "Succeed in connecting and login"
+msgstr "Berhasil terhubung dan masuk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:272
+msgid "Given a default sender first"
+msgstr "Diberikan pengirim default terlebih dahulu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:299
+msgid "Test Email from GpgFrontend"
+msgstr "Uji Email dari GpgFrontend"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:302
+msgid "Hello, this is a test email from GpgFrontend."
+msgstr "Halo, ini adalah email percobaan dari GpgFrontend."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:322
+msgid ""
+"Fail to send a test email to the SMTP Server, please recheck your "
+"configuration."
+msgstr ""
+"Gagal mengirim email percobaan ke Server SMTP, harap periksa kembali "
+"konfigurasi Anda."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:332
+msgid "Succeed in sending a test email to the SMTP Server"
+msgstr "Berhasil mengirim email percobaan ke Server SMTP"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:45
+msgid "Import ALL"
+msgstr "Impor SEMUA"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:47
+msgid "Search"
+msgstr "Mencari"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:50
+msgid "Search String"
+msgstr "Cari String"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:100
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:547
+msgid "Update Keys from Keyserver"
+msgstr "Perbarui Kunci dari Keyserver"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:102
+msgid "Import Keys from Keyserver"
+msgstr "Impor Kunci dari Keyserver"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "UID"
+msgstr "UID"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "Creation date"
+msgstr "Tanggal pembuatan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "KeyID"
+msgstr "ID Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:188
+msgid "Tag"
+msgstr "Menandai"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:212
+msgid "Text is empty."
+msgstr "Teks kosong."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:255
+msgid "Not Key Found"
+msgstr "Tidak Ditemukan Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:273
+msgid "Too many responses from keyserver!"
+msgstr "Terlalu banyak tanggapan dari server kunci!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:283
+msgid "No keys found, input may be kexId, retrying search with 0x."
+msgstr ""
+"Tidak ada kunci yang ditemukan, masukan mungkin kexId, coba lagi penelusuran"
+" dengan 0x."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:292
+msgid "No keys found containing the search string!"
+msgstr "Tidak ditemukan kunci yang berisi string pencarian!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:298
+msgid "Insufficiently specific search string!"
+msgstr "String pencarian yang tidak cukup spesifik!"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:331
+msgid "revoked"
+msgstr "dicabut"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:335
+msgid "disabled"
+msgstr "dengan disabilitas"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:377
+msgid "%1 keys found. Double click a key to import it."
+msgstr "%1 kunci ditemukan. Klik dua kali kunci untuk mengimpornya."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:389
+msgid "Current Row"
+msgstr "Baris saat ini"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:472
+msgid "Public key Not Found"
+msgstr "Kunci publik Tidak Ditemukan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:473
+msgid "Public key fingerprint %1 not found in the Keyserver"
+msgstr "Sidik jari kunci publik %1 tidak ditemukan di Server Kunci"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:480
+msgid "Host Not Found"
+msgstr "Host tidak ditemukan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:485
+msgid "General Connection Error"
+msgstr "Kesalahan Koneksi Umum"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:500
+msgid "Key Imported"
+msgstr "Kunci Diimpor"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:34
+msgid "Decrypt Operation"
+msgstr "Operasi Dekripsi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:41
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:45
+msgid "Failed"
+msgstr "Gagal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:43
+msgid "Unsupported Algo"
+msgstr "Algo tidak didukung"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:51
+msgid "File Name"
+msgstr "Nama file"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
+msgid "MIME"
+msgstr "PANTOMIM"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:59
+msgid "Recipient(s)"
+msgstr "Penerima"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:176
+msgid "Unknown"
+msgstr "Tidak dikenal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:89
+msgid "Keu ID"
+msgstr "ID Keu"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:90
+msgid "Public Algo"
+msgstr "Algo Publik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:32
+msgid "Start Encrypt Result Analyse"
+msgstr "Mulai Enkripsi Hasil Analisis"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:34
+msgid "Encrypt Operation"
+msgstr "Operasi enkripsi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:46
+msgid "Invalid Recipients"
+msgstr "Penerima Tidak Valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:102
+msgid "Reason"
+msgstr "Alasan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:34
+msgid "Start Sign Result Analyse"
+msgstr "Mulai Analisis Hasil Tanda"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:36
+msgid "Sign Operation"
+msgstr "Tanda Operasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:47
+msgid "Sign Result Analyse Getting Result"
+msgstr "Masuk Hasil Analisis Mendapatkan Hasil"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:54
+msgid "Signers Fingerprint"
+msgstr "Sidik Jari Penandatangan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:56
+msgid "Sign Mode"
+msgstr "Mode Masuk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:58
+msgid "Normal"
+msgstr "Normal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:62
+msgid "Detach"
+msgstr "Melepaskan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:69
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:72
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:99
+msgid "Signer"
+msgstr "Penandatangan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:184
+msgid "Public Key Algo"
+msgstr "Algo Kunci Publik"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:187
+msgid "Hash Algo"
+msgstr "Hash Algo"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:190
+msgid "Date"
+msgstr "Tanggal"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:190
+msgid "UTC"
+msgstr "UTC"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:90
+msgid "Sign Result Analyse Getting Invalid Signer"
+msgstr "Analisis Hasil Tanda Mendapatkan Penandatangan Tidak Valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:95
+msgid "Invalid Signers"
+msgstr "Penandatangan Tidak Valid"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:38
+msgid "Verify Result Analyse Started"
+msgstr "Verifikasi Hasil Analisis Dimulai"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:40
+msgid "Verify Operation"
+msgstr "Verifikasi Operasi"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:54
+msgid "Not Signature Found"
+msgstr "Tidak Ditemukan Tanda Tangan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:59
+msgid "Signed On"
+msgstr "Masuk"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:65
+msgid "Signatures List"
+msgstr "Daftar Tanda Tangan"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:71
+msgid "Signature [%1%]:"
+msgstr "Tanda tangan [%1%]:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:74
+msgid "A Bad Signature."
+msgstr "Tanda Tangan yang Buruk."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:76
+msgid "This Signature is invalid."
+msgstr "Tanda Tangan ini tidak valid."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:81
+msgid "A"
+msgstr "SEBUAH"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:92
+msgid "Missing Key's"
+msgstr "Kunci yang Hilang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:95
+msgid "Revoked Key's"
+msgstr "Kunci yang Dicabut"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:98
+msgid "Expired Key's"
+msgstr "Kunci yang kedaluwarsa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:101
+msgid "Missing CRL's"
+msgstr "CRL yang hilang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:105
+msgid "Signature Fully Valid."
+msgstr "Tanda Tangan Sepenuhnya Valid."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:107
+msgid "Signature Not Fully Valid."
+msgstr "Tanda Tangan Tidak Sepenuhnya Valid."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:113
+msgid "Key is NOT present with ID 0x"
+msgstr "Kunci TIDAK hadir dengan ID 0x"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:121
+msgid "A signature could NOT be verified due to a Missing Key"
+msgstr "Tanda tangan TIDAK dapat diverifikasi karena Kunci yang Hilang"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:126
+msgid ""
+"A signature is valid but the key used to verify the signature has been "
+"revoked"
+msgstr ""
+"Tanda tangan valid tetapi kunci yang digunakan untuk memverifikasi tanda "
+"tangan telah dicabut"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:135
+msgid "A signature is valid but expired"
+msgstr "Tanda tangan valid tetapi kedaluwarsa"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:142
+msgid ""
+"A signature is valid but the key used to verify the signature has expired."
+msgstr ""
+"Tanda tangan valid tetapi kunci yang digunakan untuk memverifikasi tanda "
+"tangan telah kedaluwarsa."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:150
+msgid "There was some other error which prevented the signature verification."
+msgstr "Ada beberapa kesalahan lain yang mencegah verifikasi tanda tangan."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:158
+msgid "Error for key with fingerprint"
+msgstr "Kesalahan untuk kunci dengan sidik jari"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:180
+msgid "Signed By"
+msgstr "Tertanda oleh"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:51
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:73
+msgid "Source: "
+msgstr "Sumber:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:52
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:63
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/GpgConstants.cpp:74
+msgid "Description: "
+msgstr "Keterangan:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/function/GpgKeyOpera.cpp:222
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/function/GpgKeyOpera.cpp:231
+msgid "operator not support"
+msgstr "operator tidak mendukung"
+
+#~ msgid "Edit Expire Datetime"
+#~ msgstr "Edit Tanggal Kedaluwarsa"
+
+#~ msgid "Selecting Nothing will eventually use default key to sign."
+#~ msgstr ""
+#~ "Memilih Tidak ada akhirnya akan menggunakan kunci default untuk masuk."
+
+#~ msgid "Save"
+#~ msgstr "Menyimpan"
+
+#~ msgid "Refresh Key From Key Server"
+#~ msgstr "Segarkan Kunci Dari Server Kunci"
+
+#~ msgid "Upload Public Key(s) To Server"
+#~ msgstr "Unggah Kunci Publik Ke Server"
+
+#~ msgid "Upload The Selected Public Keys To Server"
+#~ msgstr "Unggah Kunci Publik yang Dipilih Ke Server"
+
+#~ msgid "Update Key Pair"
+#~ msgstr "Perbarui Pasangan Kunci"
+
+#~ msgid "No."
+#~ msgstr "Tidak."
+
+#~ msgid "Address"
+#~ msgstr "Alamat"
+
+#~ msgid "Default Key Server for Import"
+#~ msgstr "Server Kunci Default untuk Impor"
+
+#~ msgid "Enable"
+#~ msgstr "Memungkinkan"
+
+#~ msgid "Port"
+#~ msgstr "Pelabuhan"

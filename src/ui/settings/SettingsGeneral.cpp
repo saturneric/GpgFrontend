@@ -65,6 +65,17 @@ GeneralTab::GeneralTab(QWidget* parent) : QWidget(parent) {
   saveCheckedKeysBox->setLayout(saveCheckedKeysBoxLayout);
 
   /*****************************************
+   * Longer-Expire-Date-Box
+   *****************************************/
+  auto* longerKeyExpirationDateBox =
+      new QGroupBox(_("Longer Key Expiration Date"));
+  auto* longerKeyExpirationDateBoxLayout = new QHBoxLayout();
+  longerKeyExpirationDateCheckBox = new QCheckBox(
+      _("Unlock key expiration date setting up to 30 years."), this);
+  longerKeyExpirationDateBoxLayout->addWidget(longerKeyExpirationDateCheckBox);
+  longerKeyExpirationDateBox->setLayout(longerKeyExpirationDateBoxLayout);
+
+  /*****************************************
    * Key-Impport-Confirmation Box
    *****************************************/
   auto* importConfirmationBox =
@@ -81,12 +92,15 @@ GeneralTab::GeneralTab(QWidget* parent) : QWidget(parent) {
    *****************************************/
   auto* langBox = new QGroupBox(_("Language"));
   auto* langBoxLayout = new QVBoxLayout();
-  langSelectBox = new QComboBox;
+  langSelectBox = new QComboBox();
+  langSelectBox->setMaxVisibleItems(8);
+  langSelectBox->view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   lang = SettingsDialog::listLanguages();
 
   for (const auto& l : lang) {
     langSelectBox->addItem(l);
   }
+  langSelectBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
   langBoxLayout->addWidget(langSelectBox);
   langBoxLayout->addWidget(new QLabel(
@@ -148,6 +162,7 @@ GeneralTab::GeneralTab(QWidget* parent) : QWidget(parent) {
 #ifdef SERVER_SUPPORT
   mainLayout->addWidget(serverBox);
 #endif
+  mainLayout->addWidget(longerKeyExpirationDateBox);
   mainLayout->addWidget(saveCheckedKeysBox);
   mainLayout->addWidget(importConfirmationBox);
 #ifdef MULTI_LANG_SUPPORT
@@ -174,6 +189,16 @@ void GeneralTab::setSettings() {
     if (save_key_checked) saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("save_key_checked");
+  }
+
+  try {
+    bool longer_expiration_date =
+        settings.lookup("general.longer_expiration_date");
+    LOG(INFO) << "longer_expiration_date" << longer_expiration_date;
+    if (longer_expiration_date)
+      longerKeyExpirationDateCheckBox->setCheckState(Qt::Checked);
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("longer_expiration_date");
   }
 
 #ifdef SERVER_SUPPORT
@@ -253,6 +278,14 @@ void GeneralTab::applySettings() {
     settings.add("general", libconfig::Setting::TypeGroup);
 
   auto& general = settings["general"];
+
+  if (!general.exists("longer_expiration_date"))
+    general.add("longer_expiration_date", libconfig::Setting::TypeBoolean) =
+        longerKeyExpirationDateCheckBox->isChecked();
+  else {
+    general["longer_expiration_date"] =
+        longerKeyExpirationDateCheckBox->isChecked();
+  }
 
   if (!general.exists("save_key_checked"))
     general.add("save_key_checked", libconfig::Setting::TypeBoolean) =

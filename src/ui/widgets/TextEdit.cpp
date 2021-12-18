@@ -77,12 +77,13 @@ void TextEdit::slotNewFileTab() const {
 
 void TextEdit::slotOpenFile(QString& path) {
   QFile file(path);
-  LOG(INFO) << " path" << path.toStdString();
+  LOG(INFO) << "path" << path.toStdString();
   auto result = file.open(QIODevice::ReadOnly | QIODevice::Text);
   if (result) {
     auto* page = new EditorPage(path);
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    tabWidget->addTab(page, strippedName(path));
+    auto index = tabWidget->addTab(page, strippedName(path));
+    tabWidget->setTabIcon(index, QIcon(":file.png"));
     tabWidget->setCurrentIndex(tabWidget->count() - 1);
     QApplication::restoreOverrideCursor();
     page->getTextPage()->setFocus();
@@ -96,7 +97,6 @@ void TextEdit::slotOpenFile(QString& path) {
   }
 
   file.close();
-  LOG(INFO) << "done";
 }
 
 void TextEdit::slotOpen() {

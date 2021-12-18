@@ -24,6 +24,7 @@
 
 #include "MainWindow.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/smtp/SendMailDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -51,7 +52,7 @@ void MainWindow::createActions() {
   browserAct->setToolTip(_("Open a file browser"));
   connect(browserAct, SIGNAL(triggered()), this, SLOT(slotOpenFileTab()));
 
-  saveAct = new QAction(_("Save"), this);
+  saveAct = new QAction(_("Save File"), this);
   saveAct->setIcon(QIcon(":filesave.png"));
   saveAct->setShortcut(QKeySequence::Save);
   saveAct->setToolTip(_("Save the current File"));
@@ -179,28 +180,6 @@ void MainWindow::createActions() {
   connect(decryptVerifyAct, SIGNAL(triggered()), this,
           SLOT(slotDecryptVerify()));
 
-  /*
-   * File encryption submenu
-   */
-  fileEncryptAct = new QAction(_("Encrypt File"), this);
-  fileEncryptAct->setToolTip(_("Encrypt File"));
-  connect(fileEncryptAct, SIGNAL(triggered()), this,
-          SLOT(slotFileEncryptCustom()));
-
-  fileDecryptAct = new QAction(_("Decrypt File"), this);
-  fileDecryptAct->setToolTip(_("Decrypt File"));
-  connect(fileDecryptAct, SIGNAL(triggered()), this,
-          SLOT(slotFileDecryptCustom()));
-
-  fileSignAct = new QAction(_("Sign File"), this);
-  fileSignAct->setToolTip(_("Sign File"));
-  connect(fileSignAct, SIGNAL(triggered()), this, SLOT(slotFileSignCustom()));
-
-  fileVerifyAct = new QAction(_("Verify File"), this);
-  fileVerifyAct->setToolTip(_("Verify File"));
-  connect(fileVerifyAct, SIGNAL(triggered()), this,
-          SLOT(slotFileVerifyCustom()));
-
   signAct = new QAction(_("Sign"), this);
   signAct->setIcon(QIcon(":signature.png"));
   signAct->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
@@ -298,19 +277,6 @@ void MainWindow::createActions() {
   connect(showKeyDetailsAct, SIGNAL(triggered()), this,
           SLOT(slotShowKeyDetails()));
 
-  refreshKeysFromKeyserverAct =
-      new QAction(_("Refresh Key From Key Server"), this);
-  refreshKeysFromKeyserverAct->setToolTip(
-      _("Refresh key from default key server"));
-  connect(refreshKeysFromKeyserverAct, SIGNAL(triggered()), this,
-          SLOT(refreshKeysFromKeyserver()));
-
-  uploadKeyToServerAct = new QAction(_("Upload Public Key(s) To Server"), this);
-  uploadKeyToServerAct->setToolTip(
-      _("Upload The Selected Public Keys To Server"));
-  connect(uploadKeyToServerAct, SIGNAL(triggered()), this,
-          SLOT(uploadKeyToServer()));
-
   /* Key-Shortcuts for Tab-Switchung-Action
    */
   switchTabUpAct = new QAction(this);
@@ -329,6 +295,15 @@ void MainWindow::createActions() {
 
   addPgpHeaderAct = new QAction(_("Add PGP Header"), this);
   connect(addPgpHeaderAct, SIGNAL(triggered()), this, SLOT(slotAddPgpHeader()));
+
+#ifdef SMTP_SUPPORT
+  sendMailAct = new QAction(_("Send An Email"), this);
+  sendMailAct->setIcon(QIcon(":email.png"));
+  connect(sendMailAct, &QAction::triggered, this, [=]() {
+    auto* dialog = new SendMailDialog({}, this);
+    dialog->show();
+  });
+#endif
 }
 
 void MainWindow::createMenus() {
@@ -363,12 +338,6 @@ void MainWindow::createMenus() {
   editMenu->addSeparator();
   editMenu->addAction(openSettingsAct);
 
-  fileEncMenu = new QMenu(_("File..."));
-  fileEncMenu->addAction(fileEncryptAct);
-  fileEncMenu->addAction(fileDecryptAct);
-  fileEncMenu->addAction(fileSignAct);
-  fileEncMenu->addAction(fileVerifyAct);
-
   cryptMenu = menuBar()->addMenu(_("Crypt"));
   cryptMenu->addAction(encryptAct);
   cryptMenu->addAction(encryptSignAct);
@@ -378,7 +347,6 @@ void MainWindow::createMenus() {
   cryptMenu->addAction(signAct);
   cryptMenu->addAction(verifyAct);
   cryptMenu->addSeparator();
-  cryptMenu->addMenu(fileEncMenu);
 
   keyMenu = menuBar()->addMenu(_("Keys"));
   importKeyMenu = keyMenu->addMenu(_("Import Key"));
@@ -392,6 +360,10 @@ void MainWindow::createMenus() {
   steganoMenu = menuBar()->addMenu(_("Steganography"));
   steganoMenu->addAction(cutPgpHeaderAct);
   steganoMenu->addAction(addPgpHeaderAct);
+#ifdef SMTP_SUPPORT
+  emailMenu = menuBar()->addMenu(_("Email"));
+  emailMenu->addAction(sendMailAct);
+#endif
 
 #ifdef ADVANCED_SUPPORT
   // Hide menu, when steganography menu is disabled in settings
@@ -510,6 +482,8 @@ void MainWindow::createDockWindows() {
         return key.is_private_key() &&
                !(key.revoked() || key.disabled() || key.expired());
       });
+
+  mKeyList->slotRefresh();
 
   keyListDock->setWidget(mKeyList);
   viewMenu->addAction(keyListDock->toggleViewAction());

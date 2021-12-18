@@ -25,6 +25,7 @@
 #ifndef GPGFRONTEND_USER_INTERFACE_UTILS_H
 #define GPGFRONTEND_USER_INTERFACE_UTILS_H
 
+#include "gpg/GpgModel.h"
 #include "gpg/result_analyse/VerifyResultAnalyse.h"
 #include "ui/GpgFrontendUI.h"
 
@@ -37,8 +38,13 @@ namespace GpgFrontend::UI {
 class InfoBoardWidget;
 class TextEdit;
 
+#ifdef SMTP_SUPPORT
+void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
+                   const QString& text);
+#endif
+
 void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
-                         GpgError error, VerifyResultAnalyse& verify_res);
+                         GpgError error, const GpgVerifyResult& verify_result);
 
 void import_unknown_key_from_keyserver(QWidget* parent,
                                        const VerifyResultAnalyse& verify_res);
@@ -63,6 +69,9 @@ class CommonUtils : public QWidget {
 
   CommonUtils();
 
+  using ImportCallbackFunctiopn = std::function<void(
+      const std::string&, const std::string&, size_t, size_t)>;
+
  signals:
   void signalKeyStatusUpdated();
 
@@ -76,9 +85,15 @@ class CommonUtils : public QWidget {
 
   void slotImportKeyFromClipboard(QWidget* parent);
 
+  static void slotImportKeyFromKeyServer(
+      int ctx_channel, const GpgFrontend::KeyIdArgsList& key_ids,
+      const GpgFrontend::UI::CommonUtils::ImportCallbackFunctiopn& callback);
+
   void slotExecuteGpgCommand(
       const QStringList& arguments,
       const std::function<void(QProcess*)>& interact_func);
+
+ private slots:
 
  private:
   static std::unique_ptr<CommonUtils> _instance;

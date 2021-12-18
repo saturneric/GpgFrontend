@@ -28,6 +28,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 
+#include "GpgFrontendBuildInstallInfo.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
@@ -69,11 +70,22 @@ class GlobalSettingStation : public QObject {
   // Program Data Location
   boost::filesystem::path app_log_path = app_data_path / "logs";
 
+#ifdef LINUX_INSTALL_BUILD
+  // Program Data Location
+  boost::filesystem::path app_resource_path =
+      boost::filesystem::path(APP_LOCALSTATE_PATH) / "gpgfrontend";
+#else
   // Program Data Location
   boost::filesystem::path app_resource_path = RESOURCE_DIR_BOOST_PATH(app_path);
+#endif
 
+#ifdef LINUX_INSTALL_BUILD
+  // Program Data Location
+  boost::filesystem::path app_locale_path = std::string(APP_LOCALE_PATH);
+#else
   // Program Data Location
   boost::filesystem::path app_locale_path = app_resource_path / "locales";
+#endif
 
   // Program Configure Location
   boost::filesystem::path app_configure_path =

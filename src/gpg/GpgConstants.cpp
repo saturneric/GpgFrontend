@@ -28,6 +28,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
+#include <string>
 
 const char* GpgFrontend::GpgConstants::PGP_CRYPT_BEGIN =
     "-----BEGIN PGP MESSAGE-----";
@@ -46,9 +47,9 @@ const char* GpgFrontend::GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD =
 
 gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    LOG(ERROR) << "[Error " << gpg_err_code(err)
-               << "] Source: " << gpgme_strsource(err)
-               << " Description: " << gpgme_strerror(err);
+    LOG(ERROR) << "[" << _("Error") << " " << gpg_err_code(err) << "] "
+               << _("Source: ") << gpgme_strsource(err) << " "
+               << _("Description: ") << gpgme_strerror(err);
   }
   return err;
 }
@@ -57,9 +58,9 @@ gpg_err_code_t GpgFrontend::check_gpg_error_2_err_code(gpgme_error_t err,
                                                        gpgme_error_t predict) {
   auto err_code = gpg_err_code(err);
   if (err_code != predict) {
-    LOG(ERROR) << "[Error " << gpg_err_code(err)
-               << "] Source: " << gpgme_strsource(err)
-               << " Description: " << gpgme_strerror(err);
+    LOG(ERROR) << "[" << _("Error") << " " << gpg_err_code(err) << "] "
+               << _("Source: ") << gpgme_strsource(err) << " "
+               << _("Description: ") << gpgme_strerror(err);
   }
   return err_code;
 }
@@ -68,9 +69,9 @@ gpg_err_code_t GpgFrontend::check_gpg_error_2_err_code(gpgme_error_t err,
 gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
                                            const std::string& comment) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    LOG(ERROR) << "[Error " << gpg_err_code(err)
-               << "] Source: " << gpgme_strsource(err)
-               << " Description: " << gpgme_strerror(err) << " " << comment;
+    LOG(ERROR) << "[" << _("Error") << " " << gpg_err_code(err) << "] "
+               << _("Source: ") << gpgme_strsource(err) << " "
+               << _("Description: ") << gpgme_strerror(err);
   }
   return err;
 }
@@ -110,16 +111,17 @@ static inline std::string trim(std::string& s) {
   return s;
 }
 
-std::string GpgFrontend::read_all_data_in_file(const std::string& path) {
+std::string GpgFrontend::read_all_data_in_file(const std::string& utf8_path) {
   using namespace boost::filesystem;
-  class path file_info(path.c_str());
-
-  if (!exists(file_info) || !is_regular_file(path))
-    throw std::runtime_error("no permission");
-
+  class path file_info(utf8_path.c_str());
+  if (!exists(file_info) || !is_regular_file(file_info)) return {};
   std::ifstream in_file;
-  in_file.open(path, std::ios::in);
-  if (!in_file.good()) throw std::runtime_error("cannot open file");
+#ifndef WINDOWS
+  in_file.open(file_info.string(), std::ios::in);
+#else
+  in_file.open(file_info.wstring().c_str(), std::ios::in);
+#endif
+  if (!in_file.good()) return {};
   std::istreambuf_iterator<char> begin(in_file);
   std::istreambuf_iterator<char> end;
   std::string in_buffer(begin, end);
@@ -127,9 +129,16 @@ std::string GpgFrontend::read_all_data_in_file(const std::string& path) {
   return in_buffer;
 }
 
-bool GpgFrontend::write_buffer_to_file(const std::string& path,
+bool GpgFrontend::write_buffer_to_file(const std::string& utf8_path,
                                        const std::string& out_buffer) {
-  std::ofstream out_file(boost::filesystem::path(path).string(), std::ios::out);
+  using namespace boost::filesystem;
+  class path file_info(utf8_path.c_str());
+#ifndef WINDOWS
+  std::ofstream out_file(file_info.string(), std::ios::out | std::ios::trunc);
+#else
+  std::ofstream out_file(file_info.wstring().c_str(),
+                         std::ios::out | std::ios::trunc);
+#endif
   if (!out_file.good()) return false;
   out_file.write(out_buffer.c_str(), out_buffer.size());
   out_file.close();
@@ -137,8 +146,9 @@ bool GpgFrontend::write_buffer_to_file(const std::string& path,
 }
 
 std::string GpgFrontend::get_file_extension(const std::string& path) {
-  // Create a Path object from given string
+  // Create a path object from given string
   boost::filesystem::path path_obj(path);
+
   // Check if file name in the path object has extension
   if (path_obj.has_extension()) {
     // Fetch the extension from path object and return
@@ -149,7 +159,7 @@ std::string GpgFrontend::get_file_extension(const std::string& path) {
 }
 
 std::string GpgFrontend::get_only_file_name_with_path(const std::string& path) {
-  // Create a Path object from given string
+  // Create a path object from given string
   boost::filesystem::path path_obj(path);
   // Check if file name in the path object has extension
   if (path_obj.has_filename()) {
@@ -157,7 +167,7 @@ std::string GpgFrontend::get_only_file_name_with_path(const std::string& path) {
     return (path_obj.parent_path() / path_obj.stem()).string();
   }
   // In case of no extension return empty string
-  throw std::runtime_error("invalid file path");
+  return {};
 }
 
 /*
@@ -179,4 +189,33 @@ int GpgFrontend::text_is_signed(GpgFrontend::BypeArrayRef text) {
     return 1;
   else
     return 0;
+}
+
+GpgFrontend::GpgEncrResult GpgFrontend::_new_result(
+    gpgme_encrypt_result_t&& result) {
+  gpgme_result_ref(result);
+  return {result, _result_ref_deletor()};
+}
+
+GpgFrontend::GpgDecrResult GpgFrontend::_new_result(
+    gpgme_decrypt_result_t&& result) {
+  gpgme_result_ref(result);
+  return {result, _result_ref_deletor()};
+}
+
+GpgFrontend::GpgSignResult GpgFrontend::_new_result(
+    gpgme_sign_result_t&& result) {
+  gpgme_result_ref(result);
+  return {result, _result_ref_deletor()};
+}
+
+GpgFrontend::GpgVerifyResult GpgFrontend::_new_result(
+    gpgme_verify_result_t&& result) {
+  gpgme_result_ref(result);
+  return {result, _result_ref_deletor()};
+}
+
+void GpgFrontend::_result_ref_deletor::operator()(void* _result) {
+  DLOG(INFO) << _("Called") << _result;
+  if (_result != nullptr) gpgme_result_unref(_result);
 }

@@ -153,26 +153,6 @@ class MainWindow : public QMainWindow {
   void slotDecryptVerify();
 
   /**
-   * @details Open dialog for encrypting file.
-   */
-  void slotFileEncryptCustom();
-
-  /**
-   * @details Open dialog for decrypting file.
-   */
-  void slotFileDecryptCustom();
-
-  /**
-   * @details Open dialog for signing file.
-   */
-  void slotFileSignCustom();
-
-  /**
-   * @details Open dialog for verifying file.
-   */
-  void slotFileVerifyCustom();
-
-  /**
    * @details Show the details of the first of the first of selected keys
    */
   void slotShowKeyDetails();
@@ -334,15 +314,18 @@ class MainWindow : public QMainWindow {
    */
   [[nodiscard]] bool getRestartNeeded() const;
 
-  TextEdit* edit{};               /** Tabwidget holding the edit-windows */
-  QMenu* fileMenu{};              /** Submenu for file-operations*/
-  QMenu* editMenu{};              /** Submenu for text-operations*/
-  QMenu* cryptMenu{};             /** Submenu for crypt-operations */
-  QMenu* fileEncMenu{};           /** Submenu for file crypt operations */
-  QMenu* helpMenu{};              /** Submenu for help-operations */
-  QMenu* keyMenu{};               /** Submenu for key-operations */
-  QMenu* viewMenu{};              /** Submenu for view operations */
-  QMenu* importKeyMenu{};         /** Sumenu for import operations */
+  TextEdit* edit{};       /** Tabwidget holding the edit-windows */
+  QMenu* fileMenu{};      /** Submenu for file-operations*/
+  QMenu* editMenu{};      /** Submenu for text-operations*/
+  QMenu* cryptMenu{};     /** Submenu for crypt-operations */
+  QMenu* helpMenu{};      /** Submenu for help-operations */
+  QMenu* keyMenu{};       /** Submenu for key-operations */
+  QMenu* viewMenu{};      /** Submenu for view operations */
+  QMenu* importKeyMenu{}; /** Sumenu for import operations */
+#ifdef SMTP_SUPPORT
+  QMenu* emailMenu{};     /** Sumenu for email operations */
+#endif
+
   QMenu* steganoMenu{};           /** Submenu for steganographic operations*/
   QToolBar* cryptToolBar{};       /** Toolbar holding crypt actions */
   QToolBar* fileToolBar{};        /** Toolbar holding file actions */
@@ -393,18 +376,15 @@ class MainWindow : public QMainWindow {
   QAction* aboutAct{};                 /** Action to open about dialog */
   QAction* checkUpdateAct{};           /** Action to open about dialog */
   QAction* translateAct{};             /** Action to open about dialog */
-  QAction* fileEncryptAct{};    /** Action to open dialog for encrypting file */
-  QAction* fileDecryptAct{};    /** Action to open dialog for decrypting file */
-  QAction* fileSignAct{};       /** Action to open dialog for signing file */
-  QAction* fileVerifyAct{};     /** Action to open dialog for verifying file */
-  QAction* openSettingsAct{};   /** Action to open settings dialog */
-  QAction* showKeyDetailsAct{}; /** Action to open key-details dialog */
-  QAction* refreshKeysFromKeyserverAct{}; /** Action to refresh a key from
-                                             keyserver */
-  QAction* uploadKeyToServerAct{}; /** Action to append selected keys to edit */
-  QAction* startWizardAct{};       /** Action to open the wizard */
-  QAction* cutPgpHeaderAct{};      /** Action for cutting the PGP header */
-  QAction* addPgpHeaderAct{};      /** Action for adding the PGP header */
+  QAction* openSettingsAct{};          /** Action to open settings dialog */
+  QAction* showKeyDetailsAct{};        /** Action to open key-details dialog */
+  QAction* startWizardAct{};           /** Action to open the wizard */
+  QAction* cutPgpHeaderAct{};          /** Action for cutting the PGP header */
+  QAction* addPgpHeaderAct{};          /** Action for adding the PGP header */
+
+#ifdef SMTP_SUPPORT
+  QAction* sendMailAct{}; /** Action for sending a email */
+#endif
 
   QAction* importKeyFromFileAct{};
   QAction* importKeyFromClipboardAct{};

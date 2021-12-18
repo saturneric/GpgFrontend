@@ -245,14 +245,16 @@ void MainWindow::slotFileVerify() {
     signFilePath = path + ".sig";
   }
 
-  bool ok;
-  QString text =
-      QInputDialog::getText(this, _("Origin file to verify"), _("Filepath"),
-                            QLineEdit::Normal, dataFilePath, &ok);
-  if (ok && !text.isEmpty()) {
-    dataFilePath = text;
-  } else {
-    return;
+  if (fileInfo.suffix() != "gpg") {
+    bool ok;
+    QString text =
+        QInputDialog::getText(this, _("Origin file to verify"), _("Filepath"),
+                              QLineEdit::Normal, dataFilePath, &ok);
+    if (ok && !text.isEmpty()) {
+      dataFilePath = text;
+    } else {
+      return;
+    }
   }
 
   QFileInfo dataFileInfo(dataFilePath), signFileInfo(signFilePath);
@@ -287,7 +289,7 @@ void MainWindow::slotFileVerify() {
   });
 
   if (!if_error) {
-    auto result_analyse = VerifyResultAnalyse(error, std::move(result));
+    auto result_analyse = VerifyResultAnalyse(error, result);
     result_analyse.analyse();
     process_result_analyse(edit, infoBoard, result_analyse);
 
@@ -295,7 +297,7 @@ void MainWindow::slotFileVerify() {
       import_unknown_key_from_keyserver(this, result_analyse);
 
     if (result_analyse.getStatus() >= 0)
-      show_verify_details(this, infoBoard, error, result_analyse);
+      show_verify_details(this, infoBoard, error, result);
 
     fileTreeView->update();
   } else {
@@ -395,13 +397,23 @@ void MainWindow::slotFileDecryptVerify() {
 
   if (!file_pre_check(this, path)) return;
 
-  QString outFileName, fileExtension = QFileInfo(path).suffix();
-
-  if (fileExtension == "asc" || fileExtension == "gpg") {
-    int pos = path.lastIndexOf(QChar('.'));
-    outFileName = path.left(pos);
+  boost::filesystem::path out_path(path.toStdString());
+  if (out_path.extension() == ".asc" || out_path.extension() == ".gpg") {
+    out_path = out_path.parent_path() / out_path.filename();
   } else {
-    outFileName = path + ".out";
+    out_path = out_path.replace_extension(".out").string();
+  }
+  LOG(INFO) << "out path" << out_path;
+
+  if (QFile::exists(out_path.string().c_str())) {
+    auto ret =
+        QMessageBox::warning(this, _("Warning"),
+                             QString(_("The output file %1 already exists, do "
+                                       "you need to overwrite it?"))
+                                 .arg(out_path.filename().string().c_str()),
+                             QMessageBox::Ok | QMessageBox::Cancel);
+
+    if (ret == QMessageBox::Cancel) return;
   }
 
   GpgDecrResult d_result = nullptr;
@@ -419,7 +431,7 @@ void MainWindow::slotFileDecryptVerify() {
 
   if (!if_error) {
     auto decrypt_res = DecryptResultAnalyse(error, std::move(d_result));
-    auto verify_res = VerifyResultAnalyse(error, std::move(v_result));
+    auto verify_res = VerifyResultAnalyse(error, v_result);
     decrypt_res.analyse();
     verify_res.analyse();
     process_result_analyse(edit, infoBoard, decrypt_res, verify_res);
@@ -428,7 +440,7 @@ void MainWindow::slotFileDecryptVerify() {
       import_unknown_key_from_keyserver(this, verify_res);
 
     if (verify_res.getStatus() >= 0)
-      show_verify_details(this, infoBoard, error, verify_res);
+      show_verify_details(this, infoBoard, error, v_result);
 
     fileTreeView->update();
   } else {
@@ -436,26 +448,6 @@ void MainWindow::slotFileDecryptVerify() {
                           _("An error occurred during operation."));
     return;
   }
-}
-
-void MainWindow::slotFileEncryptCustom() {
-  new FileEncryptionDialog(mKeyList->getChecked(),
-                           FileEncryptionDialog::Encrypt, this);
-}
-
-void MainWindow::slotFileDecryptCustom() {
-  new FileEncryptionDialog(mKeyList->getChecked(),
-                           FileEncryptionDialog::Decrypt, this);
-}
-
-void MainWindow::slotFileSignCustom() {
-  new FileEncryptionDialog(mKeyList->getChecked(), FileEncryptionDialog::Sign,
-                           this);
-}
-
-void MainWindow::slotFileVerifyCustom() {
-  new FileEncryptionDialog(mKeyList->getChecked(), FileEncryptionDialog::Verify,
-                           this);
 }
 
 }  // namespace GpgFrontend::UI

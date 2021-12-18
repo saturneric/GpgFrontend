@@ -46,10 +46,8 @@ KeyImportDetailDialog::KeyImportDetailDialog(GpgImportInformation result,
 
     this->createGeneralInfoBox();
     mv_box->addWidget(generalInfoBox);
-
     this->createKeysTable();
     mv_box->addWidget(keysTable);
-
     this->createButtonBox();
     mv_box->addWidget(buttonBox);
 
@@ -60,10 +58,12 @@ KeyImportDetailDialog::KeyImportDetailDialog(GpgImportInformation result,
       this->setWindowTitle(_("Key Import Details"));
 
     auto pos = QPoint(100, 100);
-    LOG(INFO) << "parent" << parent;
     if (parent) pos += parent->pos();
     this->move(pos);
-    this->resize(QSize(600, 300));
+
+    this->setMinimumSize(QSize(600, 300));
+    this->adjustSize();
+
     this->setModal(true);
     this->show();
   }

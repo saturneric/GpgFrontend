@@ -26,87 +26,35 @@
 
 #include "ui/SignalStation.h"
 #include "ui/settings/GlobalSettingStation.h"
+#include "ui_InfoBoard.h"
 
 namespace GpgFrontend::UI {
 
-InfoBoardWidget::InfoBoardWidget(QWidget* parent, KeyList* keyList)
-    : QWidget(parent), mKeyList(keyList) {
-  infoBoard = new QTextEdit(this);
-  infoBoard->setReadOnly(true);
-  infoBoard->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-  infoBoard->setMinimumWidth(480);
-  infoBoard->setContentsMargins(0, 0, 0, 0);
+InfoBoardWidget::InfoBoardWidget(QWidget* parent)
+    : QWidget(parent), ui(std::make_shared<Ui_InfoBoard>()) {
+  ui->setupUi(this);
 
-  importFromKeyserverAct =
-      new QAction(_("Import missing key from Keyserver"), this);
-  connect(importFromKeyserverAct, SIGNAL(triggered()), this,
-          SLOT(slotImportFromKeyserver()));
+  ui->actionButtonLayout->addStretch();
+  ui->actionLabel->setText(_("InfoBoard's Actions Menu"));
+  ui->copyButton->setText(_("Copy"));
+  ui->saveButton->setText(_("Save File"));
+  ui->clearButton->setText(_("Clear"));
 
-  detailMenu = new QMenu(this);
-  detailMenu->addAction(importFromKeyserverAct);
-  importFromKeyserverAct->setVisible(false);
-
-  auto* action_button_menu = new QWidget();
-  action_button_menu->setContentsMargins(0, 0, 0, 0);
-  action_button_menu->setSizePolicy(QSizePolicy::Preferred,
-                                    QSizePolicy::Minimum);
-  action_button_menu->setFixedHeight(40);
-
-  actionButtonLayout = new QHBoxLayout();
-  actionButtonLayout->setContentsMargins(0, 0, 0, 0);
-  actionButtonLayout->setSpacing(0);
-
-  auto* label = new QLabel(_("Actions"));
-  label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-  label->setContentsMargins(0, 0, 0, 0);
-  mButtonGroup = new QButtonGroup(this);
-
-  auto* bottom_layout = new QHBoxLayout(this);
-  bottom_layout->addWidget(label);
-  actionButtonLayout->addStretch();
-  bottom_layout->addLayout(actionButtonLayout);
-  action_button_menu->setLayout(bottom_layout);
-
-  QFrame* line;
-  line = new QFrame(this);
-  line->setFrameShape(QFrame::HLine);
-  line->setFrameShadow(QFrame::Sunken);
-  line->setContentsMargins(0, 0, 0, 0);
-
-  auto* notificationWidgetLayout = new QVBoxLayout(this);
-  notificationWidgetLayout->setContentsMargins(0, 0, 0, 0);
-  notificationWidgetLayout->setSpacing(0);
-
-  notificationWidgetLayout->addWidget(infoBoard);
-  notificationWidgetLayout->setStretchFactor(infoBoard, 10);
-  notificationWidgetLayout->addWidget(action_button_menu);
-  notificationWidgetLayout->setStretchFactor(action_button_menu, 1);
-  notificationWidgetLayout->addWidget(line);
-  notificationWidgetLayout->setStretchFactor(line, 1);
-  notificationWidgetLayout->addStretch(0);
-  this->setLayout(notificationWidgetLayout);
+  connect(ui->copyButton, &QPushButton::clicked, this,
+          &InfoBoardWidget::slotCopy);
+  connect(ui->saveButton, &QPushButton::clicked, this,
+          &InfoBoardWidget::slotSave);
+  connect(ui->clearButton, &QPushButton::clicked, this,
+          &InfoBoardWidget::slotReset);
 
   connect(SignalStation::GetInstance(), &SignalStation::signalRefreshInfoBoard,
           this, &InfoBoardWidget::slotRefresh);
-
-  // set default size
-  infoBoard->resize(480, 120);
-  resize(480, 120);
-}
-
-void InfoBoardWidget::slotImportFromKeyserver() {
-  auto* importDialog = new KeyServerImportDialog(false, this);
-  auto key_ids = std::make_unique<KeyIdArgsList>();
-  for (const auto& key_id : *keysNotInList) {
-    key_ids->push_back(key_id.toStdString());
-  }
-  importDialog->slotImport(key_ids);
 }
 
 void InfoBoardWidget::setInfoBoard(const QString& text,
                                    InfoBoardStatus verifyLabelStatus) {
   QString color;
-  infoBoard->clear();
+  ui->infoBoard->clear();
   switch (verifyLabelStatus) {
     case INFO_ERROR_OK:
       color = "#008000";
@@ -120,12 +68,12 @@ void InfoBoardWidget::setInfoBoard(const QString& text,
     default:
       break;
   }
-  infoBoard->append(text);
+  ui->infoBoard->append(text);
 
-  infoBoard->setAutoFillBackground(true);
-  QPalette status = infoBoard->palette();
+  ui->infoBoard->setAutoFillBackground(true);
+  QPalette status = ui->infoBoard->palette();
   status.setColor(QPalette::Text, color);
-  infoBoard->setPalette(status);
+  ui->infoBoard->setPalette(status);
 
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
@@ -137,13 +85,13 @@ void InfoBoardWidget::setInfoBoard(const QString& text,
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("info_font_size");
   }
-  infoBoard->setFont(QFont("Times", info_font_size));
+  ui->infoBoard->setFont(QFont("Times", info_font_size));
 }
 
 void InfoBoardWidget::slotRefresh(const QString& text, InfoBoardStatus status) {
-  infoBoard->clear();
+  ui->infoBoard->clear();
   setInfoBoard(text, status);
-  infoBoard->verticalScrollBar()->setValue(0);
+  ui->infoBoard->verticalScrollBar()->setValue(0);
 }
 
 void InfoBoardWidget::associateTextEdit(QTextEdit* edit) {
@@ -154,32 +102,24 @@ void InfoBoardWidget::associateTextEdit(QTextEdit* edit) {
 }
 
 void InfoBoardWidget::associateTabWidget(QTabWidget* tab) {
-  if (mTextPage != nullptr)
-    disconnect(mTextPage, SIGNAL(textChanged()), this, SLOT(slotReset()));
-  //    if (mFileTreeView != nullptr)
-  //        disconnect(mFileTreeView, &FilePage::pathChanged, this,
-  //        &InfoBoardWidget::slotReset);
-  if (mTabWidget != nullptr) {
-    disconnect(mTabWidget, SIGNAL(tabBarClicked(int)), this, SLOT(slotReset()));
-    connect(mTabWidget, SIGNAL(tabCloseRequested(int)), this,
-            SLOT(slotReset()));
-  }
-
   mTextPage = nullptr;
   mTabWidget = tab;
   connect(tab, SIGNAL(tabBarClicked(int)), this, SLOT(slotReset()));
   connect(tab, SIGNAL(tabCloseRequested(int)), this, SLOT(slotReset()));
+  // reset
+  this->slotReset();
 }
 
 void InfoBoardWidget::addOptionalAction(const QString& name,
                                         const std::function<void()>& action) {
+  LOG(INFO) << "add option" << name.toStdString();
   auto actionButton = new QPushButton(name);
   auto layout = new QHBoxLayout();
   layout->setContentsMargins(5, 0, 5, 0);
-  infoBoard->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+  ui->infoBoard->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   // set margin from surroundings
   layout->addWidget(actionButton);
-  actionButtonLayout->addLayout(layout);
+  ui->actionButtonLayout->addLayout(layout);
   connect(actionButton, &QPushButton::clicked, this, [=]() { action(); });
 }
 
@@ -188,11 +128,11 @@ void InfoBoardWidget::addOptionalAction(const QString& name,
  */
 void InfoBoardWidget::resetOptionActionsMenu() {
   // skip stretch
-  deleteWidgetsInLayout(actionButtonLayout, 1);
+  deleteWidgetsInLayout(ui->actionButtonLayout, 1);
 }
 
 void InfoBoardWidget::slotReset() {
-  this->infoBoard->clear();
+  ui->infoBoard->clear();
   resetOptionActionsMenu();
 }
 
@@ -212,6 +152,28 @@ void InfoBoardWidget::deleteWidgetsInLayout(QLayout* layout, int start_index) {
       delete item->widget();
     delete item;
   }
+}
+
+void InfoBoardWidget::slotCopy() {
+  auto* clipboard = QGuiApplication::clipboard();
+  clipboard->setText(ui->infoBoard->toPlainText());
+}
+
+void InfoBoardWidget::slotSave() {
+  auto file_path = QFileDialog::getSaveFileName(
+      this, _("Save Information Board's Content"), {}, tr("Text (*.txt)"));
+  LOG(INFO) << "file path" << file_path.toStdString();
+  if(file_path.isEmpty()) return;
+
+  QFile file(file_path);
+  if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+    file.write(ui->infoBoard->toPlainText().toUtf8());
+  } else {
+    QMessageBox::critical(
+        this, _("Error"),
+        _("The file path is not exists, unprivileged or unreachable."));
+  }
+  file.close();
 }
 
 }  // namespace GpgFrontend::UI

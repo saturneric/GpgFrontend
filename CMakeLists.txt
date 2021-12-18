@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(GpgFrontend VERSION 2.0.1 LANGUAGES CXX)
+project(GpgFrontend VERSION 2.0.3 LANGUAGES CXX)
 
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
@@ -153,7 +153,6 @@ IF (MINGW)
 
     set(Boost_USE_STATIC_LIBS ON)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
-
     include_directories(
             ${CMAKE_CURRENT_SOURCE_DIR}/src
             ${CMAKE_CURRENT_SOURCE_DIR}/third_party
@@ -162,11 +161,9 @@ IF (MINGW)
     link_directories(
             /mingw64/lib
     )
-
 endif ()
 
 if (APPLE)
-
     message(STATUS "Configuration For OS Platform MacOS")
 
     set(OS_PLATFORM 1)
@@ -224,10 +221,21 @@ set(BASIC_ENV_CONFIG 1)
 set(QT_MOC_CONFIG 1)
 set(ESAY_LOGGING_PP 1)
 
+if (LINUX_INSTALL_SOFTWARE)
+    include(GNUInstallDirs)
+    set(INSTALL_GPGFRONTEND_APP 1)
+    set(APP_INSTALL_FLAG LINUX_INSTALL)
+    add_compile_definitions(LINUX_INSTALL_BUILD)
+    set(Boost_USE_STATIC_LIBS ON)
+else ()
+    set(APP_INSTALL_FLAG BUNDLE)
+    add_compile_definitions(BUNDLE_BUILD)
+endif ()
+
+
 if (FULL_APPLICATION_BUILD)
     message(STATUS "Build Full Application")
     set(QT5_ENV_SUPPORT 1)
-    set(QT_MOC_CONFIG 1)
     set(GPG_CORE 1)
     set(UI_CORE 1)
     set(SMTP_SUPPORT 1)
@@ -238,24 +246,21 @@ if (FULL_APPLICATION_BUILD)
     set(MULTI_LANG_SUPPORT 1)
 elseif (MINIMUM_APPLICATION_BUILD)
     set(QT5_ENV_SUPPORT 1)
-    set(QT_MOC_CONFIG 1)
     set(GPG_CORE 1)
     set(UI_CORE 1)
     set(APPLICATION_BUILD 1)
     set(BASIC_ENV_CONFIG 1)
-    set(MULTI_LANG_SUPPORT 1)
     # Disable APP_IMAGE_UPDATE because of too many issues
     #    if (LINUX)
     #        set(APP_IMAGE_UPDATE 1)
     #    endif ()
 elseif (STABLE_APPLICATION_BUILD)
     set(QT5_ENV_SUPPORT 1)
-    set(QT_MOC_CONFIG 1)
     set(GPG_CORE 1)
     set(UI_CORE 1)
     set(APPLICATION_BUILD 1)
     set(BASIC_ENV_CONFIG 1)
-    # MULTI_LANG_SUPPORT now work only on Linux and macOS
+    set(SMTP_SUPPORT 1)
     set(MULTI_LANG_SUPPORT 1)
 elseif (TEST_BUILD)
     message(STATUS "Build Test Cases")
@@ -273,12 +278,21 @@ find_package(Boost COMPONENTS date_time filesystem REQUIRED)
 
 if (QT5_ENV_SUPPORT)
     # Support Qt version Both 5.12.x and 5.15.x
-    find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    if (LINUX_INSTALL_SOFTWARE)
+        find_package(Qt5 5.12 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    else ()
+        find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    endif ()
     # find_package(Qt5 5.15.2 EXACT COMPONENTS Core Test Widgets PrintSupport Network LinguistTools REQUIRED)
     # Qt configuration
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
     set(CMAKE_AUTOUIC ON)
+
+    set(CMAKE_AUTORCC_OPTIONS "--compress;9")
+    set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
+    message(STATUS "CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS}")
+
 endif ()
 
 
