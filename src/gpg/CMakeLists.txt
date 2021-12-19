@@ -33,6 +33,13 @@ elseif (APPLE)
             ${BOOST_LIBS}
             ${libgpgme} ${libgpg-error} ${libassuan}
             dl)
+    if(XCODE_BUILD)
+        set_target_properties(gpg_core 
+            PROPERTIES
+            ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+    endif()
 else ()
     find_library(libgpgme NAMES libgpgme.a)
     find_library(libgpg-error NAMES libgpg-error.a)

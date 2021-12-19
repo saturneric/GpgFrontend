@@ -171,6 +171,11 @@ if (APPLE)
 
     set(ENV{Qt5_DIR} /usr/local/opt/qt5/lib/cmake)
 
+    if(XCODE_BUILD)
+        set(XCODE_CODE_SIGN_IDENTITY "\"${XCODE_CODE_SIGN_IDENTITY}\"")
+        message(STATUS "XCODE_CODE_SIGN_IDENTITY ${XCODE_CODE_SIGN_IDENTITY}")
+    endif()
+
     include_directories(
             ${CMAKE_CURRENT_SOURCE_DIR}/src
             ${CMAKE_CURRENT_SOURCE_DIR}/third_party
