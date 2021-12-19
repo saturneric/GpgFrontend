@@ -1,4 +1,4 @@
-## GpgFrontend - A Cross-Platform OpenPGP Crypto Tool
+# GpgFrontend - A Cross-Platform OpenPGP Crypto Tool
 
 ![Language](https://img.shields.io/badge/language-C%2B%2B-green)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/saturneric/gpgfrontend)
@@ -8,9 +8,7 @@
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_shield)
 
 GpgFrontend is a Free, Powerful, Easy-to-Use, Compact, Cross-Platform, and
-Installation-Free [OpenPGP](https://www.openpgp.org/) Crypto Tool(using GnuPG).
-
-<img width="400" src="https://github.com/saturneric/Blob/blob/master/screenshots/main-ubuntu.png?raw=true" alt="Ubuntu Main Screenshot"/> 
+Installation-Free [OpenPGP](https://www.openpgp.org/) Crypto Tool(using GnuPG). 
 
 ## Purpose
 
