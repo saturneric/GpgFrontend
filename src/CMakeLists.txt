@@ -196,27 +196,29 @@ if (APPLICATION_BUILD)
                 MACOSX_BUNDLE_BUNDLE_NAME ${AppName}
                 MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
                 MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
-                MACOSX_BUNDLE_BUNDLE_VERSION ${BUILD_VERSION}
-                MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns")
+                MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+                MACOSX_BUNDLE_COPYRIGHT "GPL-3.0"
+                MACOSX_BUNDLE_INFO_STRING "An OpenPGP Crypto Tool"
+                MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns"
+                MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/resource/plist/MacOSXBundleInfo.plist.in
+                )
             add_custom_command(TARGET ${AppName} POST_BUILD
                 COMMAND /bin/rm -rf  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.app/Contents/Resources
                 WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                 COMMENT "Deleting Resources in App Bundle")
             add_custom_command(TARGET ${AppName} POST_BUILD
-                COMMAND /bin/mv -n ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app/Contents/
+                COMMAND /bin/cp -rf ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app/Contents/
                 WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                 COMMENT "Copying Resources into App Bundle Resource")
             add_custom_command(TARGET ${AppName} POST_BUILD
                 COMMAND macdeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app
                 WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                 COMMENT "Resolving Qt Dependency")
-            add_custom_command(TARGET ${AppName} POST_BUILD
-                COMMAND codesign --deep --force --options=runtime -s "${XCODE_CODE_SIGN_IDENTITY}" ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app -v
-                WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                COMMENT "Signing App Bundle")
             set_target_properties(${AppName} PROPERTIES
                 XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
                 XCODE_ATTRIBUTE_SKIP_INSTALL "No"
+                XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep --entitlements ${CMAKE_SOURCE_DIR}/resource/plist/entitlement.plist"
+                XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes"
             )
         else()
             add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
