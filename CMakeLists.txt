@@ -224,6 +224,10 @@ endif ()
 
 message(STATUS "OS_PLATFORM ${OS_PLATFORM}")
 
+if(GPG_STANDALONE_MODE)
+    add_compile_definitions(GPG_STANDALONE_MODE)
+endif()
+
 # Basic Envirnoment Configure
 set(BASIC_ENV_CONFIG 1)
 set(QT_MOC_CONFIG 1)

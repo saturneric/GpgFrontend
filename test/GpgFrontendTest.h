@@ -56,7 +56,9 @@ class GpgCoreTest : public ::testing::Test {
   // Data File Directory Location
   boost::filesystem::path data_path;
 
-  int default_channel = 0;
+  const int default_channel = 0;
+
+  const int gpg_alone_channel = 512;
 
   GpgCoreTest() = default;
 
@@ -75,6 +77,8 @@ class GpgCoreTest : public ::testing::Test {
     };
 
     configure_independent_database(root);
+
+    configure_alone_gpg(root);
 
     dealing_private_keys(root);
     import_data();
@@ -107,12 +111,15 @@ class GpgCoreTest : public ::testing::Test {
     }
   }
 
-  void configure_independent_database(const libconfig::Setting& root) {
-    bool independent_database = false;
-    if (root.exists("independent_database")) {
-      root.lookupValue("independent_database", independent_database);
-      if (independent_database && root.exists("independent_db_path")) {
-        default_channel = 1;
+  void configure_alone_gpg(const libconfig::Setting& root) {
+    bool alone_gpg = false;
+    if (root.exists("alone_gpg")) {
+      root.lookupValue("alone_gpg", alone_gpg);
+      if (alone_gpg && root.exists("alone_gpg")) {
+        std::string alone_gpg_path;
+        root.lookupValue("alone_gpg_path", alone_gpg_path);
+        auto gpg_path = parent_path / alone_gpg_path;
+
         std::string relative_db_path;
         root.lookupValue("independent_db_path", relative_db_path);
         auto db_path = parent_path / relative_db_path;
@@ -120,7 +127,26 @@ class GpgCoreTest : public ::testing::Test {
           boost::filesystem::create_directory(db_path);
         }
         GpgFrontend::GpgContext::CreateInstance(
-            1,
+            gpg_alone_channel,
+            std::make_unique<GpgFrontend::GpgContext>(true, db_path.c_str(),
+                                                      true, gpg_path.c_str()));
+      }
+    }
+  }
+
+  void configure_independent_database(const libconfig::Setting& root) {
+    bool independent_database = false;
+    if (root.exists("independent_database")) {
+      root.lookupValue("independent_database", independent_database);
+      if (independent_database && root.exists("independent_db_path")) {
+        std::string relative_db_path;
+        root.lookupValue("independent_db_path", relative_db_path);
+        auto db_path = parent_path / relative_db_path;
+        if (!boost::filesystem::exists(db_path)) {
+          boost::filesystem::create_directory(db_path);
+        }
+        GpgFrontend::GpgContext::CreateInstance(
+            default_channel,
             std::make_unique<GpgFrontend::GpgContext>(true, db_path.c_str()));
       }
     }

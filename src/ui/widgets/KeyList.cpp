@@ -46,6 +46,17 @@ KeyList::KeyList(bool menu, QWidget* parent)
 }
 
 void KeyList::init() {
+#ifdef GPG_STANDALONE_MODE
+  LOG(INFO) << "GPG_STANDALONE_MODE Enabled";
+  auto gpg_path = GpgFrontend::UI::GlobalSettingStation::GetInstance()
+                      .GetStandaloneGpgBinDir();
+  auto db_path = GpgFrontend::UI::GlobalSettingStation::GetInstance()
+                     .GetStandaloneDatabaseDir();
+  GpgContext::CreateInstance(
+      _m_key_list_id, std::make_unique<GpgContext>(true, db_path.string(), true,
+                                                   gpg_path.string()));
+#endif
+
   ui->setupUi(this);
 
   ui->menuWidget->setHidden(!menu_status);

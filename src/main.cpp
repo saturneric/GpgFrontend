@@ -28,6 +28,7 @@
 
 #include "GpgFrontendBuildInfo.h"
 #include "gpg/GpgContext.h"
+#include "gpg/GpgFunctionObject.h"
 #include "ui/MainWindow.h"
 #include "ui/function/CtxCheckThread.h"
 #include "ui/settings/GlobalSettingStation.h"
@@ -86,6 +87,19 @@ int main(int argc, char* argv[]) {
   QString styleSheet = QLatin1String(file.readAll());
   qApp->setStyleSheet(styleSheet);
   file.close();
+#endif
+
+#ifdef GPG_STANDALONE_MODE
+  LOG(INFO) << "GPG_STANDALONE_MODE Enabled";
+  auto gpg_path = GpgFrontend::UI::GlobalSettingStation::GetInstance()
+                      .GetStandaloneGpgBinDir();
+  auto db_path = GpgFrontend::UI::GlobalSettingStation::GetInstance()
+                     .GetStandaloneDatabaseDir();
+  GpgFrontend::GpgContext::CreateInstance(
+      GpgFrontend::SingletonFunctionObject<
+          GpgFrontend::GpgContext>::GetDefaultChannel(),
+      std::make_unique<GpgFrontend::GpgContext>(true, db_path.string(), true,
+                                                gpg_path.string()));
 #endif
 
   auto* init_ctx_thread = new GpgFrontend::UI::CtxCheckThread();
