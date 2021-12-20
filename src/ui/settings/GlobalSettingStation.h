@@ -48,6 +48,18 @@ class GlobalSettingStation : public QObject {
     return app_log_path;
   }
 
+  [[nodiscard]] boost::filesystem::path GetStandaloneDatabaseDir() const {
+    auto db_path = app_configure_path / "db";
+    if (!boost::filesystem::exists(db_path)) {
+      boost::filesystem::create_directory(db_path);
+    }
+    return db_path;
+  }
+
+  [[nodiscard]] boost::filesystem::path GetStandaloneGpgBinDir() const {
+    return app_resource_path / "gpg1.4" / "gpg";
+  }
+
   [[nodiscard]] boost::filesystem::path GetLocaleDir() const {
     return app_locale_path;
   }
