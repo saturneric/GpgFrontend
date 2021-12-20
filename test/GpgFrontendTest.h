@@ -29,10 +29,11 @@
 #include <gpg-error.h>
 #include <gtest/gtest.h>
 
-#include <boost/date_time/gregorian/parsers.hpp>
+#include <boost/date_time.hpp>
 #include <boost/dll.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <libconfig.h++>
 #include <memory>
 #include <string>
 #include <vector>

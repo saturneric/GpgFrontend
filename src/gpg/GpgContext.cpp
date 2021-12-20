@@ -45,7 +45,7 @@ namespace GpgFrontend {
  *  Set up gpgme-context, set paths to app-run path
  */
 GpgContext::GpgContext(bool independent_database, std::string db_path,
-                       int channel)
+                       bool gpg_alone, std::string gpg_path, int channel)
     : SingletonFunctionObject<GpgContext>(channel) {
   static bool _first = true;
 
@@ -63,6 +63,14 @@ GpgContext::GpgContext(bool independent_database, std::string db_path,
   gpgme_ctx_t _p_ctx;
   check_gpg_error(gpgme_new(&_p_ctx));
   _ctx_ref = CtxRefHandler(_p_ctx);
+
+  if (gpg_alone) {
+    info.AppPath = gpg_path;
+    auto err = gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_OpenPGP,
+                                         info.AppPath.c_str(),
+                                         info.DatabasePath.c_str());
+    assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
+  }
 
   auto engineInfo = gpgme_ctx_get_engine_info(*this);
 
