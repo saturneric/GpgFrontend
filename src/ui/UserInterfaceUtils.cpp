@@ -151,6 +151,15 @@ CommonUtils* CommonUtils::GetInstance() {
 CommonUtils::CommonUtils() : QWidget(nullptr) {
   connect(this, SIGNAL(signalKeyStatusUpdated()), SignalStation::GetInstance(),
           SIGNAL(KeyDatabaseRefresh()));
+  connect(this, &CommonUtils::signalGnupgNotInstall, this, []() {
+    QMessageBox::critical(
+        nullptr, _("ENV Loading Failed"),
+        _("Gnupg(gpg) is not installed correctly, please follow the "
+          "ReadME "
+          "instructions in Github to install Gnupg and then open "
+          "GpgFrontend."));
+    QCoreApplication::quit();
+  });
 }
 
 void CommonUtils::slotImportKeys(QWidget* parent,
