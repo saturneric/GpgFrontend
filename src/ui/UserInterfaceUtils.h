@@ -75,6 +75,8 @@ class CommonUtils : public QWidget {
  signals:
   void signalKeyStatusUpdated();
 
+  void signalGnupgNotInstall();
+
  public slots:
 
   void slotImportKeys(QWidget* parent, const std::string& in_buffer);

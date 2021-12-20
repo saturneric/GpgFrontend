@@ -28,8 +28,8 @@
 
 #include "GpgFrontendBuildInfo.h"
 #include "gpg/GpgContext.h"
-#include "gpg/function/GpgKeyGetter.h"
 #include "ui/MainWindow.h"
+#include "ui/function/CtxCheckThread.h"
 #include "ui/settings/GlobalSettingStation.h"
 
 // Easy Logging Cpp
@@ -78,7 +78,9 @@ int main(int argc, char* argv[]) {
 
 #if !defined(RELEASE) && defined(WINDOWS)
   // css
-  boost::filesystem::path css_path = GpgFrontend::UI::GlobalSettingStation::GetInstance().GetResourceDir() / "css" / "default.qss";
+  boost::filesystem::path css_path =
+      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetResourceDir() /
+      "css" / "default.qss";
   QFile file(css_path.string().c_str());
   file.open(QFile::ReadOnly);
   QString styleSheet = QLatin1String(file.readAll());
@@ -86,21 +88,7 @@ int main(int argc, char* argv[]) {
   file.close();
 #endif
 
-  auto* init_ctx_thread = QThread::create([]() {
-    // Create & Check Gnupg Context Status
-    if (!GpgFrontend::GpgContext::GetInstance().good()) {
-      QMessageBox::critical(
-          nullptr, _("ENV Loading Failed"),
-          _("Gnupg(gpg) is not installed correctly, please follow the "
-            "ReadME "
-            "instructions in Github to install Gnupg and then open "
-            "GpgFrontend."));
-      QCoreApplication::quit();
-      exit(0);
-    }
-    // Try fetching key
-    GpgFrontend::GpgKeyGetter::GetInstance().FetchKey();
-  });
+  auto* init_ctx_thread = new GpgFrontend::UI::CtxCheckThread();
 
   QApplication::connect(init_ctx_thread, &QThread::finished, init_ctx_thread,
                         &QThread::deleteLater);
@@ -118,9 +106,13 @@ int main(int argc, char* argv[]) {
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
+  QApplication::connect(init_ctx_thread, &QThread::finished, [=]() {
+    waiting_dialog->finished(0);
+    waiting_dialog->deleteLater();
+  });
   QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
     LOG(INFO) << "cancel clicked";
-    init_ctx_thread->terminate();
+    if (init_ctx_thread->isRunning()) init_ctx_thread->terminate();
     QCoreApplication::quit();
     exit(0);
   });
@@ -130,11 +122,10 @@ int main(int argc, char* argv[]) {
   waiting_dialog->setFocus();
 
   init_ctx_thread->start();
-  while (init_ctx_thread->isRunning()) {
-    QApplication::processEvents();
-  }
-  waiting_dialog->finished(0);
-  waiting_dialog->deleteLater();
+  QEventLoop loop;
+  QApplication::connect(init_ctx_thread, &QThread::finished, &loop,
+                        &QEventLoop::quit);
+  loop.exec();
 
   /**
    * internationalisation. loop to restart main window
@@ -149,7 +140,6 @@ int main(int argc, char* argv[]) {
     int r = setjmp(recover_env);
 #endif
     if (!r) {
-
       try {
         // i18n
         init_locale();
