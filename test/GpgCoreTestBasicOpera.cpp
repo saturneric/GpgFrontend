@@ -41,8 +41,8 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
   ByteArray encrypt_text = "Hello GpgFrontend!";
   ByteArrayPtr encr_out_data;
   GpgEncrResult e_result;
-  std::vector<GpgKey> keys;
-  keys.push_back(std::move(encrpyt_key));
+  KeyListPtr keys = std::make_unique<KeyArgsList>();
+  keys->push_back(std::move(encrpyt_key));
   auto err =
       BasicOperator::GetInstance(default_channel)
           .Encrypt(std::move(keys), encrypt_text, encr_out_data, e_result);
@@ -65,8 +65,8 @@ TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
   ByteArray sign_text = "Hello GpgFrontend!";
   ByteArrayPtr sign_out_data;
   GpgSignResult s_result;
-  std::vector<GpgKey> keys;
-  keys.push_back(std::move(encrpyt_key));
+  KeyListPtr keys = std::make_unique<KeyArgsList>();
+  keys->push_back(std::move(encrpyt_key));
   auto err = BasicOperator::GetInstance(default_channel)
                  .Sign(std::move(keys), sign_text, sign_out_data,
                        GPGME_SIG_MODE_NORMAL, s_result);
@@ -90,8 +90,8 @@ TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
   ByteArray sign_text = "Hello GpgFrontend!";
   ByteArrayPtr sign_out_data;
   GpgSignResult s_result;
-  std::vector<GpgKey> keys;
-  keys.push_back(std::move(encrpyt_key));
+  KeyListPtr keys = std::make_unique<KeyArgsList>();
+  keys->push_back(std::move(encrpyt_key));
   auto err = BasicOperator::GetInstance(default_channel)
                  .Sign(std::move(keys), sign_text, sign_out_data,
                        GPGME_SIG_MODE_DETACH, s_result);
@@ -114,8 +114,8 @@ TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
   ByteArray sign_text = "Hello GpgFrontend!";
   ByteArrayPtr sign_out_data;
   GpgSignResult s_result;
-  std::vector<GpgKey> keys;
-  keys.push_back(std::move(sign_key));
+  KeyListPtr keys = std::make_unique<KeyArgsList>();
+  keys->push_back(std::move(sign_key));
   auto err = BasicOperator::GetInstance(default_channel)
                  .Sign(std::move(keys), sign_text, sign_out_data,
                        GPGME_SIG_MODE_CLEAR, s_result);
@@ -147,9 +147,10 @@ TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
   GpgEncrResult e_result;
   GpgSignResult s_result;
 
-  std::vector<GpgKey> keys, sign_keys;
-  keys.push_back(std::move(encrpyt_key));
-  sign_keys.push_back(std::move(sign_key));
+  KeyListPtr keys = std::make_unique<KeyArgsList>(),
+             sign_keys = std::make_unique<KeyArgsList>();
+  keys->push_back(std::move(encrpyt_key));
+  sign_keys->push_back(std::move(sign_key));
 
   auto err = BasicOperator::GetInstance(default_channel)
                  .EncryptSign(std::move(keys), std::move(sign_keys),

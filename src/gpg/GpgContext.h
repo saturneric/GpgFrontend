@@ -38,7 +38,8 @@ namespace GpgFrontend {
 class GpgContext : public SingletonFunctionObject<GpgContext> {
  public:
   explicit GpgContext(bool independent_database = false,
-                      std::string path = std::string(), int channel = 0);
+                      std::string path = std::string(), bool gpg_alone = false,
+                      std::string gpg_path = std::string(), int channel = 0);
 
   ~GpgContext() override = default;
 

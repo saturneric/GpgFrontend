@@ -174,6 +174,9 @@ if (APPLE)
     if(XCODE_BUILD)
         set(XCODE_CODE_SIGN_IDENTITY "\"${XCODE_CODE_SIGN_IDENTITY}\"")
         message(STATUS "XCODE_CODE_SIGN_IDENTITY ${XCODE_CODE_SIGN_IDENTITY}")
+        if(APPLE_SANDBOX)
+            add_compile_definitions(APPLE_SANDBOX)
+        endif()
     endif()
 
     include_directories(
