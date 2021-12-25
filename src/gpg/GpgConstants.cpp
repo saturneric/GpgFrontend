@@ -215,6 +215,12 @@ GpgFrontend::GpgVerifyResult GpgFrontend::_new_result(
   return {result, _result_ref_deletor()};
 }
 
+GpgFrontend::GpgGenKeyResult GpgFrontend::_new_result(
+    gpgme_genkey_result_t&& result) {
+  gpgme_result_ref(result);
+  return {result, _result_ref_deletor()};
+}
+
 void GpgFrontend::_result_ref_deletor::operator()(void* _result) {
   DLOG(INFO) << _("Called") << _result;
   if (_result != nullptr) gpgme_result_unref(_result);

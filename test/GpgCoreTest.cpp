@@ -22,13 +22,7 @@
  *
  */
 
-#include <string>
-#include <vector>
-
 #include "GpgFrontendTest.h"
-#include "gpg/GpgConstants.h"
-#include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/GpgKeyImportExporter.h"
-#include "gpg/model/GpgKey.h"
 
-TEST_F(GpgCoreTest, CoreExportSecretTest) {}
+// Should be used once and once-only
+INITIALIZE_EASYLOGGINGPP

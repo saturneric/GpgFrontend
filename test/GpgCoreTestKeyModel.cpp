@@ -25,15 +25,11 @@
 #include "GpgFrontendTest.h"
 #include "gpg/function/GpgKeyGetter.h"
 
-// Should be used once and once-only
-INITIALIZE_EASYLOGGINGPP
-
 TEST_F(GpgCoreTest, CoreInitTest) {
   auto& ctx = GpgFrontend::GpgContext::GetInstance(default_channel);
   auto& ctx_default = GpgFrontend::GpgContext::GetInstance();
   ASSERT_TRUE(ctx.good());
   ASSERT_TRUE(ctx_default.good());
-  ASSERT_EQ(ctx_default.GetInfo().DatabasePath, "default");
 }
 
 TEST_F(GpgCoreTest, GpgDataTest) {

@@ -29,6 +29,7 @@
 
 #include <functional>
 #include <string>
+#include <utility>
 
 #include "GpgConstants.h"
 
@@ -36,17 +37,13 @@
 #include <windows.h>
 #endif
 
-#define INT2VOIDP(i) (void*)(uintptr_t)(i)
-
 namespace GpgFrontend {
 
 /**
  * Constructor
  *  Set up gpgme-context, set paths to app-run path
  */
-GpgContext::GpgContext(bool independent_database, std::string db_path,
-                       bool gpg_alone, std::string gpg_path, int channel)
-    : SingletonFunctionObject<GpgContext>(channel) {
+GpgContext::GpgContext(const GpgContextInitArgs& args) {
   static bool _first = true;
 
   if (_first) {
@@ -64,46 +61,57 @@ GpgContext::GpgContext(bool independent_database, std::string db_path,
   check_gpg_error(gpgme_new(&_p_ctx));
   _ctx_ref = CtxRefHandler(_p_ctx);
 
-  if (gpg_alone) {
-    info.AppPath = gpg_path;
+  if (args.gpg_alone) {
+    info.AppPath = args.gpg_path;
     auto err = gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_OpenPGP,
                                          info.AppPath.c_str(),
                                          info.DatabasePath.c_str());
     assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
   }
 
-  auto engineInfo = gpgme_ctx_get_engine_info(*this);
+  auto engine_info = gpgme_ctx_get_engine_info(*this);
 
   // Check ENV before running
   bool check_pass = false, find_openpgp = false, find_gpgconf = false,
        find_assuan = false, find_cms = false;
-  while (engineInfo != nullptr) {
-    if (engineInfo->protocol == GPGME_PROTOCOL_GPGCONF &&
-        strcmp(engineInfo->version, "1.0.0") != 0)
+  while (engine_info != nullptr) {
+    if (engine_info->protocol == GPGME_PROTOCOL_GPGCONF &&
+        strcmp(engine_info->version, "1.0.0") != 0)
       find_gpgconf = true;
-    if (engineInfo->protocol == GPGME_PROTOCOL_OpenPGP &&
-        strcmp(engineInfo->version, "1.0.0") != 0)
-      find_openpgp = true, info.AppPath = engineInfo->file_name,
-      info.DatabasePath = "default", info.GnupgVersion = engineInfo->version;
-    if (engineInfo->protocol == GPGME_PROTOCOL_CMS &&
-        strcmp(engineInfo->version, "1.0.0") != 0)
+    if (engine_info->protocol == GPGME_PROTOCOL_OpenPGP &&
+        strcmp(engine_info->version, "1.0.0") != 0) {
+      find_openpgp = true;
+      info.AppPath = engine_info->file_name;
+      info.DatabasePath = "default", info.GnupgVersion = engine_info->version;
+      DLOG(INFO) << "OpenPGP"
+                 << std::string(engine_info->file_name == nullptr
+                                    ? "null"
+                                    : engine_info->file_name)
+                 << std::string(engine_info->home_dir == nullptr
+                                    ? "null"
+                                    : engine_info->home_dir);
+    }
+
+    if (engine_info->protocol == GPGME_PROTOCOL_CMS &&
+        strcmp(engine_info->version, "1.0.0") != 0)
       find_cms = true;
-    if (engineInfo->protocol == GPGME_PROTOCOL_ASSUAN) find_assuan = true;
-    engineInfo = engineInfo->next;
+    if (engine_info->protocol == GPGME_PROTOCOL_ASSUAN) find_assuan = true;
+    engine_info = engine_info->next;
   }
 
   if (find_gpgconf && find_openpgp && find_cms && find_assuan)
     check_pass = true;
 
   if (!check_pass) {
-    good_ = false;
+    this->good_ = false;
     return;
   } else {
-    LOG(INFO) << "Gnupg Version" << info.GnupgVersion;
+    LOG(INFO) << "GnuPG version" << info.GnupgVersion;
 
     // Set Independent Database
-    if (independent_database) {
-      info.DatabasePath = db_path;
+    if (args.independent_database) {
+      info.DatabasePath = args.db_path;
+      LOG(INFO) << "gpg custom database path" << info.DatabasePath;
       auto err = gpgme_ctx_set_engine_info(
           _ctx_ref.get(), GPGME_PROTOCOL_OpenPGP, info.AppPath.c_str(),
           info.DatabasePath.c_str());
@@ -116,10 +124,20 @@ GpgContext::GpgContext(bool independent_database, std::string db_path,
     // Speed up loading process
     gpgme_set_offline(*this, 1);
 
-    check_gpg_error(gpgme_set_keylist_mode(
-        *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
-                   GPGME_KEYLIST_MODE_SIGS | GPGME_KEYLIST_MODE_SIG_NOTATIONS |
-                   GPGME_KEYLIST_MODE_WITH_TOFU));
+    if (info.GnupgVersion >= "2.0.0") {
+      LOG(INFO) << "Using GnuPG 2.x";
+      check_gpg_error(gpgme_set_keylist_mode(
+          *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
+                     GPGME_KEYLIST_MODE_SIGS |
+                     GPGME_KEYLIST_MODE_SIG_NOTATIONS |
+                     GPGME_KEYLIST_MODE_WITH_TOFU));
+    } else {
+      LOG(INFO) << "Using GnuPG 1.x";
+      check_gpg_error(gpgme_set_keylist_mode(
+          *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_SIGS |
+                     GPGME_KEYLIST_MODE_SIG_NOTATIONS |
+                     GPGME_KEYLIST_MODE_WITH_TOFU));
+    }
     good_ = true;
   }
 }

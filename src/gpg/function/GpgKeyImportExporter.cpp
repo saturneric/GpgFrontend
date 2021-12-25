@@ -22,7 +22,7 @@
  *
  */
 
-#include "gpg/function/GpgKeyImportExportor.h"
+#include "gpg/function/GpgKeyImportExporter.h"
 
 #include "GpgConstants.h"
 
@@ -31,7 +31,7 @@
  * @param inBuffer input byte array
  * @return Import information
  */
-GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExportor::ImportKey(
+GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExporter::ImportKey(
     StdBypeArrayPtr in_buffer) {
   if (in_buffer->empty()) return {};
 
@@ -60,7 +60,7 @@ GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExportor::ImportKey(
  * @param out_buffer output byte array
  * @return if success
  */
-bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
+bool GpgFrontend::GpgKeyImportExporter::ExportKeys(
     KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer) const {
   if (uid_list->empty()) return false;
 
@@ -87,7 +87,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
  * @param outBuffer output byte array
  * @return if success
  */
-bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
+bool GpgFrontend::GpgKeyImportExporter::ExportKeys(
     const KeyArgsList& keys, ByteArrayPtr& out_buffer) const {
   KeyIdArgsListPtr key_ids = std::make_unique<std::vector<std::string>>();
   for (const auto& key : keys) key_ids->push_back(key.id());
@@ -100,7 +100,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
  * @param outBuffer output byte array
  * @return if successful
  */
-bool GpgFrontend::GpgKeyImportExportor::ExportSecretKey(
+bool GpgFrontend::GpgKeyImportExporter::ExportSecretKey(
     const GpgKey& key, ByteArrayPtr& out_buffer) const {
   DLOG(INFO) << "Export Secret Key" << key.id().c_str();
 
@@ -117,7 +117,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportSecretKey(
   return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgKeyImportExportor::ExportKey(
+bool GpgFrontend::GpgKeyImportExporter::ExportKey(
     const GpgFrontend::GpgKey& key,
     GpgFrontend::ByteArrayPtr& out_buffer) const {
   GpgData data_out;
@@ -131,7 +131,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKey(
   return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgKeyImportExportor::ExportKeyOpenSSH(
+bool GpgFrontend::GpgKeyImportExporter::ExportKeyOpenSSH(
     const GpgFrontend::GpgKey& key,
     GpgFrontend::ByteArrayPtr& out_buffer) const {
   GpgData data_out;
@@ -145,7 +145,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeyOpenSSH(
   return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgKeyImportExportor::ExportSecretKeyShortest(
+bool GpgFrontend::GpgKeyImportExporter::ExportSecretKeyShortest(
     const GpgFrontend::GpgKey& key,
     GpgFrontend::ByteArrayPtr& out_buffer) const {
   GpgData data_out;

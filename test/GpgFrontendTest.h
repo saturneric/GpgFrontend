@@ -39,7 +39,7 @@
 #include <vector>
 
 #include "gpg/GpgConstants.h"
-#include "gpg/function/GpgKeyImportExportor.h"
+#include "gpg/function/GpgKeyImportExporter.h"
 
 class GpgCoreTest : public ::testing::Test {
  protected:
@@ -62,9 +62,14 @@ class GpgCoreTest : public ::testing::Test {
 
   GpgCoreTest() = default;
 
-  virtual ~GpgCoreTest() = default;
+  ~GpgCoreTest() override = default;
 
-  virtual void SetUp() {
+  void SetUp() override {
+    el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
+    el::Configurations defaultConf;
+    defaultConf.setToDefault();
+    el::Loggers::reconfigureLogger("default", defaultConf);
+
     using namespace libconfig;
     Config cfg;
     ASSERT_NO_THROW(cfg.readFile(config_path.c_str()));
@@ -82,19 +87,34 @@ class GpgCoreTest : public ::testing::Test {
 
     dealing_private_keys(root);
     import_data();
+    import_data_alone();
   }
 
-  virtual void TearDown() {}
+  void TearDown() override {}
 
  private:
   void import_data() {
     GpgFrontend::GpgContext::GetInstance(default_channel)
         .SetPassphraseCb(GpgFrontend::GpgContext::test_passphrase_cb);
-    for (auto& secret_key : secret_keys_) {
-      GpgFrontend::GpgKeyImportExportor::GetInstance(default_channel)
-          .ImportKey(std::move(secret_key));
+    for (const auto& secret_key : secret_keys_) {
+      auto secret_key_copy =
+          std::make_unique<GpgFrontend::ByteArray>(*secret_key);
+      GpgFrontend::GpgKeyImportExporter::GetInstance(default_channel)
+          .ImportKey(std::move(secret_key_copy));
     }
   }
+
+  void import_data_alone() {
+    GpgFrontend::GpgContext::GetInstance(gpg_alone_channel)
+        .SetPassphraseCb(GpgFrontend::GpgContext::test_passphrase_cb);
+    for (auto& secret_key : secret_keys_) {
+      auto secret_key_copy =
+          std::make_unique<GpgFrontend::ByteArray>(*secret_key);
+      GpgFrontend::GpgKeyImportExporter::GetInstance(gpg_alone_channel)
+          .ImportKey(std::move(secret_key_copy));
+    }
+  }
+
   void dealing_private_keys(const libconfig::Setting& root) {
     if (root.exists("load_keys.private_keys")) {
       auto& private_keys = root.lookup("load_keys.private_keys");
@@ -121,15 +141,24 @@ class GpgCoreTest : public ::testing::Test {
         auto gpg_path = parent_path / alone_gpg_path;
 
         std::string relative_db_path;
-        root.lookupValue("independent_db_path", relative_db_path);
+        root.lookupValue("alone_gpg_db_path", relative_db_path);
         auto db_path = parent_path / relative_db_path;
         if (!boost::filesystem::exists(db_path)) {
+          boost::filesystem::create_directory(db_path);
+        } else {
+          boost::filesystem::remove_all(db_path);
           boost::filesystem::create_directory(db_path);
         }
         GpgFrontend::GpgContext::CreateInstance(
             gpg_alone_channel,
-            std::make_unique<GpgFrontend::GpgContext>(true, db_path.c_str(),
-                                                      true, gpg_path.c_str()));
+            [&]() -> std::unique_ptr<GpgFrontend::GpgContext> {
+              GpgFrontend::GpgContextInitArgs args;
+              args.gpg_alone = true;
+              args.independent_database = true;
+              args.db_path = db_path.string();
+              args.gpg_path = gpg_path.string();
+              return std::make_unique<GpgFrontend::GpgContext>(args);
+            });
       }
     }
   }
@@ -144,10 +173,18 @@ class GpgCoreTest : public ::testing::Test {
         auto db_path = parent_path / relative_db_path;
         if (!boost::filesystem::exists(db_path)) {
           boost::filesystem::create_directory(db_path);
+        } else {
+          boost::filesystem::remove_all(db_path);
+          boost::filesystem::create_directory(db_path);
         }
+
         GpgFrontend::GpgContext::CreateInstance(
-            default_channel,
-            std::make_unique<GpgFrontend::GpgContext>(true, db_path.c_str()));
+            default_channel, [&]() -> std::unique_ptr<GpgFrontend::GpgContext> {
+              GpgFrontend::GpgContextInitArgs args;
+              args.independent_database = true;
+              args.db_path = db_path.string();
+              return std::make_unique<GpgFrontend::GpgContext>(args);
+            });
       }
     }
   }

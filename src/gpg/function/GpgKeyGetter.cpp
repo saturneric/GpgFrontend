@@ -65,6 +65,8 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
 
   err = gpgme_op_keylist_end(ctx);
 
+  assert(check_gpg_error_2_err_code(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
+
   return keys_list;
 }
 

@@ -25,18 +25,12 @@
 #include "GpgFrontendTest.h"
 #include "gpg/function/GpgKeyGetter.h"
 
-// Should be used once and once-only
-INITIALIZE_EASYLOGGINGPP
-
 TEST_F(GpgCoreTest, CoreInitTestAlone) {
   auto& ctx = GpgFrontend::GpgContext::GetInstance(gpg_alone_channel);
-  auto& ctx_default = GpgFrontend::GpgContext::GetInstance();
   ASSERT_TRUE(ctx.good());
-  ASSERT_TRUE(ctx_default.good());
-  ASSERT_EQ(ctx_default.GetInfo().DatabasePath, "default");
 }
 
-TEST_F(GpgCoreTest, GpgDataTest) {
+TEST_F(GpgCoreTest, GpgDataTestAlone) {
   auto data_buff = std::string(
       "cqEh8fyKWtmiXrW2zzlszJVGJrpXDDpzgP7ZELGxhfZYFi8rMrSVKDwrpFZBSWMG");
 
@@ -44,6 +38,12 @@ TEST_F(GpgCoreTest, GpgDataTest) {
 
   auto out_buffer = data.Read2Buffer();
   ASSERT_EQ(out_buffer->size(), 64);
+}
+
+TEST_F(GpgCoreTest, GpgKeyFetchTestAlone) {
+  auto keys =
+      GpgFrontend::GpgKeyGetter::GetInstance(gpg_alone_channel).FetchKey();
+  ASSERT_EQ(keys->size(), 4);
 }
 
 TEST_F(GpgCoreTest, GpgKeyTestAlone) {
@@ -135,28 +135,16 @@ TEST_F(GpgCoreTest, GpgUIDTestAlone) {
   ASSERT_FALSE(uid.revoked());
 }
 
-TEST_F(GpgCoreTest, GpgKeySignatureTest) {
+TEST_F(GpgCoreTest, GpgKeySignatureTestAlone) {
   auto key = GpgFrontend::GpgKeyGetter::GetInstance(gpg_alone_channel)
                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
   auto uids = key.uids();
   ASSERT_EQ(uids->size(), 1);
   auto& uid = uids->front();
 
+  // No key signature support
   auto signatures = uid.signatures();
-  ASSERT_EQ(signatures->size(), 1);
-  auto& signature = signatures->front();
-
-  ASSERT_EQ(signature.name(), "GpgFrontendTest");
-  ASSERT_TRUE(signature.comment().empty());
-  ASSERT_EQ(signature.email(), "gpgfrontend@gpgfrontend.pub");
-  ASSERT_EQ(signature.keyid(), "81704859182661FB");
-  ASSERT_EQ(signature.pubkey_algo(), "RSA");
-
-  ASSERT_FALSE(signature.revoked());
-  ASSERT_FALSE(signature.invalid());
-  ASSERT_EQ(GpgFrontend::check_gpg_error_2_err_code(signature.status()),
-            GPG_ERR_NO_ERROR);
-  ASSERT_EQ(signature.uid(), "GpgFrontendTest <gpgfrontend@gpgfrontend.pub>");
+  ASSERT_EQ(signatures->size(), 0);
 }
 
 TEST_F(GpgCoreTest, GpgKeyGetterTestAlone) {
