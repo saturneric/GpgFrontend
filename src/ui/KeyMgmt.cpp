@@ -27,7 +27,7 @@
 #include <utility>
 
 #include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/GpgKeyImportExportor.h"
+#include "gpg/function/GpgKeyImportExporter.h"
 #include "gpg/function/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -150,9 +150,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
 
   connect(this, SIGNAL(signalKeyStatusUpdated()), SignalStation::GetInstance(),
           SIGNAL(KeyDatabaseRefresh()));
-  connect(SignalStation::GetInstance(),
-          &SignalStation::signalRefreshStatusBar, this,
-          [=](const QString& message, int timeout) {
+  connect(SignalStation::GetInstance(), &SignalStation::signalRefreshStatusBar,
+          this, [=](const QString& message, int timeout) {
             statusBar()->showMessage(message, timeout);
           });
 }

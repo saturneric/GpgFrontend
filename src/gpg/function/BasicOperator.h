@@ -34,6 +34,10 @@ namespace GpgFrontend {
 
 class BasicOperator : public SingletonFunctionObject<BasicOperator> {
  public:
+  explicit BasicOperator(
+      int channel = SingletonFunctionObject::GetDefaultChannel())
+      : SingletonFunctionObject<BasicOperator>(channel) {}
+
   gpg_error_t Encrypt(KeyListPtr keys, BypeArrayRef in_buffer,
                       ByteArrayPtr& out_buffer, GpgEncrResult& result);
 
@@ -65,7 +69,7 @@ class BasicOperator : public SingletonFunctionObject<BasicOperator> {
 
  private:
   GpgContext& ctx =
-      GpgContext::GetInstance(SingletonFunctionObject::GetDefaultChannel());
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
 };
 }  // namespace GpgFrontend
 

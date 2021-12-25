@@ -26,7 +26,7 @@
 
 #include <utility>
 
-#include "gpg/function/GpgKeyImportExportor.h"
+#include "gpg/function/GpgKeyImportExporter.h"
 #include "ui/SignalStation.h"
 #include "ui/settings/GlobalSettingStation.h"
 

@@ -27,15 +27,14 @@
 #include <algorithm>
 
 #include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/GpgKeyImportExportor.h"
+#include "gpg/function/GpgKeyImportExporter.h"
 #include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
 KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
                                  QWidget* parent)
-    : QDialog(parent),
-      mKeys(GpgKeyGetter::GetInstance().GetKeys(keys_ids)) {
+    : QDialog(parent), mKeys(GpgKeyGetter::GetInstance().GetKeys(keys_ids)) {
   auto* pb = new QProgressBar();
   pb->setRange(0, 0);
   pb->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -60,7 +59,6 @@ void KeyUploadDialog::slotUpload() {
 
 void KeyUploadDialog::uploadKeyToServer(
     const GpgFrontend::ByteArray& keys_data) {
-
   std::string target_keyserver;
   if (target_keyserver.empty()) {
     try {

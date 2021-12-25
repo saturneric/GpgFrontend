@@ -37,7 +37,7 @@
 
 #include "gpg/function/BasicOperator.h"
 #include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/GpgKeyImportExportor.h"
+#include "gpg/function/GpgKeyImportExporter.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/help/AboutDialog.h"
 #include "ui/settings/GlobalSettingStation.h"

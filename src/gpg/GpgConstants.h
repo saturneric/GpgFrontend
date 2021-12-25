@@ -58,12 +58,14 @@ using GpgEncrResult = std::shared_ptr<struct _gpgme_op_encrypt_result>;
 using GpgDecrResult = std::shared_ptr<struct _gpgme_op_decrypt_result>;
 using GpgSignResult = std::shared_ptr<struct _gpgme_op_sign_result>;
 using GpgVerifyResult = std::shared_ptr<struct _gpgme_op_verify_result>;
+using GpgGenKeyResult = std::shared_ptr<struct _gpgme_op_genkey_result>;
 
 // Convert from  gpgme_xxx_result to GpgXXXResult
 GpgEncrResult _new_result(gpgme_encrypt_result_t&& result);
 GpgDecrResult _new_result(gpgme_decrypt_result_t&& result);
 GpgSignResult _new_result(gpgme_sign_result_t&& result);
 GpgVerifyResult _new_result(gpgme_verify_result_t&& result);
+GpgGenKeyResult _new_result(gpgme_genkey_result_t&& result);
 
 // Error Info Printer
 GpgError check_gpg_error(GpgError err);

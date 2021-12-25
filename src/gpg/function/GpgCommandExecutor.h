@@ -35,6 +35,9 @@
 namespace GpgFrontend {
 class GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
  public:
+  explicit GpgCommandExecutor(
+      int channel = SingletonFunctionObject::GetDefaultChannel())
+      : SingletonFunctionObject<GpgCommandExecutor>(channel) {}
 
 #ifndef WINDOWS
   void Execute(StringArgsRef arguments,
@@ -44,7 +47,8 @@ class GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
 #endif
 
  private:
-  GpgContext &ctx = GpgContext::GetInstance();
+  GpgContext &ctx =
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
 };
 
 }  // namespace GpgFrontend

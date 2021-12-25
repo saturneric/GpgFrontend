@@ -40,57 +40,52 @@ template <typename T>
 class SingletonFunctionObject {
  public:
   static T& GetInstance(int channel = 0) {
-    if (!channel) {
-      std::lock_guard<std::mutex> guard(_instance_mutex);
-      if (_instance == nullptr) _instance = std::make_unique<T>();
-      return *_instance;
-    } else {
-      // read _instances_map
-      decltype(_instances_map.end()) _it;
-      {
-        std::shared_lock lock(_instances_mutex);
-        _it = _instances_map.find(channel);
-      }
-      if (_it != _instances_map.end())
-        return *_it->second;
-      else
-        return CreateInstance(channel);
-    }
+    static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
+                  "T not derived from SingletonFunctionObject<T>");
+
+    auto _p_pbj = find_object_in_channel(channel);
+    if (_p_pbj == nullptr)
+      return *set_object_in_channel(channel, std::make_unique<T>(channel));
+    else
+      return *_p_pbj;
+  }
+
+  static T& CreateInstance(int channel,
+                           std::function<std::unique_ptr<T>(void)> factory) {
+    static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
+                  "T not derived from SingletonFunctionObject<T>");
+
+    auto _p_pbj = find_object_in_channel(channel);
+    if (_p_pbj == nullptr)
+      return *set_object_in_channel(channel, std::move(factory()));
+    else
+      return *_p_pbj;
   }
 
   static T& CreateInstance(int channel, std::unique_ptr<T> p_obj = nullptr) {
-    if (!channel) return *_instance;
+    static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
+                  "T not derived from SingletonFunctionObject<T>");
 
-    // read _instances_map
+    auto _p_pbj = find_object_in_channel(channel);
+    if (_p_pbj == nullptr)
+      return *set_object_in_channel(channel, std::move(p_obj));
+    else
+      return *_p_pbj;
+  }
+
+  static T& ReleaseChannel(int channel) {
     decltype(_instances_map.end()) _it;
     {
       std::shared_lock lock(_instances_mutex);
       _it = _instances_map.find(channel);
     }
-    if (_it == _instances_map.end()) {
-      {
-        std::lock_guard<std::mutex> guard(_default_channel_mutex);
-        int tmp = channel;
-        std::swap(_default_channel, tmp);
-        if (p_obj == nullptr) p_obj = std::make_unique<T>();
-        std::swap(_default_channel, tmp);
-      }
-      T* obj = p_obj.get();
-
-      // change _instances_map
-      {
-        std::unique_lock lock(_instances_mutex);
-        _instances_map.insert({channel, std::move(p_obj)});
-      }
-      return *obj;
-    } else {
-      return *_it->second;
-    }
+    if (_it != _instances_map.end()) _instances_map.erase(_it);
+    DLOG(INFO) << "channel" << channel << "released";
   }
 
   static int GetDefaultChannel() { return _default_channel; }
 
-  int GetChannel() const { return channel_; }
+  [[nodiscard]] int GetChannel() const { return channel_; }
 
   SingletonFunctionObject(T&&) = delete;
 
@@ -99,27 +94,51 @@ class SingletonFunctionObject {
   void operator=(const T&) = delete;
 
  protected:
-  SingletonFunctionObject() {}
+  SingletonFunctionObject() = default;
 
-  SingletonFunctionObject(int channel) : channel_(channel) {}
+  explicit SingletonFunctionObject(int channel) : channel_(channel) {}
 
   virtual ~SingletonFunctionObject() = default;
+
+  void SetChannel(int channel) { this->channel_ = channel; }
 
  private:
   int channel_ = _default_channel;
   static int _default_channel;
-  static std::mutex _default_channel_mutex;
   static std::mutex _instance_mutex;
   static std::shared_mutex _instances_mutex;
   static std::unique_ptr<T> _instance;
   static std::map<int, std::unique_ptr<T>> _instances_map;
+
+  static T* find_object_in_channel(int channel) {
+    // read _instances_map
+    decltype(_instances_map.end()) _it;
+    {
+      std::shared_lock lock(_instances_mutex);
+      _it = _instances_map.find(channel);
+      if (_it == _instances_map.end())
+        return nullptr;
+      else
+        return _it->second.get();
+    }
+  }
+
+  static T* set_object_in_channel(int channel, std::unique_ptr<T> p_obj) {
+    {
+      if (p_obj == nullptr) p_obj = std::make_unique<T>();
+      T* obj = p_obj.get();
+      obj->SetChannel(channel);
+      {
+        std::unique_lock lock(_instances_mutex);
+        _instances_map.insert({channel, std::move(p_obj)});
+      }
+      return obj;
+    }
+  }
 };
 
 template <typename T>
 int SingletonFunctionObject<T>::_default_channel = 0;
-
-template <typename T>
-std::mutex SingletonFunctionObject<T>::_default_channel_mutex;
 
 template <typename T>
 std::mutex SingletonFunctionObject<T>::_instance_mutex;

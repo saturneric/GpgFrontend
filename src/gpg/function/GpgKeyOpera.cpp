@@ -26,6 +26,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
+#include <boost/format.hpp>
 #include <boost/process/async_pipe.hpp>
 #include <memory>
 #include <string>
@@ -50,7 +51,7 @@ void GpgFrontend::GpgKeyOpera::DeleteKeys(
       err = check_gpg_error(gpgme_op_delete(ctx, gpgme_key_t(key), 1));
       assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
     } else
-      LOG(WARNING) << "GpgKeyOpera DeleteKeys Get Key Bad";
+      LOG(WARNING) << "GpgKeyOpera DeleteKeys get key failed" << key.fpr();
   }
 }
 
@@ -146,7 +147,7 @@ void GpgFrontend::GpgKeyOpera::GenerateRevokeCert(
  * @return error information
  */
 GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
-    const std::unique_ptr<GenKeyInfo>& params) {
+    const std::unique_ptr<GenKeyInfo>& params, GpgGenKeyResult& result) {
   auto userid_utf8 = params->getUserid();
   const char* userid = userid_utf8.c_str();
   auto algo_utf8 = params->getAlgo() + params->getKeySizeStr();
@@ -163,19 +164,53 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
               system_clock::to_time_t(system_clock::now());
   }
 
-  unsigned int flags = 0;
+  GpgError err;
 
-  if (!params->isSubKey()) flags |= GPGME_CREATE_CERT;
-  if (params->isAllowEncryption()) flags |= GPGME_CREATE_ENCR;
-  if (params->isAllowSigning()) flags |= GPGME_CREATE_SIGN;
-  if (params->isAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
-  if (params->isNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
-  if (params->isNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
+  if (ctx.GetInfo().GnupgVersion >= "2.1.0") {
+    unsigned int flags = 0;
 
-  LOG(INFO) << "GpgFrontend::GpgKeyOpera::GenerateKey Args: " << userid << algo
-            << expires << flags;
+    if (!params->isSubKey()) flags |= GPGME_CREATE_CERT;
+    if (params->isAllowEncryption()) flags |= GPGME_CREATE_ENCR;
+    if (params->isAllowSigning()) flags |= GPGME_CREATE_SIGN;
+    if (params->isAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
+    if (params->isNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
+    if (params->isNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
-  auto err = gpgme_op_createkey(ctx, userid, algo, 0, expires, nullptr, flags);
+    LOG(INFO) << "GpgFrontend::GpgKeyOpera::GenerateKey Args: " << userid
+              << algo << expires << flags;
+
+    err = gpgme_op_createkey(ctx, userid, algo, 0, expires, nullptr, flags);
+
+  } else {
+    std::stringstream ss;
+
+    auto param_format =
+        boost::format{
+            "<GnupgKeyParms format=\"internal\">\n"
+            "Key-Type: %1%\n"
+            "Subkey-Type: %2%\n"
+            "Name-Real: %3%\n"
+            "Name-Comment: %4%\n"
+            "Name-Email: %5%\n"} %
+        params->getAlgo() % params->getKeySize() % params->getName() %
+        params->getComment() % params->getEmail();
+    ss << param_format;
+
+    if (!params->isNonExpired())
+      ss << boost::format{"Expire-Date: %1%\n"} % expires;
+    if (!params->isNoPassPhrase())
+      ss << boost::format{"Passphrase: %1%\n"} % params->getPassPhrase();
+
+    ss << "</GnupgKeyParms>";
+
+    err = gpgme_op_genkey(ctx, ss.str().c_str(), nullptr, nullptr);
+  }
+
+  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR) {
+    auto temp_result = _new_result(gpgme_op_genkey_result(ctx));
+    std::swap(temp_result, result);
+  }
+
   return check_gpg_error(err);
 }
 
@@ -233,4 +268,10 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyTOFUPolicy(
   }
   auto err = gpgme_op_tofu_policy(ctx, gpgme_key_t(key), tofu_policy);
   return check_gpg_error(err);
+}
+
+void GpgFrontend::GpgKeyOpera::DeleteKey(const GpgFrontend::KeyId& key_id) {
+  auto keys = std::make_unique<KeyIdArgsList>();
+  keys->push_back(key_id);
+  DeleteKeys(std::move(keys));
 }

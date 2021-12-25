@@ -32,14 +32,24 @@
 
 namespace GpgFrontend {
 
+struct GpgContextInitArgs {
+  bool independent_database = false;
+  std::string db_path = {};
+  bool gpg_alone = false;
+  std::string gpg_path = {};
+
+  GpgContextInitArgs() = default;
+};
+
 /**
  * Custom Encapsulation of GpgME APIs
  */
 class GpgContext : public SingletonFunctionObject<GpgContext> {
  public:
-  explicit GpgContext(bool independent_database = false,
-                      std::string path = std::string(), bool gpg_alone = false,
-                      std::string gpg_path = std::string(), int channel = 0);
+  explicit GpgContext(const GpgContextInitArgs& args = {});
+
+  explicit GpgContext(int channel)
+      : SingletonFunctionObject<GpgContext>(channel) {}
 
   ~GpgContext() override = default;
 
@@ -54,13 +64,13 @@ class GpgContext : public SingletonFunctionObject<GpgContext> {
  private:
   GpgInfo info;
 
-  struct _ctx_ref_deletor {
+  struct _ctx_ref_deleter {
     void operator()(gpgme_ctx_t _ctx) {
       if (_ctx != nullptr) gpgme_release(_ctx);
     }
   };
 
-  using CtxRefHandler = std::unique_ptr<struct gpgme_context, _ctx_ref_deletor>;
+  using CtxRefHandler = std::unique_ptr<struct gpgme_context, _ctx_ref_deleter>;
   CtxRefHandler _ctx_ref = nullptr;
 
   bool good_ = true;

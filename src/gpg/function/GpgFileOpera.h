@@ -33,6 +33,10 @@ namespace GpgFrontend {
 
 class GpgFileOpera : public SingletonFunctionObject<GpgFileOpera> {
  public:
+  explicit GpgFileOpera(
+      int channel = SingletonFunctionObject::GetDefaultChannel())
+      : SingletonFunctionObject<GpgFileOpera>(channel) {}
+
   static GpgError EncryptFile(KeyListPtr keys, const std::string& path,
                               GpgEncrResult& result);
 

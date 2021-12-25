@@ -27,6 +27,7 @@
 
 #include <boost/date_time.hpp>
 #include <boost/date_time/gregorian/greg_duration_types.hpp>
+#include <boost/format.hpp>
 #include <string>
 #include <vector>
 
@@ -34,7 +35,10 @@ namespace GpgFrontend {
 
 class GenKeyInfo {
   bool subKey = true;
-  std::string userid;
+  std::string name;
+  std::string email;
+  std::string comment;
+
   std::string algo;
   int keySize = 2048;
   boost::posix_time::ptime expired =
@@ -60,9 +64,23 @@ class GenKeyInfo {
 
   void setIsSubKey(bool m_sub_key) { GenKeyInfo::subKey = m_sub_key; }
 
-  [[nodiscard]] const std::string &getUserid() const { return userid; }
+  [[nodiscard]] std::string getUserid() const {
+    auto uid_format = boost::format("%1%(%2%)<%3%>") % this->name %
+                      this->comment % this->email;
+    return uid_format.str();
+  }
 
-  void setUserid(const std::string &m_userid) { GenKeyInfo::userid = m_userid; }
+  void setName(const std::string &m_name) { this->name = m_name; }
+
+  void setEmail(const std::string &m_email) { this->email = m_email; }
+
+  void setComment(const std::string &m_comment) { this->comment = m_comment; }
+
+  [[nodiscard]] std::string getName() const { return name; }
+
+  [[nodiscard]] std::string getEmail() const { return email; }
+
+  [[nodiscard]] std::string getComment() const { return comment; }
 
   [[nodiscard]] const std::string &getAlgo() const { return algo; }
 
