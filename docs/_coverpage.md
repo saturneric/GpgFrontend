@@ -12,9 +12,7 @@ Installation-Free [OpenPGP](https://www.openpgp.org/) Crypto Tool(using GnuPG).
 
 ## Purpose
 
-Let more people all over the world (even if they don't know the command line and programming) can use GnuPG 
-
-to safely send information to the destination in a safe way.
+Let more people all over the world can use GnuPG to safely send information to the destination in a safe way.
 
 ## Features
 
