@@ -33,9 +33,85 @@ TEST_F(GpgCoreTest, GenerateKeyTest) {
   keygen_info->setName("foo");
   keygen_info->setEmail("bar@gpgfrontend.pub");
   keygen_info->setComment("");
+  keygen_info->setKeySize(1024);
   keygen_info->setAlgo("rsa");
   keygen_info->setNonExpired(true);
   keygen_info->setNonPassPhrase(true);
+
+  GpgFrontend::GpgGenKeyResult result = nullptr;
+  auto err = GpgFrontend::check_gpg_error_2_err_code(
+      key_opera.GenerateKey(keygen_info, result));
+  ASSERT_EQ(err, GPG_ERR_NO_ERROR);
+
+  auto fpr = result->fpr;
+  ASSERT_FALSE(fpr == nullptr);
+
+  auto key =
+      GpgFrontend::GpgKeyGetter::GetInstance(default_channel).GetKey(fpr);
+  ASSERT_TRUE(key.good());
+  key_opera.DeleteKey(fpr);
+}
+
+TEST_F(GpgCoreTest, GenerateKeyTest_1) {
+  auto& key_opera = GpgFrontend::GpgKeyOpera::GetInstance(default_channel);
+  auto keygen_info = std::make_unique<GpgFrontend::GenKeyInfo>();
+  keygen_info->setName("foo");
+  keygen_info->setEmail("bar@gpgfrontend.pub");
+  keygen_info->setComment("hello gpgfrontend");
+  keygen_info->setAlgo("rsa");
+  keygen_info->setKeySize(4096);
+  keygen_info->setNonExpired(false);
+  keygen_info->setExpired(boost::posix_time::second_clock::local_time() +
+                          boost::posix_time::hours(24));
+  keygen_info->setNonPassPhrase(false);
+
+  GpgFrontend::GpgGenKeyResult result = nullptr;
+  auto err = GpgFrontend::check_gpg_error_2_err_code(
+      key_opera.GenerateKey(keygen_info, result));
+  ASSERT_EQ(err, GPG_ERR_NO_ERROR);
+
+  auto fpr = result->fpr;
+  ASSERT_FALSE(fpr == nullptr);
+
+  auto key =
+      GpgFrontend::GpgKeyGetter::GetInstance(default_channel).GetKey(fpr);
+  ASSERT_TRUE(key.good());
+  key_opera.DeleteKey(fpr);
+}
+
+TEST_F(GpgCoreTest, GenerateKeyTest_4) {
+  auto& key_opera = GpgFrontend::GpgKeyOpera::GetInstance(default_channel);
+  auto keygen_info = std::make_unique<GpgFrontend::GenKeyInfo>();
+  keygen_info->setName("foo");
+  keygen_info->setEmail("bar@gpgfrontend.pub");
+  keygen_info->setComment("");
+  keygen_info->setAlgo("dsa");
+  keygen_info->setNonExpired(true);
+  keygen_info->setNonPassPhrase(false);
+
+  GpgFrontend::GpgGenKeyResult result = nullptr;
+  auto err = GpgFrontend::check_gpg_error_2_err_code(
+      key_opera.GenerateKey(keygen_info, result));
+  ASSERT_EQ(err, GPG_ERR_NO_ERROR);
+
+  auto fpr = result->fpr;
+  ASSERT_FALSE(fpr == nullptr);
+
+  auto key =
+      GpgFrontend::GpgKeyGetter::GetInstance(default_channel).GetKey(fpr);
+  ASSERT_TRUE(key.good());
+  key_opera.DeleteKey(fpr);
+}
+
+TEST_F(GpgCoreTest, GenerateKeyTest_5) {
+  auto& key_opera = GpgFrontend::GpgKeyOpera::GetInstance(default_channel);
+  auto keygen_info = std::make_unique<GpgFrontend::GenKeyInfo>();
+  keygen_info->setName("foo");
+  keygen_info->setEmail("bar@gpgfrontend.pub");
+  keygen_info->setComment("");
+  keygen_info->setAlgo("ed25519");
+  keygen_info->setNonExpired(true);
+  keygen_info->setNonPassPhrase(false);
 
   GpgFrontend::GpgGenKeyResult result = nullptr;
   auto err = GpgFrontend::check_gpg_error_2_err_code(

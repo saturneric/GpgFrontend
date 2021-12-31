@@ -40,6 +40,7 @@
 
 #include "gpg/GpgConstants.h"
 #include "gpg/function/GpgKeyImportExporter.h"
+#include "gpg/function/GpgKeyOpera.h"
 
 class GpgCoreTest : public ::testing::Test {
  protected:
@@ -70,6 +71,10 @@ class GpgCoreTest : public ::testing::Test {
     defaultConf.setToDefault();
     el::Loggers::reconfigureLogger("default", defaultConf);
 
+    defaultConf.setGlobally(el::ConfigurationType::Format,
+                            "%datetime %level %func %msg");
+    el::Loggers::reconfigureLogger("default", defaultConf);
+
     using namespace libconfig;
     Config cfg;
     ASSERT_NO_THROW(cfg.readFile(config_path.c_str()));
@@ -90,12 +95,18 @@ class GpgCoreTest : public ::testing::Test {
     import_data_alone();
   }
 
-  void TearDown() override {}
+  void TearDown() override {
+    auto key_ids = std::make_unique<GpgFrontend::KeyIdArgsList>();
+    key_ids->push_back("81704859182661FB");
+    key_ids->push_back("06F1C7E7240C94E8");
+    key_ids->push_back("8465C55B25C9B7D1");
+    key_ids->push_back("021D89771B680FFB");
+    GpgFrontend::GpgKeyOpera::GetInstance(default_channel)
+        .DeleteKeys(std::move(key_ids));
+  }
 
  private:
   void import_data() {
-    GpgFrontend::GpgContext::GetInstance(default_channel)
-        .SetPassphraseCb(GpgFrontend::GpgContext::test_passphrase_cb);
     for (const auto& secret_key : secret_keys_) {
       auto secret_key_copy =
           std::make_unique<GpgFrontend::ByteArray>(*secret_key);
@@ -105,8 +116,6 @@ class GpgCoreTest : public ::testing::Test {
   }
 
   void import_data_alone() {
-    GpgFrontend::GpgContext::GetInstance(gpg_alone_channel)
-        .SetPassphraseCb(GpgFrontend::GpgContext::test_passphrase_cb);
     for (auto& secret_key : secret_keys_) {
       auto secret_key_copy =
           std::make_unique<GpgFrontend::ByteArray>(*secret_key);
@@ -157,6 +166,7 @@ class GpgCoreTest : public ::testing::Test {
               args.independent_database = true;
               args.db_path = db_path.string();
               args.gpg_path = gpg_path.string();
+              args.test_mode = true;
               return std::make_unique<GpgFrontend::GpgContext>(args);
             });
       }
@@ -181,8 +191,7 @@ class GpgCoreTest : public ::testing::Test {
         GpgFrontend::GpgContext::CreateInstance(
             default_channel, [&]() -> std::unique_ptr<GpgFrontend::GpgContext> {
               GpgFrontend::GpgContextInitArgs args;
-              args.independent_database = true;
-              args.db_path = db_path.string();
+              args.test_mode = true;
               return std::make_unique<GpgFrontend::GpgContext>(args);
             });
       }

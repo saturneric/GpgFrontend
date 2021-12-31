@@ -33,10 +33,12 @@
 namespace GpgFrontend {
 
 struct GpgContextInitArgs {
+  // make no sense for gpg2
   bool independent_database = false;
   std::string db_path = {};
   bool gpg_alone = false;
   std::string gpg_path = {};
+  bool test_mode = false;
 
   GpgContextInitArgs() = default;
 };
@@ -55,14 +57,15 @@ class GpgContext : public SingletonFunctionObject<GpgContext> {
 
   [[nodiscard]] bool good() const;
 
-  [[nodiscard]] const GpgInfo& GetInfo() const { return info; }
-
-  static std::string getGpgmeVersion();
+  [[nodiscard]] const GpgInfo& GetInfo() const { return info_; }
 
   operator gpgme_ctx_t() const { return _ctx_ref.get(); }
 
  private:
-  GpgInfo info;
+  GpgInfo info_;
+  GpgContextInitArgs args_;
+
+  void init_ctx();
 
   struct _ctx_ref_deleter {
     void operator()(gpgme_ctx_t _ctx) {
@@ -78,28 +81,12 @@ class GpgContext : public SingletonFunctionObject<GpgContext> {
  public:
   static gpgme_error_t test_passphrase_cb(void* opaque, const char* uid_hint,
                                           const char* passphrase_info,
-                                          int last_was_bad, int fd) {
-    LOG(INFO) << "test_passphrase_cb Called";
-    size_t res;
-    std::string pass = "abcdefg\n";
-    auto pass_len = pass.size();
+                                          int last_was_bad, int fd);
 
-    size_t off = 0;
+  static gpgme_error_t test_status_cb(void* hook, const char* keyword,
+                                      const char* args);
 
-    (void)opaque;
-    (void)uid_hint;
-    (void)passphrase_info;
-    (void)last_was_bad;
-
-    do {
-      res = gpgme_io_write(fd, &pass[off], pass_len - off);
-      if (res > 0) off += res;
-    } while (res > 0 && off != pass_len);
-
-    return off == pass_len ? 0 : gpgme_error_from_errno(errno);
-  }
-
-  void SetPassphraseCb(decltype(test_passphrase_cb) func) const;
+  void SetPassphraseCb(gpgme_passphrase_cb_t func) const;
 };
 }  // namespace GpgFrontend
 
