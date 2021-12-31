@@ -187,7 +187,8 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
         boost::format{
             "<GnupgKeyParms format=\"internal\">\n"
             "Key-Type: %1%\n"
-            "Subkey-Type: %2%\n"
+            "Key-Usage: sign\n"
+            "Key-Length: %2%\n"
             "Name-Real: %3%\n"
             "Name-Comment: %4%\n"
             "Name-Email: %5%\n"} %
@@ -195,8 +196,11 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
         params->getComment() % params->getEmail();
     ss << param_format;
 
-    if (!params->isNonExpired())
-      ss << boost::format{"Expire-Date: %1%\n"} % expires;
+    if (!params->isNonExpired()) {
+      auto date = params->getExpired().date();
+      ss << boost::format{"Expire-Date: %1%\n"} % to_iso_string(date);
+    } else
+      ss << boost::format{"Expire-Date: 0\n"};
     if (!params->isNoPassPhrase())
       ss << boost::format{"Passphrase: %1%\n"} % params->getPassPhrase();
 
