@@ -40,6 +40,10 @@ class GpgInfo {
   std::string DatabasePath;
 
   std::string GnupgVersion;
+
+  std::string GpgConfPath;
+
+  std::string CMSPath;
 };
 
 #endif  // GPGFRONTEND_ZH_CN_TS_GPGINFO_H

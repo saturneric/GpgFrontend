@@ -187,9 +187,11 @@ gpgme_error_t GpgFrontend::BasicOperator::EncryptSign(
 void GpgFrontend::BasicOperator::SetSigners(KeyArgsList& keys) {
   gpgme_signers_clear(ctx);
   for (const GpgKey& key : keys) {
+    DLOG(INFO) << "key" << key.fpr();
     if (key.CanSignActual()) {
-      auto gpgmeError = gpgme_signers_add(ctx, gpgme_key_t(key));
-      check_gpg_error(gpgmeError);
+      DLOG(INFO) << "signer";
+      auto error = gpgme_signers_add(ctx, gpgme_key_t(key));
+      check_gpg_error(error);
     }
   }
   if (keys.size() != gpgme_signers_count(ctx))

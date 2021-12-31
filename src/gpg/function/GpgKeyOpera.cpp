@@ -47,11 +47,13 @@ void GpgFrontend::GpgKeyOpera::DeleteKeys(
   for (const auto& tmp : *key_ids) {
     auto key = GpgKeyGetter::GetInstance().GetKey(tmp);
     if (key.good()) {
-      LOG(INFO) << "GpgKeyOpera DeleteKeys Get Key Good";
-      err = check_gpg_error(gpgme_op_delete(ctx, gpgme_key_t(key), 1));
+      err = check_gpg_error(
+          gpgme_op_delete_ext(ctx, gpgme_key_t(key),
+                              GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
       assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
-    } else
-      LOG(WARNING) << "GpgKeyOpera DeleteKeys get key failed" << key.fpr();
+    } else {
+      LOG(WARNING) << "GpgKeyOpera DeleteKeys get key failed" << tmp;
+    }
   }
 }
 
@@ -152,8 +154,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
   const char* userid = userid_utf8.c_str();
   auto algo_utf8 = params->getAlgo() + params->getKeySizeStr();
 
-  LOG(INFO) << "GpgFrontend::GpgKeyOpera::GenerateKey Params"
-            << params->getAlgo() << params->getKeySizeStr();
+  LOG(INFO) << "params" << params->getAlgo() << params->getKeySizeStr();
 
   const char* algo = algo_utf8.c_str();
   unsigned long expires = 0;
@@ -176,14 +177,12 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
     if (params->isNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
     if (params->isNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
-    LOG(INFO) << "GpgFrontend::GpgKeyOpera::GenerateKey Args: " << userid
-              << algo << expires << flags;
+    LOG(INFO) << "args: " << userid << algo << expires << flags;
 
     err = gpgme_op_createkey(ctx, userid, algo, 0, expires, nullptr, flags);
 
   } else {
     std::stringstream ss;
-
     auto param_format =
         boost::format{
             "<GnupgKeyParms format=\"internal\">\n"
@@ -202,6 +201,8 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
       ss << boost::format{"Passphrase: %1%\n"} % params->getPassPhrase();
 
     ss << "</GnupgKeyParms>";
+
+    DLOG(INFO) << "params" << std::endl << ss.str();
 
     err = gpgme_op_genkey(ctx, ss.str().c_str(), nullptr, nullptr);
   }
