@@ -1,8 +1,7 @@
 # Translate Interface
 
 GpgFrontend is designed to support multiple languages, but requires volunteer contributions to achieve this goal.
-Fortunately, translation work does not require an understanding of difficult technology. Volunteers only need to move
-their fingers to complete.
+Fortunately, translation work does not require an understanding of difficult technology. Volunteers only need to move their fingers to complete.
 
 There are two ways to translate, through a translation tool with a GUI interface or directly through a text editor. 
 

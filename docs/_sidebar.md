@@ -1,6 +1,7 @@
 - Getting Start
     - [Overview](overview.md)
     - [Quick Start](quick-start.md)
+    - Basic concepts
 - Manual
     - [Understand Interface](manual/understand-interface.md)
     - [Encrypt & Decrypt Text](manual/encrypt-decrypt-text.md)
