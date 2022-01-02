@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.3\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-01-02 15:19+0800\n"
+"POT-Creation-Date: 2022-01-02 16:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -176,8 +176,8 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:224
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:74
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:225
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:263
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:331
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:358
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:363
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:39
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:37
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:39
@@ -471,14 +471,14 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:119
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:103
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:110
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:117
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:124
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:132
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:139
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:150
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:161
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:116
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:130
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:137
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:145
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:152
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:163
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:174
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
 msgid "Setting Operation Error"
@@ -1588,7 +1588,7 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:394
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:140
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:44
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:68
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:81
 msgid "Operations"
 msgstr ""
 
@@ -1982,23 +1982,18 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:207
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:212
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:217
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:253
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:258
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:272
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:308
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:314
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:321
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:349
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:352
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:355
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:367
 msgid "Fail"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:207
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:253
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:308
 msgid "Fail to Connect SMTP Server"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:212
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:314
 msgid "Fail to Login into SMTP Server"
 msgstr ""
 
@@ -2012,42 +2007,42 @@ msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:235
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:84
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:161
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:174
 msgid "save_key_checked"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:241
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:163
 msgid "identity_enable"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:247
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:103
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:116
 msgid "mail_address"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:253
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:110
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:123
 msgid "username"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:259
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:117
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:130
 msgid "password"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:265
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:137
 msgid "port"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:271
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:145
 msgid "connection_type"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:277
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:139
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:152
 msgid "default_sender"
 msgstr ""
 
@@ -3027,7 +3022,7 @@ msgid "window_save"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:51
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:65
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:78
 msgid "General"
 msgstr ""
 
@@ -3112,89 +3107,105 @@ msgstr ""
 msgid "lang"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:66
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:79
 msgid "Identity Information"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:67
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:80
 msgid "Preference"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:70
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:83
 msgid "Enable Send Mail Ability"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:71
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:84
 msgid "Need Auth"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:86
 msgid "SMTP Server Address"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:87
 msgid "SMTP Server Port"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:88
 msgid "SMTP Connection Security"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:76
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:89
 msgid "Username"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:77
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:90
 msgid "Password"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:92
 msgid "Default Sender Email"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:80
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:93
 msgid "Check Connection"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:81
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:94
 msgid "Send Test Email"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:83
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:96
 msgid ""
 "Tips: It is recommended that you build your own mail server or use a trusted "
 "mail server. If you don't know the detailed configuration information, you "
 "can get it from the mail service provider."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:258
-msgid "Fail to Login"
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:262
+msgid "Test SMTP Connection..."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:264
-msgid "Succeed in connecting and login"
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:263
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:311
+msgid ""
+"If the process does not end for a long time, please check again whether your "
+"SMTP server configuration is correct."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:272
-msgid "Given a default sender first"
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:310
+msgid "Test SMTP Send Mail Ability..."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:299
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:331
 msgid "Test Email from GpgFrontend"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:302
-msgid "Hello, this is a test email from GpgFrontend."
-msgstr ""
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:322
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:333
 msgid ""
-"Fail to send a test email to the SMTP Server, please recheck your "
-"configuration."
+"Hello, this is a test email from GpgFrontend. If you receive this email, it "
+"means that you have configured the correct SMTP server parameters."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:332
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:349
+msgid "Fail to Connect SMTP Server."
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:352
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:355
+msgid "Fail to Login."
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:359
+msgid "Succeed in connecting and login"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:364
 msgid "Succeed in sending a test email to the SMTP Server"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:367
+msgid "Unknown error."
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:45

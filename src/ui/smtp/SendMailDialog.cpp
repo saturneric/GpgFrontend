@@ -181,13 +181,13 @@ void SendMailDialog::slotConfirm() {
   MimeMessage message;
 
   message.setSender(new EmailAddress(ui->senderEdit->text()));
-  for (const auto& reci : rcpt_string_list) {
-    if (!reci.isEmpty()) message.addRecipient(new EmailAddress(reci.trimmed()));
+  for (const auto& rcpt : rcpt_string_list) {
+    if (!rcpt.isEmpty()) message.addRecipient(new EmailAddress(rcpt.trimmed()));
   }
   for (const auto& cc : cc_string_list) {
     if (!cc.isEmpty()) message.addCc(new EmailAddress(cc.trimmed()));
   }
-  for (const auto& bcc : cc_string_list) {
+  for (const auto& bcc : bcc_string_list) {
     if (!bcc.isEmpty()) message.addBcc(new EmailAddress(bcc.trimmed()));
   }
   message.setSubject(ui->subjectEdit->text());
