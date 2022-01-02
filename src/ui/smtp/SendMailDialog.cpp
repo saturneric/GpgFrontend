@@ -24,12 +24,15 @@
 
 #include "SendMailDialog.h"
 
-#include <utility>
-
+#include "gpg/function/GpgKeyGetter.h"
+#include "ui/smtp/EmailListEditor.h"
+#include "ui/smtp/RecipientsPicker.h"
+#include "ui/smtp/SenderPicker.h"
 #include "ui_SendMailDialog.h"
 
 #ifdef SMTP_SUPPORT
 #include "smtp/SmtpMime"
+#include "ui/function/SMTPSendMailThread.h"
 #include "ui/settings/GlobalSettingStation.h"
 #endif
 
@@ -40,7 +43,7 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
   // read from settings
   initSettings();
 
-  if (smtpAddress.isEmpty()) {
+  if (smtp_address_.isEmpty()) {
     QMessageBox::critical(
         this, _("Incomplete configuration"),
         _("The SMTP address is empty, please go to the setting interface to "
@@ -57,7 +60,7 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
   ui->textEdit->setText(text);
   ui->errorLabel->setHidden(true);
 
-  ui->senderEdit->setText(defaultSender);
+  ui->senderEdit->setText(default_sender_);
   connect(ui->ccButton, &QPushButton::clicked, [=]() {
     ui->ccInputWidget->setHidden(!ui->ccInputWidget->isHidden());
     ui->ccEdit->clear();
@@ -72,6 +75,23 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
           &SendMailDialog::slotConfirm);
 #endif
 
+  connect(ui->senderKeySelectButton, &QPushButton::clicked, this, [=]() {
+    auto picker = new SenderPicker(sender_key_id_, this);
+    sender_key_id_ = picker->getCheckedSender();
+    set_sender_value_label();
+  });
+
+  connect(ui->recipientKeySelectButton, &QPushButton::clicked, this, [=]() {
+    auto picker = new RecipientsPicker(recipients_key_ids_, this);
+    recipients_key_ids_ = picker->getCheckedRecipients();
+    set_recipients_value_label();
+  });
+
+  connect(ui->recipientsEditButton, &QPushButton::clicked, this, [=]() {
+    auto editor = new EmailListEditor(ui->recipientEdit->text(), this);
+    ui->recipientEdit->setText(editor->getEmailList());
+  });
+
   ui->ccButton->setText(_("CC"));
   ui->bccButton->setText(_("BCC"));
   ui->senderLabel->setText(_("Sender"));
@@ -82,9 +102,15 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
   ui->tipsLabel->setText(
       _("Tips: You can fill in multiple email addresses, please separate them "
         "with \";\"."));
-  ui->sendMailButton->setText(_("Send Mail"));
+  ui->sendMailButton->setText(_("Send Message"));
+  ui->senderKeySelectButton->setText(_("Select Sender GPG Key"));
+  ui->recipientKeySelectButton->setText(_("Select Recipient(s) GPG Key"));
+  ui->gpgOperaLabel->setText(_("GPG Operations"));
+  ui->attacSignatureCheckBox->setText(_("Attach signature"));
+  ui->attachSenderPublickeyCheckBox->setText(_("Attach sender's public key"));
+  ui->contentEncryptCheckBox->setText(_("Encrypt content"));
 
-  this->setWindowTitle(_("Send Mail"));
+  this->setWindowTitle(_("New Message"));
   this->setAttribute(Qt::WA_DeleteOnClose);
 }
 
@@ -155,129 +181,204 @@ void SendMailDialog::slotConfirm() {
     return;
   }
 
-  SmtpClient::ConnectionType connectionType =
+  SmtpClient::ConnectionType connection_type_ =
       SmtpClient::ConnectionType::TcpConnection;
 
-  if (connectionTypeSettings == "SSL") {
-    connectionType = SmtpClient::ConnectionType::SslConnection;
-  } else if (connectionTypeSettings == "TLS") {
-    connectionType = SmtpClient::ConnectionType::TlsConnection;
-  } else if (connectionTypeSettings == "STARTTLS") {
-    connectionType = SmtpClient::ConnectionType::TlsConnection;
+  if (connection_type_settings_ == "SSL") {
+    connection_type_ = SmtpClient::ConnectionType::SslConnection;
+  } else if (connection_type_settings_ == "TLS") {
+    connection_type_ = SmtpClient::ConnectionType::TlsConnection;
+  } else if (connection_type_settings_ == "STARTTLS") {
+    connection_type_ = SmtpClient::ConnectionType::TlsConnection;
   } else {
-    connectionType = SmtpClient::ConnectionType::TcpConnection;
+    connection_type_ = SmtpClient::ConnectionType::TcpConnection;
   }
 
-  SmtpClient smtp(smtpAddress, port, connectionType);
+  auto host = smtp_address_.toStdString();
+  auto port = port_;
+  auto connection_type = connection_type_;
+  bool identity_needed = identity_enable_;
+  auto username = username_.toStdString();
+  auto password = password_.toStdString();
+  auto sender_address = ui->senderEdit->text().toStdString();
 
-  // We need to set the username (your email address) and the password
-  // for smtp authentification.
+  auto thread = new SMTPSendMailThread(
+      host, port, connection_type, identity_needed, username, password, this);
 
-  smtp.setUser(username);
-  smtp.setPassword(password);
+  thread->setSender(ui->senderEdit->text());
+  thread->setRecipient(ui->recipientEdit->text());
+  thread->setCC(ui->ccEdit->text());
+  thread->setBCC(ui->bccEdit->text());
+  thread->setSubject(ui->subjectEdit->text());
+  thread->addTextContent(ui->textEdit->toPlainText());
 
-  // Now we create a MimeMessage object. This will be the email.
-
-  MimeMessage message;
-
-  message.setSender(new EmailAddress(ui->senderEdit->text()));
-  for (const auto& rcpt : rcpt_string_list) {
-    if (!rcpt.isEmpty()) message.addRecipient(new EmailAddress(rcpt.trimmed()));
+  if (ui->contentEncryptCheckBox->checkState() == Qt::Checked) {
+    if (recipients_key_ids_ == nullptr) {
+      QMessageBox::critical(
+          this, _("Forbidden"),
+          _("You have checked the encrypted email content, but you have not "
+            "selected the recipient's GPG key. This is dangerous and the mail "
+            "will not be encrypted. So the send operation is forbidden"));
+      return;
+    } else {
+      auto key_ids = std::make_unique<KeyIdArgsList>();
+      for (const auto& key_id : *recipients_key_ids_)
+        key_ids->push_back(key_id);
+      thread->setEncryptContent(true, std::move(key_ids));
+    }
   }
-  for (const auto& cc : cc_string_list) {
-    if (!cc.isEmpty()) message.addCc(new EmailAddress(cc.trimmed()));
-  }
-  for (const auto& bcc : bcc_string_list) {
-    if (!bcc.isEmpty()) message.addBcc(new EmailAddress(bcc.trimmed()));
-  }
-  message.setSubject(ui->subjectEdit->text());
 
-  // Now add some text to the email.
-  // First we create a MimeText object.
-
-  MimeText text;
-  text.setText(ui->textEdit->toPlainText());
-
-  // Now add it to the mail
-  message.addPart(&text);
-
-  // Now we can send the mail
-  if (!smtp.connectToHost()) {
-    qDebug() << "Connect to SMTP Server Failed";
-    QMessageBox::critical(this, _("Fail"), _("Fail to Connect SMTP Server"));
-    return;
+  if (ui->attacSignatureCheckBox->checkState() == Qt::Checked) {
+    if (sender_key_id_.empty()) {
+      QMessageBox::critical(
+          this, _("Forbidden"),
+          _("You checked the option to attach signature to the email, but did "
+            "not specify the sender's GPG Key. This will cause the content of "
+            "the email to be inconsistent with your expectations, so the "
+            "operation is prohibited."));
+      return;
+    } else {
+      thread->setAttachSignatureFile(true, sender_key_id_);
+    }
   }
-  if (!smtp.login()) {
-    qDebug() << "Login to SMTP Server Failed";
-    QMessageBox::critical(this, _("Fail"), _("Fail to Login into SMTP Server"));
-    return;
-  }
-  if (!smtp.sendMail(message)) {
-    qDebug() << "Send Mail to SMTP Server Failed";
-    QMessageBox::critical(this, _("Fail"),
-                          _("Fail to Send Mail to SMTP Server"));
-    return;
-  }
-  smtp.quit();
 
-  // Close after sending email
-  QMessageBox::information(this, _("Success"),
-                           _("Succeed in Sending Mail to SMTP Server"));
-  deleteLater();
+  if (ui->attachSenderPublickeyCheckBox->checkState() == Qt::Checked) {
+    if (sender_key_id_.empty()) {
+      QMessageBox::critical(
+          this, _("Forbidden"),
+          _("You checked the option to attach your public key to the email, "
+            "but did not specify the sender's GPG Key. This will cause the "
+            "content of "
+            "the email to be inconsistent "
+            "with your expectations, so the operation is prohibited."));
+      return;
+    } else {
+      thread->setAttachPublicKey(true, sender_key_id_);
+    }
+  }
+
+  // Waiting Dialog
+  auto* waiting_dialog = new QProgressDialog(this);
+  waiting_dialog->setMaximum(0);
+  waiting_dialog->setMinimum(0);
+  auto waiting_dialog_label =
+      new QLabel(QString(_("Sending Email...")) + "<br /><br />" +
+                 _("If the process does not end for a long time, please check "
+                   "again whether your SMTP server configuration is correct."));
+  waiting_dialog_label->setWordWrap(true);
+  waiting_dialog->setLabel(waiting_dialog_label);
+  waiting_dialog->resize(420, 120);
+  connect(thread, &SMTPSendMailThread::signalSMTPResult, this,
+          &SendMailDialog::slotTestSMTPConnectionResult);
+  connect(thread, &QThread::finished, [=]() {
+    waiting_dialog->finished(0);
+    waiting_dialog->deleteLater();
+  });
+  connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
+    LOG(INFO) << "cancel clicked";
+    if (thread->isRunning()) thread->terminate();
+    QCoreApplication::quit();
+    exit(0);
+  });
+
+  // Show Waiting Dialog
+  waiting_dialog->show();
+  waiting_dialog->setFocus();
+
+  thread->start();
+  QEventLoop loop;
+  connect(thread, &QThread::finished, &loop, &QEventLoop::quit);
+  loop.exec();
 }
 
 void SendMailDialog::initSettings() {
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
   try {
-    ability_enable = settings.lookup("smtp.enable");
+    ability_enable_ = settings.lookup("smtp.enable");
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("save_key_checked");
   }
 
   try {
-    identity_enable = settings.lookup("smtp.identity_enable");
+    identity_enable_ = settings.lookup("smtp.identity_enable");
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("identity_enable");
   }
 
   try {
-    smtpAddress = settings.lookup("smtp.mail_address").c_str();
+    smtp_address_ = settings.lookup("smtp.mail_address").c_str();
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("mail_address");
   }
 
   try {
-    username = settings.lookup("smtp.username").c_str();
+    username_ = settings.lookup("smtp.username").c_str();
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("username");
   }
 
   try {
-    password = settings.lookup("smtp.password").c_str();
+    password_ = settings.lookup("smtp.password").c_str();
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("password");
   }
 
   try {
-    port = settings.lookup("smtp.port");
+    port_ = settings.lookup("smtp.port");
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("port");
   }
 
   try {
-    connectionTypeSettings = settings.lookup("smtp.connection_type").c_str();
+    connection_type_settings_ = settings.lookup("smtp.connection_type").c_str();
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("connection_type");
   }
 
   try {
-    defaultSender = settings.lookup("smtp.default_sender").c_str();
+    default_sender_ = settings.lookup("smtp.default_sender").c_str();
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("default_sender");
   }
 }
-
 #endif
+
+void SendMailDialog::set_sender_value_label() {
+  auto key = GpgKeyGetter::GetInstance().GetKey(sender_key_id_);
+  if (key.good()) {
+    ui->senderKeyValueLabel->setText(key.uids()->front().uid().c_str());
+  }
+}
+
+void SendMailDialog::set_recipients_value_label() {
+  auto keys = GpgKeyGetter::GetInstance().GetKeys(recipients_key_ids_);
+  std::stringstream ss;
+  for (const auto& key : *keys) {
+    if (key.good()) {
+      ss << key.uids()->front().uid().c_str() << ";";
+    }
+  }
+  ui->recipientsKeyValueLabel->setText(ss.str().c_str());
+}
+
+void SendMailDialog::slotTestSMTPConnectionResult(const QString& result) {
+  if (result == "Fail to connect SMTP server") {
+    QMessageBox::critical(this, _("Fail"), _("Fail to Connect SMTP Server."));
+  } else if (result == "Fail to login") {
+    QMessageBox::critical(this, _("Fail"), _("Fail to Login."));
+  } else if (result == "Fail to send mail") {
+    QMessageBox::critical(this, _("Fail"), _("Fail to Login."));
+  } else if (result == "Succeed in testing connection") {
+    QMessageBox::information(this, _("Success"),
+                             _("Succeed in connecting and login"));
+  } else if (result == "Succeed in sending a test email") {
+    QMessageBox::information(
+        this, _("Success"),
+        _("Succeed in sending the message to the SMTP Server"));
+  } else {
+    QMessageBox::critical(this, _("Fail"), _("Unknown error."));
+  }
+}
 
 }  // namespace GpgFrontend::UI

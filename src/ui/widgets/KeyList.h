@@ -59,6 +59,7 @@ struct KeyTable {
   KeyListColumn::InfoType info_type;
   std::vector<GpgKey> buffered_keys;
   std::function<bool(const GpgKey&)> filter;
+  KeyIdArgsListPtr checked_key_ids_;
 
   KeyTable(
       QTableWidget* _key_list, KeyListRow::KeyType _select_type,
@@ -73,9 +74,9 @@ struct KeyTable {
 
   void Refresh(KeyLinkListPtr m_keys = nullptr);
 
-  KeyIdArgsListPtr GetChecked();
+  KeyIdArgsListPtr& GetChecked();
 
-  void SetChecked(const KeyIdArgsListPtr& key_ids);
+  void SetChecked(KeyIdArgsListPtr key_ids);
 };
 
 class KeyList : public QWidget {
@@ -102,7 +103,7 @@ class KeyList : public QWidget {
   static KeyIdArgsListPtr getChecked(const KeyTable& key_table);
   KeyIdArgsListPtr getPrivateChecked();
   KeyIdArgsListPtr getAllPrivateKeys();
-  void setChecked(const KeyIdArgsListPtr& keyIds);
+  void setChecked(KeyIdArgsListPtr key_ids);
   static void setChecked(const KeyIdArgsListPtr& keyIds,
                          const KeyTable& key_table);
   KeyIdArgsListPtr getSelected();

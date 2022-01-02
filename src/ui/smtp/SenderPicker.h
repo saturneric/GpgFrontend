@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
-#define GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
+#ifndef GPGFRONTEND_SENDERPICKER_H
+#define GPGFRONTEND_SENDERPICKER_H
 
 #include "GpgFrontendUI.h"
 
@@ -31,18 +31,17 @@ namespace GpgFrontend::UI {
 
 class KeyList;
 
-class SignersPicker : public QDialog {
+class SenderPicker : public QDialog {
   Q_OBJECT
 
  public:
-  explicit SignersPicker(QWidget* parent = nullptr);
+  explicit SenderPicker(const KeyId& current_key_id, QWidget* parent = nullptr);
 
-  GpgFrontend::KeyIdArgsListPtr getCheckedSigners();
+  GpgFrontend::KeyId getCheckedSender();
 
  private:
   KeyList* key_list_;
 };
-
 }  // namespace GpgFrontend::UI
 
-#endif  // GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
+#endif  // GPGFRONTEND_SENDERPICKER_H

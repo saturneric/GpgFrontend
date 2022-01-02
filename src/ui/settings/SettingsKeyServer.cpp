@@ -95,6 +95,7 @@ KeyserverTab::KeyserverTab(QWidget* parent)
       const auto item = ui->keyServerListTable->item(i, 1);
       if (!item->isSelected()) continue;
       this->keyServerStrList.removeAt(i);
+      break;
     }
     this->refreshTable();
   });

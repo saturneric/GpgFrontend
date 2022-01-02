@@ -33,6 +33,7 @@
 
 #include "ui/GpgFrontendUI.h"
 
+namespace GpgFrontend::UI {
 class SMTPSendMailThread : public QThread {
   Q_OBJECT
  public:
@@ -62,6 +63,15 @@ class SMTPSendMailThread : public QThread {
 
   void addFileContent(const QString& file_name, const QByteArray& content);
 
+  void setEncryptContent(bool encrypt_content,
+                         GpgFrontend::KeyIdArgsListPtr public_key_ids);
+
+  void setAttachSignatureFile(bool attach_signature_file,
+                              GpgFrontend::KeyId private_key_id);
+
+  void setAttachPublicKey(bool attach_public_key_file,
+                          GpgFrontend::KeyId attached_public_key_ids);
+
  signals:
   void signalSMTPResult(const QString& result);
 
@@ -69,6 +79,7 @@ class SMTPSendMailThread : public QThread {
   void run() override;
 
  private:
+  // SMTP Options
   std::string host_;
   int port_;
   SmtpClient::ConnectionType connection_type_;
@@ -79,7 +90,17 @@ class SMTPSendMailThread : public QThread {
 
   MimeMessage message;
   std::vector<std::unique_ptr<MimeText>> texts_;
+  std::vector<std::unique_ptr<MimeText>> send_texts_;
   std::vector<std::unique_ptr<MimeFile>> files_;
+
+  // GPG Options
+  bool encrypt_content_ = false;
+  GpgFrontend::KeyIdArgsListPtr public_key_ids_;
+  bool attach_signature_file_ = false;
+  GpgFrontend::KeyId private_key_id_;
+  bool attach_public_key_file_ = false;
+  GpgFrontend::KeyId attached_public_key_ids_;
 };
+}  // namespace GpgFrontend::UI
 
 #endif  // GPGFRONTEND_SMTPSENDMAILTHREAD_H

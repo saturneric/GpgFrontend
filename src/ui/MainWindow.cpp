@@ -296,7 +296,7 @@ void MainWindow::restoreSettings() {
         LOG(INFO) << "get checked key id" << key_id;
         key_ids_ptr->push_back(key_id);
       }
-      mKeyList->setChecked(key_ids_ptr);
+      mKeyList->setChecked(std::move(key_ids_ptr));
     }
 
     auto& smtp = settings["smtp"];
