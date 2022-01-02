@@ -503,7 +503,7 @@ void KeyServerImportDialog::slotImportFinished(QString keyid) {
 
 void KeyServerImportDialog::importKeys(ByteArrayPtr in_data) {
   GpgImportInformation result =
-      GpgKeyImportExportor::GetInstance().ImportKey(std::move(in_data));
+      GpgKeyImportExporter::GetInstance().ImportKey(std::move(in_data));
   emit signalKeyImported();
   QWidget* _parent = qobject_cast<QWidget*>(parent());
   if (mAutomatic) {

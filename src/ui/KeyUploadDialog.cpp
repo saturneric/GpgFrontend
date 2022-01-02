@@ -53,7 +53,7 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
 
 void KeyUploadDialog::slotUpload() {
   auto out_data = std::make_unique<ByteArray>();
-  GpgKeyImportExportor::GetInstance().ExportKeys(*mKeys, out_data);
+  GpgKeyImportExporter::GetInstance().ExportKeys(*mKeys, out_data);
   uploadKeyToServer(*out_data);
 }
 

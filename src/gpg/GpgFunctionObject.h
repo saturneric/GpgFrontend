@@ -34,12 +34,15 @@
 #include <stdexcept>
 #include <string>
 
+#include "GpgConstants.h"
+
 namespace GpgFrontend {
 
 template <typename T>
 class SingletonFunctionObject {
  public:
-  static T& GetInstance(int channel = 0) {
+  static T& GetInstance(
+      int channel = GpgFrontend::GPGFRONTEND_DEFAULT_CHANNEL) {
     static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
                   "T not derived from SingletonFunctionObject<T>");
 
@@ -138,7 +141,8 @@ class SingletonFunctionObject {
 };
 
 template <typename T>
-int SingletonFunctionObject<T>::_default_channel = 0;
+int SingletonFunctionObject<T>::_default_channel =
+    GpgFrontend::GPGFRONTEND_DEFAULT_CHANNEL;
 
 template <typename T>
 std::mutex SingletonFunctionObject<T>::_instance_mutex;

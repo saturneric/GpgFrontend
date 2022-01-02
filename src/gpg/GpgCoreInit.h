@@ -22,30 +22,19 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGINFO_H
-#define GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#ifndef GPGFRONTEND_GPGCOREINIT_H
+#define GPGFRONTEND_GPGCOREINIT_H
 
-#include <string>
+#include "GpgConstants.h"
 
-/**
- * Use to record some info about gnupg
- */
-class GpgInfo {
- public:
-  /**
-   * executable binary path of gnupg
-   */
-  std::string AppPath;
+namespace GpgFrontend {
 
-  std::string DatabasePath;
+// Init
+void init_gpgfrontend_core();
 
-  std::string GnupgVersion;
+void new_default_settings_channel(
+    int channel = GpgFrontend::GPGFRONTEND_DEFAULT_CHANNEL);
 
-  std::string GpgConfPath;
+}  // namespace GpgFrontend
 
-  std::string CMSPath;
-
-  std::string GpgMEVersion;
-};
-
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#endif  // GPGFRONTEND_GPGCOREINIT_H

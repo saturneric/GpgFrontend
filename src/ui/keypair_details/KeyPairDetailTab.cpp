@@ -220,7 +220,7 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
 void KeyPairDetailTab::slotExportPublicKey() {
   ByteArrayPtr keyArray = nullptr;
 
-  if (!GpgKeyImportExportor::GetInstance().ExportKey(mKey, keyArray)) {
+  if (!GpgKeyImportExporter::GetInstance().ExportKey(mKey, keyArray)) {
     QMessageBox::critical(this, _("Error"),
                           _("An error occurred during the export operation."));
     return;
@@ -261,7 +261,7 @@ void KeyPairDetailTab::slotExportShortPrivateKey() {
   if (ret == QMessageBox::Ok) {
     ByteArrayPtr keyArray = nullptr;
 
-    if (!GpgKeyImportExportor::GetInstance().ExportSecretKeyShortest(
+    if (!GpgKeyImportExporter::GetInstance().ExportSecretKeyShortest(
             mKey, keyArray)) {
       QMessageBox::critical(
           this, _("Error"),
@@ -301,7 +301,7 @@ void KeyPairDetailTab::slotExportPrivateKey() {
   if (ret == QMessageBox::Ok) {
     ByteArrayPtr keyArray = nullptr;
 
-    if (!GpgKeyImportExportor::GetInstance().ExportSecretKey(mKey, keyArray)) {
+    if (!GpgKeyImportExporter::GetInstance().ExportSecretKey(mKey, keyArray)) {
       QMessageBox::critical(
           this, _("Error"),
           _("An error occurred during the export operation."));

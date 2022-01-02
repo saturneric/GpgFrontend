@@ -27,6 +27,7 @@
 #include <boost/format.hpp>
 #include <utility>
 
+#include "gpg/GpgCoreInit.h"
 #include "gpg/function/GpgKeyGetter.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -55,6 +56,8 @@ void KeyList::init() {
   GpgContext::CreateInstance(
       _m_key_list_id, std::make_unique<GpgContext>(true, db_path.string(), true,
                                                    gpg_path.string()));
+#else
+  new_default_settings_channel(_m_key_list_id);
 #endif
 
   ui->setupUi(this);
@@ -375,7 +378,7 @@ void KeyList::dragEnterEvent(QDragEnterEvent* event) {
 void KeyList::importKeys(const QByteArray& inBuffer) {
   auto std_buffer = std::make_unique<ByteArray>(inBuffer.toStdString());
   GpgImportInformation result =
-      GpgKeyImportExportor::GetInstance(_m_key_list_id)
+      GpgKeyImportExporter::GetInstance(_m_key_list_id)
           .ImportKey(std::move(std_buffer));
   new KeyImportDetailDialog(result, false, this);
 }
