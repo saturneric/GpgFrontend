@@ -129,7 +129,9 @@ void MainWindow::slotSign() {
   auto key_ids = mKeyList->getPrivateChecked();
 
   if (key_ids->empty()) {
-    QMessageBox::critical(this, _("No Key Selected"), _("No Key Selected"));
+    QMessageBox::critical(
+        this, _("No Key Selected"),
+        _("Please select the key in the key toolbox on the right."));
     return;
   }
 
@@ -270,7 +272,9 @@ void MainWindow::slotEncryptSign() {
   auto key_ids = mKeyList->getChecked();
 
   if (key_ids->empty()) {
-    QMessageBox::critical(nullptr, _("No Key Selected"), _("No Key Selected"));
+    QMessageBox::critical(
+        nullptr, _("No Key Selected"),
+        _("Please select the key in the key toolbox on the right."));
     return;
   }
 

@@ -30,12 +30,13 @@
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/WaitingDialog.h"
+#include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
     : QWidget(parent), mKey(GpgKeyGetter::GetInstance().GetKey(key_id)) {
   ownerBox = new QGroupBox(_("Owner"));
-  keyBox = new QGroupBox(_("Master Key"));
+  keyBox = new QGroupBox(_("Primary Key"));
   fingerprintBox = new QGroupBox(_("Fingerprint"));
   additionalUidBox = new QGroupBox(_("Additional UIDs"));
 
@@ -81,7 +82,7 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
                     0);
   vboxKD->addWidget(new QLabel(QString(_("Last Update (Local Time)")) + ": "),
                     7, 0);
-  vboxKD->addWidget(new QLabel(QString(_("Master Key Existence")) + ": "), 8,
+  vboxKD->addWidget(new QLabel(QString(_("Primary Key Existence")) + ": "), 8,
                     0);
 
   keyidVarLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -155,7 +156,7 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
 
     if (mKey.has_master_key()) {
       auto* edit_expires_button =
-          new QPushButton(_("Modify Expiration Datetime (Master Key)"));
+          new QPushButton(_("Modify Expiration Datetime (Primary Key)"));
       connect(edit_expires_button, SIGNAL(clicked()), this,
               SLOT(slotModifyEditDatetime()));
       auto* edit_password_button = new QPushButton(_("Modify Password"));
@@ -338,7 +339,7 @@ void KeyPairDetailTab::slotModifyEditDatetime() {
 }
 
 void KeyPairDetailTab::slotRefreshKeyInfo() {
-  // Show the situation that master key not exists.
+  // Show the situation that primary key not exists.
   masterKeyExistVarLabel->setText(mKey.has_master_key() ? _("Exists")
                                                         : _("Not Exists"));
   if (!mKey.has_master_key()) {
@@ -420,12 +421,12 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
   if (mKey.expired()) {
     iconLabel->show();
     expLabel->show();
-    expLabel->setText(_("Warning: The Master Key has expired."));
+    expLabel->setText(_("Warning: The primary key has expired."));
   }
   if (mKey.revoked()) {
     iconLabel->show();
     expLabel->show();
-    expLabel->setText(_("Warning: The Master Key has been revoked."));
+    expLabel->setText(_("Warning: The primary key has been revoked."));
   }
 }
 
@@ -442,7 +443,7 @@ void KeyPairDetailTab::createOperaMenu() {
   connect(updateKeyPair, SIGNAL(triggered()), this,
           SLOT(slotUpdateKeyFromServer()));
 
-  // when a key has master key, it should always upload to keyserver.
+  // when a key has primary key, it should always upload to keyserver.
   if (mKey.has_master_key()) {
     updateKeyPair->setDisabled(true);
   }

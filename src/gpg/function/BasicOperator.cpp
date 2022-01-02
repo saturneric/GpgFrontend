@@ -75,8 +75,7 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Verify(
     BypeArrayRef& in_buffer, ByteArrayPtr& sig_buffer,
     GpgVerifyResult& result) const {
   gpgme_error_t err;
-
-  LOG(INFO) << "in buffer size" << in_buffer.size();
+  
   GpgData data_in(in_buffer.data(), in_buffer.size());
   GpgData data_out;
 

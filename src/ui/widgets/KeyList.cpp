@@ -79,8 +79,7 @@ void KeyList::init() {
           &SignalStation::signalRefreshStatusBar);
 
   setAcceptDrops(true);
-
-  ui->keyListOperationsLabel->setText(_("Key List Menu: "));
+  
   ui->refreshKeyListButton->setText(_("Refresh"));
   ui->syncButton->setText(_("Sync Public Key"));
   ui->syncButton->setToolTip(_("Sync public key with your default keyserver"));

@@ -274,6 +274,11 @@ void MainWindow::restoreSettings() {
       general.add("save_key_checked", libconfig::Setting::TypeBoolean) = true;
     }
 
+    if (!general.exists("non_ascii_when_export")) {
+      general.add("non_ascii_when_export", libconfig::Setting::TypeBoolean) =
+          true;
+    }
+
     bool save_key_checked = true;
     general.lookupValue("save_key_checked", save_key_checked);
 
@@ -293,6 +298,13 @@ void MainWindow::restoreSettings() {
       }
       mKeyList->setChecked(key_ids_ptr);
     }
+
+    auto& smtp = settings["smtp"];
+
+    if (!smtp.exists("enable")) {
+      smtp.add("enable", libconfig::Setting::TypeBoolean) = true;
+    }
+
   } catch (...) {
     LOG(ERROR) << "cannot resolve settings";
   }
