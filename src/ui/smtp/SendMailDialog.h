@@ -36,6 +36,10 @@ class SendMailDialog : public QDialog {
  public:
   explicit SendMailDialog(const QString& text, QWidget* parent = nullptr);
 
+  void setContentEncryption(bool on);
+
+  void setAttachSignature(bool on);
+
  private slots:
 
   void slotConfirm();

@@ -41,7 +41,7 @@ std::unique_ptr<GpgFrontend::UI::CommonUtils>
 
 #ifdef SMTP_SUPPORT
 void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
-                   const QString& text) {
+                   const QString& text, bool attach_signature) {
   info_board->addOptionalAction(_("Send Encrypted Mail"), [=]() {
     bool smtp_enabled = false;
     try {
@@ -52,6 +52,8 @@ void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
     }
     if (smtp_enabled) {
       auto dialog = new SendMailDialog(text, parent);
+      dialog->setContentEncryption(false);
+      dialog->setAttachSignature(attach_signature);
       dialog->show();
     } else {
       QMessageBox::warning(nullptr, _("Function Disabled"),
