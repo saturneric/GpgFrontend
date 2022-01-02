@@ -39,6 +39,7 @@ struct GpgContextInitArgs {
   bool gpg_alone = false;
   std::string gpg_path = {};
   bool test_mode = false;
+  bool ascii = true;
 
   GpgContextInitArgs() = default;
 };

@@ -94,11 +94,9 @@ void KeyGenDialog::slotKeyGenAccept() {
     /**
      * create the string for key generation
      */
-
-    genKeyInfo->setUserid(
-        QString("%1(%3)<%2>")
-            .arg(nameEdit->text(), emailEdit->text(), commentEdit->text())
-            .toStdString());
+    genKeyInfo->setName(nameEdit->text().toStdString());
+    genKeyInfo->setEmail(emailEdit->text().toStdString());
+    genKeyInfo->setComment(commentEdit->text().toStdString());
 
     genKeyInfo->setKeySize(keySizeSpinBox->value());
 
@@ -109,9 +107,11 @@ void KeyGenDialog::slotKeyGenAccept() {
           boost::posix_time::from_time_t(dateEdit->dateTime().toTime_t()));
     }
 
+    GpgGenKeyResult result;
     gpgme_error_t error = false;
-    auto thread = QThread::create(
-        [&]() { error = GpgKeyOpera::GetInstance().GenerateKey(genKeyInfo); });
+    auto thread = QThread::create([&]() {
+      error = GpgKeyOpera::GetInstance().GenerateKey(genKeyInfo, result);
+    });
     thread->start();
 
     auto* dialog = new WaitingDialog(_("Generating"), this);
@@ -327,10 +327,10 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   keySizeSpinBox = new QSpinBox(this);
   keyTypeComboBox = new QComboBox(this);
 
-  for (auto& algo : GenKeyInfo::SupportedKeyAlgo) {
+  for (auto& algo : GenKeyInfo::getSupportedKeyAlgo()) {
     keyTypeComboBox->addItem(QString::fromStdString(algo));
   }
-  if (!GenKeyInfo::SupportedKeyAlgo.empty()) {
+  if (!GenKeyInfo::getSupportedKeyAlgo().empty()) {
     keyTypeComboBox->setCurrentIndex(0);
   }
 

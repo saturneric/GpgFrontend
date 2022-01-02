@@ -49,7 +49,7 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
   if (_first) {
     /* Initialize the locale environment. */
     LOG(INFO) << "locale" << setlocale(LC_CTYPE, nullptr);
-    gpgme_check_version(nullptr);
+    info_.GpgMEVersion = gpgme_check_version(nullptr);
     gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
 #ifdef LC_MESSAGES
     gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
@@ -148,9 +148,12 @@ void GpgContext::init_ctx() {
     info_.DatabasePath = "default";
   }
 
-  /** Setting the output type must be done at the beginning */
-  /** think this means ascii-armor --> ? */
-  gpgme_set_armor(*this, 1);
+  if (args_.ascii) {
+    /** Setting the output type must be done at the beginning */
+    /** think this means ascii-armor --> ? */
+    gpgme_set_armor(*this, 1);
+  }
+
   // Speed up loading process
   gpgme_set_offline(*this, 1);
 

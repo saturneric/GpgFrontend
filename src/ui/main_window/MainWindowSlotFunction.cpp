@@ -448,7 +448,7 @@ void MainWindow::slotAppendSelectedKeys() {
   auto exported = std::make_unique<ByteArray>();
   auto key_ids = mKeyList->getSelected();
 
-  GpgKeyImportExportor::GetInstance().ExportKeys(key_ids, exported);
+  GpgKeyImportExporter::GetInstance().ExportKeys(key_ids, exported);
   edit->curTextPage()->append(QString::fromStdString(*exported));
 }
 

@@ -87,6 +87,10 @@ std::string get_only_file_name_with_path(const std::string& path);
 // Check
 int text_is_signed(BypeArrayRef text);
 
+// Channels
+const int GPGFRONTEND_DEFAULT_CHANNEL = 0;
+const int GPGFRONTEND_NON_ASCII_CHANNEL = 2;
+
 class GpgConstants {
  public:
   static const char* PGP_CRYPT_BEGIN;
@@ -97,6 +101,7 @@ class GpgConstants {
   static const char* PGP_SIGNATURE_END;
   static const char* GPG_FRONTEND_SHORT_CRYPTO_HEAD;
 };
+
 }  // namespace GpgFrontend
 
 #endif  // GPG_CONSTANTS_H

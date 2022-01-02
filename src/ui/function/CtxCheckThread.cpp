@@ -25,6 +25,7 @@
 #include "CtxCheckThread.h"
 
 #include "gpg/GpgContext.h"
+#include "gpg/GpgCoreInit.h"
 #include "gpg/function/GpgKeyGetter.h"
 #include "ui/UserInterfaceUtils.h"
 
@@ -34,6 +35,9 @@ GpgFrontend::UI::CtxCheckThread::CtxCheckThread() : QThread(nullptr) {
 }
 
 void GpgFrontend::UI::CtxCheckThread::run() {
+  // Init GpgFrontend Core
+  init_gpgfrontend_core();
+
   // Create & Check Gnupg Context Status
   if (!GpgContext::GetInstance().good()) {
     emit signalGnupgNotInstall();

@@ -352,7 +352,7 @@ void KeyMgmt::slotShowKeyDetails() {
 void KeyMgmt::slotExportKeyToFile() {
   ByteArrayPtr key_export_data = nullptr;
   auto keys_checked = mKeyList->getChecked();
-  if (!GpgKeyImportExportor::GetInstance().ExportKeys(keys_checked,
+  if (!GpgKeyImportExporter::GetInstance().ExportKeys(keys_checked,
                                                       key_export_data)) {
     return;
   }
@@ -377,7 +377,7 @@ void KeyMgmt::slotExportKeyToFile() {
 void KeyMgmt::slotExportKeyToClipboard() {
   ByteArrayPtr key_export_data = nullptr;
   auto keys_checked = mKeyList->getChecked();
-  if (!GpgKeyImportExportor::GetInstance().ExportKeys(keys_checked,
+  if (!GpgKeyImportExporter::GetInstance().ExportKeys(keys_checked,
                                                       key_export_data)) {
     return;
   }
@@ -474,7 +474,7 @@ void KeyMgmt::slotExportAsOpenSSHFormat() {
   }
 
   auto key = GpgKeyGetter::GetInstance().GetKey(keys_checked->front());
-  if (!GpgKeyImportExportor::GetInstance().ExportKeyOpenSSH(key,
+  if (!GpgKeyImportExporter::GetInstance().ExportKeyOpenSSH(key,
                                                             key_export_data)) {
     QMessageBox::critical(nullptr, _("Error"),
                           _("An error occur in exporting."));

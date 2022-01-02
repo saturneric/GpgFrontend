@@ -22,30 +22,31 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGINFO_H
-#define GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#include "GpgCoreInit.h"
 
-#include <string>
+#include "GpgContext.h"
 
-/**
- * Use to record some info about gnupg
- */
-class GpgInfo {
- public:
-  /**
-   * executable binary path of gnupg
-   */
-  std::string AppPath;
+void GpgFrontend::init_gpgfrontend_core() {
+  GpgFrontend::GpgContext::CreateInstance(
+      GPGFRONTEND_DEFAULT_CHANNEL,
+      [&]() -> std::unique_ptr<GpgFrontend::GpgContext> {
+        GpgFrontend::GpgContextInitArgs args;
+        return std::make_unique<GpgFrontend::GpgContext>(args);
+      });
 
-  std::string DatabasePath;
+  GpgFrontend::GpgContext::CreateInstance(
+      GPGFRONTEND_NON_ASCII_CHANNEL,
+      [&]() -> std::unique_ptr<GpgFrontend::GpgContext> {
+        GpgFrontend::GpgContextInitArgs args;
+        args.ascii = false;
+        return std::make_unique<GpgFrontend::GpgContext>(args);
+      });
+}
 
-  std::string GnupgVersion;
-
-  std::string GpgConfPath;
-
-  std::string CMSPath;
-
-  std::string GpgMEVersion;
-};
-
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+void GpgFrontend::new_default_settings_channel(int channel) {
+  GpgFrontend::GpgContext::CreateInstance(
+      channel, [&]() -> std::unique_ptr<GpgFrontend::GpgContext> {
+        GpgFrontend::GpgContextInitArgs args;
+        return std::make_unique<GpgFrontend::GpgContext>(args);
+      });
+}

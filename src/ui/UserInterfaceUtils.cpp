@@ -164,7 +164,7 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
 
 void CommonUtils::slotImportKeys(QWidget* parent,
                                  const std::string& in_buffer) {
-  GpgImportInformation result = GpgKeyImportExportor::GetInstance().ImportKey(
+  GpgImportInformation result = GpgKeyImportExporter::GetInstance().ImportKey(
       std::make_unique<ByteArray>(in_buffer));
   emit signalKeyStatusUpdated();
   new KeyImportDetailDialog(result, false, parent);
@@ -309,7 +309,7 @@ void CommonUtils::slotImportKeyFromKeyServer(
 
           // Try importing
           GpgImportInformation result =
-              GpgKeyImportExportor::GetInstance(ctx_channel)
+              GpgKeyImportExporter::GetInstance(ctx_channel)
                   .ImportKey(std::move(key_data_ptr));
 
           if (result.imported == 1) {

@@ -99,10 +99,10 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
   keySizeSpinBox = new QSpinBox(this);
   keyTypeComboBox = new QComboBox(this);
 
-  for (auto& algo : GenKeyInfo::SupportedSubkeyAlgo) {
+  for (auto& algo : GenKeyInfo::getSupportedKeyAlgo()) {
     keyTypeComboBox->addItem(QString::fromStdString(algo));
   }
-  if (!GenKeyInfo::SupportedKeyAlgo.empty()) {
+  if (!GenKeyInfo::getSupportedKeyAlgo().empty()) {
     keyTypeComboBox->setCurrentIndex(0);
   }
 
