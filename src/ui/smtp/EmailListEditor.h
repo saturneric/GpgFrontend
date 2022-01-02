@@ -22,27 +22,33 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
-#define GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
+#ifndef GPGFRONTEND_EMAILLISTEDITOR_H
+#define GPGFRONTEND_EMAILLISTEDITOR_H
 
 #include "GpgFrontendUI.h"
 
+class Ui_EmailListEditorDialog;
+
 namespace GpgFrontend::UI {
-
-class KeyList;
-
-class SignersPicker : public QDialog {
+class EmailListEditor : public QDialog {
   Q_OBJECT
 
  public:
-  explicit SignersPicker(QWidget* parent = nullptr);
-
-  GpgFrontend::KeyIdArgsListPtr getCheckedSigners();
+  explicit EmailListEditor(const QString& email_list, QWidget* parent);
+  QString getEmailList();
 
  private:
-  KeyList* key_list_;
-};
+  std::shared_ptr<Ui_EmailListEditorDialog> ui;
+  QMenu* popupMenu{};
 
+  QRegularExpression re_email{
+      R"((?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\]))"};
+
+  bool check_email_address(const QString& email_address);
+
+ protected:
+  void contextMenuEvent(QContextMenuEvent* event) override;
+};
 }  // namespace GpgFrontend::UI
 
-#endif  // GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
+#endif  // GPGFRONTEND_EMAILLISTEDITOR_H

@@ -258,7 +258,7 @@ void MainWindow::createActions() {
   /* Popup-Menu-Action for KeyList
    */
   appendSelectedKeysAct =
-      new QAction(_("Append Selected Key(s) To Text"), this);
+      new QAction(_("Append Public Key To Text Editor"), this);
   appendSelectedKeysAct->setToolTip(
       _("Append The Selected Keys To Text in Editor"));
   connect(appendSelectedKeysAct, SIGNAL(triggered()), this,
@@ -297,7 +297,7 @@ void MainWindow::createActions() {
   connect(addPgpHeaderAct, SIGNAL(triggered()), this, SLOT(slotAddPgpHeader()));
 
 #ifdef SMTP_SUPPORT
-  sendMailAct = new QAction(_("Send An Email"), this);
+  sendMailAct = new QAction(_("New Message"), this);
   sendMailAct->setIcon(QIcon(":email.png"));
   connect(sendMailAct, &QAction::triggered, this, [=]() {
     auto* dialog = new SendMailDialog({}, this);

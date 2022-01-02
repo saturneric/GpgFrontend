@@ -22,32 +22,41 @@
  *
  */
 
-#include "ui/widgets/SignersPicker.h"
+#include "RecipientsPicker.h"
 
 #include "ui/widgets/KeyList.h"
 
-namespace GpgFrontend::UI {
-
-SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
+GpgFrontend::UI::RecipientsPicker::RecipientsPicker(
+    const GpgFrontend::KeyIdArgsListPtr& current_key_ids, QWidget* parent)
+    : QDialog(parent) {
   auto confirm_button = new QPushButton(_("Confirm"));
   connect(confirm_button, SIGNAL(clicked(bool)), this, SLOT(accept()));
 
-  /*Setup KeyList*/
+  // Setup KeyList
   key_list_ = new KeyList(false, this);
   key_list_->addListGroupTab(
-      _("Signers"), KeyListRow::ONLY_SECRET_KEY,
-      KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage,
-      [](const GpgKey& key) -> bool { return key.CanSignActual(); });
+      _("Recipient(s)"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::NAME | KeyListColumn::EmailAddress,
+      [](const GpgKey& key) -> bool {
+        return !key.is_private_key() && key.CanEncrActual();
+      });
   key_list_->slotRefresh();
 
+  auto key_ids = std::make_unique<GpgFrontend::KeyIdArgsList>();
+  for (const auto& key_id : *current_key_ids) {
+    key_ids->push_back(key_id);
+  }
+  key_list_->setChecked(std::move(key_ids));
+
   auto* vbox2 = new QVBoxLayout();
-  vbox2->addWidget(new QLabel(QString(_("Select Signer(s)")) + ": "));
+  vbox2->addWidget(new QLabel(QString(_("Select Recipient(s)")) + ": "));
   vbox2->addWidget(key_list_);
   vbox2->addWidget(new QLabel(
-      QString(
-          _("Please select one or more private keys you use for signing.")) +
+      QString(_("We use the public key provided by the recipient to encrypt "
+                "the text.")) +
       "\n" +
-      _("If no key is selected, the default key will be used for signing.")));
+      _("If you want to send to multiple recipients at the same time, you can "
+        "select multiple keys.")));
   vbox2->addWidget(confirm_button);
   vbox2->addStretch(0);
   setLayout(vbox2);
@@ -56,13 +65,12 @@ SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
                        Qt::CustomizeWindowHint);
 
   this->setModal(true);
-  this->setWindowTitle("Signers Picker");
+  this->setWindowTitle("Recipient(s) Picker");
   this->setMinimumWidth(480);
-  this->show();
+  this->exec();
 }
 
-GpgFrontend::KeyIdArgsListPtr SignersPicker::getCheckedSigners() {
-  return key_list_->getPrivateChecked();
+GpgFrontend::KeyIdArgsListPtr
+GpgFrontend::UI::RecipientsPicker::getCheckedRecipients() {
+  return key_list_->getChecked();
 }
-
-}  // namespace GpgFrontend::UI

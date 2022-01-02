@@ -25,12 +25,14 @@
 #ifndef GPGFRONTEND_GPGFRONTENDUI_H
 #define GPGFRONTEND_GPGFRONTENDUI_H
 
-#include "GpgFrontend.h"
-
 #include <QtCore>
 #include <QtNetwork>
 #include <QtPrintSupport>
 #include <QtWidgets>
+
+#include "GpgFrontend.h"
+#include "gpg/GpgConstants.h"
+#include "gpg/GpgModel.h"
 
 #undef LIBCONFIGXX_STATIC
 #define LIBCONFIGXX_STATIC

@@ -79,7 +79,7 @@ void KeyList::init() {
           &SignalStation::signalRefreshStatusBar);
 
   setAcceptDrops(true);
-  
+
   ui->refreshKeyListButton->setText(_("Refresh"));
   ui->syncButton->setText(_("Sync Public Key"));
   ui->syncButton->setToolTip(_("Sync public key with your default keyserver"));
@@ -227,17 +227,14 @@ void KeyList::setChecked(const KeyIdArgsListPtr& keyIds,
   }
 }
 
-void KeyList::setChecked(const KeyIdArgsListPtr& keyIds) {
-  if (ui->keyGroupTab->size().isEmpty()) return;
+void KeyList::setChecked(KeyIdArgsListPtr key_ids) {
   auto key_list = qobject_cast<QTableWidget*>(ui->keyGroupTab->currentWidget());
-  const auto& buffered_keys =
-      mKeyTables[ui->keyGroupTab->currentIndex()].buffered_keys;
-
-  if (!keyIds->empty()) {
-    for (int i = 0; i < key_list->rowCount(); i++) {
-      if (std::find(keyIds->begin(), keyIds->end(), buffered_keys[i].id()) !=
-          keyIds->end()) {
-        key_list->item(i, 0)->setCheckState(Qt::Checked);
+  if (key_list == nullptr) return;
+  if (!mKeyTables.empty()) {
+    for (auto& key_table : mKeyTables) {
+      if (key_table.key_list == key_list) {
+        key_table.SetChecked(std::move(key_ids));
+        break;
       }
     }
   }
@@ -460,31 +457,30 @@ void KeyList::slotSyncWithKeyServer() {
       });
 }
 
-KeyIdArgsListPtr KeyTable::GetChecked() {
-  auto ret = std::make_unique<KeyIdArgsList>();
+KeyIdArgsListPtr& KeyTable::GetChecked() {
+  LOG(INFO) << "called";
+  if (checked_key_ids_ == nullptr)
+    checked_key_ids_ = std::make_unique<KeyIdArgsList>();
+  auto& ret = checked_key_ids_;
   for (int i = 0; i < key_list->rowCount(); i++) {
-    if (key_list->item(i, 0)->checkState() == Qt::Checked) {
-      ret->push_back(buffered_keys[i].id());
+    auto key_id = buffered_keys[i].id();
+    if (key_list->item(i, 0)->checkState() == Qt::Checked &&
+        std::find(ret->begin(), ret->end(), key_id) == ret->end()) {
+      ret->push_back(key_id);
     }
   }
   return ret;
 }
 
-void KeyTable::SetChecked(const KeyIdArgsListPtr& key_ids) {
-  if (!key_ids->empty()) {
-    for (int i = 0; i < key_list->rowCount(); i++) {
-      if (std::find(key_ids->begin(), key_ids->end(), buffered_keys[i].id()) !=
-          key_ids->end()) {
-        key_list->item(i, 0)->setCheckState(Qt::Checked);
-      }
-    }
-  }
+void KeyTable::SetChecked(KeyIdArgsListPtr key_ids) {
+  LOG(INFO) << "called";
+  checked_key_ids_ = std::move(key_ids);
 }
 
 void KeyTable::Refresh(KeyLinkListPtr m_keys) {
   LOG(INFO) << "Called";
 
-  auto checked_key_list = GetChecked();
+  auto& checked_key_list = GetChecked();
   // while filling the table, sort enabled causes errors
 
   key_list->setSortingEnabled(false);
@@ -590,7 +586,14 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
     ++row_index;
   }
 
-  SetChecked(checked_key_list);
+  if (!checked_key_list->empty()) {
+    for (int i = 0; i < key_list->rowCount(); i++) {
+      if (std::find(checked_key_list->begin(), checked_key_list->end(),
+                    buffered_keys[i].id()) != checked_key_list->end()) {
+        key_list->item(i, 0)->setCheckState(Qt::Checked);
+      }
+    }
+  }
 
   LOG(INFO) << "End";
 }

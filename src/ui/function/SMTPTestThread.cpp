@@ -23,6 +23,7 @@
  */
 
 #include "SMTPTestThread.h"
+namespace GpgFrontend::UI {
 
 void SMTPTestThread::run() {
   SmtpClient smtp(host_.c_str(), port_, connection_type_);
@@ -41,3 +42,5 @@ void SMTPTestThread::run() {
   smtp.quit();
   emit signalSMTPTestResult("Succeed in testing connection");
 }
+
+}  // namespace GpgFrontend::UI

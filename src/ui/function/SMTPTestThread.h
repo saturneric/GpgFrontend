@@ -32,6 +32,7 @@
 #endif
 
 #include "ui/GpgFrontendUI.h"
+namespace GpgFrontend::UI {
 
 class SMTPTestThread : public QThread {
   Q_OBJECT
@@ -46,9 +47,7 @@ class SMTPTestThread : public QThread {
         connection_type_(connection_type),
         identify_(identify),
         username_(std::move(username)),
-        password_(std::move(password)) {
-
-  }
+        password_(std::move(password)) {}
 
  signals:
   void signalSMTPTestResult(const QString& result);
@@ -65,5 +64,7 @@ class SMTPTestThread : public QThread {
   std::string username_;
   std::string password_;
 };
+
+}  // namespace GpgFrontend::UI
 
 #endif  // GPGFRONTEND_SMTPTESTTHREAD_H

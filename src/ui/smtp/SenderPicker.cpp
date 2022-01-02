@@ -22,32 +22,37 @@
  *
  */
 
-#include "ui/widgets/SignersPicker.h"
+#include "SenderPicker.h"
 
 #include "ui/widgets/KeyList.h"
 
-namespace GpgFrontend::UI {
-
-SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
+GpgFrontend::UI::SenderPicker::SenderPicker(const KeyId& current_key_id,
+                                            QWidget* parent)
+    : QDialog(parent) {
   auto confirm_button = new QPushButton(_("Confirm"));
   connect(confirm_button, SIGNAL(clicked(bool)), this, SLOT(accept()));
 
-  /*Setup KeyList*/
+  // Setup KeyList
   key_list_ = new KeyList(false, this);
   key_list_->addListGroupTab(
-      _("Signers"), KeyListRow::ONLY_SECRET_KEY,
-      KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage,
+      _("Sender"), KeyListRow::ONLY_SECRET_KEY,
+      KeyListColumn::NAME | KeyListColumn::EmailAddress,
       [](const GpgKey& key) -> bool { return key.CanSignActual(); });
   key_list_->slotRefresh();
 
+  auto key_ids = std::make_unique<GpgFrontend::KeyIdArgsList>();
+  key_ids->push_back(current_key_id);
+  key_list_->setChecked(std::move(key_ids));
+
   auto* vbox2 = new QVBoxLayout();
-  vbox2->addWidget(new QLabel(QString(_("Select Signer(s)")) + ": "));
+  vbox2->addWidget(new QLabel(QString(_("Select Sender")) + ": "));
   vbox2->addWidget(key_list_);
   vbox2->addWidget(new QLabel(
       QString(
-          _("Please select one or more private keys you use for signing.")) +
+          _("As the sender of the mail, the private key is generally used.")) +
       "\n" +
-      _("If no key is selected, the default key will be used for signing.")));
+      _(" The private key is generally used as a signature for the content of "
+        "the mail.")));
   vbox2->addWidget(confirm_button);
   vbox2->addStretch(0);
   setLayout(vbox2);
@@ -56,13 +61,16 @@ SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
                        Qt::CustomizeWindowHint);
 
   this->setModal(true);
-  this->setWindowTitle("Signers Picker");
+  this->setWindowTitle("Sender Picker");
   this->setMinimumWidth(480);
-  this->show();
+  this->exec();
 }
 
-GpgFrontend::KeyIdArgsListPtr SignersPicker::getCheckedSigners() {
-  return key_list_->getPrivateChecked();
+GpgFrontend::KeyId GpgFrontend::UI::SenderPicker::getCheckedSender() {
+  auto checked_keys = key_list_->getChecked();
+  if (!checked_keys->empty()) {
+    return key_list_->getChecked()->front();
+  } else {
+    return {};
+  }
 }
-
-}  // namespace GpgFrontend::UI

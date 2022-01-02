@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>958</width>
-    <height>607</height>
+    <width>995</width>
+    <height>760</height>
    </rect>
   </property>
   <property name="cursor">
@@ -17,7 +17,7 @@
    <enum>Qt::NoContextMenu</enum>
   </property>
   <property name="windowTitle">
-   <string>Send Mail</string>
+   <string>New Message</string>
   </property>
   <property name="sizeGripEnabled">
    <bool>false</bool>
@@ -80,12 +80,18 @@
           <property name="text">
            <string>CC</string>
           </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="bccButton">
           <property name="text">
            <string>BCC</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -96,7 +102,7 @@
       <widget class="QWidget" name="horizontalWidget_4" native="true">
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <property name="spacing">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="leftMargin">
          <number>0</number>
@@ -113,7 +119,7 @@
         <item>
          <widget class="QLabel" name="recipientLabel">
           <property name="text">
-           <string>Recipient</string>
+           <string>Recipient(s)</string>
           </property>
           <property name="margin">
            <number>5</number>
@@ -122,6 +128,13 @@
         </item>
         <item>
          <widget class="QLineEdit" name="recipientEdit"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="recipientsEditButton">
+          <property name="text">
+           <string>Edit Recipients(s)</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -154,7 +167,7 @@
         <item>
          <widget class="QLabel" name="subjectLabel">
           <property name="text">
-           <string>Subject</string>
+           <string>Mail Subject</string>
           </property>
           <property name="margin">
            <number>5</number>
@@ -163,6 +176,64 @@
         </item>
         <item>
          <widget class="QLineEdit" name="subjectEdit"/>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QWidget" name="horizontalWidget_6" native="true">
+       <layout class="QHBoxLayout" name="horizontalLayout_9">
+        <property name="spacing">
+         <number>6</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="gpgOperaLabel">
+          <property name="text">
+           <string>GPG Operations</string>
+          </property>
+          <property name="margin">
+           <number>5</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="senderKeySelectButton">
+          <property name="text">
+           <string>Select Sender GPG Key</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="recipientKeySelectButton">
+          <property name="text">
+           <string>Select Recipient(s) GPG Key</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -178,7 +249,7 @@
       <widget class="QWidget" name="ccInputWidget" native="true">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <property name="spacing">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="leftMargin">
          <number>0</number>
@@ -205,6 +276,13 @@
         <item>
          <widget class="QLineEdit" name="ccEdit"/>
         </item>
+        <item>
+         <widget class="QPushButton" name="ccEditButton">
+          <property name="text">
+           <string>Edit CC(s)</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -212,7 +290,7 @@
       <widget class="QWidget" name="bccInputWidget" native="true">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <property name="spacing">
-         <number>0</number>
+         <number>6</number>
         </property>
         <property name="leftMargin">
          <number>0</number>
@@ -239,6 +317,13 @@
         <item>
          <widget class="QLineEdit" name="bccEdit"/>
         </item>
+        <item>
+         <widget class="QPushButton" name="bccEditButton">
+          <property name="text">
+           <string>Edit BCC(s)</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -260,6 +345,57 @@
       <widget class="QTextEdit" name="textEdit"/>
      </item>
      <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Sender GPG Key: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="senderKeyValueLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_10">
+       <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Recipient(s) GPG Key: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="recipientsKeyValueLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
       <widget class="QLabel" name="errorLabel">
        <property name="text">
         <string/>
@@ -267,11 +403,65 @@
       </widget>
      </item>
      <item>
+      <widget class="Line" name="line_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <item>
+        <widget class="QCheckBox" name="contentEncryptCheckBox">
+         <property name="text">
+          <string>Encrypt content</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="attacSignatureCheckBox">
+         <property name="text">
+          <string>Attach signature</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="attachSenderPublickeyCheckBox">
+         <property name="text">
+          <string>Attach sender's public key</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="saveDraftButton">
+         <property name="text">
+          <string>Save Draft</string>
+         </property>
+        </widget>
+       </item>
        <item alignment="Qt::AlignRight">
         <widget class="QPushButton" name="sendMailButton">
          <property name="text">
-          <string>Send</string>
+          <string>Send Mail</string>
          </property>
         </widget>
        </item>
