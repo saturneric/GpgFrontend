@@ -24,11 +24,13 @@
 
 #include "gpg/result_analyse/DecryptResultAnalyse.h"
 
+#include <utility>
+
 #include "gpg/function/GpgKeyGetter.h"
 
-GpgFrontend::DecryptResultAnalyse::DecryptResultAnalyse(GpgError error,
-                                                        GpgDecrResult result)
-    : error(error), result(std::move(result)) {}
+GpgFrontend::DecryptResultAnalyse::DecryptResultAnalyse(GpgError m_error,
+                                                        GpgDecrResult m_result)
+    : error(m_error), result(std::move(m_result)) {}
 
 void GpgFrontend::DecryptResultAnalyse::do_analyse() {
   stream << "[#]" << _("Decrypt Operation");
@@ -55,11 +57,11 @@ void GpgFrontend::DecryptResultAnalyse::do_analyse() {
       stream << _("MIME") << ": " << _("true") << std::endl;
     }
 
-    auto reci = result->recipients;
-    if (reci != nullptr) stream << _("Recipient(s)") << ": " << std::endl;
-    while (reci != nullptr) {
-      print_reci(stream, reci);
-      reci = reci->next;
+    auto recipient = result->recipients;
+    if (recipient != nullptr) stream << _("Recipient(s)") << ": " << std::endl;
+    while (recipient != nullptr) {
+      print_recipient(stream, recipient);
+      recipient = recipient->next;
     }
     stream << "<------------" << std::endl;
   }
@@ -67,12 +69,13 @@ void GpgFrontend::DecryptResultAnalyse::do_analyse() {
   stream << std::endl;
 }
 
-bool GpgFrontend::DecryptResultAnalyse::print_reci(std::stringstream &stream,
-                                                   gpgme_recipient_t reci) {
-  bool keyFound = true;
-  stream << "  {>} " << _("Recipient") << ": ";
+void GpgFrontend::DecryptResultAnalyse::print_recipient(
+    std::stringstream &stream, gpgme_recipient_t recipient) {
+  // check
+  if (recipient->keyid == nullptr || recipient->pubkey_algo) return;
 
-  auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(reci->keyid);
+  stream << "  {>} " << _("Recipient") << ": ";
+  auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(recipient->keyid);
   if (key.good()) {
     stream << key.name().c_str();
     if (!key.email().empty()) {
@@ -81,14 +84,11 @@ bool GpgFrontend::DecryptResultAnalyse::print_reci(std::stringstream &stream,
   } else {
     stream << "<" << _("Unknown") << ">";
     setStatus(0);
-    keyFound = false;
   }
 
   stream << std::endl;
 
-  stream << "      " << _("Keu ID") << ": " << reci->keyid << std::endl;
+  stream << "      " << _("Keu ID") << ": " << recipient->keyid << std::endl;
   stream << "      " << _("Public Algo") << ": "
-         << gpgme_pubkey_algo_name(reci->pubkey_algo) << std::endl;
-
-  return keyFound;
+         << gpgme_pubkey_algo_name(recipient->pubkey_algo) << std::endl;
 }
