@@ -92,6 +92,16 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
     ui->recipientEdit->setText(editor->getEmailList());
   });
 
+  connect(ui->ccEditButton, &QPushButton::clicked, this, [=]() {
+    auto editor = new EmailListEditor(ui->ccEdit->text(), this);
+    ui->ccEdit->setText(editor->getEmailList());
+  });
+
+  connect(ui->bccEditButton, &QPushButton::clicked, this, [=]() {
+    auto editor = new EmailListEditor(ui->bccEdit->text(), this);
+    ui->bccEdit->setText(editor->getEmailList());
+  });
+
   ui->ccButton->setText(_("CC"));
   ui->bccButton->setText(_("BCC"));
   ui->senderLabel->setText(_("Sender"));
@@ -379,6 +389,13 @@ void SendMailDialog::slotTestSMTPConnectionResult(const QString& result) {
   } else {
     QMessageBox::critical(this, _("Fail"), _("Unknown error."));
   }
+}
+void SendMailDialog::setContentEncryption(bool on) {
+  ui->contentEncryptCheckBox->setCheckState(on ? Qt::Checked : Qt::Unchecked);
+}
+
+void SendMailDialog::setAttachSignature(bool on) {
+  ui->attacSignatureCheckBox->setCheckState(on ? Qt::Checked : Qt::Unchecked);
 }
 
 }  // namespace GpgFrontend::UI

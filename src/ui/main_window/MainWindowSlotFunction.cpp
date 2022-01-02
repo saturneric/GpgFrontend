@@ -352,7 +352,7 @@ void MainWindow::slotEncryptSign() {
     infoBoard->resetOptionActionsMenu();
 #ifdef SMTP_SUPPORT
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      send_an_email(this, infoBoard, edit->curTextPage()->toPlainText());
+      send_an_email(this, infoBoard, edit->curTextPage()->toPlainText(), false);
 #endif
 
 #ifdef ADVANCE_SUPPORT
