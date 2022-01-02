@@ -37,22 +37,33 @@ class GpgFileOpera : public SingletonFunctionObject<GpgFileOpera> {
       int channel = SingletonFunctionObject::GetDefaultChannel())
       : SingletonFunctionObject<GpgFileOpera>(channel) {}
 
-  static GpgError EncryptFile(KeyListPtr keys, const std::string& path,
-                              GpgEncrResult& result);
+  static unsigned int EncryptFile(KeyListPtr keys, const std::string& in_path,
+                                  const std::string& out_path,
+                                  GpgEncrResult& result,
+                                  int _channel = GPGFRONTEND_DEFAULT_CHANNEL);
 
-  static GpgError DecryptFile(const std::string& path, GpgDecrResult& result);
+  static GpgError DecryptFile(const std::string& in_path,
+                              const std::string& out_path,
+                              GpgDecrResult& result);
 
-  static GpgError SignFile(KeyListPtr keys, const std::string& path,
-                           GpgSignResult& result);
+  static GpgError SignFile(KeyListPtr keys, const std::string& in_path,
+                           const std::string& out_path, GpgSignResult& result,
+                           int _channel = GPGFRONTEND_DEFAULT_CHANNEL);
 
-  static GpgError VerifyFile(const std::string& path, GpgVerifyResult& result);
+  static GpgError VerifyFile(const std::string& data_path,
+                             const std::string& sign_path,
+                             GpgVerifyResult& result,
+                             int _channel = GPGFRONTEND_DEFAULT_CHANNEL);
 
   static GpgError EncryptSignFile(KeyListPtr keys, KeyListPtr signer_keys,
-                                  const std::string& path,
+                                  const std::string& in_path,
+                                  const std::string& out_path,
                                   GpgEncrResult& encr_res,
-                                  GpgSignResult& sign_res);
+                                  GpgSignResult& sign_res,
+                                  int _channel = GPGFRONTEND_DEFAULT_CHANNEL);
 
-  static GpgError DecryptVerifyFile(const std::string& path,
+  static GpgError DecryptVerifyFile(const std::string& in_path,
+                                    const std::string& out_path,
                                     GpgDecrResult& decr_res,
                                     GpgVerifyResult& verify_res);
 };

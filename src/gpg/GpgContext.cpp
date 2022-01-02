@@ -152,6 +152,10 @@ void GpgContext::init_ctx() {
     /** Setting the output type must be done at the beginning */
     /** think this means ascii-armor --> ? */
     gpgme_set_armor(*this, 1);
+  } else {
+    /** Setting the output type must be done at the beginning */
+    /** think this means ascii-armor --> ? */
+    gpgme_set_armor(*this, 0);
   }
 
   // Speed up loading process

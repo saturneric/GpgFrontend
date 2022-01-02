@@ -35,7 +35,6 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent)
   ui->setupUi(this);
 
   ui->actionButtonLayout->addStretch();
-  ui->actionLabel->setText(_("InfoBoard's Actions Menu"));
   ui->copyButton->setText(_("Copy"));
   ui->saveButton->setText(_("Save File"));
   ui->clearButton->setText(_("Clear"));
@@ -163,7 +162,7 @@ void InfoBoardWidget::slotSave() {
   auto file_path = QFileDialog::getSaveFileName(
       this, _("Save Information Board's Content"), {}, tr("Text (*.txt)"));
   LOG(INFO) << "file path" << file_path.toStdString();
-  if(file_path.isEmpty()) return;
+  if (file_path.isEmpty()) return;
 
   QFile file(file_path);
   if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {

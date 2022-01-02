@@ -30,15 +30,16 @@
 #include "gpg/function/BasicOperator.h"
 
 GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
-    KeyListPtr keys, const std::string& path, GpgEncrResult& result) {
-  std::string in_buffer = read_all_data_in_file(path);
+    KeyListPtr keys, const std::string& in_path, const std::string& out_path,
+    GpgEncrResult& result, int _channel) {
+  std::string in_buffer = read_all_data_in_file(in_path);
   std::unique_ptr<std::string> out_buffer;
 
-  auto err = BasicOperator::GetInstance().Encrypt(std::move(keys), in_buffer,
-                                                  out_buffer, result);
+  auto err = BasicOperator::GetInstance(_channel).Encrypt(
+      std::move(keys), in_buffer, out_buffer, result);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
-    if (!write_buffer_to_file(path + ".asc", *out_buffer)) {
+    if (!write_buffer_to_file(out_path, *out_buffer)) {
       throw std::runtime_error("write_buffer_to_file error");
     };
 
@@ -46,8 +47,9 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
 }
 
 GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
-    const std::string& path, GpgDecrResult& result) {
-  std::string in_buffer = read_all_data_in_file(path);
+    const std::string& in_path, const std::string& out_path,
+    GpgDecrResult& result) {
+  std::string in_buffer = read_all_data_in_file(in_path);
   std::unique_ptr<std::string> out_buffer;
 
   auto err =
@@ -55,14 +57,8 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
 
   assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
-  std::string out_file_name = get_only_file_name_with_path(path),
-              file_extension = get_file_extension(path);
-
-  if (!(file_extension == ".asc" || file_extension == ".gpg"))
-    out_file_name += ".out";
-
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
-    if (!write_buffer_to_file(out_file_name, *out_buffer)) {
+    if (!write_buffer_to_file(out_path, *out_buffer)) {
       throw std::runtime_error("write_buffer_to_file error");
     };
 
@@ -70,57 +66,48 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
 }
 
 gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
-                                                  const std::string& path,
-                                                  GpgSignResult& result) {
-  auto in_buffer = read_all_data_in_file(path);
+                                                  const std::string& in_path,
+                                                  const std::string& out_path,
+                                                  GpgSignResult& result,
+                                                  int _channel) {
+  auto in_buffer = read_all_data_in_file(in_path);
   std::unique_ptr<std::string> out_buffer;
 
-  auto err = BasicOperator::GetInstance().Sign(
+  auto err = BasicOperator::GetInstance(_channel).Sign(
       std::move(keys), in_buffer, out_buffer, GPGME_SIG_MODE_DETACH, result);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
-    if (!write_buffer_to_file(path + ".sig", *out_buffer)) {
+    if (!write_buffer_to_file(out_path, *out_buffer)) {
       throw std::runtime_error("write_buffer_to_file error");
     };
 
   return err;
 }
 
-gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(const std::string& path,
-                                                    GpgVerifyResult& result) {
-  auto in_buffer = read_all_data_in_file(path);
+gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(
+    const std::string& data_path, const std::string& sign_path,
+    GpgVerifyResult& result, int _channel) {
+  auto in_buffer = read_all_data_in_file(data_path);
   std::unique_ptr<std::string> sign_buffer = nullptr;
-
-  if (get_file_extension(path) == ".gpg") {
-    auto err =
-        BasicOperator::GetInstance().Verify(in_buffer, sign_buffer, result);
-    return err;
-  } else {
+  if (!sign_path.empty()) {
     sign_buffer =
-        std::make_unique<std::string>(read_all_data_in_file(path + ".sig"));
-
-    auto err =
-        BasicOperator::GetInstance().Verify(in_buffer, sign_buffer, result);
-    return err;
+        std::make_unique<std::string>(read_all_data_in_file(sign_path));
   }
+  auto err = BasicOperator::GetInstance(_channel).Verify(in_buffer, sign_buffer,
+                                                         result);
+  return err;
 }
 
-// TODO
-
 gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
-    KeyListPtr keys, KeyListPtr signer_keys, const std::string& path,
-    GpgEncrResult& encr_res, GpgSignResult& sign_res) {
-  auto in_buffer = read_all_data_in_file(path);
+    KeyListPtr keys, KeyListPtr signer_keys, const std::string& in_path,
+    const std::string& out_path, GpgEncrResult& encr_res,
+    GpgSignResult& sign_res, int _channel) {
+  auto in_buffer = read_all_data_in_file(in_path);
   std::unique_ptr<std::string> out_buffer = nullptr;
 
-  // TODO dealing with signer keys
-  auto err = BasicOperator::GetInstance().EncryptSign(
+  auto err = BasicOperator::GetInstance(_channel).EncryptSign(
       std::move(keys), std::move(signer_keys), in_buffer, out_buffer, encr_res,
       sign_res);
-
-  auto out_path = path + ".gpg";
-  LOG(INFO) << "EncryptSignFile out_path" << out_path;
-  LOG(INFO) << "EncryptSignFile out_buffer size" << out_buffer->size();
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
     if (!write_buffer_to_file(out_path, *out_buffer)) {
@@ -131,28 +118,17 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
 }
 
 gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
-    const std::string& path, GpgDecrResult& decr_res,
-    GpgVerifyResult& verify_res) {
-  LOG(INFO) << "GpgFrontend::GpgFileOpera::DecryptVerifyFile Called";
+    const std::string& in_path, const std::string& out_path,
+    GpgDecrResult& decr_res, GpgVerifyResult& verify_res) {
+  auto in_buffer = read_all_data_in_file(in_path);
 
-  auto in_buffer = read_all_data_in_file(path);
-
-  LOG(INFO) << "GpgFrontend::GpgFileOpera::DecryptVerifyFile in_buffer"
-            << in_buffer.size();
   std::unique_ptr<std::string> out_buffer = nullptr;
 
   auto err = BasicOperator::GetInstance().DecryptVerify(in_buffer, out_buffer,
                                                         decr_res, verify_res);
 
-  std::string out_file_name = get_only_file_name_with_path(path),
-              file_extension = get_file_extension(path);
-
-  if (!(file_extension == ".asc" || file_extension == ".gpg"))
-    out_file_name = path + ".out";
-  LOG(INFO) << "out_file_name" << out_file_name;
-
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
-    if (!write_buffer_to_file(out_file_name, *out_buffer)) {
+    if (!write_buffer_to_file(out_path, *out_buffer)) {
       throw std::runtime_error("write_buffer_to_file error");
     };
 

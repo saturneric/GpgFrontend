@@ -58,9 +58,10 @@ void GpgFrontend::GpgKeyOpera::DeleteKeys(
 }
 
 /**
- * Set the expire date and time of a key pair(actually the master key) or subkey
+ * Set the expire date and time of a key pair(actually the primary key) or
+ * subkey
  * @param key target key pair
- * @param subkey null if master key
+ * @param subkey null if primary key
  * @param expires date and time
  * @return if successful
  */

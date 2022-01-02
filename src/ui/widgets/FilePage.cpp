@@ -156,48 +156,57 @@ void FilePage::slotGoPath() {
 void FilePage::createPopupMenu() {
   popUpMenu = new QMenu();
 
-  openItemAct = new QAction(_("Open"), this);
-  connect(openItemAct, &QAction::triggered, this, &FilePage::slotOpenItem);
-  renameItemAct = new QAction(_("Rename"), this);
-  connect(renameItemAct, &QAction::triggered, this, &FilePage::slotRenameItem);
-  deleteItemAct = new QAction(_("Delete"), this);
-  connect(deleteItemAct, &QAction::triggered, this, &FilePage::slotDeleteItem);
-  encryptItemAct = new QAction(_("Encrypt Sign"), this);
-  connect(encryptItemAct, &QAction::triggered, this,
-          &FilePage::slotEncryptItem);
-  decryptItemAct =
-      new QAction(QString(_("Decrypt Verify")) + " " + _("(.gpg .asc)"), this);
-  connect(decryptItemAct, &QAction::triggered, this,
-          &FilePage::slotDecryptItem);
-  signItemAct = new QAction(_("Sign"), this);
-  connect(signItemAct, &QAction::triggered, this, &FilePage::slotSignItem);
-  verifyItemAct =
-      new QAction(QString(_("Verify")) + " " + _("(.sig .gpg .asc)"), this);
-  connect(verifyItemAct, &QAction::triggered, this, &FilePage::slotVerifyItem);
+  ui->actionOpenFile->setText(_("Open"));
+  connect(ui->actionOpenFile, &QAction::triggered, this,
+          &FilePage::slotOpenItem);
+  ui->actionRenameFile->setText(_("Rename"));
+  connect(ui->actionRenameFile, &QAction::triggered, this,
+          &FilePage::slotRenameItem);
+  ui->actionDeleteFile->setText(_("Delete"));
+  connect(ui->actionDeleteFile, &QAction::triggered, this,
+          &FilePage::slotDeleteItem);
 
-  hashCalculateAct = new QAction(_("Calculate Hash"), this);
-  connect(hashCalculateAct, &QAction::triggered, this,
+  ui->actionEncrypt->setText(_("Encrypt"));
+  connect(ui->actionEncrypt, &QAction::triggered, this,
+          &FilePage::slotEncryptItem);
+  ui->actionEncryptSign->setText(_("Encrypt Sign"));
+  connect(ui->actionEncryptSign, &QAction::triggered, this,
+          &FilePage::slotEncryptSignItem);
+  ui->actionDecrypt->setText(QString(_("Decrypt Verify")) + " " +
+                             _("(.gpg .asc)"));
+  connect(ui->actionDecrypt, &QAction::triggered, this,
+          &FilePage::slotDecryptItem);
+  ui->actionSign->setText(_("Sign"));
+  connect(ui->actionSign, &QAction::triggered, this, &FilePage::slotSignItem);
+  ui->actionVerify->setText(QString(_("Verify")) + " " + _("(.sig .gpg .asc)"));
+  connect(ui->actionVerify, &QAction::triggered, this,
+          &FilePage::slotVerifyItem);
+
+  ui->actionCalculateHash->setText(_("Calculate Hash"));
+  connect(ui->actionCalculateHash, &QAction::triggered, this,
           &FilePage::slotCalculateHash);
 
-  mkdirAct = new QAction(_("Make New Directory"), this);
-  connect(mkdirAct, &QAction::triggered, this, &FilePage::slotMkdir);
+  ui->actionMakeDirectory->setText(_("Make New Directory"));
+  connect(ui->actionMakeDirectory, &QAction::triggered, this,
+          &FilePage::slotMkdir);
 
-  createEmptyFileAct = new QAction(_("Create Empty File"), this);
-  connect(createEmptyFileAct, &QAction::triggered, this,
+  ui->actionCreateEmptyFile->setText(_("Create Empty File"));
+  connect(ui->actionCreateEmptyFile, &QAction::triggered, this,
           &FilePage::slotCreateEmptyFile);
 
-  popUpMenu->addAction(openItemAct);
-  popUpMenu->addAction(renameItemAct);
-  popUpMenu->addAction(deleteItemAct);
+  popUpMenu->addAction(ui->actionOpenFile);
+  popUpMenu->addAction(ui->actionRenameFile);
+  popUpMenu->addAction(ui->actionDeleteFile);
   popUpMenu->addSeparator();
-  popUpMenu->addAction(encryptItemAct);
-  popUpMenu->addAction(decryptItemAct);
-  popUpMenu->addAction(signItemAct);
-  popUpMenu->addAction(verifyItemAct);
+  popUpMenu->addAction(ui->actionEncrypt);
+  popUpMenu->addAction(ui->actionEncryptSign);
+  popUpMenu->addAction(ui->actionDecrypt);
+  popUpMenu->addAction(ui->actionSign);
+  popUpMenu->addAction(ui->actionVerify);
   popUpMenu->addSeparator();
-  popUpMenu->addAction(mkdirAct);
-  popUpMenu->addAction(createEmptyFileAct);
-  popUpMenu->addAction(hashCalculateAct);
+  popUpMenu->addAction(ui->actionMakeDirectory);
+  popUpMenu->addAction(ui->actionCreateEmptyFile);
+  popUpMenu->addAction(ui->actionCalculateHash);
 
   optionPopUpMenu = new QMenu();
 
@@ -232,32 +241,37 @@ void FilePage::onCustomContextMenu(const QPoint& point) {
       dirModel->fileInfo(index).absoluteFilePath().toStdString());
   LOG(INFO) << "right click" << selectedPath;
   if (index.isValid()) {
-    openItemAct->setEnabled(true);
-    renameItemAct->setEnabled(true);
-    deleteItemAct->setEnabled(true);
+    ui->actionOpenFile->setEnabled(true);
+    ui->actionRenameFile->setEnabled(true);
+    ui->actionDeleteFile->setEnabled(true);
 
     QFileInfo info(QString::fromStdString(selectedPath.string()));
-    encryptItemAct->setEnabled(
-        info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig"));
-    encryptItemAct->setEnabled(
-        info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig"));
-    decryptItemAct->setEnabled(info.isFile() && info.suffix() == "gpg");
-    signItemAct->setEnabled(info.isFile() &&
-                            (info.suffix() != "gpg" && info.suffix() != "sig"));
-    verifyItemAct->setEnabled(
-        info.isFile() && (info.suffix() == "sig" || info.suffix() == "gpg"));
-    hashCalculateAct->setEnabled(info.isFile() && info.isReadable());
+    ui->actionEncrypt->setEnabled(info.isFile() && (info.suffix() != "gpg" &&
+                                                    info.suffix() != "sig" &&
+                                                    info.suffix() != "asc"));
+    ui->actionEncryptSign->setEnabled(
+        info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig" &&
+                          info.suffix() != "asc"));
+    ui->actionDecrypt->setEnabled(
+        info.isFile() && (info.suffix() == "gpg" || info.suffix() == "asc"));
+    ui->actionSign->setEnabled(info.isFile() && (info.suffix() != "gpg" &&
+                                                 info.suffix() != "sig" &&
+                                                 info.suffix() != "asc"));
+    ui->actionVerify->setEnabled(info.isFile() && (info.suffix() == "sig" ||
+                                                   info.suffix() == "gpg" ||
+                                                   info.suffix() == "asc"));
+    ui->actionCalculateHash->setEnabled(info.isFile() && info.isReadable());
   } else {
-    openItemAct->setEnabled(false);
-    renameItemAct->setEnabled(false);
-    deleteItemAct->setEnabled(false);
+    ui->actionOpenFile->setEnabled(false);
+    ui->actionRenameFile->setEnabled(false);
+    ui->actionDeleteFile->setEnabled(false);
 
-    encryptItemAct->setEnabled(false);
-    encryptItemAct->setEnabled(false);
-    decryptItemAct->setEnabled(false);
-    signItemAct->setEnabled(false);
-    verifyItemAct->setEnabled(false);
-    hashCalculateAct->setEnabled(false);
+    ui->actionEncrypt->setEnabled(false);
+    ui->actionEncryptSign->setEnabled(false);
+    ui->actionDecrypt->setEnabled(false);
+    ui->actionSign->setEnabled(false);
+    ui->actionVerify->setEnabled(false);
+    ui->actionCalculateHash->setEnabled(false);
   }
   popUpMenu->exec(ui->fileTreeView->viewport()->mapToGlobal(point));
 }
@@ -330,6 +344,11 @@ void FilePage::slotDeleteItem() {
 }
 
 void FilePage::slotEncryptItem() {
+  auto mainWindow = qobject_cast<MainWindow*>(firstParent);
+  if (mainWindow != nullptr) mainWindow->slotFileEncrypt();
+}
+
+void FilePage::slotEncryptSignItem() {
   auto mainWindow = qobject_cast<MainWindow*>(firstParent);
   if (mainWindow != nullptr) mainWindow->slotFileEncryptSign();
 }

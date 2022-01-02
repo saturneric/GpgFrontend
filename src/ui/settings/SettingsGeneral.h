@@ -27,6 +27,8 @@
 
 #include "ui/GpgFrontendUI.h"
 
+class Ui_GeneralSettings;
+
 namespace GpgFrontend::UI {
 class KeyList;
 
@@ -41,22 +43,10 @@ class GeneralTab : public QWidget {
   void applySettings();
 
  private:
-  QCheckBox* saveCheckedKeysCheckBox;
-  QCheckBox* importConfirmationCheckBox;
-  QCheckBox* longerKeyExpirationDateCheckBox;
+  std::shared_ptr<Ui_GeneralSettings> ui;
 
 #ifdef MULTI_LANG_SUPPORT
-  QComboBox* langSelectBox;
   QHash<QString, QString> lang;
-#endif
-
-#ifdef SERVER_SUPPORT
-  QComboBox* serverSelectBox;
-  QComboBox* ownKeySelectBox;
-  QPushButton* getServiceTokenButton;
-  QLabel* serviceTokenLabel;
-  std::string serviceToken;
-  std::unordered_map<std::string, std::string> keyIds;
 #endif
 
   std::vector<std::string> keyIdsList;
@@ -70,13 +60,6 @@ class GeneralTab : public QWidget {
   void slotLanguageChanged();
 
 #endif
-
-#ifdef SERVER_SUPPORT
-
-  void slotOwnKeyIdChanged();
-
-#endif
-
  signals:
 
   void signalRestartNeeded(bool needed);

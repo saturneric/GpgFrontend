@@ -248,7 +248,7 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
 
   usageVarLabel->setText(usage_steam.str().c_str());
 
-  // Show the situation that master key not exists.
+  // Show the situation that primary key not exists.
   masterKeyExistVarLabel->setText(subkey.secret() ? _("Exists")
                                                   : _("Not Exists"));
   if (!subkey.secret()) {
