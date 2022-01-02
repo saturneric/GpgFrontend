@@ -35,7 +35,7 @@ GpgFrontend::VerifyResultAnalyse::VerifyResultAnalyse(GpgError error,
     : error(error), result(std::move(result)) {}
 
 void GpgFrontend::VerifyResultAnalyse::do_analyse() {
-  LOG(INFO) << _("Verify Result Analyse Started");
+  LOG(INFO) << _("started");
 
   stream << "[#] " << _("Verify Operation") << " ";
 
@@ -46,15 +46,9 @@ void GpgFrontend::VerifyResultAnalyse::do_analyse() {
     setStatus(-1);
   }
 
-  if (result != nullptr && result->signatures) {
+  if (result != nullptr && result->signatures != nullptr) {
     stream << "------------>" << std::endl;
     auto sign = result->signatures;
-
-    if (sign == nullptr) {
-      stream << "[>] " << _("Not Signature Found") << std::endl;
-      setStatus(0);
-      return;
-    }
 
     stream << "[>] " << _("Signed On") << "(" << _("UTC") << ")"
            << " "
@@ -163,6 +157,12 @@ void GpgFrontend::VerifyResultAnalyse::do_analyse() {
       sign = sign->next;
     }
     stream << "<------------" << std::endl;
+  } else {
+    stream << "[>] "
+           << _("Could not find information that can be used for verification.")
+           << std::endl;
+    setStatus(0);
+    return;
   }
 }
 

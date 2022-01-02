@@ -33,7 +33,7 @@ GpgFrontend::DecryptResultAnalyse::DecryptResultAnalyse(GpgError m_error,
     : error(m_error), result(std::move(m_result)) {}
 
 void GpgFrontend::DecryptResultAnalyse::do_analyse() {
-  stream << "[#]" << _("Decrypt Operation");
+  stream << "[#] " << _("Decrypt Operation");
 
   if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
     stream << "[" << _("Success") << "]" << std::endl;
@@ -72,7 +72,7 @@ void GpgFrontend::DecryptResultAnalyse::do_analyse() {
 void GpgFrontend::DecryptResultAnalyse::print_recipient(
     std::stringstream &stream, gpgme_recipient_t recipient) {
   // check
-  if (recipient->keyid == nullptr || recipient->pubkey_algo) return;
+  if (recipient->keyid == nullptr) return;
 
   stream << "  {>} " << _("Recipient") << ": ";
   auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(recipient->keyid);
@@ -88,7 +88,7 @@ void GpgFrontend::DecryptResultAnalyse::print_recipient(
 
   stream << std::endl;
 
-  stream << "      " << _("Keu ID") << ": " << recipient->keyid << std::endl;
-  stream << "      " << _("Public Algo") << ": "
+  stream << "         " << _("Key ID") << ": " << recipient->keyid << std::endl;
+  stream << "         " << _("Public Key Algo") << ": "
          << gpgme_pubkey_algo_name(recipient->pubkey_algo) << std::endl;
 }
