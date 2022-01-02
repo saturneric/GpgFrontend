@@ -29,7 +29,6 @@
 #include "gpg/result_analyse/DecryptResultAnalyse.h"
 #include "gpg/result_analyse/EncryptResultAnalyse.h"
 #include "gpg/result_analyse/SignResultAnalyse.h"
-#include "ui/FileEncryptionDialog.h"
 #include "ui/FindWidget.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/KeyMgmt.h"
@@ -323,7 +322,7 @@ class MainWindow : public QMainWindow {
   QMenu* viewMenu{};      /** Submenu for view operations */
   QMenu* importKeyMenu{}; /** Sumenu for import operations */
 #ifdef SMTP_SUPPORT
-  QMenu* emailMenu{};     /** Sumenu for email operations */
+  QMenu* emailMenu{}; /** Sumenu for email operations */
 #endif
 
   QMenu* steganoMenu{};           /** Submenu for steganographic operations*/

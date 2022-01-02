@@ -24,6 +24,11 @@
 
 #include "ui/keypair_details/KeyDetailsDialog.h"
 
+#include "ui/keypair_details/KeyPairDetailTab.h"
+#include "ui/keypair_details/KeyPairOperaTab.h"
+#include "ui/keypair_details/KeyPairSubkeyTab.h"
+#include "ui/keypair_details/KeyPairUIDTab.h"
+
 namespace GpgFrontend::UI {
 KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
     : QDialog(parent) {
@@ -31,6 +36,7 @@ KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
   tabWidget->addTab(new KeyPairDetailTab(key.id(), tabWidget), _("KeyPair"));
   tabWidget->addTab(new KeyPairUIDTab(key.id(), tabWidget), _("UIDs"));
   tabWidget->addTab(new KeyPairSubkeyTab(key.id(), tabWidget), _("Subkeys"));
+  tabWidget->addTab(new KeyPairOperaTab(key.id(), tabWidget), _("Operations"));
 
   auto* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(tabWidget);
@@ -42,7 +48,7 @@ KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
   this->setLayout(mainLayout);
   this->setWindowTitle(_("Key Details"));
   this->setModal(true);
-  this->setMinimumSize({520, 800});
+  this->setMinimumSize({520, 600});
   this->resize(this->minimumSize());
   this->show();
 }
