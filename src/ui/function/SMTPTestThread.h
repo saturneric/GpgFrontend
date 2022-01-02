@@ -22,32 +22,48 @@
  *
  */
 
-#ifndef GPGFRONTEND_FILEREADTHREAD_H
-#define GPGFRONTEND_FILEREADTHREAD_H
+#ifndef GPGFRONTEND_SMTPTESTTHREAD_H
+#define GPGFRONTEND_SMTPTESTTHREAD_H
+
+#include <utility>
+
+#ifdef SMTP_SUPPORT
+#include "smtp/SmtpMime"
+#endif
 
 #include "ui/GpgFrontendUI.h"
 
-namespace GpgFrontend::UI {
-
-class FileReadThread : public QThread {
+class SMTPTestThread : public QThread {
   Q_OBJECT
-
  public:
-  explicit FileReadThread(std::string path);
+  explicit SMTPTestThread(std::string host, int port,
+                          SmtpClient::ConnectionType connection_type,
+                          bool identify, std::string username,
+                          std::string password, QWidget* parent = nullptr)
+      : QThread(parent),
+        host_(std::move(host)),
+        port_(port),
+        connection_type_(connection_type),
+        identify_(identify),
+        username_(std::move(username)),
+        password_(std::move(password)) {
+
+  }
 
  signals:
-
-  void sendReadBlock(const QString& block);
-
-  void readDone();
+  void signalSMTPTestResult(const QString& result);
 
  protected:
   void run() override;
 
  private:
-  std::string path;
+  std::string host_;
+  int port_;
+  SmtpClient::ConnectionType connection_type_;
+
+  bool identify_;
+  std::string username_;
+  std::string password_;
 };
 
-}  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_FILEREADTHREAD_H
+#endif  // GPGFRONTEND_SMTPTESTTHREAD_H

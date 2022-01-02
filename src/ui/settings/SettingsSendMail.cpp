@@ -28,6 +28,8 @@
 #include "smtp/SmtpMime"
 #endif
 
+#include "ui/function/SMTPSendMailThread.h"
+#include "ui/function/SMTPTestThread.h"
 #include "ui/settings/GlobalSettingStation.h"
 #include "ui_SendMailSettings.h"
 
@@ -61,6 +63,17 @@ SendMailTab::SendMailTab(QWidget* parent)
     ui->usernameEdit->setDisabled(state != Qt::Checked);
     ui->passwordEdit->setDisabled(state != Qt::Checked);
   });
+
+  connect(ui->connextionSecurityComboBox, &QComboBox::currentTextChanged, this,
+          [=](const QString& current_text) {
+            if (current_text == "SSL") {
+              connection_type_ = SmtpClient::ConnectionType::SslConnection;
+            } else if (current_text == "TLS" || current_text == "STARTTLS") {
+              connection_type_ = SmtpClient::ConnectionType::TlsConnection;
+            } else {
+              connection_type_ = SmtpClient::ConnectionType::TcpConnection;
+            }
+          });
 
   ui->generalGroupBox->setTitle(_("General"));
   ui->identityGroupBox->setTitle(_("Identity Information"));
@@ -138,7 +151,7 @@ void SendMailTab::setSettings() {
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("default_sender");
   }
-  
+
   ui->identityCheckBox->setCheckState(Qt::Unchecked);
   try {
     bool identity_enable = settings.lookup("smtp.identity_enable");
@@ -231,105 +244,129 @@ void SendMailTab::applySettings() {
 
 #ifdef SMTP_SUPPORT
 void SendMailTab::slotCheckConnection() {
-  SmtpClient::ConnectionType connectionType;
-  const auto selectedConnType = ui->connextionSecurityComboBox->currentText();
-  if (selectedConnType == "SSL") {
-    connectionType = SmtpClient::ConnectionType::SslConnection;
-  } else if (selectedConnType == "TLS" || selectedConnType == "STARTTLS") {
-    connectionType = SmtpClient::ConnectionType::TlsConnection;
-  } else {
-    connectionType = SmtpClient::ConnectionType::TcpConnection;
-  }
+  auto host = ui->smtpServerAddressEdit->text().toStdString();
+  auto port = ui->portSpin->value();
+  auto connection_type = connection_type_;
+  bool identity_needed = ui->identityCheckBox->isChecked();
+  auto username = ui->usernameEdit->text().toStdString();
+  auto password = ui->passwordEdit->text().toStdString();
 
-  SmtpClient smtp(ui->smtpServerAddressEdit->text(), ui->portSpin->value(),
-                  connectionType);
+  auto thread = new SMTPTestThread(host, port, connection_type, identity_needed,
+                                   username, password);
 
-  if (ui->identityCheckBox->isChecked()) {
-    smtp.setUser(ui->usernameEdit->text());
-    smtp.setPassword(ui->passwordEdit->text());
-  }
+  // Waiting Dialog
+  auto* waiting_dialog = new QProgressDialog(this);
+  waiting_dialog->setMaximum(0);
+  waiting_dialog->setMinimum(0);
+  auto waiting_dialog_label =
+      new QLabel(QString(_("Test SMTP Connection...")) + "<br /><br />" +
+                 _("If the process does not end for a long time, please check "
+                   "again whether your SMTP server configuration is correct."));
+  waiting_dialog_label->setWordWrap(true);
+  waiting_dialog->setLabel(waiting_dialog_label);
+  waiting_dialog->resize(420, 120);
+  connect(thread, &SMTPTestThread::signalSMTPTestResult, this,
+          &SendMailTab::slotTestSMTPConnectionResult);
+  connect(thread, &QThread::finished, [=]() {
+    waiting_dialog->finished(0);
+    waiting_dialog->deleteLater();
+  });
+  connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
+    LOG(INFO) << "cancel clicked";
+    if (thread->isRunning()) thread->terminate();
+    QCoreApplication::quit();
+    exit(0);
+  });
 
-  if (!smtp.connectToHost()) {
-    QMessageBox::critical(this, _("Fail"), _("Fail to Connect SMTP Server"));
-    ui->senTestMailButton->setDisabled(true);
-    return;
-  }
-  if (!smtp.login()) {
-    QMessageBox::critical(this, _("Fail"), _("Fail to Login"));
-    ui->senTestMailButton->setDisabled(true);
-    return;
-  }
+  // Show Waiting Dialog
+  waiting_dialog->show();
+  waiting_dialog->setFocus();
 
-  QMessageBox::information(this, _("Success"),
-                           _("Succeed in connecting and login"));
-  ui->senTestMailButton->setDisabled(false);
+  thread->start();
+  QEventLoop loop;
+  connect(thread, &QThread::finished, &loop, &QEventLoop::quit);
+  loop.exec();
 }
 #endif
 
 #ifdef SMTP_SUPPORT
 void SendMailTab::slotSendTestMail() {
-  if (ui->defaultSenderEmailEdit->text().isEmpty()) {
-    QMessageBox::critical(this, _("Fail"), _("Given a default sender first"));
-    return;
-  }
-
-  SmtpClient::ConnectionType connectionType;
-  const auto selectedConnType = ui->connextionSecurityComboBox->currentText();
-  if (selectedConnType == "SSL") {
-    connectionType = SmtpClient::ConnectionType::SslConnection;
-  } else if (selectedConnType == "TLS" || selectedConnType == "STARTTLS") {
-    connectionType = SmtpClient::ConnectionType::TlsConnection;
-  } else {
-    connectionType = SmtpClient::ConnectionType::TcpConnection;
-  }
-
-  SmtpClient smtp(ui->smtpServerAddressEdit->text(), ui->portSpin->value(),
-                  connectionType);
-
-  if (ui->identityCheckBox->isChecked()) {
-    smtp.setUser(ui->usernameEdit->text());
-    smtp.setPassword(ui->passwordEdit->text());
-  }
-
-  MimeMessage message;
-
+  auto host = ui->smtpServerAddressEdit->text().toStdString();
+  auto port = ui->portSpin->value();
+  auto connection_type = connection_type_;
+  bool identity_needed = ui->identityCheckBox->isChecked();
+  auto username = ui->usernameEdit->text().toStdString();
+  auto password = ui->passwordEdit->text().toStdString();
   auto sender_address = ui->defaultSenderEmailEdit->text();
-  message.setSender(new EmailAddress(sender_address));
-  message.addRecipient(new EmailAddress(sender_address));
-  message.setSubject(_("Test Email from GpgFrontend"));
 
-  MimeText text;
-  text.setText(_("Hello, this is a test email from GpgFrontend."));
-  // Now add it to the mail
-  message.addPart(&text);
-  // Now we can send the mail
-  if (!smtp.connectToHost()) {
-    LOG(INFO) << "Connect to SMTP Server Failed";
-    QMessageBox::critical(this, _("Fail"), _("Fail to Connect SMTP Server"));
-    ui->senTestMailButton->setDisabled(true);
-    return;
-  }
-  if (!smtp.login()) {
-    LOG(INFO) << "Login to SMTP Server Failed";
-    QMessageBox::critical(this, _("Fail"), _("Fail to Login into SMTP Server"));
-    ui->senTestMailButton->setDisabled(true);
-    return;
-  }
-  if (!smtp.sendMail(message)) {
-    LOG(INFO) << "Send Mail to SMTP Server Failed";
-    QMessageBox::critical(
-        this, _("Fail"),
-        _("Fail to send a test email to the SMTP Server, please "
-          "recheck your configuration."));
-    ui->senTestMailButton->setDisabled(true);
-    return;
-  }
-  smtp.quit();
+  auto thread = new SMTPSendMailThread(host, port, connection_type,
+                                       identity_needed, username, password);
 
-  // Close after sending email
-  QMessageBox::information(
-      this, _("Success"),
-      _("Succeed in sending a test email to the SMTP Server"));
+  // Waiting Dialog
+  auto* waiting_dialog = new QProgressDialog(this);
+  waiting_dialog->setMaximum(0);
+  waiting_dialog->setMinimum(0);
+  auto waiting_dialog_label =
+      new QLabel(QString(_("Test SMTP Send Mail Ability...")) + "<br /><br />" +
+                 _("If the process does not end for a long time, please check "
+                   "again whether your SMTP server configuration is correct."));
+  waiting_dialog_label->setWordWrap(true);
+  waiting_dialog->setLabel(waiting_dialog_label);
+  waiting_dialog->resize(420, 120);
+  connect(thread, &SMTPSendMailThread::signalSMTPResult, this,
+          &SendMailTab::slotTestSMTPConnectionResult);
+  connect(thread, &QThread::finished, [=]() {
+    waiting_dialog->finished(0);
+    waiting_dialog->deleteLater();
+  });
+  connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
+    LOG(INFO) << "cancel clicked";
+    if (thread->isRunning()) thread->terminate();
+    QCoreApplication::quit();
+    exit(0);
+  });
+
+  thread->setSender(sender_address);
+  thread->setRecipient(sender_address);
+  thread->setSubject(_("Test Email from GpgFrontend"));
+  thread->addTextContent(
+      _("Hello, this is a test email from GpgFrontend. If you receive this "
+        "email, it means that you have configured the correct SMTP server "
+        "parameters."));
+
+  // Show Waiting Dialog
+  waiting_dialog->show();
+  waiting_dialog->setFocus();
+
+  thread->start();
+  QEventLoop loop;
+  connect(thread, &QThread::finished, &loop, &QEventLoop::quit);
+  loop.exec();
+}
+
+void SendMailTab::slotTestSMTPConnectionResult(const QString& result) {
+  if (result == "Fail to connect SMTP server") {
+    QMessageBox::critical(this, _("Fail"), _("Fail to Connect SMTP Server."));
+    ui->senTestMailButton->setDisabled(true);
+  } else if (result == "Fail to login") {
+    QMessageBox::critical(this, _("Fail"), _("Fail to Login."));
+    ui->senTestMailButton->setDisabled(true);
+  } else if (result == "Fail to send mail") {
+    QMessageBox::critical(this, _("Fail"), _("Fail to Login."));
+    ui->senTestMailButton->setDisabled(true);
+  } else if (result == "Succeed in testing connection") {
+    QMessageBox::information(this, _("Success"),
+                             _("Succeed in connecting and login"));
+    ui->senTestMailButton->setDisabled(false);
+  } else if (result == "Succeed in sending a test email") {
+    QMessageBox::information(
+        this, _("Success"),
+        _("Succeed in sending a test email to the SMTP Server"));
+    ui->senTestMailButton->setDisabled(false);
+  } else {
+    QMessageBox::critical(this, _("Fail"), _("Unknown error."));
+    ui->senTestMailButton->setDisabled(true);
+  }
 }
 #endif
 

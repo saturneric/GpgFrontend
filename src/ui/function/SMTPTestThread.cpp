@@ -22,32 +22,22 @@
  *
  */
 
-#ifndef GPGFRONTEND_FILEREADTHREAD_H
-#define GPGFRONTEND_FILEREADTHREAD_H
+#include "SMTPTestThread.h"
 
-#include "ui/GpgFrontendUI.h"
-
-namespace GpgFrontend::UI {
-
-class FileReadThread : public QThread {
-  Q_OBJECT
-
- public:
-  explicit FileReadThread(std::string path);
-
- signals:
-
-  void sendReadBlock(const QString& block);
-
-  void readDone();
-
- protected:
-  void run() override;
-
- private:
-  std::string path;
-};
-
-}  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_FILEREADTHREAD_H
+void SMTPTestThread::run() {
+  SmtpClient smtp(host_.c_str(), port_, connection_type_);
+  if (identify_) {
+    smtp.setUser(username_.c_str());
+    smtp.setPassword(password_.c_str());
+  }
+  if (!smtp.connectToHost()) {
+    emit signalSMTPTestResult("Fail to connect SMTP server");
+    return;
+  }
+  if (!smtp.login()) {
+    emit signalSMTPTestResult("Fail to login");
+    return;
+  }
+  smtp.quit();
+  emit signalSMTPTestResult("Succeed in testing connection");
+}
