@@ -244,8 +244,7 @@ class MainWindow : public QMainWindow {
   /**
    * @details called when need to upgrade.
    */
-  void slotVersionUpgrade(const QString& currentVersion,
-                          const QString& latestVersion);
+  void slotVersionUpgrade(const SoftwareVersion& version);
 
  private:
   /**

@@ -24,8 +24,7 @@
 
 #include "VersionCheckThread.h"
 
-#include <iterator>
-#include <regex>
+#include <QMetaType>
 
 #include "GpgFrontendBuildInfo.h"
 #include "json/json.hpp"
@@ -33,45 +32,97 @@
 namespace GpgFrontend::UI {
 
 void VersionCheckThread::run() {
-  using namespace nlohmann;
-
-  LOG(INFO) << "get latest version from Github";
-
   auto current_version = std::string("v") + std::to_string(VERSION_MAJOR) +
                          "." + std::to_string(VERSION_MINOR) + "." +
                          std::to_string(VERSION_PATCH);
 
-  while (mNetworkReply->isRunning()) {
-    QApplication::processEvents();
-  }
+  auto manager = new QNetworkAccessManager(nullptr);
 
-  if (mNetworkReply->error() != QNetworkReply::NoError) {
+  LOG(INFO) << "current version" << current_version;
+
+  std::string latest_version_url =
+      "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
+
+  std::string current_version_url =
+      "https://api.github.com/repos/saturneric/gpgfrontend/releases/tags/" +
+      current_version;
+
+  QNetworkRequest latest_request, current_request;
+  latest_request.setUrl(QUrl(latest_version_url.c_str()));
+  current_request.setUrl(QUrl(current_version_url.c_str()));
+  auto reply = manager->get(latest_request);
+  while (reply->isRunning()) QApplication::processEvents();
+  if (reply->error() != QNetworkReply::NoError) {
     LOG(ERROR) << "network error";
+    manager->deleteLater();
     return;
   }
 
-  auto bytes = mNetworkReply->readAll();
-
-  auto reply_json = nlohmann::json::parse(bytes.toStdString());
-
-  std::string latest_version = reply_json["tag_name"];
-
-  LOG(INFO) << "latest version from Github" << latest_version;
-
-  QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
-  auto version_match = re.match(latest_version.c_str());
-  if (version_match.hasMatch()) {
-    latest_version = version_match.captured(0).toStdString();
-    LOG(INFO) << "latest version matched" << latest_version;
-  } else {
-    latest_version = current_version;
-    LOG(WARNING) << "latest version unknown";
+  latest_reply_bytes_ = reply->readAll();
+  reply = manager->get(current_request);
+  while (reply->isRunning()) QApplication::processEvents();
+  current_reply_bytes_ = reply->readAll();
+  if (reply->error() != QNetworkReply::NoError) {
+    LOG(ERROR) << "network error";
+    manager->deleteLater();
+    return;
   }
 
-  emit upgradeVersion(current_version.c_str(), latest_version.c_str());
+  SoftwareVersion version;
+  version.current_version = current_version;
+
+  try {
+    using namespace nlohmann;
+
+    auto latest_reply_json =
+        nlohmann::json::parse(latest_reply_bytes_.toStdString());
+    auto current_reply_json =
+        nlohmann::json::parse(current_reply_bytes_.toStdString());
+
+    std::string latest_version = latest_reply_json["tag_name"];
+
+    LOG(INFO) << "latest version from Github" << latest_version;
+
+    QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
+    auto version_match = re.match(latest_version.c_str());
+    if (version_match.hasMatch()) {
+      latest_version = version_match.captured(0).toStdString();
+      LOG(INFO) << "latest version matched" << latest_version;
+    } else {
+      latest_version = current_version;
+      LOG(WARNING) << "latest version unknown";
+    }
+
+    bool prerelease = latest_reply_json["prerelease"],
+         draft = latest_reply_json["draft"];
+    std::string publish_date = latest_reply_json["published_at"];
+    std::string release_note = latest_reply_json["body"];
+    version.latest_version = latest_version;
+    version.latest_prerelease = prerelease;
+    version.latest_draft = draft;
+    version.publish_date = publish_date;
+    version.release_note = release_note;
+
+    bool current_prerelease = current_reply_json["prerelease"],
+         current_draft = current_reply_json["draft"];
+    version.latest_prerelease = current_prerelease;
+    version.latest_draft = current_draft;
+
+    // loading done
+    version.load_info_done = true;
+
+  } catch (...) {
+    LOG(INFO) << "error occurred";
+    version.load_info_done = false;
+  }
+
+  manager->deleteLater();
+
+  emit upgradeVersion(version);
 }
 
-VersionCheckThread::VersionCheckThread(QNetworkReply* networkReply)
-    : mNetworkReply(networkReply) {}
+VersionCheckThread::VersionCheckThread() : QThread(nullptr) {
+  qRegisterMetaType<SoftwareVersion>("SoftwareVersion");
+};
 
 }  // namespace GpgFrontend::UI

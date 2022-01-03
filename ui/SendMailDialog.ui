@@ -451,16 +451,6 @@
          </property>
         </spacer>
        </item>
-       <item>
-        <widget class="QPushButton" name="saveDraftButton">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Save Draft</string>
-         </property>
-        </widget>
-       </item>
        <item alignment="Qt::AlignRight">
         <widget class="QPushButton" name="sendMailButton">
          <property name="text">

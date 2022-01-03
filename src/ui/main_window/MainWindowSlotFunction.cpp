@@ -499,13 +499,12 @@ void MainWindow::uploadKeyToServer() {
 
 void MainWindow::slotOpenFile(QString& path) { edit->slotOpenFile(path); }
 
-void MainWindow::slotVersionUpgrade(const QString& currentVersion,
-                                    const QString& latestVersion) {
+void MainWindow::slotVersionUpgrade(const SoftwareVersion& version) {
   LOG(INFO) << _("called");
-  if (currentVersion < latestVersion) {
+  if (version.NeedUpgrade()) {
     statusBar()->showMessage(
         QString(_("GpgFrontend Upgradeable (New Version: %1)."))
-            .arg(latestVersion),
+            .arg(version.latest_version.c_str()),
         30000);
     auto update_button = new QPushButton("Update GpgFrontend", this);
     connect(update_button, &QPushButton::clicked, [=]() {
@@ -513,17 +512,19 @@ void MainWindow::slotVersionUpgrade(const QString& currentVersion,
       about_dialog->show();
     });
     statusBar()->addPermanentWidget(update_button, 0);
-  } else if (currentVersion > latestVersion) {
+  } else if (version.VersionWithDrawn()) {
     QMessageBox::warning(
-        this, _("Unreleased Version"),
+        this, _("Withdrawn Version"),
         QString(
-            _("This version(%1) has not been officially released and is not "
-              "recommended for use in a production environment. <br/>"))
-                .arg(currentVersion) +
-            QString(
-                _("You can download the latest version(%1) on Github Releases "
-                  "Page.<br/>"))
-                .arg(latestVersion));
+            _("This version(%1) may have been withdrawn by the developer due "
+              "to serious problems. Please stop using this version "
+              "immediately and use the latest stable version."))
+                .arg(version.current_version.c_str()) +
+            "<br/>" +
+            QString(_("You can download the latest stable version(%1) on "
+                      "Github Releases "
+                      "Page.<br/>"))
+                .arg(version.latest_version.c_str()));
   }
 }
 

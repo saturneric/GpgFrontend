@@ -22,31 +22,4 @@
  *
  */
 
-#ifndef GPGFRONTEND_VERSIONCHECKTHREAD_H
-#define GPGFRONTEND_VERSIONCHECKTHREAD_H
-
-#include "ui/GpgFrontendUI.h"
-#include "ui/data_struct/SoftwareVersion.h"
-
-namespace GpgFrontend::UI {
-
-class VersionCheckThread : public QThread {
-  Q_OBJECT
-
- public:
-  explicit VersionCheckThread();
-
- signals:
-
-  void upgradeVersion(SoftwareVersion version);
-
- protected:
-  void run() override;
-
- private:
-  QByteArray latest_reply_bytes_, current_reply_bytes_;
-};
-
-}  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_VERSIONCHECKTHREAD_H
+#include "SoftwareVersion.h"

@@ -117,12 +117,7 @@ void MainWindow::init() noexcept {
     emit loaded();
 
 #ifdef RELEASE
-    QString baseUrl =
-        "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
-    QNetworkRequest request;
-    request.setUrl(QUrl(baseUrl));
-    auto* replay = networkAccessManager->get(request);
-    auto version_thread = new VersionCheckThread(replay);
+    auto version_thread = new VersionCheckThread();
 
     connect(version_thread, SIGNAL(finished()), version_thread,
             SLOT(deleteLater()));
