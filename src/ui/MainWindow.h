@@ -331,6 +331,7 @@ class MainWindow : public QMainWindow {
   QToolBar* editToolBar{};        /** Toolbar holding edit actions */
   QToolBar* specialEditToolBar{}; /** Toolbar holding special edit actions */
   QToolBar* keyToolBar{};         /** Toolbar holding key operations */
+  QToolBar* emailToolBar{};       /** Toolbar holding key operations */
   QToolButton*
       importButton{}; /** Toolbutton for import dropdown menu in toolbar */
   QDockWidget* keyListDock{};    /** Encrypt Dock*/

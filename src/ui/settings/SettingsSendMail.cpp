@@ -49,6 +49,7 @@ SendMailTab::SendMailTab(QWidget* parent)
     ui->passwordEdit->setDisabled(state != Qt::Checked);
 
     ui->defaultSenderEmailEdit->setDisabled(state != Qt::Checked);
+    ui->gpgKeyIDEdit->setDisabled(state != Qt::Checked);
     ui->checkConnectionButton->setDisabled(state != Qt::Checked);
   });
 
@@ -92,6 +93,8 @@ SendMailTab::SendMailTab(QWidget* parent)
   ui->senderLabel->setText(_("Default Sender Email"));
   ui->checkConnectionButton->setText(_("Check Connection"));
   ui->senTestMailButton->setText(_("Send Test Email"));
+  ui->gpgkeyIdLabel->setText(_("Default Sender GPG Key ID"));
+
   ui->tipsLabel->setText(
       _("Tips: It is recommended that you build your own mail server or use "
         "a trusted mail server. If you don't know the detailed configuration "
@@ -150,6 +153,15 @@ void SendMailTab::setSettings() {
     ui->defaultSenderEmailEdit->setText(default_sender.c_str());
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("default_sender");
+  }
+
+  try {
+    std::string default_sender_gpg_key_id =
+        settings.lookup("smtp.default_sender_gpg_key_id");
+    ui->gpgKeyIDEdit->setText(default_sender_gpg_key_id.c_str());
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error")
+               << _("default_sender_gpg_key_id");
   }
 
   ui->identityCheckBox->setCheckState(Qt::Unchecked);
@@ -225,6 +237,13 @@ void SendMailTab::applySettings() {
         ui->defaultSenderEmailEdit->text().toStdString();
   else {
     smtp["default_sender"] = ui->defaultSenderEmailEdit->text().toStdString();
+  }
+
+  if (!smtp.exists("default_sender_gpg_key_id"))
+    smtp.add("default_sender_gpg_key_id", libconfig::Setting::TypeString) =
+        ui->gpgKeyIDEdit->text().toStdString();
+  else {
+    smtp["default_sender_gpg_key_id"] = ui->gpgKeyIDEdit->text().toStdString();
   }
 
   if (!smtp.exists("identity_enable"))

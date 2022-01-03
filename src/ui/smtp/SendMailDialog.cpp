@@ -61,6 +61,16 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
   ui->errorLabel->setHidden(true);
 
   ui->senderEdit->setText(default_sender_);
+
+  if (!default_sender_gpg_key_id.isEmpty()) {
+    auto key = GpgKeyGetter::GetInstance().GetKey(
+        default_sender_gpg_key_id.toStdString());
+    if (key.good() && key.is_private_key() && key.CanSignActual()) {
+      sender_key_id_ = key.id();
+      set_sender_value_label();
+    }
+  }
+
   connect(ui->ccButton, &QPushButton::clicked, [=]() {
     ui->ccInputWidget->setHidden(!ui->ccInputWidget->isHidden());
     ui->ccEdit->clear();
@@ -350,6 +360,14 @@ void SendMailDialog::initSettings() {
     default_sender_ = settings.lookup("smtp.default_sender").c_str();
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("default_sender");
+  }
+
+  try {
+    default_sender_gpg_key_id =
+        settings.lookup("smtp.default_sender_gpg_key_id").c_str();
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error")
+               << _("default_sender_gpg_key_id");
   }
 }
 #endif

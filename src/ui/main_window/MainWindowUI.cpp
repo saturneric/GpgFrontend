@@ -421,6 +421,11 @@ void MainWindow::createToolBars() {
   specialEditToolBar->hide();
   viewMenu->addAction(specialEditToolBar->toggleViewAction());
 
+  emailToolBar = addToolBar(_("Email"));
+  emailToolBar->setObjectName("emailToolBar");
+  emailToolBar->addAction(sendMailAct);
+  viewMenu->addAction(emailToolBar->toggleViewAction());
+
   // Add dropdown menu for key import to keytoolbar
   importButton = new QToolButton();
   importButton->setMenu(importKeyMenu);
