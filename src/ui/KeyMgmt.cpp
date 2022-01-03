@@ -31,6 +31,7 @@
 #include "gpg/function/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/aes/qaesencryption.h"
 #include "ui/keygen/SubkeyGenerateDialog.h"
 #include "ui/settings/GlobalSettingStation.h"
 #include "ui/widgets/ExportKeyPackageDialog.h"
@@ -143,7 +144,6 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
 
   this->resize(size);
   this->move(pos);
-  this->setWindowModality(Qt::ApplicationModal);
   this->statusBar()->show();
 
   setWindowTitle(_("KeyPair Management"));
@@ -205,6 +205,13 @@ void KeyMgmt::createActions() {
     CommonUtils::GetInstance()->slotImportKeyFromKeyServer(this);
   });
 
+  importKeysFromKeyPackageAct = new QAction(_("Key Package"), this);
+  importKeysFromKeyPackageAct->setIcon(QIcon(":key_package.png"));
+  importKeysFromKeyPackageAct->setToolTip(
+      _("Import Key(s) From a Key Package"));
+  connect(importKeysFromKeyPackageAct, &QAction::triggered, this,
+          &KeyMgmt::slotImportKeyPackage);
+
   exportKeyToClipboardAct = new QAction(_("Export To Clipboard"), this);
   exportKeyToClipboardAct->setIcon(QIcon(":export_key_to_clipboard.png"));
   exportKeyToClipboardAct->setToolTip(_("Export Selected Key(s) To Clipboard"));
@@ -255,6 +262,7 @@ void KeyMgmt::createMenus() {
   importKeyMenu->addAction(importKeyFromFileAct);
   importKeyMenu->addAction(importKeyFromClipboardAct);
   importKeyMenu->addAction(importKeyFromKeyServerAct);
+  importKeyMenu->addAction(importKeysFromKeyPackageAct);
 
   keyMenu->addAction(exportKeyToFileAct);
   keyMenu->addAction(exportKeyToClipboardAct);
@@ -309,8 +317,6 @@ void KeyMgmt::deleteKeysWithWarning(KeyIdArgsListPtr key_ids) {
    * more than one selected... compare to seahorse "delete-dialog"
    */
 
-  LOG(INFO) << "KeyMgmt::deleteKeysWithWarning Called";
-
   if (key_ids->empty()) return;
   QString keynames;
   for (const auto& key_id : *key_ids) {
@@ -344,7 +350,7 @@ void KeyMgmt::slotShowKeyDetails() {
   auto key = GpgKeyGetter::GetInstance().GetKey(keys_selected->front());
 
   if (!key.good()) {
-    QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
     return;
   }
 
@@ -355,7 +361,7 @@ void KeyMgmt::slotExportKeyToKeyPackage() {
   auto keys_checked = key_list_->getChecked();
   if (keys_checked->empty()) {
     QMessageBox::critical(
-        this, _("Error"),
+        this, _("Forbidden"),
         _("Please check some keys before doing this operation."));
     return;
   }
@@ -388,17 +394,17 @@ void KeyMgmt::slotGenerateSubKey() {
   auto keys_selected = key_list_->getSelected();
   if (keys_selected->empty()) {
     QMessageBox::information(
-        nullptr, _("Invalid Operation"),
+        this, _("Invalid Operation"),
         _("Please select one KeyPair before doing this operation."));
     return;
   }
   const auto key = GpgKeyGetter::GetInstance().GetKey(keys_selected->front());
   if (!key.good()) {
-    QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
     return;
   }
   if (!key.is_private_key()) {
-    QMessageBox::critical(nullptr, _("Invalid Operation"),
+    QMessageBox::critical(this, _("Invalid Operation"),
                           _("If a key pair does not have a private key then "
                             "it will not be able to generate sub-keys."));
     return;
@@ -459,21 +465,23 @@ void KeyMgmt::slotExportAsOpenSSHFormat() {
   auto keys_checked = key_list_->getChecked();
 
   if (keys_checked->empty()) {
-    QMessageBox::critical(nullptr, _("Error"), _("No Key Checked."));
+    QMessageBox::critical(
+        this, _("Forbidden"),
+        _("Please select a key before performing this operation. If you select "
+          "multiple keys, only the first key will be exported."));
     return;
   }
 
   auto key = GpgKeyGetter::GetInstance().GetKey(keys_checked->front());
   if (!GpgKeyImportExporter::GetInstance().ExportKeyOpenSSH(key,
                                                             key_export_data)) {
-    QMessageBox::critical(nullptr, _("Error"),
-                          _("An error occur in exporting."));
+    QMessageBox::critical(this, _("Error"), _("An error occur in exporting."));
     return;
   }
 
   if (key_export_data->empty()) {
     QMessageBox::critical(
-        nullptr, _("Error"),
+        this, _("Error"),
         _("This key may not be able to export as OpenSSH format. Please check "
           "the key-size of the subkey(s) used to sign."));
     return;
@@ -481,7 +489,7 @@ void KeyMgmt::slotExportAsOpenSSHFormat() {
 
   key = GpgKeyGetter::GetInstance().GetKey(keys_checked->front());
   if (!key.good()) {
-    QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
     return;
   }
   QString fileString = QString::fromStdString(key.name() + " " + key.email() +
@@ -495,6 +503,61 @@ void KeyMgmt::slotExportAsOpenSSHFormat() {
     write_buffer_to_file(file_name.toStdString(), *key_export_data);
     emit signalStatusBarChanged(QString(_("key(s) exported")));
   }
+}
+
+void KeyMgmt::slotImportKeyPackage() {
+  auto key_package_file_name = QFileDialog::getOpenFileName(
+      this, _("Import Key Package"), {},
+      QString(_("Key Package")) + " (*.gfepack);;All Files (*)");
+
+  if (key_package_file_name.isEmpty()) return;
+
+  auto encrypted_data =
+      read_all_data_in_file(key_package_file_name.toStdString());
+
+  if (encrypted_data.empty()) {
+    QMessageBox::critical(this, _("Error"),
+                          _("No data was read from the key package."));
+    return;
+  };
+
+  auto key_file_name = QFileDialog::getOpenFileName(
+      this, _("Import Key Package Passphrase File"), {},
+      QString(_("Key Package Passphrase File")) + " (*.key);;All Files (*)");
+
+  auto passphrase = read_all_data_in_file(key_file_name.toStdString());
+
+  LOG(INFO) << "passphrase size" << passphrase.size();
+  if (passphrase.size() != 256) {
+    QMessageBox::critical(
+        this, _("Wrong Passphrase"),
+        _("Please double check the passphrase you entered is correct."));
+    return;
+  }
+  auto hash_key = QCryptographicHash::hash(
+      QByteArray::fromStdString(passphrase), QCryptographicHash::Sha256);
+  auto encoded = QByteArray::fromStdString(encrypted_data);
+
+  QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
+                            QAESEncryption::Padding::ISO);
+
+  auto decoded = encryption.removePadding(encryption.decode(encoded, hash_key));
+  auto key_data = QByteArray::fromBase64(decoded);
+
+  if (!key_data.startsWith(GpgConstants::PGP_PUBLIC_KEY_BEGIN) &&
+      !key_data.startsWith(GpgConstants::PGP_PRIVATE_KEY_BEGIN)) {
+    QMessageBox::critical(
+        this, _("Wrong Passphrase"),
+        _("Please double check the passphrase you entered is correct."));
+    return;
+  }
+
+  auto key_data_ptr = std::make_unique<ByteArray>(key_data.toStdString());
+  auto info =
+      GpgKeyImportExporter::GetInstance().ImportKey(std::move(key_data_ptr));
+
+  auto dialog = new KeyImportDetailDialog(info, false, this);
+  dialog->exec();
 }
 
 }  // namespace GpgFrontend::UI

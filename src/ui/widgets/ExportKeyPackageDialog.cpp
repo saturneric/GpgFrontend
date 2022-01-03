@@ -52,7 +52,7 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
   });
 
   connect(ui->generatePassphraseButton, &QPushButton::clicked, this, [=]() {
-    passphrase_ = generate_passphrase(32);
+    passphrase_ = generate_passphrase(256);
     auto file_name = QFileDialog::getSaveFileName(
         this, _("Export Key Package Passphrase"),
         ui->nameValueLabel->text() + ".key",
@@ -64,19 +64,20 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
   connect(ui->buttonBox, &QDialogButtonBox::accepted, this, [=]() {
     if (ui->outputPathLabel->text().isEmpty()) {
       QMessageBox::critical(
-          nullptr, _("Forbidden"),
+          this, _("Forbidden"),
           _("Please select an output path before exporting."));
       return;
     }
 
     if (ui->passphraseValueLabel->text().isEmpty()) {
       QMessageBox::critical(
-          nullptr, _("Forbidden"),
+          this, _("Forbidden"),
           _("Please generate a password to protect your key before exporting, "
             "it is very important. Don't forget to back up your password in a "
             "safe place."));
       return;
     }
+
     auto key_id_exported = std::make_unique<KeyIdArgsList>();
     auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids_);
     for (const auto& key : *keys) {
@@ -90,15 +91,19 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     if (!GpgKeyImportExporter::GetInstance().ExportKeys(
             key_ids_, key_export_data,
             ui->includeSecretKeyCheckBox->isChecked())) {
-      QMessageBox::critical(nullptr, _("Error"), _("Export Key(s) Failed."));
+      QMessageBox::critical(this, _("Error"), _("Export Key(s) Failed."));
       this->close();
       return;
     }
 
-    auto key = passphrase_;
+    auto key = QByteArray::fromStdString(passphrase_),
+         data =
+             QString::fromStdString(*key_export_data).toLocal8Bit().toBase64();
 
-    QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB);
-    auto encoded = encryption.encode(key_export_data->data(), key.data());
+    auto hash_key = QCryptographicHash::hash(key, QCryptographicHash::Sha256);
+    QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
+                              QAESEncryption::Padding::ISO);
+    auto encoded = encryption.encode(data, hash_key);
 
     write_buffer_to_file(ui->outputPathLabel->text().toStdString(),
                          encoded.toStdString());
@@ -109,11 +114,11 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
             "The Key Package has been successfully generated and has been "
             "protected by encryption algorithms. You can safely transfer your "
             "Key Package.")) +
-            "<b>" +
+            "<br />" + "<b>" +
             _("But the key file cannot be leaked under any "
               "circumstances. Please delete the Key Package and key file as "
               "soon "
-              "as possible after completing the transfer operation") +
+              "as possible after completing the transfer operation.") +
             "</b>");
   });
 
