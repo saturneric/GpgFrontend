@@ -58,6 +58,7 @@ class SendMailDialog : public QDialog {
   QString password_;
   QString default_sender_;
   QString connection_type_settings_ = "None";
+  QString default_sender_gpg_key_id = {};
   int port_ = 25;
 
   GpgFrontend::KeyId sender_key_id_;
