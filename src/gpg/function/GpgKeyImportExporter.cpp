@@ -25,6 +25,7 @@
 #include "gpg/function/GpgKeyImportExporter.h"
 
 #include "GpgConstants.h"
+#include "gpg/function/GpgKeyGetter.h"
 
 /**
  * Import key pair
@@ -65,30 +66,32 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeys(KeyIdArgsListPtr& uid_list,
                                                    bool secret) const {
   if (uid_list->empty()) return false;
 
-  std::stringstream ss;
-
   int _mode = 0;
-
   if (secret) _mode |= GPGME_EXPORT_MODE_SECRET;
 
-  // Alleviate another crash problem caused by an unknown array out-of-bounds
-  // access
-  auto all_success = true;
-  for (size_t i = 0; i < uid_list->size(); i++) {
-    GpgData data_out;
-    auto err = gpgme_op_export(ctx, (*uid_list)[i].c_str(), _mode, data_out);
-    if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) all_success = false;
-    DLOG(INFO) << "exportKeys read_bytes"
-               << gpgme_data_seek(data_out, 0, SEEK_END);
+  auto keys = GpgKeyGetter::GetInstance().GetKeys(uid_list);
+  auto keys_array = new gpgme_key_t[keys->size() + 1];
 
-    auto temp_out_buffer = data_out.Read2Buffer();
-
-    ss << *temp_out_buffer << std::endl;
+  int index = 0;
+  for (const auto& key : *keys) {
+    keys_array[index++] = gpgme_key_t(key);
   }
+  keys_array[index] = nullptr;
 
-  out_buffer = std::make_unique<ByteArray>(ss.str());
+  GpgData data_out;
+  auto err = gpgme_op_export_keys(ctx, keys_array, _mode, data_out);
+  if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return false;
 
-  return all_success;
+  delete[] keys_array;
+
+  DLOG(INFO) << "exportKeys read_bytes"
+             << gpgme_data_seek(data_out, 0, SEEK_END);
+
+  auto temp_out_buffer = data_out.Read2Buffer();
+
+  swap(temp_out_buffer, out_buffer);
+
+  return true;
 }
 
 /**

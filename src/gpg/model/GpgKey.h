@@ -110,10 +110,9 @@ class GpgKey {
 
   [[nodiscard]] bool HasCardKey() const {
     auto subkeys = subKeys();
-    return std::any_of(subkeys->begin(), subkeys->end(),
-                       [](const GpgSubKey& subkey) -> bool {
-                         if (subkey.is_cardkey()) return true;
-                       });
+    return std::any_of(
+        subkeys->begin(), subkeys->end(),
+        [](const GpgSubKey& subkey) -> bool { return subkey.is_cardkey(); });
   }
 
   [[nodiscard]] bool is_private_key() const { return _key_ref->secret; }

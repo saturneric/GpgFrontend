@@ -99,6 +99,8 @@ class GpgConstants {
   static const char* PGP_SIGNED_END;
   static const char* PGP_SIGNATURE_BEGIN;
   static const char* PGP_SIGNATURE_END;
+  static const char* PGP_PUBLIC_KEY_BEGIN;
+  static const char* PGP_PRIVATE_KEY_BEGIN;
   static const char* GPG_FRONTEND_SHORT_CRYPTO_HEAD;
 };
 

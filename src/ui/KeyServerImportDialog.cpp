@@ -441,7 +441,7 @@ void KeyServerImportDialog::slotImport(const QStringList& keyIds,
   }
 }
 
-void KeyServerImportDialog::slotImportFinished(QString keyid) {
+void KeyServerImportDialog::slotImportFinished(const QString& keyid) {
   LOG(INFO) << _("Called");
 
   auto* reply = qobject_cast<QNetworkReply*>(sender());

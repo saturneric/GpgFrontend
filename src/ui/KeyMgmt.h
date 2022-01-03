@@ -60,6 +60,8 @@ class KeyMgmt : public QMainWindow {
 
   void slotSaveWindowState();
 
+  void slotImportKeyPackage();
+
  signals:
 
   void signalStatusBarChanged(QString);
@@ -92,6 +94,7 @@ class KeyMgmt : public QMainWindow {
   QAction* importKeyFromClipboardAct{};
   QAction* importKeyFromFileAct{};
   QAction* importKeyFromKeyServerAct{};
+  QAction* importKeysFromKeyPackageAct{};
   QAction* closeAct{};
   QAction* showKeyDetailsAct{};
   KeyServerImportDialog* importDialog{};

@@ -130,6 +130,13 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
   ui->attachSenderPublickeyCheckBox->setText(_("Attach sender's public key"));
   ui->contentEncryptCheckBox->setText(_("Encrypt content"));
 
+  auto pos = QPoint(100, 100);
+  LOG(INFO) << "parent" << parent;
+  if (parent) pos += parent->pos();
+  LOG(INFO) << "pos default" << pos.x() << pos.y();
+
+  move(pos);
+
   this->setWindowTitle(_("New Message"));
   this->setAttribute(Qt::WA_DeleteOnClose);
 }
