@@ -39,6 +39,7 @@
 #ifdef WINDOWS
 #include <clocale>
 #undef vsnprintf
+#undef sprintf
 #endif
 
 // logging

@@ -24,8 +24,6 @@
 
 #include "gpg/result_analyse/DecryptResultAnalyse.h"
 
-#include <utility>
-
 #include "gpg/function/GpgKeyGetter.h"
 
 GpgFrontend::DecryptResultAnalyse::DecryptResultAnalyse(GpgError m_error,
