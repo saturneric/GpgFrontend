@@ -583,6 +583,11 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
     if (it->is_private_key() && !it->has_master_key()) {
       type_steam << "#";
     }
+
+    if(it->HasCardKey()) {
+      type_steam << "^";
+    }
+
     auto* tmp1 = new QTableWidgetItem(type_str);
     key_list->setItem(row_index, 1, tmp1);
 

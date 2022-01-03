@@ -30,7 +30,10 @@
 namespace GpgFrontend::UI {
 
 KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
-    : QWidget(parent), mKey(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+    : QWidget(parent), key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+
+  LOG(INFO) << key_.email() <<key_.is_private_key() << key_.has_master_key() << key_.subKeys()->front().is_private_key();
+
   createSubkeyList();
   createSubkeyOperaMenu();
 
@@ -40,7 +43,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
   auto uidButtonsLayout = new QGridLayout();
 
   auto addSubkeyButton = new QPushButton(_("Generate A New Subkey"));
-  if (!mKey.is_private_key() || !mKey.has_master_key()) {
+  if (!key_.is_private_key() || !key_.has_master_key()) {
     addSubkeyButton->setDisabled(true);
     setHidden(addSubkeyButton);
   }
@@ -68,17 +71,20 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
       new QLabel(QString(_("Create Date (Local Time)")) + ": "), 5, 0);
   subkeyDetailLayout->addWidget(new QLabel(QString(_("Existence")) + ": "), 6,
                                 0);
-  subkeyDetailLayout->addWidget(new QLabel(QString(_("Fingerprint")) + ": "), 7,
+  subkeyDetailLayout->addWidget(
+      new QLabel(QString(_("Key in Smart Card")) + ": "), 7, 0);
+  subkeyDetailLayout->addWidget(new QLabel(QString(_("Fingerprint")) + ": "), 8,
                                 0);
 
-  keyidVarLabel = new QLabel();
-  keySizeVarLabel = new QLabel();
-  expireVarLabel = new QLabel();
-  algorithmVarLabel = new QLabel();
-  createdVarLabel = new QLabel();
-  usageVarLabel = new QLabel();
-  masterKeyExistVarLabel = new QLabel();
-  fingerPrintVarLabel = new QLabel();
+  keyidVarLabel = new QLabel(this);
+  keySizeVarLabel = new QLabel(this);
+  expireVarLabel = new QLabel(this);
+  algorithmVarLabel = new QLabel(this);
+  createdVarLabel = new QLabel(this);
+  usageVarLabel = new QLabel(this);
+  masterKeyExistVarLabel = new QLabel(this);
+  fingerPrintVarLabel = new QLabel(this);
+  cardKeyLabel = new QLabel(this);
 
   subkeyDetailLayout->addWidget(keyidVarLabel, 0, 1, 1, 1);
   subkeyDetailLayout->addWidget(keySizeVarLabel, 2, 1, 1, 2);
@@ -87,7 +93,8 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
   subkeyDetailLayout->addWidget(createdVarLabel, 5, 1, 1, 2);
   subkeyDetailLayout->addWidget(usageVarLabel, 3, 1, 1, 2);
   subkeyDetailLayout->addWidget(masterKeyExistVarLabel, 6, 1, 1, 2);
-  subkeyDetailLayout->addWidget(fingerPrintVarLabel, 7, 1, 1, 2);
+  subkeyDetailLayout->addWidget(cardKeyLabel, 7, 1, 1, 2);
+  subkeyDetailLayout->addWidget(fingerPrintVarLabel, 8, 1, 1, 2);
 
   auto* copyKeyIdButton = new QPushButton(_("Copy"));
   copyKeyIdButton->setFlat(true);
@@ -157,7 +164,7 @@ void KeyPairSubkeyTab::slotRefreshSubkeyList() {
   subkeyList->setSelectionMode(QAbstractItemView::SingleSelection);
 
   this->buffered_subkeys.clear();
-  auto sub_keys = mKey.subKeys();
+  auto sub_keys = key_.subKeys();
   for (auto& sub_key : *sub_keys) {
     if (sub_key.disabled() || sub_key.revoked()) continue;
     this->buffered_subkeys.push_back(std::move(sub_key));
@@ -207,7 +214,7 @@ void KeyPairSubkeyTab::slotRefreshSubkeyList() {
 }
 
 void KeyPairSubkeyTab::slotAddSubkey() {
-  auto dialog = new SubkeyGenerateDialog(mKey.id(), this);
+  auto dialog = new SubkeyGenerateDialog(key_.id(), this);
   dialog->show();
 }
 
@@ -248,18 +255,32 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
 
   usageVarLabel->setText(usage_steam.str().c_str());
 
-  // Show the situation that primary key not exists.
+  // Show the situation that secret key not exists.
   masterKeyExistVarLabel->setText(subkey.secret() ? _("Exists")
                                                   : _("Not Exists"));
+
+  // Show the situation if key in a smart card.
+  cardKeyLabel->setText(subkey.is_cardkey() ? _("Yes") : _("No"));
+
   if (!subkey.secret()) {
-    auto paletteExpired = masterKeyExistVarLabel->palette();
-    paletteExpired.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::red);
-    masterKeyExistVarLabel->setPalette(paletteExpired);
+    auto palette_expired = masterKeyExistVarLabel->palette();
+    palette_expired.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::red);
+    masterKeyExistVarLabel->setPalette(palette_expired);
   } else {
-    auto paletteValid = masterKeyExistVarLabel->palette();
-    paletteValid.setColor(masterKeyExistVarLabel->foregroundRole(),
-                          Qt::darkGreen);
-    masterKeyExistVarLabel->setPalette(paletteValid);
+    auto palette_valid = masterKeyExistVarLabel->palette();
+    palette_valid.setColor(masterKeyExistVarLabel->foregroundRole(),
+                           Qt::darkGreen);
+    masterKeyExistVarLabel->setPalette(palette_valid);
+  }
+
+  if (!subkey.is_cardkey()) {
+    auto palette_expired = cardKeyLabel->palette();
+    palette_expired.setColor(cardKeyLabel->foregroundRole(), Qt::red);
+    cardKeyLabel->setPalette(palette_expired);
+  } else {
+    auto palette_valid = cardKeyLabel->palette();
+    palette_valid.setColor(cardKeyLabel->foregroundRole(), Qt::darkGreen);
+    cardKeyLabel->setPalette(palette_valid);
   }
 
   fingerPrintVarLabel->setText(QString::fromStdString(subkey.fpr()));
@@ -279,7 +300,7 @@ void KeyPairSubkeyTab::slotEditSubkey() {
   LOG(INFO) << "Fpr" << getSelectedSubkey().fpr();
 
   auto dialog =
-      new KeySetExpireDateDialog(mKey.id(), getSelectedSubkey().fpr(), this);
+      new KeySetExpireDateDialog(key_.id(), getSelectedSubkey().fpr(), this);
   dialog->show();
 }
 
@@ -302,7 +323,7 @@ const GpgSubKey& KeyPairSubkeyTab::getSelectedSubkey() {
   return buffered_subkeys[row];
 }
 void KeyPairSubkeyTab::slotRefreshKeyInfo() {
-  mKey = GpgKeyGetter::GetInstance().GetKey(mKey.id());
+  key_ = GpgKeyGetter::GetInstance().GetKey(key_.id());
 }
 
 }  // namespace GpgFrontend::UI
