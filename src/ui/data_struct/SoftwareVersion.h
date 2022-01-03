@@ -22,31 +22,32 @@
  *
  */
 
-#ifndef GPGFRONTEND_VERSIONCHECKTHREAD_H
-#define GPGFRONTEND_VERSIONCHECKTHREAD_H
+#ifndef GPGFRONTEND_SOFTWAREVERSION_H
+#define GPGFRONTEND_SOFTWAREVERSION_H
 
-#include "ui/GpgFrontendUI.h"
-#include "ui/data_struct/SoftwareVersion.h"
+#include <boost/date_time.hpp>
 
 namespace GpgFrontend::UI {
+struct SoftwareVersion {
+  std::string latest_version;
+  std::string current_version;
+  bool latest_prerelease = false;
+  bool latest_draft = false;
+  bool current_prerelease = false;
+  bool current_draft = false;
+  bool load_info_done = false;
+  std::string publish_date;
+  std::string release_note;
 
-class VersionCheckThread : public QThread {
-  Q_OBJECT
+  [[nodiscard]] bool NeedUpgrade() const {
+    return load_info_done && !latest_prerelease && !latest_draft &&
+           current_version < latest_version;
+  }
 
- public:
-  explicit VersionCheckThread();
-
- signals:
-
-  void upgradeVersion(SoftwareVersion version);
-
- protected:
-  void run() override;
-
- private:
-  QByteArray latest_reply_bytes_, current_reply_bytes_;
+  [[nodiscard]] bool VersionWithDrawn() const {
+    return load_info_done && current_prerelease && !current_draft;
+  }
 };
-
 }  // namespace GpgFrontend::UI
 
-#endif  // GPGFRONTEND_VERSIONCHECKTHREAD_H
+#endif  // GPGFRONTEND_SOFTWAREVERSION_H

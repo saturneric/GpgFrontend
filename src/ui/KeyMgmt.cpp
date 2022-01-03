@@ -371,8 +371,16 @@ void KeyMgmt::slotExportKeyToKeyPackage() {
 }
 
 void KeyMgmt::slotExportKeyToClipboard() {
-  ByteArrayPtr key_export_data = nullptr;
+
   auto keys_checked = key_list_->getChecked();
+  if (keys_checked->empty()) {
+    QMessageBox::critical(
+        this, _("Forbidden"),
+        _("Please check some keys before doing this operation."));
+    return;
+  }
+
+  ByteArrayPtr key_export_data = nullptr;
   if (!GpgKeyImportExporter::GetInstance().ExportKeys(keys_checked,
                                                       key_export_data)) {
     return;

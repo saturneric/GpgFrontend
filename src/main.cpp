@@ -177,6 +177,7 @@ int main(int argc, char* argv[]) {
       }
 
     } else {
+      QApplication::exit(RESTART_CODE);
       QMessageBox::information(
           nullptr, _("A serious error has occurred"),
           _("Oh no! GpgFrontend caught a serious error in the software, so it "
