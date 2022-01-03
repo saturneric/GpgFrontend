@@ -1,4 +1,4 @@
-if (ESAY_LOGGING_PP)
+if (EASY_LOGGING_PP)
     message(STATUS "Build easyloggingpp")
     add_subdirectory(easyloggingpp)
 endif ()

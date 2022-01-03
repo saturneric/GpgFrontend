@@ -33,7 +33,7 @@ GpgFrontend::UI::RecipientsPicker::RecipientsPicker(
   connect(confirm_button, SIGNAL(clicked(bool)), this, SLOT(accept()));
 
   // Setup KeyList
-  key_list_ = new KeyList(false, this);
+  key_list_ = new KeyList(KeyMenuAbility::NONE, this);
   key_list_->addListGroupTab(
       _("Recipient(s)"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress,

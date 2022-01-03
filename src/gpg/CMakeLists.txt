@@ -9,8 +9,8 @@ set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
 
 set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 
-if (ESAY_LOGGING_PP)
-    message(STATUS "Link ESAY_LOGGING_PP")
+if (EASY_LOGGING_PP)
+    message(STATUS "Link EASY_LOGGING_PP")
     set(THIRD_PARTY_LIBS easy_logging_pp config++)
 endif ()
 
@@ -33,13 +33,13 @@ elseif (APPLE)
             ${BOOST_LIBS}
             ${libgpgme} ${libgpg-error} ${libassuan}
             dl)
-    if(XCODE_BUILD)
-        set_target_properties(gpg_core 
-            PROPERTIES
-            ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
-    endif()
+    if (XCODE_BUILD)
+        set_target_properties(gpg_core
+                PROPERTIES
+                ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+                LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+                LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+    endif ()
 else ()
     find_library(libgpgme NAMES libgpgme.a)
     find_library(libgpg-error NAMES libgpg-error.a)

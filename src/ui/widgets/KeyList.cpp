@@ -38,11 +38,11 @@ namespace GpgFrontend::UI {
 
 int KeyList::key_list_id = 2048;
 
-KeyList::KeyList(bool menu, QWidget* parent)
+KeyList::KeyList(KeyMenuAbility::AbilityType menu_ability, QWidget* parent)
     : QWidget(parent),
       _m_key_list_id(key_list_id++),
       ui(std::make_shared<Ui_KeyList>()),
-      menu_status(menu) {
+      menu_ability_(menu_ability) {
   init();
 }
 
@@ -62,7 +62,11 @@ void KeyList::init() {
 
   ui->setupUi(this);
 
-  ui->menuWidget->setHidden(!menu_status);
+  ui->menuWidget->setHidden(!menu_ability_);
+  ui->refreshKeyListButton->setHidden(~menu_ability_ & KeyMenuAbility::REFRESH);
+  ui->syncButton->setHidden(~menu_ability_ & KeyMenuAbility::SYNC_PUBLIC_KEY);
+  ui->uncheckButton->setHidden(~menu_ability_ & KeyMenuAbility::UNCHECK_ALL);
+
   ui->keyGroupTab->clear();
   popupMenu = new QMenu(this);
 
@@ -73,6 +77,10 @@ void KeyList::init() {
           SLOT(slotRefresh()));
   connect(ui->refreshKeyListButton, &QPushButton::clicked, this,
           &KeyList::slotRefresh);
+  connect(ui->uncheckButton, &QPushButton::clicked, this,
+          &KeyList::slotUncheckALL);
+  connect(ui->checkALLButton, &QPushButton::clicked, this,
+          &KeyList::slotCheckALL);
   connect(ui->syncButton, &QPushButton::clicked, this,
           &KeyList::slotSyncWithKeyServer);
   connect(this, &KeyList::signalRefreshStatusBar, SignalStation::GetInstance(),
@@ -81,8 +89,16 @@ void KeyList::init() {
   setAcceptDrops(true);
 
   ui->refreshKeyListButton->setText(_("Refresh"));
+  ui->refreshKeyListButton->setToolTip(
+      _("Refresh the key list to synchronize changes."));
   ui->syncButton->setText(_("Sync Public Key"));
-  ui->syncButton->setToolTip(_("Sync public key with your default keyserver"));
+  ui->syncButton->setToolTip(_("Sync public key with your default keyserver."));
+  ui->uncheckButton->setText(_("Uncheck ALL"));
+  ui->uncheckButton->setToolTip(
+      _("Cancel all checked items in the current tab at once."));
+  ui->checkALLButton->setText(_("Check ALL"));
+  ui->checkALLButton->setToolTip(
+      _("Check all items in the current tab at once"));
 }
 
 void KeyList::addListGroupTab(
@@ -457,6 +473,32 @@ void KeyList::slotSyncWithKeyServer() {
       });
 }
 
+void KeyList::slotUncheckALL() {
+  auto key_list = qobject_cast<QTableWidget*>(ui->keyGroupTab->currentWidget());
+  if (key_list == nullptr) return;
+  if (!mKeyTables.empty()) {
+    for (auto& key_table : mKeyTables) {
+      if (key_table.key_list == key_list) {
+        key_table.UncheckALL();
+        break;
+      }
+    }
+  }
+}
+
+void KeyList::slotCheckALL() {
+  auto key_list = qobject_cast<QTableWidget*>(ui->keyGroupTab->currentWidget());
+  if (key_list == nullptr) return;
+  if (!mKeyTables.empty()) {
+    for (auto& key_table : mKeyTables) {
+      if (key_table.key_list == key_list) {
+        key_table.CheckALL();
+        break;
+      }
+    }
+  }
+}
+
 KeyIdArgsListPtr& KeyTable::GetChecked() {
   LOG(INFO) << "called";
   if (checked_key_ids_ == nullptr)
@@ -596,5 +638,17 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
   }
 
   LOG(INFO) << "End";
+}
+
+void KeyTable::UncheckALL() const {
+  for (int i = 0; i < key_list->rowCount(); i++) {
+    key_list->item(i, 0)->setCheckState(Qt::Unchecked);
+  }
+}
+
+void KeyTable::CheckALL() const {
+  for (int i = 0; i < key_list->rowCount(); i++) {
+    key_list->item(i, 0)->setCheckState(Qt::Checked);
+  }
 }
 }  // namespace GpgFrontend::UI

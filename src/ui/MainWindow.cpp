@@ -50,7 +50,8 @@ void MainWindow::init() noexcept {
     setCentralWidget(edit);
 
     /* the list of Keys available*/
-    mKeyList = new KeyList(true, this);
+    mKeyList = new KeyList(
+        KeyMenuAbility::REFRESH | KeyMenuAbility::UNCHECK_ALL, this);
 
     infoBoard = new InfoBoardWidget(this);
 

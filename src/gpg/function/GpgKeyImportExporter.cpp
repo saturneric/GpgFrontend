@@ -60,23 +60,33 @@ GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExporter::ImportKey(
  * @param out_buffer output byte array
  * @return if success
  */
-bool GpgFrontend::GpgKeyImportExporter::ExportKeys(
-    KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer) const {
+bool GpgFrontend::GpgKeyImportExporter::ExportKeys(KeyIdArgsListPtr& uid_list,
+                                                   ByteArrayPtr& out_buffer,
+                                                   bool secret) const {
   if (uid_list->empty()) return false;
+
+  std::stringstream ss;
+
+  int _mode = 0;
+
+  if (secret) _mode |= GPGME_EXPORT_MODE_SECRET;
 
   // Alleviate another crash problem caused by an unknown array out-of-bounds
   // access
   auto all_success = true;
   for (size_t i = 0; i < uid_list->size(); i++) {
     GpgData data_out;
-    auto err = gpgme_op_export(ctx, (*uid_list)[i].c_str(), 0, data_out);
+    auto err = gpgme_op_export(ctx, (*uid_list)[i].c_str(), _mode, data_out);
     if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) all_success = false;
     DLOG(INFO) << "exportKeys read_bytes"
                << gpgme_data_seek(data_out, 0, SEEK_END);
 
     auto temp_out_buffer = data_out.Read2Buffer();
-    std::swap(out_buffer, temp_out_buffer);
+
+    ss << *temp_out_buffer << std::endl;
   }
+
+  out_buffer = std::make_unique<ByteArray>(ss.str());
 
   return all_success;
 }
@@ -87,11 +97,12 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeys(
  * @param outBuffer output byte array
  * @return if success
  */
-bool GpgFrontend::GpgKeyImportExporter::ExportKeys(
-    const KeyArgsList& keys, ByteArrayPtr& out_buffer) const {
+bool GpgFrontend::GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys,
+                                                   ByteArrayPtr& out_buffer,
+                                                   bool secret) const {
   KeyIdArgsListPtr key_ids = std::make_unique<std::vector<std::string>>();
   for (const auto& key : keys) key_ids->push_back(key.id());
-  return ExportKeys(key_ids, out_buffer);
+  return ExportKeys(key_ids, out_buffer, secret);
 }
 
 /**

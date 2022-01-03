@@ -45,6 +45,7 @@
         <file alias="key_generate.png">resource/icons/key_generate.png</file>
         <file alias="key_import.png">resource/icons/key_import.png</file>
         <file alias="kgpg_key2.png">resource/icons/kgpg_key2.png</file>
+        <file alias="key_package.png">resource/icons/key_package.png</file>
         <file alias="misc_doc.png">resource/icons/misc_doc.png</file>
         <file alias="quote.png">resource/icons/quote.png</file>
         <file alias="signature.png">resource/icons/signature.png</file>
