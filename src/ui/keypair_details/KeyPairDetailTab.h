@@ -48,7 +48,7 @@ class KeyPairDetailTab : public QWidget {
   void slotRefreshKey();
 
  private:
-  GpgKey mKey;
+  GpgKey key_;
 
   QGroupBox* ownerBox;       /** Groupbox containing owner information */
   QGroupBox* keyBox;         /** Groupbox containing key information */

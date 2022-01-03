@@ -108,6 +108,14 @@ class GpgKey {
 
   [[nodiscard]] bool CanAuthActual() const;
 
+  [[nodiscard]] bool HasCardKey() const {
+    auto subkeys = subKeys();
+    return std::any_of(subkeys->begin(), subkeys->end(),
+                       [](const GpgSubKey& subkey) -> bool {
+                         if (subkey.is_cardkey()) return true;
+                       });
+  }
+
   [[nodiscard]] bool is_private_key() const { return _key_ref->secret; }
 
   [[nodiscard]] bool expired() const { return _key_ref->expired; }
