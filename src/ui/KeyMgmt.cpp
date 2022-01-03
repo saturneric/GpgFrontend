@@ -33,15 +33,16 @@
 #include "ui/UserInterfaceUtils.h"
 #include "ui/keygen/SubkeyGenerateDialog.h"
 #include "ui/settings/GlobalSettingStation.h"
+#include "ui/widgets/ExportKeyPackageDialog.h"
 
 namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   /* the list of Keys available*/
-  mKeyList = new KeyList(true, this);
+  key_list_ = new KeyList(KeyMenuAbility::ALL, this);
 
-  mKeyList->addListGroupTab(_("All"), KeyListRow::SECRET_OR_PUBLIC_KEY);
+  key_list_->addListGroupTab(_("All"), KeyListRow::SECRET_OR_PUBLIC_KEY);
 
-  mKeyList->addListGroupTab(
+  key_list_->addListGroupTab(
       _("Only Public Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
@@ -50,7 +51,7 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
                !(key.revoked() || key.disabled() || key.expired());
       });
 
-  mKeyList->addListGroupTab(
+  key_list_->addListGroupTab(
       _("Has Private Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
@@ -59,8 +60,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
                !(key.revoked() || key.disabled() || key.expired());
       });
 
-  mKeyList->addListGroupTab(
-      _("No Master Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+  key_list_->addListGroupTab(
+      _("No Primary Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool {
@@ -68,24 +69,24 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
                !(key.revoked() || key.disabled() || key.expired());
       });
 
-  mKeyList->addListGroupTab(
+  key_list_->addListGroupTab(
       _("Revoked"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool { return key.revoked(); });
 
-  mKeyList->addListGroupTab(
+  key_list_->addListGroupTab(
       _("Expired"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool { return key.expired(); });
 
-  setCentralWidget(mKeyList);
-  mKeyList->setDoubleClickedAction([this](const GpgKey& key, QWidget* parent) {
+  setCentralWidget(key_list_);
+  key_list_->setDoubleClickedAction([this](const GpgKey& key, QWidget* parent) {
     new KeyDetailsDialog(key, parent);
   });
 
-  mKeyList->slotRefresh();
+  key_list_->slotRefresh();
 
   createActions();
   createMenus();
@@ -146,8 +147,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   this->statusBar()->show();
 
   setWindowTitle(_("KeyPair Management"));
-  mKeyList->addMenuAction(deleteSelectedKeysAct);
-  mKeyList->addMenuAction(showKeyDetailsAct);
+  key_list_->addMenuAction(deleteSelectedKeysAct);
+  key_list_->addMenuAction(showKeyDetailsAct);
 
   connect(this, SIGNAL(signalKeyStatusUpdated()), SignalStation::GetInstance(),
           SIGNAL(KeyDatabaseRefresh()));
@@ -210,11 +211,11 @@ void KeyMgmt::createActions() {
   connect(exportKeyToClipboardAct, SIGNAL(triggered()), this,
           SLOT(slotExportKeyToClipboard()));
 
-  exportKeyToFileAct = new QAction(_("Export To File"), this);
-  exportKeyToFileAct->setIcon(QIcon(":export_key_to_file.png"));
-  exportKeyToFileAct->setToolTip(_("Export Selected Key(s) To File"));
+  exportKeyToFileAct = new QAction(_("Export To Key Package"), this);
+  exportKeyToFileAct->setIcon(QIcon(":key_package.png"));
+  exportKeyToFileAct->setToolTip(_("Export Checked Key(s) To a Key Package"));
   connect(exportKeyToFileAct, SIGNAL(triggered()), this,
-          SLOT(slotExportKeyToFile()));
+          SLOT(slotExportKeyToKeyPackage()));
 
   exportKeyAsOpenSSHFormat = new QAction(_("Export As OpenSSH"), this);
   exportKeyAsOpenSSHFormat->setIcon(QIcon(":ssh-key.png"));
@@ -295,11 +296,11 @@ void KeyMgmt::createToolBars() {
 }
 
 void KeyMgmt::slotDeleteSelectedKeys() {
-  deleteKeysWithWarning(mKeyList->getSelected());
+  deleteKeysWithWarning(key_list_->getSelected());
 }
 
 void KeyMgmt::slotDeleteCheckedKeys() {
-  deleteKeysWithWarning(mKeyList->getChecked());
+  deleteKeysWithWarning(key_list_->getChecked());
 }
 
 void KeyMgmt::deleteKeysWithWarning(KeyIdArgsListPtr key_ids) {
@@ -337,7 +338,7 @@ void KeyMgmt::deleteKeysWithWarning(KeyIdArgsListPtr key_ids) {
 }
 
 void KeyMgmt::slotShowKeyDetails() {
-  auto keys_selected = mKeyList->getSelected();
+  auto keys_selected = key_list_->getSelected();
   if (keys_selected->empty()) return;
 
   auto key = GpgKeyGetter::GetInstance().GetKey(keys_selected->front());
@@ -350,34 +351,22 @@ void KeyMgmt::slotShowKeyDetails() {
   new KeyDetailsDialog(key);
 }
 
-void KeyMgmt::slotExportKeyToFile() {
-  ByteArrayPtr key_export_data = nullptr;
-  auto keys_checked = mKeyList->getChecked();
-  if (!GpgKeyImportExporter::GetInstance().ExportKeys(keys_checked,
-                                                      key_export_data)) {
+void KeyMgmt::slotExportKeyToKeyPackage() {
+  auto keys_checked = key_list_->getChecked();
+  if (keys_checked->empty()) {
+    QMessageBox::critical(
+        this, _("Error"),
+        _("Please check some keys before doing this operation."));
     return;
   }
-  auto key =
-      GpgKeyGetter::GetInstance().GetKey(mKeyList->getSelected()->front());
-  if (!key.good()) {
-    QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
-    return;
-  }
-  QString fileString = QString::fromStdString(key.name() + " " + key.email() +
-                                              "(" + key.id() + ")_pub.asc");
-
-  QString file_name = QFileDialog::getSaveFileName(
-      this, _("Export Key To File"), fileString,
-      QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)");
-
-  write_buffer_to_file(file_name.toStdString(), *key_export_data);
-
+  auto dialog = new ExportKeyPackageDialog(std::move(keys_checked), this);
+  dialog->exec();
   emit signalStatusBarChanged(QString(_("key(s) exported")));
 }
 
 void KeyMgmt::slotExportKeyToClipboard() {
   ByteArrayPtr key_export_data = nullptr;
-  auto keys_checked = mKeyList->getChecked();
+  auto keys_checked = key_list_->getChecked();
   if (!GpgKeyImportExporter::GetInstance().ExportKeys(keys_checked,
                                                       key_export_data)) {
     return;
@@ -396,7 +385,7 @@ void KeyMgmt::closeEvent(QCloseEvent* event) {
 }
 
 void KeyMgmt::slotGenerateSubKey() {
-  auto keys_selected = mKeyList->getSelected();
+  auto keys_selected = key_list_->getSelected();
   if (keys_selected->empty()) {
     QMessageBox::information(
         nullptr, _("Invalid Operation"),
@@ -467,7 +456,7 @@ void KeyMgmt::slotSaveWindowState() {
 
 void KeyMgmt::slotExportAsOpenSSHFormat() {
   ByteArrayPtr key_export_data = nullptr;
-  auto keys_checked = mKeyList->getChecked();
+  auto keys_checked = key_list_->getChecked();
 
   if (keys_checked->empty()) {
     QMessageBox::critical(nullptr, _("Error"), _("No Key Checked."));

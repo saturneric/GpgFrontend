@@ -88,9 +88,11 @@ class GpgKeyImportExporter
 
   GpgImportInformation ImportKey(StdBypeArrayPtr inBuffer);
 
-  bool ExportKeys(KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer) const;
+  bool ExportKeys(KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer,
+                  bool secret = false) const;
 
-  bool ExportKeys(const KeyArgsList& keys, ByteArrayPtr& outBuffer) const;
+  bool ExportKeys(const KeyArgsList& keys, ByteArrayPtr& outBuffer,
+                  bool secret = false) const;
 
   bool ExportKey(const GpgKey& key, ByteArrayPtr& out_buffer) const;
 

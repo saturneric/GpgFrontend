@@ -44,7 +44,7 @@ class KeyMgmt : public QMainWindow {
 
   void slotGenerateSubKey();
 
-  void slotExportKeyToFile();
+  void slotExportKeyToKeyPackage();
 
   void slotExportKeyToClipboard();
 
@@ -75,7 +75,7 @@ class KeyMgmt : public QMainWindow {
 
   void deleteKeysWithWarning(GpgFrontend::KeyIdArgsListPtr uidList);
 
-  KeyList* mKeyList;
+  KeyList* key_list_;
   QMenu* fileMenu{};
   QMenu* keyMenu{};
   QMenu* generateKeyMenu{};

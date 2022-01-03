@@ -231,7 +231,7 @@ endif ()
 # Basic Envirnoment Configure
 set(BASIC_ENV_CONFIG 1)
 set(QT_MOC_CONFIG 1)
-set(ESAY_LOGGING_PP 1)
+set(EASY_LOGGING_PP 1)
 
 if (LINUX_INSTALL_SOFTWARE)
     include(GNUInstallDirs)

@@ -46,7 +46,21 @@
           <item>
            <widget class="QPushButton" name="syncButton">
             <property name="text">
-             <string>Sync With Key Server</string>
+             <string>Sync Public Key</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="uncheckButton">
+            <property name="text">
+             <string>Uncheck ALL</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="checkALLButton">
+            <property name="text">
+             <string>Check ALL</string>
             </property>
            </widget>
           </item>
