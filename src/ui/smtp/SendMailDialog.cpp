@@ -45,7 +45,7 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
 
   if (smtp_address_.isEmpty()) {
     QMessageBox::critical(
-        this, _("Incomplete configuration"),
+        this->parentWidget(), _("Incomplete configuration"),
         _("The SMTP address is empty, please go to the setting interface to "
           "complete the configuration."));
 
