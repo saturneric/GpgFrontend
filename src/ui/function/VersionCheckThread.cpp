@@ -56,12 +56,13 @@ void VersionCheckThread::run() {
     QNetworkRequest latest_request, current_request;
     latest_request.setUrl(QUrl(latest_version_url.c_str()));
     current_request.setUrl(QUrl(current_version_url.c_str()));
-    auto reply = manager->get(latest_request);
-    while (reply->isRunning()) QApplication::processEvents();
-    if (reply->error() != QNetworkReply::NoError) {
+    auto _reply = manager->get(latest_request);
+    while (_reply->isRunning()) QApplication::processEvents();
+    if (_reply->error() != QNetworkReply::NoError) {
       LOG(ERROR) << "network error";
       version.latest_version = current_version;
     } else {
+      latest_reply_bytes_ = _reply->readAll();
       auto latest_reply_json =
           nlohmann::json::parse(latest_reply_bytes_.toStdString());
 
@@ -90,11 +91,10 @@ void VersionCheckThread::run() {
       version.release_note = release_note;
     }
 
-    latest_reply_bytes_ = reply->readAll();
-    reply = manager->get(current_request);
-    while (reply->isRunning()) QApplication::processEvents();
-    current_reply_bytes_ = reply->readAll();
-    if (reply->error() != QNetworkReply::NoError) {
+    _reply = manager->get(current_request);
+    while (_reply->isRunning()) QApplication::processEvents();
+    current_reply_bytes_ = _reply->readAll();
+    if (_reply->error() != QNetworkReply::NoError) {
       LOG(ERROR) << "network error";
       manager->deleteLater();
       return;

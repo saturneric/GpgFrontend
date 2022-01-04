@@ -86,17 +86,17 @@ class EditorPage : public QWidget {
 
   void ReadFile();
 
-  [[nodiscard]] bool ReadDone() const { return this->readDone; }
+  [[nodiscard]] bool ReadDone() const { return this->read_done_; }
 
   void PrepareToDestroy();
 
  private:
   QTextEdit* textPage;     /** The textedit of the tab */
   QVBoxLayout* mainLayout; /** The layout for the tab */
-  QString fullFilePath;    /** The path to the file handled in the tab */
+  QString full_file_path_; /** The path to the file handled in the tab */
   bool signMarked{}; /** true, if the signed header is marked, false if not */
-  bool readDone = false;
-  QThread* readThread = nullptr;
+  bool read_done_ = false;
+  QThread* read_hread_ = nullptr;
 
  private slots:
 
