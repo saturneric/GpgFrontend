@@ -129,9 +129,9 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
   ui->attacSignatureCheckBox->setText(_("Attach signature"));
   ui->attachSenderPublickeyCheckBox->setText(_("Attach sender's public key"));
   ui->contentEncryptCheckBox->setText(_("Encrypt content"));
-  ui->recipientEdit->setText(_("Edit Recipients(s)"));
-  ui->ccEdit->setText(_("Edit CC(s)"));
-  ui->bccEdit->setText(_("Edit BCC(s)"));
+  ui->recipientsEditButton->setText(_("Edit Recipients(s)"));
+  ui->ccEditButton->setText(_("Edit CC(s)"));
+  ui->bccEditButton->setText(_("Edit BCC(s)"));
   ui->senderKeyLabel->setText(_("Sender GPG Key: "));
   ui->recipientKeysLabel->setText(_("Recipient(s) GPG Key: "));
 
