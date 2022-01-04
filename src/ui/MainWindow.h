@@ -398,6 +398,7 @@ class MainWindow : public QMainWindow {
 
   bool attachmentDockCreated{};
   bool restartNeeded{};
+  bool prohibit_update_checking_ = false;
 };
 
 }  // namespace GpgFrontend::UI

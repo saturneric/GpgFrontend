@@ -173,6 +173,7 @@ int main(int argc, char* argv[]) {
               "program, and now it needs to be restarted. This is not a "
               "serious problem, it may be the negligence of the programmer, "
               "please report this problem if you can."));
+        return_from_event_loop_code = RESTART_CODE;
         continue;
       }
 

@@ -274,7 +274,7 @@
           <item>
            <widget class="QCheckBox" name="prohibitUpdateCheck">
             <property name="text">
-             <string>Prohibit checking for updates.</string>
+             <string>Prohibit checking for version updates when the program starts.</string>
             </property>
            </widget>
           </item>

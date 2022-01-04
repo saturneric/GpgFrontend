@@ -43,8 +43,8 @@ void GpgFrontend::UI::ProxyConnectionTestThread::run() {
   auto _reply = manager->get(url_request);
 
   while (_reply->isRunning()) QApplication::processEvents();
-  if (_reply->error() != QNetworkReply::NoError &&
-      !_reply->readAll().isEmpty()) {
+  auto _buffer = _reply->readAll();
+  if (_reply->error() == QNetworkReply::NoError && !_buffer.isEmpty()) {
     result_ = "Reachable";
   } else {
     result_ = "Not Reachable";

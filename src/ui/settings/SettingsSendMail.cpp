@@ -39,19 +39,8 @@ SendMailTab::SendMailTab(QWidget* parent)
     : QWidget(parent), ui(std::make_shared<Ui_SendMailSettings>()) {
   ui->setupUi(this);
 
-  connect(ui->enableCheckBox, &QCheckBox::stateChanged, this, [=](int state) {
-    ui->smtpServerAddressEdit->setDisabled(state != Qt::Checked);
-    ui->portSpin->setDisabled(state != Qt::Checked);
-    ui->connextionSecurityComboBox->setDisabled(state != Qt::Checked);
-
-    ui->identityCheckBox->setDisabled(state != Qt::Checked);
-    ui->usernameEdit->setDisabled(state != Qt::Checked);
-    ui->passwordEdit->setDisabled(state != Qt::Checked);
-
-    ui->defaultSenderEmailEdit->setDisabled(state != Qt::Checked);
-    ui->gpgKeyIDEdit->setDisabled(state != Qt::Checked);
-    ui->checkConnectionButton->setDisabled(state != Qt::Checked);
-  });
+  connect(ui->enableCheckBox, &QCheckBox::stateChanged, this,
+          [=](int state) { switch_ui_enabled(state == Qt::Checked); });
 
 #ifdef SMTP_SUPPORT
   connect(ui->checkConnectionButton, &QPushButton::clicked, this,
@@ -60,10 +49,8 @@ SendMailTab::SendMailTab(QWidget* parent)
           &SendMailTab::slotSendTestMail);
 #endif
 
-  connect(ui->identityCheckBox, &QCheckBox::stateChanged, this, [=](int state) {
-    ui->usernameEdit->setDisabled(state != Qt::Checked);
-    ui->passwordEdit->setDisabled(state != Qt::Checked);
-  });
+  connect(ui->identityCheckBox, &QCheckBox::stateChanged, this,
+          [=](int state) { switch_ui_identity_enabled(state == Qt::Checked); });
 
   connect(ui->connextionSecurityComboBox, &QComboBox::currentTextChanged, this,
           [=](const QString& current_text) {
@@ -174,6 +161,11 @@ void SendMailTab::setSettings() {
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("identity_enable");
   }
+  
+  {
+    auto state = ui->identityCheckBox->checkState();
+    switch_ui_identity_enabled(state == Qt::Checked);
+  }
 
   ui->enableCheckBox->setCheckState(Qt::Unchecked);
   try {
@@ -184,6 +176,11 @@ void SendMailTab::setSettings() {
       ui->enableCheckBox->setCheckState(Qt::Unchecked);
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("save_key_checked");
+  }
+
+  {
+    auto state = ui->enableCheckBox->checkState();
+    switch_ui_enabled(state == Qt::Checked);
   }
 }
 
@@ -382,6 +379,25 @@ void SendMailTab::slotTestSMTPConnectionResult(const QString& result) {
     QMessageBox::critical(this, _("Fail"), _("Unknown error."));
     ui->senTestMailButton->setDisabled(true);
   }
+}
+
+void SendMailTab::switch_ui_enabled(bool enabled) {
+  ui->smtpServerAddressEdit->setDisabled(!enabled);
+  ui->portSpin->setDisabled(!enabled);
+  ui->connextionSecurityComboBox->setDisabled(!enabled);
+
+  ui->identityCheckBox->setDisabled(!enabled);
+  ui->usernameEdit->setDisabled(!enabled);
+  ui->passwordEdit->setDisabled(!enabled);
+
+  ui->defaultSenderEmailEdit->setDisabled(!enabled);
+  ui->gpgKeyIDEdit->setDisabled(!enabled);
+  ui->checkConnectionButton->setDisabled(!enabled);
+}
+
+void SendMailTab::switch_ui_identity_enabled(bool enabled) {
+  ui->usernameEdit->setDisabled(!enabled);
+  ui->passwordEdit->setDisabled(!enabled);
 }
 #endif
 
