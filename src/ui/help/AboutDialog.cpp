@@ -225,6 +225,19 @@ void UpdateTab::slotShowVersionStatus(const SoftwareVersion& version) {
         "href=\"https://github.com/saturneric/GpgFrontend/releases\">" +
         _("Here") + "</a> " + _("to download the latest stable version.") +
         "</center>");
+    upgradeLabel->show();
+  } else if (!version.CurrentVersionReleased()) {
+    upgradeLabel->setText(
+        "<center>" +
+        QString(_("This version has not been released yet, it may be a beta "
+                  "version. If you are not a tester and care about version "
+                  "stability, please do not use this version.")) +
+        "</center><center>" + _("Please click") +
+        " <a "
+        "href=\"https://github.com/saturneric/GpgFrontend/releases\">" +
+        _("Here") + "</a> " + _("to download the latest stable version.") +
+        "</center>");
+    upgradeLabel->show();
   }
 }
 

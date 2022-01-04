@@ -18,42 +18,38 @@
  * Their source code version also complies with GNU General Public License.
  *
  * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
  *
  */
 
-#ifndef GPGFRONTEND_SOFTWAREVERSION_H
-#define GPGFRONTEND_SOFTWAREVERSION_H
+#ifndef GPGFRONTEND_TESTLISTEDKEYSERVERTHREAD_H
+#define GPGFRONTEND_TESTLISTEDKEYSERVERTHREAD_H
 
-#include <boost/date_time.hpp>
+#include "GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
-struct SoftwareVersion {
-  std::string latest_version;
-  std::string current_version;
-  bool latest_prerelease = false;
-  bool latest_draft = false;
-  bool current_prerelease = false;
-  bool current_draft = false;
-  bool load_info_done = false;
-  bool current_version_found = false;
-  std::string publish_date;
-  std::string release_note;
 
-  [[nodiscard]] bool NeedUpgrade() const {
-    return load_info_done && !latest_prerelease && !latest_draft &&
-           current_version < latest_version;
-  }
+class TestListedKeyServerThread : public QThread {
+  Q_OBJECT
+ public:
+  explicit TestListedKeyServerThread(const QStringList& urls, int timeout,
+                                     QWidget* parent = nullptr)
+      : QThread(parent), urls_(urls), timeout_(timeout) {}
 
-  [[nodiscard]] bool VersionWithDrawn() const {
-    return load_info_done && !current_version_found && current_prerelease &&
-           !current_draft;
-  }
+ signals:
+  void signalKeyServerListTestResult(const QStringList& result);
 
-  [[nodiscard]] bool CurrentVersionReleased() const {
-    return load_info_done && current_version_found;
-  }
+ protected:
+  void run() override;
+
+ private:
+  QStringList urls_;
+  QStringList result_;
+  int timeout_ = 500;
 };
+
 }  // namespace GpgFrontend::UI
 
-#endif  // GPGFRONTEND_SOFTWAREVERSION_H
+class TestListedKeyServerThread {};
+
+#endif  // GPGFRONTEND_TESTLISTEDKEYSERVERTHREAD_H

@@ -39,16 +39,14 @@ void VersionCheckThread::run() {
   SoftwareVersion version;
   version.current_version = current_version;
 
-  auto manager = new QNetworkAccessManager(nullptr);
+  auto manager = std::make_unique<QNetworkAccessManager>(nullptr);
 
   try {
     using namespace nlohmann;
-
     LOG(INFO) << "current version" << current_version;
 
     std::string latest_version_url =
         "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
-
     std::string current_version_url =
         "https://api.github.com/repos/saturneric/gpgfrontend/releases/tags/" +
         current_version;
@@ -59,7 +57,7 @@ void VersionCheckThread::run() {
     auto _reply = manager->get(latest_request);
     while (_reply->isRunning()) QApplication::processEvents();
     if (_reply->error() != QNetworkReply::NoError) {
-      LOG(ERROR) << "network error";
+      LOG(ERROR) << "current version request error";
       version.latest_version = current_version;
     } else {
       latest_reply_bytes_ = _reply->readAll();
@@ -95,10 +93,10 @@ void VersionCheckThread::run() {
     while (_reply->isRunning()) QApplication::processEvents();
     current_reply_bytes_ = _reply->readAll();
     if (_reply->error() != QNetworkReply::NoError) {
-      LOG(ERROR) << "network error";
-      manager->deleteLater();
-      return;
+      LOG(ERROR) << "current version request network error";
+      version.current_version_found = false;
     } else {
+      version.current_version_found = true;
       auto current_reply_json =
           nlohmann::json::parse(current_reply_bytes_.toStdString());
       bool current_prerelease = current_reply_json["prerelease"],
@@ -114,7 +112,6 @@ void VersionCheckThread::run() {
     LOG(INFO) << "error occurred";
     version.load_info_done = false;
   }
-  manager->deleteLater();
   emit upgradeVersion(version);
 }
 
