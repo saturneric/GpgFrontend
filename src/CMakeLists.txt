@@ -292,6 +292,8 @@ if (LINUX_INSTALL_SOFTWARE)
                     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
                     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
                     )
+            install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
+                    DESTINATION /usr/local/share/${AppName}/)
             install(FILES ${CMAKE_SOURCE_DIR}/resource/meta/pub.gpgfrontend.gpgfrontend.appdata.xml
                     DESTINATION /usr/share/metainfo/)
             install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/desktop/
