@@ -89,6 +89,8 @@ void VersionCheckThread::run() {
       version.release_note = release_note;
     }
 
+    _reply->deleteLater();
+
     _reply = manager->get(current_request);
     while (_reply->isRunning()) QApplication::processEvents();
     current_reply_bytes_ = _reply->readAll();
@@ -104,6 +106,7 @@ void VersionCheckThread::run() {
       version.latest_prerelease = current_prerelease;
       version.latest_draft = current_draft;
     }
+    _reply->deleteLater();
 
     // loading done
     version.load_info_done = true;
