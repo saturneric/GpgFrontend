@@ -293,8 +293,6 @@ void SendMailTab::slotCheckConnection() {
   connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
     LOG(INFO) << "cancel clicked";
     if (thread->isRunning()) thread->terminate();
-    QCoreApplication::quit();
-    exit(0);
   });
 
   // Show Waiting Dialog
@@ -341,8 +339,6 @@ void SendMailTab::slotSendTestMail() {
   connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
     LOG(INFO) << "cancel clicked";
     if (thread->isRunning()) thread->terminate();
-    QCoreApplication::quit();
-    exit(0);
   });
 
   thread->setSender(sender_address);

@@ -29,6 +29,7 @@
 #include "SettingsAppearance.h"
 #include "SettingsGeneral.h"
 #include "SettingsKeyServer.h"
+#include "SettingsNetwork.h"
 
 #ifdef SMTP_SUPPORT
 #include "SettingsSendMail.h"
@@ -37,13 +38,15 @@
 namespace GpgFrontend::UI {
 
 SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
-  tabWidget = new QTabWidget;
+
+  tabWidget = new QTabWidget();
   generalTab = new GeneralTab();
-  appearanceTab = new AppearanceTab;
+  appearanceTab = new AppearanceTab();
 #ifdef SMTP_SUPPORT
-  sendMailTab = new SendMailTab;
+  sendMailTab = new SendMailTab();
 #endif
-  keyserverTab = new KeyserverTab;
+  keyserverTab = new KeyserverTab();
+  networkTab = new NetworkTab();
 #ifdef ADVANCED_SUPPORT
   advancedTab = new AdvancedTab;
 #endif
@@ -55,6 +58,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
 #endif
   tabWidget->addTab(keyserverTab, _("Key Server"));
   // tabWidget->addTab(gpgPathsTab, _("Gpg paths"));
+  tabWidget->addTab(networkTab, _("Network"));
 #ifdef ADVANCED_SUPPORT
   tabWidget->addTab(advancedTab, _("Advanced"));
 #endif
@@ -114,6 +118,7 @@ void SettingsDialog::slotAccept() {
 #endif
   appearanceTab->applySettings();
   keyserverTab->applySettings();
+  networkTab->applySettings();
 #ifdef ADVANCED_SUPPORT
   advancedTab->applySettings();
 #endif

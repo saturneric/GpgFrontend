@@ -286,8 +286,6 @@ void KeyserverTab::slotTestListedKeyServer() {
   connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
     LOG(INFO) << "cancel clicked";
     if (thread->isRunning()) thread->terminate();
-    QCoreApplication::quit();
-    exit(0);
   });
 
   // Show Waiting Dialog
