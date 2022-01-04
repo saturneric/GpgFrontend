@@ -84,7 +84,7 @@ void MainWindow::slotFileEncrypt() {
 
   if (QFile::exists(out_path)) {
     boost::filesystem::path _out_path = out_path.toStdString();
-    auto out_file_name = boost::format(_("The target file(%1%) already exists, "
+    auto out_file_name = boost::format(_("The target file %1% already exists, "
                                          "do you need to overwrite it?")) %
                          _out_path.filename();
     auto ret =
