@@ -60,28 +60,9 @@ void MainWindow::slotFileEncrypt() {
 
   // check selected keys
   auto key_ids = mKeyList->getChecked();
-  auto p_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
-
-  if (p_keys->empty()) {
-    QMessageBox::critical(
-        this, _("No Key Selected"),
-        _("Please select the key in the key toolbox on the right."));
-    return;
-  }
-
-  // check key abilities
-  for (const auto& key : *p_keys) {
-    bool key_can_encrypt = key.CanEncrActual();
-
-    if (!key_can_encrypt) {
-      QMessageBox::critical(
-          nullptr, _("Invalid KeyPair"),
-          QString(_("The selected keypair cannot be used for encryption.")) +
-              "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.uids()->front().uid()));
-      return;
-    }
-  }
+  GpgEncrResult result = nullptr;
+  GpgError error;
+  bool if_error = false;
 
   // Detect ascii mode
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
@@ -100,27 +81,64 @@ void MainWindow::slotFileEncrypt() {
   }
 
   auto out_path = path + _extension;
+
   if (QFile::exists(out_path)) {
-    auto ret = QMessageBox::warning(
-        this, _("Warning"),
-        _("The target file already exists, do you need to overwrite it?"),
-        QMessageBox::Ok | QMessageBox::Cancel);
+    boost::filesystem::path _out_path = out_path.toStdString();
+    auto out_file_name = boost::format(_("The target file(%1%) already exists, "
+                                         "do you need to overwrite it?")) %
+                         _out_path.filename();
+    auto ret =
+        QMessageBox::warning(this, _("Warning"), out_file_name.str().c_str(),
+                             QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
   }
 
-  GpgEncrResult result = nullptr;
-  GpgError error;
-  bool if_error = false;
-  process_operation(this, _("Encrypting"), [&]() {
-    try {
-      error =
-          GpgFileOpera::EncryptFile(std::move(p_keys), path.toStdString(),
-                                    out_path.toStdString(), result, _channel);
-    } catch (const std::runtime_error& e) {
-      if_error = true;
+  if (key_ids->empty()) {
+    // Symmetric Encrypt
+    auto ret = QMessageBox::information(
+        this, _("Symmetric Encryption"),
+        _("No Key Selected. Do you want to encrypt with a "
+          "symmetric cipher using a passphrase?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
+
+    if (ret == QMessageBox::Cancel) return;
+
+    process_operation(this, _("Symmetrically Encrypting"), [&]() {
+      try {
+        error = GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
+            path.toStdString(), out_path.toStdString(), result, _channel);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
+  } else {
+    auto p_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+
+    // check key abilities
+    for (const auto& key : *p_keys) {
+      bool key_can_encrypt = key.CanEncrActual();
+
+      if (!key_can_encrypt) {
+        QMessageBox::critical(
+            nullptr, _("Invalid KeyPair"),
+            QString(_("The selected keypair cannot be used for encryption.")) +
+                "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
+                QString::fromStdString(key.uids()->front().uid()));
+        return;
+      }
     }
-  });
+
+    process_operation(this, _("Encrypting"), [&]() {
+      try {
+        error =
+            GpgFileOpera::EncryptFile(std::move(p_keys), path.toStdString(),
+                                      out_path.toStdString(), result, _channel);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
+  }
 
   if (!if_error) {
     auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));

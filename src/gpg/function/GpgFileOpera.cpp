@@ -134,3 +134,19 @@ gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
 
   return err;
 }
+unsigned int GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
+    const std::string& in_path, const std::string& out_path,
+    GpgFrontend::GpgEncrResult& result, int _channel) {
+  std::string in_buffer = read_all_data_in_file(in_path);
+  std::unique_ptr<std::string> out_buffer;
+
+  auto err = BasicOperator::GetInstance(_channel).EncryptSymmetric(
+      in_buffer, out_buffer, result);
+
+  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
+    if (!write_buffer_to_file(out_path, *out_buffer)) {
+      throw std::runtime_error("write_buffer_to_file error");
+    };
+
+  return err;
+}

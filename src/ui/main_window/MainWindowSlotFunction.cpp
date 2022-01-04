@@ -59,11 +59,11 @@ void MainWindow::slotEncrypt() {
 
   if (key_ids->empty()) {
     // Symmetric Encrypt
-    auto ret =
-        QMessageBox::warning(this, _("Warning"),
-                             _("No Key Selected. Do you want to encrypt with a "
-                               "symmetric cipher using a passphrase?"),
-                             QMessageBox::Ok | QMessageBox::Cancel);
+    auto ret = QMessageBox::information(
+        this, _("Symmetric Encryption"),
+        _("No Key Selected. Do you want to encrypt with a "
+          "symmetric cipher using a passphrase?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
 
