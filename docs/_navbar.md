@@ -1,4 +1,8 @@
 <!-- _navbar.md -->
 
-* [Github](https://github.com/saturneric/GpgFrontend)
+* [OpenPGP](https://www.openpgp.org/)
+* [GnuPG](https://www.gnupg.org/)
+* [Source Code](https://github.com/saturneric/GpgFrontend)
 * [Document](overview.md)
+* [Contract](contract.md)
+
