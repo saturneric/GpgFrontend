@@ -7,7 +7,7 @@
   <meta name="description" content="Description">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-  <link rel="shortcut icon" href="/_media/icon.svg" type="image/x-icon">
+  <link rel="shortcut icon" href="/_media/icon.png" type="image/x-icon">
 </head>
 <body>
   <div id="app"></div>

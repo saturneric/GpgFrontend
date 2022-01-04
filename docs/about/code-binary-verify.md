@@ -4,27 +4,30 @@ Some users of this software have relatively high requirements for security, so h
 whether the code and executable files have been tampered with.If you find that the signature is incorrect, please stop
 using it immediately.
 
-When you see the document, every binary file version released on github is automatically compiled after submission using
-**Github Actions**.
+## Code compilation
+
+When you see the document, every binary file version released on github is automatically compiled after submission using **Github Actions**. The generation of the final code is completely done by Github Actions. I will not compile the code on my local machine, but may use my machine to sign the packaged code. The code for all release versions comes from the main branch of the Github repository.
 
 All commands and environment configuration at compile time can be consulted in the project
 code(`.github/workflow/release.yml`).
 
-If you have the need, interest or time, you are welcome to review the code that I use and write. When you have any
-questions, please feel free to [Contact ME](../contract.md).
+## Introduction of third-party libraries
+
+For safety reasons, GnuPG will not be available in the major releases of GpgFrontned. GpgFrontnend will not use insecure or non-open source third-party libraries. The compiled version of the third-party library comes from the public code repository.
 
 ## Verify Code
 
-I will sign every new git commit. The key I use is the key that I use to perform Git related operations:
-sautnreric
+If you have the need, interest or time, you are welcome to review the code that I use and write. When you have any
+questions, please feel free to [Contact ME](../contract.md).
 
-\<eric.bktu@gmail.com\>. It will be given at the end of this description. For information about signing git commits, you
+I will sign most new git commit. The key I use is the key that I use to perform Git related operations:
+Saturneric\<eric@bktus.com\>. It will be given at the end of this description. For information about signing git commits, you
 can see it on the github interface.
 
 The fingerprint of the key is now given:
 
 ```text
-9C60AFFED3412F22736135FED10531533ED7624A
+E3379489C39B7270E70E2E303AAF1C64137CEE57
 ```
 
 ## Verify Release Binary Verify
@@ -53,102 +56,13 @@ used for compilation of this binary version on the second line.
 
 ## Pubkey Mentioned Above
 
-### Saturneric\<eric.bktu@gmail.com\>
-
-#### Fingertprint
-
-```text
-9C60AFFED3412F22736135FED10531533ED7624A
-```
-
-#### Pubkey Content
-
-```text
------BEGIN PGP PUBLIC KEY BLOCK-----
-
-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
-JV99VVcBfvU4GSI=
-=YGHd
------END PGP PUBLIC KEY BLOCK-----
-
-```
-
-### Saturneric\<eric@bktus.com\>
-
 #### Fingerprint
 
 ```text
 E3379489C39B7270E70E2E303AAF1C64137CEE57
 ```
 
-#### Pubkey Content
+#### Pubkey Content (OpenPGP)
 
 ```text
 -----BEGIN PGP PUBLIC KEY BLOCK-----

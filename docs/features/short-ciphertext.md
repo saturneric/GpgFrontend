@@ -1,4 +1,6 @@
-# Short Ciphertext
+# Short Cipher-text
+
+**NOTICE: As of version 2.0.0, GpgFrontend has eliminated this feature.**
 
 The short ciphertext function allows OpenPGP to transfer ciphertext quickly and conveniently in instant messaging software.
 After successfully configuring the own key and obtaining the Service Token, you can use the short cipher text function.
