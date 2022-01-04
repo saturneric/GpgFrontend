@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.4\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-01-04 23:45+0800\n"
+"POT-Creation-Date: 2022-01-05 00:01+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -79,13 +79,13 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:38
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:43
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:48
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:131
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:179
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:264
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:316
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:350
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:448
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:508
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:149
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:197
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:282
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:334
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:466
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:526
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:120
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:176
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:216
@@ -148,10 +148,10 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:85
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:51
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:74
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:92
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:219
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:285
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:393
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:237
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:303
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:411
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:313
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:107
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:116
@@ -171,14 +171,14 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:74
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:81
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:88
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:95
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:103
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:115
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:132
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:144
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:104
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:116
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:145
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:84
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
@@ -237,7 +237,7 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:415
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:74
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:227
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:240
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:241
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:370
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:375
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:37
@@ -270,7 +270,7 @@ msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:188
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:90
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:265
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:158
 msgid "Signing"
 msgstr ""
@@ -560,12 +560,11 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:186
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:419
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:332
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:105
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:153
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:234
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:407
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:471
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:63
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:91
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:252
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:425
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:489
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:230
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:154
 msgid "Warning"
@@ -1201,67 +1200,66 @@ msgstr ""
 msgid "No permission to create file."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:67
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:196
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:368
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:276
-msgid "No Key Selected"
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:237
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:303
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:411
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
+msgid "non_ascii_when_export"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:68
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:197
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:369
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:134
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:277
-msgid "Please select the key in the key toolbox on the right."
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:87
+msgid "The target file(%1%) already exists, do you need to overwrite it?"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:78
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:379
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:100
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:63
+msgid "Symmetric Encryption"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:101
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:64
+msgid ""
+"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:70
+msgid "Symmetrically Encrypting"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:397
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:288
 msgid "Invalid KeyPair"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:79
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:380
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:125
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:289
 msgid "The selected keypair cannot be used for encryption."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:80
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:381
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:399
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:89
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:146
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:290
 msgid "For example the Following Key:"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:92
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:219
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:285
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:393
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
-msgid "non_ascii_when_export"
-msgstr ""
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:106
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:154
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:408
-msgid "The target file already exists, do you need to overwrite it?"
-msgstr ""
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:115
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:132
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:95
 msgid "Encrypting"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:132
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:180
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:265
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:351
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:449
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:509
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:198
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:283
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:369
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:467
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:527
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:121
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:177
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:217
@@ -1270,12 +1268,31 @@ msgstr ""
 msgid "An error occurred during operation."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:163
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:426
+msgid "The target file already exists, do you need to overwrite it?"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:181
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:198
 msgid "Decrypting"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:214
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:386
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:276
+msgid "No Key Selected"
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:215
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:387
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:277
+msgid "Please select the key in the key toolbox on the right."
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:222
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:85
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:142
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:405
@@ -1289,48 +1306,48 @@ msgstr ""
 msgid "Invalid Operation"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:205
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:223
 msgid ""
 "The selected key contains a key that does not actually have a sign usage."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:207
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:225
 msgid "for example the Following Key:"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:235
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:253
 msgid "The signature file \"%1\" exists, do you need to overwrite it?"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:303
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:321
 msgid "Origin file to verify"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:304
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:322
 msgid "Filepath"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:317
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:335
 msgid ""
 "Please select the appropriate origin file or signature file. Ensure that "
 "both are in this directory."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:328
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:346
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:246
 msgid "Verifying"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:428
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:446
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:318
 msgid "Encrypting and Signing"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:472
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:490
 msgid "The output file %1 already exists, do you need to overwrite it?"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:484
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:502
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:412
 msgid "Decrypting and Verifying"
 msgstr ""
@@ -1728,16 +1745,6 @@ msgstr ""
 msgid "Information Board"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:64
-msgid ""
-"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
-"passphrase?"
-msgstr ""
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:70
-msgid "Symmetrically Encrypting"
-msgstr ""
-
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:87
 msgid ""
 "The selected key contains a key that does not actually have a encrypt usage."
@@ -1827,7 +1834,7 @@ msgid "Loading Failed"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:314
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:144
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:145
 msgid "prohibit_update_checking"
 msgstr ""
 
@@ -2231,19 +2238,19 @@ msgid "mail_address"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:348
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:81
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:82
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:113
 msgid "username"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:354
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:88
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:89
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:120
 msgid "password"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:360
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:95
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:96
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:127
 msgid "port"
 msgstr ""
@@ -3415,39 +3422,39 @@ msgstr ""
 msgid "Forbid all network connection."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:61
-msgid "Prohibit checking for updates."
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:62
+msgid "Prohibit checking for version updates when the program starts."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:62
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:63
 msgid "Check Proxy Connection"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:75
 msgid "proxy_host"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:103
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:104
 msgid "proxy_type"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:115
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:116
 msgid "proxy_enable"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:133
 msgid "forbid_all_connection"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:230
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:231
 msgid "Test Server Url Accessibility"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:242
 msgid "Successfully connect to the target server through the proxy server."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:245
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:246
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:39
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:39
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:41
@@ -3455,17 +3462,17 @@ msgstr ""
 msgid "Failed"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:247
 msgid ""
 "Unable to connect to the target server through the proxy server. Proxy "
 "settings may be invalid."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:257
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:258
 msgid "Test Proxy Server Connection..."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:258
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:259
 msgid ""
 "Is using your proxy settings to access the url. Note that this test "
 "operation will apply your proxy settings to the entire software."

@@ -42,6 +42,10 @@ class GpgFileOpera : public SingletonFunctionObject<GpgFileOpera> {
                                   GpgEncrResult& result,
                                   int _channel = GPGFRONTEND_DEFAULT_CHANNEL);
 
+  static unsigned int EncryptFileSymmetric(
+      const std::string& in_path, const std::string& out_path,
+      GpgEncrResult& result, int _channel = GPGFRONTEND_DEFAULT_CHANNEL);
+
   static GpgError DecryptFile(const std::string& in_path,
                               const std::string& out_path,
                               GpgDecrResult& result);
