@@ -347,7 +347,7 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-        <widget class="QLabel" name="label_2">
+        <widget class="QLabel" name="senderKeyLabel">
          <property name="text">
           <string>Sender GPG Key: </string>
          </property>
@@ -371,7 +371,7 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_10">
        <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
-        <widget class="QLabel" name="label_3">
+        <widget class="QLabel" name="recipientKeysLabel">
          <property name="text">
           <string>Recipient(s) GPG Key: </string>
          </property>

@@ -25,6 +25,7 @@
 #include "SettingsKeyServer.h"
 
 #include "GlobalSettingStation.h"
+#include "ui/function/TestListedKeyServerThread.h"
 #include "ui_KeyServerSettings.h"
 
 namespace GpgFrontend::UI {
@@ -232,35 +233,73 @@ void KeyserverTab::refreshTable() {
 }
 
 void KeyserverTab::slotTestListedKeyServer() {
-  ui->keyServerListTable->blockSignals(true);
   auto timeout =
       QInputDialog::getInt(this, _("Set TCP Timeout"), tr("timeout(ms): "),
                            QLineEdit::Normal, 500, 2000);
 
+  QStringList urls;
   const auto row_size = ui->keyServerListTable->rowCount();
   for (int i = 0; i < row_size; i++) {
-    const auto keyserver = ui->keyServerListTable->item(i, 1)->text();
-    const auto status = ui->keyServerListTable->item(i, 3);
-    if (keyserver == nullptr || status == nullptr) continue;
-
-    auto key_url = QUrl{keyserver};
-
-    LOG(INFO) << "key domain" << key_url.host().toStdString();
-
-    QTcpSocket socket(this);
-    socket.abort();
-    socket.connectToHost(key_url.host(), 80);
-    if (socket.waitForConnected(timeout)) {
-      status->setText(_("Reachable"));
-      status->setForeground(QBrush(QColor::fromRgb(0, 255, 0)));
-    } else {
-      status->setText(_("Not Reachable"));
-      status->setForeground(QBrush(QColor::fromRgb(255, 0, 0)));
-    }
-    socket.close();
+    const auto keyserver_url = ui->keyServerListTable->item(i, 1)->text();
+    urls.push_back(keyserver_url);
   }
-  ui->keyServerListTable->blockSignals(false);
+
+  auto thread = new TestListedKeyServerThread(urls, timeout, this);
+  connect(thread,
+          &GpgFrontend::UI::TestListedKeyServerThread::
+              signalKeyServerListTestResult,
+          this, [=](const QStringList& result) {
+            const auto row_size = ui->keyServerListTable->rowCount();
+            if (result.size() != row_size) return;
+            ui->keyServerListTable->blockSignals(true);
+            for (int i = 0; i < row_size; i++) {
+              const auto status = result[i];
+              auto status_iem = ui->keyServerListTable->item(i, 3);
+              if (status == "Reachable") {
+                status_iem->setText(_("Reachable"));
+                status_iem->setForeground(QBrush(QColor::fromRgb(0, 255, 0)));
+              } else {
+                status_iem->setText(_("Not Reachable"));
+                status_iem->setForeground(QBrush(QColor::fromRgb(255, 0, 0)));
+              }
+            }
+            ui->keyServerListTable->blockSignals(false);
+          });
+  connect(thread, &QThread::finished, thread, &QThread::deleteLater);
+
+  // Waiting Dialog
+  auto* waiting_dialog = new QProgressDialog(this);
+  waiting_dialog->setMaximum(0);
+  waiting_dialog->setMinimum(0);
+  auto waiting_dialog_label =
+      new QLabel(QString(_("Test Key Server Connection...")) + "<br /><br />" +
+                 _("This test only tests the network connectivity of the key "
+                   "server. Passing the test does not mean that the key server "
+                   "is functionally available."));
+  waiting_dialog_label->setWordWrap(true);
+  waiting_dialog->setLabel(waiting_dialog_label);
+  waiting_dialog->resize(420, 120);
+  connect(thread, &QThread::finished, [=]() {
+    waiting_dialog->finished(0);
+    waiting_dialog->deleteLater();
+  });
+  connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
+    LOG(INFO) << "cancel clicked";
+    if (thread->isRunning()) thread->terminate();
+    QCoreApplication::quit();
+    exit(0);
+  });
+
+  // Show Waiting Dialog
+  waiting_dialog->show();
+  waiting_dialog->setFocus();
+
+  thread->start();
+  QEventLoop loop;
+  connect(thread, &QThread::finished, &loop, &QEventLoop::quit);
+  loop.exec();
 }
+
 void KeyserverTab::contextMenuEvent(QContextMenuEvent* event) {
   QWidget::contextMenuEvent(event);
   if (ui->keyServerListTable->selectedItems().length() > 0) {

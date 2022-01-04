@@ -525,6 +525,11 @@ void MainWindow::slotVersionUpgrade(const SoftwareVersion& version) {
                       "Github Releases "
                       "Page.<br/>"))
                 .arg(version.latest_version.c_str()));
+  } else if (!version.CurrentVersionReleased()) {
+    statusBar()->showMessage(
+        QString(_("This maybe a BETA Version (Latest Stable Version: %1)."))
+            .arg(version.latest_version.c_str()),
+        30000);
   }
 }
 
