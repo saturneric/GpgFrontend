@@ -49,6 +49,8 @@ class NetworkTab : public QWidget {
   QNetworkProxy::ProxyType proxy_type_ = QNetworkProxy::HttpProxy;
 
   void apply_proxy_settings();
+  void switch_ui_enabled(bool enabled);
+  void switch_ui_proxy_type(const QString& type_text);
 };
 }  // namespace GpgFrontend::UI
 

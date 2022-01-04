@@ -33,44 +33,11 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
   ui->setupUi(this);
 
   connect(ui->enableProxyCheckBox, &QCheckBox::stateChanged, this,
-          [=](int state) {
-            ui->proxyServerAddressEdit->setDisabled(state != Qt::Checked);
-            ui->portSpin->setDisabled(state != Qt::Checked);
-            ui->proxyTypeComboBox->setDisabled(state != Qt::Checked);
+          [=](int state) { switch_ui_enabled(state == Qt::Checked); });
 
-            ui->usernameEdit->setDisabled(state != Qt::Checked);
-            ui->passwordEdit->setDisabled(state != Qt::Checked);
-
-            ui->checkProxyConnectionButton->setDisabled(state != Qt::Checked);
-
-            proxy_type_ = QNetworkProxy::NoProxy;
-          });
-
-  connect(ui->proxyTypeComboBox, &QComboBox::currentTextChanged, this,
-          [=](const QString &current_text) {
-            if (current_text == "HTTP") {
-              ui->proxyServerAddressEdit->setDisabled(true);
-              ui->portSpin->setDisabled(true);
-              ui->proxyTypeComboBox->setDisabled(true);
-              ui->usernameEdit->setDisabled(true);
-              ui->passwordEdit->setDisabled(true);
-              proxy_type_ = QNetworkProxy::HttpProxy;
-            } else if (current_text == "Socks5") {
-              ui->proxyServerAddressEdit->setDisabled(true);
-              ui->portSpin->setDisabled(true);
-              ui->proxyTypeComboBox->setDisabled(true);
-              ui->usernameEdit->setDisabled(true);
-              ui->passwordEdit->setDisabled(true);
-              proxy_type_ = QNetworkProxy::Socks5Proxy;
-            } else {
-              ui->proxyServerAddressEdit->setDisabled(false);
-              ui->portSpin->setDisabled(false);
-              ui->proxyTypeComboBox->setDisabled(false);
-              ui->usernameEdit->setDisabled(false);
-              ui->passwordEdit->setDisabled(false);
-              proxy_type_ = QNetworkProxy::DefaultProxy;
-            }
-          });
+  connect(
+      ui->proxyTypeComboBox, &QComboBox::currentTextChanged, this,
+      [=](const QString &current_text) { switch_ui_proxy_type(current_text); });
 
   connect(ui->checkProxyConnectionButton, &QPushButton::clicked, this,
           &NetworkTab::slotTestProxyConnectionResult);
@@ -89,7 +56,10 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
   ui->passwordLabel->setText(_("Password"));
 
   ui->forbidALLCheckBox->setText(_("Forbid all network connection."));
-  ui->prohibitUpdateCheck->setText(_("Prohibit checking for updates."));
+  ui->forbidALLCheckBox->setDisabled(true);
+
+  ui->prohibitUpdateCheck->setText(
+      _("Prohibit checking for version updates when the program starts."));
   ui->checkProxyConnectionButton->setText(_("Check Proxy Connection"));
 
   setSettings();
@@ -133,6 +103,7 @@ void GpgFrontend::UI::NetworkTab::setSettings() {
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("proxy_type");
   }
+  switch_ui_proxy_type(ui->proxyTypeComboBox->currentText());
 
   ui->enableProxyCheckBox->setCheckState(Qt::Unchecked);
   try {
@@ -143,6 +114,11 @@ void GpgFrontend::UI::NetworkTab::setSettings() {
       ui->enableProxyCheckBox->setCheckState(Qt::Unchecked);
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("proxy_enable");
+  }
+
+  {
+    auto state = ui->enableProxyCheckBox->checkState();
+    switch_ui_enabled(state == Qt::Checked);
   }
 
   ui->forbidALLCheckBox->setCheckState(Qt::Unchecked);
@@ -159,17 +135,20 @@ void GpgFrontend::UI::NetworkTab::setSettings() {
 
   ui->prohibitUpdateCheck->setCheckState(Qt::Unchecked);
   try {
-    bool prohibit_update = settings.lookup("network.prohibit_update");
-    if (prohibit_update)
+    bool prohibit_update_checking =
+        settings.lookup("network.prohibit_update_checking");
+    if (prohibit_update_checking)
       ui->prohibitUpdateCheck->setCheckState(Qt::Checked);
     else
       ui->prohibitUpdateCheck->setCheckState(Qt::Unchecked);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("prohibit_update");
+    LOG(ERROR) << _("Setting Operation Error") << _("prohibit_update_checking");
   }
 }
 
 void GpgFrontend::UI::NetworkTab::applySettings() {
+  LOG(INFO) << "called";
+
   auto &settings =
       GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
 
@@ -181,9 +160,9 @@ void GpgFrontend::UI::NetworkTab::applySettings() {
 
   if (!proxy.exists("proxy_host"))
     proxy.add("proxy_host", libconfig::Setting::TypeString) =
-        ui->proxyServerAddressLabel->text().toStdString();
+        ui->proxyServerAddressEdit->text().toStdString();
   else {
-    proxy["proxy_host"] = ui->proxyServerAddressLabel->text().toStdString();
+    proxy["proxy_host"] = ui->proxyServerAddressEdit->text().toStdString();
   }
 
   if (!proxy.exists("username"))
@@ -220,6 +199,10 @@ void GpgFrontend::UI::NetworkTab::applySettings() {
     proxy["enable"] = ui->enableProxyCheckBox->isChecked();
   }
 
+  if (!settings.exists("network") ||
+      settings.lookup("network").getType() != libconfig::Setting::TypeGroup)
+    settings.add("network", libconfig::Setting::TypeGroup);
+
   auto &network = settings["network"];
 
   if (!network.exists("forbid_all_connection"))
@@ -229,14 +212,16 @@ void GpgFrontend::UI::NetworkTab::applySettings() {
     network["forbid_all_connection"] = ui->forbidALLCheckBox->isChecked();
   }
 
-  if (!network.exists("prohibit_update"))
-    network.add("prohibit_update", libconfig::Setting::TypeBoolean) =
+  if (!network.exists("prohibit_update_checking"))
+    network.add("prohibit_update_checking", libconfig::Setting::TypeBoolean) =
         ui->prohibitUpdateCheck->isChecked();
   else {
-    network["prohibit_update"] = ui->prohibitUpdateCheck->isChecked();
+    network["prohibit_update_checking"] = ui->prohibitUpdateCheck->isChecked();
   }
 
   apply_proxy_settings();
+
+  LOG(INFO) << "done";
 }
 
 void GpgFrontend::UI::NetworkTab::slotTestProxyConnectionResult() {
@@ -253,14 +238,14 @@ void GpgFrontend::UI::NetworkTab::slotTestProxyConnectionResult() {
                 signalProxyConnectionTestResult,
             this, [=](const QString &result) {
               if (result == "Reachable") {
-                QMessageBox::information(
-                    this, _("Success"),
-                    _("Successfully connected to the target server"));
+                QMessageBox::information(this, _("Success"),
+                                         _("Successfully connect to the target "
+                                           "server through the proxy server."));
               } else {
-                QMessageBox::information(
+                QMessageBox::critical(
                     this, _("Failed"),
-                    _("Unable to connect to the target server. Proxy settings "
-                      "may be invalid."));
+                    _("Unable to connect to the target server through the "
+                      "proxy server. Proxy settings may be invalid."));
               }
             });
     connect(thread, &QThread::finished, thread, &QThread::deleteLater);
@@ -308,14 +293,42 @@ void GpgFrontend::UI::NetworkTab::apply_proxy_settings() {
       _proxy.setUser(ui->usernameEdit->text());
       _proxy.setPassword(ui->passwordEdit->text());
     }
-  }
-  if (proxy_type_ == QNetworkProxy::DefaultProxy) {
-    ;
   } else {
     _proxy.setType(proxy_type_);
   }
 
-  LOG(INFO) << "proxy" << _proxy.hostName().toStdString() << _proxy.port()
-            << _proxy.type();
   QNetworkProxy::setApplicationProxy(_proxy);
+}
+
+void GpgFrontend::UI::NetworkTab::switch_ui_enabled(bool enabled) {
+  ui->proxyServerAddressEdit->setDisabled(!enabled);
+  ui->portSpin->setDisabled(!enabled);
+  ui->proxyTypeComboBox->setDisabled(!enabled);
+  ui->usernameEdit->setDisabled(!enabled);
+  ui->passwordEdit->setDisabled(!enabled);
+  ui->checkProxyConnectionButton->setDisabled(!enabled);
+  if (!enabled) proxy_type_ = QNetworkProxy::NoProxy;
+}
+
+void GpgFrontend::UI::NetworkTab::switch_ui_proxy_type(
+    const QString &type_text) {
+  if (type_text == "HTTP") {
+    ui->proxyServerAddressEdit->setDisabled(false);
+    ui->portSpin->setDisabled(false);
+    ui->usernameEdit->setDisabled(false);
+    ui->passwordEdit->setDisabled(false);
+    proxy_type_ = QNetworkProxy::HttpProxy;
+  } else if (type_text == "Socks5") {
+    ui->proxyServerAddressEdit->setDisabled(false);
+    ui->portSpin->setDisabled(false);
+    ui->usernameEdit->setDisabled(false);
+    ui->passwordEdit->setDisabled(false);
+    proxy_type_ = QNetworkProxy::Socks5Proxy;
+  } else {
+    ui->proxyServerAddressEdit->setDisabled(true);
+    ui->portSpin->setDisabled(true);
+    ui->usernameEdit->setDisabled(true);
+    ui->passwordEdit->setDisabled(true);
+    proxy_type_ = QNetworkProxy::DefaultProxy;
+  }
 }

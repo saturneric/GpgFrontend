@@ -116,16 +116,20 @@ void MainWindow::init() noexcept {
 
     emit loaded();
 
+    // if not prohibit update checking
+    if (!prohibit_update_checking_) {
 #ifdef RELEASE
-    auto version_thread = new VersionCheckThread();
+      auto version_thread = new VersionCheckThread();
 
-    connect(version_thread, SIGNAL(finished()), version_thread,
-            SLOT(deleteLater()));
-    connect(version_thread, &VersionCheckThread::upgradeVersion, this,
-            &MainWindow::slotVersionUpgrade);
+      connect(version_thread, SIGNAL(finished()), version_thread,
+              SLOT(deleteLater()));
+      connect(version_thread, &VersionCheckThread::upgradeVersion, this,
+              &MainWindow::slotVersionUpgrade);
 
-    version_thread->start();
+      version_thread->start();
 #endif
+    }
+
   } catch (...) {
     LOG(FATAL) << _("Critical error occur while loading GpgFrontend.");
     QMessageBox::critical(nullptr, _("Loading Failed"),
@@ -299,6 +303,15 @@ void MainWindow::restoreSettings() {
 
     if (!smtp.exists("enable")) {
       smtp.add("enable", libconfig::Setting::TypeBoolean) = true;
+    }
+
+    prohibit_update_checking_ = false;
+    try {
+      prohibit_update_checking_ =
+          settings.lookup("network.prohibit_update_checking");
+    } catch (...) {
+      LOG(ERROR) << _("Setting Operation Error")
+                 << _("prohibit_update_checking");
     }
 
   } catch (...) {
