@@ -209,13 +209,12 @@ gpgme_error_t GpgContext::test_passphrase_cb(void *opaque, const char *uid_hint,
   } while (res > 0 && off != pass_len);
 
   return off == pass_len ? 0 : gpgme_error_from_errno(errno);
-  return 0;
 }
 
 gpgme_error_t GpgContext::test_status_cb(void *hook, const char *keyword,
                                          const char *args) {
   LOG(INFO) << "keyword" << keyword;
-  return 0;
+  return GPG_ERR_NO_ERROR;
 }
 
 }  // namespace GpgFrontend
