@@ -16,8 +16,8 @@
     - Sync
 - Features Guides
     - [Introduce](features/introduce.md)
-    - [Short Ciphertext](features/short-ciphertext.md)
-    - [Auto Pubkey Exchange](features/automatic-pubkey-exchange.md)
+    - [Short Cipher-text](features/short-ciphertext.md)
+    - [Public Key Sync](features/automatic-pubkey-exchange.md)
 - Contribute
     - [Translate Interface](translate-interface.md)
 - About
