@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.1\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-01-04 17:01+0800\n"
+"POT-Creation-Date: 2022-01-05 00:03+0800\n"
 "PO-Revision-Date: 2021-12-07 04:40+0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
@@ -47,11 +47,11 @@ msgid ""
 "the negligence of the programmer, please report this problem if you can."
 msgstr "哎呀，程序运行过程中抛出了未处理的异常，现在需要重启。这不是一个严重的问题，可能是程序员的疏忽，如果可以请报告这个问题。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:183
 msgid "A serious error has occurred"
 msgstr "发生了严重错误"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:184
 msgid ""
 "Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
 " restarted. If the problem recurs, please manually terminate the program and"
@@ -79,13 +79,13 @@ msgstr "不好了！ GpgFrontend 在软件中发现了严重错误，因此需�
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:38
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:43
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:48
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:131
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:179
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:264
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:316
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:350
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:448
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:508
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:149
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:197
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:282
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:334
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:466
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:526
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:120
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:176
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:216
@@ -142,41 +142,104 @@ msgid ""
 "The communication content with the server does not meet the requirements"
 msgstr "与服务器的通讯内容不符合要求"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:328
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:85
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:51
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:237
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:303
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:411
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:313
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:116
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:330
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:336
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:342
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:348
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:366
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:372
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:379
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:125
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:104
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:116
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:145
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:84
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:119
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:106
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:113
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:127
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:135
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:142
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:162
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
+msgid "Setting Operation Error"
+msgstr "设置操作错误"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
+msgid "longer_expiration_date"
+msgstr "long_expiration_date"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:54
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:130
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:257
 msgid "Generate Key"
 msgstr "生成密钥"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:92
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:76
 msgid "Name must contain at least five characters."
 msgstr "名称必须至少包含五个字符。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:96
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:80
 msgid "Please give a email address."
 msgstr "请提供一个电子邮件地址。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:87
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:225
-msgid "Expiration time no more than 2 years."
-msgstr "有效期不超过2年。"
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:104
+msgid "Expiration time too long."
+msgstr "过期时间太长。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:117
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:263
 msgid "Generating"
 msgstr "生成"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:130
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:259
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:146
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:275
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/ExportKeyPackageDialog.cpp:112
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:408
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:412
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:411
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:415
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:74
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:227
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:377
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:382
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:370
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:375
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:37
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:37
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:39
@@ -184,45 +247,45 @@ msgstr "生成"
 msgid "Success"
 msgstr "成功"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:147
 msgid "The new key pair has been generated."
 msgstr "新的密钥对已经生成。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:138
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:267
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:154
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:283
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:82
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
 msgid "Failure"
 msgstr "失败"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:167
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:68
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:85
 msgid "Key Usage"
 msgstr "密钥使用"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:169
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:70
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:185
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:87
 msgid "Encryption"
 msgstr "加密"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:172
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:73
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:188
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:90
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:265
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:158
 msgid "Signing"
 msgstr "签约"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:175
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:76
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:191
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:93
 msgid "Certification"
 msgstr "认证"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:178
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:194
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:96
 msgid "Authentication"
 msgstr "验证"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:368
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:155
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
@@ -232,55 +295,59 @@ msgstr "验证"
 msgid "Name"
 msgstr "姓名"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:355
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:369
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:155
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:68
 msgid "Email Address"
 msgstr "电子邮件地址"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:370
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:46
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:69
 msgid "Comment"
 msgstr "评论"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:357
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:371
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:139
 msgid "Expiration Date"
 msgstr "截止日期"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:358
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:372
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:140
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:197
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:222
 msgid "Never Expire"
 msgstr "永不过期"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:359
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:125
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:373
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:141
 msgid "KeySize (in Bit)"
 msgstr "密钥大小（以位为单位）"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:360
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:374
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:142
 msgid "Key Type"
 msgstr "钥匙类型"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:361
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:375
 msgid "Non Pass Phrase"
 msgstr "不合格短语"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:374
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:135
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:388
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:151
 msgid "Basic Information"
 msgstr "基本信息"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:53
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:70
 msgid "Generate New Subkey"
 msgstr "生成新子密钥"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:260
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:241
+msgid "Expiration time no more than 2 years."
+msgstr "有效期不超过2年。"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:276
 msgid "The new subkey has been generated."
 msgstr "新的子密钥已生成。"
 
@@ -343,7 +410,7 @@ msgstr "一次检查当前选项卡中的所有项目"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:428
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:458
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:59
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:139
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:143
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:260
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:445
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:553
@@ -392,51 +459,6 @@ msgstr "GpgFrontend 现在将尝试导入密钥。"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:319
 msgid "Always import without bothering."
 msgstr "始终导入而无需打扰。"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:328
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:85
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:51
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:74
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:92
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:219
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:285
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:393
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:107
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:116
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:327
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:333
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:339
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:345
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:351
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:357
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:363
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:369
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:376
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:124
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:133
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:84
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:119
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:119
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:126
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:133
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:140
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:148
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:155
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:163
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:175
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:186
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
-msgid "Setting Operation Error"
-msgstr "设置操作错误"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:328
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:119
@@ -538,14 +560,13 @@ msgstr "无标题"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:186
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:419
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:332
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:105
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:153
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:234
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:407
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:471
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:63
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:91
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:252
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:425
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:489
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:230
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:153
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:154
 msgid "Warning"
 msgstr "警告"
 
@@ -874,9 +895,9 @@ msgstr "密钥文件"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:364
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:378
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:477
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:245
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:261
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:275
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:250
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:266
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:280
 msgid "Forbidden"
 msgstr "禁止的"
 
@@ -1181,67 +1202,66 @@ msgstr "没有读取此文件的权限。"
 msgid "No permission to create file."
 msgstr "没有创建文件的权限。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:67
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:196
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:368
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:276
-msgid "No Key Selected"
-msgstr "未选择密钥"
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:237
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:303
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:411
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
+msgid "non_ascii_when_export"
+msgstr "non_ascii_when_export"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:68
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:197
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:369
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:134
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:277
-msgid "Please select the key in the key toolbox on the right."
-msgstr "请在右侧的密钥工具箱中选择密钥。"
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:87
+msgid "The target file %1% already exists, do you need to overwrite it?"
+msgstr "目标文件 %1% 已经存在，是否需要覆盖？"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:78
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:379
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:100
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:63
+msgid "Symmetric Encryption"
+msgstr "对称加密"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:101
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:64
+msgid ""
+"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr "未选择密钥。您想使用密码使用对称密码进行加密吗？"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:70
+msgid "Symmetrically Encrypting"
+msgstr "对称加密"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:397
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:288
 msgid "Invalid KeyPair"
 msgstr "无效的密钥对"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:79
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:380
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:125
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:289
 msgid "The selected keypair cannot be used for encryption."
 msgstr "所选的密钥对不能用于加密。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:80
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:381
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:399
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:89
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:146
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:290
 msgid "For example the Following Key:"
 msgstr "例如以下键："
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:92
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:219
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:285
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:393
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
-msgid "non_ascii_when_export"
-msgstr "non_ascii_when_export"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:106
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:154
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:408
-msgid "The target file already exists, do you need to overwrite it?"
-msgstr "目标文件已经存在，是否需要覆盖？"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:115
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:132
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:95
 msgid "Encrypting"
 msgstr "加密"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:132
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:180
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:265
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:351
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:449
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:509
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:198
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:283
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:369
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:467
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:527
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:121
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:177
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:217
@@ -1250,12 +1270,31 @@ msgstr "加密"
 msgid "An error occurred during operation."
 msgstr "操作过程中发生错误。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:163
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:426
+msgid "The target file already exists, do you need to overwrite it?"
+msgstr "目标文件已经存在，是否需要覆盖？"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:181
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:198
 msgid "Decrypting"
 msgstr "解密"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:214
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:386
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:276
+msgid "No Key Selected"
+msgstr "未选择密钥"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:215
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:387
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:277
+msgid "Please select the key in the key toolbox on the right."
+msgstr "请在右侧的密钥工具箱中选择密钥。"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:222
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:85
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:142
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:405
@@ -1269,48 +1308,48 @@ msgstr "解密"
 msgid "Invalid Operation"
 msgstr "无效操作"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:205
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:223
 msgid ""
 "The selected key contains a key that does not actually have a sign usage."
 msgstr "所选密钥包含一个实际上没有符号用法的密钥。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:207
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:225
 msgid "for example the Following Key:"
 msgstr "例如以下键："
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:235
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:253
 msgid "The signature file \"%1\" exists, do you need to overwrite it?"
 msgstr "签名文件“%1”存在，是否需要覆盖？"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:303
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:321
 msgid "Origin file to verify"
 msgstr "要验证的原始文件"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:304
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:322
 msgid "Filepath"
 msgstr "文件路径"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:317
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:335
 msgid ""
 "Please select the appropriate origin file or signature file. Ensure that "
 "both are in this directory."
 msgstr "请选择合适的源文件或签名文件。确保两者都在此目录中。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:328
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:346
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:246
 msgid "Verifying"
 msgstr "验证"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:428
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:446
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:318
 msgid "Encrypting and Signing"
 msgstr "加密和签名"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:472
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:490
 msgid "The output file %1 already exists, do you need to overwrite it?"
 msgstr "输出文件 %1 已经存在，是否需要覆盖？"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:484
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:502
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:412
 msgid "Decrypting and Verifying"
 msgstr "解密和验证"
@@ -1456,7 +1495,7 @@ msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
 msgstr "删除双换行符，例如在来自 Web Mailer 的粘贴文本中"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:150
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:79
 msgid "Settings"
 msgstr "设置"
 
@@ -1609,7 +1648,7 @@ msgid "Add PGP Header"
 msgstr "添加 PGP 标头"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:300
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:145
 msgid "New Message"
 msgstr "新消息"
 
@@ -1655,8 +1694,9 @@ msgstr "帮助"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:394
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:39
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:44
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:45
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:69
 msgid "Operations"
 msgstr "操作"
 
@@ -1688,7 +1728,7 @@ msgid "Key ToolBox"
 msgstr "钥匙工具箱"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:466
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:47
 msgid "Default"
 msgstr "默认"
 
@@ -1706,16 +1746,6 @@ msgstr "有私钥"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:86
 msgid "Information Board"
 msgstr "信息板"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:64
-msgid ""
-"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
-"passphrase?"
-msgstr "未选择密钥。您想使用密码使用对称密码进行加密吗？"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:70
-msgid "Symmetrically Encrypting"
-msgstr "对称加密"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:87
 msgid ""
@@ -1792,14 +1822,23 @@ msgid ""
 "You can download the latest stable version(%1) on Github Releases Page.<br/>"
 msgstr "您可以在 Github Releases Page 上下载最新的稳定版本 (%1)。<br/>"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:130
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:530
+msgid "This maybe a BETA Version (Latest Stable Version: %1)."
+msgstr "这可能是 BETA 版本（最新稳定版本：%1）。"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:136
 msgid "Critical error occur while loading GpgFrontend."
 msgstr "加载 GpgFrontend 时发生严重错误。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:135
 msgid "Loading Failed"
 msgstr "加载失败"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:314
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:145
+msgid "prohibit_update_checking"
+msgstr "禁止更新检查"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:44
 msgid "All"
@@ -2103,147 +2142,170 @@ msgstr "附上发件人的公钥"
 msgid "Encrypt content"
 msgstr "加密内容"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:159
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:132
+msgid "Edit Recipients(s)"
+msgstr "编辑收件人"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:133
+msgid "Edit CC(s)"
+msgstr "编辑抄送"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:134
+msgid "Edit BCC(s)"
+msgstr "编辑密件抄送"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:135
+msgid "Sender GPG Key: "
+msgstr "发件人 GPG 密钥："
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:136
+msgid "Recipient(s) GPG Key: "
+msgstr "收件人 GPG 密钥："
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:164
 msgid "Recipient cannot be empty"
 msgstr "收件人不能为空"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:170
 msgid "One or more recipient's email is invalid"
 msgstr "一个或多个收件人的电子邮件无效"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:177
 msgid "Sender cannot be empty"
 msgstr "发件人不能为空"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:174
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:179
 msgid "Sender's email is invalid"
 msgstr "发件人的电子邮件无效"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:183
 msgid "Subject cannot be empty"
 msgstr "主题不能为空"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:185
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:190
 msgid "One or more cc email is invalid"
 msgstr "一封或多封抄送电子邮件无效"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:195
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:200
 msgid "One or more bcc email is invalid"
 msgstr "一封或多封密件抄送电子邮件无效"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:251
 msgid ""
 "You have checked the encrypted email content, but you have not selected the "
 "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
 "So the send operation is forbidden"
 msgstr "您已检查加密的电子邮件内容，但尚未选择收件人的 GPG 密钥。这是危险的，邮件不会被加密。所以禁止发送操作"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:262
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:267
 msgid ""
 "You checked the option to attach signature to the email, but did not specify"
 " the sender's GPG Key. This will cause the content of the email to be "
 "inconsistent with your expectations, so the operation is prohibited."
 msgstr "您选中了将签名附加到电子邮件的选项，但没有指定发件人的 GPG 密钥。这会导致邮件内容与您的预期不一致，因此禁止操作。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:276
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:281
 msgid ""
 "You checked the option to attach your public key to the email, but did not "
 "specify the sender's GPG Key. This will cause the content of the email to be"
 " inconsistent with your expectations, so the operation is prohibited."
 msgstr "您选中了将您的公钥附加到电子邮件的选项，但没有指定发件人的 GPG 密钥。这会导致邮件内容与您的预期不一致，因此禁止操作。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:292
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:297
 msgid "Sending Email..."
 msgstr "正在发送电子邮件..."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:293
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:282
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:330
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:298
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:279
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:325
 msgid ""
 "If the process does not end for a long time, please check again whether your"
 " SMTP server configuration is correct."
 msgstr "如果该过程长时间没有结束，请再次检查您的 SMTP 服务器配置是否正确。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:327
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:330
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:84
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:186
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:178
 msgid "save_key_checked"
 msgstr "save_key_checked"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:333
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:336
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:162
 msgid "identity_enable"
 msgstr "身份启用"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:339
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:119
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:342
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:106
 msgid "mail_address"
 msgstr "邮件地址"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:345
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:348
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:113
 msgid "username"
 msgstr "用户名"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:351
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:120
 msgid "password"
 msgstr "密码"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:357
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:127
 msgid "port"
 msgstr "港口"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:363
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:148
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:366
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:135
 msgid "connection_type"
 msgstr "连接类型"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:369
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:372
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:142
 msgid "default_sender"
 msgstr "默认发送者"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:377
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:164
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:380
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:151
 msgid "default_sender_gpg_key_id"
 msgstr "default_sender_gpg_key_id"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:402
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:404
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:406
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:415
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:368
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:371
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:374
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:386
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:405
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:407
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:409
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:418
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:361
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:364
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:367
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:379
 msgid "Fail"
 msgstr "失败"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:402
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:405
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:361
 msgid "Fail to Connect SMTP Server."
 msgstr "无法连接 SMTP 服务器。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:404
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:406
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:371
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:374
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:407
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:409
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:364
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:367
 msgid "Fail to Login."
 msgstr "登录失败。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:409
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:378
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:412
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:371
 msgid "Succeed in connecting and login"
 msgstr "连接和登录成功"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:413
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:416
 msgid "Succeed in sending the message to the SMTP Server"
 msgstr "成功将邮件发送到 SMTP 服务器"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:415
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:386
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:418
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:379
 msgid "Unknown error."
 msgstr "未知错误。"
 
@@ -2804,11 +2866,6 @@ msgstr "警告：主键已被撤销。"
 msgid "The expire date of the key pair has been updated."
 msgstr "密钥对的到期日期已更新。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
-msgid "longer_expiration_date"
-msgstr "long_expiration_date"
-
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:122
 msgid "Modified Expiration Date (Local Time)"
 msgstr "修改到期日期（当地时间）"
@@ -2908,16 +2965,19 @@ msgstr "当前版本低于github上的最新版本。"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:212
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:223
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:235
 msgid "Please click"
 msgstr "请点击"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:215
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:226
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:238
 msgid "Here"
 msgstr "这里"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:215
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:226
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:238
 msgid "to download the latest stable version."
 msgstr "下载最新的稳定版本。"
 
@@ -2926,6 +2986,13 @@ msgid ""
 "This version has serious problems and has been withdrawn. Please stop using "
 "it immediately."
 msgstr "此版本存在严重问题，已撤回。请立即停止使用。"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:232
+msgid ""
+"This version has not been released yet, it may be a beta version. If you are"
+" not a tester and care about version stability, please do not use this "
+"version."
+msgstr "此版本尚未发布，可能是测试版。如果您不是测试人员并且关心版本稳定性，请不要使用此版本。"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:34
 msgid "Signatures Details"
@@ -3089,68 +3156,68 @@ msgstr "密钥已更新"
 msgid "No need to update the key"
 msgstr "无需更新密钥"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:43
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:44
 msgid "Keyserver List"
 msgstr "密钥服务器列表"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:48
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:49
 msgid "Keyserver Address"
 msgstr "密钥服务器地址"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:49
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:50
 msgid "Security"
 msgstr "安全"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:51
 msgid "Available"
 msgstr "可用的"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:52
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:53
 msgid "Add"
 msgstr "添加"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:53
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
 msgid "Test Listed Keyserver"
 msgstr "测试列出的密钥服务器"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:55
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:56
 msgid "Tips: Please Double-click table item to edit it."
 msgstr "提示：请双击表格项进行编辑。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:57
 msgid "Delete Selected"
 msgstr "删除所选"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:58
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:59
 msgid "Delete Selected Key Server"
 msgstr "删除选定的密钥服务器"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:59
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:60
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:61
 msgid "Set As Default"
 msgstr "设为默认"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:125
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
 msgid "server_list"
 msgstr "服务器列表"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:134
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
 msgid "default_server"
 msgstr "默认服务器"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:144
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:145
 msgid "Insecure keyserver address"
 msgstr "不安全的密钥服务器地址"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:145
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:146
 msgid ""
 "For security reasons, using HTTP as the communication protocol with the key "
 "server is not recommended. It is recommended to use HTTPS."
 msgstr "出于安全原因，不建议使用 HTTP 作为与密钥服务器的通信协议。建议使用HTTPS。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:154
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:155
 msgid ""
 "You may not use HTTPS or HTTP as the protocol for communicating with the key"
 " server, which may not be wrong. But please check the address you entered "
@@ -3159,16 +3226,16 @@ msgid ""
 msgstr ""
 "您可能不会使用HTTPS或HTTP作为与密钥服务器通信的协议，这可能没有错。但请再次检查您输入的地址以确保其正确无误。您确定要将其添加到密钥服务器列表中吗？"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:215
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:216
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
 msgid "true"
 msgstr "真的"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:216
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:217
 msgid "false"
 msgstr "错误的"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:221
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:222
 msgid "unknown"
 msgstr "未知"
 
@@ -3176,13 +3243,23 @@ msgstr "未知"
 msgid "Set TCP Timeout"
 msgstr "设置 TCP 超时"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:254
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:259
 msgid "Reachable"
 msgstr "可达"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:257
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:262
 msgid "Not Reachable"
 msgstr "不能达到"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:275
+msgid "Test Key Server Connection..."
+msgstr "测试密钥服务器连接..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:276
+msgid ""
+"This test only tests the network connectivity of the key server. Passing the"
+" test does not mean that the key server is functionally available."
+msgstr "本测试仅测试密钥服务器的网络连通性。通过测试并不意味着密钥服务器在功能上可用。"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:42
 msgid "Updated ui configuration successfully written to"
@@ -3280,31 +3357,130 @@ msgstr "信息板中的字体大小"
 msgid "window_save"
 msgstr "窗口_保存"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:51
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:66
 msgid "General"
 msgstr "一般的"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:52
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:55
 msgid "Appearance"
 msgstr "外貌"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:57
 msgid "Send Mail"
 msgstr "发邮件"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:59
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
 msgid "Key Server"
 msgstr "密钥服务器"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:61
+msgid "Network"
+msgstr "网络"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:63
 msgid "Advanced"
 msgstr "先进的"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:136
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:141
 msgid "System Default"
 msgstr "系统默认"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:45
+msgid "Proxy"
+msgstr "代理人"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:46
+msgid "Network Capability"
+msgstr "网络能力"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:49
+msgid "Enable Proxy"
+msgstr "启用代理"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:53
+msgid "Port"
+msgstr "港口"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:52
+msgid "Host Address"
+msgstr "主机地址"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:54
+msgid "Proxy Type"
+msgstr "代理类型"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:55
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:77
+msgid "Username"
+msgstr "用户名"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:78
+msgid "Password"
+msgstr "密码"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:58
+msgid "Forbid all network connection."
+msgstr "禁止所有网络连接。"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:62
+msgid "Prohibit checking for version updates when the program starts."
+msgstr "禁止在程序启动时检查版本更新。"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:63
+msgid "Check Proxy Connection"
+msgstr "检查代理连接"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:75
+msgid "proxy_host"
+msgstr "代理主机"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:104
+msgid "proxy_type"
+msgstr "代理类型"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:116
+msgid "proxy_enable"
+msgstr "代理启用"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:133
+msgid "forbid_all_connection"
+msgstr "禁止所有连接"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:231
+msgid "Test Server Url Accessibility"
+msgstr "测试服务器 URL 可访问性"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:242
+msgid "Successfully connect to the target server through the proxy server."
+msgstr "通过代理服务器成功连接到目标服务器。"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:41
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:45
+msgid "Failed"
+msgstr "失败的"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:247
+msgid ""
+"Unable to connect to the target server through the proxy server. Proxy "
+"settings may be invalid."
+msgstr "无法通过代理服务器连接到目标服务器。代理设置可能无效。"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:258
+msgid "Test Proxy Server Connection..."
+msgstr "测试代理服务器连接..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:259
+msgid ""
+"Is using your proxy settings to access the url. Note that this test "
+"operation will apply your proxy settings to the entire software."
+msgstr "正在使用您的代理设置访问 url。请注意，此测试操作会将您的代理设置应用于整个软件。"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:37
 msgid "Show Steganography Options"
@@ -3370,84 +3546,76 @@ msgstr "如果您更改语言，GpgFrontend 将自动重启！"
 msgid "lang"
 msgstr "朗"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:80
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:67
 msgid "Identity Information"
 msgstr "身份信息"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:81
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:68
 msgid "Preference"
 msgstr "偏爱"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:84
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:71
 msgid "Enable Send Mail Ability"
 msgstr "启用发送邮件功能"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:85
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:72
 msgid "Need Auth"
 msgstr "需要认证"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:87
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:74
 msgid "SMTP Server Address"
 msgstr "SMTP 服务器地址"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:88
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:75
 msgid "SMTP Server Port"
 msgstr "SMTP 服务器端口"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:76
 msgid "SMTP Connection Security"
 msgstr "SMTP 连接安全"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:90
-msgid "Username"
-msgstr "用户名"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:91
-msgid "Password"
-msgstr "密码"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:93
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:80
 msgid "Default Sender Email"
 msgstr "默认发件人电子邮件"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:81
 msgid "Check Connection"
 msgstr "检查连接"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:95
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:82
 msgid "Send Test Email"
 msgstr "发送测试邮件"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:83
 msgid "Default Sender GPG Key ID"
 msgstr "默认发件人 GPG 密钥 ID"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:86
 msgid ""
 "Tips: It is recommended that you build your own mail server or use a trusted"
 " mail server. If you don't know the detailed configuration information, you "
 "can get it from the mail service provider."
 msgstr "温馨提示：建议您自建邮件服务器或使用可信赖的邮件服务器。如果您不知道详细的配置信息，可以从邮件服务提供商处获取。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:281
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:278
 msgid "Test SMTP Connection..."
 msgstr "测试 SMTP 连接..."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:329
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:324
 msgid "Test SMTP Send Mail Ability..."
 msgstr "测试 SMTP 发送邮件能力..."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:350
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:343
 msgid "Test Email from GpgFrontend"
 msgstr "从 GpgFrontend 测试电子邮件"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:352
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:345
 msgid ""
 "Hello, this is a test email from GpgFrontend. If you receive this email, it "
 "means that you have configured the correct SMTP server parameters."
 msgstr "你好，这是一封来自 GpgFrontend 的测试邮件。如果您收到此电子邮件，则表示您已配置正确的 SMTP 服务器参数。"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:383
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:376
 msgid "Succeed in sending a test email to the SMTP Server"
 msgstr "成功向 SMTP 服务器发送测试邮件"
 
@@ -3551,13 +3719,6 @@ msgstr "钥匙进口"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:34
 msgid "Decrypt Operation"
 msgstr "解密操作"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:39
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:39
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:41
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:45
-msgid "Failed"
-msgstr "失败的"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:43
 msgid "Unsupported Algo"
@@ -3915,17 +4076,8 @@ msgstr "运营商不支持"
 #~ msgid "Update Key Pair"
 #~ msgstr "更新密钥对"
 
-#~ msgid "Address"
-#~ msgstr "地址"
-
 #~ msgid "Default Key Server for Import"
 #~ msgstr "用于导入的默认密钥服务器"
-
-#~ msgid "Enable"
-#~ msgstr "使能够"
-
-#~ msgid "Port"
-#~ msgstr "港口"
 
 #~ msgid "File..."
 #~ msgstr "文件..."

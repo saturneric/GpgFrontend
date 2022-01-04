@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.2\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-01-04 17:01+0800\n"
+"POT-Creation-Date: 2022-01-05 00:03+0800\n"
 "PO-Revision-Date: 2021-12-14 00:41+0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
@@ -54,11 +54,11 @@ msgstr ""
 "проблем, може да е небрежност на програмиста, моля, докладвайте този "
 "проблем, ако можете."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:183
 msgid "A serious error has occurred"
 msgstr "Възникна сериозна грешка"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:184
 msgid ""
 "Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
 " restarted. If the problem recurs, please manually terminate the program and"
@@ -89,13 +89,13 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:38
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:43
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:48
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:131
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:179
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:264
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:316
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:350
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:448
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:508
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:149
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:197
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:282
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:334
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:466
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:526
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:120
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:176
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:216
@@ -152,41 +152,104 @@ msgid ""
 "The communication content with the server does not meet the requirements"
 msgstr "Комуникационното съдържание със сървъра не отговаря на изискванията"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:328
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:85
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:51
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:237
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:303
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:411
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:313
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:116
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:330
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:336
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:342
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:348
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:366
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:372
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:379
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:125
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:104
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:116
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:145
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:84
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:119
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:106
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:113
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:127
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:135
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:142
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:162
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
+msgid "Setting Operation Error"
+msgstr "Грешка при настройка"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
+msgid "longer_expiration_date"
+msgstr "по-дълга_дата на_изтичане"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:54
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:130
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:257
 msgid "Generate Key"
 msgstr "Генериране на ключ"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:92
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:76
 msgid "Name must contain at least five characters."
 msgstr "Името трябва да съдържа поне пет знака."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:96
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:80
 msgid "Please give a email address."
 msgstr "Моля, дайте имейл адрес."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:87
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:225
-msgid "Expiration time no more than 2 years."
-msgstr "Срок на годност не повече от 2 години."
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:104
+msgid "Expiration time too long."
+msgstr "Времето на изтичане е твърде дълго."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:117
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:263
 msgid "Generating"
 msgstr "Генериране"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:130
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:259
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:146
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:275
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/ExportKeyPackageDialog.cpp:112
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:408
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:412
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:411
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:415
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:74
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:227
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:377
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:382
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:370
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:375
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:37
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:37
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:39
@@ -194,45 +257,45 @@ msgstr "Генериране"
 msgid "Success"
 msgstr "успех"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:147
 msgid "The new key pair has been generated."
 msgstr "Новата двойка ключове е генерирана."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:138
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:267
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:154
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:283
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:82
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
 msgid "Failure"
 msgstr "Неуспех"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:167
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:68
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:85
 msgid "Key Usage"
 msgstr "Използване на ключове"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:169
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:70
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:185
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:87
 msgid "Encryption"
 msgstr "криптиране"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:172
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:73
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:188
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:90
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:265
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:158
 msgid "Signing"
 msgstr "Подписване"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:175
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:76
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:191
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:93
 msgid "Certification"
 msgstr "Сертифициране"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:178
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:194
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:96
 msgid "Authentication"
 msgstr "Удостоверяване"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:368
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:155
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
@@ -242,55 +305,59 @@ msgstr "Удостоверяване"
 msgid "Name"
 msgstr "име"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:355
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:369
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:155
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:68
 msgid "Email Address"
 msgstr "Имейл адрес"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:370
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:46
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:69
 msgid "Comment"
 msgstr "Коментирайте"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:357
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:371
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:139
 msgid "Expiration Date"
 msgstr "Срок на годност"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:358
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:372
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:140
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:197
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:222
 msgid "Never Expire"
 msgstr "Никога не изтича"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:359
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:125
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:373
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:141
 msgid "KeySize (in Bit)"
 msgstr "Размер на ключа (в битове)"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:360
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:374
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:142
 msgid "Key Type"
 msgstr "Тип ключ"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:361
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:375
 msgid "Non Pass Phrase"
 msgstr "Непроходима фраза"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:374
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:135
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:388
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:151
 msgid "Basic Information"
 msgstr "Основна информация"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:53
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:70
 msgid "Generate New Subkey"
 msgstr "Генериране на нов подключ"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:260
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:241
+msgid "Expiration time no more than 2 years."
+msgstr "Срок на годност не повече от 2 години."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:276
 msgid "The new subkey has been generated."
 msgstr "Новият подключ е генериран."
 
@@ -355,7 +422,7 @@ msgstr "Проверете всички елементи в текущия ра�
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:428
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:458
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:59
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:139
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:143
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:260
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:445
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:553
@@ -404,51 +471,6 @@ msgstr "GpgFrontend сега ще се опита да импортира клю
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:319
 msgid "Always import without bothering."
 msgstr "Винаги внасяйте без да се притеснявате."
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:328
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:85
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:51
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:74
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:92
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:219
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:285
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:393
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:107
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:116
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:327
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:333
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:339
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:345
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:351
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:357
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:363
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:369
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:376
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:124
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:133
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:84
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:119
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:119
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:126
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:133
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:140
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:148
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:155
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:163
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:175
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:186
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
-msgid "Setting Operation Error"
-msgstr "Грешка при настройка"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:328
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:119
@@ -553,14 +575,13 @@ msgstr "без заглавие"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:186
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:419
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:332
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:105
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:153
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:234
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:407
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:471
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:63
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:91
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:252
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:425
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:489
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:230
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:153
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:154
 msgid "Warning"
 msgstr "Внимание"
 
@@ -889,9 +910,9 @@ msgstr "Ключов файл"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:364
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:378
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:477
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:245
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:261
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:275
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:250
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:266
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:280
 msgid "Forbidden"
 msgstr "Забранен"
 
@@ -1229,67 +1250,68 @@ msgstr "Няма разрешение за четене на този файл."
 msgid "No permission to create file."
 msgstr "Няма разрешение за създаване на файл."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:67
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:196
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:368
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:276
-msgid "No Key Selected"
-msgstr "Не е избран ключ"
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:237
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:303
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:411
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
+msgid "non_ascii_when_export"
+msgstr "non_ascii_when_export"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:68
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:197
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:369
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:134
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:277
-msgid "Please select the key in the key toolbox on the right."
-msgstr "Моля, изберете ключа в кутията с инструменти отдясно."
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:87
+msgid "The target file %1% already exists, do you need to overwrite it?"
+msgstr "Целевият файл %1% вече съществува, трябва ли да го презапишете?"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:78
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:379
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:100
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:63
+msgid "Symmetric Encryption"
+msgstr "Симетрично криптиране"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:101
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:64
+msgid ""
+"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr ""
+"Не е избран ключ. Искате ли да шифровате със симетричен шифър с помощта на "
+"парола?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:70
+msgid "Symmetrically Encrypting"
+msgstr "Симетрично криптиране"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:397
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:288
 msgid "Invalid KeyPair"
 msgstr "Невалидна двойка ключове"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:79
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:380
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:125
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:289
 msgid "The selected keypair cannot be used for encryption."
 msgstr "Избраната двойка ключове не може да се използва за криптиране."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:80
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:381
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:399
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:89
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:146
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:290
 msgid "For example the Following Key:"
 msgstr "Например следния ключ:"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:92
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:219
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:285
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:393
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
-msgid "non_ascii_when_export"
-msgstr "non_ascii_when_export"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:106
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:154
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:408
-msgid "The target file already exists, do you need to overwrite it?"
-msgstr "Целевият файл вече съществува, трябва ли да го презапишете?"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:115
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:132
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:95
 msgid "Encrypting"
 msgstr "Криптиране"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:132
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:180
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:265
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:351
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:449
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:509
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:198
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:283
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:369
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:467
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:527
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:121
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:177
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:217
@@ -1298,12 +1320,31 @@ msgstr "Криптиране"
 msgid "An error occurred during operation."
 msgstr "Възникна грешка по време на работа."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:163
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:426
+msgid "The target file already exists, do you need to overwrite it?"
+msgstr "Целевият файл вече съществува, трябва ли да го презапишете?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:181
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:198
 msgid "Decrypting"
 msgstr "Декриптиране"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:214
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:386
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:276
+msgid "No Key Selected"
+msgstr "Не е избран ключ"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:215
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:387
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:277
+msgid "Please select the key in the key toolbox on the right."
+msgstr "Моля, изберете ключа в кутията с инструменти отдясно."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:222
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:85
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:142
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:405
@@ -1317,28 +1358,28 @@ msgstr "Декриптиране"
 msgid "Invalid Operation"
 msgstr "Невалидна операция"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:205
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:223
 msgid ""
 "The selected key contains a key that does not actually have a sign usage."
 msgstr "Избраният ключ съдържа ключ, който всъщност няма използване на знак."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:207
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:225
 msgid "for example the Following Key:"
 msgstr "например следния ключ:"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:235
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:253
 msgid "The signature file \"%1\" exists, do you need to overwrite it?"
 msgstr "Файлът за подпис \"%1\" съществува, трябва ли да го презапишете?"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:303
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:321
 msgid "Origin file to verify"
 msgstr "Файл с произход за проверка"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:304
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:322
 msgid "Filepath"
 msgstr "Файлова пътека"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:317
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:335
 msgid ""
 "Please select the appropriate origin file or signature file. Ensure that "
 "both are in this directory."
@@ -1346,21 +1387,21 @@ msgstr ""
 "Моля, изберете подходящия файл с произход или файл за подпис. Уверете се, че"
 " и двете са в тази директория."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:328
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:346
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:246
 msgid "Verifying"
 msgstr "Проверка"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:428
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:446
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:318
 msgid "Encrypting and Signing"
 msgstr "Шифроване и подписване"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:472
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:490
 msgid "The output file %1 already exists, do you need to overwrite it?"
 msgstr "Изходният файл %1 вече съществува, трябва ли да го презапишете?"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:484
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:502
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:412
 msgid "Decrypting and Verifying"
 msgstr "Декриптиране и проверка"
@@ -1506,7 +1547,7 @@ msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
 msgstr "Премахнете двойните прекъсвания, напр. в поставен текст от Web Mailer"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:150
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:79
 msgid "Settings"
 msgstr "Настройки"
 
@@ -1659,7 +1700,7 @@ msgid "Add PGP Header"
 msgstr "Добавете PGP заглавка"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:300
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:145
 msgid "New Message"
 msgstr "Ново съобщение"
 
@@ -1705,8 +1746,9 @@ msgstr "Помогне"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:394
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:39
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:44
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:45
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:69
 msgid "Operations"
 msgstr "Операции"
 
@@ -1738,7 +1780,7 @@ msgid "Key ToolBox"
 msgstr "Ключова кутия с инструменти"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:466
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:47
 msgid "Default"
 msgstr "По подразбиране"
 
@@ -1756,18 +1798,6 @@ msgstr "Има частен ключ"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:86
 msgid "Information Board"
 msgstr "Информационно табло"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:64
-msgid ""
-"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
-"passphrase?"
-msgstr ""
-"Не е избран ключ. Искате ли да шифровате със симетричен шифър с помощта на "
-"парола?"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:70
-msgid "Symmetrically Encrypting"
-msgstr "Симетрично криптиране"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:87
 msgid ""
@@ -1856,14 +1886,23 @@ msgstr ""
 "Можете да изтеглите най-новата стабилна версия (%1) на Github Releases "
 "Page.<br/>"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:130
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:530
+msgid "This maybe a BETA Version (Latest Stable Version: %1)."
+msgstr "Това може би е БЕТА версия (най-нова стабилна версия: %1)."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:136
 msgid "Critical error occur while loading GpgFrontend."
 msgstr "Възниква критична грешка при зареждане на GpgFrontend."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:135
 msgid "Loading Failed"
 msgstr "Зареждането не бе успешно"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:314
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:145
+msgid "prohibit_update_checking"
+msgstr "prohibit_update_checking"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:44
 msgid "All"
@@ -2182,35 +2221,55 @@ msgstr "Прикачете публичния ключ на подателя"
 msgid "Encrypt content"
 msgstr "Шифроване на съдържанието"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:159
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:132
+msgid "Edit Recipients(s)"
+msgstr "Редактиране на получатели"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:133
+msgid "Edit CC(s)"
+msgstr "Редактиране на CC(s)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:134
+msgid "Edit BCC(s)"
+msgstr "Редактиране на BCC(s)"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:135
+msgid "Sender GPG Key: "
+msgstr "GPG ключ на подателя:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:136
+msgid "Recipient(s) GPG Key: "
+msgstr "GPG ключ на получател(и):"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:164
 msgid "Recipient cannot be empty"
 msgstr "Получателят не може да бъде празен"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:170
 msgid "One or more recipient's email is invalid"
 msgstr "Имейлът на един или повече получател е невалиден"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:177
 msgid "Sender cannot be empty"
 msgstr "Изпращачът не може да бъде празен"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:174
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:179
 msgid "Sender's email is invalid"
 msgstr "Имейлът на подателя е невалиден"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:183
 msgid "Subject cannot be empty"
 msgstr "Темата не може да бъде празна"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:185
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:190
 msgid "One or more cc email is invalid"
 msgstr "Един или повече cc имейл е невалиден"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:195
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:200
 msgid "One or more bcc email is invalid"
 msgstr "Един или повече имейли за Bcc е невалиден"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:251
 msgid ""
 "You have checked the encrypted email content, but you have not selected the "
 "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
@@ -2220,7 +2279,7 @@ msgstr ""
 " на получателя. Това е опасно и пощата няма да бъде криптирана. Така че "
 "операцията по изпращане е забранена"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:262
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:267
 msgid ""
 "You checked the option to attach signature to the email, but did not specify"
 " the sender's GPG Key. This will cause the content of the email to be "
@@ -2230,7 +2289,7 @@ msgstr ""
 "GPG ключа на подателя. Това ще доведе до несъответствие на съдържанието на "
 "имейла с вашите очаквания, така че операцията е забранена."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:276
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:281
 msgid ""
 "You checked the option to attach your public key to the email, but did not "
 "specify the sender's GPG Key. This will cause the content of the email to be"
@@ -2240,13 +2299,13 @@ msgstr ""
 "посочили GPG ключа на подателя. Това ще доведе до несъответствие на "
 "съдържанието на имейла с вашите очаквания, така че операцията е забранена."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:292
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:297
 msgid "Sending Email..."
 msgstr "Изпраща се имейл..."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:293
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:282
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:330
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:298
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:279
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:325
 msgid ""
 "If the process does not end for a long time, please check again whether your"
 " SMTP server configuration is correct."
@@ -2254,86 +2313,89 @@ msgstr ""
 "Ако процесът не приключи дълго време, моля, проверете отново дали "
 "конфигурацията на вашия SMTP сървър е правилна."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:327
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:330
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:84
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:186
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:178
 msgid "save_key_checked"
 msgstr "save_key_checked"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:333
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:336
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:162
 msgid "identity_enable"
 msgstr "identity_enable"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:339
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:119
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:342
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:106
 msgid "mail_address"
 msgstr "пощенски адрес"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:345
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:348
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:113
 msgid "username"
 msgstr "потребителско име"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:351
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:120
 msgid "password"
 msgstr "парола"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:357
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:127
 msgid "port"
 msgstr "пристанище"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:363
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:148
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:366
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:135
 msgid "connection_type"
 msgstr "вид на връзката"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:369
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:372
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:142
 msgid "default_sender"
 msgstr "default_sender"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:377
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:164
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:380
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:151
 msgid "default_sender_gpg_key_id"
 msgstr "default_sender_gpg_key_id"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:402
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:404
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:406
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:415
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:368
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:371
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:374
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:386
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:405
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:407
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:409
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:418
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:361
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:364
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:367
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:379
 msgid "Fail"
 msgstr "Неуспех"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:402
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:405
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:361
 msgid "Fail to Connect SMTP Server."
 msgstr "Неуспешно свързване на SMTP сървър."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:404
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:406
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:371
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:374
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:407
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:409
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:364
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:367
 msgid "Fail to Login."
 msgstr "Неуспешно влизане."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:409
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:378
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:412
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:371
 msgid "Succeed in connecting and login"
 msgstr "Успейте в свързването и влизането"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:413
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:416
 msgid "Succeed in sending the message to the SMTP Server"
 msgstr "Успейте да изпратите съобщението до SMTP сървъра"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:415
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:386
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:418
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:379
 msgid "Unknown error."
 msgstr "Неизвестна грешка."
 
@@ -2903,11 +2965,6 @@ msgstr "Предупреждение: Първичният ключ е отме�
 msgid "The expire date of the key pair has been updated."
 msgstr "Датата на изтичане на двойката ключове е актуализирана."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
-msgid "longer_expiration_date"
-msgstr "по-дълга_дата на_изтичане"
-
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:122
 msgid "Modified Expiration Date (Local Time)"
 msgstr "Променен срок на валидност (местно време)"
@@ -3018,16 +3075,19 @@ msgstr "Текущата версия е по-малка от последнат
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:212
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:223
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:235
 msgid "Please click"
 msgstr "Моля, кликнете"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:215
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:226
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:238
 msgid "Here"
 msgstr "Тук"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:215
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:226
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:238
 msgid "to download the latest stable version."
 msgstr "за да изтеглите най-новата стабилна версия."
 
@@ -3038,6 +3098,16 @@ msgid ""
 msgstr ""
 "Тази версия има сериозни проблеми и е оттеглена. Моля, спрете да го "
 "използвате незабавно."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:232
+msgid ""
+"This version has not been released yet, it may be a beta version. If you are"
+" not a tester and care about version stability, please do not use this "
+"version."
+msgstr ""
+"Тази версия все още не е пусната, може да е бета версия. Ако не сте тестер и"
+" се интересувате от стабилността на версията, моля, не използвайте тази "
+"версия."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:34
 msgid "Signatures Details"
@@ -3208,64 +3278,64 @@ msgstr "Ключът е актуализиран"
 msgid "No need to update the key"
 msgstr "Няма нужда да актуализирате ключа"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:43
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:44
 msgid "Keyserver List"
 msgstr "Списък с ключови сървъри"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:48
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:49
 msgid "Keyserver Address"
 msgstr "Адрес на ключов сървър"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:49
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:50
 msgid "Security"
 msgstr "Сигурност"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:51
 msgid "Available"
 msgstr "На разположение"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:52
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:53
 msgid "Add"
 msgstr "Добавете"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:53
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
 msgid "Test Listed Keyserver"
 msgstr "Тестван ключов сървър"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:55
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:56
 msgid "Tips: Please Double-click table item to edit it."
 msgstr ""
 "Съвети: Моля, щракнете двукратно върху елемент от таблицата, за да го "
 "редактирате."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:57
 msgid "Delete Selected"
 msgstr "Изтрий избраното"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:58
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:59
 msgid "Delete Selected Key Server"
 msgstr "Изтриване на избрания ключов сървър"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:59
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:60
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:61
 msgid "Set As Default"
 msgstr "Е активирана по подразбиране"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:125
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
 msgid "server_list"
 msgstr "сървър_списък"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:134
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
 msgid "default_server"
 msgstr "сървър_по подразбиране"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:144
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:145
 msgid "Insecure keyserver address"
 msgstr "Несигурен адрес на ключов сървър"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:145
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:146
 msgid ""
 "For security reasons, using HTTP as the communication protocol with the key "
 "server is not recommended. It is recommended to use HTTPS."
@@ -3274,7 +3344,7 @@ msgstr ""
 "комуникационен протокол с ключовия сървър. Препоръчително е да използвате "
 "HTTPS."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:154
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:155
 msgid ""
 "You may not use HTTPS or HTTP as the protocol for communicating with the key"
 " server, which may not be wrong. But please check the address you entered "
@@ -3286,16 +3356,16 @@ msgstr ""
 "адреса, който сте въвели, за да се уверите, че е правилен. Сигурни ли сте, "
 "че искате да го добавите в списъка с ключов сървър?"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:215
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:216
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
 msgid "true"
 msgstr "вярно"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:216
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:217
 msgid "false"
 msgstr "фалшиво"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:221
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:222
 msgid "unknown"
 msgstr "неизвестен"
 
@@ -3303,13 +3373,25 @@ msgstr "неизвестен"
 msgid "Set TCP Timeout"
 msgstr "Задайте време за изчакване на TCP"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:254
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:259
 msgid "Reachable"
 msgstr "Постижимо"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:257
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:262
 msgid "Not Reachable"
 msgstr "Недостъпно"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:275
+msgid "Test Key Server Connection..."
+msgstr "Тестване на връзката със сървъра на ключ..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:276
+msgid ""
+"This test only tests the network connectivity of the key server. Passing the"
+" test does not mean that the key server is functionally available."
+msgstr ""
+"Този тест тества само мрежовата свързаност на ключовия сървър. Издържането "
+"на теста не означава, че ключовият сървър е функционално наличен."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:42
 msgid "Updated ui configuration successfully written to"
@@ -3413,31 +3495,136 @@ msgstr "Размер на шрифта в информационното таб�
 msgid "window_save"
 msgstr "window_save"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:51
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:66
 msgid "General"
 msgstr "Общ"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:52
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:55
 msgid "Appearance"
 msgstr "Външен вид"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:57
 msgid "Send Mail"
 msgstr "Изпрати писмо"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:59
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
 msgid "Key Server"
 msgstr "Ключов сървър"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:61
+msgid "Network"
+msgstr "мрежа"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:63
 msgid "Advanced"
 msgstr "Разширено"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:136
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:141
 msgid "System Default"
 msgstr "Система по подразбиране"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:45
+msgid "Proxy"
+msgstr "Прокси"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:46
+msgid "Network Capability"
+msgstr "Мрежови възможности"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:49
+msgid "Enable Proxy"
+msgstr "Активиране на прокси"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:53
+msgid "Port"
+msgstr "Порт"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:52
+msgid "Host Address"
+msgstr "Адрес на хоста"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:54
+msgid "Proxy Type"
+msgstr "Тип прокси"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:55
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:77
+msgid "Username"
+msgstr "Потребителско име"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:78
+msgid "Password"
+msgstr "парола"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:58
+msgid "Forbid all network connection."
+msgstr "Забранете всички мрежови връзки."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:62
+msgid "Prohibit checking for version updates when the program starts."
+msgstr ""
+"Забранете проверката за актуализации на версията при стартиране на "
+"програмата."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:63
+msgid "Check Proxy Connection"
+msgstr "Проверете прокси връзката"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:75
+msgid "proxy_host"
+msgstr "proxy_host"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:104
+msgid "proxy_type"
+msgstr "прокси_тип"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:116
+msgid "proxy_enable"
+msgstr "proxy_enable"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:133
+msgid "forbid_all_connection"
+msgstr "забрани_всички_връзки"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:231
+msgid "Test Server Url Accessibility"
+msgstr "Тествайте достъпност на URL адрес на сървъра"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:242
+msgid "Successfully connect to the target server through the proxy server."
+msgstr "Свържете се успешно с целевия сървър чрез прокси сървъра."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:41
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:45
+msgid "Failed"
+msgstr "Се провали"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:247
+msgid ""
+"Unable to connect to the target server through the proxy server. Proxy "
+"settings may be invalid."
+msgstr ""
+"Не може да се свърже с целевия сървър през прокси сървъра. Настройките на "
+"прокси сървъра може да са невалидни."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:258
+msgid "Test Proxy Server Connection..."
+msgstr "Тестване на връзката с прокси сървър..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:259
+msgid ""
+"Is using your proxy settings to access the url. Note that this test "
+"operation will apply your proxy settings to the entire software."
+msgstr ""
+"Използва вашите прокси настройки за достъп до URL адреса. Имайте предвид, че"
+" тази тестова операция ще приложи вашите прокси настройки към целия софтуер."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:37
 msgid "Show Steganography Options"
@@ -3506,59 +3693,51 @@ msgstr "GpgFrontend ще се рестартира автоматично, ак�
 msgid "lang"
 msgstr "език"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:80
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:67
 msgid "Identity Information"
 msgstr "Информация за самоличност"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:81
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:68
 msgid "Preference"
 msgstr "Предпочитание"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:84
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:71
 msgid "Enable Send Mail Ability"
 msgstr "Активирайте възможността за изпращане на поща"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:85
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:72
 msgid "Need Auth"
 msgstr "Нуждаете се от Auth"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:87
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:74
 msgid "SMTP Server Address"
 msgstr "Адрес на SMTP сървъра"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:88
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:75
 msgid "SMTP Server Port"
 msgstr "Порт на SMTP сървъра"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:76
 msgid "SMTP Connection Security"
 msgstr "Защита на SMTP връзката"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:90
-msgid "Username"
-msgstr "Потребителско име"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:91
-msgid "Password"
-msgstr "парола"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:93
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:80
 msgid "Default Sender Email"
 msgstr "Имейл на подателя по подразбиране"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:81
 msgid "Check Connection"
 msgstr "Проверете връзката"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:95
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:82
 msgid "Send Test Email"
 msgstr "Изпратете тестов имейл"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:83
 msgid "Default Sender GPG Key ID"
 msgstr "Идентификатор на ключ GPG на подателя по подразбиране"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:86
 msgid ""
 "Tips: It is recommended that you build your own mail server or use a trusted"
 " mail server. If you don't know the detailed configuration information, you "
@@ -3568,19 +3747,19 @@ msgstr ""
 "използвате доверен пощенски сървър. Ако не знаете подробната информация за "
 "конфигурацията, можете да я получите от доставчика на пощенски услуги."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:281
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:278
 msgid "Test SMTP Connection..."
 msgstr "Тествайте SMTP връзката..."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:329
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:324
 msgid "Test SMTP Send Mail Ability..."
 msgstr "Тествайте SMTP възможността за изпращане на поща..."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:350
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:343
 msgid "Test Email from GpgFrontend"
 msgstr "Тестов имейл от GpgFrontend"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:352
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:345
 msgid ""
 "Hello, this is a test email from GpgFrontend. If you receive this email, it "
 "means that you have configured the correct SMTP server parameters."
@@ -3588,7 +3767,7 @@ msgstr ""
 "Здравейте, това е тестов имейл от GpgFrontend. Ако получите този имейл, това"
 " означава, че сте конфигурирали правилните параметри на SMTP сървъра."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:383
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:376
 msgid "Succeed in sending a test email to the SMTP Server"
 msgstr "Успейте да изпратите тестов имейл до SMTP сървъра"
 
@@ -3696,13 +3875,6 @@ msgstr "Ключът е импортиран"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:34
 msgid "Decrypt Operation"
 msgstr "Декриптиране на операция"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:39
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:39
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:41
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:45
-msgid "Failed"
-msgstr "Се провали"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:43
 msgid "Unsupported Algo"
@@ -4070,14 +4242,5 @@ msgstr "оператор не се поддържа"
 #~ msgid "Update Key Pair"
 #~ msgstr "Актуализирайте двойка ключове"
 
-#~ msgid "Address"
-#~ msgstr "Адрес"
-
 #~ msgid "Default Key Server for Import"
 #~ msgstr "Ключов сървър по подразбиране за импортиране"
-
-#~ msgid "Enable"
-#~ msgstr "Разрешаване"
-
-#~ msgid "Port"
-#~ msgstr "Порт"

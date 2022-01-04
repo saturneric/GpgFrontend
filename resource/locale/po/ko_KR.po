@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.1\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-01-04 17:01+0800\n"
+"POT-Creation-Date: 2022-01-05 00:03+0800\n"
 "PO-Revision-Date: 2021-12-07 04:40+0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
@@ -50,11 +50,11 @@ msgstr ""
 "죄송합니다. 프로그램 실행 중에 처리되지 않은 예외가 발생하여 이제 다시 시작해야 합니다. 이것은 심각한 문제가 아니며 프로그래머의 "
 "부주의 일 수 있습니다. 가능하면이 문제를보고하십시오."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:182
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:183
 msgid "A serious error has occurred"
 msgstr "심각한 오류가 발생했습니다"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:184
 msgid ""
 "Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
 " restarted. If the problem recurs, please manually terminate the program and"
@@ -84,13 +84,13 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:38
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:43
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:48
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:131
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:179
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:264
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:316
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:350
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:448
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:508
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:149
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:197
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:282
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:334
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:466
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:526
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:120
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:176
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:216
@@ -147,41 +147,104 @@ msgid ""
 "The communication content with the server does not meet the requirements"
 msgstr "서버와의 통신 내용이 요구 사항을 충족하지 않습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:37
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:328
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:85
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:51
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:74
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:237
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:303
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:411
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:313
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:116
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:330
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:336
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:342
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:348
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:366
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:372
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:379
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:125
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:104
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:116
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:145
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:84
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:119
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:106
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:113
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:127
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:135
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:142
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:162
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
+msgid "Setting Operation Error"
+msgstr "설정 작업 오류"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
+msgid "longer_expiration_date"
+msgstr "더 긴_만료_날짜"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:54
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:130
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:257
 msgid "Generate Key"
 msgstr "키 생성"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:92
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:76
 msgid "Name must contain at least five characters."
 msgstr "이름은 5자 이상이어야 합니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:96
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:80
 msgid "Please give a email address."
 msgstr "이메일 주소를 알려주세요."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:87
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:225
-msgid "Expiration time no more than 2 years."
-msgstr "만료 시간은 2년을 넘지 않습니다."
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:104
+msgid "Expiration time too long."
+msgstr "만료 시간이 너무 깁니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:117
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:263
 msgid "Generating"
 msgstr "생성"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:130
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:259
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:146
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:275
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/ExportKeyPackageDialog.cpp:112
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:408
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:412
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:411
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:415
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:74
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:227
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:377
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:382
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:241
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:370
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:375
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:37
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:37
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:39
@@ -189,45 +252,45 @@ msgstr "생성"
 msgid "Success"
 msgstr "성공"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:147
 msgid "The new key pair has been generated."
 msgstr "새 키 쌍이 생성되었습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:138
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:267
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:154
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:283
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:82
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
 msgid "Failure"
 msgstr "실패"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:167
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:68
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:183
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:85
 msgid "Key Usage"
 msgstr "키 사용법"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:169
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:70
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:185
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:87
 msgid "Encryption"
 msgstr "암호화"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:172
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:73
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:247
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:188
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:90
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:265
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:158
 msgid "Signing"
 msgstr "서명"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:175
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:76
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:191
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:93
 msgid "Certification"
 msgstr "인증"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:178
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:194
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:96
 msgid "Authentication"
 msgstr "입증"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:368
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:155
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:155
@@ -237,55 +300,59 @@ msgstr "입증"
 msgid "Name"
 msgstr "이름"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:355
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:369
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:155
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:68
 msgid "Email Address"
 msgstr "이메일 주소"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:356
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:370
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:132
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:46
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:69
 msgid "Comment"
 msgstr "논평"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:357
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:123
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:371
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:139
 msgid "Expiration Date"
 msgstr "만료일"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:358
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:372
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:140
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:197
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:222
 msgid "Never Expire"
 msgstr "만료되지 않음"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:359
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:125
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:373
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:141
 msgid "KeySize (in Bit)"
 msgstr "키 크기(비트)"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:360
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:374
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:142
 msgid "Key Type"
 msgstr "키 유형"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:361
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:375
 msgid "Non Pass Phrase"
 msgstr "비통과 문구"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:374
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:135
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/KeygenDialog.cpp:388
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:151
 msgid "Basic Information"
 msgstr "기본 정보"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:53
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:70
 msgid "Generate New Subkey"
 msgstr "새 하위 키 생성"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:260
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:241
+msgid "Expiration time no more than 2 years."
+msgstr "만료 시간은 2년을 넘지 않습니다."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keygen/SubkeyGenerateDialog.cpp:276
 msgid "The new subkey has been generated."
 msgstr "새 하위 키가 생성되었습니다."
 
@@ -348,7 +415,7 @@ msgstr "현재 탭의 모든 항목을 한 번에 확인"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:428
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:458
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:59
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:139
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:143
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:260
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:445
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:553
@@ -397,51 +464,6 @@ msgstr "이제 GpgFrontend가 키 가져오기를 시도합니다."
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:319
 msgid "Always import without bothering."
 msgstr "항상 귀찮게하지 않고 가져옵니다."
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:328
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:85
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:51
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/Wizard.cpp:74
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:92
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:219
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:285
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:393
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:107
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:116
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:327
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:333
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:339
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:345
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:351
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:357
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:363
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:369
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:376
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:124
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:133
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:133
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:156
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:165
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:174
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:84
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:109
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:119
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:119
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:126
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:133
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:140
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:148
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:155
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:163
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:175
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:186
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
-msgid "Setting Operation Error"
-msgstr "설정 작업 오류"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/KeyList.cpp:328
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:119
@@ -543,14 +565,13 @@ msgstr "무제"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:186
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/TextEdit.cpp:419
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/widgets/FilePage.cpp:332
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:105
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:153
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:234
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:407
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:471
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:63
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:91
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:171
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:252
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:425
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:489
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:230
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:153
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:154
 msgid "Warning"
 msgstr "경고"
 
@@ -879,9 +900,9 @@ msgstr "키 파일"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:364
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:378
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:477
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:245
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:261
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:275
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:250
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:266
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:280
 msgid "Forbidden"
 msgstr "금지"
 
@@ -1191,67 +1212,66 @@ msgstr "이 파일을 읽을 수 있는 권한이 없습니다."
 msgid "No permission to create file."
 msgstr "파일 생성 권한이 없습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:67
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:196
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:368
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:276
-msgid "No Key Selected"
-msgstr "선택한 키 없음"
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:73
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:237
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:303
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:411
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
+msgid "non_ascii_when_export"
+msgstr "non_ascii_when_export"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:68
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:197
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:369
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:134
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:277
-msgid "Please select the key in the key toolbox on the right."
-msgstr "오른쪽의 키 도구 상자에서 키를 선택하십시오."
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:87
+msgid "The target file %1% already exists, do you need to overwrite it?"
+msgstr "대상 파일 %1%이(가) 이미 존재합니다. 덮어써야 합니까?"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:78
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:379
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:100
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:63
+msgid "Symmetric Encryption"
+msgstr "대칭 암호화"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:101
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:64
+msgid ""
+"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr "선택된 키가 없습니다. 암호를 사용하여 대칭 암호로 암호화하시겠습니까?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:70
+msgid "Symmetrically Encrypting"
+msgstr "대칭 암호화"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:397
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:288
 msgid "Invalid KeyPair"
 msgstr "잘못된 키 쌍"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:79
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:380
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:125
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:289
 msgid "The selected keypair cannot be used for encryption."
 msgstr "선택한 키 쌍은 암호화에 사용할 수 없습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:80
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:381
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:399
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:89
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:146
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:290
 msgid "For example the Following Key:"
 msgstr "예를 들어 다음 키:"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:92
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:219
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:285
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:393
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:129
-msgid "non_ascii_when_export"
-msgstr "non_ascii_when_export"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:106
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:154
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:408
-msgid "The target file already exists, do you need to overwrite it?"
-msgstr "대상 파일이 이미 존재합니다. 덮어써야 합니까?"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:115
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:132
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:95
 msgid "Encrypting"
 msgstr "암호화"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:132
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:180
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:265
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:351
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:449
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:509
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:150
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:198
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:283
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:369
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:467
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:527
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:121
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:177
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:217
@@ -1260,12 +1280,31 @@ msgstr "암호화"
 msgid "An error occurred during operation."
 msgstr "작업 중 오류가 발생했습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:163
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:426
+msgid "The target file already exists, do you need to overwrite it?"
+msgstr "대상 파일이 이미 존재합니다. 덮어써야 합니까?"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:181
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:198
 msgid "Decrypting"
 msgstr "복호화"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:214
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:386
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:276
+msgid "No Key Selected"
+msgstr "선택한 키 없음"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:215
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:387
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:277
+msgid "Please select the key in the key toolbox on the right."
+msgstr "오른쪽의 키 도구 상자에서 키를 선택하십시오."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:222
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:85
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:142
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:405
@@ -1279,48 +1318,48 @@ msgstr "복호화"
 msgid "Invalid Operation"
 msgstr "잘못된 작업"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:205
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:223
 msgid ""
 "The selected key contains a key that does not actually have a sign usage."
 msgstr "선택한 키에 실제로 기호 사용이 없는 키가 포함되어 있습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:207
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:225
 msgid "for example the Following Key:"
 msgstr "예를 들어 다음 키:"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:235
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:253
 msgid "The signature file \"%1\" exists, do you need to overwrite it?"
 msgstr "서명 파일 \"%1\"이(가) 존재합니다. 덮어써야 합니까?"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:303
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:321
 msgid "Origin file to verify"
 msgstr "확인할 원본 파일"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:304
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:322
 msgid "Filepath"
 msgstr "파일 경로"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:317
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:335
 msgid ""
 "Please select the appropriate origin file or signature file. Ensure that "
 "both are in this directory."
 msgstr "적절한 원본 파일 또는 서명 파일을 선택하십시오. 둘 다 이 디렉토리에 있는지 확인하십시오."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:328
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:346
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:246
 msgid "Verifying"
 msgstr "확인 중"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:428
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:446
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:318
 msgid "Encrypting and Signing"
 msgstr "암호화 및 서명"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:472
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:490
 msgid "The output file %1 already exists, do you need to overwrite it?"
 msgstr "출력 파일 %1이(가) 이미 존재합니다. 덮어써야 합니까?"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:484
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:502
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:412
 msgid "Decrypting and Verifying"
 msgstr "암호 해독 및 확인"
@@ -1466,7 +1505,7 @@ msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
 msgstr "이중 줄 바꿈을 제거하십시오. Web Mailer에서 붙여넣은 텍스트"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:150
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:75
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:79
 msgid "Settings"
 msgstr "설정"
 
@@ -1619,7 +1658,7 @@ msgid "Add PGP Header"
 msgstr "PGP 헤더 추가"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:300
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:145
 msgid "New Message"
 msgstr "새로운 메시지"
 
@@ -1665,8 +1704,9 @@ msgstr "돕다"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:394
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:39
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:44
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:45
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:47
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:69
 msgid "Operations"
 msgstr "운영"
 
@@ -1698,7 +1738,7 @@ msgid "Key ToolBox"
 msgstr "키 도구 상자"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:466
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:46
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:47
 msgid "Default"
 msgstr "기본"
 
@@ -1716,16 +1756,6 @@ msgstr "개인 키 있음"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:86
 msgid "Information Board"
 msgstr "안내 게시판"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:64
-msgid ""
-"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
-"passphrase?"
-msgstr "선택된 키가 없습니다. 암호를 사용하여 대칭 암호로 암호화하시겠습니까?"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:70
-msgid "Symmetrically Encrypting"
-msgstr "대칭 암호화"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:87
 msgid ""
@@ -1803,14 +1833,23 @@ msgid ""
 "You can download the latest stable version(%1) on Github Releases Page.<br/>"
 msgstr "Github 릴리스 페이지에서 최신 안정 버전(%1)을 다운로드할 수 있습니다.<br/>"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:130
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:132
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:530
+msgid "This maybe a BETA Version (Latest Stable Version: %1)."
+msgstr "베타 버전(최신 안정 버전: %1)일 수 있습니다."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:134
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:136
 msgid "Critical error occur while loading GpgFrontend."
 msgstr "GpgFrontend를 로드하는 동안 치명적인 오류가 발생했습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:131
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:135
 msgid "Loading Failed"
 msgstr "로드 실패"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/MainWindow.cpp:314
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:145
+msgid "prohibit_update_checking"
+msgstr "금지_업데이트_확인"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:44
 msgid "All"
@@ -2114,35 +2153,55 @@ msgstr "보낸 사람의 공개 키 첨부"
 msgid "Encrypt content"
 msgstr "콘텐츠 암호화"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:159
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:132
+msgid "Edit Recipients(s)"
+msgstr "수신자 편집"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:133
+msgid "Edit CC(s)"
+msgstr "참조 편집"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:134
+msgid "Edit BCC(s)"
+msgstr "숨은 참조 편집"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:135
+msgid "Sender GPG Key: "
+msgstr "발신자 GPG 키:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:136
+msgid "Recipient(s) GPG Key: "
+msgstr "수신자 GPG 키:"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:164
 msgid "Recipient cannot be empty"
 msgstr "받는 사람은 비워둘 수 없습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:165
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:170
 msgid "One or more recipient's email is invalid"
 msgstr "한 명 이상의 수신자 이메일이 잘못되었습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:172
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:177
 msgid "Sender cannot be empty"
 msgstr "발신자는 비워둘 수 없습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:174
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:179
 msgid "Sender's email is invalid"
 msgstr "보낸 사람의 이메일이 잘못되었습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:178
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:183
 msgid "Subject cannot be empty"
 msgstr "제목은 비워둘 수 없습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:185
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:190
 msgid "One or more cc email is invalid"
 msgstr "하나 이상의 참조 이메일이 잘못되었습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:195
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:200
 msgid "One or more bcc email is invalid"
 msgstr "하나 이상의 숨은 참조 이메일이 잘못되었습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:251
 msgid ""
 "You have checked the encrypted email content, but you have not selected the "
 "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
@@ -2151,7 +2210,7 @@ msgstr ""
 "암호화된 이메일 내용을 확인했지만 수신자의 GPG 키를 선택하지 않았습니다. 이것은 위험하며 메일이 암호화되지 않습니다. 따라서 전송 "
 "작업이 금지됩니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:262
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:267
 msgid ""
 "You checked the option to attach signature to the email, but did not specify"
 " the sender's GPG Key. This will cause the content of the email to be "
@@ -2160,7 +2219,7 @@ msgstr ""
 "이메일에 서명을 첨부하는 옵션을 선택했지만 보낸 사람의 GPG 키를 지정하지 않았습니다. 이로 인해 이메일 내용이 예상과 일치하지 않을 "
 "수 있으므로 작업이 금지됩니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:276
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:281
 msgid ""
 "You checked the option to attach your public key to the email, but did not "
 "specify the sender's GPG Key. This will cause the content of the email to be"
@@ -2169,98 +2228,101 @@ msgstr ""
 "공개 키를 이메일에 첨부하는 옵션을 선택했지만 보낸 사람의 GPG 키를 지정하지 않았습니다. 이로 인해 이메일 내용이 예상과 일치하지 "
 "않을 수 있으므로 작업이 금지됩니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:292
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:297
 msgid "Sending Email..."
 msgstr "이메일을 보내는 중..."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:293
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:282
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:330
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:298
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:279
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:325
 msgid ""
 "If the process does not end for a long time, please check again whether your"
 " SMTP server configuration is correct."
 msgstr "오랜 시간 동안 프로세스가 종료되지 않으면 SMTP 서버 구성이 올바른지 다시 확인하십시오."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:327
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:330
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:84
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:186
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:178
 msgid "save_key_checked"
 msgstr "save_key_checked"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:333
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:336
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:162
 msgid "identity_enable"
 msgstr "identity_enable"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:339
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:119
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:342
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:106
 msgid "mail_address"
 msgstr "메일 주소"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:345
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:126
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:348
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:82
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:113
 msgid "username"
 msgstr "사용자 이름"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:351
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:354
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:120
 msgid "password"
 msgstr "비밀번호"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:357
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:140
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:360
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:127
 msgid "port"
 msgstr "포트"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:363
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:148
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:366
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:135
 msgid "connection_type"
 msgstr "연결 타입"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:369
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:155
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:372
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:142
 msgid "default_sender"
 msgstr "default_sender"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:377
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:164
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:380
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:151
 msgid "default_sender_gpg_key_id"
 msgstr "default_sender_gpg_key_id"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:402
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:404
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:406
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:415
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:368
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:371
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:374
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:386
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:405
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:407
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:409
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:418
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:361
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:364
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:367
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:379
 msgid "Fail"
 msgstr "불합격"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:402
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:368
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:405
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:361
 msgid "Fail to Connect SMTP Server."
 msgstr "SMTP 서버 연결에 실패했습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:404
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:406
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:371
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:374
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:407
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:409
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:364
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:367
 msgid "Fail to Login."
 msgstr "로그인에 실패했습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:409
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:378
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:412
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:371
 msgid "Succeed in connecting and login"
 msgstr "접속 및 로그인 성공"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:413
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:416
 msgid "Succeed in sending the message to the SMTP Server"
 msgstr "SMTP 서버로 메시지 전송 성공"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:415
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:386
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/smtp/SendMailDialog.cpp:418
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:379
 msgid "Unknown error."
 msgstr "알수없는 오류."
 
@@ -2821,11 +2883,6 @@ msgstr "경고: 기본 키가 취소되었습니다."
 msgid "The expire date of the key pair has been updated."
 msgstr "키 쌍의 만료 날짜가 업데이트되었습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:99
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:94
-msgid "longer_expiration_date"
-msgstr "더 긴_만료_날짜"
-
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:122
 msgid "Modified Expiration Date (Local Time)"
 msgstr "수정된 만료 날짜(현지 시간)"
@@ -2928,16 +2985,19 @@ msgstr "현재 버전이 github의 최신 버전보다 낮습니다."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:212
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:223
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:235
 msgid "Please click"
 msgstr "클릭하세요"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:215
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:226
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:238
 msgid "Here"
 msgstr "여기"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:215
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:226
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:238
 msgid "to download the latest stable version."
 msgstr "최신 안정 버전을 다운로드합니다."
 
@@ -2946,6 +3006,15 @@ msgid ""
 "This version has serious problems and has been withdrawn. Please stop using "
 "it immediately."
 msgstr "이 버전은 심각한 문제가 있어 철회되었습니다. 즉시 사용을 중지해 주십시오."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:232
+msgid ""
+"This version has not been released yet, it may be a beta version. If you are"
+" not a tester and care about version stability, please do not use this "
+"version."
+msgstr ""
+"이 버전은 아직 출시되지 않았으며 베타 버전일 수 있습니다. 테스터가 아니고 버전 안정성에 관심이 있는 분은 이 버전을 사용하지 "
+"마십시오."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:34
 msgid "Signatures Details"
@@ -3113,69 +3182,69 @@ msgstr "키가 업데이트되었습니다."
 msgid "No need to update the key"
 msgstr "키를 업데이트할 필요가 없습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:43
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:44
 msgid "Keyserver List"
 msgstr "키 서버 목록"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:48
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:49
 msgid "Keyserver Address"
 msgstr "키 서버 주소"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:49
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:50
 msgid "Security"
 msgstr "보안"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:51
 msgid "Available"
 msgstr "사용 가능"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:52
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:53
 msgid "Add"
 msgstr "추가하다"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:53
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
 msgid "Test Listed Keyserver"
 msgstr "나열된 키 서버 테스트"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:55
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:56
 msgid "Tips: Please Double-click table item to edit it."
 msgstr "팁: 편집하려면 테이블 항목을 두 번 클릭하십시오."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:57
 msgid "Delete Selected"
 msgstr "선택된 것을 지워 라"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:58
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:59
 msgid "Delete Selected Key Server"
 msgstr "선택한 키 서버 삭제"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:59
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:60
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:61
 msgid "Set As Default"
 msgstr "기본값으로 설정"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:124
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:125
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:162
 msgid "server_list"
 msgstr "서버 목록"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:133
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:134
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:170
 msgid "default_server"
 msgstr "default_server"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:144
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:145
 msgid "Insecure keyserver address"
 msgstr "안전하지 않은 키 서버 주소"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:145
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:146
 msgid ""
 "For security reasons, using HTTP as the communication protocol with the key "
 "server is not recommended. It is recommended to use HTTPS."
 msgstr ""
 "보안상의 이유로 키 서버와의 통신 프로토콜로 HTTP를 사용하는 것은 권장되지 않습니다. HTTPS를 사용하는 것이 좋습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:154
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:155
 msgid ""
 "You may not use HTTPS or HTTP as the protocol for communicating with the key"
 " server, which may not be wrong. But please check the address you entered "
@@ -3185,16 +3254,16 @@ msgstr ""
 "키 서버와 통신하기 위한 프로토콜로 HTTPS 또는 HTTP를 사용할 수 없습니다. 이는 잘못된 것이 아닙니다. 그러나 입력한 주소가 "
 "정확한지 다시 한 번 확인하십시오. 키 서버 목록에 추가하시겠습니까?"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:215
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:216
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:55
 msgid "true"
 msgstr "진실"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:216
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:217
 msgid "false"
 msgstr "거짓"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:221
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:222
 msgid "unknown"
 msgstr "알려지지 않은"
 
@@ -3202,13 +3271,24 @@ msgstr "알려지지 않은"
 msgid "Set TCP Timeout"
 msgstr "TCP 시간 초과 설정"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:254
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:259
 msgid "Reachable"
 msgstr "도달 가능"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:257
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:262
 msgid "Not Reachable"
 msgstr "연결할 수 없음"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:275
+msgid "Test Key Server Connection..."
+msgstr "키 서버 연결 테스트..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:276
+msgid ""
+"This test only tests the network connectivity of the key server. Passing the"
+" test does not mean that the key server is functionally available."
+msgstr ""
+"이 테스트는 키 서버의 네트워크 연결만 테스트합니다. 테스트를 통과했다고 해서 키 서버를 기능적으로 사용할 수 있는 것은 아닙니다."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/GlobalSettingStation.cpp:42
 msgid "Updated ui configuration successfully written to"
@@ -3306,31 +3386,130 @@ msgstr "정보 게시판의 글꼴 크기"
 msgid "window_save"
 msgstr "창_저장"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:51
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:79
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:66
 msgid "General"
 msgstr "일반적인"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:52
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:55
 msgid "Appearance"
 msgstr "모습"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:57
 msgid "Send Mail"
 msgstr "메일을 보내다"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:59
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/KeyServerImportDialog.cpp:54
 msgid "Key Server"
 msgstr "키 서버"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:59
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:61
+msgid "Network"
+msgstr "회로망"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:63
 msgid "Advanced"
 msgstr "고급의"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:136
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:141
 msgid "System Default"
 msgstr "시스템 기본값"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:45
+msgid "Proxy"
+msgstr "대리"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:46
+msgid "Network Capability"
+msgstr "네트워크 기능"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:49
+msgid "Enable Proxy"
+msgstr "프록시 활성화"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:50
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:53
+msgid "Port"
+msgstr "포트"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:52
+msgid "Host Address"
+msgstr "호스트 주소"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:54
+msgid "Proxy Type"
+msgstr "프록시 유형"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:55
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:77
+msgid "Username"
+msgstr "사용자 이름"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:56
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:78
+msgid "Password"
+msgstr "비밀번호"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:58
+msgid "Forbid all network connection."
+msgstr "모든 네트워크 연결을 금지합니다."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:62
+msgid "Prohibit checking for version updates when the program starts."
+msgstr "프로그램 시작 시 버전 업데이트 확인을 금지합니다."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:63
+msgid "Check Proxy Connection"
+msgstr "프록시 연결 확인"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:75
+msgid "proxy_host"
+msgstr "프록시 호스트"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:104
+msgid "proxy_type"
+msgstr "프록시 유형"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:116
+msgid "proxy_enable"
+msgstr "프록시 활성화"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:133
+msgid "forbid_all_connection"
+msgstr "forbid_all_connection"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:231
+msgid "Test Server Url Accessibility"
+msgstr "테스트 서버 URL 접근성"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:242
+msgid "Successfully connect to the target server through the proxy server."
+msgstr "프록시 서버를 통해 대상 서버에 성공적으로 연결합니다."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:246
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:39
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:41
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:45
+msgid "Failed"
+msgstr "실패한"
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:247
+msgid ""
+"Unable to connect to the target server through the proxy server. Proxy "
+"settings may be invalid."
+msgstr "프록시 서버를 통해 대상 서버에 연결할 수 없습니다. 프록시 설정이 잘못되었을 수 있습니다."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:258
+msgid "Test Proxy Server Connection..."
+msgstr "프록시 서버 연결 테스트..."
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:259
+msgid ""
+"Is using your proxy settings to access the url. Note that this test "
+"operation will apply your proxy settings to the entire software."
+msgstr "프록시 설정을 사용하여 URL에 액세스하고 있습니다. 이 테스트 작업은 프록시 설정을 전체 소프트웨어에 적용합니다."
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:37
 msgid "Show Steganography Options"
@@ -3396,59 +3575,51 @@ msgstr "언어를 변경하면 GpgFrontend가 자동으로 다시 시작됩니�
 msgid "lang"
 msgstr "랑"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:80
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:67
 msgid "Identity Information"
 msgstr "신원 정보"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:81
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:68
 msgid "Preference"
 msgstr "선호"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:84
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:71
 msgid "Enable Send Mail Ability"
 msgstr "메일 보내기 기능 활성화"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:85
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:72
 msgid "Need Auth"
 msgstr "인증 필요"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:87
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:74
 msgid "SMTP Server Address"
 msgstr "SMTP 서버 주소"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:88
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:75
 msgid "SMTP Server Port"
 msgstr "SMTP 서버 포트"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:89
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:76
 msgid "SMTP Connection Security"
 msgstr "SMTP 연결 보안"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:90
-msgid "Username"
-msgstr "사용자 이름"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:91
-msgid "Password"
-msgstr "비밀번호"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:93
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:80
 msgid "Default Sender Email"
 msgstr "기본 발신자 이메일"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:94
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:81
 msgid "Check Connection"
 msgstr "연결 확인"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:95
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:82
 msgid "Send Test Email"
 msgstr "테스트 이메일 보내기"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:96
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:83
 msgid "Default Sender GPG Key ID"
 msgstr "기본 발신자 GPG 키 ID"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:99
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:86
 msgid ""
 "Tips: It is recommended that you build your own mail server or use a trusted"
 " mail server. If you don't know the detailed configuration information, you "
@@ -3457,26 +3628,26 @@ msgstr ""
 "팁: 자체 메일 서버를 구축하거나 신뢰할 수 있는 메일 서버를 사용하는 것이 좋습니다. 자세한 구성 정보를 모르는 경우 메일 서비스 "
 "제공업체에서 얻을 수 있습니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:281
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:278
 msgid "Test SMTP Connection..."
 msgstr "SMTP 연결 테스트..."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:329
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:324
 msgid "Test SMTP Send Mail Ability..."
 msgstr "SMTP 메일 보내기 기능 테스트..."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:350
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:343
 msgid "Test Email from GpgFrontend"
 msgstr "GpgFrontend에서 이메일 테스트"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:352
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:345
 msgid ""
 "Hello, this is a test email from GpgFrontend. If you receive this email, it "
 "means that you have configured the correct SMTP server parameters."
 msgstr ""
 "안녕하세요, GpgFrontend의 테스트 이메일입니다. 이 이메일을 받으면 올바른 SMTP 서버 매개변수를 구성했음을 의미합니다."
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:383
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:376
 msgid "Succeed in sending a test email to the SMTP Server"
 msgstr "SMTP 서버로 테스트 이메일 전송 성공"
 
@@ -3580,13 +3751,6 @@ msgstr "가져온 키"
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:34
 msgid "Decrypt Operation"
 msgstr "암호 해독 작업"
-
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:39
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/EncryptResultAnalyse.cpp:39
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/SignResultAnalyse.cpp:41
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/VerifyResultAnalyse.cpp:45
-msgid "Failed"
-msgstr "실패한"
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/gpg/result_analyse/DecryptResultAnalyse.cpp:43
 msgid "Unsupported Algo"
@@ -3944,17 +4108,8 @@ msgstr "연산자가 지원하지 않음"
 #~ msgid "Update Key Pair"
 #~ msgstr "키 쌍 업데이트"
 
-#~ msgid "Address"
-#~ msgstr "주소"
-
 #~ msgid "Default Key Server for Import"
 #~ msgstr "가져오기용 기본 키 서버"
-
-#~ msgid "Enable"
-#~ msgstr "할 수있게하다"
-
-#~ msgid "Port"
-#~ msgstr "포트"
 
 #~ msgid "File..."
 #~ msgstr "파일..."
