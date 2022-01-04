@@ -168,7 +168,6 @@ void GpgFrontend::GenKeyInfo::setKeySize(int m_key_size) {
 void GpgFrontend::GenKeyInfo::setExpired(
     const boost::posix_time::ptime &m_expired) {
   using namespace boost::gregorian;
-  auto current = boost::posix_time::second_clock::local_time();
   if (!isNonExpired()) {
     GenKeyInfo::expired_ = m_expired;
   }
