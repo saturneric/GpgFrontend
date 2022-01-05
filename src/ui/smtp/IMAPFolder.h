@@ -21,41 +21,30 @@
  * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
+#ifndef GPGFRONTEND_IMAPFOLDER_H
+#define GPGFRONTEND_IMAPFOLDER_H
 
-#ifndef GPGFRONTEND_RECEIVEMAILDIALOG_H
-#define GPGFRONTEND_RECEIVEMAILDIALOG_H
-
-#include "ui/GpgFrontendUI.h"
-
-class Ui_ReceiveMailDialog;
+#include "GpgFrontendUI.h"
 
 namespace vmime::net {
 class folder;
 };
 
 namespace GpgFrontend::UI {
-
-class IMAPFolder;
-
-class ReceiveMailDialog : public QDialog {
-  Q_OBJECT
+class IMAPFolder {
  public:
-  ReceiveMailDialog(QWidget* parent);
+  explicit IMAPFolder(std::shared_ptr<vmime::net::folder> folder);
 
- private slots:
-  void slotRefreshData();
+  void SetParentFolder(IMAPFolder* parent_node);
+
+  QTreeWidgetItem* GetTreeWidgetItem();
+
+  vmime::net::folder* GetVmimeFolder();
 
  private:
-  std::shared_ptr<Ui_ReceiveMailDialog> ui;
-
-  std::string get_folder_path(const std::shared_ptr<vmime::net::folder>& f);
-
-  void list_sub_folders(IMAPFolder* parent_folder,
-                        const std::shared_ptr<vmime::net::folder>&);
-
-  std::vector<std::shared_ptr<IMAPFolder>> folders;
+  std::shared_ptr<vmime::net::folder> folder_;
+  QTreeWidgetItem* tree_node_;
 };
-
 }  // namespace GpgFrontend::UI
 
-#endif  // GPGFRONTEND_RECEIVEMAILDIALOG_H
+#endif  // GPGFRONTEND_IMAPFOLDER_H
