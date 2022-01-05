@@ -24,6 +24,8 @@
 
 #include "GlobalSettingStation.h"
 
+#include <vmime/vmime.hpp>
+
 std::unique_ptr<GpgFrontend::UI::GlobalSettingStation>
     GpgFrontend::UI::GlobalSettingStation::_instance = nullptr;
 
@@ -48,7 +50,10 @@ void GpgFrontend::UI::GlobalSettingStation::Sync() noexcept {
   }
 }
 
-GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept {
+GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept
+    : default_certs_verifier_(
+          vmime::make_shared<
+              vmime::security::cert::defaultCertificateVerifier>()) {
   using namespace boost::filesystem;
   using namespace libconfig;
 
@@ -91,4 +96,10 @@ GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept {
                  << pex.getLine() << " - " << pex.getError();
     }
   }
+}
+
+void GpgFrontend::UI::GlobalSettingStation::SetRootCerts(
+    const std::vector<
+        vmime::shared_ptr<vmime::security::cert::X509Certificate>>& certs) {
+  default_certs_verifier_->setX509RootCAs(certs);
 }

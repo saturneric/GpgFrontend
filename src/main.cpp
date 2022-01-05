@@ -40,6 +40,7 @@ INITIALIZE_EASYLOGGINGPP
 jmp_buf recover_env;
 
 extern void init_logging();
+extern void init_certs();
 extern void init_locale();
 extern void handle_signal(int sig);
 
@@ -64,8 +65,11 @@ int main(int argc, char* argv[]) {
   QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
 
-  // logging system
+  // config logging system
   init_logging();
+
+  // root certs for tls connection
+  init_certs();
 
   // App config
   QApplication::setApplicationVersion(BUILD_VERSION);

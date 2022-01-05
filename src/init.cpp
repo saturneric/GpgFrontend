@@ -23,8 +23,33 @@
  */
 
 #include <boost/date_time.hpp>
+#include <vmime/vmime.hpp>
 
 #include "ui/settings/GlobalSettingStation.h"
+
+vmime::shared_ptr<vmime::security::cert::X509Certificate> load_x509_cert(
+    const boost::filesystem::path& path) {
+  auto out_buffer = GpgFrontend::read_all_data_in_file(path.string());
+  auto cert = vmime::security::cert::X509Certificate::import(
+      reinterpret_cast<const vmime::byte_t*>(out_buffer.data()),
+      out_buffer.size());
+  return cert;
+}
+
+std::vector<boost::filesystem::path> get_files_of_directory(
+    const boost::filesystem::path& _path) {
+  namespace fs = boost::filesystem;
+  std::vector<fs::path> path_list;
+  if (!_path.empty()) {
+    fs::recursive_directory_iterator end;
+
+    for (fs::recursive_directory_iterator i(_path); i != end; ++i) {
+      const fs::path cp = (*i);
+      path_list.push_back(cp);
+    }
+  }
+  return path_list;
+}
 
 void init_logging() {
   using namespace boost::posix_time;
@@ -49,7 +74,20 @@ void init_logging() {
 
   el::Loggers::reconfigureLogger("default", defaultConf);
 
-  LOG(INFO) << _("Logfile Path") << logfile_path;
+  LOG(INFO) << _("logfile Path") << logfile_path;
+}
+
+void init_certs() {
+  std::vector<vmime::shared_ptr<vmime::security::cert::X509Certificate>>
+      root_certs;
+  auto cert_file_paths = get_files_of_directory(
+      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetCertsDir());
+  for (const auto& cert_file_path : cert_file_paths) {
+    auto _cert = load_x509_cert(cert_file_path);
+    root_certs.push_back(_cert);
+  }
+  LOG(INFO) << _("root certs loaded") << root_certs.size();
+  GpgFrontend::UI::GlobalSettingStation::GetInstance().SetRootCerts(root_certs);
 }
 
 void init_locale() {
@@ -72,7 +110,7 @@ void init_locale() {
   // read from settings file
   std::string lang;
   if (!general.lookupValue("lang", lang)) {
-    LOG(ERROR) << _("Could not read properly from configure file");
+    LOG(ERROR) << _("could not read properly from configure file");
   };
 
   LOG(INFO) << "lang from settings" << lang;
