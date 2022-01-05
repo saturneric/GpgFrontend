@@ -247,7 +247,7 @@ if (APPLICATION_BUILD)
         set(GPGFRONTEND_BEFORE_UI_LIBS ${GPGFRONTEND_BEFORE_UI_LIBS} smtp)
     endif ()
 
-    set(GPGFRONTEND_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} gpgfrontend-ui gpg_core ${GPGFRONTEND_BEFORE_UI_LIBS} easy_logging_pp)
+    set(GPGFRONTEND_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} gpgfrontend_ui gpgfrontend_core ${GPGFRONTEND_BEFORE_UI_LIBS} easy_logging_pp)
     set(QT_DEPENDENCY_LIBS Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
     message(STATUS "Boost Libraries ${Boost_LIBRARIES}")
 

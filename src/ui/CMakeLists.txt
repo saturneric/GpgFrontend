@@ -14,18 +14,18 @@ if (SMTP_SUPPORT)
     aux_source_directory(./smtp UI_SOURCE)
 endif ()
 
-add_library(gpgfrontend-ui STATIC ${UI_SOURCE})
-set(GPGFRONTEND_UI_LIB_NAME gpgfrontend-ui)
+add_library(gpgfrontend_ui STATIC ${UI_SOURCE})
+set(GPGFRONTEND_UI_LIB_NAME gpgfrontend_ui)
 target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
         Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
-target_include_directories(gpgfrontend-ui PUBLIC
+target_include_directories(gpgfrontend_ui PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/${GPGFRONTEND_UI_LIB_NAME}_autogen/include)
 
 if (XCODE_BUILD)
-    set_target_properties(gpgfrontend-ui
+    set_target_properties(gpgfrontend_ui
             PROPERTIES
             ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
             LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
             LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 endif ()
-target_compile_features(gpgfrontend-ui PUBLIC cxx_std_17)
+target_compile_features(gpgfrontend_ui PUBLIC cxx_std_17)
