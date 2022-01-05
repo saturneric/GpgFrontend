@@ -33,6 +33,10 @@ namespace GpgFrontend {
 
 class GpgKeyManager : public SingletonFunctionObject<GpgKeyManager> {
  public:
+  explicit GpgKeyManager(
+      int channel = SingletonFunctionObject::GetDefaultChannel())
+      : SingletonFunctionObject<GpgKeyManager>(channel) {}
+
   /**
    * Sign a key pair(actually a certain uid)
    * @param target target key pair
@@ -50,7 +54,8 @@ class GpgKeyManager : public SingletonFunctionObject<GpgKeyManager> {
                  std::unique_ptr<boost::posix_time::ptime>& expires);
 
  private:
-  GpgContext& ctx = GpgContext::GetInstance();
+  GpgContext& ctx =
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
 };
 
 }  // namespace GpgFrontend

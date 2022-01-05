@@ -26,6 +26,7 @@
 #define GPGFRONTEND_FILEREADTHREAD_H
 
 #include "ui/GpgFrontendUI.h"
+
 namespace GpgFrontend::UI {
 
 class FileReadThread : public QThread {
@@ -35,7 +36,7 @@ class FileReadThread : public QThread {
   explicit FileReadThread(std::string path);
 
  signals:
-  
+
   void sendReadBlock(const QString& block);
 
   void readDone();

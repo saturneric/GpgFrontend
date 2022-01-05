@@ -26,6 +26,7 @@
 #include "gpg/function/GpgFileOpera.h"
 #include "gpg/function/GpgKeyGetter.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/settings/GlobalSettingStation.h"
 #include "ui/widgets/SignersPicker.h"
 
 namespace GpgFrontend::UI {
@@ -57,46 +58,87 @@ void MainWindow::slotFileEncrypt() {
 
   if (!file_pre_check(this, path)) return;
 
-  if (QFile::exists(path + ".asc")) {
-    auto ret = QMessageBox::warning(
-        this, _("Warning"),
-        _("The target file already exists, do you need to overwrite it?"),
-        QMessageBox::Ok | QMessageBox::Cancel);
+  // check selected keys
+  auto key_ids = mKeyList->getChecked();
+  GpgEncrResult result = nullptr;
+  GpgError error;
+  bool if_error = false;
+
+  // Detect ascii mode
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  bool non_ascii_when_export = true;
+  try {
+    non_ascii_when_export = settings.lookup("general.non_ascii_when_export");
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("non_ascii_when_export");
+  }
+
+  auto _channel = GPGFRONTEND_DEFAULT_CHANNEL;
+  auto _extension = ".asc";
+  if (non_ascii_when_export) {
+    _channel = GPGFRONTEND_NON_ASCII_CHANNEL;
+    _extension = ".gpg";
+  }
+
+  auto out_path = path + _extension;
+
+  if (QFile::exists(out_path)) {
+    boost::filesystem::path _out_path = out_path.toStdString();
+    auto out_file_name = boost::format(_("The target file %1% already exists, "
+                                         "do you need to overwrite it?")) %
+                         _out_path.filename();
+    auto ret =
+        QMessageBox::warning(this, _("Warning"), out_file_name.str().c_str(),
+                             QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
   }
 
-  auto key_ids = mKeyList->getChecked();
-  auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
-  if (keys->empty()) {
-    QMessageBox::critical(this, _("No Key Selected"), _("No Key Selected"));
-    return;
-  }
+  if (key_ids->empty()) {
+    // Symmetric Encrypt
+    auto ret = QMessageBox::information(
+        this, _("Symmetric Encryption"),
+        _("No Key Selected. Do you want to encrypt with a "
+          "symmetric cipher using a passphrase?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
 
-  for (const auto& key : *keys) {
-    if (!key.CanEncrActual()) {
-      QMessageBox::information(
-          this, _("Invalid Operation"),
-          QString(
-              _("The selected key contains a key that does not actually have a "
-                "encrypt usage.")) +
-              "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.uids()->front().uid()));
-      return;
-    }
-  }
+    if (ret == QMessageBox::Cancel) return;
 
-  GpgEncrResult result = nullptr;
-  GpgError error;
-  bool if_error = false;
-  process_operation(this, _("Encrypting"), [&]() {
-    try {
-      error = GpgFileOpera::EncryptFile(std::move(keys), path.toStdString(),
-                                        result);
-    } catch (const std::runtime_error& e) {
-      if_error = true;
+    process_operation(this, _("Symmetrically Encrypting"), [&]() {
+      try {
+        error = GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
+            path.toStdString(), out_path.toStdString(), result, _channel);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
+  } else {
+    auto p_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+
+    // check key abilities
+    for (const auto& key : *p_keys) {
+      bool key_can_encrypt = key.CanEncrActual();
+
+      if (!key_can_encrypt) {
+        QMessageBox::critical(
+            nullptr, _("Invalid KeyPair"),
+            QString(_("The selected keypair cannot be used for encryption.")) +
+                "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
+                QString::fromStdString(key.uids()->front().uid()));
+        return;
+      }
     }
-  });
+
+    process_operation(this, _("Encrypting"), [&]() {
+      try {
+        error =
+            GpgFileOpera::EncryptFile(std::move(p_keys), path.toStdString(),
+                                      out_path.toStdString(), result, _channel);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
+  }
 
   if (!if_error) {
     auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));
@@ -116,16 +158,15 @@ void MainWindow::slotFileDecrypt() {
 
   if (!file_pre_check(this, path)) return;
 
-  QString outFileName, fileExtension = QFileInfo(path).suffix();
+  boost::filesystem::path out_path = path.toStdString();
 
-  if (fileExtension == "asc" || fileExtension == "gpg") {
-    int pos = path.lastIndexOf(QChar('.'));
-    outFileName = path.left(pos);
+  if (out_path.extension() == ".asc" || out_path.extension() == ".gpg") {
+    out_path = out_path.parent_path() / out_path.stem();
   } else {
-    outFileName = path + ".out";
+    out_path += ".out";
   }
 
-  if (QFile::exists(outFileName)) {
+  if (exists(out_path)) {
     auto ret = QMessageBox::warning(
         this, _("Warning"),
         _("The target file already exists, do you need to overwrite it?"),
@@ -139,7 +180,8 @@ void MainWindow::slotFileDecrypt() {
   bool if_error = false;
   process_operation(this, _("Decrypting"), [&]() {
     try {
-      error = GpgFileOpera::DecryptFile(path.toStdString(), result);
+      error = GpgFileOpera::DecryptFile(path.toStdString(), out_path.string(),
+                                        result);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
@@ -168,7 +210,9 @@ void MainWindow::slotFileSign() {
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
   if (keys->empty()) {
-    QMessageBox::critical(this, _("No Key Selected"), _("No Key Selected"));
+    QMessageBox::critical(
+        this, _("No Key Selected"),
+        _("Please select the key in the key toolbox on the right."));
     return;
   }
 
@@ -184,8 +228,26 @@ void MainWindow::slotFileSign() {
     }
   }
 
-  auto sig_file_path = boost::filesystem::path(path.toStdString() + ".sig");
-  if (QFile::exists(sig_file_path.string().c_str())) {
+  // Detect ascii mode
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  bool non_ascii_when_export = true;
+  try {
+    non_ascii_when_export = settings.lookup("general.non_ascii_when_export");
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("non_ascii_when_export");
+  }
+
+  auto _channel = GPGFRONTEND_DEFAULT_CHANNEL;
+  auto _extension = ".asc";
+  if (non_ascii_when_export) {
+    _channel = GPGFRONTEND_NON_ASCII_CHANNEL;
+    _extension = ".sig";
+  }
+
+  boost::filesystem::path in_path = path.toStdString();
+  auto sig_file_path = in_path;
+  sig_file_path += _extension;
+  if (exists(sig_file_path)) {
     auto ret = QMessageBox::warning(
         this, _("Warning"),
         QString(_("The signature file \"%1\" exists, "
@@ -202,8 +264,8 @@ void MainWindow::slotFileSign() {
 
   process_operation(this, _("Signing"), [&]() {
     try {
-      error =
-          GpgFileOpera::SignFile(std::move(keys), path.toStdString(), result);
+      error = GpgFileOpera::SignFile(std::move(keys), in_path.string(),
+                                     sig_file_path.string(), result, _channel);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
@@ -229,60 +291,62 @@ void MainWindow::slotFileVerify() {
   auto fileTreeView = edit->slotCurPageFileTreeView();
   auto path = fileTreeView->getSelected();
 
-  QFileInfo fileInfo(path);
+  boost::filesystem::path in_path = path.toStdString();
+  boost::filesystem::path sign_file_path = in_path, data_file_path;
 
-  QString signFilePath, dataFilePath;
-
-  if (fileInfo.suffix() == "gpg") {
-    dataFilePath = path;
-    signFilePath = path;
-  } else if (fileInfo.suffix() == "sig") {
-    int pos = path.lastIndexOf(QChar('.'));
-    dataFilePath = path.left(pos);
-    signFilePath = path;
-  } else {
-    dataFilePath = path;
-    signFilePath = path + ".sig";
+  // Detect ascii mode
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  bool non_ascii_when_export = true;
+  try {
+    non_ascii_when_export = settings.lookup("general.non_ascii_when_export");
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("non_ascii_when_export");
   }
 
-  if (fileInfo.suffix() != "gpg") {
+  auto _channel = GPGFRONTEND_DEFAULT_CHANNEL;
+  if (non_ascii_when_export) {
+    _channel = GPGFRONTEND_NON_ASCII_CHANNEL;
+  }
+
+  if (in_path.extension() == ".gpg") {
+    swap(data_file_path, sign_file_path);
+  } else if (in_path.extension() == ".sig" || in_path.extension() == ".asc") {
+    data_file_path = sign_file_path.parent_path() / sign_file_path.stem();
+  }
+
+  LOG(INFO) << "sign_file_path" << sign_file_path << sign_file_path.extension();
+
+  if (in_path.extension() != ".gpg") {
     bool ok;
-    QString text =
-        QInputDialog::getText(this, _("Origin file to verify"), _("Filepath"),
-                              QLineEdit::Normal, dataFilePath, &ok);
+    QString text = QInputDialog::getText(this, _("Origin file to verify"),
+                                         _("Filepath"), QLineEdit::Normal,
+                                         data_file_path.string().c_str(), &ok);
     if (ok && !text.isEmpty()) {
-      dataFilePath = text;
+      data_file_path = text.toStdString();
     } else {
       return;
     }
   }
 
-  QFileInfo dataFileInfo(dataFilePath), signFileInfo(signFilePath);
-
-  if (!dataFileInfo.isFile() || !signFileInfo.isFile()) {
+  if (!is_regular_file(data_file_path) ||
+      (!sign_file_path.empty() && !is_regular_file(sign_file_path))) {
     QMessageBox::critical(
         this, _("Error"),
         _("Please select the appropriate origin file or signature file. "
           "Ensure that both are in this directory."));
     return;
   }
-  if (!dataFileInfo.isReadable()) {
-    QMessageBox::critical(this, _("Error"),
-                          _("No permission to read target file."));
-    return;
-  }
-  if (!fileInfo.isReadable()) {
-    QMessageBox::critical(this, _("Error"),
-                          _("No permission to read signature file."));
-    return;
-  }
+
+  DLOG(INFO) << "data path" << data_file_path;
+  DLOG(INFO) << "sign path" << sign_file_path;
 
   GpgVerifyResult result = nullptr;
   gpgme_error_t error;
   bool if_error = false;
   process_operation(this, _("Verifying"), [&]() {
     try {
-      error = GpgFileOpera::VerifyFile(dataFilePath.toStdString(), result);
+      error = GpgFileOpera::VerifyFile(
+          data_file_path.string(), sign_file_path.string(), result, _channel);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
@@ -313,23 +377,18 @@ void MainWindow::slotFileEncryptSign() {
 
   if (!file_pre_check(this, path)) return;
 
-  if (QFile::exists(path + ".gpg")) {
-    auto ret = QMessageBox::warning(
-        this, _("Warning"),
-        _("The target file already exists, do you need to overwrite it?"),
-        QMessageBox::Ok | QMessageBox::Cancel);
-
-    if (ret == QMessageBox::Cancel) return;
-  }
-
+  // check selected keys
   auto key_ids = mKeyList->getChecked();
   auto p_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
   if (p_keys->empty()) {
-    QMessageBox::critical(this, _("No Key Selected"), _("No Key Selected"));
+    QMessageBox::critical(
+        this, _("No Key Selected"),
+        _("Please select the key in the key toolbox on the right."));
     return;
   }
 
+  // check key abilities
   for (const auto& key : *p_keys) {
     bool key_can_encrypt = key.CanEncrActual();
 
@@ -343,6 +402,33 @@ void MainWindow::slotFileEncryptSign() {
     }
   }
 
+  // Detect ascii mode
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  bool non_ascii_when_export = true;
+  try {
+    non_ascii_when_export = settings.lookup("general.non_ascii_when_export");
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("non_ascii_when_export");
+  }
+
+  auto _channel = GPGFRONTEND_DEFAULT_CHANNEL;
+  auto _extension = ".asc";
+  if (non_ascii_when_export) {
+    _channel = GPGFRONTEND_NON_ASCII_CHANNEL;
+    _extension = ".gpg";
+  }
+
+  boost::filesystem::path out_path = path.toStdString() + _extension;
+
+  if (exists(out_path)) {
+    auto ret = QMessageBox::warning(
+        this, _("Warning"),
+        _("The target file already exists, do you need to overwrite it?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
+
+    if (ret == QMessageBox::Cancel) return;
+  }
+
   auto signersPicker = new SignersPicker(this);
   QEventLoop loop;
   connect(signersPicker, SIGNAL(finished(int)), &loop, SLOT(quit()));
@@ -350,14 +436,6 @@ void MainWindow::slotFileEncryptSign() {
 
   auto signer_key_ids = signersPicker->getCheckedSigners();
   auto p_signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
-
-  for (const auto& key : *p_keys) {
-    LOG(INFO) << "Keys " << key.email();
-  }
-
-  for (const auto& signer : *p_signer_keys) {
-    LOG(INFO) << "Signers " << signer.email();
-  }
 
   GpgEncrResult encr_result = nullptr;
   GpgSignResult sign_result = nullptr;
@@ -369,18 +447,18 @@ void MainWindow::slotFileEncryptSign() {
     try {
       error = GpgFileOpera::EncryptSignFile(
           std::move(p_keys), std::move(p_signer_keys), path.toStdString(),
-          encr_result, sign_result);
+          out_path.string(), encr_result, sign_result, _channel);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
   });
 
   if (!if_error) {
-    auto encrypt_res = EncryptResultAnalyse(error, std::move(encr_result));
+    auto encrypt_result = EncryptResultAnalyse(error, std::move(encr_result));
     auto sign_res = SignResultAnalyse(error, std::move(sign_result));
-    encrypt_res.analyse();
+    encrypt_result.analyse();
     sign_res.analyse();
-    process_result_analyse(edit, infoBoard, encrypt_res, sign_res);
+    process_result_analyse(edit, infoBoard, encrypt_result, sign_res);
 
     fileTreeView->update();
 
@@ -397,11 +475,12 @@ void MainWindow::slotFileDecryptVerify() {
 
   if (!file_pre_check(this, path)) return;
 
-  boost::filesystem::path out_path(path.toStdString());
-  if (out_path.extension() == ".asc" || out_path.extension() == ".gpg") {
-    out_path = out_path.parent_path() / out_path.filename();
+  boost::filesystem::path in_path(path.toStdString());
+  boost::filesystem::path out_path = in_path;
+  if (in_path.extension() == ".asc" || in_path.extension() == ".gpg") {
+    out_path = in_path.parent_path() / out_path.stem();
   } else {
-    out_path = out_path.replace_extension(".out").string();
+    out_path += ".out";
   }
   LOG(INFO) << "out path" << out_path;
 
@@ -422,8 +501,8 @@ void MainWindow::slotFileDecryptVerify() {
   bool if_error = false;
   process_operation(this, _("Decrypting and Verifying"), [&]() {
     try {
-      error = GpgFileOpera::DecryptVerifyFile(path.toStdString(), d_result,
-                                              v_result);
+      error = GpgFileOpera::DecryptVerifyFile(
+          path.toStdString(), out_path.string(), d_result, v_result);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }

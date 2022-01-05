@@ -28,7 +28,7 @@
 #include "GpgFrontendTest.h"
 #include "gpg/GpgConstants.h"
 #include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/GpgKeyImportExportor.h"
+#include "gpg/function/GpgKeyImportExporter.h"
 #include "gpg/model/GpgKey.h"
 
 TEST_F(GpgCoreTest, CoreExportSecretTest) {}

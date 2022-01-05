@@ -38,6 +38,7 @@ class SendMailTab;
 
 class AppearanceTab;
 class KeyserverTab;
+class NetworkTab;
 
 #ifdef ADVANCED_SUPPORT
 class AdvancedTab;
@@ -55,6 +56,7 @@ class SettingsDialog : public QDialog {
 #endif
   AppearanceTab* appearanceTab;
   KeyserverTab* keyserverTab;
+  NetworkTab* networkTab;
 #ifdef ADVANCED_SUPPORT
   AdvancedTab* advancedTab;
 #endif

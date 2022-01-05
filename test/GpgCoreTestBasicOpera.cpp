@@ -31,18 +31,18 @@
 #include "gpg/GpgConstants.h"
 #include "gpg/function/BasicOperator.h"
 #include "gpg/function/GpgKeyGetter.h"
-#include "gpg/model/GpgKey.h"
+#include "gpg/result_analyse/DecryptResultAnalyse.h"
 
 using namespace GpgFrontend;
 
 TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
-  auto encrpyt_key = GpgKeyGetter::GetInstance(default_channel)
+  auto encrypt_key = GpgKeyGetter::GetInstance(default_channel)
                          .GetPubkey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   ByteArray encrypt_text = "Hello GpgFrontend!";
   ByteArrayPtr encr_out_data;
   GpgEncrResult e_result;
-  std::vector<GpgKey> keys;
-  keys.push_back(std::move(encrpyt_key));
+  KeyListPtr keys = std::make_unique<KeyArgsList>();
+  keys->push_back(std::move(encrypt_key));
   auto err =
       BasicOperator::GetInstance(default_channel)
           .Encrypt(std::move(keys), encrypt_text, encr_out_data, e_result);
@@ -59,14 +59,65 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
   ASSERT_EQ(*decr_out_data, encrypt_text);
 }
 
+TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_1) {
+  ByteArrayPtr encr_out_data = std::make_unique<ByteArray>(
+      "-----BEGIN PGP MESSAGE-----\n"
+      "\n"
+      "hQEMA6UM/S9sZ32MAQf9Fb6gp6nvgKTQBv2mmjXia6ODXYq6kNeLsPVzLCbHyWOs\n"
+      "0GDED11R1NksA3EQxFf4fzLkDpbo68r5bWy7c28c99Fr68IRET19Tw6Gu65MQezD\n"
+      "Rdzo1oVqmK9sfKqOT3+0S2H+suFYw5kfBztMZLVGGl9R9fOXdKcj0fqGs2br3e9D\n"
+      "ArBFqq07Bae2DD1J8mckWB2x9Uem4vjRiY+vEJcEdAS1N5xu1n7qzzyDgcRcS34X\n"
+      "PNBQeTrFMc2RS7mnip2DbyZVEjORobhguK6xZyqXXbvFacStGWDLptV3dcCn4JRO\n"
+      "dIORyt5wugqAtgE4qEGTvr/pJ/oXPw4Wve/trece/9I/AR38vW8ntVmDa/hV75iZ\n"
+      "4QGAhQ8grD4kq31GHXHUOmBX51XXW9SINmplC8elEx3R460EUZJjjb0OvTih+eZH\n"
+      "=8n2H\n"
+      "-----END PGP MESSAGE-----");
+
+  GpgDecrResult d_result;
+  ByteArrayPtr decr_out_data;
+  auto err = BasicOperator::GetInstance(default_channel)
+                 .Decrypt(*encr_out_data, decr_out_data, d_result);
+  ASSERT_EQ(check_gpg_error_2_err_code(err), GPG_ERR_NO_SECKEY);
+  ASSERT_NE(d_result->recipients, nullptr);
+  ASSERT_EQ(std::string(d_result->recipients->keyid), "A50CFD2F6C677D8C");
+}
+
+TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_ResultAnalyse) {
+  ByteArrayPtr encr_out_data = std::make_unique<ByteArray>(
+      "-----BEGIN PGP MESSAGE-----\n"
+      "\n"
+      "hQEMA6UM/S9sZ32MAQf9Fb6gp6nvgKTQBv2mmjXia6ODXYq6kNeLsPVzLCbHyWOs\n"
+      "0GDED11R1NksA3EQxFf4fzLkDpbo68r5bWy7c28c99Fr68IRET19Tw6Gu65MQezD\n"
+      "Rdzo1oVqmK9sfKqOT3+0S2H+suFYw5kfBztMZLVGGl9R9fOXdKcj0fqGs2br3e9D\n"
+      "ArBFqq07Bae2DD1J8mckWB2x9Uem4vjRiY+vEJcEdAS1N5xu1n7qzzyDgcRcS34X\n"
+      "PNBQeTrFMc2RS7mnip2DbyZVEjORobhguK6xZyqXXbvFacStGWDLptV3dcCn4JRO\n"
+      "dIORyt5wugqAtgE4qEGTvr/pJ/oXPw4Wve/trece/9I/AR38vW8ntVmDa/hV75iZ\n"
+      "4QGAhQ8grD4kq31GHXHUOmBX51XXW9SINmplC8elEx3R460EUZJjjb0OvTih+eZH\n"
+      "=8n2H\n"
+      "-----END PGP MESSAGE-----");
+
+  GpgDecrResult d_result;
+  ByteArrayPtr decr_out_data;
+  auto err = BasicOperator::GetInstance(default_channel)
+                 .Decrypt(*encr_out_data, decr_out_data, d_result);
+  ASSERT_EQ(check_gpg_error_2_err_code(err), GPG_ERR_NO_SECKEY);
+  ASSERT_NE(d_result->recipients, nullptr);
+  ASSERT_EQ(std::string(d_result->recipients->keyid), "A50CFD2F6C677D8C");
+
+  DecryptResultAnalyse analyse{err, d_result};
+  analyse.analyse();
+  ASSERT_EQ(analyse.getStatus(), -1);
+  ASSERT_FALSE(analyse.getResultReport().empty());
+}
+
 TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
-  auto encrpyt_key = GpgKeyGetter::GetInstance(default_channel)
+  auto encrypt_key = GpgKeyGetter::GetInstance(default_channel)
                          .GetPubkey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   ByteArray sign_text = "Hello GpgFrontend!";
   ByteArrayPtr sign_out_data;
   GpgSignResult s_result;
-  std::vector<GpgKey> keys;
-  keys.push_back(std::move(encrpyt_key));
+  KeyListPtr keys = std::make_unique<KeyArgsList>();
+  keys->push_back(std::move(encrypt_key));
   auto err = BasicOperator::GetInstance(default_channel)
                  .Sign(std::move(keys), sign_text, sign_out_data,
                        GPGME_SIG_MODE_NORMAL, s_result);
@@ -85,13 +136,13 @@ TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
 }
 
 TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
-  auto encrpyt_key = GpgKeyGetter::GetInstance(default_channel)
+  auto encrypt_key = GpgKeyGetter::GetInstance(default_channel)
                          .GetPubkey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   ByteArray sign_text = "Hello GpgFrontend!";
   ByteArrayPtr sign_out_data;
   GpgSignResult s_result;
-  std::vector<GpgKey> keys;
-  keys.push_back(std::move(encrpyt_key));
+  KeyListPtr keys = std::make_unique<KeyArgsList>();
+  keys->push_back(std::move(encrypt_key));
   auto err = BasicOperator::GetInstance(default_channel)
                  .Sign(std::move(keys), sign_text, sign_out_data,
                        GPGME_SIG_MODE_DETACH, s_result);
@@ -114,8 +165,8 @@ TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
   ByteArray sign_text = "Hello GpgFrontend!";
   ByteArrayPtr sign_out_data;
   GpgSignResult s_result;
-  std::vector<GpgKey> keys;
-  keys.push_back(std::move(sign_key));
+  KeyListPtr keys = std::make_unique<KeyArgsList>();
+  keys->push_back(std::move(sign_key));
   auto err = BasicOperator::GetInstance(default_channel)
                  .Sign(std::move(keys), sign_text, sign_out_data,
                        GPGME_SIG_MODE_CLEAR, s_result);
@@ -134,12 +185,12 @@ TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
 }
 
 TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
-  auto encrpyt_key = GpgKeyGetter::GetInstance(default_channel)
+  auto encrypt_key = GpgKeyGetter::GetInstance(default_channel)
                          .GetPubkey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   auto sign_key = GpgKeyGetter::GetInstance(default_channel)
                       .GetKey("8933EB283A18995F45D61DAC021D89771B680FFB");
   //   Question?
-  //   ASSERT_FALSE(encrpyt_key.is_private_key());
+  //   ASSERT_FALSE(encrypt_key.is_private_key());
   ASSERT_TRUE(sign_key.is_private_key());
   ASSERT_TRUE(sign_key.CanSignActual());
   ByteArray encrypt_text = "Hello GpgFrontend!";
@@ -147,9 +198,10 @@ TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
   GpgEncrResult e_result;
   GpgSignResult s_result;
 
-  std::vector<GpgKey> keys, sign_keys;
-  keys.push_back(std::move(encrpyt_key));
-  sign_keys.push_back(std::move(sign_key));
+  KeyListPtr keys = std::make_unique<KeyArgsList>(),
+             sign_keys = std::make_unique<KeyArgsList>();
+  keys->push_back(std::move(encrypt_key));
+  sign_keys->push_back(std::move(sign_key));
 
   auto err = BasicOperator::GetInstance(default_channel)
                  .EncryptSign(std::move(keys), std::move(sign_keys),

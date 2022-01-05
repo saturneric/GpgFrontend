@@ -42,6 +42,10 @@ const char* GpgFrontend::GpgConstants::PGP_SIGNATURE_BEGIN =
     "-----BEGIN PGP SIGNATURE-----";
 const char* GpgFrontend::GpgConstants::PGP_SIGNATURE_END =
     "-----END PGP SIGNATURE-----";
+const char* GpgFrontend::GpgConstants::PGP_PUBLIC_KEY_BEGIN =
+    "------BEGIN PGP PUBLIC KEY BLOCK-----";
+const char* GpgFrontend::GpgConstants::PGP_PRIVATE_KEY_BEGIN =
+    "-----BEGIN PGP PRIVATE KEY BLOCK-----";
 const char* GpgFrontend::GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD =
     "GpgF_Scpt://";
 
@@ -211,6 +215,12 @@ GpgFrontend::GpgSignResult GpgFrontend::_new_result(
 
 GpgFrontend::GpgVerifyResult GpgFrontend::_new_result(
     gpgme_verify_result_t&& result) {
+  gpgme_result_ref(result);
+  return {result, _result_ref_deletor()};
+}
+
+GpgFrontend::GpgGenKeyResult GpgFrontend::_new_result(
+    gpgme_genkey_result_t&& result) {
   gpgme_result_ref(result);
   return {result, _result_ref_deletor()};
 }

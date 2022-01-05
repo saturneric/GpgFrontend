@@ -36,42 +36,19 @@ namespace GpgFrontend::UI {
 class KeyPairDetailTab : public QWidget {
   Q_OBJECT
 
-  void createOperaMenu();
-
  private slots:
-
-  /**
-   * @details Export the key to a file, which is chosen in a file dialog
-   */
-  void slotExportPrivateKey();
-
-  void slotExportShortPrivateKey();
-
-  void slotExportPublicKey();
 
   /**
    * @details Copy the fingerprint to clipboard
    */
   void slotCopyFingerprint();
 
-  void slotModifyEditDatetime();
-
-  void slotModifyPassword();
-
   void slotRefreshKeyInfo();
-
-  void slotUploadKeyToServer();
-
-  void slotUpdateKeyFromServer();
-
-  void slotGenRevokeCert();
 
   void slotRefreshKey();
 
-  void slotModifyTOFUPolicy();
-
  private:
-  GpgKey mKey;
+  GpgKey key_;
 
   QGroupBox* ownerBox;       /** Groupbox containing owner information */
   QGroupBox* keyBox;         /** Groupbox containing key information */

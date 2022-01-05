@@ -53,7 +53,7 @@ class KeyServerImportDialog : public QDialog {
 
   void slotSearchFinished();
 
-  void slotImportFinished(QString keyid);
+  void slotImportFinished(const QString& keyid);
 
   void slotSearch();
 

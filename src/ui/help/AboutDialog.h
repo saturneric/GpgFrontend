@@ -27,6 +27,8 @@
 
 #include "gpg/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
+#include "ui/data_struct/SoftwareVersion.h"
+
 namespace GpgFrontend::UI {
 
 /**
@@ -73,7 +75,7 @@ class UpdateTab : public QWidget {
   void getLatestVersion();
 
  private slots:
-  void slotShowVersionStatus(const QString& current, const QString& server);
+  void slotShowVersionStatus(const SoftwareVersion& version);
 
  signals:
   void replyFromUpdateServer(QByteArray data);

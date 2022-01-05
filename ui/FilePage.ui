@@ -143,6 +143,61 @@
     </layout>
    </item>
   </layout>
+  <action name="actionEncrypt">
+   <property name="text">
+    <string>Encrypt</string>
+   </property>
+  </action>
+  <action name="actionEncryptSign">
+   <property name="text">
+    <string>EncryptSign</string>
+   </property>
+  </action>
+  <action name="actionDecrypt">
+   <property name="text">
+    <string>Decrypt</string>
+   </property>
+  </action>
+  <action name="actionSign">
+   <property name="text">
+    <string>Sign</string>
+   </property>
+  </action>
+  <action name="actionVerify">
+   <property name="text">
+    <string>Verify</string>
+   </property>
+  </action>
+  <action name="actionOpenFile">
+   <property name="text">
+    <string>OpenFile</string>
+   </property>
+  </action>
+  <action name="actionRenameFile">
+   <property name="text">
+    <string>RenameFile</string>
+   </property>
+  </action>
+  <action name="actionDeleteFile">
+   <property name="text">
+    <string>DeleteFile</string>
+   </property>
+  </action>
+  <action name="actionCalculateHash">
+   <property name="text">
+    <string>CalculateHash</string>
+   </property>
+  </action>
+  <action name="actionMakeDirectory">
+   <property name="text">
+    <string>MakeDirectory</string>
+   </property>
+  </action>
+  <action name="actionCreateEmptyFile">
+   <property name="text">
+    <string>CreateEmptyFile</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../gpgfrontend.qrc"/>

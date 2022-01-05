@@ -2,7 +2,8 @@
 
 * [OpenPGP](https://www.openpgp.org/)
 * [GnuPG](https://www.gnupg.org/)
-* [Source Code](https://github.com/saturneric/GpgFrontend)
+* [Repository](https://gpgfrontend.bktus.com/?p=GPGFrontend.git;a=summary)
+* [Github](https://github.com/saturneric/GpgFrontend)
 * [Document](overview.md)
 * [Contract](contract.md)
 

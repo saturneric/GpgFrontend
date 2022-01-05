@@ -27,12 +27,29 @@
 #include "gpg/function/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
 #include "ui/WaitingDialog.h"
+#include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
 KeyGenDialog::KeyGenDialog(QWidget* parent) : QDialog(parent) {
   buttonBox =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+  // max expire date time
+  bool longer_expiration_date = false;
+  try {
+    longer_expiration_date = settings.lookup("general.longer_expiration_date");
+    LOG(INFO) << "longer_expiration_date" << longer_expiration_date;
+
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("longer_expiration_date");
+  }
+
+  max_date_time_ = longer_expiration_date
+                       ? QDateTime::currentDateTime().toLocalTime().addYears(30)
+                       : QDateTime::currentDateTime().toLocalTime().addYears(2);
 
   this->setWindowTitle(_("Generate Key"));
   this->setModal(true);
@@ -83,9 +100,8 @@ void KeyGenDialog::slotKeyGenAccept() {
    * primary keys should have a reasonable expiration date (no more than 2 years
    * in the future)
    */
-  if (dateEdit->dateTime() > QDateTime::currentDateTime().addYears(2)) {
-    error_stream << "  " << _("Expiration time no more than 2 years.")
-                 << std::endl;
+  if (dateEdit->dateTime() > max_date_time_) {
+    error_stream << "  " << _("Expiration time too long.") << std::endl;
   }
 
   auto err_string = error_stream.str();
@@ -94,24 +110,24 @@ void KeyGenDialog::slotKeyGenAccept() {
     /**
      * create the string for key generation
      */
+    gen_key_info_->setName(nameEdit->text().toStdString());
+    gen_key_info_->setEmail(emailEdit->text().toStdString());
+    gen_key_info_->setComment(commentEdit->text().toStdString());
 
-    genKeyInfo->setUserid(
-        QString("%1(%3)<%2>")
-            .arg(nameEdit->text(), emailEdit->text(), commentEdit->text())
-            .toStdString());
-
-    genKeyInfo->setKeySize(keySizeSpinBox->value());
+    gen_key_info_->setKeySize(keySizeSpinBox->value());
 
     if (expireCheckBox->checkState()) {
-      genKeyInfo->setNonExpired(true);
+      gen_key_info_->setNonExpired(true);
     } else {
-      genKeyInfo->setExpired(
+      gen_key_info_->setExpired(
           boost::posix_time::from_time_t(dateEdit->dateTime().toTime_t()));
     }
 
+    GpgGenKeyResult result;
     gpgme_error_t error = false;
-    auto thread = QThread::create(
-        [&]() { error = GpgKeyOpera::GetInstance().GenerateKey(genKeyInfo); });
+    auto thread = QThread::create([&]() {
+      error = GpgKeyOpera::GetInstance().GenerateKey(gen_key_info_, result);
+    });
     thread->start();
 
     auto* dialog = new WaitingDialog(_("Generating"), this);
@@ -178,10 +194,10 @@ QGroupBox* KeyGenDialog::create_key_usage_group_box() {
   auto* auth = new QCheckBox(_("Authentication"), groupBox);
   auth->setTristate(false);
 
-  keyUsageCheckBoxes.push_back(encrypt);
-  keyUsageCheckBoxes.push_back(sign);
-  keyUsageCheckBoxes.push_back(cert);
-  keyUsageCheckBoxes.push_back(auth);
+  key_usage_check_boxes_.push_back(encrypt);
+  key_usage_check_boxes_.push_back(sign);
+  key_usage_check_boxes_.push_back(cert);
+  key_usage_check_boxes_.push_back(auth);
 
   grid->addWidget(encrypt, 0, 0);
   grid->addWidget(sign, 0, 1);
@@ -195,95 +211,95 @@ QGroupBox* KeyGenDialog::create_key_usage_group_box() {
 
 void KeyGenDialog::slotEncryptionBoxChanged(int state) {
   if (state == 0) {
-    genKeyInfo->setAllowEncryption(false);
+    gen_key_info_->setAllowEncryption(false);
   } else {
-    genKeyInfo->setAllowEncryption(true);
+    gen_key_info_->setAllowEncryption(true);
   }
 }
 
 void KeyGenDialog::slotSigningBoxChanged(int state) {
   if (state == 0) {
-    genKeyInfo->setAllowSigning(false);
+    gen_key_info_->setAllowSigning(false);
   } else {
-    genKeyInfo->setAllowSigning(true);
+    gen_key_info_->setAllowSigning(true);
   }
 }
 
 void KeyGenDialog::slotCertificationBoxChanged(int state) {
   if (state == 0) {
-    genKeyInfo->setAllowCertification(false);
+    gen_key_info_->setAllowCertification(false);
   } else {
-    genKeyInfo->setAllowCertification(true);
+    gen_key_info_->setAllowCertification(true);
   }
 }
 
 void KeyGenDialog::slotAuthenticationBoxChanged(int state) {
   if (state == 0) {
-    genKeyInfo->setAllowAuthentication(false);
+    gen_key_info_->setAllowAuthentication(false);
   } else {
-    genKeyInfo->setAllowAuthentication(true);
+    gen_key_info_->setAllowAuthentication(true);
   }
 }
 
 void KeyGenDialog::slotActivatedKeyType(int index) {
   qDebug() << "key type index changed " << index;
 
-  genKeyInfo->setAlgo(this->keyTypeComboBox->itemText(index).toStdString());
+  gen_key_info_->setAlgo(this->keyTypeComboBox->itemText(index).toStdString());
   refresh_widgets_state();
 }
 
 void KeyGenDialog::refresh_widgets_state() {
   qDebug() << "refresh_widgets_state called";
 
-  if (genKeyInfo->isAllowEncryption())
-    keyUsageCheckBoxes[0]->setCheckState(Qt::CheckState::Checked);
+  if (gen_key_info_->isAllowEncryption())
+    key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Checked);
   else
-    keyUsageCheckBoxes[0]->setCheckState(Qt::CheckState::Unchecked);
+    key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Unchecked);
 
-  if (genKeyInfo->isAllowChangeEncryption())
-    keyUsageCheckBoxes[0]->setDisabled(false);
+  if (gen_key_info_->isAllowChangeEncryption())
+    key_usage_check_boxes_[0]->setDisabled(false);
   else
-    keyUsageCheckBoxes[0]->setDisabled(true);
+    key_usage_check_boxes_[0]->setDisabled(true);
 
-  if (genKeyInfo->isAllowSigning())
-    keyUsageCheckBoxes[1]->setCheckState(Qt::CheckState::Checked);
+  if (gen_key_info_->isAllowSigning())
+    key_usage_check_boxes_[1]->setCheckState(Qt::CheckState::Checked);
   else
-    keyUsageCheckBoxes[1]->setCheckState(Qt::CheckState::Unchecked);
+    key_usage_check_boxes_[1]->setCheckState(Qt::CheckState::Unchecked);
 
-  if (genKeyInfo->isAllowChangeSigning())
-    keyUsageCheckBoxes[1]->setDisabled(false);
+  if (gen_key_info_->isAllowChangeSigning())
+    key_usage_check_boxes_[1]->setDisabled(false);
   else
-    keyUsageCheckBoxes[1]->setDisabled(true);
+    key_usage_check_boxes_[1]->setDisabled(true);
 
-  if (genKeyInfo->isAllowCertification())
-    keyUsageCheckBoxes[2]->setCheckState(Qt::CheckState::Checked);
+  if (gen_key_info_->isAllowCertification())
+    key_usage_check_boxes_[2]->setCheckState(Qt::CheckState::Checked);
   else
-    keyUsageCheckBoxes[2]->setCheckState(Qt::CheckState::Unchecked);
+    key_usage_check_boxes_[2]->setCheckState(Qt::CheckState::Unchecked);
 
-  if (genKeyInfo->isAllowChangeCertification())
-    keyUsageCheckBoxes[2]->setDisabled(false);
+  if (gen_key_info_->isAllowChangeCertification())
+    key_usage_check_boxes_[2]->setDisabled(false);
   else
-    keyUsageCheckBoxes[2]->setDisabled(true);
+    key_usage_check_boxes_[2]->setDisabled(true);
 
-  if (genKeyInfo->isAllowAuthentication())
-    keyUsageCheckBoxes[3]->setCheckState(Qt::CheckState::Checked);
+  if (gen_key_info_->isAllowAuthentication())
+    key_usage_check_boxes_[3]->setCheckState(Qt::CheckState::Checked);
   else
-    keyUsageCheckBoxes[3]->setCheckState(Qt::CheckState::Unchecked);
+    key_usage_check_boxes_[3]->setCheckState(Qt::CheckState::Unchecked);
 
-  if (genKeyInfo->isAllowChangeAuthentication())
-    keyUsageCheckBoxes[3]->setDisabled(false);
+  if (gen_key_info_->isAllowChangeAuthentication())
+    key_usage_check_boxes_[3]->setDisabled(false);
   else
-    keyUsageCheckBoxes[3]->setDisabled(true);
+    key_usage_check_boxes_[3]->setDisabled(true);
 
-  if (genKeyInfo->isAllowNoPassPhrase())
+  if (gen_key_info_->isAllowNoPassPhrase())
     noPassPhraseCheckBox->setDisabled(false);
   else
     noPassPhraseCheckBox->setDisabled(true);
 
-  keySizeSpinBox->setRange(genKeyInfo->getSuggestMinKeySize(),
-                           genKeyInfo->getSuggestMaxKeySize());
-  keySizeSpinBox->setValue(genKeyInfo->getKeySize());
-  keySizeSpinBox->setSingleStep(genKeyInfo->getSizeChangeStep());
+  keySizeSpinBox->setRange(gen_key_info_->getSuggestMinKeySize(),
+                           gen_key_info_->getSuggestMaxKeySize());
+  keySizeSpinBox->setValue(gen_key_info_->getKeySize());
+  keySizeSpinBox->setSingleStep(gen_key_info_->getSizeChangeStep());
 }
 
 void KeyGenDialog::set_signal_slot() {
@@ -293,13 +309,13 @@ void KeyGenDialog::set_signal_slot() {
   connect(expireCheckBox, SIGNAL(stateChanged(int)), this,
           SLOT(slotExpireBoxChanged()));
 
-  connect(keyUsageCheckBoxes[0], SIGNAL(stateChanged(int)), this,
+  connect(key_usage_check_boxes_[0], SIGNAL(stateChanged(int)), this,
           SLOT(slotEncryptionBoxChanged(int)));
-  connect(keyUsageCheckBoxes[1], SIGNAL(stateChanged(int)), this,
+  connect(key_usage_check_boxes_[1], SIGNAL(stateChanged(int)), this,
           SLOT(slotSigningBoxChanged(int)));
-  connect(keyUsageCheckBoxes[2], SIGNAL(stateChanged(int)), this,
+  connect(key_usage_check_boxes_[2], SIGNAL(stateChanged(int)), this,
           SLOT(slotCertificationBoxChanged(int)));
-  connect(keyUsageCheckBoxes[3], SIGNAL(stateChanged(int)), this,
+  connect(key_usage_check_boxes_[3], SIGNAL(stateChanged(int)), this,
           SLOT(slotAuthenticationBoxChanged(int)));
 
   connect(keyTypeComboBox, SIGNAL(currentIndexChanged(int)), this,
@@ -308,9 +324,9 @@ void KeyGenDialog::set_signal_slot() {
   connect(noPassPhraseCheckBox, &QCheckBox::stateChanged, this,
           [this](int state) -> void {
             if (state == 0) {
-              genKeyInfo->setNonPassPhrase(false);
+              gen_key_info_->setNonPassPhrase(false);
             } else {
-              genKeyInfo->setNonPassPhrase(true);
+              gen_key_info_->setNonPassPhrase(true);
             }
           });
 }
@@ -327,18 +343,16 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   keySizeSpinBox = new QSpinBox(this);
   keyTypeComboBox = new QComboBox(this);
 
-  for (auto& algo : GenKeyInfo::SupportedKeyAlgo) {
+  for (auto& algo : GenKeyInfo::getSupportedKeyAlgo()) {
     keyTypeComboBox->addItem(QString::fromStdString(algo));
   }
-  if (!GenKeyInfo::SupportedKeyAlgo.empty()) {
+  if (!GenKeyInfo::getSupportedKeyAlgo().empty()) {
     keyTypeComboBox->setCurrentIndex(0);
   }
 
-  QDateTime maxDateTime = QDateTime::currentDateTime().addYears(2);
-
-  dateEdit = new QDateTimeEdit(maxDateTime, this);
+  dateEdit = new QDateTimeEdit(QDateTime::currentDateTime().addYears(2), this);
   dateEdit->setMinimumDateTime(QDateTime::currentDateTime());
-  dateEdit->setMaximumDateTime(maxDateTime);
+  dateEdit->setMaximumDateTime(max_date_time_);
   dateEdit->setDisplayFormat("dd/MM/yyyy hh:mm:ss");
   dateEdit->setCalendarPopup(true);
   dateEdit->setEnabled(true);

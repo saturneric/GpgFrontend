@@ -44,7 +44,7 @@ class KeyMgmt : public QMainWindow {
 
   void slotGenerateSubKey();
 
-  void slotExportKeyToFile();
+  void slotExportKeyToKeyPackage();
 
   void slotExportKeyToClipboard();
 
@@ -59,6 +59,8 @@ class KeyMgmt : public QMainWindow {
   void slotShowKeyDetails();
 
   void slotSaveWindowState();
+
+  void slotImportKeyPackage();
 
  signals:
 
@@ -75,7 +77,7 @@ class KeyMgmt : public QMainWindow {
 
   void deleteKeysWithWarning(GpgFrontend::KeyIdArgsListPtr uidList);
 
-  KeyList* mKeyList;
+  KeyList* key_list_;
   QMenu* fileMenu{};
   QMenu* keyMenu{};
   QMenu* generateKeyMenu{};
@@ -92,6 +94,7 @@ class KeyMgmt : public QMainWindow {
   QAction* importKeyFromClipboardAct{};
   QAction* importKeyFromFileAct{};
   QAction* importKeyFromKeyServerAct{};
+  QAction* importKeysFromKeyPackageAct{};
   QAction* closeAct{};
   QAction* showKeyDetailsAct{};
   KeyServerImportDialog* importDialog{};

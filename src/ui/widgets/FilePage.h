@@ -61,6 +61,7 @@ class FilePage : public QWidget {
   void slotRenameItem();
   void slotDeleteItem();
   void slotEncryptItem();
+  void slotEncryptSignItem();
   void slotDecryptItem();
   void slotSignItem();
   void slotVerifyItem();
@@ -88,16 +89,6 @@ class FilePage : public QWidget {
 
   QMenu* popUpMenu{};
   QMenu* optionPopUpMenu{};
-  QAction* encryptItemAct{};
-  QAction* decryptItemAct{};
-  QAction* signItemAct{};
-  QAction* verifyItemAct{};
-  QAction* hashCalculateAct{};
-  QAction* mkdirAct{};
-  QAction* openItemAct{};
-  QAction* renameItemAct{};
-  QAction* deleteItemAct{};
-  QAction* createEmptyFileAct{};
   QWidget* firstParent;
 };
 

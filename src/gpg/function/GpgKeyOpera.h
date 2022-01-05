@@ -33,7 +33,13 @@ namespace GpgFrontend {
 class GenKeyInfo;
 class GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
  public:
+  explicit GpgKeyOpera(
+      int channel = SingletonFunctionObject::GetDefaultChannel())
+      : SingletonFunctionObject<GpgKeyOpera>(channel) {}
+
   void DeleteKeys(KeyIdArgsListPtr key_ids);
+
+  void DeleteKey(const KeyId& key_id);
 
   GpgError SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
                      std::unique_ptr<boost::posix_time::ptime>& expires);
@@ -46,13 +52,15 @@ class GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
   GpgFrontend::GpgError ModifyTOFUPolicy(const GpgKey& key,
                                          gpgme_tofu_policy_t tofu_policy);
 
-  GpgFrontend::GpgError GenerateKey(const std::unique_ptr<GenKeyInfo>& params);
+  GpgFrontend::GpgError GenerateKey(const std::unique_ptr<GenKeyInfo>& params,
+                                    GpgGenKeyResult& result);
 
   GpgFrontend::GpgError GenerateSubkey(
       const GpgKey& key, const std::unique_ptr<GenKeyInfo>& params);
 
  private:
-  GpgContext& ctx = GpgContext::GetInstance();
+  GpgContext& ctx =
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
 };
 }  // namespace GpgFrontend
 

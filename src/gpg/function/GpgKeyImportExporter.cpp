@@ -22,16 +22,17 @@
  *
  */
 
-#include "gpg/function/GpgKeyImportExportor.h"
+#include "gpg/function/GpgKeyImportExporter.h"
 
 #include "GpgConstants.h"
+#include "gpg/function/GpgKeyGetter.h"
 
 /**
  * Import key pair
  * @param inBuffer input byte array
  * @return Import information
  */
-GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExportor::ImportKey(
+GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExporter::ImportKey(
     StdBypeArrayPtr in_buffer) {
   if (in_buffer->empty()) return {};
 
@@ -60,25 +61,37 @@ GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExportor::ImportKey(
  * @param out_buffer output byte array
  * @return if success
  */
-bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
-    KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer) const {
+bool GpgFrontend::GpgKeyImportExporter::ExportKeys(KeyIdArgsListPtr& uid_list,
+                                                   ByteArrayPtr& out_buffer,
+                                                   bool secret) const {
   if (uid_list->empty()) return false;
 
-  // Alleviate another crash problem caused by an unknown array out-of-bounds
-  // access
-  auto all_success = true;
-  for (size_t i = 0; i < uid_list->size(); i++) {
-    GpgData data_out;
-    auto err = gpgme_op_export(ctx, (*uid_list)[i].c_str(), 0, data_out);
-    if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) all_success = false;
-    DLOG(INFO) << "exportKeys read_bytes"
-               << gpgme_data_seek(data_out, 0, SEEK_END);
+  int _mode = 0;
+  if (secret) _mode |= GPGME_EXPORT_MODE_SECRET;
 
-    auto temp_out_buffer = data_out.Read2Buffer();
-    std::swap(out_buffer, temp_out_buffer);
+  auto keys = GpgKeyGetter::GetInstance().GetKeys(uid_list);
+  auto keys_array = new gpgme_key_t[keys->size() + 1];
+
+  int index = 0;
+  for (const auto& key : *keys) {
+    keys_array[index++] = gpgme_key_t(key);
   }
+  keys_array[index] = nullptr;
 
-  return all_success;
+  GpgData data_out;
+  auto err = gpgme_op_export_keys(ctx, keys_array, _mode, data_out);
+  if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return false;
+
+  delete[] keys_array;
+
+  DLOG(INFO) << "exportKeys read_bytes"
+             << gpgme_data_seek(data_out, 0, SEEK_END);
+
+  auto temp_out_buffer = data_out.Read2Buffer();
+
+  swap(temp_out_buffer, out_buffer);
+
+  return true;
 }
 
 /**
@@ -87,11 +100,12 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
  * @param outBuffer output byte array
  * @return if success
  */
-bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
-    const KeyArgsList& keys, ByteArrayPtr& out_buffer) const {
+bool GpgFrontend::GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys,
+                                                   ByteArrayPtr& out_buffer,
+                                                   bool secret) const {
   KeyIdArgsListPtr key_ids = std::make_unique<std::vector<std::string>>();
   for (const auto& key : keys) key_ids->push_back(key.id());
-  return ExportKeys(key_ids, out_buffer);
+  return ExportKeys(key_ids, out_buffer, secret);
 }
 
 /**
@@ -100,7 +114,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeys(
  * @param outBuffer output byte array
  * @return if successful
  */
-bool GpgFrontend::GpgKeyImportExportor::ExportSecretKey(
+bool GpgFrontend::GpgKeyImportExporter::ExportSecretKey(
     const GpgKey& key, ByteArrayPtr& out_buffer) const {
   DLOG(INFO) << "Export Secret Key" << key.id().c_str();
 
@@ -117,7 +131,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportSecretKey(
   return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgKeyImportExportor::ExportKey(
+bool GpgFrontend::GpgKeyImportExporter::ExportKey(
     const GpgFrontend::GpgKey& key,
     GpgFrontend::ByteArrayPtr& out_buffer) const {
   GpgData data_out;
@@ -131,7 +145,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKey(
   return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgKeyImportExportor::ExportKeyOpenSSH(
+bool GpgFrontend::GpgKeyImportExporter::ExportKeyOpenSSH(
     const GpgFrontend::GpgKey& key,
     GpgFrontend::ByteArrayPtr& out_buffer) const {
   GpgData data_out;
@@ -145,7 +159,7 @@ bool GpgFrontend::GpgKeyImportExportor::ExportKeyOpenSSH(
   return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgKeyImportExportor::ExportSecretKeyShortest(
+bool GpgFrontend::GpgKeyImportExporter::ExportSecretKeyShortest(
     const GpgFrontend::GpgKey& key,
     GpgFrontend::ByteArrayPtr& out_buffer) const {
   GpgData data_out;

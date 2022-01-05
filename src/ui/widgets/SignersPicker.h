@@ -25,11 +25,11 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
 #define GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
 
-#include "GpgFrontend.h"
-#include "gpg/GpgContext.h"
-#include "ui/widgets/KeyList.h"
+#include "GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
+
+class KeyList;
 
 class SignersPicker : public QDialog {
   Q_OBJECT
@@ -40,7 +40,7 @@ class SignersPicker : public QDialog {
   GpgFrontend::KeyIdArgsListPtr getCheckedSigners();
 
  private:
-  KeyList* mKeyList;
+  KeyList* key_list_;
 };
 
 }  // namespace GpgFrontend::UI

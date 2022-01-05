@@ -86,8 +86,8 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       _("or send a mail to my mailing list at") + " <a " +
       "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
       _("Built with Qt") + " " + qVersion() + " " + _("and GPGME") + " " +
-      GpgFrontend::GpgContext::getGpgmeVersion().c_str() + "<br>" +
-      _("Built at") + " " + BUILD_TIMESTAMP + "</center>");
+      GpgFrontend::GpgContext::GetInstance().GetInfo().GpgMEVersion.c_str() +
+      "<br>" + _("Built at") + " " + BUILD_TIMESTAMP + "</center>");
 
   auto* layout = new QGridLayout();
   auto* pixmapLabel = new QLabel();
@@ -163,14 +163,6 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
   latestVersionLabel->setWordWrap(true);
 
   upgradeLabel = new QLabel();
-  upgradeLabel->setText(
-      "<center>" +
-      QString(_("The current version is less than the latest version on "
-                "github.")) +
-      "</center><center>" + _("Please click") +
-      " <a "
-      "href=\"https://github.com/saturneric/GpgFrontend/releases\">" +
-      _("Here") + "</a> " + _("to download the latest version.") + "</center>");
   upgradeLabel->setWordWrap(true);
   upgradeLabel->setOpenExternalLinks(true);
   upgradeLabel->setHidden(true);
@@ -196,11 +188,7 @@ void UpdateTab::getLatestVersion() {
 
   LOG(INFO) << _("try to get latest version");
 
-  QString base_url =
-      "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
-  QNetworkRequest request;
-  request.setUrl(QUrl(base_url));
-  auto version_thread = new VersionCheckThread(manager->get(request));
+  auto version_thread = new VersionCheckThread();
 
   connect(version_thread, SIGNAL(finished()), version_thread,
           SLOT(deleteLater()));
@@ -210,15 +198,45 @@ void UpdateTab::getLatestVersion() {
   version_thread->start();
 }
 
-void UpdateTab::slotShowVersionStatus(const QString& current,
-                                      const QString& server) {
+void UpdateTab::slotShowVersionStatus(const SoftwareVersion& version) {
   this->pb->setHidden(true);
-
   latestVersionLabel->setText("<center><b>" +
                               QString(_("Latest Version From Github")) + ": " +
-                              server + "</b></center>");
+                              version.latest_version.c_str() + "</b></center>");
 
-  if (current < server) {
+  if (version.NeedUpgrade()) {
+    upgradeLabel->setText(
+        "<center>" +
+        QString(_("The current version is less than the latest version on "
+                  "github.")) +
+        "</center><center>" + _("Please click") +
+        " <a "
+        "href=\"https://github.com/saturneric/GpgFrontend/releases\">" +
+        _("Here") + "</a> " + _("to download the latest stable version.") +
+        "</center>");
+    upgradeLabel->show();
+  } else if (version.VersionWithDrawn()) {
+    upgradeLabel->setText(
+        "<center>" +
+        QString(_("This version has serious problems and has been withdrawn. "
+                  "Please stop using it immediately.")) +
+        "</center><center>" + _("Please click") +
+        " <a "
+        "href=\"https://github.com/saturneric/GpgFrontend/releases\">" +
+        _("Here") + "</a> " + _("to download the latest stable version.") +
+        "</center>");
+    upgradeLabel->show();
+  } else if (!version.CurrentVersionReleased()) {
+    upgradeLabel->setText(
+        "<center>" +
+        QString(_("This version has not been released yet, it may be a beta "
+                  "version. If you are not a tester and care about version "
+                  "stability, please do not use this version.")) +
+        "</center><center>" + _("Please click") +
+        " <a "
+        "href=\"https://github.com/saturneric/GpgFrontend/releases\">" +
+        _("Here") + "</a> " + _("to download the latest stable version.") +
+        "</center>");
     upgradeLabel->show();
   }
 }

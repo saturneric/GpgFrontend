@@ -31,8 +31,13 @@ if (APPLICATION_BUILD)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
     set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
 
-    # Set Binary Output Path
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
+    if (NOT XCODE_BUILD)
+        # Set Binary Output Path
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
+    else ()
+        # Set Binary Output Path
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+    endif ()
     message(STATUS "CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 endif ()
 
@@ -114,6 +119,9 @@ if (APPLICATION_BUILD)
     file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/TRANSLATORS DESTINATION ${RESOURCE_OUTPUT_DIRECTORY} FOLLOW_SYMLINK_CHAIN)
+    if (GPG_STANDALONE_MODE)
+        file(COPY ${CMAKE_SOURCE_DIR}/resource/gpg1.4 DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+    endif ()
 endif ()
 
 if (APPLICATION_BUILD)
@@ -155,7 +163,7 @@ if (APPLICATION_BUILD)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (MINGW)
             add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
-        elseif (APPLE)
+        elseif (APPLE AND NOT XCODE_BUILD)
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             set_target_properties(${AppName} PROPERTIES
                     BUNDLE True
@@ -183,6 +191,38 @@ if (APPLICATION_BUILD)
                     COMMAND /bin/mkdir -p ./gpgfrontend/usr/lib
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Complement to build the required architecture")
+        elseif (APPLE AND XCODE_BUILD)
+            add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            set_target_properties(${AppName} PROPERTIES
+                    BUNDLE True
+                    MACOSX_BUNDLE_GUI_IDENTIFIER pub.gpgfrontend.gpgfrontend
+                    MACOSX_BUNDLE_BUNDLE_NAME ${AppName}
+                    MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
+                    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+                    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+                    MACOSX_BUNDLE_COPYRIGHT "GPL-3.0"
+                    MACOSX_BUNDLE_INFO_STRING "An OpenPGP Crypto Tool"
+                    MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns"
+                    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/resource/plist/MacOSXBundleInfo.plist.in
+                    )
+            add_custom_command(TARGET ${AppName} POST_BUILD
+                    COMMAND /bin/rm -rf ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.app/Contents/Resources
+                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                    COMMENT "Deleting Resources in App Bundle")
+            add_custom_command(TARGET ${AppName} POST_BUILD
+                    COMMAND /bin/cp -rf ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app/Contents/
+                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                    COMMENT "Copying Resources into App Bundle Resource")
+            add_custom_command(TARGET ${AppName} POST_BUILD
+                    COMMAND macdeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app
+                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                    COMMENT "Resolving Qt Dependency")
+            set_target_properties(${AppName} PROPERTIES
+                    XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
+                    XCODE_ATTRIBUTE_SKIP_INSTALL "No"
+                    XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep --entitlements ${CMAKE_SOURCE_DIR}/resource/plist/entitlement.plist"
+                    XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes"
+                    )
         else ()
             add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
         endif ()
@@ -252,6 +292,8 @@ if (LINUX_INSTALL_SOFTWARE)
                     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
                     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
                     )
+            install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
+                    DESTINATION /usr/local/share/${AppName}/)
             install(FILES ${CMAKE_SOURCE_DIR}/resource/meta/pub.gpgfrontend.gpgfrontend.appdata.xml
                     DESTINATION /usr/share/metainfo/)
             install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/desktop/
@@ -274,7 +316,7 @@ if (LINUX_INSTALL_SOFTWARE)
             set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
             set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
             SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Saturneric")
-            set(CPACK_DEBIAN_PACKAGE_DEPENDS "gpg (>= 2.2), libqt5core5a (>= 5.9), libqt5gui5 (>= 5.9), libqt5widgets5 (>= 5.9), libqt5network5 (>= 5.9), libqt5printsupport5 (>= 5.9)")
+            set(CPACK_DEBIAN_PACKAGE_DEPENDS "gpg (>= 2.2), libqt5core5a (>= 5.9), libqt5gui5 (>= 5.9), libqt5widgets5 (>= 5.9), libqt5network5 (>= 5.9), libqt5printsupport5 (>= 5.9), libconfig++-dev (>=1.5)")
             set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
             set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
             set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")

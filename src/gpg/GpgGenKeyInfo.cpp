@@ -32,18 +32,41 @@
 #include <string>
 #include <vector>
 
-const std::vector<std::string> GpgFrontend::GenKeyInfo::SupportedKeyAlgo = {
-    "RSA", "DSA", "ED25519"};
-
-const std::vector<std::string> GpgFrontend::GenKeyInfo::SupportedSubkeyAlgo = {
-    "RSA", "DSA", "ED25519", "ELG"};
-
 void GpgFrontend::GenKeyInfo::setAlgo(const std::string &m_algo) {
-  LOG(INFO) << "GpgFrontend::GenKeyInfo::setAlgo m_algo" << m_algo;
+  LOG(INFO) << "set algo" << m_algo;
+  // Check algo if supported
+  std::string algo_args = std::string(m_algo);
+  boost::algorithm::to_upper(algo_args);
+  if (standalone_) {
+    if (!subkey_) {
+      auto support_algo = getSupportedKeyAlgoStandalone();
+      auto it = std::find(support_algo.begin(), support_algo.end(), algo_args);
+      // Algo Not Supported
+      if (it == support_algo.end()) return;
+    } else {
+      auto support_algo = getSupportedSubkeyAlgoStandalone();
+      auto it = std::find(support_algo.begin(), support_algo.end(), algo_args);
+      // Algo Not Supported
+      if (it == support_algo.end()) return;
+    }
+  } else {
+    if (!subkey_) {
+      auto support_algo = getSupportedKeyAlgo();
+      auto it = std::find(support_algo.begin(), support_algo.end(), algo_args);
+      // Algo Not Supported
+      if (it == support_algo.end()) return;
+    } else {
+      auto support_algo = getSupportedSubkeyAlgo();
+      auto it = std::find(support_algo.begin(), support_algo.end(), algo_args);
+      // Algo Not Supported
+      if (it == support_algo.end()) return;
+    }
+  }
 
+  // reset all options
   reset_options();
 
-  if (!this->subKey) {
+  if (!this->subkey_) {
     this->setAllowCertification(true);
   } else {
     this->setAllowCertification(false);
@@ -51,23 +74,20 @@ void GpgFrontend::GenKeyInfo::setAlgo(const std::string &m_algo) {
 
   this->allowChangeCertification = false;
 
-  std::string lower_algo = std::string(m_algo);
-  boost::algorithm::to_lower(lower_algo);
+  if (!standalone_) boost::algorithm::to_lower(algo_args);
 
-  LOG(INFO) << "GpgFrontend::GenKeyInfo::setAlgo lower_algo" << lower_algo;
-
-  if (lower_algo == "rsa") {
+  if (algo_args == "rsa") {
     /**
      * RSA is the world’s premier asymmetric cryptographic algorithm,
      * and is built on the difficulty of factoring extremely large composites.
      * GnuPG supports RSA with key sizes of between 1024 and 4096 bits.
      */
-    suggestMinKeySize = 1024;
-    suggestMaxKeySize = 4096;
-    suggestSizeAdditionStep = 1024;
+    suggest_min_key_size_ = 1024;
+    suggest_max_key_size_ = 4096;
+    suggest_size_addition_step_ = 1024;
     setKeySize(2048);
 
-  } else if (lower_algo == "dsa") {
+  } else if (algo_args == "dsa") {
     /**
      * Algorithm (DSA) as a government standard for digital signatures.
      * Originally, it supported key lengths between 512 and 1024 bits.
@@ -77,42 +97,40 @@ void GpgFrontend::GenKeyInfo::setAlgo(const std::string &m_algo) {
     setAllowEncryption(false);
     allowChangeEncryption = false;
 
-    suggestMinKeySize = 1024;
-    suggestMaxKeySize = 3072;
-    suggestSizeAdditionStep = 1024;
+    suggest_min_key_size_ = 1024;
+    suggest_max_key_size_ = 3072;
+    suggest_size_addition_step_ = 1024;
     setKeySize(2048);
 
-  } else if (lower_algo == "ed25519") {
+  } else if (algo_args == "ed25519") {
     /**
      * GnuPG supports the Elgamal asymmetric encryption algorithm in key lengths
      * ranging from 1024 to 4096 bits.
      */
-
     setAllowEncryption(false);
     allowChangeEncryption = false;
 
-    suggestMinKeySize = -1;
-    suggestMaxKeySize = -1;
-    suggestSizeAdditionStep = -1;
+    suggest_min_key_size_ = -1;
+    suggest_max_key_size_ = -1;
+    suggest_size_addition_step_ = -1;
     setKeySize(-1);
-  } else if (lower_algo == "elg") {
+  } else if (algo_args == "elg") {
     /**
      * GnuPG supports the Elgamal asymmetric encryption algorithm in key lengths
      * ranging from 1024 to 4096 bits.
      */
-
     setAllowAuthentication(false);
     allowChangeAuthentication = false;
 
     setAllowSigning(false);
     allowChangeSigning = false;
 
-    suggestMinKeySize = 1024;
-    suggestMaxKeySize = 4096;
-    suggestSizeAdditionStep = 1024;
+    suggest_min_key_size_ = 1024;
+    suggest_max_key_size_ = 4096;
+    suggest_size_addition_step_ = 1024;
     setKeySize(2048);
   }
-  this->algo = lower_algo;
+  this->algo_ = algo_args;
 }
 
 void GpgFrontend::GenKeyInfo::reset_options() {
@@ -128,37 +146,37 @@ void GpgFrontend::GenKeyInfo::reset_options() {
   allowChangeAuthentication = true;
   setAllowAuthentication(true);
 
-  passPhrase.clear();
+  passphrase_.clear();
 }
 
 std::string GpgFrontend::GenKeyInfo::getKeySizeStr() const {
-  if (keySize > 0) {
-    return std::to_string(keySize);
+  if (key_size_ > 0) {
+    return std::to_string(key_size_);
   } else {
     return {};
   }
 }
 
 void GpgFrontend::GenKeyInfo::setKeySize(int m_key_size) {
-  if (m_key_size < suggestMinKeySize || m_key_size > suggestMaxKeySize) {
+  if (m_key_size < suggest_min_key_size_ ||
+      m_key_size > suggest_max_key_size_) {
     return;
   }
-  GenKeyInfo::keySize = m_key_size;
+  GenKeyInfo::key_size_ = m_key_size;
 }
 
 void GpgFrontend::GenKeyInfo::setExpired(
     const boost::posix_time::ptime &m_expired) {
   using namespace boost::gregorian;
-  auto current = boost::posix_time::second_clock::local_time();
-  if (isNonExpired() && m_expired < current + years(2)) {
-    GenKeyInfo::expired = m_expired;
+  if (!isNonExpired()) {
+    GenKeyInfo::expired_ = m_expired;
   }
 }
 
 void GpgFrontend::GenKeyInfo::setNonExpired(bool m_non_expired) {
   using namespace boost::posix_time;
-  if (!m_non_expired) this->expired = from_time_t(0);
-  GenKeyInfo::nonExpired = m_non_expired;
+  if (!m_non_expired) this->expired_ = from_time_t(0);
+  GenKeyInfo::non_expired_ = m_non_expired;
 }
 
 void GpgFrontend::GenKeyInfo::setAllowEncryption(bool m_allow_encryption) {
@@ -169,4 +187,36 @@ void GpgFrontend::GenKeyInfo::setAllowCertification(
     bool m_allow_certification) {
   if (allowChangeCertification)
     GenKeyInfo::allowCertification = m_allow_certification;
+}
+
+GpgFrontend::GenKeyInfo::GenKeyInfo(bool m_is_sub_key, bool m_standalone)
+    : standalone_(m_standalone), subkey_(m_is_sub_key) {
+  setAlgo("rsa");
+}
+
+const std::vector<std::string> &GpgFrontend::GenKeyInfo::getSupportedKeyAlgo() {
+  static const std::vector<std::string> support_key_algo = {"RSA", "DSA",
+                                                            "ED25519"};
+  return support_key_algo;
+}
+
+const std::vector<std::string>
+    &GpgFrontend::GenKeyInfo::getSupportedSubkeyAlgo() {
+  static const std::vector<std::string> support_subkey_algo = {"RSA", "DSA",
+                                                               "ED25519"};
+  return support_subkey_algo;
+}
+
+const std::vector<std::string>
+    &GpgFrontend::GenKeyInfo::getSupportedKeyAlgoStandalone() {
+  static const std::vector<std::string> support_subkey_algo_standalone = {
+      "RSA", "DSA"};
+  return support_subkey_algo_standalone;
+}
+
+const std::vector<std::string>
+    &GpgFrontend::GenKeyInfo::getSupportedSubkeyAlgoStandalone() {
+  static const std::vector<std::string> support_subkey_algo_standalone = {
+      "RSA", "DSA", "ELG-E"};
+  return support_subkey_algo_standalone;
 }

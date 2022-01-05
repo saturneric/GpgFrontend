@@ -185,7 +185,7 @@ class TextEdit : public QWidget {
    * @param a filename path
    * @return QString containing the filename
    */
-  static QString strippedName(const QString& fullFileName);
+  static QString strippedName(const QString& full_file_name);
 
   /**
    * @brief

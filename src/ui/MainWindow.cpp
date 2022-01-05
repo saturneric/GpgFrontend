@@ -50,7 +50,8 @@ void MainWindow::init() noexcept {
     setCentralWidget(edit);
 
     /* the list of Keys available*/
-    mKeyList = new KeyList(true, this);
+    mKeyList = new KeyList(
+        KeyMenuAbility::REFRESH | KeyMenuAbility::UNCHECK_ALL, this);
 
     infoBoard = new InfoBoardWidget(this);
 
@@ -115,21 +116,20 @@ void MainWindow::init() noexcept {
 
     emit loaded();
 
+    // if not prohibit update checking
+    if (!prohibit_update_checking_) {
 #ifdef RELEASE
-    QString baseUrl =
-        "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
-    QNetworkRequest request;
-    request.setUrl(QUrl(baseUrl));
-    auto* replay = networkAccessManager->get(request);
-    auto version_thread = new VersionCheckThread(replay);
+      auto version_thread = new VersionCheckThread();
 
-    connect(version_thread, SIGNAL(finished()), version_thread,
-            SLOT(deleteLater()));
-    connect(version_thread, &VersionCheckThread::upgradeVersion, this,
-            &MainWindow::slotVersionUpgrade);
+      connect(version_thread, SIGNAL(finished()), version_thread,
+              SLOT(deleteLater()));
+      connect(version_thread, &VersionCheckThread::upgradeVersion, this,
+              &MainWindow::slotVersionUpgrade);
 
-    version_thread->start();
+      version_thread->start();
 #endif
+    }
+
   } catch (...) {
     LOG(FATAL) << _("Critical error occur while loading GpgFrontend.");
     QMessageBox::critical(nullptr, _("Loading Failed"),
@@ -274,6 +274,11 @@ void MainWindow::restoreSettings() {
       general.add("save_key_checked", libconfig::Setting::TypeBoolean) = true;
     }
 
+    if (!general.exists("non_ascii_when_export")) {
+      general.add("non_ascii_when_export", libconfig::Setting::TypeBoolean) =
+          true;
+    }
+
     bool save_key_checked = true;
     general.lookupValue("save_key_checked", save_key_checked);
 
@@ -291,8 +296,24 @@ void MainWindow::restoreSettings() {
         LOG(INFO) << "get checked key id" << key_id;
         key_ids_ptr->push_back(key_id);
       }
-      mKeyList->setChecked(key_ids_ptr);
+      mKeyList->setChecked(std::move(key_ids_ptr));
     }
+
+    auto& smtp = settings["smtp"];
+
+    if (!smtp.exists("enable")) {
+      smtp.add("enable", libconfig::Setting::TypeBoolean) = true;
+    }
+
+    prohibit_update_checking_ = false;
+    try {
+      prohibit_update_checking_ =
+          settings.lookup("network.prohibit_update_checking");
+    } catch (...) {
+      LOG(ERROR) << _("Setting Operation Error")
+                 << _("prohibit_update_checking");
+    }
+
   } catch (...) {
     LOG(ERROR) << "cannot resolve settings";
   }

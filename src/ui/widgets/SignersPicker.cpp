@@ -24,31 +24,31 @@
 
 #include "ui/widgets/SignersPicker.h"
 
+#include "ui/widgets/KeyList.h"
+
 namespace GpgFrontend::UI {
 
 SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
-  auto confirmButton = new QPushButton(_("Confirm"));
-  connect(confirmButton, SIGNAL(clicked(bool)), this, SLOT(accept()));
+  auto confirm_button = new QPushButton(_("Confirm"));
+  connect(confirm_button, SIGNAL(clicked(bool)), this, SLOT(accept()));
 
   /*Setup KeyList*/
-  mKeyList = new KeyList(false, this);
-  mKeyList->addListGroupTab(
+  key_list_ = new KeyList(false, this);
+  key_list_->addListGroupTab(
       _("Signers"), KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage,
-      [](const GpgKey& key) -> bool {
-        if (!key.CanSignActual())
-          return false;
-        else
-          return true;
-      });
-  mKeyList->slotRefresh();
+      [](const GpgKey& key) -> bool { return key.CanSignActual(); });
+  key_list_->slotRefresh();
 
   auto* vbox2 = new QVBoxLayout();
   vbox2->addWidget(new QLabel(QString(_("Select Signer(s)")) + ": "));
-  vbox2->addWidget(mKeyList);
+  vbox2->addWidget(key_list_);
   vbox2->addWidget(new QLabel(
-      _("If any key is selected, the default key will be used for signing.")));
-  vbox2->addWidget(confirmButton);
+      QString(
+          _("Please select one or more private keys you use for signing.")) +
+      "\n" +
+      _("If no key is selected, the default key will be used for signing.")));
+  vbox2->addWidget(confirm_button);
   vbox2->addStretch(0);
   setLayout(vbox2);
 
@@ -62,7 +62,7 @@ SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
 }
 
 GpgFrontend::KeyIdArgsListPtr SignersPicker::getCheckedSigners() {
-  return mKeyList->getPrivateChecked();
+  return key_list_->getPrivateChecked();
 }
 
 }  // namespace GpgFrontend::UI

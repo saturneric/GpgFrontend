@@ -71,18 +71,17 @@ It is important to understand this list. Now let me take you to understand it st
 - Select: Turn the checkbox in this column to let Gpg Frontend know that you specify the key of this row for your next
   operation.
 
-- Type: See this column to let you know the type of key and whether the master key exists in your key pair.
+- Type: See this column to let you know the type of key and whether the primary key exists in your key pair.
     - `pub` means this is a public key, Can be used for encryption or verification operations.
     - `pub/sec` The key pair contains both public and private keys. It can be used for almost all operations(Need to
       combine the usage column to determine this).
-    - `pub/sec#`  The key pair contains a public key and a private key, but the master key is not in the key pair. This shows that you will not be able to do some special (add subkeys, sign other key pairs, etc.)
-    
+    - `pub/sec#`  The key pair contains a public key and a private key, but the primary key is not in the key pair. This
+      shows that you will not be able to do some special (add subkeys, sign other key pairs, etc.)
 - Name: The identity information of the key pair.
-
 - Email Address: The identity information of the key pair.
-
-- Usage: This determines which operations the key pair can use. Composed of four capital letters, each capital letter represents a usage.
-    - `C` Certificate. Generally, the key pair that contains the master key will have this usage
+- Usage: This determines which operations the key pair can use. Composed of four capital letters, each capital letter
+  represents a usage.
+    - `C` Certificate. Generally, the key pair that contains the primary key will have this usage
     - `E` Encrypt. The key pair can be used for encryption operations.
     - `S` Sign. The key pair can be used for sign operations.
     - `A` Authenticate. The key pair can be used to perform operations like SSH authentication.

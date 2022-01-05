@@ -18,44 +18,46 @@ According to the OpenPGP protocol, this part is divided into Name, Email, and Co
 
 ![screenshot](https://github.com/saturneric/Blob/blob/master/screenshots/key-details-owner.png?raw=true)
 
-### Master Key
+### primary key
 
-This part is the information of the master key of the key pair. The master key is very important, because without it,
+This part is the information of the primary key of the key pair. The primary key is very important, because without it,
 the key pair cannot perform related management operations such as adding and revoking sub-keys (similar to the key ring
-cannot be opened). Let's introduce the information of the master key separately below.
+cannot be opened). Let's introduce the information of the primary key separately below.
 
 ![screenshot](https://github.com/saturneric/Blob/blob/master/screenshots/key-details-master-key.png?raw=true)
 
 #### Key ID
 
-The unique identifier of the master key is fixed and unchanging.
+The unique identifier of the primary key is fixed and unchanging.
 
 #### Algorithm
 
-The encryption algorithm used by the master key.
+The encryption algorithm used by the primary key.
 
 #### Key Size
 
-The length of the master key. 
-It can be said that the longer the key, the harder it is to crack the ciphertext, but at the same time, the more time it takes for a single operation. 
-Generally speaking, a length of 2048 bits is safe enough.
+The length of the primary key. It can be said that the longer the key, the harder it is to crack the ciphertext, but at
+the same time, the more time it takes for a single operation. Generally speaking, a length of 2048 bits is safe enough.
 
 #### Normal Usage
 
-What can the key pair conceptually be used for (including the conceptual usage of the master key and sub-key). When the
-master key or subkey generation can be used to sign, but it has already expired or does not exist, the signature usage
+What can the key pair conceptually be used for (including the conceptual usage of the primary key and sub-key). When the
+primary key or subkey generation can be used to sign, but it has already expired or does not exist, the signature usage
 will still be displayed here.
 
 #### Actual Usage
 
-The actual usage of the master key and all subkeys. It is the union of their usage. 
-If there is only one master key in the key pair that can be used for signing, but this master key does not exist. Then the signature usage will not appear here, only in Normal Usage.
-In addition, when there is only one subkey that can be used for signing, if it has expired, the signature purpose will not be displayed here.
+The actual usage of the primary key and all subkeys. It is the union of their usage. If there is only one primary key in
+the key pair that can be used for signing, but this primary key does not exist. Then the signature usage will not appear
+here, only in Normal Usage. In addition, when there is only one subkey that can be used for signing, if it has expired,
+the signature purpose will not be displayed here.
 
 #### Expires on
 
-The expiration time of the master key. When the master key expires, it will be invalid. You cannot use it for any operation. In addition, the subkeys in the key pair will also be unavailable.
-Fortunately, you can change the expiration time of the master key at any time, or even set it to never expire. The prerequisite for this is that the master key exists.
+The expiration time of the primary key. When the primary key expires, it will be invalid. You cannot use it for any
+operation. In addition, the subkeys in the key pair will also be unavailable. Fortunately, you can change the expiration
+time of the primary key at any time, or even set it to never expire. The prerequisite for this is that the primary key
+exists.
 
 #### Last Update
 
@@ -64,7 +66,7 @@ content of the key pair.
 
 #### Secret Key Existence
 
-Shows whether the actual content of the master key exists. When the master key does not exist, if there are still
+Shows whether the actual content of the primary key exists. When the primary key does not exist, if there are still
 available subkeys in the key pair, the key pair can still be used for normal operations. However, in the above case, the
 content of the key pair cannot be modified (that is, operations such as adding UID or subkey cannot be performed), and
 the key pair cannot sign other key pairs.
@@ -92,7 +94,7 @@ must conform to the format. Comment rules are relatively loose.
 
 ### Signature
 
-You can use the master key of another key pair to sign a UID. When the master UID of a key pair has many valid
+You can use the primary key of another key pair to sign a UID. When the master UID of a key pair has many valid
 signatures attached, it will be more trustworthy than without a valid key pair.
 
 ## Subkey Info
@@ -102,10 +104,10 @@ degree of complexity, making it difficult for beginners to understand.
 
 In order to help you understand this concept and get a preliminary grasp, you only need to read the following points:
 
-- A key pair can be compared to a keychain, with a master key and multiple subkeys (or no subkeys).
-- The sub-key can do related operations (such as signing, encryption) when the master key is not present or cannot.
+- A key pair can be compared to a keychain, with a primary key and multiple subkeys (or no subkeys).
+- The sub-key can do related operations (such as signing, encryption) when the primary key is not present or cannot.
 - The functions of the sub-keys can overlap. When both sub-keys can be used for signing, the earliest generated one is
   selected for this operation.
-- The sub-key can use more algorithms than the master key, but generally they have the same effect on daily operations.
+- The sub-key can use more algorithms than the primary key, but generally they have the same effect on daily operations.
 - The disclosure of the subkey only affects the subkey, and the entire key pair is in danger after the disclosure of the
-  master key.
+  primary key.

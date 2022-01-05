@@ -26,7 +26,7 @@
 
 #include <utility>
 
-#include "gpg/function/GpgKeyImportExportor.h"
+#include "gpg/function/GpgKeyImportExporter.h"
 #include "ui/SignalStation.h"
 #include "ui/settings/GlobalSettingStation.h"
 
@@ -441,7 +441,7 @@ void KeyServerImportDialog::slotImport(const QStringList& keyIds,
   }
 }
 
-void KeyServerImportDialog::slotImportFinished(QString keyid) {
+void KeyServerImportDialog::slotImportFinished(const QString& keyid) {
   LOG(INFO) << _("Called");
 
   auto* reply = qobject_cast<QNetworkReply*>(sender());
@@ -503,7 +503,7 @@ void KeyServerImportDialog::slotImportFinished(QString keyid) {
 
 void KeyServerImportDialog::importKeys(ByteArrayPtr in_data) {
   GpgImportInformation result =
-      GpgKeyImportExportor::GetInstance().ImportKey(std::move(in_data));
+      GpgKeyImportExporter::GetInstance().ImportKey(std::move(in_data));
   emit signalKeyImported();
   QWidget* _parent = qobject_cast<QWidget*>(parent());
   if (mAutomatic) {

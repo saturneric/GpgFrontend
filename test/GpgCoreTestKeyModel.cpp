@@ -25,15 +25,11 @@
 #include "GpgFrontendTest.h"
 #include "gpg/function/GpgKeyGetter.h"
 
-// Should be used once and once-only
-INITIALIZE_EASYLOGGINGPP
-
 TEST_F(GpgCoreTest, CoreInitTest) {
   auto& ctx = GpgFrontend::GpgContext::GetInstance(default_channel);
   auto& ctx_default = GpgFrontend::GpgContext::GetInstance();
   ASSERT_TRUE(ctx.good());
   ASSERT_TRUE(ctx_default.good());
-  ASSERT_EQ(ctx_default.GetInfo().DatabasePath, "default");
 }
 
 TEST_F(GpgCoreTest, GpgDataTest) {
@@ -75,18 +71,19 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
   ASSERT_EQ(key.email(), "gpgfrontend@gpgfrontend.pub");
   ASSERT_EQ(key.id(), "81704859182661FB");
   ASSERT_EQ(key.fpr(), "9490795B78F8AFE9F93BD09281704859182661FB");
-  ASSERT_EQ(key.expires(), boost::gregorian::from_simple_string("2023-09-05"));
+  ASSERT_EQ(key.expires(),
+            boost::posix_time::from_iso_string("20230905T040000"));
   ASSERT_EQ(key.pubkey_algo(), "RSA");
   ASSERT_EQ(key.length(), 3072);
   ASSERT_EQ(key.last_update(),
-            boost::gregorian::from_simple_string("1970-01-01"));
+            boost::posix_time::from_iso_string("19700101T000000"));
   ASSERT_EQ(key.create_time(),
-            boost::gregorian::from_simple_string("2021-09-05"));
+            boost::posix_time::from_iso_string("20210905T060153"));
 
   ASSERT_EQ(key.owner_trust(), "Unknown");
 
   using namespace boost::posix_time;
-  ASSERT_EQ(key.expired(), key.expires() < second_clock::local_time().date());
+  ASSERT_EQ(key.expired(), key.expires() < second_clock::local_time());
 }
 
 TEST_F(GpgCoreTest, GpgSubKeyTest) {
@@ -100,7 +97,7 @@ TEST_F(GpgCoreTest, GpgSubKeyTest) {
   ASSERT_FALSE(sub_key.revoked());
   ASSERT_FALSE(sub_key.disabled());
   ASSERT_EQ(sub_key.timestamp(),
-            boost::gregorian::from_simple_string("2021-09-05"));
+            boost::posix_time::from_iso_string("20210905T060153"));
 
   ASSERT_FALSE(sub_key.is_cardkey());
   ASSERT_TRUE(sub_key.is_private_key());
@@ -112,11 +109,11 @@ TEST_F(GpgCoreTest, GpgSubKeyTest) {
   ASSERT_FALSE(sub_key.can_authenticate());
   ASSERT_FALSE(sub_key.can_sign());
   ASSERT_TRUE(sub_key.can_encrypt());
-  ASSERT_EQ(key.expires(), boost::gregorian::from_simple_string("2023-09-05"));
+  ASSERT_EQ(key.expires(),
+            boost::posix_time::from_iso_string("20230905T040000"));
 
   using namespace boost::posix_time;
-  ASSERT_EQ(sub_key.expired(),
-            sub_key.expires() < second_clock::local_time().date());
+  ASSERT_EQ(sub_key.expired(), sub_key.expires() < second_clock::local_time());
 }
 
 TEST_F(GpgCoreTest, GpgUIDTest) {
