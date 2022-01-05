@@ -245,7 +245,7 @@ void SendMailDialog::slotConfirm() {
   thread->addTextContent(ui->textEdit->toPlainText());
 
   if (ui->contentEncryptCheckBox->checkState() == Qt::Checked) {
-    if (recipients_key_ids_ == nullptr) {
+    if (recipients_key_ids_ == nullptr || recipients_key_ids_->empty()) {
       QMessageBox::critical(
           this, _("Forbidden"),
           _("You have checked the encrypted email content, but you have not "
@@ -414,6 +414,12 @@ void SendMailDialog::slotTestSMTPConnectionResult(const QString& result) {
     QMessageBox::information(
         this, _("Success"),
         _("Succeed in sending the message to the SMTP Server"));
+  } else if (result == "Fail to encrypt with gpg keys") {
+    QMessageBox::critical(
+        this, _("Encryption Error"),
+        _("An error occurred while encrypting the content of the email. This "
+          "may be because you did not complete some operations during Gnupg "
+          "encryption."));
   } else {
     QMessageBox::critical(this, _("Fail"), _("Unknown error."));
   }
