@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>643</width>
+    <width>814</width>
     <height>657</height>
    </rect>
   </property>
@@ -43,16 +43,43 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QTreeWidget" name="treeWidget">
+        <widget class="QTreeWidget" name="accountTreeWidget">
+         <property name="indentation">
+          <number>15</number>
+         </property>
+         <property name="uniformRowHeights">
+          <bool>true</bool>
+         </property>
+         <property name="animated">
+          <bool>true</bool>
+         </property>
          <column>
           <property name="text">
-           <string notr="true">1</string>
+           <string>Name</string>
           </property>
          </column>
         </widget>
        </item>
        <item>
         <widget class="QListView" name="listView"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>TextLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QProgressBar" name="progressBar">
+         <property name="value">
+          <number>24</number>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
