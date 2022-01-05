@@ -31,6 +31,11 @@
 #include "GpgFrontendBuildInstallInfo.h"
 #include "ui/GpgFrontendUI.h"
 
+namespace vmime::security::cert {
+class defaultCertificateVerifier;
+class X509Certificate;
+}  // namespace vmime::security::cert
+
 namespace GpgFrontend::UI {
 
 class GlobalSettingStation : public QObject {
@@ -67,6 +72,20 @@ class GlobalSettingStation : public QObject {
   [[nodiscard]] boost::filesystem::path GetResourceDir() const {
     return app_resource_path;
   }
+
+  [[nodiscard]] boost::filesystem::path GetCertsDir() const {
+    return app_resource_path / "certs";
+  }
+
+  [[nodiscard]] std::shared_ptr<
+      vmime::security::cert::defaultCertificateVerifier>
+  GetCertVerifier() const {
+    return default_certs_verifier_;
+  }
+
+  void SetRootCerts(
+      const std::vector<
+          std::shared_ptr<vmime::security::cert::X509Certificate>>& certs);
 
   void Sync() noexcept;
 
@@ -112,6 +131,9 @@ class GlobalSettingStation : public QObject {
   boost::filesystem::path ui_config_path = ui_config_dir_path / "ui.cfg";
 
   libconfig::Config ui_cfg;
+
+  std::shared_ptr<vmime::security::cert::defaultCertificateVerifier>
+      default_certs_verifier_;
 
   static std::unique_ptr<GlobalSettingStation> _instance;
 };
