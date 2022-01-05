@@ -41,21 +41,22 @@ void SMTPSendMailThread::run() {
   }
 
   if (encrypt_content_ && public_key_ids_ != nullptr &&
-      !public_key_ids_->empty()) {
+      !public_key_ids_->empty() && !attach_signature_file_) {
     message.getContent().setContentType(
-        "multipart/encrypted; micalg=pgp-md5; "
+        "multipart/encrypted; "
         "protocol=\"application/pgp-encrypted\"");
   }
 
   if (attach_signature_file_ && !private_key_id_.empty()) {
     message.getContent().setContentType(
-        "multipart/signed; micalg=pgp-md5; "
+        "multipart/signed; "
         "protocol=\"application/pgp-signature\"");
   }
 
   int index = 0;
   for (auto& text : texts_) {
     const auto plain_text = text->getText().toStdString();
+
     // encrypt
     if (encrypt_content_ && public_key_ids_ != nullptr &&
         !public_key_ids_->empty()) {
@@ -71,6 +72,19 @@ void SMTPSendMailThread::run() {
         return;
       }
       text->setText(out_buffer->c_str());
+
+      //   The multipart/encrypted MIME body MUST consist of exactly two body
+      //   parts, the first with content type "application/pgp-encrypted".  This
+      //   body contains the control information.  A message complying with this
+      //   standard MUST contain a "Version: 1" field in this body.  Since the
+      //   OpenPGP packet format contains all other information necessary for
+      //   decrypting, no other information is required here.
+      auto control_text = std::make_unique<MimeText>("Version: 1\r\n");
+      control_text->setContentType("application/pgp-encrypted");
+      send_texts_.push_back(std::move(control_text));
+      //   The second MIME body part MUST contain the actual encrypted data.  It
+      //   MUST be labeled with a content type of "application/octet-stream".
+      text->setContentType("application/octet-stream");
     }
 
     send_texts_.push_back(std::move(text));
@@ -81,12 +95,37 @@ void SMTPSendMailThread::run() {
       GpgSignResult result;
 
       auto& plain_mime_text = send_texts_.back();
-      auto in_buffer =
-          std::make_unique<ByteArray>(plain_mime_text->getText().toStdString());
+      //   In particular, line endings in the encoded data
+      //   MUST use the canonical <CR><LF> sequence where appropriate
+      auto encoded_text = plain_mime_text->getText();
+      //   As described in section 3 of this document, any trailing
+      //   whitespace MUST then be removed from the signed material.
+      encoded_text = encoded_text.trimmed();
+      encoded_text = encoded_text.replace('\n', "\r\n");
+      //   An implementation which elects to adhere to the OpenPGP convention
+      //   has to make sure it inserts a <CR><LF> pair on the last line of the
+      //   data to be signed and transmitted.
+      encoded_text.append("\r\n");
+      plain_mime_text->setText(encoded_text);
+
+      //    This presents serious problems
+      //    for multipart/signed, in particular, where the signature is
+      //    invalidated when such an operation occurs.  For this reason all data
+      //    signed according to this protocol MUST be constrained to 7 bits (8-
+      //    bit data MUST be encoded using either Quoted-Printable or Base64).
+      plain_mime_text->setEncoding(MimePart::_7Bit);
+
+      // As described in [2], the digital signature MUST be calculated
+      // over both the data to be signed and its set of content headers.
+      auto text_calculated = plain_mime_text->toString().toStdString();
+
+      auto in_buffer = std::make_unique<ByteArray>(text_calculated);
       auto key = GpgKeyGetter::GetInstance().GetKey(private_key_id_);
       auto keys = std::make_unique<KeyArgsList>();
       keys->push_back(std::move(key));
 
+      //   The signature MUST be generated detached from the signed data
+      //   so that the process does not alter the signed data in any way.
       auto err = BasicOperator::GetInstance().Sign(
           std::move(keys), *in_buffer, out_buffer, GPGME_SIG_MODE_DETACH,
           result);
@@ -99,12 +138,32 @@ void SMTPSendMailThread::run() {
       auto sign_content_name =
           boost::format("%1%_sign_%2%.asc") % private_key_id_ % index++;
 
-      // Add MIME
+      // Set MIME Options
       send_texts_.push_back(std::make_unique<MimeText>(out_buffer->c_str()));
       auto& sig_text = send_texts_.back();
       sig_text->setContentType("application/pgp-signature");
       sig_text->setEncoding(MimePart::_7Bit);
       sig_text->setContentName(sign_content_name.str().c_str());
+
+      // set Message Integrity Check (MIC) algorithm
+      if (result->signatures != nullptr) {
+        //   The "micalg" parameter for the "application/pgp-signature"
+        //   protocol
+        //   MUST contain exactly one hash-symbol of the format "pgp-<hash-
+        //   identifier>", where <hash-identifier> identifies the Message
+        //   Integrity Check (MIC) algorithm used to generate the signature.
+        //   Hash-symbols are constructed from the text names registered in [1]
+        //   or according to the mechanism defined in that document by
+        //   converting the text name to lower case and prefixing it with the
+        //   four characters "pgp-".
+        auto hash_algo_name =
+            std::string(gpgme_hash_algo_name(result->signatures->hash_algo));
+        boost::algorithm::to_lower(hash_algo_name);
+        std::stringstream ss;
+        ss << message.getContent().getContentType().toStdString();
+        ss << "; micalg=pgp-" << hash_algo_name;
+        message.getContent().setContentType(ss.str().c_str());
+      }
     }
   }
 
@@ -172,7 +231,7 @@ void SMTPSendMailThread::setSender(const QString& sender) {
 }
 
 void SMTPSendMailThread::addTextContent(const QString& content) {
-  auto text = std::make_unique<MimeText>(content);
+  auto text = std::make_unique<MimeText>(content.trimmed());
   texts_.push_back(std::move(text));
 }
 
