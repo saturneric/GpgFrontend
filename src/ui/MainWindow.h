@@ -382,7 +382,8 @@ class MainWindow : public QMainWindow {
   QAction* addPgpHeaderAct{};          /** Action for adding the PGP header */
 
 #ifdef SMTP_SUPPORT
-  QAction* sendMailAct{}; /** Action for sending a email */
+  QAction* sendMailAct{};    /** Action for sending a email */
+  QAction* receiveMailAct{}; /** Action for receive emails */
 #endif
 
   QAction* importKeyFromFileAct{};

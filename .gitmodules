@@ -10,3 +10,6 @@
 [submodule "third_party/libgpg-error"]
 	path = third_party/libgpg-error
 	url = https://github.com/saturneric/libgpg-error
+[submodule "third_party/vmime"]
+	path = third_party/vmime
+	url = https://github.com/saturneric/vmime
