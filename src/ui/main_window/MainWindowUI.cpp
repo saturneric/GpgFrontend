@@ -24,7 +24,10 @@
 
 #include "MainWindow.h"
 #include "ui/UserInterfaceUtils.h"
+#ifdef SMTP_SUPPORT
+#include "ui/smtp/ReceiveMailDialog.h"
 #include "ui/smtp/SendMailDialog.h"
+#endif
 
 namespace GpgFrontend::UI {
 
@@ -303,6 +306,13 @@ void MainWindow::createActions() {
     auto* dialog = new SendMailDialog({}, this);
     dialog->show();
   });
+
+  receiveMailAct = new QAction(_("Message Inbox"), this);
+  receiveMailAct->setIcon(QIcon(":receive_email.png"));
+  connect(receiveMailAct, &QAction::triggered, this, [=]() {
+    auto* dialog = new ReceiveMailDialog(this);
+    dialog->show();
+  });
 #endif
 }
 
@@ -363,6 +373,7 @@ void MainWindow::createMenus() {
 #ifdef SMTP_SUPPORT
   emailMenu = menuBar()->addMenu(_("Email"));
   emailMenu->addAction(sendMailAct);
+  emailMenu->addAction(receiveMailAct);
 #endif
 
 #ifdef ADVANCED_SUPPORT
@@ -424,6 +435,7 @@ void MainWindow::createToolBars() {
   emailToolBar = addToolBar(_("Email"));
   emailToolBar->setObjectName("emailToolBar");
   emailToolBar->addAction(sendMailAct);
+  emailToolBar->addAction(receiveMailAct);
   viewMenu->addAction(emailToolBar->toggleViewAction());
 
   // Add dropdown menu for key import to keytoolbar
