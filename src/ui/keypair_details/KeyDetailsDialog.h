@@ -25,9 +25,6 @@
 #ifndef __KEYDETAILSDIALOG_H__
 #define __KEYDETAILSDIALOG_H__
 
-#include "KeyPairDetailTab.h"
-#include "KeyPairSubkeyTab.h"
-#include "KeyPairUIDTab.h"
 #include "gpg/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 

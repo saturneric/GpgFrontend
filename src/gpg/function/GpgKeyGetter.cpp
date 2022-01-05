@@ -58,12 +58,14 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
 
   gpgme_key_t key;
   while ((err = gpgme_op_keylist_next(ctx, &key)) == GPG_ERR_NO_ERROR) {
-    keys_list->push_back(GpgKey(std::move(key)));
+    keys_list->push_back(GetKey(key->fpr));
   }
 
   assert(check_gpg_error_2_err_code(err, GPG_ERR_EOF) == GPG_ERR_EOF);
 
   err = gpgme_op_keylist_end(ctx);
+
+  assert(check_gpg_error_2_err_code(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
 
   return keys_list;
 }

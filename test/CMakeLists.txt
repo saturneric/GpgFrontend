@@ -11,10 +11,17 @@ add_executable(
         ${TEST_SOURCE}
 )
 
-if(GPG_CORE)
+if (GPG_CORE)
     target_link_libraries(${AppName} gpg_core)
-endif()
+endif ()
 
-target_link_libraries(${AppName} gtest gtest_main)
+if (GPG_STANDALONE_MODE)
+    file(COPY ${CMAKE_SOURCE_DIR}/test/gpg DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FOLLOW_SYMLINK_CHAIN)
+endif ()
+
+target_link_libraries(${AppName} ${Boost_LIBRARIES} gtest gtest_main)
+if (APPLE)
+    target_link_libraries(${AppName} intl)
+endif ()
 
 add_test(AllTestsInGpgFrontend ${AppName})

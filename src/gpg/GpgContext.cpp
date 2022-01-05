@@ -29,6 +29,7 @@
 
 #include <functional>
 #include <string>
+#include <utility>
 
 #include "GpgConstants.h"
 
@@ -36,23 +37,19 @@
 #include <windows.h>
 #endif
 
-#define INT2VOIDP(i) (void*)(uintptr_t)(i)
-
 namespace GpgFrontend {
 
 /**
  * Constructor
  *  Set up gpgme-context, set paths to app-run path
  */
-GpgContext::GpgContext(bool independent_database, std::string db_path,
-                       int channel)
-    : SingletonFunctionObject<GpgContext>(channel) {
+GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
   static bool _first = true;
 
   if (_first) {
     /* Initialize the locale environment. */
     LOG(INFO) << "locale" << setlocale(LC_CTYPE, nullptr);
-    gpgme_check_version(nullptr);
+    info_.GpgMEVersion = gpgme_check_version(nullptr);
     gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
 #ifdef LC_MESSAGES
     gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
@@ -64,66 +61,160 @@ GpgContext::GpgContext(bool independent_database, std::string db_path,
   check_gpg_error(gpgme_new(&_p_ctx));
   _ctx_ref = CtxRefHandler(_p_ctx);
 
-  auto engineInfo = gpgme_ctx_get_engine_info(*this);
-
-  // Check ENV before running
-  bool check_pass = false, find_openpgp = false, find_gpgconf = false,
-       find_assuan = false, find_cms = false;
-  while (engineInfo != nullptr) {
-    if (engineInfo->protocol == GPGME_PROTOCOL_GPGCONF &&
-        strcmp(engineInfo->version, "1.0.0") != 0)
-      find_gpgconf = true;
-    if (engineInfo->protocol == GPGME_PROTOCOL_OpenPGP &&
-        strcmp(engineInfo->version, "1.0.0") != 0)
-      find_openpgp = true, info.AppPath = engineInfo->file_name,
-      info.DatabasePath = "default", info.GnupgVersion = engineInfo->version;
-    if (engineInfo->protocol == GPGME_PROTOCOL_CMS &&
-        strcmp(engineInfo->version, "1.0.0") != 0)
-      find_cms = true;
-    if (engineInfo->protocol == GPGME_PROTOCOL_ASSUAN) find_assuan = true;
-    engineInfo = engineInfo->next;
+  if (args.gpg_alone) {
+    info_.AppPath = args.gpg_path;
+    auto err = gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_OpenPGP,
+                                         info_.AppPath.c_str(),
+                                         info_.DatabasePath.c_str());
+    assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
   }
 
-  if (find_gpgconf && find_openpgp && find_cms && find_assuan)
-    check_pass = true;
+  auto engine_info = gpgme_ctx_get_engine_info(*this);
+  // Check ENV before running
+  bool check_passed = false, find_openpgp = false, find_gpgconf = false,
+       find_cms = false;
 
-  if (!check_pass) {
-    good_ = false;
-    return;
-  } else {
-    LOG(INFO) << "Gnupg Version" << info.GnupgVersion;
-
-    // Set Independent Database
-    if (independent_database) {
-      info.DatabasePath = db_path;
-      auto err = gpgme_ctx_set_engine_info(
-          _ctx_ref.get(), GPGME_PROTOCOL_OpenPGP, info.AppPath.c_str(),
-          info.DatabasePath.c_str());
-      assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
+  while (engine_info != nullptr) {
+    if (!strcmp(engine_info->version, "1.0.0")) {
+      engine_info = engine_info->next;
+      continue;
     }
 
+    DLOG(INFO) << gpgme_get_protocol_name(engine_info->protocol)
+               << std::string(engine_info->file_name == nullptr
+                                  ? "null"
+                                  : engine_info->file_name)
+               << std::string(engine_info->home_dir == nullptr
+                                  ? "null"
+                                  : engine_info->home_dir);
+
+    switch (engine_info->protocol) {
+      case GPGME_PROTOCOL_OpenPGP:
+        find_openpgp = true;
+        info_.AppPath = engine_info->file_name;
+        info_.GnupgVersion = engine_info->version;
+        break;
+      case GPGME_PROTOCOL_CMS:
+        find_cms = true;
+        info_.CMSPath = engine_info->file_name;
+        break;
+      case GPGME_PROTOCOL_GPGCONF:
+        find_gpgconf = true;
+        info_.GpgConfPath = engine_info->file_name;
+        break;
+      case GPGME_PROTOCOL_ASSUAN:
+        break;
+      case GPGME_PROTOCOL_G13:
+        break;
+      case GPGME_PROTOCOL_UISERVER:
+        break;
+      case GPGME_PROTOCOL_SPAWN:
+        break;
+      case GPGME_PROTOCOL_DEFAULT:
+        break;
+      case GPGME_PROTOCOL_UNKNOWN:
+        break;
+    }
+    engine_info = engine_info->next;
+  }
+
+  // conditional check
+  if ((info_.GnupgVersion >= "2.0.0" && find_gpgconf && find_openpgp &&
+       find_cms) ||
+      (info_.GnupgVersion > "1.0.0" && find_gpgconf))
+    check_passed = true;
+
+  if (!check_passed) {
+    this->good_ = false;
+    LOG(ERROR) << "Env check failed";
+    return;
+  } else {
+    DLOG(INFO) << "gnupg version" << info_.GnupgVersion;
+    init_ctx();
+    good_ = true;
+  }
+}
+
+void GpgContext::init_ctx() {
+  // Set Independent Database
+  if (info_.GnupgVersion <= "2.0.0" && args_.independent_database) {
+    info_.DatabasePath = args_.db_path;
+    DLOG(INFO) << "custom key db path" << info_.DatabasePath;
+    auto err = gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_OpenPGP,
+                                         info_.AppPath.c_str(),
+                                         info_.DatabasePath.c_str());
+    assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
+  } else {
+    info_.DatabasePath = "default";
+  }
+
+  if (args_.ascii) {
     /** Setting the output type must be done at the beginning */
     /** think this means ascii-armor --> ? */
     gpgme_set_armor(*this, 1);
-    // Speed up loading process
-    gpgme_set_offline(*this, 1);
+  } else {
+    /** Setting the output type must be done at the beginning */
+    /** think this means ascii-armor --> ? */
+    gpgme_set_armor(*this, 0);
+  }
 
+  // Speed up loading process
+  gpgme_set_offline(*this, 1);
+
+  if (info_.GnupgVersion >= "2.0.0") {
     check_gpg_error(gpgme_set_keylist_mode(
         *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
                    GPGME_KEYLIST_MODE_SIGS | GPGME_KEYLIST_MODE_SIG_NOTATIONS |
                    GPGME_KEYLIST_MODE_WITH_TOFU));
-    good_ = true;
+  } else {
+    check_gpg_error(gpgme_set_keylist_mode(
+        *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_SIGS |
+                   GPGME_KEYLIST_MODE_SIG_NOTATIONS |
+                   GPGME_KEYLIST_MODE_WITH_TOFU));
+  }
+
+  // for unit test
+  if (args_.test_mode) {
+    LOG(INFO) << "test mode";
+    if (info_.GnupgVersion >= "2.1.0") SetPassphraseCb(test_passphrase_cb);
+    gpgme_set_status_cb(*this, test_status_cb, nullptr);
   }
 }
 
 bool GpgContext::good() const { return good_; }
 
-void GpgContext::SetPassphraseCb(decltype(test_passphrase_cb) cb) const {
-  gpgme_set_passphrase_cb(*this, cb, nullptr);
+void GpgContext::SetPassphraseCb(gpgme_passphrase_cb_t cb) const {
+  if (info_.GnupgVersion >= "2.1.0") {
+    if (gpgme_get_pinentry_mode(*this) != GPGME_PINENTRY_MODE_LOOPBACK) {
+      gpgme_set_pinentry_mode(*this, GPGME_PINENTRY_MODE_LOOPBACK);
+    }
+    gpgme_set_passphrase_cb(*this, cb, nullptr);
+  } else {
+    LOG(ERROR) << "Not supported for gnupg version" << info_.GnupgVersion;
+  }
 }
 
-std::string GpgContext::getGpgmeVersion() {
-  return {gpgme_check_version(nullptr)};
+gpgme_error_t GpgContext::test_passphrase_cb(void *opaque, const char *uid_hint,
+                                             const char *passphrase_info,
+                                             int last_was_bad, int fd) {
+  size_t res;
+  std::string pass = "abcdefg\n";
+  auto pass_len = pass.size();
+
+  size_t off = 0;
+
+  do {
+    res = gpgme_io_write(fd, &pass[off], pass_len - off);
+    if (res > 0) off += res;
+  } while (res > 0 && off != pass_len);
+
+  return off == pass_len ? 0 : gpgme_error_from_errno(errno);
+}
+
+gpgme_error_t GpgContext::test_status_cb(void *hook, const char *keyword,
+                                         const char *args) {
+  LOG(INFO) << "keyword" << keyword;
+  return GPG_ERR_NO_ERROR;
 }
 
 }  // namespace GpgFrontend

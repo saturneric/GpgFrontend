@@ -29,7 +29,6 @@
 #include "gpg/result_analyse/DecryptResultAnalyse.h"
 #include "gpg/result_analyse/EncryptResultAnalyse.h"
 #include "gpg/result_analyse/SignResultAnalyse.h"
-#include "ui/FileEncryptionDialog.h"
 #include "ui/FindWidget.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/KeyMgmt.h"
@@ -245,8 +244,7 @@ class MainWindow : public QMainWindow {
   /**
    * @details called when need to upgrade.
    */
-  void slotVersionUpgrade(const QString& currentVersion,
-                          const QString& latestVersion);
+  void slotVersionUpgrade(const SoftwareVersion& version);
 
  private:
   /**
@@ -323,7 +321,7 @@ class MainWindow : public QMainWindow {
   QMenu* viewMenu{};      /** Submenu for view operations */
   QMenu* importKeyMenu{}; /** Sumenu for import operations */
 #ifdef SMTP_SUPPORT
-  QMenu* emailMenu{};     /** Sumenu for email operations */
+  QMenu* emailMenu{}; /** Sumenu for email operations */
 #endif
 
   QMenu* steganoMenu{};           /** Submenu for steganographic operations*/
@@ -332,6 +330,7 @@ class MainWindow : public QMainWindow {
   QToolBar* editToolBar{};        /** Toolbar holding edit actions */
   QToolBar* specialEditToolBar{}; /** Toolbar holding special edit actions */
   QToolBar* keyToolBar{};         /** Toolbar holding key operations */
+  QToolBar* emailToolBar{};       /** Toolbar holding key operations */
   QToolButton*
       importButton{}; /** Toolbutton for import dropdown menu in toolbar */
   QDockWidget* keyListDock{};    /** Encrypt Dock*/
@@ -399,6 +398,7 @@ class MainWindow : public QMainWindow {
 
   bool attachmentDockCreated{};
   bool restartNeeded{};
+  bool prohibit_update_checking_ = false;
 };
 
 }  // namespace GpgFrontend::UI

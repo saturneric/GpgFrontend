@@ -40,7 +40,7 @@ class TextEdit;
 
 #ifdef SMTP_SUPPORT
 void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
-                   const QString& text);
+                   const QString& text, bool attach_signature = true);
 #endif
 
 void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
@@ -74,6 +74,8 @@ class CommonUtils : public QWidget {
 
  signals:
   void signalKeyStatusUpdated();
+
+  void signalGnupgNotInstall();
 
  public slots:
 

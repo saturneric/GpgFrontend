@@ -41,7 +41,7 @@ std::unique_ptr<GpgFrontend::UI::CommonUtils>
 
 #ifdef SMTP_SUPPORT
 void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
-                   const QString& text) {
+                   const QString& text, bool attach_signature) {
   info_board->addOptionalAction(_("Send Encrypted Mail"), [=]() {
     bool smtp_enabled = false;
     try {
@@ -52,6 +52,8 @@ void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
     }
     if (smtp_enabled) {
       auto dialog = new SendMailDialog(text, parent);
+      dialog->setContentEncryption(false);
+      dialog->setAttachSignature(attach_signature);
       dialog->show();
     } else {
       QMessageBox::warning(nullptr, _("Function Disabled"),
@@ -151,11 +153,20 @@ CommonUtils* CommonUtils::GetInstance() {
 CommonUtils::CommonUtils() : QWidget(nullptr) {
   connect(this, SIGNAL(signalKeyStatusUpdated()), SignalStation::GetInstance(),
           SIGNAL(KeyDatabaseRefresh()));
+  connect(this, &CommonUtils::signalGnupgNotInstall, this, []() {
+    QMessageBox::critical(
+        nullptr, _("ENV Loading Failed"),
+        _("Gnupg(gpg) is not installed correctly, please follow the "
+          "ReadME "
+          "instructions in Github to install Gnupg and then open "
+          "GpgFrontend."));
+    QCoreApplication::quit();
+  });
 }
 
 void CommonUtils::slotImportKeys(QWidget* parent,
                                  const std::string& in_buffer) {
-  GpgImportInformation result = GpgKeyImportExportor::GetInstance().ImportKey(
+  GpgImportInformation result = GpgKeyImportExporter::GetInstance().ImportKey(
       std::make_unique<ByteArray>(in_buffer));
   emit signalKeyStatusUpdated();
   new KeyImportDetailDialog(result, false, parent);
@@ -300,7 +311,7 @@ void CommonUtils::slotImportKeyFromKeyServer(
 
           // Try importing
           GpgImportInformation result =
-              GpgKeyImportExportor::GetInstance(ctx_channel)
+              GpgKeyImportExporter::GetInstance(ctx_channel)
                   .ImportKey(std::move(key_data_ptr));
 
           if (result.imported == 1) {

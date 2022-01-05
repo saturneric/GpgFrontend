@@ -58,12 +58,14 @@ using GpgEncrResult = std::shared_ptr<struct _gpgme_op_encrypt_result>;
 using GpgDecrResult = std::shared_ptr<struct _gpgme_op_decrypt_result>;
 using GpgSignResult = std::shared_ptr<struct _gpgme_op_sign_result>;
 using GpgVerifyResult = std::shared_ptr<struct _gpgme_op_verify_result>;
+using GpgGenKeyResult = std::shared_ptr<struct _gpgme_op_genkey_result>;
 
 // Convert from  gpgme_xxx_result to GpgXXXResult
 GpgEncrResult _new_result(gpgme_encrypt_result_t&& result);
 GpgDecrResult _new_result(gpgme_decrypt_result_t&& result);
 GpgSignResult _new_result(gpgme_sign_result_t&& result);
 GpgVerifyResult _new_result(gpgme_verify_result_t&& result);
+GpgGenKeyResult _new_result(gpgme_genkey_result_t&& result);
 
 // Error Info Printer
 GpgError check_gpg_error(GpgError err);
@@ -85,6 +87,10 @@ std::string get_only_file_name_with_path(const std::string& path);
 // Check
 int text_is_signed(BypeArrayRef text);
 
+// Channels
+const int GPGFRONTEND_DEFAULT_CHANNEL = 0;
+const int GPGFRONTEND_NON_ASCII_CHANNEL = 2;
+
 class GpgConstants {
  public:
   static const char* PGP_CRYPT_BEGIN;
@@ -93,8 +99,11 @@ class GpgConstants {
   static const char* PGP_SIGNED_END;
   static const char* PGP_SIGNATURE_BEGIN;
   static const char* PGP_SIGNATURE_END;
+  static const char* PGP_PUBLIC_KEY_BEGIN;
+  static const char* PGP_PRIVATE_KEY_BEGIN;
   static const char* GPG_FRONTEND_SHORT_CRYPTO_HEAD;
 };
+
 }  // namespace GpgFrontend
 
 #endif  // GPG_CONSTANTS_H

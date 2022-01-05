@@ -55,8 +55,8 @@ void TextEdit::slotNewTab() {
   tabWidget->setTabIcon(index, QIcon(":file.png"));
   tabWidget->setCurrentIndex(tabWidget->count() - 1);
   page->getTextPage()->setFocus();
-  connect(page->getTextPage()->document(), SIGNAL(modificationChanged(bool)),
-          this, SLOT(slotShowModified()));
+  connect(page->getTextPage()->document(), &QTextDocument::modificationChanged,
+          this, &TextEdit::slotShowModified);
 }
 
 void TextEdit::slotNewHelpTab(const QString& title, const QString& path) const {
@@ -81,6 +81,10 @@ void TextEdit::slotOpenFile(QString& path) {
   auto result = file.open(QIODevice::ReadOnly | QIODevice::Text);
   if (result) {
     auto* page = new EditorPage(path);
+    connect(page->getTextPage()->document(),
+            &QTextDocument::modificationChanged, this,
+            &TextEdit::slotShowModified);
+    
     QApplication::setOverrideCursor(Qt::WaitCursor);
     auto index = tabWidget->addTab(page, strippedName(path));
     tabWidget->setTabIcon(index, QIcon(":file.png"));
@@ -295,20 +299,20 @@ bool TextEdit::maybeSaveCurrentTab(bool askToSave) {
 
 bool TextEdit::maybeSaveAnyTab() {
   // get a list of all unsaved documents and their tabids
-  QHash<int, QString> unsavedDocs = this->unsavedDocuments();
+  QHash<int, QString> unsaved_docs = this->unsavedDocuments();
 
   /*
    * no unsaved documents, so app can be closed
    */
-  if (unsavedDocs.empty()) {
+  if (unsaved_docs.empty()) {
     return true;
   }
   /*
    * only 1 unsaved document -> set modified tab as current
    * and show normal unsaved doc dialog
    */
-  if (unsavedDocs.size() == 1) {
-    int modifiedTab = unsavedDocs.keys().at(0);
+  if (unsaved_docs.size() == 1) {
+    int modifiedTab = unsaved_docs.keys().at(0);
     tabWidget->setCurrentIndex(modifiedTab);
     return maybeSaveCurrentTab(true);
   }
@@ -316,11 +320,11 @@ bool TextEdit::maybeSaveAnyTab() {
   /*
    * more than one unsaved documents
    */
-  if (unsavedDocs.size() > 1) {
-    QHashIterator<int, QString> i(unsavedDocs);
+  if (unsaved_docs.size() > 1) {
+    QHashIterator<int, QString> i(unsaved_docs);
 
     QuitDialog* dialog;
-    dialog = new QuitDialog(this, unsavedDocs);
+    dialog = new QuitDialog(this, unsaved_docs);
     int result = dialog->exec();
 
     // if result is QDialog::Rejected, discard or cancel was clicked
@@ -429,8 +433,8 @@ void TextEdit::loadFile(const QString& fileName) {
   // statusBar()->showMessage(_("File loaded"), 2000);
 }
 
-QString TextEdit::strippedName(const QString& fullFileName) {
-  return QFileInfo(fullFileName).fileName();
+QString TextEdit::strippedName(const QString& full_file_name) {
+  return QFileInfo(full_file_name).fileName();
 }
 
 void TextEdit::slotPrint() {
@@ -469,8 +473,8 @@ void TextEdit::slotShowModified() const {
 
 void TextEdit::slotSwitchTabUp() const {
   if (tabWidget->count() > 1) {
-    int newindex = (tabWidget->currentIndex() + 1) % (tabWidget->count());
-    tabWidget->setCurrentIndex(newindex);
+    int new_index = (tabWidget->currentIndex() + 1) % (tabWidget->count());
+    tabWidget->setCurrentIndex(new_index);
   }
 }
 

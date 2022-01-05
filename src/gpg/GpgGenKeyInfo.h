@@ -27,72 +27,97 @@
 
 #include <boost/date_time.hpp>
 #include <boost/date_time/gregorian/greg_duration_types.hpp>
+#include <boost/format.hpp>
 #include <string>
 #include <vector>
 
 namespace GpgFrontend {
 
 class GenKeyInfo {
-  bool subKey = true;
-  std::string userid;
-  std::string algo;
-  int keySize = 2048;
-  boost::posix_time::ptime expired =
+  bool standalone_ = false;
+  bool subkey_ = false;
+  std::string name_;
+  std::string email_;
+  std::string comment_;
+
+  std::string algo_;
+  int key_size_ = 2048;
+  boost::posix_time::ptime expired_ =
       boost::posix_time::second_clock::local_time() +
       boost::gregorian::years(2);
-  bool nonExpired = false;
+  bool non_expired_ = false;
 
-  bool noPassPhrase = false;
-  bool allowNoPassPhrase = true;
+  bool no_passphrase_ = false;
+  bool allow_no_pass_phrase_ = true;
 
-  int suggestMaxKeySize = 4096;
-  int suggestSizeAdditionStep = 1024;
-  int suggestMinKeySize = 1024;
+  int suggest_max_key_size_ = 4096;
+  int suggest_size_addition_step_ = 1024;
+  int suggest_min_key_size_ = 1024;
 
-  std::string passPhrase;
+  std::string passphrase_;
 
  public:
-  static const std::vector<std::string> SupportedKeyAlgo;
+  static const std::vector<std::string> &getSupportedKeyAlgo();
 
-  static const std::vector<std::string> SupportedSubkeyAlgo;
+  static const std::vector<std::string> &getSupportedSubkeyAlgo();
 
-  [[nodiscard]] bool isSubKey() const { return subKey; }
+  static const std::vector<std::string> &getSupportedKeyAlgoStandalone();
 
-  void setIsSubKey(bool m_sub_key) { GenKeyInfo::subKey = m_sub_key; }
+  static const std::vector<std::string> &getSupportedSubkeyAlgoStandalone();
 
-  [[nodiscard]] const std::string &getUserid() const { return userid; }
+  [[nodiscard]] bool isSubKey() const { return subkey_; }
 
-  void setUserid(const std::string &m_userid) { GenKeyInfo::userid = m_userid; }
+  void setIsSubKey(bool m_sub_key) { GenKeyInfo::subkey_ = m_sub_key; }
 
-  [[nodiscard]] const std::string &getAlgo() const { return algo; }
+  [[nodiscard]] std::string getUserid() const {
+    auto uid_format = boost::format("%1%(%2%)<%3%>") % this->name_ %
+                      this->comment_ % this->email_;
+    return uid_format.str();
+  }
+
+  void setName(const std::string &m_name) { this->name_ = m_name; }
+
+  void setEmail(const std::string &m_email) { this->email_ = m_email; }
+
+  void setComment(const std::string &m_comment) { this->comment_ = m_comment; }
+
+  [[nodiscard]] std::string getName() const { return name_; }
+
+  [[nodiscard]] std::string getEmail() const { return email_; }
+
+  [[nodiscard]] std::string getComment() const { return comment_; }
+
+  [[nodiscard]] const std::string &getAlgo() const { return algo_; }
 
   void setAlgo(const std::string &m_algo);
 
   [[nodiscard]] std::string getKeySizeStr() const;
 
-  [[nodiscard]] int getKeySize() const { return keySize; }
+  [[nodiscard]] int getKeySize() const { return key_size_; }
 
   void setKeySize(int m_key_size);
 
   [[nodiscard]] const boost::posix_time::ptime &getExpired() const {
-    return expired;
+    return expired_;
   }
 
   void setExpired(const boost::posix_time::ptime &m_expired);
 
-  [[nodiscard]] bool isNonExpired() const { return nonExpired; }
+  [[nodiscard]] bool isNonExpired() const { return non_expired_; }
 
   void setNonExpired(bool m_non_expired);
 
-  [[nodiscard]] bool isNoPassPhrase() const { return this->noPassPhrase; }
+  [[nodiscard]] bool isNoPassPhrase() const { return this->no_passphrase_; }
 
   void setNonPassPhrase(bool m_non_pass_phrase) {
-    GenKeyInfo::noPassPhrase = m_non_pass_phrase;
+    GenKeyInfo::no_passphrase_ = m_non_pass_phrase;
   }
 
   [[nodiscard]] bool isAllowSigning() const { return allowSigning; }
 
-  [[nodiscard]] bool isAllowNoPassPhrase() const { return allowNoPassPhrase; }
+  [[nodiscard]] bool isAllowNoPassPhrase() const {
+    return allow_no_pass_phrase_;
+  }
 
   void setAllowSigning(bool m_allow_signing) {
     if (allowChangeSigning) GenKeyInfo::allowSigning = m_allow_signing;
@@ -115,10 +140,10 @@ class GenKeyInfo {
       GenKeyInfo::allowAuthentication = m_allow_authentication;
   }
 
-  [[nodiscard]] const std::string &getPassPhrase() const { return passPhrase; }
+  [[nodiscard]] const std::string &getPassPhrase() const { return passphrase_; }
 
   void setPassPhrase(const std::string &m_pass_phrase) {
-    GenKeyInfo::passPhrase = m_pass_phrase;
+    GenKeyInfo::passphrase_ = m_pass_phrase;
   }
 
   [[nodiscard]] bool isAllowChangeSigning() const { return allowChangeSigning; }
@@ -134,12 +159,16 @@ class GenKeyInfo {
     return allowChangeAuthentication;
   }
 
-  [[nodiscard]] int getSuggestMaxKeySize() const { return suggestMaxKeySize; }
+  [[nodiscard]] int getSuggestMaxKeySize() const {
+    return suggest_max_key_size_;
+  }
 
-  [[nodiscard]] int getSuggestMinKeySize() const { return suggestMinKeySize; }
+  [[nodiscard]] int getSuggestMinKeySize() const {
+    return suggest_min_key_size_;
+  }
 
   [[nodiscard]] int getSizeChangeStep() const {
-    return suggestSizeAdditionStep;
+    return suggest_size_addition_step_;
   }
 
  private:
@@ -158,9 +187,7 @@ class GenKeyInfo {
   void reset_options();
 
  public:
-  explicit GenKeyInfo(bool m_is_sub_key = false) : subKey(m_is_sub_key) {
-    setAlgo("rsa");
-  }
+  explicit GenKeyInfo(bool m_is_sub_key = false, bool m_standalone = false);
 };
 
 }  // namespace GpgFrontend

@@ -41,9 +41,10 @@ class SubkeyGenerateDialog : public QDialog {
   void SubKeyGenerated();
 
  private:
-  GpgKey mKey;
+  GpgKey key_;
 
-  std::unique_ptr<GenKeyInfo> genKeyInfo = std::make_unique<GenKeyInfo>(true);
+  std::unique_ptr<GenKeyInfo> gen_key_info_ =
+      std::make_unique<GenKeyInfo>(true);
 
   QGroupBox* keyUsageGroupBox{};
   QDialogButtonBox* buttonBox;  /** Box for standardbuttons */
@@ -54,12 +55,11 @@ class SubkeyGenerateDialog : public QDialog {
   QCheckBox* expireCheckBox{};  /** Checkbox, if key should expire */
 
   // ENCR, SIGN, CERT, AUTH
-  std::vector<QCheckBox*> keyUsageCheckBoxes;
+  std::vector<QCheckBox*> key_usage_check_boxes_;
+  QDateTime max_date_time_;
 
   QGroupBox* create_key_usage_group_box();
-
   QGroupBox* create_basic_info_group_box();
-
   void set_signal_slot();
 
   /**

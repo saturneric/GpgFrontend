@@ -53,12 +53,24 @@ struct KeyListColumn {
   static constexpr InfoType FingerPrint = 1 << 5;
 };
 
+struct KeyMenuAbility {
+  using AbilityType = unsigned int;
+
+  static constexpr AbilityType ALL = ~0;
+  static constexpr AbilityType NONE = 0;
+  static constexpr AbilityType REFRESH = 1 << 0;
+  static constexpr AbilityType SYNC_PUBLIC_KEY = 1 << 1;
+  static constexpr AbilityType UNCHECK_ALL = 1 << 3;
+  static constexpr AbilityType CHECK_ALL = 1 << 5;
+};
+
 struct KeyTable {
   QTableWidget* key_list;
   KeyListRow::KeyType select_type;
   KeyListColumn::InfoType info_type;
   std::vector<GpgKey> buffered_keys;
   std::function<bool(const GpgKey&)> filter;
+  KeyIdArgsListPtr checked_key_ids_;
 
   KeyTable(
       QTableWidget* _key_list, KeyListRow::KeyType _select_type,
@@ -73,16 +85,21 @@ struct KeyTable {
 
   void Refresh(KeyLinkListPtr m_keys = nullptr);
 
-  KeyIdArgsListPtr GetChecked();
+  KeyIdArgsListPtr& GetChecked();
 
-  void SetChecked(const KeyIdArgsListPtr& key_ids);
+  void UncheckALL() const;
+
+  void CheckALL() const;
+
+  void SetChecked(KeyIdArgsListPtr key_ids);
 };
 
 class KeyList : public QWidget {
   Q_OBJECT
 
  public:
-  explicit KeyList(bool menu, QWidget* parent = nullptr);
+  explicit KeyList(KeyMenuAbility::AbilityType menu_ability,
+                   QWidget* parent = nullptr);
 
   void addListGroupTab(
       const QString& name,
@@ -102,7 +119,7 @@ class KeyList : public QWidget {
   static KeyIdArgsListPtr getChecked(const KeyTable& key_table);
   KeyIdArgsListPtr getPrivateChecked();
   KeyIdArgsListPtr getAllPrivateKeys();
-  void setChecked(const KeyIdArgsListPtr& keyIds);
+  void setChecked(KeyIdArgsListPtr key_ids);
   static void setChecked(const KeyIdArgsListPtr& keyIds,
                          const KeyTable& key_table);
   KeyIdArgsListPtr getSelected();
@@ -123,6 +140,8 @@ class KeyList : public QWidget {
  private:
   void init();
   void importKeys(const QByteArray& inBuffer);
+  void slotUncheckALL();
+  void slotCheckALL();
 
   static int key_list_id;
   int _m_key_list_id;
@@ -134,7 +153,7 @@ class KeyList : public QWidget {
   QMenu* popupMenu{};
   GpgFrontend::KeyLinkListPtr _buffered_keys_list;
   std::function<void(const GpgKey&, QWidget*)> mAction = nullptr;
-  bool menu_status = false;
+  KeyMenuAbility::AbilityType menu_ability_ = KeyMenuAbility::ALL;
 
  private slots:
 

@@ -45,7 +45,7 @@ class KeyPairSubkeyTab : public QWidget {
 
   const GpgSubKey& getSelectedSubkey();
 
-  GpgKey mKey;
+  GpgKey key_;
   QTableWidget* subkeyList{};
   std::vector<GpgSubKey> buffered_subkeys;
 
@@ -62,6 +62,7 @@ class KeyPairSubkeyTab : public QWidget {
   QLabel* fingerPrintVarLabel; /** Label containing the keys fingerprint */
   QLabel* usageVarLabel;
   QLabel* masterKeyExistVarLabel;
+  QLabel* cardKeyLabel;
 
  private slots:
 

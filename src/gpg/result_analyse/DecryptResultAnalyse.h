@@ -32,13 +32,13 @@ namespace GpgFrontend {
 
 class DecryptResultAnalyse : public ResultAnalyse {
  public:
-  explicit DecryptResultAnalyse(GpgError error, GpgDecrResult result);
+  explicit DecryptResultAnalyse(GpgError m_error, GpgDecrResult m_result);
 
  protected:
   void do_analyse() final;
 
  private:
-  bool print_reci(std::stringstream &stream, gpgme_recipient_t reci);
+  void print_recipient(std::stringstream &stream, gpgme_recipient_t recipient);
 
   GpgError error;
   GpgDecrResult result;

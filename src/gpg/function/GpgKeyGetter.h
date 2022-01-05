@@ -33,7 +33,9 @@ namespace GpgFrontend {
 
 class GpgKeyGetter : public SingletonFunctionObject<GpgKeyGetter> {
  public:
-  GpgKeyGetter() = default;
+  explicit GpgKeyGetter(
+      int channel = SingletonFunctionObject::GetDefaultChannel())
+      : SingletonFunctionObject<GpgKeyGetter>(channel) {}
 
   GpgKey GetKey(const std::string& fpr);
 
@@ -49,7 +51,7 @@ class GpgKeyGetter : public SingletonFunctionObject<GpgKeyGetter> {
 
  private:
   GpgContext& ctx =
-      GpgContext::GetInstance(SingletonFunctionObject::GetDefaultChannel());
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
 };
 }  // namespace GpgFrontend
 

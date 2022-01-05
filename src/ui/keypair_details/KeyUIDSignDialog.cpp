@@ -34,7 +34,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
                                    QWidget* parent)
     : QDialog(parent), mUids(std::move(uid)), mKey(key) {
   const auto key_id = mKey.id();
-  mKeyList = new KeyList(false, this);
+  mKeyList = new KeyList(KeyMenuAbility::NONE, this);
   mKeyList->addListGroupTab(_("Signers"), KeyListRow::ONLY_SECRET_KEY,
                             KeyListColumn::NAME | KeyListColumn::EmailAddress,
                             [key_id](const GpgKey& key) -> bool {

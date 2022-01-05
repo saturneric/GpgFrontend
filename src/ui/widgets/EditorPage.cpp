@@ -32,7 +32,7 @@
 namespace GpgFrontend::UI {
 
 EditorPage::EditorPage(QString filePath, QWidget* parent)
-    : QWidget(parent), fullFilePath(std::move(filePath)) {
+    : QWidget(parent), full_file_path_(std::move(filePath)) {
   // Set the Textedit properties
   textPage = new QTextEdit();
   textPage->setAcceptRichText(false);
@@ -51,12 +51,12 @@ EditorPage::EditorPage(QString filePath, QWidget* parent)
   this->setAttribute(Qt::WA_DeleteOnClose);
 }
 
-const QString& EditorPage::getFilePath() const { return fullFilePath; }
+const QString& EditorPage::getFilePath() const { return full_file_path_; }
 
 QTextEdit* EditorPage::getTextPage() { return textPage; }
 
 void EditorPage::setFilePath(const QString& filePath) {
-  fullFilePath = filePath;
+  full_file_path_ = filePath;
 }
 
 void EditorPage::showNotificationWidget(QWidget* widget,
@@ -110,34 +110,34 @@ void EditorPage::slotFormatGpgHeader() {
 void EditorPage::ReadFile() {
   LOG(INFO) << "Called";
 
-  readDone = false;
+  read_done_ = false;
 
   auto text_page = this->getTextPage();
   text_page->setReadOnly(true);
-  auto thread = new FileReadThread(this->fullFilePath.toStdString());
+  auto thread = new FileReadThread(this->full_file_path_.toStdString());
 
   connect(thread, &FileReadThread::sendReadBlock, this,
           &EditorPage::slotInsertText);
 
   connect(thread, &FileReadThread::readDone, this, [=]() {
-    LOG(INFO) << "Thread read done";
+    LOG(INFO) << "thread read done";
     text_page->document()->setModified(false);
     text_page->setReadOnly(false);
   });
 
   connect(thread, &FileReadThread::finished, this, [=]() {
-    LOG(INFO) << "Thread finished";
+    LOG(INFO) << "thread finished";
     thread->deleteLater();
-    readDone = true;
-    readThread = nullptr;
+    read_done_ = true;
+    read_hread_ = nullptr;
   });
 
   connect(this, &EditorPage::destroyed, [=]() {
-    LOG(INFO) << "RequestInterruption for readThread";
+    LOG(INFO) << "request interruption for read thread";
     thread->requestInterruption();
-    readThread = nullptr;
+    read_hread_ = nullptr;
   });
-  this->readThread = thread;
+  this->read_hread_ = thread;
   thread->start();
 }
 
@@ -145,9 +145,9 @@ void EditorPage::slotInsertText(const QString& text) {
   this->getTextPage()->insertPlainText(text);
 }
 void EditorPage::PrepareToDestroy() {
-  if (readThread) {
-    readThread->requestInterruption();
-    readThread = nullptr;
+  if (read_hread_) {
+    read_hread_->requestInterruption();
+    read_hread_ = nullptr;
   }
 }
 

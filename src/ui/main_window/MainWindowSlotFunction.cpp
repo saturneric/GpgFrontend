@@ -37,7 +37,7 @@
 
 #include "gpg/function/BasicOperator.h"
 #include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/GpgKeyImportExportor.h"
+#include "gpg/function/GpgKeyImportExporter.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/help/AboutDialog.h"
 #include "ui/settings/GlobalSettingStation.h"
@@ -59,11 +59,11 @@ void MainWindow::slotEncrypt() {
 
   if (key_ids->empty()) {
     // Symmetric Encrypt
-    auto ret =
-        QMessageBox::warning(this, _("Warning"),
-                             _("No Key Selected. Do you want to encrypt with a "
-                               "symmetric cipher using a passphrase?"),
-                             QMessageBox::Ok | QMessageBox::Cancel);
+    auto ret = QMessageBox::information(
+        this, _("Symmetric Encryption"),
+        _("No Key Selected. Do you want to encrypt with a "
+          "symmetric cipher using a passphrase?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
 
@@ -129,7 +129,9 @@ void MainWindow::slotSign() {
   auto key_ids = mKeyList->getPrivateChecked();
 
   if (key_ids->empty()) {
-    QMessageBox::critical(this, _("No Key Selected"), _("No Key Selected"));
+    QMessageBox::critical(
+        this, _("No Key Selected"),
+        _("Please select the key in the key toolbox on the right."));
     return;
   }
 
@@ -270,7 +272,9 @@ void MainWindow::slotEncryptSign() {
   auto key_ids = mKeyList->getChecked();
 
   if (key_ids->empty()) {
-    QMessageBox::critical(nullptr, _("No Key Selected"), _("No Key Selected"));
+    QMessageBox::critical(
+        nullptr, _("No Key Selected"),
+        _("Please select the key in the key toolbox on the right."));
     return;
   }
 
@@ -348,7 +352,7 @@ void MainWindow::slotEncryptSign() {
     infoBoard->resetOptionActionsMenu();
 #ifdef SMTP_SUPPORT
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      send_an_email(this, infoBoard, edit->curTextPage()->toPlainText());
+      send_an_email(this, infoBoard, edit->curTextPage()->toPlainText(), false);
 #endif
 
 #ifdef ADVANCE_SUPPORT
@@ -448,7 +452,7 @@ void MainWindow::slotAppendSelectedKeys() {
   auto exported = std::make_unique<ByteArray>();
   auto key_ids = mKeyList->getSelected();
 
-  GpgKeyImportExportor::GetInstance().ExportKeys(key_ids, exported);
+  GpgKeyImportExporter::GetInstance().ExportKeys(key_ids, exported);
   edit->curTextPage()->append(QString::fromStdString(*exported));
 }
 
@@ -495,13 +499,12 @@ void MainWindow::uploadKeyToServer() {
 
 void MainWindow::slotOpenFile(QString& path) { edit->slotOpenFile(path); }
 
-void MainWindow::slotVersionUpgrade(const QString& currentVersion,
-                                    const QString& latestVersion) {
+void MainWindow::slotVersionUpgrade(const SoftwareVersion& version) {
   LOG(INFO) << _("called");
-  if (currentVersion < latestVersion) {
+  if (version.NeedUpgrade()) {
     statusBar()->showMessage(
         QString(_("GpgFrontend Upgradeable (New Version: %1)."))
-            .arg(latestVersion),
+            .arg(version.latest_version.c_str()),
         30000);
     auto update_button = new QPushButton("Update GpgFrontend", this);
     connect(update_button, &QPushButton::clicked, [=]() {
@@ -509,17 +512,24 @@ void MainWindow::slotVersionUpgrade(const QString& currentVersion,
       about_dialog->show();
     });
     statusBar()->addPermanentWidget(update_button, 0);
-  } else if (currentVersion > latestVersion) {
+  } else if (version.VersionWithDrawn()) {
     QMessageBox::warning(
-        this, _("Unreleased Version"),
+        this, _("Withdrawn Version"),
         QString(
-            _("This version(%1) has not been officially released and is not "
-              "recommended for use in a production environment. <br/>"))
-                .arg(currentVersion) +
-            QString(
-                _("You can download the latest version(%1) on Github Releases "
-                  "Page.<br/>"))
-                .arg(latestVersion));
+            _("This version(%1) may have been withdrawn by the developer due "
+              "to serious problems. Please stop using this version "
+              "immediately and use the latest stable version."))
+                .arg(version.current_version.c_str()) +
+            "<br/>" +
+            QString(_("You can download the latest stable version(%1) on "
+                      "Github Releases "
+                      "Page.<br/>"))
+                .arg(version.latest_version.c_str()));
+  } else if (!version.CurrentVersionReleased()) {
+    statusBar()->showMessage(
+        QString(_("This maybe a BETA Version (Latest Stable Version: %1)."))
+            .arg(version.latest_version.c_str()),
+        30000);
   }
 }
 

@@ -32,6 +32,10 @@ namespace GpgFrontend {
 
 class UidOperator : public SingletonFunctionObject<UidOperator> {
  public:
+  explicit UidOperator(
+      int channel = SingletonFunctionObject::GetDefaultChannel())
+      : SingletonFunctionObject<UidOperator>(channel) {}
+
   /**
    * create a new uid in certain key pair
    * @param key target key pair
@@ -68,7 +72,8 @@ class UidOperator : public SingletonFunctionObject<UidOperator> {
   bool setPrimaryUID(const GpgKey& key, const std::string& uid);
 
  private:
-  GpgContext& ctx = GpgContext::GetInstance();
+  GpgContext& ctx =
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
 };
 
 }  // namespace GpgFrontend

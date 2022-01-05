@@ -55,9 +55,9 @@ class KeyGenDialog : public QDialog {
   QRegularExpression re_email{
       R"((?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\]))"};
 
-  QStringList errorMessages; /** List of errors occuring when checking entries
+  QStringList error_messages_; /** List of errors occuring when checking entries
                                 of lineedits */
-  std::unique_ptr<GenKeyInfo> genKeyInfo = std::make_unique<GenKeyInfo>();
+  std::unique_ptr<GenKeyInfo> gen_key_info_ = std::make_unique<GenKeyInfo>();
 
   QDialogButtonBox* buttonBox;  /** Box for standard buttons */
   QLabel* errorLabel{};         /** Label containing error message */
@@ -72,9 +72,10 @@ class KeyGenDialog : public QDialog {
 
   QGroupBox* keyUsageGroupBox{}; /** Group of Widgets detecting the usage of the
                                     Key **/
+  QDateTime max_date_time_;
 
   //    ENCR, SIGN, CERT, AUTH
-  std::vector<QCheckBox*> keyUsageCheckBoxes;
+  std::vector<QCheckBox*> key_usage_check_boxes_;
 
   void generateKeyDialog();
 
