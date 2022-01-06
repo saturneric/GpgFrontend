@@ -49,6 +49,9 @@ const char* GpgFrontend::GpgConstants::PGP_PRIVATE_KEY_BEGIN =
 const char* GpgFrontend::GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD =
     "GpgF_Scpt://";
 
+///
+/// \param err gpg_error_t
+/// \return
 gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
     LOG(ERROR) << "[" << _("Error") << " " << gpg_err_code(err) << "] "
@@ -58,6 +61,10 @@ gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err) {
   return err;
 }
 
+///
+/// \param err
+/// \param predict
+/// \return
 gpg_err_code_t GpgFrontend::check_gpg_error_2_err_code(gpgme_error_t err,
                                                        gpgme_error_t predict) {
   auto err_code = gpg_err_code(err);
@@ -69,7 +76,10 @@ gpg_err_code_t GpgFrontend::check_gpg_error_2_err_code(gpgme_error_t err,
   return err_code;
 }
 
-// error-handling
+///
+/// \param err
+/// \param comment
+/// \return
 gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
                                            const std::string& comment) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
@@ -80,6 +90,9 @@ gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
   return err;
 }
 
+///
+/// \param fingerprint
+/// \return
 std::string GpgFrontend::beautify_fingerprint(
     GpgFrontend::BypeArrayConstRef fingerprint) {
   auto len = fingerprint.size();
@@ -93,14 +106,16 @@ std::string GpgFrontend::beautify_fingerprint(
   return out.str();
 }
 
-// trim from start (in place)
+///
+/// \param s
 static inline void ltrim(std::string& s) {
   s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
             return !std::isspace(ch);
           }));
 }
 
-// trim from end (in place)
+///
+/// \param s
 static inline void rtrim(std::string& s) {
   s.erase(std::find_if(s.rbegin(), s.rend(),
                        [](unsigned char ch) { return !std::isspace(ch); })
@@ -108,13 +123,18 @@ static inline void rtrim(std::string& s) {
           s.end());
 }
 
-// trim from both ends (in place)
+///
+/// \param s
+/// \return
 static inline std::string trim(std::string& s) {
   ltrim(s);
   rtrim(s);
   return s;
 }
 
+///
+/// \param utf8_path
+/// \return
 std::string GpgFrontend::read_all_data_in_file(const std::string& utf8_path) {
   using namespace boost::filesystem;
   class path file_info(utf8_path.c_str());
@@ -133,6 +153,10 @@ std::string GpgFrontend::read_all_data_in_file(const std::string& utf8_path) {
   return in_buffer;
 }
 
+///
+/// \param utf8_path
+/// \param out_buffer
+/// \return
 bool GpgFrontend::write_buffer_to_file(const std::string& utf8_path,
                                        const std::string& out_buffer) {
   using namespace boost::filesystem;
@@ -149,6 +173,9 @@ bool GpgFrontend::write_buffer_to_file(const std::string& utf8_path,
   return true;
 }
 
+///
+/// \param path
+/// \return
 std::string GpgFrontend::get_file_extension(const std::string& path) {
   // Create a path object from given string
   boost::filesystem::path path_obj(path);
@@ -162,6 +189,9 @@ std::string GpgFrontend::get_file_extension(const std::string& path) {
   return {};
 }
 
+///
+/// \param path
+/// \return
 std::string GpgFrontend::get_only_file_name_with_path(const std::string& path) {
   // Create a path object from given string
   boost::filesystem::path path_obj(path);
@@ -174,12 +204,9 @@ std::string GpgFrontend::get_only_file_name_with_path(const std::string& path) {
   return {};
 }
 
-/*
- * isSigned returns:
- * - 0, if text isn't signed at all
- * - 1, if text is partially signed
- * - 2, if text is completly signed
- */
+///
+/// \param text
+/// \return
 int GpgFrontend::text_is_signed(GpgFrontend::BypeArrayRef text) {
   using boost::algorithm::ends_with;
   using boost::algorithm::starts_with;
@@ -195,36 +222,53 @@ int GpgFrontend::text_is_signed(GpgFrontend::BypeArrayRef text) {
     return 0;
 }
 
+///
+/// \param result
+/// \return
 GpgFrontend::GpgEncrResult GpgFrontend::_new_result(
     gpgme_encrypt_result_t&& result) {
   gpgme_result_ref(result);
   return {result, _result_ref_deletor()};
 }
 
+///
+/// \param result
+/// \return
 GpgFrontend::GpgDecrResult GpgFrontend::_new_result(
     gpgme_decrypt_result_t&& result) {
   gpgme_result_ref(result);
   return {result, _result_ref_deletor()};
 }
 
+///
+/// \param result
+/// \return
 GpgFrontend::GpgSignResult GpgFrontend::_new_result(
     gpgme_sign_result_t&& result) {
   gpgme_result_ref(result);
   return {result, _result_ref_deletor()};
 }
 
+///
+/// \param result
+/// \return
 GpgFrontend::GpgVerifyResult GpgFrontend::_new_result(
     gpgme_verify_result_t&& result) {
   gpgme_result_ref(result);
   return {result, _result_ref_deletor()};
 }
 
+///
+/// \param result
+/// \return
 GpgFrontend::GpgGenKeyResult GpgFrontend::_new_result(
     gpgme_genkey_result_t&& result) {
   gpgme_result_ref(result);
   return {result, _result_ref_deletor()};
 }
 
+///
+/// \param _result
 void GpgFrontend::_result_ref_deletor::operator()(void* _result) {
   DLOG(INFO) << _("Called") << _result;
   if (_result != nullptr) gpgme_result_unref(_result);

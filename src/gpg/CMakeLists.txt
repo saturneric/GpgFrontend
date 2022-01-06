@@ -10,13 +10,11 @@ set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
 set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 
 if (EASY_LOGGING_PP)
-    message(STATUS "Link EASY_LOGGING_PP")
-    set(THIRD_PARTY_LIBS easy_logging_pp config++)
+    set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} easy_logging_pp)
 endif ()
+set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} config++)
 
 set(BOOST_LIBS Boost::date_time Boost::filesystem)
-
-message(STATUS "Third Party Libraries " ${THIRD_PARTY_LIBS})
 
 if (MINGW)
     message(STATUS "Link GPG Static Library For MINGW")

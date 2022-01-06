@@ -2,19 +2,17 @@ name: Build & Package
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, 'develop-**', 'dev/**' ]
     paths-ignore:
-      - '**/README.md'
-      - '**/README_CN.md'
-      - 'resource/ts/**'
+      - 'resource/locale/template/**'
       - 'docs/**'
+      - '**.md'
   pull_request:
-    branches: [ develop ]
+    branches: [ 'develop-**', 'dev/**' ]
     paths-ignore:
-      - '**/README.md'
-      - '**/README_CN.md'
-      - 'resource/ts/**'
+      - 'resource/locale/template/**'
       - 'docs/**'
+      - '**.md'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -142,7 +140,7 @@ jobs:
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}}
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON
         if: matrix.os == 'ubuntu-18.04' || matrix.os == 'macos-10.15'
 
       - name: Build GpgFrontend
@@ -187,7 +185,7 @@ jobs:
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           mkdir build && cd build
-          cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DEXECUTABLE_OUTPUT_PATH=${{env.EXECUTABLE_OUTPUT_PATH}} ..
+          cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON ..
           # Build your program with the given configuration
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'windows-latest'
