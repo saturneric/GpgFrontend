@@ -112,23 +112,20 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Check Env Variables Before Configuring
 
-if (CMAKE_BUILD_TYPE)
-    message(STATUS "PreCheck CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
-else ()
+if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
-    message(STATUS "Set CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 endif ()
 
 # Specify different compilation modes
 if (GPGFRONTEND_BUILD_CONFIG)
     # Test Build
     if (${GPGFRONTEND_BUILD_CONFIG} STREQUAL "test_core")
-        message(STATUS "Switch TEST_CORE_BUILD")
+        message(STATUS "Switch Build Configure TEST_CORE_BUILD")
         set(TEST_CORE_BUILD 1)
         set(AppName GpgFrontendCoreTest)
         # Test Build With Coverage Test
     elseif (${GPGFRONTEND_BUILD_CONFIG} STREQUAL "test_core_coverage")
-        message(STATUS "Switch TEST_COVERAGE_BUILD")
+        message(STATUS "Switch Build Configure TEST_COVERAGE_BUILD")
         set(TEST_CORE_BUILD 1)
         if (USING_COMPILER_CLANG OR USING_COMPILER_GCC)
             set(TEST_COVERAGE_BUILD 1)
@@ -140,35 +137,26 @@ if (GPGFRONTEND_BUILD_CONFIG)
         set(AppName GpgFrontendTest)
         # Test Build with minimum UI
     elseif (${GPGFRONTEND_BUILD_CONFIG} STREQUAL "test_ui")
-        message(STATUS "Switch TEST_MINIMUM_UI_BUILD")
+        message(STATUS "Switch Build Configure TEST_MINIMUM_UI_BUILD")
         set(MINIMUM_APPLICATION_BUILD 1)
         set(AppName GpgFrontend)
     elseif (${GPGFRONTEND_BUILD_CONFIG} STREQUAL "test_all")
-        message(STATUS "Switch FULL_APPLICATION_BUILD")
+        message(STATUS "Switch Build Configure FULL_APPLICATION_BUILD")
         set(FULL_APPLICATION_BUILD 1)
         set(AppName GpgFrontend)
     endif ()
 else ()
-    message(STATUS "Switch Default STABLE_APPLICATION_BUILD")
+    message(STATUS "Switch Build Configure STABLE_APPLICATION_BUILD")
     set(STABLE_APPLICATION_BUILD 1)
     set(AppName GpgFrontend)
 endif ()
 
-if (EXECUTABLE_OUTPUT_PATH)
-    message(STATUS "PreCheck EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH}")
-else ()
-    set(EXECUTABLE_OUTPUT_PATH "./")
-    message(STATUS "Set EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH}")
-endif ()
-
 # Output Env Variables
-message(STATUS "Define EXECUTABLE_OUTPUT_PATH ${EXECUTABLE_OUTPUT_PATH}")
 message(STATUS "Define CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
     set(BUILD_FLAG 0)
     ADD_DEFINITIONS(-DRELEASE)
-    message(STATUS "Build Type RELEASE")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
     # Release Version force to build using option STABLE_APPLICATION_BUILD
     set(FULL_APPLICATION_BUILD 0)
@@ -176,7 +164,6 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
 else ()
     set(BUILD_FLAG 1)
     ADD_DEFINITIONS(-DDEBUG)
-    message(STATUS "Build Type DEBUG")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
     # Generate branch coverage information using gcc
     if (TEST_COVERAGE_BUILD)
@@ -218,12 +205,12 @@ set(BUILD_VERSION ${PROJECT_VERSION}_${CMAKE_SYSTEM}_${CMAKE_SYSTEM_PROCESSOR}_$
 set(GIT_VERSION ${GIT_BRANCH_NAME}_${GIT_COMMIT_HASH})
 string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S")
 
-message(STATUS "Build Timestamp ${BUILD_TIMESTAMP}")
-message(STATUS "Build Version ${BUILD_VERSION}")
-message(STATUS "Git Version ${GIT_VERSION}")
+message(STATUS "GpgFrontend Build Timestamp ${BUILD_TIMESTAMP}")
+message(STATUS "GpgFrontend Build Version ${BUILD_VERSION}")
+message(STATUS "GpgFrontend Git Repo Version ${GIT_VERSION}")
 
 IF (MINGW)
-    message(STATUS "Configuration For OS Platform Microsoft Windows")
+    message(STATUS "GpgFrontend Configuration For OS Platform Microsoft Windows")
     message(STATUS "Build Environment MINGW")
 
     set(OS_PLATFORM 0)
@@ -242,7 +229,7 @@ IF (MINGW)
 endif ()
 
 if (APPLE)
-    message(STATUS "Configuration For OS Platform MacOS")
+    message(STATUS "GpgFrontend Configuration For OS Platform MacOS")
 
     set(OS_PLATFORM 1)
     ADD_DEFINITIONS(-DMACOS)
@@ -274,7 +261,7 @@ endif ()
 
 if (LINUX)
 
-    message(STATUS "Configuration For OS Platform LINUX")
+    message(STATUS "GpgFrontend Configuration For OS Platform LINUX")
 
     set(OS_PLATFORM 2)
     ADD_DEFINITIONS(-DLINUX)
@@ -300,19 +287,12 @@ if (LINUX)
 
 endif ()
 
-message(STATUS "OS_PLATFORM ${OS_PLATFORM}")
-
 if (GPG_STANDALONE_MODE)
     add_compile_definitions(GPG_STANDALONE_MODE)
 endif ()
 
-# Basic Environment Configure
-set(BASIC_ENV_CONFIG 1)
-set(QT_MOC_CONFIG 1)
-set(EASY_LOGGING_PP 1)
-
 if (LINUX_INSTALL_SOFTWARE)
-    message(STATUS "LINUX_INSTALL_SOFTWARE ON")
+    message(STATUS "Configure Linux Install ON")
     include(GNUInstallDirs)
     set(INSTALL_GPGFRONTEND_APP 1)
     set(APP_INSTALL_FLAG LINUX_INSTALL)
@@ -323,6 +303,10 @@ else ()
     add_compile_definitions(BUNDLE_BUILD)
 endif ()
 
+# Basic Environment Configure
+set(BASIC_ENV_CONFIG 1)
+set(QT_MOC_CONFIG 1)
+set(EASY_LOGGING_PP 1)
 
 if (FULL_APPLICATION_BUILD)
     message(STATUS "Build Full Application")
@@ -382,7 +366,6 @@ if (QT5_ENV_SUPPORT)
 
     set(CMAKE_AUTORCC_OPTIONS "--compress;9")
     set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
-    message(STATUS "CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS}")
 
 endif ()
 
