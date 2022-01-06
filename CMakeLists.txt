@@ -4,6 +4,84 @@ project(GpgFrontend VERSION 2.0.4 LANGUAGES CXX)
 
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
+# options
+option(GPGFRONTEND_BUILD_TYPE_TEST_CORE
+        "Only compile the core and generate the unit test program" OFF)
+option(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE
+        "Compile only the core and generate unit test programs that can evaluate test coverage" OFF)
+option(GPGFRONTEND_BUILD_TYPE_TEST_UI
+        "Only generate a graphical interface with basic functions" OFF)
+option(GPGFRONTEND_BUILD_TYPE_TEST_ALL
+        "Generate a graphical interface with all functions" OFF)
+option(GPGFRONTEND_BUILD_TYPE_STABLE
+        "Generate release version" ON)
+option(GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
+option(GENERATE_APP_PACKAGE_DEB "Generate DEB package" OFF)
+option(CONFIGURE_FOR_XCODE_BUILD "Generate a version that can be successfully compiled and packaged in Xcode" OFF)
+
+# analyse options
+if (GPGFRONTEND_BUILD_TYPE_TEST_CORE)
+    set(CMAKE_BUILD_TYPE "Debug")
+    set(GPGFRONTEND_BUILD_CONFIG "test_core")
+endif ()
+
+if (GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE)
+    set(CMAKE_BUILD_TYPE "Debug")
+    set(GPGFRONTEND_BUILD_CONFIG "test_core_coverage")
+endif ()
+
+if (GPGFRONTEND_BUILD_TYPE_TEST_UI)
+    set(CMAKE_BUILD_TYPE "Debug")
+    set(GPGFRONTEND_BUILD_CONFIG "test_ui")
+endif ()
+
+if (GPGFRONTEND_BUILD_TYPE_TEST_ALL)
+    set(CMAKE_BUILD_TYPE "Debug")
+    set(GPGFRONTEND_BUILD_CONFIG "test_all")
+endif ()
+
+if (GPGFRONTEND_BUILD_TYPE_STABLE)
+
+    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
+    unset(GPGFRONTEND_BUILD_CONFIG)
+
+    set(STABLE_APPLICATION_BUILD 1)
+endif ()
+
+if (GENERATE_LINUX_INSTALL_SOFTWARE)
+
+    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
+    unset(GPGFRONTEND_BUILD_CONFIG)
+
+    set(LINUX_INSTALL_SOFTWARE 1)
+    set(GENERATE_APP_PACKAGE_DEB 1)
+endif ()
+
+if (GENERATE_LINUX_INSTALL_SOFTWARE AND GENERATE_APP_PACKAGE_DEB)
+    set(APP_PACKAGE_DEB 1)
+endif ()
+
+if (CONFIGURE_FOR_XCODE_BUILD)
+    set(GENERATE_LINUX_INSTALL_SOFTWARE 0)
+    set(GENERATE_APP_PACKAGE_DEB 0)
+    set(LINUX_INSTALL_SOFTWARE 0)
+    set(APP_PACKAGE_DEB 0)
+
+    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
+
+    unset(GPGFRONTEND_BUILD_CONFIG)
+    set(STABLE_APPLICATION_BUILD 1)
+endif ()
+
 # C++
 #Detect Compiler
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -228,7 +306,7 @@ if (GPG_STANDALONE_MODE)
     add_compile_definitions(GPG_STANDALONE_MODE)
 endif ()
 
-# Basic Envirnoment Configure
+# Basic Environment Configure
 set(BASIC_ENV_CONFIG 1)
 set(QT_MOC_CONFIG 1)
 set(EASY_LOGGING_PP 1)
