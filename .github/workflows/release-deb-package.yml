@@ -2,13 +2,13 @@ name: Build Linux Packages
 
 on:
   push:
-    branches: [ main, develop-** ]
+    branches: [ main, 'develop-**', 'dev/**' ]
     paths-ignore:
       - 'resource/locale/template/**'
       - 'docs/**'
       - '**.md'
   pull_request:
-    branches: [ develop-** ]
+    branches: [ 'develop-**', 'dev/**' ]
     paths-ignore:
       - 'resource/locale/template/**'
       - 'docs/**'
@@ -23,7 +23,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ 'ubuntu-18.04', 'ubuntu-20.04' ]
+        os: [ 'ubuntu-20.04' ]
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -34,21 +34,6 @@ jobs:
       - name: Get Short SHA of Commit
         id: vars
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
-      - name: Install Dependence (Ubuntu 18.04)
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo qt5-default
-          sudo apt-get -y install gcc-8 g++-8 libconfig++-dev libboost-all-dev
-          sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
-          sudo apt-get -y install libgcrypt11-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp ninja-build
-          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-image0
-          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-*
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 8
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 8
-          sudo update-alternatives --set gcc "/usr/bin/gcc-8"
-          sudo update-alternatives --set g++ "/usr/bin/g++-8"
-        if: matrix.os == 'ubuntu-18.04'
 
       - name: Install Dependence (Ubuntu 20.04)
         run: |
