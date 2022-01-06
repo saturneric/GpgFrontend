@@ -10,9 +10,9 @@ set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
 set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 
 if (EASY_LOGGING_PP)
-    set(THIRD_PARTY_LIBS easy_logging_pp)
+    set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} easy_logging_pp)
 endif ()
-set(THIRD_PARTY_LIBS "${THIRD_PARTY_LIBS} config++")
+set(THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} config++)
 
 set(BOOST_LIBS Boost::date_time Boost::filesystem)
 
