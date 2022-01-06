@@ -2,19 +2,17 @@ name: Build Linux Packages
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop-** ]
     paths-ignore:
-      - '**/README.md'
-      - '**/README_CN.md'
-      - 'resource/ts/**'
+      - 'resource/locale/template/**'
       - 'docs/**'
+      - '**.md'
   pull_request:
-    branches: [ develop ]
+    branches: [ develop-** ]
     paths-ignore:
-      - '**/README.md'
-      - '**/README_CN.md'
-      - 'resource/ts/**'
+      - 'resource/locale/template/**'
       - 'docs/**'
+      - '**.md'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
