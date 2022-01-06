@@ -354,9 +354,9 @@ find_package(Boost COMPONENTS date_time filesystem REQUIRED)
 if (QT5_ENV_SUPPORT)
     # Support Qt version Both 5.12.x and 5.15.x
     if (LINUX_INSTALL_SOFTWARE)
-        find_package(Qt5 5.12 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
-    else ()
         find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    else ()
+        find_package(Qt5 5.15 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
     endif ()
     # find_package(Qt5 5.15.2 EXACT COMPONENTS Core Test Widgets PrintSupport Network LinguistTools REQUIRED)
     # Qt configuration

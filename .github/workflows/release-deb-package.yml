@@ -38,7 +38,7 @@ jobs:
       - name: Install Dependence (Ubuntu 18.04)
         run: |
           sudo apt-get update
-          sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
+          sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo qt5-default
           sudo apt-get -y install gcc-8 g++-8 libconfig++-dev libboost-all-dev
           sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
           sudo apt-get -y install libgcrypt11-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp ninja-build
@@ -53,26 +53,13 @@ jobs:
       - name: Install Dependence (Ubuntu 20.04)
         run: |
           sudo apt-get update
-          sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
+          sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo qt5-default
           sudo apt-get -y install gcc g++ libconfig++-dev libboost-all-dev
           sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
           sudo apt-get -y install libgcrypt20-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp ninja-build
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-image0
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-*
         if: matrix.os == 'ubuntu-20.04'
-
-      - name: Cache Qt
-        id: cache-qt
-        uses: actions/cache@v1
-        with:
-          path: ../Qt
-          key: ${{ runner.os }}-QtCache-5.12.8
-
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v2
-        with:
-          cached: ${{ steps.cache-qt.outputs.cache-hit }}
-          version: '5.12.8'
 
       - name: Build gpg-error
         run: |
