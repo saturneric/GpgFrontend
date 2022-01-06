@@ -111,4 +111,4 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}-deb-${{matrix.os}}
-          path: ${{github.workspace}}/build-deb/gpgfrontend*.deb*
+          path: ${{github.workspace}}/build-deb-${{matrix.os}}/gpgfrontend*.deb*
