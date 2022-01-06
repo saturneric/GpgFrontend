@@ -95,7 +95,7 @@ jobs:
       - name: Build & Package GpgFrontend (Linux DEB Package)
         # Build your program with the given configuration
         run: |
-          cmake -B ${{github.workspace}}/build-deb -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE="Release" -DGENERATE_LINUX_INSTALL_SOFTWARE=ON ..
+          cmake -B ${{github.workspace}}/build-deb -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE="Release" -DGENERATE_LINUX_INSTALL_SOFTWARE=ON
           cmake --build ${{github.workspace}}/build-deb --config {{$env.BUILD_TYPE}}  -- -j 2
           cd ${{github.workspace}}/build-deb
           make package
