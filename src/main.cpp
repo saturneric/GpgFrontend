@@ -184,12 +184,12 @@ int main(int argc, char* argv[]) {
       }
 
     } else {
-      QApplication::exit(RESTART_CODE);
       QMessageBox::information(
           nullptr, _("A serious error has occurred"),
           _("Oh no! GpgFrontend caught a serious error in the software, so it "
             "needs to be restarted. If the problem recurs, please manually "
             "terminate the program and report the problem to the developer."));
+      QCoreApplication::quit();
       return_from_event_loop_code = RESTART_CODE;
       LOG(INFO) << "return_from_event_loop_code" << return_from_event_loop_code;
       continue;
