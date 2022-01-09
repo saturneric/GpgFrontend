@@ -29,7 +29,20 @@
 extern jmp_buf recover_env;
 
 void handle_signal(int sig) {
-  LOG(INFO) << "signal caught";
+  static int _repeat_handle_num = 1, last_sig = sig;
+  LOG(INFO) << "signal caught" << sig;
+
+  if (last_sig == sig)
+    _repeat_handle_num++;
+  else
+    _repeat_handle_num = 1, last_sig = sig;
+
+  if (_repeat_handle_num > 3) {
+    LOG(INFO) << "The same signal appears three times, execute the termination "
+                 "operation. ";
+    exit(-1);
+  }
+
 #ifndef WINDOWS
   siglongjmp(recover_env, 1);
 #else
