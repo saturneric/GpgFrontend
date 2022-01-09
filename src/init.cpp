@@ -27,15 +27,6 @@
 
 #include "ui/settings/GlobalSettingStation.h"
 
-vmime::shared_ptr<vmime::security::cert::X509Certificate> load_x509_cert(
-    const boost::filesystem::path& path) {
-  auto out_buffer = GpgFrontend::read_all_data_in_file(path.string());
-  auto cert = vmime::security::cert::X509Certificate::import(
-      reinterpret_cast<const vmime::byte_t*>(out_buffer.data()),
-      out_buffer.size());
-  return cert;
-}
-
 std::vector<boost::filesystem::path> get_files_of_directory(
     const boost::filesystem::path& _path) {
   namespace fs = boost::filesystem;
@@ -82,12 +73,12 @@ void init_certs() {
       root_certs;
   auto cert_file_paths = get_files_of_directory(
       GpgFrontend::UI::GlobalSettingStation::GetInstance().GetCertsDir());
+
+  auto& _instance = GpgFrontend::UI::GlobalSettingStation::GetInstance();
   for (const auto& cert_file_path : cert_file_paths) {
-    auto _cert = load_x509_cert(cert_file_path);
-    root_certs.push_back(_cert);
+    _instance.AddRootCert(cert_file_path);
   }
-  LOG(INFO) << _("root certs loaded") << root_certs.size();
-  GpgFrontend::UI::GlobalSettingStation::GetInstance().SetRootCerts(root_certs);
+  LOG(INFO) << _("root certs loaded") << _instance.GetRootCerts().size();
 }
 
 void init_locale() {
