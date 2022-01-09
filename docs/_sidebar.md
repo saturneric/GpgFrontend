@@ -1,7 +1,7 @@
 - Getting Start
     - [Overview](overview.md)
     - [Quick Start](quick-start.md)
-    - Basic concepts
+    - [Basic concepts](basic-concepts.md)
 - Manual
     - [Understand Interface](manual/understand-interface.md)
     - [Encrypt & Decrypt Text](manual/encrypt-decrypt-text.md)
@@ -11,13 +11,13 @@
     - [Generate Key Pair & Subkey](manual/generate-key.md)
     - [View Key Pair Details](manual/view-keypair-info.md)
     - [Import & Export Key Pair](manual/import-export-key-pair.md)
-    - Key Server Operations
+    - [Key Server Operations](manual/key-server-operations.md)
     - Email Operations
     - Sync
 - Features Guides
     - [Introduce](features/introduce.md)
     - [Short Cipher-text](features/short-ciphertext.md)
-    - [Public Key Sync](features/automatic-pubkey-exchange.md)
+    - [Sync ALL Public Key](features/sync-all-public-keys.md)
 - Contribute
     - [Translate Interface](translate-interface.md)
 - About

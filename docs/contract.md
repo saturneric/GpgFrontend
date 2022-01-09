@@ -1,6 +1,9 @@
 # Contract
 
-Contents related to business and politics are rejected. This tool belongs to all mankind. If you have any questions about technology and improving this software, please feel free to contact me.
+Contents related to business and politics are rejected. This tool belongs to all mankind. If you have any questions
+about technology and improving this software, please feel free to contact me.
+
+It is recommended to use plain text to contact me by email, but HTML is not recommended.
 
 ## About ME
 
@@ -12,13 +15,16 @@ Tips: BKTUS(Bakantu Union) is not a company, it is my personal domain name.
 
 ## Languages
 
-You can write to me in the following language. 
+You can write to me in the following language.
 
 1. English
 2. Chinese
 3. Deutsch
 
 ## GPG Public Key Info
+
+This is the PGP public key that I support for a long time. You can use this public key to establish encrypted
+communication with me. Please use plain text for encrypted communication, do not use rich text formats such as HTML.
 
 ```
 -----BEGIN PGP PUBLIC KEY BLOCK-----
