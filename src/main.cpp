@@ -27,11 +27,9 @@
 #include <cstdlib>
 
 #include "GpgFrontendBuildInfo.h"
-#include "gpg/GpgContext.h"
 #include "gpg/GpgFunctionObject.h"
 #include "ui/MainWindow.h"
 #include "ui/function/CtxCheckThread.h"
-#include "ui/settings/GlobalSettingStation.h"
 
 // Easy Logging Cpp
 INITIALIZE_EASYLOGGINGPP
@@ -43,12 +41,16 @@ extern void init_logging();
 extern void init_certs();
 extern void init_locale();
 extern void handle_signal(int sig);
+extern void before_exit(int status, void* arg);
 
 int main(int argc, char* argv[]) {
   // Register Signals
   signal(SIGSEGV, handle_signal);
   signal(SIGFPE, handle_signal);
   signal(SIGILL, handle_signal);
+
+  // clean something before exit
+  on_exit(before_exit, nullptr);
 
   // Qt
   Q_INIT_RESOURCE(gpgfrontend);

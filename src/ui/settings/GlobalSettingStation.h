@@ -25,6 +25,8 @@
 #ifndef GPGFRONTEND_GLOBALSETTINGSTATION_H
 #define GPGFRONTEND_GLOBALSETTINGSTATION_H
 
+#include <openssl/x509.h>
+
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 
@@ -44,6 +46,8 @@ class GlobalSettingStation : public QObject {
   static GlobalSettingStation& GetInstance();
 
   GlobalSettingStation() noexcept;
+
+  ~GlobalSettingStation() noexcept override;
 
   libconfig::Setting& GetUISettings() noexcept { return ui_cfg.getRoot(); }
 
@@ -79,13 +83,13 @@ class GlobalSettingStation : public QObject {
 
   [[nodiscard]] std::shared_ptr<
       vmime::security::cert::defaultCertificateVerifier>
-  GetCertVerifier() const {
-    return default_certs_verifier_;
-  }
+  GetCertVerifier() const;
 
-  void SetRootCerts(
-      const std::vector<
-          std::shared_ptr<vmime::security::cert::X509Certificate>>& certs);
+  void AddRootCert(const boost::filesystem::path& path);
+
+  const std::vector<std::shared_ptr<X509>>& GetRootCerts();
+
+  void ResetRootCerts() { root_certs_.clear(); }
 
   void Sync() noexcept;
 
@@ -132,8 +136,7 @@ class GlobalSettingStation : public QObject {
 
   libconfig::Config ui_cfg;
 
-  std::shared_ptr<vmime::security::cert::defaultCertificateVerifier>
-      default_certs_verifier_;
+  std::vector<std::shared_ptr<X509>> root_certs_;
 
   static std::unique_ptr<GlobalSettingStation> _instance;
 };
