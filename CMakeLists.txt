@@ -18,6 +18,7 @@ option(GPGFRONTEND_BUILD_TYPE_STABLE
 option(GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
 option(GENERATE_APP_PACKAGE_DEB "Generate DEB package" OFF)
 option(CONFIGURE_FOR_XCODE_BUILD "Generate a version that can be successfully compiled and packaged in Xcode" OFF)
+option(USE_QT_DEFAULT_ENV "Build with the qt version provided by the qt-default package" OFF)
 
 # analyse options
 if (GPGFRONTEND_BUILD_TYPE_TEST_CORE)
@@ -296,6 +297,7 @@ if (LINUX_INSTALL_SOFTWARE)
     include(GNUInstallDirs)
     set(INSTALL_GPGFRONTEND_APP 1)
     set(APP_INSTALL_FLAG LINUX_INSTALL)
+    set(USE_QT_DEFAULT_ENV ON)
     add_compile_definitions(LINUX_INSTALL_BUILD)
     set(Boost_USE_STATIC_LIBS ON)
 else ()
@@ -353,7 +355,7 @@ find_package(Boost COMPONENTS date_time filesystem REQUIRED)
 
 if (QT5_ENV_SUPPORT)
     # Support Qt version Both 5.12.x and 5.15.x
-    if (LINUX_INSTALL_SOFTWARE)
+    if (USE_QT_DEFAULT_ENV)
         find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
     else ()
         find_package(Qt5 5.15 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
