@@ -16,9 +16,13 @@ you can add your own signature to let others know that this document or this par
 Furthermore, it visualizes most of the common operations of gpg commands. It aims to allow ordinary users to quickly use
 gpg and make professional users more convenient. GpgFrontend supports new features of GnuPG 2.x.
 
+**The corresponding release version for this
+Document: [v2.0.4](https://github.com/saturneric/GpgFrontend/releases/tag/v2.0.4)**
+
 ## Interface
 
-Note: For different operating system and system style settings, GpgFrontned may look different.
+Note: For different operating system and system style settings, GpgFrontend may look different.Documentation can also
+vary widely from release to release. Please check the corresponding program release version for the document.
 
 ![image-20220109192100901](_media/overview/image-20220109192100901.png)
 
@@ -45,7 +49,7 @@ day.
 
 ## License
 
-GpgFrontend's own code is under a GPL-3.0 license, which means that GpgFrontend is free software. You may exercise the
+GpgFrontend own code is under a GPL-3.0 license, which means that GpgFrontend is free software. You may exercise the
 rights set forth in the Licence under the conditions of compliance with the rules of the Licence.
 
 ## Contribution

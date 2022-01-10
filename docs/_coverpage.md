@@ -1,29 +1,36 @@
-# GpgFrontend - A Cross-Platform OpenPGP Crypto Tool
+![gpgfrontend-logo](_media/_coverpage/gpgfrontend-logo.png)
+
+# GpgFrontend
 
 ![Language](https://img.shields.io/badge/language-C%2B%2B-green)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/saturneric/gpgfrontend)
 ![License](https://img.shields.io/badge/License-GPL--3.0-orange)
-![CodeSize](https://img.shields.io/github/languages/code-size/saturneric/GpgFrontend)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=saturneric/GpgFrontend&amp;utm_campaign=Badge_Grade)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_shield)
 
-GpgFrontend is a Free, Powerful, Easy-to-Use, Compact, Cross-Platform, and
-Installation-Free [OpenPGP](https://www.openpgp.org/) Crypto Tool(using GnuPG).
+**A Free, Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free [OpenPGP(pgp)](https://www.openpgp.org/)
+Crypto Tool.**
 
-## Purpose
+**Also, it's one of the excellent GUI Frontends for Modern GnuPG(gpg).**
 
-Let more people all over the world can use GnuPG to safely send information to the destination in a safe way.
+## Brief
+
+```text
+You can quickly make encrypted documents or email.
+
+You can digitally sign your text or documents.
+
+You can easily and intuitively manage all your keys on your computer.
+
+```
 
 ## Features
 
-- Can run on **Windows, Linux and macOS**.
-- Open source and free.
-- Even if you don't understand gpg, you can use it with this software.
-- Just download, double-click, and then you can use it freely.
+- Cross-Platform, can run on **Windows, Linux and macOS**.
+- Open source, installation-free and free forever.
 - Supports multiple languages. Languages spoken by most people in the world.
 
-[Download Here](https://github.com/saturneric/GpgFrontend/releases/latest)
-[Quick Start](quick-start.md)
+[Download](https://github.com/saturneric/GpgFrontend/releases/latest)
+[Document](quick-start.md)
 
 <!-- 背景色 -->
 ![color](#ffffff)

@@ -12,14 +12,16 @@
     - [View Key Pair Details](manual/view-keypair-info.md)
     - [Import & Export Key Pair](manual/import-export-key-pair.md)
     - [Key Server Operations](manual/key-server-operations.md)
-    - Email Operations
-    - Sync
+    - [Email Operations](manual/email-operations.md)
+    - Advanced Key Management
 - Features Guides
     - [Introduce](features/introduce.md)
     - [Short Cipher-text](features/short-ciphertext.md)
     - [Sync ALL Public Key](features/sync-all-public-keys.md)
+    - Export As Key Package
 - Contribute
     - [Translate Interface](translate-interface.md)
+    - Contribute Code
 - About
     - [FAQ](faq.md)
     - [Code & Binary Verify](about/code-binary-verify.md)
