@@ -2,7 +2,7 @@ name: Build Linux Packages
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop-**, dev/** ]
     paths-ignore:
       - '**/README.md'
       - '**/README_CN.md'
@@ -81,6 +81,17 @@ jobs:
           cd ${{github.workspace}}/third_party/libassuan
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-static=yes && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-18.04'
+
+      - name: Build vmime
+        run: |
+          cd ${{github.workspace}}/third_party/vmime
+          mkdir build
+          cd build
+          cmake -DVMIME_HAVE_MESSAGING_PROTO_SENDMAIL=OFF -DVMIME_CHARSETCONV_LIB=iconv -DVMIME_TLS_SUPPORT_LIB=openssl -DVMIME_HAVE_SASL_SUPPORT=OFF ..
+          make -j2
           sudo make install
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-18.04'
