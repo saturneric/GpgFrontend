@@ -40,15 +40,13 @@ class IMAPFolder;
 class ReceiveMailDialog : public QDialog {
   Q_OBJECT
  public:
-  ReceiveMailDialog(QWidget* parent);
+  explicit ReceiveMailDialog(QWidget* parent);
 
  private slots:
   void slotRefreshData();
 
  private:
   std::shared_ptr<Ui_ReceiveMailDialog> ui;
-
-  std::string get_folder_path(const std::shared_ptr<vmime::net::folder>& f);
 
   void list_sub_folders(IMAPFolder* parent_folder,
                         const std::shared_ptr<vmime::net::folder>&);
