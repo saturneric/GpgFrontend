@@ -1,10 +1,10 @@
 if (EASY_LOGGING_PP)
-    message(STATUS "Build easyloggingpp")
+    message(STATUS "Build dependency easyloggingpp")
     add_subdirectory(easyloggingpp)
 endif ()
 
 if (APP_IMAGE_UPDATE)
-    message(STATUS "Build AppImageUpdate")
+    message(STATUS "Build dependency AppImageUpdate")
     set(USE_SYSTEM_BOOST 1)
     set(USE_SYSTEM_XZ 1)
     set(USE_SYSTEM_SQUASHFUSE 1)
