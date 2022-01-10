@@ -30,3 +30,9 @@ GpgFrontend::UI::ReceiveMailDialog::ReceiveMailDialog(QWidget *parent)
     : QDialog(parent), ui(std::make_shared<Ui_ReceiveMailDialog>()) {
   ui->setupUi(this);
 }
+
+void GpgFrontend::UI::ReceiveMailDialog::slotRefreshData() {}
+
+void GpgFrontend::UI::ReceiveMailDialog::list_sub_folders(
+    GpgFrontend::UI::IMAPFolder *parent_folder,
+    const std::shared_ptr<vmime::net::folder> &) {}
