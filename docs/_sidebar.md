@@ -5,6 +5,7 @@
 - Manual
     - [Understand Interface](manual/understand-interface.md)
     - [Encrypt & Decrypt Text](manual/encrypt-decrypt-text.md)
+    - Symmetric Encrypt & Decrypt Text
     - [Sign & Verify Text](manual/sign-verify-text.md)
     - [Encrypt & Decrypt File](manual/encrypt-decrypt-file.md)
     - [Sign & Verify File](manual/sign-verify-file.md)
@@ -13,7 +14,7 @@
     - [Import & Export Key Pair](manual/import-export-key-pair.md)
     - [Key Server Operations](manual/key-server-operations.md)
     - [Email Operations](manual/email-operations.md)
-    - Advanced Key Management
+    - [Advanced Key Operation](manual/advance-key-opera.md)
 - Features Guides
     - [Introduce](features/introduce.md)
     - [Short Cipher-text](features/short-ciphertext.md)

@@ -12,16 +12,13 @@ Crypto Tool.**
 
 **Also, it's one of the excellent GUI Frontends for Modern GnuPG(gpg).**
 
-## Brief
+## Brief Introduction
 
-```text
 You can quickly make encrypted documents or email.
 
 You can digitally sign your text or documents.
 
 You can easily and intuitively manage all your keys on your computer.
-
-```
 
 ## Features
 
