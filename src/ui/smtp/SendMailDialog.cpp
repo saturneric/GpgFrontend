@@ -32,7 +32,7 @@
 
 #ifdef SMTP_SUPPORT
 #include "smtp/SmtpMime"
-#include "ui/function/SMTPSendMailThread.h"
+#include "ui/thread/SMTPSendMailThread.h"
 #include "ui/settings/GlobalSettingStation.h"
 #endif
 

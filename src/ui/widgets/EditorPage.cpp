@@ -27,7 +27,7 @@
 #include <boost/filesystem.hpp>
 #include <utility>
 
-#include "ui/function/FileReadThread.h"
+#include "ui/thread/FileReadThread.h"
 
 namespace GpgFrontend::UI {
 
