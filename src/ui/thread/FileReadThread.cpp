@@ -29,39 +29,41 @@
 
 namespace GpgFrontend::UI {
 
-FileReadThread::FileReadThread(std::string path) : path(std::move(path)) {}
+FileReadThread::FileReadThread(std::string path) : path(std::move(path)) {
+  qRegisterMetaType<std::string>("std::string");
+}
 
 void FileReadThread::run() {
-  LOG(INFO) << "Started";
+  LOG(INFO) << "started";
   boost::filesystem::path read_file_path(this->path);
   if (is_regular_file(read_file_path)) {
-    LOG(INFO) << "Read Open";
+    LOG(INFO) << "read open";
 
-    auto fp = fopen(read_file_path.string().c_str(), "r");
+    auto fp = fopen(read_file_path.string().c_str(), "rb");
     size_t read_size;
-    LOG(INFO) << "Thread Start Reading";
+    LOG(INFO) << "thread start reading";
 
-    char buffer[8192];
+    char buffer[4096];
     while ((read_size = fread(buffer, sizeof(char), sizeof buffer, fp)) > 0) {
       // Check isInterruptionRequested
       if (QThread::currentThread()->isInterruptionRequested()) {
-        LOG(INFO) << "Read Thread isInterruptionRequested ";
+        LOG(INFO) << "thread is interruption requested ";
         fclose(fp);
         return;
       }
-      LOG(INFO) << "Read Thread Read block size " << read_size;
+      LOG(INFO) << "block size " << read_size;
       std::string buffer_str(buffer, read_size);
 
-      emit sendReadBlock(QString::fromStdString(buffer_str));
+      emit sendReadBlock(buffer_str);
 #ifdef RELEASE
       QThread::msleep(32);
 #else
-      QThread::msleep(48);
+      QThread::msleep(128);
 #endif
     }
     fclose(fp);
     emit readDone();
-    LOG(INFO) << "Thread End Reading";
+    LOG(INFO) << "thread end reading";
   }
 }
 

@@ -26,7 +26,7 @@
 #define __VERIFYDETAILSDIALOG_H__
 
 #include "ui/GpgFrontendUI.h"
-#include "ui/widgets/EditorPage.h"
+#include "ui/widgets/PlainTextEditorPage.h"
 #include "ui/widgets/VerifyKeyDetailBox.h"
 
 namespace GpgFrontend::UI {

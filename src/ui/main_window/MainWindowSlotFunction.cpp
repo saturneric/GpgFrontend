@@ -69,7 +69,8 @@ void MainWindow::slotEncrypt() {
 
     process_operation(this, _("Symmetrically Encrypting"), [&]() {
       try {
-        auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
+        auto buffer =
+            edit->curTextPage()->getTextPage()->toPlainText().toStdString();
         error = GpgFrontend::BasicOperator::GetInstance().EncryptSymmetric(
             buffer, tmp, result);
       } catch (const std::runtime_error& e) {
@@ -94,7 +95,8 @@ void MainWindow::slotEncrypt() {
 
     process_operation(this, _("Encrypting"), [&]() {
       try {
-        auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
+        auto buffer =
+            edit->curTextPage()->getTextPage()->toPlainText().toStdString();
         error = GpgFrontend::BasicOperator::GetInstance().Encrypt(
             std::move(keys), buffer, tmp, result);
       } catch (const std::runtime_error& e) {
@@ -114,7 +116,8 @@ void MainWindow::slotEncrypt() {
     infoBoard->resetOptionActionsMenu();
 #ifdef SMTP_SUPPORT
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      send_an_email(this, infoBoard, edit->curTextPage()->toPlainText());
+      send_an_email(this, infoBoard,
+                    edit->curTextPage()->getTextPage()->toPlainText());
 #endif
   } else {
     QMessageBox::critical(this, _("Error"),
@@ -157,7 +160,11 @@ void MainWindow::slotSign() {
 
   process_operation(this, _("Signing"), [&]() {
     try {
-      auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
+      auto buffer = edit->curTextPage()
+                        ->getTextPage()
+                        ->toPlainText()
+                        .toUtf8()
+                        .toStdString();
       error = GpgFrontend::BasicOperator::GetInstance().Sign(
           std::move(keys), buffer, tmp, GPGME_SIG_MODE_CLEAR, result);
     } catch (const std::runtime_error& e) {
@@ -183,7 +190,7 @@ void MainWindow::slotDecrypt() {
   if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
 
   auto decrypted = std::make_unique<ByteArray>();
-  QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
+  QByteArray text = edit->curTextPage()->getTextPage()->toPlainText().toUtf8();
 
   if (text.trimmed().startsWith(GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD)) {
     QMessageBox::critical(
@@ -234,7 +241,7 @@ void MainWindow::slotFind() {
 void MainWindow::slotVerify() {
   if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
 
-  auto text = edit->curTextPage()->toPlainText().toUtf8();
+  auto text = edit->curTextPage()->getTextPage()->toPlainText().toUtf8();
   // TODO(Saturneric) PreventNoDataErr
 
   auto sig_buffer = std::make_unique<ByteArray>();
@@ -317,7 +324,11 @@ void MainWindow::slotEncryptSign() {
   auto tmp = std::make_unique<ByteArray>();
   process_operation(this, _("Encrypting and Signing"), [&]() {
     try {
-      auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
+      auto buffer = edit->curTextPage()
+                        ->getTextPage()
+                        ->toPlainText()
+                        .toUtf8()
+                        .toStdString();
       error = GpgFrontend::BasicOperator::GetInstance().EncryptSign(
           std::move(keys), std::move(signer_keys), buffer, tmp, encr_result,
           sign_result);
@@ -352,7 +363,8 @@ void MainWindow::slotEncryptSign() {
     infoBoard->resetOptionActionsMenu();
 #ifdef SMTP_SUPPORT
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      send_an_email(this, infoBoard, edit->curTextPage()->toPlainText(), false);
+      send_an_email(this, infoBoard,
+                    edit->curTextPage()->getTextPage()->toPlainText(), false);
 #endif
 
 #ifdef ADVANCE_SUPPORT
@@ -376,7 +388,7 @@ void MainWindow::slotEncryptSign() {
 void MainWindow::slotDecryptVerify() {
   if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
 
-  QString plainText = edit->curTextPage()->toPlainText();
+  QString plainText = edit->curTextPage()->getTextPage()->toPlainText();
 
 #ifdef ADVANCE_SUPPORT
   if (plainText.trimmed().startsWith(
@@ -453,7 +465,8 @@ void MainWindow::slotAppendSelectedKeys() {
   auto key_ids = mKeyList->getSelected();
 
   GpgKeyImportExporter::GetInstance().ExportKeys(key_ids, exported);
-  edit->curTextPage()->append(QString::fromStdString(*exported));
+  edit->curTextPage()->getTextPage()->appendPlainText(
+      QString::fromStdString(*exported));
 }
 
 void MainWindow::slotCopyMailAddressToClipboard() {

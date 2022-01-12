@@ -37,7 +37,7 @@ class FileReadThread : public QThread {
 
  signals:
 
-  void sendReadBlock(const QString& block);
+  void sendReadBlock(const std::string& block);
 
   void readDone();
 

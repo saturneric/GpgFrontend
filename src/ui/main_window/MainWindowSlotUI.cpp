@@ -41,7 +41,7 @@ void MainWindow::slotStartWizard() {
 void MainWindow::slotImportKeyFromEdit() {
   if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
   CommonUtils::GetInstance()->slotImportKeys(
-      this, edit->curTextPage()->toPlainText().toStdString());
+      this, edit->curTextPage()->getTextPage()->toPlainText().toStdString());
 }
 
 void MainWindow::slotOpenKeyManagement() {
@@ -139,7 +139,7 @@ void MainWindow::slotCleanDoubleLinebreaks() {
     return;
   }
 
-  QString content = edit->curTextPage()->toPlainText();
+  QString content = edit->curTextPage()->getTextPage()->toPlainText();
   content.replace("\n\n", "\n");
   edit->slotFillTextEditWithText(content);
 }
@@ -149,7 +149,7 @@ void MainWindow::slotAddPgpHeader() {
     return;
   }
 
-  QString content = edit->curTextPage()->toPlainText().trimmed();
+  QString content = edit->curTextPage()->getTextPage()->toPlainText().trimmed();
 
   content.prepend("\n\n").prepend(GpgConstants::PGP_CRYPT_BEGIN);
   content.append("\n").append(GpgConstants::PGP_CRYPT_END);
@@ -162,7 +162,7 @@ void MainWindow::slotCutPgpHeader() {
     return;
   }
 
-  QString content = edit->curTextPage()->toPlainText();
+  QString content = edit->curTextPage()->getTextPage()->toPlainText();
   int start = content.indexOf(GpgConstants::PGP_CRYPT_BEGIN);
   int end = content.indexOf(GpgConstants::PGP_CRYPT_END);
 
