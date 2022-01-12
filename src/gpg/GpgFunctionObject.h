@@ -25,8 +25,6 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
 #define GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
 
-#include <easyloggingpp/easylogging++.h>
-
 #include <map>
 #include <memory>
 #include <mutex>

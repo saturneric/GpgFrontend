@@ -25,7 +25,6 @@
 #ifndef GPGFRONTEND_SETTINGSSENDMAIL_H
 #define GPGFRONTEND_SETTINGSSENDMAIL_H
 
-#include "smtp/SmtpMime"
 #include "ui/GpgFrontendUI.h"
 
 class Ui_SendMailSettings;

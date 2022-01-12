@@ -22,9 +22,9 @@
  *
  */
 
-#include <easyloggingpp/easylogging++.h>
-
 #include <csetjmp>
+
+#include "GpgFrontend.h"
 
 extern jmp_buf recover_env;
 

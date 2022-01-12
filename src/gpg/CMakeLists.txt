@@ -6,14 +6,9 @@ aux_source_directory(. GPG_SOURCE)
 add_library(gpgfrontend_core STATIC ${GPG_SOURCE})
 
 set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
-
 set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 
-if (EASY_LOGGING_PP)
-    message(STATUS "Link EASY_LOGGING_PP")
-    set(THIRD_PARTY_LIBS easy_logging_pp config++)
-endif ()
-
+set(THIRD_PARTY_LIBS easyloggingpp config++)
 set(BOOST_LIBS Boost::date_time Boost::filesystem)
 
 message(STATUS "Third Party Libraries " ${THIRD_PARTY_LIBS})
@@ -25,13 +20,10 @@ if (MINGW)
             gpgme gpg-error assuan wsock32)
     target_compile_features(gpgfrontend_core PUBLIC cxx_std_17)
 elseif (APPLE)
-    find_library(libgpgme NAMES libgpgme.a)
-    find_library(libgpg-error NAMES libgpg-error.a)
-    find_library(libassuan NAMES libassuan.a)
     message(STATUS "Link GPG Static Library For macOS")
     target_link_libraries(gpgfrontend_core ${THIRD_PARTY_LIBS}
+            gpgme gpg-error assuan
             ${BOOST_LIBS}
-            ${libgpgme} ${libgpg-error} ${libassuan}
             dl)
     if (XCODE_BUILD)
         set_target_properties(gpgfrontend_core
@@ -41,12 +33,9 @@ elseif (APPLE)
                 LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
     endif ()
 else ()
-    find_library(libgpgme NAMES libgpgme.a)
-    find_library(libgpg-error NAMES libgpg-error.a)
-    find_library(libassuan NAMES libassuan.a)
     message(STATUS "Link GPG Static Library For Unix")
     target_link_libraries(gpgfrontend_core ${THIRD_PARTY_LIBS}
-            ${libgpgme} ${libgpg-error} ${libassuan}
+            gpgme gpg-error assuan
             ${BOOST_LIBS}
             pthread dl)
 endif ()

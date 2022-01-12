@@ -27,11 +27,8 @@
 
 #include <utility>
 
-#ifdef SMTP_SUPPORT
-#include "smtp/SmtpMime"
-#endif
-
 #include "ui/GpgFrontendUI.h"
+
 namespace GpgFrontend::UI {
 
 class SMTPTestThread : public QThread {

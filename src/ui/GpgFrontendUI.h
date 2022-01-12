@@ -36,7 +36,13 @@
 
 #undef LIBCONFIGXX_STATIC
 #define LIBCONFIGXX_STATIC
+#include <qt-aes/qaesencryption.h>
+
 #include <libconfig.h++>
+
+#ifdef SMTP_SUPPORT
+#include <SmtpMime>
+#endif
 
 /**
  * Resources File(s) Path Vars

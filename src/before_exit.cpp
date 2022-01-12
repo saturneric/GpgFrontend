@@ -22,8 +22,6 @@
  *
  */
 
-#include <easyloggingpp/easylogging++.h>
-
 #include "ui/settings/GlobalSettingStation.h"
 
 void before_exit(int status, void *arg) {
