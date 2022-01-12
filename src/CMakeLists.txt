@@ -32,7 +32,6 @@ if (APPLICATION_BUILD)
         # Set Binary Output Path
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
     endif ()
-    message(STATUS "CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 endif ()
 
 
@@ -50,7 +49,6 @@ if (APPLICATION_BUILD)
     else ()
         set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     endif ()
-    message(STATUS "RESOURCE_OUTPUT_DIRECTORY ${RESOURCE_OUTPUT_DIRECTORY}")
 endif ()
 
 # Get ALL SOURCE FILES
@@ -65,7 +63,6 @@ if (MULTI_LANG_SUPPORT)
     FIND_PROGRAM(GETTEXT_XGETTEXT_EXECUTABLE xgettext)
 
     set(LOCALE_OUTPUT_PATH ${RESOURCE_OUTPUT_DIRECTORY}/locales)
-    message(STATUS "LOCALE_OUTPUT_PATH ${LOCALE_OUTPUT_PATH}")
 
     if (NOT GETTEXT_MSGFMT_EXECUTABLE OR NOT GETTEXT_XGETTEXT_EXECUTABLE)
         message(ERROR "msgfmt or xgettext not found. Translations will *not* be installed")
@@ -80,12 +77,11 @@ if (MULTI_LANG_SUPPORT)
 
         file(GLOB ALL_PO_FILES ${CMAKE_SOURCE_DIR}/resource/locale/po/*.po)
         SET(GMO_FILES)
-        message(STATUS "ALL_PO_FILES ${ALL_PO_FILES}")
 
         foreach (_poFile ${ALL_PO_FILES})
             GET_FILENAME_COMPONENT(_poFileName ${_poFile} NAME)
             string(REGEX REPLACE "\\.[^.]*$" "" _langName ${_poFileName})
-            message(STATUS "_poFileName ${_langName}")
+            message(STATUS "GNU gettext po file ${_langName}")
             make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales)
             make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales/${_langName}/LC_MESSAGES)
             add_custom_command(
@@ -241,7 +237,6 @@ if (APPLICATION_BUILD)
 
     set(GPGFRONTEND_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} gpgfrontend_ui gpgfrontend_core ${GPGFRONTEND_BEFORE_UI_LIBS} easyloggingpp)
     set(QT_DEPENDENCY_LIBS Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
-    message(STATUS "Boost Libraries ${Boost_LIBRARIES}")
 
     IF (MINGW)
         message(STATUS "Link Application Static Library For MINGW")
@@ -293,11 +288,11 @@ if (LINUX_INSTALL_SOFTWARE)
                     DESTINATION /usr/share/icons/hicolor/)
         endif ()
         if (MULTI_LANG_SUPPORT)
-            message(STATUS "Local Output Path ${LOCALE_OUTPUT_PATH}")
             install(DIRECTORY ${LOCALE_OUTPUT_PATH}/
                     DESTINATION ${CMAKE_INSTALL_FULL_LOCALEDIR})
         endif ()
         if (APP_PACKAGE_DEB)
+            message(STATUS "Configure Deb Package")
             SET(CPACK_GENERATOR "DEB")
             set(CPACK_INSTALL_PREFIX "/usr/local/")
             set(CPACK_PACKAGE_NAME "gpgfrontend")
@@ -314,3 +309,6 @@ if (LINUX_INSTALL_SOFTWARE)
     endif ()
 endif ()
 
+message(STATUS "Resource Files: ${RESOURCE_OUTPUT_DIRECTORY}")
+message(STATUS "Locale Files: ${LOCALE_OUTPUT_PATH}")
+message(STATUS "Runtime Files: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")

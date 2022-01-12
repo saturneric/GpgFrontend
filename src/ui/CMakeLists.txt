@@ -39,6 +39,9 @@ target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
 target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
         easyloggingpp)
 
+# link gpgfrontend_core
+target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
+        gpgfrontend_core)
 
 target_include_directories(gpgfrontend_ui PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/${GPGFRONTEND_UI_LIB_NAME}_autogen/include)

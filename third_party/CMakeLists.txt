@@ -1,20 +1,25 @@
-
-set(build_static_lib 1)
+# easyloggingpp
+set(build_static_lib 1 CACHE BOOL "" FORCE)
 add_subdirectory(easyloggingpp)
-TARGET_INCLUDE_DIRECTORIES(easyloggingpp PUBLIC
+target_include_directories(easyloggingpp PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/easyloggingpp/src)
 
+# json
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(json)
 
+# qt-aes
 include(GenerateExportHeader)
 add_subdirectory(qt-aes)
 
-set(VMIME_HAVE_MESSAGING_PROTO_SENDMAIL OFF)
-set(VMIME_HAVE_SASL_SUPPORT OFF)
-set(VMIME_CHARSETCONV_LIB iconv)
-set(VMIME_TLS_SUPPORT_LIB openssl)
+# vmime
+set(VMIME_HAVE_MESSAGING_PROTO_SENDMAIL OFF CACHE BOOL "" FORCE)
+set(VMIME_HAVE_SASL_SUPPORT OFF CACHE BOOL "" FORCE)
+set(VMIME_CHARSETCONV_LIB iconv CACHE BOOL "" FORCE)
+set(VMIME_TLS_SUPPORT_LIB openssl CACHE BOOL "" FORCE)
 add_subdirectory(vmime)
+
+# gnupg
 
 include(ExternalProject)
 
@@ -23,7 +28,11 @@ include(ExternalProject)
 set(GPG_ERROR_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libgpg-error)
 set(GPG_ERROR_BIN ${CMAKE_CURRENT_BINARY_DIR}/libgpg-error)
 set(GPG_ERROR_STATIC_LIB ${GPG_ERROR_BIN}/lib/libgpg-error.a)
-set(GPG_ERROR_INCLUDES ${GPG_ERROR_BIN}/src)
+set(GPG_ERROR_INCLUDES ${GPG_ERROR_BIN}/include)
+set(GPG_ERROR_LIBS ${GPG_ERROR_BIN}/lib)
+file(MAKE_DIRECTORY ${GPG_ERROR_INCLUDES})
+
+message(STATUS "GPG_ERROR_INCLUDES ${GPG_ERROR_INCLUDES}")
 
 ExternalProject_Add(libgpg-error
         PREFIX ${GPG_ERROR_BIN}
@@ -49,12 +58,15 @@ set_target_properties(gpg-error PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${GPG_E
 set(ASSUAN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libassuan)
 set(ASSUAN_BIN ${CMAKE_CURRENT_BINARY_DIR}/libassuan)
 set(ASSUAN_STATIC_LIB ${ASSUAN_BIN}/lib/libassuan.a)
-set(ASSUAN_INCLUDES ${ASSUAN_BIN}/src)
+set(ASSUAN_INCLUDES ${ASSUAN_BIN}/include)
+set(ASSUAN_LIBS ${ASSUAN_BIN}/lib)
+file(MAKE_DIRECTORY ${ASSUAN_INCLUDES})
 
 ExternalProject_Add(libassuan
         PREFIX ${ASSUAN_BIN}
         SOURCE_DIR ${ASSUAN_DIR}
         CONFIGURE_COMMAND ${ASSUAN_DIR}/configure --enable-maintainer-mode --prefix=${ASSUAN_BIN} --enable-static=yes
+        --with-libgpg-error-prefix=${GPG_ERROR_BIN}
         BUILD_COMMAND make
         INSTALL_COMMAND make install
         BUILD_BYPRODUCTS ${ASSUAN_STATIC_LIB})
@@ -64,6 +76,8 @@ ExternalProject_Add_Step(libassuan autogen
         COMMAND ${ASSUAN_DIR}/autogen.sh
         DEPENDERS configure
         )
+
+ExternalProject_Add_StepDependencies(libassuan autogen libgpg-error)
 
 add_library(assuan STATIC IMPORTED GLOBAL)
 add_dependencies(assuan libassuan gpg-error)
@@ -80,7 +94,11 @@ set(GPGME_INCLUDES ${GPGME_BIN}/src)
 ExternalProject_Add(libgpgme
         PREFIX ${GPGME_BIN}
         SOURCE_DIR ${GPGME_DIR}
-        CONFIGURE_COMMAND ${GPGME_DIR}/configure --enable-maintainer-mode --prefix=${GPGME_BIN} --enable-static=yes --disable-gpg-test --enable-languages=cpp
+        CONFIGURE_COMMAND ${GPGME_DIR}/configure --enable-maintainer-mode --prefix=${GPGME_BIN} --enable-shared=no --enable-static=yes --disable-gpg-test --enable-languages=cpp
+        --with-libgpg-error-prefix=${GPG_ERROR_BIN}
+        --with-libassuan-prefix=${ASSUAN_BIN}
+        "LIB=-lassuan -lgpg-error"
+        "LDFLAGS=-L${ASSUAN_LIBS} -L${GPG_ERROR_LIBS} "
         BUILD_COMMAND make
         INSTALL_COMMAND make install
         BUILD_BYPRODUCTS ${GPGME_STATIC_LIB})
@@ -90,6 +108,8 @@ ExternalProject_Add_Step(libgpgme autogen
         COMMAND ${GPGME_DIR}/autogen.sh
         DEPENDERS configure
         )
+
+ExternalProject_Add_StepDependencies(libgpgme autogen libassuan libgpg-error)
 
 add_library(gpgme STATIC IMPORTED GLOBAL)
 add_dependencies(gpgme libgpgme assuan gpg-error)

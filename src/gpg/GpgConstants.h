@@ -25,7 +25,6 @@
 #ifndef GPG_CONSTANTS_H
 #define GPG_CONSTANTS_H
 
-#include <gpg-error.h>
 #include <gpgme.h>
 
 #include <cassert>
