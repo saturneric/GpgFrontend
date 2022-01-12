@@ -28,12 +28,7 @@
 #include "gpg/GpgConstants.h"
 #include "ui/GpgFrontendUI.h"
 
-QT_BEGIN_NAMESPACE
-class QVBoxLayout;
-class QHBoxLayout;
-class QString;
-class QLabel;
-QT_END_NAMESPACE
+class Ui_PlainTextEditor;
 
 namespace GpgFrontend::UI {
 
@@ -41,7 +36,7 @@ namespace GpgFrontend::UI {
  * @brief Class for handling a single tab of the tabwidget
  *
  */
-class EditorPage : public QWidget {
+class PlainTextEditorPage : public QWidget {
   Q_OBJECT
  public:
   /**
@@ -50,7 +45,8 @@ class EditorPage : public QWidget {
    * @param filePath Path of the file handled in this tab
    * @param parent Pointer to the parent widget
    */
-  explicit EditorPage(QString filePath = "", QWidget* parent = nullptr);
+  explicit PlainTextEditorPage(QString filePath = "",
+                               QWidget* parent = nullptr);
 
   /**
    * @details Get the filepath of the currently activated tab.
@@ -67,7 +63,7 @@ class EditorPage : public QWidget {
   /**
    * @details Return pointer tp the textedit of the currently activated tab.
    */
-  QTextEdit* getTextPage();
+  QPlainTextEdit* getTextPage();
 
   /**
    * @details Show additional widget at buttom of currently active tab
@@ -91,12 +87,17 @@ class EditorPage : public QWidget {
   void PrepareToDestroy();
 
  private:
-  QTextEdit* textPage;     /** The textedit of the tab */
-  QVBoxLayout* mainLayout; /** The layout for the tab */
+  std::shared_ptr<Ui_PlainTextEditor> ui;
   QString full_file_path_; /** The path to the file handled in the tab */
   bool signMarked{}; /** true, if the signed header is marked, false if not */
   bool read_done_ = false;
-  QThread* read_hread_ = nullptr;
+  QThread* read_thread_ = nullptr;
+  bool binary_mode_ = false;
+  size_t read_bytes_ = 0;
+
+  void detect_encoding(const std::string& data);
+
+  void detect_cr_lf(const QString& data);
 
  private slots:
 
@@ -105,7 +106,7 @@ class EditorPage : public QWidget {
    */
   void slotFormatGpgHeader();
 
-  void slotInsertText(const QString& text);
+  void slotInsertText(const std::string& data);
 };
 
 }  // namespace GpgFrontend::UI

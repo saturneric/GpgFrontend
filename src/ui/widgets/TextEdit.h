@@ -26,9 +26,9 @@
 #define __TEXTEDIT_H__
 
 #include "ui/QuitDialog.h"
-#include "ui/widgets/EditorPage.h"
 #include "ui/widgets/FilePage.h"
 #include "ui/widgets/HelpPage.h"
+#include "ui/widgets/PlainTextEditorPage.h"
 
 namespace GpgFrontend::UI {
 /**
@@ -66,7 +66,7 @@ class TextEdit : public QWidget {
    * @return \li reference to QTextEdit if tab has one
    *         \li 0 otherwise (e.g. if helppage)
    */
-  [[nodiscard]] QTextEdit* curTextPage() const;
+  [[nodiscard]] PlainTextEditorPage* curTextPage() const;
 
   [[nodiscard]] FilePage* curFilePage() const;
 
@@ -84,7 +84,7 @@ class TextEdit : public QWidget {
    * @details Return pointer to the currently activated text edit tab page.
    *
    */
-  EditorPage* slotCurPageTextEdit() const;
+  PlainTextEditorPage* slotCurPageTextEdit() const;
 
   /**
    * @details Return pointer to the currently activated file treeview tab page.

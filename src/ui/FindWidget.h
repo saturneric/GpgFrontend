@@ -26,7 +26,7 @@
 #define FINDWIDGET_H
 
 #include "ui/GpgFrontendUI.h"
-#include "ui/widgets/EditorPage.h"
+#include "ui/widgets/PlainTextEditorPage.h"
 
 namespace GpgFrontend::UI {
 
@@ -42,7 +42,7 @@ class FindWidget : public QWidget {
    *
    * @param parent The parent widget
    */
-  explicit FindWidget(QWidget* parent, QTextEdit* edit);
+  explicit FindWidget(QWidget* parent, PlainTextEditorPage* edit);
 
  private:
   void keyPressEvent(QKeyEvent* e) override;
@@ -53,8 +53,8 @@ class FindWidget : public QWidget {
    */
   void setBackground();
 
-  QTextEdit* mTextpage; /** Textedit associated to the notification */
-  QLineEdit* findEdit;  /** Label holding the text shown in infoBoard */
+  PlainTextEditorPage* mTextpage; /** Textedit associated to the notification */
+  QLineEdit* findEdit; /** Label holding the text shown in infoBoard */
 
  private slots:
 

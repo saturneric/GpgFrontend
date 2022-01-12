@@ -25,7 +25,7 @@
 #ifndef __VERIFYNOTIFICATION_H__
 #define __VERIFYNOTIFICATION_H__
 
-#include "EditorPage.h"
+#include "PlainTextEditorPage.h"
 #include "gpg/result_analyse/VerifyResultAnalyse.h"
 #include "ui/details/VerifyDetailsDialog.h"
 

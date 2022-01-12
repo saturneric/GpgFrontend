@@ -10,6 +10,7 @@ aux_source_directory(./settings UI_SOURCE)
 aux_source_directory(./thread UI_SOURCE)
 aux_source_directory(./details UI_SOURCE)
 aux_source_directory(./data_struct UI_SOURCE)
+aux_source_directory(./encoding UI_SOURCE)
 
 if (SMTP_SUPPORT)
     aux_source_directory(./smtp UI_SOURCE)

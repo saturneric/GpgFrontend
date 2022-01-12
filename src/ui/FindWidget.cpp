@@ -26,8 +26,8 @@
 
 namespace GpgFrontend::UI {
 
-FindWidget::FindWidget(QWidget* parent, QTextEdit* edit) : QWidget(parent) {
-  mTextpage = edit;
+FindWidget::FindWidget(QWidget* parent, PlainTextEditorPage* edit)
+    : QWidget(parent), mTextpage(edit) {
   findEdit = new QLineEdit(this);
   auto* closeButton = new QPushButton(
       this->style()->standardIcon(QStyle::SP_TitleBarCloseButton), QString(),
@@ -55,12 +55,13 @@ FindWidget::FindWidget(QWidget* parent, QTextEdit* edit) : QWidget(parent) {
 }
 
 void FindWidget::setBackground() {
-  QTextCursor cursor = mTextpage->textCursor();
+  auto cursor = mTextpage->getTextPage()->textCursor();
   // if match is found set background of QLineEdit to white, otherwise to red
   QPalette bgPalette(findEdit->palette());
 
   if (!findEdit->text().isEmpty() &&
-      mTextpage->document()->find(findEdit->text()).position() < 0) {
+      mTextpage->getTextPage()->document()->find(findEdit->text()).position() <
+          0) {
     bgPalette.setColor(QPalette::Base, "#ececba");
   } else {
     bgPalette.setColor(QPalette::Base, Qt::white);
@@ -69,45 +70,45 @@ void FindWidget::setBackground() {
 }
 
 void FindWidget::slotFindNext() {
-  QTextCursor cursor = mTextpage->textCursor();
-  cursor = mTextpage->document()->find(findEdit->text(), cursor,
-                                       QTextDocument::FindCaseSensitively);
+  QTextCursor cursor = mTextpage->getTextPage()->textCursor();
+  cursor = mTextpage->getTextPage()->document()->find(
+      findEdit->text(), cursor, QTextDocument::FindCaseSensitively);
 
   // if end of document is reached, restart search from beginning
   if (cursor.position() == -1) {
-    cursor = mTextpage->document()->find(findEdit->text(), cursor,
-                                         QTextDocument::FindCaseSensitively);
+    cursor = mTextpage->getTextPage()->document()->find(
+        findEdit->text(), cursor, QTextDocument::FindCaseSensitively);
   }
 
   // cursor should not stay at -1, otherwise text is not editable
   // todo: check how gedit handles this
   if (cursor.position() != -1) {
-    mTextpage->setTextCursor(cursor);
+    mTextpage->getTextPage()->setTextCursor(cursor);
   }
   this->setBackground();
 }
 
 void FindWidget::slotFind() {
-  QTextCursor cursor = mTextpage->textCursor();
+  QTextCursor cursor = mTextpage->getTextPage()->textCursor();
 
   if (cursor.anchor() == -1) {
-    cursor = mTextpage->document()->find(findEdit->text(), cursor,
-                                         QTextDocument::FindCaseSensitively);
+    cursor = mTextpage->getTextPage()->document()->find(
+        findEdit->text(), cursor, QTextDocument::FindCaseSensitively);
   } else {
-    cursor = mTextpage->document()->find(findEdit->text(), cursor.anchor(),
-                                         QTextDocument::FindCaseSensitively);
+    cursor = mTextpage->getTextPage()->document()->find(
+        findEdit->text(), cursor.anchor(), QTextDocument::FindCaseSensitively);
   }
 
   // if end of document is reached, restart search from beginning
   if (cursor.position() == -1) {
-    cursor = mTextpage->document()->find(findEdit->text(), cursor,
-                                         QTextDocument::FindCaseSensitively);
+    cursor = mTextpage->getTextPage()->document()->find(
+        findEdit->text(), cursor, QTextDocument::FindCaseSensitively);
   }
 
   // cursor should not stay at -1, otherwise text is not editable
   // todo: check how gedit handles this
   if (cursor.position() != -1) {
-    mTextpage->setTextCursor(cursor);
+    mTextpage->getTextPage()->setTextCursor(cursor);
   }
   this->setBackground();
 }
@@ -117,19 +118,20 @@ void FindWidget::slotFindPrevious() {
   flags |= QTextDocument::FindBackward;
   flags |= QTextDocument::FindCaseSensitively;
 
-  QTextCursor cursor = mTextpage->textCursor();
-  cursor = mTextpage->document()->find(findEdit->text(), cursor, flags);
+  QTextCursor cursor = mTextpage->getTextPage()->textCursor();
+  cursor = mTextpage->getTextPage()->document()->find(findEdit->text(), cursor,
+                                                      flags);
 
   // if begin of document is reached, restart search from end
   if (cursor.position() == -1) {
-    cursor =
-        mTextpage->document()->find(findEdit->text(), QTextCursor::End, flags);
+    cursor = mTextpage->getTextPage()->document()->find(
+        findEdit->text(), QTextCursor::End, flags);
   }
 
   // cursor should not stay at -1, otherwise text is not editable
   // todo: check how gedit handles this
   if (cursor.position() != -1) {
-    mTextpage->setTextCursor(cursor);
+    mTextpage->getTextPage()->setTextCursor(cursor);
   }
   this->setBackground();
 }
@@ -150,11 +152,11 @@ void FindWidget::keyPressEvent(QKeyEvent* e) {
 }
 
 void FindWidget::slotClose() {
-  QTextCursor cursor = mTextpage->textCursor();
+  QTextCursor cursor = mTextpage->getTextPage()->textCursor();
 
   if (cursor.position() == -1) {
     cursor.setPosition(0);
-    mTextpage->setTextCursor(cursor);
+    mTextpage->getTextPage()->setTextCursor(cursor);
   }
   mTextpage->setFocus();
   close();
