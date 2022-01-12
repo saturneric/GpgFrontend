@@ -112,7 +112,7 @@ jobs:
 
       - name: Build GpgFrontend
         # Build your program with the given configuration
-        run: cmake -G Ninja --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -v
+        run: cmake -G Ninja --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}}  -- -v
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-10.15'
 
       - name: Configure CMake & Build Binary(Windows)
