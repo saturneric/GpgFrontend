@@ -43,7 +43,7 @@ GpgFrontend::UI::GlobalSettingStation::GetInstance() {
   return *_instance;
 }
 
-void GpgFrontend::UI::GlobalSettingStation::Sync() noexcept {
+void GpgFrontend::UI::GlobalSettingStation::SyncSettings() noexcept {
   using namespace libconfig;
   try {
     ui_cfg.writeFile(ui_config_path.string().c_str());

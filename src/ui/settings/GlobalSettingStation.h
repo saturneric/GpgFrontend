@@ -92,7 +92,11 @@ class GlobalSettingStation : public QObject {
 
   void ResetRootCerts() { root_certs_.clear(); }
 
-  void Sync() noexcept;
+  void SyncSettings() noexcept;
+
+  void SaveDataObj(const std::string& _key, const nlohmann::json& value);
+
+  std::optional<nlohmann::json> GetDataObject(const std::string& _key);
 
  private:
   // Program Location

@@ -94,7 +94,7 @@ void init_locale() {
   if (!general.exists("lang"))
     general.add("lang", libconfig::Setting::TypeString) = "";
 
-  GpgFrontend::UI::GlobalSettingStation::GetInstance().Sync();
+  GpgFrontend::UI::GlobalSettingStation::GetInstance().SyncSettings();
 
   LOG(INFO) << "current system locale" << setlocale(LC_ALL, nullptr);
 

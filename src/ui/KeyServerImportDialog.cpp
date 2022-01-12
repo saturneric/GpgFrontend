@@ -594,7 +594,7 @@ void KeyServerImportDialog::slotSaveWindowState() {
     import_from_keyserver["size"]["height"] = QWidget::height();
   }
 
-  GlobalSettingStation::GetInstance().Sync();
+  GlobalSettingStation::GetInstance().SyncSettings();
 }
 
 }  // namespace GpgFrontend::UI

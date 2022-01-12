@@ -64,7 +64,7 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
       auto* edit_password_button = new QPushButton(_("Modify Password"));
       connect(edit_password_button, SIGNAL(clicked()), this,
               SLOT(slotModifyPassword()));
-      
+
       vbox_p_k->addWidget(edit_expires_button);
       vbox_p_k->addWidget(edit_password_button);
     }

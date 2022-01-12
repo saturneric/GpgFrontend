@@ -371,7 +371,6 @@ void KeyMgmt::slotExportKeyToKeyPackage() {
 }
 
 void KeyMgmt::slotExportKeyToClipboard() {
-
   auto keys_checked = key_list_->getChecked();
   if (keys_checked->empty()) {
     QMessageBox::critical(
@@ -465,7 +464,7 @@ void KeyMgmt::slotSaveWindowState() {
     key_management.add("window_state", libconfig::Setting::TypeString) =
         saveState().toBase64().toStdString();
 
-  GlobalSettingStation::GetInstance().Sync();
+  GlobalSettingStation::GetInstance().SyncSettings();
 }
 
 void KeyMgmt::slotExportAsOpenSSHFormat() {

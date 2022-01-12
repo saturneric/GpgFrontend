@@ -355,7 +355,7 @@ void KeyList::dropEvent(QDropEvent* event) {
     else {
       general["confirm_import_keys"] = checkBox->isChecked();
     }
-    GlobalSettingStation::GetInstance().Sync();
+    GlobalSettingStation::GetInstance().SyncSettings();
   }
 
   if (event->mimeData()->hasUrls()) {
@@ -584,7 +584,7 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
       type_steam << "#";
     }
 
-    if(it->HasCardKey()) {
+    if (it->HasCardKey()) {
       type_steam << "^";
     }
 
