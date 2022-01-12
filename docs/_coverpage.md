@@ -27,7 +27,7 @@ You can easily and intuitively manage all your keys on your computer.
 - Supports multiple languages. Languages spoken by most people in the world.
 
 [Download](https://github.com/saturneric/GpgFrontend/releases/latest)
-[Document](quick-start.md)
+[Document](overview.md)
 
 <!-- 背景色 -->
 ![color](#ffffff)

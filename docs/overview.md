@@ -36,7 +36,7 @@ features of OpenPGP based on it and continue to improve it.
 
 Let more people all over the world (even if they don't know the command line and programming) can use GnuPG to safely
 send information to the destination in a safe way. Free software belongs to the common wealth of all mankind, but there
-are still many people who cannot use these wealth due to the limitation of knowledge and usage habits. We should break
+are still many people who cannot use these wealths due to the limitation of knowledge and usage habits. We should break
 this pattern. GpgFrontend is committed to improving the ease of use and intuitiveness of the free software GnuPG, so
 that more and more people can use it.
 
@@ -47,16 +47,24 @@ The GpgFrontend project is as open source, and it also insists on using open sou
 GpgFrontend will be free forever, and you don't need to worry about being asked to pay a fee to use the software one
 day.
 
-## License
+## Source Code
 
-GpgFrontend own code is under a GPL-3.0 license, which means that GpgFrontend is free software. You may exercise the
+The original code repository of Gpg Frontend is hosted on the server of Codes Dream, and each submission will be
+submitted to the code repository first. You can click [Here](https://git.codesdream.com/?p=GpgFrontend.git;a=summary) to
+visit the original code repository and track development progress.
+
+### License
+
+GpgFrontend source code is under a GPL-3.0 license, which means that GpgFrontend is free software. You may exercise the
 rights set forth in the Licence under the conditions of compliance with the rules of the Licence.
 
-## Contribution
+### Contribution
 
 At the same time, the addition of new functions does not affect the old basic functions. My personal strength is always
 limited. GpgFrontend welcomes volunteers to join. You can use the GitHub platform to file an issue, or submit a pull
 request.
+
+You can also submit questions and code contributions by email, please send me problem reports and patches.
 
 ## Privacy Guarantee
 
