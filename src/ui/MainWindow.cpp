@@ -29,7 +29,7 @@
 #include "ui/thread/VersionCheckThread.h"
 #endif
 #include "ui/SignalStation.h"
-#include "ui/data_struct/SettingsObj.h"
+#include "ui/data_struct/SettingsObject.h"
 #include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
@@ -144,7 +144,7 @@ void MainWindow::restoreSettings() {
   LOG(INFO) << _("Called");
 
   try {
-    SettingsObj main_windows_state("main_windows_state");
+    SettingsObject main_windows_state("main_windows_state");
 
     std::string window_state = main_windows_state.Check(
         "window_state", saveState().toBase64().toStdString());
@@ -189,7 +189,7 @@ void MainWindow::restoreSettings() {
     this->setIconSize(QSize(width, height));
     importButton->setIconSize(QSize(width, height));
 
-    SettingsObj key_server_json("key_server");
+    SettingsObject key_server_json("key_server");
 
     if (!key_server_json.contains("server_list")) {
       key_server_json["server_list"] = {"https://keyserver.ubuntu.com",
@@ -223,7 +223,7 @@ void MainWindow::restoreSettings() {
 
     try {
       // Checked Keys
-      SettingsObj default_key_checked("default_key_checked");
+      SettingsObject default_key_checked("default_key_checked");
       if (save_key_checked) {
         auto key_ids_ptr = std::make_unique<KeyIdArgsList>();
         for (auto& it : default_key_checked) {
@@ -237,7 +237,7 @@ void MainWindow::restoreSettings() {
       LOG(ERROR) << "restore default_key_checked failed";
     }
 
-    SettingsObj smtp_passport("smtp_passport");
+    SettingsObject smtp_passport("smtp_passport");
     smtp_passport.Check("enable", false);
 
     prohibit_update_checking_ = false;
@@ -260,7 +260,7 @@ void MainWindow::saveSettings() {
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
   try {
-    SettingsObj main_windows_state("main_windows_state");
+    SettingsObject main_windows_state("main_windows_state");
 
     // window position and size
     main_windows_state["window_state"] = saveState().toBase64().toStdString();
@@ -276,9 +276,9 @@ void MainWindow::saveSettings() {
     if (save_key_checked) {
       auto key_ids_need_to_store = mKeyList->getChecked();
 
-      SettingsObj default_key_checked("default_key_checked");
+      SettingsObject default_key_checked("default_key_checked");
       default_key_checked.clear();
-      
+
       for (const auto& key_id : *key_ids_need_to_store)
         default_key_checked.push_back(key_id);
     } else {
