@@ -34,7 +34,7 @@ target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
         Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
 # link vmime
 target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
-        vmime-static anl ssl crypto)
+        gpgfrontend_vmime anl ssl crypto)
 # link easyloggingpp
 target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
         easyloggingpp)
@@ -45,6 +45,7 @@ target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
 
 target_include_directories(gpgfrontend_ui PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/${GPGFRONTEND_UI_LIB_NAME}_autogen/include)
+
 
 if (XCODE_BUILD)
     set_target_properties(${GPGFRONTEND_UI_LIB_NAME}
