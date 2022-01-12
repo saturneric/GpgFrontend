@@ -29,6 +29,7 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <json/json.hpp>
 
 #include "GpgFrontendBuildInstallInfo.h"
 #include "ui/GpgFrontendUI.h"
@@ -105,6 +106,9 @@ class GlobalSettingStation : public QObject {
   // Program Data Location
   boost::filesystem::path app_log_path = app_data_path / "logs";
 
+  // object storage path
+  boost::filesystem::path app_data_objs_path = app_data_path / "objs";
+
 #ifdef LINUX_INSTALL_BUILD
   // Program Data Location
   boost::filesystem::path app_resource_path =
@@ -127,6 +131,10 @@ class GlobalSettingStation : public QObject {
       QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
           .toStdString();
 
+  boost::filesystem::path app_secure_path = app_configure_path / "secure";
+
+  boost::filesystem::path app_secure_key_path = app_secure_path / "app.key";
+
   // Configure File Directory Location
   boost::filesystem::path ui_config_dir_path =
       app_configure_path / "UserInterface";
@@ -138,7 +146,17 @@ class GlobalSettingStation : public QObject {
 
   std::vector<std::shared_ptr<X509>> root_certs_;
 
+  std::random_device rd;
+
+  std::mt19937 mt;
+
+  QByteArray hash_key_;
+
   static std::unique_ptr<GlobalSettingStation> _instance;
+
+  void init_app_secure_key();
+
+  std::string generate_passphrase(int len);
 };
 }  // namespace GpgFrontend::UI
 
