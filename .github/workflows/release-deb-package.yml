@@ -29,7 +29,9 @@ jobs:
 
       - uses: actions/checkout@v2
         with:
-          submodules: recursive
+          submodules: 'recursive'
+          
+      - run: git submodule update --init --recursive
 
       - name: Get Short SHA of Commit
         id: vars
@@ -42,40 +44,6 @@ jobs:
           sudo apt-get -y install gcc g++ libconfig++-dev libboost-all-dev
           sudo apt-get -y install gpg
         if: matrix.os == 'ubuntu-20.04'
-
-      - name: Build gpg-error
-        run: |
-          cd  ${{github.workspace}}/third_party/libgpg-error
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-
-      - name: Build assuan
-        run: |
-          cd ${{github.workspace}}/third_party/libassuan
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-
-      - name: Build GpgME
-        run: |
-          cd  ${{github.workspace}}/third_party/gpgme
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-
-      - name: Build vmime
-        run: |
-          cd ${{github.workspace}}/third_party/vmime
-          mkdir build
-          cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DVMIME_HAVE_MESSAGING_PROTO_SENDMAIL=OFF -DVMIME_CHARSETCONV_LIB=iconv -DVMIME_TLS_SUPPORT_LIB=openssl -DVMIME_HAVE_SASL_SUPPORT=OFF ..
-          ninja -v
-          sudo ninja install
-          cd ${{github.workspace}}
 
       - name: Build & Package GpgFrontend (Linux DEB Package)
         # Build your program with the given configuration

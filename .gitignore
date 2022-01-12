@@ -2,8 +2,6 @@
 src/GpgFrontend.h
 src/GpgFrontendBuildInfo.h
 src/GpgFrontendBuildInstallInfo.h
-third_party/**
-!third_party/CMakeLists.txt
 
 # gettext
 *.mo
