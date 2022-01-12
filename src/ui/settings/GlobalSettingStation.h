@@ -94,9 +94,11 @@ class GlobalSettingStation : public QObject {
 
   void SyncSettings() noexcept;
 
-  void SaveDataObj(const std::string& _key, const nlohmann::json& value);
+  std::string SaveDataObj(const std::string& _key, const nlohmann::json& value);
 
   std::optional<nlohmann::json> GetDataObject(const std::string& _key);
+
+  std::optional<nlohmann::json> GetDataObjectByRef(const std::string& _ref);
 
  private:
   // Program Location

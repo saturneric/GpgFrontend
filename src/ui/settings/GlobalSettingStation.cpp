@@ -176,17 +176,28 @@ void GpgFrontend::UI::GlobalSettingStation::init_app_secure_key() {
       boost::filesystem::owner_read | boost::filesystem::owner_write);
 }
 
-void GpgFrontend::UI::GlobalSettingStation::SaveDataObj(
+std::string GpgFrontend::UI::GlobalSettingStation::SaveDataObj(
     const std::string& _key, const nlohmann::json& value) {
-  auto _hash_obj_key =
-      QCryptographicHash::hash(hash_key_ + QByteArray::fromStdString(_key),
-                               QCryptographicHash::Sha256)
-          .toHex()
-          .toStdString();
+  std::string _hash_obj_key = {};
+  if (_key.empty()) {
+    _hash_obj_key =
+        QCryptographicHash::hash(
+            hash_key_ + QByteArray::fromStdString(
+                            generate_passphrase(32) +
+                            to_iso_extended_string(
+                                boost::posix_time::second_clock::local_time())),
+            QCryptographicHash::Sha256)
+            .toHex()
+            .toStdString();
+  } else {
+    _hash_obj_key =
+        QCryptographicHash::hash(hash_key_ + QByteArray::fromStdString(_key),
+                                 QCryptographicHash::Sha256)
+            .toHex()
+            .toStdString();
+  }
 
   const auto obj_path = app_data_objs_path / _hash_obj_key;
-
-  LOG(INFO) << "save obj" << obj_path;
 
   QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                             QAESEncryption::Padding::ISO);
@@ -194,6 +205,8 @@ void GpgFrontend::UI::GlobalSettingStation::SaveDataObj(
       encryption.encode(QByteArray::fromStdString(to_string(value)), hash_key_);
 
   GpgFrontend::write_buffer_to_file(obj_path.string(), encoded.toStdString());
+
+  return _key.empty() ? _hash_obj_key : std::string();
 }
 
 std::optional<nlohmann::json>
@@ -224,7 +237,31 @@ GpgFrontend::UI::GlobalSettingStation::GetDataObject(const std::string& _key) {
   } catch (...) {
     return {};
   }
-  return {};
+}
+std::optional<nlohmann::json>
+GpgFrontend::UI::GlobalSettingStation::GetDataObjectByRef(
+    const std::string& _ref) {
+  if (_ref.size() != 64) return {};
+
+  try {
+    auto _hash_obj_key = _ref;
+    const auto obj_path = app_data_objs_path / _hash_obj_key;
+
+    if (!boost::filesystem::exists(obj_path)) return {};
+
+    auto buffer = GpgFrontend::read_all_data_in_file(obj_path.string());
+    auto encoded = QByteArray::fromStdString(buffer);
+
+    QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
+                              QAESEncryption::Padding::ISO);
+
+    auto decoded =
+        encryption.removePadding(encryption.decode(encoded, hash_key_));
+
+    return nlohmann::json::parse(decoded.toStdString());
+  } catch (...) {
+    return {};
+  }
 }
 
 GpgFrontend::UI::GlobalSettingStation::~GlobalSettingStation() noexcept =
