@@ -318,7 +318,7 @@ void MainWindow::restoreSettings() {
     LOG(ERROR) << "cannot resolve settings";
   }
 
-  GlobalSettingStation::GetInstance().Sync();
+  GlobalSettingStation::GetInstance().SyncSettings();
 }
 
 void MainWindow::saveSettings() {
@@ -354,7 +354,7 @@ void MainWindow::saveSettings() {
     LOG(ERROR) << "cannot save settings";
   };
 
-  GlobalSettingStation::GetInstance().Sync();
+  GlobalSettingStation::GetInstance().SyncSettings();
 }
 
 void MainWindow::closeAttachmentDock() {

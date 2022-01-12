@@ -38,7 +38,6 @@
 namespace GpgFrontend::UI {
 
 SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
-
   tabWidget = new QTabWidget();
   generalTab = new GeneralTab();
   appearanceTab = new AppearanceTab();
@@ -126,7 +125,7 @@ void SettingsDialog::slotAccept() {
   LOG(INFO) << "apply done";
 
   // write settings to filesystem
-  GlobalSettingStation::GetInstance().Sync();
+  GlobalSettingStation::GetInstance().SyncSettings();
 
   LOG(INFO) << "restart needed" << getRestartNeeded();
   if (getRestartNeeded()) {

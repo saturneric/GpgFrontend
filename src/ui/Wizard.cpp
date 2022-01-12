@@ -69,7 +69,7 @@ void Wizard::slotWizardAccepted() {
     } else {
       wizard["show_wizard"] = false;
     }
-    GlobalSettingStation::GetInstance().Sync();
+    GlobalSettingStation::GetInstance().SyncSettings();
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error");
   }
