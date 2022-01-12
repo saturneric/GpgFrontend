@@ -30,6 +30,8 @@
 #include <vmime/security/cert/openssl/X509Certificate_OpenSSL.hpp>
 #include <vmime/vmime.hpp>
 
+#include "ui/aes/qaesencryption.h"
+
 std::unique_ptr<GpgFrontend::UI::GlobalSettingStation>
     GpgFrontend::UI::GlobalSettingStation::_instance = nullptr;
 
@@ -73,6 +75,19 @@ GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept {
   if (!is_directory(app_log_path)) create_directory(app_log_path);
 
   if (!is_directory(ui_config_dir_path)) create_directory(ui_config_dir_path);
+
+  if (!is_directory(app_secure_path)) create_directory(app_secure_path);
+
+  if (!exists(app_secure_key_path)) {
+    init_app_secure_key();
+  }
+
+  const auto key =
+      GpgFrontend::read_all_data_in_file(app_secure_key_path.string());
+  hash_key_ = QCryptographicHash::hash(QByteArray::fromStdString(key),
+                                       QCryptographicHash::Sha256);
+
+  if (!exists(app_data_objs_path)) create_directory(app_data_objs_path);
 
   if (!exists(ui_config_path)) {
     try {
@@ -134,6 +149,82 @@ GpgFrontend::UI::GlobalSettingStation::GetCertVerifier() const {
 const std::vector<std::shared_ptr<X509>>&
 GpgFrontend::UI::GlobalSettingStation::GetRootCerts() {
   return root_certs_;
+}
+
+std::string GpgFrontend::UI::GlobalSettingStation::generate_passphrase(
+    int len) {
+  std::uniform_int_distribution<int> dist(999, 99999);
+  static const char alphanum[] =
+      "0123456789"
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "abcdefghijklmnopqrstuvwxyz";
+  std::string tmp_str;
+  tmp_str.reserve(len);
+
+  for (int i = 0; i < len; ++i) {
+    tmp_str += alphanum[dist(mt) % (sizeof(alphanum) - 1)];
+  }
+
+  return tmp_str;
+}
+
+void GpgFrontend::UI::GlobalSettingStation::init_app_secure_key() {
+  GpgFrontend::write_buffer_to_file(app_secure_key_path.string(),
+                                    generate_passphrase(256));
+  boost::filesystem::permissions(
+      app_secure_key_path,
+      boost::filesystem::owner_read | boost::filesystem::owner_write);
+}
+
+void GpgFrontend::UI::GlobalSettingStation::SaveDataObj(
+    const std::string& _key, const nlohmann::json& value) {
+  auto _hash_obj_key =
+      QCryptographicHash::hash(hash_key_ + QByteArray::fromStdString(_key),
+                               QCryptographicHash::Sha256)
+          .toHex()
+          .toStdString();
+
+  const auto obj_path = app_data_objs_path / _hash_obj_key;
+
+  LOG(INFO) << "save obj" << obj_path;
+
+  QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
+                            QAESEncryption::Padding::ISO);
+  auto encoded =
+      encryption.encode(QByteArray::fromStdString(to_string(value)), hash_key_);
+
+  GpgFrontend::write_buffer_to_file(obj_path.string(), encoded.toStdString());
+}
+
+std::optional<nlohmann::json>
+GpgFrontend::UI::GlobalSettingStation::GetDataObject(const std::string& _key) {
+  try {
+    auto _hash_obj_key =
+        QCryptographicHash::hash(hash_key_ + QByteArray::fromStdString(_key),
+                                 QCryptographicHash::Sha256)
+            .toHex()
+            .toStdString();
+
+    const auto obj_path = app_data_objs_path / _hash_obj_key;
+
+    if (!boost::filesystem::exists(obj_path)) {
+      return {};
+    }
+
+    auto buffer = GpgFrontend::read_all_data_in_file(obj_path.string());
+    auto encoded = QByteArray::fromStdString(buffer);
+
+    QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
+                              QAESEncryption::Padding::ISO);
+
+    auto decoded =
+        encryption.removePadding(encryption.decode(encoded, hash_key_));
+
+    return nlohmann::json::parse(decoded.toStdString());
+  } catch (...) {
+    return {};
+  }
+  return {};
 }
 
 GpgFrontend::UI::GlobalSettingStation::~GlobalSettingStation() noexcept =
