@@ -38,7 +38,7 @@ this operation.
 This operation generates a file with the gpg extension. The file with this suffix contains both encrypted content and
 signed content.
 
-![Peek 2022-01-12 07-26](_media/encrypt-decrypt-file/Peek 2022-01-12 07-26.gif)
+![Peek 2022-01-12 07-26](_media/encrypt-decrypt-file/Peek-2022-01-12-07-26.gif)
 
 ### Decrypt & Verify
 
@@ -49,4 +49,4 @@ gpg or asc extension, which contains the ciphertext and signature content.
 In order to encourage users to check whether the ciphertext is signed or not when decrypting, Gpg Frontend does not
 provide a separate decryption operation here.
 
-![Peek 2022-01-12 07-24](_media/encrypt-decrypt-file/Peek 2022-01-12 07-24.gif)
+![Peek 2022-01-12 07-24](_media/encrypt-decrypt-file/Peek-2022-01-12-07-24.gif)

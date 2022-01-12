@@ -61,7 +61,7 @@ used in your signature messages in UTC and not your local time.
 Paste the ciphertext you obtained directly, gpg will automatically select the appropriate key in the list for
 decryption. Always remember to decrypt with the private key.
 
-![Peek 2022-01-12 07-18](_media/encrypt-decrypt-text/Peek 2022-01-12 07-18.gif)
+![Peek 2022-01-12 07-18](_media/encrypt-decrypt-text/Peek-2022-01-12-07-18.gif)
 
 Whether a key pair can be used for decryption will not be displayed in the usage column. You only need to remember that
 a valid private key can be used to decrypt the ciphertext encrypted with the related public key.
@@ -80,4 +80,4 @@ valid public key can be used for verification.
 This is a good habit regardless of whether the encryptor has signed in advance. Because you cannot infer from the format
 of the ciphertext whether it has been signed or not. So, use decryption operations with verification whenever possible.
 
-![Peek 2022-01-12 07-10](_media/sign-verify-text/Peek 2022-01-12 07-10.gif)
+![Peek 2022-01-12 07-10](_media/sign-verify-text/Peek-2022-01-12-07-10.gif)

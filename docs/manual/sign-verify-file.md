@@ -35,7 +35,7 @@ Through the right-click menu, you can quickly sign a file. This operation will g
 which contains the signature content. In this case, you need to pass this file along with the original file so that the
 other party can verify it.
 
-![Peek 2022-01-12 07-39](_media/sign-verify-file/Peek 2022-01-12 07-39.gif)
+![Peek 2022-01-12 07-39](_media/sign-verify-file/Peek-2022-01-12-07-39.gif)
 
 ### Verify
 
@@ -45,4 +45,4 @@ with a sig suffix for verification.
 When selecting a file with the sig suffix, make sure that the source file is also in this directory. This means that the
 name of the source file is just missing a sig suffix.
 
-![Peek 2022-01-12 07-40](_media/sign-verify-file/Peek 2022-01-12 07-40.gif)
+![Peek 2022-01-12 07-40](_media/sign-verify-file/Peek-2022-01-12-07-40.gif)
