@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
-          
+
       - run: git submodule update --init --recursive
 
       - name: Get Short SHA of Commit
@@ -48,7 +48,7 @@ jobs:
       - name: Build & Package GpgFrontend (Linux DEB Package)
         # Build your program with the given configuration
         run: |
-          cmake -B ${{github.workspace}}/build-deb-${{matrix.os}} -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_BUILD_TYPE="Release" -DGENERATE_LINUX_INSTALL_SOFTWARE=ON
+          cmake -B ${{github.workspace}}/build-deb-${{matrix.os}} -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGENERATE_LINUX_INSTALL_SOFTWARE=ON
           cmake --build ${{github.workspace}}/build-deb-${{matrix.os}} --config {{$env.BUILD_TYPE}} -- -v
           cd ${{github.workspace}}/build-deb-${{matrix.os}}
           ninja package
