@@ -56,7 +56,7 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5 gcc texinfo gettext libgpg-error libassuan gpgme openssl 
+          brew install cmake git autoconf automake qt@5 gcc texinfo gettext gpgme openssl 
           brew install boost libconfig gettext ninja
           brew unlink gettext && brew link --force gettext
           brew link qt@5
@@ -94,33 +94,6 @@ jobs:
           pacman --noconfirm -S --needed mingw-w64-x86_64-gpgme mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg
         if: matrix.os == 'windows-latest'
 
-      - name: Build gpg-error (Linux)
-        run: |
-          cd  ${{github.workspace}}/third_party/libgpg-error
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest'
-
-      - name: Build assuan (Linux)
-        run: |
-          cd ${{github.workspace}}/third_party/libassuan
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest'
-
-      - name: Build GpgME (Linux & macOS)
-        run: |
-          cd  ${{github.workspace}}/third_party/gpgme
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-10.15'
-
       - name: Build GpgME (Windows)
         shell: msys2 {0}
         run: |
@@ -130,27 +103,6 @@ jobs:
           ./configure --enable-maintainer-mode --enable-static=yes --disable-gpg-test --enable-languages=cpp LDFLAGS="-static" && make -j2
           make install
         if: matrix.os == 'windows-latest'
-
-      - name: Build vmime
-        run: |
-          cd ${{github.workspace}}/third_party/vmime
-          mkdir build
-          cd build
-          cmake -G Ninja -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DOPENSSL_LIBRARIES=/usr/local/opt/openssl/lib -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DVMIME_HAVE_MESSAGING_PROTO_SENDMAIL=OFF -DVMIME_CHARSETCONV_LIB=iconv -DVMIME_TLS_SUPPORT_LIB=openssl -DVMIME_HAVE_SASL_SUPPORT=OFF ..
-          ninja -v
-          sudo ninja install
-          cd ${{github.workspace}}
-          if: matrix.os == 'macos-10.15'
-
-      - name: Build vmime
-        run: |
-          cd ${{github.workspace}}/third_party/vmime
-          mkdir build
-          cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DVMIME_HAVE_MESSAGING_PROTO_SENDMAIL=OFF -DVMIME_CHARSETCONV_LIB=iconv -DVMIME_TLS_SUPPORT_LIB=openssl -DVMIME_HAVE_SASL_SUPPORT=OFF ..
-          ninja -v
-          sudo ninja install
-          cd ${{github.workspace}}
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
