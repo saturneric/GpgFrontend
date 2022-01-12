@@ -29,6 +29,7 @@
 #include "ui/thread/VersionCheckThread.h"
 #endif
 #include "ui/SignalStation.h"
+#include "ui/data_struct/SettingsObj.h"
 #include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
@@ -143,62 +144,25 @@ void MainWindow::restoreSettings() {
   LOG(INFO) << _("Called");
 
   try {
-    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+    SettingsObj main_windows_state("main_windows_state");
 
-    if (!settings.exists("window") ||
-        settings.lookup("window").getType() != libconfig::Setting::TypeGroup)
-      settings.add("window", libconfig::Setting::TypeGroup);
-
-    auto& window = settings["window"];
-
-    if (!window.exists("window_state"))
-      window.add("window_state", libconfig::Setting::TypeString) =
-          saveState().toBase64().toStdString();
-
-    std::string window_state = settings.lookup("window.window_state");
+    std::string window_state = main_windows_state.Check(
+        "window_state", saveState().toBase64().toStdString());
     // state sets pos & size of dock-widgets
     this->restoreState(
         QByteArray::fromBase64(QByteArray::fromStdString(window_state)));
 
-    if (!window.exists("window_save"))
-      window.add("window_save", libconfig::Setting::TypeBoolean) = true;
-
-    bool window_save;
-    window.lookupValue("window_save", window_save);
+    bool window_save = main_windows_state.Check("window_save", true);
 
     // Restore window size & location
     if (window_save) {
-      if (!window.exists("window_pos"))
-        window.add("window_pos", libconfig::Setting::TypeGroup);
-
-      auto& window_pos = window["window_pos"];
-
-      if (!window_pos.exists("x"))
-        window_pos.add("x", libconfig::Setting::TypeInt) = 100;
-
-      if (!window_pos.exists("y"))
-        window_pos.add("y", libconfig::Setting::TypeInt) = 100;
-
-      int x, y;
-      window_pos.lookupValue("x", x);
-      window_pos.lookupValue("y", y);
+      int x = main_windows_state.Check("window_pos").Check("x", 100),
+          y = main_windows_state.Check("window_pos").Check("y", 100);
 
       auto pos = QPoint(x, y);
 
-      if (!window.exists("window_size"))
-        window.add("window_size", libconfig::Setting::TypeGroup);
-
-      auto& window_size = window["window_size"];
-
-      if (!window_size.exists("width"))
-        window_size.add("width", libconfig::Setting::TypeInt) = 800;
-
-      if (!window_size.exists("height"))
-        window_size.add("height", libconfig::Setting::TypeInt) = 450;
-
-      int width, height;
-      window_size.lookupValue("width", width);
-      window_size.lookupValue("height", height);
+      int width = main_windows_state.Check("window_size").Check("width", 800),
+          height = main_windows_state.Check("window_size").Check("height", 450);
 
       auto size = QSize(width, height);
       this->resize(size);
@@ -208,61 +172,36 @@ void MainWindow::restoreSettings() {
       this->move(QPoint(100, 100));
     }
 
-    if (!window.exists("icon_size"))
-      window.add("icon_size", libconfig::Setting::TypeGroup);
-
-    auto& icon_size = window["icon_size"];
-
-    if (!icon_size.exists("width"))
-      icon_size.add("width", libconfig::Setting::TypeInt) = 24;
-
-    if (!icon_size.exists("height"))
-      icon_size.add("height", libconfig::Setting::TypeInt) = 24;
-
-    int width = icon_size["width"], height = icon_size["height"];
+    int width = main_windows_state.Check("icon_size").Check("width", 24),
+        height = main_windows_state.Check("icon_size").Check("height", 24);
     LOG(INFO) << "icon_size" << width << height;
 
-    // info board font size
-    if (!window.exists("info_font_size"))
-      window.add("info_font_size", libconfig::Setting::TypeInt) = 10;
+    main_windows_state.Check("info_font_size", 10);
+
+    // icon_style
+    int s_icon_style =
+        main_windows_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
+    auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
+    this->setToolButtonStyle(icon_style);
+    importButton->setToolButtonStyle(icon_style);
 
     // icons ize
     this->setIconSize(QSize(width, height));
     importButton->setIconSize(QSize(width, height));
 
-    if (!settings.exists("keyserver") ||
-        settings.lookup("keyserver").getType() != libconfig::Setting::TypeGroup)
-      settings.add("keyserver", libconfig::Setting::TypeGroup);
+    SettingsObj key_server_json("key_server");
 
-    auto& keyserver = settings["keyserver"];
-
-    if (!keyserver.exists("server_list")) {
-      keyserver.add("server_list", libconfig::Setting::TypeList);
-
-      auto& server_list = keyserver["server_list"];
-      server_list.add(libconfig::Setting::TypeString) = "http://keys.gnupg.net";
-      server_list.add(libconfig::Setting::TypeString) =
-          "https://keyserver.ubuntu.com";
-      server_list.add(libconfig::Setting::TypeString) =
-          "http://pool.sks-keyservers.net";
+    if (!key_server_json.contains("server_list")) {
+      key_server_json["server_list"] = {"https://keyserver.ubuntu.com",
+                                        "http://keys.gnupg.net",
+                                        "http://pool.sks-keyservers.net"};
     }
 
-    if (!keyserver.exists("default_server")) {
-      keyserver.add("default_server", libconfig::Setting::TypeString) =
-          "https://keyserver.ubuntu.com";
+    if (!key_server_json.contains("default_server")) {
+      key_server_json["default_server"] = 0;
     }
 
-    if (!window.exists("icon_style")) {
-      window.add("icon_style", libconfig::Setting::TypeInt) =
-          Qt::ToolButtonTextUnderIcon;
-    }
-
-    int s_icon_style = window.lookup("icon_style");
-
-    // icon_style
-    auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
-    this->setToolButtonStyle(icon_style);
-    importButton->setToolButtonStyle(icon_style);
+    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
     if (!settings.exists("general") ||
         settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
@@ -282,28 +221,24 @@ void MainWindow::restoreSettings() {
     bool save_key_checked = true;
     general.lookupValue("save_key_checked", save_key_checked);
 
-    // Checked Keys
-    if (save_key_checked) {
-      if (!general.exists("save_key_checked_key_ids")) {
-        general.add("save_key_checked_key_ids", libconfig::Setting::TypeList);
+    try {
+      // Checked Keys
+      SettingsObj default_key_checked("default_key_checked");
+      if (save_key_checked) {
+        auto key_ids_ptr = std::make_unique<KeyIdArgsList>();
+        for (auto& it : default_key_checked) {
+          std::string key_id = it;
+          LOG(INFO) << "get checked key id" << key_id;
+          key_ids_ptr->push_back(key_id);
+        }
+        mKeyList->setChecked(std::move(key_ids_ptr));
       }
-      auto key_ids_ptr = std::make_unique<KeyIdArgsList>();
-      auto& save_key_checked_key_ids = general["save_key_checked_key_ids"];
-      const auto key_ids_size =
-          general.lookup("save_key_checked_key_ids").getLength();
-      for (auto i = 0; i < key_ids_size; i++) {
-        std::string key_id = save_key_checked_key_ids[i];
-        LOG(INFO) << "get checked key id" << key_id;
-        key_ids_ptr->push_back(key_id);
-      }
-      mKeyList->setChecked(std::move(key_ids_ptr));
+    } catch (...) {
+      LOG(ERROR) << "restore default_key_checked failed";
     }
 
-    auto& smtp = settings["smtp"];
-
-    if (!smtp.exists("enable")) {
-      smtp.add("enable", libconfig::Setting::TypeBoolean) = true;
-    }
+    SettingsObj smtp_passport("smtp_passport");
+    smtp_passport.Check("enable", false);
 
     prohibit_update_checking_ = false;
     try {
@@ -325,28 +260,27 @@ void MainWindow::saveSettings() {
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
   try {
-    // window position and size
-    settings["window"]["window_state"] = saveState().toBase64().toStdString();
-    settings["window"]["window_pos"]["x"] = pos().x();
-    settings["window"]["window_pos"]["y"] = pos().y();
+    SettingsObj main_windows_state("main_windows_state");
 
-    settings["window"]["window_size"]["width"] = size().width();
-    settings["window"]["window_size"]["height"] = size().height();
+    // window position and size
+    main_windows_state["window_state"] = saveState().toBase64().toStdString();
+    main_windows_state["window_pos"]["x"] = pos().x();
+    main_windows_state["window_pos"]["y"] = pos().y();
+
+    main_windows_state["window_size"]["width"] = size().width();
+    main_windows_state["window_size"]["height"] = size().height();
 
     bool save_key_checked = settings.lookup("general.save_key_checked");
 
     // keyid-list of private checked keys
     if (save_key_checked) {
-      auto& key_ids = settings.lookup("general.save_key_checked_key_ids");
-      const int key_ids_size = key_ids.getLength();
-      for (auto i = 0; i < key_ids_size; i++) key_ids.remove(i);
       auto key_ids_need_to_store = mKeyList->getChecked();
 
-      for (size_t i = 0; i < key_ids_need_to_store->size(); i++) {
-        std::string key_id = (*key_ids_need_to_store)[i];
-        key_ids.add(libconfig::Setting::TypeString) = key_id;
-      }
-
+      SettingsObj default_key_checked("default_key_checked");
+      default_key_checked.clear();
+      
+      for (const auto& key_id : *key_ids_need_to_store)
+        default_key_checked.push_back(key_id);
     } else {
       settings["general"].remove("save_key_checked");
     }
