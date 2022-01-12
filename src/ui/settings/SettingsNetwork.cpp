@@ -24,7 +24,7 @@
 
 #include "SettingsNetwork.h"
 
-#include "ui/function/ProxyConnectionTestThread.h"
+#include "ui/thread/ProxyConnectionTestThread.h"
 #include "ui/settings//GlobalSettingStation.h"
 #include "ui_NetworkSettings.h"
 

@@ -28,8 +28,8 @@
 #include "smtp/SmtpMime"
 #endif
 
-#include "ui/function/SMTPSendMailThread.h"
-#include "ui/function/SMTPTestThread.h"
+#include "ui/thread/SMTPSendMailThread.h"
+#include "ui/thread/SMTPTestThread.h"
 #include "ui/settings/GlobalSettingStation.h"
 #include "ui_SendMailSettings.h"
 

@@ -29,7 +29,7 @@
 #include "GpgFrontendBuildInfo.h"
 #include "gpg/GpgFunctionObject.h"
 #include "ui/MainWindow.h"
-#include "ui/function/CtxCheckThread.h"
+#include "ui/thread/CtxCheckThread.h"
 
 // Easy Logging Cpp
 INITIALIZE_EASYLOGGINGPP

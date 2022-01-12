@@ -7,7 +7,7 @@ aux_source_directory(./keygen UI_SOURCE)
 aux_source_directory(./main_window UI_SOURCE)
 aux_source_directory(./help UI_SOURCE)
 aux_source_directory(./settings UI_SOURCE)
-aux_source_directory(./function UI_SOURCE)
+aux_source_directory(./thread UI_SOURCE)
 aux_source_directory(./details UI_SOURCE)
 aux_source_directory(./data_struct UI_SOURCE)
 

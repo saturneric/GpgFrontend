@@ -25,7 +25,7 @@
 #include "SettingsKeyServer.h"
 
 #include "GlobalSettingStation.h"
-#include "ui/function/TestListedKeyServerThread.h"
+#include "ui/thread/TestListedKeyServerThread.h"
 #include "ui_KeyServerSettings.h"
 
 namespace GpgFrontend::UI {

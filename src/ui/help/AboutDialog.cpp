@@ -25,8 +25,8 @@
 #include "ui/help/AboutDialog.h"
 
 #include "GpgFrontendBuildInfo.h"
-#include "function/VersionCheckThread.h"
 #include "ui/settings/GlobalSettingStation.h"
+#include "ui/thread/VersionCheckThread.h"
 
 namespace GpgFrontend::UI {
 
