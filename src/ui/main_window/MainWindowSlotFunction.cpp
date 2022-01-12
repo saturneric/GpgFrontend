@@ -61,7 +61,7 @@ void MainWindow::slotEncrypt() {
     // Symmetric Encrypt
     auto ret = QMessageBox::information(
         this, _("Symmetric Encryption"),
-        _("No Key Selected. Do you want to encrypt with a "
+        _("No Key Checked. Do you want to encrypt with a "
           "symmetric cipher using a passphrase?"),
         QMessageBox::Ok | QMessageBox::Cancel);
 
@@ -82,7 +82,7 @@ void MainWindow::slotEncrypt() {
     for (const auto& key : *keys) {
       if (!key.CanEncrActual()) {
         QMessageBox::information(
-            nullptr, _("Invalid Operation"),
+            this, _("Invalid Operation"),
             QString(_(
                 "The selected key contains a key that does not actually have a "
                 "encrypt usage.")) +
@@ -130,8 +130,8 @@ void MainWindow::slotSign() {
 
   if (key_ids->empty()) {
     QMessageBox::critical(
-        this, _("No Key Selected"),
-        _("Please select the key in the key toolbox on the right."));
+        this, _("No Key Checked"),
+        _("Please check the key in the key toolbox on the right."));
     return;
   }
 
@@ -273,8 +273,8 @@ void MainWindow::slotEncryptSign() {
 
   if (key_ids->empty()) {
     QMessageBox::critical(
-        nullptr, _("No Key Selected"),
-        _("Please select the key in the key toolbox on the right."));
+        this, _("No Key Checked"),
+        _("Please check some key in the key toolbox on the right."));
     return;
   }
 
@@ -285,7 +285,7 @@ void MainWindow::slotEncryptSign() {
 
     if (!key_can_encrypt) {
       QMessageBox::critical(
-          nullptr, _("Invalid KeyPair"),
+          this, _("Invalid KeyPair"),
           QString(_("The selected keypair cannot be used for encryption.")) +
               "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
               QString::fromStdString(key.uids()->front().uid()));
@@ -462,7 +462,7 @@ void MainWindow::slotCopyMailAddressToClipboard() {
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
   if (!key.good()) {
-    QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
     return;
   }
   QClipboard* cb = QApplication::clipboard();
@@ -477,7 +477,7 @@ void MainWindow::slotShowKeyDetails() {
   if (key.good()) {
     new KeyDetailsDialog(key, this);
   } else {
-    QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
   }
 }
 

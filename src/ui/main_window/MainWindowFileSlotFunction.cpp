@@ -211,8 +211,8 @@ void MainWindow::slotFileSign() {
 
   if (keys->empty()) {
     QMessageBox::critical(
-        this, _("No Key Selected"),
-        _("Please select the key in the key toolbox on the right."));
+        this, _("No Key Checked"),
+        _("Please check the key in the key toolbox on the right."));
     return;
   }
 
@@ -383,8 +383,8 @@ void MainWindow::slotFileEncryptSign() {
 
   if (p_keys->empty()) {
     QMessageBox::critical(
-        this, _("No Key Selected"),
-        _("Please select the key in the key toolbox on the right."));
+        this, _("No Key Checked"),
+        _("Please check the key in the key toolbox on the right."));
     return;
   }
 

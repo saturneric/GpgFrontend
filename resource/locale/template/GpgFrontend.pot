@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.4\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-01-10 04:15+0800\n"
+"POT-Creation-Date: 2022-01-12 08:11+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,45 +17,45 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/init.cpp:71
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/init.cpp:68
 msgid "logfile Path"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/init.cpp:84
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/init.cpp:81
 msgid "root certs loaded"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/init.cpp:107
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/init.cpp:104
 msgid "could not read properly from configure file"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:120
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:121
 msgid "Loading Gnupg Info..."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:121
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:122
 msgid ""
 "If this process is too slow, please set the key server address appropriately "
 "in the gnupg configuration file (depending on the network situation in your "
 "country or region)."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:175
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:176
 msgid "Unhandled Exception Thrown"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:176
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:177
 msgid ""
 "Oops, an unhandled exception was thrown during the running of the program, "
 "and now it needs to be restarted. This is not a serious problem, it may be "
 "the negligence of the programmer, please report this problem if you can."
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:187
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:188
 msgid "A serious error has occurred"
 msgstr ""
 
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:188
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/main.cpp:189
 msgid ""
 "Oh no! GpgFrontend caught a serious error in the software, so it needs to be "
 "restarted. If the problem recurs, please manually terminate the program and "
@@ -1222,7 +1222,6 @@ msgid "Symmetric Encryption"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:101
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:64
 msgid ""
 "No Key Selected. Do you want to encrypt with a symmetric cipher using a "
 "passphrase?"
@@ -1286,14 +1285,13 @@ msgstr ""
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:386
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:276
-msgid "No Key Selected"
+msgid "No Key Checked"
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:215
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:387
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:134
-#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:277
-msgid "Please select the key in the key toolbox on the right."
+msgid "Please check the key in the key toolbox on the right."
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:222
@@ -1753,6 +1751,12 @@ msgstr ""
 msgid "Information Board"
 msgstr ""
 
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:64
+msgid ""
+"No Key Checked. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr ""
+
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:87
 msgid ""
 "The selected key contains a key that does not actually have a encrypt usage."
@@ -1770,6 +1774,10 @@ msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:191
 msgid "Short Crypto Text only supports Decrypt & Verify."
+msgstr ""
+
+#: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:277
+msgid "Please check some key in the key toolbox on the right."
 msgstr ""
 
 #: /home/saturneric/Documents/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:335
