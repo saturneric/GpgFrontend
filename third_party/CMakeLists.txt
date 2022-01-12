@@ -15,9 +15,21 @@ add_subdirectory(qt-aes)
 # vmime
 set(VMIME_HAVE_MESSAGING_PROTO_SENDMAIL OFF CACHE BOOL "" FORCE)
 set(VMIME_HAVE_SASL_SUPPORT OFF CACHE BOOL "" FORCE)
+set(VMIME_BUILD_STATIC_LIBRARY ON CACHE BOOL "" FORCE)
 set(VMIME_CHARSETCONV_LIB "iconv" CACHE STRING "" FORCE)
 set(VMIME_TLS_SUPPORT_LIB "openssl" CACHE STRING "" FORCE)
+
+set(VMIME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vmime)
+set(VMIME_BIN ${CMAKE_CURRENT_BINARY_DIR}/vmime)
+set(VMIME_BIN_STATIC_LIB ${VMIME_BIN}/build/lib/libvmime.a)
+set(VMIME_INCLUDES ${VMIME_DIR}/src ${CMAKE_BINARY_DIR}/src/vmime/ ${CMAKE_BINARY_DIR}/src/)
+
 add_subdirectory(vmime)
+
+add_library(gpgfrontend_vmime STATIC IMPORTED GLOBAL)
+add_dependencies(gpgfrontend_vmime vmime-static vmime-static-config)
+set_target_properties(gpgfrontend_vmime PROPERTIES IMPORTED_LOCATION ${VMIME_BIN_STATIC_LIB})
+set_target_properties(gpgfrontend_vmime PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${VMIME_INCLUDES}")
 
 # gnupg
 
