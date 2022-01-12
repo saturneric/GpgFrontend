@@ -31,6 +31,8 @@
 #include <string>
 #include <vector>
 
+#include "GpgFrontend.h"
+
 namespace GpgFrontend {
 
 class GenKeyInfo {

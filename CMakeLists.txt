@@ -4,6 +4,15 @@ project(GpgFrontend VERSION 2.0.4 LANGUAGES CXX)
 
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
+INCLUDE(CheckIncludeFiles)
+INCLUDE(CheckIncludeFileCXX)
+INCLUDE(CheckFunctionExists)
+INCLUDE(CheckSymbolExists)
+INCLUDE(CheckTypeSize)
+INCLUDE(CheckLibraryExists)
+INCLUDE(CheckCXXSourceCompiles)
+
+
 # C++
 #Detect Compiler
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -231,7 +240,6 @@ endif ()
 # Basic Envirnoment Configure
 set(BASIC_ENV_CONFIG 1)
 set(QT_MOC_CONFIG 1)
-set(EASY_LOGGING_PP 1)
 
 if (LINUX_INSTALL_SOFTWARE)
     include(GNUInstallDirs)
@@ -325,8 +333,10 @@ if (MULTI_LANG_SUPPORT)
     add_compile_definitions(MULTI_LANG_SUPPORT)
 endif ()
 
-
+# third_party
 add_subdirectory(third_party)
+
+
 add_subdirectory(src)
 
 if (TEST_CORE_BUILD)

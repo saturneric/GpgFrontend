@@ -24,8 +24,6 @@
 
 #include "gpg/GpgGenKeyInfo.h"
 
-#include <easyloggingpp/easylogging++.h>
-
 #include <boost/date_time/gregorian/greg_date.hpp>
 #include <boost/date_time/gregorian/greg_duration.hpp>
 #include <boost/date_time/gregorian/gregorian_types.hpp>

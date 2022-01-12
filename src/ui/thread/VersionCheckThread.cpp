@@ -25,9 +25,9 @@
 #include "VersionCheckThread.h"
 
 #include <QMetaType>
+#include <nlohmann/json.hpp>
 
 #include "GpgFrontendBuildInfo.h"
-#include "json/json.hpp"
 
 namespace GpgFrontend::UI {
 

@@ -31,7 +31,6 @@
 #include "gpg/function/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/aes/qaesencryption.h"
 #include "ui/keygen/SubkeyGenerateDialog.h"
 #include "ui/settings/GlobalSettingStation.h"
 #include "ui/widgets/ExportKeyPackageDialog.h"

@@ -8,12 +8,6 @@ if (UI_CORE)
     add_subdirectory(ui)
 endif ()
 
-if (SMTP_SUPPORT)
-    message(STATUS "Build SMTP Support")
-    add_compile_definitions(SMTP_SUPPORT)
-    add_subdirectory(smtp)
-endif ()
-
 if (SERVER_SUPPORT)
     message(STATUS "Build Server Support")
     add_compile_definitions(SERVER_SUPPORT)
@@ -244,25 +238,19 @@ if (APPLICATION_BUILD)
     if (ADVANCE_SUPPORT)
         set(GPGFRONTEND_BEFORE_UI_LIBS ${GPGFRONTEND_BEFORE_UI_LIBS} server)
     endif ()
-    if (SMTP_SUPPORT)
-        set(GPGFRONTEND_BEFORE_UI_LIBS ${GPGFRONTEND_BEFORE_UI_LIBS} smtp)
-    endif ()
 
-    set(GPGFRONTEND_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} gpgfrontend_ui gpgfrontend_core ${GPGFRONTEND_BEFORE_UI_LIBS} easy_logging_pp)
+    set(GPGFRONTEND_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} gpgfrontend_ui gpgfrontend_core ${GPGFRONTEND_BEFORE_UI_LIBS} easyloggingpp)
     set(QT_DEPENDENCY_LIBS Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
     message(STATUS "Boost Libraries ${Boost_LIBRARIES}")
 
     IF (MINGW)
         message(STATUS "Link Application Static Library For MINGW")
-        find_library(libconfig NAMES libconfig++.a)
-        find_library(libintl NAMES libintl.a)
-        find_library(libiconv NAMES libiconv.a)
 
         target_link_libraries(${AppName}
                 ${GPGFRONTEND_LIBS}
                 ${QT_DEPENDENCY_LIBS}
                 ${Boost_LIBRARIES}
-                ${libintl} ${libiconv} ${libconfig} crypto ssl)
+                crypto ssl)
     elseif (APPLE)
         message(STATUS "Link Application Static Library For macOS")
         target_link_libraries(${AppName}

@@ -30,8 +30,6 @@
 #include <vmime/security/cert/openssl/X509Certificate_OpenSSL.hpp>
 #include <vmime/vmime.hpp>
 
-#include "ui/aes/qaesencryption.h"
-
 std::unique_ptr<GpgFrontend::UI::GlobalSettingStation>
     GpgFrontend::UI::GlobalSettingStation::_instance = nullptr;
 

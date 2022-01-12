@@ -24,10 +24,6 @@
 
 #include "SettingsSendMail.h"
 
-#ifdef SMTP_SUPPORT
-#include "smtp/SmtpMime"
-#endif
-
 #include "ui/data_struct/SettingsObject.h"
 #include "ui/thread/SMTPSendMailThread.h"
 #include "ui/thread/SMTPTestThread.h"

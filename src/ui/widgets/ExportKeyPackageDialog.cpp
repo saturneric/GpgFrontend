@@ -28,7 +28,6 @@
 
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExporter.h"
-#include "ui/aes/qaesencryption.h"
 #include "ui_ExportKeyPackageDialog.h"
 
 GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(

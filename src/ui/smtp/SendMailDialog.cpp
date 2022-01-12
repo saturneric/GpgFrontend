@@ -31,9 +31,8 @@
 #include "ui_SendMailDialog.h"
 
 #ifdef SMTP_SUPPORT
-#include "smtp/SmtpMime"
-#include "ui/thread/SMTPSendMailThread.h"
 #include "ui/settings/GlobalSettingStation.h"
+#include "ui/thread/SMTPSendMailThread.h"
 #endif
 
 namespace GpgFrontend::UI {

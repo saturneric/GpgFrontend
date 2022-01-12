@@ -45,7 +45,7 @@
 
 // logging
 #define ELPP_DEFAULT_LOGGING_FLAGS 8192
-#include <easyloggingpp/easylogging++.h>
+#include <easylogging++.h>
 
 #define PROJECT_NAME "@CMAKE_PROJECT_NAME@"
 #define OS_PLATFORM @OS_PLATFORM@

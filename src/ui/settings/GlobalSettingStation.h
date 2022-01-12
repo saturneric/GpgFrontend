@@ -27,9 +27,9 @@
 
 #include <openssl/x509.h>
 
+#include <nlohmann/json.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
-#include <json/json.hpp>
 
 #include "GpgFrontendBuildInstallInfo.h"
 #include "ui/GpgFrontendUI.h"
