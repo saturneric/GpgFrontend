@@ -59,7 +59,8 @@ PlainTextEditorPage::PlainTextEditorPage(QString filePath, QWidget* parent)
     auto text = ui->textPage->document()->toPlainText();
     auto str = boost::format(_("%1% character(s)")) % text.size();
     this->ui->characterLabel->setText(str.str().c_str());
-
+    
+    detect_cr_lf(text);
     detect_encoding(text.toStdString());
   });
 
