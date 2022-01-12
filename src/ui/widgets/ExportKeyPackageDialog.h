@@ -37,7 +37,7 @@ class ExportKeyPackageDialog : public QDialog {
  public:
   explicit ExportKeyPackageDialog(KeyIdArgsListPtr key_ids, QWidget* parent);
 
-  std::string generate_passphrase(const int len);
+  std::string generate_passphrase(int len);
 
  private:
   std::shared_ptr<Ui_exportKeyPackageDialog> ui;
