@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef GPGFRONTEND_SETTINGSOBJ_H
-#define GPGFRONTEND_SETTINGSOBJ_H
+#ifndef GPGFRONTEND_SETTINGSOBJECT_H
+#define GPGFRONTEND_SETTINGSOBJECT_H
 
 #include <utility>
 
@@ -31,24 +31,21 @@
 
 namespace GpgFrontend::UI {
 
-class SettingsObj : public nlohmann::json {
+class SettingsObject : public nlohmann::json {
  public:
-  explicit SettingsObj(std::string settings_name);
+  explicit SettingsObject(std::string settings_name);
 
-  explicit SettingsObj(nlohmann::json _sub_json, bool);
+  explicit SettingsObject(nlohmann::json _sub_json, bool);
 
-  ~SettingsObj() {
-    GpgFrontend::UI::GlobalSettingStation::GetInstance().SaveDataObj(
-        settings_name_, *this);
-  }
+  ~SettingsObject();
 
   nlohmann::json& Check(const std::string& key, nlohmann::json default_value);
 
-  SettingsObj Check(const std::string& key);
+  SettingsObject Check(const std::string& key);
 
  private:
   std::string settings_name_;
 };
 }  // namespace GpgFrontend::UI
 
-#endif  // GPGFRONTEND_SETTINGSOBJ_H
+#endif  // GPGFRONTEND_SETTINGSOBJECT_H

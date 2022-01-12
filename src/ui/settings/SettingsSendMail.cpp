@@ -28,7 +28,7 @@
 #include "smtp/SmtpMime"
 #endif
 
-#include "ui/data_struct/SettingsObj.h"
+#include "ui/data_struct/SettingsObject.h"
 #include "ui/thread/SMTPSendMailThread.h"
 #include "ui/thread/SMTPTestThread.h"
 #include "ui_SendMailSettings.h"
@@ -97,7 +97,7 @@ SendMailTab::SendMailTab(QWidget* parent)
 }
 
 void SendMailTab::setSettings() {
-  auto smtp_passport = SettingsObj("smtp_passport");
+  auto smtp_passport = SettingsObject("smtp_passport");
 
   ui->smtpServerAddressEdit->setText(
       std::string{smtp_passport.Check("smtp_address", {})}.c_str());
@@ -138,7 +138,7 @@ void SendMailTab::setSettings() {
 
 void SendMailTab::applySettings() {
   try {
-    auto smtp_passport = SettingsObj("smtp_passport");
+    auto smtp_passport = SettingsObject("smtp_passport");
 
     smtp_passport["smtp_address"] =
         ui->smtpServerAddressEdit->text().toStdString();

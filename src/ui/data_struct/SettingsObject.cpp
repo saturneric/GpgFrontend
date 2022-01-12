@@ -22,22 +22,22 @@
  *
  */
 
-#include "SettingsObj.h"
+#include "SettingsObject.h"
 
-nlohmann::json& GpgFrontend::UI::SettingsObj::Check(
+nlohmann::json& GpgFrontend::UI::SettingsObject::Check(
     const std::string& key, nlohmann::json default_value) {
   if (!nlohmann::json::contains(key))
     nlohmann::json::operator[](key) = std::move(default_value);
   return nlohmann::json::operator[](key);
 }
 
-GpgFrontend::UI::SettingsObj GpgFrontend::UI::SettingsObj::Check(
+GpgFrontend::UI::SettingsObject GpgFrontend::UI::SettingsObject::Check(
     const std::string& key) {
   if (!nlohmann::json::contains(key)) nlohmann::json::operator[](key) = {};
-  return SettingsObj{nlohmann::json::operator[](key), false};
+  return SettingsObject{nlohmann::json::operator[](key), false};
 }
 
-GpgFrontend::UI::SettingsObj::SettingsObj(std::string settings_name)
+GpgFrontend::UI::SettingsObject::SettingsObject(std::string settings_name)
     : settings_name_(std::move(settings_name)) {
   try {
     auto _json_optional =
@@ -51,5 +51,11 @@ GpgFrontend::UI::SettingsObj::SettingsObj(std::string settings_name)
   }
 }
 
-GpgFrontend::UI::SettingsObj::SettingsObj(nlohmann::json _sub_json, bool)
+GpgFrontend::UI::SettingsObject::SettingsObject(nlohmann::json _sub_json, bool)
     : nlohmann::json(std::move(_sub_json)), settings_name_({}) {}
+
+GpgFrontend::UI::SettingsObject::~SettingsObject() {
+  if (!settings_name_.empty())
+    GpgFrontend::UI::GlobalSettingStation::GetInstance().SaveDataObj(
+        settings_name_, *this);
+}
