@@ -28,7 +28,7 @@
 #include "smtp/SmtpMime"
 #endif
 
-#include "ui/settings/GlobalSettingStation.h"
+#include "ui/data_struct/SettingsObj.h"
 #include "ui/thread/SMTPSendMailThread.h"
 #include "ui/thread/SMTPTestThread.h"
 #include "ui_SendMailSettings.h"
@@ -97,93 +97,37 @@ SendMailTab::SendMailTab(QWidget* parent)
 }
 
 void SendMailTab::setSettings() {
-  auto json_optional =
-      GlobalSettingStation::GetInstance().GetDataObject("smtp_passport");
+  auto smtp_passport = SettingsObj("smtp_passport");
 
-  if (!json_optional.has_value()) {
-    LOG(WARNING) << "no smtp passport found";
-    return;
-  }
+  ui->smtpServerAddressEdit->setText(
+      std::string{smtp_passport.Check("smtp_address", {})}.c_str());
 
-  auto& smtp_passport_json = json_optional.value();
+  ui->usernameEdit->setText(
+      std::string{smtp_passport.Check("username", {})}.c_str());
 
-  try {
-    std::string smtp_address = smtp_passport_json["smtp_address"];
-    ui->smtpServerAddressEdit->setText(smtp_address.c_str());
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("smtp_address");
-  }
+  ui->passwordEdit->setText(
+      std::string{smtp_passport.Check("password", {})}.c_str());
 
-  try {
-    std::string std_username = smtp_passport_json["username"];
-    ui->usernameEdit->setText(std_username.c_str());
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("username");
-  }
+  ui->portSpin->setValue(int{smtp_passport.Check("port", 25)});
 
-  try {
-    std::string std_password = smtp_passport_json["password"];
-    ui->passwordEdit->setText(std_password.c_str());
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("password");
-  }
+  ui->connextionSecurityComboBox->setCurrentText(
+      std::string{smtp_passport.Check("connection_type", "None")}.c_str());
 
-  try {
-    int port = smtp_passport_json["port"];
-    ui->portSpin->setValue(port);
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("port");
-  }
+  ui->defaultSenderEmailEdit->setText(
+      std::string{smtp_passport.Check("default_sender", {})}.c_str());
 
-  ui->connextionSecurityComboBox->setCurrentText("None");
-  try {
-    std::string connection_type = smtp_passport_json["connection_type"];
-    ui->connextionSecurityComboBox->setCurrentText(connection_type.c_str());
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("connection_type");
-  }
+  ui->gpgKeyIDEdit->setText(
+      std::string{smtp_passport.Check("default_sender_gpg_key_id", {})}
+          .c_str());
 
-  try {
-    std::string default_sender = smtp_passport_json["default_sender"];
-    ui->defaultSenderEmailEdit->setText(default_sender.c_str());
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("default_sender");
-  }
+  ui->identityCheckBox->setChecked(
+      bool{smtp_passport.Check("identity_enable", false)});
 
-  try {
-    std::string default_sender_gpg_key_id =
-        smtp_passport_json["default_sender_gpg_key_id"];
-    ui->gpgKeyIDEdit->setText(default_sender_gpg_key_id.c_str());
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error")
-               << _("default_sender_gpg_key_id");
-  }
-
-  ui->identityCheckBox->setCheckState(Qt::Unchecked);
-  try {
-    bool identity_enable = smtp_passport_json["identity_enable"];
-    if (identity_enable)
-      ui->identityCheckBox->setCheckState(Qt::Checked);
-    else
-      ui->identityCheckBox->setCheckState(Qt::Unchecked);
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("identity_enable");
-  }
+  ui->enableCheckBox->setChecked(bool{smtp_passport.Check("enable", false)});
 
   {
     auto state = ui->identityCheckBox->checkState();
     switch_ui_identity_enabled(state == Qt::Checked);
-  }
-
-  ui->enableCheckBox->setCheckState(Qt::Unchecked);
-  try {
-    bool smtp_enable = smtp_passport_json["enable"];
-    if (smtp_enable)
-      ui->enableCheckBox->setCheckState(Qt::Checked);
-    else
-      ui->enableCheckBox->setCheckState(Qt::Unchecked);
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("enable");
   }
 
   {
@@ -193,31 +137,34 @@ void SendMailTab::setSettings() {
 }
 
 void SendMailTab::applySettings() {
-  nlohmann::json smtp_passport_json;
-  smtp_passport_json["smtp_address"] =
-      ui->smtpServerAddressEdit->text().toStdString();
+  try {
+    auto smtp_passport = SettingsObj("smtp_passport");
 
-  smtp_passport_json["username"] = ui->usernameEdit->text().toStdString();
+    smtp_passport["smtp_address"] =
+        ui->smtpServerAddressEdit->text().toStdString();
 
-  smtp_passport_json["password"] = ui->passwordEdit->text().toStdString();
+    smtp_passport["username"] = ui->usernameEdit->text().toStdString();
 
-  smtp_passport_json["port"] = ui->portSpin->value();
+    smtp_passport["password"] = ui->passwordEdit->text().toStdString();
 
-  smtp_passport_json["connection_type"] =
-      ui->connextionSecurityComboBox->currentText().toStdString();
+    smtp_passport["port"] = ui->portSpin->value();
 
-  smtp_passport_json["default_sender"] =
-      ui->defaultSenderEmailEdit->text().toStdString();
+    smtp_passport["connection_type"] =
+        ui->connextionSecurityComboBox->currentText().toStdString();
 
-  smtp_passport_json["default_sender_gpg_key_id"] =
-      ui->gpgKeyIDEdit->text().toStdString();
+    smtp_passport["default_sender"] =
+        ui->defaultSenderEmailEdit->text().toStdString();
 
-  smtp_passport_json["identity_enable"] = ui->identityCheckBox->isChecked();
+    smtp_passport["default_sender_gpg_key_id"] =
+        ui->gpgKeyIDEdit->text().toStdString();
 
-  smtp_passport_json["enable"] = ui->enableCheckBox->isChecked();
+    smtp_passport["identity_enable"] = ui->identityCheckBox->isChecked();
 
-  GpgFrontend::UI::GlobalSettingStation::GetInstance().SaveDataObj(
-      "smtp_passport", smtp_passport_json);
+    smtp_passport["enable"] = ui->enableCheckBox->isChecked();
+
+  } catch (...) {
+    LOG(ERROR) << _("apply settings failed");
+  }
 }
 
 #ifdef SMTP_SUPPORT
