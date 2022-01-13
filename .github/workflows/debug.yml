@@ -61,7 +61,7 @@ jobs:
           brew unlink gettext && brew link --force gettext
           brew link qt@5
           brew link gcc
-          brew link openssl --force
+          brew link openssl@1.1 --force
         if: matrix.os == 'macos-10.15'
 
       - name: Cache Qt
@@ -123,7 +123,7 @@ jobs:
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           mkdir build && cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON ..
+          cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON ..
           # Build your program with the given configuration
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -v
         if: matrix.os == 'windows-latest'
