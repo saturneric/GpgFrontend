@@ -41,7 +41,7 @@ extern void init_logging();
 extern void init_certs();
 extern void init_locale();
 extern void handle_signal(int sig);
-extern void before_exit(int status, void* arg);
+extern void before_exit();
 
 int main(int argc, char* argv[]) {
   // Register Signals
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
   signal(SIGILL, handle_signal);
 
   // clean something before exit
-  on_exit(before_exit, nullptr);
+  atexit(before_exit);
 
   // Qt
   Q_INIT_RESOURCE(gpgfrontend);

@@ -24,7 +24,7 @@
 
 #include "ui/settings/GlobalSettingStation.h"
 
-void before_exit(int status, void *arg) {
-  LOG(INFO) << "called exit status" << status;
+void before_exit() {
+  LOG(INFO) << "called";
   GpgFrontend::UI::GlobalSettingStation::GetInstance().ResetRootCerts();
 }

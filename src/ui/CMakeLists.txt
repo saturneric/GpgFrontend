@@ -32,9 +32,16 @@ target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
 # link Qt
 target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
         Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+
 # link vmime
-target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
-        gpgfrontend_vmime anl ssl crypto)
+if (APPLE)
+    target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
+            gpgfrontend_vmime ssl crypto)
+else ()
+    target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
+            gpgfrontend_vmime anl ssl crypto)
+endif ()
+
 # link easyloggingpp
 target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
         easyloggingpp)
