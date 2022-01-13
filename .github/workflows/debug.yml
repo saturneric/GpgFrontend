@@ -91,7 +91,7 @@ jobs:
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
           pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake 
           pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel
-          pacman --noconfirm -S --needed mingw-w64-x86_64-gpgme mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg
+          pacman --noconfirm -S --needed mingw-w64-x86_64-gpgme mingw-w64-x86_64-gnupg
         if: matrix.os == 'windows-latest'
 
       - name: Build GpgME (Windows)
@@ -114,7 +114,7 @@ jobs:
       - name: Build GpgFrontend (macOS)
         # Build your GpgFrontend with the given configuration
         run: |
-          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
         if: matrix.os == 'macos-10.15'
 
@@ -123,7 +123,7 @@ jobs:
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           mkdir build && cd build
-          cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON ..
+          cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON ..
           # Build your program with the given configuration
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -v
         if: matrix.os == 'windows-latest'

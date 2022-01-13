@@ -43,6 +43,9 @@ target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
 target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
         gpgfrontend_core)
 
+# link openssl
+target_link_libraries(${GPGFRONTEND_UI_LIB_NAME} OpenSSL::SSL OpenSSL::Crypto)
+
 target_include_directories(gpgfrontend_ui PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/${GPGFRONTEND_UI_LIB_NAME}_autogen/include)
 

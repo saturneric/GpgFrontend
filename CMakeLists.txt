@@ -302,7 +302,6 @@ if (GPG_STANDALONE_MODE)
 endif ()
 
 
-
 if (LINUX_INSTALL_SOFTWARE)
     message(STATUS "Configure Linux Install ON")
     include(GNUInstallDirs)
@@ -362,6 +361,9 @@ endif ()
 
 # Introduce boost
 find_package(Boost COMPONENTS date_time filesystem REQUIRED)
+
+# Introduce OpenSSL
+find_package(OpenSSL REQUIRED)
 
 if (QT5_ENV_SUPPORT)
     # Support Qt version Both 5.12.x and 5.15.x
