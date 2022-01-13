@@ -56,7 +56,7 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5 gcc texinfo gettext gpgme openssl 
+          brew install cmake git autoconf automake qt@5 gcc texinfo gettext gpgme openssl@1.1 
           brew install boost libconfig gettext ninja
           brew unlink gettext && brew link --force gettext
           brew link qt@5
@@ -104,12 +104,19 @@ jobs:
           make install
         if: matrix.os == 'windows-latest'
 
-      - name: Build GpgFrontend
+      - name: Build GpgFrontend (Linux)
         # Build your GpgFrontend with the given configuration
         run: |
           cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-10.15'
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Build GpgFrontend (macOS)
+        # Build your GpgFrontend with the given configuration
+        run: |
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
+        if: matrix.os == 'macos-10.15'
 
       - name: Configure CMake & Build Binary(Windows)
         shell: msys2 {0}
