@@ -34,9 +34,12 @@ target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
         Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
 
 # link vmime
-if (APPLE)
+if (NOT LINUX)
     target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
-            gpgfrontend_vmime ssl crypto)
+            gpgfrontend_vmime ssl crypto intl iconv)
+    if(MINGW)
+        target_link_libraries(${GPGFRONTEND_UI_LIB_NAME} ws2_32)
+    endif()
 else ()
     target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
             gpgfrontend_vmime anl ssl crypto)

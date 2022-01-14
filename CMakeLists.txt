@@ -234,6 +234,7 @@ IF (MINGW)
             /mingw64/include
     )
     link_directories(
+            ${CMAKE_SOURCE_DIR}/lib/mingw
             /mingw64/lib
     )
 endif ()
