@@ -98,7 +98,7 @@ jobs:
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
           pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake 
           pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel
-          pacman --noconfirm -S --needed mingw-w64-x86_64-gpgme mingw-w64-x86_64-gnupg
+          pacman --noconfirm -S --needed mingw-w64-x86_64-gpgme mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg
         if: matrix.os == 'windows-latest'
 
       - name: Build GpgFrontend (Linux)
@@ -152,7 +152,7 @@ jobs:
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           mkdir build && cd build
-          cmake -G "Ninja" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON ..
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON ..
           # Build your program with the given configuration
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'windows-latest'

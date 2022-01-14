@@ -31,6 +31,10 @@
 #include "ui/MainWindow.h"
 #include "ui/thread/CtxCheckThread.h"
 
+#if !defined(RELEASE) && defined(WINDOWS)
+#include "ui/settings/GlobalSettingStation.h"
+#endif
+
 // Easy Logging Cpp
 INITIALIZE_EASYLOGGINGPP
 
