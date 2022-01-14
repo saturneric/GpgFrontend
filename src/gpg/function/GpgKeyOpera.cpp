@@ -48,7 +48,7 @@ void GpgFrontend::GpgKeyOpera::DeleteKeys(
     auto key = GpgKeyGetter::GetInstance().GetKey(tmp);
     if (key.good()) {
       err = check_gpg_error(
-          gpgme_op_delete_ext(ctx, gpgme_key_t(key),
+          gpgme_op_delete_ext(ctx_, gpgme_key_t(key),
                               GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
       assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
     } else {
@@ -81,9 +81,9 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::SetExpire(
 
   GpgError err;
   if (key.fpr() == subkey_fpr || subkey_fpr.empty())
-    err = gpgme_op_setexpire(ctx, gpgme_key_t(key), expires_time, nullptr, 0);
+    err = gpgme_op_setexpire(ctx_, gpgme_key_t(key), expires_time, nullptr, 0);
   else
-    err = gpgme_op_setexpire(ctx, gpgme_key_t(key), expires_time,
+    err = gpgme_op_setexpire(ctx_, gpgme_key_t(key), expires_time,
                              subkey_fpr.c_str(), 0);
 
   return err;
@@ -168,7 +168,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
 
   GpgError err;
 
-  if (ctx.GetInfo().GnupgVersion >= "2.1.0") {
+  if (ctx_.GetInfo().GnupgVersion >= "2.1.0") {
     unsigned int flags = 0;
 
     if (!params->isSubKey()) flags |= GPGME_CREATE_CERT;
@@ -180,7 +180,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
 
     LOG(INFO) << "args: " << userid << algo << expires << flags;
 
-    err = gpgme_op_createkey(ctx, userid, algo, 0, expires, nullptr, flags);
+    err = gpgme_op_createkey(ctx_, userid, algo, 0, expires, nullptr, flags);
 
   } else {
     std::stringstream ss;
@@ -209,11 +209,11 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
 
     DLOG(INFO) << "params" << std::endl << ss.str();
 
-    err = gpgme_op_genkey(ctx, ss.str().c_str(), nullptr, nullptr);
+    err = gpgme_op_genkey(ctx_, ss.str().c_str(), nullptr, nullptr);
   }
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR) {
-    auto temp_result = _new_result(gpgme_op_genkey_result(ctx));
+    auto temp_result = _new_result(gpgme_op_genkey_result(ctx_));
     std::swap(temp_result, result);
   }
 
@@ -253,26 +253,26 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateSubkey(
             << algo << expires << flags;
 
   auto err =
-      gpgme_op_createsubkey(ctx, gpgme_key_t(key), algo, 0, expires, flags);
+      gpgme_op_createsubkey(ctx_, gpgme_key_t(key), algo, 0, expires, flags);
   return check_gpg_error(err);
 }
 
 GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyPassword(
     const GpgFrontend::GpgKey& key) {
-  if (ctx.GetInfo().GnupgVersion < "2.0.15") {
+  if (ctx_.GetInfo().GnupgVersion < "2.0.15") {
     LOG(ERROR) << _("operator not support");
     return GPG_ERR_NOT_SUPPORTED;
   }
-  auto err = gpgme_op_passwd(ctx, gpgme_key_t(key), 0);
+  auto err = gpgme_op_passwd(ctx_, gpgme_key_t(key), 0);
   return check_gpg_error(err);
 }
 GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyTOFUPolicy(
     const GpgFrontend::GpgKey& key, gpgme_tofu_policy_t tofu_policy) {
-  if (ctx.GetInfo().GnupgVersion < "2.1.10") {
+  if (ctx_.GetInfo().GnupgVersion < "2.1.10") {
     LOG(ERROR) << _("operator not support");
     return GPG_ERR_NOT_SUPPORTED;
   }
-  auto err = gpgme_op_tofu_policy(ctx, gpgme_key_t(key), tofu_policy);
+  auto err = gpgme_op_tofu_policy(ctx_, gpgme_key_t(key), tofu_policy);
   return check_gpg_error(err);
 }
 

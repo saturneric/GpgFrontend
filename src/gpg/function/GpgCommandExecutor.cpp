@@ -42,7 +42,7 @@ void GpgFrontend::GpgCommandExecutor::Execute(
   async_pipe in_pipe_stream(ios);
   async_pipe out_pipe_stream(ios);
 
-  child child_process(ctx.GetInfo().AppPath.c_str(), arguments,
+  child child_process(ctx_.GetInfo().AppPath.c_str(), arguments,
                       std_out > in_pipe_stream, std_in < out_pipe_stream);
 
   boost::asio::async_read(

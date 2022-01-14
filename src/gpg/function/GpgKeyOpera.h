@@ -30,37 +30,101 @@
 #include "gpg/GpgModel.h"
 
 namespace GpgFrontend {
+/**
+ * @brief
+ *
+ */
 class GenKeyInfo;
+
+/**
+ * @brief
+ *
+ */
 class GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
  public:
+  /**
+   * @brief Construct a new Gpg Key Opera object
+   *
+   * @param channel
+   */
   explicit GpgKeyOpera(
       int channel = SingletonFunctionObject::GetDefaultChannel())
       : SingletonFunctionObject<GpgKeyOpera>(channel) {}
 
+  /**
+   * @brief
+   *
+   * @param key_ids
+   */
   void DeleteKeys(KeyIdArgsListPtr key_ids);
 
+  /**
+   * @brief
+   *
+   * @param key_id
+   */
   void DeleteKey(const KeyId& key_id);
 
+  /**
+   * @brief Set the Expire object
+   *
+   * @param key
+   * @param subkey_fpr
+   * @param expires
+   * @return GpgError
+   */
   GpgError SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
                      std::unique_ptr<boost::posix_time::ptime>& expires);
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @param output_file_name
+   */
   static void GenerateRevokeCert(const GpgKey& key,
                                  const std::string& output_file_name);
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @return GpgFrontend::GpgError
+   */
   GpgFrontend::GpgError ModifyPassword(const GpgKey& key);
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @param tofu_policy
+   * @return GpgFrontend::GpgError
+   */
   GpgFrontend::GpgError ModifyTOFUPolicy(const GpgKey& key,
                                          gpgme_tofu_policy_t tofu_policy);
-
+  /**
+   * @brief
+   *
+   * @param params
+   * @param result
+   * @return GpgFrontend::GpgError
+   */
   GpgFrontend::GpgError GenerateKey(const std::unique_ptr<GenKeyInfo>& params,
                                     GpgGenKeyResult& result);
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @param params
+   * @return GpgFrontend::GpgError
+   */
   GpgFrontend::GpgError GenerateSubkey(
       const GpgKey& key, const std::unique_ptr<GenKeyInfo>& params);
 
  private:
-  GpgContext& ctx =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+  GpgContext& ctx_ =
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
 };
 }  // namespace GpgFrontend
 

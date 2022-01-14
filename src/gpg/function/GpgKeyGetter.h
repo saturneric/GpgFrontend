@@ -98,7 +98,7 @@ class GpgKeyGetter : public SingletonFunctionObject<GpgKeyGetter> {
    * @brief
    *
    */
-  GpgContext& ctx =
+  GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
 };
 }  // namespace GpgFrontend

@@ -111,7 +111,7 @@ void KeyUIDSignDialog::slotSignKey(bool clicked) {
   for (const auto& uid : *mUids) {
     LOG(INFO) << "Sign UID" << uid;
     // Sign For mKey
-    if (!GpgKeyManager::GetInstance().signKey(mKey, *keys, uid, expires)) {
+    if (!GpgKeyManager::GetInstance().SignKey(mKey, *keys, uid, expires)) {
       QMessageBox::critical(
           nullptr, _("Unsuccessful Operation"),
           QString(_("Signature operation failed for UID %1")).arg(uid.c_str()));
