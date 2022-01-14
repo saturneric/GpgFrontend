@@ -34,18 +34,31 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief
+ *
+ */
 class GpgImportedKey {
  public:
-  std::string fpr;
-  int import_status;
+  std::string fpr;    ///<
+  int import_status;  ///<
 };
 
-typedef std::list<GpgImportedKey> GpgImportedKeyList;
+typedef std::list<GpgImportedKey> GpgImportedKeyList;  ///<
 
+/**
+ * @brief
+ *
+ */
 class GpgImportInformation {
  public:
   GpgImportInformation() = default;
 
+  /**
+   * @brief Construct a new Gpg Import Information object/**
+   *
+   * @param result
+   */
   explicit GpgImportInformation(gpgme_import_result_t result) {
     if (result->unchanged) unchanged = result->unchanged;
     if (result->considered) considered = result->considered;
@@ -63,49 +76,114 @@ class GpgImportInformation {
     if (result->not_imported) not_imported = result->not_imported;
   }
 
-  int considered = 0;
-  int no_user_id = 0;
-  int imported = 0;
-  int imported_rsa = 0;
-  int unchanged = 0;
-  int new_user_ids = 0;
-  int new_sub_keys = 0;
-  int new_signatures = 0;
-  int new_revocations = 0;
-  int secret_read = 0;
-  int secret_imported = 0;
-  int secret_unchanged = 0;
-  int not_imported = 0;
-  GpgImportedKeyList importedKeys;
+  int considered = 0;               ///<
+  int no_user_id = 0;               ///<
+  int imported = 0;                 ///<
+  int imported_rsa = 0;             ///<
+  int unchanged = 0;                ///<
+  int new_user_ids = 0;             ///<
+  int new_sub_keys = 0;             ///<
+  int new_signatures = 0;           ///<
+  int new_revocations = 0;          ///<
+  int secret_read = 0;              ///<
+  int secret_imported = 0;          ///<
+  int secret_unchanged = 0;         ///<
+  int not_imported = 0;             ///<
+  GpgImportedKeyList importedKeys;  ///<
 };
 
+/**
+ * @brief
+ *
+ */
 class GpgKeyImportExporter
     : public SingletonFunctionObject<GpgKeyImportExporter> {
  public:
+  /**
+   * @brief Construct a new Gpg Key Import Exporter object
+   *
+   * @param channel
+   */
   explicit GpgKeyImportExporter(
       int channel = SingletonFunctionObject::GetDefaultChannel())
       : SingletonFunctionObject<GpgKeyImportExporter>(channel) {}
 
+  /**
+   * @brief
+   *
+   * @param inBuffer
+   * @return GpgImportInformation
+   */
   GpgImportInformation ImportKey(StdBypeArrayPtr inBuffer);
 
+  /**
+   * @brief
+   *
+   * @param uid_list
+   * @param out_buffer
+   * @param secret
+   * @return true
+   * @return false
+   */
   bool ExportKeys(KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer,
                   bool secret = false) const;
 
+  /**
+   * @brief
+   *
+   * @param keys
+   * @param outBuffer
+   * @param secret
+   * @return true
+   * @return false
+   */
   bool ExportKeys(const KeyArgsList& keys, ByteArrayPtr& outBuffer,
                   bool secret = false) const;
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @param out_buffer
+   * @return true
+   * @return false
+   */
   bool ExportKey(const GpgKey& key, ByteArrayPtr& out_buffer) const;
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @param out_buffer
+   * @return true
+   * @return false
+   */
   bool ExportKeyOpenSSH(const GpgKey& key, ByteArrayPtr& out_buffer) const;
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @param outBuffer
+   * @return true
+   * @return false
+   */
   bool ExportSecretKey(const GpgKey& key, ByteArrayPtr& outBuffer) const;
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @param outBuffer
+   * @return true
+   * @return false
+   */
   bool ExportSecretKeyShortest(const GpgKey& key,
                                ByteArrayPtr& outBuffer) const;
 
  private:
   GpgContext& ctx =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
 };
 
 }  // namespace GpgFrontend
