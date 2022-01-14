@@ -33,6 +33,11 @@
 #include "gpg/GpgFunctionObject.h"
 
 namespace GpgFrontend {
+
+/**
+ * @brief
+ *
+ */
 class GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
  public:
   explicit GpgCommandExecutor(
@@ -40,6 +45,13 @@ class GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
       : SingletonFunctionObject<GpgCommandExecutor>(channel) {}
 
 #ifndef WINDOWS
+
+  /**
+   * @brief
+   *
+   * @param arguments
+   * @param interact_func
+   */
   void Execute(StringArgsRef arguments,
                const std::function<void(boost::process::async_pipe &in,
                                         boost::process::async_pipe &out)>

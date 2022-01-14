@@ -75,7 +75,7 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Verify(
     BypeArrayRef& in_buffer, ByteArrayPtr& sig_buffer,
     GpgVerifyResult& result) const {
   gpgme_error_t err;
-  
+
   GpgData data_in(in_buffer.data(), in_buffer.size());
   GpgData data_out;
 
@@ -91,7 +91,7 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Verify(
   return err;
 }
 
-GpgFrontend::GpgError GpgFrontend::BasicOperator::Sign(KeyListPtr keys,
+GpgFrontend::GpgError GpgFrontend::BasicOperator::Sign(KeyListPtr signers,
                                                        BypeArrayRef in_buffer,
                                                        ByteArrayPtr& out_buffer,
                                                        gpgme_sig_mode_t mode,
@@ -99,22 +99,9 @@ GpgFrontend::GpgError GpgFrontend::BasicOperator::Sign(KeyListPtr keys,
   gpgme_error_t err;
 
   // Set Singers of this opera
-  SetSigners(*keys);
+  SetSigners(*signers);
 
   GpgData data_in(in_buffer.data(), in_buffer.size()), data_out;
-
-  /**
-      `GPGME_SIG_MODE_NORMAL'
-            A normal signature is made, the output includes the plaintext
-            and the signature.
-
-      `GPGME_SIG_MODE_DETACH'
-            A detached signature is made.
-
-      `GPGME_SIG_MODE_CLEAR'
-            A clear text signature is made.  The ASCII armor and text
-            mode settings of the context are ignored.
-  */
 
   err = check_gpg_error(gpgme_op_sign(ctx, data_in, data_out, mode));
 
@@ -183,9 +170,9 @@ gpgme_error_t GpgFrontend::BasicOperator::EncryptSign(
   return err;
 }
 
-void GpgFrontend::BasicOperator::SetSigners(KeyArgsList& keys) {
+void GpgFrontend::BasicOperator::SetSigners(KeyArgsList& signers) {
   gpgme_signers_clear(ctx);
-  for (const GpgKey& key : keys) {
+  for (const GpgKey& key : signers) {
     DLOG(INFO) << "key" << key.fpr();
     if (key.CanSignActual()) {
       DLOG(INFO) << "signer";
@@ -193,7 +180,7 @@ void GpgFrontend::BasicOperator::SetSigners(KeyArgsList& keys) {
       check_gpg_error(error);
     }
   }
-  if (keys.size() != gpgme_signers_count(ctx))
+  if (signers.size() != gpgme_signers_count(ctx))
     DLOG(INFO) << "No All Signers Added";
 }
 
@@ -207,6 +194,7 @@ GpgFrontend::BasicOperator::GetSigners() {
   }
   return signers;
 }
+
 gpg_error_t GpgFrontend::BasicOperator::EncryptSymmetric(
     GpgFrontend::ByteArray& in_buffer, GpgFrontend::ByteArrayPtr& out_buffer,
     GpgFrontend::GpgEncrResult& result) {
