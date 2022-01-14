@@ -35,11 +35,16 @@
 namespace GpgFrontend {
 
 /**
- * @brief
+ * @brief Extra commands related to GPG
  *
  */
 class GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
  public:
+  /**
+   * @brief Construct a new Gpg Command Executor object
+   *
+   * @param channel Corresponding context
+   */
   explicit GpgCommandExecutor(
       int channel = SingletonFunctionObject::GetDefaultChannel())
       : SingletonFunctionObject<GpgCommandExecutor>(channel) {}
@@ -47,10 +52,10 @@ class GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
 #ifndef WINDOWS
 
   /**
-   * @brief
+   * @brief Excuting an order
    *
-   * @param arguments
-   * @param interact_func
+   * @param arguments Command parameters
+   * @param interact_func Command answering function
    */
   void Execute(StringArgsRef arguments,
                const std::function<void(boost::process::async_pipe &in,
@@ -59,8 +64,8 @@ class GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
 #endif
 
  private:
-  GpgContext &ctx =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+  GpgContext &ctx = GpgContext::GetInstance(
+      SingletonFunctionObject::GetChannel());  ///< Corresponding context
 };
 
 }  // namespace GpgFrontend

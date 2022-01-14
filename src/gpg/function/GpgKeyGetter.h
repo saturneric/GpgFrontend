@@ -31,25 +31,73 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief
+ *
+ */
 class GpgKeyGetter : public SingletonFunctionObject<GpgKeyGetter> {
  public:
+  /**
+   * @brief Construct a new Gpg Key Getter object
+   *
+   * @param channel
+   */
   explicit GpgKeyGetter(
       int channel = SingletonFunctionObject::GetDefaultChannel())
       : SingletonFunctionObject<GpgKeyGetter>(channel) {}
 
+  /**
+   * @brief Get the Key object
+   *
+   * @param fpr
+   * @return GpgKey
+   */
   GpgKey GetKey(const std::string& fpr);
 
+  /**
+   * @brief Get the Keys object
+   *
+   * @param ids
+   * @return KeyListPtr
+   */
   KeyListPtr GetKeys(const KeyIdArgsListPtr& ids);
 
+  /**
+   * @brief Get the Pubkey object
+   *
+   * @param fpr
+   * @return GpgKey
+   */
   GpgKey GetPubkey(const std::string& fpr);
 
+  /**
+   * @brief
+   *
+   * @return KeyLinkListPtr
+   */
   KeyLinkListPtr FetchKey();
 
+  /**
+   * @brief Get the Keys Copy object
+   *
+   * @param keys
+   * @return KeyListPtr
+   */
   static KeyListPtr GetKeysCopy(const KeyListPtr& keys);
 
+  /**
+   * @brief Get the Keys Copy object
+   *
+   * @param keys
+   * @return KeyLinkListPtr
+   */
   static KeyLinkListPtr GetKeysCopy(const KeyLinkListPtr& keys);
 
  private:
+  /**
+   * @brief
+   *
+   */
   GpgContext& ctx =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
 };
