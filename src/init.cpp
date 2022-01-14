@@ -23,7 +23,6 @@
  */
 
 #include <boost/date_time.hpp>
-#include <vmime/vmime.hpp>
 
 #include "ui/settings/GlobalSettingStation.h"
 

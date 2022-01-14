@@ -25,6 +25,8 @@
 #ifndef GPGFRONTEND_GPGFRONTENDUI_H
 #define GPGFRONTEND_GPGFRONTENDUI_H
 
+#include <optional>
+
 #include <QtCore>
 #include <QtNetwork>
 #include <QtPrintSupport>
@@ -43,6 +45,10 @@
 #ifdef SMTP_SUPPORT
 #include <SmtpMime>
 #endif
+
+#define VMIME_STATIC
+#undef VMIME_HAVE_MLANG
+#include <vmime/vmime.hpp>
 
 /**
  * Resources File(s) Path Vars

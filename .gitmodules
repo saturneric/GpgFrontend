@@ -9,7 +9,7 @@
 	url = https://github.com/saturneric/libgpg-error
 [submodule "third_party/vmime"]
 	path = third_party/vmime
-	url = https://github.com/saturneric/vmime
+	url = git://git.codesdream.com//third_party/vmime.git
 [submodule "third_party/json"]
 	path = third_party/json
 	url = https://github.com/saturneric/json
@@ -21,4 +21,4 @@
 	url = https://github.com/saturneric/Qt-AES
 [submodule "third_party/smtp-mime"]
 	path = third_party/smtp-mime
-	url = https://github.com/saturneric/SmtpClient-for-Qt
+	url = git://git.codesdream.com//third_party/smtp-mime.git
