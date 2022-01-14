@@ -42,7 +42,6 @@ jobs:
       - name: Git Sumbodule Update
         run: |
           git submodule update --init --recursive
-
       - name: Codesign Configuration (macOS)
         run: |
           echo ${{secrets.MACOS_CERTIFICATE}} | base64 --decode > certificate.p12
@@ -56,12 +55,12 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5 gcc texinfo gettext libgpg-error libassuan gpgme openssl 
+          brew install cmake git autoconf automake qt@5 gcc texinfo gettext gpgme openssl@1.1
           brew install boost libconfig gettext ninja
           brew unlink gettext && brew link --force gettext
           brew link qt@5
           brew link gcc
-          brew link openssl --force
+          brew link openssl@1.1 --force
         if: matrix.os == 'macos-10.15'
 
       - name: Cache Qt
@@ -88,69 +87,25 @@ jobs:
       - name: Set up Dependence (Windows)
         shell: msys2 {0}
         run: |
-          pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
-          pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake 
+          pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf
+          pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake
           pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel
           pacman --noconfirm -S --needed mingw-w64-x86_64-gpgme mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg
         if: matrix.os == 'windows-latest'
 
-      - name: Build gpg-error (Linux)
+      - name: Build GpgFrontend (Linux)
+        # Build your GpgFrontend with the given configuration
         run: |
-          cd  ${{github.workspace}}/third_party/libgpg-error
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
-          sudo make install
-          cd ${{github.workspace}}
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON
+          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
         if: matrix.os == 'ubuntu-latest'
 
-      - name: Build assuan (Linux)
+      - name: Build GpgFrontend (macOS)
+        # Build your GpgFrontend with the given configuration
         run: |
-          cd ${{github.workspace}}/third_party/libassuan
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest'
-
-      - name: Build GpgME (Linux & macOS)
-        run: |
-          cd  ${{github.workspace}}/third_party/gpgme
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-10.15'
-
-      - name: Build GpgME (Windows)
-        shell: msys2 {0}
-        run: |
-          git clone https://github.com/saturneric/gpgme
-          cd gpgme
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes --disable-gpg-test --enable-languages=cpp LDFLAGS="-static" && make -j2
-          make install
-        if: matrix.os == 'windows-latest'
-
-      - name: Build vmime
-        run: |
-          cd ${{github.workspace}}/third_party/vmime
-          mkdir build
-          cd build
-          cmake -G Ninja -DVMIME_HAVE_MESSAGING_PROTO_SENDMAIL=OFF -DVMIME_CHARSETCONV_LIB=iconv -DVMIME_TLS_SUPPORT_LIB=openssl -DVMIME_HAVE_SASL_SUPPORT=OFF ..
-          ninja -v
-          sudo ninja install
-          cd ${{github.workspace}}
-
-      - name: Configure CMake
-        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-10.15'
-
-      - name: Build GpgFrontend
-        # Build your program with the given configuration
-        run: cmake -G Ninja --build ${{github.workspace}}/build --config $env.BUILD_TYPE}}  -- -v
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-10.15'
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1
+          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
+        if: matrix.os == 'macos-10.15'
 
       - name: Configure CMake & Build Binary(Windows)
         shell: msys2 {0}
@@ -159,7 +114,7 @@ jobs:
           mkdir build && cd build
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON ..
           # Build your program with the given configuration
-          cmake --build . --config ${{env.BUILD_TYPE}}  -- -v
+          cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
         if: matrix.os == 'windows-latest'
 
       - name: Get Short SHA of Commit
