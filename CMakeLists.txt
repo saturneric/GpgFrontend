@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 
+# define project
 project(GpgFrontend VERSION 2.0.4 LANGUAGES CXX)
 
+# show cmake version
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
 
 INCLUDE(CheckIncludeFiles)
@@ -12,6 +14,8 @@ INCLUDE(CheckTypeSize)
 INCLUDE(CheckLibraryExists)
 INCLUDE(CheckCXXSourceCompiles)
 
+# generate compile_commands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # options
 option(GPGFRONTEND_BUILD_TYPE_TEST_CORE
