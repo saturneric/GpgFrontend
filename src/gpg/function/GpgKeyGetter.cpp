@@ -30,7 +30,7 @@
 
 GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr) {
   gpgme_key_t _p_key = nullptr;
-  gpgme_get_key(ctx, fpr.c_str(), &_p_key, 1);
+  gpgme_get_key(ctx_, fpr.c_str(), &_p_key, 1);
   if (_p_key == nullptr) {
     DLOG(WARNING) << "GpgKeyGetter GetKey Private _p_key Null fpr" << fpr;
     return GetPubkey(fpr);
@@ -42,7 +42,7 @@ GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr) {
 GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetPubkey(
     const std::string& fpr) {
   gpgme_key_t _p_key = nullptr;
-  gpgme_get_key(ctx, fpr.c_str(), &_p_key, 0);
+  gpgme_get_key(ctx_, fpr.c_str(), &_p_key, 0);
   if (_p_key == nullptr)
     DLOG(WARNING) << "GpgKeyGetter GetKey _p_key Null" << fpr;
   return GpgKey(std::move(_p_key));
@@ -53,17 +53,17 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
 
   auto keys_list = std::make_unique<GpgKeyLinkList>();
 
-  err = gpgme_op_keylist_start(ctx, nullptr, 0);
+  err = gpgme_op_keylist_start(ctx_, nullptr, 0);
   assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
   gpgme_key_t key;
-  while ((err = gpgme_op_keylist_next(ctx, &key)) == GPG_ERR_NO_ERROR) {
+  while ((err = gpgme_op_keylist_next(ctx_, &key)) == GPG_ERR_NO_ERROR) {
     keys_list->push_back(GetKey(key->fpr));
   }
 
   assert(check_gpg_error_2_err_code(err, GPG_ERR_EOF) == GPG_ERR_EOF);
 
-  err = gpgme_op_keylist_end(ctx);
+  err = gpgme_op_keylist_end(ctx_);
 
   assert(check_gpg_error_2_err_code(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
 

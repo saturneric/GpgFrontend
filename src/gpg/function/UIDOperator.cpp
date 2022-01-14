@@ -22,43 +22,43 @@
  *
  */
 
-#include "gpg/function/UidOperator.h"
+#include "gpg/function/UIDOperator.h"
 
 #include "boost/format.hpp"
 
-bool GpgFrontend::UidOperator::addUID(const GpgFrontend::GpgKey& key,
+bool GpgFrontend::UIDOperator::AddUID(const GpgFrontend::GpgKey& key,
                                       const std::string& uid) {
-  auto err = gpgme_op_adduid(ctx, gpgme_key_t(key), uid.c_str(), 0);
+  auto err = gpgme_op_adduid(ctx_, gpgme_key_t(key), uid.c_str(), 0);
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
     return true;
   else
     return false;
 }
 
-bool GpgFrontend::UidOperator::revUID(const GpgFrontend::GpgKey& key,
+bool GpgFrontend::UIDOperator::RevUID(const GpgFrontend::GpgKey& key,
                                       const std::string& uid) {
   auto err =
-      check_gpg_error(gpgme_op_revuid(ctx, gpgme_key_t(key), uid.c_str(), 0));
+      check_gpg_error(gpgme_op_revuid(ctx_, gpgme_key_t(key), uid.c_str(), 0));
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
     return true;
   else
     return false;
 }
 
-bool GpgFrontend::UidOperator::setPrimaryUID(const GpgFrontend::GpgKey& key,
+bool GpgFrontend::UIDOperator::SetPrimaryUID(const GpgFrontend::GpgKey& key,
                                              const std::string& uid) {
   auto err = check_gpg_error(gpgme_op_set_uid_flag(
-      ctx, gpgme_key_t(key), uid.c_str(), "primary", nullptr));
+      ctx_, gpgme_key_t(key), uid.c_str(), "primary", nullptr));
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
     return true;
   else
     return false;
 }
-bool GpgFrontend::UidOperator::addUID(const GpgFrontend::GpgKey& key,
+bool GpgFrontend::UIDOperator::AddUID(const GpgFrontend::GpgKey& key,
                                       const std::string& name,
                                       const std::string& comment,
                                       const std::string& email) {
-  LOG(INFO) << "GpgFrontend::UidOperator::addUID" << name << comment << email;
+  LOG(INFO) << "GpgFrontend::UidOperator::AddUID" << name << comment << email;
   auto uid = boost::format("%1%(%2%)<%3%>") % name % comment % email;
-  return addUID(key, uid.str());
+  return AddUID(key, uid.str());
 }

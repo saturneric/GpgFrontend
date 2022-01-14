@@ -31,31 +31,57 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief
+ *
+ */
 class GpgKeyManager : public SingletonFunctionObject<GpgKeyManager> {
  public:
+  /**
+   * @brief Construct a new Gpg Key Manager object
+   *
+   * @param channel
+   */
   explicit GpgKeyManager(
       int channel = SingletonFunctionObject::GetDefaultChannel())
       : SingletonFunctionObject<GpgKeyManager>(channel) {}
 
   /**
-   * Sign a key pair(actually a certain uid)
+   * @brief Sign a key pair(actually a certain uid)
    * @param target target key pair
    * @param uid target
    * @param expires expire date and time of the signature
    * @return if successful
    */
-  bool signKey(const GpgKey& target, KeyArgsList& keys, const std::string& uid,
+  bool SignKey(const GpgKey& target, KeyArgsList& keys, const std::string& uid,
                const std::unique_ptr<boost::posix_time::ptime>& expires);
 
-  bool revSign(const GpgFrontend::GpgKey& key,
+  /**
+   * @brief
+   *
+   * @param key
+   * @param signature_id
+   * @return true
+   * @return false
+   */
+  bool RevSign(const GpgFrontend::GpgKey& key,
                const GpgFrontend::SignIdArgsListPtr& signature_id);
 
-  bool setExpire(const GpgKey& key, std::unique_ptr<GpgSubKey>& subkey,
+  /**
+   * @brief Set the Expire object
+   *
+   * @param key
+   * @param subkey
+   * @param expires
+   * @return true
+   * @return false
+   */
+  bool SetExpire(const GpgKey& key, std::unique_ptr<GpgSubKey>& subkey,
                  std::unique_ptr<boost::posix_time::ptime>& expires);
 
  private:
-  GpgContext& ctx =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+  GpgContext& ctx_ =
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
 };
 
 }  // namespace GpgFrontend

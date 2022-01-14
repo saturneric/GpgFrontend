@@ -29,12 +29,15 @@
 #include "gpg/GpgModel.h"
 
 namespace GpgFrontend {
-
-class UidOperator : public SingletonFunctionObject<UidOperator> {
+/**
+ * @brief
+ *
+ */
+class UIDOperator : public SingletonFunctionObject<UIDOperator> {
  public:
-  explicit UidOperator(
+  explicit UIDOperator(
       int channel = SingletonFunctionObject::GetDefaultChannel())
-      : SingletonFunctionObject<UidOperator>(channel) {}
+      : SingletonFunctionObject<UIDOperator>(channel) {}
 
   /**
    * create a new uid in certain key pair
@@ -42,7 +45,7 @@ class UidOperator : public SingletonFunctionObject<UidOperator> {
    * @param uid uid args(combine name&comment&email)
    * @return if successful
    */
-  bool addUID(const GpgKey& key, const std::string& uid);
+  bool AddUID(const GpgKey& key, const std::string& uid);
 
   /**
    * create a new uid in certain key pair
@@ -52,7 +55,7 @@ class UidOperator : public SingletonFunctionObject<UidOperator> {
    * @param email
    * @return
    */
-  bool addUID(const GpgKey& key, const std::string& name,
+  bool AddUID(const GpgKey& key, const std::string& name,
               const std::string& comment, const std::string& email);
 
   /**
@@ -61,7 +64,7 @@ class UidOperator : public SingletonFunctionObject<UidOperator> {
    * @param uid target uid
    * @return if successful
    */
-  bool revUID(const GpgKey& key, const std::string& uid);
+  bool RevUID(const GpgKey& key, const std::string& uid);
 
   /**
    * Set one of a uid of a key pair as primary
@@ -69,11 +72,11 @@ class UidOperator : public SingletonFunctionObject<UidOperator> {
    * @param uid target uid
    * @return if successful
    */
-  bool setPrimaryUID(const GpgKey& key, const std::string& uid);
+  bool SetPrimaryUID(const GpgKey& key, const std::string& uid);
 
  private:
-  GpgContext& ctx =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+  GpgContext& ctx_ =
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
 };
 
 }  // namespace GpgFrontend

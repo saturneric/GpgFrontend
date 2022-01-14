@@ -30,7 +30,7 @@
 #include "gpg/function/BasicOperator.h"
 #include "gpg/function/GpgKeyGetter.h"
 
-bool GpgFrontend::GpgKeyManager::signKey(
+bool GpgFrontend::GpgKeyManager::SignKey(
     const GpgFrontend::GpgKey& target, GpgFrontend::KeyArgsList& keys,
     const std::string& uid,
     const std::unique_ptr<boost::posix_time::ptime>& expires) {
@@ -47,12 +47,12 @@ bool GpgFrontend::GpgKeyManager::signKey(
     expires_time_t = to_time_t(*expires);
 
   auto err = check_gpg_error(gpgme_op_keysign(
-      ctx, gpgme_key_t(target), uid.c_str(), expires_time_t, flags));
+      ctx_, gpgme_key_t(target), uid.c_str(), expires_time_t, flags));
 
   return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgKeyManager::revSign(
+bool GpgFrontend::GpgKeyManager::RevSign(
     const GpgFrontend::GpgKey& key,
     const GpgFrontend::SignIdArgsListPtr& signature_id) {
   auto& key_getter = GpgKeyGetter::GetInstance();
@@ -60,7 +60,7 @@ bool GpgFrontend::GpgKeyManager::revSign(
   for (const auto& sign_id : *signature_id) {
     auto signing_key = key_getter.GetKey(sign_id.first);
     assert(signing_key.good());
-    auto err = check_gpg_error(gpgme_op_revsig(ctx, gpgme_key_t(key),
+    auto err = check_gpg_error(gpgme_op_revsig(ctx_, gpgme_key_t(key),
                                                gpgme_key_t(signing_key),
                                                sign_id.second.c_str(), 0));
     if (check_gpg_error_2_err_code(err) != GPG_ERR_NO_ERROR) return false;
@@ -68,7 +68,7 @@ bool GpgFrontend::GpgKeyManager::revSign(
   return true;
 }
 
-bool GpgFrontend::GpgKeyManager::setExpire(
+bool GpgFrontend::GpgKeyManager::SetExpire(
     const GpgFrontend::GpgKey& key, std::unique_ptr<GpgSubKey>& subkey,
     std::unique_ptr<boost::posix_time::ptime>& expires) {
   using namespace boost::posix_time;
@@ -82,7 +82,7 @@ bool GpgFrontend::GpgKeyManager::setExpire(
   if (subkey != nullptr) sub_fprs = subkey->fpr().c_str();
 
   auto err = check_gpg_error(
-      gpgme_op_setexpire(ctx, gpgme_key_t(key), expires_time, sub_fprs, 0));
+      gpgme_op_setexpire(ctx_, gpgme_key_t(key), expires_time, sub_fprs, 0));
 
   return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
 }

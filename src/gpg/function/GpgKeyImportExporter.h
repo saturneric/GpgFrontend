@@ -55,7 +55,7 @@ class GpgImportInformation {
   GpgImportInformation() = default;
 
   /**
-   * @brief Construct a new Gpg Import Information object/**
+   * @brief Construct a new Gpg Import Information object
    *
    * @param result
    */
@@ -182,7 +182,7 @@ class GpgKeyImportExporter
                                ByteArrayPtr& outBuffer) const;
 
  private:
-  GpgContext& ctx =
+  GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
 };
 

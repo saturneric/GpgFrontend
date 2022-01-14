@@ -167,7 +167,7 @@ class BasicOperator : public SingletonFunctionObject<BasicOperator> {
   std::unique_ptr<KeyArgsList> GetSigners();
 
  private:
-  GpgContext& ctx = GpgContext::GetInstance(
+  GpgContext& ctx_ = GpgContext::GetInstance(
       SingletonFunctionObject::GetChannel());  ///< Corresponding context
 };
 }  // namespace GpgFrontend

@@ -64,7 +64,7 @@ class GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
 #endif
 
  private:
-  GpgContext &ctx = GpgContext::GetInstance(
+  GpgContext &ctx_ = GpgContext::GetInstance(
       SingletonFunctionObject::GetChannel());  ///< Corresponding context
 };
 

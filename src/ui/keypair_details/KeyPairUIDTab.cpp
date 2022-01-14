@@ -26,7 +26,7 @@
 
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyManager.h"
-#include "gpg/function/UidOperator.h"
+#include "gpg/function/UIDOperator.h"
 #include "ui/SignalStation.h"
 #include "ui/widgets/TOFUInfoPage.h"
 
@@ -376,7 +376,7 @@ void KeyPairUIDTab::slotDelUID() {
   if (ret == QMessageBox::Yes) {
     for (const auto& uid : *selected_uids) {
       LOG(INFO) << "KeyPairUIDTab::slotDelUID UID" << uid;
-      if (!UidOperator::GetInstance().revUID(mKey, uid)) {
+      if (!UIDOperator::GetInstance().RevUID(mKey, uid)) {
         QMessageBox::critical(
             nullptr, _("Operation Failed"),
             QString(_("An error occurred during the delete %1 operation."))
@@ -411,7 +411,7 @@ void KeyPairUIDTab::slotSetPrimaryUID() {
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    if (!UidOperator::GetInstance().setPrimaryUID(mKey,
+    if (!UIDOperator::GetInstance().SetPrimaryUID(mKey,
                                                   selected_uids->front())) {
       QMessageBox::critical(nullptr, _("Operation Failed"),
                             _("An error occurred during the operation."));
@@ -510,7 +510,7 @@ void KeyPairUIDTab::slotDelUIDSingle() {
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    if (!UidOperator::GetInstance().revUID(mKey, selected_uids->front())) {
+    if (!UIDOperator::GetInstance().RevUID(mKey, selected_uids->front())) {
       QMessageBox::critical(nullptr, _("Operation Failed"),
                             _("An error occurred during the operation."));
     } else {
@@ -562,7 +562,7 @@ void KeyPairUIDTab::slotDelSign() {
                            QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    if (!GpgKeyManager::GetInstance().revSign(mKey, selected_signs)) {
+    if (!GpgKeyManager::GetInstance().RevSign(mKey, selected_signs)) {
       QMessageBox::critical(nullptr, _("Operation Failed"),
                             _("An error occurred during the operation."));
     }
