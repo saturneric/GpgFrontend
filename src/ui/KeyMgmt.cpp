@@ -47,8 +47,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool {
-        return !key.is_private_key() &&
-               !(key.revoked() || key.disabled() || key.expired());
+        return !key.IsPrivateKey() &&
+               !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   key_list_->addListGroupTab(
@@ -56,8 +56,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool {
-        return key.is_private_key() &&
-               !(key.revoked() || key.disabled() || key.expired());
+        return key.IsPrivateKey() &&
+               !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   key_list_->addListGroupTab(
@@ -65,21 +65,21 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool {
-        return !key.has_master_key() &&
-               !(key.revoked() || key.disabled() || key.expired());
+        return !key.IsHasMasterKey() &&
+               !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   key_list_->addListGroupTab(
       _("Revoked"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key) -> bool { return key.revoked(); });
+      [](const GpgKey& key) -> bool { return key.IsRevoked(); });
 
   key_list_->addListGroupTab(
       _("Expired"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key) -> bool { return key.expired(); });
+      [](const GpgKey& key) -> bool { return key.IsExpired(); });
 
   setCentralWidget(key_list_);
   key_list_->setDoubleClickedAction([this](const GpgKey& key, QWidget* parent) {
@@ -320,10 +320,10 @@ void KeyMgmt::deleteKeysWithWarning(KeyIdArgsListPtr key_ids) {
   QString keynames;
   for (const auto& key_id : *key_ids) {
     auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
-    if (!key.good()) continue;
-    keynames.append(QString::fromStdString(key.name()));
+    if (!key.IsGood()) continue;
+    keynames.append(QString::fromStdString(key.GetName()));
     keynames.append("<i> &lt;");
-    keynames.append(QString::fromStdString(key.email()));
+    keynames.append(QString::fromStdString(key.GetEmail()));
     keynames.append("&gt; </i><br/>");
   }
 
@@ -348,7 +348,7 @@ void KeyMgmt::slotShowKeyDetails() {
 
   auto key = GpgKeyGetter::GetInstance().GetKey(keys_selected->front());
 
-  if (!key.good()) {
+  if (!key.IsGood()) {
     QMessageBox::critical(this, _("Error"), _("Key Not Found."));
     return;
   }
@@ -405,18 +405,18 @@ void KeyMgmt::slotGenerateSubKey() {
     return;
   }
   const auto key = GpgKeyGetter::GetInstance().GetKey(keys_selected->front());
-  if (!key.good()) {
+  if (!key.IsGood()) {
     QMessageBox::critical(this, _("Error"), _("Key Not Found."));
     return;
   }
-  if (!key.is_private_key()) {
+  if (!key.IsPrivateKey()) {
     QMessageBox::critical(this, _("Invalid Operation"),
                           _("If a key pair does not have a private key then "
                             "it will not be able to generate sub-keys."));
     return;
   }
 
-  auto dialog = new SubkeyGenerateDialog(key.id(), this);
+  auto dialog = new SubkeyGenerateDialog(key.GetId(), this);
   dialog->show();
 }
 void KeyMgmt::slotSaveWindowState() {
@@ -494,12 +494,12 @@ void KeyMgmt::slotExportAsOpenSSHFormat() {
   }
 
   key = GpgKeyGetter::GetInstance().GetKey(keys_checked->front());
-  if (!key.good()) {
+  if (!key.IsGood()) {
     QMessageBox::critical(this, _("Error"), _("Key Not Found."));
     return;
   }
-  QString fileString = QString::fromStdString(key.name() + " " + key.email() +
-                                              "(" + key.id() + ").pub");
+  QString fileString = QString::fromStdString(
+      key.GetName() + " " + key.GetEmail() + "(" + key.GetId() + ").pub");
 
   QString file_name = QFileDialog::getSaveFileName(
       this, _("Export OpenSSH Key To File"), fileString,

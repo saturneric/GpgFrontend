@@ -25,4 +25,4 @@
 #include "GpgSignature.h"
 
 GpgFrontend::GpgSignature::GpgSignature(gpgme_signature_t sig)
-    : _signature_ref(sig, [&](gpgme_signature_t signature) {}) {}
+    : signature_ref_(sig, [&](gpgme_signature_t signature) {}) {}

@@ -104,7 +104,7 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys,
                                                    ByteArrayPtr& out_buffer,
                                                    bool secret) const {
   KeyIdArgsListPtr key_ids = std::make_unique<std::vector<std::string>>();
-  for (const auto& key : keys) key_ids->push_back(key.id());
+  for (const auto& key : keys) key_ids->push_back(key.GetId());
   return ExportKeys(key_ids, out_buffer, secret);
 }
 
@@ -116,7 +116,7 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys,
  */
 bool GpgFrontend::GpgKeyImportExporter::ExportSecretKey(
     const GpgKey& key, ByteArrayPtr& out_buffer) const {
-  DLOG(INFO) << "Export Secret Key" << key.id().c_str();
+  DLOG(INFO) << "Export Secret Key" << key.GetId().c_str();
 
   gpgme_key_t target_key[2] = {gpgme_key_t(key), nullptr};
 
@@ -135,7 +135,7 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKey(
     const GpgFrontend::GpgKey& key,
     GpgFrontend::ByteArrayPtr& out_buffer) const {
   GpgData data_out;
-  auto err = gpgme_op_export(ctx_, key.id().c_str(), 0, data_out);
+  auto err = gpgme_op_export(ctx_, key.GetId().c_str(), 0, data_out);
 
   DLOG(INFO) << "exportKeys read_bytes"
              << gpgme_data_seek(data_out, 0, SEEK_END);
@@ -149,8 +149,8 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeyOpenSSH(
     const GpgFrontend::GpgKey& key,
     GpgFrontend::ByteArrayPtr& out_buffer) const {
   GpgData data_out;
-  auto err =
-      gpgme_op_export(ctx_, key.id().c_str(), GPGME_EXPORT_MODE_SSH, data_out);
+  auto err = gpgme_op_export(ctx_, key.GetId().c_str(), GPGME_EXPORT_MODE_SSH,
+                             data_out);
 
   DLOG(INFO) << "read_bytes" << gpgme_data_seek(data_out, 0, SEEK_END);
 
@@ -163,8 +163,8 @@ bool GpgFrontend::GpgKeyImportExporter::ExportSecretKeyShortest(
     const GpgFrontend::GpgKey& key,
     GpgFrontend::ByteArrayPtr& out_buffer) const {
   GpgData data_out;
-  auto err = gpgme_op_export(ctx_, key.id().c_str(), GPGME_EXPORT_MODE_MINIMAL,
-                             data_out);
+  auto err = gpgme_op_export(ctx_, key.GetId().c_str(),
+                             GPGME_EXPORT_MODE_MINIMAL, data_out);
 
   DLOG(INFO) << "read_bytes" << gpgme_data_seek(data_out, 0, SEEK_END);
 

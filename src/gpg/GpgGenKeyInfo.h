@@ -36,159 +36,393 @@
 namespace GpgFrontend {
 
 class GenKeyInfo {
-  bool standalone_ = false;
-  bool subkey_ = false;
-  std::string name_;
-  std::string email_;
-  std::string comment_;
+  bool standalone_ = false;  ///<
+  bool subkey_ = false;      ///<
+  std::string name_;         ///<
+  std::string email_;        ///<
+  std::string comment_;      ///<
 
-  std::string algo_;
+  std::string algo_;  ///<
   int key_size_ = 2048;
   boost::posix_time::ptime expired_ =
       boost::posix_time::second_clock::local_time() +
-      boost::gregorian::years(2);
-  bool non_expired_ = false;
+      boost::gregorian::years(2);  ///<
+  bool non_expired_ = false;       ///<
 
-  bool no_passphrase_ = false;
-  bool allow_no_pass_phrase_ = true;
+  bool no_passphrase_ = false;        ///<
+  bool allow_no_pass_phrase_ = true;  ///<
 
-  int suggest_max_key_size_ = 4096;
-  int suggest_size_addition_step_ = 1024;
-  int suggest_min_key_size_ = 1024;
+  int suggest_max_key_size_ = 4096;        ///<
+  int suggest_size_addition_step_ = 1024;  ///<
+  int suggest_min_key_size_ = 1024;        ///<
 
-  std::string passphrase_;
+  std::string passphrase_;  ///<
 
  public:
-  static const std::vector<std::string> &getSupportedKeyAlgo();
+  /**
+   * @brief Get the Supported Key Algo object
+   *
+   * @return const std::vector<std::string>&
+   */
+  static const std::vector<std::string> &GetSupportedKeyAlgo();
 
-  static const std::vector<std::string> &getSupportedSubkeyAlgo();
+  /**
+   * @brief Get the Supported Subkey Algo object
+   *
+   * @return const std::vector<std::string>&
+   */
+  static const std::vector<std::string> &GetSupportedSubkeyAlgo();
 
-  static const std::vector<std::string> &getSupportedKeyAlgoStandalone();
+  /**
+   * @brief Get the Supported Key Algo Standalone object
+   *
+   * @return const std::vector<std::string>&
+   */
+  static const std::vector<std::string> &GetSupportedKeyAlgoStandalone();
 
-  static const std::vector<std::string> &getSupportedSubkeyAlgoStandalone();
+  /**
+   * @brief Get the Supported Subkey Algo Standalone object
+   *
+   * @return const std::vector<std::string>&
+   */
+  static const std::vector<std::string> &GetSupportedSubkeyAlgoStandalone();
 
-  [[nodiscard]] bool isSubKey() const { return subkey_; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsSubKey() const { return subkey_; }
 
-  void setIsSubKey(bool m_sub_key) { GenKeyInfo::subkey_ = m_sub_key; }
+  /**
+   * @brief Set the Is Sub Key object
+   *
+   * @param m_sub_key
+   */
+  void SetIsSubKey(bool m_sub_key) { GenKeyInfo::subkey_ = m_sub_key; }
 
-  [[nodiscard]] std::string getUserid() const {
+  /**
+   * @brief Get the Userid object
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetUserid() const {
     auto uid_format = boost::format("%1%(%2%)<%3%>") % this->name_ %
                       this->comment_ % this->email_;
     return uid_format.str();
   }
 
-  void setName(const std::string &m_name) { this->name_ = m_name; }
+  /**
+   * @brief Set the Name object
+   *
+   * @param m_name
+   */
+  void SetName(const std::string &m_name) { this->name_ = m_name; }
 
-  void setEmail(const std::string &m_email) { this->email_ = m_email; }
+  /**
+   * @brief Set the Email object
+   *
+   * @param m_email
+   */
+  void SetEmail(const std::string &m_email) { this->email_ = m_email; }
 
-  void setComment(const std::string &m_comment) { this->comment_ = m_comment; }
+  /**
+   * @brief Set the Comment object
+   *
+   * @param m_comment
+   */
+  void SetComment(const std::string &m_comment) { this->comment_ = m_comment; }
 
-  [[nodiscard]] std::string getName() const { return name_; }
+  /**
+   * @brief Get the Name object
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetName() const { return name_; }
 
-  [[nodiscard]] std::string getEmail() const { return email_; }
+  /**
+   * @brief Get the Email object
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetEmail() const { return email_; }
 
-  [[nodiscard]] std::string getComment() const { return comment_; }
+  /**
+   * @brief Get the Comment object
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetComment() const { return comment_; }
 
-  [[nodiscard]] const std::string &getAlgo() const { return algo_; }
+  /**
+   * @brief Get the Algo object
+   *
+   * @return const std::string&
+   */
+  [[nodiscard]] const std::string &GetAlgo() const { return algo_; }
 
-  void setAlgo(const std::string &m_algo);
+  /**
+   * @brief Set the Algo object
+   *
+   * @param m_algo
+   */
+  void SetAlgo(const std::string &m_algo);
 
-  [[nodiscard]] std::string getKeySizeStr() const;
+  /**
+   * @brief Get the Key Size Str object
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetKeySizeStr() const;
 
-  [[nodiscard]] int getKeySize() const { return key_size_; }
+  /**
+   * @brief Get the Key Size object
+   *
+   * @return int
+   */
+  [[nodiscard]] int GetKeyLength() const { return key_size_; }
 
-  void setKeySize(int m_key_size);
+  /**
+   * @brief Set the Key Size object
+   *
+   * @param m_key_size
+   */
+  void SetKeyLength(int m_key_size);
 
-  [[nodiscard]] const boost::posix_time::ptime &getExpired() const {
+  /**
+   * @brief Get the Expired object
+   *
+   * @return const boost::posix_time::ptime&
+   */
+  [[nodiscard]] const boost::posix_time::ptime &GetExpireTime() const {
     return expired_;
   }
 
-  void setExpired(const boost::posix_time::ptime &m_expired);
+  /**
+   * @brief Set the Expired object
+   *
+   * @param m_expired
+   */
+  void SetExpireTime(const boost::posix_time::ptime &m_expired);
 
-  [[nodiscard]] bool isNonExpired() const { return non_expired_; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsNonExpired() const { return non_expired_; }
 
-  void setNonExpired(bool m_non_expired);
+  /**
+   * @brief Set the Non Expired object
+   *
+   * @param m_non_expired
+   */
+  void SetNonExpired(bool m_non_expired);
 
-  [[nodiscard]] bool isNoPassPhrase() const { return this->no_passphrase_; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsNoPassPhrase() const { return this->no_passphrase_; }
 
-  void setNonPassPhrase(bool m_non_pass_phrase) {
+  /**
+   * @brief Set the Non Pass Phrase object
+   *
+   * @param m_non_pass_phrase
+   */
+  void SetNonPassPhrase(bool m_non_pass_phrase) {
     GenKeyInfo::no_passphrase_ = m_non_pass_phrase;
   }
 
-  [[nodiscard]] bool isAllowSigning() const { return allowSigning; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsAllowSigning() const { return allow_signing_; }
 
-  [[nodiscard]] bool isAllowNoPassPhrase() const {
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsAllowNoPassPhrase() const {
     return allow_no_pass_phrase_;
   }
 
-  void setAllowSigning(bool m_allow_signing) {
-    if (allowChangeSigning) GenKeyInfo::allowSigning = m_allow_signing;
+  /**
+   * @brief Set the Allow Signing object
+   *
+   * @param m_allow_signing
+   */
+  void SetAllowSigning(bool m_allow_signing) {
+    if (allow_change_signing_) GenKeyInfo::allow_signing_ = m_allow_signing;
   }
 
-  [[nodiscard]] bool isAllowEncryption() const { return allowEncryption; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsAllowEncryption() const { return allow_encryption_; }
 
-  void setAllowEncryption(bool m_allow_encryption);
+  /**
+   * @brief Set the Allow Encryption object
+   *
+   * @param m_allow_encryption
+   */
+  void SetAllowEncryption(bool m_allow_encryption);
 
-  [[nodiscard]] bool isAllowCertification() const { return allowCertification; }
-
-  void setAllowCertification(bool m_allow_certification);
-
-  [[nodiscard]] bool isAllowAuthentication() const {
-    return allowAuthentication;
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsAllowCertification() const {
+    return allow_certification_;
   }
 
-  void setAllowAuthentication(bool m_allow_authentication) {
-    if (allowChangeAuthentication)
-      GenKeyInfo::allowAuthentication = m_allow_authentication;
+  /**
+   * @brief Set the Allow Certification object
+   *
+   * @param m_allow_certification
+   */
+  void SetAllowCertification(bool m_allow_certification);
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsAllowAuthentication() const {
+    return allow_authentication_;
   }
 
-  [[nodiscard]] const std::string &getPassPhrase() const { return passphrase_; }
+  /**
+   * @brief Set the Allow Authentication object
+   *
+   * @param m_allow_authentication
+   */
+  void SetAllowAuthentication(bool m_allow_authentication) {
+    if (allow_change_authentication_)
+      GenKeyInfo::allow_authentication_ = m_allow_authentication;
+  }
 
-  void setPassPhrase(const std::string &m_pass_phrase) {
+  /**
+   * @brief Get the Pass Phrase object
+   *
+   * @return const std::string&
+   */
+  [[nodiscard]] const std::string &GetPassPhrase() const { return passphrase_; }
+
+  /**
+   * @brief Set the Pass Phrase object
+   *
+   * @param m_pass_phrase
+   */
+  void SetPassPhrase(const std::string &m_pass_phrase) {
     GenKeyInfo::passphrase_ = m_pass_phrase;
   }
 
-  [[nodiscard]] bool isAllowChangeSigning() const { return allowChangeSigning; }
-  [[nodiscard]] bool isAllowChangeEncryption() const {
-    return allowChangeEncryption;
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsAllowChangeSigning() const {
+    return allow_change_signing_;
   }
 
-  [[nodiscard]] bool isAllowChangeCertification() const {
-    return allowChangeCertification;
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsAllowChangeEncryption() const {
+    return allow_change_encryption_;
   }
 
-  [[nodiscard]] bool isAllowChangeAuthentication() const {
-    return allowChangeAuthentication;
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsAllowChangeCertification() const {
+    return allow_change_certification_;
   }
 
-  [[nodiscard]] int getSuggestMaxKeySize() const {
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsAllowChangeAuthentication() const {
+    return allow_change_authentication_;
+  }
+
+  /**
+   * @brief Get the Suggest Max Key Size object
+   *
+   * @return int
+   */
+  [[nodiscard]] int GetSuggestMaxKeySize() const {
     return suggest_max_key_size_;
   }
 
-  [[nodiscard]] int getSuggestMinKeySize() const {
+  /**
+   * @brief Get the Suggest Min Key Size object
+   *
+   * @return int
+   */
+  [[nodiscard]] int GetSuggestMinKeySize() const {
     return suggest_min_key_size_;
   }
 
-  [[nodiscard]] int getSizeChangeStep() const {
+  /**
+   * @brief Get the Size Change Step object
+   *
+   * @return int
+   */
+  [[nodiscard]] int GetSizeChangeStep() const {
     return suggest_size_addition_step_;
   }
 
  private:
-  bool allowEncryption = true;
-  bool allowChangeEncryption = true;
+  bool allow_encryption_ = true;             ///<
+  bool allow_change_encryption_ = true;      ///<
+  bool allow_certification_ = true;          ///<
+  bool allow_change_certification_ = true;   ///<
+  bool allow_authentication_ = true;         ///<
+  bool allow_change_authentication_ = true;  ///<
+  bool allow_signing_ = true;                ///<
+  bool allow_change_signing_ = true;         ///<
 
-  bool allowCertification = true;
-  bool allowChangeCertification = true;
-
-  bool allowAuthentication = true;
-  bool allowChangeAuthentication = true;
-
-  bool allowSigning = true;
-  bool allowChangeSigning = true;
-
+  /**
+   * @brief
+   *
+   */
   void reset_options();
 
  public:
+  /**
+   * @brief Construct a new Gen Key Info object
+   *
+   * @param m_is_sub_key
+   * @param m_standalone
+   */
   explicit GenKeyInfo(bool m_is_sub_key = false, bool m_standalone = false);
 };
 

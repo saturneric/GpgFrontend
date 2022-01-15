@@ -24,17 +24,17 @@
 
 #include "gpg/result_analyse/ResultAnalyse.h"
 
-const std::string GpgFrontend::ResultAnalyse::getResultReport() const {
-  return stream.str();
+const std::string GpgFrontend::ResultAnalyse::GetResultReport() const {
+  return stream_.str();
 }
 
-int GpgFrontend::ResultAnalyse::getStatus() const { return status; }
+int GpgFrontend::ResultAnalyse::GetStatus() const { return status_; }
 
-void GpgFrontend::ResultAnalyse::setStatus(int mStatus) {
-  if (mStatus < status) status = mStatus;
+void GpgFrontend::ResultAnalyse::set_status(int m_status) {
+  if (m_status < status_) status_ = m_status;
 }
 
-void GpgFrontend::ResultAnalyse::analyse() {
+void GpgFrontend::ResultAnalyse::Analyse() {
   if (!analysed_) {
     do_analyse();
     analysed_ = true;

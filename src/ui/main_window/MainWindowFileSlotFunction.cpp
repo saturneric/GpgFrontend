@@ -117,14 +117,14 @@ void MainWindow::slotFileEncrypt() {
 
     // check key abilities
     for (const auto& key : *p_keys) {
-      bool key_can_encrypt = key.CanEncrActual();
+      bool key_can_encrypt = key.IsHasActualEncryptionCapability();
 
       if (!key_can_encrypt) {
         QMessageBox::critical(
             nullptr, _("Invalid KeyPair"),
             QString(_("The selected keypair cannot be used for encryption.")) +
                 "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-                QString::fromStdString(key.uids()->front().uid()));
+                QString::fromStdString(key.GetUIDs()->front().GetUID()));
         return;
       }
     }
@@ -142,7 +142,7 @@ void MainWindow::slotFileEncrypt() {
 
   if (!if_error) {
     auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));
-    resultAnalyse.analyse();
+    resultAnalyse.Analyse();
     process_result_analyse(edit, infoBoard, resultAnalyse);
     fileTreeView->update();
   } else {
@@ -189,7 +189,7 @@ void MainWindow::slotFileDecrypt() {
 
   if (!if_error) {
     auto resultAnalyse = DecryptResultAnalyse(error, std::move(result));
-    resultAnalyse.analyse();
+    resultAnalyse.Analyse();
     process_result_analyse(edit, infoBoard, resultAnalyse);
 
     fileTreeView->update();
@@ -217,13 +217,13 @@ void MainWindow::slotFileSign() {
   }
 
   for (const auto& key : *keys) {
-    if (!key.CanSignActual()) {
+    if (!key.IsHasActualSigningCapability()) {
       QMessageBox::information(
           this, _("Invalid Operation"),
           QString(_("The selected key contains a key that does not actually "
                     "have a sign usage.")) +
               "<br/><br/>" + _("for example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.uids()->front().uid()));
+              QString::fromStdString(key.GetUIDs()->front().GetUID()));
       return;
     }
   }
@@ -273,7 +273,7 @@ void MainWindow::slotFileSign() {
 
   if (!if_error) {
     auto resultAnalyse = SignResultAnalyse(error, std::move(result));
-    resultAnalyse.analyse();
+    resultAnalyse.Analyse();
     process_result_analyse(edit, infoBoard, resultAnalyse);
 
     fileTreeView->update();
@@ -354,13 +354,13 @@ void MainWindow::slotFileVerify() {
 
   if (!if_error) {
     auto result_analyse = VerifyResultAnalyse(error, result);
-    result_analyse.analyse();
+    result_analyse.Analyse();
     process_result_analyse(edit, infoBoard, result_analyse);
 
-    if (result_analyse.getStatus() == -2)
+    if (result_analyse.GetStatus() == -2)
       import_unknown_key_from_keyserver(this, result_analyse);
 
-    if (result_analyse.getStatus() >= 0)
+    if (result_analyse.GetStatus() >= 0)
       show_verify_details(this, infoBoard, error, result);
 
     fileTreeView->update();
@@ -390,14 +390,14 @@ void MainWindow::slotFileEncryptSign() {
 
   // check key abilities
   for (const auto& key : *p_keys) {
-    bool key_can_encrypt = key.CanEncrActual();
+    bool key_can_encrypt = key.IsHasActualEncryptionCapability();
 
     if (!key_can_encrypt) {
       QMessageBox::critical(
           nullptr, _("Invalid KeyPair"),
           QString(_("The selected keypair cannot be used for encryption.")) +
               "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.uids()->front().uid()));
+              QString::fromStdString(key.GetUIDs()->front().GetUID()));
       return;
     }
   }
@@ -456,8 +456,8 @@ void MainWindow::slotFileEncryptSign() {
   if (!if_error) {
     auto encrypt_result = EncryptResultAnalyse(error, std::move(encr_result));
     auto sign_res = SignResultAnalyse(error, std::move(sign_result));
-    encrypt_result.analyse();
-    sign_res.analyse();
+    encrypt_result.Analyse();
+    sign_res.Analyse();
     process_result_analyse(edit, infoBoard, encrypt_result, sign_res);
 
     fileTreeView->update();
@@ -511,14 +511,14 @@ void MainWindow::slotFileDecryptVerify() {
   if (!if_error) {
     auto decrypt_res = DecryptResultAnalyse(error, std::move(d_result));
     auto verify_res = VerifyResultAnalyse(error, v_result);
-    decrypt_res.analyse();
-    verify_res.analyse();
+    decrypt_res.Analyse();
+    verify_res.Analyse();
     process_result_analyse(edit, infoBoard, decrypt_res, verify_res);
 
-    if (verify_res.getStatus() == -2)
+    if (verify_res.GetStatus() == -2)
       import_unknown_key_from_keyserver(this, verify_res);
 
-    if (verify_res.getStatus() >= 0)
+    if (verify_res.GetStatus() >= 0)
       show_verify_details(this, infoBoard, error, v_result);
 
     fileTreeView->update();

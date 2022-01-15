@@ -28,60 +28,134 @@
 #include "gpg/GpgConstants.h"
 
 namespace GpgFrontend {
-
+/**
+ * @brief
+ *
+ */
 class GpgTOFUInfo {
  public:
-  [[nodiscard]] unsigned validity() const { return _tofu_info_ref->validity; }
+  /**
+   * @brief
+   *
+   * @return unsigned
+   */
+  [[nodiscard]] unsigned GetValidity() const {
+    return _tofu_info_ref->validity;
+  }
 
-  [[nodiscard]] unsigned policy() const { return _tofu_info_ref->policy; }
+  /**
+   * @brief
+   *
+   * @return unsigned
+   */
+  [[nodiscard]] unsigned GetPolicy() const { return _tofu_info_ref->policy; }
 
-  [[nodiscard]] unsigned long sign_count() const {
+  /**
+   * @brief
+   *
+   * @return unsigned long
+   */
+  [[nodiscard]] unsigned long GetSignCount() const {
     return _tofu_info_ref->signcount;
   }
 
-  [[nodiscard]] unsigned long encr_count() const {
+  /**
+   * @brief
+   *
+   * @return unsigned long
+   */
+  [[nodiscard]] unsigned long GetEncrCount() const {
     return _tofu_info_ref->encrcount;
   }
 
-  [[nodiscard]] unsigned long sign_first() const {
+  /**
+   * @brief
+   *
+   * @return unsigned long
+   */
+  [[nodiscard]] unsigned long GetSignFirst() const {
     return _tofu_info_ref->signfirst;
   }
 
-  [[nodiscard]] unsigned long sign_last() const {
+  /**
+   * @brief
+   *
+   * @return unsigned long
+   */
+  [[nodiscard]] unsigned long GetSignLast() const {
     return _tofu_info_ref->signlast;
   }
 
-  [[nodiscard]] unsigned long encr_last() const {
+  /**
+   * @brief
+   *
+   * @return unsigned long
+   */
+  [[nodiscard]] unsigned long GetEncrLast() const {
     return _tofu_info_ref->encrlast;
   }
 
-  [[nodiscard]] std::string description() const {
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetDescription() const {
     return _tofu_info_ref->description;
   }
 
+  /**
+   * @brief Construct a new Gpg T O F U Info object
+   *
+   */
   GpgTOFUInfo() = default;
 
+  /**
+   * @brief Construct a new Gpg T O F U Info object
+   *
+   * @param tofu_info
+   */
   explicit GpgTOFUInfo(gpgme_tofu_info_t tofu_info);
 
+  /**
+   * @brief Construct a new Gpg T O F U Info object
+   *
+   * @param o
+   */
   GpgTOFUInfo(GpgTOFUInfo&& o) noexcept {
     swap(_tofu_info_ref, o._tofu_info_ref);
   }
 
+  /**
+   * @brief Construct a new Gpg T O F U Info object
+   *
+   */
   GpgTOFUInfo(const GpgTOFUInfo&) = delete;
 
+  /**
+   * @brief
+   *
+   * @param o
+   * @return GpgTOFUInfo&
+   */
   GpgTOFUInfo& operator=(GpgTOFUInfo&& o) noexcept {
     swap(_tofu_info_ref, o._tofu_info_ref);
     return *this;
   };
 
+  /**
+   * @brief
+   *
+   * @return GpgTOFUInfo&
+   */
   GpgTOFUInfo& operator=(const GpgTOFUInfo&) = delete;
 
  private:
   using SubkeyRefHandler =
       std::unique_ptr<struct _gpgme_tofu_info,
-                      std::function<void(gpgme_tofu_info_t)>>;
+                      std::function<void(gpgme_tofu_info_t)>>;  ///<
 
-  SubkeyRefHandler _tofu_info_ref = nullptr;
+  SubkeyRefHandler _tofu_info_ref = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

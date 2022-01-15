@@ -30,54 +30,174 @@
 
 #include "gpg/GpgConstants.h"
 
+/**
+ * @brief
+ *
+ */
 namespace GpgFrontend {
 
+/**
+ * @brief
+ *
+ */
 class GpgKeySignature {
  public:
-  [[nodiscard]] bool revoked() const { return _signature_ref->revoked; }
-  [[nodiscard]] bool expired() const { return _signature_ref->expired; }
-  [[nodiscard]] bool invalid() const { return _signature_ref->invalid; }
-  [[nodiscard]] bool exportable() const { return _signature_ref->exportable; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsRevoked() const { return signature_ref_->revoked; }
 
-  [[nodiscard]] gpgme_error_t status() const { return _signature_ref->status; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsExpired() const { return signature_ref_->expired; }
 
-  [[nodiscard]] std::string keyid() const { return _signature_ref->keyid; }
-  [[nodiscard]] std::string pubkey_algo() const {
-    return gpgme_pubkey_algo_name(_signature_ref->pubkey_algo);
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsInvalid() const { return signature_ref_->invalid; }
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsExportable() const { return signature_ref_->exportable; }
+
+  /**
+   * @brief
+   *
+   * @return gpgme_error_t
+   */
+  [[nodiscard]] gpgme_error_t GetStatus() const {
+    return signature_ref_->status;
   }
 
-  [[nodiscard]] boost::posix_time::ptime create_time() const {
-    return boost::posix_time::from_time_t(_signature_ref->timestamp);
-  }
-  [[nodiscard]] boost::posix_time::ptime expire_time() const {
-    return boost::posix_time::from_time_t(_signature_ref->expires);
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetKeyID() const { return signature_ref_->keyid; }
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetPubkeyAlgo() const {
+    return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
   }
 
-  [[nodiscard]] std::string uid() const { return _signature_ref->uid; }
-  [[nodiscard]] std::string name() const { return _signature_ref->name; }
-  [[nodiscard]] std::string email() const { return _signature_ref->email; }
-  [[nodiscard]] std::string comment() const { return _signature_ref->comment; }
+  /**
+   * @brief Create a time object
+   *
+   * @return boost::posix_time::ptime
+   */
+  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const {
+    return boost::posix_time::from_time_t(signature_ref_->timestamp);
+  }
 
+  /**
+   * @brief
+   *
+   * @return boost::posix_time::ptime
+   */
+  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const {
+    return boost::posix_time::from_time_t(signature_ref_->expires);
+  }
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetUID() const { return signature_ref_->uid; }
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetName() const { return signature_ref_->name; }
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetEmail() const { return signature_ref_->email; }
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetComment() const {
+    return signature_ref_->comment;
+  }
+
+  /**
+   * @brief Construct a new Gpg Key Signature object
+   *
+   */
   GpgKeySignature() = default;
 
+  /**
+   * @brief Destroy the Gpg Key Signature object
+   *
+   */
   ~GpgKeySignature() = default;
 
+  /**
+   * @brief Construct a new Gpg Key Signature object
+   *
+   * @param sig
+   */
   explicit GpgKeySignature(gpgme_key_sig_t sig);
 
+  /**
+   * @brief Construct a new Gpg Key Signature object
+   *
+   */
   GpgKeySignature(GpgKeySignature &&) noexcept = default;
 
+  /**
+   * @brief Construct a new Gpg Key Signature object
+   *
+   */
   GpgKeySignature(const GpgKeySignature &) = delete;
 
+  /**
+   * @brief
+   *
+   * @return GpgKeySignature&
+   */
   GpgKeySignature &operator=(GpgKeySignature &&) noexcept = default;
 
+  /**
+   * @brief
+   *
+   * @return GpgKeySignature&
+   */
   GpgKeySignature &operator=(const GpgKeySignature &) = delete;
 
  private:
   using KeySignatrueRefHandler =
       std::unique_ptr<struct _gpgme_key_sig,
-                      std::function<void(gpgme_key_sig_t)>>;
+                      std::function<void(gpgme_key_sig_t)>>;  ///<
 
-  KeySignatrueRefHandler _signature_ref = nullptr;
+  KeySignatrueRefHandler signature_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

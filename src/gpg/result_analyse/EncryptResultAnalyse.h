@@ -29,16 +29,30 @@
 #include "gpg/GpgConstants.h"
 
 namespace GpgFrontend {
+/**
+ * @brief
+ *
+ */
 class EncryptResultAnalyse : public ResultAnalyse {
  public:
+  /**
+   * @brief Construct a new Encrypt Result Analyse object
+   *
+   * @param error
+   * @param result
+   */
   explicit EncryptResultAnalyse(GpgError error, GpgEncrResult result);
 
  protected:
+  /**
+   * @brief
+   *
+   */
   void do_analyse() final;
 
  private:
-  GpgError error;
-  GpgEncrResult result;
+  GpgError error_;        ///<
+  GpgEncrResult result_;  ///<
 };
 }  // namespace GpgFrontend
 

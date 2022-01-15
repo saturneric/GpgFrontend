@@ -31,55 +31,136 @@
 #include "gpg/GpgConstants.h"
 
 namespace GpgFrontend {
+
+/**
+ * @brief
+ *
+ */
 class GpgSignature {
  public:
-  [[nodiscard]] gpgme_validity_t validity() const {
-    return _signature_ref->validity;
+  /**
+   * @brief
+   *
+   * @return gpgme_validity_t
+   */
+  [[nodiscard]] gpgme_validity_t GetValidity() const {
+    return signature_ref_->validity;
   }
 
-  [[nodiscard]] gpgme_error_t status() const { return _signature_ref->status; }
-
-  [[nodiscard]] gpgme_error_t summary() const {
-    return _signature_ref->summary;
+  /**
+   * @brief
+   *
+   * @return gpgme_error_t
+   */
+  [[nodiscard]] gpgme_error_t GetStatus() const {
+    return signature_ref_->status;
   }
 
-  [[nodiscard]] std::string pubkey_algo() const {
-    return gpgme_pubkey_algo_name(_signature_ref->pubkey_algo);
+  /**
+   * @brief
+   *
+   * @return gpgme_error_t
+   */
+  [[nodiscard]] gpgme_error_t GetSummary() const {
+    return signature_ref_->summary;
   }
 
-  [[nodiscard]] std::string hash_algo() const {
-    return gpgme_hash_algo_name(_signature_ref->hash_algo);
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetPubkeyAlgo() const {
+    return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
   }
 
-  [[nodiscard]] boost::posix_time::ptime create_time() const {
-    return boost::posix_time::from_time_t(_signature_ref->timestamp);
-  }
-  [[nodiscard]] boost::posix_time::ptime expire_time() const {
-    return boost::posix_time::from_time_t(_signature_ref->exp_timestamp);
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetHashAlgo() const {
+    return gpgme_hash_algo_name(signature_ref_->hash_algo);
   }
 
-  [[nodiscard]] std::string fpr() const { return _signature_ref->fpr; }
+  /**
+   * @brief Create a time object
+   *
+   * @return boost::posix_time::ptime
+   */
+  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const {
+    return boost::posix_time::from_time_t(signature_ref_->timestamp);
+  }
 
+  /**
+   * @brief
+   *
+   * @return boost::posix_time::ptime
+   */
+  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const {
+    return boost::posix_time::from_time_t(signature_ref_->exp_timestamp);
+  }
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetFingerprint() const {
+    return signature_ref_->fpr;
+  }
+
+  /**
+   * @brief Construct a new Gpg Signature object
+   *
+   */
   GpgSignature() = default;
 
+  /**
+   * @brief Destroy the Gpg Signature object
+   *
+   */
   ~GpgSignature() = default;
 
+  /**
+   * @brief Construct a new Gpg Signature object
+   *
+   * @param sig
+   */
   explicit GpgSignature(gpgme_signature_t sig);
 
+  /**
+   * @brief Construct a new Gpg Signature object
+   *
+   */
   GpgSignature(GpgSignature &&) noexcept = default;
 
+  /**
+   * @brief Construct a new Gpg Signature object
+   *
+   */
   GpgSignature(const GpgSignature &) = delete;
 
+  /**
+   * @brief
+   *
+   * @return GpgSignature&
+   */
   GpgSignature &operator=(GpgSignature &&) noexcept = default;
 
+  /**
+   * @brief
+   *
+   * @return GpgSignature&
+   */
   GpgSignature &operator=(const GpgSignature &) = delete;
 
  private:
   using KeySignatrueRefHandler =
       std::unique_ptr<struct _gpgme_signature,
-                      std::function<void(gpgme_signature_t)>>;
+                      std::function<void(gpgme_signature_t)>>;  ///<
 
-  KeySignatrueRefHandler _signature_ref = nullptr;
+  KeySignatrueRefHandler signature_ref_ = nullptr;  ///<
 };
 }  // namespace GpgFrontend
 

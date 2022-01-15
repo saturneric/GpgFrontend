@@ -30,18 +30,38 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief
+ *
+ */
 class DecryptResultAnalyse : public ResultAnalyse {
  public:
+  /**
+   * @brief Construct a new Decrypt Result Analyse object
+   *
+   * @param m_error
+   * @param m_result
+   */
   explicit DecryptResultAnalyse(GpgError m_error, GpgDecrResult m_result);
 
  protected:
+  /**
+   * @brief
+   *
+   */
   void do_analyse() final;
 
  private:
+  /**
+   * @brief
+   *
+   * @param stream
+   * @param recipient
+   */
   void print_recipient(std::stringstream &stream, gpgme_recipient_t recipient);
 
-  GpgError error;
-  GpgDecrResult result;
+  GpgError error_;        ///<
+  GpgDecrResult result_;  ///<
 };
 
 }  // namespace GpgFrontend

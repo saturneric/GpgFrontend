@@ -173,8 +173,8 @@ gpgme_error_t GpgFrontend::BasicOperator::EncryptSign(
 void GpgFrontend::BasicOperator::SetSigners(KeyArgsList& signers) {
   gpgme_signers_clear(ctx_);
   for (const GpgKey& key : signers) {
-    DLOG(INFO) << "key" << key.fpr();
-    if (key.CanSignActual()) {
+    DLOG(INFO) << "key" << key.GetFingerprint();
+    if (key.IsHasActualSigningCapability()) {
       DLOG(INFO) << "signer";
       auto error = gpgme_signers_add(ctx_, gpgme_key_t(key));
       check_gpg_error(error);

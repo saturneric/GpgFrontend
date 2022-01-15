@@ -142,11 +142,11 @@ void KeyImportDetailDialog::createKeysTable() {
   for (const auto& imp_key : mResult.importedKeys) {
     keysTable->setRowCount(row + 1);
     GpgKey key = GpgKeyGetter::GetInstance().GetKey(imp_key.fpr);
-    if (!key.good()) continue;
+    if (!key.IsGood()) continue;
     keysTable->setItem(
-        row, 0, new QTableWidgetItem(QString::fromStdString(key.name())));
+        row, 0, new QTableWidgetItem(QString::fromStdString(key.GetName())));
     keysTable->setItem(
-        row, 1, new QTableWidgetItem(QString::fromStdString(key.email())));
+        row, 1, new QTableWidgetItem(QString::fromStdString(key.GetEmail())));
     keysTable->setItem(
         row, 2, new QTableWidgetItem(getStatusString(imp_key.import_status)));
     keysTable->setItem(

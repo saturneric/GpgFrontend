@@ -24,19 +24,19 @@
 
 #include "gpg/model/GpgKey.h"
 
-GpgFrontend::GpgKey::GpgKey(gpgme_key_t &&key) : _key_ref(std::move(key)) {}
+GpgFrontend::GpgKey::GpgKey(gpgme_key_t &&key) : key_ref_(std::move(key)) {}
 
-GpgFrontend::GpgKey::GpgKey(GpgKey &&k) noexcept { swap(_key_ref, k._key_ref); }
+GpgFrontend::GpgKey::GpgKey(GpgKey &&k) noexcept { swap(key_ref_, k.key_ref_); }
 
 GpgFrontend::GpgKey &GpgFrontend::GpgKey::operator=(GpgKey &&k) noexcept {
-  swap(_key_ref, k._key_ref);
+  swap(key_ref_, k.key_ref_);
   return *this;
 }
 
 std::unique_ptr<std::vector<GpgFrontend::GpgSubKey>>
-GpgFrontend::GpgKey::subKeys() const {
+GpgFrontend::GpgKey::GetSubKeys() const {
   auto p_keys = std::make_unique<std::vector<GpgSubKey>>();
-  auto next = _key_ref->subkeys;
+  auto next = key_ref_->subkeys;
   while (next != nullptr) {
     p_keys->push_back(GpgSubKey(next));
     next = next->next;
@@ -44,10 +44,10 @@ GpgFrontend::GpgKey::subKeys() const {
   return p_keys;
 }
 
-std::unique_ptr<std::vector<GpgFrontend::GpgUID>> GpgFrontend::GpgKey::uids()
+std::unique_ptr<std::vector<GpgFrontend::GpgUID>> GpgFrontend::GpgKey::GetUIDs()
     const {
   auto p_uids = std::make_unique<std::vector<GpgUID>>();
-  auto uid_next = _key_ref->uids;
+  auto uid_next = key_ref_->uids;
   while (uid_next != nullptr) {
     p_uids->push_back(GpgUID(uid_next));
     uid_next = uid_next->next;
@@ -55,26 +55,28 @@ std::unique_ptr<std::vector<GpgFrontend::GpgUID>> GpgFrontend::GpgKey::uids()
   return p_uids;
 }
 
-bool GpgFrontend::GpgKey::CanSignActual() const {
-  auto subkeys = subKeys();
+bool GpgFrontend::GpgKey::IsHasActualSigningCapability() const {
+  auto subkeys = GetSubKeys();
   if (std::any_of(subkeys->begin(), subkeys->end(),
                   [](const GpgSubKey &subkey) -> bool {
-                    return subkey.secret() && subkey.can_sign() &&
-                           !subkey.disabled() && !subkey.revoked() &&
-                           !subkey.expired();
+                    return subkey.IsSecretKey() &&
+                           subkey.IsHasSigningCapability() &&
+                           !subkey.IsDisabled() && !subkey.IsRevoked() &&
+                           !subkey.IsExpired();
                   }))
     return true;
   else
     return false;
 }
 
-bool GpgFrontend::GpgKey::CanAuthActual() const {
-  auto subkeys = subKeys();
+bool GpgFrontend::GpgKey::IsHasActualAuthenticationCapability() const {
+  auto subkeys = GetSubKeys();
   if (std::any_of(subkeys->begin(), subkeys->end(),
                   [](const GpgSubKey &subkey) -> bool {
-                    return subkey.secret() && subkey.can_authenticate() &&
-                           !subkey.disabled() && !subkey.revoked() &&
-                           !subkey.expired();
+                    return subkey.IsSecretKey() &&
+                           subkey.IsHasAuthenticationCapability() &&
+                           !subkey.IsDisabled() && !subkey.IsRevoked() &&
+                           !subkey.IsExpired();
                   }))
     return true;
   else
@@ -86,8 +88,8 @@ bool GpgFrontend::GpgKey::CanAuthActual() const {
  * @param key target key
  * @return if key certify
  */
-bool GpgFrontend::GpgKey::CanCertActual() const {
-  return has_master_key() && !expired() && !revoked() && !disabled();
+bool GpgFrontend::GpgKey::IsHasActualCertificationCapability() const {
+  return IsHasMasterKey() && !IsExpired() && !IsRevoked() && !IsDisabled();
 }
 
 /**
@@ -95,12 +97,13 @@ bool GpgFrontend::GpgKey::CanCertActual() const {
  * @param key target key
  * @return if key encrypt
  */
-bool GpgFrontend::GpgKey::CanEncrActual() const {
-  auto subkeys = subKeys();
+bool GpgFrontend::GpgKey::IsHasActualEncryptionCapability() const {
+  auto subkeys = GetSubKeys();
   if (std::any_of(subkeys->begin(), subkeys->end(),
                   [](const GpgSubKey &subkey) -> bool {
-                    return subkey.can_encrypt() && !subkey.disabled() &&
-                           !subkey.revoked() && !subkey.expired();
+                    return subkey.IsHasEncryptionCapability() &&
+                           !subkey.IsDisabled() && !subkey.IsRevoked() &&
+                           !subkey.IsExpired();
                   }))
     return true;
   else

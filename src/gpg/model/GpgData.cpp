@@ -30,8 +30,7 @@ GpgFrontend::GpgData::GpgData() {
   auto err = gpgme_data_new(&data);
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
-  data_ =
-      std::unique_ptr<struct gpgme_data, __data_ref_deletor>(std::move(data));
+  data_ref_ = std::unique_ptr<struct gpgme_data, _data_ref_deleter>(data);
 }
 
 GpgFrontend::GpgData::GpgData(void* buffer, size_t size, bool copy) {
@@ -40,8 +39,7 @@ GpgFrontend::GpgData::GpgData(void* buffer, size_t size, bool copy) {
   auto err = gpgme_data_new_from_mem(&data, (const char*)buffer, size, copy);
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
-  data_ =
-      std::unique_ptr<struct gpgme_data, __data_ref_deletor>(std::move(data));
+  data_ref_ = std::unique_ptr<struct gpgme_data, _data_ref_deleter>(data);
 }
 
 /**

@@ -29,24 +29,64 @@
 #include "GpgTOFUInfo.h"
 
 namespace GpgFrontend {
-
+/**
+ * @brief
+ *
+ */
 class GpgUID {
  public:
-  [[nodiscard]] std::string name() const { return _uid_ref->name; }
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetName() const { return uid_ref_->name; }
 
-  [[nodiscard]] std::string email() const { return _uid_ref->email; }
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetEmail() const { return uid_ref_->email; }
 
-  [[nodiscard]] std::string comment() const { return _uid_ref->comment; }
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetComment() const { return uid_ref_->comment; }
 
-  [[nodiscard]] std::string uid() const { return _uid_ref->uid; }
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetUID() const { return uid_ref_->uid; }
 
-  [[nodiscard]] bool revoked() const { return _uid_ref->revoked; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool GetRevoked() const { return uid_ref_->revoked; }
 
-  [[nodiscard]] bool invalid() const { return _uid_ref->invalid; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool GetInvalid() const { return uid_ref_->invalid; }
 
-  [[nodiscard]] std::unique_ptr<std::vector<GpgTOFUInfo>> tofu_infos() const {
+  /**
+   * @brief
+   *
+   * @return std::unique_ptr<std::vector<GpgTOFUInfo>>
+   */
+  [[nodiscard]] std::unique_ptr<std::vector<GpgTOFUInfo>> GetTofuInfos() const {
     auto infos = std::make_unique<std::vector<GpgTOFUInfo>>();
-    auto info_next = _uid_ref->tofu;
+    auto info_next = uid_ref_->tofu;
     while (info_next != nullptr) {
       infos->push_back(GpgTOFUInfo(info_next));
       info_next = info_next->next;
@@ -54,10 +94,15 @@ class GpgUID {
     return infos;
   }
 
-  [[nodiscard]] std::unique_ptr<std::vector<GpgKeySignature>> signatures()
+  /**
+   * @brief
+   *
+   * @return std::unique_ptr<std::vector<GpgKeySignature>>
+   */
+  [[nodiscard]] std::unique_ptr<std::vector<GpgKeySignature>> GetSignatures()
       const {
     auto sigs = std::make_unique<std::vector<GpgKeySignature>>();
-    auto sig_next = _uid_ref->signatures;
+    auto sig_next = uid_ref_->signatures;
     while (sig_next != nullptr) {
       sigs->push_back(GpgKeySignature(sig_next));
       sig_next = sig_next->next;
@@ -65,26 +110,56 @@ class GpgUID {
     return sigs;
   }
 
+  /**
+   * @brief Construct a new Gpg U I D object
+   *
+   */
   GpgUID() = default;
 
+  /**
+   * @brief Construct a new Gpg U I D object
+   *
+   * @param uid
+   */
   explicit GpgUID(gpgme_user_id_t uid);
 
-  GpgUID(GpgUID &&o) noexcept { swap(_uid_ref, o._uid_ref); }
+  /**
+   * @brief Construct a new Gpg U I D object
+   *
+   * @param o
+   */
+  GpgUID(GpgUID &&o) noexcept { swap(uid_ref_, o.uid_ref_); }
 
+  /**
+   * @brief Construct a new Gpg U I D object
+   *
+   */
   GpgUID(const GpgUID &) = delete;
 
+  /**
+   * @brief
+   *
+   * @param o
+   * @return GpgUID&
+   */
   GpgUID &operator=(GpgUID &&o) noexcept {
-    swap(_uid_ref, o._uid_ref);
+    swap(uid_ref_, o.uid_ref_);
     return *this;
   }
 
+  /**
+   * @brief
+   *
+   * @return GpgUID&
+   */
   GpgUID &operator=(const GpgUID &) = delete;
 
  private:
-  using UidRefHandler = std::unique_ptr<struct _gpgme_user_id,
-                                        std::function<void(gpgme_user_id_t)>>;
+  using UidRefHandler =
+      std::unique_ptr<struct _gpgme_user_id,
+                      std::function<void(gpgme_user_id_t)>>;  ///<
 
-  UidRefHandler _uid_ref = nullptr;
+  UidRefHandler uid_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

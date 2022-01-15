@@ -25,4 +25,4 @@
 #include "gpg/model/GpgKeySignature.h"
 
 GpgFrontend::GpgKeySignature::GpgKeySignature(gpgme_key_sig_t sig)
-    : _signature_ref(sig, [&](gpgme_key_sig_t signature) {}) {}
+    : signature_ref_(sig, [&](gpgme_key_sig_t signature) {}) {}

@@ -59,7 +59,7 @@ bool GpgFrontend::GpgKeyManager::RevSign(
 
   for (const auto& sign_id : *signature_id) {
     auto signing_key = key_getter.GetKey(sign_id.first);
-    assert(signing_key.good());
+    assert(signing_key.IsGood());
     auto err = check_gpg_error(gpgme_op_revsig(ctx_, gpgme_key_t(key),
                                                gpgme_key_t(signing_key),
                                                sign_id.second.c_str(), 0));
@@ -79,7 +79,7 @@ bool GpgFrontend::GpgKeyManager::SetExpire(
 
   const char* sub_fprs = nullptr;
 
-  if (subkey != nullptr) sub_fprs = subkey->fpr().c_str();
+  if (subkey != nullptr) sub_fprs = subkey->GetFingerprint().c_str();
 
   auto err = check_gpg_error(
       gpgme_op_setexpire(ctx_, gpgme_key_t(key), expires_time, sub_fprs, 0));

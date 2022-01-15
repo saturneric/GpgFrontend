@@ -34,10 +34,11 @@ GpgFrontend::UI::SenderPicker::SenderPicker(const KeyId& current_key_id,
 
   // Setup KeyList
   key_list_ = new KeyList(KeyMenuAbility::NONE, this);
-  key_list_->addListGroupTab(
-      _("Sender"), KeyListRow::ONLY_SECRET_KEY,
-      KeyListColumn::NAME | KeyListColumn::EmailAddress,
-      [](const GpgKey& key) -> bool { return key.CanSignActual(); });
+  key_list_->addListGroupTab(_("Sender"), KeyListRow::ONLY_SECRET_KEY,
+                             KeyListColumn::NAME | KeyListColumn::EmailAddress,
+                             [](const GpgKey& key) -> bool {
+                               return key.IsHasActualSigningCapability();
+                             });
   key_list_->slotRefresh();
 
   auto key_ids = std::make_unique<GpgFrontend::KeyIdArgsList>();

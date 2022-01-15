@@ -25,4 +25,4 @@
 #include "gpg/model/GpgUID.h"
 
 GpgFrontend::GpgUID::GpgUID(gpgme_user_id_t uid)
-    : _uid_ref(uid, [&](gpgme_user_id_t uid) {}) {}
+    : uid_ref_(uid, [&](gpgme_user_id_t uid) {}) {}

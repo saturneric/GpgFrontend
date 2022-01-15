@@ -28,83 +28,84 @@
 
 GpgFrontend::SignResultAnalyse::SignResultAnalyse(GpgError error,
                                                   GpgSignResult result)
-    : error(error), result(std::move(result)) {}
+    : error_(error), result_(std::move(result)) {}
 
 void GpgFrontend::SignResultAnalyse::do_analyse() {
   LOG(INFO) << _("Start Sign Result Analyse");
 
-  stream << "[#] " << _("Sign Operation") << " ";
+  stream_ << "[#] " << _("Sign Operation") << " ";
 
-  if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
-    stream << "[" << _("Success") << "]" << std::endl;
+  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR)
+    stream_ << "[" << _("Success") << "]" << std::endl;
   else {
-    stream << "[" << _("Failed") << "] " << gpgme_strerror(error) << std::endl;
-    setStatus(-1);
+    stream_ << "[" << _("Failed") << "] " << gpgme_strerror(error_)
+            << std::endl;
+    set_status(-1);
   }
 
-  if (result != nullptr &&
-      (result->signatures != nullptr || result->invalid_signers != nullptr)) {
+  if (result_ != nullptr &&
+      (result_->signatures != nullptr || result_->invalid_signers != nullptr)) {
     LOG(INFO) << _("Sign Result Analyse Getting Result");
-    stream << "------------>" << std::endl;
-    auto new_sign = result->signatures;
+    stream_ << "------------>" << std::endl;
+    auto new_sign = result_->signatures;
 
     while (new_sign != nullptr) {
-      stream << "[>]" << _("New Signature") << ": " << std::endl;
+      stream_ << "[>]" << _("New Signature") << ": " << std::endl;
 
       LOG(INFO) << _("Signers Fingerprint") << ": " << new_sign->fpr;
 
-      stream << "    " << _("Sign Mode") << ": ";
+      stream_ << "    " << _("Sign Mode") << ": ";
       if (new_sign->type == GPGME_SIG_MODE_NORMAL)
-        stream << _("Normal");
+        stream_ << _("Normal");
       else if (new_sign->type == GPGME_SIG_MODE_CLEAR)
-        stream << _("Clear");
+        stream_ << _("Clear");
       else if (new_sign->type == GPGME_SIG_MODE_DETACH)
-        stream << _("Detach");
+        stream_ << _("Detach");
 
-      stream << std::endl;
+      stream_ << std::endl;
 
       auto singerKey =
           GpgFrontend::GpgKeyGetter::GetInstance().GetKey(new_sign->fpr);
-      if (singerKey.good()) {
-        stream << "    " << _("Signer") << ": "
-               << singerKey.uids()->front().uid() << std::endl;
+      if (singerKey.IsGood()) {
+        stream_ << "    " << _("Signer") << ": "
+                << singerKey.GetUIDs()->front().GetUID() << std::endl;
       } else {
-        stream << "    " << _("Signer") << ": "
-               << "<unknown>" << std::endl;
+        stream_ << "    " << _("Signer") << ": "
+                << "<unknown>" << std::endl;
       }
-      stream << "    " << _("Public Key Algo") << ": "
-             << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << std::endl;
-      stream << "    " << _("Hash Algo") << ": "
-             << gpgme_hash_algo_name(new_sign->hash_algo) << std::endl;
-      stream << "    " << _("Date") << "(" << _("UTC") << ")"
-             << ": "
-             << boost::posix_time::to_iso_extended_string(
-                    boost::posix_time::from_time_t(new_sign->timestamp))
-             << std::endl;
+      stream_ << "    " << _("Public Key Algo") << ": "
+              << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << std::endl;
+      stream_ << "    " << _("Hash Algo") << ": "
+              << gpgme_hash_algo_name(new_sign->hash_algo) << std::endl;
+      stream_ << "    " << _("Date") << "(" << _("UTC") << ")"
+              << ": "
+              << boost::posix_time::to_iso_extended_string(
+                     boost::posix_time::from_time_t(new_sign->timestamp))
+              << std::endl;
 
-      stream << std::endl;
+      stream_ << std::endl;
 
       new_sign = new_sign->next;
     }
 
     LOG(INFO) << _("Sign Result Analyse Getting Invalid Signer");
 
-    auto invalid_signer = result->invalid_signers;
+    auto invalid_signer = result_->invalid_signers;
 
     if (invalid_signer != nullptr)
-      stream << _("Invalid Signers") << ": " << std::endl;
+      stream_ << _("Invalid Signers") << ": " << std::endl;
 
     while (invalid_signer != nullptr) {
-      setStatus(0);
-      stream << "[>] " << _("Signer") << ": " << std::endl;
-      stream << "      " << _("Fingerprint") << ": " << invalid_signer->fpr
-             << std::endl;
-      stream << "      " << _("Reason") << ": "
-             << gpgme_strerror(invalid_signer->reason) << std::endl;
-      stream << std::endl;
+      set_status(0);
+      stream_ << "[>] " << _("Signer") << ": " << std::endl;
+      stream_ << "      " << _("Fingerprint") << ": " << invalid_signer->fpr
+              << std::endl;
+      stream_ << "      " << _("Reason") << ": "
+              << gpgme_strerror(invalid_signer->reason) << std::endl;
+      stream_ << std::endl;
 
       invalid_signer = invalid_signer->next;
     }
-    stream << "<------------" << std::endl;
+    stream_ << "<------------" << std::endl;
   }
 }

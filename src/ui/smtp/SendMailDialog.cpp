@@ -64,8 +64,9 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
   if (!default_sender_gpg_key_id.isEmpty()) {
     auto key = GpgKeyGetter::GetInstance().GetKey(
         default_sender_gpg_key_id.toStdString());
-    if (key.good() && key.is_private_key() && key.CanSignActual()) {
-      sender_key_id_ = key.id();
+    if (key.IsGood() && key.IsPrivateKey() &&
+        key.IsHasActualSigningCapability()) {
+      sender_key_id_ = key.GetId();
       set_sender_value_label();
     }
   }
@@ -383,8 +384,8 @@ void SendMailDialog::initSettings() {
 
 void SendMailDialog::set_sender_value_label() {
   auto key = GpgKeyGetter::GetInstance().GetKey(sender_key_id_);
-  if (key.good()) {
-    ui->senderKeyValueLabel->setText(key.uids()->front().uid().c_str());
+  if (key.IsGood()) {
+    ui->senderKeyValueLabel->setText(key.GetUIDs()->front().GetUID().c_str());
   }
 }
 
@@ -392,8 +393,8 @@ void SendMailDialog::set_recipients_value_label() {
   auto keys = GpgKeyGetter::GetInstance().GetKeys(recipients_key_ids_);
   std::stringstream ss;
   for (const auto& key : *keys) {
-    if (key.good()) {
-      ss << key.uids()->front().uid().c_str() << ";";
+    if (key.IsGood()) {
+      ss << key.GetUIDs()->front().GetUID().c_str() << ";";
     }
   }
   ui->recipientsKeyValueLabel->setText(ss.str().c_str());

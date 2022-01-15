@@ -80,10 +80,10 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     auto key_id_exported = std::make_unique<KeyIdArgsList>();
     auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids_);
     for (const auto& key : *keys) {
-      if (ui->noPublicKeyCheckBox->isChecked() && !key.is_private_key()) {
+      if (ui->noPublicKeyCheckBox->isChecked() && !key.IsPrivateKey()) {
         continue;
       }
-      key_id_exported->push_back(key.id());
+      key_id_exported->push_back(key.GetId());
     }
 
     ByteArrayPtr key_export_data = nullptr;

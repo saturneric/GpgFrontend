@@ -33,26 +33,73 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief
+ *
+ */
 class GpgKey {
  public:
-  [[nodiscard]] bool good() const { return _key_ref != nullptr; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsGood() const { return key_ref_ != nullptr; }
 
-  [[nodiscard]] std::string id() const { return _key_ref->subkeys->keyid; }
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetId() const { return key_ref_->subkeys->keyid; }
 
-  [[nodiscard]] std::string name() const { return _key_ref->uids->name; };
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetName() const { return key_ref_->uids->name; };
 
-  [[nodiscard]] std::string email() const { return _key_ref->uids->email; }
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetEmail() const { return key_ref_->uids->email; }
 
-  [[nodiscard]] std::string comment() const { return _key_ref->uids->comment; }
-
-  [[nodiscard]] std::string fpr() const { return _key_ref->fpr; }
-
-  [[nodiscard]] std::string protocol() const {
-    return gpgme_get_protocol_name(_key_ref->protocol);
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetComment() const {
+    return key_ref_->uids->comment;
   }
 
-  [[nodiscard]] std::string owner_trust() const {
-    switch (_key_ref->owner_trust) {
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetFingerprint() const { return key_ref_->fpr; }
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetProtocol() const {
+    return gpgme_get_protocol_name(key_ref_->protocol);
+  }
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetOwnerTrust() const {
+    switch (key_ref_->owner_trust) {
       case GPGME_VALIDITY_UNKNOWN:
         return "Unknown";
       case GPGME_VALIDITY_UNDEFINED:
@@ -69,104 +116,294 @@ class GpgKey {
     return "Invalid";
   }
 
-  [[nodiscard]] std::string pubkey_algo() const {
-    return gpgme_pubkey_algo_name(_key_ref->subkeys->pubkey_algo);
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  [[nodiscard]] std::string GetPublicKeyAlgo() const {
+    return gpgme_pubkey_algo_name(key_ref_->subkeys->pubkey_algo);
   }
 
-  [[nodiscard]] boost::posix_time::ptime last_update() const {
+  /**
+   * @brief
+   *
+   * @return boost::posix_time::ptime
+   */
+  [[nodiscard]] boost::posix_time::ptime GetLastUpdateTime() const {
     return boost::posix_time::from_time_t(
-        static_cast<time_t>(_key_ref->last_update));
+        static_cast<time_t>(key_ref_->last_update));
   }
 
-  [[nodiscard]] boost::posix_time::ptime expires() const {
-    return boost::posix_time::from_time_t(_key_ref->subkeys->expires);
+  /**
+   * @brief
+   *
+   * @return boost::posix_time::ptime
+   */
+  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const {
+    return boost::posix_time::from_time_t(key_ref_->subkeys->expires);
   };
 
-  [[nodiscard]] boost::posix_time::ptime create_time() const {
-    return boost::posix_time::from_time_t(_key_ref->subkeys->timestamp);
+  /**
+   * @brief Create a time object
+   *
+   * @return boost::posix_time::ptime
+   */
+  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const {
+    return boost::posix_time::from_time_t(key_ref_->subkeys->timestamp);
   };
 
-  [[nodiscard]] unsigned int length() const {
-    return _key_ref->subkeys->length;
+  /**
+   * @brief s
+   *
+   * @return unsigned int
+   */
+  [[nodiscard]] unsigned int GetPrimaryKeyLength() const {
+    return key_ref_->subkeys->length;
   }
 
-  [[nodiscard]] bool can_encrypt() const { return _key_ref->can_encrypt; }
-
-  [[nodiscard]] bool CanEncrActual() const;
-
-  [[nodiscard]] bool can_sign() const { return _key_ref->can_sign; }
-
-  [[nodiscard]] bool CanSignActual() const;
-
-  [[nodiscard]] bool can_certify() const { return _key_ref->can_certify; }
-
-  [[nodiscard]] bool CanCertActual() const;
-
-  [[nodiscard]] bool can_authenticate() const {
-    return _key_ref->can_authenticate;
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsHasEncryptionCapability() const {
+    return key_ref_->can_encrypt;
   }
 
-  [[nodiscard]] bool CanAuthActual() const;
+  /**
+   * @brief
 
-  [[nodiscard]] bool HasCardKey() const {
-    auto subkeys = subKeys();
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsHasActualEncryptionCapability() const;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsHasSigningCapability() const {
+    return key_ref_->can_sign;
+  }
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsHasActualSigningCapability() const;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsHasCertificationCapability() const {
+    return key_ref_->can_certify;
+  }
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsHasActualCertificationCapability() const;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsHasAuthenticationCapability() const {
+    return key_ref_->can_authenticate;
+  }
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsHasActualAuthenticationCapability() const;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsHasCardKey() const {
+    auto subkeys = GetSubKeys();
     return std::any_of(
         subkeys->begin(), subkeys->end(),
-        [](const GpgSubKey& subkey) -> bool { return subkey.is_cardkey(); });
+        [](const GpgSubKey& subkey) -> bool { return subkey.IsCardKey(); });
   }
 
-  [[nodiscard]] bool is_private_key() const { return _key_ref->secret; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsPrivateKey() const { return key_ref_->secret; }
 
-  [[nodiscard]] bool expired() const { return _key_ref->expired; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsExpired() const { return key_ref_->expired; }
 
-  [[nodiscard]] bool revoked() const { return _key_ref->revoked; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsRevoked() const { return key_ref_->revoked; }
 
-  [[nodiscard]] bool disabled() const { return _key_ref->disabled; }
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsDisabled() const { return key_ref_->disabled; }
 
-  [[nodiscard]] bool has_master_key() const {
-    return _key_ref->subkeys->secret;
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsHasMasterKey() const {
+    return key_ref_->subkeys->secret;
   }
 
-  [[nodiscard]] std::unique_ptr<std::vector<GpgSubKey>> subKeys() const;
+  /**
+   * @brief
+   *
+   * @return std::unique_ptr<std::vector<GpgSubKey>>
+   */
+  [[nodiscard]] std::unique_ptr<std::vector<GpgSubKey>> GetSubKeys() const;
 
-  [[nodiscard]] std::unique_ptr<std::vector<GpgUID>> uids() const;
+  /**
+   * @brief
+   *
+   * @return std::unique_ptr<std::vector<GpgUID>>
+   */
+  [[nodiscard]] std::unique_ptr<std::vector<GpgUID>> GetUIDs() const;
 
+  /**
+   * @brief Construct a new Gpg Key object
+   *
+   */
   GpgKey() = default;
 
+  /**
+   * @brief Construct a new Gpg Key object
+   *
+   * @param key
+   */
   explicit GpgKey(gpgme_key_t&& key);
 
+  /**
+   * @brief Destroy the Gpg Key objects
+   *
+   */
   ~GpgKey() = default;
 
+  /**
+   * @brief Construct a new Gpg Key object
+   *
+   * @param key
+   */
   GpgKey(const gpgme_key_t& key) = delete;
 
+  /**
+   * @brief Construct a new Gpg Key object
+   *
+   * @param k
+   */
   GpgKey(GpgKey&& k) noexcept;
 
+  /**
+   * @brief
+   *
+   * @param k
+   * @return GpgKey&
+   */
   GpgKey& operator=(GpgKey&& k) noexcept;
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @return GpgKey&
+   */
   GpgKey& operator=(const gpgme_key_t& key) = delete;
 
-  bool operator==(const GpgKey& o) const { return o.id() == this->id(); }
+  /**
+   * @brief
+   *
+   * @param o
+   * @return true
+   * @return false
+   */
+  bool operator==(const GpgKey& o) const { return o.GetId() == this->GetId(); }
 
-  bool operator<=(const GpgKey& o) const { return this->id() < o.id(); }
+  /**
+   * @brief
+   *
+   * @param o
+   * @return true
+   * @return false
+   */
+  bool operator<=(const GpgKey& o) const { return this->GetId() < o.GetId(); }
 
-  explicit operator gpgme_key_t() const { return _key_ref.get(); }
+  /**
+   * @brief
+   *
+   * @return gpgme_key_t
+   */
+  explicit operator gpgme_key_t() const { return key_ref_.get(); }
 
-  [[nodiscard]] GpgKey copy() const {
-    gpgme_key_ref(_key_ref.get());
-    auto* _new_key_ref = _key_ref.get();
+  /**
+   * @brief
+   *
+   * @return GpgKey
+   */
+  [[nodiscard]] GpgKey Copy() const {
+    gpgme_key_ref(key_ref_.get());
+    auto* _new_key_ref = key_ref_.get();
     return GpgKey(std::move(_new_key_ref));
   }
 
  private:
-  struct _key_ref_deletor {
+  /**
+   * @brief
+   *
+   */
+  struct _key_ref_deleter {
     void operator()(gpgme_key_t _key) {
       if (_key != nullptr) gpgme_key_unref(_key);
     }
   };
 
-  using KeyRefHandler = std::unique_ptr<struct _gpgme_key, _key_ref_deletor>;
+  using KeyRefHandler =
+      std::unique_ptr<struct _gpgme_key, _key_ref_deleter>;  ///<
 
-  KeyRefHandler _key_ref = nullptr;
+  KeyRefHandler key_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

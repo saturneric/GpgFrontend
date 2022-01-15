@@ -37,7 +37,9 @@ SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
   key_list_->addListGroupTab(
       _("Signers"), KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage,
-      [](const GpgKey& key) -> bool { return key.CanSignActual(); });
+      [](const GpgKey& key) -> bool {
+        return key.IsHasActualSigningCapability();
+      });
   key_list_->slotRefresh();
 
   auto* vbox2 = new QVBoxLayout();

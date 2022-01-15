@@ -80,13 +80,13 @@ GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeys(
 GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::GetKeysCopy(
     const GpgFrontend::KeyLinkListPtr& keys) {
   auto keys_copy = std::make_unique<GpgKeyLinkList>();
-  for (const auto& key : *keys) keys_copy->push_back(key.copy());
+  for (const auto& key : *keys) keys_copy->push_back(key.Copy());
   return keys_copy;
 }
 
 GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeysCopy(
     const GpgFrontend::KeyListPtr& keys) {
   auto keys_copy = std::make_unique<KeyArgsList>();
-  for (const auto& key : *keys) keys_copy->push_back(key.copy());
+  for (const auto& key : *keys) keys_copy->push_back(key.Copy());
   return keys_copy;
 }
