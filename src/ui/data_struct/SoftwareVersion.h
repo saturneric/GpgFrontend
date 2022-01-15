@@ -28,28 +28,50 @@
 #include <boost/date_time.hpp>
 
 namespace GpgFrontend::UI {
+/**
+ * @brief
+ *
+ */
 struct SoftwareVersion {
-  std::string latest_version;
-  std::string current_version;
-  bool latest_prerelease = false;
-  bool latest_draft = false;
-  bool current_prerelease = false;
-  bool current_draft = false;
-  bool load_info_done = false;
-  bool current_version_found = false;
-  std::string publish_date;
-  std::string release_note;
+  std::string latest_version;          ///<
+  std::string current_version;         ///<
+  bool latest_prerelease = false;      ///<
+  bool latest_draft = false;           ///<
+  bool current_prerelease = false;     ///<
+  bool current_draft = false;          ///<
+  bool load_info_done = false;         ///<
+  bool current_version_found = false;  ///<
+  std::string publish_date;            ///<
+  std::string release_note;            ///<
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
   [[nodiscard]] bool NeedUpgrade() const {
     return load_info_done && !latest_prerelease && !latest_draft &&
            current_version < latest_version;
   }
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
   [[nodiscard]] bool VersionWithDrawn() const {
     return load_info_done && !current_version_found && current_prerelease &&
            !current_draft;
   }
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
   [[nodiscard]] bool CurrentVersionReleased() const {
     return load_info_done && current_version_found;
   }

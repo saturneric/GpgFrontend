@@ -32,7 +32,7 @@
 namespace GpgFrontend::UI {
 
 KeyGenDialog::KeyGenDialog(QWidget* parent) : QDialog(parent) {
-  buttonBox =
+  button_box_ =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
@@ -54,26 +54,26 @@ KeyGenDialog::KeyGenDialog(QWidget* parent) : QDialog(parent) {
   this->setWindowTitle(_("Generate Key"));
   this->setModal(true);
 
-  connect(this, SIGNAL(KeyGenerated()), SignalStation::GetInstance(),
+  connect(this, SIGNAL(SignalKeyGenerated()), SignalStation::GetInstance(),
           SIGNAL(KeyDatabaseRefresh()));
 
-  generateKeyDialog();
+  generate_key_dialog();
 }
 
-void KeyGenDialog::generateKeyDialog() {
-  keyUsageGroupBox = create_key_usage_group_box();
+void KeyGenDialog::generate_key_dialog() {
+  key_usage_group_box_ = create_key_usage_group_box();
 
   auto* groupGrid = new QGridLayout(this);
   groupGrid->addWidget(create_basic_info_group_box(), 0, 0);
-  groupGrid->addWidget(keyUsageGroupBox, 1, 0);
+  groupGrid->addWidget(key_usage_group_box_, 1, 0);
 
   auto* nameList = new QWidget(this);
   nameList->setLayout(groupGrid);
 
   auto* vbox2 = new QVBoxLayout();
   vbox2->addWidget(nameList);
-  vbox2->addWidget(errorLabel);
-  vbox2->addWidget(buttonBox);
+  vbox2->addWidget(error_label_);
+  vbox2->addWidget(button_box_);
 
   this->setLayout(vbox2);
 
@@ -82,17 +82,18 @@ void KeyGenDialog::generateKeyDialog() {
   refresh_widgets_state();
 }
 
-void KeyGenDialog::slotKeyGenAccept() {
+void KeyGenDialog::slot_key_gen_accept() {
   std::stringstream error_stream;
 
   /**
    * check for errors in keygen dialog input
    */
-  if ((nameEdit->text()).size() < 5) {
+  if ((name_edit_->text()).size() < 5) {
     error_stream << "  " << _("Name must contain at least five characters.")
                  << std::endl;
   }
-  if (emailEdit->text().isEmpty() || !check_email_address(emailEdit->text())) {
+  if (email_edit_->text().isEmpty() ||
+      !check_email_address(email_edit_->text())) {
     error_stream << "  " << _("Please give a email address.") << std::endl;
   }
 
@@ -100,7 +101,7 @@ void KeyGenDialog::slotKeyGenAccept() {
    * primary keys should have a reasonable expiration date (no more than 2 years
    * in the future)
    */
-  if (dateEdit->dateTime() > max_date_time_) {
+  if (date_edit_->dateTime() > max_date_time_) {
     error_stream << "  " << _("Expiration time too long.") << std::endl;
   }
 
@@ -110,17 +111,17 @@ void KeyGenDialog::slotKeyGenAccept() {
     /**
      * create the string for key generation
      */
-    gen_key_info_->SetName(nameEdit->text().toStdString());
-    gen_key_info_->SetEmail(emailEdit->text().toStdString());
-    gen_key_info_->SetComment(commentEdit->text().toStdString());
+    gen_key_info_->SetName(name_edit_->text().toStdString());
+    gen_key_info_->SetEmail(email_edit_->text().toStdString());
+    gen_key_info_->SetComment(comment_edit_->text().toStdString());
 
-    gen_key_info_->SetKeyLength(keySizeSpinBox->value());
+    gen_key_info_->SetKeyLength(key_size_spin_box_->value());
 
-    if (expireCheckBox->checkState()) {
+    if (expire_check_box_->checkState()) {
       gen_key_info_->SetNonExpired(true);
     } else {
       gen_key_info_->SetExpireTime(
-          boost::posix_time::from_time_t(dateEdit->dateTime().toTime_t()));
+          boost::posix_time::from_time_t(date_edit_->dateTime().toTime_t()));
     }
 
     GpgGenKeyResult result;
@@ -148,7 +149,7 @@ void KeyGenDialog::slotKeyGenAccept() {
       msg_box->setModal(false);
       msg_box->open();
 
-      emit KeyGenerated();
+      emit SignalKeyGenerated();
       this->close();
     } else {
       QMessageBox::critical(this, _("Failure"), _(gpgme_strerror(error)));
@@ -158,21 +159,21 @@ void KeyGenDialog::slotKeyGenAccept() {
     /**
      * create error message
      */
-    errorLabel->setAutoFillBackground(true);
-    QPalette error = errorLabel->palette();
+    error_label_->setAutoFillBackground(true);
+    QPalette error = error_label_->palette();
     error.setColor(QPalette::Window, "#ff8080");
-    errorLabel->setPalette(error);
-    errorLabel->setText(err_string.c_str());
+    error_label_->setPalette(error);
+    error_label_->setText(err_string.c_str());
 
     this->show();
   }
 }
 
-void KeyGenDialog::slotExpireBoxChanged() {
-  if (expireCheckBox->checkState()) {
-    dateEdit->setEnabled(false);
+void KeyGenDialog::slot_expire_box_changed() {
+  if (expire_check_box_->checkState()) {
+    date_edit_->setEnabled(false);
   } else {
-    dateEdit->setEnabled(true);
+    date_edit_->setEnabled(true);
   }
 }
 
@@ -209,7 +210,7 @@ QGroupBox* KeyGenDialog::create_key_usage_group_box() {
   return groupBox;
 }
 
-void KeyGenDialog::slotEncryptionBoxChanged(int state) {
+void KeyGenDialog::slot_encryption_box_changed(int state) {
   if (state == 0) {
     gen_key_info_->SetAllowEncryption(false);
   } else {
@@ -217,7 +218,7 @@ void KeyGenDialog::slotEncryptionBoxChanged(int state) {
   }
 }
 
-void KeyGenDialog::slotSigningBoxChanged(int state) {
+void KeyGenDialog::slot_signing_box_changed(int state) {
   if (state == 0) {
     gen_key_info_->SetAllowSigning(false);
   } else {
@@ -225,7 +226,7 @@ void KeyGenDialog::slotSigningBoxChanged(int state) {
   }
 }
 
-void KeyGenDialog::slotCertificationBoxChanged(int state) {
+void KeyGenDialog::slot_certification_box_changed(int state) {
   if (state == 0) {
     gen_key_info_->SetAllowCertification(false);
   } else {
@@ -233,7 +234,7 @@ void KeyGenDialog::slotCertificationBoxChanged(int state) {
   }
 }
 
-void KeyGenDialog::slotAuthenticationBoxChanged(int state) {
+void KeyGenDialog::slot_authentication_box_changed(int state) {
   if (state == 0) {
     gen_key_info_->SetAllowAuthentication(false);
   } else {
@@ -241,10 +242,11 @@ void KeyGenDialog::slotAuthenticationBoxChanged(int state) {
   }
 }
 
-void KeyGenDialog::slotActivatedKeyType(int index) {
+void KeyGenDialog::slot_activated_key_type(int index) {
   qDebug() << "key type index changed " << index;
 
-  gen_key_info_->SetAlgo(this->keyTypeComboBox->itemText(index).toStdString());
+  gen_key_info_->SetAlgo(
+      this->key_type_combo_box_->itemText(index).toStdString());
   refresh_widgets_state();
 }
 
@@ -292,36 +294,36 @@ void KeyGenDialog::refresh_widgets_state() {
     key_usage_check_boxes_[3]->setDisabled(true);
 
   if (gen_key_info_->IsAllowNoPassPhrase())
-    noPassPhraseCheckBox->setDisabled(false);
+    no_pass_phrase_check_box_->setDisabled(false);
   else
-    noPassPhraseCheckBox->setDisabled(true);
+    no_pass_phrase_check_box_->setDisabled(true);
 
-  keySizeSpinBox->setRange(gen_key_info_->GetSuggestMinKeySize(),
-                           gen_key_info_->GetSuggestMaxKeySize());
-  keySizeSpinBox->setValue(gen_key_info_->GetKeyLength());
-  keySizeSpinBox->setSingleStep(gen_key_info_->GetSizeChangeStep());
+  key_size_spin_box_->setRange(gen_key_info_->GetSuggestMinKeySize(),
+                               gen_key_info_->GetSuggestMaxKeySize());
+  key_size_spin_box_->setValue(gen_key_info_->GetKeyLength());
+  key_size_spin_box_->setSingleStep(gen_key_info_->GetSizeChangeStep());
 }
 
 void KeyGenDialog::set_signal_slot() {
-  connect(buttonBox, SIGNAL(accepted()), this, SLOT(slotKeyGenAccept()));
-  connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+  connect(button_box_, SIGNAL(accepted()), this, SLOT(slot_key_gen_accept()));
+  connect(button_box_, SIGNAL(rejected()), this, SLOT(reject()));
 
-  connect(expireCheckBox, SIGNAL(stateChanged(int)), this,
-          SLOT(slotExpireBoxChanged()));
+  connect(expire_check_box_, SIGNAL(stateChanged(int)), this,
+          SLOT(slot_expire_box_changed()));
 
   connect(key_usage_check_boxes_[0], SIGNAL(stateChanged(int)), this,
-          SLOT(slotEncryptionBoxChanged(int)));
+          SLOT(slot_encryption_box_changed(int)));
   connect(key_usage_check_boxes_[1], SIGNAL(stateChanged(int)), this,
-          SLOT(slotSigningBoxChanged(int)));
+          SLOT(slot_signing_box_changed(int)));
   connect(key_usage_check_boxes_[2], SIGNAL(stateChanged(int)), this,
-          SLOT(slotCertificationBoxChanged(int)));
+          SLOT(slot_certification_box_changed(int)));
   connect(key_usage_check_boxes_[3], SIGNAL(stateChanged(int)), this,
-          SLOT(slotAuthenticationBoxChanged(int)));
+          SLOT(slot_authentication_box_changed(int)));
 
-  connect(keyTypeComboBox, SIGNAL(currentIndexChanged(int)), this,
-          SLOT(slotActivatedKeyType(int)));
+  connect(key_type_combo_box_, SIGNAL(currentIndexChanged(int)), this,
+          SLOT(slot_activated_key_type(int)));
 
-  connect(noPassPhraseCheckBox, &QCheckBox::stateChanged, this,
+  connect(no_pass_phrase_check_box_, &QCheckBox::stateChanged, this,
           [this](int state) -> void {
             if (state == 0) {
               gen_key_info_->SetNonPassPhrase(false);
@@ -332,36 +334,37 @@ void KeyGenDialog::set_signal_slot() {
 }
 
 bool KeyGenDialog::check_email_address(const QString& str) {
-  return re_email.match(str).hasMatch();
+  return re_email_.match(str).hasMatch();
 }
 
 QGroupBox* KeyGenDialog::create_basic_info_group_box() {
-  errorLabel = new QLabel();
-  nameEdit = new QLineEdit(this);
-  emailEdit = new QLineEdit(this);
-  commentEdit = new QLineEdit(this);
-  keySizeSpinBox = new QSpinBox(this);
-  keyTypeComboBox = new QComboBox(this);
+  error_label_ = new QLabel();
+  name_edit_ = new QLineEdit(this);
+  email_edit_ = new QLineEdit(this);
+  comment_edit_ = new QLineEdit(this);
+  key_size_spin_box_ = new QSpinBox(this);
+  key_type_combo_box_ = new QComboBox(this);
 
   for (auto& algo : GenKeyInfo::GetSupportedKeyAlgo()) {
-    keyTypeComboBox->addItem(QString::fromStdString(algo));
+    key_type_combo_box_->addItem(QString::fromStdString(algo));
   }
   if (!GenKeyInfo::GetSupportedKeyAlgo().empty()) {
-    keyTypeComboBox->setCurrentIndex(0);
+    key_type_combo_box_->setCurrentIndex(0);
   }
 
-  dateEdit = new QDateTimeEdit(QDateTime::currentDateTime().addYears(2), this);
-  dateEdit->setMinimumDateTime(QDateTime::currentDateTime());
-  dateEdit->setMaximumDateTime(max_date_time_);
-  dateEdit->setDisplayFormat("dd/MM/yyyy hh:mm:ss");
-  dateEdit->setCalendarPopup(true);
-  dateEdit->setEnabled(true);
+  date_edit_ =
+      new QDateTimeEdit(QDateTime::currentDateTime().addYears(2), this);
+  date_edit_->setMinimumDateTime(QDateTime::currentDateTime());
+  date_edit_->setMaximumDateTime(max_date_time_);
+  date_edit_->setDisplayFormat("dd/MM/yyyy hh:mm:ss");
+  date_edit_->setCalendarPopup(true);
+  date_edit_->setEnabled(true);
 
-  expireCheckBox = new QCheckBox(this);
-  expireCheckBox->setCheckState(Qt::Unchecked);
+  expire_check_box_ = new QCheckBox(this);
+  expire_check_box_->setCheckState(Qt::Unchecked);
 
-  noPassPhraseCheckBox = new QCheckBox(this);
-  noPassPhraseCheckBox->setCheckState(Qt::Unchecked);
+  no_pass_phrase_check_box_ = new QCheckBox(this);
+  no_pass_phrase_check_box_->setCheckState(Qt::Unchecked);
 
   auto* vbox1 = new QGridLayout;
 
@@ -374,14 +377,14 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   vbox1->addWidget(new QLabel(QString(_("Key Type")) + ": "), 5, 0);
   vbox1->addWidget(new QLabel(QString(_("Non Pass Phrase")) + ": "), 6, 0);
 
-  vbox1->addWidget(nameEdit, 0, 1, 1, 3);
-  vbox1->addWidget(emailEdit, 1, 1, 1, 3);
-  vbox1->addWidget(commentEdit, 2, 1, 1, 3);
-  vbox1->addWidget(dateEdit, 3, 1);
-  vbox1->addWidget(expireCheckBox, 3, 2);
-  vbox1->addWidget(keySizeSpinBox, 4, 1);
-  vbox1->addWidget(keyTypeComboBox, 5, 1);
-  vbox1->addWidget(noPassPhraseCheckBox, 6, 1);
+  vbox1->addWidget(name_edit_, 0, 1, 1, 3);
+  vbox1->addWidget(email_edit_, 1, 1, 1, 3);
+  vbox1->addWidget(comment_edit_, 2, 1, 1, 3);
+  vbox1->addWidget(date_edit_, 3, 1);
+  vbox1->addWidget(expire_check_box_, 3, 2);
+  vbox1->addWidget(key_size_spin_box_, 4, 1);
+  vbox1->addWidget(key_type_combo_box_, 5, 1);
+  vbox1->addWidget(no_pass_phrase_check_box_, 6, 1);
 
   auto basicInfoGroupBox = new QGroupBox();
   basicInfoGroupBox->setLayout(vbox1);

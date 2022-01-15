@@ -39,6 +39,11 @@ class InfoTab : public QWidget {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Info Tab object
+   *
+   * @param parent
+   */
   explicit InfoTab(QWidget* parent = nullptr);
 };
 
@@ -50,6 +55,11 @@ class TranslatorsTab : public QWidget {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Translators Tab object
+   *
+   * @param parent
+   */
   explicit TranslatorsTab(QWidget* parent = nullptr);
 };
 
@@ -60,25 +70,42 @@ class TranslatorsTab : public QWidget {
 class UpdateTab : public QWidget {
   Q_OBJECT
 
-  QLabel* currentVersionLabel;
-  QLabel* latestVersionLabel;
-  QLabel* upgradeLabel;
-  QProgressBar* pb;
-  QString currentVersion;
-  QPushButton* downloadButton;
-
-  QNetworkAccessManager* manager = new QNetworkAccessManager(this);
+  QLabel* current_version_label_;  ///<
+  QLabel* latest_version_label_;   ///<
+  QLabel* upgrade_label_;          ///<
+  QProgressBar* pb_;               ///<
+  QString current_version_;        ///<
+  QPushButton* download_button_;   ///<
 
  public:
+  /**
+   * @brief Construct a new Update Tab object
+   *
+   * @param parent
+   */
   explicit UpdateTab(QWidget* parent = nullptr);
 
+  /**
+   * @brief Get the Latest Version object
+   *
+   */
   void getLatestVersion();
 
  private slots:
-  void slotShowVersionStatus(const SoftwareVersion& version);
+  /**
+   * @brief
+   *
+   * @param version
+   */
+  void slot_show_version_status(const SoftwareVersion& version);
 
  signals:
-  void replyFromUpdateServer(QByteArray data);
+  /**
+   * @brief
+   *
+   * @param data
+   */
+  void SignalReplyFromUpdateServer(QByteArray data);
 };
 
 /**
@@ -89,13 +116,24 @@ class AboutDialog : public QDialog {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new About Dialog object
+   *
+   * @param defaultIndex
+   * @param parent
+   */
   explicit AboutDialog(int defaultIndex, QWidget* parent);
 
  protected:
+  /**
+   * @brief
+   *
+   * @param ev
+   */
   void showEvent(QShowEvent* ev) override;
 
  private:
-  UpdateTab* updateTab;
+  UpdateTab* update_tab_;  ///<
 };
 
 }  // namespace GpgFrontend::UI

@@ -36,11 +36,11 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent) : QDialog(parent) {
   auto* tabWidget = new QTabWidget;
   auto* infoTab = new InfoTab();
   auto* translatorsTab = new TranslatorsTab();
-  updateTab = new UpdateTab();
+  update_tab_ = new UpdateTab();
 
   tabWidget->addTab(infoTab, _("About Software"));
   tabWidget->addTab(translatorsTab, _("Translators"));
-  tabWidget->addTab(updateTab, _("Update"));
+  tabWidget->addTab(update_tab_, _("Update"));
 
   connect(tabWidget, &QTabWidget::currentChanged, this,
           [&](int index) { LOG(INFO) << "Current Index" << index; });
@@ -64,7 +64,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent) : QDialog(parent) {
 
 void AboutDialog::showEvent(QShowEvent* ev) {
   QDialog::showEvent(ev);
-  updateTab->getLatestVersion();
+  update_tab_->getLatestVersion();
 }
 
 InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
@@ -138,9 +138,9 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
   pixmapLabel->setPixmap(*pixmap);
   layout->addWidget(pixmapLabel, 0, 0, 1, -1, Qt::AlignCenter);
 
-  currentVersion = "v" + QString::number(VERSION_MAJOR) + "." +
-                   QString::number(VERSION_MINOR) + "." +
-                   QString::number(VERSION_PATCH);
+  current_version_ = "v" + QString::number(VERSION_MAJOR) + "." +
+                     QString::number(VERSION_MINOR) + "." +
+                     QString::number(VERSION_PATCH);
 
   auto tipsLabel = new QLabel();
   tipsLabel->setText(
@@ -153,29 +153,29 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
       "</center>");
   tipsLabel->setWordWrap(true);
 
-  currentVersionLabel = new QLabel();
-  currentVersionLabel->setText("<center>" + QString(_("Current Version")) +
-                               _(": ") + "<b>" + currentVersion +
-                               "</b></center>");
-  currentVersionLabel->setWordWrap(true);
+  current_version_label_ = new QLabel();
+  current_version_label_->setText("<center>" + QString(_("Current Version")) +
+                                  _(": ") + "<b>" + current_version_ +
+                                  "</b></center>");
+  current_version_label_->setWordWrap(true);
 
-  latestVersionLabel = new QLabel();
-  latestVersionLabel->setWordWrap(true);
+  latest_version_label_ = new QLabel();
+  latest_version_label_->setWordWrap(true);
 
-  upgradeLabel = new QLabel();
-  upgradeLabel->setWordWrap(true);
-  upgradeLabel->setOpenExternalLinks(true);
-  upgradeLabel->setHidden(true);
+  upgrade_label_ = new QLabel();
+  upgrade_label_->setWordWrap(true);
+  upgrade_label_->setOpenExternalLinks(true);
+  upgrade_label_->setHidden(true);
 
-  pb = new QProgressBar();
-  pb->setRange(0, 0);
-  pb->setTextVisible(false);
+  pb_ = new QProgressBar();
+  pb_->setRange(0, 0);
+  pb_->setTextVisible(false);
 
   layout->addWidget(tipsLabel, 1, 0, 1, -1);
-  layout->addWidget(currentVersionLabel, 2, 0, 1, -1);
-  layout->addWidget(latestVersionLabel, 3, 0, 1, -1);
-  layout->addWidget(upgradeLabel, 4, 0, 1, -1);
-  layout->addWidget(pb, 5, 0, 1, -1);
+  layout->addWidget(current_version_label_, 2, 0, 1, -1);
+  layout->addWidget(latest_version_label_, 3, 0, 1, -1);
+  layout->addWidget(upgrade_label_, 4, 0, 1, -1);
+  layout->addWidget(pb_, 5, 0, 1, -1);
   layout->addItem(
       new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed), 2, 1,
       1, 1);
@@ -184,7 +184,7 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
 }
 
 void UpdateTab::getLatestVersion() {
-  this->pb->setHidden(false);
+  this->pb_->setHidden(false);
 
   LOG(INFO) << _("try to get latest version");
 
@@ -193,19 +193,19 @@ void UpdateTab::getLatestVersion() {
   connect(version_thread, SIGNAL(finished()), version_thread,
           SLOT(deleteLater()));
   connect(version_thread, &VersionCheckThread::upgradeVersion, this,
-          &UpdateTab::slotShowVersionStatus);
+          &UpdateTab::slot_show_version_status);
 
   version_thread->start();
 }
 
-void UpdateTab::slotShowVersionStatus(const SoftwareVersion& version) {
-  this->pb->setHidden(true);
-  latestVersionLabel->setText("<center><b>" +
-                              QString(_("Latest Version From Github")) + ": " +
-                              version.latest_version.c_str() + "</b></center>");
+void UpdateTab::slot_show_version_status(const SoftwareVersion& version) {
+  this->pb_->setHidden(true);
+  latest_version_label_->setText(
+      "<center><b>" + QString(_("Latest Version From Github")) + ": " +
+      version.latest_version.c_str() + "</b></center>");
 
   if (version.NeedUpgrade()) {
-    upgradeLabel->setText(
+    upgrade_label_->setText(
         "<center>" +
         QString(_("The current version is less than the latest version on "
                   "github.")) +
@@ -214,9 +214,9 @@ void UpdateTab::slotShowVersionStatus(const SoftwareVersion& version) {
         "href=\"https://github.com/saturneric/GpgFrontend/releases\">" +
         _("Here") + "</a> " + _("to download the latest stable version.") +
         "</center>");
-    upgradeLabel->show();
+    upgrade_label_->show();
   } else if (version.VersionWithDrawn()) {
-    upgradeLabel->setText(
+    upgrade_label_->setText(
         "<center>" +
         QString(_("This version has serious problems and has been withdrawn. "
                   "Please stop using it immediately.")) +
@@ -225,9 +225,9 @@ void UpdateTab::slotShowVersionStatus(const SoftwareVersion& version) {
         "href=\"https://github.com/saturneric/GpgFrontend/releases\">" +
         _("Here") + "</a> " + _("to download the latest stable version.") +
         "</center>");
-    upgradeLabel->show();
+    upgrade_label_->show();
   } else if (!version.CurrentVersionReleased()) {
-    upgradeLabel->setText(
+    upgrade_label_->setText(
         "<center>" +
         QString(_("This version has not been released yet, it may be a beta "
                   "version. If you are not a tester and care about version "
@@ -237,7 +237,7 @@ void UpdateTab::slotShowVersionStatus(const SoftwareVersion& version) {
         "href=\"https://github.com/saturneric/GpgFrontend/releases\">" +
         _("Here") + "</a> " + _("to download the latest stable version.") +
         "</center>");
-    upgradeLabel->show();
+    upgrade_label_->show();
   }
 }
 

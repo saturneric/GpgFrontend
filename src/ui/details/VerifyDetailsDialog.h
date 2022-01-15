@@ -30,26 +30,40 @@
 #include "ui/widgets/VerifyKeyDetailBox.h"
 
 namespace GpgFrontend::UI {
-
+/**
+ * @brief
+ *
+ */
 class VerifyDetailsDialog : public QDialog {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new Verify Details Dialog object
+   *
+   * @param parent
+   * @param error
+   * @param result
+   */
   explicit VerifyDetailsDialog(QWidget* parent, GpgError error,
                                GpgVerifyResult result);
 
  private slots:
 
-  void slotRefresh();
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh();
 
  private:
-  KeyList* mKeyList;
-  QHBoxLayout* mainLayout;
-  QWidget* mVbox{};
-  QByteArray* mInputData{};      /** Data to be verified */
-  QByteArray* mInputSignature{}; /** Data to be verified */
-  QDialogButtonBox* buttonBox{};
-  GpgVerifyResult mResult;
-  gpgme_error_t error;
+  KeyList* key_list_;               ///<
+  QHBoxLayout* main_layout_;        ///<
+  QWidget* m_vbox_{};               ///<
+  QByteArray* input_data_{};        ///<
+  QByteArray* input_signature_{};   ///<
+  QDialogButtonBox* button_box_{};  ///<
+  GpgVerifyResult m_result_;        ///<
+  gpgme_error_t error_;             ///<
 };
 
 }  // namespace GpgFrontend::UI

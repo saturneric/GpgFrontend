@@ -114,7 +114,7 @@ void KeySetExpireDateDialog::init() {
 
   connect(ui->noExpirationCheckBox, SIGNAL(stateChanged(int)), this,
           SLOT(slotNonExpiredChecked(int)));
-  connect(ui->buttonBox, &QDialogButtonBox::accepted, this,
+  connect(ui->button_box_, &QDialogButtonBox::accepted, this,
           &KeySetExpireDateDialog::slotConfirm);
   connect(this, SIGNAL(signalKeyExpireDateUpdated()),
           SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()));
