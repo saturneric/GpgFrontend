@@ -31,20 +31,51 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class SettingsObject : public nlohmann::json {
  public:
+  /**
+   * @brief Construct a new Settings Object object
+   *
+   * @param settings_name
+   */
   explicit SettingsObject(std::string settings_name);
 
+  /**
+   * @brief Construct a new Settings Object object
+   *
+   * @param _sub_json
+   */
   explicit SettingsObject(nlohmann::json _sub_json, bool);
 
+  /**
+   * @brief Destroy the Settings Object object
+   *
+   */
   ~SettingsObject();
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @param default_value
+   * @return nlohmann::json&
+   */
   nlohmann::json& Check(const std::string& key, nlohmann::json default_value);
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @return SettingsObject
+   */
   SettingsObject Check(const std::string& key);
 
  private:
-  std::string settings_name_;
+  std::string settings_name_;  ///<
 };
 }  // namespace GpgFrontend::UI
 

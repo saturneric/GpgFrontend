@@ -31,6 +31,10 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class KeyGenDialog : public QDialog {
   Q_OBJECT
 
@@ -45,47 +49,81 @@ class KeyGenDialog : public QDialog {
   explicit KeyGenDialog(QWidget* parent = nullptr);
 
  signals:
-  void KeyGenerated();
+  /**
+   * @brief
+   *
+   */
+  void SignalKeyGenerated();
 
  private:
+  /**
+   * @brief Create a key usage group box object
+   *
+   * @return QGroupBox*
+   */
   QGroupBox* create_key_usage_group_box();
 
+  /**
+   * @brief Create a basic info group box object
+   *
+   * @return QGroupBox*
+   */
   QGroupBox* create_basic_info_group_box();
 
-  QRegularExpression re_email{
+  /**
+   * @brief
+   *
+   */
+  QRegularExpression re_email_{
       R"((?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\]))"};
 
-  QStringList error_messages_; /** List of errors occuring when checking entries
-                                of lineedits */
-  std::unique_ptr<GenKeyInfo> gen_key_info_ = std::make_unique<GenKeyInfo>();
+  /**
+   * @brief
+   *
+   */
+  QStringList error_messages_;  ///< List of errors occurring when checking
+                                ///< entries of line edits
+  std::unique_ptr<GenKeyInfo> gen_key_info_ =
+      std::make_unique<GenKeyInfo>();  ///<
+  QDialogButtonBox* button_box_;       ///< Box for standard buttons
+  QLabel* error_label_{};              ///< Label containing error message
+  QLineEdit* name_edit_{};             ///< Line edit for the keys name
+  QLineEdit* email_edit_{};            ///< Line edit for the keys email
+  QLineEdit* comment_edit_{};          ///< Line edit for the keys comment
+  QSpinBox* key_size_spin_box_{};      ///< Spinbox for the keys size (in bit)
+  QComboBox* key_type_combo_box_{};    ///< Combobox for Key type
+  QDateTimeEdit* date_edit_{};         ///< Date edit for expiration date
+  QCheckBox* expire_check_box_{};      ///< Checkbox, if key should expire
+  QCheckBox* no_pass_phrase_check_box_{};
+  QGroupBox* key_usage_group_box_{};  ///< Group of Widgets detecting the usage
+                                      ///< of the Key
+  QDateTime max_date_time_;           ///<
+  std::vector<QCheckBox*> key_usage_check_boxes_;  ///< ENCR, SIGN, CERT, AUTH
 
-  QDialogButtonBox* buttonBox;  /** Box for standard buttons */
-  QLabel* errorLabel{};         /** Label containing error message */
-  QLineEdit* nameEdit{};        /** Line edit for the keys name */
-  QLineEdit* emailEdit{};       /** Line edit for the keys email */
-  QLineEdit* commentEdit{};     /** Line edit for the keys comment */
-  QSpinBox* keySizeSpinBox{};   /** Spinbox for the keys size (in bit) */
-  QComboBox* keyTypeComboBox{}; /** Combobox for Key type */
-  QDateTimeEdit* dateEdit{};    /** Date edit for expiration date */
-  QCheckBox* expireCheckBox{};  /** Checkbox, if key should expire */
-  QCheckBox* noPassPhraseCheckBox{};
-
-  QGroupBox* keyUsageGroupBox{}; /** Group of Widgets detecting the usage of the
-                                    Key **/
-  QDateTime max_date_time_;
-
-  //    ENCR, SIGN, CERT, AUTH
-  std::vector<QCheckBox*> key_usage_check_boxes_;
-
-  void generateKeyDialog();
+  /**
+   * @brief
+   *
+   */
+  void generate_key_dialog();
 
   /**
    * @details Refresh widgets state by GenKeyInfo
    */
   void refresh_widgets_state();
 
+  /**
+   * @brief Set the signal slot object
+   *
+   */
   void set_signal_slot();
 
+  /**
+   * @brief
+   *
+   * @param str
+   * @return true
+   * @return false
+   */
   bool check_email_address(const QString& str);
 
  private slots:
@@ -94,23 +132,48 @@ class KeyGenDialog : public QDialog {
    * @details when expirebox was checked/unchecked, enable/disable the
    * expiration date box
    */
-  void slotExpireBoxChanged();
+  void slot_expire_box_changed();
 
   /**
    * @details check all lineedits for false entries. Show error, when there is
    * one, otherwise generate the key
    */
-  void slotKeyGenAccept();
+  void slot_key_gen_accept();
 
-  void slotEncryptionBoxChanged(int state);
+  /**
+   * @brief
+   *
+   * @param state
+   */
+  void slot_encryption_box_changed(int state);
 
-  void slotSigningBoxChanged(int state);
+  /**
+   * @brief
+   *
+   * @param state
+   */
+  void slot_signing_box_changed(int state);
 
-  void slotCertificationBoxChanged(int state);
+  /**
+   * @brief
+   *
+   * @param state
+   */
+  void slot_certification_box_changed(int state);
 
-  void slotAuthenticationBoxChanged(int state);
+  /**
+   * @brief
+   *
+   * @param state
+   */
+  void slot_authentication_box_changed(int state);
 
-  void slotActivatedKeyType(int index);
+  /**
+   * @brief
+   *
+   * @param index
+   */
+  void slot_activated_key_type(int index);
 };
 
 }  // namespace GpgFrontend::UI

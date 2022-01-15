@@ -30,36 +30,63 @@
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
-
+/**
+ * @brief
+ *
+ */
 class SubkeyGenerateDialog : public QDialog {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Subkey Generate Dialog object
+   *
+   * @param key_id
+   * @param parent
+   */
   explicit SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent);
 
  signals:
-  void SubKeyGenerated();
+  /**
+   * @brief
+   *
+   */
+  void SignalSubKeyGenerated();
 
  private:
-  GpgKey key_;
+  GpgKey key_;  ///<
 
   std::unique_ptr<GenKeyInfo> gen_key_info_ =
-      std::make_unique<GenKeyInfo>(true);
+      std::make_unique<GenKeyInfo>(true);  ///<
 
-  QGroupBox* keyUsageGroupBox{};
-  QDialogButtonBox* buttonBox;  /** Box for standardbuttons */
-  QLabel* errorLabel{};         /** Label containing error message */
-  QSpinBox* keySizeSpinBox{};   /** Spinbox for the keys size (in bit) */
-  QComboBox* keyTypeComboBox{}; /** Combobox for Keytpe */
-  QDateTimeEdit* dateEdit{};    /** Dateedit for expiration date */
-  QCheckBox* expireCheckBox{};  /** Checkbox, if key should expire */
+  QGroupBox* key_usage_group_box_{};
+  QDialogButtonBox* button_box_;     ///< Box for standard buttons
+  QLabel* error_label_{};            ///< Label containing error message
+  QSpinBox* key_size_spin_box_{};    ///< Spinbox for the keys size (in bit)
+  QComboBox* key_type_combo_box_{};  ///<  Combobox for Key tpe
+  QDateTimeEdit* date_edit_{};       ///< Date edit for expiration date
+  QCheckBox* expire_check_box_{};    ///< Checkbox, if key should expire
 
-  // ENCR, SIGN, CERT, AUTH
-  std::vector<QCheckBox*> key_usage_check_boxes_;
-  QDateTime max_date_time_;
+  std::vector<QCheckBox*> key_usage_check_boxes_;  ///< ENCR, SIGN, CERT, AUTH
+  QDateTime max_date_time_;                        ///<
 
+  /**
+   * @brief Create a key usage group box object
+   *
+   * @return QGroupBox*
+   */
   QGroupBox* create_key_usage_group_box();
+
+  /**
+   * @brief Create a basic info group box object
+   *
+   * @return QGroupBox*
+   */
   QGroupBox* create_basic_info_group_box();
+  /**
+   * @brief Set the signal slot object
+   *
+   */
   void set_signal_slot();
 
   /**
@@ -70,26 +97,51 @@ class SubkeyGenerateDialog : public QDialog {
  private slots:
 
   /**
-   * @details when expirebox was checked/unchecked, enable/disable the
+   * @details when expire box was checked/unchecked, enable/disable the
    * expiration date box
    */
-  void slotExpireBoxChanged();
+  void slot_expire_box_changed();
 
   /**
-   * @details check all lineedits for false entries. Show error, when there is
+   * @details check all line edits for false entries. Show error, when there is
    * one, otherwise generate the key
    */
-  void slotKeyGenAccept();
+  void slot_key_gen_accept();
 
-  void slotEncryptionBoxChanged(int state);
+  /**
+   * @brief
+   *
+   * @param state
+   */
+  void slot_encryption_box_changed(int state);
 
-  void slotSigningBoxChanged(int state);
+  /**
+   * @brief
+   *
+   * @param state
+   */
+  void slot_signing_box_changed(int state);
 
-  void slotCertificationBoxChanged(int state);
+  /**
+   * @brief
+   *
+   * @param state
+   */
+  void slot_certification_box_changed(int state);
 
-  void slotAuthenticationBoxChanged(int state);
+  /**
+   * @brief
+   *
+   * @param state
+   */
+  void slot_authentication_box_changed(int state);
 
-  void slotActivatedKeyType(int index);
+  /**
+   * @brief
+   *
+   * @param index
+   */
+  void slot_activated_key_type(int index);
 };
 
 }  // namespace GpgFrontend::UI

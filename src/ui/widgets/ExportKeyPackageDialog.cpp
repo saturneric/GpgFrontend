@@ -60,7 +60,7 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     write_buffer_to_file(file_name.toStdString(), passphrase_);
   });
 
-  connect(ui->buttonBox, &QDialogButtonBox::accepted, this, [=]() {
+  connect(ui->button_box_, &QDialogButtonBox::accepted, this, [=]() {
     if (ui->outputPathLabel->text().isEmpty()) {
       QMessageBox::critical(
           this, _("Forbidden"),
@@ -121,7 +121,7 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
             "</b>");
   });
 
-  connect(ui->buttonBox, &QDialogButtonBox::rejected, this,
+  connect(ui->button_box_, &QDialogButtonBox::rejected, this,
           [=]() { this->close(); });
 
   ui->nameLabel->setText(_("Key Package Name"));
