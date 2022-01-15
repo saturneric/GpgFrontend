@@ -1,9 +1,9 @@
 <!-- _navbar.md -->
 
-* [OpenPGP](https://www.openpgp.org/)
-* [GnuPG](https://www.gnupg.org/)
-* [Repository](https://git.codesdream.com/?p=GpgFrontend.git;a=summary)
-* [Github](https://github.com/saturneric/GpgFrontend)
-* [Document](overview.md)
+* [Source Code(Global CDN)](https://global.git.codesdream.com/GpgFrontend.git)
+* [源代码(国内服务器)](https://git.codesdream.com/GpgFrontend.git)
+* [GitHub Repository](https://github.com/saturneric/GpgFrontend)
+* [Manual](overview.md)
+* [Download](https://github.com/saturneric/GpgFrontend/releases/latest)
 * [Contract](contract.md)
 
