@@ -11,7 +11,7 @@
 [![Build & Package](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml)
 
 GpgFrontend is a Free, Open Source, Powerful, Easy-to-Use, Compact, Cross-Platform [OpenPGP](https://www.openpgp.org/)
-Crypt Tool.
+Crypt Tool. Also, it's one of the excellent GUI Frontends for Modern [GnuPG](https://www.gnupg.org/) (gpg).
 
 By using GpgFrontend, you can quickly encrypt and decrypt text or files. Or at the same time as the above operations,
 you can add your own signature to let others know that this document or this paragraph of text was issued by you.
@@ -52,7 +52,8 @@ If you find this tool useful and promising, welcome to encourage me through STAR
 
 ### Quick Start
 
-Here are some common usages to help you understand what GpgFrontend does and where it comes in handy. The interface presented may not be exactly the same as the latest stable release.
+Here are some common usages to help you understand what GpgFrontend does and where it comes in handy. The interface
+presented may not be exactly the same as the latest stable release.
 
 #### Fast Text Encryption
 
@@ -72,18 +73,61 @@ What about files?
 
 ![GIF](https://github.com/saturneric/Blob/blob/master/gif/encr-sign-file.gif?raw=true)
 
-## Document
+## User Manual
 
-GpgFrontend provides detailed documentation on his main features. If you want to know how to install with it, please read the [Quick Start](https://www.gpgfrontend.pub/#/quick-start) instead of README. 
+GpgFrontend provides detailed documentation on his main features. If you want to know how to install with it, please
+read the [User Manual](https://www.gpgfrontend.pub/#/quick-start) instead of README.
 
-## Build
+## Build Source Code
 
-The tutorial for building the software will be released soon. Before the relevant documents are released, you can refer to the project-related Github Action file if you know it.
+### For Ubuntu 20.04
+
+Install and compile dependencies.
+
+```shell
+$ sudo apt-get update
+$ sudo apt-get -y install gettext texinfo git ninja-build
+$ sudo apt-get -y install gcc g++ build-essential binutils autoconf automake 
+$ sudo apt-get -y libconfig++-dev libboost-all-dev qt5-default
+$ sudo apt-get -y install gpg # If you need to run directly after building.
+```
+
+Clone the latest stable version code for users around the world.
+
+```shell
+$ git clone --recurse-submodules https://github.com/saturneric/GpgFrontend.git
+```
+
+如果你在中国大陆，可以使用这个仓库
+
+```shell
+$ git clone --recurse-submodules https://git.codesdream.com/GpgFrontend.git
+```
+
+Build the code and make the deb package.
+
+```shell
+$ cd GpgFrontend
+$ mkdir build && cd build
+$ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Release" -DGENERATE_LINUX_INSTALL_SOFTWARE=ON ..
+$ ninja
+$ ninja package
+```
+
+Build the code separately for debug.
+
+```shell
+$ cd GpgFrontend
+$ mkdir build && cd build
+$ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Debug" ..
+$ ninja
+$ ./release/GpgFrontend # run the program
+```
 
 ## Languages Support
 
-The supported languages are listed here. Some languages use machine translation and have not been verified. If you want to join translation and verification work, please refer to
-the [here](https://gpgfrontend.pub/#/translate-interface).
+The supported languages are listed here. Some languages use machine translation and have not been verified. If you want
+to join translation and verification work, please refer to the [here](https://gpgfrontend.pub/#/translate-interface).
 
 ### Supported Languages
 
@@ -118,17 +162,14 @@ GpgFrontend itself is licensed under the [GPLv3](COPYING).
 
 ### Dependency
 
-There are some libraries and binary included in the zip-file which (may) have different licenses, for more information check their homepages. You can also obtain the sources from there.
+There are some libraries and binary included in the zip-file which (may) have different licenses, for more information
+check their homepages. You can also obtain the sources from there.
 
 gnupg: https://gnupg.org
 
 gpgme: https://gnupg.org/software/gpgme/index.html
 
-gpg4usb: https://www.gpg4usb.org
-
-QT 5.15(opensource): https://www.qt.io
-
-QT 5.12(opensource): https://www.qt.io
+Qt(opensource): https://www.qt.io
 
 MSYS2: https://www.msys2.org
 
@@ -138,7 +179,15 @@ AppImage: https://appimage.org
 
 JSON for Modern C++: https://github.com/nlohmann/json
 
-Application
+SMTP Client for Qt (C++): https://github.com/bluetiger9/SmtpClient-for-Qt
+
+Qt-AES: https://github.com/saturneric/Qt-AES
+
+vmime: https://www.vmime.org/
+
+MacOS Application
 Bundles: [Link](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
 
-The icons of this software use materials from [Alibaba Iconfont](!https://www.iconfont.cn/). The Alibaba vector icon library is free to use. The icons in the free library aren't registered as trademarks. There is no copyright issue involved and can be used commercially.
+The icons of this software use materials from [Alibaba Iconfont](!https://www.iconfont.cn/). The Alibaba vector icon
+library is free to use. The icons in the free library aren't registered as trademarks. There is no copyright issue
+involved and can be used commercially.
