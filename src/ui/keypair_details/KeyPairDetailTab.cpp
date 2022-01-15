@@ -32,8 +32,8 @@
 namespace GpgFrontend::UI {
 KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
     : QWidget(parent), key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
-
-  LOG(INFO) << key_.email() <<key_.is_private_key() << key_.has_master_key() << key_.subKeys()->front().is_private_key();
+  LOG(INFO) << key_.GetEmail() << key_.IsPrivateKey() << key_.IsHasMasterKey()
+            << key_.GetSubKeys()->front().IsPrivateKey();
 
   ownerBox = new QGroupBox(_("Owner"));
   keyBox = new QGroupBox(_("Primary Key"));
@@ -166,9 +166,9 @@ void KeyPairDetailTab::slotCopyFingerprint() {
 
 void KeyPairDetailTab::slotRefreshKeyInfo() {
   // Show the situation that primary key not exists.
-  masterKeyExistVarLabel->setText(key_.has_master_key() ? _("Exists")
+  masterKeyExistVarLabel->setText(key_.IsHasMasterKey() ? _("Exists")
                                                         : _("Not Exists"));
-  if (!key_.has_master_key()) {
+  if (!key_.IsHasMasterKey()) {
     auto palette_expired = masterKeyExistVarLabel->palette();
     palette_expired.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::red);
     masterKeyExistVarLabel->setPalette(palette_expired);
@@ -179,7 +179,7 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
     masterKeyExistVarLabel->setPalette(palette_valid);
   }
 
-  if (key_.expired()) {
+  if (key_.IsExpired()) {
     auto paletteExpired = expireVarLabel->palette();
     paletteExpired.setColor(expireVarLabel->foregroundRole(), Qt::red);
     expireVarLabel->setPalette(paletteExpired);
@@ -189,67 +189,73 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
     expireVarLabel->setPalette(paletteValid);
   }
 
-  nameVarLabel->setText(QString::fromStdString(key_.name()));
-  emailVarLabel->setText(QString::fromStdString(key_.email()));
+  nameVarLabel->setText(QString::fromStdString(key_.GetName()));
+  emailVarLabel->setText(QString::fromStdString(key_.GetEmail()));
 
-  commentVarLabel->setText(QString::fromStdString(key_.comment()));
-  keyidVarLabel->setText(QString::fromStdString(key_.id()));
+  commentVarLabel->setText(QString::fromStdString(key_.GetComment()));
+  keyidVarLabel->setText(QString::fromStdString(key_.GetId()));
 
   std::stringstream usage_steam;
 
-  if (key_.can_certify()) usage_steam << _("Certificate") << " ";
-  if (key_.can_encrypt()) usage_steam << _("Encrypt") << " ";
-  if (key_.can_sign()) usage_steam << _("Sign") << " ";
-  if (key_.can_authenticate()) usage_steam << _("Auth") << " ";
+  if (key_.IsHasCertificationCapability())
+    usage_steam << _("Certificate") << " ";
+  if (key_.IsHasEncryptionCapability()) usage_steam << _("Encrypt") << " ";
+  if (key_.IsHasSigningCapability()) usage_steam << _("Sign") << " ";
+  if (key_.IsHasAuthenticationCapability()) usage_steam << _("Auth") << " ";
 
   usageVarLabel->setText(usage_steam.str().c_str());
 
   std::stringstream actual_usage_steam;
 
-  if (key_.CanCertActual()) actual_usage_steam << _("Certificate") << " ";
-  if (key_.CanEncrActual()) actual_usage_steam << _("Encrypt") << " ";
-  if (key_.CanSignActual()) actual_usage_steam << _("Sign") << " ";
-  if (key_.CanAuthActual()) actual_usage_steam << _("Auth") << " ";
+  if (key_.IsHasActualCertificationCapability())
+    actual_usage_steam << _("Certificate") << " ";
+  if (key_.IsHasActualEncryptionCapability())
+    actual_usage_steam << _("Encrypt") << " ";
+  if (key_.IsHasActualSigningCapability())
+    actual_usage_steam << _("Sign") << " ";
+  if (key_.IsHasActualAuthenticationCapability())
+    actual_usage_steam << _("Auth") << " ";
 
   actualUsageVarLabel->setText(actual_usage_steam.str().c_str());
 
   std::string key_size_val, key_expire_val, key_create_time_val, key_algo_val,
       key_last_update_val;
 
-  key_size_val = std::to_string(key_.length());
+  key_size_val = std::to_string(key_.GetPrimaryKeyLength());
 
-  if (to_time_t(boost::posix_time::ptime(key_.expires())) == 0) {
+  if (to_time_t(boost::posix_time::ptime(key_.GetExpireTime())) == 0) {
     expireVarLabel->setText(_("Never Expire"));
   } else {
     expireVarLabel->setText(QLocale::system().toString(
-        QDateTime::fromTime_t(to_time_t(key_.expires()))));
+        QDateTime::fromTime_t(to_time_t(key_.GetExpireTime()))));
   }
 
-  key_algo_val = key_.pubkey_algo();
+  key_algo_val = key_.GetPublicKeyAlgo();
 
   createdVarLabel->setText(QLocale::system().toString(
-      QDateTime::fromTime_t(to_time_t(key_.create_time()))));
+      QDateTime::fromTime_t(to_time_t(key_.GetCreateTime()))));
 
-  if (to_time_t(boost::posix_time::ptime(key_.last_update())) == 0) {
+  if (to_time_t(boost::posix_time::ptime(key_.GetLastUpdateTime())) == 0) {
     lastUpdateVarLabel->setText(_("No Data"));
   } else {
     lastUpdateVarLabel->setText(QLocale::system().toString(
-        QDateTime::fromTime_t(to_time_t(key_.last_update()))));
+        QDateTime::fromTime_t(to_time_t(key_.GetLastUpdateTime()))));
   }
 
   keySizeVarLabel->setText(key_size_val.c_str());
   algorithmVarLabel->setText(key_algo_val.c_str());
-  fingerPrintVarLabel->setText(beautify_fingerprint(key_.fpr()).c_str());
+  fingerPrintVarLabel->setText(
+      beautify_fingerprint(key_.GetFingerprint()).c_str());
 
   iconLabel->hide();
   expLabel->hide();
 
-  if (key_.expired()) {
+  if (key_.IsExpired()) {
     iconLabel->show();
     expLabel->show();
     expLabel->setText(_("Warning: The primary key has expired."));
   }
-  if (key_.revoked()) {
+  if (key_.IsRevoked()) {
     iconLabel->show();
     expLabel->show();
     expLabel->setText(_("Warning: The primary key has been revoked."));
@@ -258,7 +264,7 @@ void KeyPairDetailTab::slotRefreshKeyInfo() {
 
 void KeyPairDetailTab::slotRefreshKey() {
   LOG(INFO) << _("Called");
-  this->key_ = GpgKeyGetter::GetInstance().GetKey(key_.id());
+  this->key_ = GpgKeyGetter::GetInstance().GetKey(key_.GetId());
   this->slotRefreshKeyInfo();
 }
 

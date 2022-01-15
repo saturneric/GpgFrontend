@@ -33,10 +33,11 @@ namespace GpgFrontend::UI {
 KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
     : QDialog(parent) {
   tabWidget = new QTabWidget();
-  tabWidget->addTab(new KeyPairDetailTab(key.id(), tabWidget), _("KeyPair"));
-  tabWidget->addTab(new KeyPairUIDTab(key.id(), tabWidget), _("UIDs"));
-  tabWidget->addTab(new KeyPairSubkeyTab(key.id(), tabWidget), _("Subkeys"));
-  tabWidget->addTab(new KeyPairOperaTab(key.id(), tabWidget), _("Operations"));
+  tabWidget->addTab(new KeyPairDetailTab(key.GetId(), tabWidget), _("KeyPair"));
+  tabWidget->addTab(new KeyPairUIDTab(key.GetId(), tabWidget), _("UIDs"));
+  tabWidget->addTab(new KeyPairSubkeyTab(key.GetId(), tabWidget), _("Subkeys"));
+  tabWidget->addTab(new KeyPairOperaTab(key.GetId(), tabWidget),
+                    _("Operations"));
 
   auto* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(tabWidget);

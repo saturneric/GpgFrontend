@@ -29,23 +29,54 @@
 #include "gpg/model/GpgKeySignature.h"
 
 namespace GpgFrontend {
-
+/**
+ * @brief
+ *
+ */
 class VerifyResultAnalyse : public ResultAnalyse {
  public:
+  /**
+   * @brief Construct a new Verify Result Analyse object
+   *
+   * @param error
+   * @param result
+   */
   explicit VerifyResultAnalyse(GpgError error, GpgVerifyResult result);
 
+  /**
+   * @brief Get the Signatures object
+   *
+   * @return gpgme_signature_t
+   */
   gpgme_signature_t GetSignatures() const;
 
+  /**
+   * @brief
+   *
+   * @return GpgVerifyResult
+   */
   GpgVerifyResult TakeChargeOfResult();
 
  private:
+  /**
+   * @brief
+   *
+   */
   void do_analyse();
 
  private:
+  /**
+   * @brief
+   *
+   * @param stream
+   * @param sign
+   * @return true
+   * @return false
+   */
   bool print_signer(std::stringstream &stream, gpgme_signature_t sign);
 
-  GpgError error;
-  GpgVerifyResult result;
+  GpgError error_;          ///<
+  GpgVerifyResult result_;  ///<
 };
 
 }  // namespace GpgFrontend

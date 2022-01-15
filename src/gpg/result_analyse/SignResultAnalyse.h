@@ -29,17 +29,31 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief
+ *
+ */
 class SignResultAnalyse : public ResultAnalyse {
  public:
+  /**
+   * @brief Construct a new Sign Result Analyse object
+   *
+   * @param error
+   * @param result
+   */
   explicit SignResultAnalyse(GpgError error, GpgSignResult result);
 
  protected:
+  /**
+   * @brief
+   *
+   */
   void do_analyse();
 
  private:
-  GpgError error;
+  GpgError error_;  ///<
 
-  GpgSignResult result;
+  GpgSignResult result_;  ///<
 };
 
 }  // namespace GpgFrontend

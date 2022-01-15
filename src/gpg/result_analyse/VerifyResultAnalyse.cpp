@@ -32,136 +32,138 @@
 
 GpgFrontend::VerifyResultAnalyse::VerifyResultAnalyse(GpgError error,
                                                       GpgVerifyResult result)
-    : error(error), result(std::move(result)) {}
+    : error_(error), result_(std::move(result)) {}
 
 void GpgFrontend::VerifyResultAnalyse::do_analyse() {
   LOG(INFO) << _("started");
 
-  stream << "[#] " << _("Verify Operation") << " ";
+  stream_ << "[#] " << _("Verify Operation") << " ";
 
-  if (gpgme_err_code(error) == GPG_ERR_NO_ERROR)
-    stream << "[" << _("Success") << "]" << std::endl;
+  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR)
+    stream_ << "[" << _("Success") << "]" << std::endl;
   else {
-    stream << "[" << _("Failed") << "] " << gpgme_strerror(error) << std::endl;
-    setStatus(-1);
+    stream_ << "[" << _("Failed") << "] " << gpgme_strerror(error_)
+            << std::endl;
+    set_status(-1);
   }
 
-  if (result != nullptr && result->signatures != nullptr) {
-    stream << "------------>" << std::endl;
-    auto sign = result->signatures;
+  if (result_ != nullptr && result_->signatures != nullptr) {
+    stream_ << "------------>" << std::endl;
+    auto sign = result_->signatures;
 
-    stream << "[>] " << _("Signed On") << "(" << _("UTC") << ")"
-           << " "
-           << boost::posix_time::to_iso_extended_string(
-                  boost::posix_time::from_time_t(sign->timestamp))
-           << std::endl;
+    stream_ << "[>] " << _("Signed On") << "(" << _("UTC") << ")"
+            << " "
+            << boost::posix_time::to_iso_extended_string(
+                   boost::posix_time::from_time_t(sign->timestamp))
+            << std::endl;
 
-    stream << std::endl << "[>] " << _("Signatures List") << ":" << std::endl;
+    stream_ << std::endl << "[>] " << _("Signatures List") << ":" << std::endl;
 
     bool canContinue = true;
 
     int count = 1;
     while (sign && canContinue) {
-      stream << boost::format(_("Signature [%1%]:")) % count++ << std::endl;
+      stream_ << boost::format(_("Signature [%1%]:")) % count++ << std::endl;
       switch (gpg_err_code(sign->status)) {
         case GPG_ERR_BAD_SIGNATURE:
-          stream << _("A Bad Signature.") << std::endl;
-          print_signer(stream, sign);
-          stream << _("This Signature is invalid.") << std::endl;
+          stream_ << _("A Bad Signature.") << std::endl;
+          print_signer(stream_, sign);
+          stream_ << _("This Signature is invalid.") << std::endl;
           canContinue = false;
-          setStatus(-1);
+          set_status(-1);
           break;
         case GPG_ERR_NO_ERROR:
-          stream << _("A") << " ";
+          stream_ << _("A") << " ";
           if (sign->summary & GPGME_SIGSUM_GREEN) {
-            stream << _("Good") << " ";
+            stream_ << _("Good") << " ";
           }
           if (sign->summary & GPGME_SIGSUM_RED) {
-            stream << _("Bad") << " ";
+            stream_ << _("Bad") << " ";
           }
           if (sign->summary & GPGME_SIGSUM_SIG_EXPIRED) {
-            stream << _("Expired") << " ";
+            stream_ << _("Expired") << " ";
           }
           if (sign->summary & GPGME_SIGSUM_KEY_MISSING) {
-            stream << _("Missing Key's") << " ";
+            stream_ << _("Missing Key's") << " ";
           }
           if (sign->summary & GPGME_SIGSUM_KEY_REVOKED) {
-            stream << _("Revoked Key's") << " ";
+            stream_ << _("Revoked Key's") << " ";
           }
           if (sign->summary & GPGME_SIGSUM_KEY_EXPIRED) {
-            stream << _("Expired Key's") << " ";
+            stream_ << _("Expired Key's") << " ";
           }
           if (sign->summary & GPGME_SIGSUM_CRL_MISSING) {
-            stream << _("Missing CRL's") << " ";
+            stream_ << _("Missing CRL's") << " ";
           }
 
           if (sign->summary & GPGME_SIGSUM_VALID) {
-            stream << _("Signature Fully Valid.") << std::endl;
+            stream_ << _("Signature Fully Valid.") << std::endl;
           } else {
-            stream << _("Signature Not Fully Valid.") << std::endl;
+            stream_ << _("Signature Not Fully Valid.") << std::endl;
           }
 
           if (!(sign->status & GPGME_SIGSUM_KEY_MISSING)) {
-            if (!print_signer(stream, sign)) setStatus(0);
+            if (!print_signer(stream_, sign)) set_status(0);
           } else {
-            stream << _("Key is NOT present with ID 0x") << sign->fpr
-                   << std::endl;
+            stream_ << _("Key is NOT present with ID 0x") << sign->fpr
+                    << std::endl;
           }
 
-          setStatus(1);
+          set_status(1);
 
           break;
         case GPG_ERR_NO_PUBKEY:
-          stream << _("A signature could NOT be verified due to a Missing Key")
-                 << std::endl;
-          setStatus(-2);
+          stream_ << _("A signature could NOT be verified due to a Missing Key")
+                  << std::endl;
+          set_status(-2);
           break;
         case GPG_ERR_CERT_REVOKED:
-          stream << _("A signature is valid but the key used to verify the "
-                      "signature has been revoked")
-                 << std::endl;
-          if (!print_signer(stream, sign)) {
-            setStatus(0);
+          stream_ << _("A signature is valid but the key used to verify the "
+                       "signature has been revoked")
+                  << std::endl;
+          if (!print_signer(stream_, sign)) {
+            set_status(0);
           }
-          setStatus(-1);
+          set_status(-1);
           break;
         case GPG_ERR_SIG_EXPIRED:
-          stream << _("A signature is valid but expired") << std::endl;
-          if (!print_signer(stream, sign)) {
-            setStatus(0);
+          stream_ << _("A signature is valid but expired") << std::endl;
+          if (!print_signer(stream_, sign)) {
+            set_status(0);
           }
-          setStatus(-1);
+          set_status(-1);
           break;
         case GPG_ERR_KEY_EXPIRED:
-          stream << _("A signature is valid but the key used to "
-                      "verify the signature has expired.")
-                 << std::endl;
-          if (!print_signer(stream, sign)) {
-            setStatus(0);
+          stream_ << _("A signature is valid but the key used to "
+                       "verify the signature has expired.")
+                  << std::endl;
+          if (!print_signer(stream_, sign)) {
+            set_status(0);
           }
           break;
         case GPG_ERR_GENERAL:
-          stream << _("There was some other error which prevented "
-                      "the signature verification.")
-                 << std::endl;
-          status = -1;
+          stream_ << _("There was some other error which prevented "
+                       "the signature verification.")
+                  << std::endl;
+          status_ = -1;
           canContinue = false;
           break;
         default:
           auto fpr = std::string(sign->fpr);
-          stream << _("Error for key with fingerprint") << " "
-                 << GpgFrontend::beautify_fingerprint(fpr);
-          setStatus(-1);
+          stream_ << _("Error for key with fingerprint") << " "
+                  << GpgFrontend::beautify_fingerprint(fpr);
+          set_status(-1);
       }
-      stream << std::endl;
+      stream_ << std::endl;
       sign = sign->next;
     }
-    stream << "<------------" << std::endl;
+    stream_ << "<------------" << std::endl;
   } else {
-    stream << "[>] "
-           << _("Could not find information that can be used for verification.")
-           << std::endl;
-    setStatus(0);
+    stream_
+        << "[>] "
+        << _("Could not find information that can be used for verification.")
+        << std::endl;
+    set_status(0);
     return;
   }
 }
@@ -171,14 +173,14 @@ bool GpgFrontend::VerifyResultAnalyse::print_signer(std::stringstream &stream,
   bool keyFound = true;
   auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(sign->fpr);
 
-  if (!key.good()) {
+  if (!key.IsGood()) {
     stream << "    " << _("Signed By") << ": "
            << "<" << _("Unknown") << ">" << std::endl;
-    setStatus(0);
+    set_status(0);
     keyFound = false;
   } else {
-    stream << "    " << _("Signed By") << ": " << key.uids()->front().uid()
-           << std::endl;
+    stream << "    " << _("Signed By") << ": "
+           << key.GetUIDs()->front().GetUID() << std::endl;
   }
   if (sign->pubkey_algo)
     stream << "    " << _("Public Key Algo") << ": "
@@ -197,12 +199,12 @@ bool GpgFrontend::VerifyResultAnalyse::print_signer(std::stringstream &stream,
 }
 
 gpgme_signature_t GpgFrontend::VerifyResultAnalyse::GetSignatures() const {
-  if (result)
-    return result->signatures;
+  if (result_)
+    return result_->signatures;
   else
     return nullptr;
 }
 GpgFrontend::GpgVerifyResult
 GpgFrontend::VerifyResultAnalyse::TakeChargeOfResult() {
-  return std::move(result);
+  return std::move(result_);
 }

@@ -33,14 +33,15 @@ namespace GpgFrontend::UI {
 KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
                                    QWidget* parent)
     : QDialog(parent), mUids(std::move(uid)), mKey(key) {
-  const auto key_id = mKey.id();
+  const auto key_id = mKey.GetId();
   mKeyList = new KeyList(KeyMenuAbility::NONE, this);
   mKeyList->addListGroupTab(_("Signers"), KeyListRow::ONLY_SECRET_KEY,
                             KeyListColumn::NAME | KeyListColumn::EmailAddress,
                             [key_id](const GpgKey& key) -> bool {
-                              if (key.disabled() || !key.can_certify() ||
-                                  !key.has_master_key() || key.expired() ||
-                                  key.revoked() || key_id == key.id())
+                              if (key.IsDisabled() ||
+                                  !key.IsHasCertificationCapability() ||
+                                  !key.IsHasMasterKey() || key.IsExpired() ||
+                                  key.IsRevoked() || key_id == key.GetId())
                                 return false;
                               else
                                 return true;

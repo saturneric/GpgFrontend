@@ -32,24 +32,49 @@ namespace GpgFrontend {
 
 class ResultAnalyse {
  public:
+  /**
+   * @brief Construct a new Result Analyse object
+   *
+   */
   ResultAnalyse() = default;
 
-  [[nodiscard]] const std::string getResultReport() const;
+  /**
+   * @brief Get the Result Report object
+   *
+   * @return const std::string
+   */
+  [[nodiscard]] const std::string GetResultReport() const;
 
-  [[nodiscard]] int getStatus() const;
+  /**
+   * @brief Get the Status object
+   *
+   * @return int
+   */
+  [[nodiscard]] int GetStatus() const;
 
-  void analyse();
+  /**
+   * @brief
+   *
+   */
+  void Analyse();
 
  protected:
+  /**
+   * @brief
+   *
+   */
   virtual void do_analyse() = 0;
 
-  std::stringstream stream;
+  /**
+   * @brief Set the status object
+   *
+   * @param m_status
+   */
+  void set_status(int m_status);
 
-  int status = 1;
-
-  bool analysed_ = false;
-
-  void setStatus(int mStatus);
+  std::stringstream stream_;  ///<
+  int status_ = 1;            ///<
+  bool analysed_ = false;     ///<
 };
 
 }  // namespace GpgFrontend

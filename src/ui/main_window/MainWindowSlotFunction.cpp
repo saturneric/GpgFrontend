@@ -81,14 +81,14 @@ void MainWindow::slotEncrypt() {
     auto key_getter = GpgFrontend::GpgKeyGetter::GetInstance();
     auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
     for (const auto& key : *keys) {
-      if (!key.CanEncrActual()) {
+      if (!key.IsHasActualEncryptionCapability()) {
         QMessageBox::information(
             this, _("Invalid Operation"),
             QString(_(
                 "The selected key contains a key that does not actually have a "
                 "encrypt usage.")) +
                 "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-                QString::fromStdString(key.uids()->front().uid()));
+                QString::fromStdString(key.GetUIDs()->front().GetUID()));
         return;
       }
     }
@@ -108,7 +108,7 @@ void MainWindow::slotEncrypt() {
   if (!if_error) {
     LOG(INFO) << "result" << result.get();
     auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));
-    resultAnalyse.analyse();
+    resultAnalyse.Analyse();
     process_result_analyse(edit, infoBoard, resultAnalyse);
 
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
@@ -140,14 +140,14 @@ void MainWindow::slotSign() {
 
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
   for (const auto& key : *keys) {
-    if (!key.CanSignActual()) {
+    if (!key.IsHasActualSigningCapability()) {
       QMessageBox::information(
           this, _("Invalid Operation"),
           QString(
               _("The selected key contains a key that does not actually have a "
                 "signature usage.")) +
               "<br/><br/>" + _("For example the Following Key:") + "<br/>" +
-              key.uids()->front().uid().c_str());
+              key.GetUIDs()->front().GetUID().c_str());
       return;
     }
   }
@@ -174,7 +174,7 @@ void MainWindow::slotSign() {
 
   if (!if_error) {
     auto resultAnalyse = SignResultAnalyse(error, std::move(result));
-    resultAnalyse.analyse();
+    resultAnalyse.Analyse();
     process_result_analyse(edit, infoBoard, resultAnalyse);
 
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
@@ -214,7 +214,7 @@ void MainWindow::slotDecrypt() {
 
   if (!if_error) {
     auto resultAnalyse = DecryptResultAnalyse(error, std::move(result));
-    resultAnalyse.analyse();
+    resultAnalyse.Analyse();
     process_result_analyse(edit, infoBoard, resultAnalyse);
 
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
@@ -262,13 +262,13 @@ void MainWindow::slotVerify() {
 
   if (!if_error) {
     auto result_analyse = VerifyResultAnalyse(error, result);
-    result_analyse.analyse();
+    result_analyse.Analyse();
     process_result_analyse(edit, infoBoard, result_analyse);
 
-    if (result_analyse.getStatus() == -2)
+    if (result_analyse.GetStatus() == -2)
       import_unknown_key_from_keyserver(this, result_analyse);
 
-    if (result_analyse.getStatus() >= 0)
+    if (result_analyse.GetStatus() >= 0)
       show_verify_details(this, infoBoard, error, result);
   }
 }
@@ -288,14 +288,14 @@ void MainWindow::slotEncryptSign() {
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
   for (const auto& key : *keys) {
-    bool key_can_encrypt = key.CanEncrActual();
+    bool key_can_encrypt = key.IsHasActualEncryptionCapability();
 
     if (!key_can_encrypt) {
       QMessageBox::critical(
           this, _("Invalid KeyPair"),
           QString(_("The selected keypair cannot be used for encryption.")) +
               "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.uids()->front().uid()));
+              QString::fromStdString(key.GetUIDs()->front().GetUID()));
       return;
     }
   }
@@ -309,11 +309,11 @@ void MainWindow::slotEncryptSign() {
   auto signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
 
   for (const auto& key : *keys) {
-    LOG(INFO) << "Keys " << key.email();
+    LOG(INFO) << "Keys " << key.GetEmail();
   }
 
   for (const auto& signer : *signer_keys) {
-    LOG(INFO) << "Signers " << signer.email();
+    LOG(INFO) << "Signers " << signer.GetEmail();
   }
 
   GpgEncrResult encr_result = nullptr;
@@ -354,8 +354,8 @@ void MainWindow::slotEncryptSign() {
     LOG(INFO) << "ResultAnalyse Started";
     auto encrypt_res = EncryptResultAnalyse(error, std::move(encr_result));
     auto sign_res = SignResultAnalyse(error, std::move(sign_result));
-    encrypt_res.analyse();
-    sign_res.analyse();
+    encrypt_res.Analyse();
+    sign_res.Analyse();
     process_result_analyse(edit, infoBoard, encrypt_res, sign_res);
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
       edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
@@ -434,16 +434,16 @@ void MainWindow::slotDecryptVerify() {
   if (!if_error) {
     auto decrypt_res = DecryptResultAnalyse(error, std::move(d_result));
     auto verify_res = VerifyResultAnalyse(error, v_result);
-    decrypt_res.analyse();
-    verify_res.analyse();
+    decrypt_res.Analyse();
+    verify_res.Analyse();
     process_result_analyse(edit, infoBoard, decrypt_res, verify_res);
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
       edit->slotFillTextEditWithText(QString::fromStdString(*decrypted));
 
-    if (verify_res.getStatus() == -2)
+    if (verify_res.GetStatus() == -2)
       import_unknown_key_from_keyserver(this, verify_res);
 
-    if (verify_res.getStatus() >= 0)
+    if (verify_res.GetStatus() >= 0)
       show_verify_details(this, infoBoard, error, v_result);
 
   } else {
@@ -474,12 +474,12 @@ void MainWindow::slotCopyMailAddressToClipboard() {
   if (key_ids->empty()) return;
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
-  if (!key.good()) {
+  if (!key.IsGood()) {
     QMessageBox::critical(this, _("Error"), _("Key Not Found."));
     return;
   }
   QClipboard* cb = QApplication::clipboard();
-  cb->setText(QString::fromStdString(key.email()));
+  cb->setText(QString::fromStdString(key.GetEmail()));
 }
 
 void MainWindow::slotShowKeyDetails() {
@@ -487,7 +487,7 @@ void MainWindow::slotShowKeyDetails() {
   if (key_ids->empty()) return;
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
-  if (key.good()) {
+  if (key.IsGood()) {
     new KeyDetailsDialog(key, this);
   } else {
     QMessageBox::critical(this, _("Error"), _("Key Not Found."));

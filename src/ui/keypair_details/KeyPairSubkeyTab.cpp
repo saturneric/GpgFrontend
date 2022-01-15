@@ -31,8 +31,8 @@ namespace GpgFrontend::UI {
 
 KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
     : QWidget(parent), key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
-
-  LOG(INFO) << key_.email() <<key_.is_private_key() << key_.has_master_key() << key_.subKeys()->front().is_private_key();
+  LOG(INFO) << key_.GetEmail() << key_.IsPrivateKey() << key_.IsHasMasterKey()
+            << key_.GetSubKeys()->front().IsPrivateKey();
 
   createSubkeyList();
   createSubkeyOperaMenu();
@@ -43,7 +43,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
   auto uidButtonsLayout = new QGridLayout();
 
   auto addSubkeyButton = new QPushButton(_("Generate A New Subkey"));
-  if (!key_.is_private_key() || !key_.has_master_key()) {
+  if (!key_.IsPrivateKey() || !key_.IsHasMasterKey()) {
     addSubkeyButton->setDisabled(true);
     setHidden(addSubkeyButton);
   }
@@ -164,38 +164,38 @@ void KeyPairSubkeyTab::slotRefreshSubkeyList() {
   subkeyList->setSelectionMode(QAbstractItemView::SingleSelection);
 
   this->buffered_subkeys.clear();
-  auto sub_keys = key_.subKeys();
+  auto sub_keys = key_.GetSubKeys();
   for (auto& sub_key : *sub_keys) {
-    if (sub_key.disabled() || sub_key.revoked()) continue;
+    if (sub_key.IsDisabled() || sub_key.IsRevoked()) continue;
     this->buffered_subkeys.push_back(std::move(sub_key));
   }
 
   subkeyList->setRowCount(buffered_subkeys.size());
 
   for (const auto& subkeys : buffered_subkeys) {
-    auto* tmp0 = new QTableWidgetItem(QString::fromStdString(subkeys.id()));
+    auto* tmp0 = new QTableWidgetItem(QString::fromStdString(subkeys.GetID()));
     tmp0->setTextAlignment(Qt::AlignCenter);
     subkeyList->setItem(row, 0, tmp0);
 
-    auto* tmp1 = new QTableWidgetItem(QString::number(subkeys.length()));
+    auto* tmp1 = new QTableWidgetItem(QString::number(subkeys.GetKeyLength()));
     tmp1->setTextAlignment(Qt::AlignCenter);
     subkeyList->setItem(row, 1, tmp1);
 
     auto* tmp2 =
-        new QTableWidgetItem(QString::fromStdString(subkeys.pubkey_algo()));
+        new QTableWidgetItem(QString::fromStdString(subkeys.GetPubkeyAlgo()));
     tmp2->setTextAlignment(Qt::AlignCenter);
     subkeyList->setItem(row, 2, tmp2);
 
     auto* tmp3 = new QTableWidgetItem(
-        QString::fromStdString(to_iso_string(subkeys.timestamp())));
+        QString::fromStdString(to_iso_string(subkeys.GetCreateTime())));
     tmp3->setTextAlignment(Qt::AlignCenter);
     subkeyList->setItem(row, 3, tmp3);
 
     auto* tmp4 = new QTableWidgetItem(
         boost::posix_time::to_time_t(
-            boost::posix_time::ptime(subkeys.expires())) == 0
+            boost::posix_time::ptime(subkeys.GetExpireTime())) == 0
             ? _("Never Expire")
-            : QString::fromStdString(to_iso_string(subkeys.expires())));
+            : QString::fromStdString(to_iso_string(subkeys.GetExpireTime())));
     tmp4->setTextAlignment(Qt::AlignCenter);
     subkeyList->setItem(row, 4, tmp4);
 
@@ -214,25 +214,25 @@ void KeyPairSubkeyTab::slotRefreshSubkeyList() {
 }
 
 void KeyPairSubkeyTab::slotAddSubkey() {
-  auto dialog = new SubkeyGenerateDialog(key_.id(), this);
+  auto dialog = new SubkeyGenerateDialog(key_.GetId(), this);
   dialog->show();
 }
 
 void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
   auto& subkey = getSelectedSubkey();
 
-  keyidVarLabel->setText(QString::fromStdString(subkey.id()));
-  keySizeVarLabel->setText(QString::number(subkey.length()));
+  keyidVarLabel->setText(QString::fromStdString(subkey.GetID()));
+  keySizeVarLabel->setText(QString::number(subkey.GetKeyLength()));
 
-  time_t subkey_time_t =
-      boost::posix_time::to_time_t(boost::posix_time::ptime(subkey.expires()));
+  time_t subkey_time_t = boost::posix_time::to_time_t(
+      boost::posix_time::ptime(subkey.GetExpireTime()));
 
   expireVarLabel->setText(
       subkey_time_t == 0 ? _("Never Expires")
                          : QLocale::system().toString(QDateTime::fromTime_t(
-                               to_time_t(subkey.expires()))));
+                               to_time_t(subkey.GetExpireTime()))));
   if (subkey_time_t != 0 &&
-      subkey.expires() < boost::posix_time::second_clock::local_time()) {
+      subkey.GetExpireTime() < boost::posix_time::second_clock::local_time()) {
     auto paletteExpired = expireVarLabel->palette();
     paletteExpired.setColor(expireVarLabel->foregroundRole(), Qt::red);
     expireVarLabel->setPalette(paletteExpired);
@@ -242,27 +242,28 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
     expireVarLabel->setPalette(paletteValid);
   }
 
-  algorithmVarLabel->setText(QString::fromStdString(subkey.pubkey_algo()));
+  algorithmVarLabel->setText(QString::fromStdString(subkey.GetPubkeyAlgo()));
   createdVarLabel->setText(QLocale::system().toString(
-      QDateTime::fromTime_t(to_time_t(subkey.timestamp()))));
+      QDateTime::fromTime_t(to_time_t(subkey.GetCreateTime()))));
 
   std::stringstream usage_steam;
 
-  if (subkey.can_certify()) usage_steam << _("Certificate") << " ";
-  if (subkey.can_encrypt()) usage_steam << _("Encrypt") << " ";
-  if (subkey.can_sign()) usage_steam << _("Sign") << " ";
-  if (subkey.can_authenticate()) usage_steam << _("Auth") << " ";
+  if (subkey.IsHasCertificationCapability())
+    usage_steam << _("Certificate") << " ";
+  if (subkey.IsHasEncryptionCapability()) usage_steam << _("Encrypt") << " ";
+  if (subkey.IsHasSigningCapability()) usage_steam << _("Sign") << " ";
+  if (subkey.IsHasAuthenticationCapability()) usage_steam << _("Auth") << " ";
 
   usageVarLabel->setText(usage_steam.str().c_str());
 
   // Show the situation that secret key not exists.
-  masterKeyExistVarLabel->setText(subkey.secret() ? _("Exists")
-                                                  : _("Not Exists"));
+  masterKeyExistVarLabel->setText(subkey.IsSecretKey() ? _("Exists")
+                                                       : _("Not Exists"));
 
   // Show the situation if key in a smart card.
-  cardKeyLabel->setText(subkey.is_cardkey() ? _("Yes") : _("No"));
+  cardKeyLabel->setText(subkey.IsCardKey() ? _("Yes") : _("No"));
 
-  if (!subkey.secret()) {
+  if (!subkey.IsSecretKey()) {
     auto palette_expired = masterKeyExistVarLabel->palette();
     palette_expired.setColor(masterKeyExistVarLabel->foregroundRole(), Qt::red);
     masterKeyExistVarLabel->setPalette(palette_expired);
@@ -273,7 +274,7 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
     masterKeyExistVarLabel->setPalette(palette_valid);
   }
 
-  if (!subkey.is_cardkey()) {
+  if (!subkey.IsCardKey()) {
     auto palette_expired = cardKeyLabel->palette();
     palette_expired.setColor(cardKeyLabel->foregroundRole(), Qt::red);
     cardKeyLabel->setPalette(palette_expired);
@@ -283,7 +284,7 @@ void KeyPairSubkeyTab::slotRefreshSubkeyDetail() {
     cardKeyLabel->setPalette(palette_valid);
   }
 
-  fingerPrintVarLabel->setText(QString::fromStdString(subkey.fpr()));
+  fingerPrintVarLabel->setText(QString::fromStdString(subkey.GetFingerprint()));
 }
 
 void KeyPairSubkeyTab::createSubkeyOperaMenu() {
@@ -297,10 +298,10 @@ void KeyPairSubkeyTab::createSubkeyOperaMenu() {
 }
 
 void KeyPairSubkeyTab::slotEditSubkey() {
-  LOG(INFO) << "Fpr" << getSelectedSubkey().fpr();
+  LOG(INFO) << "Fpr" << getSelectedSubkey().GetFingerprint();
 
-  auto dialog =
-      new KeySetExpireDateDialog(key_.id(), getSelectedSubkey().fpr(), this);
+  auto dialog = new KeySetExpireDateDialog(
+      key_.GetId(), getSelectedSubkey().GetFingerprint(), this);
   dialog->show();
 }
 
@@ -323,7 +324,7 @@ const GpgSubKey& KeyPairSubkeyTab::getSelectedSubkey() {
   return buffered_subkeys[row];
 }
 void KeyPairSubkeyTab::slotRefreshKeyInfo() {
-  key_ = GpgKeyGetter::GetInstance().GetKey(key_.id());
+  key_ = GpgKeyGetter::GetInstance().GetKey(key_.GetId());
 }
 
 }  // namespace GpgFrontend::UI

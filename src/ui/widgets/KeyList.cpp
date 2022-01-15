@@ -182,7 +182,7 @@ KeyIdArgsListPtr KeyList::getChecked(const KeyTable& key_table) {
   auto ret = std::make_unique<KeyIdArgsList>();
   for (int i = 0; i < key_table.key_list->rowCount(); i++) {
     if (key_table.key_list->item(i, 0)->checkState() == Qt::Checked) {
-      ret->push_back(key_table.buffered_keys[i].id());
+      ret->push_back(key_table.buffered_keys[i].GetId());
     }
   }
   return ret;
@@ -195,7 +195,7 @@ KeyIdArgsListPtr KeyList::getChecked() {
   auto ret = std::make_unique<KeyIdArgsList>();
   for (int i = 0; i < key_list->rowCount(); i++) {
     if (key_list->item(i, 0)->checkState() == Qt::Checked) {
-      ret->push_back(buffered_keys[i].id());
+      ret->push_back(buffered_keys[i].GetId());
     }
   }
   return ret;
@@ -207,8 +207,8 @@ KeyIdArgsListPtr KeyList::getAllPrivateKeys() {
       mKeyTables[ui->keyGroupTab->currentIndex()].buffered_keys;
   auto ret = std::make_unique<KeyIdArgsList>();
   for (int i = 0; i < key_list->rowCount(); i++) {
-    if (key_list->item(i, 1) && buffered_keys[i].is_private_key()) {
-      ret->push_back(buffered_keys[i].id());
+    if (key_list->item(i, 1) && buffered_keys[i].IsPrivateKey()) {
+      ret->push_back(buffered_keys[i].GetId());
     }
   }
   return ret;
@@ -225,7 +225,7 @@ KeyIdArgsListPtr KeyList::getPrivateChecked() {
   for (int i = 0; i < key_list->rowCount(); i++) {
     if ((key_list->item(i, 0)->checkState() == Qt::Checked) &&
         (key_list->item(i, 1))) {
-      ret->push_back(buffered_keys[i].id());
+      ret->push_back(buffered_keys[i].GetId());
     }
   }
   return ret;
@@ -236,7 +236,7 @@ void KeyList::setChecked(const KeyIdArgsListPtr& keyIds,
   if (!keyIds->empty()) {
     for (int i = 0; i < key_table.key_list->rowCount(); i++) {
       if (std::find(keyIds->begin(), keyIds->end(),
-                    key_table.buffered_keys[i].id()) != keyIds->end()) {
+                    key_table.buffered_keys[i].GetId()) != keyIds->end()) {
         key_table.key_list->item(i, 0)->setCheckState(Qt::Checked);
       }
     }
@@ -266,7 +266,7 @@ KeyIdArgsListPtr KeyList::getSelected() {
 
   for (int i = 0; i < key_list->rowCount(); i++) {
     if (key_list->item(i, 0)->isSelected() == 1) {
-      ret->push_back(buffered_keys[i].id());
+      ret->push_back(buffered_keys[i].GetId());
     }
   }
   return ret;
@@ -401,7 +401,7 @@ void KeyList::slotDoubleClicked(const QModelIndex& index) {
       mKeyTables[ui->keyGroupTab->currentIndex()].buffered_keys;
   if (mAction != nullptr) {
     const auto key = GpgKeyGetter::GetInstance(_m_key_list_id)
-                         .GetKey(buffered_keys[index.row()].id());
+                         .GetKey(buffered_keys[index.row()].GetId());
     mAction(key, this);
   }
 }
@@ -418,7 +418,7 @@ std::string KeyList::getSelectedKey() {
 
   for (int i = 0; i < mKeyList->rowCount(); i++) {
     if (mKeyList->item(i, 0)->isSelected() == 1) {
-      return buffered_keys[i].id();
+      return buffered_keys[i].GetId();
     }
   }
   return {};
@@ -442,8 +442,8 @@ void KeyList::slotSyncWithKeyServer() {
   {
     std::lock_guard<std::mutex> guard(buffered_key_list_mutex);
     for (const auto& key : *_buffered_keys_list) {
-      if (!(key.is_private_key() && key.has_master_key()))
-        key_ids.push_back(key.id());
+      if (!(key.IsPrivateKey() && key.IsHasMasterKey()))
+        key_ids.push_back(key.GetId());
     }
   }
 
@@ -461,7 +461,7 @@ void KeyList::slotSyncWithKeyServer() {
 
         boost::format status_str = boost::format(_("Sync [%1%/%2%] %3% %4%")) %
                                    current_index % all_index %
-                                   key.uids()->front().uid() % status;
+                                   key.GetUIDs()->front().GetUID() % status;
         emit signalRefreshStatusBar(status_str.str().c_str(), 1500);
 
         if (current_index == all_index) {
@@ -505,7 +505,7 @@ KeyIdArgsListPtr& KeyTable::GetChecked() {
     checked_key_ids_ = std::make_unique<KeyIdArgsList>();
   auto& ret = checked_key_ids_;
   for (int i = 0; i < key_list->rowCount(); i++) {
-    auto key_id = buffered_keys[i].id();
+    auto key_id = buffered_keys[i].GetId();
     if (key_list->item(i, 0)->checkState() == Qt::Checked &&
         std::find(ret->begin(), ret->end(), key_id) == ret->end()) {
       ret->push_back(key_id);
@@ -545,7 +545,7 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
         continue;
       }
     }
-    if (select_type == KeyListRow::ONLY_SECRET_KEY && !it->is_private_key()) {
+    if (select_type == KeyListRow::ONLY_SECRET_KEY && !it->IsPrivateKey()) {
       it = keys->erase(it);
       continue;
     }
@@ -563,7 +563,7 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
   table_buffered_keys.clear();
 
   while (it != keys->end()) {
-    table_buffered_keys.push_back(it->copy());
+    table_buffered_keys.push_back(it->Copy());
 
     auto* tmp0 = new QTableWidgetItem(QString::number(row_index));
     tmp0->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled |
@@ -574,51 +574,52 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
 
     QString type_str;
     QTextStream type_steam(&type_str);
-    if (it->is_private_key()) {
+    if (it->IsPrivateKey()) {
       type_steam << "pub/sec";
     } else {
       type_steam << "pub";
     }
 
-    if (it->is_private_key() && !it->has_master_key()) {
+    if (it->IsPrivateKey() && !it->IsHasMasterKey()) {
       type_steam << "#";
     }
 
-    if (it->HasCardKey()) {
+    if (it->IsHasCardKey()) {
       type_steam << "^";
     }
 
     auto* tmp1 = new QTableWidgetItem(type_str);
     key_list->setItem(row_index, 1, tmp1);
 
-    auto* tmp2 = new QTableWidgetItem(QString::fromStdString(it->name()));
+    auto* tmp2 = new QTableWidgetItem(QString::fromStdString(it->GetName()));
     key_list->setItem(row_index, 2, tmp2);
-    auto* tmp3 = new QTableWidgetItem(QString::fromStdString(it->email()));
+    auto* tmp3 = new QTableWidgetItem(QString::fromStdString(it->GetEmail()));
     key_list->setItem(row_index, 3, tmp3);
 
     QString usage;
     QTextStream usage_steam(&usage);
 
-    if (it->CanCertActual()) usage_steam << "C";
-    if (it->CanEncrActual()) usage_steam << "E";
-    if (it->CanSignActual()) usage_steam << "S";
-    if (it->CanAuthActual()) usage_steam << "A";
+    if (it->IsHasActualCertificationCapability()) usage_steam << "C";
+    if (it->IsHasActualEncryptionCapability()) usage_steam << "E";
+    if (it->IsHasActualSigningCapability()) usage_steam << "S";
+    if (it->IsHasActualAuthenticationCapability()) usage_steam << "A";
 
     auto* temp_usage = new QTableWidgetItem(usage);
     temp_usage->setTextAlignment(Qt::AlignCenter);
     key_list->setItem(row_index, 4, temp_usage);
 
     auto* temp_validity =
-        new QTableWidgetItem(QString::fromStdString(it->owner_trust()));
+        new QTableWidgetItem(QString::fromStdString(it->GetOwnerTrust()));
     temp_validity->setTextAlignment(Qt::AlignCenter);
     key_list->setItem(row_index, 5, temp_validity);
 
-    auto* temp_fpr = new QTableWidgetItem(QString::fromStdString(it->fpr()));
+    auto* temp_fpr =
+        new QTableWidgetItem(QString::fromStdString(it->GetFingerprint()));
     temp_fpr->setTextAlignment(Qt::AlignCenter);
     key_list->setItem(row_index, 6, temp_fpr);
 
     // strike out expired keys
-    if (it->expired() || it->revoked()) {
+    if (it->IsExpired() || it->IsRevoked()) {
       QFont strike = tmp2->font();
       strike.setStrikeOut(true);
       tmp0->setFont(strike);
@@ -636,7 +637,7 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
   if (!checked_key_list->empty()) {
     for (int i = 0; i < key_list->rowCount(); i++) {
       if (std::find(checked_key_list->begin(), checked_key_list->end(),
-                    buffered_keys[i].id()) != checked_key_list->end()) {
+                    buffered_keys[i].GetId()) != checked_key_list->end()) {
         key_list->item(i, 0)->setCheckState(Qt::Checked);
       }
     }

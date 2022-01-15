@@ -111,8 +111,8 @@ void refresh_info_board(InfoBoardWidget* info_board, int status,
 void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
                             const ResultAnalyse& result_analyse) {
   info_board->associateTabWidget(edit->tabWidget);
-  refresh_info_board(info_board, result_analyse.getStatus(),
-                     result_analyse.getResultReport());
+  refresh_info_board(info_board, result_analyse.GetStatus(),
+                     result_analyse.GetResultReport());
 }
 
 void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
@@ -124,8 +124,8 @@ void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
 
   refresh_info_board(
       info_board,
-      std::min(result_analyse_a.getStatus(), result_analyse_b.getStatus()),
-      result_analyse_a.getResultReport() + result_analyse_b.getResultReport());
+      std::min(result_analyse_a.GetStatus(), result_analyse_b.GetStatus()),
+      result_analyse_a.GetResultReport() + result_analyse_b.GetResultReport());
 }
 
 void process_operation(QWidget* parent, const std::string& waiting_title,

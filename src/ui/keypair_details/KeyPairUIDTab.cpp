@@ -45,7 +45,7 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
   auto addUIDButton = new QPushButton(_("New UID"));
   auto manageUIDButton = new QPushButton(_("UID Management"));
 
-  if (mKey.has_master_key()) {
+  if (mKey.IsHasMasterKey()) {
     manageUIDButton->setMenu(manageSelectedUIDMenu);
   } else {
     manageUIDButton->setDisabled(true);
@@ -165,9 +165,9 @@ void KeyPairUIDTab::slotRefreshUIDList() {
 
   this->buffered_uids.clear();
 
-  auto uids = mKey.uids();
+  auto uids = mKey.GetUIDs();
   for (auto& uid : *uids) {
-    if (uid.invalid() || uid.revoked()) {
+    if (uid.GetInvalid() || uid.GetRevoked()) {
       continue;
     }
     this->buffered_uids.push_back(std::move(uid));
@@ -176,13 +176,13 @@ void KeyPairUIDTab::slotRefreshUIDList() {
   uidList->setRowCount(buffered_uids.size());
 
   for (const auto& uid : buffered_uids) {
-    auto* tmp0 = new QTableWidgetItem(QString::fromStdString(uid.name()));
+    auto* tmp0 = new QTableWidgetItem(QString::fromStdString(uid.GetUID()));
     uidList->setItem(row, 1, tmp0);
 
-    auto* tmp1 = new QTableWidgetItem(QString::fromStdString(uid.email()));
+    auto* tmp1 = new QTableWidgetItem(QString::fromStdString(uid.GetUID()));
     uidList->setItem(row, 2, tmp1);
 
-    auto* tmp2 = new QTableWidgetItem(QString::fromStdString(uid.comment()));
+    auto* tmp2 = new QTableWidgetItem(QString::fromStdString(uid.GetUID()));
     uidList->setItem(row, 3, tmp2);
 
     auto* tmp3 = new QTableWidgetItem(QString::number(row));
@@ -219,7 +219,7 @@ void KeyPairUIDTab::slotRefreshTOFUInfo() {
     if (!uidList->item(uidRow++, 0)->isSelected()) {
       continue;
     }
-    auto tofu_infos = uid.tofu_infos();
+    auto tofu_infos = uid.GetTofuInfos();
     LOG(INFO) << "tofu info size" << tofu_infos->size();
     if (tofu_infos->empty()) {
       tofuTabs->hide();
@@ -243,9 +243,9 @@ void KeyPairUIDTab::slotRefreshSigList() {
     }
 
     buffered_signatures.clear();
-    auto signatures = uid.signatures();
+    auto signatures = uid.GetSignatures();
     for (auto& sig : *signatures) {
-      if (sig.invalid() || sig.revoked()) {
+      if (sig.IsInvalid() || sig.IsRevoked()) {
         continue;
       }
       buffered_signatures.push_back(std::move(sig));
@@ -254,33 +254,35 @@ void KeyPairUIDTab::slotRefreshSigList() {
     sigList->setRowCount(buffered_signatures.size());
 
     for (const auto& sig : buffered_signatures) {
-      auto* tmp0 = new QTableWidgetItem(QString::fromStdString(sig.keyid()));
+      auto* tmp0 = new QTableWidgetItem(QString::fromStdString(sig.GetKeyID()));
       sigList->setItem(sigRow, 0, tmp0);
 
-      if (gpgme_err_code(sig.status()) == GPG_ERR_NO_PUBKEY) {
+      if (gpgme_err_code(sig.GetStatus()) == GPG_ERR_NO_PUBKEY) {
         auto* tmp2 = new QTableWidgetItem("<Unknown>");
         sigList->setItem(sigRow, 1, tmp2);
 
         auto* tmp3 = new QTableWidgetItem("<Unknown>");
         sigList->setItem(sigRow, 2, tmp3);
       } else {
-        auto* tmp2 = new QTableWidgetItem(QString::fromStdString(sig.name()));
+        auto* tmp2 =
+            new QTableWidgetItem(QString::fromStdString(sig.GetName()));
         sigList->setItem(sigRow, 1, tmp2);
 
-        auto* tmp3 = new QTableWidgetItem(QString::fromStdString(sig.email()));
+        auto* tmp3 =
+            new QTableWidgetItem(QString::fromStdString(sig.GetEmail()));
         sigList->setItem(sigRow, 2, tmp3);
       }
 
       auto* tmp4 = new QTableWidgetItem(QLocale::system().toString(
-          QDateTime::fromTime_t(to_time_t(sig.create_time()))));
+          QDateTime::fromTime_t(to_time_t(sig.GetCreateTime()))));
       sigList->setItem(sigRow, 3, tmp4);
 
       auto* tmp5 = new QTableWidgetItem(
           boost::posix_time::to_time_t(
-              boost::posix_time::ptime(sig.expire_time())) == 0
+              boost::posix_time::ptime(sig.GetExpireTime())) == 0
               ? _("Never Expires")
               : QLocale::system().toString(
-                    QDateTime::fromTime_t(to_time_t(sig.expire_time()))));
+                    QDateTime::fromTime_t(to_time_t(sig.GetExpireTime()))));
       tmp5->setTextAlignment(Qt::AlignCenter);
       sigList->setItem(sigRow, 4, tmp5);
 
@@ -310,7 +312,7 @@ UIDArgsListPtr KeyPairUIDTab::getUIDChecked() {
   auto selected_uids = std::make_unique<UIDArgsList>();
   for (int i = 0; i < uidList->rowCount(); i++) {
     if (uidList->item(i, 0)->checkState() == Qt::Checked)
-      selected_uids->push_back(buffered_uids[i].uid());
+      selected_uids->push_back(buffered_uids[i].GetUID());
   }
   return selected_uids;
 }
@@ -323,14 +325,14 @@ void KeyPairUIDTab::createManageUIDMenu() {
   auto* delUIDAct = new QAction(_("Delete Selected UID(s)"), this);
   connect(delUIDAct, SIGNAL(triggered()), this, SLOT(slotDelUID()));
 
-  if (mKey.has_master_key()) {
+  if (mKey.IsHasMasterKey()) {
     manageSelectedUIDMenu->addAction(signUIDAct);
     manageSelectedUIDMenu->addAction(delUIDAct);
   }
 }
 
 void KeyPairUIDTab::slotAddUID() {
-  auto keyNewUIDDialog = new KeyNewUIDDialog(mKey.id(), this);
+  auto keyNewUIDDialog = new KeyNewUIDDialog(mKey.GetId(), this);
   connect(keyNewUIDDialog, SIGNAL(finished(int)), this,
           SLOT(slotAddUIDResult(int)));
   connect(keyNewUIDDialog, SIGNAL(finished(int)), keyNewUIDDialog,
@@ -425,7 +427,7 @@ UIDArgsListPtr KeyPairUIDTab::getUIDSelected() {
   auto uids = std::make_unique<UIDArgsList>();
   for (int i = 0; i < uidList->rowCount(); i++) {
     if (uidList->item(i, 0)->isSelected()) {
-      uids->push_back(buffered_uids[i].uid());
+      uids->push_back(buffered_uids[i].GetUID());
     }
   }
   return uids;
@@ -436,7 +438,7 @@ SignIdArgsListPtr KeyPairUIDTab::getSignSelected() {
   for (int i = 0; i < sigList->rowCount(); i++) {
     if (sigList->item(i, 0)->isSelected()) {
       auto& sign = buffered_signatures[i];
-      signatures->push_back({sign.keyid(), sign.uid()});
+      signatures->push_back({sign.GetKeyID(), sign.GetUID()});
     }
   }
   return signatures;
@@ -453,7 +455,7 @@ void KeyPairUIDTab::createUIDPopupMenu() {
   auto* delUIDAct = new QAction(_("Delete UID"), this);
   connect(delUIDAct, SIGNAL(triggered()), this, SLOT(slotDelUIDSingle()));
 
-  if (mKey.has_master_key()) {
+  if (mKey.IsHasMasterKey()) {
     uidPopupMenu->addAction(serPrimaryUIDAct);
     uidPopupMenu->addAction(signUIDAct);
     uidPopupMenu->addAction(delUIDAct);
@@ -539,7 +541,7 @@ void KeyPairUIDTab::slotDelSign() {
 
   if (!GpgKeyGetter::GetInstance()
            .GetKey(selected_signs->front().first)
-           .good()) {
+           .IsGood()) {
     QMessageBox::critical(
         nullptr, _("Invalid Operation"),
         _("To delete the signature, you need to have its corresponding public "
@@ -569,7 +571,7 @@ void KeyPairUIDTab::slotDelSign() {
   }
 }
 void KeyPairUIDTab::slotRefreshKey() {
-  this->mKey = GpgKeyGetter::GetInstance().GetKey(this->mKey.id());
+  this->mKey = GpgKeyGetter::GetInstance().GetKey(this->mKey.GetId());
   this->slotRefreshUIDList();
   this->slotRefreshTOFUInfo();
   this->slotRefreshSigList();

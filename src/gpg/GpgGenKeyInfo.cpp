@@ -30,31 +30,31 @@
 #include <string>
 #include <vector>
 
-void GpgFrontend::GenKeyInfo::setAlgo(const std::string &m_algo) {
+void GpgFrontend::GenKeyInfo::SetAlgo(const std::string &m_algo) {
   LOG(INFO) << "set algo" << m_algo;
   // Check algo if supported
   std::string algo_args = std::string(m_algo);
   boost::algorithm::to_upper(algo_args);
   if (standalone_) {
     if (!subkey_) {
-      auto support_algo = getSupportedKeyAlgoStandalone();
+      auto support_algo = GetSupportedKeyAlgoStandalone();
       auto it = std::find(support_algo.begin(), support_algo.end(), algo_args);
       // Algo Not Supported
       if (it == support_algo.end()) return;
     } else {
-      auto support_algo = getSupportedSubkeyAlgoStandalone();
+      auto support_algo = GetSupportedSubkeyAlgoStandalone();
       auto it = std::find(support_algo.begin(), support_algo.end(), algo_args);
       // Algo Not Supported
       if (it == support_algo.end()) return;
     }
   } else {
     if (!subkey_) {
-      auto support_algo = getSupportedKeyAlgo();
+      auto support_algo = GetSupportedKeyAlgo();
       auto it = std::find(support_algo.begin(), support_algo.end(), algo_args);
       // Algo Not Supported
       if (it == support_algo.end()) return;
     } else {
-      auto support_algo = getSupportedSubkeyAlgo();
+      auto support_algo = GetSupportedSubkeyAlgo();
       auto it = std::find(support_algo.begin(), support_algo.end(), algo_args);
       // Algo Not Supported
       if (it == support_algo.end()) return;
@@ -65,12 +65,12 @@ void GpgFrontend::GenKeyInfo::setAlgo(const std::string &m_algo) {
   reset_options();
 
   if (!this->subkey_) {
-    this->setAllowCertification(true);
+    this->SetAllowCertification(true);
   } else {
-    this->setAllowCertification(false);
+    this->SetAllowCertification(false);
   }
 
-  this->allowChangeCertification = false;
+  this->allow_change_certification_ = false;
 
   if (!standalone_) boost::algorithm::to_lower(algo_args);
 
@@ -83,7 +83,7 @@ void GpgFrontend::GenKeyInfo::setAlgo(const std::string &m_algo) {
     suggest_min_key_size_ = 1024;
     suggest_max_key_size_ = 4096;
     suggest_size_addition_step_ = 1024;
-    setKeySize(2048);
+    SetKeyLength(2048);
 
   } else if (algo_args == "dsa") {
     /**
@@ -92,62 +92,62 @@ void GpgFrontend::GenKeyInfo::setAlgo(const std::string &m_algo) {
      * Recently, NIST has declared 512-bit keys obsolete:
      * now, DSA is available in 1024, 2048 and 3072-bit lengths.
      */
-    setAllowEncryption(false);
-    allowChangeEncryption = false;
+    SetAllowEncryption(false);
+    allow_change_encryption_ = false;
 
     suggest_min_key_size_ = 1024;
     suggest_max_key_size_ = 3072;
     suggest_size_addition_step_ = 1024;
-    setKeySize(2048);
+    SetKeyLength(2048);
 
   } else if (algo_args == "ed25519") {
     /**
      * GnuPG supports the Elgamal asymmetric encryption algorithm in key lengths
      * ranging from 1024 to 4096 bits.
      */
-    setAllowEncryption(false);
-    allowChangeEncryption = false;
+    SetAllowEncryption(false);
+    allow_change_encryption_ = false;
 
     suggest_min_key_size_ = -1;
     suggest_max_key_size_ = -1;
     suggest_size_addition_step_ = -1;
-    setKeySize(-1);
+    SetKeyLength(-1);
   } else if (algo_args == "elg") {
     /**
      * GnuPG supports the Elgamal asymmetric encryption algorithm in key lengths
      * ranging from 1024 to 4096 bits.
      */
-    setAllowAuthentication(false);
-    allowChangeAuthentication = false;
+    SetAllowAuthentication(false);
+    allow_change_authentication_ = false;
 
-    setAllowSigning(false);
-    allowChangeSigning = false;
+    SetAllowSigning(false);
+    allow_change_signing_ = false;
 
     suggest_min_key_size_ = 1024;
     suggest_max_key_size_ = 4096;
     suggest_size_addition_step_ = 1024;
-    setKeySize(2048);
+    SetKeyLength(2048);
   }
   this->algo_ = algo_args;
 }
 
 void GpgFrontend::GenKeyInfo::reset_options() {
-  allowChangeEncryption = true;
-  setAllowEncryption(true);
+  allow_change_encryption_ = true;
+  SetAllowEncryption(true);
 
-  allowChangeCertification = true;
-  setAllowCertification(true);
+  allow_change_certification_ = true;
+  SetAllowCertification(true);
 
-  allowChangeSigning = true;
-  setAllowSigning(true);
+  allow_change_signing_ = true;
+  SetAllowSigning(true);
 
-  allowChangeAuthentication = true;
-  setAllowAuthentication(true);
+  allow_change_authentication_ = true;
+  SetAllowAuthentication(true);
 
   passphrase_.clear();
 }
 
-std::string GpgFrontend::GenKeyInfo::getKeySizeStr() const {
+std::string GpgFrontend::GenKeyInfo::GetKeySizeStr() const {
   if (key_size_ > 0) {
     return std::to_string(key_size_);
   } else {
@@ -155,7 +155,7 @@ std::string GpgFrontend::GenKeyInfo::getKeySizeStr() const {
   }
 }
 
-void GpgFrontend::GenKeyInfo::setKeySize(int m_key_size) {
+void GpgFrontend::GenKeyInfo::SetKeyLength(int m_key_size) {
   if (m_key_size < suggest_min_key_size_ ||
       m_key_size > suggest_max_key_size_) {
     return;
@@ -163,57 +163,58 @@ void GpgFrontend::GenKeyInfo::setKeySize(int m_key_size) {
   GenKeyInfo::key_size_ = m_key_size;
 }
 
-void GpgFrontend::GenKeyInfo::setExpired(
+void GpgFrontend::GenKeyInfo::SetExpireTime(
     const boost::posix_time::ptime &m_expired) {
   using namespace boost::gregorian;
-  if (!isNonExpired()) {
+  if (!IsNonExpired()) {
     GenKeyInfo::expired_ = m_expired;
   }
 }
 
-void GpgFrontend::GenKeyInfo::setNonExpired(bool m_non_expired) {
+void GpgFrontend::GenKeyInfo::SetNonExpired(bool m_non_expired) {
   using namespace boost::posix_time;
   if (!m_non_expired) this->expired_ = from_time_t(0);
   GenKeyInfo::non_expired_ = m_non_expired;
 }
 
-void GpgFrontend::GenKeyInfo::setAllowEncryption(bool m_allow_encryption) {
-  if (allowChangeEncryption) GenKeyInfo::allowEncryption = m_allow_encryption;
+void GpgFrontend::GenKeyInfo::SetAllowEncryption(bool m_allow_encryption) {
+  if (allow_change_encryption_)
+    GenKeyInfo::allow_encryption_ = m_allow_encryption;
 }
 
-void GpgFrontend::GenKeyInfo::setAllowCertification(
+void GpgFrontend::GenKeyInfo::SetAllowCertification(
     bool m_allow_certification) {
-  if (allowChangeCertification)
-    GenKeyInfo::allowCertification = m_allow_certification;
+  if (allow_change_certification_)
+    GenKeyInfo::allow_certification_ = m_allow_certification;
 }
 
 GpgFrontend::GenKeyInfo::GenKeyInfo(bool m_is_sub_key, bool m_standalone)
     : standalone_(m_standalone), subkey_(m_is_sub_key) {
-  setAlgo("rsa");
+  SetAlgo("rsa");
 }
 
-const std::vector<std::string> &GpgFrontend::GenKeyInfo::getSupportedKeyAlgo() {
+const std::vector<std::string> &GpgFrontend::GenKeyInfo::GetSupportedKeyAlgo() {
   static const std::vector<std::string> support_key_algo = {"RSA", "DSA",
                                                             "ED25519"};
   return support_key_algo;
 }
 
 const std::vector<std::string>
-    &GpgFrontend::GenKeyInfo::getSupportedSubkeyAlgo() {
+    &GpgFrontend::GenKeyInfo::GetSupportedSubkeyAlgo() {
   static const std::vector<std::string> support_subkey_algo = {"RSA", "DSA",
                                                                "ED25519"};
   return support_subkey_algo;
 }
 
 const std::vector<std::string>
-    &GpgFrontend::GenKeyInfo::getSupportedKeyAlgoStandalone() {
+    &GpgFrontend::GenKeyInfo::GetSupportedKeyAlgoStandalone() {
   static const std::vector<std::string> support_subkey_algo_standalone = {
       "RSA", "DSA"};
   return support_subkey_algo_standalone;
 }
 
 const std::vector<std::string>
-    &GpgFrontend::GenKeyInfo::getSupportedSubkeyAlgoStandalone() {
+    &GpgFrontend::GenKeyInfo::GetSupportedSubkeyAlgoStandalone() {
   static const std::vector<std::string> support_subkey_algo_standalone = {
       "RSA", "DSA", "ELG-E"};
   return support_subkey_algo_standalone;

@@ -36,9 +36,20 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief
+ *
+ * @tparam T
+ */
 template <typename T>
 class SingletonFunctionObject {
  public:
+  /**
+   * @brief Get the Instance object
+   *
+   * @param channel
+   * @return T&
+   */
   static T& GetInstance(
       int channel = GpgFrontend::GPGFRONTEND_DEFAULT_CHANNEL) {
     static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
@@ -51,6 +62,13 @@ class SingletonFunctionObject {
       return *_p_pbj;
   }
 
+  /**
+   * @brief Create a Instance object
+   *
+   * @param channel
+   * @param factory
+   * @return T&
+   */
   static T& CreateInstance(int channel,
                            std::function<std::unique_ptr<T>(void)> factory) {
     static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
@@ -63,6 +81,13 @@ class SingletonFunctionObject {
       return *_p_pbj;
   }
 
+  /**
+   * @brief Create a Instance object
+   *
+   * @param channel
+   * @param p_obj
+   * @return T&
+   */
   static T& CreateInstance(int channel, std::unique_ptr<T> p_obj = nullptr) {
     static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
                   "T not derived from SingletonFunctionObject<T>");
@@ -74,6 +99,12 @@ class SingletonFunctionObject {
       return *_p_pbj;
   }
 
+  /**
+   * @brief
+   *
+   * @param channel
+   * @return T&
+   */
   static T& ReleaseChannel(int channel) {
     decltype(_instances_map.end()) _it;
     {
@@ -84,33 +115,79 @@ class SingletonFunctionObject {
     DLOG(INFO) << "channel" << channel << "released";
   }
 
+  /**
+   * @brief Get the Default Channel object
+   *
+   * @return int
+   */
   static int GetDefaultChannel() { return _default_channel; }
 
+  /**
+   * @brief Get the Channel object
+   *
+   * @return int
+   */
   [[nodiscard]] int GetChannel() const { return channel_; }
 
+  /**
+   * @brief Construct a new Singleton Function Object object
+   *
+   */
   SingletonFunctionObject(T&&) = delete;
 
+  /**
+   * @brief Construct a new Singleton Function Object object
+   *
+   */
   SingletonFunctionObject(const T&) = delete;
 
+  /**
+   * @brief
+   *
+   */
   void operator=(const T&) = delete;
 
  protected:
+  /**
+   * @brief Construct a new Singleton Function Object object
+   *
+   */
   SingletonFunctionObject() = default;
 
+  /**
+   * @brief Construct a new Singleton Function Object object
+   *
+   * @param channel
+   */
   explicit SingletonFunctionObject(int channel) : channel_(channel) {}
 
+  /**
+   * @brief Destroy the Singleton Function Object object
+   *
+   */
   virtual ~SingletonFunctionObject() = default;
 
+  /**
+   * @brief Set the Channel object
+   *
+   * @param channel
+   */
   void SetChannel(int channel) { this->channel_ = channel; }
 
  private:
-  int channel_ = _default_channel;
-  static int _default_channel;
-  static std::mutex _instance_mutex;
-  static std::shared_mutex _instances_mutex;
-  static std::unique_ptr<T> _instance;
-  static std::map<int, std::unique_ptr<T>> _instances_map;
+  int channel_ = _default_channel;                          ///<
+  static int _default_channel;                              ///<
+  static std::mutex _instance_mutex;                        ///<
+  static std::shared_mutex _instances_mutex;                ///<
+  static std::unique_ptr<T> _instance;                      ///<
+  static std::map<int, std::unique_ptr<T>> _instances_map;  ///<
 
+  /**
+   * @brief
+   *
+   * @param channel
+   * @return T*
+   */
   static T* find_object_in_channel(int channel) {
     // read _instances_map
     decltype(_instances_map.end()) _it;
@@ -124,6 +201,13 @@ class SingletonFunctionObject {
     }
   }
 
+  /**
+   * @brief Set the object in channel object
+   *
+   * @param channel
+   * @param p_obj
+   * @return T*
+   */
   static T* set_object_in_channel(int channel, std::unique_ptr<T> p_obj) {
     {
       if (p_obj == nullptr) p_obj = std::make_unique<T>();

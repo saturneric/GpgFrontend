@@ -60,9 +60,9 @@ void KeySetExpireDateDialog::slotConfirm() {
   if (ui->noExpirationCheckBox->checkState() == Qt::Unchecked) {
     expires = std::make_unique<boost::posix_time::ptime>(
         boost::posix_time::from_time_t(datetime.toLocalTime().toTime_t()));
-    LOG(INFO) << "keyid" << mKey.id() << mSubkey << *expires;
+    LOG(INFO) << "keyid" << mKey.GetId() << mSubkey << *expires;
   } else {
-    LOG(INFO) << "keyid" << mKey.id() << mSubkey << "Non Expired";
+    LOG(INFO) << "keyid" << mKey.GetId() << mSubkey << "Non Expired";
   }
 
   auto err = GpgKeyOpera::GetInstance().SetExpire(mKey, mSubkey, expires);

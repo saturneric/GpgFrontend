@@ -28,25 +28,54 @@
 #include "gpg/GpgConstants.h"
 
 namespace GpgFrontend {
-
+/**
+ * @brief
+ *
+ */
 class GpgData {
  public:
+  /**
+   * @brief Construct a new Gpg Data object
+   *
+   */
   GpgData();
 
+  /**
+   * @brief Construct a new Gpg Data object
+   *
+   * @param buffer
+   * @param size
+   * @param copy
+   */
   GpgData(void* buffer, size_t size, bool copy = true);
 
-  operator gpgme_data_t() { return data_.get(); }
+  /**
+   * @brief
+   *
+   * @return gpgme_data_t
+   */
+  operator gpgme_data_t() { return data_ref_.get(); }
 
+  /**
+   * @brief
+   *
+   * @return ByteArrayPtr
+   */
   ByteArrayPtr Read2Buffer();
 
  private:
-  struct __data_ref_deletor {
+  /**
+   * @brief
+   *
+   */
+  struct _data_ref_deleter {
     void operator()(gpgme_data_t _data) {
       if (_data != nullptr) gpgme_data_release(_data);
     }
   };
 
-  std::unique_ptr<struct gpgme_data, __data_ref_deletor> data_ = nullptr;
+  std::unique_ptr<struct gpgme_data, _data_ref_deleter> data_ref_ =
+      nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

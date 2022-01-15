@@ -479,7 +479,7 @@ void MainWindow::createDockWindows() {
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool {
-        return !(key.revoked() || key.disabled() || key.expired());
+        return !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   mKeyList->addListGroupTab(
@@ -487,8 +487,8 @@ void MainWindow::createDockWindows() {
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool {
-        return !key.is_private_key() &&
-               !(key.revoked() || key.disabled() || key.expired());
+        return !key.IsPrivateKey() &&
+               !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   mKeyList->addListGroupTab(
@@ -496,8 +496,8 @@ void MainWindow::createDockWindows() {
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool {
-        return key.is_private_key() &&
-               !(key.revoked() || key.disabled() || key.expired());
+        return key.IsPrivateKey() &&
+               !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   mKeyList->slotRefresh();

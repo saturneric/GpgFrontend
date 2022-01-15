@@ -116,13 +116,12 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
   keySizeSpinBox = new QSpinBox(this);
   keyTypeComboBox = new QComboBox(this);
 
-  for (auto& algo : GenKeyInfo::getSupportedKeyAlgo()) {
+  for (auto& algo : GenKeyInfo::GetSupportedKeyAlgo()) {
     keyTypeComboBox->addItem(QString::fromStdString(algo));
   }
-  if (!GenKeyInfo::getSupportedKeyAlgo().empty()) {
+  if (!GenKeyInfo::GetSupportedKeyAlgo().empty()) {
     keyTypeComboBox->setCurrentIndex(0);
   }
-
 
   dateEdit = new QDateTimeEdit(QDateTime::currentDateTime().addYears(2), this);
   dateEdit->setMinimumDateTime(QDateTime::currentDateTime());
@@ -184,50 +183,50 @@ void SubkeyGenerateDialog::slotExpireBoxChanged() {
 void SubkeyGenerateDialog::refresh_widgets_state() {
   qDebug() << "refresh_widgets_state called";
 
-  if (gen_key_info_->isAllowEncryption())
+  if (gen_key_info_->IsAllowEncryption())
     key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Checked);
   else
     key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Unchecked);
 
-  if (gen_key_info_->isAllowChangeEncryption())
+  if (gen_key_info_->IsAllowChangeEncryption())
     key_usage_check_boxes_[0]->setDisabled(false);
   else
     key_usage_check_boxes_[0]->setDisabled(true);
 
-  if (gen_key_info_->isAllowSigning())
+  if (gen_key_info_->IsAllowSigning())
     key_usage_check_boxes_[1]->setCheckState(Qt::CheckState::Checked);
   else
     key_usage_check_boxes_[1]->setCheckState(Qt::CheckState::Unchecked);
 
-  if (gen_key_info_->isAllowChangeSigning())
+  if (gen_key_info_->IsAllowChangeSigning())
     key_usage_check_boxes_[1]->setDisabled(false);
   else
     key_usage_check_boxes_[1]->setDisabled(true);
 
-  if (gen_key_info_->isAllowCertification())
+  if (gen_key_info_->IsAllowCertification())
     key_usage_check_boxes_[2]->setCheckState(Qt::CheckState::Checked);
   else
     key_usage_check_boxes_[2]->setCheckState(Qt::CheckState::Unchecked);
 
-  if (gen_key_info_->isAllowChangeCertification())
+  if (gen_key_info_->IsAllowChangeCertification())
     key_usage_check_boxes_[2]->setDisabled(false);
   else
     key_usage_check_boxes_[2]->setDisabled(true);
 
-  if (gen_key_info_->isAllowAuthentication())
+  if (gen_key_info_->IsAllowAuthentication())
     key_usage_check_boxes_[3]->setCheckState(Qt::CheckState::Checked);
   else
     key_usage_check_boxes_[3]->setCheckState(Qt::CheckState::Unchecked);
 
-  if (gen_key_info_->isAllowChangeAuthentication())
+  if (gen_key_info_->IsAllowChangeAuthentication())
     key_usage_check_boxes_[3]->setDisabled(false);
   else
     key_usage_check_boxes_[3]->setDisabled(true);
 
-  keySizeSpinBox->setRange(gen_key_info_->getSuggestMinKeySize(),
-                           gen_key_info_->getSuggestMaxKeySize());
-  keySizeSpinBox->setValue(gen_key_info_->getKeySize());
-  keySizeSpinBox->setSingleStep(gen_key_info_->getSizeChangeStep());
+  keySizeSpinBox->setRange(gen_key_info_->GetSuggestMinKeySize(),
+                           gen_key_info_->GetSuggestMaxKeySize());
+  keySizeSpinBox->setValue(gen_key_info_->GetKeyLength());
+  keySizeSpinBox->setSingleStep(gen_key_info_->GetSizeChangeStep());
 }
 
 void SubkeyGenerateDialog::slotKeyGenAccept() {
@@ -244,12 +243,12 @@ void SubkeyGenerateDialog::slotKeyGenAccept() {
   auto err_string = err_stream.str();
 
   if (err_string.empty()) {
-    gen_key_info_->setKeySize(keySizeSpinBox->value());
+    gen_key_info_->SetKeyLength(keySizeSpinBox->value());
 
     if (expireCheckBox->checkState()) {
-      gen_key_info_->setNonExpired(true);
+      gen_key_info_->SetNonExpired(true);
     } else {
-      gen_key_info_->setExpired(
+      gen_key_info_->SetExpireTime(
           boost::posix_time::from_time_t(dateEdit->dateTime().toTime_t()));
     }
 
@@ -298,39 +297,39 @@ void SubkeyGenerateDialog::slotKeyGenAccept() {
 
 void SubkeyGenerateDialog::slotEncryptionBoxChanged(int state) {
   if (state == 0) {
-    gen_key_info_->setAllowEncryption(false);
+    gen_key_info_->SetAllowEncryption(false);
   } else {
-    gen_key_info_->setAllowEncryption(true);
+    gen_key_info_->SetAllowEncryption(true);
   }
 }
 
 void SubkeyGenerateDialog::slotSigningBoxChanged(int state) {
   if (state == 0) {
-    gen_key_info_->setAllowSigning(false);
+    gen_key_info_->SetAllowSigning(false);
   } else {
-    gen_key_info_->setAllowSigning(true);
+    gen_key_info_->SetAllowSigning(true);
   }
 }
 
 void SubkeyGenerateDialog::slotCertificationBoxChanged(int state) {
   if (state == 0) {
-    gen_key_info_->setAllowCertification(false);
+    gen_key_info_->SetAllowCertification(false);
   } else {
-    gen_key_info_->setAllowCertification(true);
+    gen_key_info_->SetAllowCertification(true);
   }
 }
 
 void SubkeyGenerateDialog::slotAuthenticationBoxChanged(int state) {
   if (state == 0) {
-    gen_key_info_->setAllowAuthentication(false);
+    gen_key_info_->SetAllowAuthentication(false);
   } else {
-    gen_key_info_->setAllowAuthentication(true);
+    gen_key_info_->SetAllowAuthentication(true);
   }
 }
 
 void SubkeyGenerateDialog::slotActivatedKeyType(int index) {
   qDebug() << "key type index changed " << index;
-  gen_key_info_->setAlgo(this->keyTypeComboBox->itemText(index).toStdString());
+  gen_key_info_->SetAlgo(this->keyTypeComboBox->itemText(index).toStdString());
   refresh_widgets_state();
 }
 

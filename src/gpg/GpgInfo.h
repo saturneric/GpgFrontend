@@ -28,24 +28,17 @@
 #include <string>
 
 /**
- * Use to record some info about gnupg
+ * @brief  Use to record some info about gnupg
+ *
  */
 class GpgInfo {
  public:
-  /**
-   * executable binary path of gnupg
-   */
-  std::string AppPath;
-
-  std::string DatabasePath;
-
-  std::string GnupgVersion;
-
-  std::string GpgConfPath;
-
-  std::string CMSPath;
-
-  std::string GpgMEVersion;
+  std::string AppPath;       ///<  executable binary path of gnupg
+  std::string DatabasePath;  ///<
+  std::string GnupgVersion;  ///<
+  std::string GpgConfPath;   ///<
+  std::string CMSPath;       ///<
+  std::string GpgMEVersion;  ///<
 };
 
 #endif  // GPGFRONTEND_ZH_CN_TS_GPGINFO_H

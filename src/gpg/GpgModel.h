@@ -35,36 +35,21 @@
 
 namespace GpgFrontend {
 
-using KeyId = std::string;
-
-using SubkeyId = std::string;
-
-using KeyIdArgsList = std::vector<KeyId>;
-
-using KeyIdArgsListPtr = std::unique_ptr<KeyIdArgsList>;
-
-using UIDArgsList = std::vector<std::string>;
-
-using UIDArgsListPtr = std::unique_ptr<UIDArgsList>;
-
-// KeyID/UID
-using SignIdArgsList = std::vector<std::pair<std::string, std::string>>;
-
-using SignIdArgsListPtr = std::unique_ptr<SignIdArgsList>;
-
-using KeyFprArgsListPtr = std::unique_ptr<std::vector<std::string>>;
-
-using KeyArgsList = std::vector<GpgKey>;
-
-using KeyListPtr = std::unique_ptr<KeyArgsList>;
-
-using GpgKeyLinkList = std::list<GpgFrontend::GpgKey>;
-
-using KeyLinkListPtr = std::unique_ptr<GpgKeyLinkList>;
-
-using KeyPtr = std::unique_ptr<GpgKey>;
-
-using KeyPtrArgsList = const std::initializer_list<KeyPtr>;
+using KeyId = std::string;                                                ///<
+using SubkeyId = std::string;                                             ///<
+using KeyIdArgsList = std::vector<KeyId>;                                 ///<
+using KeyIdArgsListPtr = std::unique_ptr<KeyIdArgsList>;                  ///<
+using UIDArgsList = std::vector<std::string>;                             ///<
+using UIDArgsListPtr = std::unique_ptr<UIDArgsList>;                      ///<
+using SignIdArgsList = std::vector<std::pair<std::string, std::string>>;  ///<
+using SignIdArgsListPtr = std::unique_ptr<SignIdArgsList>;                ///<
+using KeyFprArgsListPtr = std::unique_ptr<std::vector<std::string>>;      ///<
+using KeyArgsList = std::vector<GpgKey>;                                  ///<
+using KeyListPtr = std::unique_ptr<KeyArgsList>;                          ///<
+using GpgKeyLinkList = std::list<GpgFrontend::GpgKey>;                    ///<
+using KeyLinkListPtr = std::unique_ptr<GpgKeyLinkList>;                   ///<
+using KeyPtr = std::unique_ptr<GpgKey>;                                   ///<
+using KeyPtrArgsList = const std::initializer_list<KeyPtr>;               ///<
 
 }  // namespace GpgFrontend
 

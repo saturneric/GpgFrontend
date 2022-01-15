@@ -29,9 +29,17 @@
 
 namespace GpgFrontend {
 
-// Init
+/**
+ * @brief
+ *
+ */
 void init_gpgfrontend_core();
 
+/**
+ * @brief
+ *
+ * @param channel
+ */
 void new_default_settings_channel(
     int channel = GpgFrontend::GPGFRONTEND_DEFAULT_CHANNEL);
 

@@ -38,7 +38,7 @@ GpgFrontend::UI::RecipientsPicker::RecipientsPicker(
       _("Recipient(s)"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress,
       [](const GpgKey& key) -> bool {
-        return !key.is_private_key() && key.CanEncrActual();
+        return !key.IsPrivateKey() && key.IsHasActualEncryptionCapability();
       });
   key_list_->slotRefresh();
 
