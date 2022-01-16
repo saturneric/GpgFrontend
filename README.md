@@ -1,4 +1,4 @@
-<img width="100" height="100" align="right" src="https://github.com/saturneric/Blob/blob/master/logos/icon.png?raw=true" alt="ICON"/>
+<img width="100" height="100" style="position: absolute;right: 0;padding: 12px;top:12px;" src="https://github.com/saturneric/Blob/blob/master/logos/icon.png?raw=true" alt="ICON"/>
 
 # GpgFrontend
 
@@ -13,61 +13,53 @@
 GpgFrontend is a Free, Open Source, Powerful, Easy-to-Use, Compact, Cross-Platform [OpenPGP](https://www.openpgp.org/)
 Crypt Tool. Also, it's one of the excellent GUI Frontends for Modern [GnuPG](https://www.gnupg.org/) (gpg).
 
-By using GpgFrontend, you can quickly encrypt and decrypt text or files. Or at the same time as the above operations,
-you can add your own signature to let others know that this document or this paragraph of text was issued by you.
-Please **take the initiative to protect privacy in your own hands**, instead of relying on servers and algorithms
-provided by large companies. Please use this tool to transmit or store information that you regard as very precious. You
-can also use it to securely guarantee the authenticity of your information.
+By using GpgFrontend, you can quickly encrypt and decrypt text or files. You can also digitally sign your text or files.
+**GpgFrontend does not need to depend on any server, therefore it may be one of the last lines of defense in protecting
+your privacy.** Please use this tool to transmit or store information that you regard as very precious. You can also use
+it to guarantee the authenticity of your information.
 
-GpgFrontend [supports languages](#languages-support) that are widely used in most countries and regions around the
+[Languages Supported](#languages-support) by GpgFrontend that are widely used in most countries and regions around the
 world, including English, Chinese, French, Russian, German, Spanish, Portuguese, Arabic, etc.
 
 **Notice:** GpgFrontend does not provide an embedded [gnupg](https://gnupg.org/) (gpg) binary and needs to be installed
 by the user. **This is to ensure safety and avoid code or binary files involved in encryption and decryption being
 implanted in the back-door during the delivery process.**
 
-If you find this tool useful and promising, welcome to encourage me through STAR this project. Thanks!
+GpgFrontend is permanently free, and you can also "donate" it through the STAR project. Thanks!
 
-[>> Quick Start <<](#quick-start) |
+[>> Overview <<](https://www.gpgfrontend.pub/#/overview) |
 [>> Code & Binary Security <<](https://gpgfrontend.pub/#/about/code-binary-verify)
+| [>> Track Development <<](https://global.git.codesdream.com/)
 
-<div align="center">
 <img src="https://github.com/saturneric/Blob/blob/master/screenshots/main-ubuntu.png?raw=true" alt="Ubuntu Main Screenshot"/>
-</div>
----
 
 ## Table of Contents
 
 - [Usage](#usage)
-    - [Quick Start](#quick-start)
-- [Document](#document)
-- [Build](#build)
+- [User Manual](#user-manual)
+- [Build Source Code](#build-source-code)
 - [Languages Support](#languages-support)
-- [Contributing & Bugs Report](#contributing--bugs-report)
-    - [Contract](#contract)
-    - [Maintainers](#maintainers)
+- [Contract](#contract)
 - [Licenses](#LICENSES)
 
 ## Usage
 
-### Quick Start
-
 Here are some common usages to help you understand what GpgFrontend does and where it comes in handy. The interface
 presented may not be exactly the same as the latest stable release.
 
-#### Fast Text Encryption
+### Text Encryption
 
 Encryption can be done in just a few clicks.
 
 ![GIF](https://github.com/saturneric/Blob/blob/master/gif/encrypt-sign.gif?raw=true)
 
-#### Fast Text Decryption
+### Text Decryption
 
 I want to see what you wrote right away.
 
 ![GIF](https://github.com/saturneric/Blob/blob/master/gif/decrypt-verify.gif?raw=true)
 
-#### Fast File Encryption & Sign
+### File Encryption & Sign
 
 What about files?
 
@@ -86,7 +78,7 @@ Install and compile dependencies.
 
 ```shell
 $ sudo apt-get update
-$ sudo apt-get -y install gettext texinfo git ninja-build
+$ sudo apt-get -y install gettext texinfo git ninja-build cmake
 $ sudo apt-get -y install gcc g++ build-essential binutils autoconf automake 
 $ sudo apt-get -y libconfig++-dev libboost-all-dev qt5-default
 $ sudo apt-get -y install gpg # If you need to run directly after building.
@@ -127,7 +119,7 @@ $ ./release/GpgFrontend # run the program
 ## Languages Support
 
 The supported languages are listed here. Some languages use machine translation and have not been verified. If you want
-to join translation and verification work, please refer to the [here](https://gpgfrontend.pub/#/translate-interface).
+to join translation and verification work, please refer to  [here](https://gpgfrontend.pub/#/translate-interface).
 
 ### Supported Languages
 
@@ -136,7 +128,8 @@ to join translation and verification work, please refer to the [here](https://gp
 'hr_HR', 'cs_CZ', 'da_DK', 'nl_NL', 'et_EE', 'fa_IR', 'fi_FI', 'fr_CA', 'he_IL', 'id_ID',
 'lt_LT', 'De_AT', 'De_CH', 'El_GR', 'Es_MX', 'Iw_IL', 'UK_UA'
 
-Notice: The verification may not be complete and rigorous.
+Notice: Most translations are generated by Google's automatic translation machine.If you find that a certain translation
+is wrong, you are welcome to join the translation work to provide a more suitable human translation.
 
 ## Contract
 
@@ -144,13 +137,14 @@ Please refer to [here](https://www.gpgfrontend.pub/#/contract) for my contact de
 
 ### Contributing & Bugs Report
 
-Feel free to dive in! [Open an issue](https://github.com/saturneric/GpgFrontend/issues/new) or submit PRs.
+Feel free to dive in! [Open an issue](https://github.com/saturneric/GpgFrontend/issues/new) or submit PRs if you prefer
+to use GitHub. For anonymous users, Git patches can be delivered by [mail](mailto:eric@bktus.com).
 
 ### Project Maintainer
 
-[@Saturneric](https://github.com/saturneric).
+[@Saturneric](https://github.com/saturneric)
 
-## LOGO
+### Project's LOGO
 
 ![logo](https://github.com/saturneric/Blob/blob/master/logos/gpgfrontend-logo.jpg?raw=true)
 
