@@ -32,37 +32,79 @@ namespace GpgFrontend::UI {
 class KeyPairOperaTab : public QWidget {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new Key Pair Opera Tab object
+   *
+   * @param key_id
+   * @param parent
+   */
   KeyPairOperaTab(const std::string& key_id, QWidget* parent);
 
-  void createOperaMenu();
+  /**
+   * @brief Create a Opera Menu object
+   *
+   */
+  void CreateOperaMenu();
 
  private slots:
 
   /**
    * @details Export the key to a file, which is chosen in a file dialog
    */
-  void slotExportPrivateKey();
+  void slot_export_private_key();
 
-  void slotExportShortPrivateKey();
+  /**
+   * @brief
+   *
+   */
+  void slot_export_short_private_key();
 
-  void slotExportPublicKey();
+  /**
+   * @brief
+   *
+   */
+  void slot_export_public_key();
 
-  void slotModifyEditDatetime();
+  /**
+   * @brief
+   *
+   */
+  void slot_modify_edit_datetime();
 
-  void slotModifyPassword();
+  /**
+   * @brief
+   *
+   */
+  void slot_modify_password();
 
-  void slotUploadKeyToServer();
+  /**
+   * @brief
+   *
+   */
+  void slot_upload_key_to_server();
 
-  void slotUpdateKeyFromServer();
+  /**
+   * @brief
+   *
+   */
+  void slot_update_key_from_server();
 
-  void slotGenRevokeCert();
+  /**
+   * @brief
+   *
+   */
+  void slot_gen_revoke_cert();
 
-  void slotModifyTOFUPolicy();
+  /**
+   * @brief
+   *
+   */
+  void slot_modify_tofu_policy();
 
  private:
-  GpgKey m_key_;
-  QMenu* keyServerOperaMenu{};
-  QMenu* secretKeyExportOperaMenu{};
+  GpgKey m_key_;                           ///<
+  QMenu* key_server_opera_menu_{};         ///<
+  QMenu* secret_key_export_opera_menu_{};  ///<
 };
 }  // namespace GpgFrontend::UI
 

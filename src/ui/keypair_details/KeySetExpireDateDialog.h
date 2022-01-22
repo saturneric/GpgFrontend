@@ -37,25 +37,56 @@ namespace GpgFrontend::UI {
 class KeySetExpireDateDialog : public QDialog {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new Key Set Expire Date Dialog object
+   *
+   * @param key_id
+   * @param parent
+   */
   explicit KeySetExpireDateDialog(const KeyId& key_id,
                                   QWidget* parent = nullptr);
 
+  /**
+   * @brief Construct a new Key Set Expire Date Dialog object
+   *
+   * @param key_id
+   * @param subkey_fpr
+   * @param parent
+   */
   explicit KeySetExpireDateDialog(const KeyId& key_id, std::string subkey_fpr,
                                   QWidget* parent = nullptr);
 
  signals:
-  void signalKeyExpireDateUpdated();
+  /**
+   * @brief
+   *
+   */
+  void SignalKeyExpireDateUpdated();
 
  private:
+  /**
+   * @brief
+   *
+   */
   void init();
 
-  std::shared_ptr<Ui_ModifiedExpirationDateTime> ui;
-  const GpgKey mKey;
-  const SubkeyId mSubkey;
+  std::shared_ptr<Ui_ModifiedExpirationDateTime> ui_;  ///<
+  const GpgKey m_key_;                                 ///<
+  const SubkeyId m_subkey_;                            ///<
 
  private slots:
-  void slotConfirm();
-  void slotNonExpiredChecked(int state);
+  /**
+   * @brief
+   *
+   */
+  void slot_confirm();
+
+  /**
+   * @brief
+   *
+   * @param state
+   */
+  void slot_non_expired_checked(int state);
 };
 
 }  // namespace GpgFrontend::UI

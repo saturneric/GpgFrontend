@@ -36,7 +36,7 @@ namespace GpgFrontend::UI {
 KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
     : QWidget(parent), m_key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
   // Set Menu
-  createOperaMenu();
+  CreateOperaMenu();
   auto m_vbox = new QVBoxLayout(this);
 
   auto* opera_key_box = new QGroupBox(_("General Operations"));
@@ -48,22 +48,22 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
   auto* export_public_button = new QPushButton(_("Export Public Key"));
   export_h_box_layout->addWidget(export_public_button);
   connect(export_public_button, SIGNAL(clicked()), this,
-          SLOT(slotExportPublicKey()));
+          SLOT(slot_export_public_key()));
 
   if (m_key_.IsPrivateKey()) {
     auto* export_private_button = new QPushButton(_("Export Private Key"));
     export_private_button->setStyleSheet("text-align:center;");
-    export_private_button->setMenu(secretKeyExportOperaMenu);
+    export_private_button->setMenu(secret_key_export_opera_menu_);
     export_h_box_layout->addWidget(export_private_button);
 
     if (m_key_.IsHasMasterKey()) {
       auto* edit_expires_button =
           new QPushButton(_("Modify Expiration Datetime (Primary Key)"));
       connect(edit_expires_button, SIGNAL(clicked()), this,
-              SLOT(slotModifyEditDatetime()));
+              SLOT(slot_modify_edit_datetime()));
       auto* edit_password_button = new QPushButton(_("Modify Password"));
       connect(edit_password_button, SIGNAL(clicked()), this,
-              SLOT(slotModifyPassword()));
+              SLOT(slot_modify_password()));
 
       vbox_p_k->addWidget(edit_expires_button);
       vbox_p_k->addWidget(edit_password_button);
@@ -74,20 +74,20 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
   auto* key_server_opera_button =
       new QPushButton(_("Key Server Operation (Pubkey)"));
   key_server_opera_button->setStyleSheet("text-align:center;");
-  key_server_opera_button->setMenu(keyServerOperaMenu);
+  key_server_opera_button->setMenu(key_server_opera_menu_);
   advance_h_box_layout->addWidget(key_server_opera_button);
 
   if (m_key_.IsPrivateKey() && m_key_.IsHasMasterKey()) {
     auto* revoke_cert_gen_button =
         new QPushButton(_("Generate Revoke Certificate"));
     connect(revoke_cert_gen_button, SIGNAL(clicked()), this,
-            SLOT(slotGenRevokeCert()));
+            SLOT(slot_gen_revoke_cert()));
     advance_h_box_layout->addWidget(revoke_cert_gen_button);
   }
 
   auto* modify_tofu_button = new QPushButton(_("Modify TOFU Policy"));
   connect(modify_tofu_button, SIGNAL(clicked()), this,
-          SLOT(slotModifyTOFUPolicy()));
+          SLOT(slot_modify_tofu_policy()));
 
   vbox_p_k->addLayout(advance_h_box_layout);
   opera_key_box->setLayout(vbox_p_k);
@@ -98,44 +98,44 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
   setLayout(m_vbox);
 }
 
-void KeyPairOperaTab::createOperaMenu() {
-  keyServerOperaMenu = new QMenu(this);
+void KeyPairOperaTab::CreateOperaMenu() {
+  key_server_opera_menu_ = new QMenu(this);
 
   auto* uploadKeyPair = new QAction(_("Upload Key Pair to Key Server"), this);
   connect(uploadKeyPair, SIGNAL(triggered()), this,
-          SLOT(slotUploadKeyToServer()));
+          SLOT(slot_upload_key_to_server()));
   if (!(m_key_.IsPrivateKey() && m_key_.IsHasMasterKey()))
     uploadKeyPair->setDisabled(true);
 
   auto* updateKeyPair = new QAction(_("Sync Key Pair From Key Server"), this);
   connect(updateKeyPair, SIGNAL(triggered()), this,
-          SLOT(slotUpdateKeyFromServer()));
+          SLOT(slot_update_key_from_server()));
 
   // when a key has primary key, it should always upload to keyserver.
   if (m_key_.IsHasMasterKey()) {
     updateKeyPair->setDisabled(true);
   }
 
-  keyServerOperaMenu->addAction(uploadKeyPair);
-  keyServerOperaMenu->addAction(updateKeyPair);
+  key_server_opera_menu_->addAction(uploadKeyPair);
+  key_server_opera_menu_->addAction(updateKeyPair);
 
-  secretKeyExportOperaMenu = new QMenu(this);
+  secret_key_export_opera_menu_ = new QMenu(this);
 
   auto* exportFullSecretKey = new QAction(_("Export Full Secret Key"), this);
   connect(exportFullSecretKey, SIGNAL(triggered()), this,
-          SLOT(slotExportPrivateKey()));
+          SLOT(slot_export_private_key()));
   if (!m_key_.IsPrivateKey()) exportFullSecretKey->setDisabled(true);
 
   auto* exportShortestSecretKey =
       new QAction(_("Export Shortest Secret Key"), this);
   connect(exportShortestSecretKey, SIGNAL(triggered()), this,
-          SLOT(slotExportShortPrivateKey()));
+          SLOT(slot_export_short_private_key()));
 
-  secretKeyExportOperaMenu->addAction(exportFullSecretKey);
-  secretKeyExportOperaMenu->addAction(exportShortestSecretKey);
+  secret_key_export_opera_menu_->addAction(exportFullSecretKey);
+  secret_key_export_opera_menu_->addAction(exportShortestSecretKey);
 }
 
-void KeyPairOperaTab::slotExportPublicKey() {
+void KeyPairOperaTab::slot_export_public_key() {
   ByteArrayPtr keyArray = nullptr;
 
   if (!GpgKeyImportExporter::GetInstance().ExportKey(m_key_, keyArray)) {
@@ -161,7 +161,7 @@ void KeyPairOperaTab::slotExportPublicKey() {
   }
 }
 
-void KeyPairOperaTab::slotExportShortPrivateKey() {
+void KeyPairOperaTab::slot_export_short_private_key() {
   // Show a information box with explanation about private key
   int ret = QMessageBox::information(
       this, _("Exporting short private Key"),
@@ -205,7 +205,7 @@ void KeyPairOperaTab::slotExportShortPrivateKey() {
   }
 }
 
-void KeyPairOperaTab::slotExportPrivateKey() {
+void KeyPairOperaTab::slot_export_private_key() {
   // Show a information box with explanation about private key
   int ret = QMessageBox::information(
       this, _("Exporting private Key"),
@@ -245,12 +245,12 @@ void KeyPairOperaTab::slotExportPrivateKey() {
   }
 }
 
-void KeyPairOperaTab::slotModifyEditDatetime() {
+void KeyPairOperaTab::slot_modify_edit_datetime() {
   auto dialog = new KeySetExpireDateDialog(m_key_.GetId(), this);
   dialog->show();
 }
 
-void KeyPairOperaTab::slotUploadKeyToServer() {
+void KeyPairOperaTab::slot_upload_key_to_server() {
   auto keys = std::make_unique<KeyIdArgsList>();
   keys->push_back(m_key_.GetId());
   auto* dialog = new KeyUploadDialog(keys, this);
@@ -258,7 +258,7 @@ void KeyPairOperaTab::slotUploadKeyToServer() {
   dialog->slotUpload();
 }
 
-void KeyPairOperaTab::slotUpdateKeyFromServer() {
+void KeyPairOperaTab::slot_update_key_from_server() {
   auto keys = std::make_unique<KeyIdArgsList>();
   keys->push_back(m_key_.GetId());
   auto* dialog = new KeyServerImportDialog(this);
@@ -266,7 +266,7 @@ void KeyPairOperaTab::slotUpdateKeyFromServer() {
   dialog->slotImport(keys);
 }
 
-void KeyPairOperaTab::slotGenRevokeCert() {
+void KeyPairOperaTab::slot_gen_revoke_cert() {
   auto literal = QString("%1 (*.rev)").arg(_("Revocation Certificates"));
   QString m_output_file_name;
 
@@ -307,7 +307,7 @@ void KeyPairOperaTab::slotGenRevokeCert() {
         });
 }
 
-void KeyPairOperaTab::slotModifyPassword() {
+void KeyPairOperaTab::slot_modify_password() {
   auto err = GpgKeyOpera::GetInstance().ModifyPassword(m_key_);
   if (check_gpg_error_2_err_code(err) != GPG_ERR_NO_ERROR) {
     QMessageBox::critical(this, _("Not Successful"),
@@ -315,7 +315,7 @@ void KeyPairOperaTab::slotModifyPassword() {
   }
 }
 
-void KeyPairOperaTab::slotModifyTOFUPolicy() {
+void KeyPairOperaTab::slot_modify_tofu_policy() {
   QStringList items;
   items << _("Policy Auto") << _("Policy Good") << _("Policy Bad")
         << _("Policy Ask") << _("Policy Unknown");
