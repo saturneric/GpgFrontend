@@ -56,16 +56,23 @@ class MainWindow : public QMainWindow {
   MainWindow();
 
   /**
-   * ONLY Called from main()
+   * @details ONLY Called from main()
    */
   void init() noexcept;
 
  signals:
-  void loaded();
+
+  /**
+   * @brief
+   */
+  void Loaded();
 
  public slots:
 
-  void slotSetStatusBarText(const QString& text);
+  /**
+   * @brief
+   */
+  void SlotSetStatusBarText(const QString& text);
 
  protected:
   /**
@@ -80,37 +87,37 @@ class MainWindow : public QMainWindow {
   /**
    * @details Open a new tab for path
    */
-  void slotOpenFile(QString& path);
+  void SlotOpenFile(QString& path);
 
   /**
    * @details Open dialog for encrypting file.
    */
-  void slotFileEncrypt();
+  void SlotFileEncrypt();
 
   /**
    * @details Open dialog for decrypting file.
    */
-  void slotFileDecrypt();
+  void SlotFileDecrypt();
 
   /**
    * @details Open dialog for signing file.
    */
-  void slotFileSign();
+  void SlotFileSign();
 
   /**
    * @details Open dialog for verifying file.
    */
-  void slotFileVerify();
+  void SlotFileVerify();
 
   /**
    * @details Open dialog for signing file.
    */
-  void slotFileEncryptSign();
+  void SlotFileEncryptSign();
 
   /**
    * @details Open dialog for verifying file.
    */
-  void slotFileDecryptVerify();
+  void SlotFileDecryptVerify();
 
  private slots:
 
@@ -118,288 +125,267 @@ class MainWindow : public QMainWindow {
    * @details encrypt the text of currently active textedit-page
    * with the currently checked keys
    */
-  void slotEncrypt();
+  void slot_encrypt();
 
   /**
    * @details encrypt and sign the text of currently active textedit-page
    * with the currently checked keys
    */
-  void slotEncryptSign();
+  void slot_encrypt_sign();
 
   /**
    * @details Show a passphrase dialog and decrypt the text of currently active
    * tab.
    */
-  void slotDecrypt();
+  void slot_decrypt();
 
   /**
    * @details Sign the text of currently active tab with the checked private
    * keys
    */
-  void slotSign();
+  void slot_sign();
 
   /**
    * @details Verify the text of currently active tab and show verify
    * information. If document is signed with a key, which is not in keylist,
    * show import missing key from keyserver in Menu of verifynotification.
    */
-  void slotVerify();
+  void slot_verify();
 
   /**
    * @details decrypt and verify the text of currently active textedit-page
    * with the currently checked keys
    */
-  void slotDecryptVerify();
+  void slot_decrypt_verify();
 
   /**
    * @details Show the details of the first of the first of selected keys
    */
-  void slotShowKeyDetails();
+  void slot_show_key_details();
 
   /**
    * @details Refresh key information of selected keys from default keyserver
    */
-  void refreshKeysFromKeyserver();
+  void refresh_keys_from_key_server();
 
   /**
    * @details upload the selected key to the keyserver
    */
-  void uploadKeyToServer();
+  void upload_key_to_server();
 
   /**
    * @details Open find widget.
    */
-  void slotFind();
+  void slot_find();
 
   /**
    * @details start the wizard
    */
-  void slotStartWizard();
+  void slot_start_wizard();
 
   /**
    * @details Import keys from currently active tab to keylist if possible.
    */
-  void slotImportKeyFromEdit();
+  void slot_import_key_from_edit();
 
   /**
    * @details Append the selected keys to currently active textedit.
    */
-  void slotAppendSelectedKeys();
+  void slot_append_selected_keys();
 
   /**
    * @details Copy the mailaddress of selected key to clipboard.
    * Method for keylists contextmenu.
    */
-  void slotCopyMailAddressToClipboard();
+  void slot_copy_mail_address_to_clipboard();
 
   /**
    * @details Open key management dialog.
    */
-  void slotOpenKeyManagement();
+  void slot_open_key_management();
 
   /**
    * @details Open File Opera Tab
    */
-  void slotOpenFileTab();
+  void slot_open_file_tab();
 
   /**
    * @details Open settings-dialog.
    */
-  void slotOpenSettingsDialog();
-
-  //  /**
-  //   * @details Show a warn message in status bar, if there are files in
-  //   * attachment folder.
-  //   */
-  //  void slotCheckAttachmentFolder();
+  void slot_open_settings_dialog();
 
   /**
    * @details Replace double linebreaks by single linebreaks in currently active
    * tab.
    */
-  void slotCleanDoubleLinebreaks();
+  void slot_clean_double_line_breaks();
 
   /**
    * @details Cut the existing PGP header and footer from current tab.
    */
-  void slotCutPgpHeader();
+  void slot_cut_pgp_header();
 
   /**
    * @details Add PGP header and footer to current tab.
    */
-  void slotAddPgpHeader();
+  void slot_add_pgp_header();
 
   /**
    * @details Disable tab related actions, if number of tabs is 0.
    * @param number number of the opened tabs and -1, if no tab is opened
    */
-  void slotDisableTabActions(int number);
+  void slot_disable_tab_actions(int number);
 
   /**
    * @details get value of member restartNeeded to needed.
    * @param needed true, if application has to be restarted
    */
-  void slotSetRestartNeeded(bool needed);
+  void slot_set_restart_needed(bool needed);
 
   /**
    * @details called when need to upgrade.
    */
-  void slotVersionUpgrade(const SoftwareVersion& version);
+  void slot_version_upgrade(const SoftwareVersion& version);
 
  private:
   /**
    * @details Create actions for the main-menu and the context-menu of the
    * keylist.
    */
-  void createActions();
+  void create_actions();
 
   /**
    * @details create the menu of the main-window.
    */
-  void createMenus();
+  void create_menus();
 
   /**
    * @details Create edit-, crypt- and key-toolbars.
    */
-  void createToolBars();
+  void create_tool_bars();
 
   /**
    * @details Create statusbar of mainwindow.
    */
-  void createStatusBar();
+  void create_status_bar();
 
   /**
    * @details Create keylist- and attachment-dockwindows.
    */
-  void createDockWindows();
+  void create_dock_windows();
 
   /**
    * @details Create attachment-dockwindow.
    */
-  void createAttachmentDock();
+  void create_attachment_dock();
 
   /**
    * @details close attachment-dockwindow.
    */
-  void closeAttachmentDock();
+  void close_attachment_dock();
 
   /**
    * @details Load settings from ini-file.
    */
-  void restoreSettings();
+  void restore_settings();
 
   /**
    * @details Save settings to ini-file.
    */
-  void saveSettings();
-
-#ifdef ADVANCE_SUPPORT
-
-  /**
-   * @details Get full crypto text
-   */
-  QString getCryptText(const QString& shortenCryptoText);
-
-  /**
-   * @details Shorten crypto text
-   */
-  void shortenCryptText();
-
-#endif
+  void save_settings();
 
   /**
    * @brief return true, if restart is needed
    */
-  [[nodiscard]] bool getRestartNeeded() const;
+  [[nodiscard]] bool get_restart_needed() const;
 
-  TextEdit* edit{};       /** Tabwidget holding the edit-windows */
-  QMenu* fileMenu{};      /** Submenu for file-operations*/
-  QMenu* editMenu{};      /** Submenu for text-operations*/
-  QMenu* cryptMenu{};     /** Submenu for crypt-operations */
-  QMenu* helpMenu{};      /** Submenu for help-operations */
-  QMenu* keyMenu{};       /** Submenu for key-operations */
-  QMenu* viewMenu{};      /** Submenu for view operations */
-  QMenu* importKeyMenu{}; /** Sumenu for import operations */
+  TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
+  QMenu* file_menu_{};        ///<  Submenu for file-operations
+  QMenu* edit_menu_{};        ///<  Submenu for text-operations
+  QMenu* crypt_menu_{};       ///<  Submenu for crypt-operations
+  QMenu* help_menu_{};        ///<  Submenu for help-operations
+  QMenu* key_menu_{};         ///<  Submenu for key-operations
+  QMenu* view_menu_{};        ///<  Submenu for view operations
+  QMenu* import_key_menu_{};  ///<  Submenu for import operations
 #ifdef SMTP_SUPPORT
-  QMenu* emailMenu{}; /** Sumenu for email operations */
+  QMenu* email_menu_{};  ///<  Submenu for email operations
 #endif
 
-  QMenu* steganoMenu{};           /** Submenu for steganographic operations*/
-  QToolBar* cryptToolBar{};       /** Toolbar holding crypt actions */
-  QToolBar* fileToolBar{};        /** Toolbar holding file actions */
-  QToolBar* editToolBar{};        /** Toolbar holding edit actions */
-  QToolBar* specialEditToolBar{}; /** Toolbar holding special edit actions */
-  QToolBar* keyToolBar{};         /** Toolbar holding key operations */
-  QToolBar* emailToolBar{};       /** Toolbar holding key operations */
+  QMenu* steganography_menu_{};  ///<  Submenu for steganography operations
+  QToolBar* crypt_tool_bar_{};   ///<  Toolbar holding crypt actions
+  QToolBar* file_tool_bar_{};    ///<  Toolbar holding file actions
+  QToolBar* edit_tool_bar_{};    ///<  Toolbar holding edit actions
+  QToolBar*
+      special_edit_tool_bar_{};  ///<  Toolbar holding special edit actions
+  QToolBar* key_tool_bar_{};     ///<  Toolbar holding key operations
+  QToolBar* email_tool_bar_{};   ///<  Toolbar holding key operations
   QToolButton*
-      importButton{}; /** Toolbutton for import dropdown menu in toolbar */
-  QDockWidget* keyListDock{};    /** Encrypt Dock*/
-  QDockWidget* attachmentDock{}; /** Attachment Dock */
-  QDockWidget* infoBoardDock{};
+      import_button_{};  ///<  Tool button for import dropdown menu in toolbar
+  QDockWidget* key_list_dock_{};    ///<  Encrypt Dock
+  QDockWidget* attachment_dock_{};  ///<  Attachment Dock
+  QDockWidget* info_board_dock_{};
 
-  QAction* newTabAct{};            /** Action to create new tab */
-  QAction* switchTabUpAct{};       /** Action to switch tab up*/
-  QAction* switchTabDownAct{};     /** Action to switch tab down */
-  QAction* openAct{};              /** Action to open file */
-  QAction* browserAct{};           /** Action to open file browser*/
-  QAction* saveAct{};              /** Action to save file */
-  QAction* saveAsAct{};            /** Action to save file as */
-  QAction* printAct{};             /** Action to print */
-  QAction* closeTabAct{};          /** Action to print */
-  QAction* quitAct{};              /** Action to quit application */
-  QAction* encryptAct{};           /** Action to encrypt text */
-  QAction* encryptSignAct{};       /** Action to encrypt and sign text */
-  QAction* decryptVerifyAct{};     /** Action to encrypt and sign text */
-  QAction* decryptAct{};           /** Action to decrypt text */
-  QAction* signAct{};              /** Action to sign text */
-  QAction* verifyAct{};            /** Action to verify text */
-  QAction* importKeyFromEditAct{}; /** Action to import key from edit */
-  QAction*
-      cleanDoubleLinebreaksAct{}; /** Action to remove double line breaks */
+  QAction* new_tab_act_{};               ///<  Action to create new tab
+  QAction* switch_tab_up_act_{};         ///<  Action to switch tab up
+  QAction* switch_tab_down_act_{};       ///<  Action to switch tab down
+  QAction* open_act_{};                  ///<  Action to open file
+  QAction* browser_act_{};               ///<  Action to open file browser
+  QAction* save_act_{};                  ///<  Action to save file
+  QAction* save_as_act_{};               ///<  Action to save file as
+  QAction* print_act_{};                 ///<  Action to print
+  QAction* close_tab_act_{};             ///<  Action to print
+  QAction* quit_act_{};                  ///<  Action to quit application
+  QAction* encrypt_act_{};               ///<  Action to encrypt text
+  QAction* encrypt_sign_act_{};          ///<  Action to encrypt and sign text
+  QAction* decrypt_verify_act_{};        ///<  Action to encrypt and sign text
+  QAction* decrypt_act_{};               ///<  Action to decrypt text
+  QAction* sign_act_{};                  ///<  Action to sign text
+  QAction* verify_act_{};                ///<  Action to verify text
+  QAction* import_key_from_edit_act_{};  ///<  Action to import key from edit
+  QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double line
+                                             ///<  breaks
 
   QAction*
-      appendSelectedKeysAct{}; /** Action to append selected keys to edit */
-  QAction*
-      copyMailAddressToClipboardAct{}; /** Action to copy mail to clipboard */
-  QAction* openKeyManagementAct{};     /** Action to open key management */
-  QAction* copyAct{};                  /** Action to copy text */
-  QAction* quoteAct{};                 /** Action to quote text */
-  QAction* cutAct{};                   /** Action to cut text */
-  QAction* pasteAct{};                 /** Action to paste text */
-  QAction* selectAllAct{};             /** Action to select whole text */
-  QAction* findAct{};                  /** Action to find text */
-  QAction* undoAct{};                  /** Action to undo last action */
-  QAction* redoAct{};                  /** Action to redo last action */
-  QAction* zoomInAct{};                /** Action to zoom in */
-  QAction* zoomOutAct{};               /** Action to zoom out */
-  QAction* aboutAct{};                 /** Action to open about dialog */
-  QAction* checkUpdateAct{};           /** Action to open about dialog */
-  QAction* translateAct{};             /** Action to open about dialog */
-  QAction* openSettingsAct{};          /** Action to open settings dialog */
-  QAction* showKeyDetailsAct{};        /** Action to open key-details dialog */
-  QAction* startWizardAct{};           /** Action to open the wizard */
-  QAction* cutPgpHeaderAct{};          /** Action for cutting the PGP header */
-  QAction* addPgpHeaderAct{};          /** Action for adding the PGP header */
+      append_selected_keys_act_{};  ///< Action to append selected keys to edit
+  QAction* copy_mail_address_to_clipboard_act_{};  ///< Action to copy mail to
+                                                   ///< clipboard
+  QAction* open_key_management_act_{};  ///< Action to open key management
+  QAction* copy_act_{};                 ///< Action to copy text
+  QAction* quote_act_{};                ///< Action to quote text
+  QAction* cut_act_{};                  ///< Action to cut text
+  QAction* paste_act_{};                ///< Action to paste text
+  QAction* select_all_act_{};           ///< Action to select whole text
+  QAction* find_act_{};                 ///< Action to find text
+  QAction* undo_act_{};                 ///< Action to undo last action
+  QAction* redo_act_{};                 ///< Action to redo last action
+  QAction* zoom_in_act_{};              ///< Action to zoom in
+  QAction* zoom_out_act_{};             ///< Action to zoom out
+  QAction* about_act_{};                ///< Action to open about dialog
+  QAction* check_update_act_{};         ///< Action to open about dialog
+  QAction* translate_act_{};            ///< Action to open about dialog
+  QAction* open_settings_act_{};        ///< Action to open settings dialog
+  QAction* show_key_details_act_{};     ///< Action to open key-details dialog
+  QAction* start_wizard_act_{};         ///< Action to open the wizard
+  QAction* cut_pgp_header_act_{};       ///< Action for cutting the PGP header
+  QAction* add_pgp_header_act_{};       ///< Action for adding the PGP header
 
 #ifdef SMTP_SUPPORT
-  QAction* sendMailAct{};    /** Action for sending a email */
-  QAction* receiveMailAct{}; /** Action for receive emails */
+  QAction* send_mail_act_{};     ///< Action for sending a email
+  QAction* receive_mail_act_{};  ///< Action for receive emails
 #endif
 
-  QAction* importKeyFromFileAct{};
-  QAction* importKeyFromClipboardAct{};
-  QAction* importKeyFromKeyServerAct{};
+  QAction* import_key_from_file_act_{};        ///<
+  QAction* import_key_from_clipboard_act_{};   ///<
+  QAction* import_key_from_key_server_act_{};  ///<
 
-  QLabel* statusBarIcon{};
+  QLabel* status_bar_icon_{};  ///<
 
-  KeyList* mKeyList{};
-  InfoBoardWidget* infoBoard{};
+  KeyList* m_key_list_{};          ///<
+  InfoBoardWidget* info_board_{};  ///<
 
-  QNetworkAccessManager* networkAccessManager{};
-
-  bool attachmentDockCreated{};
-  bool restartNeeded{};
-  bool prohibit_update_checking_ = false;
+  bool attachment_dock_created_{};         ///<
+  bool restart_needed_{};                  ///<
+  bool prohibit_update_checking_ = false;  ///<
 };
 
 }  // namespace GpgFrontend::UI
