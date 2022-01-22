@@ -37,7 +37,7 @@ class KeyDetailsDialog : public QDialog {
   explicit KeyDetailsDialog(const GpgKey& key, QWidget* parent = nullptr);
 
  private:
-  QTabWidget* tabWidget{};
+  QTabWidget* tab_widget_{};
 };
 }  // namespace GpgFrontend::UI
 

@@ -41,42 +41,57 @@ class KeyPairDetailTab : public QWidget {
   /**
    * @details Copy the fingerprint to clipboard
    */
-  void slotCopyFingerprint();
+  void slot_copy_fingerprint();
 
+  /**
+   * @brief
+   *
+   */
   void slotRefreshKeyInfo();
 
+  /**
+   * @brief
+   *
+   */
   void slotRefreshKey();
 
  private:
-  GpgKey key_;
+  GpgKey key_;  ///<
 
-  QGroupBox* ownerBox;       /** Groupbox containing owner information */
-  QGroupBox* keyBox;         /** Groupbox containing key information */
-  QGroupBox* fingerprintBox; /** Groupbox containing fingerprint information */
-  QGroupBox* additionalUidBox; /** Groupbox containing information about
-                                  additional uids */
+  QGroupBox* ownerBox;          ///< Groupbox containing owner information
+  QGroupBox* keyBox;            ///< Groupbox containing key information
+  QGroupBox* fingerprintBox;    ///< Groupbox containing fingerprint information
+  QGroupBox* additionalUidBox;  ///< Groupbox containing information about
+                                ///< additional uids
 
-  QLabel* nameVarLabel;    /** Label containng the keys name */
-  QLabel* emailVarLabel;   /** Label containng the keys email */
-  QLabel* commentVarLabel; /** Label containng the keys commment */
-  QLabel* keySizeVarLabel; /** Label containng the keys keysize */
-  QLabel* expireVarLabel;  /** Label containng the keys expiration date */
-  QLabel* createdVarLabel; /** Label containng the keys creation date */
-  QLabel* lastUpdateVarLabel;
-  QLabel* algorithmVarLabel;   /** Label containng the keys algorithm */
-  QLabel* keyidVarLabel;       /** Label containng the keys keyid */
-  QLabel* fingerPrintVarLabel; /** Label containng the keys fingerprint */
+  QLabel* nameVarLabel;         ///< Label containng the keys name
+  QLabel* emailVarLabel;        ///< Label containng the keys email
+  QLabel* commentVarLabel;      ///< Label containng the keys commment
+  QLabel* keySizeVarLabel;      ///< Label containng the keys keysize
+  QLabel* expireVarLabel;       ///< Label containng the keys expiration date
+  QLabel* createdVarLabel;      ///< Label containng the keys creation date
+  QLabel* lastUpdateVarLabel;   ///<
+  QLabel* algorithmVarLabel;    ///< Label containng the keys algorithm
+  QLabel* keyidVarLabel;        ///< Label containng the keys keyid
+  QLabel* fingerPrintVarLabel;  ///< Label containng the keys fingerprint
   QLabel* usageVarLabel;
   QLabel* actualUsageVarLabel;
   QLabel* masterKeyExistVarLabel;
 
-  QLabel* iconLabel;
-  QLabel* expLabel;
+  QLabel* iconLabel;  ///<
+  QLabel* expLabel;   ///<
 
-  QMenu* keyServerOperaMenu{};
-  QMenu* secretKeyExportOperaMenu{};
+  QMenu* keyServerOperaMenu{};        ///<
+  QMenu* secretKeyExportOperaMenu{};  ///<
 
  public:
+  
+  /**
+   * @brief Construct a new Key Pair Detail Tab object
+   *
+   * @param key_id
+   * @param parent
+   */
   explicit KeyPairDetailTab(const std::string& key_id,
                             QWidget* parent = nullptr);
 };

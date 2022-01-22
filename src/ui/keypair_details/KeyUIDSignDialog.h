@@ -35,28 +35,39 @@ class KeyUIDSignDialog : public QDialog {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Key U I D Sign Dialog object
+   *
+   * @param key
+   * @param uid
+   * @param parent
+   */
   explicit KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
                             QWidget* parent = nullptr);
 
  signals:
-  void signalKeyUIDSignUpdate();
+  /**
+   * @brief
+   *
+   */
+  void SignalKeyUIDSignUpdate();
 
  private:
-  KeyList* mKeyList;
+  KeyList* m_key_list_;           ///<
+  QPushButton* sign_key_button_;  ///<
+  QDateTimeEdit* expires_edit_;   ///<
+  QCheckBox* non_expire_check_;   ///<
+  UIDArgsListPtr m_uids_;         ///<
 
-  QPushButton* signKeyButton;
-
-  QDateTimeEdit* expiresEdit;
-
-  QCheckBox* nonExpireCheck;
-
-  UIDArgsListPtr mUids;
-
-  const GpgKey& mKey;
+  const GpgKey& m_key_;  ///<
 
  private slots:
-
-  void slotSignKey(bool clicked);
+  /**
+   * @brief
+   *
+   * @param clicked
+   */
+  void slot_sign_key(bool clicked);
 };
 
 }  // namespace GpgFrontend::UI

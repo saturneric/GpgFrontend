@@ -36,49 +36,97 @@ class KeyPairSubkeyTab : public QWidget {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Key Pair Subkey Tab object
+   *
+   * @param key
+   * @param parent
+   */
   KeyPairSubkeyTab(const std::string& key, QWidget* parent);
 
  private:
-  void createSubkeyList();
+  /**
+   * @brief Create a subkey list object
+   *
+   */
+  void create_subkey_list();
 
-  void createSubkeyOperaMenu();
+  /**
+   * @brief Create a subkey opera menu object
+   *
+   */
+  void create_subkey_opera_menu();
 
-  const GpgSubKey& getSelectedSubkey();
+  /**
+   * @brief Get the selected subkey object
+   *
+   * @return const GpgSubKey&
+   */
+  const GpgSubKey& get_selected_subkey();
 
-  GpgKey key_;
-  QTableWidget* subkeyList{};
-  std::vector<GpgSubKey> buffered_subkeys;
+  GpgKey key_;                               ///<
+  QTableWidget* subkey_list_{};              ///<
+  std::vector<GpgSubKey> buffered_subkeys_;  ///<
 
-  QGroupBox* listBox;
-  QGroupBox* detailBox;
+  QGroupBox* list_box_;    ///<
+  QGroupBox* detail_box_;  ///<
 
-  QMenu* subkeyOperaMenu{};
+  QMenu* subkey_opera_menu_{};  ///<
 
-  QLabel* keySizeVarLabel;     /** Label containing the keys key size */
-  QLabel* expireVarLabel;      /** Label containing the keys expiration date */
-  QLabel* createdVarLabel;     /** Label containing the keys creation date */
-  QLabel* algorithmVarLabel;   /** Label containing the keys algorithm */
-  QLabel* keyidVarLabel;       /** Label containing the keys keyid */
-  QLabel* fingerPrintVarLabel; /** Label containing the keys fingerprint */
-  QLabel* usageVarLabel;
-  QLabel* masterKeyExistVarLabel;
-  QLabel* cardKeyLabel;
+  QLabel* key_size_var_label_;   ///< Label containing the keys key size
+  QLabel* expire_var_label_;     ///< Label containing the keys expiration date
+  QLabel* created_var_label_;    ///< Label containing the keys creation date
+  QLabel* algorithm_var_label_;  ///< Label containing the keys algorithm
+  QLabel* key_id_var_label_;     ///< Label containing the keys keyid
+  QLabel* fingerprint_var_label_;  ///< Label containing the keys fingerprint
+  QLabel* usage_var_label_;        ///<
+  QLabel* master_key_exist_var_label_;  ///<
+  QLabel* card_key_label_;              ///<
 
  private slots:
 
-  void slotAddSubkey();
+  /**
+   * @brief
+   *
+   */
+  void slot_add_subkey();
 
-  void slotRefreshSubkeyList();
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh_subkey_list();
 
-  void slotRefreshSubkeyDetail();
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh_subkey_detail();
 
-  void slotEditSubkey();
+  /**
+   * @brief
+   *
+   */
+  void slot_edit_subkey();
 
-  void slotRevokeSubkey();
+  /**
+   * @brief
+   *
+   */
+  void slot_revoke_subkey();
 
-  void slotRefreshKeyInfo();
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh_key_info();
 
  protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
   void contextMenuEvent(QContextMenuEvent* event) override;
 };
 

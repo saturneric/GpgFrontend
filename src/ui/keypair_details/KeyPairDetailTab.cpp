@@ -125,7 +125,7 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   copyFingerprintButton->setFlat(true);
   copyFingerprintButton->setToolTip(_("copy fingerprint to clipboard"));
   connect(copyFingerprintButton, SIGNAL(clicked()), this,
-          SLOT(slotCopyFingerprint()));
+          SLOT(slot_copy_fingerprint()));
 
   hboxFP->addWidget(copyFingerprintButton);
   hboxFP->addStretch();
@@ -158,7 +158,7 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   setLayout(mvbox);
 }
 
-void KeyPairDetailTab::slotCopyFingerprint() {
+void KeyPairDetailTab::slot_copy_fingerprint() {
   QString fpr = fingerPrintVarLabel->text().trimmed().replace(" ", QString());
   QClipboard* cb = QApplication::clipboard();
   cb->setText(fpr);
