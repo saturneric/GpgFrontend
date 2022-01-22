@@ -28,31 +28,31 @@
 
 namespace GpgFrontend::UI {
 
-void MainWindow::slotSetStatusBarText(const QString& text) {
+void MainWindow::SlotSetStatusBarText(const QString& text) {
   statusBar()->showMessage(text, 20000);
 }
 
-void MainWindow::slotStartWizard() {
+void MainWindow::slot_start_wizard() {
   auto* wizard = new Wizard(this);
   wizard->show();
   wizard->setModal(true);
 }
 
-void MainWindow::slotImportKeyFromEdit() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
+void MainWindow::slot_import_key_from_edit() {
+  if (edit_->tabCount() == 0 || edit_->slotCurPageTextEdit() == nullptr) return;
   CommonUtils::GetInstance()->slotImportKeys(
-      this, edit->curTextPage()->getTextPage()->toPlainText().toStdString());
+      this, edit_->curTextPage()->getTextPage()->toPlainText().toStdString());
 }
 
-void MainWindow::slotOpenKeyManagement() {
+void MainWindow::slot_open_key_management() {
   auto* dialog = new KeyMgmt(this);
   dialog->show();
   dialog->raise();
 }
 
-void MainWindow::slotOpenFileTab() { edit->slotNewFileTab(); }
+void MainWindow::slot_open_file_tab() { edit_->slotNewFileTab(); }
 
-void MainWindow::slotDisableTabActions(int number) {
+void MainWindow::slot_disable_tab_actions(int number) {
   bool disable;
 
   if (number == -1)
@@ -60,41 +60,41 @@ void MainWindow::slotDisableTabActions(int number) {
   else
     disable = false;
 
-  if (edit->curFilePage() != nullptr) {
+  if (edit_->curFilePage() != nullptr) {
     disable = true;
   }
 
-  printAct->setDisabled(disable);
-  saveAct->setDisabled(disable);
-  saveAsAct->setDisabled(disable);
-  quoteAct->setDisabled(disable);
-  cutAct->setDisabled(disable);
-  copyAct->setDisabled(disable);
-  pasteAct->setDisabled(disable);
-  closeTabAct->setDisabled(disable);
-  selectAllAct->setDisabled(disable);
-  findAct->setDisabled(disable);
-  verifyAct->setDisabled(disable);
-  signAct->setDisabled(disable);
-  encryptAct->setDisabled(disable);
-  encryptSignAct->setDisabled(disable);
-  decryptAct->setDisabled(disable);
-  decryptVerifyAct->setDisabled(disable);
+  print_act_->setDisabled(disable);
+  save_act_->setDisabled(disable);
+  save_as_act_->setDisabled(disable);
+  quote_act_->setDisabled(disable);
+  cut_act_->setDisabled(disable);
+  copy_act_->setDisabled(disable);
+  paste_act_->setDisabled(disable);
+  close_tab_act_->setDisabled(disable);
+  select_all_act_->setDisabled(disable);
+  find_act_->setDisabled(disable);
+  verify_act_->setDisabled(disable);
+  sign_act_->setDisabled(disable);
+  encrypt_act_->setDisabled(disable);
+  encrypt_sign_act_->setDisabled(disable);
+  decrypt_act_->setDisabled(disable);
+  decrypt_verify_act_->setDisabled(disable);
 
-  redoAct->setDisabled(disable);
-  undoAct->setDisabled(disable);
-  zoomOutAct->setDisabled(disable);
-  zoomInAct->setDisabled(disable);
-  cleanDoubleLinebreaksAct->setDisabled(disable);
-  quoteAct->setDisabled(disable);
-  appendSelectedKeysAct->setDisabled(disable);
-  importKeyFromEditAct->setDisabled(disable);
+  redo_act_->setDisabled(disable);
+  undo_act_->setDisabled(disable);
+  zoom_out_act_->setDisabled(disable);
+  zoom_in_act_->setDisabled(disable);
+  clean_double_line_breaks_act_->setDisabled(disable);
+  quote_act_->setDisabled(disable);
+  append_selected_keys_act_->setDisabled(disable);
+  import_key_from_edit_act_->setDisabled(disable);
 
-  cutPgpHeaderAct->setDisabled(disable);
-  addPgpHeaderAct->setDisabled(disable);
+  cut_pgp_header_act_->setDisabled(disable);
+  add_pgp_header_act_->setDisabled(disable);
 }
 
-void MainWindow::slotOpenSettingsDialog() {
+void MainWindow::slot_open_settings_dialog() {
   auto dialog = new SettingsDialog(this);
 
   connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
@@ -106,19 +106,19 @@ void MainWindow::slotOpenSettingsDialog() {
     int icon_height = settings["window"]["icon_size"]["height"];
 
     this->setIconSize(QSize(icon_width, icon_height));
-    importButton->setIconSize(QSize(icon_width, icon_height));
+    import_button_->setIconSize(QSize(icon_width, icon_height));
 
     // Iconstyle
 
     int icon_style = settings["window"]["icon_style"];
     auto button_style = static_cast<Qt::ToolButtonStyle>(icon_style);
     this->setToolButtonStyle(button_style);
-    importButton->setToolButtonStyle(button_style);
+    import_button_->setToolButtonStyle(button_style);
 
     // restart mainwindow if necessary
-    if (getRestartNeeded()) {
-      if (edit->maybeSaveAnyTab()) {
-        saveSettings();
+    if (get_restart_needed()) {
+      if (edit_->maybeSaveAnyTab()) {
+        save_settings();
         qApp->exit(RESTART_CODE);
       }
     }
@@ -134,35 +134,36 @@ void MainWindow::slotOpenSettingsDialog() {
   });
 }
 
-void MainWindow::slotCleanDoubleLinebreaks() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
+void MainWindow::slot_clean_double_line_breaks() {
+  if (edit_->tabCount() == 0 || edit_->slotCurPageTextEdit() == nullptr) {
     return;
   }
 
-  QString content = edit->curTextPage()->getTextPage()->toPlainText();
+  QString content = edit_->curTextPage()->getTextPage()->toPlainText();
   content.replace("\n\n", "\n");
-  edit->slotFillTextEditWithText(content);
+  edit_->slotFillTextEditWithText(content);
 }
 
-void MainWindow::slotAddPgpHeader() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
+void MainWindow::slot_add_pgp_header() {
+  if (edit_->tabCount() == 0 || edit_->slotCurPageTextEdit() == nullptr) {
     return;
   }
 
-  QString content = edit->curTextPage()->getTextPage()->toPlainText().trimmed();
+  QString content =
+      edit_->curTextPage()->getTextPage()->toPlainText().trimmed();
 
   content.prepend("\n\n").prepend(GpgConstants::PGP_CRYPT_BEGIN);
   content.append("\n").append(GpgConstants::PGP_CRYPT_END);
 
-  edit->slotFillTextEditWithText(content);
+  edit_->slotFillTextEditWithText(content);
 }
 
-void MainWindow::slotCutPgpHeader() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
+void MainWindow::slot_cut_pgp_header() {
+  if (edit_->tabCount() == 0 || edit_->slotCurPageTextEdit() == nullptr) {
     return;
   }
 
-  QString content = edit->curTextPage()->getTextPage()->toPlainText();
+  QString content = edit_->curTextPage()->getTextPage()->toPlainText();
   int start = content.indexOf(GpgConstants::PGP_CRYPT_BEGIN);
   int end = content.indexOf(GpgConstants::PGP_CRYPT_END);
 
@@ -178,13 +179,13 @@ void MainWindow::slotCutPgpHeader() {
   end = content.indexOf(GpgConstants::PGP_CRYPT_END);
   content.remove(end, QString(GpgConstants::PGP_CRYPT_END).size());
 
-  edit->slotFillTextEditWithText(content.trimmed());
+  edit_->slotFillTextEditWithText(content.trimmed());
 }
 
-void MainWindow::slotSetRestartNeeded(bool needed) {
-  this->restartNeeded = needed;
+void MainWindow::slot_set_restart_needed(bool needed) {
+  this->restart_needed_ = needed;
 }
 
-bool MainWindow::getRestartNeeded() const { return this->restartNeeded; }
+bool MainWindow::get_restart_needed() const { return this->restart_needed_; }
 
 }  // namespace GpgFrontend::UI

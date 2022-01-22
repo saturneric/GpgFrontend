@@ -41,56 +41,54 @@ MainWindow::MainWindow() {
 
 void MainWindow::init() noexcept {
   try {
-    networkAccessManager = new QNetworkAccessManager(this);
-
     /* get path where app was started */
     setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
-    edit = new TextEdit(this);
-    setCentralWidget(edit);
+    edit_ = new TextEdit(this);
+    setCentralWidget(edit_);
 
     /* the list of Keys available*/
-    mKeyList = new KeyList(
+    m_key_list_ = new KeyList(
         KeyMenuAbility::REFRESH | KeyMenuAbility::UNCHECK_ALL, this);
 
-    infoBoard = new InfoBoardWidget(this);
+    info_board_ = new InfoBoardWidget(this);
 
     /* List of binary Attachments */
-    attachmentDockCreated = false;
+    attachment_dock_created_ = false;
 
     /* Variable containing if restart is needed */
-    this->slotSetRestartNeeded(false);
+    this->slot_set_restart_needed(false);
 
-    createActions();
-    createMenus();
-    createToolBars();
-    createStatusBar();
-    createDockWindows();
+    create_actions();
+    create_menus();
+    create_tool_bars();
+    create_status_bar();
+    create_dock_windows();
 
-    connect(edit->tabWidget, SIGNAL(currentChanged(int)), this,
-            SLOT(slotDisableTabActions(int)));
+    connect(edit_->tabWidget, SIGNAL(currentChanged(int)), this,
+            SLOT(slot_disable_tab_actions(int)));
     connect(SignalStation::GetInstance(),
             &SignalStation::signalRefreshStatusBar, this,
             [=](const QString& message, int timeout) {
               statusBar()->showMessage(message, timeout);
             });
 
-    mKeyList->addMenuAction(appendSelectedKeysAct);
-    mKeyList->addMenuAction(copyMailAddressToClipboardAct);
-    mKeyList->addSeparator();
-    mKeyList->addMenuAction(showKeyDetailsAct);
+    m_key_list_->addMenuAction(append_selected_keys_act_);
+    m_key_list_->addMenuAction(copy_mail_address_to_clipboard_act_);
+    m_key_list_->addSeparator();
+    m_key_list_->addMenuAction(show_key_details_act_);
 
-    restoreSettings();
+    restore_settings();
 
     // open filename if provided as first command line parameter
     QStringList args = qApp->arguments();
     if (args.size() > 1) {
       if (!args[1].startsWith("-")) {
-        if (QFile::exists(args[1])) edit->loadFile(args[1]);
+        if (QFile::exists(args[1])) edit_->loadFile(args[1]);
       }
     }
-    edit->curTextPage()->setFocus();
+    edit_->curTextPage()->setFocus();
 
     auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
@@ -112,10 +110,10 @@ void MainWindow::init() noexcept {
     LOG(INFO) << "wizard show_wizard" << show_wizard;
 
     if (show_wizard) {
-      slotStartWizard();
+      slot_start_wizard();
     }
 
-    emit loaded();
+    emit Loaded();
 
     // if not prohibit update checking
     if (!prohibit_update_checking_) {
@@ -140,7 +138,7 @@ void MainWindow::init() noexcept {
   }
 }
 
-void MainWindow::restoreSettings() {
+void MainWindow::restore_settings() {
   LOG(INFO) << _("Called");
 
   try {
@@ -183,11 +181,11 @@ void MainWindow::restoreSettings() {
         main_windows_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
     auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
     this->setToolButtonStyle(icon_style);
-    importButton->setToolButtonStyle(icon_style);
+    import_button_->setToolButtonStyle(icon_style);
 
     // icons ize
     this->setIconSize(QSize(width, height));
-    importButton->setIconSize(QSize(width, height));
+    import_button_->setIconSize(QSize(width, height));
 
     SettingsObject key_server_json("key_server");
 
@@ -231,7 +229,7 @@ void MainWindow::restoreSettings() {
           LOG(INFO) << "get checked key id" << key_id;
           key_ids_ptr->push_back(key_id);
         }
-        mKeyList->setChecked(std::move(key_ids_ptr));
+        m_key_list_->setChecked(std::move(key_ids_ptr));
       }
     } catch (...) {
       LOG(ERROR) << "restore default_key_checked failed";
@@ -256,7 +254,7 @@ void MainWindow::restoreSettings() {
   GlobalSettingStation::GetInstance().SyncSettings();
 }
 
-void MainWindow::saveSettings() {
+void MainWindow::save_settings() {
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
   try {
@@ -274,7 +272,7 @@ void MainWindow::saveSettings() {
 
     // keyid-list of private checked keys
     if (save_key_checked) {
-      auto key_ids_need_to_store = mKeyList->getChecked();
+      auto key_ids_need_to_store = m_key_list_->getChecked();
 
       SettingsObject default_key_checked("default_key_checked");
       default_key_checked.clear();
@@ -291,13 +289,13 @@ void MainWindow::saveSettings() {
   GlobalSettingStation::GetInstance().SyncSettings();
 }
 
-void MainWindow::closeAttachmentDock() {
-  if (!attachmentDockCreated) {
+void MainWindow::close_attachment_dock() {
+  if (!attachment_dock_created_) {
     return;
   }
-  attachmentDock->close();
-  attachmentDock->deleteLater();
-  attachmentDockCreated = false;
+  attachment_dock_->close();
+  attachment_dock_->deleteLater();
+  attachment_dock_created_ = false;
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
@@ -305,8 +303,8 @@ void MainWindow::closeEvent(QCloseEvent* event) {
    * ask to save changes, if there are
    * modified documents in any tab
    */
-  if (edit->maybeSaveAnyTab()) {
-    saveSettings();
+  if (edit_->maybeSaveAnyTab()) {
+    save_settings();
     event->accept();
   } else {
     event->ignore();

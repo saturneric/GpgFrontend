@@ -293,7 +293,7 @@ void FilePage::slotOpenItem() {
       auto mainWindow = qobject_cast<MainWindow*>(firstParent);
       LOG(INFO) << "open item" << selectedPath;
       auto qt_path = QString::fromStdString(selectedPath.string());
-      if (mainWindow != nullptr) mainWindow->slotOpenFile(qt_path);
+      if (mainWindow != nullptr) mainWindow->SlotOpenFile(qt_path);
     } else {
       QMessageBox::critical(this, _("Error"),
                             _("The file is unprivileged or unreachable."));
@@ -345,27 +345,27 @@ void FilePage::slotDeleteItem() {
 
 void FilePage::slotEncryptItem() {
   auto mainWindow = qobject_cast<MainWindow*>(firstParent);
-  if (mainWindow != nullptr) mainWindow->slotFileEncrypt();
+  if (mainWindow != nullptr) mainWindow->SlotFileEncrypt();
 }
 
 void FilePage::slotEncryptSignItem() {
   auto mainWindow = qobject_cast<MainWindow*>(firstParent);
-  if (mainWindow != nullptr) mainWindow->slotFileEncryptSign();
+  if (mainWindow != nullptr) mainWindow->SlotFileEncryptSign();
 }
 
 void FilePage::slotDecryptItem() {
   auto mainWindow = qobject_cast<MainWindow*>(firstParent);
-  if (mainWindow != nullptr) mainWindow->slotFileDecryptVerify();
+  if (mainWindow != nullptr) mainWindow->SlotFileDecryptVerify();
 }
 
 void FilePage::slotSignItem() {
   auto mainWindow = qobject_cast<MainWindow*>(firstParent);
-  if (mainWindow != nullptr) mainWindow->slotFileSign();
+  if (mainWindow != nullptr) mainWindow->SlotFileSign();
 }
 
 void FilePage::slotVerifyItem() {
   auto mainWindow = qobject_cast<MainWindow*>(firstParent);
-  if (mainWindow != nullptr) mainWindow->slotFileVerify();
+  if (mainWindow != nullptr) mainWindow->SlotFileVerify();
 }
 
 void FilePage::slotCalculateHash() {

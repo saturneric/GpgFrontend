@@ -52,14 +52,14 @@ bool file_pre_check(QWidget* parent, const QString& path) {
   return true;
 }
 
-void MainWindow::slotFileEncrypt() {
-  auto fileTreeView = edit->slotCurPageFileTreeView();
+void MainWindow::SlotFileEncrypt() {
+  auto fileTreeView = edit_->slotCurPageFileTreeView();
   auto path = fileTreeView->getSelected();
 
   if (!file_pre_check(this, path)) return;
 
   // check selected keys
-  auto key_ids = mKeyList->getChecked();
+  auto key_ids = m_key_list_->getChecked();
   GpgEncrResult result = nullptr;
   GpgError error;
   bool if_error = false;
@@ -143,7 +143,7 @@ void MainWindow::slotFileEncrypt() {
   if (!if_error) {
     auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));
     resultAnalyse.Analyse();
-    process_result_analyse(edit, infoBoard, resultAnalyse);
+    process_result_analyse(edit_, info_board_, resultAnalyse);
     fileTreeView->update();
   } else {
     QMessageBox::critical(this, _("Error"),
@@ -152,8 +152,8 @@ void MainWindow::slotFileEncrypt() {
   }
 }
 
-void MainWindow::slotFileDecrypt() {
-  auto fileTreeView = edit->slotCurPageFileTreeView();
+void MainWindow::SlotFileDecrypt() {
+  auto fileTreeView = edit_->slotCurPageFileTreeView();
   auto path = fileTreeView->getSelected();
 
   if (!file_pre_check(this, path)) return;
@@ -190,7 +190,7 @@ void MainWindow::slotFileDecrypt() {
   if (!if_error) {
     auto resultAnalyse = DecryptResultAnalyse(error, std::move(result));
     resultAnalyse.Analyse();
-    process_result_analyse(edit, infoBoard, resultAnalyse);
+    process_result_analyse(edit_, info_board_, resultAnalyse);
 
     fileTreeView->update();
   } else {
@@ -200,13 +200,13 @@ void MainWindow::slotFileDecrypt() {
   }
 }
 
-void MainWindow::slotFileSign() {
-  auto fileTreeView = edit->slotCurPageFileTreeView();
+void MainWindow::SlotFileSign() {
+  auto fileTreeView = edit_->slotCurPageFileTreeView();
   auto path = fileTreeView->getSelected();
 
   if (!file_pre_check(this, path)) return;
 
-  auto key_ids = mKeyList->getChecked();
+  auto key_ids = m_key_list_->getChecked();
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
   if (keys->empty()) {
@@ -274,7 +274,7 @@ void MainWindow::slotFileSign() {
   if (!if_error) {
     auto resultAnalyse = SignResultAnalyse(error, std::move(result));
     resultAnalyse.Analyse();
-    process_result_analyse(edit, infoBoard, resultAnalyse);
+    process_result_analyse(edit_, info_board_, resultAnalyse);
 
     fileTreeView->update();
 
@@ -287,8 +287,8 @@ void MainWindow::slotFileSign() {
   fileTreeView->update();
 }
 
-void MainWindow::slotFileVerify() {
-  auto fileTreeView = edit->slotCurPageFileTreeView();
+void MainWindow::SlotFileVerify() {
+  auto fileTreeView = edit_->slotCurPageFileTreeView();
   auto path = fileTreeView->getSelected();
 
   boost::filesystem::path in_path = path.toStdString();
@@ -355,13 +355,13 @@ void MainWindow::slotFileVerify() {
   if (!if_error) {
     auto result_analyse = VerifyResultAnalyse(error, result);
     result_analyse.Analyse();
-    process_result_analyse(edit, infoBoard, result_analyse);
+    process_result_analyse(edit_, info_board_, result_analyse);
 
     if (result_analyse.GetStatus() == -2)
       import_unknown_key_from_keyserver(this, result_analyse);
 
     if (result_analyse.GetStatus() >= 0)
-      show_verify_details(this, infoBoard, error, result);
+      show_verify_details(this, info_board_, error, result);
 
     fileTreeView->update();
   } else {
@@ -371,14 +371,14 @@ void MainWindow::slotFileVerify() {
   }
 }
 
-void MainWindow::slotFileEncryptSign() {
-  auto fileTreeView = edit->slotCurPageFileTreeView();
+void MainWindow::SlotFileEncryptSign() {
+  auto fileTreeView = edit_->slotCurPageFileTreeView();
   auto path = fileTreeView->getSelected();
 
   if (!file_pre_check(this, path)) return;
 
   // check selected keys
-  auto key_ids = mKeyList->getChecked();
+  auto key_ids = m_key_list_->getChecked();
   auto p_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
   if (p_keys->empty()) {
@@ -458,7 +458,7 @@ void MainWindow::slotFileEncryptSign() {
     auto sign_res = SignResultAnalyse(error, std::move(sign_result));
     encrypt_result.Analyse();
     sign_res.Analyse();
-    process_result_analyse(edit, infoBoard, encrypt_result, sign_res);
+    process_result_analyse(edit_, info_board_, encrypt_result, sign_res);
 
     fileTreeView->update();
 
@@ -469,8 +469,8 @@ void MainWindow::slotFileEncryptSign() {
   }
 }
 
-void MainWindow::slotFileDecryptVerify() {
-  auto fileTreeView = edit->slotCurPageFileTreeView();
+void MainWindow::SlotFileDecryptVerify() {
+  auto fileTreeView = edit_->slotCurPageFileTreeView();
   auto path = fileTreeView->getSelected();
 
   if (!file_pre_check(this, path)) return;
@@ -513,13 +513,13 @@ void MainWindow::slotFileDecryptVerify() {
     auto verify_res = VerifyResultAnalyse(error, v_result);
     decrypt_res.Analyse();
     verify_res.Analyse();
-    process_result_analyse(edit, infoBoard, decrypt_res, verify_res);
+    process_result_analyse(edit_, info_board_, decrypt_res, verify_res);
 
     if (verify_res.GetStatus() == -2)
       import_unknown_key_from_keyserver(this, verify_res);
 
     if (verify_res.GetStatus() >= 0)
-      show_verify_details(this, infoBoard, error, v_result);
+      show_verify_details(this, info_board_, error, v_result);
 
     fileTreeView->update();
   } else {
