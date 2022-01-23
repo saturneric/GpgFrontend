@@ -26,7 +26,7 @@
  *
  */
 
-#include "ui/FindWidget.h"
+#include "FindWidget.h"
 
 namespace GpgFrontend::UI {
 

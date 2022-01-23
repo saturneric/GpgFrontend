@@ -28,7 +28,7 @@
 
 #include "SettingsSendMail.h"
 
-#include "ui/data_struct/SettingsObject.h"
+#include "ui/struct/SettingsObject.h"
 #include "ui/thread/SMTPConnectionTestThread.h"
 #include "ui/thread/SMTPSendMailThread.h"
 #include "ui_SendMailSettings.h"

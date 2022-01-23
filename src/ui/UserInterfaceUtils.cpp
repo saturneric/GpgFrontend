@@ -30,11 +30,11 @@
 
 #include <utility>
 
+#include "dialog/WaitingDialog.h"
 #include "gpg/result_analyse/ResultAnalyse.h"
 #include "ui/SignalStation.h"
-#include "ui/WaitingDialog.h"
+#include "ui/mail/SendMailDialog.h"
 #include "ui/settings/GlobalSettingStation.h"
-#include "ui/smtp/SendMailDialog.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/TextEdit.h"
 

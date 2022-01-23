@@ -29,8 +29,8 @@
 #include "MainWindow.h"
 #include "ui/UserInterfaceUtils.h"
 #ifdef SMTP_SUPPORT
-#include "ui/smtp/ReceiveMailDialog.h"
-#include "ui/smtp/SendMailDialog.h"
+#include "ui/mail/ReceiveMailDialog.h"
+#include "ui/mail/SendMailDialog.h"
 #endif
 
 namespace GpgFrontend::UI {

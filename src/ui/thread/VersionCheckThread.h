@@ -30,7 +30,7 @@
 #define GPGFRONTEND_VERSIONCHECKTHREAD_H
 
 #include "ui/GpgFrontendUI.h"
-#include "ui/data_struct/SoftwareVersion.h"
+#include "ui/struct/SoftwareVersion.h"
 
 namespace GpgFrontend::UI {
 

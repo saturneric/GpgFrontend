@@ -26,7 +26,7 @@
  *
  */
 
-#include "ui/KeyServerImportDialog.h"
+#include "KeyServerImportDialog.h"
 
 #include <utility>
 

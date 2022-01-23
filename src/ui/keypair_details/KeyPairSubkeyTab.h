@@ -32,7 +32,7 @@
 #include "KeySetExpireDateDialog.h"
 #include "gpg/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
-#include "ui/keygen/SubkeyGenerateDialog.h"
+#include "ui/key_generate/SubkeyGenerateDialog.h"
 
 namespace GpgFrontend::UI {
 

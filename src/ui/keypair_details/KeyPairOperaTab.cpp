@@ -28,7 +28,7 @@
 
 #include "gpg/function/GpgKeyImportExporter.h"
 #include "gpg/function/GpgKeyOpera.h"
-#include "ui/KeyUploadDialog.h"
+#include "import_export/KeyUploadDialog.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/keypair_details/KeySetExpireDateDialog.h"

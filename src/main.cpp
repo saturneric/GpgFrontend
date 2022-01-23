@@ -32,7 +32,7 @@
 
 #include "GpgFrontendBuildInfo.h"
 #include "gpg/GpgFunctionObject.h"
-#include "ui/MainWindow.h"
+#include "ui/main_window/MainWindow.h"
 #include "ui/thread/CtxCheckThread.h"
 
 #if !defined(RELEASE) && defined(WINDOWS)

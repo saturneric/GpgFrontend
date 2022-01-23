@@ -26,7 +26,7 @@
  *
  */
 
-#include "ui/WaitingDialog.h"
+#include "WaitingDialog.h"
 
 namespace GpgFrontend::UI {
 

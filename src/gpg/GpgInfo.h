@@ -31,6 +31,7 @@
 
 #include <string>
 
+namespace GpgFrontend {
 /**
  * @brief  Use to record some info about gnupg
  *
@@ -44,5 +45,6 @@ class GpgInfo {
   std::string CMSPath;       ///<
   std::string GpgMEVersion;  ///<
 };
+}  // namespace GpgFrontend
 
 #endif  // GPGFRONTEND_ZH_CN_TS_GPGINFO_H

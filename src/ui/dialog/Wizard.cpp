@@ -26,7 +26,7 @@
  *
  */
 
-#include "ui/Wizard.h"
+#include "Wizard.h"
 
 #include "ui/settings/GlobalSettingStation.h"
 
