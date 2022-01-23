@@ -28,49 +28,77 @@
 
 #include "SettingsAdvanced.h"
 
+#include "ui/settings/GlobalSettingStation.h"
+
 namespace GpgFrontend::UI {
 
-AdvancedTab::AdvancedTab(QWidget* parent)
-    : QWidget(parent),
-      appPath(qApp->applicationDirPath()),
-      settings(RESOURCE_DIR(appPath) + "/conf/gpgfrontend.ini",
-               QSettings::IniFormat) {
-  /*****************************************
-   * Steganography Box
-   *****************************************/
-  auto* steganoBox = new QGroupBox(_("Show Steganography Options"));
-  auto* steganoBoxLayout = new QHBoxLayout();
-  steganoCheckBox = new QCheckBox(_("Show Steganographic Options."), this);
-  steganoBoxLayout->addWidget(steganoCheckBox);
-  steganoBox->setLayout(steganoBoxLayout);
+AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
+  auto* stegano_box = new QGroupBox(_("Show Steganography Options"));
+  auto* stegano_box_layout = new QHBoxLayout();
+  stegano_check_box_ = new QCheckBox(_("Show Steganography Options."), this);
+  stegano_box_layout->addWidget(stegano_check_box_);
+  stegano_box->setLayout(stegano_box_layout);
 
-  auto* pubkeyExchangeBox = new QGroupBox(_("Pubkey Exchange"));
-  auto* pubkeyExchangeBoxLayout = new QHBoxLayout();
-  autoPubkeyExchangeCheckBox = new QCheckBox(_("Auto Pubkey Exchange"), this);
-  pubkeyExchangeBoxLayout->addWidget(autoPubkeyExchangeCheckBox);
-  pubkeyExchangeBox->setLayout(pubkeyExchangeBoxLayout);
+  auto* pubkey_exchange_box = new QGroupBox(_("Pubkey Exchange"));
+  auto* pubkey_exchange_box_layout = new QHBoxLayout();
+  auto_pubkey_exchange_check_box_ =
+      new QCheckBox(_("Auto Pubkey Exchange"), this);
+  pubkey_exchange_box_layout->addWidget(auto_pubkey_exchange_check_box_);
+  pubkey_exchange_box->setLayout(pubkey_exchange_box_layout);
 
-  auto* mainLayout = new QVBoxLayout;
-  mainLayout->addWidget(steganoBox);
-  mainLayout->addWidget(pubkeyExchangeBox);
-  setSettings();
-  mainLayout->addStretch(1);
-  setLayout(mainLayout);
+  auto* main_layout = new QVBoxLayout;
+  main_layout->addWidget(stegano_box);
+  main_layout->addWidget(pubkey_exchange_box);
+  SetSettings();
+  main_layout->addStretch(1);
+  setLayout(main_layout);
 }
 
-void AdvancedTab::setSettings() {
-  if (settings.value("advanced/steganography").toBool()) {
-    steganoCheckBox->setCheckState(Qt::Checked);
+void AdvancedTab::SetSettings() {
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  try {
+    bool stegano_checked = settings.lookup("advanced.stegano_checked");
+    if (stegano_checked) stegano_check_box_->setCheckState(Qt::Checked);
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("stegano_checked");
   }
-  if (settings.value("advanced/autoPubkeyExchange").toBool()) {
-    autoPubkeyExchangeCheckBox->setCheckState(Qt::Checked);
+
+  try {
+    bool auto_pubkey_exchange_checked =
+        settings.lookup("advanced.auto_pubkey_exchange_checked");
+    if (auto_pubkey_exchange_checked)
+      auto_pubkey_exchange_check_box_->setCheckState(Qt::Checked);
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error")
+               << _("auto_pubkey_exchange_checked");
   }
 }
 
-void AdvancedTab::applySettings() {
-  settings.setValue("advanced/steganography", steganoCheckBox->isChecked());
-  settings.setValue("advanced/autoPubkeyExchange",
-                    autoPubkeyExchangeCheckBox->isChecked());
+void AdvancedTab::ApplySettings() {
+  auto& settings =
+      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
+
+  if (!settings.exists("advanced") ||
+      settings.lookup("advanced").getType() != libconfig::Setting::TypeGroup)
+    settings.add("advanced", libconfig::Setting::TypeGroup);
+
+  auto& advanced = settings["advanced"];
+
+  if (!advanced.exists("stegano_checked"))
+    advanced.add("stegano_checked", libconfig::Setting::TypeBoolean) =
+        stegano_check_box_->isChecked();
+  else {
+    advanced["stegano_checked"] = stegano_check_box_->isChecked();
+  }
+
+  if (!advanced.exists("auto_pubkey_exchange_checked"))
+    advanced.add("auto_pubkey_exchange_checked",
+                 libconfig::Setting::TypeBoolean) =
+        auto_pubkey_exchange_check_box_->isChecked();
+  else {
+    advanced["auto_pubkey_exchange_checked"] =
+        auto_pubkey_exchange_check_box_->isChecked();
+  }
 }
 
 }  // namespace GpgFrontend::UI

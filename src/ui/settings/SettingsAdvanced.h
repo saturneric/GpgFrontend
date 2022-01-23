@@ -38,20 +38,17 @@ class AdvancedTab : public QWidget {
  public:
   explicit AdvancedTab(QWidget* parent = nullptr);
 
-  void setSettings();
+  void SetSettings();
 
-  void applySettings();
+  void ApplySettings();
 
  private:
-  QString appPath;
-  QSettings settings;
-
-  QCheckBox* steganoCheckBox;
-  QCheckBox* autoPubkeyExchangeCheckBox;
+  QCheckBox* stegano_check_box_;
+  QCheckBox* auto_pubkey_exchange_check_box_;
 
  signals:
 
-  void signalRestartNeeded(bool needed);
+  void SignalRestartNeeded(bool needed);
 };
 }  // namespace GpgFrontend::UI
 

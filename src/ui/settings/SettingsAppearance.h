@@ -37,26 +37,44 @@ class AppearanceTab : public QWidget {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Appearance Tab object
+   *
+   * @param parent
+   */
   explicit AppearanceTab(QWidget* parent = nullptr);
 
-  void setSettings();
+  /**
+   * @brief Set the Settings object
+   *
+   */
+  void SetSettings();
 
-  void applySettings();
+  /**
+   * @brief
+   *
+   */
+  void ApplySettings();
 
  private:
-  QButtonGroup* iconStyleGroup;
-  QRadioButton* iconSizeSmall;
-  QRadioButton* iconSizeMedium;
-  QRadioButton* iconSizeLarge;
-  QButtonGroup* iconSizeGroup;
-  QRadioButton* iconTextButton;
-  QRadioButton* iconIconsButton;
-  QRadioButton* iconAllButton;
-  QSpinBox* infoBoardFontSizeSpin;
-  QCheckBox* windowSizeCheckBox;
+  QButtonGroup* icon_style_group_;       ///<
+  QRadioButton* icon_size_small_;        ///<
+  QRadioButton* icon_size_medium_;       ///<
+  QRadioButton* icon_size_large_;        ///<
+  QButtonGroup* icon_size_group_;        ///<
+  QRadioButton* icon_text_button_;       ///<
+  QRadioButton* icon_icons_button_;      ///<
+  QRadioButton* icon_all_button_;        ///<
+  QSpinBox* info_board_font_size_spin_;  ///<
+  QCheckBox* window_size_check_box_;     ///<
 
  signals:
 
+  /**
+   * @brief
+   *
+   * @param needed
+   */
   void signalRestartNeeded(bool needed);
 };
 

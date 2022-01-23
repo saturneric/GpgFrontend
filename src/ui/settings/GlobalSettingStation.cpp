@@ -35,26 +35,26 @@
 #include <vmime/vmime.hpp>
 
 std::unique_ptr<GpgFrontend::UI::GlobalSettingStation>
-    GpgFrontend::UI::GlobalSettingStation::_instance = nullptr;
+    GpgFrontend::UI::GlobalSettingStation::instance_ = nullptr;
 
 GpgFrontend::UI::GlobalSettingStation&
 GpgFrontend::UI::GlobalSettingStation::GetInstance() {
-  if (_instance == nullptr) {
-    _instance = std::make_unique<GlobalSettingStation>();
+  if (instance_ == nullptr) {
+    instance_ = std::make_unique<GlobalSettingStation>();
   }
-  return *_instance;
+  return *instance_;
 }
 
 void GpgFrontend::UI::GlobalSettingStation::SyncSettings() noexcept {
   using namespace libconfig;
   try {
-    ui_cfg.writeFile(ui_config_path.string().c_str());
+    ui_cfg_.writeFile(ui_config_path_.string().c_str());
     LOG(INFO) << _("Updated ui configuration successfully written to")
-              << ui_config_path;
+              << ui_config_path_;
 
   } catch (const FileIOException& fioex) {
     LOG(ERROR) << _("I/O error while writing ui configuration file")
-               << ui_config_path;
+               << ui_config_path_;
   }
 }
 
@@ -64,49 +64,49 @@ GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept {
 
   el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
 
-  LOG(INFO) << _("App Path") << app_path;
-  LOG(INFO) << _("App Configure Path") << app_configure_path;
-  LOG(INFO) << _("App Data Path") << app_data_path;
-  LOG(INFO) << _("App Log Path") << app_log_path;
-  LOG(INFO) << _("App Locale Path") << app_locale_path;
+  LOG(INFO) << _("App Path") << app_path_;
+  LOG(INFO) << _("App Configure Path") << app_configure_path_;
+  LOG(INFO) << _("App Data Path") << app_data_path_;
+  LOG(INFO) << _("App Log Path") << app_log_path_;
+  LOG(INFO) << _("App Locale Path") << app_locale_path_;
 
-  if (!is_directory(app_configure_path)) create_directory(app_configure_path);
+  if (!is_directory(app_configure_path_)) create_directory(app_configure_path_);
 
-  if (!is_directory(app_data_path)) create_directory(app_data_path);
+  if (!is_directory(app_data_path_)) create_directory(app_data_path_);
 
-  if (!is_directory(app_log_path)) create_directory(app_log_path);
+  if (!is_directory(app_log_path_)) create_directory(app_log_path_);
 
-  if (!is_directory(ui_config_dir_path)) create_directory(ui_config_dir_path);
+  if (!is_directory(ui_config_dir_path_)) create_directory(ui_config_dir_path_);
 
-  if (!is_directory(app_secure_path)) create_directory(app_secure_path);
+  if (!is_directory(app_secure_path_)) create_directory(app_secure_path_);
 
-  if (!exists(app_secure_key_path)) {
+  if (!exists(app_secure_key_path_)) {
     init_app_secure_key();
   }
 
   const auto key =
-      GpgFrontend::read_all_data_in_file(app_secure_key_path.string());
+      GpgFrontend::read_all_data_in_file(app_secure_key_path_.string());
   hash_key_ = QCryptographicHash::hash(QByteArray::fromStdString(key),
                                        QCryptographicHash::Sha256);
 
-  if (!exists(app_data_objs_path)) create_directory(app_data_objs_path);
+  if (!exists(app_data_objs_path_)) create_directory(app_data_objs_path_);
 
-  if (!exists(ui_config_path)) {
+  if (!exists(ui_config_path_)) {
     try {
-      this->ui_cfg.writeFile(ui_config_path.string().c_str());
+      this->ui_cfg_.writeFile(ui_config_path_.string().c_str());
       LOG(INFO) << _("UserInterface configuration successfully written to")
-                << ui_config_path;
+                << ui_config_path_;
 
     } catch (const FileIOException& fioex) {
       LOG(ERROR)
           << _("I/O error while writing UserInterface configuration file")
-          << ui_config_path;
+          << ui_config_path_;
     }
   } else {
     try {
-      this->ui_cfg.readFile(ui_config_path.string().c_str());
+      this->ui_cfg_.readFile(ui_config_path_.string().c_str());
       LOG(INFO) << _("UserInterface configuration successfully read from")
-                << ui_config_path;
+                << ui_config_path_;
     } catch (const FileIOException& fioex) {
       LOG(ERROR) << _("I/O error while reading UserInterface configure file");
     } catch (const ParseException& pex) {
@@ -164,17 +164,17 @@ std::string GpgFrontend::UI::GlobalSettingStation::generate_passphrase(
   tmp_str.reserve(len);
 
   for (int i = 0; i < len; ++i) {
-    tmp_str += alphanum[dist(mt) % (sizeof(alphanum) - 1)];
+    tmp_str += alphanum[dist(mt_) % (sizeof(alphanum) - 1)];
   }
 
   return tmp_str;
 }
 
 void GpgFrontend::UI::GlobalSettingStation::init_app_secure_key() {
-  GpgFrontend::write_buffer_to_file(app_secure_key_path.string(),
+  GpgFrontend::write_buffer_to_file(app_secure_key_path_.string(),
                                     generate_passphrase(256));
   boost::filesystem::permissions(
-      app_secure_key_path,
+      app_secure_key_path_,
       boost::filesystem::owner_read | boost::filesystem::owner_write);
 }
 
@@ -199,7 +199,7 @@ std::string GpgFrontend::UI::GlobalSettingStation::SaveDataObj(
             .toStdString();
   }
 
-  const auto obj_path = app_data_objs_path / _hash_obj_key;
+  const auto obj_path = app_data_objs_path_ / _hash_obj_key;
 
   QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                             QAESEncryption::Padding::ISO);
@@ -220,7 +220,7 @@ GpgFrontend::UI::GlobalSettingStation::GetDataObject(const std::string& _key) {
             .toHex()
             .toStdString();
 
-    const auto obj_path = app_data_objs_path / _hash_obj_key;
+    const auto obj_path = app_data_objs_path_ / _hash_obj_key;
 
     if (!boost::filesystem::exists(obj_path)) {
       return {};
@@ -247,7 +247,7 @@ GpgFrontend::UI::GlobalSettingStation::GetDataObjectByRef(
 
   try {
     auto _hash_obj_key = _ref;
-    const auto obj_path = app_data_objs_path / _hash_obj_key;
+    const auto obj_path = app_data_objs_path_ / _hash_obj_key;
 
     if (!boost::filesystem::exists(obj_path)) return {};
 

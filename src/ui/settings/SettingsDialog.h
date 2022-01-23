@@ -48,43 +48,77 @@ class NetworkTab;
 class AdvancedTab;
 #endif
 
+/**
+ * @brief
+ *
+ */
 class SettingsDialog : public QDialog {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Settings Dialog object
+   *
+   * @param parent
+   */
   explicit SettingsDialog(QWidget* parent = nullptr);
 
-  GeneralTab* generalTab;
+  GeneralTab* general_tab_;  ///<
 #ifdef SMTP_SUPPORT
-  SendMailTab* sendMailTab;
+  SendMailTab* send_mail_tab_;  ///<
 #endif
-  AppearanceTab* appearanceTab;
-  KeyserverTab* keyserverTab;
-  NetworkTab* networkTab;
+  AppearanceTab* appearance_tab_;  ///<
+  KeyserverTab* key_server_tab_;   ///<
+  NetworkTab* network_tab_;        ///<
 #ifdef ADVANCED_SUPPORT
-  AdvancedTab* advancedTab;
+  AdvancedTab* advanced_tab_;  ///<
 #endif
 
-  static QHash<QString, QString> listLanguages();
+  /**
+   * @brief
+   *
+   * @return QHash<QString, QString>
+   */
+  static QHash<QString, QString> ListLanguages();
 
  public slots:
 
-  void slotAccept();
+  /**
+   * @brief
+   *
+   */
+  void SlotAccept();
 
  signals:
 
-  void signalRestartNeeded(bool needed);
+  /**
+   * @brief
+   *
+   * @param needed
+   */
+  void SignalRestartNeeded(bool needed);
 
  private:
-  QTabWidget* tabWidget;
-  QDialogButtonBox* buttonBox;
-  bool restartNeeded{};
+  QTabWidget* tab_widget_;        ///<
+  QDialogButtonBox* button_box_;  ///<
+  bool restart_needed_{};         ///<
 
-  bool getRestartNeeded() const;
+  /**
+   * @brief Get the Restart Needed object
+   *
+   * @return true
+   * @return false
+   */
+  bool get_restart_needed() const;
 
  private slots:
 
-  void slotSetRestartNeeded(bool needed);
+  /**
+   * @brief
+   *
+   * @param needed
+   */
+  void slot_set_restart_needed(bool needed);
 };
 
 }  // namespace GpgFrontend::UI
