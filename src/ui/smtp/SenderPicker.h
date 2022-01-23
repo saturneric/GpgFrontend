@@ -35,16 +35,31 @@ namespace GpgFrontend::UI {
 
 class KeyList;
 
+/**
+ * @brief
+ *
+ */
 class SenderPicker : public QDialog {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Sender Picker object
+   *
+   * @param current_key_id
+   * @param parent
+   */
   explicit SenderPicker(const KeyId& current_key_id, QWidget* parent = nullptr);
 
-  GpgFrontend::KeyId getCheckedSender();
+  /**
+   * @brief Get the Checked Sender object
+   *
+   * @return GpgFrontend::KeyId
+   */
+  GpgFrontend::KeyId GetCheckedSender();
 
  private:
-  KeyList* key_list_;
+  KeyList* key_list_;  ///<
 };
 }  // namespace GpgFrontend::UI
 

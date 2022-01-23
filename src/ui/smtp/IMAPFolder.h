@@ -35,19 +35,43 @@ class folder;
 };
 
 namespace GpgFrontend::UI {
+/**
+ * @brief
+ *
+ */
 class IMAPFolder {
  public:
+  /**
+   * @brief Construct a new IMAPFolder object
+   *
+   * @param folder
+   */
   explicit IMAPFolder(std::shared_ptr<vmime::net::folder> folder);
 
+  /**
+   * @brief Set the Parent Folder object
+   *
+   * @param parent_node
+   */
   void SetParentFolder(IMAPFolder* parent_node);
 
+  /**
+   * @brief Get the Tree Widget Item object
+   *
+   * @return QTreeWidgetItem*
+   */
   QTreeWidgetItem* GetTreeWidgetItem();
 
+  /**
+   * @brief Get the Vmime Folder object
+   *
+   * @return vmime::net::folder*
+   */
   vmime::net::folder* GetVmimeFolder();
 
  private:
-  std::shared_ptr<vmime::net::folder> folder_;
-  QTreeWidgetItem* tree_node_;
+  std::shared_ptr<vmime::net::folder> folder_;  ///<
+  QTreeWidgetItem* tree_node_;                  ///<
 };
 }  // namespace GpgFrontend::UI
 

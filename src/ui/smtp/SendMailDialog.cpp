@@ -42,9 +42,9 @@
 namespace GpgFrontend::UI {
 
 SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
-    : QDialog(parent), ui(std::make_shared<Ui_SendMailDialog>()) {
+    : QDialog(parent), ui_(std::make_shared<Ui_SendMailDialog>()) {
   // read from settings
-  initSettings();
+  init_settings();
 
   if (smtp_address_.isEmpty()) {
     QMessageBox::critical(
@@ -56,18 +56,18 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
     return;
   }
 
-  ui->setupUi(this);
+  ui_->setupUi(this);
 
-  ui->ccInputWidget->setHidden(true);
-  ui->bccInputWidget->setHidden(true);
-  ui->textEdit->setText(text);
-  ui->errorLabel->setHidden(true);
+  ui_->ccInputWidget->setHidden(true);
+  ui_->bccInputWidget->setHidden(true);
+  ui_->textEdit->setText(text);
+  ui_->errorLabel->setHidden(true);
 
-  ui->senderEdit->setText(default_sender_);
+  ui_->senderEdit->setText(default_sender_);
 
-  if (!default_sender_gpg_key_id.isEmpty()) {
+  if (!default_sender_gpg_key_id_.isEmpty()) {
     auto key = GpgKeyGetter::GetInstance().GetKey(
-        default_sender_gpg_key_id.toStdString());
+        default_sender_gpg_key_id_.toStdString());
     if (key.IsGood() && key.IsPrivateKey() &&
         key.IsHasActualSigningCapability()) {
       sender_key_id_ = key.GetId();
@@ -75,69 +75,69 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
     }
   }
 
-  connect(ui->ccButton, &QPushButton::clicked, [=]() {
-    ui->ccInputWidget->setHidden(!ui->ccInputWidget->isHidden());
-    ui->ccEdit->clear();
+  connect(ui_->ccButton, &QPushButton::clicked, [=]() {
+    ui_->ccInputWidget->setHidden(!ui_->ccInputWidget->isHidden());
+    ui_->ccEdit->clear();
   });
-  connect(ui->bccButton, &QPushButton::clicked, [=]() {
-    ui->bccInputWidget->setHidden(!ui->bccInputWidget->isHidden());
-    ui->bccEdit->clear();
+  connect(ui_->bccButton, &QPushButton::clicked, [=]() {
+    ui_->bccInputWidget->setHidden(!ui_->bccInputWidget->isHidden());
+    ui_->bccEdit->clear();
   });
 
 #ifdef SMTP_SUPPORT
-  connect(ui->sendMailButton, &QPushButton::clicked, this,
-          &SendMailDialog::slotConfirm);
+  connect(ui_->sendMailButton, &QPushButton::clicked, this,
+          &SendMailDialog::slot_confirm);
 #endif
 
-  connect(ui->senderKeySelectButton, &QPushButton::clicked, this, [=]() {
+  connect(ui_->senderKeySelectButton, &QPushButton::clicked, this, [=]() {
     auto picker = new SenderPicker(sender_key_id_, this);
-    sender_key_id_ = picker->getCheckedSender();
+    sender_key_id_ = picker->GetCheckedSender();
     set_sender_value_label();
   });
 
-  connect(ui->recipientKeySelectButton, &QPushButton::clicked, this, [=]() {
+  connect(ui_->recipientKeySelectButton, &QPushButton::clicked, this, [=]() {
     auto picker = new RecipientsPicker(recipients_key_ids_, this);
-    recipients_key_ids_ = picker->getCheckedRecipients();
+    recipients_key_ids_ = picker->GetCheckedRecipients();
     set_recipients_value_label();
   });
 
-  connect(ui->recipientsEditButton, &QPushButton::clicked, this, [=]() {
-    auto editor = new EmailListEditor(ui->recipientEdit->text(), this);
-    ui->recipientEdit->setText(editor->getEmailList());
+  connect(ui_->recipientsEditButton, &QPushButton::clicked, this, [=]() {
+    auto editor = new EmailListEditor(ui_->recipientEdit->text(), this);
+    ui_->recipientEdit->setText(editor->GetEmailList());
   });
 
-  connect(ui->ccEditButton, &QPushButton::clicked, this, [=]() {
-    auto editor = new EmailListEditor(ui->ccEdit->text(), this);
-    ui->ccEdit->setText(editor->getEmailList());
+  connect(ui_->ccEditButton, &QPushButton::clicked, this, [=]() {
+    auto editor = new EmailListEditor(ui_->ccEdit->text(), this);
+    ui_->ccEdit->setText(editor->GetEmailList());
   });
 
-  connect(ui->bccEditButton, &QPushButton::clicked, this, [=]() {
-    auto editor = new EmailListEditor(ui->bccEdit->text(), this);
-    ui->bccEdit->setText(editor->getEmailList());
+  connect(ui_->bccEditButton, &QPushButton::clicked, this, [=]() {
+    auto editor = new EmailListEditor(ui_->bccEdit->text(), this);
+    ui_->bccEdit->setText(editor->GetEmailList());
   });
 
-  ui->ccButton->setText(_("CC"));
-  ui->bccButton->setText(_("BCC"));
-  ui->senderLabel->setText(_("Sender"));
-  ui->recipientLabel->setText(_("Recipient"));
-  ui->subjectLabel->setText(_("Mail Subject"));
-  ui->bccLabel->setText(_("BCC"));
-  ui->ccLabel->setText(_("CC"));
-  ui->tipsLabel->setText(
+  ui_->ccButton->setText(_("CC"));
+  ui_->bccButton->setText(_("BCC"));
+  ui_->senderLabel->setText(_("Sender"));
+  ui_->recipientLabel->setText(_("Recipient"));
+  ui_->subjectLabel->setText(_("Mail Subject"));
+  ui_->bccLabel->setText(_("BCC"));
+  ui_->ccLabel->setText(_("CC"));
+  ui_->tipsLabel->setText(
       _("Tips: You can fill in multiple email addresses, please separate them "
         "with \";\"."));
-  ui->sendMailButton->setText(_("Send Message"));
-  ui->senderKeySelectButton->setText(_("Select Sender GPG Key"));
-  ui->recipientKeySelectButton->setText(_("Select Recipient(s) GPG Key"));
-  ui->gpgOperaLabel->setText(_("GPG Operations"));
-  ui->attacSignatureCheckBox->setText(_("Attach signature"));
-  ui->attachSenderPublickeyCheckBox->setText(_("Attach sender's public key"));
-  ui->contentEncryptCheckBox->setText(_("Encrypt content"));
-  ui->recipientsEditButton->setText(_("Edit Recipients(s)"));
-  ui->ccEditButton->setText(_("Edit CC(s)"));
-  ui->bccEditButton->setText(_("Edit BCC(s)"));
-  ui->senderKeyLabel->setText(_("Sender GPG Key: "));
-  ui->recipientKeysLabel->setText(_("Recipient(s) GPG Key: "));
+  ui_->sendMailButton->setText(_("Send Message"));
+  ui_->senderKeySelectButton->setText(_("Select Sender GPG Key"));
+  ui_->recipientKeySelectButton->setText(_("Select Recipient(s) GPG Key"));
+  ui_->gpgOperaLabel->setText(_("GPG Operations"));
+  ui_->attacSignatureCheckBox->setText(_("Attach signature"));
+  ui_->attachSenderPublickeyCheckBox->setText(_("Attach sender's public key"));
+  ui_->contentEncryptCheckBox->setText(_("Encrypt content"));
+  ui_->recipientsEditButton->setText(_("Edit Recipients(s)"));
+  ui_->ccEditButton->setText(_("Edit CC(s)"));
+  ui_->bccEditButton->setText(_("Edit BCC(s)"));
+  ui_->senderKeyLabel->setText(_("Sender GPG Key: "));
+  ui_->recipientKeysLabel->setText(_("Recipient(s) GPG Key: "));
 
   auto pos = QPoint(100, 100);
   LOG(INFO) << "parent" << parent;
@@ -151,18 +151,18 @@ SendMailDialog::SendMailDialog(const QString& text, QWidget* parent)
 }
 
 bool SendMailDialog::check_email_address(const QString& str) {
-  return re_email.match(str).hasMatch();
+  return re_email_.match(str).hasMatch();
 }
 
 #ifdef SMTP_SUPPORT
 
-void SendMailDialog::slotConfirm() {
+void SendMailDialog::slot_confirm() {
   QString errString;
-  ui->errorLabel->clear();
-  ui->errorLabel->setHidden(true);
-  QStringList rcpt_string_list = ui->recipientEdit->text().split(';');
-  QStringList cc_string_list = ui->ccEdit->text().split(';');
-  QStringList bcc_string_list = ui->bccEdit->text().split(';');
+  ui_->errorLabel->clear();
+  ui_->errorLabel->setHidden(true);
+  QStringList rcpt_string_list = ui_->recipientEdit->text().split(';');
+  QStringList cc_string_list = ui_->ccEdit->text().split(';');
+  QStringList bcc_string_list = ui_->bccEdit->text().split(';');
 
   if (rcpt_string_list.isEmpty()) {
     errString.append(QString("  ") + _("Recipient cannot be empty") + "  \n");
@@ -177,17 +177,17 @@ void SendMailDialog::slotConfirm() {
       }
     }
   }
-  if (ui->senderEdit->text().isEmpty()) {
+  if (ui_->senderEdit->text().isEmpty()) {
     errString.append(QString("  ") + _("Sender cannot be empty") + "  \n");
-  } else if (!check_email_address(ui->senderEdit->text())) {
+  } else if (!check_email_address(ui_->senderEdit->text())) {
     errString.append(QString("  ") + _("Sender's email is invalid") + "  \n");
   }
 
-  if (ui->subjectEdit->text().isEmpty()) {
+  if (ui_->subjectEdit->text().isEmpty()) {
     errString.append(QString("  ") + _("Subject cannot be empty") + "  \n");
   }
 
-  if (!ui->ccEdit->text().isEmpty())
+  if (!ui_->ccEdit->text().isEmpty())
     for (const auto& cc : cc_string_list) {
       LOG(INFO) << "cc" << cc.trimmed().toStdString();
       if (!check_email_address(cc.trimmed())) {
@@ -197,7 +197,7 @@ void SendMailDialog::slotConfirm() {
       }
     }
 
-  if (!ui->bccEdit->text().isEmpty())
+  if (!ui_->bccEdit->text().isEmpty())
     for (const auto& bcc : bcc_string_list) {
       LOG(INFO) << "bcc" << bcc.trimmed().toStdString();
       if (!check_email_address(bcc.trimmed())) {
@@ -208,12 +208,12 @@ void SendMailDialog::slotConfirm() {
     }
 
   if (!errString.isEmpty()) {
-    ui->errorLabel->setAutoFillBackground(true);
-    QPalette error = ui->errorLabel->palette();
+    ui_->errorLabel->setAutoFillBackground(true);
+    QPalette error = ui_->errorLabel->palette();
     error.setColor(QPalette::Window, "#ff8080");
-    ui->errorLabel->setPalette(error);
-    ui->errorLabel->setText(errString);
-    ui->errorLabel->setHidden(false);
+    ui_->errorLabel->setPalette(error);
+    ui_->errorLabel->setText(errString);
+    ui_->errorLabel->setHidden(false);
     return;
   }
 
@@ -236,19 +236,19 @@ void SendMailDialog::slotConfirm() {
   bool identity_needed = identity_enable_;
   auto username = username_.toStdString();
   auto password = password_.toStdString();
-  auto sender_address = ui->senderEdit->text().toStdString();
+  auto sender_address = ui_->senderEdit->text().toStdString();
 
   auto thread = new SMTPSendMailThread(
       host, port, connection_type, identity_needed, username, password, this);
 
-  thread->setSender(ui->senderEdit->text());
-  thread->setRecipient(ui->recipientEdit->text());
-  thread->setCC(ui->ccEdit->text());
-  thread->setBCC(ui->bccEdit->text());
-  thread->setSubject(ui->subjectEdit->text());
-  thread->addTextContent(ui->textEdit->toPlainText());
+  thread->setSender(ui_->senderEdit->text());
+  thread->setRecipient(ui_->recipientEdit->text());
+  thread->setCC(ui_->ccEdit->text());
+  thread->setBCC(ui_->bccEdit->text());
+  thread->setSubject(ui_->subjectEdit->text());
+  thread->addTextContent(ui_->textEdit->toPlainText());
 
-  if (ui->contentEncryptCheckBox->checkState() == Qt::Checked) {
+  if (ui_->contentEncryptCheckBox->checkState() == Qt::Checked) {
     if (recipients_key_ids_ == nullptr || recipients_key_ids_->empty()) {
       QMessageBox::critical(
           this, _("Forbidden"),
@@ -264,7 +264,7 @@ void SendMailDialog::slotConfirm() {
     }
   }
 
-  if (ui->attacSignatureCheckBox->checkState() == Qt::Checked) {
+  if (ui_->attacSignatureCheckBox->checkState() == Qt::Checked) {
     if (sender_key_id_.empty()) {
       QMessageBox::critical(
           this, _("Forbidden"),
@@ -278,7 +278,7 @@ void SendMailDialog::slotConfirm() {
     }
   }
 
-  if (ui->attachSenderPublickeyCheckBox->checkState() == Qt::Checked) {
+  if (ui_->attachSenderPublickeyCheckBox->checkState() == Qt::Checked) {
     if (sender_key_id_.empty()) {
       QMessageBox::critical(
           this, _("Forbidden"),
@@ -305,7 +305,7 @@ void SendMailDialog::slotConfirm() {
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
   connect(thread, &SMTPSendMailThread::signalSMTPResult, this,
-          &SendMailDialog::slotTestSMTPConnectionResult);
+          &SendMailDialog::slot_test_smtp_connection_result);
   connect(thread, &QThread::finished, [=]() {
     waiting_dialog->finished(0);
     waiting_dialog->deleteLater();
@@ -325,7 +325,7 @@ void SendMailDialog::slotConfirm() {
   loop.exec();
 }
 
-void SendMailDialog::initSettings() {
+void SendMailDialog::init_settings() {
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
   try {
@@ -377,7 +377,7 @@ void SendMailDialog::initSettings() {
   }
 
   try {
-    default_sender_gpg_key_id =
+    default_sender_gpg_key_id_ =
         settings.lookup("smtp.default_sender_gpg_key_id").c_str();
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error")
@@ -389,7 +389,7 @@ void SendMailDialog::initSettings() {
 void SendMailDialog::set_sender_value_label() {
   auto key = GpgKeyGetter::GetInstance().GetKey(sender_key_id_);
   if (key.IsGood()) {
-    ui->senderKeyValueLabel->setText(key.GetUIDs()->front().GetUID().c_str());
+    ui_->senderKeyValueLabel->setText(key.GetUIDs()->front().GetUID().c_str());
   }
 }
 
@@ -401,10 +401,10 @@ void SendMailDialog::set_recipients_value_label() {
       ss << key.GetUIDs()->front().GetUID().c_str() << ";";
     }
   }
-  ui->recipientsKeyValueLabel->setText(ss.str().c_str());
+  ui_->recipientsKeyValueLabel->setText(ss.str().c_str());
 }
 
-void SendMailDialog::slotTestSMTPConnectionResult(const QString& result) {
+void SendMailDialog::slot_test_smtp_connection_result(const QString& result) {
   if (result == "Fail to connect SMTP server") {
     QMessageBox::critical(this, _("Fail"), _("Fail to Connect SMTP Server."));
   } else if (result == "Fail to login") {
@@ -428,12 +428,12 @@ void SendMailDialog::slotTestSMTPConnectionResult(const QString& result) {
     QMessageBox::critical(this, _("Fail"), _("Unknown error."));
   }
 }
-void SendMailDialog::setContentEncryption(bool on) {
-  ui->contentEncryptCheckBox->setCheckState(on ? Qt::Checked : Qt::Unchecked);
+void SendMailDialog::SetContentEncryption(bool on) {
+  ui_->contentEncryptCheckBox->setCheckState(on ? Qt::Checked : Qt::Unchecked);
 }
 
-void SendMailDialog::setAttachSignature(bool on) {
-  ui->attacSignatureCheckBox->setCheckState(on ? Qt::Checked : Qt::Unchecked);
+void SendMailDialog::SetAttachSignature(bool on) {
+  ui_->attacSignatureCheckBox->setCheckState(on ? Qt::Checked : Qt::Unchecked);
 }
 
 }  // namespace GpgFrontend::UI

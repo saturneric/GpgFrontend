@@ -56,8 +56,8 @@ void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
     }
     if (smtp_enabled) {
       auto dialog = new SendMailDialog(text, parent);
-      dialog->setContentEncryption(false);
-      dialog->setAttachSignature(attach_signature);
+      dialog->SetContentEncryption(false);
+      dialog->SetAttachSignature(attach_signature);
       dialog->show();
     } else {
       QMessageBox::warning(nullptr, _("Function Disabled"),

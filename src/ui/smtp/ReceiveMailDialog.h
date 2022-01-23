@@ -41,21 +41,38 @@ namespace GpgFrontend::UI {
 
 class IMAPFolder;
 
+/**
+ * @brief
+ *
+ */
 class ReceiveMailDialog : public QDialog {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new Receive Mail Dialog object
+   *
+   * @param parent
+   */
   explicit ReceiveMailDialog(QWidget* parent);
 
  private slots:
-  void slotRefreshData();
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh_data();
 
  private:
-  std::shared_ptr<Ui_ReceiveMailDialog> ui;
+  std::shared_ptr<Ui_ReceiveMailDialog> ui_;          ///<
+  std::vector<std::shared_ptr<IMAPFolder>> folders_;  ///<
 
+  /**
+   * @brief
+   *
+   * @param parent_folder
+   */
   void list_sub_folders(IMAPFolder* parent_folder,
                         const std::shared_ptr<vmime::net::folder>&);
-
-  std::vector<std::shared_ptr<IMAPFolder>> folders;
 };
 
 }  // namespace GpgFrontend::UI

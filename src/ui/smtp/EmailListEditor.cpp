@@ -32,8 +32,8 @@
 
 GpgFrontend::UI::EmailListEditor::EmailListEditor(const QString& email_list,
                                                   QWidget* parent)
-    : QDialog(parent), ui(std::make_shared<Ui_EmailListEditorDialog>()) {
-  ui->setupUi(this);
+    : QDialog(parent), ui_(std::make_shared<Ui_EmailListEditorDialog>()) {
+  ui_->setupUi(this);
 
   QStringList email_string_list = email_list.split(';');
 
@@ -42,53 +42,53 @@ GpgFrontend::UI::EmailListEditor::EmailListEditor(const QString& email_list,
       auto _recipient = recipient.trimmed();
       if (check_email_address(_recipient)) {
         auto item = new QListWidgetItem(_recipient);
-        ui->emaillistWidget->addItem(item);
+        ui_->emaillistWidget->addItem(item);
         item->setFlags(item->flags() | Qt::ItemIsEditable);
       }
     }
   }
 
-  connect(ui->addEmailAddressButton, &QPushButton::clicked, this, [=]() {
+  connect(ui_->addEmailAddressButton, &QPushButton::clicked, this, [=]() {
     auto item = new QListWidgetItem("new email address");
-    ui->emaillistWidget->addItem(item);
+    ui_->emaillistWidget->addItem(item);
     item->setFlags(item->flags() | Qt::ItemIsEditable);
   });
 
-  connect(
-      ui->actionDelete_Selected_Email_Address, &QAction::triggered, this,
-      [=]() {
-        const auto row_size = ui->emaillistWidget->count();
-        for (int i = 0; i < row_size; i++) {
-          auto item = ui->emaillistWidget->item(i);
-          if (!item->isSelected()) continue;
-          delete ui->emaillistWidget->takeItem(ui->emaillistWidget->row(item));
-          break;
-        }
-      });
+  connect(ui_->actionDelete_Selected_Email_Address, &QAction::triggered, this,
+          [=]() {
+            const auto row_size = ui_->emaillistWidget->count();
+            for (int i = 0; i < row_size; i++) {
+              auto item = ui_->emaillistWidget->item(i);
+              if (!item->isSelected()) continue;
+              delete ui_->emaillistWidget->takeItem(
+                  ui_->emaillistWidget->row(item));
+              break;
+            }
+          });
 
-  ui->titleLabel->setText(_("Email List:"));
-  ui->tipsLabel->setText(
+  ui_->titleLabel->setText(_("Email List:"));
+  ui_->tipsLabel->setText(
       _("Tips: You can double-click the email address in the edit list, or "
         "click the email to pop up the option menu."));
-  ui->addEmailAddressButton->setText(_("Add An Email Address"));
+  ui_->addEmailAddressButton->setText(_("Add An Email Address"));
   this->setWindowTitle(_("Email List Editor"));
-  ui->actionDelete_Selected_Email_Address->setText(_("Delete"));
+  ui_->actionDelete_Selected_Email_Address->setText(_("Delete"));
 
-  popupMenu = new QMenu(this);
-  popupMenu->addAction(ui->actionDelete_Selected_Email_Address);
+  popup_menu_ = new QMenu(this);
+  popup_menu_->addAction(ui_->actionDelete_Selected_Email_Address);
 
   this->exec();
 }
 
 bool GpgFrontend::UI::EmailListEditor::check_email_address(
     const QString& email_address) {
-  return re_email.match(email_address).hasMatch();
+  return re_email_.match(email_address).hasMatch();
 }
 
-QString GpgFrontend::UI::EmailListEditor::getEmailList() {
+QString GpgFrontend::UI::EmailListEditor::GetEmailList() {
   QString email_list;
-  for (int i = 0; i < ui->emaillistWidget->count(); ++i) {
-    QListWidgetItem* item = ui->emaillistWidget->item(i);
+  for (int i = 0; i < ui_->emaillistWidget->count(); ++i) {
+    QListWidgetItem* item = ui_->emaillistWidget->item(i);
     if (check_email_address(item->text())) {
       email_list.append(item->text());
       email_list.append("; ");
@@ -100,7 +100,7 @@ QString GpgFrontend::UI::EmailListEditor::getEmailList() {
 void GpgFrontend::UI::EmailListEditor::contextMenuEvent(
     QContextMenuEvent* event) {
   QWidget::contextMenuEvent(event);
-  if (ui->emaillistWidget->selectedItems().length() > 0) {
-    popupMenu->exec(event->globalPos());
+  if (ui_->emaillistWidget->selectedItems().length() > 0) {
+    popup_menu_->exec(event->globalPos());
   }
 }
