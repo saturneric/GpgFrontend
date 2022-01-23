@@ -119,7 +119,7 @@ void VersionCheckThread::run() {
     LOG(INFO) << "error occurred";
     version.load_info_done = false;
   }
-  emit upgradeVersion(version);
+  emit SignalUpgradeVersion(version);
 }
 
 VersionCheckThread::VersionCheckThread() : QThread(nullptr) {

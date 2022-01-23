@@ -31,13 +31,13 @@
 
 namespace GpgFrontend::UI {
 
-FileReadThread::FileReadThread(std::string path) : path(std::move(path)) {
+FileReadThread::FileReadThread(std::string path) : path_(std::move(path)) {
   qRegisterMetaType<std::string>("std::string");
 }
 
 void FileReadThread::run() {
   LOG(INFO) << "started";
-  boost::filesystem::path read_file_path(this->path);
+  boost::filesystem::path read_file_path(this->path_);
   if (is_regular_file(read_file_path)) {
     LOG(INFO) << "read open";
 
@@ -56,7 +56,7 @@ void FileReadThread::run() {
       LOG(INFO) << "block size " << read_size;
       std::string buffer_str(buffer, read_size);
 
-      emit sendReadBlock(buffer_str);
+      emit SignalSendReadBlock(buffer_str);
 #ifdef RELEASE
       QThread::msleep(32);
 #else
@@ -64,7 +64,7 @@ void FileReadThread::run() {
 #endif
     }
     fclose(fp);
-    emit readDone();
+    emit SignalReadDone();
     LOG(INFO) << "thread end reading";
   }
 }

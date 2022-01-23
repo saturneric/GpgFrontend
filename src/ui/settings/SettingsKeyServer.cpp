@@ -29,7 +29,7 @@
 #include "SettingsKeyServer.h"
 
 #include "GlobalSettingStation.h"
-#include "ui/thread/TestListedKeyServerThread.h"
+#include "ui/thread/ListedKeyServerTestThread.h"
 #include "ui_KeyServerSettings.h"
 
 namespace GpgFrontend::UI {
@@ -249,10 +249,10 @@ void KeyserverTab::slot_test_listed_key_server() {
     urls.push_back(keyserver_url);
   }
 
-  auto thread = new TestListedKeyServerThread(urls, timeout, this);
+  auto thread = new ListedKeyServerTestThread(urls, timeout, this);
   connect(thread,
-          &GpgFrontend::UI::TestListedKeyServerThread::
-              signalKeyServerListTestResult,
+          &GpgFrontend::UI::ListedKeyServerTestThread::
+              SignalKeyServerListTestResult,
           this, [=](const QStringList& result) {
             const auto row_size = ui_->keyServerListTable->rowCount();
             if (result.size() != row_size) return;

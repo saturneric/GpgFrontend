@@ -31,23 +31,45 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class FileReadThread : public QThread {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new File Read Thread object
+   *
+   * @param path
+   */
   explicit FileReadThread(std::string path);
 
  signals:
 
-  void sendReadBlock(const std::string& block);
+  /**
+   * @brief
+   *
+   * @param block
+   */
+  void SignalSendReadBlock(const std::string& block);
 
-  void readDone();
+  /**
+   * @brief
+   *
+   */
+  void SignalReadDone();
 
  protected:
+  /**
+   * @brief
+   *
+   */
   void run() override;
 
  private:
-  std::string path;
+  std::string path_;  ///<
 };
 
 }  // namespace GpgFrontend::UI

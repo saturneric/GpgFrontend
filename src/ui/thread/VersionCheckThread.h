@@ -34,21 +34,40 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class VersionCheckThread : public QThread {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Version Check Thread object
+   *
+   */
   explicit VersionCheckThread();
 
  signals:
 
-  void upgradeVersion(SoftwareVersion version);
+  /**
+   * @brief
+   *
+   * @param version
+   */
+  void SignalUpgradeVersion(SoftwareVersion version);
 
  protected:
+  /**
+   * @brief
+
+   *
+   */
   void run() override;
 
  private:
-  QByteArray latest_reply_bytes_, current_reply_bytes_;
+  QByteArray latest_reply_bytes_;   ///<
+  QByteArray current_reply_bytes_;  ///<
 };
 
 }  // namespace GpgFrontend::UI

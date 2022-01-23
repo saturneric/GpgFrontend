@@ -24,46 +24,25 @@
  *
  */
 
-#ifndef GPGFRONTEND_SMTPTESTTHREAD_H
-#define GPGFRONTEND_SMTPTESTTHREAD_H
-
-#include <utility>
-
-#include "ui/GpgFrontendUI.h"
-
+#include "SMTPConnectionTestThread.h"
 namespace GpgFrontend::UI {
 
-class SMTPTestThread : public QThread {
-  Q_OBJECT
- public:
-  explicit SMTPTestThread(std::string host, int port,
-                          SmtpClient::ConnectionType connection_type,
-                          bool identify, std::string username,
-                          std::string password, QWidget* parent = nullptr)
-      : QThread(parent),
-        host_(std::move(host)),
-        port_(port),
-        connection_type_(connection_type),
-        identify_(identify),
-        username_(std::move(username)),
-        password_(std::move(password)) {}
-
- signals:
-  void signalSMTPTestResult(const QString& result);
-
- protected:
-  void run() override;
-
- private:
-  std::string host_;
-  int port_;
-  SmtpClient::ConnectionType connection_type_;
-
-  bool identify_;
-  std::string username_;
-  std::string password_;
-};
+void SMTPConnectionTestThread::run() {
+  SmtpClient smtp(host_.c_str(), port_, connection_type_);
+  if (identify_) {
+    smtp.setUser(username_.c_str());
+    smtp.setPassword(password_.c_str());
+  }
+  if (!smtp.connectToHost()) {
+    emit SignalSMTPConnectionTestResult("Fail to connect SMTP server");
+    return;
+  }
+  if (!smtp.login()) {
+    emit SignalSMTPConnectionTestResult("Fail to login");
+    return;
+  }
+  smtp.quit();
+  emit SignalSMTPConnectionTestResult("Succeed in testing connection");
+}
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_SMTPTESTTHREAD_H

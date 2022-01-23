@@ -24,34 +24,47 @@
  *
  */
 
-#ifndef GPGFRONTEND_TESTLISTEDKEYSERVERTHREAD_H
-#define GPGFRONTEND_TESTLISTEDKEYSERVERTHREAD_H
+#ifndef GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
+#define GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
 
 #include "GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
 
-class TestListedKeyServerThread : public QThread {
+/**
+ * @brief
+ *
+ */
+class ListedKeyServerTestThread : public QThread {
   Q_OBJECT
  public:
-  explicit TestListedKeyServerThread(const QStringList& urls, int timeout,
+  explicit ListedKeyServerTestThread(const QStringList& urls, int timeout,
                                      QWidget* parent = nullptr)
       : QThread(parent), urls_(urls), timeout_(timeout) {}
 
  signals:
-  void signalKeyServerListTestResult(const QStringList& result);
+  /**
+   * @brief
+   *
+   * @param result
+   */
+  void SignalKeyServerListTestResult(const QStringList& result);
 
  protected:
+  /**
+   * @brief
+   *
+   */
   void run() override;
 
  private:
-  QStringList urls_;
-  QStringList result_;
-  int timeout_ = 500;
+  QStringList urls_;    ///<
+  QStringList result_;  ///<
+  int timeout_ = 500;   ///<
 };
 
 }  // namespace GpgFrontend::UI
 
 class TestListedKeyServerThread {};
 
-#endif  // GPGFRONTEND_TESTLISTEDKEYSERVERTHREAD_H
+#endif  // GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H

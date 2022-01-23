@@ -35,23 +35,43 @@ class ProxyConnectionTestThread {};
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class ProxyConnectionTestThread : public QThread {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new Proxy Connection Test Thread object
+   *
+   * @param url
+   * @param timeout
+   * @param parent
+   */
   explicit ProxyConnectionTestThread(QString url, int timeout,
                                      QWidget* parent = nullptr)
       : QThread(parent), url_(std::move(url)), timeout_(timeout) {}
 
  signals:
-  void signalProxyConnectionTestResult(const QString& result);
+  /**
+   * @brief
+   *
+   * @param result
+   */
+  void SignalProxyConnectionTestResult(const QString& result);
 
  protected:
+  /**
+   * @brief
+   *
+   */
   void run() override;
 
  private:
-  QString url_;
-  QString result_;
-  int timeout_ = 500;
+  QString url_;        ///<
+  QString result_;     ///<
+  int timeout_ = 500;  ///<
 };
 
 }  // namespace GpgFrontend::UI

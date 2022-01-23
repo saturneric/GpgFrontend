@@ -32,9 +32,24 @@
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
+/**
+ * @brief
+ *
+ */
 class SMTPSendMailThread : public QThread {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new SMTPSendMailThread object
+   *
+   * @param host
+   * @param port
+   * @param connection_type
+   * @param identify
+   * @param username
+   * @param password
+   * @param parent
+   */
   explicit SMTPSendMailThread(std::string host, int port,
                               SmtpClient::ConnectionType connection_type,
                               bool identify, std::string username,
@@ -47,57 +62,117 @@ class SMTPSendMailThread : public QThread {
         username_(std::move(username)),
         password_(std::move(password)) {}
 
-  void setSender(const QString& sender);
+  void SetSender(const QString& sender);
 
-  void setRecipient(const QString& recipients);
+  /**
+   * @brief Set the Recipient object
+   *
+   * @param recipients
+   */
+  void SetRecipient(const QString& recipients);
 
-  void setCC(const QString& ccs);
+  /**
+   * @brief
+   *
+   * @param ccs
+   */
+  void SetCC(const QString& ccs);
 
-  void setBCC(const QString& bccs);
+  /**
+   * @brief
+   *
+   * @param bccs
+   */
+  void SetBCC(const QString& bccs);
 
-  void setSubject(const QString& subject) { message.setSubject(subject); }
+  /**
+   * @brief Set the Subject object
+   *
+   * @param subject
+   */
+  void SetSubject(const QString& subject) { message.setSubject(subject); }
 
-  void addTextContent(const QString& content);
+  /**
+   * @brief
+   *
+   * @param content
+   */
+  void AddTextContent(const QString& content);
 
-  void addFileContent(const QString& file_name, const QByteArray& content);
+  /**
+   * @brief
+   *
+   * @param file_name
+   * @param content
+   */
+  void AddFileContent(const QString& file_name, const QByteArray& content);
 
-  void setEncryptContent(bool encrypt_content,
+  /**
+   * @brief Set the Encrypt Content object
+   *
+   * @param encrypt_content
+   * @param public_key_ids
+   */
+  void SetEncryptContent(bool encrypt_content,
                          GpgFrontend::KeyIdArgsListPtr public_key_ids);
 
-  void setAttachSignatureFile(bool attach_signature_file,
+  /**
+   * @brief Set the Attach Signature File object
+   *
+   * @param attach_signature_file
+   * @param private_key_id
+   */
+  void SetAttachSignatureFile(bool attach_signature_file,
                               GpgFrontend::KeyId private_key_id);
 
-  void setAttachPublicKey(bool attach_public_key_file,
+  /**
+   * @brief Set the Attach Public Key object
+   *
+   * @param attach_public_key_file
+   * @param attached_public_key_ids
+   */
+  void SetAttachPublicKey(bool attach_public_key_file,
                           GpgFrontend::KeyId attached_public_key_ids);
 
  signals:
-  void signalSMTPResult(const QString& result);
+  /**
+   * @brief
+   *
+   * @param result
+   */
+  void SignalSMTPResult(const QString& result);
 
  protected:
+  /**
+   * @brief
+   *
+   */
   void run() override;
 
  private:
   // SMTP Options
-  std::string host_;
-  int port_;
-  SmtpClient::ConnectionType connection_type_;
 
-  bool identify_;
-  std::string username_;
-  std::string password_;
+  std::string host_;                            ///<
+  int port_;                                    ///<
+  SmtpClient::ConnectionType connection_type_;  ///<
 
-  MimeMessage message;
-  std::vector<std::unique_ptr<MimeText>> texts_;
-  std::vector<std::unique_ptr<MimeText>> send_texts_;
-  std::vector<std::unique_ptr<MimeFile>> files_;
+  bool identify_;         ///<
+  std::string username_;  ///<
+  std::string password_;  ///<
+
+  MimeMessage message;                                 ///<
+  std::vector<std::unique_ptr<MimeText>> texts_;       ///<
+  std::vector<std::unique_ptr<MimeText>> send_texts_;  ///<
+  std::vector<std::unique_ptr<MimeFile>> files_;       ///<
 
   // GPG Options
-  bool encrypt_content_ = false;
-  GpgFrontend::KeyIdArgsListPtr public_key_ids_;
-  bool attach_signature_file_ = false;
-  GpgFrontend::KeyId private_key_id_;
-  bool attach_public_key_file_ = false;
-  GpgFrontend::KeyId attached_public_key_ids_;
+
+  bool encrypt_content_ = false;                  ///<
+  GpgFrontend::KeyIdArgsListPtr public_key_ids_;  ///<
+  bool attach_signature_file_ = false;            ///<
+  GpgFrontend::KeyId private_key_id_;             ///<
+  bool attach_public_key_file_ = false;           ///<
+  GpgFrontend::KeyId attached_public_key_ids_;    ///<
 };
 }  // namespace GpgFrontend::UI
 
