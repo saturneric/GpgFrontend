@@ -32,6 +32,11 @@
 
 extern jmp_buf recover_env;
 
+/**
+ * @brief
+ *
+ * @param sig
+ */
 void handle_signal(int sig) {
   static int _repeat_handle_num = 1, last_sig = sig;
   LOG(INFO) << "signal caught" << sig;
