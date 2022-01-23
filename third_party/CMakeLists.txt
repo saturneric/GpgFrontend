@@ -1,3 +1,29 @@
+#
+# Copyright (C) 2021 Saturneric
+#
+# This file is part of GpgFrontend.
+#
+# GpgFrontend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GpgFrontend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
+#
+# The initial version of the source code is inherited from
+# the gpg4usb project, which is under GPL-3.0-or-later.
+#
+# All the source code of GpgFrontend was modified and released by
+# Saturneric<eric@bktus.com> starting on May 12, 2021.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # easyloggingpp
 set(build_static_lib 1 CACHE BOOL "" FORCE)
 add_subdirectory(easyloggingpp)
@@ -153,9 +179,9 @@ endif ()
 
 add_library(gpgme STATIC IMPORTED GLOBAL)
 if (NOT MINGW)
-add_dependencies(gpgme libgpgme assuan gpg-error)
-set_target_properties(gpgme PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${GPGME_INCLUDES})
-endif()
+    add_dependencies(gpgme libgpgme assuan gpg-error)
+    set_target_properties(gpgme PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${GPGME_INCLUDES})
+endif ()
 set_target_properties(gpgme PROPERTIES IMPORTED_LOCATION ${GPGME_STATIC_LIB})
 
 if (SMTP_SUPPORT)

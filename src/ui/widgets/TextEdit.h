@@ -29,7 +29,7 @@
 #ifndef __TEXTEDIT_H__
 #define __TEXTEDIT_H__
 
-#include "ui/QuitDialog.h"
+#include "ui/dialog/QuitDialog.h"
 #include "ui/widgets/FilePage.h"
 #include "ui/widgets/HelpPage.h"
 #include "ui/widgets/PlainTextEditorPage.h"

@@ -29,7 +29,7 @@
 #ifndef __VERIFYKEYDETAILBOX_H__
 #define __VERIFYKEYDETAILBOX_H__
 
-#include "ui/KeyServerImportDialog.h"
+#include "ui/import_export/KeyServerImportDialog.h"
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {

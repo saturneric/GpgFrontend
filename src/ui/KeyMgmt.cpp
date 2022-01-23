@@ -33,11 +33,11 @@
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExporter.h"
 #include "gpg/function/GpgKeyOpera.h"
+#include "import_export/ExportKeyPackageDialog.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/keygen/SubkeyGenerateDialog.h"
+#include "ui/key_generate/SubkeyGenerateDialog.h"
 #include "ui/settings/GlobalSettingStation.h"
-#include "ui/widgets/ExportKeyPackageDialog.h"
 
 namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {

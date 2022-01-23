@@ -26,9 +26,11 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_SHOWCOPYDIALOG_H
-#define GPGFRONTEND_ZH_CN_TS_SHOWCOPYDIALOG_H
+#ifndef __KEYIMPORTDETAILSDIALOG_H__
+#define __KEYIMPORTDETAILSDIALOG_H__
 
+#include "gpg/GpgContext.h"
+#include "gpg/function/GpgKeyImportExporter.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
@@ -37,33 +39,53 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class ShowCopyDialog : public QDialog {
+class KeyImportDetailDialog : public QDialog {
   Q_OBJECT
+
  public:
   /**
-   * @brief Construct a new Show Copy Dialog object
+   * @brief Construct a new Key Import Detail Dialog object
    *
-   * @param text
-   * @param info
+   * @param result
+   * @param automatic
    * @param parent
    */
-  explicit ShowCopyDialog(const QString& text, const QString& info = "",
-                          QWidget* parent = nullptr);
-
- private slots:
-
-  /**
-   * @brief
-   *
-   */
-  void slot_copy_text();
+  KeyImportDetailDialog(GpgImportInformation result, bool automatic,
+                        QWidget* parent = nullptr);
 
  private:
-  QLabel* info_label_;    ///<
-  QTextEdit* text_edit_;  ///<
-  QPushButton* copy_button_;  ///<
-};
+  /**
+   * @brief Create a general info box object
+   *
+   */
+  void create_general_info_box();
 
+  /**
+   * @brief Create a keys table object
+   *
+   */
+  void create_keys_table();
+
+  /**
+   * @brief Create a button box object
+   *
+   */
+  void create_button_box();
+
+  /**
+   * @brief Get the status string object
+   *
+   * @param keyStatus
+   * @return QString
+   */
+  static QString get_status_string(int keyStatus);
+
+  QTableWidget* keys_table_{};      ///<
+  QGroupBox* general_info_box_{};   ///<
+  QGroupBox* key_info_box_{};       ///<
+  QDialogButtonBox* button_box_{};  ///<
+  GpgImportInformation m_result_;   ///<
+};
 }  // namespace GpgFrontend::UI
 
-#endif  // GPGFRONTEND_ZH_CN_TS_SHOWCOPYDIALOG_H
+#endif  // __KEYIMPORTDETAILSDIALOG_H__

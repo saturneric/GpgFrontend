@@ -32,7 +32,7 @@
 #include "gpg/GpgConstants.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/KeyMgmt.h"
-#include "ui/keygen/KeygenDialog.h"
+#include "ui/key_generate/KeygenDialog.h"
 #include "ui/settings/SettingsDialog.h"
 
 namespace GpgFrontend::UI {

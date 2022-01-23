@@ -33,8 +33,8 @@
 #include "ui/thread/VersionCheckThread.h"
 #endif
 #include "ui/SignalStation.h"
-#include "ui/data_struct/SettingsObject.h"
 #include "ui/settings/GlobalSettingStation.h"
+#include "ui/struct/SettingsObject.h"
 
 namespace GpgFrontend::UI {
 

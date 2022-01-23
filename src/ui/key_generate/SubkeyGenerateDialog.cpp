@@ -24,12 +24,12 @@
  *
  */
 
-#include "ui/keygen/SubkeyGenerateDialog.h"
+#include "ui/key_generate/SubkeyGenerateDialog.h"
 
+#include "dialog/WaitingDialog.h"
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
-#include "ui/WaitingDialog.h"
 #include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {

@@ -26,7 +26,7 @@
  *
  */
 
-#include "ui/KeyUploadDialog.h"
+#include "KeyUploadDialog.h"
 
 #include <algorithm>
 

@@ -29,10 +29,10 @@
 #ifndef __KEYMGMT_H__
 #define __KEYMGMT_H__
 
+#include "import_export/KeyImportDetailDialog.h"
+#include "import_export/KeyServerImportDialog.h"
 #include "ui/GpgFrontendUI.h"
-#include "ui/KeyImportDetailDialog.h"
-#include "ui/KeyServerImportDialog.h"
-#include "ui/keygen/KeygenDialog.h"
+#include "ui/key_generate/KeygenDialog.h"
 #include "ui/keypair_details/KeyDetailsDialog.h"
 #include "ui/widgets/KeyList.h"
 

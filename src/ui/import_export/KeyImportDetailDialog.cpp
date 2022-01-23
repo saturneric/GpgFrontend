@@ -26,7 +26,7 @@
  *
  */
 
-#include "ui/KeyImportDetailDialog.h"
+#include "KeyImportDetailDialog.h"
 
 #include "gpg/function/GpgKeyGetter.h"
 

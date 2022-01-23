@@ -31,7 +31,7 @@
 #include <boost/filesystem.hpp>
 #include <string>
 
-#include "ui/MainWindow.h"
+#include "main_window/MainWindow.h"
 #include "ui/SignalStation.h"
 #include "ui_FilePage.h"
 

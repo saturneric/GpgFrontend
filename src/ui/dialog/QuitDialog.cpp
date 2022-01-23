@@ -26,7 +26,7 @@
  *
  */
 
-#include "ui/QuitDialog.h"
+#include "QuitDialog.h"
 
 #include <boost/format.hpp>
 

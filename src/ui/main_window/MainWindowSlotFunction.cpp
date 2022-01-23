@@ -36,7 +36,7 @@
 #endif
 
 #ifdef SMTP_SUPPORT
-#include "ui/smtp/SendMailDialog.h"
+#include "ui/mail/SendMailDialog.h"
 #endif
 
 #include "gpg/function/BasicOperator.h"

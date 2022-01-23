@@ -26,10 +26,10 @@
 
 #include "ui/keypair_details/KeyPairDetailTab.h"
 
+#include "dialog/WaitingDialog.h"
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExporter.h"
 #include "ui/SignalStation.h"
-#include "ui/WaitingDialog.h"
 
 namespace GpgFrontend::UI {
 KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
