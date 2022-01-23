@@ -71,7 +71,7 @@ GpgFrontend::UI::SenderPicker::SenderPicker(const KeyId& current_key_id,
   this->exec();
 }
 
-GpgFrontend::KeyId GpgFrontend::UI::SenderPicker::getCheckedSender() {
+GpgFrontend::KeyId GpgFrontend::UI::SenderPicker::GetCheckedSender() {
   auto checked_keys = key_list_->getChecked();
   if (!checked_keys->empty()) {
     return key_list_->getChecked()->front();

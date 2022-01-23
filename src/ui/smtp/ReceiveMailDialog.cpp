@@ -31,11 +31,11 @@
 #include "ui_ReceiveMailDialog.h"
 
 GpgFrontend::UI::ReceiveMailDialog::ReceiveMailDialog(QWidget *parent)
-    : QDialog(parent), ui(std::make_shared<Ui_ReceiveMailDialog>()) {
-  ui->setupUi(this);
+    : QDialog(parent), ui_(std::make_shared<Ui_ReceiveMailDialog>()) {
+  ui_->setupUi(this);
 }
 
-void GpgFrontend::UI::ReceiveMailDialog::slotRefreshData() {}
+void GpgFrontend::UI::ReceiveMailDialog::slot_refresh_data() {}
 
 void GpgFrontend::UI::ReceiveMailDialog::list_sub_folders(
     GpgFrontend::UI::IMAPFolder *parent_folder,

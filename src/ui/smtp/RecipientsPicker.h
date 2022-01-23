@@ -35,18 +35,33 @@ namespace GpgFrontend::UI {
 
 class KeyList;
 
+/**
+ * @brief
+ *
+ */
 class RecipientsPicker : public QDialog {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Recipients Picker object
+   *
+   * @param current_key_ids
+   * @param parent
+   */
   explicit RecipientsPicker(
       const GpgFrontend::KeyIdArgsListPtr& current_key_ids,
       QWidget* parent = nullptr);
 
-  GpgFrontend::KeyIdArgsListPtr getCheckedRecipients();
+  /**
+   * @brief Get the Checked Recipients object
+   *
+   * @return GpgFrontend::KeyIdArgsListPtr
+   */
+  GpgFrontend::KeyIdArgsListPtr GetCheckedRecipients();
 
  private:
-  KeyList* key_list_;
+  KeyList* key_list_;  ///<
 };
 }  // namespace GpgFrontend::UI
 

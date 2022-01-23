@@ -75,6 +75,6 @@ GpgFrontend::UI::RecipientsPicker::RecipientsPicker(
 }
 
 GpgFrontend::KeyIdArgsListPtr
-GpgFrontend::UI::RecipientsPicker::getCheckedRecipients() {
+GpgFrontend::UI::RecipientsPicker::GetCheckedRecipients() {
   return key_list_->getChecked();
 }

@@ -34,23 +34,50 @@
 class Ui_EmailListEditorDialog;
 
 namespace GpgFrontend::UI {
+/**
+ * @brief
+ *
+ */
 class EmailListEditor : public QDialog {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Email List Editor object
+   *
+   * @param email_list
+   * @param parent
+   */
   explicit EmailListEditor(const QString& email_list, QWidget* parent);
-  QString getEmailList();
+
+  /**
+   * @brief Get the Email List object
+   *
+   * @return QString
+   */
+  QString GetEmailList();
 
  private:
-  std::shared_ptr<Ui_EmailListEditorDialog> ui;
-  QMenu* popupMenu{};
-
-  QRegularExpression re_email{
+  std::shared_ptr<Ui_EmailListEditorDialog> ui_;  ///<
+  QMenu* popup_menu_{};                           ///<
+  QRegularExpression re_email_{
       R"((?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\]))"};
 
+  /**
+   * @brief
+   *
+   * @param email_address
+   * @return true
+   * @return false
+   */
   bool check_email_address(const QString& email_address);
 
  protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
   void contextMenuEvent(QContextMenuEvent* event) override;
 };
 }  // namespace GpgFrontend::UI
