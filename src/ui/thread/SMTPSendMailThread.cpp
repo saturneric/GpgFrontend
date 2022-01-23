@@ -70,7 +70,7 @@ void SMTPSendMailThread::run() {
           std::move(keys), *in_buffer, out_buffer, result);
 
       if (check_gpg_error_2_err_code(err) != GPG_ERR_NO_ERROR) {
-        emit signalSMTPResult("Fail to encrypt with gpg keys");
+        emit SignalSMTPResult("Fail to encrypt with gpg keys");
         return;
       }
       text->setText(out_buffer->c_str());
@@ -133,7 +133,7 @@ void SMTPSendMailThread::run() {
           result);
 
       if (check_gpg_error_2_err_code(err) != GPG_ERR_NO_ERROR) {
-        emit signalSMTPResult("Fail to sign with gpg keys");
+        emit SignalSMTPResult("Fail to sign with gpg keys");
         return;
       }
 
@@ -176,7 +176,7 @@ void SMTPSendMailThread::run() {
 
     auto public_key_file_name =
         boost::format("%1%_pubkey.asc") % attached_public_key_ids_;
-    addFileContent(public_key_file_name.str().c_str(), out_buffer->c_str());
+    AddFileContent(public_key_file_name.str().c_str(), out_buffer->c_str());
     auto& key_file = files_.back();
     key_file->setEncoding(MimePart::_7Bit);
     key_file->setContentType("application/pgp-keys");
@@ -192,70 +192,70 @@ void SMTPSendMailThread::run() {
 
   // Now we can send the mail
   if (!smtp.connectToHost()) {
-    emit signalSMTPResult("Fail to connect SMTP server");
+    emit SignalSMTPResult("Fail to connect SMTP server");
     return;
   }
   if (!smtp.login()) {
-    emit signalSMTPResult("Fail to login");
+    emit SignalSMTPResult("Fail to login");
     return;
   }
   if (!smtp.sendMail(message)) {
-    emit signalSMTPResult("Fail to send mail");
+    emit SignalSMTPResult("Fail to send mail");
     return;
   }
   smtp.quit();
-  emit signalSMTPResult("Succeed in sending a test email");
+  emit SignalSMTPResult("Succeed in sending a test email");
 }
 
-void SMTPSendMailThread::setBCC(const QString& bccs) {
+void SMTPSendMailThread::SetBCC(const QString& bccs) {
   QStringList bcc_string_list = bccs.split(';');
   for (const auto& bcc : bcc_string_list) {
     if (!bcc.isEmpty()) message.addBcc(new EmailAddress(bcc.trimmed()));
   }
 }
 
-void SMTPSendMailThread::setCC(const QString& ccs) {
+void SMTPSendMailThread::SetCC(const QString& ccs) {
   QStringList cc_string_list = ccs.split(';');
   for (const auto& cc : cc_string_list) {
     if (!cc.isEmpty()) message.addCc(new EmailAddress(cc.trimmed()));
   }
 }
 
-void SMTPSendMailThread::setRecipient(const QString& recipients) {
+void SMTPSendMailThread::SetRecipient(const QString& recipients) {
   QStringList rcpt_string_list = recipients.split(';');
   for (const auto& rcpt : rcpt_string_list) {
     if (!rcpt.isEmpty()) message.addRecipient(new EmailAddress(rcpt.trimmed()));
   }
 }
 
-void SMTPSendMailThread::setSender(const QString& sender) {
+void SMTPSendMailThread::SetSender(const QString& sender) {
   message.setSender(new EmailAddress(sender));
 }
 
-void SMTPSendMailThread::addTextContent(const QString& content) {
+void SMTPSendMailThread::AddTextContent(const QString& content) {
   auto text = std::make_unique<MimeText>(content.trimmed());
   texts_.push_back(std::move(text));
 }
 
-void SMTPSendMailThread::addFileContent(const QString& file_name,
+void SMTPSendMailThread::AddFileContent(const QString& file_name,
                                         const QByteArray& content) {
   auto file = std::make_unique<MimeFile>(content, file_name);
   files_.push_back(std::move(file));
 }
 
-void SMTPSendMailThread::setEncryptContent(
+void SMTPSendMailThread::SetEncryptContent(
     bool encrypt_content, GpgFrontend::KeyIdArgsListPtr public_key_ids) {
   this->encrypt_content_ = encrypt_content;
   this->public_key_ids_ = std::move(public_key_ids);
 }
 
-void SMTPSendMailThread::setAttachSignatureFile(
+void SMTPSendMailThread::SetAttachSignatureFile(
     bool attach_signature_file, GpgFrontend::KeyId private_key_id) {
   this->attach_signature_file_ = attach_signature_file;
   this->private_key_id_ = std::move(private_key_id);
 }
 
-void SMTPSendMailThread::setAttachPublicKey(
+void SMTPSendMailThread::SetAttachPublicKey(
     bool attach_public_key_file, GpgFrontend::KeyId attached_public_key_ids) {
   this->attach_public_key_file_ = attach_public_key_file;
   this->attached_public_key_ids_ = std::move(attached_public_key_ids);

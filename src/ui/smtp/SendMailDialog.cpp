@@ -241,12 +241,12 @@ void SendMailDialog::slot_confirm() {
   auto thread = new SMTPSendMailThread(
       host, port, connection_type, identity_needed, username, password, this);
 
-  thread->setSender(ui_->senderEdit->text());
-  thread->setRecipient(ui_->recipientEdit->text());
-  thread->setCC(ui_->ccEdit->text());
-  thread->setBCC(ui_->bccEdit->text());
-  thread->setSubject(ui_->subjectEdit->text());
-  thread->addTextContent(ui_->textEdit->toPlainText());
+  thread->SetSender(ui_->senderEdit->text());
+  thread->SetRecipient(ui_->recipientEdit->text());
+  thread->SetCC(ui_->ccEdit->text());
+  thread->SetBCC(ui_->bccEdit->text());
+  thread->SetSubject(ui_->subjectEdit->text());
+  thread->AddTextContent(ui_->textEdit->toPlainText());
 
   if (ui_->contentEncryptCheckBox->checkState() == Qt::Checked) {
     if (recipients_key_ids_ == nullptr || recipients_key_ids_->empty()) {
@@ -260,7 +260,7 @@ void SendMailDialog::slot_confirm() {
       auto key_ids = std::make_unique<KeyIdArgsList>();
       for (const auto& key_id : *recipients_key_ids_)
         key_ids->push_back(key_id);
-      thread->setEncryptContent(true, std::move(key_ids));
+      thread->SetEncryptContent(true, std::move(key_ids));
     }
   }
 
@@ -274,7 +274,7 @@ void SendMailDialog::slot_confirm() {
             "operation is prohibited."));
       return;
     } else {
-      thread->setAttachSignatureFile(true, sender_key_id_);
+      thread->SetAttachSignatureFile(true, sender_key_id_);
     }
   }
 
@@ -289,7 +289,7 @@ void SendMailDialog::slot_confirm() {
             "with your expectations, so the operation is prohibited."));
       return;
     } else {
-      thread->setAttachPublicKey(true, sender_key_id_);
+      thread->SetAttachPublicKey(true, sender_key_id_);
     }
   }
 
@@ -304,7 +304,7 @@ void SendMailDialog::slot_confirm() {
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
-  connect(thread, &SMTPSendMailThread::signalSMTPResult, this,
+  connect(thread, &SMTPSendMailThread::SignalSMTPResult, this,
           &SendMailDialog::slot_test_smtp_connection_result);
   connect(thread, &QThread::finished, [=]() {
     waiting_dialog->finished(0);

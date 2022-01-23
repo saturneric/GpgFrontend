@@ -29,8 +29,8 @@
 #include "SettingsSendMail.h"
 
 #include "ui/data_struct/SettingsObject.h"
+#include "ui/thread/SMTPConnectionTestThread.h"
 #include "ui/thread/SMTPSendMailThread.h"
-#include "ui/thread/SMTPTestThread.h"
 #include "ui_SendMailSettings.h"
 
 namespace GpgFrontend::UI {
@@ -176,8 +176,8 @@ void SendMailTab::slot_check_connection() {
   auto username = ui_->usernameEdit->text().toStdString();
   auto password = ui_->passwordEdit->text().toStdString();
 
-  auto thread = new SMTPTestThread(host, port, connection_type, identity_needed,
-                                   username, password);
+  auto thread = new SMTPConnectionTestThread(
+      host, port, connection_type, identity_needed, username, password);
 
   // Waiting Dialog
   auto* waiting_dialog = new QProgressDialog(this);
@@ -190,8 +190,8 @@ void SendMailTab::slot_check_connection() {
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
-  connect(thread, &SMTPTestThread::signalSMTPTestResult, this,
-          &SendMailTab::slot_test_smtp_connection_result);
+  connect(thread, &SMTPConnectionTestThread::SignalSMTPConnectionTestResult,
+          this, &SendMailTab::slot_test_smtp_connection_result);
   connect(thread, &QThread::finished, [=]() {
     waiting_dialog->finished(0);
     waiting_dialog->deleteLater();
@@ -236,7 +236,7 @@ void SendMailTab::slot_send_test_mail() {
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
-  connect(thread, &SMTPSendMailThread::signalSMTPResult, this,
+  connect(thread, &SMTPSendMailThread::SignalSMTPResult, this,
           &SendMailTab::slot_test_smtp_connection_result);
   connect(thread, &QThread::finished, [=]() {
     waiting_dialog->finished(0);
@@ -247,10 +247,10 @@ void SendMailTab::slot_send_test_mail() {
     if (thread->isRunning()) thread->terminate();
   });
 
-  thread->setSender(sender_address);
-  thread->setRecipient(sender_address);
-  thread->setSubject(_("Test Email from GpgFrontend"));
-  thread->addTextContent(
+  thread->SetSender(sender_address);
+  thread->SetRecipient(sender_address);
+  thread->SetSubject(_("Test Email from GpgFrontend"));
+  thread->AddTextContent(
       _("Hello, this is a test email from GpgFrontend. If you receive this "
         "email, it means that you have configured the correct SMTP server "
         "parameters."));

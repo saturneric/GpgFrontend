@@ -24,25 +24,26 @@
  *
  */
 
-#include "SMTPTestThread.h"
-namespace GpgFrontend::UI {
+#include "ListedKeyServerTestThread.h"
 
-void SMTPTestThread::run() {
-  SmtpClient smtp(host_.c_str(), port_, connection_type_);
-  if (identify_) {
-    smtp.setUser(username_.c_str());
-    smtp.setPassword(password_.c_str());
+void GpgFrontend::UI::ListedKeyServerTestThread::run() {
+  for (const auto& url : urls_) {
+    const auto keyserver_url = url;
+
+    auto key_url = QUrl{keyserver_url};
+
+    LOG(INFO) << "key server domain" << key_url.host().toStdString();
+
+    QTcpSocket socket(nullptr);
+    socket.abort();
+    socket.connectToHost(key_url.host(), 80);
+    if (socket.waitForConnected(timeout_)) {
+      result_.push_back("Reachable");
+    } else {
+      result_.push_back("Not Reachable");
+    }
+    socket.close();
   }
-  if (!smtp.connectToHost()) {
-    emit signalSMTPTestResult("Fail to connect SMTP server");
-    return;
-  }
-  if (!smtp.login()) {
-    emit signalSMTPTestResult("Fail to login");
-    return;
-  }
-  smtp.quit();
-  emit signalSMTPTestResult("Succeed in testing connection");
+
+  emit SignalKeyServerListTestResult(result_);
 }
-
-}  // namespace GpgFrontend::UI

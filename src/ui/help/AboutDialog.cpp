@@ -196,7 +196,7 @@ void UpdateTab::getLatestVersion() {
 
   connect(version_thread, SIGNAL(finished()), version_thread,
           SLOT(deleteLater()));
-  connect(version_thread, &VersionCheckThread::upgradeVersion, this,
+  connect(version_thread, &VersionCheckThread::SignalUpgradeVersion, this,
           &UpdateTab::slot_show_version_status);
 
   version_thread->start();

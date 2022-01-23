@@ -54,5 +54,5 @@ void GpgFrontend::UI::ProxyConnectionTestThread::run() {
 
   _reply->deleteLater();
 
-  emit signalProxyConnectionTestResult(result_);
+  emit SignalProxyConnectionTestResult(result_);
 }

@@ -28,15 +28,31 @@
 #define GPGFRONTEND_CTXCHECKTRHEAD_H
 #include "ui/GpgFrontendUI.h"
 namespace GpgFrontend::UI {
+/**
+ * @brief
+ *
+ */
 class CtxCheckThread : public QThread {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new Ctx Check Thread object
+   *
+   */
   CtxCheckThread();
 
  signals:
-  void signalGnupgNotInstall();
+  /**
+   * @brief
+   *
+   */
+  void SignalGnupgNotInstall();
 
  protected:
+  /**
+   * @brief
+   *
+   */
   void run() override;
 };
 }  // namespace GpgFrontend::UI

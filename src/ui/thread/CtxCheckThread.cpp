@@ -32,7 +32,7 @@
 #include "ui/UserInterfaceUtils.h"
 
 GpgFrontend::UI::CtxCheckThread::CtxCheckThread() : QThread(nullptr) {
-  connect(this, &CtxCheckThread::signalGnupgNotInstall,
+  connect(this, &CtxCheckThread::SignalGnupgNotInstall,
           CommonUtils::GetInstance(), &CommonUtils::signalGnupgNotInstall);
 }
 
@@ -42,7 +42,7 @@ void GpgFrontend::UI::CtxCheckThread::run() {
 
   // Create & Check Gnupg Context Status
   if (!GpgContext::GetInstance().good()) {
-    emit signalGnupgNotInstall();
+    emit SignalGnupgNotInstall();
   }
   // Try fetching key
   else

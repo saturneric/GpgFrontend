@@ -142,10 +142,10 @@ void PlainTextEditorPage::ReadFile() {
   text_page->setReadOnly(true);
   auto thread = new FileReadThread(this->full_file_path_.toStdString());
 
-  connect(thread, &FileReadThread::sendReadBlock, this,
+  connect(thread, &FileReadThread::SignalSendReadBlock, this,
           &PlainTextEditorPage::slotInsertText);
 
-  connect(thread, &FileReadThread::readDone, this, [=]() {
+  connect(thread, &FileReadThread::SignalReadDone, this, [=]() {
     LOG(INFO) << "thread read done";
     if (!binary_mode_) {
       text_page->setReadOnly(false);

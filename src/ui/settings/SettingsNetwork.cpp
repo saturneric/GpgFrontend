@@ -239,7 +239,7 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
     auto thread = new ProxyConnectionTestThread(url, 800, this);
     connect(thread,
             &GpgFrontend::UI::ProxyConnectionTestThread::
-                signalProxyConnectionTestResult,
+                SignalProxyConnectionTestResult,
             this, [=](const QString &result) {
               if (result == "Reachable") {
                 QMessageBox::information(this, _("Success"),
