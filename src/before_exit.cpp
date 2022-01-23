@@ -28,6 +28,10 @@
 
 #include "ui/settings/GlobalSettingStation.h"
 
+/**
+ * @brief
+ *
+ */
 void before_exit() {
   LOG(INFO) << "called";
   GpgFrontend::UI::GlobalSettingStation::GetInstance().ResetRootCerts();

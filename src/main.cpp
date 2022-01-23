@@ -45,10 +45,35 @@ INITIALIZE_EASYLOGGINGPP
 // Recover buff
 jmp_buf recover_env;
 
+/**
+ * @brief
+ *
+ */
 extern void init_logging();
+
+/**
+ * @brief
+ *
+ */
 extern void init_certs();
+
+/**
+ * @brief
+ *
+ */
 extern void init_locale();
+
+/**
+ * @brief
+ *
+ * @param sig
+ */
 extern void handle_signal(int sig);
+
+/**
+ * @brief
+ *
+ */
 extern void before_exit();
 
 int main(int argc, char* argv[]) {

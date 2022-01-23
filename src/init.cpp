@@ -30,6 +30,12 @@
 
 #include "ui/settings/GlobalSettingStation.h"
 
+/**
+ * @brief Get the files of directory object
+ *
+ * @param _path
+ * @return std::vector<boost::filesystem::path>
+ */
 std::vector<boost::filesystem::path> get_files_of_directory(
     const boost::filesystem::path& _path) {
   namespace fs = boost::filesystem;
@@ -45,6 +51,10 @@ std::vector<boost::filesystem::path> get_files_of_directory(
   return path_list;
 }
 
+/**
+ * @brief
+ *
+ */
 void init_logging() {
   using namespace boost::posix_time;
   using namespace boost::gregorian;
@@ -71,6 +81,10 @@ void init_logging() {
   LOG(INFO) << _("logfile Path") << logfile_path;
 }
 
+/**
+ * @brief
+ *
+ */
 void init_certs() {
   std::vector<vmime::shared_ptr<vmime::security::cert::X509Certificate>>
       root_certs;
@@ -84,6 +98,10 @@ void init_certs() {
   LOG(INFO) << _("root certs loaded") << _instance.GetRootCerts().size();
 }
 
+/**
+ * @brief
+ *
+ */
 void init_locale() {
   auto& settings =
       GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
