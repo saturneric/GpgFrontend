@@ -38,140 +38,350 @@ class Ui_KeyList;
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 struct KeyListRow {
   using KeyType = unsigned int;
 
-  static const KeyType SECRET_OR_PUBLIC_KEY = 0;
-  static const KeyType ONLY_SECRET_KEY = 1;
+  static const KeyType SECRET_OR_PUBLIC_KEY = 0;  ///<
+  static const KeyType ONLY_SECRET_KEY = 1;       ///<
 };
 
+/**
+ * @brief
+ *
+ */
 struct KeyListColumn {
   using InfoType = unsigned int;
 
-  static constexpr InfoType ALL = ~0;
-  static constexpr InfoType TYPE = 1 << 0;
-  static constexpr InfoType NAME = 1 << 1;
-  static constexpr InfoType EmailAddress = 1 << 2;
-  static constexpr InfoType Usage = 1 << 3;
-  static constexpr InfoType Validity = 1 << 4;
-  static constexpr InfoType FingerPrint = 1 << 5;
+  static constexpr InfoType ALL = ~0;               ///<
+  static constexpr InfoType TYPE = 1 << 0;          ///<
+  static constexpr InfoType NAME = 1 << 1;          ///<
+  static constexpr InfoType EmailAddress = 1 << 2;  ///<
+  static constexpr InfoType Usage = 1 << 3;         ///<
+  static constexpr InfoType Validity = 1 << 4;      ///<
+  static constexpr InfoType FingerPrint = 1 << 5;   ///<
 };
 
+/**
+ * @brief
+ *
+ */
 struct KeyMenuAbility {
   using AbilityType = unsigned int;
 
-  static constexpr AbilityType ALL = ~0;
-  static constexpr AbilityType NONE = 0;
-  static constexpr AbilityType REFRESH = 1 << 0;
-  static constexpr AbilityType SYNC_PUBLIC_KEY = 1 << 1;
-  static constexpr AbilityType UNCHECK_ALL = 1 << 3;
-  static constexpr AbilityType CHECK_ALL = 1 << 5;
+  static constexpr AbilityType ALL = ~0;                  ///<
+  static constexpr AbilityType NONE = 0;                  ///<
+  static constexpr AbilityType REFRESH = 1 << 0;          ///<
+  static constexpr AbilityType SYNC_PUBLIC_KEY = 1 << 1;  ///<
+  static constexpr AbilityType UNCHECK_ALL = 1 << 3;      ///<
+  static constexpr AbilityType CHECK_ALL = 1 << 5;        ///<
 };
 
+/**
+ * @brief
+ *
+ */
 struct KeyTable {
-  QTableWidget* key_list;
-  KeyListRow::KeyType select_type;
-  KeyListColumn::InfoType info_type;
-  std::vector<GpgKey> buffered_keys;
-  std::function<bool(const GpgKey&)> filter;
-  KeyIdArgsListPtr checked_key_ids_;
+  QTableWidget* key_list_;                     ///<
+  KeyListRow::KeyType select_type_;            ///<
+  KeyListColumn::InfoType info_type_;          ///<
+  std::vector<GpgKey> buffered_keys_;          ///<
+  std::function<bool(const GpgKey&)> filter_;  ///<
+  KeyIdArgsListPtr checked_key_ids_;           ///<
 
+  /**
+   * @brief Construct a new Key Table object
+   *
+   * @param _key_list
+   * @param _select_type
+   * @param _info_type
+   * @param _filter
+   */
   KeyTable(
       QTableWidget* _key_list, KeyListRow::KeyType _select_type,
       KeyListColumn::InfoType _info_type,
       std::function<bool(const GpgKey&)> _filter = [](const GpgKey&) -> bool {
         return true;
       })
-      : key_list(_key_list),
-        select_type(_select_type),
-        info_type(_info_type),
-        filter(std::move(_filter)) {}
+      : key_list_(_key_list),
+        select_type_(_select_type),
+        info_type_(_info_type),
+        filter_(std::move(_filter)) {}
 
+  /**
+   * @brief
+   *
+   * @param m_keys
+   */
   void Refresh(KeyLinkListPtr m_keys = nullptr);
 
+  /**
+   * @brief Get the Checked object
+   *
+   * @return KeyIdArgsListPtr&
+   */
   KeyIdArgsListPtr& GetChecked();
 
+  /**
+   * @brief
+   *
+   */
   void UncheckALL() const;
 
+  /**
+   * @brief
+   *
+   */
   void CheckALL() const;
 
+  /**
+   * @brief Set the Checked object
+   *
+   * @param key_ids
+   */
   void SetChecked(KeyIdArgsListPtr key_ids);
 };
 
+/**
+ * @brief
+ *
+ */
 class KeyList : public QWidget {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Key List object
+   *
+   * @param menu_ability
+   * @param parent
+   */
   explicit KeyList(KeyMenuAbility::AbilityType menu_ability,
                    QWidget* parent = nullptr);
 
-  void addListGroupTab(
+  /**
+   * @brief
+   *
+   * @param name
+   * @param selectType
+   * @param infoType
+   * @param filter
+   */
+  void AddListGroupTab(
       const QString& name,
       KeyListRow::KeyType selectType = KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::InfoType infoType = KeyListColumn::ALL,
       const std::function<bool(const GpgKey&)>& filter =
           [](const GpgKey&) -> bool { return true; });
 
-  void setDoubleClickedAction(
+  /**
+   * @brief Set the Double Clicked Action object
+   *
+   * @param action
+   */
+  void SetDoubleClickedAction(
       std::function<void(const GpgKey&, QWidget*)> action);
 
-  void setColumnWidth(int row, int size);
-  void addMenuAction(QAction* act);
-  void addSeparator();
+  /**
+   * @brief Set the Column Width object
+   *
+   * @param row
+   * @param size
+   */
+  void SetColumnWidth(int row, int size);
 
-  KeyIdArgsListPtr getChecked();
-  static KeyIdArgsListPtr getChecked(const KeyTable& key_table);
-  KeyIdArgsListPtr getPrivateChecked();
-  KeyIdArgsListPtr getAllPrivateKeys();
-  void setChecked(KeyIdArgsListPtr key_ids);
-  static void setChecked(const KeyIdArgsListPtr& keyIds,
+  /**
+   * @brief
+   *
+   * @param act
+   */
+  void AddMenuAction(QAction* act);
+
+  /**
+   * @brief
+   *
+   */
+  void AddSeparator();
+
+  /**
+   * @brief Get the Checked object
+   *
+   * @return KeyIdArgsListPtr
+   */
+  KeyIdArgsListPtr GetChecked();
+
+  /**
+   * @brief Get the Checked object
+   *
+   * @param key_table
+   * @return KeyIdArgsListPtr
+   */
+  static KeyIdArgsListPtr GetChecked(const KeyTable& key_table);
+
+  /**
+   * @brief Get the Private Checked object
+   *
+   * @return KeyIdArgsListPtr
+   */
+  KeyIdArgsListPtr GetPrivateChecked();
+
+  /**
+   * @brief Get the All Private Keys object
+   *
+   * @return KeyIdArgsListPtr
+   */
+  KeyIdArgsListPtr GetAllPrivateKeys();
+
+  /**
+   * @brief Set the Checked object
+   *
+   * @param key_ids
+   */
+  void SetChecked(KeyIdArgsListPtr key_ids);
+
+  /**
+   * @brief Set the Checked object
+   *
+   * @param keyIds
+   * @param key_table
+   */
+  static void SetChecked(const KeyIdArgsListPtr& keyIds,
                          const KeyTable& key_table);
-  KeyIdArgsListPtr getSelected();
-  std::string getSelectedKey();
 
-  [[maybe_unused]] static void markKeys(QStringList* keyIds);
+  /**
+   * @brief Get the Selected object
+   *
+   * @return KeyIdArgsListPtr
+   */
+  KeyIdArgsListPtr GetSelected();
 
-  [[maybe_unused]] bool containsPrivateKeys();
+  /**
+   * @brief Get the Selected Key object
+   *
+   * @return std::string
+   */
+  std::string GetSelectedKey();
+
+  /**
+   * @brief
+   *
+   * @param keyIds
+   */
+  [[maybe_unused]] static void MarkKeys(QStringList* keyIds);
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[maybe_unused]] bool ContainsPrivateKeys();
 
  signals:
-  void signalRefreshStatusBar(const QString& message, int timeout);
-  void signalRefreshDatabase();
+  /**
+   * @brief
+   *
+   * @param message
+   * @param timeout
+   */
+  void SignalRefreshStatusBar(const QString& message, int timeout);
+
+  /**
+   * @brief
+   *
+   */
+  void SignalRefreshDatabase();
 
  public slots:
 
-  void slotRefresh();
+  /**
+   * @brief
+   *
+   */
+  void SlotRefresh();
 
  private:
+  /**
+   * @brief
+   *
+   */
   void init();
-  void importKeys(const QByteArray& inBuffer);
-  void slotUncheckALL();
-  void slotCheckALL();
 
-  static int key_list_id;
-  int _m_key_list_id;
-  std::mutex buffered_key_list_mutex;
+  /**
+   * @brief
+   *
+   * @param inBuffer
+   */
+  void import_keys(const QByteArray& inBuffer);
 
-  std::shared_ptr<Ui_KeyList> ui;
-  QTableWidget* mKeyList{};
-  std::vector<KeyTable> mKeyTables;
-  QMenu* popupMenu{};
-  GpgFrontend::KeyLinkListPtr _buffered_keys_list;
-  std::function<void(const GpgKey&, QWidget*)> mAction = nullptr;
-  KeyMenuAbility::AbilityType menu_ability_ = KeyMenuAbility::ALL;
+  /**
+   * @brief
+   *
+   */
+  void uncheck_all();
+
+  /**
+   * @brief
+   *
+   */
+  void check_all();
+
+  static int key_list_id_;              ///<
+  int m_key_list_id_;                   ///<
+  std::mutex buffered_key_list_mutex_;  ///<
+
+  std::shared_ptr<Ui_KeyList> ui_;                                   ///<
+  QTableWidget* m_key_list_{};                                       ///<
+  std::vector<KeyTable> m_key_tables_;                               ///<
+  QMenu* popup_menu_{};                                              ///<
+  GpgFrontend::KeyLinkListPtr buffered_keys_list_;                   ///<
+  std::function<void(const GpgKey&, QWidget*)> m_action_ = nullptr;  ///<
+  KeyMenuAbility::AbilityType menu_ability_ = KeyMenuAbility::ALL;   ///<
 
  private slots:
 
-  void slotDoubleClicked(const QModelIndex& index);
+  /**
+   * @brief
+   *
+   * @param index
+   */
+  void slot_double_clicked(const QModelIndex& index);
 
-  void slotRefreshUI();
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh_ui();
 
-  void slotSyncWithKeyServer();
+  /**
+   * @brief
+   *
+   */
+  void slot_sync_with_key_server();
 
  protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
   void contextMenuEvent(QContextMenuEvent* event) override;
 
+  /**
+   * @brief
+   *
+   * @param event
+   */
   void dragEnterEvent(QDragEnterEvent* event) override;
 
+  /**
+   * @brief
+   *
+   * @param event
+   */
   void dropEvent(QDropEvent* event) override;
 };
 

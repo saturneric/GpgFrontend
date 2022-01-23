@@ -37,7 +37,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
     : QDialog(parent), m_uids_(std::move(uid)), m_key_(key) {
   const auto key_id = m_key_.GetId();
   m_key_list_ = new KeyList(KeyMenuAbility::NONE, this);
-  m_key_list_->addListGroupTab(
+  m_key_list_->AddListGroupTab(
       _("Signers"), KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress,
       [key_id](const GpgKey& key) -> bool {
@@ -48,7 +48,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
         else
           return true;
       });
-  m_key_list_->slotRefresh();
+  m_key_list_->SlotRefresh();
 
   sign_key_button_ = new QPushButton("Sign");
 
@@ -104,7 +104,7 @@ void KeyUIDSignDialog::slot_sign_key(bool clicked) {
   LOG(INFO) << "Called";
 
   // Set Signers
-  auto key_ids = m_key_list_->getChecked();
+  auto key_ids = m_key_list_->GetChecked();
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
   LOG(INFO) << "Key Info Got";

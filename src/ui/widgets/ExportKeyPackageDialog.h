@@ -35,23 +35,41 @@ class Ui_exportKeyPackageDialog;
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class ExportKeyPackageDialog : public QDialog {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Export Key Package Dialog object
+   *
+   * @param key_ids
+   * @param parent
+   */
   explicit ExportKeyPackageDialog(KeyIdArgsListPtr key_ids, QWidget* parent);
 
+ private:
+  std::shared_ptr<Ui_exportKeyPackageDialog> ui_;  ///<
+  KeyIdArgsListPtr key_ids_;                       ///<
+  std::random_device rd_;                          ///<
+  std::mt19937 mt_;                                ///<
+  std::string passphrase_;                         ///<
+
+  /**
+   * @brief
+   *
+   * @param len
+   * @return std::string
+   */
   std::string generate_passphrase(int len);
 
- private:
-  std::shared_ptr<Ui_exportKeyPackageDialog> ui;
-  KeyIdArgsListPtr key_ids_;
-
-  std::random_device rd;
-  std::mt19937 mt;
-
-  std::string passphrase_;
-
+  /**
+   * @brief
+   *
+   */
   void generate_key_package_name();
 };
 }  // namespace GpgFrontend::UI

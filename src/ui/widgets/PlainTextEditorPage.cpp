@@ -38,54 +38,54 @@ namespace GpgFrontend::UI {
 
 PlainTextEditorPage::PlainTextEditorPage(QString filePath, QWidget* parent)
     : QWidget(parent),
-      ui(std::make_shared<Ui_PlainTextEditor>()),
+      ui_(std::make_shared<Ui_PlainTextEditor>()),
       full_file_path_(std::move(filePath)) {
-  ui->setupUi(this);
+  ui_->setupUi(this);
 
   if (full_file_path_.isEmpty()) read_done_ = true;
 
-  ui->textPage->setFocus();
-  ui->loadingLabel->setHidden(true);
+  ui_->textPage->setFocus();
+  ui_->loadingLabel->setHidden(true);
 
   // Front in same width
   this->setFont({"Courier"});
   this->setAttribute(Qt::WA_DeleteOnClose);
 
-  this->ui->characterLabel->setText(_("0 character"));
-  this->ui->lfLabel->setText(_("None"));
-  this->ui->encodingLabel->setText(_("Binary"));
+  this->ui_->characterLabel->setText(_("0 character"));
+  this->ui_->lfLabel->setText(_("None"));
+  this->ui_->encodingLabel->setText(_("Binary"));
 
-  connect(ui->textPage, &QPlainTextEdit::textChanged, this, [=]() {
+  connect(ui_->textPage, &QPlainTextEdit::textChanged, this, [=]() {
     if (!read_done_) return;
 
-    auto text = ui->textPage->document()->toPlainText();
+    auto text = ui_->textPage->document()->toPlainText();
     auto str = boost::format(_("%1% character(s)")) % text.size();
-    this->ui->characterLabel->setText(str.str().c_str());
+    this->ui_->characterLabel->setText(str.str().c_str());
 
     detect_cr_lf(text);
     detect_encoding(text.toStdString());
   });
 
-  ui->loadingLabel->setText(_("Loading..."));
+  ui_->loadingLabel->setText(_("Loading..."));
 }
 
-const QString& PlainTextEditorPage::getFilePath() const {
+const QString& PlainTextEditorPage::GetFilePath() const {
   return full_file_path_;
 }
 
-QPlainTextEdit* PlainTextEditorPage::getTextPage() { return ui->textPage; }
+QPlainTextEdit* PlainTextEditorPage::GetTextPage() { return ui_->textPage; }
 
-void PlainTextEditorPage::setFilePath(const QString& filePath) {
+void PlainTextEditorPage::SetFilePath(const QString& filePath) {
   full_file_path_ = filePath;
 }
 
-void PlainTextEditorPage::showNotificationWidget(QWidget* widget,
+void PlainTextEditorPage::ShowNotificationWidget(QWidget* widget,
                                                  const char* className) {
   widget->setProperty(className, true);
-  ui->verticalLayout->addWidget(widget);
+  ui_->verticalLayout->addWidget(widget);
 }
 
-void PlainTextEditorPage::closeNoteByClass(const char* className) {
+void PlainTextEditorPage::CloseNoteByClass(const char* className) {
   QList<QWidget*> widgets = findChildren<QWidget*>();
   for (QWidget* widget : widgets) {
     if (widget->property(className) == true) {
@@ -94,8 +94,8 @@ void PlainTextEditorPage::closeNoteByClass(const char* className) {
   }
 }
 
-void PlainTextEditorPage::slotFormatGpgHeader() {
-  QString content = ui->textPage->toPlainText();
+void PlainTextEditorPage::slot_format_gpg_header() {
+  QString content = ui_->textPage->toPlainText();
 
   // Get positions of the gpg-headers, if they exist
   int start = content.indexOf(GpgFrontend::GpgConstants::PGP_SIGNED_BEGIN);
@@ -103,11 +103,11 @@ void PlainTextEditorPage::slotFormatGpgHeader() {
       content.indexOf(GpgFrontend::GpgConstants::PGP_SIGNATURE_BEGIN);
   int endSig = content.indexOf(GpgFrontend::GpgConstants::PGP_SIGNATURE_END);
 
-  if (start < 0 || startSig < 0 || endSig < 0 || signMarked) {
+  if (start < 0 || startSig < 0 || endSig < 0 || sign_marked_) {
     return;
   }
 
-  signMarked = true;
+  sign_marked_ = true;
 
   // Set the fontstyle for the header
   QTextCharFormat signFormat;
@@ -115,7 +115,7 @@ void PlainTextEditorPage::slotFormatGpgHeader() {
   signFormat.setFontPointSize(9);
 
   // set font style for the signature
-  QTextCursor cursor(ui->textPage->document());
+  QTextCursor cursor(ui_->textPage->document());
   cursor.setPosition(startSig, QTextCursor::MoveAnchor);
   cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, endSig);
   cursor.setCharFormat(signFormat);
@@ -132,18 +132,18 @@ void PlainTextEditorPage::ReadFile() {
 
   read_done_ = false;
   read_bytes_ = 0;
-  ui->textPage->setEnabled(false);
-  ui->textPage->setReadOnly(true);
-  ui->textPage->blockSignals(true);
-  ui->loadingLabel->setHidden(false);
-  ui->textPage->document()->blockSignals(true);
+  ui_->textPage->setEnabled(false);
+  ui_->textPage->setReadOnly(true);
+  ui_->textPage->blockSignals(true);
+  ui_->loadingLabel->setHidden(false);
+  ui_->textPage->document()->blockSignals(true);
 
-  auto text_page = this->getTextPage();
+  auto text_page = this->GetTextPage();
   text_page->setReadOnly(true);
   auto thread = new FileReadThread(this->full_file_path_.toStdString());
 
   connect(thread, &FileReadThread::SignalSendReadBlock, this,
-          &PlainTextEditorPage::slotInsertText);
+          &PlainTextEditorPage::slot_insert_text);
 
   connect(thread, &FileReadThread::SignalReadDone, this, [=]() {
     LOG(INFO) << "thread read done";
@@ -157,11 +157,11 @@ void PlainTextEditorPage::ReadFile() {
     thread->deleteLater();
     read_done_ = true;
     read_thread_ = nullptr;
-    ui->textPage->setEnabled(true);
+    ui_->textPage->setEnabled(true);
     text_page->document()->setModified(false);
-    ui->textPage->blockSignals(false);
-    ui->textPage->document()->blockSignals(false);
-    ui->loadingLabel->setHidden(true);
+    ui_->textPage->blockSignals(false);
+    ui_->textPage->document()->blockSignals(false);
+    ui_->loadingLabel->setHidden(true);
   });
 
   connect(this, &PlainTextEditorPage::destroyed, [=]() {
@@ -181,7 +181,7 @@ std::string binary_to_string(const std::string& source) {
   return ss.str();
 }
 
-void PlainTextEditorPage::slotInsertText(const std::string& data) {
+void PlainTextEditorPage::slot_insert_text(const std::string& data) {
   LOG(INFO) << "data size" << data.size();
   read_bytes_ += data.size();
   // If binary format is detected, the entire file is converted to binary format
@@ -194,22 +194,22 @@ void PlainTextEditorPage::slotInsertText(const std::string& data) {
   if (binary_mode_) {
     if (if_last_binary_mode != binary_mode_) {
       auto text_buffer =
-          ui->textPage->document()->toRawText().toLocal8Bit().toStdString();
-      ui->textPage->clear();
-      this->getTextPage()->insertPlainText(
+          ui_->textPage->document()->toRawText().toLocal8Bit().toStdString();
+      ui_->textPage->clear();
+      this->GetTextPage()->insertPlainText(
           binary_to_string(text_buffer).c_str());
-      this->ui->lfLabel->setText("None");
+      this->ui_->lfLabel->setText("None");
     }
-    this->getTextPage()->insertPlainText(binary_to_string(data).c_str());
+    this->GetTextPage()->insertPlainText(binary_to_string(data).c_str());
 
     auto str = boost::format(_("%1% byte(s)")) % read_bytes_;
-    this->ui->characterLabel->setText(str.str().c_str());
+    this->ui_->characterLabel->setText(str.str().c_str());
   } else {
-    this->getTextPage()->insertPlainText(data.c_str());
+    this->GetTextPage()->insertPlainText(data.c_str());
 
-    auto text = this->getTextPage()->toPlainText();
+    auto text = this->GetTextPage()->toPlainText();
     auto str = boost::format(_("%1% character(s)")) % text.size();
-    this->ui->characterLabel->setText(str.str().c_str());
+    this->ui_->characterLabel->setText(str.str().c_str());
     detect_cr_lf(text);
   }
 }
@@ -228,32 +228,32 @@ void PlainTextEditorPage::detect_encoding(const std::string& data) {
 
   if (encoding == AutoIt::Common::TextEncodingDetect::None) {
     binary_mode_ = true;
-    ui->encodingLabel->setText(_("Binary"));
+    ui_->encodingLabel->setText(_("Binary"));
   } else if (encoding == AutoIt::Common::TextEncodingDetect::ASCII) {
-    ui->encodingLabel->setText(_("ASCII(7 bits)"));
+    ui_->encodingLabel->setText(_("ASCII(7 bits)"));
   } else if (encoding == AutoIt::Common::TextEncodingDetect::ANSI) {
-    ui->encodingLabel->setText(_("ASCII(8 bits)"));
+    ui_->encodingLabel->setText(_("ASCII(8 bits)"));
   } else if (encoding == AutoIt::Common::TextEncodingDetect::UTF8_BOM ||
              encoding == AutoIt::Common::TextEncodingDetect::UTF8_NOBOM) {
-    ui->encodingLabel->setText(_("UTF-8"));
+    ui_->encodingLabel->setText(_("UTF-8"));
   } else if (encoding == AutoIt::Common::TextEncodingDetect::UTF16_LE_BOM ||
              encoding == AutoIt::Common::TextEncodingDetect::UTF16_LE_NOBOM) {
-    ui->encodingLabel->setText(_("UTF-16"));
+    ui_->encodingLabel->setText(_("UTF-16"));
   } else if (encoding == AutoIt::Common::TextEncodingDetect::UTF16_BE_BOM ||
              encoding == AutoIt::Common::TextEncodingDetect::UTF16_BE_NOBOM) {
-    ui->encodingLabel->setText(_("UTF-16(BE)"));
+    ui_->encodingLabel->setText(_("UTF-16(BE)"));
   }
 }
 
 void PlainTextEditorPage::detect_cr_lf(const QString& data) {
   if (binary_mode_) {
-    this->ui->lfLabel->setText("None");
+    this->ui_->lfLabel->setText("None");
     return;
   }
   if (data.contains("\r\n")) {
-    this->ui->lfLabel->setText("CRLF");
+    this->ui_->lfLabel->setText("CRLF");
   } else {
-    this->ui->lfLabel->setText("LF");
+    this->ui_->lfLabel->setText("LF");
   }
 }
 

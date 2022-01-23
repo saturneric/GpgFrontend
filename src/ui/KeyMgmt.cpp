@@ -44,9 +44,9 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   /* the list of Keys available*/
   key_list_ = new KeyList(KeyMenuAbility::ALL, this);
 
-  key_list_->addListGroupTab(_("All"), KeyListRow::SECRET_OR_PUBLIC_KEY);
+  key_list_->AddListGroupTab(_("All"), KeyListRow::SECRET_OR_PUBLIC_KEY);
 
-  key_list_->addListGroupTab(
+  key_list_->AddListGroupTab(
       _("Only Public Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
@@ -55,7 +55,7 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
-  key_list_->addListGroupTab(
+  key_list_->AddListGroupTab(
       _("Has Private Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
@@ -64,7 +64,7 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
-  key_list_->addListGroupTab(
+  key_list_->AddListGroupTab(
       _("No Primary Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
@@ -73,24 +73,24 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
-  key_list_->addListGroupTab(
+  key_list_->AddListGroupTab(
       _("Revoked"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool { return key.IsRevoked(); });
 
-  key_list_->addListGroupTab(
+  key_list_->AddListGroupTab(
       _("Expired"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool { return key.IsExpired(); });
 
   setCentralWidget(key_list_);
-  key_list_->setDoubleClickedAction([this](const GpgKey& key, QWidget* parent) {
+  key_list_->SetDoubleClickedAction([this](const GpgKey& key, QWidget* parent) {
     new KeyDetailsDialog(key, parent);
   });
 
-  key_list_->slotRefresh();
+  key_list_->SlotRefresh();
 
   createActions();
   createMenus();
@@ -150,8 +150,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   this->statusBar()->show();
 
   setWindowTitle(_("KeyPair Management"));
-  key_list_->addMenuAction(deleteSelectedKeysAct);
-  key_list_->addMenuAction(showKeyDetailsAct);
+  key_list_->AddMenuAction(deleteSelectedKeysAct);
+  key_list_->AddMenuAction(showKeyDetailsAct);
 
   connect(this, SIGNAL(signalKeyStatusUpdated()), SignalStation::GetInstance(),
           SIGNAL(KeyDatabaseRefresh()));
@@ -307,11 +307,11 @@ void KeyMgmt::createToolBars() {
 }
 
 void KeyMgmt::slotDeleteSelectedKeys() {
-  deleteKeysWithWarning(key_list_->getSelected());
+  deleteKeysWithWarning(key_list_->GetSelected());
 }
 
 void KeyMgmt::slotDeleteCheckedKeys() {
-  deleteKeysWithWarning(key_list_->getChecked());
+  deleteKeysWithWarning(key_list_->GetChecked());
 }
 
 void KeyMgmt::deleteKeysWithWarning(KeyIdArgsListPtr key_ids) {
@@ -347,7 +347,7 @@ void KeyMgmt::deleteKeysWithWarning(KeyIdArgsListPtr key_ids) {
 }
 
 void KeyMgmt::slotShowKeyDetails() {
-  auto keys_selected = key_list_->getSelected();
+  auto keys_selected = key_list_->GetSelected();
   if (keys_selected->empty()) return;
 
   auto key = GpgKeyGetter::GetInstance().GetKey(keys_selected->front());
@@ -361,7 +361,7 @@ void KeyMgmt::slotShowKeyDetails() {
 }
 
 void KeyMgmt::slotExportKeyToKeyPackage() {
-  auto keys_checked = key_list_->getChecked();
+  auto keys_checked = key_list_->GetChecked();
   if (keys_checked->empty()) {
     QMessageBox::critical(
         this, _("Forbidden"),
@@ -374,7 +374,7 @@ void KeyMgmt::slotExportKeyToKeyPackage() {
 }
 
 void KeyMgmt::slotExportKeyToClipboard() {
-  auto keys_checked = key_list_->getChecked();
+  auto keys_checked = key_list_->GetChecked();
   if (keys_checked->empty()) {
     QMessageBox::critical(
         this, _("Forbidden"),
@@ -401,7 +401,7 @@ void KeyMgmt::closeEvent(QCloseEvent* event) {
 }
 
 void KeyMgmt::slotGenerateSubKey() {
-  auto keys_selected = key_list_->getSelected();
+  auto keys_selected = key_list_->GetSelected();
   if (keys_selected->empty()) {
     QMessageBox::information(
         this, _("Invalid Operation"),
@@ -472,7 +472,7 @@ void KeyMgmt::slotSaveWindowState() {
 
 void KeyMgmt::slotExportAsOpenSSHFormat() {
   ByteArrayPtr key_export_data = nullptr;
-  auto keys_checked = key_list_->getChecked();
+  auto keys_checked = key_list_->GetChecked();
 
   if (keys_checked->empty()) {
     QMessageBox::critical(

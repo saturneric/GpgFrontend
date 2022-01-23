@@ -46,7 +46,7 @@ std::unique_ptr<GpgFrontend::UI::CommonUtils>
 #ifdef SMTP_SUPPORT
 void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
                    const QString& text, bool attach_signature) {
-  info_board->addOptionalAction(_("Send Encrypted Mail"), [=]() {
+  info_board->AddOptionalAction(_("Send Encrypted Mail"), [=]() {
     bool smtp_enabled = false;
     try {
       smtp_enabled = GlobalSettingStation::GetInstance().GetUISettings().lookup(
@@ -71,8 +71,8 @@ void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
 void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
                          GpgError error, const GpgVerifyResult& verify_result) {
   // take out result
-  info_board->resetOptionActionsMenu();
-  info_board->addOptionalAction("Show Verify Details", [=]() {
+  info_board->ResetOptionActionsMenu();
+  info_board->AddOptionalAction("Show Verify Details", [=]() {
     VerifyDetailsDialog(parent, error, verify_result);
   });
 }
@@ -103,18 +103,18 @@ void import_unknown_key_from_keyserver(QWidget* parent,
 void refresh_info_board(InfoBoardWidget* info_board, int status,
                         const std::string& report_text) {
   if (status < 0)
-    info_board->slotRefresh(QString::fromStdString(report_text),
+    info_board->SlotRefresh(QString::fromStdString(report_text),
                             INFO_ERROR_CRITICAL);
   else if (status > 0)
-    info_board->slotRefresh(QString::fromStdString(report_text), INFO_ERROR_OK);
+    info_board->SlotRefresh(QString::fromStdString(report_text), INFO_ERROR_OK);
   else
-    info_board->slotRefresh(QString::fromStdString(report_text),
+    info_board->SlotRefresh(QString::fromStdString(report_text),
                             INFO_ERROR_WARN);
 }
 
 void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
                             const ResultAnalyse& result_analyse) {
-  info_board->associateTabWidget(edit->tabWidget);
+  info_board->AssociateTabWidget(edit->tab_widget_);
   refresh_info_board(info_board, result_analyse.GetStatus(),
                      result_analyse.GetResultReport());
 }
@@ -124,7 +124,7 @@ void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
                             const ResultAnalyse& result_analyse_b) {
   LOG(INFO) << "process_result_analyse Started";
 
-  info_board->associateTabWidget(edit->tabWidget);
+  info_board->AssociateTabWidget(edit->tab_widget_);
 
   refresh_info_board(
       info_board,

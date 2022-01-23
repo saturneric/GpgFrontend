@@ -52,7 +52,7 @@ class TextEdit : public QWidget {
    * @param fileName QString containing the filename to load
    * @return nothing
    */
-  void loadFile(const QString& fileName);
+  void LoadFile(const QString& fileName);
 
   /**
    * @details Checks if there are unsaved documents in any tab,
@@ -61,26 +61,36 @@ class TextEdit : public QWidget {
    * @return \li false, if the close event should be aborted.
    *         \li true, otherwise
    */
-  bool maybeSaveAnyTab();
+  bool MaybeSaveAnyTab();
 
-  [[nodiscard]] int tabCount() const;
+  /**
+   * @brief
+   *
+   * @return int
+   */
+  [[nodiscard]] int TabCount() const;
 
   /**
    * @details textpage of the currently activated tab
    * @return \li reference to QTextEdit if tab has one
    *         \li 0 otherwise (e.g. if helppage)
    */
-  [[nodiscard]] PlainTextEditorPage* curTextPage() const;
+  [[nodiscard]] PlainTextEditorPage* CurTextPage() const;
 
-  [[nodiscard]] FilePage* curFilePage() const;
+  /**
+   * @brief
+   *
+   * @return FilePage*
+   */
+  [[nodiscard]] FilePage* CurFilePage() const;
 
   /**
    * @details  List of currently unsaved tabs.
-   * @returns QHash<int, QString> Hash of tabindexes and title of unsaved tabs.
+   * @returns QHash<int, QString> Hash of tab indexes and title of unsaved tabs.
    */
-  [[nodiscard]] QHash<int, QString> unsavedDocuments() const;
+  [[nodiscard]] QHash<int, QString> UnsavedDocuments() const;
 
-  QTabWidget* tabWidget; /** Widget containing the tabs of the editor */
+  QTabWidget* tab_widget_; /** Widget containing the tabs of the editor */
 
  public slots:
 
@@ -88,62 +98,62 @@ class TextEdit : public QWidget {
    * @details Return pointer to the currently activated text edit tab page.
    *
    */
-  PlainTextEditorPage* slotCurPageTextEdit() const;
+  PlainTextEditorPage* SlotCurPageTextEdit() const;
 
   /**
-   * @details Return pointer to the currently activated file treeview tab page.
+   * @details Return pointer to the currently activated file tree view tab page.
    *
    */
-  FilePage* slotCurPageFileTreeView() const;
+  FilePage* SlotCurPageFileTreeView() const;
 
   /**
-   * @details Insert a ">" at the begining of every line of current textedit.
+   * @details Insert a ">" at the beginning of every line of current textedit.
    */
-  void slotQuote() const;
+  void SlotQuote() const;
 
   /**
    * @details replace the text of currently active textedit with given text.
    * @param text to fill on.
    */
-  void slotFillTextEditWithText(const QString& text) const;
+  void SlotFillTextEditWithText(const QString& text) const;
 
   /**
    * @details Saves the content of the current tab, if it has a filepath
    * otherwise it calls saveAs for the current tab
    */
-  void slotSave();
+  void SlotSave();
 
   /**
-   * @details Opens a savefiledialog and calls saveFile with the choosen
+   * @details Opens a savefiledialog and calls save_file with the choosen
    * filename.
    *
    * @return Return the return value of the savefile method
    */
-  bool slotSaveAs();
+  bool SlotSaveAs();
 
   /**
    * @details Show an OpenFileDoalog and open the file in a new tab.
    * Shows an error dialog, if the open fails.
    * Set the focus to the tab of the opened file.
    */
-  void slotOpen();
+  void SlotOpen();
 
   /**
    * @details Open a print-dialog for the current tab
    */
-  void slotPrint();
+  void SlotPrint();
 
   /**
    * @details Adds a new tab with the title "untitled"+countpage+".txt"
    *                      Sets the focus to the new tab. Increase Tab-Count by
    * one
    */
-  void slotNewTab();
+  void SlotNewTab();
 
   /**
    * @details Adds a new tab with opening file by path
    */
-  void slotOpenFile(QString& path);
+  void SlotOpenFile(QString& path);
 
   /**
    * @details Adds a new tab with the given title and opens given html file.
@@ -156,31 +166,31 @@ class TextEdit : public QWidget {
   /**
    * New File Tab to do file operation
    */
-  void slotNewFileTab() const;
+  void SlotNewFileTab() const;
 
   /**
    * @details put a * in front of current tabs title, if current textedit is
    * modified
    */
-  void slotShowModified() const;
+  void SlotShowModified() const;
 
   /**
    * @details close the current tab and decrease TabWidget->count by \a 1
    *
    */
-  void slotCloseTab();
+  void SlotCloseTab();
 
   /**
    * @details Switch to the next tab.
    *
    */
-  void slotSwitchTabUp() const;
+  void SlotSwitchTabUp() const;
 
   /**
    * @details Switch to the previous tab.
    *
    */
-  void slotSwitchTabDown() const;
+  void SlotSwitchTabDown() const;
 
  private:
   /**
@@ -189,96 +199,80 @@ class TextEdit : public QWidget {
    * @param a filename path
    * @return QString containing the filename
    */
-  static QString strippedName(const QString& full_file_name);
+  static QString stripped_name(const QString& full_file_name);
 
   /**
    * @brief
    *
    * @param askToSave
    */
-  bool maybeSaveCurrentTab(bool askToSave);
+  bool maybe_save_current_tab(bool askToSave);
 
-  /****************************************************************************************
-   * Name:                countPage
-   * Description:         int cotaining the number of added tabs
-   */
-  int countPage; /* TODO */
+  int count_page_;  ///< int containing the number of added tabs
 
  private slots:
 
-  void slotFilePagePathChanged(const QString& path) const;
+  void slot_file_page_path_changed(const QString& path) const;
 
   /**
    * @details Remove the tab with given index
    *
    * @param index Tab-number to remove
    */
-  void removeTab(int index);
+  void slot_remove_tab(int index);
 
   /**
-   * @details Cut selected text in current textpage.
+   * @details Cut selected text in current text page.
    */
-  void slotCut() const;
+  void slot_cut() const;
 
   /**
-   * @details Copy selected text of current textpage to clipboard.
+   * @details Copy selected text of current text page to clipboard.
    */
-  void slotCopy() const;
+  void slot_copy() const;
 
   /**
-   * @details Paste text from clipboard to current textpage.
+   * @details Paste text from clipboard to current text page.
    */
-  void slotPaste() const;
+  void slot_paste() const;
 
   /**
    * @details Undo last change in current textpage.
    *
    */
-  void slotUndo() const;
-  /****************************************************************************************
-   * Name:                redo
-   * Description:         redo last change in current textpage
-   * Parameters:          none
-   * Return Values:       none
-   * Change on members:   none
+  void slot_undo() const;
+
+  /**
+   * @brief  redo last change in current text page
+   *
    */
+  void slot_redo() const;
+
   /**
    * @brief
    *
    */
-  void slotRedo() const;
+  void slot_zoom_in() const;
 
-  void slotZoomIn() const;
-
-  void slotZoomOut() const;
-  /****************************************************************************************
-   * Name:                selectAll
-   * Description:         select all in current textpage
-   * Parameters:          none
-   * Return Values:       none
-   * Change on members:   none
-   */
   /**
    * @brief
    *
    */
-  void slotSelectAll() const;
+  void slot_zoom_out() const;
+
+  /**
+   * @brief select all in current text page
+   *
+   */
+  void slot_select_all() const;
 
  protected:
-  /****************************************************************************************
-   * Name:                saveFile
-   * Description:         Saves the content of currentTab to the file filename
-   * Parameters:          QString filename contains the full path of the file to
-   * save Return Values:       true, if the file was saved succesfully false, if
-   * parameter filename is empty or the saving failed Change on members:   sets
-   * isModified of the current tab to false
-   */
   /**
-   * @brief
+   * @brief Saves the content of currentTab to the file filename
    *
    * @param fileName
    */
-  bool saveFile(const QString& fileName);
+  bool save_file(const QString& fileName);
 };
 
 }  // namespace GpgFrontend::UI

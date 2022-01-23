@@ -38,19 +38,19 @@ GpgFrontend::UI::RecipientsPicker::RecipientsPicker(
 
   // Setup KeyList
   key_list_ = new KeyList(KeyMenuAbility::NONE, this);
-  key_list_->addListGroupTab(
+  key_list_->AddListGroupTab(
       _("Recipient(s)"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress,
       [](const GpgKey& key) -> bool {
         return !key.IsPrivateKey() && key.IsHasActualEncryptionCapability();
       });
-  key_list_->slotRefresh();
+  key_list_->SlotRefresh();
 
   auto key_ids = std::make_unique<GpgFrontend::KeyIdArgsList>();
   for (const auto& key_id : *current_key_ids) {
     key_ids->push_back(key_id);
   }
-  key_list_->setChecked(std::move(key_ids));
+  key_list_->SetChecked(std::move(key_ids));
 
   auto* vbox2 = new QVBoxLayout();
   vbox2->addWidget(new QLabel(QString(_("Select Recipient(s)")) + ": "));
@@ -76,5 +76,5 @@ GpgFrontend::UI::RecipientsPicker::RecipientsPicker(
 
 GpgFrontend::KeyIdArgsListPtr
 GpgFrontend::UI::RecipientsPicker::GetCheckedRecipients() {
-  return key_list_->getChecked();
+  return key_list_->GetChecked();
 }

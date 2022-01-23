@@ -59,12 +59,12 @@ FindWidget::FindWidget(QWidget* parent, PlainTextEditorPage* edit)
 }
 
 void FindWidget::setBackground() {
-  auto cursor = mTextpage->getTextPage()->textCursor();
+  auto cursor = mTextpage->GetTextPage()->textCursor();
   // if match is found set background of QLineEdit to white, otherwise to red
   QPalette bgPalette(findEdit->palette());
 
   if (!findEdit->text().isEmpty() &&
-      mTextpage->getTextPage()->document()->find(findEdit->text()).position() <
+      mTextpage->GetTextPage()->document()->find(findEdit->text()).position() <
           0) {
     bgPalette.setColor(QPalette::Base, "#ececba");
   } else {
@@ -74,45 +74,45 @@ void FindWidget::setBackground() {
 }
 
 void FindWidget::slotFindNext() {
-  QTextCursor cursor = mTextpage->getTextPage()->textCursor();
-  cursor = mTextpage->getTextPage()->document()->find(
+  QTextCursor cursor = mTextpage->GetTextPage()->textCursor();
+  cursor = mTextpage->GetTextPage()->document()->find(
       findEdit->text(), cursor, QTextDocument::FindCaseSensitively);
 
   // if end of document is reached, restart search from beginning
   if (cursor.position() == -1) {
-    cursor = mTextpage->getTextPage()->document()->find(
+    cursor = mTextpage->GetTextPage()->document()->find(
         findEdit->text(), cursor, QTextDocument::FindCaseSensitively);
   }
 
   // cursor should not stay at -1, otherwise text is not editable
   // todo: check how gedit handles this
   if (cursor.position() != -1) {
-    mTextpage->getTextPage()->setTextCursor(cursor);
+    mTextpage->GetTextPage()->setTextCursor(cursor);
   }
   this->setBackground();
 }
 
 void FindWidget::slotFind() {
-  QTextCursor cursor = mTextpage->getTextPage()->textCursor();
+  QTextCursor cursor = mTextpage->GetTextPage()->textCursor();
 
   if (cursor.anchor() == -1) {
-    cursor = mTextpage->getTextPage()->document()->find(
+    cursor = mTextpage->GetTextPage()->document()->find(
         findEdit->text(), cursor, QTextDocument::FindCaseSensitively);
   } else {
-    cursor = mTextpage->getTextPage()->document()->find(
+    cursor = mTextpage->GetTextPage()->document()->find(
         findEdit->text(), cursor.anchor(), QTextDocument::FindCaseSensitively);
   }
 
   // if end of document is reached, restart search from beginning
   if (cursor.position() == -1) {
-    cursor = mTextpage->getTextPage()->document()->find(
+    cursor = mTextpage->GetTextPage()->document()->find(
         findEdit->text(), cursor, QTextDocument::FindCaseSensitively);
   }
 
   // cursor should not stay at -1, otherwise text is not editable
   // todo: check how gedit handles this
   if (cursor.position() != -1) {
-    mTextpage->getTextPage()->setTextCursor(cursor);
+    mTextpage->GetTextPage()->setTextCursor(cursor);
   }
   this->setBackground();
 }
@@ -122,20 +122,20 @@ void FindWidget::slotFindPrevious() {
   flags |= QTextDocument::FindBackward;
   flags |= QTextDocument::FindCaseSensitively;
 
-  QTextCursor cursor = mTextpage->getTextPage()->textCursor();
-  cursor = mTextpage->getTextPage()->document()->find(findEdit->text(), cursor,
+  QTextCursor cursor = mTextpage->GetTextPage()->textCursor();
+  cursor = mTextpage->GetTextPage()->document()->find(findEdit->text(), cursor,
                                                       flags);
 
   // if begin of document is reached, restart search from end
   if (cursor.position() == -1) {
-    cursor = mTextpage->getTextPage()->document()->find(
+    cursor = mTextpage->GetTextPage()->document()->find(
         findEdit->text(), QTextCursor::End, flags);
   }
 
   // cursor should not stay at -1, otherwise text is not editable
   // todo: check how gedit handles this
   if (cursor.position() != -1) {
-    mTextpage->getTextPage()->setTextCursor(cursor);
+    mTextpage->GetTextPage()->setTextCursor(cursor);
   }
   this->setBackground();
 }
@@ -156,11 +156,11 @@ void FindWidget::keyPressEvent(QKeyEvent* e) {
 }
 
 void FindWidget::slotClose() {
-  QTextCursor cursor = mTextpage->getTextPage()->textCursor();
+  QTextCursor cursor = mTextpage->GetTextPage()->textCursor();
 
   if (cursor.position() == -1) {
     cursor.setPosition(0);
-    mTextpage->getTextPage()->setTextCursor(cursor);
+    mTextpage->GetTextPage()->setTextCursor(cursor);
   }
   mTextpage->setFocus();
   close();

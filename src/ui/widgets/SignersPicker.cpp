@@ -38,13 +38,13 @@ SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
 
   /*Setup KeyList*/
   key_list_ = new KeyList(false, this);
-  key_list_->addListGroupTab(
+  key_list_->AddListGroupTab(
       _("Signers"), KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage,
       [](const GpgKey& key) -> bool {
         return key.IsHasActualSigningCapability();
       });
-  key_list_->slotRefresh();
+  key_list_->SlotRefresh();
 
   auto* vbox2 = new QVBoxLayout();
   vbox2->addWidget(new QLabel(QString(_("Select Signer(s)")) + ": "));
@@ -67,8 +67,8 @@ SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
   this->show();
 }
 
-GpgFrontend::KeyIdArgsListPtr SignersPicker::getCheckedSigners() {
-  return key_list_->getPrivateChecked();
+GpgFrontend::KeyIdArgsListPtr SignersPicker::GetCheckedSigners() {
+  return key_list_->GetPrivateChecked();
 }
 
 }  // namespace GpgFrontend::UI

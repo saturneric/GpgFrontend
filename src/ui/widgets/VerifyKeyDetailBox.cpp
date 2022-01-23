@@ -34,7 +34,7 @@ namespace GpgFrontend::UI {
 
 VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
                                        QWidget* parent)
-    : QGroupBox(parent), fpr(signature.GetFingerprint()) {
+    : QGroupBox(parent), fpr_(signature.GetFingerprint()) {
   auto* vbox = new QVBoxLayout();
 
   switch (gpg_err_code(signature.GetStatus())) {
@@ -42,9 +42,9 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
       this->setTitle("A Error Signature");
       auto* importButton = new QPushButton(_("Import from keyserver"));
       connect(importButton, SIGNAL(clicked()), this,
-              SLOT(slotImportFormKeyserver()));
+              SLOT(slot_import_form_key_server()));
 
-      this->setTitle(QString(_("Key not present with id 0x")) + fpr.c_str());
+      this->setTitle(QString(_("Key not present with id 0x")) + fpr_.c_str());
 
       auto grid = new QGridLayout();
 
@@ -59,7 +59,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
     }
     case GPG_ERR_NO_ERROR: {
       this->setTitle(QString(_("A Signature")) + ":");
-      auto gird = createKeyInfoGrid(signature);
+      auto gird = create_key_info_grid(signature);
       if (gird != nullptr) {
         vbox->addLayout(gird);
       } else {
@@ -75,7 +75,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
       this->setTitle("An Error Signature");
       vbox->addWidget(
           new QLabel(QString(_("Status")) + ":" + _("Cert Revoked")));
-      auto gird = createKeyInfoGrid(signature);
+      auto gird = create_key_info_grid(signature);
       if (gird != nullptr) {
         vbox->addLayout(gird);
       } else {
@@ -91,7 +91,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
       this->setTitle("An Error Signature");
       vbox->addWidget(
           new QLabel(QString(_("Status")) + ":" + _("Signature Expired")));
-      auto gird = createKeyInfoGrid(signature);
+      auto gird = create_key_info_grid(signature);
       if (gird != nullptr) {
         vbox->addLayout(gird);
       } else {
@@ -109,7 +109,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
           new QLabel(QString(_("Status")) + ":" + _("Key Expired")));
       vbox->addWidget(
           new QLabel(QString(_("Status")) + ":" + _("Key Expired")));
-      auto gird = createKeyInfoGrid(signature);
+      auto gird = create_key_info_grid(signature);
       if (gird != nullptr) {
         vbox->addLayout(gird);
       } else {
@@ -125,7 +125,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
       this->setTitle("An Error Signature");
       vbox->addWidget(
           new QLabel(QString(_("Status")) + ":" + _("General Error")));
-      auto gird = createKeyInfoGrid(signature);
+      auto gird = create_key_info_grid(signature);
       if (gird != nullptr) {
         vbox->addLayout(gird);
       } else {
@@ -140,7 +140,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
     default: {
       this->setTitle("An Error Signature");
       this->setTitle(QString(_("Status")) + ":" + _("Unknown Error "));
-      auto gird = createKeyInfoGrid(signature);
+      auto gird = create_key_info_grid(signature);
       if (gird != nullptr) {
         vbox->addLayout(gird);
       } else {
@@ -156,17 +156,17 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
   this->setLayout(vbox);
 }
 
-void VerifyKeyDetailBox::slotImportFormKeyserver() {
+void VerifyKeyDetailBox::slot_import_form_key_server() {
   auto* importDialog = new KeyServerImportDialog(false, this);
   auto key_ids = std::make_unique<KeyIdArgsList>();
-  key_ids->push_back(fpr);
+  key_ids->push_back(fpr_);
   importDialog->slotImport(key_ids);
 }
 
-QGridLayout* VerifyKeyDetailBox::createKeyInfoGrid(
+QGridLayout* VerifyKeyDetailBox::create_key_info_grid(
     const GpgSignature& signature) {
   auto grid = new QGridLayout();
-  GpgKey key = GpgKeyGetter::GetInstance().GetKey(fpr);
+  GpgKey key = GpgKeyGetter::GetInstance().GetKey(fpr_);
 
   if (!key.IsGood()) return nullptr;
   grid->addWidget(new QLabel(QString(_("Signer Name")) + ":"), 0, 0);
@@ -177,7 +177,7 @@ QGridLayout* VerifyKeyDetailBox::createKeyInfoGrid(
 
   grid->addWidget(new QLabel(QString::fromStdString(key.GetName())), 0, 1);
   grid->addWidget(new QLabel(QString::fromStdString(key.GetEmail())), 1, 1);
-  grid->addWidget(new QLabel(beautify_fingerprint(fpr).c_str()), 2, 1);
+  grid->addWidget(new QLabel(beautify_fingerprint(fpr_).c_str()), 2, 1);
 
   if (signature.GetSummary() & GPGME_SIGSUM_VALID) {
     grid->addWidget(new QLabel(_("Fully Valid")), 3, 1);

@@ -38,16 +38,16 @@ GpgFrontend::UI::SenderPicker::SenderPicker(const KeyId& current_key_id,
 
   // Setup KeyList
   key_list_ = new KeyList(KeyMenuAbility::NONE, this);
-  key_list_->addListGroupTab(_("Sender"), KeyListRow::ONLY_SECRET_KEY,
+  key_list_->AddListGroupTab(_("Sender"), KeyListRow::ONLY_SECRET_KEY,
                              KeyListColumn::NAME | KeyListColumn::EmailAddress,
                              [](const GpgKey& key) -> bool {
                                return key.IsHasActualSigningCapability();
                              });
-  key_list_->slotRefresh();
+  key_list_->SlotRefresh();
 
   auto key_ids = std::make_unique<GpgFrontend::KeyIdArgsList>();
   key_ids->push_back(current_key_id);
-  key_list_->setChecked(std::move(key_ids));
+  key_list_->SetChecked(std::move(key_ids));
 
   auto* vbox2 = new QVBoxLayout();
   vbox2->addWidget(new QLabel(QString(_("Select Sender")) + ": "));
@@ -72,9 +72,9 @@ GpgFrontend::UI::SenderPicker::SenderPicker(const KeyId& current_key_id,
 }
 
 GpgFrontend::KeyId GpgFrontend::UI::SenderPicker::GetCheckedSender() {
-  auto checked_keys = key_list_->getChecked();
+  auto checked_keys = key_list_->GetChecked();
   if (!checked_keys->empty()) {
-    return key_list_->getChecked()->front();
+    return key_list_->GetChecked()->front();
   } else {
     return {};
   }

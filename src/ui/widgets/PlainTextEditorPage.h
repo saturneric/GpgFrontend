@@ -55,19 +55,19 @@ class PlainTextEditorPage : public QWidget {
   /**
    * @details Get the filepath of the currently activated tab.
    */
-  [[nodiscard]] const QString& getFilePath() const;
+  [[nodiscard]] const QString& GetFilePath() const;
 
   /**
    * @details Set filepath of currently activated tab.
    *
    * @param filePath The path to be set
    */
-  void setFilePath(const QString& filePath);
+  void SetFilePath(const QString& filePath);
 
   /**
    * @details Return pointer tp the textedit of the currently activated tab.
    */
-  QPlainTextEdit* getTextPage();
+  QPlainTextEdit* GetTextPage();
 
   /**
    * @details Show additional widget at buttom of currently active tab
@@ -75,32 +75,56 @@ class PlainTextEditorPage : public QWidget {
    * @param widget The widget to be added
    * @param className The name to handle the added widget
    */
-  void showNotificationWidget(QWidget* widget, const char* className);
+  void ShowNotificationWidget(QWidget* widget, const char* className);
 
   /**
    * @details Hide all widgets with the given className
    *
    * @param className The classname of the widgets to hide
    */
-  void closeNoteByClass(const char* className);
+  void CloseNoteByClass(const char* className);
 
+  /**
+   * @brief
+   *
+   */
   void ReadFile();
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
   [[nodiscard]] bool ReadDone() const { return this->read_done_; }
 
+  /**
+   * @brief
+   *
+   */
   void PrepareToDestroy();
 
  private:
-  std::shared_ptr<Ui_PlainTextEditor> ui;
-  QString full_file_path_; /** The path to the file handled in the tab */
-  bool signMarked{}; /** true, if the signed header is marked, false if not */
-  bool read_done_ = false;
-  QThread* read_thread_ = nullptr;
-  bool binary_mode_ = false;
-  size_t read_bytes_ = 0;
+  std::shared_ptr<Ui_PlainTextEditor> ui_;  ///<
+  QString full_file_path_;  ///< The path to the file handled in the tab
+  bool sign_marked_{};  ///< true, if the signed header is marked, false if not
+  bool read_done_ = false;          ///<
+  QThread* read_thread_ = nullptr;  ///<
+  bool binary_mode_ = false;        ///<
+  size_t read_bytes_ = 0;           ///<
 
+  /**
+   * @brief
+   *
+   * @param data
+   */
   void detect_encoding(const std::string& data);
 
+  /**
+   * @brief
+   *
+   * @param data
+   */
   void detect_cr_lf(const QString& data);
 
  private slots:
@@ -108,9 +132,14 @@ class PlainTextEditorPage : public QWidget {
   /**
    * @details Format the gpg header in another font-style
    */
-  void slotFormatGpgHeader();
+  void slot_format_gpg_header();
 
-  void slotInsertText(const std::string& data);
+  /**
+   * @brief
+   *
+   * @param data
+   */
+  void slot_insert_text(const std::string& data);
 };
 
 }  // namespace GpgFrontend::UI

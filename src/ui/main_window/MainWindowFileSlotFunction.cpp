@@ -57,13 +57,13 @@ bool file_pre_check(QWidget* parent, const QString& path) {
 }
 
 void MainWindow::SlotFileEncrypt() {
-  auto fileTreeView = edit_->slotCurPageFileTreeView();
-  auto path = fileTreeView->getSelected();
+  auto fileTreeView = edit_->SlotCurPageFileTreeView();
+  auto path = fileTreeView->GetSelected();
 
   if (!file_pre_check(this, path)) return;
 
   // check selected keys
-  auto key_ids = m_key_list_->getChecked();
+  auto key_ids = m_key_list_->GetChecked();
   GpgEncrResult result = nullptr;
   GpgError error;
   bool if_error = false;
@@ -157,8 +157,8 @@ void MainWindow::SlotFileEncrypt() {
 }
 
 void MainWindow::SlotFileDecrypt() {
-  auto fileTreeView = edit_->slotCurPageFileTreeView();
-  auto path = fileTreeView->getSelected();
+  auto fileTreeView = edit_->SlotCurPageFileTreeView();
+  auto path = fileTreeView->GetSelected();
 
   if (!file_pre_check(this, path)) return;
 
@@ -205,12 +205,12 @@ void MainWindow::SlotFileDecrypt() {
 }
 
 void MainWindow::SlotFileSign() {
-  auto fileTreeView = edit_->slotCurPageFileTreeView();
-  auto path = fileTreeView->getSelected();
+  auto fileTreeView = edit_->SlotCurPageFileTreeView();
+  auto path = fileTreeView->GetSelected();
 
   if (!file_pre_check(this, path)) return;
 
-  auto key_ids = m_key_list_->getChecked();
+  auto key_ids = m_key_list_->GetChecked();
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
   if (keys->empty()) {
@@ -292,8 +292,8 @@ void MainWindow::SlotFileSign() {
 }
 
 void MainWindow::SlotFileVerify() {
-  auto fileTreeView = edit_->slotCurPageFileTreeView();
-  auto path = fileTreeView->getSelected();
+  auto fileTreeView = edit_->SlotCurPageFileTreeView();
+  auto path = fileTreeView->GetSelected();
 
   boost::filesystem::path in_path = path.toStdString();
   boost::filesystem::path sign_file_path = in_path, data_file_path;
@@ -376,13 +376,13 @@ void MainWindow::SlotFileVerify() {
 }
 
 void MainWindow::SlotFileEncryptSign() {
-  auto fileTreeView = edit_->slotCurPageFileTreeView();
-  auto path = fileTreeView->getSelected();
+  auto fileTreeView = edit_->SlotCurPageFileTreeView();
+  auto path = fileTreeView->GetSelected();
 
   if (!file_pre_check(this, path)) return;
 
   // check selected keys
-  auto key_ids = m_key_list_->getChecked();
+  auto key_ids = m_key_list_->GetChecked();
   auto p_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
   if (p_keys->empty()) {
@@ -438,7 +438,7 @@ void MainWindow::SlotFileEncryptSign() {
   connect(signersPicker, SIGNAL(finished(int)), &loop, SLOT(quit()));
   loop.exec();
 
-  auto signer_key_ids = signersPicker->getCheckedSigners();
+  auto signer_key_ids = signersPicker->GetCheckedSigners();
   auto p_signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
 
   GpgEncrResult encr_result = nullptr;
@@ -474,8 +474,8 @@ void MainWindow::SlotFileEncryptSign() {
 }
 
 void MainWindow::SlotFileDecryptVerify() {
-  auto fileTreeView = edit_->slotCurPageFileTreeView();
-  auto path = fileTreeView->getSelected();
+  auto fileTreeView = edit_->SlotCurPageFileTreeView();
+  auto path = fileTreeView->GetSelected();
 
   if (!file_pre_check(this, path)) return;
 
