@@ -33,23 +33,48 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class QuitDialog : public QDialog {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Quit Dialog object
+   *
+   * @param parent
+   * @param unsavedDocs
+   */
   QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs);
 
-  [[nodiscard]] bool isDiscarded() const;
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] bool IsDiscarded() const;
 
-  QList<int> getTabIdsToSave();
+  /**
+   * @brief Get the Tab Ids To Save object
+   *
+   * @return QList<int>
+   */
+  QList<int> GetTabIdsToSave();
 
  private slots:
 
-  void slotMyDiscard();
+  /**
+   * @brief
+   *
+   */
+  void slot_my_discard();
 
  private:
-  bool discarded;
-  QTableWidget* mFileList;
+  bool discarded_;            ///<
+  QTableWidget* m_fileList_;  ///<
 };
 
 }  // namespace GpgFrontend::UI

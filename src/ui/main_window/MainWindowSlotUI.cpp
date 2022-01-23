@@ -44,7 +44,7 @@ void MainWindow::slot_start_wizard() {
 
 void MainWindow::slot_import_key_from_edit() {
   if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
-  CommonUtils::GetInstance()->slotImportKeys(
+  CommonUtils::GetInstance()->SlotImportKeys(
       this, edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
 }
 

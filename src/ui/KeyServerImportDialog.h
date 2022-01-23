@@ -36,60 +36,146 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class KeyServerImportDialog : public QDialog {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Key Server Import Dialog object
+   *
+   * @param automatic
+   * @param parent
+   */
   KeyServerImportDialog(bool automatic, QWidget* parent);
 
+  /**
+   * @brief Construct a new Key Server Import Dialog object
+   *
+   * @param parent
+   */
   explicit KeyServerImportDialog(QWidget* parent);
 
-  void slotImport(const KeyIdArgsListPtr& keys);
+ public slots:
 
-  void slotImport(const QStringList& keyIds, const QUrl& keyserverUrl);
+  /**
+   * @brief
+   *
+   * @param keys
+   */
+  void SlotImport(const KeyIdArgsListPtr& keys);
+
+  /**
+   * @brief
+   *
+   * @param keyIds
+   * @param keyserverUrl
+   */
+  void SlotImport(const QStringList& keyIds, const QUrl& keyserverUrl);
 
  signals:
-  void signalKeyImported();
+
+  /**
+   * @brief
+   *
+   */
+  void SignalKeyImported();
 
  private slots:
 
-  void slotImport();
+  /**
+   * @brief
+   *
+   */
+  void slot_import();
 
-  void slotSearchFinished();
+  /**
+   * @brief
+   *
+   */
+  void slot_search_finished();
 
-  void slotImportFinished(const QString& keyid);
+  /**
+   * @brief
+   *
+   * @param keyid
+   */
+  void slot_import_finished(const QString& keyid);
 
-  void slotSearch();
+  /**
+   * @brief
+   *
+   */
+  void slot_search();
 
-  void slotSaveWindowState();
+  /**
+   * @brief
+   *
+   */
+  void slot_save_window_state();
 
  private:
-  void createKeysTable();
+  /**
+   * @brief Create a keys table object
+   *
+   */
+  void create_keys_table();
 
-  void setMessage(const QString& text, bool error);
+  /**
+   * @brief Set the message object
+   *
+   * @param text
+   * @param error
+   */
+  void set_message(const QString& text, bool error);
 
-  void importKeys(ByteArrayPtr in_data);
+  /**
+   * @brief
+   *
+   * @param in_data
+   */
+  void import_keys(ByteArrayPtr in_data);
 
-  void setLoading(bool status);
+  /**
+   * @brief Set the loading object
+   *
+   * @param status
+   */
+  void set_loading(bool status);
 
-  QPushButton* createButton(const QString& text, const char* member);
+  /**
+   * @brief Create a button object
+   *
+   * @param text
+   * @param member
+   * @return QPushButton*
+   */
+  QPushButton* create_button(const QString& text, const char* member);
 
-  QComboBox* createComboBox();
+  /**
+   * @brief Create a comboBox object
+   *
+   * @return QComboBox*
+   */
+  QComboBox* create_comboBox();
 
-  bool mAutomatic = false;
+  bool m_automatic_ = false;  ///<
 
-  QLineEdit* searchLineEdit{};
-  QComboBox* keyServerComboBox{};
-  QProgressBar* waitingBar;
-  QLabel* searchLabel{};
-  QLabel* keyServerLabel{};
-  QLabel* message{};
-  QLabel* icon{};
-  QPushButton* closeButton{};
-  QPushButton* importButton{};
-  QPushButton* searchButton{};
-  QTableWidget* keysTable{};
-  QNetworkAccessManager* qnam{};
+  QLineEdit* search_line_edit_{};                    ///<
+  QComboBox* key_server_combo_box_{};                ///<
+  QProgressBar* waiting_bar_;                        ///<
+  QLabel* search_label_{};                           ///<
+  QLabel* key_server_label_{};                       ///<
+  QLabel* message_{};                                ///<
+  QLabel* icon_{};                                   ///<
+  QPushButton* close_button_{};                      ///<
+  QPushButton* import_button_{};                     ///<
+  QPushButton* search_button_{};                     ///<
+  QTableWidget* keys_table_{};                       ///<
+  QNetworkAccessManager* network_access_manager_{};  ///<
 };
 
 }  // namespace GpgFrontend::UI

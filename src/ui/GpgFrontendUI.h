@@ -29,15 +29,25 @@
 #ifndef GPGFRONTEND_GPGFRONTENDUI_H
 #define GPGFRONTEND_GPGFRONTENDUI_H
 
+/**
+ * Basic dependency
+ */
 #include <QtCore>
 #include <QtNetwork>
 #include <QtPrintSupport>
 #include <QtWidgets>
 #include <optional>
 
+/**
+ * Project internal dependencies
+ */
 #include "GpgFrontend.h"
 #include "gpg/GpgConstants.h"
 #include "gpg/GpgModel.h"
+
+/**
+ * 3rd party dependencies
+ */
 
 #undef LIBCONFIGXX_STATIC
 #define LIBCONFIGXX_STATIC

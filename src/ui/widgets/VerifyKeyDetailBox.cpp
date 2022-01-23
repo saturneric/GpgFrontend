@@ -160,7 +160,7 @@ void VerifyKeyDetailBox::slot_import_form_key_server() {
   auto* importDialog = new KeyServerImportDialog(false, this);
   auto key_ids = std::make_unique<KeyIdArgsList>();
   key_ids->push_back(fpr_);
-  importDialog->slotImport(key_ids);
+  importDialog->SlotImport(key_ids);
 }
 
 QGridLayout* VerifyKeyDetailBox::create_key_info_grid(

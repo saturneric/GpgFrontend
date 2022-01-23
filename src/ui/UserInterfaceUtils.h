@@ -43,66 +43,172 @@ class InfoBoardWidget;
 class TextEdit;
 
 #ifdef SMTP_SUPPORT
+/**
+ * @brief
+ *
+ * @param parent
+ * @param info_board
+ * @param text
+ * @param attach_signature
+ */
 void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
                    const QString& text, bool attach_signature = true);
 #endif
-
+/**
+ * @brief
+ *
+ * @param parent
+ * @param info_board
+ * @param error
+ * @param verify_result
+ */
 void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
                          GpgError error, const GpgVerifyResult& verify_result);
 
+/**
+ * @brief
+ *
+ * @param parent
+ * @param verify_res
+ */
 void import_unknown_key_from_keyserver(QWidget* parent,
                                        const VerifyResultAnalyse& verify_res);
 
+/**
+ * @brief
+ *
+ * @param info_board
+ * @param status
+ * @param report_text
+ */
 void refresh_info_board(InfoBoardWidget* info_board, int status,
                         const std::string& report_text);
 
+/**
+ * @brief
+ *
+ * @param edit
+ * @param info_board
+ * @param result_analyse
+ */
 void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
                             const ResultAnalyse& result_analyse);
 
+/**
+ * @brief
+ *
+ * @param edit
+ * @param info_board
+ * @param result_analyse_a
+ * @param result_analyse_b
+ */
 void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
                             const ResultAnalyse& result_analyse_a,
                             const ResultAnalyse& result_analyse_b);
 
+/**
+ * @brief
+ *
+ * @param parent
+ * @param waiting_title
+ * @param func
+ */
 void process_operation(QWidget* parent, const std::string& waiting_title,
                        const std::function<void()>& func);
 
+/**
+ * @brief
+ *
+ */
 class CommonUtils : public QWidget {
   Q_OBJECT
  public:
-  static CommonUtils* GetInstance();
-
-  CommonUtils();
-
+  /**
+   * @brief
+   *
+   */
   using ImportCallbackFunctiopn = std::function<void(
       const std::string&, const std::string&, size_t, size_t)>;
 
- signals:
-  void signalKeyStatusUpdated();
+  /**
+   * @brief Construct a new Common Utils object
+   *
+   */
+  CommonUtils();
 
-  void signalGnupgNotInstall();
+  /**
+   * @brief Get the Instance object
+   *
+   * @return CommonUtils*
+   */
+  static CommonUtils* GetInstance();
+
+ signals:
+  /**
+   * @brief
+   *
+   */
+  void SignalKeyStatusUpdated();
+
+  /**
+   * @brief
+   *
+   */
+  void SignalGnupgNotInstall();
 
  public slots:
+  /**
+   * @brief
+   *
+   * @param parent
+   * @param in_buffer
+   */
+  void SlotImportKeys(QWidget* parent, const std::string& in_buffer);
 
-  void slotImportKeys(QWidget* parent, const std::string& in_buffer);
+  /**
+   * @brief
+   *
+   * @param parent
+   */
+  void SlotImportKeyFromFile(QWidget* parent);
 
-  void slotImportKeyFromFile(QWidget* parent);
+  /**
+   * @brief
+   *
+   * @param parent
+   */
+  void SlotImportKeyFromKeyServer(QWidget* parent);
 
-  void slotImportKeyFromKeyServer(QWidget* parent);
+  /**
+   * @brief
+   *
+   * @param parent
+   */
+  void SlotImportKeyFromClipboard(QWidget* parent);
 
-  void slotImportKeyFromClipboard(QWidget* parent);
-
-  static void slotImportKeyFromKeyServer(
+  /**
+   * @brief
+   *
+   * @param ctx_channel
+   * @param key_ids
+   * @param callback
+   */
+  static void SlotImportKeyFromKeyServer(
       int ctx_channel, const GpgFrontend::KeyIdArgsList& key_ids,
       const GpgFrontend::UI::CommonUtils::ImportCallbackFunctiopn& callback);
 
-  void slotExecuteGpgCommand(
+  /**
+   * @brief
+   *
+   * @param arguments
+   * @param interact_func
+   */
+  void SlotExecuteGpgCommand(
       const QStringList& arguments,
       const std::function<void(QProcess*)>& interact_func);
 
- private slots:
-
  private:
-  static std::unique_ptr<CommonUtils> _instance;
+  static std::unique_ptr<CommonUtils> instance_;  ///<
 };
 
 }  // namespace GpgFrontend::UI

@@ -73,7 +73,7 @@ void MainWindow::init() noexcept {
     connect(edit_->tab_widget_, SIGNAL(currentChanged(int)), this,
             SLOT(slot_disable_tab_actions(int)));
     connect(SignalStation::GetInstance(),
-            &SignalStation::signalRefreshStatusBar, this,
+            &SignalStation::SignalRefreshStatusBar, this,
             [=](const QString& message, int timeout) {
               statusBar()->showMessage(message, timeout);
             });

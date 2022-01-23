@@ -94,7 +94,7 @@ FilePage::FilePage(QWidget* parent)
   });
 
   connect(this, &FilePage::SignalRefreshInfoBoard, SignalStation::GetInstance(),
-          &SignalStation::signalRefreshInfoBoard);
+          &SignalStation::SignalRefreshInfoBoard);
 }
 
 void FilePage::slot_file_tree_view_item_clicked(const QModelIndex& index) {

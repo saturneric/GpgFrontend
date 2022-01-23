@@ -210,7 +210,7 @@ void MainWindow::create_actions() {
   import_key_from_file_act_->setIcon(QIcon(":import_key_from_file.png"));
   import_key_from_file_act_->setToolTip(_("Import New Key From File"));
   connect(import_key_from_file_act_, &QAction::triggered, this,
-          [&]() { CommonUtils::GetInstance()->slotImportKeyFromFile(this); });
+          [&]() { CommonUtils::GetInstance()->SlotImportKeyFromFile(this); });
 
   import_key_from_clipboard_act_ = new QAction(_("Clipboard"), this);
   import_key_from_clipboard_act_->setIcon(
@@ -218,7 +218,7 @@ void MainWindow::create_actions() {
   import_key_from_clipboard_act_->setToolTip(
       _("Import New Key From Clipboard"));
   connect(import_key_from_clipboard_act_, &QAction::triggered, this, [&]() {
-    CommonUtils::GetInstance()->slotImportKeyFromClipboard(this);
+    CommonUtils::GetInstance()->SlotImportKeyFromClipboard(this);
   });
 
   import_key_from_key_server_act_ = new QAction(_("Keyserver"), this);
@@ -227,7 +227,7 @@ void MainWindow::create_actions() {
   import_key_from_key_server_act_->setToolTip(
       _("Import New Key From Keyserver"));
   connect(import_key_from_key_server_act_, &QAction::triggered, this, [&]() {
-    CommonUtils::GetInstance()->slotImportKeyFromKeyServer(this);
+    CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(this);
   });
 
   import_key_from_edit_act_ = new QAction(_("Editor"), this);

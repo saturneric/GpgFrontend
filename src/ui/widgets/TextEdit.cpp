@@ -334,14 +334,14 @@ bool TextEdit::MaybeSaveAnyTab() {
     // if result is QDialog::Rejected, discard or cancel was clicked
     if (result == QDialog::Rejected) {
       // return true, if discard is clicked, so app can be closed
-      if (dialog->isDiscarded()) {
+      if (dialog->IsDiscarded()) {
         return true;
       } else {
         return false;
       }
     } else {
       bool all_saved = true;
-      QList<int> tabIdsToSave = dialog->getTabIdsToSave();
+      QList<int> tabIdsToSave = dialog->GetTabIdsToSave();
 
       for (const auto& tabId : tabIdsToSave) {
         tab_widget_->setCurrentIndex(tabId);

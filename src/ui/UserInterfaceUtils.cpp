@@ -41,7 +41,7 @@
 namespace GpgFrontend::UI {
 
 std::unique_ptr<GpgFrontend::UI::CommonUtils>
-    GpgFrontend::UI::CommonUtils::_instance = nullptr;
+    GpgFrontend::UI::CommonUtils::instance_ = nullptr;
 
 #ifdef SMTP_SUPPORT
 void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
@@ -96,7 +96,7 @@ void import_unknown_key_from_keyserver(QWidget* parent,
       signature = signature->next;
     }
     dialog.show();
-    dialog.slotImport(key_ids);
+    dialog.SlotImport(key_ids);
   }
 }
 
@@ -148,16 +148,16 @@ void process_operation(QWidget* parent, const std::string& waiting_title,
 }
 
 CommonUtils* CommonUtils::GetInstance() {
-  if (_instance == nullptr) {
-    _instance = std::make_unique<CommonUtils>();
+  if (instance_ == nullptr) {
+    instance_ = std::make_unique<CommonUtils>();
   }
-  return _instance.get();
+  return instance_.get();
 }
 
 CommonUtils::CommonUtils() : QWidget(nullptr) {
-  connect(this, SIGNAL(signalKeyStatusUpdated()), SignalStation::GetInstance(),
+  connect(this, SIGNAL(SignalKeyStatusUpdated()), SignalStation::GetInstance(),
           SIGNAL(KeyDatabaseRefresh()));
-  connect(this, &CommonUtils::signalGnupgNotInstall, this, []() {
+  connect(this, &CommonUtils::SignalGnupgNotInstall, this, []() {
     QMessageBox::critical(
         nullptr, _("ENV Loading Failed"),
         _("Gnupg(gpg) is not installed correctly, please follow the "
@@ -168,36 +168,36 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
   });
 }
 
-void CommonUtils::slotImportKeys(QWidget* parent,
+void CommonUtils::SlotImportKeys(QWidget* parent,
                                  const std::string& in_buffer) {
   GpgImportInformation result = GpgKeyImportExporter::GetInstance().ImportKey(
       std::make_unique<ByteArray>(in_buffer));
-  emit signalKeyStatusUpdated();
+  emit SignalKeyStatusUpdated();
   new KeyImportDetailDialog(result, false, parent);
 }
 
-void CommonUtils::slotImportKeyFromFile(QWidget* parent) {
+void CommonUtils::SlotImportKeyFromFile(QWidget* parent) {
   QString file_name = QFileDialog::getOpenFileName(
       this, _("Open Key"), QString(),
       QString(_("Key Files")) + " (*.asc *.txt);;" + _("Keyring files") +
           " (*.gpg);;All Files (*)");
   if (!file_name.isNull()) {
-    slotImportKeys(parent, read_all_data_in_file(file_name.toStdString()));
+    SlotImportKeys(parent, read_all_data_in_file(file_name.toStdString()));
   }
 }
 
-void CommonUtils::slotImportKeyFromKeyServer(QWidget* parent) {
+void CommonUtils::SlotImportKeyFromKeyServer(QWidget* parent) {
   auto dialog = new KeyServerImportDialog(false, parent);
   dialog->show();
 }
 
-void CommonUtils::slotImportKeyFromClipboard(QWidget* parent) {
+void CommonUtils::SlotImportKeyFromClipboard(QWidget* parent) {
   QClipboard* cb = QApplication::clipboard();
-  slotImportKeys(parent,
+  SlotImportKeys(parent,
                  cb->text(QClipboard::Clipboard).toUtf8().toStdString());
 }
 
-void CommonUtils::slotExecuteGpgCommand(
+void CommonUtils::SlotExecuteGpgCommand(
     const QStringList& arguments,
     const std::function<void(QProcess*)>& interact_func) {
   QEventLoop looper;
@@ -243,7 +243,7 @@ void CommonUtils::slotExecuteGpgCommand(
   dialog->deleteLater();
 }
 
-void CommonUtils::slotImportKeyFromKeyServer(
+void CommonUtils::SlotImportKeyFromKeyServer(
     int ctx_channel, const KeyIdArgsList& key_ids,
     const ImportCallbackFunctiopn& callback) {
   std::string target_keyserver;
