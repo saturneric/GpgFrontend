@@ -31,13 +31,22 @@
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
+
+/**
+ * @brief
+ *
+ */
 class TOFUInfoPage : public QWidget {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new TOFUInfoPage object
+   *
+   * @param tofu_info
+   * @param parent
+   */
   explicit TOFUInfoPage(const GpgTOFUInfo &tofu_info,
                         QWidget *parent = nullptr);
-
- private:
 };
 }  // namespace GpgFrontend::UI
 

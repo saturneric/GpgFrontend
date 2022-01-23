@@ -35,16 +35,30 @@ namespace GpgFrontend::UI {
 
 class KeyList;
 
+/**
+ * @brief
+ *
+ */
 class SignersPicker : public QDialog {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Signers Picker object
+   *
+   * @param parent
+   */
   explicit SignersPicker(QWidget* parent = nullptr);
 
-  GpgFrontend::KeyIdArgsListPtr getCheckedSigners();
+  /**
+   * @brief Get the Checked Signers object
+   *
+   * @return GpgFrontend::KeyIdArgsListPtr
+   */
+  GpgFrontend::KeyIdArgsListPtr GetCheckedSigners();
 
  private:
-  KeyList* key_list_;
+  KeyList* key_list_;  ///<
 };
 
 }  // namespace GpgFrontend::UI

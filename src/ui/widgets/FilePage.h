@@ -38,62 +38,174 @@ class Ui_FilePage;
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class FilePage : public QWidget {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new File Page object
+   *
+   * @param parent
+   */
   explicit FilePage(QWidget* parent = nullptr);
 
-  [[nodiscard]] QString getSelected() const;
+  /**
+   * @brief Get the Selected object
+   *
+   * @return QString
+   */
+  [[nodiscard]] QString GetSelected() const;
 
  public slots:
-  void slotGoPath();
+  /**
+   * @brief
+   *
+   */
+  void SlotGoPath();
 
  signals:
-  void pathChanged(const QString& path);
 
-  void signalRefreshInfoBoard(const QString& text,
+  /**
+   * @brief
+   *
+   * @param path
+   */
+  void SignalPathChanged(const QString& path);
+
+  /**
+   * @brief
+   *
+   * @param text
+   * @param verify_label_status
+   */
+  void SignalRefreshInfoBoard(const QString& text,
                               InfoBoardStatus verify_label_status);
 
  private slots:
 
-  void fileTreeViewItemClicked(const QModelIndex& index);
-  void fileTreeViewItemDoubleClicked(const QModelIndex& index);
+  /**
+   * @brief
+   *
+   * @param index
+   */
+  void slot_file_tree_view_item_clicked(const QModelIndex& index);
 
-  void slotUpLevel();
+  /**
+   * @brief
+   *
+   * @param index
+   */
+  void slot_file_tree_view_item_double_clicked(const QModelIndex& index);
 
-  void slotOpenItem();
-  void slotRenameItem();
-  void slotDeleteItem();
-  void slotEncryptItem();
-  void slotEncryptSignItem();
-  void slotDecryptItem();
-  void slotSignItem();
-  void slotVerifyItem();
-  void slotCalculateHash();
-  void slotMkdir();
-  void slotCreateEmptyFile();
+  /**
+   * @brief
+   *
+   */
+  void slot_up_level();
 
-  void onCustomContextMenu(const QPoint& point);
+  /**
+   * @brief
+   *
+   */
+  void slot_open_item();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_rename_item();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_delete_item();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_encrypt_item();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_encrypt_sign_item();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_decrypt_item();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_sign_item();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_verify_item();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_calculate_hash();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_mkdir();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_create_empty_file();
 
  protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
   void keyPressEvent(QKeyEvent* event) override;
 
+  /**
+   * @brief
+   *
+   * @param point
+   */
+  void onCustomContextMenu(const QPoint& point);
+
  private:
-  void createPopupMenu();
+  /**
+   * @brief Create a popup menu object
+   *
+   */
+  void create_popup_menu();
 
-  std::shared_ptr<Ui_FilePage> ui;
+  std::shared_ptr<Ui_FilePage> ui_;  ///<
 
-  QFileSystemModel* dirModel;
-  QCompleter* pathEditCompleter;
-  QStringListModel* pathCompleteModel;
+  QFileSystemModel* dir_model_;            ///<
+  QCompleter* path_edit_completer_;        ///<
+  QStringListModel* path_complete_model_;  ///<
 
-  // using boost path
-  boost::filesystem::path mPath;
-  boost::filesystem::path selectedPath;
+  boost::filesystem::path m_path_;         ///<
+  boost::filesystem::path selected_path_;  ///<
 
-  QMenu* popUpMenu{};
-  QMenu* optionPopUpMenu{};
-  QWidget* firstParent;
+  QMenu* popup_menu_{};         ///<
+  QMenu* option_popup_menu_{};  ///<
+  QWidget* first_parent_{};     ///<
 };
 
 }  // namespace GpgFrontend::UI

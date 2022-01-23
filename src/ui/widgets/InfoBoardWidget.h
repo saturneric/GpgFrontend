@@ -38,7 +38,7 @@ class Ui_InfoBoard;
 namespace GpgFrontend::UI {
 
 /**
- * @details Enumeration for the status of Verifylabel
+ * @details Enumeration for the status of Verify label
  */
 typedef enum {
   INFO_ERROR_OK = 0,
@@ -48,7 +48,7 @@ typedef enum {
 } InfoBoardStatus;
 
 /**
- * @brief Class for handling the verifylabel shown at buttom of a textedit-page
+ * @brief Class for handling the verify label shown at bottom of a textedit-page
  */
 class InfoBoardWidget : public QWidget {
   Q_OBJECT
@@ -61,45 +61,86 @@ class InfoBoardWidget : public QWidget {
    */
   explicit InfoBoardWidget(QWidget* parent);
 
-  void associateTextEdit(QTextEdit* edit);
+  /**
+   * @brief
+   *
+   * @param edit
+   */
+  void AssociateTextEdit(QTextEdit* edit);
 
-  void associateTabWidget(QTabWidget* tab);
+  /**
+   * @brief
+   *
+   * @param tab
+   */
+  void AssociateTabWidget(QTabWidget* tab);
 
-  void addOptionalAction(const QString& name,
+  /**
+   * @brief
+   *
+   * @param name
+   * @param action
+   */
+  void AddOptionalAction(const QString& name,
                          const std::function<void()>& action);
 
-  void resetOptionActionsMenu();
+  /**
+   * @brief
+   *
+   */
+  void ResetOptionActionsMenu();
 
   /**
    * @details Set the text and background-color of verify notification.
    *
    * @param text The text to be set.
-   * @param verifyLabelStatus The status of label to set the specified color.
+   * @param verify_label_status The status of label to set the specified color.
    */
-  void setInfoBoard(const QString& text, InfoBoardStatus verifyLabelStatus);
+  void SetInfoBoard(const QString& text,
+                    GpgFrontend::UI::InfoBoardStatus verify_label_status);
 
  public slots:
 
-  void slotReset();
+  /**
+   * @brief
+   *
+   */
+  void SlotReset();
 
   /**
    * @details Refresh the contents of dialog.
    */
-  void slotRefresh(const QString& text, InfoBoardStatus status);
+  void SlotRefresh(const QString& text,
+                   GpgFrontend::UI::InfoBoardStatus status);
 
  private slots:
 
-  void slotCopy();
+  /**
+   * @brief
+   *
+   */
+  void slot_copy();
 
-  void slotSave();
+  /**
+   * @brief
+   *
+   */
+  void slot_save();
 
  private:
-  std::shared_ptr<Ui_InfoBoard> ui;
+  std::shared_ptr<Ui_InfoBoard> ui_;  ///<
 
-  QTextEdit* mTextPage{nullptr}; /** TextEdit associated to the notification */
-  QTabWidget* mTabWidget{nullptr};
+  QTextEdit* m_text_page_{
+      nullptr};  ///< TextEdit associated to the notification
+  QTabWidget* m_tab_widget_{nullptr};  ///<
 
-  void deleteWidgetsInLayout(QLayout* layout, int start_index = 0);
+  /**
+   * @brief
+   *
+   * @param layout
+   * @param start_index
+   */
+  void delete_widgets_in_layout(QLayout* layout, int start_index = 0);
 };
 
 }  // namespace GpgFrontend::UI

@@ -490,7 +490,7 @@ void MainWindow::create_dock_windows() {
   key_list_dock_->setMinimumWidth(460);
   addDockWidget(Qt::RightDockWidgetArea, key_list_dock_);
 
-  m_key_list_->addListGroupTab(
+  m_key_list_->AddListGroupTab(
       _("Default"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
@@ -498,7 +498,7 @@ void MainWindow::create_dock_windows() {
         return !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
-  m_key_list_->addListGroupTab(
+  m_key_list_->AddListGroupTab(
       _("Only Public Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
@@ -507,7 +507,7 @@ void MainWindow::create_dock_windows() {
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
-  m_key_list_->addListGroupTab(
+  m_key_list_->AddListGroupTab(
       _("Has Private Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
@@ -516,7 +516,7 @@ void MainWindow::create_dock_windows() {
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
-  m_key_list_->slotRefresh();
+  m_key_list_->SlotRefresh();
 
   key_list_dock_->setWidget(m_key_list_);
   view_menu_->addAction(key_list_dock_->toggleViewAction());

@@ -33,20 +33,39 @@
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
-
+/**
+ * @brief
+ *
+ */
 class VerifyKeyDetailBox : public QGroupBox {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new Verify Key Detail Box object
+   *
+   * @param signature
+   * @param parent
+   */
   explicit VerifyKeyDetailBox(const GpgSignature& signature, QWidget* parent);
 
  private slots:
 
-  void slotImportFormKeyserver();
+  /**
+   * @brief
+   *
+   */
+  void slot_import_form_key_server();
 
  private:
-  QGridLayout* createKeyInfoGrid(const GpgSignature& signature);
+  /**
+   * @brief Create a key info grid object
+   *
+   * @param signature
+   * @return QGridLayout*
+   */
+  QGridLayout* create_key_info_grid(const GpgSignature& signature);
 
-  std::string fpr;
+  std::string fpr_;  ///<
 };
 
 }  // namespace GpgFrontend::UI

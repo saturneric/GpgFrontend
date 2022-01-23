@@ -43,9 +43,9 @@ void MainWindow::slot_start_wizard() {
 }
 
 void MainWindow::slot_import_key_from_edit() {
-  if (edit_->tabCount() == 0 || edit_->slotCurPageTextEdit() == nullptr) return;
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
   CommonUtils::GetInstance()->slotImportKeys(
-      this, edit_->curTextPage()->getTextPage()->toPlainText().toStdString());
+      this, edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
 }
 
 void MainWindow::slot_open_key_management() {
@@ -54,7 +54,7 @@ void MainWindow::slot_open_key_management() {
   dialog->raise();
 }
 
-void MainWindow::slot_open_file_tab() { edit_->slotNewFileTab(); }
+void MainWindow::slot_open_file_tab() { edit_->SlotNewFileTab(); }
 
 void MainWindow::slot_disable_tab_actions(int number) {
   bool disable;
@@ -64,7 +64,7 @@ void MainWindow::slot_disable_tab_actions(int number) {
   else
     disable = false;
 
-  if (edit_->curFilePage() != nullptr) {
+  if (edit_->CurFilePage() != nullptr) {
     disable = true;
   }
 
@@ -121,7 +121,7 @@ void MainWindow::slot_open_settings_dialog() {
 
     // restart mainwindow if necessary
     if (get_restart_needed()) {
-      if (edit_->maybeSaveAnyTab()) {
+      if (edit_->MaybeSaveAnyTab()) {
         save_settings();
         qApp->exit(RESTART_CODE);
       }
@@ -139,35 +139,35 @@ void MainWindow::slot_open_settings_dialog() {
 }
 
 void MainWindow::slot_clean_double_line_breaks() {
-  if (edit_->tabCount() == 0 || edit_->slotCurPageTextEdit() == nullptr) {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
     return;
   }
 
-  QString content = edit_->curTextPage()->getTextPage()->toPlainText();
+  QString content = edit_->CurTextPage()->GetTextPage()->toPlainText();
   content.replace("\n\n", "\n");
-  edit_->slotFillTextEditWithText(content);
+  edit_->SlotFillTextEditWithText(content);
 }
 
 void MainWindow::slot_add_pgp_header() {
-  if (edit_->tabCount() == 0 || edit_->slotCurPageTextEdit() == nullptr) {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
     return;
   }
 
   QString content =
-      edit_->curTextPage()->getTextPage()->toPlainText().trimmed();
+      edit_->CurTextPage()->GetTextPage()->toPlainText().trimmed();
 
   content.prepend("\n\n").prepend(GpgConstants::PGP_CRYPT_BEGIN);
   content.append("\n").append(GpgConstants::PGP_CRYPT_END);
 
-  edit_->slotFillTextEditWithText(content);
+  edit_->SlotFillTextEditWithText(content);
 }
 
 void MainWindow::slot_cut_pgp_header() {
-  if (edit_->tabCount() == 0 || edit_->slotCurPageTextEdit() == nullptr) {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
     return;
   }
 
-  QString content = edit_->curTextPage()->getTextPage()->toPlainText();
+  QString content = edit_->CurTextPage()->GetTextPage()->toPlainText();
   int start = content.indexOf(GpgConstants::PGP_CRYPT_BEGIN);
   int end = content.indexOf(GpgConstants::PGP_CRYPT_END);
 
@@ -183,7 +183,7 @@ void MainWindow::slot_cut_pgp_header() {
   end = content.indexOf(GpgConstants::PGP_CRYPT_END);
   content.remove(end, QString(GpgConstants::PGP_CRYPT_END).size());
 
-  edit_->slotFillTextEditWithText(content.trimmed());
+  edit_->SlotFillTextEditWithText(content.trimmed());
 }
 
 void MainWindow::slot_set_restart_needed(bool needed) {

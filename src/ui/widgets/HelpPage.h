@@ -33,22 +33,40 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class HelpPage : public QWidget {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new Help Page object
+   *
+   * @param path
+   * @param parent
+   */
   explicit HelpPage(const QString& path, QWidget* parent = nullptr);
 
-  QTextBrowser* getBrowser();
-
- signals:
+  /**
+   * @brief Get the Browser object
+   *
+   * @return QTextBrowser*
+   */
+  QTextBrowser* GetBrowser();
 
  public slots:
 
-  void slotOpenUrl(const QUrl& url);
+  /**
+   * @brief
+   *
+   * @param url
+   */
+  void slot_open_url(const QUrl& url);
 
  private:
-  QTextBrowser* browser; /** The textbrowser of the tab */
-  QUrl localizedHelp(const QUrl& path);
+  QTextBrowser* browser_;  ///< The textbrowser of the tab
+  QUrl localized_help(const QUrl& path);
 };
 
 }  // namespace GpgFrontend::UI

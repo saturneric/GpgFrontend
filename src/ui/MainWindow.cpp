@@ -70,7 +70,7 @@ void MainWindow::init() noexcept {
     create_status_bar();
     create_dock_windows();
 
-    connect(edit_->tabWidget, SIGNAL(currentChanged(int)), this,
+    connect(edit_->tab_widget_, SIGNAL(currentChanged(int)), this,
             SLOT(slot_disable_tab_actions(int)));
     connect(SignalStation::GetInstance(),
             &SignalStation::signalRefreshStatusBar, this,
@@ -78,10 +78,10 @@ void MainWindow::init() noexcept {
               statusBar()->showMessage(message, timeout);
             });
 
-    m_key_list_->addMenuAction(append_selected_keys_act_);
-    m_key_list_->addMenuAction(copy_mail_address_to_clipboard_act_);
-    m_key_list_->addSeparator();
-    m_key_list_->addMenuAction(show_key_details_act_);
+    m_key_list_->AddMenuAction(append_selected_keys_act_);
+    m_key_list_->AddMenuAction(copy_mail_address_to_clipboard_act_);
+    m_key_list_->AddSeparator();
+    m_key_list_->AddMenuAction(show_key_details_act_);
 
     restore_settings();
 
@@ -89,10 +89,10 @@ void MainWindow::init() noexcept {
     QStringList args = qApp->arguments();
     if (args.size() > 1) {
       if (!args[1].startsWith("-")) {
-        if (QFile::exists(args[1])) edit_->loadFile(args[1]);
+        if (QFile::exists(args[1])) edit_->LoadFile(args[1]);
       }
     }
-    edit_->curTextPage()->setFocus();
+    edit_->CurTextPage()->setFocus();
 
     auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
@@ -233,7 +233,7 @@ void MainWindow::restore_settings() {
           LOG(INFO) << "get checked key id" << key_id;
           key_ids_ptr->push_back(key_id);
         }
-        m_key_list_->setChecked(std::move(key_ids_ptr));
+        m_key_list_->SetChecked(std::move(key_ids_ptr));
       }
     } catch (...) {
       LOG(ERROR) << "restore default_key_checked failed";
@@ -276,7 +276,7 @@ void MainWindow::save_settings() {
 
     // keyid-list of private checked keys
     if (save_key_checked) {
-      auto key_ids_need_to_store = m_key_list_->getChecked();
+      auto key_ids_need_to_store = m_key_list_->GetChecked();
 
       SettingsObject default_key_checked("default_key_checked");
       default_key_checked.clear();
@@ -307,7 +307,7 @@ void MainWindow::closeEvent(QCloseEvent* event) {
    * ask to save changes, if there are
    * modified documents in any tab
    */
-  if (edit_->maybeSaveAnyTab()) {
+  if (edit_->MaybeSaveAnyTab()) {
     save_settings();
     event->accept();
   } else {

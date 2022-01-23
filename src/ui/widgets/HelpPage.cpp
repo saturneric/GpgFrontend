@@ -33,32 +33,33 @@
 namespace GpgFrontend::UI {
 
 HelpPage::HelpPage(const QString& path, QWidget* parent) : QWidget(parent) {
-  browser = new QTextBrowser();
+  browser_ = new QTextBrowser();
   auto* mainLayout = new QVBoxLayout();
   mainLayout->setSpacing(0);
-  mainLayout->addWidget(browser);
+  mainLayout->addWidget(browser_);
   mainLayout->setContentsMargins(0, 0, 0, 0);
   setLayout(mainLayout);
 
-  connect(browser, SIGNAL(anchorClicked(QUrl)), this, SLOT(slotOpenUrl(QUrl)));
-  browser->setOpenLinks(false);
-  browser->setSource(localizedHelp(QUrl(path)));
-  browser->setFocus();
+  connect(browser_, SIGNAL(anchorClicked(QUrl)), this,
+          SLOT(slot_open_url(QUrl)));
+  browser_->setOpenLinks(false);
+  browser_->setSource(localized_help(QUrl(path)));
+  browser_->setFocus();
 }
 
-void HelpPage::slotOpenUrl(const QUrl& url) {
-  browser->setSource(localizedHelp(url));
+void HelpPage::slot_open_url(const QUrl& url) {
+  browser_->setSource(localized_help(url));
 };
 
 /**
- * @brief HelpPage::localizedHelp
+ * @brief HelpPage::localized_help
  * check if the requested file is also available with the locale,
  * e.g. return index.de.html if index.html was requested but the
  * locale is de and index.de.html is available
  * @param url
  * @return
  */
-QUrl HelpPage::localizedHelp(const QUrl& url) {
+QUrl HelpPage::localized_help(const QUrl& url) {
   QString path = url.toLocalFile();
   QString filename = path.mid(path.lastIndexOf("/") + 1);
   QString filepath = path.left(path.lastIndexOf("/") + 1);
@@ -81,6 +82,6 @@ QUrl HelpPage::localizedHelp(const QUrl& url) {
   }
 }
 
-QTextBrowser* HelpPage::getBrowser() { return browser; }
+QTextBrowser* HelpPage::GetBrowser() { return browser_; }
 
 }  // namespace GpgFrontend::UI
