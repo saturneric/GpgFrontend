@@ -37,6 +37,10 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class Wizard : public QWizard {
   Q_OBJECT
   Q_ENUMS(WizardPages)
@@ -44,21 +48,50 @@ class Wizard : public QWizard {
  public:
   enum WizardPages { Page_Intro, Page_Choose, Page_GenKey, Page_Conclusion };
 
+  /**
+   * @brief Construct a new Wizard object
+   *
+   * @param parent
+   */
   explicit Wizard(QWidget* parent = nullptr);
 
  private slots:
-  void slotWizardAccepted();
+  /**
+   * @brief
+   *
+   */
+  void slot_wizard_accepted();
 
  signals:
-  void signalOpenHelp(QString page);
+  /**
+   * @brief
+   *
+   * @param page
+   */
+  void SignalOpenHelp(QString page);
 };
 
+/**
+ * @brief
+ *
+ */
 class IntroPage : public QWizardPage {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Intro Page object
+   *
+   * @param parent
+   */
   explicit IntroPage(QWidget* parent = nullptr);
 
+ protected:
+  /**
+   * @brief
+   *
+   * @return int
+   */
   [[nodiscard]] int nextId() const override;
 };
 
@@ -66,42 +99,89 @@ class ChoosePage : public QWizardPage {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Choose Page object
+   *
+   * @param parent
+   */
   explicit ChoosePage(QWidget* parent = nullptr);
 
  private slots:
 
-  void slotJumpPage(const QString& page);
+  /**
+   * @brief
+   *
+   * @param page
+   */
+  void slot_jump_page(const QString& page);
 
- private:
+ protected:
+  /**
+   * @brief
+   *
+   * @return int
+   */
   [[nodiscard]] int nextId() const override;
 
-  int nextPage;
+  int next_page_;  ///<
 };
 
+/**
+ * @brief
+ *
+ */
 class KeyGenPage : public QWizardPage {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Key Gen Page object
+   *
+   * @param parent
+   */
   explicit KeyGenPage(QWidget* parent = nullptr);
 
+  /**
+   * @brief
+   *
+   * @return int
+   */
   [[nodiscard]] int nextId() const override;
 
  private slots:
 
-  void slotGenerateKeyDialog();
+  /**
+   * @brief
+   *
+   */
+  void slot_generate_key_dialog();
 };
 
+/**
+ * @brief
+ *
+ */
 class ConclusionPage : public QWizardPage {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Conclusion Page object
+   *
+   * @param parent
+   */
   explicit ConclusionPage(QWidget* parent = nullptr);
 
+  /**
+   * @brief
+   *
+   * @return int
+   */
   [[nodiscard]] int nextId() const override;
 
  private:
-  QCheckBox* dontShowWizardCheckBox;
-  QCheckBox* openHelpCheckBox;
+  QCheckBox* dont_show_wizard_checkbox_;  ///<
+  QCheckBox* open_help_check_box_;        ///<
 };
 
 }  // namespace GpgFrontend::UI

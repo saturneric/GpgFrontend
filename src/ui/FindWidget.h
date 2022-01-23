@@ -48,27 +48,50 @@ class FindWidget : public QWidget {
    */
   explicit FindWidget(QWidget* parent, PlainTextEditorPage* edit);
 
- private:
+ protected:
+  /**
+   * @brief
+   *
+   * @param e
+   */
   void keyPressEvent(QKeyEvent* e) override;
 
+ private:
   /**
    * @details Set background of findEdit to red, if no match is found (Documents
    * textcursor position equals -1), otherwise set it to white.
    */
-  void setBackground();
+  void set_background();
 
-  PlainTextEditorPage* mTextpage; /** Textedit associated to the notification */
-  QLineEdit* findEdit; /** Label holding the text shown in infoBoard */
+  PlainTextEditorPage*
+      m_text_page_;       ///< Textedit associated to the notification
+  QLineEdit* find_edit_;  ///<  Label holding the text shown in infoBoard
 
  private slots:
 
-  void slotFindNext();
+  /**
+   * @brief
+   *
+   */
+  void slot_find_next();
 
-  void slotFindPrevious();
+  /**
+   * @brief
+   *
+   */
+  void slot_find_previous();
 
-  void slotFind();
+  /**
+   * @brief
+   *
+   */
+  void slot_find();
 
-  void slotClose();
+  /**
+   * @brief
+   *
+   */
+  void slot_close();
 };
 
 }  // namespace GpgFrontend::UI

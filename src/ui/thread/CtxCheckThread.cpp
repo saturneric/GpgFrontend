@@ -33,7 +33,7 @@
 
 GpgFrontend::UI::CtxCheckThread::CtxCheckThread() : QThread(nullptr) {
   connect(this, &CtxCheckThread::SignalGnupgNotInstall,
-          CommonUtils::GetInstance(), &CommonUtils::signalGnupgNotInstall);
+          CommonUtils::GetInstance(), &CommonUtils::SignalGnupgNotInstall);
 }
 
 void GpgFrontend::UI::CtxCheckThread::run() {

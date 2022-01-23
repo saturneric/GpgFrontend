@@ -34,24 +34,47 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class KeyUploadDialog : public QDialog {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new Key Upload Dialog object
+   *
+   * @param keys_ids
+   * @param parent
+   */
   explicit KeyUploadDialog(const KeyIdArgsListPtr& keys_ids, QWidget* parent);
 
  public slots:
 
-  void slotUpload();
+  /**
+   * @brief
+   *
+   */
+  void SlotUpload();
 
  private slots:
 
-  void uploadKeyToServer(const GpgFrontend::ByteArray& keys_data);
+  /**
+   * @brief
+   *
+   * @param keys_data
+   */
+  void slot_upload_key_to_server(const GpgFrontend::ByteArray& keys_data);
 
-  void slotUploadFinished();
+  /**
+   * @brief
+   *
+   */
+  void slot_upload_finished();
 
  private:
-  KeyListPtr mKeys;
-  QByteArray mKeyData;
+  KeyListPtr m_keys_;      ///<
+  QByteArray m_key_data_;  ///<
 };
 
 }  // namespace GpgFrontend::UI

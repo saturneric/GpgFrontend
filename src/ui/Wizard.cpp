@@ -56,10 +56,10 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
   }
   setStartId(next_page_id);
 
-  connect(this, SIGNAL(accepted()), this, SLOT(slotWizardAccepted()));
+  connect(this, SIGNAL(accepted()), this, SLOT(slot_wizard_accepted()));
 }
 
-void Wizard::slotWizardAccepted() {
+void Wizard::slot_wizard_accepted() {
   LOG(INFO) << _("Called");
   // Don't show is mapped to show -> negation
   try {
@@ -78,7 +78,7 @@ void Wizard::slotWizardAccepted() {
     LOG(ERROR) << _("Setting Operation Error");
   }
   if (field("openHelp").toBool()) {
-    emit signalOpenHelp("docu.html#content");
+    emit SignalOpenHelp("docu.html#content");
   }
 }
 
@@ -173,17 +173,17 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
   layout->addWidget(encrDecyTextLabel);
   layout->addWidget(signVerifyTextLabel);
   setLayout(layout);
-  nextPage = Wizard::Page_Conclusion;
+  next_page_ = Wizard::Page_Conclusion;
 }
 
-int ChoosePage::nextId() const { return nextPage; }
+int ChoosePage::nextId() const { return next_page_; }
 
-void ChoosePage::slotJumpPage(const QString& page) {
+void ChoosePage::slot_jump_page(const QString& page) {
   QMetaObject qmo = Wizard::staticMetaObject;
   int index = qmo.indexOfEnumerator("WizardPages");
   QMetaEnum m = qmo.enumerator(index);
 
-  nextPage = m.keyToValue(page.toUtf8().data());
+  next_page_ = m.keyToValue(page.toUtf8().data());
   wizard()->next();
 }
 
@@ -219,14 +219,14 @@ KeyGenPage::KeyGenPage(QWidget* parent) : QWizardPage(parent) {
   layout->addWidget(linkLabel);
   layout->addWidget(createKeyButtonBox);
   connect(createKeyButton, SIGNAL(clicked(bool)), this,
-          SLOT(slotGenerateKeyDialog()));
+          SLOT(slot_generate_key_dialog()));
 
   setLayout(layout);
 }
 
 int KeyGenPage::nextId() const { return Wizard::Page_Conclusion; }
 
-void KeyGenPage::slotGenerateKeyDialog() {
+void KeyGenPage::slot_generate_key_dialog() {
   LOG(INFO) << "Try Opening KeyGenDialog";
   (new KeyGenDialog(this))->show();
   wizard()->next();
@@ -251,19 +251,19 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   bottomLabel->setOpenExternalLinks(true);
   bottomLabel->setWordWrap(true);
 
-  openHelpCheckBox = new QCheckBox(_("Open offline help."));
-  openHelpCheckBox->setChecked(true);
+  open_help_check_box_ = new QCheckBox(_("Open offline help."));
+  open_help_check_box_->setChecked(true);
 
-  dontShowWizardCheckBox = new QCheckBox(_("Dont show the wizard again."));
-  dontShowWizardCheckBox->setChecked(true);
+  dont_show_wizard_checkbox_ = new QCheckBox(_("Dont show the wizard again."));
+  dont_show_wizard_checkbox_->setChecked(true);
 
-  registerField("showWizard", dontShowWizardCheckBox);
+  registerField("showWizard", dont_show_wizard_checkbox_);
   // registerField("openHelp", openHelpCheckBox);
 
   auto* layout = new QVBoxLayout;
   layout->addWidget(bottomLabel);
   // layout->addWidget(openHelpCheckBox);
-  layout->addWidget(dontShowWizardCheckBox);
+  layout->addWidget(dont_show_wizard_checkbox_);
   setLayout(layout);
   setVisible(true);
 }

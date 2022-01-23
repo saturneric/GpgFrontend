@@ -77,7 +77,7 @@ void KeyList::init() {
 
   // register key database refresh signal
   connect(this, &KeyList::SignalRefreshDatabase, SignalStation::GetInstance(),
-          &SignalStation::KeyDatabaseRefresh);
+          &SignalStation::SignalKeyDatabaseRefresh);
   connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
           SLOT(SlotRefresh()));
   connect(ui_->refreshKeyListButton, &QPushButton::clicked, this,
@@ -89,7 +89,7 @@ void KeyList::init() {
   connect(ui_->syncButton, &QPushButton::clicked, this,
           &KeyList::slot_sync_with_key_server);
   connect(this, &KeyList::SignalRefreshStatusBar, SignalStation::GetInstance(),
-          &SignalStation::signalRefreshStatusBar);
+          &SignalStation::SignalRefreshStatusBar);
 
   setAcceptDrops(true);
 
@@ -462,7 +462,7 @@ void KeyList::slot_sync_with_key_server() {
   ui_->syncButton->setDisabled(true);
 
   emit SignalRefreshStatusBar(_("Syncing Key List..."), 3000);
-  CommonUtils::slotImportKeyFromKeyServer(
+  CommonUtils::SlotImportKeyFromKeyServer(
       m_key_list_id_, key_ids,
       [=](const std::string& key_id, const std::string& status,
           size_t current_index, size_t all_index) {

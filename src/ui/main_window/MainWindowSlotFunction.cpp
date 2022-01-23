@@ -504,14 +504,14 @@ void MainWindow::refresh_keys_from_key_server() {
 
   auto* dialog = new KeyServerImportDialog(this);
   dialog->show();
-  dialog->slotImport(key_ids);
+  dialog->SlotImport(key_ids);
 }
 
 void MainWindow::upload_key_to_server() {
   auto key_ids = m_key_list_->GetSelected();
   auto* dialog = new KeyUploadDialog(key_ids, this);
   dialog->show();
-  dialog->slotUpload();
+  dialog->SlotUpload();
 }
 
 void MainWindow::SlotOpenFile(QString& path) { edit_->SlotOpenFile(path); }

@@ -38,7 +38,7 @@ namespace GpgFrontend::UI {
 
 KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
                                  QWidget* parent)
-    : QDialog(parent), mKeys(GpgKeyGetter::GetInstance().GetKeys(keys_ids)) {
+    : QDialog(parent), m_keys_(GpgKeyGetter::GetInstance().GetKeys(keys_ids)) {
   auto* pb = new QProgressBar();
   pb->setRange(0, 0);
   pb->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -55,13 +55,13 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
   this->setFixedSize(240, 42);
 }
 
-void KeyUploadDialog::slotUpload() {
+void KeyUploadDialog::SlotUpload() {
   auto out_data = std::make_unique<ByteArray>();
-  GpgKeyImportExporter::GetInstance().ExportKeys(*mKeys, out_data);
-  uploadKeyToServer(*out_data);
+  GpgKeyImportExporter::GetInstance().ExportKeys(*m_keys_, out_data);
+  slot_upload_key_to_server(*out_data);
 }
 
-void KeyUploadDialog::uploadKeyToServer(
+void KeyUploadDialog::slot_upload_key_to_server(
     const GpgFrontend::ByteArray& keys_data) {
   std::string target_keyserver;
   if (target_keyserver.empty()) {
@@ -109,7 +109,7 @@ void KeyUploadDialog::uploadKeyToServer(
 
   // Send Post Data
   QNetworkReply* reply = qnam->post(request, postData);
-  connect(reply, SIGNAL(finished()), this, SLOT(slotUploadFinished()));
+  connect(reply, SIGNAL(finished()), this, SLOT(slot_upload_finished()));
 
   // Keep Waiting
   while (reply->isRunning()) {
@@ -121,7 +121,7 @@ void KeyUploadDialog::uploadKeyToServer(
   this->close();
 }
 
-void KeyUploadDialog::slotUploadFinished() {
+void KeyUploadDialog::slot_upload_finished() {
   auto* reply = qobject_cast<QNetworkReply*>(sender());
 
   QByteArray response = reply->readAll();

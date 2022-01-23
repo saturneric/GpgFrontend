@@ -34,20 +34,45 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class SignalStation : public QObject {
   Q_OBJECT
   static std::unique_ptr<SignalStation> _instance;
 
  public:
+  /**
+   * @brief Get the Instance object
+   *
+   * @return SignalStation*
+   */
   static SignalStation* GetInstance();
 
  signals:
-  void KeyDatabaseRefresh();
+  /**
+   * @brief
+   *
+   */
+  void SignalKeyDatabaseRefresh();
 
-  void signalRefreshInfoBoard(const QString& text,
+  /**
+   * @brief
+   *
+   * @param text
+   * @param verify_label_status
+   */
+  void SignalRefreshInfoBoard(const QString& text,
                               InfoBoardStatus verify_label_status);
 
-  void signalRefreshStatusBar(const QString& message, int timeout);
+  /**
+   * @brief
+   *
+   * @param message
+   * @param timeout
+   */
+  void SignalRefreshStatusBar(const QString& message, int timeout);
 };
 
 }  // namespace GpgFrontend::UI

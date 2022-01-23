@@ -33,16 +33,20 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class WaitingDialog : public QDialog {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new Waiting Dialog object
+   *
+   * @param title
+   * @param parent
+   */
   WaitingDialog(const QString& title, QWidget* parent);
-
- public slots:
-
- private slots:
-
- private:
 };
 
 }  // namespace GpgFrontend::UI

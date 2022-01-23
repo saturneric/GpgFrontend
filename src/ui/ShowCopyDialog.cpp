@@ -33,21 +33,21 @@ namespace GpgFrontend::UI {
 ShowCopyDialog::ShowCopyDialog(const QString& text, const QString& info,
                                QWidget* parent)
     : QDialog(parent) {
-  textEdit = new QTextEdit();
-  textEdit->setReadOnly(true);
-  textEdit->setLineWrapMode(QTextEdit::WidgetWidth);
-  textEdit->setText(text);
-  copyButton = new QPushButton("Copy");
-  connect(copyButton, SIGNAL(clicked(bool)), this, SLOT(slotCopyText()));
+  text_edit_ = new QTextEdit();
+  text_edit_->setReadOnly(true);
+  text_edit_->setLineWrapMode(QTextEdit::WidgetWidth);
+  text_edit_->setText(text);
+  copy_button_ = new QPushButton("Copy");
+  connect(copy_button_, SIGNAL(clicked(bool)), this, SLOT(slot_copy_text()));
 
-  infoLabel = new QLabel();
-  infoLabel->setText(info);
-  infoLabel->setWordWrap(true);
+  info_label_ = new QLabel();
+  info_label_->setText(info);
+  info_label_->setWordWrap(true);
 
   auto* layout = new QVBoxLayout();
-  layout->addWidget(textEdit);
-  layout->addWidget(copyButton);
-  layout->addWidget(infoLabel);
+  layout->addWidget(text_edit_);
+  layout->addWidget(copy_button_);
+  layout->addWidget(info_label_);
 
   this->setWindowTitle("Short Ciphertext");
   this->resize(320, 120);
@@ -55,9 +55,9 @@ ShowCopyDialog::ShowCopyDialog(const QString& text, const QString& info,
   this->setLayout(layout);
 }
 
-void ShowCopyDialog::slotCopyText() {
+void ShowCopyDialog::slot_copy_text() {
   QClipboard* cb = QApplication::clipboard();
-  cb->setText(textEdit->toPlainText());
+  cb->setText(text_edit_->toPlainText());
 }
 
 }  // namespace GpgFrontend::UI

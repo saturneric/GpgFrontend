@@ -33,20 +33,35 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class ShowCopyDialog : public QDialog {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new Show Copy Dialog object
+   *
+   * @param text
+   * @param info
+   * @param parent
+   */
   explicit ShowCopyDialog(const QString& text, const QString& info = "",
                           QWidget* parent = nullptr);
 
  private slots:
 
-  void slotCopyText();
+  /**
+   * @brief
+   *
+   */
+  void slot_copy_text();
 
  private:
-  QLabel* infoLabel;
-  QTextEdit* textEdit;
-  QPushButton* copyButton;
+  QLabel* info_label_;    ///<
+  QTextEdit* text_edit_;  ///<
+  QPushButton* copy_button_;  ///<
 };
 
 }  // namespace GpgFrontend::UI

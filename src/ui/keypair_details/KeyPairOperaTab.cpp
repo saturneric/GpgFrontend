@@ -257,7 +257,7 @@ void KeyPairOperaTab::slot_upload_key_to_server() {
   keys->push_back(m_key_.GetId());
   auto* dialog = new KeyUploadDialog(keys, this);
   dialog->show();
-  dialog->slotUpload();
+  dialog->SlotUpload();
 }
 
 void KeyPairOperaTab::slot_update_key_from_server() {
@@ -265,7 +265,7 @@ void KeyPairOperaTab::slot_update_key_from_server() {
   keys->push_back(m_key_.GetId());
   auto* dialog = new KeyServerImportDialog(this);
   dialog->show();
-  dialog->slotImport(keys);
+  dialog->SlotImport(keys);
 }
 
 void KeyPairOperaTab::slot_gen_revoke_cert() {
@@ -280,7 +280,7 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
   if (dialog.exec()) m_output_file_name = dialog.selectedFiles().front();
 
   if (!m_output_file_name.isEmpty())
-    CommonUtils::GetInstance()->slotExecuteGpgCommand(
+    CommonUtils::GetInstance()->SlotExecuteGpgCommand(
         {"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o",
          m_output_file_name, "--gen-revoke", m_key_.GetFingerprint().c_str()},
         [](QProcess* proc) -> void {

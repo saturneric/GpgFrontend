@@ -35,24 +35,57 @@
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
+
+/**
+ * @brief
+ *
+ */
 class KeyImportDetailDialog : public QDialog {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Key Import Detail Dialog object
+   *
+   * @param result
+   * @param automatic
+   * @param parent
+   */
   KeyImportDetailDialog(GpgImportInformation result, bool automatic,
                         QWidget* parent = nullptr);
 
  private:
-  void createGeneralInfoBox();
-  void createKeysTable();
-  void createButtonBox();
-  static QString getStatusString(int keyStatus);
+  /**
+   * @brief Create a general info box object
+   *
+   */
+  void create_general_info_box();
 
-  QTableWidget* keysTable{};
-  QGroupBox* generalInfoBox{};
-  QGroupBox* keyInfoBox{};
-  QDialogButtonBox* buttonBox{};
-  GpgImportInformation mResult;
+  /**
+   * @brief Create a keys table object
+   *
+   */
+  void create_keys_table();
+
+  /**
+   * @brief Create a button box object
+   *
+   */
+  void create_button_box();
+
+  /**
+   * @brief Get the status string object
+   *
+   * @param keyStatus
+   * @return QString
+   */
+  static QString get_status_string(int keyStatus);
+
+  QTableWidget* keys_table_{};      ///<
+  QGroupBox* general_info_box_{};   ///<
+  QGroupBox* key_info_box_{};       ///<
+  QDialogButtonBox* button_box_{};  ///<
+  GpgImportInformation m_result_;   ///<
 };
 }  // namespace GpgFrontend::UI
 

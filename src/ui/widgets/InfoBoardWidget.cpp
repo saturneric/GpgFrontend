@@ -50,7 +50,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent)
   connect(ui_->clearButton, &QPushButton::clicked, this,
           &InfoBoardWidget::SlotReset);
 
-  connect(SignalStation::GetInstance(), &SignalStation::signalRefreshInfoBoard,
+  connect(SignalStation::GetInstance(), &SignalStation::SignalRefreshInfoBoard,
           this, &InfoBoardWidget::SlotRefresh);
 }
 
