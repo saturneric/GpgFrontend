@@ -42,86 +42,88 @@
 namespace GpgFrontend::UI {
 
 SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
-  tabWidget = new QTabWidget();
-  generalTab = new GeneralTab();
-  appearanceTab = new AppearanceTab();
+  tab_widget_ = new QTabWidget();
+  general_tab_ = new GeneralTab();
+  appearance_tab_ = new AppearanceTab();
 #ifdef SMTP_SUPPORT
-  sendMailTab = new SendMailTab();
+  send_mail_tab_ = new SendMailTab();
 #endif
-  keyserverTab = new KeyserverTab();
-  networkTab = new NetworkTab();
+  key_server_tab_ = new KeyserverTab();
+  network_tab_ = new NetworkTab();
 #ifdef ADVANCED_SUPPORT
   advancedTab = new AdvancedTab;
 #endif
 
-  tabWidget->addTab(generalTab, _("General"));
-  tabWidget->addTab(appearanceTab, _("Appearance"));
+  tab_widget_->addTab(general_tab_, _("General"));
+  tab_widget_->addTab(appearance_tab_, _("Appearance"));
 #ifdef SMTP_SUPPORT
-  tabWidget->addTab(sendMailTab, _("Send Mail"));
+  tab_widget_->addTab(send_mail_tab_, _("Send Mail"));
 #endif
-  tabWidget->addTab(keyserverTab, _("Key Server"));
+  tab_widget_->addTab(key_server_tab_, _("Key Server"));
   // tabWidget->addTab(gpgPathsTab, _("Gpg paths"));
-  tabWidget->addTab(networkTab, _("Network"));
+  tab_widget_->addTab(network_tab_, _("Network"));
 #ifdef ADVANCED_SUPPORT
   tabWidget->addTab(advancedTab, _("Advanced"));
 #endif
 
-  buttonBox =
+  button_box_ =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
-  connect(buttonBox, SIGNAL(accepted()), this, SLOT(slotAccept()));
-  connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+  connect(button_box_, SIGNAL(accepted()), this, SLOT(SlotAccept()));
+  connect(button_box_, SIGNAL(rejected()), this, SLOT(reject()));
 
   auto* mainLayout = new QVBoxLayout;
-  mainLayout->addWidget(tabWidget);
+  mainLayout->addWidget(tab_widget_);
   mainLayout->stretch(0);
-  mainLayout->addWidget(buttonBox);
+  mainLayout->addWidget(button_box_);
   mainLayout->stretch(0);
   setLayout(mainLayout);
 
   setWindowTitle(_("Settings"));
 
   // slots for handling the restartneeded member
-  this->slotSetRestartNeeded(false);
-  connect(generalTab, SIGNAL(signalRestartNeeded(bool)), this,
-          SLOT(slotSetRestartNeeded(bool)));
-  connect(appearanceTab, SIGNAL(signalRestartNeeded(bool)), this,
-          SLOT(slotSetRestartNeeded(bool)));
+  this->slot_set_restart_needed(false);
+  connect(general_tab_, SIGNAL(SignalRestartNeeded(bool)), this,
+          SLOT(slot_set_restart_needed(bool)));
+  connect(appearance_tab_, SIGNAL(SignalRestartNeeded(bool)), this,
+          SLOT(slot_set_restart_needed(bool)));
 #ifdef SMTP_SUPPORT
-  connect(sendMailTab, SIGNAL(signalRestartNeeded(bool)), this,
-          SLOT(slotSetRestartNeeded(bool)));
+  connect(send_mail_tab_, SIGNAL(SignalRestartNeeded(bool)), this,
+          SLOT(slot_set_restart_needed(bool)));
 #endif
-  connect(keyserverTab, SIGNAL(signalRestartNeeded(bool)), this,
-          SLOT(slotSetRestartNeeded(bool)));
+  connect(key_server_tab_, SIGNAL(SignalRestartNeeded(bool)), this,
+          SLOT(slot_set_restart_needed(bool)));
 #ifdef ADVANCED_SUPPORT
   connect(advancedTab, SIGNAL(signalRestartNeeded(bool)), this,
           SLOT(slotSetRestartNeeded(bool)));
 #endif
 
-  connect(this, SIGNAL(signalRestartNeeded(bool)), parent,
-          SLOT(slotSetRestartNeeded(bool)));
+  connect(this, SIGNAL(SignalRestartNeeded(bool)), parent,
+          SLOT(slot_set_restart_needed(bool)));
 
   this->setMinimumSize(480, 680);
   this->adjustSize();
   this->show();
 }
 
-bool SettingsDialog::getRestartNeeded() const { return this->restartNeeded; }
-
-void SettingsDialog::slotSetRestartNeeded(bool needed) {
-  this->restartNeeded = needed;
+bool SettingsDialog::get_restart_needed() const {
+  return this->restart_needed_;
 }
 
-void SettingsDialog::slotAccept() {
+void SettingsDialog::slot_set_restart_needed(bool needed) {
+  this->restart_needed_ = needed;
+}
+
+void SettingsDialog::SlotAccept() {
   LOG(INFO) << "Called";
 
-  generalTab->applySettings();
+  general_tab_->ApplySettings();
 #ifdef SMTP_SUPPORT
-  sendMailTab->applySettings();
+  send_mail_tab_->ApplySettings();
 #endif
-  appearanceTab->applySettings();
-  keyserverTab->applySettings();
-  networkTab->applySettings();
+  appearance_tab_->ApplySettings();
+  key_server_tab_->ApplySettings();
+  network_tab_->ApplySettings();
 #ifdef ADVANCED_SUPPORT
   advancedTab->applySettings();
 #endif
@@ -131,14 +133,14 @@ void SettingsDialog::slotAccept() {
   // write settings to filesystem
   GlobalSettingStation::GetInstance().SyncSettings();
 
-  LOG(INFO) << "restart needed" << getRestartNeeded();
-  if (getRestartNeeded()) {
-    emit signalRestartNeeded(true);
+  LOG(INFO) << "restart needed" << get_restart_needed();
+  if (get_restart_needed()) {
+    emit SignalRestartNeeded(true);
   }
   close();
 }
 
-QHash<QString, QString> SettingsDialog::listLanguages() {
+QHash<QString, QString> SettingsDialog::ListLanguages() {
   QHash<QString, QString> languages;
 
   languages.insert(QString(), _("System Default"));

@@ -36,37 +36,63 @@ class Ui_GeneralSettings;
 namespace GpgFrontend::UI {
 class KeyList;
 
+/**
+ * @brief
+ *
+ */
 class GeneralTab : public QWidget {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new General Tab object
+   *
+   * @param parent
+   */
   explicit GeneralTab(QWidget* parent = nullptr);
 
-  void setSettings();
+  /**
+   * @brief Set the Settings object
+   *
+   */
+  void SetSettings();
 
-  void applySettings();
+  /**
+   * @brief
+   *
+   */
+  void ApplySettings();
+
+ signals:
+
+  /**
+   * @brief
+   *
+   * @param needed
+   */
+  void SignalRestartNeeded(bool needed);
 
  private:
-  std::shared_ptr<Ui_GeneralSettings> ui;
+  std::shared_ptr<Ui_GeneralSettings> ui_;  ///<
 
 #ifdef MULTI_LANG_SUPPORT
-  QHash<QString, QString> lang;
+  QHash<QString, QString> lang_;  ///<
 #endif
 
-  std::vector<std::string> keyIdsList;
+  std::vector<std::string> key_ids_list_;  ///<
 
-  KeyList* mKeyList{};
+  KeyList* m_key_list_{};  ///<
 
  private slots:
 
 #ifdef MULTI_LANG_SUPPORT
-
-  void slotLanguageChanged();
+  /**
+   * @brief
+   *
+   */
+  void slot_language_changed();
 
 #endif
- signals:
-
-  void signalRestartNeeded(bool needed);
 };
 }  // namespace GpgFrontend::UI
 

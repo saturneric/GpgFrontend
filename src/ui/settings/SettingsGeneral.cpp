@@ -38,39 +38,39 @@
 namespace GpgFrontend::UI {
 
 GeneralTab::GeneralTab(QWidget* parent)
-    : QWidget(parent), ui(std::make_shared<Ui_GeneralSettings>()) {
-  ui->setupUi(this);
+    : QWidget(parent), ui_(std::make_shared<Ui_GeneralSettings>()) {
+  ui_->setupUi(this);
 
-  ui->saveCheckedKeysBox->setTitle(_("Save Checked Keys"));
-  ui->saveCheckedKeysCheckBox->setText(
+  ui_->saveCheckedKeysBox->setTitle(_("Save Checked Keys"));
+  ui_->saveCheckedKeysCheckBox->setText(
       _("Save checked private keys on exit and restore them on next start."));
-  ui->longerKeyExpirationDateBox->setTitle(_("Longer Key Expiration Date"));
-  ui->longerKeyExpirationDateCheckBox->setText(
+  ui_->longerKeyExpirationDateBox->setTitle(_("Longer Key Expiration Date"));
+  ui_->longerKeyExpirationDateCheckBox->setText(
       _("Unlock key expiration date setting up to 30 years."));
-  ui->importConfirmationBox->setTitle(_("Confirm drag'n'drop key import"));
-  ui->importConfirmationCheckBox->setText(
+  ui_->importConfirmationBox->setTitle(_("Confirm drag'n'drop key import"));
+  ui_->importConfirmationCheckBox->setText(
       _("Import files dropped on the Key List without confirmation."));
 
-  ui->asciiModeBox->setTitle(_("ASCII Mode"));
-  ui->asciiModeCheckBox->setText(
+  ui_->asciiModeBox->setTitle(_("ASCII Mode"));
+  ui_->asciiModeCheckBox->setText(
       _("ASCII encoding is not used when file encrypting and "
         "signing."));
 
-  ui->langBox->setTitle(_("Language"));
-  ui->langNoteLabel->setText(
+  ui_->langBox->setTitle(_("Language"));
+  ui_->langNoteLabel->setText(
       "<b>" + QString(_("NOTE")) + _(": ") + "</b>" +
       _("GpgFrontend will restart automatically if you change the language!"));
 
 #ifdef MULTI_LANG_SUPPORT
-  lang = SettingsDialog::listLanguages();
-  for (const auto& l : lang) {
-    ui->langSelectBox->addItem(l);
+  lang_ = SettingsDialog::ListLanguages();
+  for (const auto& l : lang_) {
+    ui_->langSelectBox->addItem(l);
   }
-  connect(ui->langSelectBox, SIGNAL(currentIndexChanged(int)), this,
-          SLOT(slotLanguageChanged()));
+  connect(ui_->langSelectBox, SIGNAL(currentIndexChanged(int)), this,
+          SLOT(slot_language_changed()));
 #endif
 
-  setSettings();
+  SetSettings();
 }
 
 /**********************************
@@ -78,12 +78,12 @@ GeneralTab::GeneralTab(QWidget* parent)
  * and set the buttons and checkboxes
  * appropriately
  **********************************/
-void GeneralTab::setSettings() {
+void GeneralTab::SetSettings() {
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
   try {
     bool save_key_checked = settings.lookup("general.save_key_checked");
     if (save_key_checked)
-      ui->saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
+      ui_->saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("save_key_checked");
   }
@@ -93,7 +93,7 @@ void GeneralTab::setSettings() {
         settings.lookup("general.longer_expiration_date");
     LOG(INFO) << "longer_expiration_date" << longer_expiration_date;
     if (longer_expiration_date)
-      ui->longerKeyExpirationDateCheckBox->setCheckState(Qt::Checked);
+      ui_->longerKeyExpirationDateCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("longer_expiration_date");
   }
@@ -101,13 +101,13 @@ void GeneralTab::setSettings() {
 #ifdef MULTI_LANG_SUPPORT
   try {
     std::string lang_key = settings.lookup("general.lang");
-    QString lang_value = lang.value(lang_key.c_str());
+    QString lang_value = lang_.value(lang_key.c_str());
     LOG(INFO) << "lang settings current" << lang_value.toStdString();
-    if (!lang.empty()) {
-      ui->langSelectBox->setCurrentIndex(
-          ui->langSelectBox->findText(lang_value));
+    if (!lang_.empty()) {
+      ui_->langSelectBox->setCurrentIndex(
+          ui_->langSelectBox->findText(lang_value));
     } else {
-      ui->langSelectBox->setCurrentIndex(0);
+      ui_->langSelectBox->setCurrentIndex(0);
     }
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("lang");
@@ -118,7 +118,7 @@ void GeneralTab::setSettings() {
     bool confirm_import_keys = settings.lookup("general.confirm_import_keys");
     LOG(INFO) << "confirm_import_keys" << confirm_import_keys;
     if (confirm_import_keys)
-      ui->importConfirmationCheckBox->setCheckState(Qt::Checked);
+      ui_->importConfirmationCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("confirm_import_keys");
   }
@@ -128,7 +128,7 @@ void GeneralTab::setSettings() {
         settings.lookup("general.non_ascii_when_export");
     LOG(INFO) << "non_ascii_when_export" << non_ascii_when_export;
     if (non_ascii_when_export)
-      ui->asciiModeCheckBox->setCheckState(Qt::Checked);
+      ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("non_ascii_when_export");
   }
@@ -138,7 +138,7 @@ void GeneralTab::setSettings() {
  * get the values of the buttons and
  * write them to settings-file
  *************************************/
-void GeneralTab::applySettings() {
+void GeneralTab::ApplySettings() {
   auto& settings =
       GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
 
@@ -150,46 +150,47 @@ void GeneralTab::applySettings() {
 
   if (!general.exists("longer_expiration_date"))
     general.add("longer_expiration_date", libconfig::Setting::TypeBoolean) =
-        ui->longerKeyExpirationDateCheckBox->isChecked();
+        ui_->longerKeyExpirationDateCheckBox->isChecked();
   else {
     general["longer_expiration_date"] =
-        ui->longerKeyExpirationDateCheckBox->isChecked();
+        ui_->longerKeyExpirationDateCheckBox->isChecked();
   }
 
   if (!general.exists("save_key_checked"))
     general.add("save_key_checked", libconfig::Setting::TypeBoolean) =
-        ui->saveCheckedKeysCheckBox->isChecked();
+        ui_->saveCheckedKeysCheckBox->isChecked();
   else {
-    general["save_key_checked"] = ui->saveCheckedKeysCheckBox->isChecked();
+    general["save_key_checked"] = ui_->saveCheckedKeysCheckBox->isChecked();
   }
 
   if (!general.exists("non_ascii_when_export"))
     general.add("non_ascii_when_export", libconfig::Setting::TypeBoolean) =
-        ui->asciiModeCheckBox->isChecked();
+        ui_->asciiModeCheckBox->isChecked();
   else {
-    general["non_ascii_when_export"] = ui->asciiModeCheckBox->isChecked();
+    general["non_ascii_when_export"] = ui_->asciiModeCheckBox->isChecked();
   }
 
 #ifdef MULTI_LANG_SUPPORT
   if (!general.exists("lang"))
     general.add("lang", libconfig::Setting::TypeBoolean) =
-        lang.key(ui->langSelectBox->currentText()).toStdString();
+        lang_.key(ui_->langSelectBox->currentText()).toStdString();
   else {
-    general["lang"] = lang.key(ui->langSelectBox->currentText()).toStdString();
+    general["lang"] =
+        lang_.key(ui_->langSelectBox->currentText()).toStdString();
   }
 #endif
 
   if (!general.exists("confirm_import_keys"))
     general.add("confirm_import_keys", libconfig::Setting::TypeBoolean) =
-        ui->importConfirmationCheckBox->isChecked();
+        ui_->importConfirmationCheckBox->isChecked();
   else {
     general["confirm_import_keys"] =
-        ui->importConfirmationCheckBox->isChecked();
+        ui_->importConfirmationCheckBox->isChecked();
   }
 }
 
 #ifdef MULTI_LANG_SUPPORT
-void GeneralTab::slotLanguageChanged() { emit signalRestartNeeded(true); }
+void GeneralTab::slot_language_changed() { emit SignalRestartNeeded(true); }
 #endif
 
 }  // namespace GpgFrontend::UI

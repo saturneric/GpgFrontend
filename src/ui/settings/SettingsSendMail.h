@@ -34,40 +34,85 @@
 class Ui_SendMailSettings;
 
 namespace GpgFrontend::UI {
+/**
+ * @brief
+ *
+ */
 class SendMailTab : public QWidget {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Send Mail Tab object
+   *
+   * @param parent
+   */
   explicit SendMailTab(QWidget* parent = nullptr);
 
-  void setSettings();
+  /**
+   * @brief Set the Settings object
+   *
+   */
+  void SetSettings();
 
-  void applySettings();
-
- private slots:
-
-  void slotTestSMTPConnectionResult(const QString& result);
-
-#ifdef SMTP_SUPPORT
-  void slotCheckConnection();
-
-  void slotSendTestMail();
-#endif
-
- private:
-  std::shared_ptr<Ui_SendMailSettings> ui;
-  QRegularExpression re_email{
-      R"((?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\]))"};
-  SmtpClient::ConnectionType connection_type_ =
-      SmtpClient::ConnectionType::TcpConnection;
-
-  void switch_ui_enabled(bool enabled);
-
-  void switch_ui_identity_enabled(bool enabled);
+  /**
+   * @brief
+   *
+   */
+  void ApplySettings();
 
  signals:
 
-  void signalRestartNeeded(bool needed);
+  /**
+   * @brief
+   *
+   * @param needed
+   */
+  void SignalRestartNeeded(bool needed);
+
+ private slots:
+
+  /**
+   * @brief
+   *
+   * @param result
+   */
+  void slot_test_smtp_connection_result(const QString& result);
+
+#ifdef SMTP_SUPPORT
+  /**
+   * @brief
+   *
+   */
+  void slot_check_connection();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_send_test_mail();
+#endif
+
+ private:
+  std::shared_ptr<Ui_SendMailSettings> ui_;  ///<
+  QRegularExpression re_email_{
+      R"((?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\]))"};
+  SmtpClient::ConnectionType connection_type_ =
+      SmtpClient::ConnectionType::TcpConnection;  ///<
+
+  /**
+   * @brief
+   *
+   * @param enabled
+   */
+  void switch_ui_enabled(bool enabled);
+
+  /**
+   * @brief
+   *
+   * @param enabled
+   */
+  void switch_ui_identity_enabled(bool enabled);
 };
 }  // namespace GpgFrontend::UI
 

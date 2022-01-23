@@ -31,9 +31,9 @@
 
 #include <openssl/x509.h>
 
-#include <nlohmann/json.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <nlohmann/json.hpp>
 
 #include "GpgFrontendBuildInstallInfo.h"
 #include "ui/GpgFrontendUI.h"
@@ -45,127 +45,228 @@ class X509Certificate;
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class GlobalSettingStation : public QObject {
   Q_OBJECT
  public:
+  /**
+   * @brief Get the Instance object
+   *
+   * @return GlobalSettingStation&
+   */
   static GlobalSettingStation& GetInstance();
 
+  /**
+   * @brief Construct a new Global Setting Station object
+   *
+   */
   GlobalSettingStation() noexcept;
 
+  /**
+   * @brief Destroy the Global Setting Station object
+   *
+   */
   ~GlobalSettingStation() noexcept override;
 
-  libconfig::Setting& GetUISettings() noexcept { return ui_cfg.getRoot(); }
+  /**
+   * @brief
+   *
+   * @return libconfig::Setting&
+   */
+  libconfig::Setting& GetUISettings() noexcept { return ui_cfg_.getRoot(); }
 
-  [[nodiscard]] boost::filesystem::path GetAppDir() const { return app_path; }
+  /**
+   * @brief Get the App Dir object
+   *
+   * @return boost::filesystem::path
+   */
+  [[nodiscard]] boost::filesystem::path GetAppDir() const { return app_path_; }
 
+  /**
+   * @brief Get the Log Dir object
+   *
+   * @return boost::filesystem::path
+   */
   [[nodiscard]] boost::filesystem::path GetLogDir() const {
-    return app_log_path;
+    return app_log_path_;
   }
 
+  /**
+   * @brief Get the Standalone Database Dir object
+   *
+   * @return boost::filesystem::path
+   */
   [[nodiscard]] boost::filesystem::path GetStandaloneDatabaseDir() const {
-    auto db_path = app_configure_path / "db";
+    auto db_path = app_configure_path_ / "db";
     if (!boost::filesystem::exists(db_path)) {
       boost::filesystem::create_directory(db_path);
     }
     return db_path;
   }
 
+  /**
+   * @brief Get the Standalone Gpg Bin Dir object
+   *
+   * @return boost::filesystem::path
+   */
   [[nodiscard]] boost::filesystem::path GetStandaloneGpgBinDir() const {
-    return app_resource_path / "gpg1.4" / "gpg";
+    return app_resource_path_ / "gpg1.4" / "gpg";
   }
 
+  /**
+   * @brief Get the Locale Dir object
+   *
+   * @return boost::filesystem::path
+   */
   [[nodiscard]] boost::filesystem::path GetLocaleDir() const {
-    return app_locale_path;
+    return app_locale_path_;
   }
 
+  /**
+   * @brief Get the Resource Dir object
+   *
+   * @return boost::filesystem::path
+   */
   [[nodiscard]] boost::filesystem::path GetResourceDir() const {
-    return app_resource_path;
+    return app_resource_path_;
   }
 
+  /**
+   * @brief Get the Certs Dir object
+   *
+   * @return boost::filesystem::path
+   */
   [[nodiscard]] boost::filesystem::path GetCertsDir() const {
-    return app_resource_path / "certs";
+    return app_resource_path_ / "certs";
   }
 
+  /**
+   * @brief Get the Cert Verifier object
+   *
+   * @return std::shared_ptr<
+   * vmime::security::cert::defaultCertificateVerifier>
+   */
   [[nodiscard]] std::shared_ptr<
       vmime::security::cert::defaultCertificateVerifier>
   GetCertVerifier() const;
 
+  /**
+   * @brief
+   *
+   * @param path
+   */
   void AddRootCert(const boost::filesystem::path& path);
 
+  /**
+   * @brief Get the Root Certs object
+   *
+   * @return const std::vector<std::shared_ptr<X509>>&
+   */
   const std::vector<std::shared_ptr<X509>>& GetRootCerts();
 
+  /**
+   * @brief
+   *
+   */
   void ResetRootCerts() { root_certs_.clear(); }
 
+  /**
+   * @brief
+   *
+   */
   void SyncSettings() noexcept;
+
+  /**
+   * @brief
+   *
+   * @param _key
+   * @param value
+   * @return std::string
+   */
 
   std::string SaveDataObj(const std::string& _key, const nlohmann::json& value);
 
+  /**
+   * @brief Get the Data Object object
+   *
+   * @param _key
+   * @return std::optional<nlohmann::json>
+   */
   std::optional<nlohmann::json> GetDataObject(const std::string& _key);
 
+  /**
+   * @brief Get the Data Object By Ref object
+   *
+   * @param _ref
+   * @return std::optional<nlohmann::json>
+   */
   std::optional<nlohmann::json> GetDataObjectByRef(const std::string& _ref);
 
  private:
-  // Program Location
-  boost::filesystem::path app_path = qApp->applicationDirPath().toStdString();
-
-  // Program Data Location
-  boost::filesystem::path app_data_path =
+  boost::filesystem::path app_path_ =
+      qApp->applicationDirPath().toStdString();  ///< Program Location
+  boost::filesystem::path app_data_path_ =
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
-          .toStdString();
-
-  // Program Data Location
-  boost::filesystem::path app_log_path = app_data_path / "logs";
-
-  // object storage path
-  boost::filesystem::path app_data_objs_path = app_data_path / "objs";
+          .toStdString();  ///< Program Data Location
+  boost::filesystem::path app_log_path_ =
+      app_data_path_ / "logs";  ///< Program Data Location
+  boost::filesystem::path app_data_objs_path_ =
+      app_data_path_ / "objs";  ///< Object storage path
 
 #ifdef LINUX_INSTALL_BUILD
-  // Program Data Location
-  boost::filesystem::path app_resource_path =
-      boost::filesystem::path(APP_LOCALSTATE_PATH) / "gpgfrontend";
+  boost::filesystem::path app_resource_path_ =
+      boost::filesystem::path(APP_LOCALSTATE_PATH) /
+      "gpgfrontend";  ///< Program Data Location
 #else
-  // Program Data Location
-  boost::filesystem::path app_resource_path = RESOURCE_DIR_BOOST_PATH(app_path);
+  boost::filesystem::path app_resource_path_ =
+      RESOURCE_DIR_BOOST_PATH(app_path_);  ///< Program Data Location
 #endif
 
 #ifdef LINUX_INSTALL_BUILD
-  // Program Data Location
-  boost::filesystem::path app_locale_path = std::string(APP_LOCALE_PATH);
+  boost::filesystem::path app_locale_path_ =
+      std::string(APP_LOCALE_PATH);  ///< Program Data Location
 #else
-  // Program Data Location
-  boost::filesystem::path app_locale_path = app_resource_path / "locales";
+  boost::filesystem::path app_locale_path_ =
+      app_resource_path_ / "locales";  ///< Program Data Location
 #endif
 
-  // Program Configure Location
-  boost::filesystem::path app_configure_path =
+  boost::filesystem::path app_configure_path_ =
       QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
-          .toStdString();
+          .toStdString();  ///< Program Configure Location
+  boost::filesystem::path app_secure_path_ =
+      app_configure_path_ /
+      "secure";  ///< Where sensitive information is stored
+  boost::filesystem::path app_secure_key_path_ =
+      app_secure_path_ / "app.key";  ///<
+  boost::filesystem::path ui_config_dir_path_ =
+      app_configure_path_ /
+      "UserInterface";  ///< Configure File Directory Location
+  boost::filesystem::path ui_config_path_ =
+      ui_config_dir_path_ / "ui.cfg";  ///< UI Configure File Location
 
-  boost::filesystem::path app_secure_path = app_configure_path / "secure";
+  libconfig::Config ui_cfg_;                       ///<
+  std::vector<std::shared_ptr<X509>> root_certs_;  ///<
+  std::random_device rd_;                          ///<
+  std::mt19937 mt_;                                ///<
+  QByteArray hash_key_;                            ///<
 
-  boost::filesystem::path app_secure_key_path = app_secure_path / "app.key";
+  static std::unique_ptr<GlobalSettingStation> instance_;  ///<
 
-  // Configure File Directory Location
-  boost::filesystem::path ui_config_dir_path =
-      app_configure_path / "UserInterface";
-
-  // UI Configure File Location
-  boost::filesystem::path ui_config_path = ui_config_dir_path / "ui.cfg";
-
-  libconfig::Config ui_cfg;
-
-  std::vector<std::shared_ptr<X509>> root_certs_;
-
-  std::random_device rd;
-
-  std::mt19937 mt;
-
-  QByteArray hash_key_;
-
-  static std::unique_ptr<GlobalSettingStation> _instance;
-
+  /**
+   * @brief
+   *
+   */
   void init_app_secure_key();
 
+  /**
+   * @brief
+   *
+   * @param len
+   * @return std::string
+   */
   std::string generate_passphrase(int len);
 };
 }  // namespace GpgFrontend::UI

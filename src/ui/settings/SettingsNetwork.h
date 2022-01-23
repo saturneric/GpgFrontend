@@ -38,22 +38,55 @@ class NetworkTab : public QWidget {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Network Tab object
+   *
+   * @param parent
+   */
   explicit NetworkTab(QWidget* parent = nullptr);
 
-  void setSettings();
+  /**
+   * @brief Set the Settings object
+   *
+   */
+  void SetSettings();
 
-  void applySettings();
+  /**
+   * @brief
+   *
+   */
+  void ApplySettings();
 
  private slots:
 
-  void slotTestProxyConnectionResult();
+  /**
+   * @brief
+   *
+   */
+  void slot_test_proxy_connection_result();
 
  private:
-  std::shared_ptr<Ui_NetworkSettings> ui;
-  QNetworkProxy::ProxyType proxy_type_ = QNetworkProxy::HttpProxy;
+  std::shared_ptr<Ui_NetworkSettings> ui_;                          ///<
+  QNetworkProxy::ProxyType proxy_type_ = QNetworkProxy::HttpProxy;  ///<
 
+  /**
+   * @brief
+   *
+   */
   void apply_proxy_settings();
+
+  /**
+   * @brief
+   *
+   * @param enabled
+   */
   void switch_ui_enabled(bool enabled);
+
+  /**
+   * @brief
+   *
+   * @param type_text
+   */
   void switch_ui_proxy_type(const QString& type_text);
 };
 }  // namespace GpgFrontend::UI

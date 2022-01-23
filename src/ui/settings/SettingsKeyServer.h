@@ -34,38 +34,76 @@
 class Ui_KeyServerSettings;
 
 namespace GpgFrontend::UI {
+/**
+ * @brief
+ *
+ */
 class KeyserverTab : public QWidget {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Keyserver Tab object
+   *
+   * @param parent
+   */
   explicit KeyserverTab(QWidget* parent = nullptr);
 
-  void setSettings();
+  /**
+   * @brief Set the Settings object
+   *
+   */
+  void SetSettings();
 
-  void applySettings();
+  /**
+   * @brief
+   *
+   */
+  void ApplySettings();
 
  private:
-  std::shared_ptr<Ui_KeyServerSettings> ui;
-  QString defaultKeyServer;
-  QStringList keyServerStrList;
-  QMenu* popupMenu{};
+  std::shared_ptr<Ui_KeyServerSettings> ui_;
+  QString default_key_server_;
+  QStringList key_server_str_list_;
+  QMenu* popup_menu_{};
 
-  QRegularExpression url_reg{
+  QRegularExpression url_reg_{
       R"(^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$)"};
 
  private slots:
 
-  void addKeyServer();
+  /**
+   * @brief
+   *
+   */
+  void slot_add_key_server();
 
-  void refreshTable();
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh_table();
 
-  void slotTestListedKeyServer();
+  /**
+   * @brief
+   *
+   */
+  void slot_test_listed_key_server();
 
  signals:
-
-  void signalRestartNeeded(bool needed);
+  /**
+   * @brief
+   *
+   * @param needed
+   */
+  void SignalRestartNeeded(bool needed);
 
  protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
   void contextMenuEvent(QContextMenuEvent* event) override;
 };
 }  // namespace GpgFrontend::UI
