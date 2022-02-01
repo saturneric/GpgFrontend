@@ -49,42 +49,39 @@ class KeyPairDetailTab : public QWidget {
    * @brief
    *
    */
-  void slotRefreshKeyInfo();
+  void slot_refresh_key_info();
 
   /**
    * @brief
    *
    */
-  void slotRefreshKey();
+  void slot_refresh_key();
 
  private:
   GpgKey key_;  ///<
 
-  QGroupBox* ownerBox;          ///< Groupbox containing owner information
-  QGroupBox* keyBox;            ///< Groupbox containing key information
-  QGroupBox* fingerprintBox;    ///< Groupbox containing fingerprint information
-  QGroupBox* additionalUidBox;  ///< Groupbox containing information about
-                                ///< additional uids
+  QGroupBox* owner_box_;          ///< Groupbox containing owner information
+  QGroupBox* key_box_;            ///< Groupbox containing key information
+  QGroupBox* fingerprint_box_;    ///< Groupbox containing fingerprint information
+  QGroupBox* additional_uid_box_;  ///< Groupbox containing information about
+                                   ///< additional uids
 
-  QLabel* nameVarLabel;         ///< Label containng the keys name
-  QLabel* emailVarLabel;        ///< Label containng the keys email
-  QLabel* commentVarLabel;      ///< Label containng the keys commment
-  QLabel* keySizeVarLabel;      ///< Label containng the keys keysize
-  QLabel* expireVarLabel;       ///< Label containng the keys expiration date
-  QLabel* createdVarLabel;      ///< Label containng the keys creation date
-  QLabel* lastUpdateVarLabel;   ///<
-  QLabel* algorithmVarLabel;    ///< Label containng the keys algorithm
-  QLabel* keyidVarLabel;        ///< Label containng the keys keyid
-  QLabel* fingerPrintVarLabel;  ///< Label containng the keys fingerprint
-  QLabel* usageVarLabel;
-  QLabel* actualUsageVarLabel;
-  QLabel* masterKeyExistVarLabel;
+  QLabel* name_var_label_;         ///< Label containing the keys name
+  QLabel* email_var_label_;        ///< Label containing the keys email
+  QLabel* comment_var_label_;      ///< Label containing the keys comment
+  QLabel* key_size_var_label_;      ///< Label containing the keys key size
+  QLabel* expire_var_label_;       ///< Label containing the keys expiration date
+  QLabel* created_var_label_;      ///< Label containing the keys creation date
+  QLabel* last_update_var_label_;   ///<
+  QLabel* algorithm_var_label_;    ///< Label containing the keys algorithm
+  QLabel* key_id_var_label;        ///< Label containing the keys keyid
+  QLabel* fingerprint_var_label_;  ///< Label containing the keys fingerprint
+  QLabel* usage_var_label_;
+  QLabel* actual_usage_var_label_;
+  QLabel* primary_key_exist_var_label_;
 
-  QLabel* iconLabel;  ///<
-  QLabel* expLabel;   ///<
-
-  QMenu* keyServerOperaMenu{};        ///<
-  QMenu* secretKeyExportOperaMenu{};  ///<
+  QLabel* icon_label_;  ///<
+  QLabel* exp_label_;   ///<
 
  public:
   /**
