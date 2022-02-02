@@ -28,7 +28,7 @@
 
 #include <boost/format.hpp>
 
-#include "gpg/function/BasicOperator.h"
+#include "gpg/function/GpgBasicOperator.h"
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExporter.h"
 
@@ -66,7 +66,7 @@ void SMTPSendMailThread::run() {
       GpgEncrResult result;
       auto in_buffer = std::make_unique<ByteArray>(plain_text);
       auto keys = GpgKeyGetter::GetInstance().GetKeys(public_key_ids_);
-      auto err = BasicOperator::GetInstance().Encrypt(
+      auto err = GpgBasicOperator::GetInstance().Encrypt(
           std::move(keys), *in_buffer, out_buffer, result);
 
       if (check_gpg_error_2_err_code(err) != GPG_ERR_NO_ERROR) {
@@ -128,7 +128,7 @@ void SMTPSendMailThread::run() {
 
       //   The signature MUST be generated detached from the signed data
       //   so that the process does not alter the signed data in any way.
-      auto err = BasicOperator::GetInstance().Sign(
+      auto err = GpgBasicOperator::GetInstance().Sign(
           std::move(keys), *in_buffer, out_buffer, GPGME_SIG_MODE_DETACH,
           result);
 

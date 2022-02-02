@@ -39,7 +39,7 @@
 #include "ui/mail/SendMailDialog.h"
 #endif
 
-#include "gpg/function/BasicOperator.h"
+#include "gpg/function/GpgBasicOperator.h"
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExporter.h"
 #include "ui/UserInterfaceUtils.h"
@@ -75,7 +75,7 @@ void MainWindow::slot_encrypt() {
       try {
         auto buffer =
             edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString();
-        error = GpgFrontend::BasicOperator::GetInstance().EncryptSymmetric(
+        error = GpgFrontend::GpgBasicOperator::GetInstance().EncryptSymmetric(
             buffer, tmp, result);
       } catch (const std::runtime_error& e) {
         if_error = true;
@@ -101,7 +101,7 @@ void MainWindow::slot_encrypt() {
       try {
         auto buffer =
             edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString();
-        error = GpgFrontend::BasicOperator::GetInstance().Encrypt(
+        error = GpgFrontend::GpgBasicOperator::GetInstance().Encrypt(
             std::move(keys), buffer, tmp, result);
       } catch (const std::runtime_error& e) {
         if_error = true;
@@ -111,7 +111,7 @@ void MainWindow::slot_encrypt() {
 
   if (!if_error) {
     LOG(INFO) << "result" << result.get();
-    auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));
+    auto resultAnalyse = GpgEncryptResultAnalyse(error, std::move(result));
     resultAnalyse.Analyse();
     process_result_analyse(edit_, info_board_, resultAnalyse);
 
@@ -169,7 +169,7 @@ void MainWindow::slot_sign() {
                         ->toPlainText()
                         .toUtf8()
                         .toStdString();
-      error = GpgFrontend::BasicOperator::GetInstance().Sign(
+      error = GpgFrontend::GpgBasicOperator::GetInstance().Sign(
           std::move(keys), buffer, tmp, GPGME_SIG_MODE_CLEAR, result);
     } catch (const std::runtime_error& e) {
       if_error = true;
@@ -177,7 +177,7 @@ void MainWindow::slot_sign() {
   });
 
   if (!if_error) {
-    auto resultAnalyse = SignResultAnalyse(error, std::move(result));
+    auto resultAnalyse = GpgSignResultAnalyse(error, std::move(result));
     resultAnalyse.Analyse();
     process_result_analyse(edit_, info_board_, resultAnalyse);
 
@@ -209,7 +209,7 @@ void MainWindow::slot_decrypt() {
   process_operation(this, _("Decrypting"), [&]() {
     try {
       auto buffer = text.toStdString();
-      error = GpgFrontend::BasicOperator::GetInstance().Decrypt(
+      error = GpgFrontend::GpgBasicOperator::GetInstance().Decrypt(
           buffer, decrypted, result);
     } catch (const std::runtime_error& e) {
       if_error = true;
@@ -217,7 +217,7 @@ void MainWindow::slot_decrypt() {
   });
 
   if (!if_error) {
-    auto resultAnalyse = DecryptResultAnalyse(error, std::move(result));
+    auto resultAnalyse = GpgDecryptResultAnalyse(error, std::move(result));
     resultAnalyse.Analyse();
     process_result_analyse(edit_, info_board_, resultAnalyse);
 
@@ -257,7 +257,7 @@ void MainWindow::slot_verify() {
   process_operation(this, _("Verifying"), [&]() {
     try {
       auto buffer = text.toStdString();
-      error = GpgFrontend::BasicOperator::GetInstance().Verify(
+      error = GpgFrontend::GpgBasicOperator::GetInstance().Verify(
           buffer, sig_buffer, result);
     } catch (const std::runtime_error& e) {
       if_error = true;
@@ -265,7 +265,7 @@ void MainWindow::slot_verify() {
   });
 
   if (!if_error) {
-    auto result_analyse = VerifyResultAnalyse(error, result);
+    auto result_analyse = GpgVerifyResultAnalyse(error, result);
     result_analyse.Analyse();
     process_result_analyse(edit_, info_board_, result_analyse);
 
@@ -333,7 +333,7 @@ void MainWindow::slot_encrypt_sign() {
                         ->toPlainText()
                         .toUtf8()
                         .toStdString();
-      error = GpgFrontend::BasicOperator::GetInstance().EncryptSign(
+      error = GpgFrontend::GpgBasicOperator::GetInstance().EncryptSign(
           std::move(keys), std::move(signer_keys), buffer, tmp, encr_result,
           sign_result);
     } catch (const std::runtime_error& e) {
@@ -355,9 +355,9 @@ void MainWindow::slot_encrypt_sign() {
       }
     }
 #endif
-    LOG(INFO) << "ResultAnalyse Started";
-    auto encrypt_res = EncryptResultAnalyse(error, std::move(encr_result));
-    auto sign_res = SignResultAnalyse(error, std::move(sign_result));
+    LOG(INFO) << "GpgResultAnalyse Started";
+    auto encrypt_res = GpgEncryptResultAnalyse(error, std::move(encr_result));
+    auto sign_res = GpgSignResultAnalyse(error, std::move(sign_result));
     encrypt_res.Analyse();
     sign_res.Analyse();
     process_result_analyse(edit_, info_board_, encrypt_res, sign_res);
@@ -428,7 +428,7 @@ void MainWindow::slot_decrypt_verify() {
   process_operation(this, _("Decrypting and Verifying"), [&]() {
     try {
       auto buffer = text.toStdString();
-      error = BasicOperator::GetInstance().DecryptVerify(buffer, decrypted,
+      error = GpgBasicOperator::GetInstance().DecryptVerify(buffer, decrypted,
                                                          d_result, v_result);
     } catch (const std::runtime_error& e) {
       if_error = true;
@@ -436,8 +436,8 @@ void MainWindow::slot_decrypt_verify() {
   });
 
   if (!if_error) {
-    auto decrypt_res = DecryptResultAnalyse(error, std::move(d_result));
-    auto verify_res = VerifyResultAnalyse(error, v_result);
+    auto decrypt_res = GpgDecryptResultAnalyse(error, std::move(d_result));
+    auto verify_res = GpgVerifyResultAnalyse(error, v_result);
     decrypt_res.Analyse();
     verify_res.Analyse();
     process_result_analyse(edit_, info_board_, decrypt_res, verify_res);

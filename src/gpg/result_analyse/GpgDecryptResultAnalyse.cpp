@@ -26,15 +26,15 @@
  *
  */
 
-#include "gpg/result_analyse/DecryptResultAnalyse.h"
+#include "gpg/result_analyse/GpgDecryptResultAnalyse.h"
 
 #include "gpg/function/GpgKeyGetter.h"
 
-GpgFrontend::DecryptResultAnalyse::DecryptResultAnalyse(GpgError m_error,
+GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(GpgError m_error,
                                                         GpgDecrResult m_result)
     : error_(m_error), result_(std::move(m_result)) {}
 
-void GpgFrontend::DecryptResultAnalyse::do_analyse() {
+void GpgFrontend::GpgDecryptResultAnalyse::do_analyse() {
   stream_ << "[#] " << _("Decrypt Operation");
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
@@ -72,7 +72,7 @@ void GpgFrontend::DecryptResultAnalyse::do_analyse() {
   stream_ << std::endl;
 }
 
-void GpgFrontend::DecryptResultAnalyse::print_recipient(
+void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(
     std::stringstream &stream, gpgme_recipient_t recipient) {
   // check
   if (recipient->keyid == nullptr) return;

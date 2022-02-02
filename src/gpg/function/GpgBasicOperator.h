@@ -40,16 +40,16 @@ namespace GpgFrontend {
  * @brief Basic operation collection
  *
  */
-class BasicOperator : public SingletonFunctionObject<BasicOperator> {
+class GpgBasicOperator : public SingletonFunctionObject<GpgBasicOperator> {
  public:
   /**
    * @brief Construct a new Basic Operator object
    *
    * @param channel Channel corresponding to the context
    */
-  explicit BasicOperator(
+  explicit GpgBasicOperator(
       int channel = SingletonFunctionObject::GetDefaultChannel())
-      : SingletonFunctionObject<BasicOperator>(channel) {}
+      : SingletonFunctionObject<GpgBasicOperator>(channel) {}
 
   /**
    * @brief Call the interface provided by gpgme for encryption operation

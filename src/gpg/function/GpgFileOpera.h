@@ -37,8 +37,8 @@ namespace GpgFrontend {
 
 /**
  * @brief Executive files related to the basic operations that are provided by
- * BasicOperator
- * @class class: BasicOperator
+ * GpgBasicOperator
+ * @class class: GpgBasicOperator
  */
 class GpgFileOpera : public SingletonFunctionObject<GpgFileOpera> {
  public:

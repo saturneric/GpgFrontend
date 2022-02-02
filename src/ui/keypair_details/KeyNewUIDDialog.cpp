@@ -27,7 +27,7 @@
 #include "ui/keypair_details/KeyNewUIDDialog.h"
 
 #include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/UIDOperator.h"
+#include "gpg/function/GpgUIDOperator.h"
 #include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {
@@ -84,7 +84,7 @@ void KeyNewUIDDialog::slot_create_new_uid() {
   }
   auto error_string = error_stream.str();
   if (error_string.empty()) {
-    if (UIDOperator::GetInstance().AddUID(m_key_, name_->text().toStdString(),
+    if (GpgUIDOperator::GetInstance().AddUID(m_key_, name_->text().toStdString(),
                                           comment_->text().toStdString(),
                                           email_->text().toStdString())) {
       emit finished(1);

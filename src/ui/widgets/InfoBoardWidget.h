@@ -30,7 +30,7 @@
 #define __VERIFYNOTIFICATION_H__
 
 #include "PlainTextEditorPage.h"
-#include "gpg/result_analyse/VerifyResultAnalyse.h"
+#include "gpg/result_analyse/GpgVerifyResultAnalyse.h"
 #include "ui/details/VerifyDetailsDialog.h"
 
 class Ui_InfoBoard;
