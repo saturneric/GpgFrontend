@@ -29,17 +29,20 @@
 #ifndef GPGFRONTEND_H_IN
 #define GPGFRONTEND_H_IN
 
-// i18n
 #ifdef WINDOWS
 #include <winsock2.h>
 #include <windows.h>
 #endif
 
+
+// i18n support
 #include <libintl.h>
 #define _(String) gettext (String)
 #define gettext_noop(String) String
 #define N_(String) gettext_noop (String)
 
+
+// fix macro bugs in mingw
 #ifdef WINDOWS
 #include <clocale>
 #undef vsnprintf
@@ -47,17 +50,19 @@
 #undef snprintf
 #endif
 
-// logging
+
+// logging system
 #define ELPP_DEFAULT_LOGGING_FLAGS 8192
 #include <easylogging++.h>
 
+
+// build info
 #define PROJECT_NAME "@CMAKE_PROJECT_NAME@"
 #define OS_PLATFORM @OS_PLATFORM@
 #define LOCALE_DIR "@LOCALE_DIR@"
 
-/**
- * Resources File(s) Path Vars
- */
+
+// macros to find resource files
 #if  defined(MACOS)  && defined(RELEASE)
 #define RESOURCE_DIR(appDir) (appDir + "/../Resources/")
 #elif defined(LINUX) && defined(RELEASE)

@@ -31,9 +31,9 @@
 #include "ui/settings/GlobalSettingStation.h"
 
 /**
- * @brief Get the files of directory object
+ * @brief Get the files of a given directory
  *
- * @param _path
+ * @param _path target directory
  * @return std::vector<boost::filesystem::path>
  */
 std::vector<boost::filesystem::path> get_files_of_directory(
@@ -52,7 +52,7 @@ std::vector<boost::filesystem::path> get_files_of_directory(
 }
 
 /**
- * @brief
+ * @brief setup logging system and do proper initialization
  *
  */
 void init_logging() {
@@ -66,9 +66,11 @@ void init_logging() {
   defaultConf.setToDefault();
   el::Loggers::reconfigureLogger("default", defaultConf);
 
+  // apply settings
   defaultConf.setGlobally(el::ConfigurationType::Format,
                           "%datetime %level %func %msg");
 
+  // get the log directory
   auto logfile_path =
       (GpgFrontend::UI::GlobalSettingStation::GetInstance().GetLogDir() /
        to_iso_string(now));
@@ -78,34 +80,39 @@ void init_logging() {
 
   el::Loggers::reconfigureLogger("default", defaultConf);
 
-  LOG(INFO) << _("logfile Path") << logfile_path;
+  LOG(INFO) << _("log file path") << logfile_path;
 }
 
 /**
- * @brief
- *
+ * @brief load all certificates from the given path
+ *      and add them to the given certificate store in GlobalSettingStation
  */
 void init_certs() {
-  std::vector<vmime::shared_ptr<vmime::security::cert::X509Certificate>>
-      root_certs;
+  // get the certificate directory
   auto cert_file_paths = get_files_of_directory(
       GpgFrontend::UI::GlobalSettingStation::GetInstance().GetCertsDir());
 
+  // get the instance of the GlobalSettingStation
   auto& _instance = GpgFrontend::UI::GlobalSettingStation::GetInstance();
   for (const auto& cert_file_path : cert_file_paths) {
+    // add the certificate to the store
     _instance.AddRootCert(cert_file_path);
   }
+
+  // show the number of loaded certificates
   LOG(INFO) << _("root certs loaded") << _instance.GetRootCerts().size();
 }
 
 /**
- * @brief
+ * @brief setup the locale and load the translations
  *
  */
 void init_locale() {
+  // get the instance of the GlobalSettingStation
   auto& settings =
       GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
 
+  // create general settings if not exist
   if (!settings.exists("general") ||
       settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
     settings.add("general", libconfig::Setting::TypeGroup);
@@ -115,6 +122,7 @@ void init_locale() {
   if (!general.exists("lang"))
     general.add("lang", libconfig::Setting::TypeString) = "";
 
+  // sync the settings to the file
   GpgFrontend::UI::GlobalSettingStation::GetInstance().SyncSettings();
 
   LOG(INFO) << "current system locale" << setlocale(LC_ALL, nullptr);
@@ -126,7 +134,7 @@ void init_locale() {
   };
 
   LOG(INFO) << "lang from settings" << lang;
-  LOG(INFO) << "PROJECT_NAME" << PROJECT_NAME;
+  LOG(INFO) << "project name" << PROJECT_NAME;
   LOG(INFO) << "locales path"
             << GpgFrontend::UI::GlobalSettingStation::GetInstance()
                    .GetLocaleDir()
