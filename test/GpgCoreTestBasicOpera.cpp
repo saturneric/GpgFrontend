@@ -33,9 +33,9 @@
 
 #include "GpgFrontendTest.h"
 #include "gpg/GpgConstants.h"
-#include "gpg/function/BasicOperator.h"
+#include "gpg/function/GpgBasicOperator.h"
 #include "gpg/function/GpgKeyGetter.h"
-#include "gpg/result_analyse/DecryptResultAnalyse.h"
+#include "gpg/result_analyse/GpgDecryptResultAnalyse.h"
 
 using namespace GpgFrontend;
 

@@ -31,7 +31,7 @@
 #include <utility>
 
 #include "dialog/WaitingDialog.h"
-#include "gpg/result_analyse/ResultAnalyse.h"
+#include "gpg/result_analyse/GpgResultAnalyse.h"
 #include "ui/SignalStation.h"
 #include "ui/mail/SendMailDialog.h"
 #include "ui/settings/GlobalSettingStation.h"
@@ -78,7 +78,7 @@ void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
 }
 
 void import_unknown_key_from_keyserver(QWidget* parent,
-                                       const VerifyResultAnalyse& verify_res) {
+                                       const GpgVerifyResultAnalyse& verify_res) {
   QMessageBox::StandardButton reply;
   reply = QMessageBox::question(
       parent, _("Public key not found locally"),
@@ -113,15 +113,15 @@ void refresh_info_board(InfoBoardWidget* info_board, int status,
 }
 
 void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
-                            const ResultAnalyse& result_analyse) {
+                            const GpgResultAnalyse& result_analyse) {
   info_board->AssociateTabWidget(edit->tab_widget_);
   refresh_info_board(info_board, result_analyse.GetStatus(),
                      result_analyse.GetResultReport());
 }
 
 void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
-                            const ResultAnalyse& result_analyse_a,
-                            const ResultAnalyse& result_analyse_b) {
+                            const GpgResultAnalyse& result_analyse_a,
+                            const GpgResultAnalyse& result_analyse_b) {
   LOG(INFO) << "process_result_analyse Started";
 
   info_board->AssociateTabWidget(edit->tab_widget_);

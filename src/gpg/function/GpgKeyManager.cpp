@@ -31,7 +31,7 @@
 #include <boost/date_time/posix_time/conversion.hpp>
 #include <string>
 
-#include "gpg/function/BasicOperator.h"
+#include "gpg/function/GpgBasicOperator.h"
 #include "gpg/function/GpgKeyGetter.h"
 
 bool GpgFrontend::GpgKeyManager::SignKey(
@@ -40,7 +40,7 @@ bool GpgFrontend::GpgKeyManager::SignKey(
     const std::unique_ptr<boost::posix_time::ptime>& expires) {
   using namespace boost::posix_time;
 
-  BasicOperator::GetInstance().SetSigners(keys);
+  GpgBasicOperator::GetInstance().SetSigners(keys);
 
   unsigned int flags = 0;
   unsigned int expires_time_t = 0;

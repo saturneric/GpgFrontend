@@ -26,11 +26,11 @@
  *
  */
 
-#include "gpg/function/UIDOperator.h"
+#include "gpg/function/GpgUIDOperator.h"
 
 #include "boost/format.hpp"
 
-bool GpgFrontend::UIDOperator::AddUID(const GpgFrontend::GpgKey& key,
+bool GpgFrontend::GpgUIDOperator::AddUID(const GpgFrontend::GpgKey& key,
                                       const std::string& uid) {
   auto err = gpgme_op_adduid(ctx_, gpgme_key_t(key), uid.c_str(), 0);
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
@@ -39,7 +39,7 @@ bool GpgFrontend::UIDOperator::AddUID(const GpgFrontend::GpgKey& key,
     return false;
 }
 
-bool GpgFrontend::UIDOperator::RevUID(const GpgFrontend::GpgKey& key,
+bool GpgFrontend::GpgUIDOperator::RevUID(const GpgFrontend::GpgKey& key,
                                       const std::string& uid) {
   auto err =
       check_gpg_error(gpgme_op_revuid(ctx_, gpgme_key_t(key), uid.c_str(), 0));
@@ -49,7 +49,7 @@ bool GpgFrontend::UIDOperator::RevUID(const GpgFrontend::GpgKey& key,
     return false;
 }
 
-bool GpgFrontend::UIDOperator::SetPrimaryUID(const GpgFrontend::GpgKey& key,
+bool GpgFrontend::GpgUIDOperator::SetPrimaryUID(const GpgFrontend::GpgKey& key,
                                              const std::string& uid) {
   auto err = check_gpg_error(gpgme_op_set_uid_flag(
       ctx_, gpgme_key_t(key), uid.c_str(), "primary", nullptr));
@@ -58,7 +58,7 @@ bool GpgFrontend::UIDOperator::SetPrimaryUID(const GpgFrontend::GpgKey& key,
   else
     return false;
 }
-bool GpgFrontend::UIDOperator::AddUID(const GpgFrontend::GpgKey& key,
+bool GpgFrontend::GpgUIDOperator::AddUID(const GpgFrontend::GpgKey& key,
                                       const std::string& name,
                                       const std::string& comment,
                                       const std::string& email) {

@@ -25,62 +25,39 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
-#ifndef GPGFRONTEND_RESULTANALYSE_H
-#define GPGFRONTEND_RESULTANALYSE_H
 
-#include <sstream>
-#include <string>
+#ifndef GPGFRONTEND_GPGENCRYPTRESULTANALYSE_H
+#define GPGFRONTEND_GPGENCRYPTRESULTANALYSE_H
 
+#include "GpgResultAnalyse.h"
 #include "gpg/GpgConstants.h"
-namespace GpgFrontend {
 
-class ResultAnalyse {
+namespace GpgFrontend {
+/**
+ * @brief
+ *
+ */
+class GpgEncryptResultAnalyse : public GpgResultAnalyse {
  public:
   /**
-   * @brief Construct a new Result Analyse object
+   * @brief Construct a new Encrypt Result Analyse object
    *
+   * @param error
+   * @param result
    */
-  ResultAnalyse() = default;
-
-  /**
-   * @brief Get the Result Report object
-   *
-   * @return const std::string
-   */
-  [[nodiscard]] const std::string GetResultReport() const;
-
-  /**
-   * @brief Get the Status object
-   *
-   * @return int
-   */
-  [[nodiscard]] int GetStatus() const;
-
-  /**
-   * @brief
-   *
-   */
-  void Analyse();
+  explicit GpgEncryptResultAnalyse(GpgError error, GpgEncrResult result);
 
  protected:
   /**
    * @brief
    *
    */
-  virtual void do_analyse() = 0;
+  void do_analyse() final;
 
-  /**
-   * @brief Set the status object
-   *
-   * @param m_status
-   */
-  void set_status(int m_status);
-
-  std::stringstream stream_;  ///<
-  int status_ = 1;            ///<
-  bool analysed_ = false;     ///<
+ private:
+  GpgError error_;        ///<
+  GpgEncrResult result_;  ///<
 };
-
 }  // namespace GpgFrontend
 
-#endif  // GPGFRONTEND_RESULTANALYSE_H
+#endif  // GPGFRONTEND_GPGENCRYPTRESULTANALYSE_H

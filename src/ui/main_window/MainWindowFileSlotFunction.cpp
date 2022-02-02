@@ -145,7 +145,7 @@ void MainWindow::SlotFileEncrypt() {
   }
 
   if (!if_error) {
-    auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));
+    auto resultAnalyse = GpgEncryptResultAnalyse(error, std::move(result));
     resultAnalyse.Analyse();
     process_result_analyse(edit_, info_board_, resultAnalyse);
     fileTreeView->update();
@@ -192,7 +192,7 @@ void MainWindow::SlotFileDecrypt() {
   });
 
   if (!if_error) {
-    auto resultAnalyse = DecryptResultAnalyse(error, std::move(result));
+    auto resultAnalyse = GpgDecryptResultAnalyse(error, std::move(result));
     resultAnalyse.Analyse();
     process_result_analyse(edit_, info_board_, resultAnalyse);
 
@@ -276,7 +276,7 @@ void MainWindow::SlotFileSign() {
   });
 
   if (!if_error) {
-    auto resultAnalyse = SignResultAnalyse(error, std::move(result));
+    auto resultAnalyse = GpgSignResultAnalyse(error, std::move(result));
     resultAnalyse.Analyse();
     process_result_analyse(edit_, info_board_, resultAnalyse);
 
@@ -357,7 +357,7 @@ void MainWindow::SlotFileVerify() {
   });
 
   if (!if_error) {
-    auto result_analyse = VerifyResultAnalyse(error, result);
+    auto result_analyse = GpgVerifyResultAnalyse(error, result);
     result_analyse.Analyse();
     process_result_analyse(edit_, info_board_, result_analyse);
 
@@ -458,8 +458,9 @@ void MainWindow::SlotFileEncryptSign() {
   });
 
   if (!if_error) {
-    auto encrypt_result = EncryptResultAnalyse(error, std::move(encr_result));
-    auto sign_res = SignResultAnalyse(error, std::move(sign_result));
+    auto encrypt_result =
+        GpgEncryptResultAnalyse(error, std::move(encr_result));
+    auto sign_res = GpgSignResultAnalyse(error, std::move(sign_result));
     encrypt_result.Analyse();
     sign_res.Analyse();
     process_result_analyse(edit_, info_board_, encrypt_result, sign_res);
@@ -513,8 +514,8 @@ void MainWindow::SlotFileDecryptVerify() {
   });
 
   if (!if_error) {
-    auto decrypt_res = DecryptResultAnalyse(error, std::move(d_result));
-    auto verify_res = VerifyResultAnalyse(error, v_result);
+    auto decrypt_res = GpgDecryptResultAnalyse(error, std::move(d_result));
+    auto verify_res = GpgVerifyResultAnalyse(error, v_result);
     decrypt_res.Analyse();
     verify_res.Analyse();
     process_result_analyse(edit_, info_board_, decrypt_res, verify_res);

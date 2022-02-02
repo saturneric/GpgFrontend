@@ -30,9 +30,9 @@
 #define __GPGWIN_H__
 
 #include "gpg/GpgConstants.h"
-#include "gpg/result_analyse/DecryptResultAnalyse.h"
-#include "gpg/result_analyse/EncryptResultAnalyse.h"
-#include "gpg/result_analyse/SignResultAnalyse.h"
+#include "gpg/result_analyse/GpgDecryptResultAnalyse.h"
+#include "gpg/result_analyse/GpgEncryptResultAnalyse.h"
+#include "gpg/result_analyse/GpgSignResultAnalyse.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/KeyMgmt.h"
 #include "ui/dialog/WaitingDialog.h"
@@ -279,7 +279,7 @@ class MainWindow : public QMainWindow {
   void create_dock_windows();
 
   /**
-   * @details Create attachment-dockwindow.
+   * @details Create attachment dock window.
    */
   void create_attachment_dock();
 

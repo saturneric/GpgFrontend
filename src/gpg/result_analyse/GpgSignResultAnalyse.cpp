@@ -26,15 +26,15 @@
  *
  */
 
-#include "gpg/result_analyse/SignResultAnalyse.h"
+#include "gpg/result_analyse/GpgSignResultAnalyse.h"
 
 #include "gpg/function/GpgKeyGetter.h"
 
-GpgFrontend::SignResultAnalyse::SignResultAnalyse(GpgError error,
+GpgFrontend::GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error,
                                                   GpgSignResult result)
     : error_(error), result_(std::move(result)) {}
 
-void GpgFrontend::SignResultAnalyse::do_analyse() {
+void GpgFrontend::GpgSignResultAnalyse::do_analyse() {
   LOG(INFO) << _("Start Sign Result Analyse");
 
   stream_ << "[#] " << _("Sign Operation") << " ";

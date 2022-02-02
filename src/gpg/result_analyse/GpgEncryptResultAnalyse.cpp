@@ -26,13 +26,13 @@
  *
  */
 
-#include "gpg/result_analyse/EncryptResultAnalyse.h"
+#include "gpg/result_analyse/GpgEncryptResultAnalyse.h"
 
-GpgFrontend::EncryptResultAnalyse::EncryptResultAnalyse(GpgError error,
+GpgFrontend::GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(GpgError error,
                                                         GpgEncrResult result)
     : error_(error), result_(std::move(result)) {}
 
-void GpgFrontend::EncryptResultAnalyse::do_analyse() {
+void GpgFrontend::GpgEncryptResultAnalyse::do_analyse() {
   LOG(INFO) << _("Start Encrypt Result Analyse");
 
   stream_ << "[#] " << _("Encrypt Operation") << " ";

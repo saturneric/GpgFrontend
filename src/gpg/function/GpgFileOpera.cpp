@@ -31,7 +31,7 @@
 #include <string>
 
 #include "GpgConstants.h"
-#include "gpg/function/BasicOperator.h"
+#include "gpg/function/GpgBasicOperator.h"
 
 GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
     KeyListPtr keys, const std::string& in_path, const std::string& out_path,
@@ -39,7 +39,7 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
   std::string in_buffer = read_all_data_in_file(in_path);
   std::unique_ptr<std::string> out_buffer;
 
-  auto err = BasicOperator::GetInstance(_channel).Encrypt(
+  auto err = GpgBasicOperator::GetInstance(_channel).Encrypt(
       std::move(keys), in_buffer, out_buffer, result);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
@@ -57,7 +57,7 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
   std::unique_ptr<std::string> out_buffer;
 
   auto err =
-      BasicOperator::GetInstance().Decrypt(in_buffer, out_buffer, result);
+      GpgBasicOperator::GetInstance().Decrypt(in_buffer, out_buffer, result);
 
   assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
@@ -77,7 +77,7 @@ gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
   auto in_buffer = read_all_data_in_file(in_path);
   std::unique_ptr<std::string> out_buffer;
 
-  auto err = BasicOperator::GetInstance(_channel).Sign(
+  auto err = GpgBasicOperator::GetInstance(_channel).Sign(
       std::move(keys), in_buffer, out_buffer, GPGME_SIG_MODE_DETACH, result);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
@@ -97,7 +97,7 @@ gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(
     sign_buffer =
         std::make_unique<std::string>(read_all_data_in_file(sign_path));
   }
-  auto err = BasicOperator::GetInstance(_channel).Verify(in_buffer, sign_buffer,
+  auto err = GpgBasicOperator::GetInstance(_channel).Verify(in_buffer, sign_buffer,
                                                          result);
   return err;
 }
@@ -109,7 +109,7 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
   auto in_buffer = read_all_data_in_file(in_path);
   std::unique_ptr<std::string> out_buffer = nullptr;
 
-  auto err = BasicOperator::GetInstance(_channel).EncryptSign(
+  auto err = GpgBasicOperator::GetInstance(_channel).EncryptSign(
       std::move(keys), std::move(signer_keys), in_buffer, out_buffer, encr_res,
       sign_res);
 
@@ -128,7 +128,7 @@ gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
 
   std::unique_ptr<std::string> out_buffer = nullptr;
 
-  auto err = BasicOperator::GetInstance().DecryptVerify(in_buffer, out_buffer,
+  auto err = GpgBasicOperator::GetInstance().DecryptVerify(in_buffer, out_buffer,
                                                         decr_res, verify_res);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
@@ -144,7 +144,7 @@ unsigned int GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
   std::string in_buffer = read_all_data_in_file(in_path);
   std::unique_ptr<std::string> out_buffer;
 
-  auto err = BasicOperator::GetInstance(_channel).EncryptSymmetric(
+  auto err = GpgBasicOperator::GetInstance(_channel).EncryptSymmetric(
       in_buffer, out_buffer, result);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)

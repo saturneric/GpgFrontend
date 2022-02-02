@@ -26,7 +26,7 @@
  *
  */
 
-#include "gpg/result_analyse/VerifyResultAnalyse.h"
+#include "gpg/result_analyse/GpgVerifyResultAnalyse.h"
 
 #include <boost/format.hpp>
 
@@ -34,11 +34,11 @@
 #include "gpg/GpgConstants.h"
 #include "gpg/function/GpgKeyGetter.h"
 
-GpgFrontend::VerifyResultAnalyse::VerifyResultAnalyse(GpgError error,
+GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(GpgError error,
                                                       GpgVerifyResult result)
     : error_(error), result_(std::move(result)) {}
 
-void GpgFrontend::VerifyResultAnalyse::do_analyse() {
+void GpgFrontend::GpgVerifyResultAnalyse::do_analyse() {
   LOG(INFO) << _("started");
 
   stream_ << "[#] " << _("Verify Operation") << " ";
@@ -172,7 +172,7 @@ void GpgFrontend::VerifyResultAnalyse::do_analyse() {
   }
 }
 
-bool GpgFrontend::VerifyResultAnalyse::print_signer(std::stringstream &stream,
+bool GpgFrontend::GpgVerifyResultAnalyse::print_signer(std::stringstream &stream,
                                                     gpgme_signature_t sign) {
   bool keyFound = true;
   auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(sign->fpr);
@@ -202,13 +202,13 @@ bool GpgFrontend::VerifyResultAnalyse::print_signer(std::stringstream &stream,
   return keyFound;
 }
 
-gpgme_signature_t GpgFrontend::VerifyResultAnalyse::GetSignatures() const {
+gpgme_signature_t GpgFrontend::GpgVerifyResultAnalyse::GetSignatures() const {
   if (result_)
     return result_->signatures;
   else
     return nullptr;
 }
 GpgFrontend::GpgVerifyResult
-GpgFrontend::VerifyResultAnalyse::TakeChargeOfResult() {
+GpgFrontend::GpgVerifyResultAnalyse::TakeChargeOfResult() {
   return std::move(result_);
 }

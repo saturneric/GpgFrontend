@@ -26,63 +26,48 @@
  *
  */
 
-#ifndef GPGFRONTEND_VERIFYRESULTANALYSE_H
-#define GPGFRONTEND_VERIFYRESULTANALYSE_H
+#ifndef GPGFRONTEND_GPGDECRYPTRESULTANALYSE_H
+#define GPGFRONTEND_GPGDECRYPTRESULTANALYSE_H
 
-#include "ResultAnalyse.h"
-#include "gpg/model/GpgKeySignature.h"
+#include "GpgResultAnalyse.h"
+#include "gpg/GpgConstants.h"
 
 namespace GpgFrontend {
+
 /**
  * @brief
  *
  */
-class VerifyResultAnalyse : public ResultAnalyse {
+class GpgDecryptResultAnalyse : public GpgResultAnalyse {
  public:
   /**
-   * @brief Construct a new Verify Result Analyse object
+   * @brief Construct a new Decrypt Result Analyse object
    *
-   * @param error
-   * @param result
+   * @param m_error
+   * @param m_result
    */
-  explicit VerifyResultAnalyse(GpgError error, GpgVerifyResult result);
+  explicit GpgDecryptResultAnalyse(GpgError m_error, GpgDecrResult m_result);
 
-  /**
-   * @brief Get the Signatures object
-   *
-   * @return gpgme_signature_t
-   */
-  gpgme_signature_t GetSignatures() const;
-
-  /**
-   * @brief
-   *
-   * @return GpgVerifyResult
-   */
-  GpgVerifyResult TakeChargeOfResult();
-
- private:
+ protected:
   /**
    * @brief
    *
    */
-  void do_analyse();
+  void do_analyse() final;
 
  private:
   /**
    * @brief
    *
    * @param stream
-   * @param sign
-   * @return true
-   * @return false
+   * @param recipient
    */
-  bool print_signer(std::stringstream &stream, gpgme_signature_t sign);
+  void print_recipient(std::stringstream &stream, gpgme_recipient_t recipient);
 
-  GpgError error_;          ///<
-  GpgVerifyResult result_;  ///<
+  GpgError error_;        ///<
+  GpgDecrResult result_;  ///<
 };
 
 }  // namespace GpgFrontend
 
-#endif  // GPGFRONTEND_VERIFYRESULTANALYSE_H
+#endif  // GPGFRONTEND_GPGDECRYPTRESULTANALYSE_H

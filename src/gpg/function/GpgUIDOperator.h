@@ -37,11 +37,11 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class UIDOperator : public SingletonFunctionObject<UIDOperator> {
+class GpgUIDOperator : public SingletonFunctionObject<GpgUIDOperator> {
  public:
-  explicit UIDOperator(
+  explicit GpgUIDOperator(
       int channel = SingletonFunctionObject::GetDefaultChannel())
-      : SingletonFunctionObject<UIDOperator>(channel) {}
+      : SingletonFunctionObject<GpgUIDOperator>(channel) {}
 
   /**
    * create a new uid in certain key pair

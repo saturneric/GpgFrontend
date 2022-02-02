@@ -28,7 +28,7 @@
 
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyManager.h"
-#include "gpg/function/UIDOperator.h"
+#include "gpg/function/GpgUIDOperator.h"
 #include "ui/SignalStation.h"
 #include "ui/widgets/TOFUInfoPage.h"
 
@@ -383,7 +383,7 @@ void KeyPairUIDTab::slot_del_uid() {
   if (ret == QMessageBox::Yes) {
     for (const auto& uid : *selected_uids) {
       LOG(INFO) << "KeyPairUIDTab::slot_del_uid UID" << uid;
-      if (!UIDOperator::GetInstance().RevUID(m_key_, uid)) {
+      if (!GpgUIDOperator::GetInstance().RevUID(m_key_, uid)) {
         QMessageBox::critical(
             nullptr, _("Operation Failed"),
             QString(_("An error occurred during the delete %1 operation."))
@@ -418,7 +418,7 @@ void KeyPairUIDTab::slot_set_primary_uid() {
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    if (!UIDOperator::GetInstance().SetPrimaryUID(m_key_,
+    if (!GpgUIDOperator::GetInstance().SetPrimaryUID(m_key_,
                                                   selected_uids->front())) {
       QMessageBox::critical(nullptr, _("Operation Failed"),
                             _("An error occurred during the operation."));
@@ -515,7 +515,7 @@ void KeyPairUIDTab::slot_del_uid_single() {
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    if (!UIDOperator::GetInstance().RevUID(m_key_, selected_uids->front())) {
+    if (!GpgUIDOperator::GetInstance().RevUID(m_key_, selected_uids->front())) {
       QMessageBox::critical(nullptr, _("Operation Failed"),
                             _("An error occurred during the operation."));
     } else {

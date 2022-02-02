@@ -30,11 +30,11 @@
 #define GPGFRONTEND_USER_INTERFACE_UTILS_H
 
 #include "gpg/GpgModel.h"
-#include "gpg/result_analyse/VerifyResultAnalyse.h"
+#include "gpg/result_analyse/GpgVerifyResultAnalyse.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend {
-class ResultAnalyse;
+class GpgResultAnalyse;
 }
 
 namespace GpgFrontend::UI {
@@ -72,7 +72,7 @@ void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
  * @param verify_res
  */
 void import_unknown_key_from_keyserver(QWidget* parent,
-                                       const VerifyResultAnalyse& verify_res);
+                                       const GpgVerifyResultAnalyse& verify_res);
 
 /**
  * @brief
@@ -92,7 +92,7 @@ void refresh_info_board(InfoBoardWidget* info_board, int status,
  * @param result_analyse
  */
 void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
-                            const ResultAnalyse& result_analyse);
+                            const GpgResultAnalyse& result_analyse);
 
 /**
  * @brief
@@ -103,8 +103,8 @@ void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
  * @param result_analyse_b
  */
 void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
-                            const ResultAnalyse& result_analyse_a,
-                            const ResultAnalyse& result_analyse_b);
+                            const GpgResultAnalyse& result_analyse_a,
+                            const GpgResultAnalyse& result_analyse_b);
 
 /**
  * @brief

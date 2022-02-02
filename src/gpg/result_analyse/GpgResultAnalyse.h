@@ -25,41 +25,62 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
+#ifndef GPGFRONTEND_GPGRESULTANALYSE_H
+#define GPGFRONTEND_GPGRESULTANALYSE_H
 
-#ifndef GPGFRONTEND_SIGNRESULTANALYSE_H
-#define GPGFRONTEND_SIGNRESULTANALYSE_H
+#include <sstream>
+#include <string>
 
-#include "ResultAnalyse.h"
-
+#include "gpg/GpgConstants.h"
 namespace GpgFrontend {
 
-/**
- * @brief
- *
- */
-class SignResultAnalyse : public ResultAnalyse {
+class GpgResultAnalyse {
  public:
   /**
-   * @brief Construct a new Sign Result Analyse object
+   * @brief Construct a new Result Analyse object
    *
-   * @param error
-   * @param result
    */
-  explicit SignResultAnalyse(GpgError error, GpgSignResult result);
+  GpgResultAnalyse() = default;
+
+  /**
+   * @brief Get the Result Report object
+   *
+   * @return const std::string
+   */
+  [[nodiscard]] const std::string GetResultReport() const;
+
+  /**
+   * @brief Get the Status object
+   *
+   * @return int
+   */
+  [[nodiscard]] int GetStatus() const;
+
+  /**
+   * @brief
+   *
+   */
+  void Analyse();
 
  protected:
   /**
    * @brief
    *
    */
-  void do_analyse();
+  virtual void do_analyse() = 0;
 
- private:
-  GpgError error_;  ///<
+  /**
+   * @brief Set the status object
+   *
+   * @param m_status
+   */
+  void set_status(int m_status);
 
-  GpgSignResult result_;  ///<
+  std::stringstream stream_;  ///<
+  int status_ = 1;            ///<
+  bool analysed_ = false;     ///<
 };
 
 }  // namespace GpgFrontend
 
-#endif  // GPGFRONTEND_SIGNRESULTANALYSE_H
+#endif  // GPGFRONTEND_GPGRESULTANALYSE_H
