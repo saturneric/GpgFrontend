@@ -26,6 +26,10 @@
  *
  */
 
+/**
+ * \mainpage GpgFrontend Develop Document Main Page
+ */
+
 #include <csetjmp>
 #include <csignal>
 #include <cstdlib>
@@ -76,6 +80,12 @@ extern void handle_signal(int sig);
  */
 extern void before_exit();
 
+/**
+ *
+ * @param argc
+ * @param argv
+ * @return
+ */
 int main(int argc, char* argv[]) {
   // Register Signals
   signal(SIGSEGV, handle_signal);
