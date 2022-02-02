@@ -45,16 +45,20 @@ KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
   } else {
     // Buttons
-    close_button_ = create_button(_("Close"), SLOT(close()));
-    import_button_ = create_button(_("Import ALL"), SLOT(slot_import()));
-    import_button_->setDisabled(true);
-    search_button_ = create_button(_("Search"), SLOT(slot_search()));
 
-    // Line edit for search string
+    close_button_ = new QPushButton(_("Close"));
+    connect(close_button_, &QPushButton::clicked, this, &KeyServerImportDialog::close);
+    import_button_ = new QPushButton(_("Import ALL"));
+    connect(import_button_, &QPushButton::clicked, this, &KeyServerImportDialog::slot_import);
+    import_button_->setDisabled(true);
+    search_button_ = new QPushButton(_("Search"));
+    connect(search_button_, &QPushButton::clicked, this, &KeyServerImportDialog::slot_search);
+
+    // Line edits for search string
     search_label_ = new QLabel(QString(_("Search String")) + _(": "));
     search_line_edit_ = new QLineEdit();
 
-    // combobox for keyserverlist
+    // combobox for keyserver list
     key_server_label_ = new QLabel(QString(_("Key Server")) + _(": "));
     key_server_combo_box_ = create_comboBox();
 
@@ -135,18 +139,11 @@ KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
 
   this->setModal(true);
 
-  connect(this, SIGNAL(SignalKeyImported()), SignalStation::GetInstance(),
-          SIGNAL(KeyDatabaseRefresh()));
+  connect(this, &KeyServerImportDialog::SignalKeyImported, SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh);
 
   // save window pos and size to configure file
-  connect(this, SIGNAL(finished(int)), this, SLOT(slot_save_window_state()));
-}
-
-QPushButton* KeyServerImportDialog::create_button(const QString& text,
-                                                  const char* member) {
-  auto* button = new QPushButton(text);
-  connect(button, SIGNAL(clicked()), this, member);
-  return button;
+  connect(this, &KeyServerImportDialog::finished, this, &KeyServerImportDialog::slot_save_window_state);
 }
 
 QComboBox* KeyServerImportDialog::create_comboBox() {
@@ -195,8 +192,8 @@ void KeyServerImportDialog::create_keys_table() {
   keys_table_->setHorizontalHeaderLabels(labels);
   keys_table_->verticalHeader()->hide();
 
-  connect(keys_table_, SIGNAL(cellActivated(int, int)), this,
-          SLOT(slot_import()));
+  connect(keys_table_, &QTableWidget::cellActivated, this,
+          &KeyServerImportDialog::slot_import);
 }
 
 void KeyServerImportDialog::set_message(const QString& text, bool error) {
@@ -225,7 +222,7 @@ void KeyServerImportDialog::slot_search() {
   QNetworkReply* reply =
       network_access_manager_->get(QNetworkRequest(url_from_remote));
 
-  connect(reply, SIGNAL(finished()), this, SLOT(slot_search_finished()));
+  connect(reply, &QNetworkReply::finished, this, &KeyServerImportDialog::slot_search_finished);
 
   set_loading(true);
   this->search_button_->setDisabled(true);
@@ -245,7 +242,7 @@ void KeyServerImportDialog::slot_search() {
 }
 
 void KeyServerImportDialog::slot_search_finished() {
-  LOG(INFO) << "KeyServerImportDialog::slot_search_finished Called";
+  LOG(INFO) << "Called";
 
   auto* reply = qobject_cast<QNetworkReply*>(sender());
 
@@ -255,7 +252,8 @@ void KeyServerImportDialog::slot_search_finished() {
 
   auto error = reply->error();
   if (error != QNetworkReply::NoError) {
-    qDebug() << "Error From Reply" << reply->errorString();
+    LOG(INFO) << "Error From Reply" << reply->errorString().toStdString();
+
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
         set_message(_("Not Key Found"), true);

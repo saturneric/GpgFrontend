@@ -93,18 +93,21 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
 
   vboxLayout->setContentsMargins(0, 0, 0, 0);
 
-  connect(addUIDButton, SIGNAL(clicked(bool)), this, SLOT(slot_add_uid()));
-  connect(uid_list_, SIGNAL(itemSelectionChanged()), this,
-          SLOT(slot_refresh_tofu_info()));
-  connect(uid_list_, SIGNAL(itemSelectionChanged()), this,
-          SLOT(slot_refresh_sig_list()));
+  connect(addUIDButton, &QPushButton::clicked, this,
+          &KeyPairUIDTab::slot_add_uid);
+  connect(uid_list_, &QTableWidget::itemSelectionChanged, this,
+          &KeyPairUIDTab::slot_refresh_tofu_info);
+  connect(uid_list_, &QTableWidget::itemSelectionChanged, this,
+          &KeyPairUIDTab::slot_refresh_sig_list);
 
   // Key Database Refresh
-  connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
-          SLOT(slot_refresh_key()));
+  connect(SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh, this,
+          &KeyPairUIDTab::slot_refresh_key);
 
-  connect(this, SIGNAL(SignalUpdateUIDInfo()), SignalStation::GetInstance(),
-          SIGNAL(KeyDatabaseRefresh()));
+  connect(this, &KeyPairUIDTab::SignalUpdateUIDInfo,
+          SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh);
 
   setLayout(vboxLayout);
   setAttribute(Qt::WA_DeleteOnClose, true);
@@ -323,9 +326,9 @@ void KeyPairUIDTab::create_manage_uid_menu() {
   manage_selected_uid_menu_ = new QMenu(this);
 
   auto* signUIDAct = new QAction(_("Sign Selected UID(s)"), this);
-  connect(signUIDAct, SIGNAL(triggered()), this, SLOT(slot_add_sign()));
+  connect(signUIDAct, &QAction::triggered, this, &KeyPairUIDTab::slot_add_sign);
   auto* delUIDAct = new QAction(_("Delete Selected UID(s)"), this);
-  connect(delUIDAct, SIGNAL(triggered()), this, SLOT(slot_del_uid()));
+  connect(delUIDAct, &QAction::triggered, this, &KeyPairUIDTab::slot_del_uid);
 
   if (m_key_.IsHasMasterKey()) {
     manage_selected_uid_menu_->addAction(signUIDAct);
@@ -335,10 +338,10 @@ void KeyPairUIDTab::create_manage_uid_menu() {
 
 void KeyPairUIDTab::slot_add_uid() {
   auto keyNewUIDDialog = new KeyNewUIDDialog(m_key_.GetId(), this);
-  connect(keyNewUIDDialog, SIGNAL(finished(int)), this,
-          SLOT(slot_add_uid_result(int)));
-  connect(keyNewUIDDialog, SIGNAL(finished(int)), keyNewUIDDialog,
-          SLOT(deleteLater()));
+  connect(keyNewUIDDialog, &KeyNewUIDDialog::finished, this,
+          &KeyPairUIDTab::slot_add_uid_result);
+  connect(keyNewUIDDialog, &KeyNewUIDDialog::finished, keyNewUIDDialog,
+          &KeyPairUIDTab::deleteLater);
   keyNewUIDDialog->show();
 }
 
@@ -450,12 +453,14 @@ void KeyPairUIDTab::create_uid_popup_menu() {
   uid_popup_menu_ = new QMenu(this);
 
   auto* serPrimaryUIDAct = new QAction(_("Set As Primary"), this);
-  connect(serPrimaryUIDAct, SIGNAL(triggered()), this,
-          SLOT(slot_set_primary_uid()));
+  connect(serPrimaryUIDAct, &QAction::triggered, this,
+          &KeyPairUIDTab::slot_set_primary_uid);
   auto* signUIDAct = new QAction(_("Sign UID"), this);
-  connect(signUIDAct, SIGNAL(triggered()), this, SLOT(slot_add_sign_single()));
+  connect(signUIDAct, &QAction::triggered, this,
+          &KeyPairUIDTab::slot_add_sign_single);
   auto* delUIDAct = new QAction(_("Delete UID"), this);
-  connect(delUIDAct, SIGNAL(triggered()), this, SLOT(slot_del_uid_single()));
+  connect(delUIDAct, &QAction::triggered, this,
+          &KeyPairUIDTab::slot_del_uid_single);
 
   if (m_key_.IsHasMasterKey()) {
     uid_popup_menu_->addAction(serPrimaryUIDAct);
@@ -469,10 +474,6 @@ void KeyPairUIDTab::contextMenuEvent(QContextMenuEvent* event) {
       sig_list_->selectedItems().isEmpty()) {
     uid_popup_menu_->exec(event->globalPos());
   }
-
-  //  if (!sigList->selectedItems().isEmpty()) {
-  //    signPopupMenu->exec(event->globalPos());
-  //  }
 }
 
 void KeyPairUIDTab::slot_add_sign_single() {
@@ -527,7 +528,7 @@ void KeyPairUIDTab::create_sign_popup_menu() {
   sign_popup_menu_ = new QMenu(this);
 
   auto* delSignAct = new QAction(_("Delete(Revoke) Key Signature"), this);
-  connect(delSignAct, SIGNAL(triggered()), this, SLOT(slot_del_sign()));
+  connect(delSignAct, &QAction::triggered, this, &KeyPairUIDTab::slot_del_sign);
 
   sign_popup_menu_->addAction(delSignAct);
 }

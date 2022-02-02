@@ -135,8 +135,8 @@ void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
 void process_operation(QWidget* parent, const std::string& waiting_title,
                        const std::function<void()>& func) {
   auto thread = QThread::create(func);
-  QApplication::connect(thread, SIGNAL(finished()), thread,
-                        SLOT(deleteLater()));
+  QApplication::connect(thread, &QThread::finished, thread,
+                        &QThread::deleteLater);
   thread->start();
 
   auto* dialog =
@@ -155,8 +155,8 @@ CommonUtils* CommonUtils::GetInstance() {
 }
 
 CommonUtils::CommonUtils() : QWidget(nullptr) {
-  connect(this, SIGNAL(SignalKeyStatusUpdated()), SignalStation::GetInstance(),
-          SIGNAL(KeyDatabaseRefresh()));
+  connect(this, &CommonUtils::SignalKeyStatusUpdated, SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh);
   connect(this, &CommonUtils::SignalGnupgNotInstall, this, []() {
     QMessageBox::critical(
         nullptr, _("ENV Loading Failed"),

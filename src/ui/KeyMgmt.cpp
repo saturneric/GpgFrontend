@@ -33,11 +33,12 @@
 #include "gpg/function/GpgKeyGetter.h"
 #include "gpg/function/GpgKeyImportExporter.h"
 #include "gpg/function/GpgKeyOpera.h"
-#include "import_export/ExportKeyPackageDialog.h"
+#include "ui/import_export/ExportKeyPackageDialog.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/key_generate/SubkeyGenerateDialog.h"
 #include "ui/settings/GlobalSettingStation.h"
+#include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
@@ -95,8 +96,9 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   create_actions();
   create_menus();
   create_tool_bars();
-  connect(this, SIGNAL(SignalStatusBarChanged(QString)), this->parent(),
-          SLOT(slotSetStatusBarText(QString)));
+
+  connect(this, &KeyMgmt::SignalStatusBarChanged, qobject_cast<MainWindow*>(this->parent()) ,
+          &MainWindow::SlotSetStatusBarText);
 
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
@@ -153,8 +155,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   key_list_->AddMenuAction(delete_selected_keys_act_);
   key_list_->AddMenuAction(show_key_details_act_);
 
-  connect(this, SIGNAL(SignalKeyStatusUpdated()), SignalStation::GetInstance(),
-          SIGNAL(KeyDatabaseRefresh()));
+  connect(this, &KeyMgmt::SignalKeyStatusUpdated, SignalStation::GetInstance(),
+         &SignalStation::SignalKeyDatabaseRefresh);
   connect(SignalStation::GetInstance(), &SignalStation::SignalRefreshStatusBar,
           this, [=](const QString& message, int timeout) {
             statusBar()->showMessage(message, timeout);
@@ -165,28 +167,28 @@ void KeyMgmt::create_actions() {
   open_key_file_act_ = new QAction(_("Open"), this);
   open_key_file_act_->setShortcut(QKeySequence(_("Ctrl+O")));
   open_key_file_act_->setToolTip(_("Open Key File"));
-  connect(import_key_from_file_act_, &QAction::triggered, this,
+  connect(open_key_file_act_, &QAction::triggered, this,
           [&]() { CommonUtils::GetInstance()->SlotImportKeyFromFile(this); });
 
   close_act_ = new QAction(_("Close"), this);
   close_act_->setShortcut(QKeySequence(_("Ctrl+Q")));
   close_act_->setIcon(QIcon(":exit.png"));
   close_act_->setToolTip(_("Close"));
-  connect(close_act_, SIGNAL(triggered()), this, SLOT(close()));
+  connect(close_act_, &QAction::triggered, this, &KeyMgmt::close);
 
   generate_key_pair_act_ = new QAction(_("New Keypair"), this);
   generate_key_pair_act_->setShortcut(QKeySequence(_("Ctrl+N")));
   generate_key_pair_act_->setIcon(QIcon(":key_generate.png"));
   generate_key_pair_act_->setToolTip(_("Generate KeyPair"));
-  connect(generate_key_pair_act_, SIGNAL(triggered()), this,
-          SLOT(SlotGenerateKeyDialog()));
+  connect(generate_key_pair_act_, &QAction::triggered, this,
+          &KeyMgmt::SlotGenerateKeyDialog);
 
   generate_subkey_act_ = new QAction(_("New Subkey"), this);
   generate_subkey_act_->setShortcut(QKeySequence(_("Ctrl+Shift+N")));
   generate_subkey_act_->setIcon(QIcon(":key_generate.png"));
   generate_subkey_act_->setToolTip(_("Generate Subkey For Selected KeyPair"));
-  connect(generate_subkey_act_, SIGNAL(triggered()), this,
-          SLOT(SlotGenerateSubKey()));
+  connect(generate_subkey_act_, &QAction::triggered, this,
+          &KeyMgmt::SlotGenerateSubKey);
 
   import_key_from_file_act_ = new QAction(_("File"), this);
   import_key_from_file_act_->setIcon(QIcon(":import_key_from_file.png"));
@@ -223,38 +225,38 @@ void KeyMgmt::create_actions() {
   export_key_to_clipboard_act_->setIcon(QIcon(":export_key_to_clipboard.png"));
   export_key_to_clipboard_act_->setToolTip(
       _("Export Selected Key(s) To Clipboard"));
-  connect(export_key_to_clipboard_act_, SIGNAL(triggered()), this,
-          SLOT(SlotExportKeyToClipboard()));
+  connect(export_key_to_clipboard_act_, &QAction::triggered, this,
+          &KeyMgmt::SlotExportKeyToClipboard);
 
   export_key_to_file_act_ = new QAction(_("Export To Key Package"), this);
   export_key_to_file_act_->setIcon(QIcon(":key_package.png"));
   export_key_to_file_act_->setToolTip(
       _("Export Checked Key(s) To a Key Package"));
-  connect(export_key_to_file_act_, SIGNAL(triggered()), this,
-          SLOT(SlotExportKeyToKeyPackage()));
+  connect(export_key_to_file_act_, &QAction::triggered, this,
+          &KeyMgmt::SlotExportKeyToKeyPackage);
 
   export_key_as_open_ssh_format_ = new QAction(_("Export As OpenSSH"), this);
   export_key_as_open_ssh_format_->setIcon(QIcon(":ssh-key.png"));
   export_key_as_open_ssh_format_->setToolTip(
       _("Export Selected Key(s) As OpenSSH Format to File"));
-  connect(export_key_as_open_ssh_format_, SIGNAL(triggered()), this,
-          SLOT(SlotExportAsOpenSSHFormat()));
+  connect(export_key_as_open_ssh_format_, &QAction::triggered, this,
+          &KeyMgmt::SlotExportAsOpenSSHFormat);
 
   delete_selected_keys_act_ = new QAction(_("Delete Selected Key(s)"), this);
   delete_selected_keys_act_->setToolTip(_("Delete the Selected keys"));
-  connect(delete_selected_keys_act_, SIGNAL(triggered()), this,
-          SLOT(SlotDeleteSelectedKeys()));
+  connect(delete_selected_keys_act_, &QAction::triggered, this,
+          &KeyMgmt::SlotDeleteSelectedKeys);
 
   delete_checked_keys_act_ = new QAction(_("Delete Checked Key(s)"), this);
   delete_checked_keys_act_->setToolTip(_("Delete the Checked keys"));
   delete_checked_keys_act_->setIcon(QIcon(":button_delete.png"));
-  connect(delete_checked_keys_act_, SIGNAL(triggered()), this,
-          SLOT(SlotDeleteCheckedKeys()));
+  connect(delete_checked_keys_act_, &QAction::triggered, this,
+          &KeyMgmt::SlotDeleteCheckedKeys);
 
   show_key_details_act_ = new QAction(_("Show Key Details"), this);
   show_key_details_act_->setToolTip(_("Show Details for this Key"));
-  connect(show_key_details_act_, SIGNAL(triggered()), this,
-          SLOT(SlotShowKeyDetails()));
+  connect(show_key_details_act_, &QAction::triggered, this,
+          &KeyMgmt::SlotShowKeyDetails);
 }
 
 void KeyMgmt::create_menus() {

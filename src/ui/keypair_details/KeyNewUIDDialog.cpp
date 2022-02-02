@@ -57,16 +57,16 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
       0, 1, 2);
   gridLayout->addWidget(error_label_, 5, 0, 1, 2);
 
-  connect(create_button_, SIGNAL(clicked(bool)), this,
-          SLOT(slot_create_new_uid()));
+  connect(create_button_, &QPushButton::clicked, this,
+          &KeyNewUIDDialog::slot_create_new_uid);
 
   this->setLayout(gridLayout);
   this->setWindowTitle(_("Create New UID"));
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setModal(true);
 
-  connect(this, SIGNAL(SignalUIDCreated()), SignalStation::GetInstance(),
-          SIGNAL(KeyDatabaseRefresh()));
+  connect(this, &KeyNewUIDDialog::SignalUIDCreated, SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh);
 }
 
 void KeyNewUIDDialog::slot_create_new_uid() {

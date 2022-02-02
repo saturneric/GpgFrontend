@@ -117,16 +117,18 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
   baseLayout->addWidget(detail_box_);
   baseLayout->addStretch();
 
-  connect(addSubkeyButton, SIGNAL(clicked(bool)), this,
-          SLOT(slot_add_subkey()));
-  connect(subkey_list_, SIGNAL(itemSelectionChanged()), this,
-          SLOT(slot_refresh_subkey_detail()));
+  connect(addSubkeyButton, &QPushButton::clicked, this,
+          &KeyPairSubkeyTab::slot_add_subkey);
+  connect(subkey_list_, &QTableWidget::itemSelectionChanged, this,
+          &KeyPairSubkeyTab::slot_refresh_subkey_detail);
 
   // key database refresh signal
-  connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
-          SLOT(slot_refresh_key_info()));
-  connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
-          SLOT(slot_refresh_subkey_list()));
+  connect(SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh, this,
+          &KeyPairSubkeyTab::slot_refresh_key_info);
+  connect(SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh, this,
+          &KeyPairSubkeyTab::slot_refresh_subkey_list);
 
   baseLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -296,12 +298,10 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
 
 void KeyPairSubkeyTab::create_subkey_opera_menu() {
   subkey_opera_menu_ = new QMenu(this);
-  // auto *revokeSubkeyAct = new QAction(_("Revoke Subkey"));
   auto* editSubkeyAct = new QAction(_("Edit Expire Date"));
-  connect(editSubkeyAct, SIGNAL(triggered(bool)), this,
-          SLOT(slot_edit_subkey()));
+  connect(editSubkeyAct, &QAction::triggered, this,
+          &KeyPairSubkeyTab::slot_edit_subkey);
 
-  // subkeyOperaMenu->addAction(revokeSubkeyAct);
   subkey_opera_menu_->addAction(editSubkeyAct);
 }
 

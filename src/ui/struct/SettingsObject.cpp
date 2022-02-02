@@ -30,9 +30,14 @@
 
 nlohmann::json& GpgFrontend::UI::SettingsObject::Check(
     const std::string& key, nlohmann::json default_value) {
-  if (!nlohmann::json::contains(key))
-    nlohmann::json::operator[](key) = std::move(default_value);
-  return nlohmann::json::operator[](key);
+  try {
+    if (!this->nlohmann::json::contains(key))
+      this->nlohmann::json::operator[](key) = std::move(default_value);
+    return this->nlohmann::json::operator[](key);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << e.what();
+    throw e;
+  }
 }
 
 GpgFrontend::UI::SettingsObject GpgFrontend::UI::SettingsObject::Check(

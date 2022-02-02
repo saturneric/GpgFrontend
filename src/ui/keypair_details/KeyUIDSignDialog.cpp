@@ -86,8 +86,8 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
   timeLayout->addWidget(non_expire_check_, 0, 2);
   layout->addLayout(timeLayout, 1, 0);
 
-  connect(sign_key_button_, SIGNAL(clicked(bool)), this,
-          SLOT(slot_sign_key(bool)));
+  connect(sign_key_button_, &QPushButton::clicked, this,
+          &KeyUIDSignDialog::slot_sign_key);
 
   this->setLayout(layout);
   this->setModal(true);
@@ -96,8 +96,9 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
 
   setAttribute(Qt::WA_DeleteOnClose, true);
 
-  connect(this, SIGNAL(SignalKeyUIDSignUpdate()), SignalStation::GetInstance(),
-          SIGNAL(KeyDatabaseRefresh()));
+  connect(this, &KeyUIDSignDialog::SignalKeyUIDSignUpdate,
+          SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh);
 }
 
 void KeyUIDSignDialog::slot_sign_key(bool clicked) {

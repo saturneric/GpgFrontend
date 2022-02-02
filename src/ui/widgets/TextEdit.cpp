@@ -45,8 +45,8 @@ TextEdit::TextEdit(QWidget* parent) : QWidget(parent) {
   layout->setSpacing(0);
   setLayout(layout);
 
-  connect(tab_widget_, SIGNAL(tabCloseRequested(int)), this,
-          SLOT(slot_remove_tab(int)));
+  connect(tab_widget_, &QTabWidget::tabCloseRequested, this,
+          &TextEdit::slot_remove_tab);
   SlotNewTab();
   setAcceptDrops(false);
 }
@@ -129,8 +129,8 @@ void TextEdit::SlotOpen() {
         QApplication::restoreOverrideCursor();
         page->GetTextPage()->setFocus();
         connect(page->GetTextPage()->document(),
-                SIGNAL(modificationChanged(bool)), this,
-                SLOT(SlotShowModified()));
+                &QTextDocument::modificationChanged, this,
+                &TextEdit::SlotShowModified);
         // enableAction(true)
         file.close();
       } else {
@@ -508,7 +508,7 @@ QHash<int, QString> TextEdit::UnsavedDocuments() const {
   return unsavedDocs;
 }
 
-void TextEdit::slot_cut() const {
+void TextEdit::SlotCut() const {
   if (tab_widget_->count() == 0 || CurTextPage() == nullptr) {
     return;
   }
@@ -516,7 +516,7 @@ void TextEdit::slot_cut() const {
   CurTextPage()->GetTextPage()->cut();
 }
 
-void TextEdit::slot_copy() const {
+void TextEdit::SlotCopy() const {
   if (tab_widget_->count() == 0) {
     return;
   }
@@ -526,7 +526,7 @@ void TextEdit::slot_copy() const {
   }
 }
 
-void TextEdit::slot_paste() const {
+void TextEdit::SlotPaste() const {
   if (tab_widget_->count() == 0 || CurTextPage() == nullptr) {
     return;
   }
@@ -534,7 +534,7 @@ void TextEdit::slot_paste() const {
   CurTextPage()->GetTextPage()->paste();
 }
 
-void TextEdit::slot_undo() const {
+void TextEdit::SlotUndo() const {
   if (tab_widget_->count() == 0 || CurTextPage() == nullptr) {
     return;
   }
@@ -542,7 +542,7 @@ void TextEdit::slot_undo() const {
   CurTextPage()->GetTextPage()->undo();
 }
 
-void TextEdit::slot_redo() const {
+void TextEdit::SlotRedo() const {
   if (tab_widget_->count() == 0 || CurTextPage() == nullptr) {
     return;
   }
@@ -550,7 +550,7 @@ void TextEdit::slot_redo() const {
   CurTextPage()->GetTextPage()->redo();
 }
 
-void TextEdit::slot_zoom_in() const {
+void TextEdit::SlotZoomIn() const {
   if (tab_widget_->count() == 0) {
     return;
   }
@@ -560,7 +560,7 @@ void TextEdit::slot_zoom_in() const {
   }
 }
 
-void TextEdit::slot_zoom_out() const {
+void TextEdit::SlotZoomOut() const {
   if (tab_widget_->count() == 0) {
     return;
   }
@@ -570,7 +570,7 @@ void TextEdit::slot_zoom_out() const {
   }
 }
 
-void TextEdit::slot_select_all() const {
+void TextEdit::SlotSelectAll() const {
   if (tab_widget_->count() == 0 || CurTextPage() == nullptr) {
     return;
   }

@@ -123,6 +123,12 @@ class MainWindow : public QMainWindow {
    */
   void SlotFileDecryptVerify();
 
+  /**
+   * @details get value of member restartNeeded to needed.
+   * @param needed true, if application has to be restarted
+   */
+  void SlotSetRestartNeeded(bool needed);
+
  private slots:
 
   /**
@@ -239,12 +245,6 @@ class MainWindow : public QMainWindow {
    * @param number number of the opened tabs and -1, if no tab is opened
    */
   void slot_disable_tab_actions(int number);
-
-  /**
-   * @details get value of member restartNeeded to needed.
-   * @param needed true, if application has to be restarted
-   */
-  void slot_set_restart_needed(bool needed);
 
   /**
    * @details called when need to upgrade.

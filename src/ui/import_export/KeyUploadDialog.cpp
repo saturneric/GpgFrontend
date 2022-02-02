@@ -109,7 +109,7 @@ void KeyUploadDialog::slot_upload_key_to_server(
 
   // Send Post Data
   QNetworkReply* reply = qnam->post(request, postData);
-  connect(reply, SIGNAL(finished()), this, SLOT(slot_upload_finished()));
+  connect(reply, &QNetworkReply::finished, this, &KeyUploadDialog::slot_upload_finished);
 
   // Keep Waiting
   while (reply->isRunning()) {

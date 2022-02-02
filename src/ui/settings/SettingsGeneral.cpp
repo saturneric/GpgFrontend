@@ -66,8 +66,8 @@ GeneralTab::GeneralTab(QWidget* parent)
   for (const auto& l : lang_) {
     ui_->langSelectBox->addItem(l);
   }
-  connect(ui_->langSelectBox, SIGNAL(currentIndexChanged(int)), this,
-          SLOT(slot_language_changed()));
+  connect(ui_->langSelectBox, qOverload<int>(&QComboBox::currentIndexChanged),
+          this, &GeneralTab::slot_language_changed);
 #endif
 
   SetSettings();

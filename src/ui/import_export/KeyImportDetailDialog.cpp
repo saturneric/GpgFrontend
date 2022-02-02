@@ -197,6 +197,6 @@ QString KeyImportDetailDialog::get_status_string(int keyStatus) {
 
 void KeyImportDetailDialog::create_button_box() {
   button_box_ = new QDialogButtonBox(QDialogButtonBox::Ok);
-  connect(button_box_, SIGNAL(accepted()), this, SLOT(close()));
+  connect(button_box_, &QDialogButtonBox::accepted, this, &KeyImportDetailDialog::close);
 }
 }  // namespace GpgFrontend::UI

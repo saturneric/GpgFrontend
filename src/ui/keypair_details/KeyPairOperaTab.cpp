@@ -49,8 +49,8 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
 
   auto* export_public_button = new QPushButton(_("Export Public Key"));
   export_h_box_layout->addWidget(export_public_button);
-  connect(export_public_button, SIGNAL(clicked()), this,
-          SLOT(slot_export_public_key()));
+  connect(export_public_button, &QPushButton::clicked, this,
+          &KeyPairOperaTab::slot_export_public_key);
 
   if (m_key_.IsPrivateKey()) {
     auto* export_private_button = new QPushButton(_("Export Private Key"));
@@ -61,11 +61,11 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
     if (m_key_.IsHasMasterKey()) {
       auto* edit_expires_button =
           new QPushButton(_("Modify Expiration Datetime (Primary Key)"));
-      connect(edit_expires_button, SIGNAL(clicked()), this,
-              SLOT(slot_modify_edit_datetime()));
+      connect(edit_expires_button, &QPushButton::clicked, this,
+              &KeyPairOperaTab::slot_modify_edit_datetime);
       auto* edit_password_button = new QPushButton(_("Modify Password"));
-      connect(edit_password_button, SIGNAL(clicked()), this,
-              SLOT(slot_modify_password()));
+      connect(edit_password_button, &QPushButton::clicked, this,
+              &KeyPairOperaTab::slot_modify_password);
 
       vbox_p_k->addWidget(edit_expires_button);
       vbox_p_k->addWidget(edit_password_button);
@@ -82,14 +82,14 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
   if (m_key_.IsPrivateKey() && m_key_.IsHasMasterKey()) {
     auto* revoke_cert_gen_button =
         new QPushButton(_("Generate Revoke Certificate"));
-    connect(revoke_cert_gen_button, SIGNAL(clicked()), this,
-            SLOT(slot_gen_revoke_cert()));
+    connect(revoke_cert_gen_button, &QPushButton::clicked, this,
+            &KeyPairOperaTab::slot_gen_revoke_cert);
     advance_h_box_layout->addWidget(revoke_cert_gen_button);
   }
 
   auto* modify_tofu_button = new QPushButton(_("Modify TOFU Policy"));
-  connect(modify_tofu_button, SIGNAL(clicked()), this,
-          SLOT(slot_modify_tofu_policy()));
+  connect(modify_tofu_button, &QPushButton::clicked, this,
+          &KeyPairOperaTab::slot_modify_tofu_policy);
 
   vbox_p_k->addLayout(advance_h_box_layout);
   opera_key_box->setLayout(vbox_p_k);
@@ -104,14 +104,14 @@ void KeyPairOperaTab::CreateOperaMenu() {
   key_server_opera_menu_ = new QMenu(this);
 
   auto* uploadKeyPair = new QAction(_("Upload Key Pair to Key Server"), this);
-  connect(uploadKeyPair, SIGNAL(triggered()), this,
-          SLOT(slot_upload_key_to_server()));
+  connect(uploadKeyPair, &QAction::triggered, this,
+          &KeyPairOperaTab::slot_upload_key_to_server);
   if (!(m_key_.IsPrivateKey() && m_key_.IsHasMasterKey()))
     uploadKeyPair->setDisabled(true);
 
   auto* updateKeyPair = new QAction(_("Sync Key Pair From Key Server"), this);
-  connect(updateKeyPair, SIGNAL(triggered()), this,
-          SLOT(slot_update_key_from_server()));
+  connect(updateKeyPair, &QAction::triggered, this,
+          &KeyPairOperaTab::slot_update_key_from_server);
 
   // when a key has primary key, it should always upload to keyserver.
   if (m_key_.IsHasMasterKey()) {
@@ -124,14 +124,14 @@ void KeyPairOperaTab::CreateOperaMenu() {
   secret_key_export_opera_menu_ = new QMenu(this);
 
   auto* exportFullSecretKey = new QAction(_("Export Full Secret Key"), this);
-  connect(exportFullSecretKey, SIGNAL(triggered()), this,
-          SLOT(slot_export_private_key()));
+  connect(exportFullSecretKey, &QAction::triggered, this,
+          &KeyPairOperaTab::slot_export_private_key);
   if (!m_key_.IsPrivateKey()) exportFullSecretKey->setDisabled(true);
 
   auto* exportShortestSecretKey =
       new QAction(_("Export Shortest Secret Key"), this);
-  connect(exportShortestSecretKey, SIGNAL(triggered()), this,
-          SLOT(slot_export_short_private_key()));
+  connect(exportShortestSecretKey, &QAction::triggered, this,
+          &KeyPairOperaTab::slot_export_short_private_key);
 
   secret_key_export_opera_menu_->addAction(exportFullSecretKey);
   secret_key_export_opera_menu_->addAction(exportShortestSecretKey);

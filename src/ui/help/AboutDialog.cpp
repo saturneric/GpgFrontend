@@ -54,7 +54,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent) : QDialog(parent) {
   }
 
   auto* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
-  connect(buttonBox, SIGNAL(accepted()), this, SLOT(close()));
+  connect(buttonBox, &QDialogButtonBox::accepted, this, &AboutDialog::close);
 
   auto* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(tabWidget);
@@ -194,8 +194,8 @@ void UpdateTab::getLatestVersion() {
 
   auto version_thread = new VersionCheckThread();
 
-  connect(version_thread, SIGNAL(finished()), version_thread,
-          SLOT(deleteLater()));
+  connect(version_thread, &VersionCheckThread::finished, version_thread,
+          &VersionCheckThread::deleteLater);
   connect(version_thread, &VersionCheckThread::SignalUpgradeVersion, this,
           &UpdateTab::slot_show_version_status);
 
