@@ -43,10 +43,14 @@
 #include "ui/settings/GlobalSettingStation.h"
 #endif
 
-// Easy Logging Cpp
+/**
+ * \brief initialize the easylogging++ library.
+ */
 INITIALIZE_EASYLOGGINGPP
 
-// Recover buff
+/**
+ * \brief Store the jump buff and make it possible to recover from a crash.
+ */
 jmp_buf recover_env;
 
 /**
@@ -87,7 +91,7 @@ extern void before_exit();
  * @return
  */
 int main(int argc, char* argv[]) {
-  // Register Signals
+  // re
   signal(SIGSEGV, handle_signal);
   signal(SIGFPE, handle_signal);
   signal(SIGILL, handle_signal);
@@ -95,10 +99,10 @@ int main(int argc, char* argv[]) {
   // clean something before exit
   atexit(before_exit);
 
-  // Qt
+  // initialize qt resources
   Q_INIT_RESOURCE(gpgfrontend);
 
-  // Qt App
+  // create qt application
   QApplication app(argc, argv);
 
 #ifndef MACOS
@@ -110,13 +114,13 @@ int main(int argc, char* argv[]) {
   QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
 
-  // config logging system
+  // initialize logging system
   init_logging();
 
-  // root certs for tls connection
+  // init certs for tls connection
   init_certs();
 
-  // App config
+  // set the extra information of the build
   QApplication::setApplicationVersion(BUILD_VERSION);
   QApplication::setApplicationName(PROJECT_NAME);
 
@@ -151,12 +155,12 @@ int main(int argc, char* argv[]) {
                                                 gpg_path.string()));
 #endif
 
+  // create the thread to load the gpg context
   auto* init_ctx_thread = new GpgFrontend::UI::CtxCheckThread();
-
   QApplication::connect(init_ctx_thread, &QThread::finished, init_ctx_thread,
                         &QThread::deleteLater);
 
-  // Waiting Dialog
+  // create and show loading window before starting the main window
   auto* waiting_dialog = new QProgressDialog();
   waiting_dialog->setMaximum(0);
   waiting_dialog->setMinimum(0);
@@ -180,10 +184,11 @@ int main(int argc, char* argv[]) {
     exit(0);
   });
 
-  // Show Waiting Dialog
+  // show the loading window
   waiting_dialog->show();
   waiting_dialog->setFocus();
 
+  // start the thread to load the gpg context
   init_ctx_thread->start();
   QEventLoop loop;
   QApplication::connect(init_ctx_thread, &QThread::finished, &loop,
@@ -204,17 +209,19 @@ int main(int argc, char* argv[]) {
 #endif
     if (!r) {
       try {
-        // i18n
+        // init the i18n support
         init_locale();
 
         QApplication::setQuitOnLastWindowClosed(true);
 
+        // create main window and show it
         auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
         main_window->init();
         main_window->show();
         return_from_event_loop_code = QApplication::exec();
 
       } catch (...) {
+        // catch all unhandled exceptions and notify the user
         QMessageBox::information(
             nullptr, _("Unhandled Exception Thrown"),
             _("Oops, an unhandled exception was thrown "
@@ -227,6 +234,7 @@ int main(int argc, char* argv[]) {
       }
 
     } else {
+      // when signal is caught, restart the main window
       QMessageBox::information(
           nullptr, _("A serious error has occurred"),
           _("Oh no! GpgFrontend caught a serious error in the software, so it "
@@ -240,5 +248,6 @@ int main(int argc, char* argv[]) {
     LOG(INFO) << "loop refresh";
   } while (return_from_event_loop_code == RESTART_CODE);
 
+  // exit the program
   return return_from_event_loop_code;
 }

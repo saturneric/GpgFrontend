@@ -29,7 +29,7 @@
 #include "ui/settings/GlobalSettingStation.h"
 
 /**
- * @brief
+ * @brief Actions performed before exiting the application
  *
  */
 void before_exit() {
