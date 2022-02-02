@@ -99,16 +99,18 @@ void InfoBoardWidget::SlotRefresh(const QString& text, InfoBoardStatus status) {
 
 void InfoBoardWidget::AssociateTextEdit(QTextEdit* edit) {
   if (m_text_page_ != nullptr)
-    disconnect(m_text_page_, SIGNAL(textChanged()), this, SLOT(SlotReset()));
+    disconnect(m_text_page_, &QTextEdit::textChanged, this,
+               &InfoBoardWidget::SlotReset);
   this->m_text_page_ = edit;
-  connect(edit, SIGNAL(textChanged()), this, SLOT(SlotReset()));
+  connect(edit, &QTextEdit::textChanged, this, &InfoBoardWidget::SlotReset);
 }
 
 void InfoBoardWidget::AssociateTabWidget(QTabWidget* tab) {
   m_text_page_ = nullptr;
   m_tab_widget_ = tab;
-  connect(tab, SIGNAL(tabBarClicked(int)), this, SLOT(SlotReset()));
-  connect(tab, SIGNAL(tabCloseRequested(int)), this, SLOT(SlotReset()));
+  connect(tab, &QTabWidget::tabBarClicked, this, &InfoBoardWidget::SlotReset);
+  connect(tab, &QTabWidget::tabCloseRequested, this,
+          &InfoBoardWidget::SlotReset);
   // reset
   this->SlotReset();
 }

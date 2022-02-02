@@ -52,7 +52,7 @@ void VerifyDetailsDialog::slot_refresh() {
 
   // Button Box for close button
   button_box_ = new QDialogButtonBox(QDialogButtonBox::Close);
-  connect(button_box_, SIGNAL(rejected()), this, SLOT(close()));
+  connect(button_box_, &QDialogButtonBox::rejected, this, &VerifyDetailsDialog::close);
 
   mVboxLayout->addWidget(new QLabel(QString::fromStdString(
       std::string(_("Status")) + ": " + gpgme_strerror(error_))));

@@ -62,7 +62,7 @@ void MainWindow::init() noexcept {
     attachment_dock_created_ = false;
 
     /* Variable containing if restart is needed */
-    this->slot_set_restart_needed(false);
+    this->SlotSetRestartNeeded(false);
 
     create_actions();
     create_menus();
@@ -70,8 +70,8 @@ void MainWindow::init() noexcept {
     create_status_bar();
     create_dock_windows();
 
-    connect(edit_->tab_widget_, SIGNAL(currentChanged(int)), this,
-            SLOT(slot_disable_tab_actions(int)));
+    connect(edit_->tab_widget_, &QTabWidget::currentChanged, this,
+            &MainWindow::slot_disable_tab_actions);
     connect(SignalStation::GetInstance(),
             &SignalStation::SignalRefreshStatusBar, this,
             [=](const QString& message, int timeout) {
@@ -124,8 +124,8 @@ void MainWindow::init() noexcept {
 #ifdef RELEASE
       auto version_thread = new VersionCheckThread();
 
-      connect(version_thread, SIGNAL(finished()), version_thread,
-              SLOT(deleteLater()));
+      connect(version_thread, &VersionCheckThread::finished, version_thread,
+              &VersionCheckThread::deleteLater);
       connect(version_thread, &VersionCheckThread::upgradeVersion, this,
               &MainWindow::slotVersionUpgrade);
 

@@ -435,7 +435,7 @@ void MainWindow::SlotFileEncryptSign() {
 
   auto signersPicker = new SignersPicker(this);
   QEventLoop loop;
-  connect(signersPicker, SIGNAL(finished(int)), &loop, SLOT(quit()));
+  connect(signersPicker, &SignersPicker::finished, &loop, &QEventLoop::quit);
   loop.exec();
 
   auto signer_key_ids = signersPicker->GetCheckedSigners();

@@ -28,15 +28,16 @@
 
 #include "SettingsDialog.h"
 
-#include "GlobalSettingStation.h"
-#include "SettingsAdvanced.h"
-#include "SettingsAppearance.h"
-#include "SettingsGeneral.h"
-#include "SettingsKeyServer.h"
-#include "SettingsNetwork.h"
+#include "ui/settings/GlobalSettingStation.h"
+#include "ui/settings/SettingsAdvanced.h"
+#include "ui/settings/SettingsAppearance.h"
+#include "ui/settings/SettingsGeneral.h"
+#include "ui/settings/SettingsKeyServer.h"
+#include "ui/settings/SettingsNetwork.h"
+#include "ui/main_window/MainWindow.h"
 
 #ifdef SMTP_SUPPORT
-#include "SettingsSendMail.h"
+#include "ui/settings/SettingsSendMail.h"
 #endif
 
 namespace GpgFrontend::UI {
@@ -69,8 +70,8 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
   button_box_ =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
-  connect(button_box_, SIGNAL(accepted()), this, SLOT(SlotAccept()));
-  connect(button_box_, SIGNAL(rejected()), this, SLOT(reject()));
+  connect(button_box_, &QDialogButtonBox::accepted, this, &SettingsDialog::SlotAccept);
+  connect(button_box_, &QDialogButtonBox::rejected, this, &SettingsDialog::reject);
 
   auto* mainLayout = new QVBoxLayout;
   mainLayout->addWidget(tab_widget_);
@@ -81,25 +82,11 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
 
   setWindowTitle(_("Settings"));
 
-  // slots for handling the restartneeded member
+  // slots for handling the restart needed member
   this->slot_set_restart_needed(false);
-  connect(general_tab_, SIGNAL(SignalRestartNeeded(bool)), this,
-          SLOT(slot_set_restart_needed(bool)));
-  connect(appearance_tab_, SIGNAL(SignalRestartNeeded(bool)), this,
-          SLOT(slot_set_restart_needed(bool)));
-#ifdef SMTP_SUPPORT
-  connect(send_mail_tab_, SIGNAL(SignalRestartNeeded(bool)), this,
-          SLOT(slot_set_restart_needed(bool)));
-#endif
-  connect(key_server_tab_, SIGNAL(SignalRestartNeeded(bool)), this,
-          SLOT(slot_set_restart_needed(bool)));
-#ifdef ADVANCED_SUPPORT
-  connect(advancedTab, SIGNAL(signalRestartNeeded(bool)), this,
-          SLOT(slotSetRestartNeeded(bool)));
-#endif
-
-  connect(this, SIGNAL(SignalRestartNeeded(bool)), parent,
-          SLOT(slot_set_restart_needed(bool)));
+  connect(general_tab_, &GeneralTab::SignalRestartNeeded, this,
+          &SettingsDialog::slot_set_restart_needed);
+  connect(this, &SettingsDialog::SignalRestartNeeded, qobject_cast<MainWindow *>(parent), &MainWindow::SlotSetRestartNeeded);
 
   this->setMinimumSize(480, 680);
   this->adjustSize();

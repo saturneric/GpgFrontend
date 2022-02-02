@@ -73,8 +73,8 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
   this->setLayout(vbox2);
   this->setModal(true);
 
-  connect(this, SIGNAL(SignalSubKeyGenerated()), SignalStation::GetInstance(),
-          SIGNAL(KeyDatabaseRefresh()));
+  connect(this, &SubkeyGenerateDialog::SignalSubKeyGenerated, SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh);
 
   set_signal_slot();
   refresh_widgets_state();
@@ -156,23 +156,23 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
 }
 
 void SubkeyGenerateDialog::set_signal_slot() {
-  connect(button_box_, SIGNAL(accepted()), this, SLOT(slot_key_gen_accept()));
-  connect(button_box_, SIGNAL(rejected()), this, SLOT(reject()));
+  connect(button_box_, &QDialogButtonBox::accepted, this, &SubkeyGenerateDialog::slot_key_gen_accept);
+  connect(button_box_, &QDialogButtonBox::rejected, this, &SubkeyGenerateDialog::reject);
 
-  connect(expire_check_box_, SIGNAL(stateChanged(int)), this,
-          SLOT(slot_expire_box_changed()));
+  connect(expire_check_box_, &QCheckBox::stateChanged, this,
+          &SubkeyGenerateDialog::slot_expire_box_changed);
 
-  connect(key_usage_check_boxes_[0], SIGNAL(stateChanged(int)), this,
-          SLOT(slot_encryption_box_changed(int)));
-  connect(key_usage_check_boxes_[1], SIGNAL(stateChanged(int)), this,
-          SLOT(slot_signing_box_changed(int)));
-  connect(key_usage_check_boxes_[2], SIGNAL(stateChanged(int)), this,
-          SLOT(slot_certification_box_changed(int)));
-  connect(key_usage_check_boxes_[3], SIGNAL(stateChanged(int)), this,
-          SLOT(slot_authentication_box_changed(int)));
+  connect(key_usage_check_boxes_[0], &QCheckBox::stateChanged, this,
+          &SubkeyGenerateDialog::slot_encryption_box_changed);
+  connect(key_usage_check_boxes_[1], &QCheckBox::stateChanged, this,
+          &SubkeyGenerateDialog::slot_signing_box_changed);
+  connect(key_usage_check_boxes_[2], &QCheckBox::stateChanged, this,
+          &SubkeyGenerateDialog::slot_certification_box_changed);
+  connect(key_usage_check_boxes_[3], &QCheckBox::stateChanged, this,
+          &SubkeyGenerateDialog::slot_authentication_box_changed);
 
-  connect(key_type_combo_box_, SIGNAL(currentIndexChanged(int)), this,
-          SLOT(slot_activated_key_type(int)));
+  connect(key_type_combo_box_, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &SubkeyGenerateDialog::slot_activated_key_type);
 }
 
 void SubkeyGenerateDialog::slot_expire_box_changed() {

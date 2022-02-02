@@ -108,10 +108,10 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   auto* buttonBox =
       new QDialogButtonBox(QDialogButtonBox::Discard | QDialogButtonBox::Save |
                            QDialogButtonBox::Cancel);
-  connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-  connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+  connect(buttonBox, &QDialogButtonBox::accepted, this, &QuitDialog::accept);
+  connect(buttonBox, &QDialogButtonBox::rejected, this, &QuitDialog::reject);
   QPushButton* btnNoKey = buttonBox->button(QDialogButtonBox::Discard);
-  connect(btnNoKey, SIGNAL(clicked()), SLOT(slot_my_discard()));
+  connect(btnNoKey, &QPushButton::clicked, this,&QuitDialog::slot_my_discard);
 
   /*
    *  Set the layout

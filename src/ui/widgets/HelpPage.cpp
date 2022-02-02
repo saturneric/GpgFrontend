@@ -40,8 +40,8 @@ HelpPage::HelpPage(const QString& path, QWidget* parent) : QWidget(parent) {
   mainLayout->setContentsMargins(0, 0, 0, 0);
   setLayout(mainLayout);
 
-  connect(browser_, SIGNAL(anchorClicked(QUrl)), this,
-          SLOT(slot_open_url(QUrl)));
+  connect(browser_, &QTextBrowser::anchorClicked, this,
+          &HelpPage::slot_open_url);
   browser_->setOpenLinks(false);
   browser_->setSource(localized_help(QUrl(path)));
   browser_->setFocus();

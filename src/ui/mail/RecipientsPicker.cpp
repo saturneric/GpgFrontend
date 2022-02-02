@@ -34,7 +34,7 @@ GpgFrontend::UI::RecipientsPicker::RecipientsPicker(
     const GpgFrontend::KeyIdArgsListPtr& current_key_ids, QWidget* parent)
     : QDialog(parent) {
   auto confirm_button = new QPushButton(_("Confirm"));
-  connect(confirm_button, SIGNAL(clicked(bool)), this, SLOT(accept()));
+  connect(confirm_button,&QPushButton::clicked, this, &RecipientsPicker::accept);
 
   // Setup KeyList
   key_list_ = new KeyList(KeyMenuAbility::NONE, this);

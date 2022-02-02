@@ -45,74 +45,74 @@ void MainWindow::create_actions() {
   newTabActShortcutList.append(QKeySequence(Qt::CTRL + Qt::Key_T));
   new_tab_act_->setShortcuts(newTabActShortcutList);
   new_tab_act_->setToolTip(_("Open a new file"));
-  connect(new_tab_act_, SIGNAL(triggered()), edit_, SLOT(slotNewTab()));
+  connect(new_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotNewTab);
 
   open_act_ = new QAction(_("Open..."), this);
   open_act_->setIcon(QIcon(":fileopen.png"));
   open_act_->setShortcut(QKeySequence::Open);
   open_act_->setToolTip(_("Open an existing file"));
-  connect(open_act_, SIGNAL(triggered()), edit_, SLOT(slotOpen()));
+  connect(open_act_, &QAction::triggered, edit_, &TextEdit::SlotOpen);
 
   browser_act_ = new QAction(_("File Browser"), this);
   browser_act_->setIcon(QIcon(":file-browser.png"));
   browser_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
   browser_act_->setToolTip(_("Open a file browser"));
-  connect(browser_act_, SIGNAL(triggered()), this, SLOT(slot_open_file_tab()));
+  connect(browser_act_, &QAction::triggered, this, &MainWindow::slot_open_file_tab);
 
   save_act_ = new QAction(_("Save File"), this);
   save_act_->setIcon(QIcon(":filesave.png"));
   save_act_->setShortcut(QKeySequence::Save);
   save_act_->setToolTip(_("Save the current File"));
-  connect(save_act_, SIGNAL(triggered()), edit_, SLOT(slotSave()));
+  connect(save_act_, &QAction::triggered, edit_, &TextEdit::SlotSave);
 
   save_as_act_ = new QAction(QString(_("Save As")) + "...", this);
   save_as_act_->setIcon(QIcon(":filesaveas.png"));
   save_as_act_->setShortcut(QKeySequence::SaveAs);
   save_as_act_->setToolTip(_("Save the current File as..."));
-  connect(save_as_act_, SIGNAL(triggered()), edit_, SLOT(slotSaveAs()));
+  connect(save_as_act_, &QAction::triggered, edit_, &TextEdit::SlotSaveAs);
 
   print_act_ = new QAction(_("Print"), this);
   print_act_->setIcon(QIcon(":fileprint.png"));
   print_act_->setShortcut(QKeySequence::Print);
   print_act_->setToolTip(_("Print Document"));
-  connect(print_act_, SIGNAL(triggered()), edit_, SLOT(slotPrint()));
+  connect(print_act_, &QAction::triggered, edit_, &TextEdit::SlotPrint);
 
   close_tab_act_ = new QAction(_("Close"), this);
   close_tab_act_->setShortcut(QKeySequence::Close);
   close_tab_act_->setToolTip(_("Close file"));
-  connect(close_tab_act_, SIGNAL(triggered()), edit_, SLOT(slotCloseTab()));
+  connect(close_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotCloseTab);
 
   quit_act_ = new QAction(_("Quit"), this);
   quit_act_->setShortcut(QKeySequence::Quit);
   quit_act_->setIcon(QIcon(":exit.png"));
   quit_act_->setToolTip(_("Quit Program"));
-  connect(quit_act_, SIGNAL(triggered()), this, SLOT(close()));
+  connect(quit_act_, &QAction::triggered, this, &MainWindow::close);
 
   /* Edit Menu
    */
   undo_act_ = new QAction(_("Undo"), this);
   undo_act_->setShortcut(QKeySequence::Undo);
   undo_act_->setToolTip(_("Undo Last Edit Action"));
-  connect(undo_act_, SIGNAL(triggered()), edit_, SLOT(slotUndo()));
+  connect(undo_act_, &QAction::triggered, edit_, &TextEdit::SlotUndo);
 
   redo_act_ = new QAction(_("Redo"), this);
   redo_act_->setShortcut(QKeySequence::Redo);
   redo_act_->setToolTip(_("Redo Last Edit Action"));
-  connect(redo_act_, SIGNAL(triggered()), edit_, SLOT(slotRedo()));
+  connect(redo_act_, &QAction::triggered, edit_, &TextEdit::SlotRedo);
 
   zoom_in_act_ = new QAction(_("Zoom In"), this);
   zoom_in_act_->setShortcut(QKeySequence::ZoomIn);
-  connect(zoom_in_act_, SIGNAL(triggered()), edit_, SLOT(slotZoomIn()));
+  connect(zoom_in_act_, &QAction::triggered, edit_, &TextEdit::SlotZoomIn);
 
   zoom_out_act_ = new QAction(_("Zoom Out"), this);
   zoom_out_act_->setShortcut(QKeySequence::ZoomOut);
-  connect(zoom_out_act_, SIGNAL(triggered()), edit_, SLOT(slotZoomOut()));
+  connect(zoom_out_act_, &QAction::triggered, edit_, &TextEdit::SlotZoomOut);
 
   paste_act_ = new QAction(_("Paste"), this);
   paste_act_->setIcon(QIcon(":button_paste.png"));
   paste_act_->setShortcut(QKeySequence::Paste);
   paste_act_->setToolTip(_("Paste Text From Clipboard"));
-  connect(paste_act_, SIGNAL(triggered()), edit_, SLOT(slotPaste()));
+  connect(paste_act_, &QAction::triggered, edit_, &TextEdit::SlotPaste);
 
   cut_act_ = new QAction(_("Cut"), this);
   cut_act_->setIcon(QIcon(":button_cut.png"));
@@ -120,7 +120,7 @@ void MainWindow::create_actions() {
   cut_act_->setToolTip(
       _("Cut the current selection's contents to the "
         "clipboard"));
-  connect(cut_act_, SIGNAL(triggered()), edit_, SLOT(slotCut()));
+  connect(cut_act_, &QAction::triggered, edit_, &TextEdit::SlotCut);
 
   copy_act_ = new QAction(_("Copy"), this);
   copy_act_->setIcon(QIcon(":button_copy.png"));
@@ -128,23 +128,23 @@ void MainWindow::create_actions() {
   copy_act_->setToolTip(
       _("Copy the current selection's contents to the "
         "clipboard"));
-  connect(copy_act_, SIGNAL(triggered()), edit_, SLOT(slotCopy()));
+  connect(copy_act_, &QAction::triggered, edit_, &TextEdit::SlotCopy);
 
   quote_act_ = new QAction(_("Quote"), this);
   quote_act_->setIcon(QIcon(":quote.png"));
   quote_act_->setToolTip(_("Quote whole text"));
-  connect(quote_act_, SIGNAL(triggered()), edit_, SLOT(slotQuote()));
+  connect(quote_act_, &QAction::triggered, edit_, &TextEdit::SlotQuote);
 
   select_all_act_ = new QAction(_("Select All"), this);
   select_all_act_->setIcon(QIcon(":edit.png"));
   select_all_act_->setShortcut(QKeySequence::SelectAll);
   select_all_act_->setToolTip(_("Select the whole text"));
-  connect(select_all_act_, SIGNAL(triggered()), edit_, SLOT(slotSelectAll()));
+  connect(select_all_act_, &QAction::triggered, edit_, &TextEdit::SlotSelectAll);
 
   find_act_ = new QAction(_("Find"), this);
   find_act_->setShortcut(QKeySequence::Find);
   find_act_->setToolTip(_("Find a word"));
-  connect(find_act_, SIGNAL(triggered()), this, SLOT(slot_find()));
+  connect(find_act_, &QAction::triggered, this, &MainWindow::slot_find);
 
   clean_double_line_breaks_act_ = new QAction(_("Remove spacing"), this);
   clean_double_line_breaks_act_->setIcon(
@@ -152,14 +152,14 @@ void MainWindow::create_actions() {
   // cleanDoubleLineBreaksAct->setShortcut(QKeySequence::SelectAll);
   clean_double_line_breaks_act_->setToolTip(
       _("Remove double linebreaks, e.g. in pasted text from Web Mailer"));
-  connect(clean_double_line_breaks_act_, SIGNAL(triggered()), this,
-          SLOT(slot_clean_double_line_breaks()));
+  connect(clean_double_line_breaks_act_, &QAction::triggered, this,
+          &MainWindow::slot_clean_double_line_breaks);
 
   open_settings_act_ = new QAction(_("Settings"), this);
   open_settings_act_->setToolTip(_("Open settings dialog"));
   open_settings_act_->setShortcut(QKeySequence::Preferences);
-  connect(open_settings_act_, SIGNAL(triggered()), this,
-          SLOT(slot_open_settings_dialog()));
+  connect(open_settings_act_, &QAction::triggered, this,
+          &MainWindow::slot_open_settings_dialog);
 
   /* Crypt Menu
    */
@@ -167,41 +167,41 @@ void MainWindow::create_actions() {
   encrypt_act_->setIcon(QIcon(":encrypted.png"));
   encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
   encrypt_act_->setToolTip(_("Encrypt Message"));
-  connect(encrypt_act_, SIGNAL(triggered()), this, SLOT(slot_encrypt()));
+  connect(encrypt_act_, &QAction::triggered, this, &MainWindow::slot_encrypt);
 
   encrypt_sign_act_ = new QAction(_("Encrypt Sign"), this);
   encrypt_sign_act_->setIcon(QIcon(":encrypted_signed.png"));
   encrypt_sign_act_->setShortcut(
       QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_E));
   encrypt_sign_act_->setToolTip(_("Encrypt and Sign Message"));
-  connect(encrypt_sign_act_, SIGNAL(triggered()), this,
-          SLOT(slot_encrypt_sign()));
+  connect(encrypt_sign_act_, &QAction::triggered, this,
+          &MainWindow::slot_encrypt_sign);
 
   decrypt_act_ = new QAction(_("Decrypt"), this);
   decrypt_act_->setIcon(QIcon(":decrypted.png"));
   decrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
   decrypt_act_->setToolTip(_("Decrypt Message"));
-  connect(decrypt_act_, SIGNAL(triggered()), this, SLOT(slot_decrypt()));
+  connect(decrypt_act_, &QAction::triggered, this, &MainWindow::slot_decrypt);
 
   decrypt_verify_act_ = new QAction(_("Decrypt Verify"), this);
   decrypt_verify_act_->setIcon(QIcon(":decrypted_verified.png"));
   decrypt_verify_act_->setShortcut(
       QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
   decrypt_verify_act_->setToolTip(_("Decrypt and Verify Message"));
-  connect(decrypt_verify_act_, SIGNAL(triggered()), this,
-          SLOT(slot_decrypt_verify()));
+  connect(decrypt_verify_act_, &QAction::triggered, this,
+          &MainWindow::slot_decrypt_verify);
 
   sign_act_ = new QAction(_("Sign"), this);
   sign_act_->setIcon(QIcon(":signature.png"));
   sign_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
   sign_act_->setToolTip(_("Sign Message"));
-  connect(sign_act_, SIGNAL(triggered()), this, SLOT(slot_sign()));
+  connect(sign_act_, &QAction::triggered, this, &MainWindow::slot_sign);
 
   verify_act_ = new QAction(_("Verify"), this);
   verify_act_->setIcon(QIcon(":verify.png"));
   verify_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
   verify_act_->setToolTip(_("Verify Message"));
-  connect(verify_act_, SIGNAL(triggered()), this, SLOT(slot_verify()));
+  connect(verify_act_, &QAction::triggered, this, &MainWindow::slot_verify);
 
   /* Key Menu
    */
@@ -233,14 +233,14 @@ void MainWindow::create_actions() {
   import_key_from_edit_act_ = new QAction(_("Editor"), this);
   import_key_from_edit_act_->setIcon(QIcon(":txt.png"));
   import_key_from_edit_act_->setToolTip(_("Import New Key From Editor"));
-  connect(import_key_from_edit_act_, SIGNAL(triggered()), this,
-          SLOT(slot_import_key_from_edit()));
+  connect(import_key_from_edit_act_, &QAction::triggered, this,
+          &MainWindow::slot_import_key_from_edit);
 
   open_key_management_act_ = new QAction(_("Manage Keys"), this);
   open_key_management_act_->setIcon(QIcon(":keymgmt.png"));
   open_key_management_act_->setToolTip(_("Open Key Management"));
-  connect(open_key_management_act_, SIGNAL(triggered()), this,
-          SLOT(slot_open_key_management()));
+  connect(open_key_management_act_, &QAction::triggered, this,
+          &MainWindow::slot_open_key_management);
 
   /*
    * About Menu
@@ -268,8 +268,8 @@ void MainWindow::create_actions() {
 
   start_wizard_act_ = new QAction(_("Open Wizard"), this);
   start_wizard_act_->setToolTip(_("Open the wizard"));
-  connect(start_wizard_act_, SIGNAL(triggered()), this,
-          SLOT(slot_start_wizard()));
+  connect(start_wizard_act_, &QAction::triggered, this,
+          &MainWindow::slot_start_wizard);
 
   /* Popup-Menu-Action for KeyList
    */
@@ -277,43 +277,43 @@ void MainWindow::create_actions() {
       new QAction(_("Append Public Key To Text Editor"), this);
   append_selected_keys_act_->setToolTip(
       _("Append The Selected Keys To Text in Editor"));
-  connect(append_selected_keys_act_, SIGNAL(triggered()), this,
-          SLOT(slot_append_selected_keys()));
+  connect(append_selected_keys_act_, &QAction::triggered, this,
+          &MainWindow::slot_append_selected_keys);
 
   copy_mail_address_to_clipboard_act_ = new QAction(_("Copy Email"), this);
   copy_mail_address_to_clipboard_act_->setToolTip(
       _("Copy selected Email to clipboard"));
-  connect(copy_mail_address_to_clipboard_act_, SIGNAL(triggered()), this,
-          SLOT(slot_copy_mail_address_to_clipboard()));
+  connect(copy_mail_address_to_clipboard_act_, &QAction::triggered, this,
+          &MainWindow::slot_copy_mail_address_to_clipboard);
 
   // TODO: find central place for shared actions, to avoid code-duplication with
   // keymgmt.cpp
   show_key_details_act_ = new QAction(_("Show Key Details"), this);
   show_key_details_act_->setToolTip(_("Show Details for this Key"));
-  connect(show_key_details_act_, SIGNAL(triggered()), this,
-          SLOT(slot_show_key_details()));
+  connect(show_key_details_act_, &QAction::triggered, this,
+          &MainWindow::slot_show_key_details);
 
   /* Key-Shortcuts for Tab-Switchung-Action
    */
   switch_tab_up_act_ = new QAction(this);
   switch_tab_up_act_->setShortcut(QKeySequence::NextChild);
-  connect(switch_tab_up_act_, SIGNAL(triggered()), edit_,
-          SLOT(slotSwitchTabUp()));
+  connect(switch_tab_up_act_, &QAction::triggered, edit_,
+          &TextEdit::SlotSwitchTabUp);
   this->addAction(switch_tab_up_act_);
 
   switch_tab_down_act_ = new QAction(this);
   switch_tab_down_act_->setShortcut(QKeySequence::PreviousChild);
-  connect(switch_tab_down_act_, SIGNAL(triggered()), edit_,
-          SLOT(slotSwitchTabDown()));
+  connect(switch_tab_down_act_, &QAction::triggered, edit_,
+          &TextEdit::SlotSwitchTabDown);
   this->addAction(switch_tab_down_act_);
 
   cut_pgp_header_act_ = new QAction(_("Remove PGP Header"), this);
-  connect(cut_pgp_header_act_, SIGNAL(triggered()), this,
-          SLOT(slot_cut_pgp_header()));
+  connect(cut_pgp_header_act_, &QAction::triggered, this,
+          &MainWindow::slot_cut_pgp_header);
 
   add_pgp_header_act_ = new QAction(_("Add PGP Header"), this);
-  connect(add_pgp_header_act_, SIGNAL(triggered()), this,
-          SLOT(slot_add_pgp_header()));
+  connect(add_pgp_header_act_, &QAction::triggered, this,
+          &MainWindow::slot_add_pgp_header);
 
 #ifdef SMTP_SUPPORT
   send_mail_act_ = new QAction(_("New Message"), this);
@@ -390,13 +390,6 @@ void MainWindow::create_menus() {
   email_menu_ = menuBar()->addMenu(_("Email"));
   email_menu_->addAction(send_mail_act_);
   email_menu_->addAction(receive_mail_act_);
-#endif
-
-#ifdef ADVANCED_SUPPORT
-  // Hide menu, when steganography menu is disabled in settings
-  if (!settings.value("advanced/steganography").toBool()) {
-    this->menuBar()->removeAction(steganoMenu->menuAction());
-  }
 #endif
 
   view_menu_ = menuBar()->addMenu(_("View"));

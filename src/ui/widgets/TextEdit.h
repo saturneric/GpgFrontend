@@ -221,50 +221,52 @@ class TextEdit : public QWidget {
    */
   void slot_remove_tab(int index);
 
+ public slots:
+
   /**
    * @details Cut selected text in current text page.
    */
-  void slot_cut() const;
+  void SlotCut() const;
 
   /**
    * @details Copy selected text of current text page to clipboard.
    */
-  void slot_copy() const;
+  void SlotCopy() const;
 
   /**
    * @details Paste text from clipboard to current text page.
    */
-  void slot_paste() const;
+  void SlotPaste() const;
 
   /**
    * @details Undo last change in current textpage.
    *
    */
-  void slot_undo() const;
+  void SlotUndo() const;
 
   /**
    * @brief  redo last change in current text page
    *
    */
-  void slot_redo() const;
+  void SlotRedo() const;
 
   /**
    * @brief
    *
    */
-  void slot_zoom_in() const;
+  void SlotZoomIn() const;
 
   /**
    * @brief
    *
    */
-  void slot_zoom_out() const;
+  void SlotZoomOut() const;
 
   /**
    * @brief select all in current text page
    *
    */
-  void slot_select_all() const;
+  void SlotSelectAll() const;
 
  protected:
   /**

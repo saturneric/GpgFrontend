@@ -78,8 +78,9 @@ void KeyList::init() {
   // register key database refresh signal
   connect(this, &KeyList::SignalRefreshDatabase, SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefresh);
-  connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
-          SLOT(SlotRefresh()));
+  connect(SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh, this,
+          &KeyList::SlotRefresh);
   connect(ui_->refreshKeyListButton, &QPushButton::clicked, this,
           &KeyList::SlotRefresh);
   connect(ui_->uncheckButton, &QPushButton::clicked, this,
@@ -342,8 +343,8 @@ void KeyList::dropEvent(QDropEvent* event) {
   // Buttons for ok and cancel
   auto* buttonBox =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-  connect(buttonBox, SIGNAL(accepted()), dialog, SLOT(accept()));
-  connect(buttonBox, SIGNAL(rejected()), dialog, SLOT(reject()));
+  connect(buttonBox, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
+  connect(buttonBox, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
 
   auto* vbox = new QVBoxLayout();
   vbox->addWidget(label);

@@ -186,7 +186,7 @@ void MainWindow::slot_cut_pgp_header() {
   edit_->SlotFillTextEditWithText(content.trimmed());
 }
 
-void MainWindow::slot_set_restart_needed(bool needed) {
+void MainWindow::SlotSetRestartNeeded(bool needed) {
   this->restart_needed_ = needed;
 }
 

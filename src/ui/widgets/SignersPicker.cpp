@@ -34,7 +34,7 @@ namespace GpgFrontend::UI {
 
 SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
   auto confirm_button = new QPushButton(_("Confirm"));
-  connect(confirm_button, SIGNAL(clicked(bool)), this, SLOT(accept()));
+  connect(confirm_button, &QPushButton::clicked, this, &SignersPicker::accept);
 
   /*Setup KeyList*/
   key_list_ = new KeyList(false, this);

@@ -56,7 +56,7 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
   }
   setStartId(next_page_id);
 
-  connect(this, SIGNAL(accepted()), this, SLOT(slot_wizard_accepted()));
+  connect(this, &Wizard::accepted, this, &Wizard::slot_wizard_accepted);
 }
 
 void Wizard::slot_wizard_accepted() {
@@ -204,10 +204,6 @@ KeyGenPage::KeyGenPage(QWidget* parent) : QWizardPage(parent) {
       "docu_keygen.html#content"
       ">" +
       QString(_("Offline tutorial")) + "</a>");
-  // linkLabel->setOpenExternalLinks(true);
-
-  // connect(linkLabel, SIGNAL(linkActivated(QString)),
-  // parentWidget()->parentWidget(), SLOT(openHelp(QString)));
 
   auto* createKeyButtonBox = new QWidget(this);
   auto* createKeyButtonBoxLayout = new QHBoxLayout(createKeyButtonBox);
@@ -218,8 +214,8 @@ KeyGenPage::KeyGenPage(QWidget* parent) : QWizardPage(parent) {
   layout->addWidget(topLabel);
   layout->addWidget(linkLabel);
   layout->addWidget(createKeyButtonBox);
-  connect(createKeyButton, SIGNAL(clicked(bool)), this,
-          SLOT(slot_generate_key_dialog()));
+  connect(createKeyButton, &QPushButton::clicked, this,
+          &KeyGenPage::slot_generate_key_dialog);
 
   setLayout(layout);
 }

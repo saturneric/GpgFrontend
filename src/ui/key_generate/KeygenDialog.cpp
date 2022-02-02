@@ -58,8 +58,8 @@ KeyGenDialog::KeyGenDialog(QWidget* parent) : QDialog(parent) {
   this->setWindowTitle(_("Generate Key"));
   this->setModal(true);
 
-  connect(this, SIGNAL(SignalKeyGenerated()), SignalStation::GetInstance(),
-          SIGNAL(KeyDatabaseRefresh()));
+  connect(this, &KeyGenDialog::SignalKeyGenerated, SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh);
 
   generate_key_dialog();
 }
@@ -309,23 +309,25 @@ void KeyGenDialog::refresh_widgets_state() {
 }
 
 void KeyGenDialog::set_signal_slot() {
-  connect(button_box_, SIGNAL(accepted()), this, SLOT(slot_key_gen_accept()));
-  connect(button_box_, SIGNAL(rejected()), this, SLOT(reject()));
+  connect(button_box_, &QDialogButtonBox::accepted, this,
+          &KeyGenDialog::slot_key_gen_accept);
+  connect(button_box_, &QDialogButtonBox::rejected, this,
+          &KeyGenDialog::reject);
 
-  connect(expire_check_box_, SIGNAL(stateChanged(int)), this,
-          SLOT(slot_expire_box_changed()));
+  connect(expire_check_box_, &QCheckBox::stateChanged, this,
+          &KeyGenDialog::slot_expire_box_changed);
 
-  connect(key_usage_check_boxes_[0], SIGNAL(stateChanged(int)), this,
-          SLOT(slot_encryption_box_changed(int)));
-  connect(key_usage_check_boxes_[1], SIGNAL(stateChanged(int)), this,
-          SLOT(slot_signing_box_changed(int)));
-  connect(key_usage_check_boxes_[2], SIGNAL(stateChanged(int)), this,
-          SLOT(slot_certification_box_changed(int)));
-  connect(key_usage_check_boxes_[3], SIGNAL(stateChanged(int)), this,
-          SLOT(slot_authentication_box_changed(int)));
+  connect(key_usage_check_boxes_[0], &QCheckBox::stateChanged, this,
+          &KeyGenDialog::slot_encryption_box_changed);
+  connect(key_usage_check_boxes_[1], &QCheckBox::stateChanged, this,
+          &KeyGenDialog::slot_signing_box_changed);
+  connect(key_usage_check_boxes_[2], &QCheckBox::stateChanged, this,
+          &KeyGenDialog::slot_certification_box_changed);
+  connect(key_usage_check_boxes_[3], &QCheckBox::stateChanged, this,
+          &KeyGenDialog::slot_authentication_box_changed);
 
-  connect(key_type_combo_box_, SIGNAL(currentIndexChanged(int)), this,
-          SLOT(slot_activated_key_type(int)));
+  connect(key_type_combo_box_, qOverload<int>(&QComboBox::currentIndexChanged),
+          this, &KeyGenDialog::slot_activated_key_type);
 
   connect(no_pass_phrase_check_box_, &QCheckBox::stateChanged, this,
           [this](int state) -> void {

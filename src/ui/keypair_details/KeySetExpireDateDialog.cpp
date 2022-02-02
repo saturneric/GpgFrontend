@@ -116,12 +116,13 @@ void KeySetExpireDateDialog::init() {
   ui_->dateEdit->setDateTime(max_date_time);
   ui_->timeEdit->setDateTime(max_date_time);
 
-  connect(ui_->noExpirationCheckBox, SIGNAL(stateChanged(int)), this,
-          SLOT(slot_non_expired_checked(int)));
+  connect(ui_->noExpirationCheckBox, &QCheckBox::stateChanged, this,
+          &KeySetExpireDateDialog::slot_non_expired_checked);
   connect(ui_->button_box_, &QDialogButtonBox::accepted, this,
           &KeySetExpireDateDialog::slot_confirm);
-  connect(this, SIGNAL(SignalKeyExpireDateUpdated()),
-          SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()));
+  connect(this, &KeySetExpireDateDialog::SignalKeyExpireDateUpdated,
+          SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh);
 
   ui_->titleLabel->setText(_("Modified Expiration Date (Local Time)"));
   ui_->label->setText(
