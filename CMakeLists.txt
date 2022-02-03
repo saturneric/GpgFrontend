@@ -80,6 +80,7 @@ if (GPGFRONTEND_BUILD_TYPE_TEST_ALL)
     set(GPGFRONTEND_BUILD_CONFIG "test_all")
 endif ()
 
+# stable features
 if (GPGFRONTEND_BUILD_TYPE_STABLE)
 
     set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
@@ -91,6 +92,7 @@ if (GPGFRONTEND_BUILD_TYPE_STABLE)
     set(STABLE_APPLICATION_BUILD 1)
 endif ()
 
+# linux package build
 if (GENERATE_LINUX_INSTALL_SOFTWARE)
 
     set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
@@ -103,10 +105,12 @@ if (GENERATE_LINUX_INSTALL_SOFTWARE)
     set(GENERATE_APP_PACKAGE_DEB 1)
 endif ()
 
+# linux package build
 if (GENERATE_LINUX_INSTALL_SOFTWARE AND GENERATE_APP_PACKAGE_DEB)
     set(APP_PACKAGE_DEB 1)
 endif ()
 
+# xcode archive build
 if (CONFIGURE_FOR_XCODE_BUILD)
     set(GENERATE_LINUX_INSTALL_SOFTWARE 0)
     set(GENERATE_APP_PACKAGE_DEB 0)
@@ -123,13 +127,21 @@ if (CONFIGURE_FOR_XCODE_BUILD)
 endif ()
 
 # C++
-#Detect Compiler
+
+# options for ccache
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)
+
+# detect compiler
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    # using Clang
+    # using clang
     message(STATUS "Using Complier Clang")
     set(USING_COMPILER_CLANG 1)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    # using GCC
+    # using gcc
     message(STATUS "Using Complier Gcc")
     set(USING_COMPILER_GCC 1)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
