@@ -200,3 +200,10 @@ if (SMTP_SUPPORT)
                 LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
     endif ()
 endif ()
+
+# encoding detect library
+aux_source_directory(./encoding-detect ENCODING_DETECT_SOURCE_CODE)
+add_library(encoding_detect STATIC ${ENCODING_DETECT_SOURCE_CODE})
+
+# libarchive
+add_subdirectory(libarchive)
