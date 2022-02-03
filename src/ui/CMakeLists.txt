@@ -36,13 +36,13 @@ aux_source_directory(thread UI_SOURCE)
 aux_source_directory(details UI_SOURCE)
 aux_source_directory(struct UI_SOURCE)
 aux_source_directory(import_export UI_SOURCE)
-aux_source_directory(encoding UI_SOURCE)
 aux_source_directory(dialog UI_SOURCE)
 
 if (SMTP_SUPPORT)
     aux_source_directory(mail UI_SOURCE)
 endif ()
 
+# libgpgfrontend_ui
 add_library(gpgfrontend_ui STATIC ${UI_SOURCE})
 set(GPGFRONTEND_UI_LIB_NAME gpgfrontend_ui)
 
@@ -51,6 +51,7 @@ if (SMTP_SUPPORT)
     target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
             smtp-mime)
 endif ()
+
 # link json
 target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
         nlohmann_json::nlohmann_json)
@@ -73,21 +74,21 @@ else ()
             gpgfrontend_vmime anl ssl crypto)
 endif ()
 
-# link easyloggingpp
-target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
-        easyloggingpp)
-
 # link gpgfrontend_core
 target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
         gpgfrontend_core)
 
-# link openssl
-target_link_libraries(${GPGFRONTEND_UI_LIB_NAME} OpenSSL::SSL OpenSSL::Crypto)
+# link encoding_detect
+target_link_libraries(${GPGFRONTEND_UI_LIB_NAME} encoding_detect)
 
+# set up pch
+target_precompile_headers(${GPGFRONTEND_UI_LIB_NAME} PUBLIC GpgFrontendUI.h)
+
+# add ui generator include path
 target_include_directories(gpgfrontend_ui PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/${GPGFRONTEND_UI_LIB_NAME}_autogen/include)
 
-
+# for xcode archive build
 if (XCODE_BUILD)
     set_target_properties(${GPGFRONTEND_UI_LIB_NAME}
             PROPERTIES

@@ -254,43 +254,16 @@ if (APPLICATION_BUILD)
 endif ()
 
 if (APPLICATION_BUILD)
-
-    if (ADVANCE_SUPPORT)
-        set(GPGFRONTEND_BEFORE_UI_LIBS ${GPGFRONTEND_BEFORE_UI_LIBS} advance)
-    endif ()
-    if (ADVANCE_SUPPORT)
-        set(GPGFRONTEND_BEFORE_UI_LIBS ${GPGFRONTEND_BEFORE_UI_LIBS} server)
-    endif ()
-
-    set(GPGFRONTEND_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} gpgfrontend_ui gpgfrontend_core ${GPGFRONTEND_BEFORE_UI_LIBS} easyloggingpp)
-    set(QT_DEPENDENCY_LIBS Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
-
+    target_link_libraries(${AppName} gpgfrontend_ui)
     IF (MINGW)
         message(STATUS "Link Application Static Library For MINGW")
-
-        target_link_libraries(${AppName}
-                ${GPGFRONTEND_LIBS}
-                ${QT_DEPENDENCY_LIBS}
-                ${Boost_LIBRARIES}
-                crypto ssl)
+        target_link_libraries(${AppName} crypto)
     elseif (APPLE)
         message(STATUS "Link Application Static Library For macOS")
-        target_link_libraries(${AppName}
-                ${GPGFRONTEND_LIBS}
-                ${QT_DEPENDENCY_LIBS}
-                ${Boost_LIBRARIES}
-                crypto ssl intl)
+        target_link_libraries(${AppName} crypto intl)
     else ()
-        message(STATUS "Link Application Static Library For UNIX ")
-        if (APP_IMAGE_UPDATE)
-            target_link_libraries(${AppName}
-                    libappimageupdate)
-        endif ()
-        target_link_libraries(${AppName}
-                ${GPGFRONTEND_LIBS}
-                ${QT_DEPENDENCY_LIBS}
-                ${Boost_LIBRARIES}
-                crypto ssl pthread)
+        message(STATUS "Link Application Static Library For Linux")
+        target_link_libraries(${AppName} crypto pthread)
     endif ()
 endif ()
 

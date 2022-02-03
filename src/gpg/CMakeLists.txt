@@ -32,24 +32,27 @@ aux_source_directory(. GPG_SOURCE)
 add_library(gpgfrontend_core STATIC ${GPG_SOURCE})
 
 set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
-
 set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 
-set(THIRD_PARTY_LIBS easyloggingpp config++)
-set(BOOST_LIBS Boost::date_time Boost::filesystem)
+# link third-party libraries
+target_link_libraries(gpgfrontend_core easyloggingpp config++ archive_static)
+# link boost libraries
+target_link_libraries(gpgfrontend_core Boost::date_time Boost::filesystem)
+# link gnupg libraries
+target_link_libraries(gpgfrontend_core gpgme assuan gpg-error)
+# link openssl
+target_link_libraries(gpgfrontend_core OpenSSL::SSL OpenSSL::Crypto)
+
+# set up pch
+target_precompile_headers(gpgfrontend_core PUBLIC ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h)
 
 if (MINGW)
     message(STATUS "Link GPG Static Library For MINGW")
-    target_link_libraries(gpgfrontend_core ${THIRD_PARTY_LIBS}
-            ${BOOST_LIBS}
-            gpgme assuan gpg-error wsock32)
+    target_link_libraries(gpgfrontend_core wsock32)
     target_compile_features(gpgfrontend_core PUBLIC cxx_std_17)
 elseif (APPLE)
     message(STATUS "Link GPG Static Library For macOS")
-    target_link_libraries(gpgfrontend_core ${THIRD_PARTY_LIBS}
-            gpgme assuan gpg-error
-            ${BOOST_LIBS}
-            dl)
+    target_link_libraries(gpgfrontend_core dl)
     if (XCODE_BUILD)
         set_target_properties(gpgfrontend_core
                 PROPERTIES
@@ -58,9 +61,7 @@ elseif (APPLE)
                 LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
     endif ()
 else ()
+    # linux
     message(STATUS "Link GPG Static Library For Unix")
-    target_link_libraries(gpgfrontend_core ${THIRD_PARTY_LIBS}
-            gpgme assuan gpg-error
-            ${BOOST_LIBS}
-            pthread dl)
+    target_link_libraries(gpgfrontend_core pthread dl)
 endif ()
