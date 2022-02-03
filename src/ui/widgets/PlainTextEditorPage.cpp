@@ -26,17 +26,18 @@
 
 #include "ui/widgets/PlainTextEditorPage.h"
 
+#include <encoding-detect/TextEncodingDetect.h>
+
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <utility>
 
-#include "ui/encoding/TextEncodingDetect.h"
 #include "ui/thread/FileReadThread.h"
 #include "ui_PlainTextEditor.h"
 
 namespace GpgFrontend::UI {
 
-PlainTextEditorPage::PlainTextEditorPage(QString filePath, QWidget* parent)
+PlainTextEditorPage::PlainTextEditorPage(QString filePath, QWidget *parent)
     : QWidget(parent),
       ui_(std::make_shared<Ui_PlainTextEditor>()),
       full_file_path_(std::move(filePath)) {
@@ -69,25 +70,25 @@ PlainTextEditorPage::PlainTextEditorPage(QString filePath, QWidget* parent)
   ui_->loadingLabel->setText(_("Loading..."));
 }
 
-const QString& PlainTextEditorPage::GetFilePath() const {
+const QString &PlainTextEditorPage::GetFilePath() const {
   return full_file_path_;
 }
 
-QPlainTextEdit* PlainTextEditorPage::GetTextPage() { return ui_->textPage; }
+QPlainTextEdit *PlainTextEditorPage::GetTextPage() { return ui_->textPage; }
 
-void PlainTextEditorPage::SetFilePath(const QString& filePath) {
+void PlainTextEditorPage::SetFilePath(const QString &filePath) {
   full_file_path_ = filePath;
 }
 
-void PlainTextEditorPage::ShowNotificationWidget(QWidget* widget,
-                                                 const char* className) {
+void PlainTextEditorPage::ShowNotificationWidget(QWidget *widget,
+                                                 const char *className) {
   widget->setProperty(className, true);
   ui_->verticalLayout->addWidget(widget);
 }
 
-void PlainTextEditorPage::CloseNoteByClass(const char* className) {
-  QList<QWidget*> widgets = findChildren<QWidget*>();
-  for (QWidget* widget : widgets) {
+void PlainTextEditorPage::CloseNoteByClass(const char *className) {
+  QList<QWidget *> widgets = findChildren<QWidget *>();
+  for (QWidget *widget : widgets) {
     if (widget->property(className) == true) {
       widget->close();
     }
@@ -173,7 +174,7 @@ void PlainTextEditorPage::ReadFile() {
   thread->start();
 }
 
-std::string binary_to_string(const std::string& source) {
+std::string binary_to_string(const std::string &source) {
   static char syms[] = "0123456789ABCDEF";
   std::stringstream ss;
   for (unsigned char c : source)
@@ -181,7 +182,7 @@ std::string binary_to_string(const std::string& source) {
   return ss.str();
 }
 
-void PlainTextEditorPage::slot_insert_text(const std::string& data) {
+void PlainTextEditorPage::slot_insert_text(const std::string &data) {
   LOG(INFO) << "data size" << data.size();
   read_bytes_ += data.size();
   // If binary format is detected, the entire file is converted to binary format
@@ -221,10 +222,10 @@ void PlainTextEditorPage::PrepareToDestroy() {
   }
 }
 
-void PlainTextEditorPage::detect_encoding(const std::string& data) {
+void PlainTextEditorPage::detect_encoding(const std::string &data) {
   AutoIt::Common::TextEncodingDetect text_detect;
   AutoIt::Common::TextEncodingDetect::Encoding encoding =
-      text_detect.DetectEncoding((unsigned char*)(data.data()), data.size());
+      text_detect.DetectEncoding((unsigned char *)(data.data()), data.size());
 
   if (encoding == AutoIt::Common::TextEncodingDetect::None) {
     binary_mode_ = true;
@@ -245,7 +246,7 @@ void PlainTextEditorPage::detect_encoding(const std::string& data) {
   }
 }
 
-void PlainTextEditorPage::detect_cr_lf(const QString& data) {
+void PlainTextEditorPage::detect_cr_lf(const QString &data) {
   if (binary_mode_) {
     this->ui_->lfLabel->setText("None");
     return;
