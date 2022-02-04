@@ -138,18 +138,18 @@ endif(CCACHE_FOUND)
 # detect compiler
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     # using clang
-    message(STATUS "Using Complier Clang")
+    message(STATUS "Using Compiler clang")
     set(USING_COMPILER_CLANG 1)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using gcc
-    message(STATUS "Using Complier Gcc")
+    message(STATUS "Using Compiler gcc")
     set(USING_COMPILER_GCC 1)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     # using Intel C++
-    message(STATUS "Using Complier Intel")
+    message(STATUS "Using Compiler Intel")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     # using Visual Studio C++
-    message(STATUS "Using Complier Msvc")
+    message(STATUS "Using Compiler MSVC")
 endif ()
 
 # Using Standard C++-17 (Consider compatibility)
@@ -216,7 +216,7 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
 else ()
     set(BUILD_FLAG 1)
     ADD_DEFINITIONS(-DDEBUG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
     # Generate branch coverage information using gcc
     if (TEST_COVERAGE_BUILD)
         if (USING_COMPILER_GCC)

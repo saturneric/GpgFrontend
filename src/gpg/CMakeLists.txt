@@ -35,13 +35,15 @@ set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
 set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 
 # link third-party libraries
-target_link_libraries(gpgfrontend_core easyloggingpp config++ archive_static)
+target_link_libraries(gpgfrontend_core easyloggingpp config++)
 # link boost libraries
 target_link_libraries(gpgfrontend_core Boost::date_time Boost::filesystem)
 # link gnupg libraries
 target_link_libraries(gpgfrontend_core gpgme assuan gpg-error)
 # link openssl
 target_link_libraries(gpgfrontend_core OpenSSL::SSL OpenSSL::Crypto)
+#link libarchive
+target_link_libraries(gpgfrontend_core archive_static)
 
 # set up pch
 target_precompile_headers(gpgfrontend_core PUBLIC ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h)
