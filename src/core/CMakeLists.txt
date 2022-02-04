@@ -27,6 +27,7 @@
 aux_source_directory(./result_analyse GPG_SOURCE)
 aux_source_directory(./function GPG_SOURCE)
 aux_source_directory(./model GPG_SOURCE)
+aux_source_directory(./aes GPG_SOURCE)
 aux_source_directory(. GPG_SOURCE)
 
 add_library(gpgfrontend_core STATIC ${GPG_SOURCE})
