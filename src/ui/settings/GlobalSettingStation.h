@@ -41,7 +41,7 @@
 namespace vmime::security::cert {
 class defaultCertificateVerifier;
 class X509Certificate;
-}  // namespace vmime::security::cert
+} // namespace vmime::security::cert
 
 namespace GpgFrontend::UI {
 
@@ -51,13 +51,13 @@ namespace GpgFrontend::UI {
  */
 class GlobalSettingStation : public QObject {
   Q_OBJECT
- public:
+public:
   /**
    * @brief Get the Instance object
    *
    * @return GlobalSettingStation&
    */
-  static GlobalSettingStation& GetInstance();
+  static GlobalSettingStation &GetInstance();
 
   /**
    * @brief Construct a new Global Setting Station object
@@ -76,7 +76,7 @@ class GlobalSettingStation : public QObject {
    *
    * @return libconfig::Setting&
    */
-  libconfig::Setting& GetUISettings() noexcept { return ui_cfg_.getRoot(); }
+  libconfig::Setting &GetUISettings() noexcept { return ui_cfg_.getRoot(); }
 
   /**
    * @brief Get the App Dir object
@@ -158,14 +158,14 @@ class GlobalSettingStation : public QObject {
    *
    * @param path
    */
-  void AddRootCert(const boost::filesystem::path& path);
+  void AddRootCert(const boost::filesystem::path &path);
 
   /**
    * @brief Get the Root Certs object
    *
    * @return const std::vector<std::shared_ptr<X509>>&
    */
-  const std::vector<std::shared_ptr<X509>>& GetRootCerts();
+  const std::vector<std::shared_ptr<X509>> &GetRootCerts();
 
   /**
    * @brief
@@ -187,7 +187,7 @@ class GlobalSettingStation : public QObject {
    * @return std::string
    */
 
-  std::string SaveDataObj(const std::string& _key, const nlohmann::json& value);
+  std::string SaveDataObj(const std::string &_key, const nlohmann::json &value);
 
   /**
    * @brief Get the Data Object object
@@ -195,7 +195,7 @@ class GlobalSettingStation : public QObject {
    * @param _key
    * @return std::optional<nlohmann::json>
    */
-  std::optional<nlohmann::json> GetDataObject(const std::string& _key);
+  std::optional<nlohmann::json> GetDataObject(const std::string &_key);
 
   /**
    * @brief Get the Data Object By Ref object
@@ -203,57 +203,56 @@ class GlobalSettingStation : public QObject {
    * @param _ref
    * @return std::optional<nlohmann::json>
    */
-  std::optional<nlohmann::json> GetDataObjectByRef(const std::string& _ref);
+  std::optional<nlohmann::json> GetDataObjectByRef(const std::string &_ref);
 
- private:
+private:
   boost::filesystem::path app_path_ =
-      qApp->applicationDirPath().toStdString();  ///< Program Location
+      qApp->applicationDirPath().toStdString(); ///< Program Location
   boost::filesystem::path app_data_path_ =
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
-          .toStdString();  ///< Program Data Location
+          .toStdString(); ///< Program Data Location
   boost::filesystem::path app_log_path_ =
-      app_data_path_ / "logs";  ///< Program Data Location
+      app_data_path_ / "logs"; ///< Program Data Location
   boost::filesystem::path app_data_objs_path_ =
-      app_data_path_ / "objs";  ///< Object storage path
+      app_data_path_ / "objs"; ///< Object storage path
 
 #ifdef LINUX_INSTALL_BUILD
   boost::filesystem::path app_resource_path_ =
       boost::filesystem::path(APP_LOCALSTATE_PATH) /
-      "gpgfrontend";  ///< Program Data Location
+      "gpgfrontend"; ///< Program Data Location
 #else
   boost::filesystem::path app_resource_path_ =
-      RESOURCE_DIR_BOOST_PATH(app_path_);  ///< Program Data Location
+      RESOURCE_DIR_BOOST_PATH(app_path_); ///< Program Data Location
 #endif
 
 #ifdef LINUX_INSTALL_BUILD
   boost::filesystem::path app_locale_path_ =
-      std::string(APP_LOCALE_PATH);  ///< Program Data Location
+      std::string(APP_LOCALE_PATH); ///< Program Data Location
 #else
   boost::filesystem::path app_locale_path_ =
-      app_resource_path_ / "locales";  ///< Program Data Location
+      app_resource_path_ / "locales"; ///< Program Data Location
 #endif
 
   boost::filesystem::path app_configure_path_ =
       QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
-          .toStdString();  ///< Program Configure Location
+          .toStdString(); ///< Program Configure Location
   boost::filesystem::path app_secure_path_ =
-      app_configure_path_ /
-      "secure";  ///< Where sensitive information is stored
+      app_configure_path_ / "secure"; ///< Where sensitive information is stored
   boost::filesystem::path app_secure_key_path_ =
-      app_secure_path_ / "app.key";  ///<
+      app_secure_path_ / "app.key"; ///<
   boost::filesystem::path ui_config_dir_path_ =
       app_configure_path_ /
-      "UserInterface";  ///< Configure File Directory Location
+      "UserInterface"; ///< Configure File Directory Location
   boost::filesystem::path ui_config_path_ =
-      ui_config_dir_path_ / "ui.cfg";  ///< UI Configure File Location
+      ui_config_dir_path_ / "ui.cfg"; ///< UI Configure File Location
 
-  libconfig::Config ui_cfg_;                       ///<
-  std::vector<std::shared_ptr<X509>> root_certs_;  ///<
-  std::random_device rd_;                          ///<
-  std::mt19937 mt_;                                ///<
-  QByteArray hash_key_;                            ///<
+  libconfig::Config ui_cfg_;                      ///<
+  std::vector<std::shared_ptr<X509>> root_certs_; ///<
+  std::random_device rd_;                         ///<
+  std::mt19937 mt_;                               ///<
+  QByteArray hash_key_;                           ///<
 
-  static std::unique_ptr<GlobalSettingStation> instance_;  ///<
+  static std::unique_ptr<GlobalSettingStation> instance_; ///<
 
   /**
    * @brief
@@ -269,6 +268,6 @@ class GlobalSettingStation : public QObject {
    */
   std::string generate_passphrase(int len);
 };
-}  // namespace GpgFrontend::UI
+} // namespace GpgFrontend::UI
 
-#endif  // GPGFRONTEND_GLOBALSETTINGSTATION_H
+#endif // GPGFRONTEND_GLOBALSETTINGSTATION_H

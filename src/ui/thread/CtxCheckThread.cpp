@@ -26,9 +26,9 @@
 
 #include "CtxCheckThread.h"
 
-#include "gpg/GpgContext.h"
-#include "gpg/GpgCoreInit.h"
-#include "gpg/function/GpgKeyGetter.h"
+#include "core/GpgContext.h"
+#include "core/GpgCoreInit.h"
+#include "core/function/GpgKeyGetter.h"
 #include "ui/UserInterfaceUtils.h"
 
 GpgFrontend::UI::CtxCheckThread::CtxCheckThread() : QThread(nullptr) {

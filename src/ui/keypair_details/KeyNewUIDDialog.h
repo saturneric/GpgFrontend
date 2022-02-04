@@ -27,7 +27,7 @@
 #ifndef GPGFRONTEND_KEYNEWUIDDIALOG_H
 #define GPGFRONTEND_KEYNEWUIDDIALOG_H
 
-#include "gpg/GpgContext.h"
+#include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {

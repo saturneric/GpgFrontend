@@ -26,8 +26,8 @@
 
 #include "KeyPairOperaTab.h"
 
-#include "gpg/function/GpgKeyImportExporter.h"
-#include "gpg/function/GpgKeyOpera.h"
+#include "core/function/GpgKeyImportExporter.h"
+#include "core/function/GpgKeyOpera.h"
 #include "import_export/KeyUploadDialog.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"

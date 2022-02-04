@@ -29,8 +29,8 @@
 #ifndef __KEYIMPORTDETAILSDIALOG_H__
 #define __KEYIMPORTDETAILSDIALOG_H__
 
-#include "gpg/GpgContext.h"
-#include "gpg/function/GpgKeyImportExporter.h"
+#include "core/GpgContext.h"
+#include "core/function/GpgKeyImportExporter.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {

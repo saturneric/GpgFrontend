@@ -31,7 +31,7 @@
 #include <utility>
 
 #include "dialog/WaitingDialog.h"
-#include "gpg/result_analyse/GpgResultAnalyse.h"
+#include "core/result_analyse/GpgResultAnalyse.h"
 #include "ui/SignalStation.h"
 #include "ui/mail/SendMailDialog.h"
 #include "ui/settings/GlobalSettingStation.h"

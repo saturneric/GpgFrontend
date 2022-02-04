@@ -35,7 +35,7 @@
 #include <cstdlib>
 
 #include "GpgFrontendBuildInfo.h"
-#include "gpg/GpgFunctionObject.h"
+#include "core/GpgFunctionObject.h"
 #include "ui/main_window/MainWindow.h"
 #include "ui/thread/CtxCheckThread.h"
 

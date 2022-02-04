@@ -30,7 +30,7 @@
 #define GPGFRONTEND_KEYPAIRSUBKEYTAB_H
 
 #include "KeySetExpireDateDialog.h"
-#include "gpg/GpgContext.h"
+#include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/key_generate/SubkeyGenerateDialog.h"
 

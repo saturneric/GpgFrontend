@@ -27,8 +27,8 @@
  */
 
 #include "MainWindow.h"
-#include "gpg/function/GpgFileOpera.h"
-#include "gpg/function/GpgKeyGetter.h"
+#include "core/function/GpgFileOpera.h"
+#include "core/function/GpgKeyGetter.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/settings/GlobalSettingStation.h"
 #include "ui/widgets/SignersPicker.h"

@@ -27,7 +27,7 @@
 #ifndef GPGFRONTEND_TOFUINFOPAGE_H
 #define GPGFRONTEND_TOFUINFOPAGE_H
 
-#include "gpg/GpgModel.h"
+#include "core/GpgModel.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {

@@ -29,9 +29,9 @@
 #ifndef GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
 #define GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
 
-#include "gpg/GpgContext.h"
-#include "gpg/model/GpgKey.h"
-#include "gpg/model/GpgSubKey.h"
+#include "core/GpgContext.h"
+#include "core/model/GpgKey.h"
+#include "core/model/GpgSubKey.h"
 #include "ui/GpgFrontendUI.h"
 
 class Ui_ModifiedExpirationDateTime;

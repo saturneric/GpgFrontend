@@ -29,7 +29,7 @@
 #include "ui/key_generate/KeygenDialog.h"
 
 #include "dialog/WaitingDialog.h"
-#include "gpg/function/GpgKeyOpera.h"
+#include "core/function/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
 #include "ui/settings/GlobalSettingStation.h"
 

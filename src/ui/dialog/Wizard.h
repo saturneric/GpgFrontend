@@ -29,7 +29,7 @@
 #ifndef WIZARD_H
 #define WIZARD_H
 
-#include "gpg/GpgConstants.h"
+#include "core/GpgConstants.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/KeyMgmt.h"
 #include "ui/key_generate/KeygenDialog.h"

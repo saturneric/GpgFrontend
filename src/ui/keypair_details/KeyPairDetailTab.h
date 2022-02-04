@@ -28,7 +28,7 @@
 #define GPGFRONTEND_KEYPAIRDETAILTAB_H
 
 #include "KeySetExpireDateDialog.h"
-#include "gpg/GpgContext.h"
+#include "core/GpgContext.h"
 #include "import_export/KeyServerImportDialog.h"
 #include "import_export/KeyUploadDialog.h"
 #include "ui/GpgFrontendUI.h"

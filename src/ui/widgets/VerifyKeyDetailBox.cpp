@@ -28,7 +28,7 @@
 
 #include "ui/widgets/VerifyKeyDetailBox.h"
 
-#include "gpg/function/GpgKeyGetter.h"
+#include "core/function/GpgKeyGetter.h"
 
 namespace GpgFrontend::UI {
 
