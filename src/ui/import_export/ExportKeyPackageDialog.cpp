@@ -30,8 +30,8 @@
 
 #include <boost/format.hpp>
 
-#include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/GpgKeyImportExporter.h"
+#include "core/function/GpgKeyGetter.h"
+#include "core/function/GpgKeyImportExporter.h"
 #include "ui_ExportKeyPackageDialog.h"
 
 GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(

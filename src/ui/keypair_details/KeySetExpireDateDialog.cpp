@@ -30,8 +30,8 @@
 
 #include <utility>
 
-#include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/GpgKeyOpera.h"
+#include "core/function/GpgKeyGetter.h"
+#include "core/function/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
 #include "ui/settings/GlobalSettingStation.h"
 #include "ui_ModifiedExpirationDateTime.h"

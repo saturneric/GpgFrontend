@@ -27,7 +27,7 @@
 
 if (GPG_CORE)
     message(STATUS "Build Gpg Core")
-    add_subdirectory(gpg)
+    add_subdirectory(core)
 endif ()
 
 if (UI_CORE)

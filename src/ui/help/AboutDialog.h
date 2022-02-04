@@ -29,7 +29,7 @@
 #ifndef __ABOUTDIALOG_H__
 #define __ABOUTDIALOG_H__
 
-#include "gpg/GpgContext.h"
+#include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/struct/SoftwareVersion.h"
 

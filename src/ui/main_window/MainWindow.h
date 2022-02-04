@@ -29,10 +29,10 @@
 #ifndef __GPGWIN_H__
 #define __GPGWIN_H__
 
-#include "gpg/GpgConstants.h"
-#include "gpg/result_analyse/GpgDecryptResultAnalyse.h"
-#include "gpg/result_analyse/GpgEncryptResultAnalyse.h"
-#include "gpg/result_analyse/GpgSignResultAnalyse.h"
+#include "core/GpgConstants.h"
+#include "core/result_analyse/GpgDecryptResultAnalyse.h"
+#include "core/result_analyse/GpgEncryptResultAnalyse.h"
+#include "core/result_analyse/GpgSignResultAnalyse.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/KeyMgmt.h"
 #include "ui/dialog/WaitingDialog.h"

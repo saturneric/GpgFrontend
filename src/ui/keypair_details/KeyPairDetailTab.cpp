@@ -27,8 +27,8 @@
 #include "ui/keypair_details/KeyPairDetailTab.h"
 
 #include "dialog/WaitingDialog.h"
-#include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/GpgKeyImportExporter.h"
+#include "core/function/GpgKeyGetter.h"
+#include "core/function/GpgKeyImportExporter.h"
 #include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {

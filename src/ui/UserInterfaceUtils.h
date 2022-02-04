@@ -29,8 +29,8 @@
 #ifndef GPGFRONTEND_USER_INTERFACE_UTILS_H
 #define GPGFRONTEND_USER_INTERFACE_UTILS_H
 
-#include "gpg/GpgModel.h"
-#include "gpg/result_analyse/GpgVerifyResultAnalyse.h"
+#include "core/GpgModel.h"
+#include "core/result_analyse/GpgVerifyResultAnalyse.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend {

@@ -27,8 +27,8 @@
 #ifndef GPGFRONTEND_SUBKEYGENERATEDIALOG_H
 #define GPGFRONTEND_SUBKEYGENERATEDIALOG_H
 
-#include "gpg/GpgContext.h"
-#include "gpg/GpgGenKeyInfo.h"
+#include "core/GpgContext.h"
+#include "core/GpgGenKeyInfo.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {

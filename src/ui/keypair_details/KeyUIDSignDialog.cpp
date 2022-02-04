@@ -26,8 +26,8 @@
 
 #include "ui/keypair_details/KeyUIDSignDialog.h"
 
-#include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/GpgKeyManager.h"
+#include "core/function/GpgKeyGetter.h"
+#include "core/function/GpgKeyManager.h"
 #include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {

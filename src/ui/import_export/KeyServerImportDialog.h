@@ -30,7 +30,7 @@
 #define __KEY_SERVER_IMPORT_DIALOG_H__
 
 #include "KeyImportDetailDialog.h"
-#include "gpg/GpgContext.h"
+#include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/KeyList.h"
 

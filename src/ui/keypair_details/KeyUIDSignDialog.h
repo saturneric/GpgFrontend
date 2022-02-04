@@ -27,7 +27,7 @@
 #ifndef GPGFRONTEND_KEYUIDSIGNDIALOG_H
 #define GPGFRONTEND_KEYUIDSIGNDIALOG_H
 
-#include "gpg/GpgContext.h"
+#include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/KeyList.h"
 

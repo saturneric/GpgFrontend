@@ -29,7 +29,7 @@
 #ifndef __KEYDETAILSDIALOG_H__
 #define __KEYDETAILSDIALOG_H__
 
-#include "gpg/GpgContext.h"
+#include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {

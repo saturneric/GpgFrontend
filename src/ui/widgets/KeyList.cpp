@@ -31,8 +31,8 @@
 #include <boost/format.hpp>
 #include <utility>
 
-#include "gpg/GpgCoreInit.h"
-#include "gpg/function/GpgKeyGetter.h"
+#include "core/GpgCoreInit.h"
+#include "core/function/GpgKeyGetter.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/settings/GlobalSettingStation.h"

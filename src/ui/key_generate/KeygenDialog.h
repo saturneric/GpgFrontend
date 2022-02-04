@@ -27,8 +27,8 @@
 #ifndef __KEYGENDIALOG_H__
 #define __KEYGENDIALOG_H__
 
-#include "gpg/GpgContext.h"
-#include "gpg/GpgGenKeyInfo.h"
+#include "core/GpgContext.h"
+#include "core/GpgGenKeyInfo.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {

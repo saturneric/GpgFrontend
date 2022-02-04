@@ -29,7 +29,7 @@
 #ifndef GPGFRONTEND_KEYUPLOADWIDGET_H
 #define GPGFRONTEND_KEYUPLOADWIDGET_H
 
-#include "gpg/GpgContext.h"
+#include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {

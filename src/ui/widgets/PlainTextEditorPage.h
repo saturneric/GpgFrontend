@@ -29,7 +29,7 @@
 #ifndef __EDITORPAGE_H__
 #define __EDITORPAGE_H__
 
-#include "gpg/GpgConstants.h"
+#include "core/GpgConstants.h"
 #include "ui/GpgFrontendUI.h"
 
 class Ui_PlainTextEditor;

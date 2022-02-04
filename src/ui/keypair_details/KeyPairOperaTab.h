@@ -27,7 +27,7 @@
 #ifndef GPGFRONTEND_KEYPAIROPERATAB_H
 #define GPGFRONTEND_KEYPAIROPERATAB_H
 
-#include "gpg/function/GpgKeyGetter.h"
+#include "core/function/GpgKeyGetter.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {

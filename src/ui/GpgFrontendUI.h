@@ -42,8 +42,8 @@
  * Project internal dependencies
  */
 #include "GpgFrontend.h"
-#include "gpg/GpgConstants.h"
-#include "gpg/GpgModel.h"
+#include "core/GpgConstants.h"
+#include "core/GpgModel.h"
 
 /**
  * 3rd party dependencies
