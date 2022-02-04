@@ -42,8 +42,13 @@ target_link_libraries(gpgfrontend_core Boost::date_time Boost::filesystem)
 target_link_libraries(gpgfrontend_core gpgme assuan gpg-error)
 # link openssl
 target_link_libraries(gpgfrontend_core OpenSSL::SSL OpenSSL::Crypto)
-#link libarchive
+# link libarchive
 target_link_libraries(gpgfrontend_core archive_static)
+# link json
+target_link_libraries(gpgfrontend_core
+        nlohmann_json::nlohmann_json)
+# link Qt core
+target_link_libraries(gpgfrontend_core Qt5::Core)
 
 # set up pch
 target_precompile_headers(gpgfrontend_core PUBLIC ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h)

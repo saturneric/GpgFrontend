@@ -54,10 +54,10 @@ option(GPGFRONTEND_BUILD_TYPE_TEST_ALL
         "Generate a graphical interface with all functions" OFF)
 option(GPGFRONTEND_BUILD_TYPE_STABLE
         "Generate release version" ON)
-option(GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
-option(GENERATE_APP_PACKAGE_DEB "Generate DEB package" OFF)
-option(CONFIGURE_FOR_XCODE_BUILD "Generate a version that can be successfully compiled and packaged in Xcode" OFF)
-option(USE_QT_DEFAULT_ENV "Build with the qt version provided by the qt-default package" OFF)
+option(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
+option(GPGFRONTEND_GENERATE_APP_PACKAGE_DEB "Generate DEB package" OFF)
+option(GPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD "Generate a version that can be successfully compiled and packaged in Xcode" OFF)
+option(GPGFRONTEND_USE_QT_DEFAULT_ENV "Build with the qt version provided by the qt-default package" ON)
 
 # analyse options
 if (GPGFRONTEND_BUILD_TYPE_TEST_CORE)
@@ -93,7 +93,7 @@ if (GPGFRONTEND_BUILD_TYPE_STABLE)
 endif ()
 
 # linux package build
-if (GENERATE_LINUX_INSTALL_SOFTWARE)
+if (GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE)
 
     set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
     set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
@@ -102,18 +102,18 @@ if (GENERATE_LINUX_INSTALL_SOFTWARE)
     unset(GPGFRONTEND_BUILD_CONFIG)
 
     set(LINUX_INSTALL_SOFTWARE 1)
-    set(GENERATE_APP_PACKAGE_DEB 1)
+    set(GPGFRONTEND_GENERATE_APP_PACKAGE_DEB 1)
 endif ()
 
 # linux package build
-if (GENERATE_LINUX_INSTALL_SOFTWARE AND GENERATE_APP_PACKAGE_DEB)
+if (GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE AND GPGFRONTEND_GENERATE_APP_PACKAGE_DEB)
     set(APP_PACKAGE_DEB 1)
 endif ()
 
 # xcode archive build
-if (CONFIGURE_FOR_XCODE_BUILD)
-    set(GENERATE_LINUX_INSTALL_SOFTWARE 0)
-    set(GENERATE_APP_PACKAGE_DEB 0)
+if (GPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD)
+    set(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE 0)
+    set(GPGFRONTEND_GENERATE_APP_PACKAGE_DEB 0)
     set(LINUX_INSTALL_SOFTWARE 0)
     set(APP_PACKAGE_DEB 0)
 
@@ -350,7 +350,7 @@ if (LINUX_INSTALL_SOFTWARE)
     include(GNUInstallDirs)
     set(INSTALL_GPGFRONTEND_APP 1)
     set(APP_INSTALL_FLAG LINUX_INSTALL)
-    set(USE_QT_DEFAULT_ENV ON)
+    set(GPGFRONTEND_USE_QT_DEFAULT_ENV ON)
     add_compile_definitions(LINUX_INSTALL_BUILD)
     set(Boost_USE_STATIC_LIBS ON)
 else ()
@@ -410,7 +410,7 @@ find_package(OpenSSL REQUIRED)
 
 if (QT5_ENV_SUPPORT)
     # Support Qt version Both 5.12.x and 5.15.x
-    if (USE_QT_DEFAULT_ENV)
+    if (GPGFRONTEND_USE_QT_DEFAULT_ENV)
         find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
     else ()
         find_package(Qt5 5.15 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)

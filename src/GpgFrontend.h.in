@@ -29,6 +29,9 @@
 #ifndef GPGFRONTEND_H_IN
 #define GPGFRONTEND_H_IN
 
+// standard headers
+#include <cstdint>
+
 #ifdef WINDOWS
 #include <winsock2.h>
 #include <windows.h>
