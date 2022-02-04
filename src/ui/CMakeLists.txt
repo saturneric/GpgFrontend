@@ -52,9 +52,6 @@ if (SMTP_SUPPORT)
             smtp-mime)
 endif ()
 
-# link json
-target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
-        nlohmann_json::nlohmann_json)
 # Qt AES
 target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
         QtAES)
