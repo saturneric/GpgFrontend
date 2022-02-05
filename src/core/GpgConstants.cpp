@@ -47,7 +47,7 @@ const char* GpgFrontend::GpgConstants::PGP_SIGNATURE_BEGIN =
 const char* GpgFrontend::GpgConstants::PGP_SIGNATURE_END =
     "-----END PGP SIGNATURE-----";  ///<
 const char* GpgFrontend::GpgConstants::PGP_PUBLIC_KEY_BEGIN =
-    "------BEGIN PGP PUBLIC KEY BLOCK-----";  ///<
+    "-----BEGIN PGP PUBLIC KEY BLOCK-----";  ///<
 const char* GpgFrontend::GpgConstants::PGP_PRIVATE_KEY_BEGIN =
     "-----BEGIN PGP PRIVATE KEY BLOCK-----";  ///<
 const char* GpgFrontend::GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD =

@@ -54,23 +54,7 @@ class ExportKeyPackageDialog : public QDialog {
  private:
   std::shared_ptr<Ui_exportKeyPackageDialog> ui_;  ///<
   KeyIdArgsListPtr key_ids_;                       ///<
-  std::random_device rd_;                          ///<
-  std::mt19937 mt_;                                ///<
   std::string passphrase_;                         ///<
-
-  /**
-   * @brief
-   *
-   * @param len
-   * @return std::string
-   */
-  std::string generate_passphrase(int len);
-
-  /**
-   * @brief
-   *
-   */
-  void generate_key_package_name();
 };
 }  // namespace GpgFrontend::UI
 

@@ -33,12 +33,13 @@
 #include "core/function/GpgKeyGetter.h"
 #include "core/function/GpgKeyImportExporter.h"
 #include "core/function/GpgKeyOpera.h"
-#include "ui/import_export/ExportKeyPackageDialog.h"
+#include "core/key_package/KeyPackageOperator.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/import_export/ExportKeyPackageDialog.h"
 #include "ui/key_generate/SubkeyGenerateDialog.h"
-#include "ui/settings/GlobalSettingStation.h"
 #include "ui/main_window/MainWindow.h"
+#include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
@@ -97,7 +98,8 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   create_menus();
   create_tool_bars();
 
-  connect(this, &KeyMgmt::SignalStatusBarChanged, qobject_cast<MainWindow*>(this->parent()) ,
+  connect(this, &KeyMgmt::SignalStatusBarChanged,
+          qobject_cast<MainWindow*>(this->parent()),
           &MainWindow::SlotSetStatusBarText);
 
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
@@ -156,7 +158,7 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   key_list_->AddMenuAction(show_key_details_act_);
 
   connect(this, &KeyMgmt::SignalKeyStatusUpdated, SignalStation::GetInstance(),
-         &SignalStation::SignalKeyDatabaseRefresh);
+          &SignalStation::SignalKeyDatabaseRefresh);
   connect(SignalStation::GetInstance(), &SignalStation::SignalRefreshStatusBar,
           this, [=](const QString& message, int timeout) {
             statusBar()->showMessage(message, timeout);
@@ -528,54 +530,26 @@ void KeyMgmt::SlotImportKeyPackage() {
       this, _("Import Key Package"), {},
       QString(_("Key Package")) + " (*.gfepack);;All Files (*)");
 
-  if (key_package_file_name.isEmpty()) return;
-
-  auto encrypted_data =
-      read_all_data_in_file(key_package_file_name.toStdString());
-
-  if (encrypted_data.empty()) {
-    QMessageBox::critical(this, _("Error"),
-                          _("No data was read from the key package."));
-    return;
-  };
-
   auto key_file_name = QFileDialog::getOpenFileName(
       this, _("Import Key Package Passphrase File"), {},
       QString(_("Key Package Passphrase File")) + " (*.key);;All Files (*)");
 
-  auto passphrase = read_all_data_in_file(key_file_name.toStdString());
-
-  LOG(INFO) << "passphrase size" << passphrase.size();
-  if (passphrase.size() != 256) {
-    QMessageBox::critical(
-        this, _("Wrong Passphrase"),
-        _("Please double check the passphrase you entered is correct."));
+  if(key_package_file_name.isEmpty() || key_file_name.isEmpty())
     return;
+
+  GpgImportInformation info;
+
+  if (KeyPackageOperator::ImportKeyPackage(key_package_file_name.toStdString(),
+                                           key_file_name.toStdString(), info)) {
+    emit SignalStatusBarChanged(QString(_("key(s) imported")));
+    emit SignalKeyStatusUpdated();
+
+    auto dialog = new KeyImportDetailDialog(info, false, this);
+    dialog->exec();
+  } else {
+    QMessageBox::critical(this, _("Error"),
+                          _("An error occur in importing key package."));
   }
-  auto hash_key = QCryptographicHash::hash(
-      QByteArray::fromStdString(passphrase), QCryptographicHash::Sha256);
-  auto encoded = QByteArray::fromStdString(encrypted_data);
-
-  QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
-                            QAESEncryption::Padding::ISO);
-
-  auto decoded = encryption.removePadding(encryption.decode(encoded, hash_key));
-  auto key_data = QByteArray::fromBase64(decoded);
-
-  if (!key_data.startsWith(GpgConstants::PGP_PUBLIC_KEY_BEGIN) &&
-      !key_data.startsWith(GpgConstants::PGP_PRIVATE_KEY_BEGIN)) {
-    QMessageBox::critical(
-        this, _("Wrong Passphrase"),
-        _("Please double check the passphrase you entered is correct."));
-    return;
-  }
-
-  auto key_data_ptr = std::make_unique<ByteArray>(key_data.toStdString());
-  auto info =
-      GpgKeyImportExporter::GetInstance().ImportKey(std::move(key_data_ptr));
-
-  auto dialog = new KeyImportDetailDialog(info, false, this);
-  dialog->exec();
 }
 
 }  // namespace GpgFrontend::UI

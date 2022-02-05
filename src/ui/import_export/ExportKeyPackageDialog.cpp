@@ -31,21 +31,23 @@
 #include <boost/format.hpp>
 
 #include "core/function/GpgKeyGetter.h"
-#include "core/function/GpgKeyImportExporter.h"
+#include "core/key_package/KeyPackageOperator.h"
 #include "ui_ExportKeyPackageDialog.h"
 
 GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     KeyIdArgsListPtr key_ids, QWidget* parent)
     : QDialog(parent),
       ui_(std::make_shared<Ui_exportKeyPackageDialog>()),
-      key_ids_(std::move(key_ids)),
-      mt_(rd_()) {
+      key_ids_(std::move(key_ids)) {
   ui_->setupUi(this);
 
-  generate_key_package_name();
+  ui_->nameValueLabel->setText(
+      KeyPackageOperator::GenerateKeyPackageName().c_str());
 
-  connect(ui_->gnerateNameButton, &QPushButton::clicked, this,
-          [=]() { generate_key_package_name(); });
+  connect(ui_->gnerateNameButton, &QPushButton::clicked, this, [=]() {
+    ui_->nameValueLabel->setText(
+        KeyPackageOperator::GenerateKeyPackageName().c_str());
+  });
 
   connect(ui_->setOutputPathButton, &QPushButton::clicked, this, [=]() {
     auto file_name = QFileDialog::getSaveFileName(
@@ -55,13 +57,19 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
   });
 
   connect(ui_->generatePassphraseButton, &QPushButton::clicked, this, [=]() {
-    passphrase_ = generate_passphrase(256);
     auto file_name = QFileDialog::getSaveFileName(
         this, _("Export Key Package Passphrase"),
         ui_->nameValueLabel->text() + ".key",
         QString(_("Key File")) + " (*.key);;All Files (*)");
+
+    if (!KeyPackageOperator::GeneratePassphrase(file_name.toStdString(),
+                                                passphrase_)) {
+      QMessageBox::critical(
+          this, _("Error"),
+          _("An error occurred while generating the passphrase file."));
+      return;
+    }
     ui_->passphraseValueLabel->setText(file_name);
-    write_buffer_to_file(file_name.toStdString(), passphrase_);
   });
 
   connect(ui_->button_box_, &QDialogButtonBox::accepted, this, [=]() {
@@ -81,48 +89,37 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
       return;
     }
 
+    // get suitable key ids
     auto key_id_exported = std::make_unique<KeyIdArgsList>();
     auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids_);
     for (const auto& key : *keys) {
-      if (ui_->noPublicKeyCheckBox->isChecked() && !key.IsPrivateKey()) {
+      if (ui_->noPublicKeyCheckBox->isChecked() && !key.IsPrivateKey())
         continue;
-      }
       key_id_exported->push_back(key.GetId());
     }
 
-    ByteArrayPtr key_export_data = nullptr;
-    if (!GpgKeyImportExporter::GetInstance().ExportKeys(
-            key_ids_, key_export_data,
-            ui_->includeSecretKeyCheckBox->isChecked())) {
-      QMessageBox::critical(this, _("Error"), _("Export Key(s) Failed."));
-      this->close();
-      return;
+    if (KeyPackageOperator::GenerateKeyPackage(
+            ui_->outputPathLabel->text().toStdString(),
+            ui_->nameValueLabel->text().toStdString(), key_id_exported,
+            passphrase_, ui_->includeSecretKeyCheckBox->isChecked())) {
+      QMessageBox::information(
+          this, _("Success"),
+          QString(
+              _("The Key Package has been successfully generated and has been "
+                "protected by encryption algorithms(AES-256-ECB). You can "
+                "safely transfer your Key Package.")) +
+              "<br /><br />" + "<b>" +
+              _("But the key file cannot be leaked under any "
+                "circumstances. Please delete the Key Package and key file as "
+                "soon "
+                "as possible after completing the transfer operation.") +
+              "</b>");
+      accept();
+    } else {
+      QMessageBox::critical(
+          this, _("Error"),
+          _("An error occurred while exporting the key package."));
     }
-
-    auto key = QByteArray::fromStdString(passphrase_),
-         data =
-             QString::fromStdString(*key_export_data).toLocal8Bit().toBase64();
-
-    auto hash_key = QCryptographicHash::hash(key, QCryptographicHash::Sha256);
-    QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
-                              QAESEncryption::Padding::ISO);
-    auto encoded = encryption.encode(data, hash_key);
-
-    write_buffer_to_file(ui_->outputPathLabel->text().toStdString(),
-                         encoded.toStdString());
-
-    QMessageBox::information(
-        this, _("Success"),
-        QString(_(
-            "The Key Package has been successfully generated and has been "
-            "protected by encryption algorithms. You can safely transfer your "
-            "Key Package.")) +
-            "<br />" + "<b>" +
-            _("But the key file cannot be leaked under any "
-              "circumstances. Please delete the Key Package and key file as "
-              "soon "
-              "as possible after completing the transfer operation.") +
-            "</b>");
   });
 
   connect(ui_->button_box_, &QDialogButtonBox::rejected, this,
@@ -145,29 +142,4 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
 
   setAttribute(Qt::WA_DeleteOnClose);
   setWindowTitle(_("exportKeyPackageDialog"));
-}
-
-std::string GpgFrontend::UI::ExportKeyPackageDialog::generate_passphrase(
-    const int len) {
-  std::uniform_int_distribution<int> dist(999, 99999);
-  static const char alphanum[] =
-      "0123456789"
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      "abcdefghijklmnopqrstuvwxyz";
-  std::string tmp_str;
-  tmp_str.reserve(len);
-
-  for (int i = 0; i < len; ++i) {
-    tmp_str += alphanum[dist(mt_) % (sizeof(alphanum) - 1)];
-  }
-
-  return tmp_str;
-}
-
-void GpgFrontend::UI::ExportKeyPackageDialog::generate_key_package_name() {
-  std::uniform_int_distribution<int> dist(999, 99999);
-  auto file_string = boost::format("KeyPackage_%1%") % dist(mt_);
-  ui_->nameValueLabel->setText(file_string.str().c_str());
-  ui_->outputPathLabel->clear();
-  ui_->passphraseValueLabel->clear();
 }
