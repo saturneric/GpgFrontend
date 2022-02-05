@@ -34,11 +34,11 @@
  * @brief Get the files of a given directory
  *
  * @param _path target directory
- * @return std::vector<boost::filesystem::path>
+ * @return std::vector<std::filesystem::path>
  */
-std::vector<boost::filesystem::path> get_files_of_directory(
-    const boost::filesystem::path& _path) {
-  namespace fs = boost::filesystem;
+std::vector<std::filesystem::path> get_files_of_directory(
+    const std::filesystem::path& _path) {
+  namespace fs = std::filesystem;
   std::vector<fs::path> path_list;
   if (!_path.empty()) {
     fs::recursive_directory_iterator end;

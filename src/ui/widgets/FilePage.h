@@ -29,7 +29,7 @@
 #ifndef GPGFRONTEND_FILEPAGE_H
 #define GPGFRONTEND_FILEPAGE_H
 
-#include <boost/filesystem.hpp>
+
 
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/InfoBoardWidget.h"
@@ -200,8 +200,8 @@ class FilePage : public QWidget {
   QCompleter* path_edit_completer_;        ///<
   QStringListModel* path_complete_model_;  ///<
 
-  boost::filesystem::path m_path_;         ///<
-  boost::filesystem::path selected_path_;  ///<
+  std::filesystem::path m_path_;         ///<
+  std::filesystem::path selected_path_;  ///<
 
   QMenu* popup_menu_{};         ///<
   QMenu* option_popup_menu_{};  ///<

@@ -61,7 +61,7 @@ void GpgFrontend::UI::GlobalSettingStation::SyncSettings() noexcept {
 }
 
 GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept {
-  using namespace boost::filesystem;
+  using namespace std::filesystem;
   using namespace libconfig;
 
   el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
@@ -128,7 +128,7 @@ GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept {
 }
 
 void GpgFrontend::UI::GlobalSettingStation::AddRootCert(
-    const boost::filesystem::path &path) {
+    const std::filesystem::path &path) {
 
   std::string out_buffer;
   if (!FileOperator::ReadFileStd(path.string(), out_buffer)) {
@@ -189,9 +189,9 @@ GpgFrontend::UI::GlobalSettingStation::generate_passphrase(int len) {
 void GpgFrontend::UI::GlobalSettingStation::init_app_secure_key() {
   GpgFrontend::write_buffer_to_file(app_secure_key_path_.string(),
                                     generate_passphrase(256));
-  boost::filesystem::permissions(app_secure_key_path_,
-                                 boost::filesystem::owner_read |
-                                     boost::filesystem::owner_write);
+  std::filesystem::permissions(app_secure_key_path_,
+                               std::filesystem::perms::owner_read |
+                                   std::filesystem::perms::owner_write);
 }
 
 std::string GpgFrontend::UI::GlobalSettingStation::SaveDataObj(
@@ -238,7 +238,7 @@ GpgFrontend::UI::GlobalSettingStation::GetDataObject(const std::string &_key) {
 
     const auto obj_path = app_data_objs_path_ / _hash_obj_key;
 
-    if (!boost::filesystem::exists(obj_path)) {
+    if (!std::filesystem::exists(obj_path)) {
       return {};
     }
 
@@ -270,7 +270,7 @@ GpgFrontend::UI::GlobalSettingStation::GetDataObjectByRef(
     auto _hash_obj_key = _ref;
     const auto obj_path = app_data_objs_path_ / _hash_obj_key;
 
-    if (!boost::filesystem::exists(obj_path))
+    if (!std::filesystem::exists(obj_path))
       return {};
 
     std::string buffer;

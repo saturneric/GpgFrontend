@@ -28,7 +28,6 @@
 
 #include "ui/widgets/FilePage.h"
 
-#include <boost/filesystem.hpp>
 #include <string>
 
 #include "main_window/MainWindow.h"
@@ -50,7 +49,7 @@ FilePage::FilePage(QWidget* parent)
   ui_->fileTreeView->setModel(dir_model_);
   ui_->fileTreeView->setColumnWidth(0, 320);
   ui_->fileTreeView->sortByColumn(0, Qt::AscendingOrder);
-  m_path_ = boost::filesystem::path(dir_model_->rootPath().toStdString());
+  m_path_ = std::filesystem::path(dir_model_->rootPath().toStdString());
 
   create_popup_menu();
 
@@ -98,7 +97,7 @@ FilePage::FilePage(QWidget* parent)
 }
 
 void FilePage::slot_file_tree_view_item_clicked(const QModelIndex& index) {
-  selected_path_ = boost::filesystem::path(
+  selected_path_ = std::filesystem::path(
       dir_model_->fileInfo(index).absoluteFilePath().toStdString());
   m_path_ = selected_path_;
   LOG(INFO) << "selected path" << selected_path_;
@@ -109,7 +108,7 @@ void FilePage::slot_up_level() {
 
   auto utf8_path =
       dir_model_->fileInfo(currentRoot).absoluteFilePath().toStdString();
-  boost::filesystem::path path_obj(utf8_path);
+  std::filesystem::path path_obj(utf8_path);
 
   m_path_ = path_obj;
   LOG(INFO) << "get path" << m_path_;
@@ -138,19 +137,19 @@ QString FilePage::GetSelected() const {
 
 void FilePage::SlotGoPath() {
   const auto path_edit = ui_->pathEdit->text().toStdString();
-  boost::filesystem::path path_obj(path_edit);
+  std::filesystem::path path_obj(path_edit);
 
   if (m_path_.string() != path_edit) m_path_ = path_obj;
   auto fileInfo = QFileInfo(m_path_.string().c_str());
   if (fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
-    m_path_ = boost::filesystem::path(fileInfo.filePath().toStdString());
+    m_path_ = std::filesystem::path(fileInfo.filePath().toStdString());
     LOG(INFO) << "set path" << m_path_;
     ui_->fileTreeView->setRootIndex(dir_model_->index(fileInfo.filePath()));
     dir_model_->setRootPath(fileInfo.filePath());
     for (int i = 1; i < dir_model_->columnCount(); ++i) {
       ui_->fileTreeView->resizeColumnToContents(i);
     }
-    ui_->pathEdit->setText(m_path_.generic_path().string().c_str());
+    ui_->pathEdit->setText(m_path_.generic_string().c_str());
   } else {
     QMessageBox::critical(
         this, _("Error"),
@@ -245,7 +244,7 @@ void FilePage::create_popup_menu() {
 
 void FilePage::onCustomContextMenu(const QPoint& point) {
   QModelIndex index = ui_->fileTreeView->indexAt(point);
-  selected_path_ = boost::filesystem::path(
+  selected_path_ = std::filesystem::path(
       dir_model_->fileInfo(index).absoluteFilePath().toStdString());
   LOG(INFO) << "right click" << selected_path_;
   if (index.isValid()) {
@@ -322,7 +321,7 @@ void FilePage::slot_rename_item() {
     try {
       new_name_path /= text.toStdString();
       LOG(INFO) << "new name path" << new_name_path;
-      boost::filesystem::rename(old_name_path, new_name_path);
+      std::filesystem::rename(old_name_path, new_name_path);
       // refresh
       this->SlotGoPath();
     } catch (...) {
@@ -440,7 +439,7 @@ void FilePage::slot_mkdir() {
 
 void FilePage::slot_create_empty_file() {
   auto root_path_str = dir_model_->rootPath().toStdString();
-  boost::filesystem::path root_path(root_path_str);
+  std::filesystem::path root_path(root_path_str);
 
   QString new_file_name;
   bool ok;

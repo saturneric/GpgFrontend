@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
 
 #if !defined(RELEASE) && defined(WINDOWS)
   // css
-  boost::filesystem::path css_path =
+  std::filesystem::path css_path =
       GpgFrontend::UI::GlobalSettingStation::GetInstance().GetResourceDir() /
       "css" / "default.qss";
   QFile file(css_path.string().c_str());
