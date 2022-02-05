@@ -34,10 +34,12 @@
 #include <vmime/security/cert/openssl/X509Certificate_OpenSSL.hpp>
 #include <vmime/vmime.hpp>
 
+#include "core/file/FileOperator.h"
+
 std::unique_ptr<GpgFrontend::UI::GlobalSettingStation>
     GpgFrontend::UI::GlobalSettingStation::instance_ = nullptr;
 
-GpgFrontend::UI::GlobalSettingStation&
+GpgFrontend::UI::GlobalSettingStation &
 GpgFrontend::UI::GlobalSettingStation::GetInstance() {
   if (instance_ == nullptr) {
     instance_ = std::make_unique<GlobalSettingStation>();
@@ -52,7 +54,7 @@ void GpgFrontend::UI::GlobalSettingStation::SyncSettings() noexcept {
     LOG(INFO) << _("Updated ui configuration successfully written to")
               << ui_config_path_;
 
-  } catch (const FileIOException& fioex) {
+  } catch (const FileIOException &fioex) {
     LOG(ERROR) << _("I/O error while writing ui configuration file")
                << ui_config_path_;
   }
@@ -70,26 +72,35 @@ GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept {
   LOG(INFO) << _("App Log Path") << app_log_path_;
   LOG(INFO) << _("App Locale Path") << app_locale_path_;
 
-  if (!is_directory(app_configure_path_)) create_directory(app_configure_path_);
+  if (!is_directory(app_configure_path_))
+    create_directory(app_configure_path_);
 
-  if (!is_directory(app_data_path_)) create_directory(app_data_path_);
+  if (!is_directory(app_data_path_))
+    create_directory(app_data_path_);
 
-  if (!is_directory(app_log_path_)) create_directory(app_log_path_);
+  if (!is_directory(app_log_path_))
+    create_directory(app_log_path_);
 
-  if (!is_directory(ui_config_dir_path_)) create_directory(ui_config_dir_path_);
+  if (!is_directory(ui_config_dir_path_))
+    create_directory(ui_config_dir_path_);
 
-  if (!is_directory(app_secure_path_)) create_directory(app_secure_path_);
+  if (!is_directory(app_secure_path_))
+    create_directory(app_secure_path_);
 
   if (!exists(app_secure_key_path_)) {
     init_app_secure_key();
   }
 
-  const auto key =
-      GpgFrontend::read_all_data_in_file(app_secure_key_path_.string());
+  std::string key;
+  if (!FileOperator::ReadFileStd(app_secure_key_path_.string(), key)) {
+    LOG(ERROR) << _("Failed to read app secure key file")
+               << app_secure_key_path_;
+  }
   hash_key_ = QCryptographicHash::hash(QByteArray::fromStdString(key),
                                        QCryptographicHash::Sha256);
 
-  if (!exists(app_data_objs_path_)) create_directory(app_data_objs_path_);
+  if (!exists(app_data_objs_path_))
+    create_directory(app_data_objs_path_);
 
   if (!exists(ui_config_path_)) {
     try {
@@ -97,7 +108,7 @@ GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept {
       LOG(INFO) << _("UserInterface configuration successfully written to")
                 << ui_config_path_;
 
-    } catch (const FileIOException& fioex) {
+    } catch (const FileIOException &fioex) {
       LOG(ERROR)
           << _("I/O error while writing UserInterface configuration file")
           << ui_config_path_;
@@ -107,9 +118,9 @@ GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept {
       this->ui_cfg_.readFile(ui_config_path_.string().c_str());
       LOG(INFO) << _("UserInterface configuration successfully read from")
                 << ui_config_path_;
-    } catch (const FileIOException& fioex) {
+    } catch (const FileIOException &fioex) {
       LOG(ERROR) << _("I/O error while reading UserInterface configure file");
-    } catch (const ParseException& pex) {
+    } catch (const ParseException &pex) {
       LOG(ERROR) << _("Parse error at ") << pex.getFile() << ":"
                  << pex.getLine() << " - " << pex.getError();
     }
@@ -117,18 +128,24 @@ GpgFrontend::UI::GlobalSettingStation::GlobalSettingStation() noexcept {
 }
 
 void GpgFrontend::UI::GlobalSettingStation::AddRootCert(
-    const boost::filesystem::path& path) {
-  auto out_buffer = GpgFrontend::read_all_data_in_file(path.string());
+    const boost::filesystem::path &path) {
+
+  std::string out_buffer;
+  if (!FileOperator::ReadFileStd(path.string(), out_buffer)) {
+    LOG(ERROR) << _("Failed to read root certificate file") << path;
+    return;
+  }
 
   auto mem_bio = std::shared_ptr<BIO>(
       BIO_new_mem_buf(out_buffer.data(), static_cast<int>(out_buffer.size())),
-      [](BIO* _p) { BIO_free(_p); });
+      [](BIO *_p) { BIO_free(_p); });
 
   auto x509 = std::shared_ptr<X509>(
       PEM_read_bio_X509(mem_bio.get(), nullptr, nullptr, nullptr),
-      [](X509* _p) { X509_free(_p); });
+      [](X509 *_p) { X509_free(_p); });
 
-  if (!x509) return;
+  if (!x509)
+    return;
 
   root_certs_.push_back(x509);
 }
@@ -140,7 +157,7 @@ GpgFrontend::UI::GlobalSettingStation::GetCertVerifier() const {
 
   std::vector<vmime::shared_ptr<vmime::security::cert::X509Certificate>>
       _root_certs;
-  for (const auto& cert : root_certs_) {
+  for (const auto &cert : root_certs_) {
     _root_certs.push_back(
         std::make_shared<vmime::security::cert::X509Certificate_OpenSSL>(
             cert.get()));
@@ -148,18 +165,17 @@ GpgFrontend::UI::GlobalSettingStation::GetCertVerifier() const {
   return p_cv;
 }
 
-const std::vector<std::shared_ptr<X509>>&
+const std::vector<std::shared_ptr<X509>> &
 GpgFrontend::UI::GlobalSettingStation::GetRootCerts() {
   return root_certs_;
 }
 
-std::string GpgFrontend::UI::GlobalSettingStation::generate_passphrase(
-    int len) {
+std::string
+GpgFrontend::UI::GlobalSettingStation::generate_passphrase(int len) {
   std::uniform_int_distribution<int> dist(999, 99999);
-  static const char alphanum[] =
-      "0123456789"
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      "abcdefghijklmnopqrstuvwxyz";
+  static const char alphanum[] = "0123456789"
+                                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                 "abcdefghijklmnopqrstuvwxyz";
   std::string tmp_str;
   tmp_str.reserve(len);
 
@@ -173,13 +189,13 @@ std::string GpgFrontend::UI::GlobalSettingStation::generate_passphrase(
 void GpgFrontend::UI::GlobalSettingStation::init_app_secure_key() {
   GpgFrontend::write_buffer_to_file(app_secure_key_path_.string(),
                                     generate_passphrase(256));
-  boost::filesystem::permissions(
-      app_secure_key_path_,
-      boost::filesystem::owner_read | boost::filesystem::owner_write);
+  boost::filesystem::permissions(app_secure_key_path_,
+                                 boost::filesystem::owner_read |
+                                     boost::filesystem::owner_write);
 }
 
 std::string GpgFrontend::UI::GlobalSettingStation::SaveDataObj(
-    const std::string& _key, const nlohmann::json& value) {
+    const std::string &_key, const nlohmann::json &value) {
   std::string _hash_obj_key = {};
   if (_key.empty()) {
     _hash_obj_key =
@@ -212,7 +228,7 @@ std::string GpgFrontend::UI::GlobalSettingStation::SaveDataObj(
 }
 
 std::optional<nlohmann::json>
-GpgFrontend::UI::GlobalSettingStation::GetDataObject(const std::string& _key) {
+GpgFrontend::UI::GlobalSettingStation::GetDataObject(const std::string &_key) {
   try {
     auto _hash_obj_key =
         QCryptographicHash::hash(hash_key_ + QByteArray::fromStdString(_key),
@@ -226,7 +242,11 @@ GpgFrontend::UI::GlobalSettingStation::GetDataObject(const std::string& _key) {
       return {};
     }
 
-    auto buffer = GpgFrontend::read_all_data_in_file(obj_path.string());
+    std::string buffer;
+    if (!FileOperator::ReadFileStd(obj_path.string(), buffer)) {
+      return {};
+    }
+
     auto encoded = QByteArray::fromStdString(buffer);
 
     QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
@@ -242,16 +262,20 @@ GpgFrontend::UI::GlobalSettingStation::GetDataObject(const std::string& _key) {
 }
 std::optional<nlohmann::json>
 GpgFrontend::UI::GlobalSettingStation::GetDataObjectByRef(
-    const std::string& _ref) {
-  if (_ref.size() != 64) return {};
+    const std::string &_ref) {
+  if (_ref.size() != 64)
+    return {};
 
   try {
     auto _hash_obj_key = _ref;
     const auto obj_path = app_data_objs_path_ / _hash_obj_key;
 
-    if (!boost::filesystem::exists(obj_path)) return {};
+    if (!boost::filesystem::exists(obj_path))
+      return {};
 
-    auto buffer = GpgFrontend::read_all_data_in_file(obj_path.string());
+    std::string buffer;
+    if (!FileOperator::ReadFileStd(obj_path.string(), buffer))
+      return {};
     auto encoded = QByteArray::fromStdString(buffer);
 
     QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,

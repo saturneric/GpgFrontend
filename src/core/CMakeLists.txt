@@ -28,6 +28,7 @@ aux_source_directory(./result_analyse GPG_SOURCE)
 aux_source_directory(./function GPG_SOURCE)
 aux_source_directory(./model GPG_SOURCE)
 aux_source_directory(./aes GPG_SOURCE)
+aux_source_directory(./file GPG_SOURCE)
 aux_source_directory(. GPG_SOURCE)
 
 add_library(gpgfrontend_core STATIC ${GPG_SOURCE})
@@ -52,7 +53,9 @@ target_link_libraries(gpgfrontend_core
 target_link_libraries(gpgfrontend_core Qt5::Core)
 
 # set up pch
-target_precompile_headers(gpgfrontend_core PUBLIC ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h)
+target_precompile_headers(gpgfrontend_core
+        PUBLIC ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h
+        PUBLIC GpgFrontendCore.h)
 
 if (MINGW)
     message(STATUS "Link GPG Static Library For MINGW")
