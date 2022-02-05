@@ -26,7 +26,7 @@
 
 #include "FileReadThread.h"
 
-#include <boost/filesystem.hpp>
+
 #include <utility>
 
 namespace GpgFrontend::UI {
@@ -37,7 +37,7 @@ FileReadThread::FileReadThread(std::string path) : path_(std::move(path)) {
 
 void FileReadThread::run() {
   LOG(INFO) << "started";
-  boost::filesystem::path read_file_path(this->path_);
+  std::filesystem::path read_file_path(this->path_);
   if (is_regular_file(read_file_path)) {
     LOG(INFO) << "read open";
 

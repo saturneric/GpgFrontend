@@ -87,7 +87,7 @@ void MainWindow::SlotFileEncrypt() {
   auto out_path = path + _extension;
 
   if (QFile::exists(out_path)) {
-    boost::filesystem::path _out_path = out_path.toStdString();
+    std::filesystem::path _out_path = out_path.toStdString();
     auto out_file_name = boost::format(_("The target file %1% already exists, "
                                          "do you need to overwrite it?")) %
                          _out_path.filename();
@@ -162,7 +162,7 @@ void MainWindow::SlotFileDecrypt() {
 
   if (!file_pre_check(this, path)) return;
 
-  boost::filesystem::path out_path = path.toStdString();
+  std::filesystem::path out_path = path.toStdString();
 
   if (out_path.extension() == ".asc" || out_path.extension() == ".gpg") {
     out_path = out_path.parent_path() / out_path.stem();
@@ -248,7 +248,7 @@ void MainWindow::SlotFileSign() {
     _extension = ".sig";
   }
 
-  boost::filesystem::path in_path = path.toStdString();
+  std::filesystem::path in_path = path.toStdString();
   auto sig_file_path = in_path;
   sig_file_path += _extension;
   if (exists(sig_file_path)) {
@@ -295,8 +295,8 @@ void MainWindow::SlotFileVerify() {
   auto fileTreeView = edit_->SlotCurPageFileTreeView();
   auto path = fileTreeView->GetSelected();
 
-  boost::filesystem::path in_path = path.toStdString();
-  boost::filesystem::path sign_file_path = in_path, data_file_path;
+  std::filesystem::path in_path = path.toStdString();
+  std::filesystem::path sign_file_path = in_path, data_file_path;
 
   // Detect ascii mode
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
@@ -422,7 +422,7 @@ void MainWindow::SlotFileEncryptSign() {
     _extension = ".gpg";
   }
 
-  boost::filesystem::path out_path = path.toStdString() + _extension;
+  std::filesystem::path out_path = path.toStdString() + _extension;
 
   if (exists(out_path)) {
     auto ret = QMessageBox::warning(
@@ -480,8 +480,8 @@ void MainWindow::SlotFileDecryptVerify() {
 
   if (!file_pre_check(this, path)) return;
 
-  boost::filesystem::path in_path(path.toStdString());
-  boost::filesystem::path out_path = in_path;
+  std::filesystem::path in_path(path.toStdString());
+  std::filesystem::path out_path = in_path;
   if (in_path.extension() == ".asc" || in_path.extension() == ".gpg") {
     out_path = in_path.parent_path() / out_path.stem();
   } else {

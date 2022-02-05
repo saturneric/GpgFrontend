@@ -81,28 +81,28 @@ public:
   /**
    * @brief Get the App Dir object
    *
-   * @return boost::filesystem::path
+   * @return std::filesystem::path
    */
-  [[nodiscard]] boost::filesystem::path GetAppDir() const { return app_path_; }
+  [[nodiscard]] std::filesystem::path GetAppDir() const { return app_path_; }
 
   /**
    * @brief Get the Log Dir object
    *
-   * @return boost::filesystem::path
+   * @return std::filesystem::path
    */
-  [[nodiscard]] boost::filesystem::path GetLogDir() const {
+  [[nodiscard]] std::filesystem::path GetLogDir() const {
     return app_log_path_;
   }
 
   /**
    * @brief Get the Standalone Database Dir object
    *
-   * @return boost::filesystem::path
+   * @return std::filesystem::path
    */
-  [[nodiscard]] boost::filesystem::path GetStandaloneDatabaseDir() const {
+  [[nodiscard]] std::filesystem::path GetStandaloneDatabaseDir() const {
     auto db_path = app_configure_path_ / "db";
-    if (!boost::filesystem::exists(db_path)) {
-      boost::filesystem::create_directory(db_path);
+    if (!std::filesystem::exists(db_path)) {
+      std::filesystem::create_directory(db_path);
     }
     return db_path;
   }
@@ -110,36 +110,36 @@ public:
   /**
    * @brief Get the Standalone Gpg Bin Dir object
    *
-   * @return boost::filesystem::path
+   * @return std::filesystem::path
    */
-  [[nodiscard]] boost::filesystem::path GetStandaloneGpgBinDir() const {
+  [[nodiscard]] std::filesystem::path GetStandaloneGpgBinDir() const {
     return app_resource_path_ / "gpg1.4" / "gpg";
   }
 
   /**
    * @brief Get the Locale Dir object
    *
-   * @return boost::filesystem::path
+   * @return std::filesystem::path
    */
-  [[nodiscard]] boost::filesystem::path GetLocaleDir() const {
+  [[nodiscard]] std::filesystem::path GetLocaleDir() const {
     return app_locale_path_;
   }
 
   /**
    * @brief Get the Resource Dir object
    *
-   * @return boost::filesystem::path
+   * @return std::filesystem::path
    */
-  [[nodiscard]] boost::filesystem::path GetResourceDir() const {
+  [[nodiscard]] std::filesystem::path GetResourceDir() const {
     return app_resource_path_;
   }
 
   /**
    * @brief Get the Certs Dir object
    *
-   * @return boost::filesystem::path
+   * @return std::filesystem::path
    */
-  [[nodiscard]] boost::filesystem::path GetCertsDir() const {
+  [[nodiscard]] std::filesystem::path GetCertsDir() const {
     return app_resource_path_ / "certs";
   }
 
@@ -158,7 +158,7 @@ public:
    *
    * @param path
    */
-  void AddRootCert(const boost::filesystem::path &path);
+  void AddRootCert(const std::filesystem::path &path);
 
   /**
    * @brief Get the Root Certs object
@@ -206,44 +206,44 @@ public:
   std::optional<nlohmann::json> GetDataObjectByRef(const std::string &_ref);
 
 private:
-  boost::filesystem::path app_path_ =
+  std::filesystem::path app_path_ =
       qApp->applicationDirPath().toStdString(); ///< Program Location
-  boost::filesystem::path app_data_path_ =
+  std::filesystem::path app_data_path_ =
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
           .toStdString(); ///< Program Data Location
-  boost::filesystem::path app_log_path_ =
+  std::filesystem::path app_log_path_ =
       app_data_path_ / "logs"; ///< Program Data Location
-  boost::filesystem::path app_data_objs_path_ =
+  std::filesystem::path app_data_objs_path_ =
       app_data_path_ / "objs"; ///< Object storage path
 
 #ifdef LINUX_INSTALL_BUILD
-  boost::filesystem::path app_resource_path_ =
-      boost::filesystem::path(APP_LOCALSTATE_PATH) /
+  std::filesystem::path app_resource_path_ =
+      std::filesystem::path(APP_LOCALSTATE_PATH) /
       "gpgfrontend"; ///< Program Data Location
 #else
-  boost::filesystem::path app_resource_path_ =
+  std::filesystem::path app_resource_path_ =
       RESOURCE_DIR_BOOST_PATH(app_path_); ///< Program Data Location
 #endif
 
 #ifdef LINUX_INSTALL_BUILD
-  boost::filesystem::path app_locale_path_ =
+  std::filesystem::path app_locale_path_ =
       std::string(APP_LOCALE_PATH); ///< Program Data Location
 #else
-  boost::filesystem::path app_locale_path_ =
+  std::filesystem::path app_locale_path_ =
       app_resource_path_ / "locales"; ///< Program Data Location
 #endif
 
-  boost::filesystem::path app_configure_path_ =
+  std::filesystem::path app_configure_path_ =
       QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
           .toStdString(); ///< Program Configure Location
-  boost::filesystem::path app_secure_path_ =
+  std::filesystem::path app_secure_path_ =
       app_configure_path_ / "secure"; ///< Where sensitive information is stored
-  boost::filesystem::path app_secure_key_path_ =
+  std::filesystem::path app_secure_key_path_ =
       app_secure_path_ / "app.key"; ///<
-  boost::filesystem::path ui_config_dir_path_ =
+  std::filesystem::path ui_config_dir_path_ =
       app_configure_path_ /
       "UserInterface"; ///< Configure File Directory Location
-  boost::filesystem::path ui_config_path_ =
+  std::filesystem::path ui_config_path_ =
       ui_config_dir_path_ / "ui.cfg"; ///< UI Configure File Location
 
   libconfig::Config ui_cfg_;                      ///<

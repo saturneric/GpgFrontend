@@ -28,7 +28,6 @@
 
 #include <encoding-detect/TextEncodingDetect.h>
 
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <utility>
 

@@ -403,7 +403,7 @@ elseif (TEST_CORE_BUILD)
 endif ()
 
 # Introduce boost
-find_package(Boost COMPONENTS date_time filesystem REQUIRED)
+find_package(Boost COMPONENTS date_time REQUIRED)
 
 # Introduce OpenSSL
 find_package(OpenSSL REQUIRED)
