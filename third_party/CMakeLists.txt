@@ -206,5 +206,7 @@ aux_source_directory(./encoding-detect ENCODING_DETECT_SOURCE_CODE)
 add_library(encoding_detect STATIC ${ENCODING_DETECT_SOURCE_CODE})
 
 # libarchive
-remove_definitions(-DDEBUG)
-add_subdirectory(libarchive)
+if (NOT MINGW)
+    remove_definitions(-DDEBUG)
+    add_subdirectory(libarchive)
+endif ()

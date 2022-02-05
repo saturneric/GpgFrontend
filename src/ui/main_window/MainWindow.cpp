@@ -126,8 +126,8 @@ void MainWindow::init() noexcept {
 
       connect(version_thread, &VersionCheckThread::finished, version_thread,
               &VersionCheckThread::deleteLater);
-      connect(version_thread, &VersionCheckThread::upgradeVersion, this,
-              &MainWindow::slotVersionUpgrade);
+      connect(version_thread, &VersionCheckThread::SignalUpgradeVersion, this,
+              &MainWindow::slot_version_upgrade);
 
       version_thread->start();
 #endif
