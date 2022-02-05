@@ -46,7 +46,12 @@ target_link_libraries(gpgfrontend_core gpgme assuan gpg-error)
 # link openssl
 target_link_libraries(gpgfrontend_core OpenSSL::SSL OpenSSL::Crypto)
 # link libarchive
-target_link_libraries(gpgfrontend_core archive_static)
+if (MINGW)
+    find_library(LIBARCHIVE_LIB libarchive.a)
+    target_link_libraries(gpgfrontend_core ${LIBARCHIVE_LIB})
+else ()
+    target_link_libraries(gpgfrontend_core archive_static)
+endif ()
 # link json
 target_link_libraries(gpgfrontend_core
         nlohmann_json::nlohmann_json)
