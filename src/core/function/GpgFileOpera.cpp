@@ -32,18 +32,23 @@
 
 #include "GpgConstants.h"
 #include "core/function/GpgBasicOperator.h"
+#include "core/file/FileOperator.h"
 
 GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
     KeyListPtr keys, const std::string& in_path, const std::string& out_path,
     GpgEncrResult& result, int _channel) {
-  std::string in_buffer = read_all_data_in_file(in_path);
-  std::unique_ptr<std::string> out_buffer;
+
+  std::string in_buffer;
+  if(!FileOperator::ReadFileStd(in_path, in_buffer)) {
+    throw std::runtime_error("read file error");
+  }
+  std::unique_ptr<std::string> out_buffer = nullptr;
 
   auto err = GpgBasicOperator::GetInstance(_channel).Encrypt(
       std::move(keys), in_buffer, out_buffer, result);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
-    if (!write_buffer_to_file(out_path, *out_buffer)) {
+    if (!FileOperator::WriteFileStd(out_path, *out_buffer)) {
       throw std::runtime_error("write_buffer_to_file error");
     };
 
@@ -53,7 +58,10 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
 GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
     const std::string& in_path, const std::string& out_path,
     GpgDecrResult& result) {
-  std::string in_buffer = read_all_data_in_file(in_path);
+  std::string in_buffer;
+  if(!FileOperator::ReadFileStd(in_path, in_buffer)) {
+    throw std::runtime_error("read file error");
+  }
   std::unique_ptr<std::string> out_buffer;
 
   auto err =
@@ -62,7 +70,7 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
   assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
-    if (!write_buffer_to_file(out_path, *out_buffer)) {
+    if (!FileOperator::WriteFileStd(out_path, *out_buffer)) {
       throw std::runtime_error("write_buffer_to_file error");
     };
 
@@ -74,14 +82,17 @@ gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
                                                   const std::string& out_path,
                                                   GpgSignResult& result,
                                                   int _channel) {
-  auto in_buffer = read_all_data_in_file(in_path);
+  std::string in_buffer;
+  if(!FileOperator::ReadFileStd(in_path, in_buffer)) {
+    throw std::runtime_error("read file error");
+  }
   std::unique_ptr<std::string> out_buffer;
 
   auto err = GpgBasicOperator::GetInstance(_channel).Sign(
       std::move(keys), in_buffer, out_buffer, GPGME_SIG_MODE_DETACH, result);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
-    if (!write_buffer_to_file(out_path, *out_buffer)) {
+    if (!FileOperator::WriteFileStd(out_path, *out_buffer)) {
       throw std::runtime_error("write_buffer_to_file error");
     };
 
@@ -91,11 +102,18 @@ gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
 gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(
     const std::string& data_path, const std::string& sign_path,
     GpgVerifyResult& result, int _channel) {
-  auto in_buffer = read_all_data_in_file(data_path);
+  std::string in_buffer;
+  if(!FileOperator::ReadFileStd(data_path, in_buffer)) {
+    throw std::runtime_error("read file error");
+  }
   std::unique_ptr<std::string> sign_buffer = nullptr;
   if (!sign_path.empty()) {
+    std::string sign_buffer_str;
+    if (!FileOperator::ReadFileStd(sign_path, sign_buffer_str)) {
+      throw std::runtime_error("read file error");
+    }
     sign_buffer =
-        std::make_unique<std::string>(read_all_data_in_file(sign_path));
+        std::make_unique<std::string>(sign_buffer_str);
   }
   auto err = GpgBasicOperator::GetInstance(_channel).Verify(in_buffer, sign_buffer,
                                                          result);
@@ -106,7 +124,10 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
     KeyListPtr keys, KeyListPtr signer_keys, const std::string& in_path,
     const std::string& out_path, GpgEncrResult& encr_res,
     GpgSignResult& sign_res, int _channel) {
-  auto in_buffer = read_all_data_in_file(in_path);
+  std::string in_buffer;
+  if(!FileOperator::ReadFileStd(in_path, in_buffer)) {
+    throw std::runtime_error("read file error");
+  }
   std::unique_ptr<std::string> out_buffer = nullptr;
 
   auto err = GpgBasicOperator::GetInstance(_channel).EncryptSign(
@@ -114,7 +135,7 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
       sign_res);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
-    if (!write_buffer_to_file(out_path, *out_buffer)) {
+    if (!FileOperator::WriteFileStd(out_path, *out_buffer)) {
       throw std::runtime_error("write_buffer_to_file error");
     };
 
@@ -124,16 +145,18 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
 gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
     const std::string& in_path, const std::string& out_path,
     GpgDecrResult& decr_res, GpgVerifyResult& verify_res) {
-  auto in_buffer = read_all_data_in_file(in_path);
+  std::string in_buffer;
+  if(!FileOperator::ReadFileStd(in_path, in_buffer)) {
+    throw std::runtime_error("read file error");
+  }
 
   std::unique_ptr<std::string> out_buffer = nullptr;
-
   auto err = GpgBasicOperator::GetInstance().DecryptVerify(in_buffer, out_buffer,
                                                         decr_res, verify_res);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
-    if (!write_buffer_to_file(out_path, *out_buffer)) {
-      throw std::runtime_error("write_buffer_to_file error");
+    if (!FileOperator::WriteFileStd(out_path, *out_buffer)) {
+      throw std::runtime_error("write file error");
     };
 
   return err;
@@ -141,14 +164,17 @@ gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
 unsigned int GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
     const std::string& in_path, const std::string& out_path,
     GpgFrontend::GpgEncrResult& result, int _channel) {
-  std::string in_buffer = read_all_data_in_file(in_path);
-  std::unique_ptr<std::string> out_buffer;
+  std::string in_buffer;
+  if(!FileOperator::ReadFileStd(in_path, in_buffer)) {
+    throw std::runtime_error("read file error");
+  }
 
+  std::unique_ptr<std::string> out_buffer;
   auto err = GpgBasicOperator::GetInstance(_channel).EncryptSymmetric(
       in_buffer, out_buffer, result);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
-    if (!write_buffer_to_file(out_path, *out_buffer)) {
+    if (!FileOperator::WriteFileStd(out_path, *out_buffer)) {
       throw std::runtime_error("write_buffer_to_file error");
     };
 
