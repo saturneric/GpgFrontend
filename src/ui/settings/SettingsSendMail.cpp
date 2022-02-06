@@ -100,13 +100,13 @@ void SendMailTab::SetSettings() {
   auto smtp_passport = SettingsObject("smtp_passport");
 
   ui_->smtpServerAddressEdit->setText(
-      std::string{smtp_passport.Check("smtp_address", {})}.c_str());
+      std::string{smtp_passport.Check("smtp_address", "")}.c_str());
 
   ui_->usernameEdit->setText(
-      std::string{smtp_passport.Check("username", {})}.c_str());
+      std::string{smtp_passport.Check("username", "")}.c_str());
 
   ui_->passwordEdit->setText(
-      std::string{smtp_passport.Check("password", {})}.c_str());
+      std::string{smtp_passport.Check("password", "")}.c_str());
 
   ui_->portSpin->setValue(int{smtp_passport.Check("port", 25)});
 
@@ -114,10 +114,10 @@ void SendMailTab::SetSettings() {
       std::string{smtp_passport.Check("connection_type", "None")}.c_str());
 
   ui_->defaultSenderEmailEdit->setText(
-      std::string{smtp_passport.Check("default_sender", {})}.c_str());
+      std::string{smtp_passport.Check("default_sender", "")}.c_str());
 
   ui_->gpgKeyIDEdit->setText(
-      std::string{smtp_passport.Check("default_sender_gpg_key_id", {})}
+      std::string{smtp_passport.Check("default_sender_gpg_key_id", "")}
           .c_str());
 
   ui_->identityCheckBox->setChecked(
