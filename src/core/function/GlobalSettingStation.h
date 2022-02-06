@@ -33,37 +33,31 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
-#include <nlohmann/json.hpp>
 
 #include "GpgFrontendBuildInstallInfo.h"
-#include "ui/GpgFrontendUI.h"
+#include "core/GpgFrontendCore.h"
+#include "core/GpgFunctionObject.h"
 
 namespace vmime::security::cert {
 class defaultCertificateVerifier;
 class X509Certificate;
-} // namespace vmime::security::cert
+}  // namespace vmime::security::cert
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
 /**
  * @brief
  *
  */
-class GlobalSettingStation : public QObject {
-  Q_OBJECT
-public:
-  /**
-   * @brief Get the Instance object
-   *
-   * @return GlobalSettingStation&
-   */
-  static GlobalSettingStation &GetInstance();
-
+class GlobalSettingStation
+    : public SingletonFunctionObject<GlobalSettingStation> {
+ public:
   /**
    * @brief Construct a new Global Setting Station object
    *
    */
-  GlobalSettingStation() noexcept;
+  explicit GlobalSettingStation(
+      int channel = SingletonFunctionObject::GetDefaultChannel()) noexcept;
 
   /**
    * @brief Destroy the Global Setting Station object
@@ -85,6 +79,10 @@ public:
    */
   [[nodiscard]] std::filesystem::path GetAppDir() const { return app_path_; }
 
+  [[nodiscard]] std::filesystem::path GetAppDataPath() const {
+    return app_data_path_;
+  }
+
   /**
    * @brief Get the Log Dir object
    *
@@ -105,6 +103,10 @@ public:
       std::filesystem::create_directory(db_path);
     }
     return db_path;
+  }
+
+  [[nodiscard]] std::filesystem::path GetAppConfigPath() const {
+    return app_configure_path_;
   }
 
   /**
@@ -174,100 +176,57 @@ public:
   void ResetRootCerts() { root_certs_.clear(); }
 
   /**
-   * @brief
+   * @brief sync the settings to the file
    *
    */
   void SyncSettings() noexcept;
 
-  /**
-   * @brief
-   *
-   * @param _key
-   * @param value
-   * @return std::string
-   */
-
-  std::string SaveDataObj(const std::string &_key, const nlohmann::json &value);
-
-  /**
-   * @brief Get the Data Object object
-   *
-   * @param _key
-   * @return std::optional<nlohmann::json>
-   */
-  std::optional<nlohmann::json> GetDataObject(const std::string &_key);
-
-  /**
-   * @brief Get the Data Object By Ref object
-   *
-   * @param _ref
-   * @return std::optional<nlohmann::json>
-   */
-  std::optional<nlohmann::json> GetDataObjectByRef(const std::string &_ref);
-
-private:
+ private:
   std::filesystem::path app_path_ =
-      qApp->applicationDirPath().toStdString(); ///< Program Location
+      qApp->applicationDirPath().toStdString();  ///< Program Location
   std::filesystem::path app_data_path_ =
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
-          .toStdString(); ///< Program Data Location
+          .toStdString();  ///< Program Data Location
   std::filesystem::path app_log_path_ =
-      app_data_path_ / "logs"; ///< Program Data Location
+      app_data_path_ / "logs";  ///< Program Data Location
   std::filesystem::path app_data_objs_path_ =
-      app_data_path_ / "objs"; ///< Object storage path
+      app_data_path_ / "objs";  ///< Object storage path
 
 #ifdef LINUX_INSTALL_BUILD
   std::filesystem::path app_resource_path_ =
       std::filesystem::path(APP_LOCALSTATE_PATH) /
-      "gpgfrontend"; ///< Program Data Location
+      "gpgfrontend";  ///< Program Data Location
 #else
   std::filesystem::path app_resource_path_ =
-      RESOURCE_DIR_BOOST_PATH(app_path_); ///< Program Data Location
+      RESOURCE_DIR_BOOST_PATH(app_path_);  ///< Program Data Location
 #endif
 
 #ifdef LINUX_INSTALL_BUILD
   std::filesystem::path app_locale_path_ =
-      std::string(APP_LOCALE_PATH); ///< Program Data Location
+      std::string(APP_LOCALE_PATH);  ///< Program Data Location
 #else
   std::filesystem::path app_locale_path_ =
-      app_resource_path_ / "locales"; ///< Program Data Location
+      app_resource_path_ / "locales";  ///< Program Data Location
 #endif
 
   std::filesystem::path app_configure_path_ =
       QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
-          .toStdString(); ///< Program Configure Location
-  std::filesystem::path app_secure_path_ =
-      app_configure_path_ / "secure"; ///< Where sensitive information is stored
-  std::filesystem::path app_secure_key_path_ =
-      app_secure_path_ / "app.key"; ///<
+          .toStdString();  ///< Program Configure Location
   std::filesystem::path ui_config_dir_path_ =
       app_configure_path_ /
-      "UserInterface"; ///< Configure File Directory Location
+      "UserInterface";  ///< Configure File Directory Location
   std::filesystem::path ui_config_path_ =
-      ui_config_dir_path_ / "ui.cfg"; ///< UI Configure File Location
+      ui_config_dir_path_ / "ui.cfg";  ///< UI Configure File Location
 
-  libconfig::Config ui_cfg_;                      ///<
-  std::vector<std::shared_ptr<X509>> root_certs_; ///<
-  std::random_device rd_;                         ///<
-  std::mt19937 mt_;                               ///<
-  QByteArray hash_key_;                           ///<
-
-  static std::unique_ptr<GlobalSettingStation> instance_; ///<
+  libconfig::Config ui_cfg_;                       ///<
+  std::vector<std::shared_ptr<X509>> root_certs_;  ///<
 
   /**
    * @brief
    *
    */
   void init_app_secure_key();
-
-  /**
-   * @brief
-   *
-   * @param len
-   * @return std::string
-   */
-  std::string generate_passphrase(int len);
 };
-} // namespace GpgFrontend::UI
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_GLOBALSETTINGSTATION_H
+#endif  // GPGFRONTEND_GLOBALSETTINGSTATION_H

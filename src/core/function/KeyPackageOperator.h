@@ -39,7 +39,7 @@ namespace GpgFrontend {
  *
  */
 class KeyPackageOperator {
-public:
+ public:
   /**
    * @brief generate passphrase for key package and save it to file
    *
@@ -87,44 +87,21 @@ public:
                                const std::filesystem::path &phrase_path,
                                GpgFrontend::GpgImportInformation &import_info);
 
-private:
-  /**
-   * @brief genearte passphrase
-   *
-   * @param len length of the passphrase
-   * @return std::string passphrase
-   */
-  static std::string generate_passphrase(const int len) {
-    std::random_device rd_;         ///< Random device
-    auto mt_ = std::mt19937(rd_()); ///< Mersenne twister
-
-    std::uniform_int_distribution<int> dist(999, 99999);
-    static const char alphanum[] = "0123456789"
-                                   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                   "abcdefghijklmnopqrstuvwxyz";
-    std::string tmp_str;
-    tmp_str.reserve(len);
-
-    for (int i = 0; i < len; ++i) {
-      tmp_str += alphanum[dist(mt_) % (sizeof(alphanum) - 1)];
-    }
-    return tmp_str;
-  }
-
+ private:
   /**
    * @brief generate key package name
    *
    * @return std::string key package name
    */
   static std::string generate_key_package_name() {
-    std::random_device rd_;         ///< Random device
-    auto mt_ = std::mt19937(rd_()); ///< Mersenne twister
+    std::random_device rd_;          ///< Random device
+    auto mt_ = std::mt19937(rd_());  ///< Mersenne twister
 
     std::uniform_int_distribution<int> dist(999, 99999);
     auto file_string = boost::format("KeyPackage_%1%") % dist(mt_);
     return file_string.str();
   }
 };
-} // namespace GpgFrontend
+}  // namespace GpgFrontend
 
-#endif // GPGFRONTEND_KEYPACKAGEOPERATOR_H
+#endif  // GPGFRONTEND_KEYPACKAGEOPERATOR_H

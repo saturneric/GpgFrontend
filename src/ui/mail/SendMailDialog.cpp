@@ -35,7 +35,7 @@
 #include "ui_SendMailDialog.h"
 
 #ifdef SMTP_SUPPORT
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui/thread/SMTPSendMailThread.h"
 #endif
 

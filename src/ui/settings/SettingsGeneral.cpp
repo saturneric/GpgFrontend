@@ -32,7 +32,7 @@
 #include "SettingsDialog.h"
 #endif
 
-#include "GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui_GeneralSettings.h"
 
 namespace GpgFrontend::UI {
@@ -140,7 +140,7 @@ void GeneralTab::SetSettings() {
  *************************************/
 void GeneralTab::ApplySettings() {
   auto& settings =
-      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
+      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
 
   if (!settings.exists("general") ||
       settings.lookup("general").getType() != libconfig::Setting::TypeGroup)

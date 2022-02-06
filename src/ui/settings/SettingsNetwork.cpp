@@ -28,7 +28,7 @@
 
 #include "SettingsNetwork.h"
 
-#include "ui/settings//GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui/thread/ProxyConnectionTestThread.h"
 #include "ui_NetworkSettings.h"
 
@@ -154,7 +154,7 @@ void GpgFrontend::UI::NetworkTab::ApplySettings() {
   LOG(INFO) << "called";
 
   auto &settings =
-      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
+      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
 
   if (!settings.exists("proxy") ||
       settings.lookup("proxy").getType() != libconfig::Setting::TypeGroup)

@@ -35,7 +35,7 @@
 #include "ui/SignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/mail/SendMailDialog.h"
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/TextEdit.h"
 

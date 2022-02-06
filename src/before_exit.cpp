@@ -26,7 +26,7 @@
  *
  */
 
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 
 /**
  * @brief Actions performed before exiting the application
@@ -34,5 +34,5 @@
  */
 void before_exit() {
   LOG(INFO) << "called";
-  GpgFrontend::UI::GlobalSettingStation::GetInstance().ResetRootCerts();
+  GpgFrontend::GlobalSettingStation::GetInstance().ResetRootCerts();
 }

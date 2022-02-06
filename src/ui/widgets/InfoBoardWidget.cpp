@@ -29,7 +29,7 @@
 #include "ui/widgets/InfoBoardWidget.h"
 
 #include "ui/SignalStation.h"
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui_InfoBoard.h"
 
 namespace GpgFrontend::UI {

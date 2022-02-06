@@ -28,7 +28,7 @@
 
 #include "SettingsKeyServer.h"
 
-#include "GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui/thread/ListedKeyServerTestThread.h"
 #include "ui_KeyServerSettings.h"
 

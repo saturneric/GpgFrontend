@@ -35,7 +35,7 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui_KeyList.h"
 
 namespace GpgFrontend::UI {
@@ -53,9 +53,9 @@ KeyList::KeyList(KeyMenuAbility::AbilityType menu_ability, QWidget* parent)
 void KeyList::init() {
 #ifdef GPG_STANDALONE_MODE
   LOG(INFO) << "GPG_STANDALONE_MODE Enabled";
-  auto gpg_path = GpgFrontend::UI::GlobalSettingStation::GetInstance()
+  auto gpg_path = GpgFrontend::GlobalSettingStation::GetInstance()
                       .GetStandaloneGpgBinDir();
-  auto db_path = GpgFrontend::UI::GlobalSettingStation::GetInstance()
+  auto db_path = GpgFrontend::GlobalSettingStation::GetInstance()
                      .GetStandaloneDatabaseDir();
   GpgContext::CreateInstance(
       _m_key_list_id, std::make_unique<GpgContext>(true, db_path.string(), true,

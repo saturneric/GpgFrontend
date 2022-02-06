@@ -44,7 +44,7 @@
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/help/AboutDialog.h"
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui/widgets/SignersPicker.h"
 
 namespace GpgFrontend::UI {

@@ -28,7 +28,7 @@
 
 #include "SettingsDialog.h"
 
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui/settings/SettingsAdvanced.h"
 #include "ui/settings/SettingsAppearance.h"
 #include "ui/settings/SettingsGeneral.h"

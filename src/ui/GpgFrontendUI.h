@@ -53,28 +53,8 @@
 #define LIBCONFIGXX_STATIC
 #include <qt-aes/qaesencryption.h>
 
-#include <libconfig.h++>
-
 #ifdef SMTP_SUPPORT
 #include <SmtpMime>
-#endif
-
-#define VMIME_STATIC
-#undef VMIME_HAVE_MLANG
-#include <vmime/vmime.hpp>
-
-/**
- * Resources File(s) Path Vars
- */
-#if defined(MACOS) && defined(RELEASE)
-#define RESOURCE_DIR(appDir) (appDir + "/../Resources/")
-#define RESOURCE_DIR_BOOST_PATH(appDir) (appDir / ".." / "Resources")
-#elif defined(LINUX) && defined(RELEASE)
-#define RESOURCE_DIR(appDir) (appDir + "/../share/")
-#define RESOURCE_DIR_BOOST_PATH(appDir) (appDir / ".." / "share")
-#else
-#define RESOURCE_DIR(appDir) (appDir)
-#define RESOURCE_DIR_BOOST_PATH(appDir) (appDir)
 #endif
 
 #endif  // GPGFRONTEND_GPGFRONTENDUI_H

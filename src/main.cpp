@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
 #if !defined(RELEASE) && defined(WINDOWS)
   // css
   std::filesystem::path css_path =
-      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetResourceDir() /
+      GpgFrontend::GlobalSettingStation::GetInstance().GetResourceDir() /
       "css" / "default.qss";
   QFile file(css_path.string().c_str());
   file.open(QFile::ReadOnly);
@@ -144,9 +144,9 @@ int main(int argc, char* argv[]) {
 
 #ifdef GPG_STANDALONE_MODE
   LOG(INFO) << "GPG_STANDALONE_MODE Enabled";
-  auto gpg_path = GpgFrontend::UI::GlobalSettingStation::GetInstance()
+  auto gpg_path = GpgFrontend::GlobalSettingStation::GetInstance()
                       .GetStandaloneGpgBinDir();
-  auto db_path = GpgFrontend::UI::GlobalSettingStation::GetInstance()
+  auto db_path = GpgFrontend::GlobalSettingStation::GetInstance()
                      .GetStandaloneDatabaseDir();
   GpgFrontend::GpgContext::CreateInstance(
       GpgFrontend::SingletonFunctionObject<

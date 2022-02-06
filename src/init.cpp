@@ -28,7 +28,7 @@
 
 #include <boost/date_time.hpp>
 
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 
 /**
  * @brief Get the files of a given directory
@@ -72,7 +72,7 @@ void init_logging() {
 
   // get the log directory
   auto logfile_path =
-      (GpgFrontend::UI::GlobalSettingStation::GetInstance().GetLogDir() /
+      (GpgFrontend::GlobalSettingStation::GetInstance().GetLogDir() /
        to_iso_string(now));
   logfile_path.replace_extension(".log");
   defaultConf.setGlobally(el::ConfigurationType::Filename,
@@ -90,10 +90,10 @@ void init_logging() {
 void init_certs() {
   // get the certificate directory
   auto cert_file_paths = get_files_of_directory(
-      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetCertsDir());
+      GpgFrontend::GlobalSettingStation::GetInstance().GetCertsDir());
 
   // get the instance of the GlobalSettingStation
-  auto& _instance = GpgFrontend::UI::GlobalSettingStation::GetInstance();
+  auto& _instance = GpgFrontend::GlobalSettingStation::GetInstance();
   for (const auto& cert_file_path : cert_file_paths) {
     // add the certificate to the store
     _instance.AddRootCert(cert_file_path);
@@ -110,7 +110,7 @@ void init_certs() {
 void init_locale() {
   // get the instance of the GlobalSettingStation
   auto& settings =
-      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
+      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
 
   // create general settings if not exist
   if (!settings.exists("general") ||
@@ -123,7 +123,7 @@ void init_locale() {
     general.add("lang", libconfig::Setting::TypeString) = "";
 
   // sync the settings to the file
-  GpgFrontend::UI::GlobalSettingStation::GetInstance().SyncSettings();
+  GpgFrontend::GlobalSettingStation::GetInstance().SyncSettings();
 
   LOG(INFO) << "current system locale" << setlocale(LC_ALL, nullptr);
 
@@ -136,7 +136,7 @@ void init_locale() {
   LOG(INFO) << "lang from settings" << lang;
   LOG(INFO) << "project name" << PROJECT_NAME;
   LOG(INFO) << "locales path"
-            << GpgFrontend::UI::GlobalSettingStation::GetInstance()
+            << GpgFrontend::GlobalSettingStation::GetInstance()
                    .GetLocaleDir()
                    .c_str();
 
@@ -177,7 +177,7 @@ void init_locale() {
 #endif
 
   bindtextdomain(PROJECT_NAME,
-                 GpgFrontend::UI::GlobalSettingStation::GetInstance()
+                 GpgFrontend::GlobalSettingStation::GetInstance()
                      .GetLocaleDir()
                      .string()
                      .c_str());

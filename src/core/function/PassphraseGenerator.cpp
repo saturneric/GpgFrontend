@@ -26,29 +26,4 @@
 *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDCORE_H
-#define GPGFRONTEND_GPGFRONTENDCORE_H
-
-#include "GpgFrontend.h"
-
-// std includes
-#include <filesystem>
-
-// boost includes
-#include <boost/format.hpp>
-
-// Qt includes
-#include <QtCore>
-
-// vmime includes
-#define VMIME_STATIC
-#undef VMIME_HAVE_MLANG
-#include <vmime/vmime.hpp>
-
-// libconfig includes
-#include <libconfig.h++>
-
-#include "core/GpgModel.h"
-
-
-#endif  // GPGFRONTEND_GPGFRONTENDCORE_H
+#include "PassphraseGenerator.h"

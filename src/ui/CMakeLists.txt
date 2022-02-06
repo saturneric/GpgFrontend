@@ -42,52 +42,48 @@ if (SMTP_SUPPORT)
     aux_source_directory(mail UI_SOURCE)
 endif ()
 
-# libgpgfrontend_ui
+# define libgpgfrontend_ui
 add_library(gpgfrontend_ui STATIC ${UI_SOURCE})
-set(GPGFRONTEND_UI_LIB_NAME gpgfrontend_ui)
 
 # link smtp-mime
 if (SMTP_SUPPORT)
-    target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
+    target_link_libraries(gpgfrontend_ui
             smtp-mime)
 endif ()
 
-# Qt AES
-target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
-        QtAES)
 # link Qt
-target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
+target_link_libraries(gpgfrontend_ui
         Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
 
 # link vmime
 if (NOT LINUX)
-    target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
+    target_link_libraries(gpgfrontend_ui
             gpgfrontend_vmime ssl crypto intl iconv)
     if (MINGW)
-        target_link_libraries(${GPGFRONTEND_UI_LIB_NAME} ws2_32)
+        target_link_libraries(gpgfrontend_ui ws2_32)
     endif ()
 else ()
-    target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
+    target_link_libraries(gpgfrontend_ui
             gpgfrontend_vmime anl ssl crypto)
 endif ()
 
 # link gpgfrontend_core
-target_link_libraries(${GPGFRONTEND_UI_LIB_NAME}
+target_link_libraries(gpgfrontend_ui
         gpgfrontend_core)
 
 # link encoding_detect
-target_link_libraries(${GPGFRONTEND_UI_LIB_NAME} encoding_detect)
+target_link_libraries(gpgfrontend_ui encoding_detect)
 
 # set up pch
-target_precompile_headers(${GPGFRONTEND_UI_LIB_NAME} PUBLIC GpgFrontendUI.h)
+target_precompile_headers(gpgfrontend_ui PUBLIC GpgFrontendUI.h)
 
 # add ui generator include path
 target_include_directories(gpgfrontend_ui PUBLIC
-        ${CMAKE_CURRENT_BINARY_DIR}/${GPGFRONTEND_UI_LIB_NAME}_autogen/include)
+        ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_ui_autogen/include)
 
 # for xcode archive build
 if (XCODE_BUILD)
-    set_target_properties(${GPGFRONTEND_UI_LIB_NAME}
+    set_target_properties(gpgfrontend_ui
             PROPERTIES
             ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
             LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}

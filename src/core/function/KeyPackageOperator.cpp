@@ -28,17 +28,17 @@
 
 #include "KeyPackageOperator.h"
 
-#include "qt-aes/qaesencryption.h"
-
 #include "FileOperator.h"
+#include "function/PassphraseGenerator.h"
 #include "function/gpg/GpgKeyGetter.h"
 #include "function/gpg/GpgKeyImportExporter.h"
+#include "qt-aes/qaesencryption.h"
 
 namespace GpgFrontend {
 
 bool KeyPackageOperator::GeneratePassphrase(
     const std::filesystem::path& phrase_path, std::string& phrase) {
-  phrase = generate_passphrase(256);
+  phrase = PassphraseGenerator::GetInstance().Generate(256);
   return FileOperator::WriteFileStd(phrase_path, phrase);
 }
 
@@ -65,8 +65,8 @@ bool KeyPackageOperator::GenerateKeyPackage(
 
 bool KeyPackageOperator::ImportKeyPackage(
     const std::filesystem::path& key_package_path,
-    const std::filesystem::path& phrase_path, GpgFrontend::GpgImportInformation &import_info) {
-
+    const std::filesystem::path& phrase_path,
+    GpgFrontend::GpgImportInformation& import_info) {
   std::string encrypted_data;
   FileOperator::ReadFileStd(key_package_path, encrypted_data);
 

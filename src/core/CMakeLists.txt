@@ -31,6 +31,7 @@ aux_source_directory(./function GPG_SOURCE)
 aux_source_directory(./model GPG_SOURCE)
 aux_source_directory(. GPG_SOURCE)
 
+# define libgpgfrontend_core
 add_library(gpgfrontend_core STATIC ${GPG_SOURCE})
 
 set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
@@ -44,6 +45,19 @@ target_link_libraries(gpgfrontend_core Boost::date_time)
 target_link_libraries(gpgfrontend_core gpgme assuan gpg-error)
 # link openssl
 target_link_libraries(gpgfrontend_core OpenSSL::SSL OpenSSL::Crypto)
+# link Qt AES
+target_link_libraries(gpgfrontend_core QtAES)
+# link vmime
+if (NOT LINUX)
+    target_link_libraries(gpgfrontend_core
+            gpgfrontend_vmime ssl crypto intl iconv)
+    if (MINGW)
+        target_link_libraries(gpgfrontend_core ws2_32)
+    endif ()
+else ()
+    target_link_libraries(gpgfrontend_core
+            gpgfrontend_vmime anl ssl crypto)
+endif ()
 # link libarchive
 if (MINGW)
     find_library(LIBARCHIVE_LIB libarchive.a)
@@ -62,6 +76,7 @@ target_precompile_headers(gpgfrontend_core
         PUBLIC ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h
         PUBLIC GpgFrontendCore.h)
 
+# link for different platforms
 if (MINGW)
     message(STATUS "Link GPG Static Library For MINGW")
     target_link_libraries(gpgfrontend_core wsock32)
