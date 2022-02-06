@@ -36,7 +36,8 @@
 namespace GpgFrontend::UI {
 
 /**
- * @brief
+ * @brief The SettingsObject class
+ * This class is used to store settings for the application securely.
  *
  */
 class SettingsObject : public nlohmann::json {
@@ -44,7 +45,7 @@ class SettingsObject : public nlohmann::json {
   /**
    * @brief Construct a new Settings Object object
    *
-   * @param settings_name
+   * @param settings_name The name of the settings object
    */
   explicit SettingsObject(std::string settings_name);
 
@@ -68,7 +69,7 @@ class SettingsObject : public nlohmann::json {
    * @param default_value
    * @return nlohmann::json&
    */
-  nlohmann::json& Check(const std::string& key, nlohmann::json default_value);
+  nlohmann::json& Check(const std::string& key, const nlohmann::json& default_value);
 
   /**
    * @brief
