@@ -30,8 +30,8 @@
 
 #include <utility>
 
-#include "core/file/FileOperator.h"
-#include "core/result_analyse/GpgResultAnalyse.h"
+#include "core/function/FileOperator.h"
+#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "ui/SignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/mail/SendMailDialog.h"

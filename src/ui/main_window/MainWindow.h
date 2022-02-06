@@ -30,9 +30,9 @@
 #define __GPGWIN_H__
 
 #include "core/GpgConstants.h"
-#include "core/result_analyse/GpgDecryptResultAnalyse.h"
-#include "core/result_analyse/GpgEncryptResultAnalyse.h"
-#include "core/result_analyse/GpgSignResultAnalyse.h"
+#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
+#include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
+#include "core/function/result_analyse/GpgSignResultAnalyse.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/KeyMgmt.h"
 #include "ui/dialog/WaitingDialog.h"

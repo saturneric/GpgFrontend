@@ -30,7 +30,7 @@
 
 #include <utility>
 
-#include "core/function/GpgKeyImportExporter.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/SignalStation.h"
 #include "ui/settings/GlobalSettingStation.h"
 

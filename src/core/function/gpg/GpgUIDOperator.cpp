@@ -26,7 +26,7 @@
  *
  */
 
-#include "core/function/GpgUIDOperator.h"
+#include "GpgUIDOperator.h"
 
 #include "boost/format.hpp"
 

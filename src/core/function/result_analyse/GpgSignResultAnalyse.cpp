@@ -26,9 +26,9 @@
  *
  */
 
-#include "core/result_analyse/GpgSignResultAnalyse.h"
+#include "GpgSignResultAnalyse.h"
 
-#include "core/function/GpgKeyGetter.h"
+#include "function/gpg/GpgKeyGetter.h"
 
 GpgFrontend::GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error,
                                                   GpgSignResult result)

@@ -24,12 +24,11 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-aux_source_directory(./result_analyse GPG_SOURCE)
+aux_source_directory(./function/result_analyse GPG_SOURCE)
+aux_source_directory(./function/gpg GPG_SOURCE)
+aux_source_directory(./function/aes GPG_SOURCE)
 aux_source_directory(./function GPG_SOURCE)
 aux_source_directory(./model GPG_SOURCE)
-aux_source_directory(./key_package GPG_SOURCE)
-aux_source_directory(./aes GPG_SOURCE)
-aux_source_directory(./file GPG_SOURCE)
 aux_source_directory(. GPG_SOURCE)
 
 add_library(gpgfrontend_core STATIC ${GPG_SOURCE})

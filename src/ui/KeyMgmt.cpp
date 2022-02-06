@@ -30,10 +30,10 @@
 
 #include <utility>
 
-#include "core/function/GpgKeyGetter.h"
-#include "core/function/GpgKeyImportExporter.h"
-#include "core/function/GpgKeyOpera.h"
-#include "core/key_package/KeyPackageOperator.h"
+#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/function/gpg/GpgKeyOpera.h"
+#include "core/function/KeyPackageOperator.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/import_export/ExportKeyPackageDialog.h"

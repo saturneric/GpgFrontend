@@ -32,7 +32,7 @@
 #include <utility>
 
 #include "core/GpgCoreInit.h"
-#include "core/function/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/settings/GlobalSettingStation.h"

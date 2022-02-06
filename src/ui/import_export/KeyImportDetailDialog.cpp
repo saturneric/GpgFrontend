@@ -28,7 +28,7 @@
 
 #include "KeyImportDetailDialog.h"
 
-#include "core/function/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 
 namespace GpgFrontend::UI {
 KeyImportDetailDialog::KeyImportDetailDialog(GpgImportInformation result,

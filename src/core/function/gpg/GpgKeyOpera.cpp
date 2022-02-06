@@ -26,7 +26,7 @@
  *
  */
 
-#include "core/function/GpgKeyOpera.h"
+#include "GpgKeyOpera.h"
 
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
@@ -38,8 +38,8 @@
 
 #include "core/GpgConstants.h"
 #include "core/GpgGenKeyInfo.h"
-#include "core/function/GpgCommandExecutor.h"
-#include "core/function/GpgKeyGetter.h"
+#include "GpgCommandExecutor.h"
+#include "GpgKeyGetter.h"
 
 /**
  * Delete keys

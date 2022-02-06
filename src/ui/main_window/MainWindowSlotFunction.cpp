@@ -39,9 +39,9 @@
 #include "ui/mail/SendMailDialog.h"
 #endif
 
-#include "core/function/GpgBasicOperator.h"
-#include "core/function/GpgKeyGetter.h"
-#include "core/function/GpgKeyImportExporter.h"
+#include "core/function/gpg/GpgBasicOperator.h"
+#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/help/AboutDialog.h"
 #include "ui/settings/GlobalSettingStation.h"

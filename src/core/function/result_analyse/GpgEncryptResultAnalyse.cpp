@@ -26,7 +26,7 @@
  *
  */
 
-#include "core/result_analyse/GpgEncryptResultAnalyse.h"
+#include "GpgEncryptResultAnalyse.h"
 
 GpgFrontend::GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(GpgError error,
                                                         GpgEncrResult result)
