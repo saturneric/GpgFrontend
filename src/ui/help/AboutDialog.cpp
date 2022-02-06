@@ -29,7 +29,7 @@
 #include "ui/help/AboutDialog.h"
 
 #include "GpgFrontendBuildInfo.h"
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui/thread/VersionCheckThread.h"
 
 namespace GpgFrontend::UI {

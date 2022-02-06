@@ -28,7 +28,7 @@
 
 #include "SettingsAdvanced.h"
 
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -76,7 +76,7 @@ void AdvancedTab::SetSettings() {
 
 void AdvancedTab::ApplySettings() {
   auto& settings =
-      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
+      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
 
   if (!settings.exists("advanced") ||
       settings.lookup("advanced").getType() != libconfig::Setting::TypeGroup)

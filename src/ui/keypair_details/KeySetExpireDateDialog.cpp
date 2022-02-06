@@ -33,7 +33,7 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui_ModifiedExpirationDateTime.h"
 
 namespace GpgFrontend::UI {

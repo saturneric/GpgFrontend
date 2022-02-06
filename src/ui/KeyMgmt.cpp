@@ -39,7 +39,7 @@
 #include "ui/import_export/ExportKeyPackageDialog.h"
 #include "ui/key_generate/SubkeyGenerateDialog.h"
 #include "ui/main_window/MainWindow.h"
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
@@ -435,7 +435,7 @@ void KeyMgmt::SlotGenerateSubKey() {
 }
 void KeyMgmt::SlotSaveWindowState() {
   auto& settings =
-      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
+      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
 
   if (!settings.exists("window") ||
       settings.lookup("window").getType() != libconfig::Setting::TypeGroup)

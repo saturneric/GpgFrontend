@@ -31,7 +31,7 @@
 
 #include <utility>
 
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/DataObjectOperator.h"
 
 namespace GpgFrontend::UI {
 

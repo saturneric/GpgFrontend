@@ -28,7 +28,7 @@
 
 #include "SettingsAppearance.h"
 
-#include "GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -185,7 +185,7 @@ void AppearanceTab::SetSettings() {
  *************************************/
 void AppearanceTab::ApplySettings() {
   auto& settings =
-      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
+      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
 
   if (!settings.exists("window") ||
       settings.lookup("window").getType() != libconfig::Setting::TypeGroup)

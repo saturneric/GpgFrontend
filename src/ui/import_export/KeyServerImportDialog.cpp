@@ -32,7 +32,7 @@
 
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/SignalStation.h"
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -560,7 +560,7 @@ void KeyServerImportDialog::slot_save_window_state() {
   if (m_automatic_) return;
 
   auto& settings =
-      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
+      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
 
   if (!settings.exists("window") ||
       settings.lookup("window").getType() != libconfig::Setting::TypeGroup)

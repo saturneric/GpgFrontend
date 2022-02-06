@@ -50,7 +50,7 @@ GpgFrontend::UI::SettingsObject::SettingsObject(std::string settings_name)
     : settings_name_(std::move(settings_name)) {
   try {
     auto _json_optional =
-        GlobalSettingStation::GetInstance().GetDataObject(settings_name_);
+        GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(settings_name_);
 
     if (_json_optional.has_value()) {
       nlohmann::json::operator=(_json_optional.value());
@@ -65,6 +65,6 @@ GpgFrontend::UI::SettingsObject::SettingsObject(nlohmann::json _sub_json, bool)
 
 GpgFrontend::UI::SettingsObject::~SettingsObject() {
   if (!settings_name_.empty())
-    GpgFrontend::UI::GlobalSettingStation::GetInstance().SaveDataObj(
+    GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
         settings_name_, *this);
 }

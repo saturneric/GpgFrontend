@@ -30,7 +30,7 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
