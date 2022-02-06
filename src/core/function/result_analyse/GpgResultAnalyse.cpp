@@ -25,39 +25,22 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
-#include "core/function/GpgCommandExecutor.h"
-#ifndef WINDOWS
-#include <boost/asio.hpp>
-#endif
 
-#ifndef WINDOWS
+#include "GpgResultAnalyse.h"
 
-using boost::process::async_pipe;
-
-void GpgFrontend::GpgCommandExecutor::Execute(
-    StringArgsRef arguments,
-    const std::function<void(async_pipe& in, async_pipe& out)>& interact_func) {
-  using namespace boost::process;
-
-  boost::asio::io_service ios;
-
-  std::vector<char> buf;
-
-  async_pipe in_pipe_stream(ios);
-  async_pipe out_pipe_stream(ios);
-
-  child child_process(ctx_.GetInfo().AppPath.c_str(), arguments,
-                      std_out > in_pipe_stream, std_in < out_pipe_stream);
-
-  boost::asio::async_read(
-      in_pipe_stream, boost::asio::buffer(buf),
-      [&](const boost::system::error_code& ec, std::size_t size) {
-        interact_func(in_pipe_stream, out_pipe_stream);
-      });
-
-  ios.run();
-  child_process.wait();
-  child_process.exit_code();
+const std::string GpgFrontend::GpgResultAnalyse::GetResultReport() const {
+  return stream_.str();
 }
 
-#endif
+int GpgFrontend::GpgResultAnalyse::GetStatus() const { return status_; }
+
+void GpgFrontend::GpgResultAnalyse::set_status(int m_status) {
+  if (m_status < status_) status_ = m_status;
+}
+
+void GpgFrontend::GpgResultAnalyse::Analyse() {
+  if (!analysed_) {
+    do_analyse();
+    analysed_ = true;
+  }
+}

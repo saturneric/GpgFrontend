@@ -26,7 +26,7 @@
  *
  */
 
-#include "core/function/GpgKeyGetter.h"
+#include "GpgKeyGetter.h"
 
 #include <gpg-error.h>
 

@@ -28,11 +28,11 @@
 
 #include "KeyPackageOperator.h"
 
-#include <qt-aes/qaesencryption.h>
+#include "qt-aes/qaesencryption.h"
 
-#include "core/file/FileOperator.h"
-#include "core/function/GpgKeyGetter.h"
-#include "core/function/GpgKeyImportExporter.h"
+#include "FileOperator.h"
+#include "function/gpg/GpgKeyGetter.h"
+#include "function/gpg/GpgKeyImportExporter.h"
 
 namespace GpgFrontend {
 

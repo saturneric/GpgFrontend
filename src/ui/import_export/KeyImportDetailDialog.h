@@ -30,7 +30,7 @@
 #define __KEYIMPORTDETAILSDIALOG_H__
 
 #include "core/GpgContext.h"
-#include "core/function/GpgKeyImportExporter.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {

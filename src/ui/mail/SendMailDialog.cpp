@@ -28,7 +28,7 @@
 
 #include "SendMailDialog.h"
 
-#include "core/function/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 #include "ui/mail/EmailListEditor.h"
 #include "ui/mail/RecipientsPicker.h"
 #include "ui/mail/SenderPicker.h"

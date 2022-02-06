@@ -30,7 +30,7 @@
 #define GPGFRONTEND_KEYPACKAGEOPERATOR_H
 
 #include "core/GpgFrontendCore.h"
-#include "core/function/GpgKeyImportExporter.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
 
 namespace GpgFrontend {
 

@@ -26,10 +26,10 @@
  *
  */
 
-#include "core/function/GpgKeyImportExporter.h"
+#include "GpgKeyImportExporter.h"
 
 #include "GpgConstants.h"
-#include "core/function/GpgKeyGetter.h"
+#include "GpgKeyGetter.h"
 
 /**
  * Import key pair

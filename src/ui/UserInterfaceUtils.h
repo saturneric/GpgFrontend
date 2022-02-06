@@ -30,7 +30,7 @@
 #define GPGFRONTEND_USER_INTERFACE_UTILS_H
 
 #include "core/GpgModel.h"
-#include "core/result_analyse/GpgVerifyResultAnalyse.h"
+#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend {

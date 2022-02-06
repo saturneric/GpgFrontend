@@ -26,13 +26,13 @@
  *
  */
 
-#include "core/result_analyse/GpgVerifyResultAnalyse.h"
+#include "GpgVerifyResultAnalyse.h"
 
 #include <boost/format.hpp>
 
 #include "GpgFrontend.h"
 #include "core/GpgConstants.h"
-#include "core/function/GpgKeyGetter.h"
+#include "function/gpg/GpgKeyGetter.h"
 
 GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(GpgError error,
                                                       GpgVerifyResult result)

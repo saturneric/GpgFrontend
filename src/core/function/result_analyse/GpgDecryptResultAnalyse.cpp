@@ -26,9 +26,9 @@
  *
  */
 
-#include "core/result_analyse/GpgDecryptResultAnalyse.h"
+#include "GpgDecryptResultAnalyse.h"
 
-#include "core/function/GpgKeyGetter.h"
+#include "function/gpg/GpgKeyGetter.h"
 
 GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(GpgError m_error,
                                                         GpgDecrResult m_result)

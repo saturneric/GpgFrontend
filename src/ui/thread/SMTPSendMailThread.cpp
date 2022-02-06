@@ -28,9 +28,9 @@
 
 #include <boost/format.hpp>
 
-#include "core/function/GpgBasicOperator.h"
-#include "core/function/GpgKeyGetter.h"
-#include "core/function/GpgKeyImportExporter.h"
+#include "core/function/gpg/GpgBasicOperator.h"
+#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
 
 namespace GpgFrontend::UI {
 

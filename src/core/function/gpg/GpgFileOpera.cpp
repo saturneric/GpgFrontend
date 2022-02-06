@@ -25,14 +25,14 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
-#include "core/function/GpgFileOpera.h"
+#include "GpgFileOpera.h"
 
 #include <memory>
 #include <string>
 
 #include "GpgConstants.h"
-#include "core/function/GpgBasicOperator.h"
-#include "core/file/FileOperator.h"
+#include "GpgBasicOperator.h"
+#include "function/FileOperator.h"
 
 GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
     KeyListPtr keys, const std::string& in_path, const std::string& out_path,

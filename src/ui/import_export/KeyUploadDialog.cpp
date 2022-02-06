@@ -30,8 +30,8 @@
 
 #include <algorithm>
 
-#include "core/function/GpgKeyGetter.h"
-#include "core/function/GpgKeyImportExporter.h"
+#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/settings/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {

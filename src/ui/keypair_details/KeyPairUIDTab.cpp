@@ -26,9 +26,9 @@
 
 #include "ui/keypair_details/KeyPairUIDTab.h"
 
-#include "core/function/GpgKeyGetter.h"
-#include "core/function/GpgKeyManager.h"
-#include "core/function/GpgUIDOperator.h"
+#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyManager.h"
+#include "core/function/gpg/GpgUIDOperator.h"
 #include "ui/SignalStation.h"
 #include "ui/widgets/TOFUInfoPage.h"
 

@@ -26,13 +26,13 @@
  *
  */
 
-#include "core/function/GpgKeyManager.h"
+#include "GpgKeyManager.h"
 
 #include <boost/date_time/posix_time/conversion.hpp>
 #include <string>
 
-#include "core/function/GpgBasicOperator.h"
-#include "core/function/GpgKeyGetter.h"
+#include "GpgBasicOperator.h"
+#include "GpgKeyGetter.h"
 
 bool GpgFrontend::GpgKeyManager::SignKey(
     const GpgFrontend::GpgKey& target, GpgFrontend::KeyArgsList& keys,

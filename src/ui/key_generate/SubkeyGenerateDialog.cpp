@@ -27,8 +27,8 @@
 #include "ui/key_generate/SubkeyGenerateDialog.h"
 
 #include "dialog/WaitingDialog.h"
-#include "core/function/GpgKeyGetter.h"
-#include "core/function/GpgKeyOpera.h"
+#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
 #include "ui/settings/GlobalSettingStation.h"
 

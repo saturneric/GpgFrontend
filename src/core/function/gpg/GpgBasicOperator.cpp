@@ -26,11 +26,11 @@
  *
  */
 
-#include "core/function/GpgBasicOperator.h"
+#include "GpgBasicOperator.h"
 
 #include <vector>
 
-#include "core/function/GpgKeyGetter.h"
+#include "GpgKeyGetter.h"
 
 GpgFrontend::GpgError GpgFrontend::GpgBasicOperator::Encrypt(
     KeyListPtr keys, GpgFrontend::BypeArrayRef in_buffer,

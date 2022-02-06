@@ -28,7 +28,7 @@
 
 #include "ui/keypair_details/KeyPairSubkeyTab.h"
 
-#include "core/function/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 #include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {
