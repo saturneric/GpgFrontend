@@ -208,7 +208,9 @@ int main(int argc, char* argv[]) {
     int r = setjmp(recover_env);
 #endif
     if (!r) {
+#ifdef RELEASE
       try {
+#endif
         // init the i18n support
         init_locale();
 
@@ -219,7 +221,7 @@ int main(int argc, char* argv[]) {
         main_window->init();
         main_window->show();
         return_from_event_loop_code = QApplication::exec();
-
+#ifdef RELEASE
       } catch (...) {
         // catch all unhandled exceptions and notify the user
         QMessageBox::information(
@@ -232,6 +234,7 @@ int main(int argc, char* argv[]) {
         return_from_event_loop_code = RESTART_CODE;
         continue;
       }
+#endif
 
     } else {
       // when signal is caught, restart the main window
