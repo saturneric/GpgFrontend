@@ -36,12 +36,11 @@ nlohmann::json& GpgFrontend::UI::SettingsObject::Check(
     this->nlohmann::json::operator=(nlohmann::json::object());
   }
 
-  LOG(INFO) << "Checking key: " << key;
-
   try {
     if (!this->nlohmann::json::contains(key) ||
         this->nlohmann::json::at(key).is_null() ||
-        this->nlohmann::json::at(key).type() != default_value.type()) {
+        this->nlohmann::json::at(key).type_name() !=
+            default_value.type_name()) {
       LOG(INFO) << "Added missing key: " << key;
       if (default_value.is_null()) {
         LOG(WARNING) << "Default value is null, using empty object";
@@ -64,8 +63,6 @@ GpgFrontend::UI::SettingsObject GpgFrontend::UI::SettingsObject::Check(
     LOG(INFO) << "SettingsObject is null, creating new one";
     this->nlohmann::json::operator=(nlohmann::json::object());
   }
-
-  LOG(INFO) << "Checking key: " << key;
 
   if (!nlohmann::json::contains(key) ||
       this->nlohmann::json::at(key).is_null() ||
