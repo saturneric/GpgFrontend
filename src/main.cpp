@@ -40,7 +40,7 @@
 #include "ui/thread/CtxCheckThread.h"
 
 #if !defined(RELEASE) && defined(WINDOWS)
-#include "core/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 #endif
 
 /**
