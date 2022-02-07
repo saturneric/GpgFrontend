@@ -46,6 +46,8 @@
 #include <vmime/vmime.hpp>
 
 // libconfig includes
+#undef LIBCONFIGXX_STATIC
+#define LIBCONFIGXX_STATIC
 #include <libconfig.h++>
 
 #include "core/GpgModel.h"

@@ -49,8 +49,6 @@
  * 3rd party dependencies
  */
 
-#undef LIBCONFIGXX_STATIC
-#define LIBCONFIGXX_STATIC
 #include <qt-aes/qaesencryption.h>
 
 #ifdef SMTP_SUPPORT
