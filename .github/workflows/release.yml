@@ -23,7 +23,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ 'ubuntu-18.04', 'macos-10.15', 'windows-latest' ]
+        os: [ 'ubuntu-18.04', 'macos-10.15', 'windows-2019' ]
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -90,7 +90,7 @@ jobs:
         with:
           install: git msys2-devel base-devel binutils mingw-w64-x86_64-toolchain
           release: false
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
 
       - name: Set up Dependence (Windows)
         shell: msys2 {0}
@@ -100,7 +100,7 @@ jobs:
           pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel
           pacman --noconfirm -S --needed mingw-w64-x86_64-gpgme mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg
           pacman --noconfirm -S --needed mingw-w64-x86_64-libarchive
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
 
       - name: Build GpgFrontend (Linux)
         # Build your GpgFrontend with the given configuration
@@ -156,7 +156,7 @@ jobs:
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON ..
           # Build your program with the given configuration
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
 
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@master
@@ -177,4 +177,4 @@ jobs:
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
           path: ${{github.workspace}}/build/release/*
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
