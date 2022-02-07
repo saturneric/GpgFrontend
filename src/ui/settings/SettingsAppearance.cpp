@@ -29,6 +29,7 @@
 #include "SettingsAppearance.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "ui/struct/SettingsObject.h"
 
 namespace GpgFrontend::UI {
 
@@ -113,70 +114,51 @@ AppearanceTab::AppearanceTab(QWidget* parent) : QWidget(parent) {
  * appropriately
  **********************************/
 void AppearanceTab::SetSettings() {
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
-  try {
-    int width = settings.lookup("window.icon_size.width");
-    int height = settings.lookup("window.icon_size.height");
+  SettingsObject main_windows_state("main_windows_state");
 
-    auto icon_size = QSize(width, height);
+  int width = main_windows_state.Check("icon_size").Check("width", 24),
+      height = main_windows_state.Check("icon_size").Check("height", 24);
 
-    switch (icon_size.height()) {
-      case 12:
-        icon_size_small_->setChecked(true);
-        break;
-      case 24:
-        icon_size_medium_->setChecked(true);
-        break;
-      case 32:
-        icon_size_large_->setChecked(true);
-        break;
-    }
+  auto icon_size = QSize(width, height);
 
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("icon_size");
+  switch (icon_size.width()) {
+    case 12:
+      icon_size_small_->setChecked(true);
+      break;
+    case 24:
+      icon_size_medium_->setChecked(true);
+      break;
+    case 32:
+      icon_size_large_->setChecked(true);
+      break;
   }
 
   // icon_style
-  try {
-    int s_icon_style = settings.lookup("window.icon_style");
-    auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
+  int s_icon_style =
+      main_windows_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
+  auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
 
-    switch (icon_style) {
-      case Qt::ToolButtonTextOnly:
-        icon_text_button_->setChecked(true);
-        break;
-      case Qt::ToolButtonIconOnly:
-        icon_icons_button_->setChecked(true);
-        break;
-      case Qt::ToolButtonTextUnderIcon:
-        icon_all_button_->setChecked(true);
-        break;
-      default:
-        break;
-    }
-
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("icon_style");
+  switch (icon_style) {
+    case Qt::ToolButtonTextOnly:
+      icon_text_button_->setChecked(true);
+      break;
+    case Qt::ToolButtonIconOnly:
+      icon_icons_button_->setChecked(true);
+      break;
+    case Qt::ToolButtonTextUnderIcon:
+      icon_all_button_->setChecked(true);
+      break;
+    default:
+      break;
   }
 
-  // Window Save and Position
-  try {
-    bool window_save = settings.lookup("window.window_save");
-    if (window_save) window_size_check_box_->setCheckState(Qt::Checked);
+  bool window_save = main_windows_state.Check("window_save", true);
+  if (window_save) window_size_check_box_->setCheckState(Qt::Checked);
 
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("window_save");
-  }
-
-  // info board font size
-  try {
-    int info_font_size = settings.lookup("window.info_font_size");
-    if (info_font_size < 9 || info_font_size > 18) info_font_size = 10;
-    info_board_font_size_spin_->setValue(info_font_size);
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("info_font_size");
-  }
+  auto info_font_size = main_windows_state.Check("info_font_size", 10);
+  if (info_font_size < 9 || info_font_size > 18) info_font_size = 10;
+  info_board_font_size_spin_->setValue(info_font_size);
 }
 
 /***********************************
@@ -184,14 +166,8 @@ void AppearanceTab::SetSettings() {
  * write them to settings-file
  *************************************/
 void AppearanceTab::ApplySettings() {
-  auto& settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
 
-  if (!settings.exists("window") ||
-      settings.lookup("window").getType() != libconfig::Setting::TypeGroup)
-    settings.add("window", libconfig::Setting::TypeGroup);
-
-  auto& window = settings["window"];
+  SettingsObject main_windows_state("main_windows_state");
 
   int icon_size = 24;
   switch (icon_size_group_->checkedId()) {
@@ -206,15 +182,8 @@ void AppearanceTab::ApplySettings() {
       break;
   }
 
-  if (!window.exists("icon_size")) {
-    auto& icon_size_settings =
-        window.add("icon_size", libconfig::Setting::TypeGroup);
-    icon_size_settings.add("width", libconfig::Setting::TypeInt) = icon_size;
-    icon_size_settings.add("height", libconfig::Setting::TypeInt) = icon_size;
-  } else {
-    window["icon_size"]["width"] = icon_size;
-    window["icon_size"]["height"] = icon_size;
-  }
+  main_windows_state["icon_size"]["width"] = icon_size;
+  main_windows_state["icon_size"]["height"] = icon_size;
 
   auto icon_style = Qt::ToolButtonTextUnderIcon;
   switch (icon_style_group_->checkedId()) {
@@ -229,25 +198,12 @@ void AppearanceTab::ApplySettings() {
       break;
   }
 
-  if (!window.exists("icon_style")) {
-    window.add("icon_style", libconfig::Setting::TypeInt) = icon_style;
-  } else {
-    window["icon_style"] = icon_style;
-  }
+  main_windows_state["icon_style"] = icon_style;
 
-  if (!window.exists("window_save")) {
-    window.add("window_save", libconfig::Setting::TypeBoolean) =
-        window_size_check_box_->isChecked();
-  } else {
-    window["window_save"] = window_size_check_box_->isChecked();
-  }
+  main_windows_state["window_save"] = window_size_check_box_->isChecked();
 
-  if (!window.exists("info_font_size")) {
-    window.add("info_font_size", libconfig::Setting::TypeBoolean) =
-        info_board_font_size_spin_->value();
-  } else {
-    window["info_font_size"] = info_board_font_size_spin_->value();
-  }
+  main_windows_state["info_font_size"] = info_board_font_size_spin_->value();
+
 }
 
 }  // namespace GpgFrontend::UI

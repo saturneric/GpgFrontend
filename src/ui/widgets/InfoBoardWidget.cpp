@@ -31,6 +31,7 @@
 #include "ui/SignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "ui_InfoBoard.h"
+#include "ui/struct/SettingsObject.h"
 
 namespace GpgFrontend::UI {
 
@@ -78,16 +79,10 @@ void InfoBoardWidget::SetInfoBoard(const QString& text,
   status.setColor(QPalette::Text, color);
   ui_->infoBoard->setPalette(status);
 
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  SettingsObject main_windows_state("main_windows_state");
 
   // info board font size
-  auto info_font_size = 10;
-  try {
-    info_font_size = settings.lookup("window.info_font_size");
-    if (info_font_size < 9 || info_font_size > 18) info_font_size = 10;
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("info_font_size");
-  }
+  auto info_font_size = main_windows_state.Check("info_font_size", 10);
   ui_->infoBoard->setFont(QFont("Times", info_font_size));
 }
 

@@ -29,6 +29,7 @@
 #include "SettingsKeyServer.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "ui/struct/SettingsObject.h"
 #include "ui/thread/ListedKeyServerTestThread.h"
 #include "ui_KeyServerSettings.h"
 
@@ -117,27 +118,25 @@ KeyserverTab::KeyserverTab(QWidget* parent)
  * appropriately
  **********************************/
 void KeyserverTab::SetSettings() {
+  SettingsObject key_server_json("key_server");
+
+  const auto key_server_list =
+      key_server_json.Check("server_list", nlohmann::json::array());
+
+  for (const auto& key_server : key_server_list) {
+    const auto key_server_str = key_server.get<std::string>();
+    this->key_server_str_list_.append(key_server_str.c_str());
+  }
+
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
-  try {
-    auto& server_list = settings.lookup("keyserver.server_list");
-    const auto server_list_size = server_list.getLength();
-    for (int i = 0; i < server_list_size; i++) {
-      std::string server_url = server_list[i];
-      key_server_str_list_.append(server_url.c_str());
-    }
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("server_list");
-  }
+  int default_key_server_index = key_server_json.Check("default_server", 0);
+  std::string default_key_server =
+      key_server_list[default_key_server_index].get<std::string>();
 
-  try {
-    std::string default_server = settings.lookup("keyserver.default_server");
-    if (!key_server_str_list_.contains(default_server.c_str()))
-      key_server_str_list_.append(default_server.c_str());
-    default_key_server_ = QString::fromStdString(default_server);
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("default_server");
-  }
+  if (!key_server_str_list_.contains(default_key_server.c_str()))
+    key_server_str_list_.append(default_key_server.c_str());
+  default_key_server_ = QString::fromStdString(default_key_server);
 }
 
 void KeyserverTab::slot_add_key_server() {
@@ -173,30 +172,16 @@ void KeyserverTab::slot_add_key_server() {
 }
 
 void KeyserverTab::ApplySettings() {
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  SettingsObject key_server_json("key_server");
+  key_server_json["server_list"] = nlohmann::json::array();
+  auto& key_server_list = key_server_json["server_list"];
 
-  if (!settings.exists("keyserver") ||
-      settings.lookup("keyserver").getType() != libconfig::Setting::TypeGroup)
-    settings.add("keyserver", libconfig::Setting::TypeGroup);
-
-  auto& keyserver = settings["keyserver"];
-
-  if (keyserver.exists("server_list")) keyserver.remove("server_list");
-
-  keyserver.add("server_list", libconfig::Setting::TypeList);
-
-  const auto row_size = ui_->keyServerListTable->rowCount();
-  auto& server_list = keyserver["server_list"];
-  for (int i = 0; i < row_size; i++) {
-    const auto key_server = ui_->keyServerListTable->item(i, 1)->text();
-    server_list.add(libconfig::Setting::TypeString) = key_server.toStdString();
-  }
-
-  if (!keyserver.exists("default_server")) {
-    keyserver.add("default_server", libconfig::Setting::TypeString) =
-        default_key_server_.toStdString();
-  } else {
-    keyserver["default_server"] = default_key_server_.toStdString();
+  const auto list_size = key_server_str_list_.size();
+  for (int i = 0; i < list_size; i++) {
+    const auto key_server = key_server_str_list_[i];
+    if (default_key_server_ == key_server)
+      key_server_json["default_server"] = i;
+    key_server_list.insert(key_server_list.end(), key_server.toStdString());
   }
 }
 
