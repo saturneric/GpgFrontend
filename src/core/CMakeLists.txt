@@ -40,7 +40,7 @@ set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 # link third-party libraries
 target_link_libraries(gpgfrontend_core easyloggingpp config++)
 # link boost libraries
-target_link_libraries(gpgfrontend_core Boost::date_time)
+target_link_libraries(gpgfrontend_core Boost::date_time Boost::system)
 # link gnupg libraries
 target_link_libraries(gpgfrontend_core gpgme assuan gpg-error)
 # link openssl
