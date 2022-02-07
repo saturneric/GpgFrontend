@@ -27,8 +27,9 @@
  */
 
 #include "MainWindow.h"
-#include "ui/UserInterfaceUtils.h"
 #include "core/function/GlobalSettingStation.h"
+#include "ui/UserInterfaceUtils.h"
+#include "ui/struct/SettingsObject.h"
 
 namespace GpgFrontend::UI {
 
@@ -104,20 +105,24 @@ void MainWindow::slot_open_settings_dialog() {
   connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
     LOG(INFO) << "Setting Dialog Finished";
 
-    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+    SettingsObject main_windows_state("main_windows_state");
 
-    int icon_width = settings["window"]["icon_size"]["width"];
-    int icon_height = settings["window"]["icon_size"]["height"];
+    int width = main_windows_state.Check("icon_size").Check("width", 24),
+        height = main_windows_state.Check("icon_size").Check("height", 24);
+    LOG(INFO) << "icon_size" << width << height;
 
-    this->setIconSize(QSize(icon_width, icon_height));
-    import_button_->setIconSize(QSize(icon_width, icon_height));
+    main_windows_state.Check("info_font_size", 10);
 
-    // Iconstyle
+    // icon_style
+    int s_icon_style =
+        main_windows_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
+    auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
+    this->setToolButtonStyle(icon_style);
+    import_button_->setToolButtonStyle(icon_style);
 
-    int icon_style = settings["window"]["icon_style"];
-    auto button_style = static_cast<Qt::ToolButtonStyle>(icon_style);
-    this->setToolButtonStyle(button_style);
-    import_button_->setToolButtonStyle(button_style);
+    // icons ize
+    this->setIconSize(QSize(width, height));
+    import_button_->setIconSize(QSize(width, height));
 
     // restart mainwindow if necessary
     if (get_restart_needed()) {
@@ -126,15 +131,6 @@ void MainWindow::slot_open_settings_dialog() {
         qApp->exit(RESTART_CODE);
       }
     }
-#ifdef ADVANCED_SUPPORT
-    // steganography hide/show
-    if (!settings.value("advanced/steganography").toBool()) {
-      this->menuBar()->removeAction(steganoMenu->menuAction());
-    } else {
-      this->menuBar()->insertAction(viewMenu->menuAction(),
-                                    steganoMenu->menuAction());
-    }
-#endif
   });
 }
 
