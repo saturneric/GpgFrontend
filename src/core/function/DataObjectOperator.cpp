@@ -62,6 +62,9 @@ GpgFrontend::DataObjectOperator::DataObjectOperator(int channel)
 
 std::string GpgFrontend::DataObjectOperator::SaveDataObj(
     const std::string& _key, const nlohmann::json& value) {
+
+  LOG(INFO) << _("Save data object") << _key;
+
   std::string _hash_obj_key = {};
   if (_key.empty()) {
     _hash_obj_key =
@@ -121,8 +124,11 @@ std::optional<nlohmann::json> GpgFrontend::DataObjectOperator::GetDataObject(
     auto decoded =
         encryption.removePadding(encryption.decode(encoded, hash_key_));
 
+    LOG(INFO) << _("Load data object") << _key;
+
     return nlohmann::json::parse(decoded.toStdString());
   } catch (...) {
+    LOG(ERROR) << _("Failed to get data object") << _key;
     return {};
   }
 }
