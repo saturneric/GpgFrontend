@@ -53,6 +53,19 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
  public:
+
+  struct CryptoMenu{
+    using OperationType = unsigned int;
+
+    static constexpr OperationType None = 0;
+    static constexpr OperationType Encrypt = 1 << 0;
+    static constexpr OperationType Sign = 1 << 1;
+    static constexpr OperationType Decrypt = 1 << 2;
+    static constexpr OperationType Verify =  1 << 3;
+    static constexpr OperationType EncryptAndSign = 1 << 4;
+    static constexpr OperationType DecryptAndVerify = 1 << 5;
+  };
+
   /**
    * @brief
    *
@@ -62,14 +75,20 @@ class MainWindow : public QMainWindow {
   /**
    * @details ONLY Called from main()
    */
-  void init() noexcept;
+  void Init() noexcept;
+
+  /**
+   * @details refresh and enable specify crypto-menu actions.
+   */
+  void SetCryptoMenuStatus(CryptoMenu::OperationType type);
 
  signals:
 
   /**
    * @brief
    */
-  void Loaded();
+  void SignalLoaded();
+
 
  public slots:
 

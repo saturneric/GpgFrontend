@@ -188,4 +188,37 @@ void MainWindow::SlotSetRestartNeeded(bool needed) {
 
 bool MainWindow::get_restart_needed() const { return this->restart_needed_; }
 
+void MainWindow::SetCryptoMenuStatus(
+    MainWindow::CryptoMenu::OperationType type) {
+  LOG(INFO) << "SetCryptoMenuStatus" << type;
+
+  // refresh status to disable all
+  verify_act_->setDisabled(true);
+  sign_act_->setDisabled(true);
+  encrypt_act_->setDisabled(true);
+  encrypt_sign_act_->setDisabled(true);
+  decrypt_act_->setDisabled(true);
+  decrypt_verify_act_->setDisabled(true);
+
+  // enable according to type
+  if (type & MainWindow::CryptoMenu::Verify) {
+    verify_act_->setDisabled(false);
+  }
+  if (type & MainWindow::CryptoMenu::Sign) {
+    sign_act_->setDisabled(false);
+  }
+  if (type & MainWindow::CryptoMenu::Encrypt) {
+    encrypt_act_->setDisabled(false);
+  }
+  if (type & MainWindow::CryptoMenu::EncryptAndSign) {
+    encrypt_sign_act_->setDisabled(false);
+  }
+  if (type & MainWindow::CryptoMenu::Decrypt) {
+    decrypt_act_->setDisabled(false);
+  }
+  if (type & MainWindow::CryptoMenu::DecryptAndVerify) {
+    decrypt_verify_act_->setDisabled(false);
+  }
+}
+
 }  // namespace GpgFrontend::UI

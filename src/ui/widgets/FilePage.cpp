@@ -101,6 +101,45 @@ void FilePage::slot_file_tree_view_item_clicked(const QModelIndex& index) {
       dir_model_->fileInfo(index).absoluteFilePath().toStdString());
   m_path_ = selected_path_;
   LOG(INFO) << "selected path" << selected_path_;
+
+  selected_path_ = std::filesystem::path(selected_path_);
+  MainWindow::CryptoMenu::OperationType operation_type = MainWindow::CryptoMenu::None;
+  
+  if (index.isValid()) {
+    QFileInfo info(QString::fromStdString(selected_path_.string()));
+
+
+    if(info.isFile() && (info.suffix() != "gpg" &&
+                          info.suffix() != "sig" &&
+                          info.suffix() != "asc")) {
+      operation_type |= MainWindow::CryptoMenu::Encrypt;
+    }
+
+    if(info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig" &&
+                          info.suffix() != "asc")){
+      operation_type |= MainWindow::CryptoMenu::EncryptAndSign;
+    }
+
+    if(info.isFile() && (info.suffix() == "gpg" || info.suffix() == "asc")) {
+      operation_type |= MainWindow::CryptoMenu::Decrypt;
+      operation_type |= MainWindow::CryptoMenu::DecryptAndVerify;
+    }
+
+    if(info.isFile() && (info.suffix() != "gpg" &&
+                          info.suffix() != "sig" &&
+                          info.suffix() != "asc")){
+      operation_type |= MainWindow::CryptoMenu::Sign;
+    }
+
+    if(info.isFile() && (info.suffix() == "sig" ||
+                          info.suffix() == "gpg" ||
+                          info.suffix() == "asc")) {
+      operation_type |= MainWindow::CryptoMenu::Verify;
+    }
+  }
+
+  auto main_window = qobject_cast<MainWindow*>(first_parent_);
+  if (main_window != nullptr) main_window->SetCryptoMenuStatus(operation_type);
 }
 
 void FilePage::slot_up_level() {
@@ -297,10 +336,10 @@ void FilePage::slot_open_item() {
     }
   } else {
     if (info.isReadable()) {
-      auto mainWindow = qobject_cast<MainWindow*>(first_parent_);
+      auto main_window = qobject_cast<MainWindow*>(first_parent_);
       LOG(INFO) << "open item" << selected_path_;
       auto qt_path = QString::fromStdString(selected_path_.string());
-      if (mainWindow != nullptr) mainWindow->SlotOpenFile(qt_path);
+      if (main_window != nullptr) main_window->SlotOpenFile(qt_path);
     } else {
       QMessageBox::critical(this, _("Error"),
                             _("The file is unprivileged or unreachable."));
@@ -351,28 +390,28 @@ void FilePage::slot_delete_item() {
 }
 
 void FilePage::slot_encrypt_item() {
-  auto mainWindow = qobject_cast<MainWindow*>(first_parent_);
-  if (mainWindow != nullptr) mainWindow->SlotFileEncrypt();
+  auto main_window = qobject_cast<MainWindow*>(first_parent_);
+  if (main_window != nullptr) main_window->SlotFileEncrypt();
 }
 
 void FilePage::slot_encrypt_sign_item() {
-  auto mainWindow = qobject_cast<MainWindow*>(first_parent_);
-  if (mainWindow != nullptr) mainWindow->SlotFileEncryptSign();
+  auto main_window = qobject_cast<MainWindow*>(first_parent_);
+  if (main_window != nullptr) main_window->SlotFileEncryptSign();
 }
 
 void FilePage::slot_decrypt_item() {
-  auto mainWindow = qobject_cast<MainWindow*>(first_parent_);
-  if (mainWindow != nullptr) mainWindow->SlotFileDecryptVerify();
+  auto main_window = qobject_cast<MainWindow*>(first_parent_);
+  if (main_window != nullptr) main_window->SlotFileDecryptVerify();
 }
 
 void FilePage::slot_sign_item() {
-  auto mainWindow = qobject_cast<MainWindow*>(first_parent_);
-  if (mainWindow != nullptr) mainWindow->SlotFileSign();
+  auto main_window = qobject_cast<MainWindow*>(first_parent_);
+  if (main_window != nullptr) main_window->SlotFileSign();
 }
 
 void FilePage::slot_verify_item() {
-  auto mainWindow = qobject_cast<MainWindow*>(first_parent_);
-  if (mainWindow != nullptr) mainWindow->SlotFileVerify();
+  auto main_window = qobject_cast<MainWindow*>(first_parent_);
+  if (main_window != nullptr) main_window->SlotFileVerify();
 }
 
 void FilePage::slot_calculate_hash() {
