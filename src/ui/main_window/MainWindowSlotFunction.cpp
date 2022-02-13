@@ -39,12 +39,12 @@
 #include "ui/mail/SendMailDialog.h"
 #endif
 
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/help/AboutDialog.h"
-#include "core/function/GlobalSettingStation.h"
 #include "ui/widgets/SignersPicker.h"
 
 namespace GpgFrontend::UI {
@@ -52,7 +52,10 @@ namespace GpgFrontend::UI {
  * Encrypt Entry(Text & File)
  */
 void MainWindow::slot_encrypt() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) this->SlotFileEncrypt();
+    return;
+  }
 
   auto key_ids = m_key_list_->GetChecked();
 
@@ -191,7 +194,10 @@ void MainWindow::slot_sign() {
 }
 
 void MainWindow::slot_decrypt() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) this->SlotFileDecrypt();
+    return;
+  }
 
   auto decrypted = std::make_unique<ByteArray>();
   QByteArray text = edit_->CurTextPage()->GetTextPage()->toPlainText().toUtf8();
@@ -243,7 +249,10 @@ void MainWindow::slot_find() {
 }
 
 void MainWindow::slot_verify() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) this->SlotFileVerify();
+    return;
+  }
 
   auto text = edit_->CurTextPage()->GetTextPage()->toPlainText().toUtf8();
   // TODO(Saturneric) PreventNoDataErr
@@ -278,7 +287,11 @@ void MainWindow::slot_verify() {
 }
 
 void MainWindow::slot_encrypt_sign() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    if (edit_->SlotCurPageFileTreeView() != nullptr)
+      this->SlotFileEncryptSign();
+    return;
+  }
 
   auto key_ids = m_key_list_->GetChecked();
 
@@ -390,7 +403,11 @@ void MainWindow::slot_encrypt_sign() {
 }
 
 void MainWindow::slot_decrypt_verify() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    if (edit_->SlotCurPageFileTreeView() != nullptr)
+      this->SlotFileDecryptVerify();
+    return;
+  }
 
   QString plainText = edit_->CurTextPage()->GetTextPage()->toPlainText();
 
@@ -429,7 +446,7 @@ void MainWindow::slot_decrypt_verify() {
     try {
       auto buffer = text.toStdString();
       error = GpgBasicOperator::GetInstance().DecryptVerify(buffer, decrypted,
-                                                         d_result, v_result);
+                                                            d_result, v_result);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }

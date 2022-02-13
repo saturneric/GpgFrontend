@@ -43,7 +43,7 @@ MainWindow::MainWindow() {
   this->setWindowTitle(qApp->applicationName());
 }
 
-void MainWindow::init() noexcept {
+void MainWindow::Init() noexcept {
   try {
     /* get path where app was started */
     setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
@@ -117,7 +117,7 @@ void MainWindow::init() noexcept {
       slot_start_wizard();
     }
 
-    emit Loaded();
+    emit SignalLoaded();
 
     // if not prohibit update checking
     if (!prohibit_update_checking_) {

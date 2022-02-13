@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
 
         // create main window and show it
         auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
-        main_window->init();
+        main_window->Init();
         main_window->show();
         return_from_event_loop_code = QApplication::exec();
 #ifdef RELEASE
