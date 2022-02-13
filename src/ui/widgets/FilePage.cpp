@@ -210,24 +210,6 @@ void FilePage::create_popup_menu() {
   connect(ui_->actionDeleteFile, &QAction::triggered, this,
           &FilePage::slot_delete_item);
 
-  ui_->actionEncrypt->setText(_("Encrypt"));
-  connect(ui_->actionEncrypt, &QAction::triggered, this,
-          &FilePage::slot_encrypt_item);
-  ui_->actionEncryptSign->setText(_("Encrypt Sign"));
-  connect(ui_->actionEncryptSign, &QAction::triggered, this,
-          &FilePage::slot_encrypt_sign_item);
-  ui_->actionDecrypt->setText(QString(_("Decrypt Verify")) + " " +
-                              _("(.gpg .asc)"));
-  connect(ui_->actionDecrypt, &QAction::triggered, this,
-          &FilePage::slot_decrypt_item);
-  ui_->actionSign->setText(_("Sign"));
-  connect(ui_->actionSign, &QAction::triggered, this,
-          &FilePage::slot_sign_item);
-  ui_->actionVerify->setText(QString(_("Verify")) + " " +
-                             _("(.sig .gpg .asc)"));
-  connect(ui_->actionVerify, &QAction::triggered, this,
-          &FilePage::slot_verify_item);
-
   ui_->actionCalculateHash->setText(_("Calculate Hash"));
   connect(ui_->actionCalculateHash, &QAction::triggered, this,
           &FilePage::slot_calculate_hash);
@@ -243,12 +225,6 @@ void FilePage::create_popup_menu() {
   popup_menu_->addAction(ui_->actionOpenFile);
   popup_menu_->addAction(ui_->actionRenameFile);
   popup_menu_->addAction(ui_->actionDeleteFile);
-  popup_menu_->addSeparator();
-  popup_menu_->addAction(ui_->actionEncrypt);
-  popup_menu_->addAction(ui_->actionEncryptSign);
-  popup_menu_->addAction(ui_->actionDecrypt);
-  popup_menu_->addAction(ui_->actionSign);
-  popup_menu_->addAction(ui_->actionVerify);
   popup_menu_->addSeparator();
   popup_menu_->addAction(ui_->actionMakeDirectory);
   popup_menu_->addAction(ui_->actionCreateEmptyFile);
@@ -292,31 +268,12 @@ void FilePage::onCustomContextMenu(const QPoint& point) {
     ui_->actionDeleteFile->setEnabled(true);
 
     QFileInfo info(QString::fromStdString(selected_path_.string()));
-    ui_->actionEncrypt->setEnabled(info.isFile() && (info.suffix() != "gpg" &&
-                                                     info.suffix() != "sig" &&
-                                                     info.suffix() != "asc"));
-    ui_->actionEncryptSign->setEnabled(
-        info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig" &&
-                          info.suffix() != "asc"));
-    ui_->actionDecrypt->setEnabled(
-        info.isFile() && (info.suffix() == "gpg" || info.suffix() == "asc"));
-    ui_->actionSign->setEnabled(info.isFile() && (info.suffix() != "gpg" &&
-                                                  info.suffix() != "sig" &&
-                                                  info.suffix() != "asc"));
-    ui_->actionVerify->setEnabled(info.isFile() && (info.suffix() == "sig" ||
-                                                    info.suffix() == "gpg" ||
-                                                    info.suffix() == "asc"));
     ui_->actionCalculateHash->setEnabled(info.isFile() && info.isReadable());
   } else {
     ui_->actionOpenFile->setEnabled(false);
     ui_->actionRenameFile->setEnabled(false);
     ui_->actionDeleteFile->setEnabled(false);
 
-    ui_->actionEncrypt->setEnabled(false);
-    ui_->actionEncryptSign->setEnabled(false);
-    ui_->actionDecrypt->setEnabled(false);
-    ui_->actionSign->setEnabled(false);
-    ui_->actionVerify->setEnabled(false);
     ui_->actionCalculateHash->setEnabled(false);
   }
   popup_menu_->exec(ui_->fileTreeView->viewport()->mapToGlobal(point));
@@ -387,31 +344,6 @@ void FilePage::slot_delete_item() {
     QMessageBox::critical(this, _("Error"),
                           _("Unable to delete the file or folder."));
   }
-}
-
-void FilePage::slot_encrypt_item() {
-  auto main_window = qobject_cast<MainWindow*>(first_parent_);
-  if (main_window != nullptr) main_window->SlotFileEncrypt();
-}
-
-void FilePage::slot_encrypt_sign_item() {
-  auto main_window = qobject_cast<MainWindow*>(first_parent_);
-  if (main_window != nullptr) main_window->SlotFileEncryptSign();
-}
-
-void FilePage::slot_decrypt_item() {
-  auto main_window = qobject_cast<MainWindow*>(first_parent_);
-  if (main_window != nullptr) main_window->SlotFileDecryptVerify();
-}
-
-void FilePage::slot_sign_item() {
-  auto main_window = qobject_cast<MainWindow*>(first_parent_);
-  if (main_window != nullptr) main_window->SlotFileSign();
-}
-
-void FilePage::slot_verify_item() {
-  auto main_window = qobject_cast<MainWindow*>(first_parent_);
-  if (main_window != nullptr) main_window->SlotFileVerify();
 }
 
 void FilePage::slot_calculate_hash() {
