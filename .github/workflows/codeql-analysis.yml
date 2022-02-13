@@ -75,36 +75,6 @@ jobs:
         with:
           cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
-      - name: Build gpg-error (Linux)
-        run: |
-          cd  ${{github.workspace}}/..
-          git clone https://github.com/saturneric/libgpg-error
-          cd libgpg-error
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-
-      - name: Build assuan (Linux)
-        run: |
-          cd  ${{github.workspace}}/..
-          git clone https://github.com/saturneric/libassuan
-          cd libassuan
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-
-      - name: Build GpgME (Linux)
-        run: |
-          cd  ${{github.workspace}}/..
-          git clone https://github.com/saturneric/gpgme
-          cd gpgme
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
