@@ -65,3 +65,55 @@ bool GpgFrontend::FileOperator::WriteFileStd(
   return WriteFile(QString::fromStdString(file_name.string()),
                        QByteArray::fromStdString(data));
 }
+
+std::string GpgFrontend::FileOperator::CalculateHash(
+    const std::filesystem::path& file_path) {
+  // Returns empty QByteArray() on failure.
+  QFileInfo info(QString::fromStdString(file_path.string()));
+  std::stringstream ss;
+
+  if (info.isFile() && info.isReadable()) {
+    ss << "[#] " << _("File Hash Information") << std::endl;
+    ss << "    " << _("filename") << _(": ")
+       << file_path.filename().string().c_str() << std::endl;
+
+
+    QFile f(info.filePath());
+    f.open(QFile::ReadOnly);
+    auto buffer = f.readAll();
+    ss << "    " << _("file size(bytes)") << _(": ")
+       << buffer.size() << std::endl;
+    f.close();
+    if (f.open(QFile::ReadOnly)) {
+      auto hash_md5 = QCryptographicHash(QCryptographicHash::Md5);
+      // md5
+      hash_md5.addData(buffer);
+      auto md5 = hash_md5.result().toHex().toStdString();
+      LOG(INFO) << "md5" << md5;
+      ss << "    "
+         << "md5" << _(": ") << md5 << std::endl;
+
+      auto hash_sha1 = QCryptographicHash(QCryptographicHash::Sha1);
+      // sha1
+      hash_sha1.addData(buffer);
+      auto sha1 = hash_sha1.result().toHex().toStdString();
+      LOG(INFO) << "sha1" << sha1;
+      ss << "    "
+         << "sha1" << _(": ") << sha1 << std::endl;
+
+      auto hash_sha256 = QCryptographicHash(QCryptographicHash::Sha256);
+      // sha1
+      hash_sha256.addData(buffer);
+      auto sha256 = hash_sha256.result().toHex().toStdString();
+      LOG(INFO) << "sha256" << sha256;
+      ss << "    "
+         << "sha256" << _(": ") << sha256 << std::endl;
+
+      ss << std::endl;
+    }
+  } else {
+    ss << "[#] " << _("Error in Calculating File Hash ") << std::endl;
+  }
+
+  return ss.str();
+}

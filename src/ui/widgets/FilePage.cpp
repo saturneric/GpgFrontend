@@ -347,52 +347,9 @@ void FilePage::slot_delete_item() {
 }
 
 void FilePage::slot_calculate_hash() {
-  // Returns empty QByteArray() on failure.
-  QFileInfo info(QString::fromStdString(selected_path_.string()));
-
-  if (info.isFile() && info.isReadable()) {
-    std::stringstream ss;
-
-    ss << "[#] " << _("File Hash Information") << std::endl;
-    ss << "    " << _("filename") << _(": ")
-       << selected_path_.filename().string().c_str() << std::endl;
-
-    QFile f(info.filePath());
-    f.open(QFile::ReadOnly);
-    auto buffer = f.readAll();
-    LOG(INFO) << "buffer size" << buffer.size();
-    f.close();
-    if (f.open(QFile::ReadOnly)) {
-      auto hash_md5 = QCryptographicHash(QCryptographicHash::Md5);
-      // md5
-      hash_md5.addData(buffer);
-      auto md5 = hash_md5.result().toHex().toStdString();
-      LOG(INFO) << "md5" << md5;
-      ss << "    "
-         << "md5" << _(": ") << md5 << std::endl;
-
-      auto hash_sha1 = QCryptographicHash(QCryptographicHash::Sha1);
-      // sha1
-      hash_sha1.addData(buffer);
-      auto sha1 = hash_sha1.result().toHex().toStdString();
-      LOG(INFO) << "sha1" << sha1;
-      ss << "    "
-         << "sha1" << _(": ") << sha1 << std::endl;
-
-      auto hash_sha256 = QCryptographicHash(QCryptographicHash::Sha256);
-      // sha1
-      hash_sha256.addData(buffer);
-      auto sha256 = hash_sha256.result().toHex().toStdString();
-      LOG(INFO) << "sha256" << sha256;
-      ss << "    "
-         << "sha256" << _(": ") << sha256 << std::endl;
-
-      ss << std::endl;
-
-      emit SignalRefreshInfoBoard(ss.str().c_str(),
-                                  InfoBoardStatus::INFO_ERROR_OK);
-    }
-  }
+  auto info_str = FileOperator::CalculateHash(selected_path_);
+  emit SignalRefreshInfoBoard(info_str.c_str(),
+                              InfoBoardStatus::INFO_ERROR_OK);
 }
 
 void FilePage::slot_mkdir() {

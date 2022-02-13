@@ -38,7 +38,7 @@ namespace GpgFrontend {
  *
  */
 class FileOperator {
-public:
+ public:
   /**
    * @brief read file content using std struct
    *
@@ -79,7 +79,14 @@ public:
    * @return false if failed
    */
   static bool WriteFile(const QString &file_name, const QByteArray &data);
-};
-} // namespace GpgFrontend
 
-#endif // GPGFRONTEND_FILEOPERATOR_H
+  /**
+   * calculate the hash of a file
+   * @param file_path
+   * @return
+   */
+  static std::string CalculateHash(const std::filesystem::path &file_path);
+};
+}  // namespace GpgFrontend
+
+#endif  // GPGFRONTEND_FILEOPERATOR_H
