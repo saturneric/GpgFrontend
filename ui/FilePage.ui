@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1041</width>
-    <height>619</height>
+    <width>798</width>
+    <height>476</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -136,6 +136,9 @@
          <property name="autoFillBackground">
           <bool>false</bool>
          </property>
+         <property name="dragDropMode">
+          <enum>QAbstractItemView::InternalMove</enum>
+         </property>
          <property name="uniformRowHeights">
           <bool>true</bool>
          </property>
@@ -158,31 +161,6 @@
     </layout>
    </item>
   </layout>
-  <action name="actionEncrypt">
-   <property name="text">
-    <string>Encrypt</string>
-   </property>
-  </action>
-  <action name="actionEncryptSign">
-   <property name="text">
-    <string>EncryptSign</string>
-   </property>
-  </action>
-  <action name="actionDecrypt">
-   <property name="text">
-    <string>Decrypt</string>
-   </property>
-  </action>
-  <action name="actionSign">
-   <property name="text">
-    <string>Sign</string>
-   </property>
-  </action>
-  <action name="actionVerify">
-   <property name="text">
-    <string>Verify</string>
-   </property>
-  </action>
   <action name="actionOpenFile">
    <property name="text">
     <string>OpenFile</string>

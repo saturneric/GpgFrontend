@@ -128,36 +128,6 @@ class FilePage : public QWidget {
    * @brief
    *
    */
-  void slot_encrypt_item();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_encrypt_sign_item();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_decrypt_item();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_sign_item();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_verify_item();
-
-  /**
-   * @brief
-   *
-   */
   void slot_calculate_hash();
 
   /**
