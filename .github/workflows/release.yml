@@ -104,7 +104,7 @@ jobs:
       - name: Build GpgME (Windows)
         shell: msys2 {0}
         run: |
-          cd ${{github.workspace}}/third_party/gpgme
+          cd $(echo "/${{github.workspace}}/third_party/gpgme"  | sed 's/\\/\//g' | sed 's/://')
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-static=yes --disable-gpg-test --enable-languages=cpp LDFLAGS="-static" && make -j2
           make install
