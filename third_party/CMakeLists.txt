@@ -210,3 +210,6 @@ if (NOT MINGW)
     remove_definitions(-DDEBUG)
     add_subdirectory(libarchive)
 endif ()
+
+# libconfig
+add_subdirectory(libconfig)
