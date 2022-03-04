@@ -49,8 +49,9 @@ target_link_libraries(gpgfrontend_core OpenSSL::SSL OpenSSL::Crypto)
 target_link_libraries(gpgfrontend_core QtAES)
 # link vmime
 if (NOT LINUX)
+    # macOS
     target_link_libraries(gpgfrontend_core
-            gpgfrontend_vmime ssl crypto intl iconv)
+            gpgfrontend_vmime intl iconv)
     if (MINGW)
         target_link_libraries(gpgfrontend_core ws2_32)
     endif ()
@@ -76,11 +77,13 @@ target_precompile_headers(gpgfrontend_core
         PUBLIC ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h
         PUBLIC GpgFrontendCore.h)
 
+# using std c++ 17
+target_compile_features(gpgfrontend_core PUBLIC cxx_std_17)
+
 # link for different platforms
 if (MINGW)
     message(STATUS "Link GPG Static Library For MINGW")
     target_link_libraries(gpgfrontend_core wsock32)
-    target_compile_features(gpgfrontend_core PUBLIC cxx_std_17)
 elseif (APPLE)
     message(STATUS "Link GPG Static Library For macOS")
     target_link_libraries(gpgfrontend_core dl)
