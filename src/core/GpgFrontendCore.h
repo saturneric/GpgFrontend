@@ -50,6 +50,11 @@
 #define LIBCONFIGXX_STATIC
 #include <libconfig.h++>
 
+
+// libarchive includes
+#include <libarchive/libarchive/archive.h>
+#include <libarchive/libarchive/archive_entry.h>
+
 #include "core/GpgModel.h"
 
 
