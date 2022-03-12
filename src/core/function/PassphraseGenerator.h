@@ -42,7 +42,6 @@ namespace GpgFrontend {
 class PassphraseGenerator
     : public SingletonFunctionObject<PassphraseGenerator> {
  public:
-
   /**
    * @brief PassphraseGenerator constructor
    *
@@ -60,8 +59,19 @@ class PassphraseGenerator
    */
   std::string Generate(int len) {
     std::uniform_int_distribution<int> dist(999, 99999);
+
     auto file_string = boost::format("KeyPackage_%1%") % dist(mt_);
-    return file_string.str();
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+    std::string tmp_str;
+    tmp_str.reserve(len);
+
+    for (int i = 0; i < len; ++i) {
+      tmp_str += alphanum[dist(mt_) % (sizeof(alphanum) - 1)];
+    }
+    return tmp_str;
   }
 
   std::random_device rd_;                  ///< Random device
