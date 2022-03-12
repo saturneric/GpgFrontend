@@ -25,3 +25,6 @@
 [submodule "third_party/libarchive"]
 	path = third_party/libarchive
 	url = https://github.com/saturneric/libarchive.git
+[submodule "third_party/libconfig"]
+	path = third_party/libconfig
+	url = https://github.com/saturneric/libconfig

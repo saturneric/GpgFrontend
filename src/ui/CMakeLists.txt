@@ -57,8 +57,9 @@ target_link_libraries(gpgfrontend_ui
 
 # link vmime
 if (NOT LINUX)
+    # macOS
     target_link_libraries(gpgfrontend_ui
-            gpgfrontend_vmime ssl crypto intl iconv)
+            gpgfrontend_vmime intl iconv)
     if (MINGW)
         target_link_libraries(gpgfrontend_ui ws2_32)
     endif ()
@@ -80,6 +81,9 @@ target_precompile_headers(gpgfrontend_ui PUBLIC GpgFrontendUI.h)
 # add ui generator include path
 target_include_directories(gpgfrontend_ui PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_ui_autogen/include)
+
+# using std c++ 17
+target_compile_features(gpgfrontend_ui PUBLIC cxx_std_17)
 
 # for xcode archive build
 if (XCODE_BUILD)
