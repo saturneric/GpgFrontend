@@ -32,8 +32,8 @@
 #ifdef RELEASE
 #include "ui/thread/VersionCheckThread.h"
 #endif
-#include "ui/SignalStation.h"
 #include "core/function/GlobalSettingStation.h"
+#include "ui/SignalStation.h"
 #include "ui/struct/SettingsObject.h"
 
 namespace GpgFrontend::UI {
@@ -74,7 +74,7 @@ void MainWindow::Init() noexcept {
             &MainWindow::slot_disable_tab_actions);
     connect(SignalStation::GetInstance(),
             &SignalStation::SignalRefreshStatusBar, this,
-            [=](const QString& message, int timeout) {
+            [=](const QString &message, int timeout) {
               statusBar()->showMessage(message, timeout);
             });
 
@@ -89,18 +89,19 @@ void MainWindow::Init() noexcept {
     QStringList args = qApp->arguments();
     if (args.size() > 1) {
       if (!args[1].startsWith("-")) {
-        if (QFile::exists(args[1])) edit_->LoadFile(args[1]);
+        if (QFile::exists(args[1]))
+          edit_->LoadFile(args[1]);
       }
     }
     edit_->CurTextPage()->setFocus();
 
-    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+    auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
 
     if (!settings.exists("wizard") ||
         settings.lookup("wizard").getType() != libconfig::Setting::TypeGroup)
       settings.add("wizard", libconfig::Setting::TypeGroup);
 
-    auto& wizard = settings["wizard"];
+    auto &wizard = settings["wizard"];
 
     // Show wizard, if the don't show wizard message box wasn't checked
     // and keylist doesn't contain a private key
@@ -146,6 +147,9 @@ void MainWindow::restore_settings() {
   LOG(INFO) << _("Called");
 
   try {
+
+    LOG(INFO) << "restore settings main_windows_state";
+
     SettingsObject main_windows_state("main_windows_state");
 
     std::string window_state = main_windows_state.Check(
@@ -191,6 +195,8 @@ void MainWindow::restore_settings() {
     this->setIconSize(QSize(width, height));
     import_button_->setIconSize(QSize(width, height));
 
+    LOG(INFO) << "restore settings key_server";
+
     SettingsObject key_server_json("key_server");
 
     if (!key_server_json.contains("server_list")) {
@@ -203,13 +209,13 @@ void MainWindow::restore_settings() {
       key_server_json["default_server"] = 0;
     }
 
-    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+    auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
 
     if (!settings.exists("general") ||
         settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
       settings.add("general", libconfig::Setting::TypeGroup);
 
-    auto& general = settings["general"];
+    auto &general = settings["general"];
 
     if (!general.exists("save_key_checked")) {
       general.add("save_key_checked", libconfig::Setting::TypeBoolean) = true;
@@ -224,11 +230,14 @@ void MainWindow::restore_settings() {
     general.lookupValue("save_key_checked", save_key_checked);
 
     try {
+
+      LOG(INFO) << "restore settings default_key_checked";
+
       // Checked Keys
       SettingsObject default_key_checked("default_key_checked");
       if (save_key_checked) {
         auto key_ids_ptr = std::make_unique<KeyIdArgsList>();
-        for (auto& it : default_key_checked) {
+        for (auto &it : default_key_checked) {
           std::string key_id = it;
           LOG(INFO) << "get checked key id" << key_id;
           key_ids_ptr->push_back(key_id);
@@ -238,6 +247,8 @@ void MainWindow::restore_settings() {
     } catch (...) {
       LOG(ERROR) << "restore default_key_checked failed";
     }
+
+    LOG(INFO) << "restore settings smtp_passport";
 
     SettingsObject smtp_passport("smtp_passport");
     smtp_passport.Check("enable", false);
@@ -259,7 +270,7 @@ void MainWindow::restore_settings() {
 }
 
 void MainWindow::save_settings() {
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
 
   try {
     SettingsObject main_windows_state("main_windows_state");
@@ -281,7 +292,7 @@ void MainWindow::save_settings() {
       SettingsObject default_key_checked("default_key_checked");
       default_key_checked.clear();
 
-      for (const auto& key_id : *key_ids_need_to_store)
+      for (const auto &key_id : *key_ids_need_to_store)
         default_key_checked.push_back(key_id);
     } else {
       settings["general"].remove("save_key_checked");
@@ -302,7 +313,7 @@ void MainWindow::close_attachment_dock() {
   attachment_dock_created_ = false;
 }
 
-void MainWindow::closeEvent(QCloseEvent* event) {
+void MainWindow::closeEvent(QCloseEvent *event) {
   /*
    * ask to save changes, if there are
    * modified documents in any tab
@@ -318,4 +329,4 @@ void MainWindow::closeEvent(QCloseEvent* event) {
   //  GpgContext::GetInstance().clearPasswordCache();
 }
 
-}  // namespace GpgFrontend::UI
+} // namespace GpgFrontend::UI

@@ -274,9 +274,9 @@ void MainWindow::create_actions() {
   /* Popup-Menu-Action for KeyList
    */
   append_selected_keys_act_ =
-      new QAction(_("Append Public Key To Text Editor"), this);
+      new QAction(_("Append To Text Editor"), this);
   append_selected_keys_act_->setToolTip(
-      _("Append The Selected Keys To Text in Editor"));
+      _("Append The Selected Public Key To Text in Editor"));
   connect(append_selected_keys_act_, &QAction::triggered, this,
           &MainWindow::slot_append_selected_keys);
 
@@ -324,6 +324,7 @@ void MainWindow::create_actions() {
   });
 
   receive_mail_act_ = new QAction(_("Message Inbox"), this);
+  receive_mail_act_->setVisible(false);
   receive_mail_act_->setIcon(QIcon(":receive_email.png"));
   connect(receive_mail_act_, &QAction::triggered, this, [=]() {
     auto* dialog = new ReceiveMailDialog(this);
