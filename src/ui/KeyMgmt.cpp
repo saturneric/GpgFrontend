@@ -526,6 +526,9 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
 }
 
 void KeyMgmt::SlotImportKeyPackage() {
+
+  LOG(INFO) << "Importing key package...";
+
   auto key_package_file_name = QFileDialog::getOpenFileName(
       this, _("Import Key Package"), {},
       QString(_("Key Package")) + " (*.gfepack);;All Files (*)");
@@ -538,6 +541,8 @@ void KeyMgmt::SlotImportKeyPackage() {
     return;
 
   GpgImportInformation info;
+
+  LOG(INFO) << "Importing key package: " << key_package_file_name.toStdString();
 
   if (KeyPackageOperator::ImportKeyPackage(key_package_file_name.toStdString(),
                                            key_file_name.toStdString(), info)) {
