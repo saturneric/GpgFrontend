@@ -30,8 +30,10 @@
 
 #include <string>
 
-#include "main_window/MainWindow.h"
+#include "core/function/ArchiveFileOperator.h"
+#include "core/function/gpg/GpgFileOpera.h"
 #include "ui/SignalStation.h"
+#include "ui/main_window/MainWindow.h"
 #include "ui_FilePage.h"
 
 namespace GpgFrontend::UI {
@@ -103,36 +105,35 @@ void FilePage::slot_file_tree_view_item_clicked(const QModelIndex& index) {
   LOG(INFO) << "selected path" << selected_path_;
 
   selected_path_ = std::filesystem::path(selected_path_);
-  MainWindow::CryptoMenu::OperationType operation_type = MainWindow::CryptoMenu::None;
-  
+  MainWindow::CryptoMenu::OperationType operation_type =
+      MainWindow::CryptoMenu::None;
+
   if (index.isValid()) {
     QFileInfo info(QString::fromStdString(selected_path_.string()));
 
-
-    if(info.isFile() && (info.suffix() != "gpg" &&
-                          info.suffix() != "sig" &&
-                          info.suffix() != "asc")) {
+    if ((info.isDir() || info.isFile()) &&
+        (info.suffix() != "gpg" && info.suffix() != "sig" &&
+         info.suffix() != "asc")) {
       operation_type |= MainWindow::CryptoMenu::Encrypt;
     }
 
-    if(info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig" &&
-                          info.suffix() != "asc")){
+    if ((info.isDir() || info.isFile()) &&
+        (info.suffix() != "gpg" && info.suffix() != "sig" &&
+         info.suffix() != "asc")) {
       operation_type |= MainWindow::CryptoMenu::EncryptAndSign;
     }
 
-    if(info.isFile() && (info.suffix() == "gpg" || info.suffix() == "asc")) {
+    if (info.isFile() && (info.suffix() == "gpg" || info.suffix() == "asc")) {
       operation_type |= MainWindow::CryptoMenu::Decrypt;
       operation_type |= MainWindow::CryptoMenu::DecryptAndVerify;
     }
 
-    if(info.isFile() && (info.suffix() != "gpg" &&
-                          info.suffix() != "sig" &&
-                          info.suffix() != "asc")){
+    if (info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig" &&
+                          info.suffix() != "asc")) {
       operation_type |= MainWindow::CryptoMenu::Sign;
     }
 
-    if(info.isFile() && (info.suffix() == "sig" ||
-                          info.suffix() == "gpg" ||
+    if (info.isFile() && (info.suffix() == "sig" || info.suffix() == "gpg" ||
                           info.suffix() == "asc")) {
       operation_type |= MainWindow::CryptoMenu::Verify;
     }
@@ -214,20 +215,30 @@ void FilePage::create_popup_menu() {
   connect(ui_->actionCalculateHash, &QAction::triggered, this,
           &FilePage::slot_calculate_hash);
 
-  ui_->actionMakeDirectory->setText(_("Make New Directory"));
+  ui_->actionMakeDirectory->setText(_("Directory"));
   connect(ui_->actionMakeDirectory, &QAction::triggered, this,
           &FilePage::slot_mkdir);
 
-  ui_->actionCreateEmptyFile->setText(_("Create Empty File"));
+  ui_->actionCreateEmptyFile->setText(_("File"));
   connect(ui_->actionCreateEmptyFile, &QAction::triggered, this,
           &FilePage::slot_create_empty_file);
+
+  ui_->actionCompressFiles->setText(_("Compress..."));
+  ui_->actionCompressFiles->setVisible(false);
+  connect(ui_->actionCompressFiles, &QAction::triggered, this,
+          &FilePage::slot_compress_files);
+
+  auto new_item_action_menu = new QMenu(this);
+  new_item_action_menu->setTitle(_("New"));
+  new_item_action_menu->addAction(ui_->actionCreateEmptyFile);
+  new_item_action_menu->addAction(ui_->actionMakeDirectory);
 
   popup_menu_->addAction(ui_->actionOpenFile);
   popup_menu_->addAction(ui_->actionRenameFile);
   popup_menu_->addAction(ui_->actionDeleteFile);
   popup_menu_->addSeparator();
-  popup_menu_->addAction(ui_->actionMakeDirectory);
-  popup_menu_->addAction(ui_->actionCreateEmptyFile);
+  popup_menu_->addMenu(new_item_action_menu);
+  popup_menu_->addAction(ui_->actionCompressFiles);
   popup_menu_->addAction(ui_->actionCalculateHash);
 
   option_popup_menu_ = new QMenu();
@@ -259,9 +270,14 @@ void FilePage::create_popup_menu() {
 
 void FilePage::onCustomContextMenu(const QPoint& point) {
   QModelIndex index = ui_->fileTreeView->indexAt(point);
+  LOG(INFO) << "right click" << selected_path_;
+
   selected_path_ = std::filesystem::path(
       dir_model_->fileInfo(index).absoluteFilePath().toStdString());
-  LOG(INFO) << "right click" << selected_path_;
+
+  // update crypt menu
+  slot_file_tree_view_item_clicked(index);
+
   if (index.isValid()) {
     ui_->actionOpenFile->setEnabled(true);
     ui_->actionRenameFile->setEnabled(true);
@@ -293,6 +309,7 @@ void FilePage::slot_open_item() {
     }
   } else {
     if (info.isReadable()) {
+      // handle normal text or binary file
       auto main_window = qobject_cast<MainWindow*>(first_parent_);
       LOG(INFO) << "open item" << selected_path_;
       auto qt_path = QString::fromStdString(selected_path_.string());
@@ -348,8 +365,7 @@ void FilePage::slot_delete_item() {
 
 void FilePage::slot_calculate_hash() {
   auto info_str = FileOperator::CalculateHash(selected_path_);
-  emit SignalRefreshInfoBoard(info_str.c_str(),
-                              InfoBoardStatus::INFO_ERROR_OK);
+  emit SignalRefreshInfoBoard(info_str.c_str(), InfoBoardStatus::INFO_ERROR_OK);
 }
 
 void FilePage::slot_mkdir() {
@@ -397,5 +413,7 @@ void FilePage::keyPressEvent(QKeyEvent* event) {
       slot_delete_item();
   }
 }
+
+void FilePage::slot_compress_files() {}
 
 }  // namespace GpgFrontend::UI

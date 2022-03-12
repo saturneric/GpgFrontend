@@ -27,20 +27,21 @@
  */
 
 #include "MainWindow.h"
+#include "core/function/ArchiveFileOperator.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgFileOpera.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "ui/UserInterfaceUtils.h"
-#include "core/function/GlobalSettingStation.h"
 #include "ui/widgets/SignersPicker.h"
 
 namespace GpgFrontend::UI {
 
-bool file_pre_check(QWidget* parent, const QString& path) {
+bool path_pre_check(QWidget* parent, const QString& path) {
   QFileInfo file_info(path);
   QFileInfo path_info(file_info.absolutePath());
-  if (!file_info.isFile()) {
+  if (!path_info.exists()) {
     QMessageBox::critical(parent, _("Error"),
-                          _("Select a file before doing it."));
+                          QString(_("The path %1 does not exist.")).arg(path));
     return false;
   }
   if (!file_info.isReadable()) {
@@ -56,11 +57,94 @@ bool file_pre_check(QWidget* parent, const QString& path) {
   return true;
 }
 
+/**
+ * @brief convert directory into tarball
+ *
+ * @param parent parent widget
+ * @param path the directory to be converted
+ * @return
+ */
+bool process_tarball_into_directory(QWidget* parent,
+                                    std::filesystem::path& path) {
+  auto selected_dir_path = std::filesystem::path(path);
+
+  if (selected_dir_path.extension() != ".tar") {
+    QMessageBox::critical(parent, _("Error"), _("The file is not a tarball."));
+    return false;
+  }
+
+  try {
+    auto base_path = selected_dir_path.parent_path();
+
+    auto target_path = selected_dir_path;
+    target_path.replace_extension(".tar");
+
+    LOG(INFO) << "base path" << base_path << "target archive path"
+              << target_path;
+
+    bool if_error = false;
+    process_operation(parent, _("Extracting Tarball"), [&]() {
+      try {
+        GpgFrontend::ArchiveFileOperator::ExtractArchive(target_path,
+                                                         base_path);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
+
+    if (if_error || !exists(target_path)) {
+      throw std::runtime_error("Decompress Failed");
+    }
+    path = target_path.string().c_str();
+  } catch (...) {
+    LOG(ERROR) << "decompress error";
+    return false;
+  }
+  return true;
+}
+
+/**
+ * @brief convert tarball into directory
+ *
+ * @param parent parent widget
+ * @param path the tarball to be converted
+ */
+bool process_directory_into_tarball(QWidget* parent, QString& path) {
+  auto selected_dir_path = std::filesystem::path(path.toStdString());
+  try {
+    auto base_path = selected_dir_path.parent_path();
+    auto target_path = selected_dir_path;
+    selected_dir_path.replace_extension("");
+
+    LOG(INFO) << "base path" << base_path << "target archive path"
+              << target_path << "selected_dir_path" << selected_dir_path;
+
+    bool if_error = false;
+    process_operation(parent, _("Making Tarball"), [&]() {
+      try {
+        GpgFrontend::ArchiveFileOperator::CreateArchive(base_path, target_path,
+                                                        0, {selected_dir_path});
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+    });
+
+    if (if_error || !exists(target_path)) {
+      throw std::runtime_error("Compress Failed");
+    }
+    path = target_path.string().c_str();
+  } catch (...) {
+    LOG(ERROR) << "compress error";
+    return false;
+  }
+  return true;
+}
+
 void MainWindow::SlotFileEncrypt() {
   auto fileTreeView = edit_->SlotCurPageFileTreeView();
   auto path = fileTreeView->GetSelected();
 
-  if (!file_pre_check(this, path)) return;
+  if (!path_pre_check(this, path)) return;
 
   // check selected keys
   auto key_ids = m_key_list_->GetChecked();
@@ -77,9 +161,16 @@ void MainWindow::SlotFileEncrypt() {
     LOG(ERROR) << _("Setting Operation Error") << _("non_ascii_when_export");
   }
 
+  // get file info
+  QFileInfo file_info(path);
+
+  if (file_info.isDir()) {
+    path = path + (file_info.isDir() ? ".tar" : "");
+  }
+
   auto _channel = GPGFRONTEND_DEFAULT_CHANNEL;
   auto _extension = ".asc";
-  if (non_ascii_when_export) {
+  if (non_ascii_when_export || file_info.isDir()) {
     _channel = GPGFRONTEND_NON_ASCII_CHANNEL;
     _extension = ".gpg";
   }
@@ -96,6 +187,15 @@ void MainWindow::SlotFileEncrypt() {
                              QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
+  }
+
+  if (file_info.isDir()) {
+    // stop if the process making tarball failed
+    if (!process_directory_into_tarball(this, path)) {
+      QMessageBox::critical(this, _("Error"),
+                            _("Unable to convert the folder into tarball."));
+      return;
+    }
   }
 
   if (key_ids->empty()) {
@@ -144,6 +244,15 @@ void MainWindow::SlotFileEncrypt() {
     });
   }
 
+  // remove xxx.tar and only left xxx.tar.gpg
+  if (file_info.isDir()) {
+    auto selected_dir_path = std::filesystem::path(path.toStdString());
+    auto target_path = selected_dir_path.replace_extension(".tar");
+    if (exists(target_path)) {
+      std::filesystem::remove(target_path);
+    }
+  }
+
   if (!if_error) {
     auto resultAnalyse = GpgEncryptResultAnalyse(error, std::move(result));
     resultAnalyse.Analyse();
@@ -160,7 +269,7 @@ void MainWindow::SlotFileDecrypt() {
   auto fileTreeView = edit_->SlotCurPageFileTreeView();
   auto path = fileTreeView->GetSelected();
 
-  if (!file_pre_check(this, path)) return;
+  if (!path_pre_check(this, path)) return;
 
   std::filesystem::path out_path = path.toStdString();
 
@@ -202,13 +311,33 @@ void MainWindow::SlotFileDecrypt() {
                           _("An error occurred during operation."));
     return;
   }
+
+  // extract the tarball
+  if (out_path.extension() == ".tar") {
+    bool ret = QMessageBox::information(
+        this, _("Decrypting"),
+        _("Do you want to extract and delete the decrypted tarball?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
+    if (ret) {
+      if (process_tarball_into_directory(this, out_path)) {
+        QMessageBox::information(this, _("Decrypting"),
+                                 _("Extracting tarball succeeded."));
+        // remove tarball
+        std::filesystem::remove(out_path);
+      } else {
+        QMessageBox::critical(this, _("Decrypting"),
+                              _("Extracting tarball failed."));
+      }
+    }
+  }
+
 }
 
 void MainWindow::SlotFileSign() {
   auto fileTreeView = edit_->SlotCurPageFileTreeView();
   auto path = fileTreeView->GetSelected();
 
-  if (!file_pre_check(this, path)) return;
+  if (!path_pre_check(this, path)) return;
 
   auto key_ids = m_key_list_->GetChecked();
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
@@ -379,7 +508,7 @@ void MainWindow::SlotFileEncryptSign() {
   auto fileTreeView = edit_->SlotCurPageFileTreeView();
   auto path = fileTreeView->GetSelected();
 
-  if (!file_pre_check(this, path)) return;
+  if (!path_pre_check(this, path)) return;
 
   // check selected keys
   auto key_ids = m_key_list_->GetChecked();
@@ -406,7 +535,7 @@ void MainWindow::SlotFileEncryptSign() {
     }
   }
 
-  // Detect ascii mode
+  // detect ascii mode
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
   bool non_ascii_when_export = true;
   try {
@@ -415,16 +544,23 @@ void MainWindow::SlotFileEncryptSign() {
     LOG(ERROR) << _("Setting Operation Error") << _("non_ascii_when_export");
   }
 
+  // get file info
+  QFileInfo file_info(path);
+
+  if (file_info.isDir()) {
+    path = path + (file_info.isDir() ? ".tar" : "");
+  }
+
   auto _channel = GPGFRONTEND_DEFAULT_CHANNEL;
   auto _extension = ".asc";
-  if (non_ascii_when_export) {
+  if (non_ascii_when_export || file_info.isDir()) {
     _channel = GPGFRONTEND_NON_ASCII_CHANNEL;
     _extension = ".gpg";
   }
 
-  std::filesystem::path out_path = path.toStdString() + _extension;
+  auto out_path = path + _extension;
 
-  if (exists(out_path)) {
+  if (QFile::exists(out_path)) {
     auto ret = QMessageBox::warning(
         this, _("Warning"),
         _("The target file already exists, do you need to overwrite it?"),
@@ -441,6 +577,16 @@ void MainWindow::SlotFileEncryptSign() {
   auto signer_key_ids = signersPicker->GetCheckedSigners();
   auto p_signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
 
+  // convert directory into tarball
+  if (file_info.isDir()) {
+    // stop if the process making tarball failed
+    if (!process_directory_into_tarball(this, path)) {
+      QMessageBox::critical(this, _("Error"),
+                            _("Unable to convert the folder into tarball."));
+      return;
+    }
+  }
+
   GpgEncrResult encr_result = nullptr;
   GpgSignResult sign_result = nullptr;
 
@@ -451,7 +597,7 @@ void MainWindow::SlotFileEncryptSign() {
     try {
       error = GpgFileOpera::EncryptSignFile(
           std::move(p_keys), std::move(p_signer_keys), path.toStdString(),
-          out_path.string(), encr_result, sign_result, _channel);
+          out_path.toStdString(), encr_result, sign_result, _channel);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
@@ -472,13 +618,23 @@ void MainWindow::SlotFileEncryptSign() {
                           _("An error occurred during operation."));
     return;
   }
+
+  // remove xxx.tar and only left xxx.tar.gpg
+  if (file_info.isDir()) {
+    auto selected_dir_path = std::filesystem::path(path.toStdString());
+    auto target_path = selected_dir_path.replace_extension(".tar");
+    if (exists(target_path)) {
+      std::filesystem::remove(target_path);
+    }
+  }
+
 }
 
 void MainWindow::SlotFileDecryptVerify() {
   auto fileTreeView = edit_->SlotCurPageFileTreeView();
   auto path = fileTreeView->GetSelected();
 
-  if (!file_pre_check(this, path)) return;
+  if (!path_pre_check(this, path)) return;
 
   std::filesystem::path in_path(path.toStdString());
   std::filesystem::path out_path = in_path;
@@ -532,6 +688,26 @@ void MainWindow::SlotFileDecryptVerify() {
                           _("An error occurred during operation."));
     return;
   }
+
+  // extract the tarball
+  if (out_path.extension() == ".tar") {
+    bool ret = QMessageBox::information(
+        this, _("Decrypting"),
+        _("Do you want to extract and delete the decrypted tarball?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
+    if (ret) {
+      if (process_tarball_into_directory(this, out_path)) {
+        QMessageBox::information(this, _("Decrypting"),
+                                 _("Extracting tarball succeeded."));
+        // remove tarball
+        std::filesystem::remove(out_path);
+      } else {
+        QMessageBox::critical(this, _("Decrypting"),
+                              _("Extracting tarball failed."));
+      }
+    }
+  }
+
 }
 
 }  // namespace GpgFrontend::UI
