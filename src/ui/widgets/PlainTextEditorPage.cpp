@@ -166,7 +166,7 @@ void PlainTextEditorPage::ReadFile() {
 
   connect(this, &PlainTextEditorPage::destroyed, [=]() {
     LOG(INFO) << "request interruption for read thread";
-    thread->requestInterruption();
+    if (read_thread_ && thread->isRunning()) thread->requestInterruption();
     read_thread_ = nullptr;
   });
   this->read_thread_ = thread;
