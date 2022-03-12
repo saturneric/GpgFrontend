@@ -139,17 +139,21 @@ endif(CCACHE_FOUND)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     # using clang
     message(STATUS "Using Compiler clang")
+    message(STATUS "clang version ${CMAKE_CXX_COMPILER_VERSION}")
     set(USING_COMPILER_CLANG 1)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using gcc
     message(STATUS "Using Compiler gcc")
+    message(STATUS "gcc version ${CMAKE_CXX_COMPILER_VERSION}")
     set(USING_COMPILER_GCC 1)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     # using Intel C++
     message(STATUS "Using Compiler Intel")
+    message(WARNING "Compilation with this compiler is untested, which may create some problems that need to be solved by the user.")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     # using Visual Studio C++
     message(STATUS "Using Compiler MSVC")
+    message(WARNING "Compilation with this compiler is untested, which may create some problems that need to be solved by the user.")
 endif ()
 
 # Using Standard C++-17 (Consider compatibility)
@@ -261,6 +265,7 @@ message(STATUS "GpgFrontend Build Timestamp ${BUILD_TIMESTAMP}")
 message(STATUS "GpgFrontend Build Version ${BUILD_VERSION}")
 message(STATUS "GpgFrontend Git Repo Version ${GIT_VERSION}")
 
+# Windows
 IF (MINGW)
     message(STATUS "GpgFrontend Configuration For OS Platform Microsoft Windows")
     message(STATUS "Build Environment MINGW")
@@ -281,6 +286,7 @@ IF (MINGW)
     )
 endif ()
 
+# macOS
 if (APPLE)
     message(STATUS "GpgFrontend Configuration For OS Platform MacOS")
 
@@ -304,7 +310,6 @@ if (APPLE)
     )
     link_directories(
             /usr/local/lib
-            /usr/local/opt/openssl/lib
     )
 endif ()
 
@@ -374,6 +379,7 @@ if (FULL_APPLICATION_BUILD)
     set(BASIC_ENV_CONFIG 1)
     set(MULTI_LANG_SUPPORT 1)
 elseif (MINIMUM_APPLICATION_BUILD)
+    message(STATUS "Build Minimum Application")
     set(QT5_ENV_SUPPORT 1)
     set(GPG_CORE 1)
     set(UI_CORE 1)
@@ -384,6 +390,7 @@ elseif (MINIMUM_APPLICATION_BUILD)
     #        set(APP_IMAGE_UPDATE 1)
     #    endif ()
 elseif (STABLE_APPLICATION_BUILD)
+    message(STATUS "Build Stable Application")
     set(QT5_ENV_SUPPORT 1)
     set(GPG_CORE 1)
     set(UI_CORE 1)
@@ -450,6 +457,7 @@ add_subdirectory(third_party)
 # source code
 add_subdirectory(src)
 
+# build to test gpgfrontend core
 if (TEST_CORE_BUILD)
     include(CTest)
     enable_testing()
