@@ -34,6 +34,7 @@
 #include "core/function/PassphraseGenerator.h"
 
 void GpgFrontend::DataObjectOperator::init_app_secure_key() {
+  LOG(INFO) << "Initializing application secure key";
   FileOperator::WriteFileStd(app_secure_key_path_,
                              PassphraseGenerator::GetInstance().Generate(256));
   std::filesystem::permissions(
@@ -51,19 +52,19 @@ GpgFrontend::DataObjectOperator::DataObjectOperator(int channel)
 
   std::string key;
   if (!FileOperator::ReadFileStd(app_secure_key_path_.string(), key)) {
-    LOG(ERROR) << _("Failed to read app secure key file")
+    LOG(FATAL) << _("Failed to read app secure key file")
                << app_secure_key_path_;
+    throw std::runtime_error(_("Failed to read app secure key file"));
   }
   hash_key_ = QCryptographicHash::hash(QByteArray::fromStdString(key),
                                        QCryptographicHash::Sha256);
+  LOG(INFO) << "App secure key loaded" << hash_key_.size() << "bytes";
 
   if (!exists(app_data_objs_path_)) create_directory(app_data_objs_path_);
 }
 
 std::string GpgFrontend::DataObjectOperator::SaveDataObj(
     const std::string& _key, const nlohmann::json& value) {
-
-  LOG(INFO) << _("Save data object") << _key;
 
   std::string _hash_obj_key = {};
   if (_key.empty()) {
@@ -91,7 +92,9 @@ std::string GpgFrontend::DataObjectOperator::SaveDataObj(
   auto encoded =
       encryption.encode(QByteArray::fromStdString(to_string(value)), hash_key_);
 
-  GpgFrontend::write_buffer_to_file(obj_path.string(), encoded.toStdString());
+  LOG(INFO) << _("Saving data object") << _hash_obj_key << "to" << obj_path << encoded.size() << "bytes";
+
+  FileOperator::WriteFileStd(obj_path.string(), encoded.toStdString());
 
   return _key.empty() ? _hash_obj_key : std::string();
 }
@@ -99,6 +102,7 @@ std::string GpgFrontend::DataObjectOperator::SaveDataObj(
 std::optional<nlohmann::json> GpgFrontend::DataObjectOperator::GetDataObject(
     const std::string& _key) {
   try {
+    LOG(INFO) << _("Get data object") << _key;
     auto _hash_obj_key =
         QCryptographicHash::hash(hash_key_ + QByteArray::fromStdString(_key),
                                  QCryptographicHash::Sha256)
@@ -108,23 +112,28 @@ std::optional<nlohmann::json> GpgFrontend::DataObjectOperator::GetDataObject(
     const auto obj_path = app_data_objs_path_ / _hash_obj_key;
 
     if (!std::filesystem::exists(obj_path)) {
+      LOG(ERROR) << _("Data object not found") << _key;
       return {};
     }
 
     std::string buffer;
     if (!FileOperator::ReadFileStd(obj_path.string(), buffer)) {
+      LOG(ERROR) << _("Failed to read data object") << _key;
       return {};
     }
 
-    auto encoded = QByteArray::fromStdString(buffer);
+    LOG(INFO) << _("Data object found") << _key;
 
+    auto encoded = QByteArray::fromStdString(buffer);
     QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                               QAESEncryption::Padding::ISO);
+
+    LOG(INFO) << _("Decrypting data object") << encoded.size() << hash_key_.size();
 
     auto decoded =
         encryption.removePadding(encryption.decode(encoded, hash_key_));
 
-    LOG(INFO) << _("Load data object") << _key;
+    LOG(INFO) << _("Data object decoded") << _key;
 
     return nlohmann::json::parse(decoded.toStdString());
   } catch (...) {

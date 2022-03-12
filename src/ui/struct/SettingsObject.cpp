@@ -76,6 +76,7 @@ GpgFrontend::UI::SettingsObject GpgFrontend::UI::SettingsObject::Check(
 GpgFrontend::UI::SettingsObject::SettingsObject(std::string settings_name)
     : settings_name_(std::move(settings_name)) {
   try {
+    LOG(INFO) << "Loading settings from: " << this->settings_name_;
     auto _json_optional =
         GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(
             settings_name_);
