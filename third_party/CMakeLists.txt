@@ -211,5 +211,7 @@ if (NOT MINGW)
     add_subdirectory(libarchive)
 endif ()
 
+if (NOT MINGW)
 # libconfig
 add_subdirectory(libconfig)
+endif ()
