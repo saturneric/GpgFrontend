@@ -191,6 +191,11 @@
     <string>CreateEmptyFile</string>
    </property>
   </action>
+  <action name="actionCompressFiles">
+   <property name="text">
+    <string>CompressFiles</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../gpgfrontend.qrc"/>

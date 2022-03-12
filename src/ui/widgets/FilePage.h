@@ -142,6 +142,12 @@ class FilePage : public QWidget {
    */
   void slot_create_empty_file();
 
+  /**
+   * @brief compress directory into gpg-zip
+   *
+   */
+  void slot_compress_files();
+
  protected:
   /**
    * @brief
