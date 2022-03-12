@@ -39,6 +39,7 @@ namespace GpgFrontend {
 bool KeyPackageOperator::GeneratePassphrase(
     const std::filesystem::path& phrase_path, std::string& phrase) {
   phrase = PassphraseGenerator::GetInstance().Generate(256);
+  LOG(INFO) << "Generated passphrase: " << phrase.size() << " bytes";
   return FileOperator::WriteFileStd(phrase_path, phrase);
 }
 
@@ -46,9 +47,12 @@ bool KeyPackageOperator::GenerateKeyPackage(
     const std::filesystem::path& key_package_path,
     const std::string& key_package_name, KeyIdArgsListPtr& key_ids,
     std::string& phrase, bool secret) {
+  LOG(INFO) << "Generating key package: " << key_package_name;
+
   ByteArrayPtr key_export_data = nullptr;
   if (!GpgKeyImportExporter::GetInstance().ExportKeys(key_ids, key_export_data,
                                                       secret)) {
+    LOG(ERROR) << "Failed to export keys";
     return false;
   }
 
@@ -60,6 +64,7 @@ bool KeyPackageOperator::GenerateKeyPackage(
                             QAESEncryption::Padding::ISO);
   auto encoded = encryption.encode(data, hash_key);
 
+  LOG(INFO) << "Writing key package: " << key_package_name;
   return FileOperator::WriteFileStd(key_package_path, encoded.toStdString());
 }
 
@@ -67,16 +72,22 @@ bool KeyPackageOperator::ImportKeyPackage(
     const std::filesystem::path& key_package_path,
     const std::filesystem::path& phrase_path,
     GpgFrontend::GpgImportInformation& import_info) {
+
+  LOG(INFO) << "Importing key package: " << key_package_path.string();
+
   std::string encrypted_data;
   FileOperator::ReadFileStd(key_package_path, encrypted_data);
 
   if (encrypted_data.empty()) {
+    LOG(ERROR) << "Failed to read key package: " << key_package_path.string();
     return false;
   };
 
   std::string passphrase;
   FileOperator::ReadFileStd(phrase_path, passphrase);
+  LOG(INFO) << "Passphrase: " << passphrase.size() << " bytes";
   if (passphrase.size() != 256) {
+    LOG(ERROR) << "Failed to read passphrase: " << phrase_path.string();
     return false;
   }
 
@@ -90,6 +101,7 @@ bool KeyPackageOperator::ImportKeyPackage(
   auto decoded = encryption.removePadding(encryption.decode(encoded, hash_key));
   auto key_data = QByteArray::fromBase64(decoded);
 
+  LOG(INFO)  << "key data" << key_data.size();
   if (!key_data.startsWith(GpgConstants::PGP_PUBLIC_KEY_BEGIN) &&
       !key_data.startsWith(GpgConstants::PGP_PRIVATE_KEY_BEGIN)) {
     return false;
