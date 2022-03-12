@@ -313,7 +313,7 @@ void MainWindow::SlotFileDecrypt() {
   }
 
   // extract the tarball
-  if (out_path.extension() == ".tar") {
+  if (out_path.extension() == ".tar" && exists(out_path)) {
     bool ret = QMessageBox::information(
         this, _("Decrypting"),
         _("Do you want to extract and delete the decrypted tarball?"),
@@ -690,7 +690,7 @@ void MainWindow::SlotFileDecryptVerify() {
   }
 
   // extract the tarball
-  if (out_path.extension() == ".tar") {
+  if (out_path.extension() == ".tar" && exists(out_path)) {
     bool ret = QMessageBox::information(
         this, _("Decrypting"),
         _("Do you want to extract and delete the decrypted tarball?"),
