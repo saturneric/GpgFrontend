@@ -110,18 +110,24 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
 }
 
 TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
-  QFile translatorsFile;
+  QFile translators_qfile;
   auto translators_file =
       GlobalSettingStation::GetInstance().GetResourceDir() / "TRANSLATORS";
-  translatorsFile.setFileName(translators_file.string().c_str());
-  translatorsFile.open(QIODevice::ReadOnly);
-  QByteArray inBuffer = translatorsFile.readAll();
+  translators_qfile.setFileName(translators_file.string().c_str());
+#define LINUX
+  if(!translators_qfile.exists()) {
+    translators_qfile.setFileName("/usr/local/share/GpgFrontend/TRANSLATORS");
+  }
+#endif
 
-  auto* label = new QLabel(inBuffer);
+  translators_qfile.open(QIODevice::ReadOnly);
+  QByteArray in_buffer = translators_qfile.readAll();
 
-  auto* mainLayout = new QVBoxLayout(this);
-  mainLayout->addWidget(label);
-  mainLayout->addStretch();
+  auto* label = new QLabel(in_buffer);
+
+  auto* main_layout = new QVBoxLayout(this);
+  main_layout->addWidget(label);
+  main_layout->addStretch();
 
   auto notice_label = new QLabel(
       _("If you think there are any problems with the translation, why not "
@@ -130,24 +136,24 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
         "read the document or contact me via email."),
       this);
   notice_label->setWordWrap(true);
-  mainLayout->addWidget(notice_label);
+  main_layout->addWidget(notice_label);
 
-  setLayout(mainLayout);
+  setLayout(main_layout);
 }
 
 UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
   auto* pixmap = new QPixmap(":gpgfrontend-logo.png");
   auto* layout = new QGridLayout();
-  auto* pixmapLabel = new QLabel();
-  pixmapLabel->setPixmap(*pixmap);
-  layout->addWidget(pixmapLabel, 0, 0, 1, -1, Qt::AlignCenter);
+  auto* pixmap_label = new QLabel();
+  pixmap_label->setPixmap(*pixmap);
+  layout->addWidget(pixmap_label, 0, 0, 1, -1, Qt::AlignCenter);
 
   current_version_ = "v" + QString::number(VERSION_MAJOR) + "." +
                      QString::number(VERSION_MINOR) + "." +
                      QString::number(VERSION_PATCH);
 
-  auto tipsLabel = new QLabel();
-  tipsLabel->setText(
+  auto tips_label = new QLabel();
+  tips_label->setText(
       "<center>" +
       QString(_("It is recommended that you always check the version "
                 "of GpgFrontend and upgrade to the latest version.")) +
@@ -155,7 +161,7 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
       _("New versions not only represent new features, but "
         "also often represent functional and security fixes.") +
       "</center>");
-  tipsLabel->setWordWrap(true);
+  tips_label->setWordWrap(true);
 
   current_version_label_ = new QLabel();
   current_version_label_->setText("<center>" + QString(_("Current Version")) +
@@ -175,7 +181,7 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
   pb_->setRange(0, 0);
   pb_->setTextVisible(false);
 
-  layout->addWidget(tipsLabel, 1, 0, 1, -1);
+  layout->addWidget(tips_label, 1, 0, 1, -1);
   layout->addWidget(current_version_label_, 2, 0, 1, -1);
   layout->addWidget(latest_version_label_, 3, 0, 1, -1);
   layout->addWidget(upgrade_label_, 4, 0, 1, -1);
