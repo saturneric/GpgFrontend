@@ -114,7 +114,7 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
   auto translators_file =
       GlobalSettingStation::GetInstance().GetResourceDir() / "TRANSLATORS";
   translators_qfile.setFileName(translators_file.string().c_str());
-#define LINUX
+#ifdef LINUX
   if(!translators_qfile.exists()) {
     translators_qfile.setFileName("/usr/local/share/GpgFrontend/TRANSLATORS");
   }
