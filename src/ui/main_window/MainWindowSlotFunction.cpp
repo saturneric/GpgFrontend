@@ -134,7 +134,10 @@ void MainWindow::slot_encrypt() {
 }
 
 void MainWindow::slot_sign() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) this->SlotFileSign();
+    return;
+  }
 
   auto key_ids = m_key_list_->GetPrivateChecked();
 
