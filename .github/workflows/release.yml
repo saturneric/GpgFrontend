@@ -68,8 +68,8 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5 gcc texinfo gettext gpgme openssl@1.1 
-          brew install boost libconfig gettext ninja
+          brew install cmake git autoconf automake qt@5 texinfo gettext openssl@1.1 
+          brew install boost ninja
           brew unlink gettext && brew link --force gettext
           brew link qt@5
           brew link gcc
