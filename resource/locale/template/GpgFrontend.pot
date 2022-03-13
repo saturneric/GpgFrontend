@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.5\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-03-12 01:56-0800\n"
+"POT-Creation-Date: 2022-03-13 01:05-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1831,11 +1831,11 @@ msgid "Open the wizard"
 msgstr ""
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:277
-msgid "Append Public Key To Text Editor"
+msgid "Append To Text Editor"
 msgstr ""
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:279
-msgid "Append The Selected Keys To Text in Editor"
+msgid "Append The Selected Public Key To Text in Editor"
 msgstr ""
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:283
