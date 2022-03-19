@@ -58,7 +58,7 @@ void KeyList::init() {
   auto db_path = GpgFrontend::GlobalSettingStation::GetInstance()
                      .GetStandaloneDatabaseDir();
   GpgContext::CreateInstance(
-      _m_key_list_id, std::make_unique<GpgContext>(true, db_path.string(), true,
+      _m_key_list_id, std::make_unique<GpgContext>(true, db_path.u8string(), true,
                                                    gpg_path.string()));
 #else
   new_default_settings_channel(m_key_list_id_);

@@ -95,7 +95,7 @@ bool process_tarball_into_directory(QWidget* parent,
     if (if_error || !exists(target_path)) {
       throw std::runtime_error("Decompress Failed");
     }
-    path = target_path.string().c_str();
+    path = target_path.u8string().c_str();
   } catch (...) {
     LOG(ERROR) << "decompress error";
     return false;
@@ -132,7 +132,7 @@ bool process_directory_into_tarball(QWidget* parent, QString& path) {
     if (if_error || !exists(target_path)) {
       throw std::runtime_error("Compress Failed");
     }
-    path = target_path.string().c_str();
+    path = target_path.u8string().c_str();
   } catch (...) {
     LOG(ERROR) << "compress error";
     return false;
@@ -144,7 +144,10 @@ void MainWindow::SlotFileEncrypt() {
   auto fileTreeView = edit_->SlotCurPageFileTreeView();
   auto path = fileTreeView->GetSelected();
 
-  if (!path_pre_check(this, path)) return;
+  if (!path_pre_check(this, path)) {
+    LOG(ERROR) << "path pre check failed";
+    return;
+  }
 
   // check selected keys
   auto key_ids = m_key_list_->GetChecked();
@@ -178,7 +181,11 @@ void MainWindow::SlotFileEncrypt() {
   auto out_path = path + _extension;
 
   if (QFile::exists(out_path)) {
+#ifdef WINDOWS
+    std::filesystem::path _out_path = out_path.toStdU16String();
+#else
     std::filesystem::path _out_path = out_path.toStdString();
+#endif
     auto out_file_name = boost::format(_("The target file %1% already exists, "
                                          "do you need to overwrite it?")) %
                          _out_path.filename();
@@ -271,7 +278,11 @@ void MainWindow::SlotFileDecrypt() {
 
   if (!path_pre_check(this, path)) return;
 
+#ifdef WINDOWS
+  std::filesystem::path out_path = path.toStdU16String();
+#else
   std::filesystem::path out_path = path.toStdString();
+#endif
 
   if (out_path.extension() == ".asc" || out_path.extension() == ".gpg") {
     out_path = out_path.parent_path() / out_path.stem();
@@ -293,7 +304,7 @@ void MainWindow::SlotFileDecrypt() {
   bool if_error = false;
   process_operation(this, _("Decrypting"), [&]() {
     try {
-      error = GpgFileOpera::DecryptFile(path.toStdString(), out_path.string(),
+      error = GpgFileOpera::DecryptFile(path.toStdString(), out_path.u8string(),
                                         result);
     } catch (const std::runtime_error& e) {
       if_error = true;
@@ -377,7 +388,12 @@ void MainWindow::SlotFileSign() {
     _extension = ".sig";
   }
 
+#ifdef WINDOWS
+  std::filesystem::path in_path = path.toStdU16String();
+#else
   std::filesystem::path in_path = path.toStdString();
+#endif
+
   auto sig_file_path = in_path;
   sig_file_path += _extension;
   if (exists(sig_file_path)) {
@@ -385,7 +401,7 @@ void MainWindow::SlotFileSign() {
         this, _("Warning"),
         QString(_("The signature file \"%1\" exists, "
                   "do you need to overwrite it?"))
-            .arg(sig_file_path.filename().string().c_str()),
+            .arg(sig_file_path.filename().u8string().c_str()),
         QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
@@ -397,8 +413,8 @@ void MainWindow::SlotFileSign() {
 
   process_operation(this, _("Signing"), [&]() {
     try {
-      error = GpgFileOpera::SignFile(std::move(keys), in_path.string(),
-                                     sig_file_path.string(), result, _channel);
+      error = GpgFileOpera::SignFile(std::move(keys), in_path.u8string(),
+                                     sig_file_path.u8string(), result, _channel);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
@@ -424,7 +440,12 @@ void MainWindow::SlotFileVerify() {
   auto fileTreeView = edit_->SlotCurPageFileTreeView();
   auto path = fileTreeView->GetSelected();
 
+#ifdef WINDOWS
+  std::filesystem::path in_path = path.toStdU16String();
+#else
   std::filesystem::path in_path = path.toStdString();
+#endif
+
   std::filesystem::path sign_file_path = in_path, data_file_path;
 
   // Detect ascii mode
@@ -453,7 +474,7 @@ void MainWindow::SlotFileVerify() {
     bool ok;
     QString text = QInputDialog::getText(this, _("Origin file to verify"),
                                          _("Filepath"), QLineEdit::Normal,
-                                         data_file_path.string().c_str(), &ok);
+                                         data_file_path.u8string().c_str(), &ok);
     if (ok && !text.isEmpty()) {
       data_file_path = text.toStdString();
     } else {
@@ -479,7 +500,7 @@ void MainWindow::SlotFileVerify() {
   process_operation(this, _("Verifying"), [&]() {
     try {
       error = GpgFileOpera::VerifyFile(
-          data_file_path.string(), sign_file_path.string(), result, _channel);
+          data_file_path.u8string(), sign_file_path.u8string(), result, _channel);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
@@ -636,7 +657,12 @@ void MainWindow::SlotFileDecryptVerify() {
 
   if (!path_pre_check(this, path)) return;
 
-  std::filesystem::path in_path(path.toStdString());
+#ifdef WINDOWS
+  std::filesystem::path in_path = path.toStdU16String();
+#else
+  std::filesystem::path in_path = path.toStdString();
+#endif
+
   std::filesystem::path out_path = in_path;
   if (in_path.extension() == ".asc" || in_path.extension() == ".gpg") {
     out_path = in_path.parent_path() / out_path.stem();
@@ -645,12 +671,12 @@ void MainWindow::SlotFileDecryptVerify() {
   }
   LOG(INFO) << "out path" << out_path;
 
-  if (QFile::exists(out_path.string().c_str())) {
+  if (QFile::exists(out_path.u8string().c_str())) {
     auto ret =
         QMessageBox::warning(this, _("Warning"),
                              QString(_("The output file %1 already exists, do "
                                        "you need to overwrite it?"))
-                                 .arg(out_path.filename().string().c_str()),
+                                 .arg(out_path.filename().u8string().c_str()),
                              QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
@@ -663,7 +689,7 @@ void MainWindow::SlotFileDecryptVerify() {
   process_operation(this, _("Decrypting and Verifying"), [&]() {
     try {
       error = GpgFileOpera::DecryptVerifyFile(
-          path.toStdString(), out_path.string(), d_result, v_result);
+          path.toStdString(), out_path.u8string(), d_result, v_result);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }

@@ -108,23 +108,23 @@ void TextEdit::SlotOpenFile(QString& path) {
 }
 
 void TextEdit::SlotOpen() {
-  QStringList fileNames =
+  QStringList file_names =
       QFileDialog::getOpenFileNames(this, _("Open file"), QDir::currentPath());
-  for (const auto& fileName : fileNames) {
-    if (!fileName.isEmpty()) {
-      QFile file(fileName);
+  for (const auto& file_name : file_names) {
+    if (!file_name.isEmpty()) {
+      QFile file(file_name);
 
       if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        auto* page = new PlainTextEditorPage(fileName);
+        auto* page = new PlainTextEditorPage(file_name);
 
         QTextStream in(&file);
         QApplication::setOverrideCursor(Qt::WaitCursor);
         page->GetTextPage()->setPlainText(in.readAll());
-        page->SetFilePath(fileName);
+        page->SetFilePath(file_name);
         QTextDocument* document = page->GetTextPage()->document();
         document->setModified(false);
 
-        tab_widget_->addTab(page, stripped_name(fileName));
+        tab_widget_->addTab(page, stripped_name(file_name));
         tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
         QApplication::restoreOverrideCursor();
         page->GetTextPage()->setFocus();
@@ -137,7 +137,7 @@ void TextEdit::SlotOpen() {
         QMessageBox::warning(
             this, _("Warning"),
             (boost::format(_("Cannot read file %1%:\n%2%.")) %
-             fileName.toStdString() % file.errorString().toStdString())
+             file_name.toStdString() % file.errorString().toStdString())
                 .str()
                 .c_str());
       }

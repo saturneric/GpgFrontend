@@ -168,8 +168,8 @@ class GpgCoreTest : public ::testing::Test {
               GpgFrontend::GpgContextInitArgs args;
               args.gpg_alone = true;
               args.independent_database = true;
-              args.db_path = db_path.string();
-              args.gpg_path = gpg_path.string();
+              args.db_path = db_path.u8string();
+              args.gpg_path = gpg_path.u8string();
               args.test_mode = true;
               return std::make_unique<GpgFrontend::GpgContext>(args);
             });

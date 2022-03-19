@@ -54,10 +54,10 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
     const std::filesystem::path &base_path,
     const std::filesystem::path &archive_path, int compress,
     const std::vector<std::filesystem::path> &files) {
-  LOG(INFO) << "CreateArchive: " << archive_path.string();
+  LOG(INFO) << "CreateArchive: " << archive_path.u8string();
 
   auto current_base_path_backup = QDir::currentPath();
-  QDir::setCurrent(base_path.string().c_str());
+  QDir::setCurrent(base_path.u8string().c_str());
 
   auto relative_archive_path = std::filesystem::relative(archive_path, base_path);
 
@@ -99,7 +99,7 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
   archive_write_set_format_ustar(a);
   archive_write_set_format_pax_restricted(a);
 
-  auto filename = relative_archive_path.string();
+  auto filename = relative_archive_path.u8string();
   if (!filename.empty() && filename == "-")
     throw std::runtime_error("cannot write to stdout");
 
@@ -112,9 +112,9 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
 #endif
     int r;
 
-    LOG(INFO) << "ReadFile: " << file.string();
+    LOG(INFO) << "ReadFile: " << file.u8string();
 
-    r = archive_read_disk_open(disk, file.string().c_str());
+    r = archive_read_disk_open(disk, file.u8string().c_str());
     if (r != ARCHIVE_OK) {
       LOG(ERROR) << "archive_read_disk_open() failed: "
                  << archive_error_string(disk);
@@ -163,10 +163,10 @@ void GpgFrontend::ArchiveFileOperator::ExtractArchive(
     const std::filesystem::path &archive_path,
     const std::filesystem::path &base_path) {
 
-  LOG(INFO) << "ExtractArchive: " << archive_path.string();
+  LOG(INFO) << "ExtractArchive: " << archive_path.u8string();
 
   auto current_base_path_backup = QDir::currentPath();
-  QDir::setCurrent(base_path.string().c_str());
+  QDir::setCurrent(base_path.u8string().c_str());
 
     struct archive *a;
     struct archive *ext;
@@ -195,12 +195,16 @@ void GpgFrontend::ArchiveFileOperator::ExtractArchive(
     archive_write_disk_set_standard_lookup(ext);
 #endif
 
-    auto filename = archive_path.string();
+    auto filename = archive_path.u8string();
 
-    if (!filename.empty() && filename == "-") {
+    if (!filename.empty() && filename == u8"-") {
       LOG(ERROR) << "cannot read from stdin";
     }
-    if ((r = archive_read_open_filename(a, filename.c_str(), 10240))) {
+#ifdef WINDOWS
+    if ((r = archive_read_open_filename_w(a, archive_path.wstring().c_str(), 10240))) {
+#else
+    if ((r = archive_read_open_filename(a, archive_path.u8string().c_str(), 10240))) {
+#endif
       LOG(ERROR) << "archive_read_open_filename() failed: "
                  << archive_error_string(a);
       throw std::runtime_error("archive_read_open_filename() failed");

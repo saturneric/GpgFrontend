@@ -120,7 +120,7 @@ std::string GpgFrontend::read_all_data_in_file(const std::string& utf8_path) {
   if (!exists(file_info) || !is_regular_file(file_info)) return {};
   std::ifstream in_file;
 #ifndef WINDOWS
-  in_file.open(file_info.string(), std::ios::in);
+  in_file.open(file_info.u8string(), std::ios::in);
 #else
   in_file.open(file_info.wstring().c_str(), std::ios::in);
 #endif
@@ -137,7 +137,7 @@ bool GpgFrontend::write_buffer_to_file(const std::string& utf8_path,
   using namespace std::filesystem;
   class path file_info(utf8_path.c_str());
 #ifndef WINDOWS
-  std::ofstream out_file(file_info.string(), std::ios::out | std::ios::trunc);
+  std::ofstream out_file(file_info.u8string(), std::ios::out | std::ios::trunc);
 #else
   std::ofstream out_file(file_info.wstring().c_str(),
                          std::ios::out | std::ios::trunc);
@@ -155,7 +155,7 @@ std::string GpgFrontend::get_file_extension(const std::string& path) {
   // Check if file name in the path object has extension
   if (path_obj.has_extension()) {
     // Fetch the extension from path object and return
-    return path_obj.extension().string();
+    return path_obj.extension().u8string();
   }
   // In case of no extension return empty string
   return {};
@@ -167,7 +167,7 @@ std::string GpgFrontend::get_only_file_name_with_path(const std::string& path) {
   // Check if file name in the path object has extension
   if (path_obj.has_filename()) {
     // Fetch the extension from path object and return
-    return (path_obj.parent_path() / path_obj.stem()).string();
+    return (path_obj.parent_path() / path_obj.stem()).u8string();
   }
   // In case of no extension return empty string
   return {};

@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
   std::filesystem::path css_path =
       GpgFrontend::GlobalSettingStation::GetInstance().GetResourceDir() /
       "css" / "default.qss";
-  QFile file(css_path.string().c_str());
+  QFile file(css_path.u8string().c_str());
   file.open(QFile::ReadOnly);
   QString styleSheet = QLatin1String(file.readAll());
   qApp->setStyleSheet(styleSheet);
@@ -151,8 +151,8 @@ int main(int argc, char* argv[]) {
   GpgFrontend::GpgContext::CreateInstance(
       GpgFrontend::SingletonFunctionObject<
           GpgFrontend::GpgContext>::GetDefaultChannel(),
-      std::make_unique<GpgFrontend::GpgContext>(true, db_path.string(), true,
-                                                gpg_path.string()));
+      std::make_unique<GpgFrontend::GpgContext>(true, db_path.u8string(), true,
+                                                gpg_path.u8string()));
 #endif
 
   // create the thread to load the gpg context

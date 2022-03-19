@@ -36,25 +36,33 @@ FileReadThread::FileReadThread(std::string path) : path_(std::move(path)) {
 }
 
 void FileReadThread::run() {
-  LOG(INFO) << "started";
-  std::filesystem::path read_file_path(this->path_);
-  if (is_regular_file(read_file_path)) {
-    LOG(INFO) << "read open";
+  LOG(INFO) << "started reading" << path_;
 
-    auto fp = fopen(read_file_path.string().c_str(), "rb");
-    size_t read_size;
+#ifdef WINDOWS
+  std::filesystem::path read_file_path(QString::fromStdString(path_).toStdU16String());
+#else
+  std::filesystem::path read_file_path(QString::fromStdString(path_).toStdString());
+#endif
+
+  if (is_regular_file(read_file_path)) {
+    LOG(INFO) << "read open" << read_file_path;
+
+    QFile file;
+    file.setFileName(QString::fromStdString(read_file_path.u8string()));
+    file.open(QIODevice::ReadOnly);
+    QByteArray read_buffer;
     LOG(INFO) << "thread start reading";
 
-    char buffer[4096];
-    while ((read_size = fread(buffer, sizeof(char), sizeof buffer, fp)) > 0) {
+    const size_t buffer_size = 4096;
+    while ((read_buffer = file.read(buffer_size)).size() > 0) {
       // Check isInterruptionRequested
       if (QThread::currentThread()->isInterruptionRequested()) {
         LOG(INFO) << "thread is interruption requested ";
-        fclose(fp);
+        file.close();
         return;
       }
-      LOG(INFO) << "block size " << read_size;
-      std::string buffer_str(buffer, read_size);
+      LOG(INFO) << "block size " << read_buffer.size();
+      std::string buffer_str(read_buffer.toStdString());
 
       emit SignalSendReadBlock(buffer_str);
 #ifdef RELEASE
@@ -63,7 +71,7 @@ void FileReadThread::run() {
       QThread::msleep(128);
 #endif
     }
-    fclose(fp);
+    file.close();
     emit SignalReadDone();
     LOG(INFO) << "thread end reading";
   }

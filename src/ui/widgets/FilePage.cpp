@@ -99,17 +99,23 @@ FilePage::FilePage(QWidget* parent)
 }
 
 void FilePage::slot_file_tree_view_item_clicked(const QModelIndex& index) {
+#ifdef WINDOWS
+  selected_path_ = std::filesystem::path(
+      dir_model_->fileInfo(index).absoluteFilePath().toStdU16String());
+#else
   selected_path_ = std::filesystem::path(
       dir_model_->fileInfo(index).absoluteFilePath().toStdString());
+#endif
+
   m_path_ = selected_path_;
-  LOG(INFO) << "selected path" << selected_path_;
+  LOG(INFO) << "selected path" << selected_path_.u8string();
 
   selected_path_ = std::filesystem::path(selected_path_);
   MainWindow::CryptoMenu::OperationType operation_type =
       MainWindow::CryptoMenu::None;
 
   if (index.isValid()) {
-    QFileInfo info(QString::fromStdString(selected_path_.string()));
+    QFileInfo info(QString::fromStdString(selected_path_.u8string()));
 
     if ((info.isDir() || info.isFile()) &&
         (info.suffix() != "gpg" && info.suffix() != "sig" &&
@@ -145,17 +151,21 @@ void FilePage::slot_file_tree_view_item_clicked(const QModelIndex& index) {
 
 void FilePage::slot_up_level() {
   QModelIndex currentRoot = ui_->fileTreeView->rootIndex();
-
-  auto utf8_path =
-      dir_model_->fileInfo(currentRoot).absoluteFilePath().toStdString();
-  std::filesystem::path path_obj(utf8_path);
+#ifdef WINDOWS
+  auto str_path =
+      dir_model_->fileInfo(currentRoot).absoluteFilePath().toStdU16String();
+#else
+  auto str_path =
+      dir_model_->fileInfo(currentRoot).absoluteFilePath().toUtf8().toStdString();
+#endif
+  std::filesystem::path path_obj(str_path);
 
   m_path_ = path_obj;
   LOG(INFO) << "get path" << m_path_;
   if (m_path_.has_parent_path() && !m_path_.parent_path().empty()) {
     m_path_ = m_path_.parent_path();
     LOG(INFO) << "parent path" << m_path_;
-    ui_->pathEdit->setText(m_path_.string().c_str());
+    ui_->pathEdit->setText(m_path_.u8string().c_str());
     this->SlotGoPath();
   }
 }
@@ -172,30 +182,38 @@ void FilePage::slot_file_tree_view_item_double_clicked(
 }
 
 QString FilePage::GetSelected() const {
-  return QString::fromStdString(selected_path_.string());
+  return QString::fromStdString(selected_path_.u8string());
 }
 
 void FilePage::SlotGoPath() {
-  const auto path_edit = ui_->pathEdit->text().toStdString();
-  std::filesystem::path path_obj(path_edit);
+#ifdef WINDOWS
+  std::filesystem::path path_edit_obj(ui_->pathEdit->text().toStdU16String());
+#else
+  std::filesystem::path path_edit_obj(ui_->pathEdit->text().toStdString());
+#endif
 
-  if (m_path_.string() != path_edit) m_path_ = path_obj;
+  m_path_ = m_path_ != path_edit_obj ? path_edit_obj : m_path_;
   auto fileInfo = QFileInfo(m_path_.string().c_str());
   if (fileInfo.isDir() && fileInfo.isReadable() && fileInfo.isExecutable()) {
+#ifdef WINDOWS
+    m_path_ = std::filesystem::path(fileInfo.filePath().toStdU16String());
+#else
     m_path_ = std::filesystem::path(fileInfo.filePath().toStdString());
-    LOG(INFO) << "set path" << m_path_;
+#endif
+
+    LOG(INFO) << "set path" << m_path_.u8string();
     ui_->fileTreeView->setRootIndex(dir_model_->index(fileInfo.filePath()));
     dir_model_->setRootPath(fileInfo.filePath());
     for (int i = 1; i < dir_model_->columnCount(); ++i) {
       ui_->fileTreeView->resizeColumnToContents(i);
     }
-    ui_->pathEdit->setText(m_path_.generic_string().c_str());
+    ui_->pathEdit->setText(QString::fromStdString(m_path_.u8string()));
   } else {
     QMessageBox::critical(
         this, _("Error"),
         _("The path is not exists, unprivileged or unreachable."));
   }
-  emit SignalPathChanged(m_path_.string().c_str());
+  emit SignalPathChanged(QString::fromStdString(m_path_.u8string()));
 }
 
 void FilePage::create_popup_menu() {
@@ -234,10 +252,10 @@ void FilePage::create_popup_menu() {
   new_item_action_menu->addAction(ui_->actionMakeDirectory);
 
   popup_menu_->addAction(ui_->actionOpenFile);
+  popup_menu_->addMenu(new_item_action_menu);
+  popup_menu_->addSeparator();
   popup_menu_->addAction(ui_->actionRenameFile);
   popup_menu_->addAction(ui_->actionDeleteFile);
-  popup_menu_->addSeparator();
-  popup_menu_->addMenu(new_item_action_menu);
   popup_menu_->addAction(ui_->actionCompressFiles);
   popup_menu_->addAction(ui_->actionCalculateHash);
 
@@ -251,7 +269,7 @@ void FilePage::create_popup_menu() {
       dir_model_->setFilter(dir_model_->filter() | QDir::Hidden);
     else
       dir_model_->setFilter(dir_model_->filter() & ~QDir::Hidden);
-    dir_model_->setRootPath(m_path_.string().c_str());
+    dir_model_->setRootPath(m_path_.u8string().c_str());
   });
   option_popup_menu_->addAction(showHiddenAct);
 
@@ -263,17 +281,22 @@ void FilePage::create_popup_menu() {
       dir_model_->setFilter(dir_model_->filter() | QDir::System);
     else
       dir_model_->setFilter(dir_model_->filter() & ~QDir::System);
-    dir_model_->setRootPath(m_path_.string().c_str());
+    dir_model_->setRootPath(m_path_.u8string().c_str());
   });
   option_popup_menu_->addAction(showSystemAct);
 }
 
 void FilePage::onCustomContextMenu(const QPoint& point) {
   QModelIndex index = ui_->fileTreeView->indexAt(point);
-  LOG(INFO) << "right click" << selected_path_;
+  LOG(INFO) << "right click" << selected_path_.u8string();
 
-  selected_path_ = std::filesystem::path(
-      dir_model_->fileInfo(index).absoluteFilePath().toStdString());
+#ifdef WINDOWS
+  auto index_dir_str = dir_model_->fileInfo(index).absoluteFilePath().toStdU16String();
+#else
+  auto index_dir_str = dir_model_->fileInfo(index).absoluteFilePath().toStdString();
+#endif
+
+  selected_path_ = std::filesystem::path(index_dir_str);
 
   // update crypt menu
   slot_file_tree_view_item_clicked(index);
@@ -283,7 +306,7 @@ void FilePage::onCustomContextMenu(const QPoint& point) {
     ui_->actionRenameFile->setEnabled(true);
     ui_->actionDeleteFile->setEnabled(true);
 
-    QFileInfo info(QString::fromStdString(selected_path_.string()));
+    QFileInfo info(QString::fromStdString(selected_path_.u8string()));
     ui_->actionCalculateHash->setEnabled(info.isFile() && info.isReadable());
   } else {
     ui_->actionOpenFile->setEnabled(false);
@@ -296,12 +319,12 @@ void FilePage::onCustomContextMenu(const QPoint& point) {
 }
 
 void FilePage::slot_open_item() {
-  QFileInfo info(QString::fromStdString(selected_path_.string()));
+  QFileInfo info(QString::fromStdString(selected_path_.u8string()));
   if (info.isDir()) {
     if (info.isReadable() && info.isExecutable()) {
-      const auto file_path = info.filePath().toStdString();
+      const auto file_path = info.filePath().toUtf8().toStdString();
       LOG(INFO) << "set path" << file_path;
-      ui_->pathEdit->setText(info.filePath());
+      ui_->pathEdit->setText(info.filePath().toUtf8());
       SlotGoPath();
     } else {
       QMessageBox::critical(this, _("Error"),
@@ -311,9 +334,9 @@ void FilePage::slot_open_item() {
     if (info.isReadable()) {
       // handle normal text or binary file
       auto main_window = qobject_cast<MainWindow*>(first_parent_);
-      LOG(INFO) << "open item" << selected_path_;
-      auto qt_path = QString::fromStdString(selected_path_.string());
-      if (main_window != nullptr) main_window->SlotOpenFile(qt_path);
+      auto qt_open_path = QString::fromStdString(selected_path_.u8string());
+      LOG(INFO) << "open item" << qt_open_path.toStdString();
+      if (main_window != nullptr) main_window->SlotOpenFile(qt_open_path);
     } else {
       QMessageBox::critical(this, _("Error"),
                             _("The file is unprivileged or unreachable."));
@@ -329,10 +352,14 @@ void FilePage::slot_rename_item() {
   bool ok;
   auto text =
       QInputDialog::getText(this, _("Rename"), _("New Filename"),
-                            QLineEdit::Normal, old_name.string().c_str(), &ok);
+                            QLineEdit::Normal, QString::fromStdString(old_name.u8string()), &ok);
   if (ok && !text.isEmpty()) {
     try {
+#ifdef WINDOWS
+      new_name_path /= text.toStdU16String();
+#else
       new_name_path /= text.toStdString();
+#endif
       LOG(INFO) << "new name path" << new_name_path;
       std::filesystem::rename(old_name_path, new_name_path);
       // refresh
@@ -382,7 +409,11 @@ void FilePage::slot_mkdir() {
 }
 
 void FilePage::slot_create_empty_file() {
+#ifdef WINDOWS
+  auto root_path_str = dir_model_->rootPath().toStdU16String();
+#else
   auto root_path_str = dir_model_->rootPath().toStdString();
+#endif
   std::filesystem::path root_path(root_path_str);
 
   QString new_file_name;
@@ -391,8 +422,12 @@ void FilePage::slot_create_empty_file() {
                                         _("Filename (you can given extension)"),
                                         QLineEdit::Normal, new_file_name, &ok);
   if (ok && !new_file_name.isEmpty()) {
+#ifdef WINDOWS
+    auto file_path = root_path / new_file_name.toStdU16String();
+#else
     auto file_path = root_path / new_file_name.toStdString();
-    QFile new_file(file_path.string().c_str());
+#endif
+    QFile new_file(file_path.u8string().c_str());
     if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
       QMessageBox::critical(this, _("Error"), _("Unable to create the file."));
     }
