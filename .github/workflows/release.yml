@@ -72,7 +72,6 @@ jobs:
           brew install boost ninja
           brew unlink gettext && brew link --force gettext
           brew link qt@5
-          brew link gcc
           brew link openssl@1.1 --force
         if: matrix.os == 'macos-10.15'
 
