@@ -163,7 +163,7 @@ Build the code and make the deb package.
 ```shell
 $ cd GpgFrontend
 $ mkdir build && cd build
-$ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Release" -DGENERATE_LINUX_INSTALL_SOFTWARE=ON ..
+$ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Release" -DGPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE=ON ..
 $ ninja
 $ ninja package
 ```
