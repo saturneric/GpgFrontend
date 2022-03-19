@@ -46,7 +46,7 @@ jobs:
       - name: Build & Package GpgFrontend (Linux DEB Package)
         # Build your program with the given configuration
         run: |
-          cmake -B ${{github.workspace}}/build-deb-${{matrix.os}} -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGENERATE_LINUX_INSTALL_SOFTWARE=ON -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}
+          cmake -B ${{github.workspace}}/build-deb-${{matrix.os}} -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE=ON -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}
           cmake --build ${{github.workspace}}/build-deb-${{matrix.os}} --config {{$env.BUILD_TYPE}} -- -v
           cd ${{github.workspace}}/build-deb-${{matrix.os}}
           ninja package
