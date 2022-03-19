@@ -44,25 +44,7 @@ struct ArchiveStruct {
 
 class ArchiveFileOperator {
  public:
-  static void ListArchive(const std::filesystem::path &archive_path) {
-    struct archive *a;
-    struct archive_entry *entry;
-    int r;
-
-    a = archive_read_new();
-    archive_read_support_filter_all(a);
-    archive_read_support_format_all(a);
-    r = archive_read_open_filename(a, archive_path.u8string().c_str(),
-                                   10240);  // Note 1
-    if (r != ARCHIVE_OK) return;
-    while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
-      LOG(INFO) << "File: " << archive_entry_pathname(entry);
-      LOG(INFO) << "File Path: " << archive_entry_pathname(entry);
-      archive_read_data_skip(a);  // Note 2
-    }
-    r = archive_read_free(a);  // Note 3
-    if (r != ARCHIVE_OK) return;
-  }
+  static void ListArchive(const std::filesystem::path &archive_path);
 
   static void CreateArchive(
       const std::filesystem::path &base_path,

@@ -62,7 +62,7 @@ endif ()
 # link libarchive
 if (MINGW)
     find_library(LIBARCHIVE_LIB libarchive.a)
-    target_link_libraries(gpgfrontend_core ${LIBARCHIVE_LIB} bcrypt lzma bz2 z)
+    target_link_libraries(gpgfrontend_core ${LIBARCHIVE_LIB} expat lz4 zstd bcrypt lzma bz2 z)
 else ()
     target_link_libraries(gpgfrontend_core archive_static)
 endif ()
