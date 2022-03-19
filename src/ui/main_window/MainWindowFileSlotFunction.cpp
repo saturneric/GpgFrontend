@@ -66,6 +66,8 @@ bool path_pre_check(QWidget* parent, const QString& path) {
  */
 bool process_tarball_into_directory(QWidget* parent,
                                     std::filesystem::path& path) {
+
+  LOG(INFO) << "Converting directory into tarball" << path;
   auto selected_dir_path = std::filesystem::path(path);
 
   if (selected_dir_path.extension() != ".tar") {
@@ -79,8 +81,8 @@ bool process_tarball_into_directory(QWidget* parent,
     auto target_path = selected_dir_path;
     target_path.replace_extension(".tar");
 
-    LOG(INFO) << "base path" << base_path << "target archive path"
-              << target_path;
+    LOG(INFO) << "base path" << base_path.u8string() << "target archive path"
+              << target_path.u8string();
 
     bool if_error = false;
     process_operation(parent, _("Extracting Tarball"), [&]() {
@@ -110,7 +112,13 @@ bool process_tarball_into_directory(QWidget* parent,
  * @param path the tarball to be converted
  */
 bool process_directory_into_tarball(QWidget* parent, QString& path) {
-  auto selected_dir_path = std::filesystem::path(path.toStdString());
+
+#ifdef WINDOWS
+  std::filesystem::path selected_dir_path = path.toStdU16String();
+#else
+  std::filesystem::path selected_dir_path = path.toStdString();
+#endif
+
   try {
     auto base_path = selected_dir_path.parent_path();
     auto target_path = selected_dir_path;
