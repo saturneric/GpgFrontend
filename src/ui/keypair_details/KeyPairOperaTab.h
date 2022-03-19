@@ -1,4 +1,6 @@
 /**
+ * Copyright (C) 2021 Saturneric
+ *
  * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
@@ -6,16 +8,16 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * GpgFrontend is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
  *
- * The initial version of the source code is inherited from gpg4usb-team.
- * Their source code version also complies with GNU General Public License.
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * The source code version of this software was modified and released
  * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
@@ -25,44 +27,86 @@
 #ifndef GPGFRONTEND_KEYPAIROPERATAB_H
 #define GPGFRONTEND_KEYPAIROPERATAB_H
 
-#include "gpg/function/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
 class KeyPairOperaTab : public QWidget {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new Key Pair Opera Tab object
+   *
+   * @param key_id
+   * @param parent
+   */
   KeyPairOperaTab(const std::string& key_id, QWidget* parent);
 
-  void createOperaMenu();
+  /**
+   * @brief Create a Opera Menu object
+   *
+   */
+  void CreateOperaMenu();
 
  private slots:
 
   /**
    * @details Export the key to a file, which is chosen in a file dialog
    */
-  void slotExportPrivateKey();
+  void slot_export_private_key();
 
-  void slotExportShortPrivateKey();
+  /**
+   * @brief
+   *
+   */
+  void slot_export_short_private_key();
 
-  void slotExportPublicKey();
+  /**
+   * @brief
+   *
+   */
+  void slot_export_public_key();
 
-  void slotModifyEditDatetime();
+  /**
+   * @brief
+   *
+   */
+  void slot_modify_edit_datetime();
 
-  void slotModifyPassword();
+  /**
+   * @brief
+   *
+   */
+  void slot_modify_password();
 
-  void slotUploadKeyToServer();
+  /**
+   * @brief
+   *
+   */
+  void slot_upload_key_to_server();
 
-  void slotUpdateKeyFromServer();
+  /**
+   * @brief
+   *
+   */
+  void slot_update_key_from_server();
 
-  void slotGenRevokeCert();
+  /**
+   * @brief
+   *
+   */
+  void slot_gen_revoke_cert();
 
-  void slotModifyTOFUPolicy();
+  /**
+   * @brief
+   *
+   */
+  void slot_modify_tofu_policy();
 
  private:
-  GpgKey m_key_;
-  QMenu* keyServerOperaMenu{};
-  QMenu* secretKeyExportOperaMenu{};
+  GpgKey m_key_;                           ///<
+  QMenu* key_server_opera_menu_{};         ///<
+  QMenu* secret_key_export_opera_menu_{};  ///<
 };
 }  // namespace GpgFrontend::UI
 

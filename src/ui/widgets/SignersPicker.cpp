@@ -1,4 +1,6 @@
 /**
+ * Copyright (C) 2021 Saturneric
+ *
  * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
@@ -6,19 +8,21 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * GpgFrontend is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
  *
- * The initial version of the source code is inherited from gpg4usb-team.
- * Their source code version also complies with GNU General Public License.
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
@@ -30,15 +34,17 @@ namespace GpgFrontend::UI {
 
 SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
   auto confirm_button = new QPushButton(_("Confirm"));
-  connect(confirm_button, SIGNAL(clicked(bool)), this, SLOT(accept()));
+  connect(confirm_button, &QPushButton::clicked, this, &SignersPicker::accept);
 
   /*Setup KeyList*/
   key_list_ = new KeyList(false, this);
-  key_list_->addListGroupTab(
+  key_list_->AddListGroupTab(
       _("Signers"), KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage,
-      [](const GpgKey& key) -> bool { return key.CanSignActual(); });
-  key_list_->slotRefresh();
+      [](const GpgKey& key) -> bool {
+        return key.IsHasActualSigningCapability();
+      });
+  key_list_->SlotRefresh();
 
   auto* vbox2 = new QVBoxLayout();
   vbox2->addWidget(new QLabel(QString(_("Select Signer(s)")) + ": "));
@@ -61,8 +67,8 @@ SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
   this->show();
 }
 
-GpgFrontend::KeyIdArgsListPtr SignersPicker::getCheckedSigners() {
-  return key_list_->getPrivateChecked();
+GpgFrontend::KeyIdArgsListPtr SignersPicker::GetCheckedSigners() {
+  return key_list_->GetPrivateChecked();
 }
 
 }  // namespace GpgFrontend::UI

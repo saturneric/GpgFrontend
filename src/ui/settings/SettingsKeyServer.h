@@ -1,4 +1,6 @@
 /**
+ * Copyright (C) 2021 Saturneric
+ *
  * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
@@ -6,19 +8,21 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * GpgFrontend is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
  *
- * The initial version of the source code is inherited from gpg4usb-team.
- * Their source code version also complies with GNU General Public License.
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
@@ -30,38 +34,76 @@
 class Ui_KeyServerSettings;
 
 namespace GpgFrontend::UI {
+/**
+ * @brief
+ *
+ */
 class KeyserverTab : public QWidget {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Keyserver Tab object
+   *
+   * @param parent
+   */
   explicit KeyserverTab(QWidget* parent = nullptr);
 
-  void setSettings();
+  /**
+   * @brief Set the Settings object
+   *
+   */
+  void SetSettings();
 
-  void applySettings();
+  /**
+   * @brief
+   *
+   */
+  void ApplySettings();
 
  private:
-  std::shared_ptr<Ui_KeyServerSettings> ui;
-  QString defaultKeyServer;
-  QStringList keyServerStrList;
-  QMenu* popupMenu{};
+  std::shared_ptr<Ui_KeyServerSettings> ui_;
+  QString default_key_server_;
+  QStringList key_server_str_list_;
+  QMenu* popup_menu_{};
 
-  QRegularExpression url_reg{
+  QRegularExpression url_reg_{
       R"(^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$)"};
 
  private slots:
 
-  void addKeyServer();
+  /**
+   * @brief
+   *
+   */
+  void slot_add_key_server();
 
-  void refreshTable();
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh_table();
 
-  void slotTestListedKeyServer();
+  /**
+   * @brief
+   *
+   */
+  void slot_test_listed_key_server();
 
  signals:
-
-  void signalRestartNeeded(bool needed);
+  /**
+   * @brief
+   *
+   * @param needed
+   */
+  void SignalRestartNeeded(bool needed);
 
  protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
   void contextMenuEvent(QContextMenuEvent* event) override;
 };
 }  // namespace GpgFrontend::UI

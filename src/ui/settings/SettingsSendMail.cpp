@@ -1,4 +1,6 @@
 /**
+ * Copyright (C) 2021 Saturneric
+ *
  * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
@@ -6,53 +8,51 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * GpgFrontend is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
  *
- * The initial version of the source code is inherited from gpg4usb-team.
- * Their source code version also complies with GNU General Public License.
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
 #include "SettingsSendMail.h"
 
-#ifdef SMTP_SUPPORT
-#include "smtp/SmtpMime"
-#endif
-
-#include "ui/function/SMTPSendMailThread.h"
-#include "ui/function/SMTPTestThread.h"
-#include "ui/settings/GlobalSettingStation.h"
+#include "ui/struct/SettingsObject.h"
+#include "ui/thread/SMTPConnectionTestThread.h"
+#include "ui/thread/SMTPSendMailThread.h"
 #include "ui_SendMailSettings.h"
 
 namespace GpgFrontend::UI {
 
 SendMailTab::SendMailTab(QWidget* parent)
-    : QWidget(parent), ui(std::make_shared<Ui_SendMailSettings>()) {
-  ui->setupUi(this);
+    : QWidget(parent), ui_(std::make_shared<Ui_SendMailSettings>()) {
+  ui_->setupUi(this);
 
-  connect(ui->enableCheckBox, &QCheckBox::stateChanged, this,
+  connect(ui_->enableCheckBox, &QCheckBox::stateChanged, this,
           [=](int state) { switch_ui_enabled(state == Qt::Checked); });
 
 #ifdef SMTP_SUPPORT
-  connect(ui->checkConnectionButton, &QPushButton::clicked, this,
-          &SendMailTab::slotCheckConnection);
-  connect(ui->senTestMailButton, &QPushButton::clicked, this,
-          &SendMailTab::slotSendTestMail);
+  connect(ui_->checkConnectionButton, &QPushButton::clicked, this,
+          &SendMailTab::slot_check_connection);
+  connect(ui_->senTestMailButton, &QPushButton::clicked, this,
+          &SendMailTab::slot_send_test_mail);
 #endif
 
-  connect(ui->identityCheckBox, &QCheckBox::stateChanged, this,
+  connect(ui_->identityCheckBox, &QCheckBox::stateChanged, this,
           [=](int state) { switch_ui_identity_enabled(state == Qt::Checked); });
 
-  connect(ui->connextionSecurityComboBox, &QComboBox::currentTextChanged, this,
+  connect(ui_->connextionSecurityComboBox, &QComboBox::currentTextChanged, this,
           [=](const QString& current_text) {
             if (current_text == "SSL") {
               connection_type_ = SmtpClient::ConnectionType::SslConnection;
@@ -63,212 +63,121 @@ SendMailTab::SendMailTab(QWidget* parent)
             }
           });
 
-  ui->generalGroupBox->setTitle(_("General"));
-  ui->identityGroupBox->setTitle(_("Identity Information"));
-  ui->preferenceGroupBox->setTitle(_("Preference"));
-  ui->operationsGroupBox->setTitle(_("Operations"));
+  ui_->generalGroupBox->setTitle(_("General"));
+  ui_->identityGroupBox->setTitle(_("Identity Information"));
+  ui_->preferenceGroupBox->setTitle(_("Preference"));
+  ui_->operationsGroupBox->setTitle(_("Operations"));
 
-  ui->enableCheckBox->setText(_("Enable Send Mail Ability"));
-  ui->identityCheckBox->setText(_("Need Auth"));
+  ui_->enableCheckBox->setText(_("Enable Send Mail Ability"));
+  ui_->identityCheckBox->setText(_("Need Auth"));
 
-  ui->smtpServerAddressLabel->setText(_("SMTP Server Address"));
-  ui->smtpServerPortLabel->setText(_("SMTP Server Port"));
-  ui->connectionSecurityLabel->setText(_("SMTP Connection Security"));
-  ui->usernameLabel->setText(_("Username"));
-  ui->passwordLabel->setText(_("Password"));
+  ui_->smtpServerAddressLabel->setText(_("SMTP Server Address"));
+  ui_->smtpServerPortLabel->setText(_("SMTP Server Port"));
+  ui_->connectionSecurityLabel->setText(_("SMTP Connection Security"));
+  ui_->usernameLabel->setText(_("Username"));
+  ui_->passwordLabel->setText(_("Password"));
 
-  ui->senderLabel->setText(_("Default Sender Email"));
-  ui->checkConnectionButton->setText(_("Check Connection"));
-  ui->senTestMailButton->setText(_("Send Test Email"));
-  ui->gpgkeyIdLabel->setText(_("Default Sender GPG Key ID"));
+  ui_->senderLabel->setText(_("Default Sender Email"));
+  ui_->checkConnectionButton->setText(_("Check Connection"));
+  ui_->senTestMailButton->setText(_("Send Test Email"));
+  ui_->gpgkeyIdLabel->setText(_("Default Sender GPG Key ID"));
 
-  ui->tipsLabel->setText(
+  ui_->tipsLabel->setText(
       _("Tips: It is recommended that you build your own mail server or use "
         "a trusted mail server. If you don't know the detailed configuration "
         "information, you can get it from the mail service provider."));
 
-  ui->senTestMailButton->setDisabled(true);
+  ui_->senTestMailButton->setDisabled(true);
 
   auto* email_validator =
-      new QRegularExpressionValidator(re_email, ui->defaultSenderEmailEdit);
-  ui->defaultSenderEmailEdit->setValidator(email_validator);
+      new QRegularExpressionValidator(re_email_, ui_->defaultSenderEmailEdit);
+  ui_->defaultSenderEmailEdit->setValidator(email_validator);
 
-  setSettings();
+  SetSettings();
 }
 
-void SendMailTab::setSettings() {
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+void SendMailTab::SetSettings() {
+  auto smtp_passport = SettingsObject("smtp_passport");
 
-  try {
-    std::string mail_address = settings.lookup("smtp.mail_address");
-    ui->smtpServerAddressEdit->setText(mail_address.c_str());
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("mail_address");
-  }
+  ui_->smtpServerAddressEdit->setText(
+      std::string{smtp_passport.Check("smtp_address", "")}.c_str());
 
-  try {
-    std::string std_username = settings.lookup("smtp.username");
-    ui->usernameEdit->setText(std_username.c_str());
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("username");
-  }
+  ui_->usernameEdit->setText(
+      std::string{smtp_passport.Check("username", "")}.c_str());
 
-  try {
-    std::string std_password = settings.lookup("smtp.password");
-    ui->passwordEdit->setText(std_password.c_str());
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("password");
-  }
+  ui_->passwordEdit->setText(
+      std::string{smtp_passport.Check("password", "")}.c_str());
 
-  try {
-    int port = settings.lookup("smtp.port");
-    ui->portSpin->setValue(port);
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("port");
-  }
+  ui_->portSpin->setValue(int{smtp_passport.Check("port", 25)});
 
-  ui->connextionSecurityComboBox->setCurrentText("None");
-  try {
-    std::string connection_type = settings.lookup("smtp.connection_type");
-    ui->connextionSecurityComboBox->setCurrentText(connection_type.c_str());
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("connection_type");
-  }
+  ui_->connextionSecurityComboBox->setCurrentText(
+      std::string{smtp_passport.Check("connection_type", "None")}.c_str());
 
-  try {
-    std::string default_sender = settings.lookup("smtp.default_sender");
-    ui->defaultSenderEmailEdit->setText(default_sender.c_str());
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("default_sender");
-  }
+  ui_->defaultSenderEmailEdit->setText(
+      std::string{smtp_passport.Check("default_sender", "")}.c_str());
 
-  try {
-    std::string default_sender_gpg_key_id =
-        settings.lookup("smtp.default_sender_gpg_key_id");
-    ui->gpgKeyIDEdit->setText(default_sender_gpg_key_id.c_str());
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error")
-               << _("default_sender_gpg_key_id");
-  }
+  ui_->gpgKeyIDEdit->setText(
+      std::string{smtp_passport.Check("default_sender_gpg_key_id", "")}
+          .c_str());
 
-  ui->identityCheckBox->setCheckState(Qt::Unchecked);
-  try {
-    bool identity_enable = settings.lookup("smtp.identity_enable");
-    if (identity_enable)
-      ui->identityCheckBox->setCheckState(Qt::Checked);
-    else
-      ui->identityCheckBox->setCheckState(Qt::Unchecked);
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("identity_enable");
-  }
-  
+  ui_->identityCheckBox->setChecked(
+      bool{smtp_passport.Check("identity_enable", false)});
+
+  ui_->enableCheckBox->setChecked(bool{smtp_passport.Check("enable", false)});
+
   {
-    auto state = ui->identityCheckBox->checkState();
+    auto state = ui_->identityCheckBox->checkState();
     switch_ui_identity_enabled(state == Qt::Checked);
   }
 
-  ui->enableCheckBox->setCheckState(Qt::Unchecked);
-  try {
-    bool smtp_enable = settings.lookup("smtp.enable");
-    if (smtp_enable)
-      ui->enableCheckBox->setCheckState(Qt::Checked);
-    else
-      ui->enableCheckBox->setCheckState(Qt::Unchecked);
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("save_key_checked");
-  }
-
   {
-    auto state = ui->enableCheckBox->checkState();
+    auto state = ui_->enableCheckBox->checkState();
     switch_ui_enabled(state == Qt::Checked);
   }
 }
 
-void SendMailTab::applySettings() {
-  auto& settings =
-      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
+void SendMailTab::ApplySettings() {
+  try {
+    auto smtp_passport = SettingsObject("smtp_passport");
 
-  if (!settings.exists("smtp") ||
-      settings.lookup("smtp").getType() != libconfig::Setting::TypeGroup)
-    settings.add("smtp", libconfig::Setting::TypeGroup);
+    smtp_passport["smtp_address"] =
+        ui_->smtpServerAddressEdit->text().toStdString();
 
-  auto& smtp = settings["smtp"];
+    smtp_passport["username"] = ui_->usernameEdit->text().toStdString();
 
-  if (!smtp.exists("mail_address"))
-    smtp.add("mail_address", libconfig::Setting::TypeString) =
-        ui->smtpServerAddressEdit->text().toStdString();
-  else {
-    smtp["mail_address"] = ui->smtpServerAddressEdit->text().toStdString();
-  }
+    smtp_passport["password"] = ui_->passwordEdit->text().toStdString();
 
-  if (!smtp.exists("username"))
-    smtp.add("username", libconfig::Setting::TypeString) =
-        ui->usernameEdit->text().toStdString();
-  else {
-    smtp["username"] = ui->usernameEdit->text().toStdString();
-  }
+    smtp_passport["port"] = ui_->portSpin->value();
 
-  if (!smtp.exists("password"))
-    smtp.add("password", libconfig::Setting::TypeString) =
-        ui->passwordEdit->text().toStdString();
-  else {
-    smtp["password"] = ui->passwordEdit->text().toStdString();
-  }
+    smtp_passport["connection_type"] =
+        ui_->connextionSecurityComboBox->currentText().toStdString();
 
-  if (!smtp.exists("port"))
-    smtp.add("port", libconfig::Setting::TypeInt) = ui->portSpin->value();
-  else {
-    smtp["port"] = ui->portSpin->value();
-  }
+    smtp_passport["default_sender"] =
+        ui_->defaultSenderEmailEdit->text().toStdString();
 
-  if (!smtp.exists("connection_type"))
-    smtp.add("connection_type", libconfig::Setting::TypeString) =
-        ui->connextionSecurityComboBox->currentText().toStdString();
-  else {
-    smtp["connection_type"] =
-        ui->connextionSecurityComboBox->currentText().toStdString();
-  }
+    smtp_passport["default_sender_gpg_key_id"] =
+        ui_->gpgKeyIDEdit->text().toStdString();
 
-  if (!smtp.exists("default_sender"))
-    smtp.add("default_sender", libconfig::Setting::TypeString) =
-        ui->defaultSenderEmailEdit->text().toStdString();
-  else {
-    smtp["default_sender"] = ui->defaultSenderEmailEdit->text().toStdString();
-  }
+    smtp_passport["identity_enable"] = ui_->identityCheckBox->isChecked();
 
-  if (!smtp.exists("default_sender_gpg_key_id"))
-    smtp.add("default_sender_gpg_key_id", libconfig::Setting::TypeString) =
-        ui->gpgKeyIDEdit->text().toStdString();
-  else {
-    smtp["default_sender_gpg_key_id"] = ui->gpgKeyIDEdit->text().toStdString();
-  }
+    smtp_passport["enable"] = ui_->enableCheckBox->isChecked();
 
-  if (!smtp.exists("identity_enable"))
-    smtp.add("identity_enable", libconfig::Setting::TypeBoolean) =
-        ui->identityCheckBox->isChecked();
-  else {
-    smtp["identity_enable"] = ui->identityCheckBox->isChecked();
-  }
-
-  if (!smtp.exists("enable"))
-    smtp.add("enable", libconfig::Setting::TypeBoolean) =
-        ui->enableCheckBox->isChecked();
-  else {
-    smtp["enable"] = ui->enableCheckBox->isChecked();
+  } catch (...) {
+    LOG(ERROR) << _("apply settings failed");
   }
 }
 
 #ifdef SMTP_SUPPORT
-void SendMailTab::slotCheckConnection() {
-  auto host = ui->smtpServerAddressEdit->text().toStdString();
-  auto port = ui->portSpin->value();
+void SendMailTab::slot_check_connection() {
+  auto host = ui_->smtpServerAddressEdit->text().toStdString();
+  auto port = ui_->portSpin->value();
   auto connection_type = connection_type_;
-  bool identity_needed = ui->identityCheckBox->isChecked();
-  auto username = ui->usernameEdit->text().toStdString();
-  auto password = ui->passwordEdit->text().toStdString();
+  bool identity_needed = ui_->identityCheckBox->isChecked();
+  auto username = ui_->usernameEdit->text().toStdString();
+  auto password = ui_->passwordEdit->text().toStdString();
 
-  auto thread = new SMTPTestThread(host, port, connection_type, identity_needed,
-                                   username, password);
+  auto thread = new SMTPConnectionTestThread(
+      host, port, connection_type, identity_needed, username, password);
 
   // Waiting Dialog
   auto* waiting_dialog = new QProgressDialog(this);
@@ -281,8 +190,8 @@ void SendMailTab::slotCheckConnection() {
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
-  connect(thread, &SMTPTestThread::signalSMTPTestResult, this,
-          &SendMailTab::slotTestSMTPConnectionResult);
+  connect(thread, &SMTPConnectionTestThread::SignalSMTPConnectionTestResult,
+          this, &SendMailTab::slot_test_smtp_connection_result);
   connect(thread, &QThread::finished, [=]() {
     waiting_dialog->finished(0);
     waiting_dialog->deleteLater();
@@ -304,14 +213,14 @@ void SendMailTab::slotCheckConnection() {
 #endif
 
 #ifdef SMTP_SUPPORT
-void SendMailTab::slotSendTestMail() {
-  auto host = ui->smtpServerAddressEdit->text().toStdString();
-  auto port = ui->portSpin->value();
+void SendMailTab::slot_send_test_mail() {
+  auto host = ui_->smtpServerAddressEdit->text().toStdString();
+  auto port = ui_->portSpin->value();
   auto connection_type = connection_type_;
-  bool identity_needed = ui->identityCheckBox->isChecked();
-  auto username = ui->usernameEdit->text().toStdString();
-  auto password = ui->passwordEdit->text().toStdString();
-  auto sender_address = ui->defaultSenderEmailEdit->text();
+  bool identity_needed = ui_->identityCheckBox->isChecked();
+  auto username = ui_->usernameEdit->text().toStdString();
+  auto password = ui_->passwordEdit->text().toStdString();
+  auto sender_address = ui_->defaultSenderEmailEdit->text();
 
   auto thread = new SMTPSendMailThread(host, port, connection_type,
                                        identity_needed, username, password);
@@ -327,8 +236,8 @@ void SendMailTab::slotSendTestMail() {
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
-  connect(thread, &SMTPSendMailThread::signalSMTPResult, this,
-          &SendMailTab::slotTestSMTPConnectionResult);
+  connect(thread, &SMTPSendMailThread::SignalSMTPResult, this,
+          &SendMailTab::slot_test_smtp_connection_result);
   connect(thread, &QThread::finished, [=]() {
     waiting_dialog->finished(0);
     waiting_dialog->deleteLater();
@@ -338,10 +247,10 @@ void SendMailTab::slotSendTestMail() {
     if (thread->isRunning()) thread->terminate();
   });
 
-  thread->setSender(sender_address);
-  thread->setRecipient(sender_address);
-  thread->setSubject(_("Test Email from GpgFrontend"));
-  thread->addTextContent(
+  thread->SetSender(sender_address);
+  thread->SetRecipient(sender_address);
+  thread->SetSubject(_("Test Email from GpgFrontend"));
+  thread->AddTextContent(
       _("Hello, this is a test email from GpgFrontend. If you receive this "
         "email, it means that you have configured the correct SMTP server "
         "parameters."));
@@ -356,48 +265,48 @@ void SendMailTab::slotSendTestMail() {
   loop.exec();
 }
 
-void SendMailTab::slotTestSMTPConnectionResult(const QString& result) {
+void SendMailTab::slot_test_smtp_connection_result(const QString& result) {
   if (result == "Fail to connect SMTP server") {
     QMessageBox::critical(this, _("Fail"), _("Fail to Connect SMTP Server."));
-    ui->senTestMailButton->setDisabled(true);
+    ui_->senTestMailButton->setDisabled(true);
   } else if (result == "Fail to login") {
     QMessageBox::critical(this, _("Fail"), _("Fail to Login."));
-    ui->senTestMailButton->setDisabled(true);
+    ui_->senTestMailButton->setDisabled(true);
   } else if (result == "Fail to send mail") {
     QMessageBox::critical(this, _("Fail"), _("Fail to Login."));
-    ui->senTestMailButton->setDisabled(true);
+    ui_->senTestMailButton->setDisabled(true);
   } else if (result == "Succeed in testing connection") {
     QMessageBox::information(this, _("Success"),
                              _("Succeed in connecting and login"));
-    ui->senTestMailButton->setDisabled(false);
+    ui_->senTestMailButton->setDisabled(false);
   } else if (result == "Succeed in sending a test email") {
     QMessageBox::information(
         this, _("Success"),
         _("Succeed in sending a test email to the SMTP Server"));
-    ui->senTestMailButton->setDisabled(false);
+    ui_->senTestMailButton->setDisabled(false);
   } else {
     QMessageBox::critical(this, _("Fail"), _("Unknown error."));
-    ui->senTestMailButton->setDisabled(true);
+    ui_->senTestMailButton->setDisabled(true);
   }
 }
 
 void SendMailTab::switch_ui_enabled(bool enabled) {
-  ui->smtpServerAddressEdit->setDisabled(!enabled);
-  ui->portSpin->setDisabled(!enabled);
-  ui->connextionSecurityComboBox->setDisabled(!enabled);
+  ui_->smtpServerAddressEdit->setDisabled(!enabled);
+  ui_->portSpin->setDisabled(!enabled);
+  ui_->connextionSecurityComboBox->setDisabled(!enabled);
 
-  ui->identityCheckBox->setDisabled(!enabled);
-  ui->usernameEdit->setDisabled(!enabled);
-  ui->passwordEdit->setDisabled(!enabled);
+  ui_->identityCheckBox->setDisabled(!enabled);
+  ui_->usernameEdit->setDisabled(!enabled);
+  ui_->passwordEdit->setDisabled(!enabled);
 
-  ui->defaultSenderEmailEdit->setDisabled(!enabled);
-  ui->gpgKeyIDEdit->setDisabled(!enabled);
-  ui->checkConnectionButton->setDisabled(!enabled);
+  ui_->defaultSenderEmailEdit->setDisabled(!enabled);
+  ui_->gpgKeyIDEdit->setDisabled(!enabled);
+  ui_->checkConnectionButton->setDisabled(!enabled);
 }
 
 void SendMailTab::switch_ui_identity_enabled(bool enabled) {
-  ui->usernameEdit->setDisabled(!enabled);
-  ui->passwordEdit->setDisabled(!enabled);
+  ui_->usernameEdit->setDisabled(!enabled);
+  ui_->passwordEdit->setDisabled(!enabled);
 }
 #endif
 

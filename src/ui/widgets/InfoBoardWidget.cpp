@@ -1,4 +1,6 @@
 /**
+ * Copyright (C) 2021 Saturneric
+ *
  * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
@@ -6,55 +8,58 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * GpgFrontend is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
  *
- * The initial version of the source code is inherited from gpg4usb-team.
- * Their source code version also complies with GNU General Public License.
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
 #include "ui/widgets/InfoBoardWidget.h"
 
 #include "ui/SignalStation.h"
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui_InfoBoard.h"
+#include "ui/struct/SettingsObject.h"
 
 namespace GpgFrontend::UI {
 
 InfoBoardWidget::InfoBoardWidget(QWidget* parent)
-    : QWidget(parent), ui(std::make_shared<Ui_InfoBoard>()) {
-  ui->setupUi(this);
+    : QWidget(parent), ui_(std::make_shared<Ui_InfoBoard>()) {
+  ui_->setupUi(this);
 
-  ui->actionButtonLayout->addStretch();
-  ui->copyButton->setText(_("Copy"));
-  ui->saveButton->setText(_("Save File"));
-  ui->clearButton->setText(_("Clear"));
+  ui_->actionButtonLayout->addStretch();
+  ui_->copyButton->setText(_("Copy"));
+  ui_->saveButton->setText(_("Save File"));
+  ui_->clearButton->setText(_("Clear"));
 
-  connect(ui->copyButton, &QPushButton::clicked, this,
-          &InfoBoardWidget::slotCopy);
-  connect(ui->saveButton, &QPushButton::clicked, this,
-          &InfoBoardWidget::slotSave);
-  connect(ui->clearButton, &QPushButton::clicked, this,
-          &InfoBoardWidget::slotReset);
+  connect(ui_->copyButton, &QPushButton::clicked, this,
+          &InfoBoardWidget::slot_copy);
+  connect(ui_->saveButton, &QPushButton::clicked, this,
+          &InfoBoardWidget::slot_save);
+  connect(ui_->clearButton, &QPushButton::clicked, this,
+          &InfoBoardWidget::SlotReset);
 
-  connect(SignalStation::GetInstance(), &SignalStation::signalRefreshInfoBoard,
-          this, &InfoBoardWidget::slotRefresh);
+  connect(SignalStation::GetInstance(), &SignalStation::SignalRefreshInfoBoard,
+          this, &InfoBoardWidget::SlotRefresh);
 }
 
-void InfoBoardWidget::setInfoBoard(const QString& text,
-                                   InfoBoardStatus verifyLabelStatus) {
+void InfoBoardWidget::SetInfoBoard(const QString& text,
+                                   InfoBoardStatus verify_label_status) {
   QString color;
-  ui->infoBoard->clear();
-  switch (verifyLabelStatus) {
+  ui_->infoBoard->clear();
+  switch (verify_label_status) {
     case INFO_ERROR_OK:
       color = "#008000";
       break;
@@ -67,98 +72,95 @@ void InfoBoardWidget::setInfoBoard(const QString& text,
     default:
       break;
   }
-  ui->infoBoard->append(text);
+  ui_->infoBoard->append(text);
 
-  ui->infoBoard->setAutoFillBackground(true);
-  QPalette status = ui->infoBoard->palette();
+  ui_->infoBoard->setAutoFillBackground(true);
+  QPalette status = ui_->infoBoard->palette();
   status.setColor(QPalette::Text, color);
-  ui->infoBoard->setPalette(status);
+  ui_->infoBoard->setPalette(status);
 
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  SettingsObject main_windows_state("main_windows_state");
 
   // info board font size
-  auto info_font_size = 10;
-  try {
-    info_font_size = settings.lookup("window.info_font_size");
-    if (info_font_size < 9 || info_font_size > 18) info_font_size = 10;
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("info_font_size");
-  }
-  ui->infoBoard->setFont(QFont("Times", info_font_size));
+  auto info_font_size = main_windows_state.Check("info_font_size", 10);
+  ui_->infoBoard->setFont(QFont("Times", info_font_size));
 }
 
-void InfoBoardWidget::slotRefresh(const QString& text, InfoBoardStatus status) {
-  ui->infoBoard->clear();
-  setInfoBoard(text, status);
-  ui->infoBoard->verticalScrollBar()->setValue(0);
+void InfoBoardWidget::SlotRefresh(const QString& text, InfoBoardStatus status) {
+  ui_->infoBoard->clear();
+  SetInfoBoard(text, status);
+  ui_->infoBoard->verticalScrollBar()->setValue(0);
 }
 
-void InfoBoardWidget::associateTextEdit(QTextEdit* edit) {
-  if (mTextPage != nullptr)
-    disconnect(mTextPage, SIGNAL(textChanged()), this, SLOT(slotReset()));
-  this->mTextPage = edit;
-  connect(edit, SIGNAL(textChanged()), this, SLOT(slotReset()));
+void InfoBoardWidget::AssociateTextEdit(QTextEdit* edit) {
+  if (m_text_page_ != nullptr)
+    disconnect(m_text_page_, &QTextEdit::textChanged, this,
+               &InfoBoardWidget::SlotReset);
+  this->m_text_page_ = edit;
+  connect(edit, &QTextEdit::textChanged, this, &InfoBoardWidget::SlotReset);
 }
 
-void InfoBoardWidget::associateTabWidget(QTabWidget* tab) {
-  mTextPage = nullptr;
-  mTabWidget = tab;
-  connect(tab, SIGNAL(tabBarClicked(int)), this, SLOT(slotReset()));
-  connect(tab, SIGNAL(tabCloseRequested(int)), this, SLOT(slotReset()));
+void InfoBoardWidget::AssociateTabWidget(QTabWidget* tab) {
+  m_text_page_ = nullptr;
+  m_tab_widget_ = tab;
+  connect(tab, &QTabWidget::tabBarClicked, this, &InfoBoardWidget::SlotReset);
+  connect(tab, &QTabWidget::tabCloseRequested, this,
+          &InfoBoardWidget::SlotReset);
   // reset
-  this->slotReset();
+  this->SlotReset();
 }
 
-void InfoBoardWidget::addOptionalAction(const QString& name,
+void InfoBoardWidget::AddOptionalAction(const QString& name,
                                         const std::function<void()>& action) {
   LOG(INFO) << "add option" << name.toStdString();
   auto actionButton = new QPushButton(name);
   auto layout = new QHBoxLayout();
   layout->setContentsMargins(5, 0, 5, 0);
-  ui->infoBoard->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+  ui_->infoBoard->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   // set margin from surroundings
   layout->addWidget(actionButton);
-  ui->actionButtonLayout->addLayout(layout);
+  ui_->actionButtonLayout->addLayout(layout);
   connect(actionButton, &QPushButton::clicked, this, [=]() { action(); });
 }
 
 /**
  * Delete All item in actionButtonLayout
  */
-void InfoBoardWidget::resetOptionActionsMenu() {
+void InfoBoardWidget::ResetOptionActionsMenu() {
   // skip stretch
-  deleteWidgetsInLayout(ui->actionButtonLayout, 1);
+  delete_widgets_in_layout(ui_->actionButtonLayout, 1);
 }
 
-void InfoBoardWidget::slotReset() {
-  ui->infoBoard->clear();
-  resetOptionActionsMenu();
+void InfoBoardWidget::SlotReset() {
+  ui_->infoBoard->clear();
+  ResetOptionActionsMenu();
 }
 
 /**
  * Try Delete all widget from target layout
  * @param layout target layout
  */
-void InfoBoardWidget::deleteWidgetsInLayout(QLayout* layout, int start_index) {
+void InfoBoardWidget::delete_widgets_in_layout(QLayout* layout,
+                                               int start_index) {
   LOG(INFO) << "Called";
 
   QLayoutItem* item;
   while ((item = layout->layout()->takeAt(start_index)) != nullptr) {
     layout->removeItem(item);
     if (item->layout() != nullptr)
-      deleteWidgetsInLayout(item->layout());
+      delete_widgets_in_layout(item->layout());
     else if (item->widget() != nullptr)
       delete item->widget();
     delete item;
   }
 }
 
-void InfoBoardWidget::slotCopy() {
+void InfoBoardWidget::slot_copy() {
   auto* clipboard = QGuiApplication::clipboard();
-  clipboard->setText(ui->infoBoard->toPlainText());
+  clipboard->setText(ui_->infoBoard->toPlainText());
 }
 
-void InfoBoardWidget::slotSave() {
+void InfoBoardWidget::slot_save() {
   auto file_path = QFileDialog::getSaveFileName(
       this, _("Save Information Board's Content"), {}, tr("Text (*.txt)"));
   LOG(INFO) << "file path" << file_path.toStdString();
@@ -166,7 +168,7 @@ void InfoBoardWidget::slotSave() {
 
   QFile file(file_path);
   if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-    file.write(ui->infoBoard->toPlainText().toUtf8());
+    file.write(ui_->infoBoard->toPlainText().toUtf8());
   } else {
     QMessageBox::critical(
         this, _("Error"),

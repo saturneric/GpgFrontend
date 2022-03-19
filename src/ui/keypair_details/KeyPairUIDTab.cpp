@@ -1,4 +1,6 @@
 /**
+ * Copyright (C) 2021 Saturneric
+ *
  * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
@@ -6,16 +8,16 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * GpgFrontend is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
  *
- * The initial version of the source code is inherited from gpg4usb-team.
- * Their source code version also complies with GNU General Public License.
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * The source code version of this software was modified and released
  * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
@@ -24,29 +26,29 @@
 
 #include "ui/keypair_details/KeyPairUIDTab.h"
 
-#include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/GpgKeyManager.h"
-#include "gpg/function/UidOperator.h"
+#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyManager.h"
+#include "core/function/gpg/GpgUIDOperator.h"
 #include "ui/SignalStation.h"
 #include "ui/widgets/TOFUInfoPage.h"
 
 namespace GpgFrontend::UI {
 
 KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
-    : QWidget(parent), mKey(GpgKeyGetter::GetInstance().GetKey(key_id)) {
-  createUIDList();
-  createSignList();
-  createManageUIDMenu();
-  createUIDPopupMenu();
-  createSignPopupMenu();
+    : QWidget(parent), m_key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+  create_uid_list();
+  create_sign_list();
+  create_manage_uid_menu();
+  create_uid_popup_menu();
+  create_sign_popup_menu();
 
   auto uidButtonsLayout = new QGridLayout();
 
   auto addUIDButton = new QPushButton(_("New UID"));
   auto manageUIDButton = new QPushButton(_("UID Management"));
 
-  if (mKey.has_master_key()) {
-    manageUIDButton->setMenu(manageSelectedUIDMenu);
+  if (m_key_.IsHasMasterKey()) {
+    manageUIDButton->setMenu(manage_selected_uid_menu_);
   } else {
     manageUIDButton->setDisabled(true);
   }
@@ -56,7 +58,7 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
 
   auto grid_layout = new QGridLayout();
 
-  grid_layout->addWidget(uidList, 0, 0);
+  grid_layout->addWidget(uid_list_, 0, 0);
   grid_layout->addLayout(uidButtonsLayout, 1, 0);
   grid_layout->setContentsMargins(0, 10, 0, 0);
 
@@ -69,12 +71,12 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
   tofu_group_box->setLayout(tofu_vbox_layout);
   tofu_group_box->setTitle(_("TOFU"));
 #if !defined(RELEASE)
-  tofuTabs = new QTabWidget(this);
-  tofu_vbox_layout->addWidget(tofuTabs);
+  tofu_tabs_ = new QTabWidget(this);
+  tofu_vbox_layout->addWidget(tofu_tabs_);
 #endif
 
   auto sign_grid_layout = new QGridLayout();
-  sign_grid_layout->addWidget(sigList, 0, 0);
+  sign_grid_layout->addWidget(sig_list_, 0, 0);
   sign_grid_layout->setContentsMargins(0, 10, 0, 0);
 
   auto sign_group_box = new QGroupBox();
@@ -91,198 +93,203 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
 
   vboxLayout->setContentsMargins(0, 0, 0, 0);
 
-  connect(addUIDButton, SIGNAL(clicked(bool)), this, SLOT(slotAddUID()));
-  connect(uidList, SIGNAL(itemSelectionChanged()), this,
-          SLOT(slotRefreshTOFUInfo()));
-  connect(uidList, SIGNAL(itemSelectionChanged()), this,
-          SLOT(slotRefreshSigList()));
+  connect(addUIDButton, &QPushButton::clicked, this,
+          &KeyPairUIDTab::slot_add_uid);
+  connect(uid_list_, &QTableWidget::itemSelectionChanged, this,
+          &KeyPairUIDTab::slot_refresh_tofu_info);
+  connect(uid_list_, &QTableWidget::itemSelectionChanged, this,
+          &KeyPairUIDTab::slot_refresh_sig_list);
 
   // Key Database Refresh
-  connect(SignalStation::GetInstance(), SIGNAL(KeyDatabaseRefresh()), this,
-          SLOT(slotRefreshKey()));
+  connect(SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh, this,
+          &KeyPairUIDTab::slot_refresh_key);
 
-  connect(this, SIGNAL(signalUpdateUIDInfo()), SignalStation::GetInstance(),
-          SIGNAL(KeyDatabaseRefresh()));
+  connect(this, &KeyPairUIDTab::SignalUpdateUIDInfo,
+          SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh);
 
   setLayout(vboxLayout);
   setAttribute(Qt::WA_DeleteOnClose, true);
 
-  slotRefreshUIDList();
+  slot_refresh_uid_list();
 }
 
-void KeyPairUIDTab::createUIDList() {
-  uidList = new QTableWidget(this);
-  uidList->setColumnCount(4);
-  uidList->horizontalHeader()->setSectionResizeMode(
+void KeyPairUIDTab::create_uid_list() {
+  uid_list_ = new QTableWidget(this);
+  uid_list_->setColumnCount(4);
+  uid_list_->horizontalHeader()->setSectionResizeMode(
       QHeaderView::ResizeToContents);
-  uidList->verticalHeader()->hide();
-  uidList->setShowGrid(false);
-  uidList->setSelectionBehavior(QAbstractItemView::SelectRows);
-  uidList->setSelectionMode(QAbstractItemView::SingleSelection);
+  uid_list_->verticalHeader()->hide();
+  uid_list_->setShowGrid(false);
+  uid_list_->setSelectionBehavior(QAbstractItemView::SelectRows);
+  uid_list_->setSelectionMode(QAbstractItemView::SingleSelection);
 
   // tableitems not editable
-  uidList->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  uid_list_->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
   // no focus (rectangle around tableitems)
   // may be it should focus on whole row
-  uidList->setFocusPolicy(Qt::NoFocus);
-  uidList->setAlternatingRowColors(true);
+  uid_list_->setFocusPolicy(Qt::NoFocus);
+  uid_list_->setAlternatingRowColors(true);
 
   QStringList labels;
   labels << _("Select") << _("Name") << _("Email") << _("Comment");
-  uidList->setHorizontalHeaderLabels(labels);
-  uidList->horizontalHeader()->setStretchLastSection(true);
+  uid_list_->setHorizontalHeaderLabels(labels);
+  uid_list_->horizontalHeader()->setStretchLastSection(true);
 }
 
-void KeyPairUIDTab::createSignList() {
-  sigList = new QTableWidget(this);
-  sigList->setColumnCount(5);
-  sigList->horizontalHeader()->setSectionResizeMode(
+void KeyPairUIDTab::create_sign_list() {
+  sig_list_ = new QTableWidget(this);
+  sig_list_->setColumnCount(5);
+  sig_list_->horizontalHeader()->setSectionResizeMode(
       QHeaderView::ResizeToContents);
-  sigList->verticalHeader()->hide();
-  sigList->setShowGrid(false);
-  sigList->setSelectionBehavior(QAbstractItemView::SelectRows);
+  sig_list_->verticalHeader()->hide();
+  sig_list_->setShowGrid(false);
+  sig_list_->setSelectionBehavior(QAbstractItemView::SelectRows);
 
   // table items not editable
-  sigList->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  sig_list_->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
   // no focus (rectangle around table items)
   // may be it should focus on whole row
-  sigList->setFocusPolicy(Qt::NoFocus);
-  sigList->setAlternatingRowColors(true);
+  sig_list_->setFocusPolicy(Qt::NoFocus);
+  sig_list_->setAlternatingRowColors(true);
 
   QStringList labels;
   labels << _("Key ID") << _("Name") << _("Email") << _("Create Date (UTC)")
          << _("Expired Date (UTC)");
-  sigList->setHorizontalHeaderLabels(labels);
-  sigList->horizontalHeader()->setStretchLastSection(false);
+  sig_list_->setHorizontalHeaderLabels(labels);
+  sig_list_->horizontalHeader()->setStretchLastSection(false);
 }
 
-void KeyPairUIDTab::slotRefreshUIDList() {
+void KeyPairUIDTab::slot_refresh_uid_list() {
   int row = 0;
 
-  uidList->setSelectionMode(QAbstractItemView::SingleSelection);
+  uid_list_->setSelectionMode(QAbstractItemView::SingleSelection);
 
-  this->buffered_uids.clear();
+  this->buffered_uids_.clear();
 
-  auto uids = mKey.uids();
+  auto uids = m_key_.GetUIDs();
   for (auto& uid : *uids) {
-    if (uid.invalid() || uid.revoked()) {
+    if (uid.GetInvalid() || uid.GetRevoked()) {
       continue;
     }
-    this->buffered_uids.push_back(std::move(uid));
+    this->buffered_uids_.push_back(std::move(uid));
   }
 
-  uidList->setRowCount(buffered_uids.size());
+  uid_list_->setRowCount(buffered_uids_.size());
 
-  for (const auto& uid : buffered_uids) {
-    auto* tmp0 = new QTableWidgetItem(QString::fromStdString(uid.name()));
-    uidList->setItem(row, 1, tmp0);
+  for (const auto& uid : buffered_uids_) {
+    auto* tmp0 = new QTableWidgetItem(QString::fromStdString(uid.GetUID()));
+    uid_list_->setItem(row, 1, tmp0);
 
-    auto* tmp1 = new QTableWidgetItem(QString::fromStdString(uid.email()));
-    uidList->setItem(row, 2, tmp1);
+    auto* tmp1 = new QTableWidgetItem(QString::fromStdString(uid.GetUID()));
+    uid_list_->setItem(row, 2, tmp1);
 
-    auto* tmp2 = new QTableWidgetItem(QString::fromStdString(uid.comment()));
-    uidList->setItem(row, 3, tmp2);
+    auto* tmp2 = new QTableWidgetItem(QString::fromStdString(uid.GetUID()));
+    uid_list_->setItem(row, 3, tmp2);
 
     auto* tmp3 = new QTableWidgetItem(QString::number(row));
     tmp3->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled |
                    Qt::ItemIsSelectable);
     tmp3->setTextAlignment(Qt::AlignCenter);
     tmp3->setCheckState(Qt::Unchecked);
-    uidList->setItem(row, 0, tmp3);
+    uid_list_->setItem(row, 0, tmp3);
 
     if (!row) {
-      for (auto i = 0; i < uidList->columnCount(); i++) {
-        uidList->item(row, i)->setForeground(QColor(65, 105, 255));
+      for (auto i = 0; i < uid_list_->columnCount(); i++) {
+        uid_list_->item(row, i)->setForeground(QColor(65, 105, 255));
       }
     }
 
     row++;
   }
 
-  if (uidList->rowCount() > 0) {
-    uidList->selectRow(0);
+  if (uid_list_->rowCount() > 0) {
+    uid_list_->selectRow(0);
   }
 
-  slotRefreshSigList();
-  slotRefreshTOFUInfo();
+  slot_refresh_sig_list();
+  slot_refresh_tofu_info();
 }
 
-void KeyPairUIDTab::slotRefreshTOFUInfo() {
-  if (this->tofuTabs == nullptr) return;
+void KeyPairUIDTab::slot_refresh_tofu_info() {
+  if (this->tofu_tabs_ == nullptr) return;
 
   int uidRow = 0;
-  tofuTabs->clear();
-  for (const auto& uid : buffered_uids) {
+  tofu_tabs_->clear();
+  for (const auto& uid : buffered_uids_) {
     // Only Show Selected UID Signatures
-    if (!uidList->item(uidRow++, 0)->isSelected()) {
+    if (!uid_list_->item(uidRow++, 0)->isSelected()) {
       continue;
     }
-    auto tofu_infos = uid.tofu_infos();
+    auto tofu_infos = uid.GetTofuInfos();
     LOG(INFO) << "tofu info size" << tofu_infos->size();
     if (tofu_infos->empty()) {
-      tofuTabs->hide();
+      tofu_tabs_->hide();
     } else {
-      tofuTabs->show();
+      tofu_tabs_->show();
     }
     int index = 1;
     for (const auto& tofu_info : *tofu_infos) {
-      tofuTabs->addTab(new TOFUInfoPage(tofu_info, this),
-                       QString(_("TOFU %1")).arg(index++));
+      tofu_tabs_->addTab(new TOFUInfoPage(tofu_info, this),
+                         QString(_("TOFU %1")).arg(index++));
     }
   }
 }
 
-void KeyPairUIDTab::slotRefreshSigList() {
+void KeyPairUIDTab::slot_refresh_sig_list() {
   int uidRow = 0, sigRow = 0;
-  for (const auto& uid : buffered_uids) {
+  for (const auto& uid : buffered_uids_) {
     // Only Show Selected UID Signatures
-    if (!uidList->item(uidRow++, 0)->isSelected()) {
+    if (!uid_list_->item(uidRow++, 0)->isSelected()) {
       continue;
     }
 
-    buffered_signatures.clear();
-    auto signatures = uid.signatures();
+    buffered_signatures_.clear();
+    auto signatures = uid.GetSignatures();
     for (auto& sig : *signatures) {
-      if (sig.invalid() || sig.revoked()) {
+      if (sig.IsInvalid() || sig.IsRevoked()) {
         continue;
       }
-      buffered_signatures.push_back(std::move(sig));
+      buffered_signatures_.push_back(std::move(sig));
     }
 
-    sigList->setRowCount(buffered_signatures.size());
+    sig_list_->setRowCount(buffered_signatures_.size());
 
-    for (const auto& sig : buffered_signatures) {
-      auto* tmp0 = new QTableWidgetItem(QString::fromStdString(sig.keyid()));
-      sigList->setItem(sigRow, 0, tmp0);
+    for (const auto& sig : buffered_signatures_) {
+      auto* tmp0 = new QTableWidgetItem(QString::fromStdString(sig.GetKeyID()));
+      sig_list_->setItem(sigRow, 0, tmp0);
 
-      if (gpgme_err_code(sig.status()) == GPG_ERR_NO_PUBKEY) {
+      if (gpgme_err_code(sig.GetStatus()) == GPG_ERR_NO_PUBKEY) {
         auto* tmp2 = new QTableWidgetItem("<Unknown>");
-        sigList->setItem(sigRow, 1, tmp2);
+        sig_list_->setItem(sigRow, 1, tmp2);
 
         auto* tmp3 = new QTableWidgetItem("<Unknown>");
-        sigList->setItem(sigRow, 2, tmp3);
+        sig_list_->setItem(sigRow, 2, tmp3);
       } else {
-        auto* tmp2 = new QTableWidgetItem(QString::fromStdString(sig.name()));
-        sigList->setItem(sigRow, 1, tmp2);
+        auto* tmp2 =
+            new QTableWidgetItem(QString::fromStdString(sig.GetName()));
+        sig_list_->setItem(sigRow, 1, tmp2);
 
-        auto* tmp3 = new QTableWidgetItem(QString::fromStdString(sig.email()));
-        sigList->setItem(sigRow, 2, tmp3);
+        auto* tmp3 =
+            new QTableWidgetItem(QString::fromStdString(sig.GetEmail()));
+        sig_list_->setItem(sigRow, 2, tmp3);
       }
 
       auto* tmp4 = new QTableWidgetItem(QLocale::system().toString(
-          QDateTime::fromTime_t(to_time_t(sig.create_time()))));
-      sigList->setItem(sigRow, 3, tmp4);
+          QDateTime::fromTime_t(to_time_t(sig.GetCreateTime()))));
+      sig_list_->setItem(sigRow, 3, tmp4);
 
       auto* tmp5 = new QTableWidgetItem(
           boost::posix_time::to_time_t(
-              boost::posix_time::ptime(sig.expire_time())) == 0
+              boost::posix_time::ptime(sig.GetExpireTime())) == 0
               ? _("Never Expires")
               : QLocale::system().toString(
-                    QDateTime::fromTime_t(to_time_t(sig.expire_time()))));
+                    QDateTime::fromTime_t(to_time_t(sig.GetExpireTime()))));
       tmp5->setTextAlignment(Qt::AlignCenter);
-      sigList->setItem(sigRow, 4, tmp5);
+      sig_list_->setItem(sigRow, 4, tmp5);
 
       sigRow++;
     }
@@ -291,8 +298,8 @@ void KeyPairUIDTab::slotRefreshSigList() {
   }
 }
 
-void KeyPairUIDTab::slotAddSign() {
-  auto selected_uids = getUIDChecked();
+void KeyPairUIDTab::slot_add_sign() {
+  auto selected_uids = get_uid_checked();
 
   if (selected_uids->empty()) {
     QMessageBox::information(
@@ -302,43 +309,43 @@ void KeyPairUIDTab::slotAddSign() {
   }
 
   auto keySignDialog =
-      new KeyUIDSignDialog(mKey, std::move(selected_uids), this);
+      new KeyUIDSignDialog(m_key_, std::move(selected_uids), this);
   keySignDialog->show();
 }
 
-UIDArgsListPtr KeyPairUIDTab::getUIDChecked() {
+UIDArgsListPtr KeyPairUIDTab::get_uid_checked() {
   auto selected_uids = std::make_unique<UIDArgsList>();
-  for (int i = 0; i < uidList->rowCount(); i++) {
-    if (uidList->item(i, 0)->checkState() == Qt::Checked)
-      selected_uids->push_back(buffered_uids[i].uid());
+  for (int i = 0; i < uid_list_->rowCount(); i++) {
+    if (uid_list_->item(i, 0)->checkState() == Qt::Checked)
+      selected_uids->push_back(buffered_uids_[i].GetUID());
   }
   return selected_uids;
 }
 
-void KeyPairUIDTab::createManageUIDMenu() {
-  manageSelectedUIDMenu = new QMenu(this);
+void KeyPairUIDTab::create_manage_uid_menu() {
+  manage_selected_uid_menu_ = new QMenu(this);
 
   auto* signUIDAct = new QAction(_("Sign Selected UID(s)"), this);
-  connect(signUIDAct, SIGNAL(triggered()), this, SLOT(slotAddSign()));
+  connect(signUIDAct, &QAction::triggered, this, &KeyPairUIDTab::slot_add_sign);
   auto* delUIDAct = new QAction(_("Delete Selected UID(s)"), this);
-  connect(delUIDAct, SIGNAL(triggered()), this, SLOT(slotDelUID()));
+  connect(delUIDAct, &QAction::triggered, this, &KeyPairUIDTab::slot_del_uid);
 
-  if (mKey.has_master_key()) {
-    manageSelectedUIDMenu->addAction(signUIDAct);
-    manageSelectedUIDMenu->addAction(delUIDAct);
+  if (m_key_.IsHasMasterKey()) {
+    manage_selected_uid_menu_->addAction(signUIDAct);
+    manage_selected_uid_menu_->addAction(delUIDAct);
   }
 }
 
-void KeyPairUIDTab::slotAddUID() {
-  auto keyNewUIDDialog = new KeyNewUIDDialog(mKey.id(), this);
-  connect(keyNewUIDDialog, SIGNAL(finished(int)), this,
-          SLOT(slotAddUIDResult(int)));
-  connect(keyNewUIDDialog, SIGNAL(finished(int)), keyNewUIDDialog,
-          SLOT(deleteLater()));
+void KeyPairUIDTab::slot_add_uid() {
+  auto keyNewUIDDialog = new KeyNewUIDDialog(m_key_.GetId(), this);
+  connect(keyNewUIDDialog, &KeyNewUIDDialog::finished, this,
+          &KeyPairUIDTab::slot_add_uid_result);
+  connect(keyNewUIDDialog, &KeyNewUIDDialog::finished, keyNewUIDDialog,
+          &KeyPairUIDTab::deleteLater);
   keyNewUIDDialog->show();
 }
 
-void KeyPairUIDTab::slotAddUIDResult(int result) {
+void KeyPairUIDTab::slot_add_uid_result(int result) {
   if (result == 1) {
     QMessageBox::information(nullptr, _("Successful Operation"),
                              _("Successfully added a new UID."));
@@ -348,8 +355,8 @@ void KeyPairUIDTab::slotAddUIDResult(int result) {
   }
 }
 
-void KeyPairUIDTab::slotDelUID() {
-  auto selected_uids = getUIDChecked();
+void KeyPairUIDTab::slot_del_uid() {
+  auto selected_uids = get_uid_checked();
 
   if (selected_uids->empty()) {
     QMessageBox::information(
@@ -375,20 +382,20 @@ void KeyPairUIDTab::slotDelUID() {
 
   if (ret == QMessageBox::Yes) {
     for (const auto& uid : *selected_uids) {
-      LOG(INFO) << "KeyPairUIDTab::slotDelUID UID" << uid;
-      if (!UidOperator::GetInstance().revUID(mKey, uid)) {
+      LOG(INFO) << "KeyPairUIDTab::slot_del_uid UID" << uid;
+      if (!GpgUIDOperator::GetInstance().RevUID(m_key_, uid)) {
         QMessageBox::critical(
             nullptr, _("Operation Failed"),
             QString(_("An error occurred during the delete %1 operation."))
                 .arg(uid.c_str()));
       }
     }
-    emit signalUpdateUIDInfo();
+    emit SignalUpdateUIDInfo();
   }
 }
 
-void KeyPairUIDTab::slotSetPrimaryUID() {
-  auto selected_uids = getUIDSelected();
+void KeyPairUIDTab::slot_set_primary_uid() {
+  auto selected_uids = get_uid_selected();
 
   if (selected_uids->empty()) {
     auto emptyUIDMsg = new QMessageBox();
@@ -411,68 +418,66 @@ void KeyPairUIDTab::slotSetPrimaryUID() {
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    if (!UidOperator::GetInstance().setPrimaryUID(mKey,
+    if (!GpgUIDOperator::GetInstance().SetPrimaryUID(m_key_,
                                                   selected_uids->front())) {
       QMessageBox::critical(nullptr, _("Operation Failed"),
                             _("An error occurred during the operation."));
     } else {
-      emit signalUpdateUIDInfo();
+      emit SignalUpdateUIDInfo();
     }
   }
 }
 
-UIDArgsListPtr KeyPairUIDTab::getUIDSelected() {
+UIDArgsListPtr KeyPairUIDTab::get_uid_selected() {
   auto uids = std::make_unique<UIDArgsList>();
-  for (int i = 0; i < uidList->rowCount(); i++) {
-    if (uidList->item(i, 0)->isSelected()) {
-      uids->push_back(buffered_uids[i].uid());
+  for (int i = 0; i < uid_list_->rowCount(); i++) {
+    if (uid_list_->item(i, 0)->isSelected()) {
+      uids->push_back(buffered_uids_[i].GetUID());
     }
   }
   return uids;
 }
 
-SignIdArgsListPtr KeyPairUIDTab::getSignSelected() {
+SignIdArgsListPtr KeyPairUIDTab::get_sign_selected() {
   auto signatures = std::make_unique<SignIdArgsList>();
-  for (int i = 0; i < sigList->rowCount(); i++) {
-    if (sigList->item(i, 0)->isSelected()) {
-      auto& sign = buffered_signatures[i];
-      signatures->push_back({sign.keyid(), sign.uid()});
+  for (int i = 0; i < sig_list_->rowCount(); i++) {
+    if (sig_list_->item(i, 0)->isSelected()) {
+      auto& sign = buffered_signatures_[i];
+      signatures->push_back({sign.GetKeyID(), sign.GetUID()});
     }
   }
   return signatures;
 }
 
-void KeyPairUIDTab::createUIDPopupMenu() {
-  uidPopupMenu = new QMenu(this);
+void KeyPairUIDTab::create_uid_popup_menu() {
+  uid_popup_menu_ = new QMenu(this);
 
   auto* serPrimaryUIDAct = new QAction(_("Set As Primary"), this);
-  connect(serPrimaryUIDAct, SIGNAL(triggered()), this,
-          SLOT(slotSetPrimaryUID()));
+  connect(serPrimaryUIDAct, &QAction::triggered, this,
+          &KeyPairUIDTab::slot_set_primary_uid);
   auto* signUIDAct = new QAction(_("Sign UID"), this);
-  connect(signUIDAct, SIGNAL(triggered()), this, SLOT(slotAddSignSingle()));
+  connect(signUIDAct, &QAction::triggered, this,
+          &KeyPairUIDTab::slot_add_sign_single);
   auto* delUIDAct = new QAction(_("Delete UID"), this);
-  connect(delUIDAct, SIGNAL(triggered()), this, SLOT(slotDelUIDSingle()));
+  connect(delUIDAct, &QAction::triggered, this,
+          &KeyPairUIDTab::slot_del_uid_single);
 
-  if (mKey.has_master_key()) {
-    uidPopupMenu->addAction(serPrimaryUIDAct);
-    uidPopupMenu->addAction(signUIDAct);
-    uidPopupMenu->addAction(delUIDAct);
+  if (m_key_.IsHasMasterKey()) {
+    uid_popup_menu_->addAction(serPrimaryUIDAct);
+    uid_popup_menu_->addAction(signUIDAct);
+    uid_popup_menu_->addAction(delUIDAct);
   }
 }
 
 void KeyPairUIDTab::contextMenuEvent(QContextMenuEvent* event) {
-  if (uidList->selectedItems().length() > 0 &&
-      sigList->selectedItems().isEmpty()) {
-    uidPopupMenu->exec(event->globalPos());
+  if (uid_list_->selectedItems().length() > 0 &&
+      sig_list_->selectedItems().isEmpty()) {
+    uid_popup_menu_->exec(event->globalPos());
   }
-
-  //  if (!sigList->selectedItems().isEmpty()) {
-  //    signPopupMenu->exec(event->globalPos());
-  //  }
 }
 
-void KeyPairUIDTab::slotAddSignSingle() {
-  auto selected_uids = getUIDSelected();
+void KeyPairUIDTab::slot_add_sign_single() {
+  auto selected_uids = get_uid_selected();
 
   if (selected_uids->empty()) {
     QMessageBox::information(
@@ -482,12 +487,12 @@ void KeyPairUIDTab::slotAddSignSingle() {
   }
 
   auto keySignDialog =
-      new KeyUIDSignDialog(mKey, std::move(selected_uids), this);
+      new KeyUIDSignDialog(m_key_, std::move(selected_uids), this);
   keySignDialog->show();
 }
 
-void KeyPairUIDTab::slotDelUIDSingle() {
-  auto selected_uids = getUIDSelected();
+void KeyPairUIDTab::slot_del_uid_single() {
+  auto selected_uids = get_uid_selected();
   if (selected_uids->empty()) {
     QMessageBox::information(
         nullptr, _("Invalid Operation"),
@@ -510,26 +515,26 @@ void KeyPairUIDTab::slotDelUIDSingle() {
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    if (!UidOperator::GetInstance().revUID(mKey, selected_uids->front())) {
+    if (!GpgUIDOperator::GetInstance().RevUID(m_key_, selected_uids->front())) {
       QMessageBox::critical(nullptr, _("Operation Failed"),
                             _("An error occurred during the operation."));
     } else {
-      emit signalUpdateUIDInfo();
+      emit SignalUpdateUIDInfo();
     }
   }
 }
 
-void KeyPairUIDTab::createSignPopupMenu() {
-  signPopupMenu = new QMenu(this);
+void KeyPairUIDTab::create_sign_popup_menu() {
+  sign_popup_menu_ = new QMenu(this);
 
   auto* delSignAct = new QAction(_("Delete(Revoke) Key Signature"), this);
-  connect(delSignAct, SIGNAL(triggered()), this, SLOT(slotDelSign()));
+  connect(delSignAct, &QAction::triggered, this, &KeyPairUIDTab::slot_del_sign);
 
-  signPopupMenu->addAction(delSignAct);
+  sign_popup_menu_->addAction(delSignAct);
 }
 
-void KeyPairUIDTab::slotDelSign() {
-  auto selected_signs = getSignSelected();
+void KeyPairUIDTab::slot_del_sign() {
+  auto selected_signs = get_sign_selected();
   if (selected_signs->empty()) {
     QMessageBox::information(
         nullptr, _("Invalid Operation"),
@@ -539,7 +544,7 @@ void KeyPairUIDTab::slotDelSign() {
 
   if (!GpgKeyGetter::GetInstance()
            .GetKey(selected_signs->front().first)
-           .good()) {
+           .IsGood()) {
     QMessageBox::critical(
         nullptr, _("Invalid Operation"),
         _("To delete the signature, you need to have its corresponding public "
@@ -562,17 +567,17 @@ void KeyPairUIDTab::slotDelSign() {
                            QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    if (!GpgKeyManager::GetInstance().revSign(mKey, selected_signs)) {
+    if (!GpgKeyManager::GetInstance().RevSign(m_key_, selected_signs)) {
       QMessageBox::critical(nullptr, _("Operation Failed"),
                             _("An error occurred during the operation."));
     }
   }
 }
-void KeyPairUIDTab::slotRefreshKey() {
-  this->mKey = GpgKeyGetter::GetInstance().GetKey(this->mKey.id());
-  this->slotRefreshUIDList();
-  this->slotRefreshTOFUInfo();
-  this->slotRefreshSigList();
+void KeyPairUIDTab::slot_refresh_key() {
+  this->m_key_ = GpgKeyGetter::GetInstance().GetKey(this->m_key_.GetId());
+  this->slot_refresh_uid_list();
+  this->slot_refresh_tofu_info();
+  this->slot_refresh_sig_list();
 }
 
 }  // namespace GpgFrontend::UI

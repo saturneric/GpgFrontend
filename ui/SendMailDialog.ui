@@ -349,7 +349,7 @@
        <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
         <widget class="QLabel" name="senderKeyLabel">
          <property name="text">
-          <string>Sender GPG Key: </string>
+          <string>Sender GPG Key:</string>
          </property>
         </widget>
        </item>
@@ -373,7 +373,7 @@
        <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
         <widget class="QLabel" name="recipientKeysLabel">
          <property name="text">
-          <string>Recipient(s) GPG Key: </string>
+          <string>Recipient(s) GPG Key:</string>
          </property>
         </widget>
        </item>

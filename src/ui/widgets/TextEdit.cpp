@@ -1,4 +1,6 @@
 /**
+ * Copyright (C) 2021 Saturneric
+ *
  * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
@@ -6,19 +8,21 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * GpgFrontend is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
  *
- * The initial version of the source code is inherited from gpg4usb-team.
- * Their source code version also complies with GNU General Public License.
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
@@ -29,68 +33,68 @@
 namespace GpgFrontend::UI {
 
 TextEdit::TextEdit(QWidget* parent) : QWidget(parent) {
-  countPage = 0;
-  tabWidget = new QTabWidget(this);
-  tabWidget->setMovable(true);
-  tabWidget->setTabsClosable(true);
-  tabWidget->setDocumentMode(true);
+  count_page_ = 0;
+  tab_widget_ = new QTabWidget(this);
+  tab_widget_->setMovable(true);
+  tab_widget_->setTabsClosable(true);
+  tab_widget_->setDocumentMode(true);
 
   auto* layout = new QVBoxLayout;
-  layout->addWidget(tabWidget);
+  layout->addWidget(tab_widget_);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(0);
   setLayout(layout);
 
-  connect(tabWidget, SIGNAL(tabCloseRequested(int)), this,
-          SLOT(removeTab(int)));
-  slotNewTab();
+  connect(tab_widget_, &QTabWidget::tabCloseRequested, this,
+          &TextEdit::slot_remove_tab);
+  SlotNewTab();
   setAcceptDrops(false);
 }
 
-void TextEdit::slotNewTab() {
-  QString header = _("untitled") + QString::number(++countPage) + ".txt";
+void TextEdit::SlotNewTab() {
+  QString header = _("untitled") + QString::number(++count_page_) + ".txt";
 
-  auto* page = new EditorPage();
-  auto index = tabWidget->addTab(page, header);
-  tabWidget->setTabIcon(index, QIcon(":file.png"));
-  tabWidget->setCurrentIndex(tabWidget->count() - 1);
-  page->getTextPage()->setFocus();
-  connect(page->getTextPage()->document(), &QTextDocument::modificationChanged,
-          this, &TextEdit::slotShowModified);
+  auto* page = new PlainTextEditorPage();
+  auto index = tab_widget_->addTab(page, header);
+  tab_widget_->setTabIcon(index, QIcon(":file.png"));
+  tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
+  page->GetTextPage()->setFocus();
+  connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
+          this, &TextEdit::SlotShowModified);
 }
 
 void TextEdit::slotNewHelpTab(const QString& title, const QString& path) const {
   auto* page = new HelpPage(path);
-  tabWidget->addTab(page, title);
-  tabWidget->setCurrentIndex(tabWidget->count() - 1);
+  tab_widget_->addTab(page, title);
+  tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
 }
 
-void TextEdit::slotNewFileTab() const {
+void TextEdit::SlotNewFileTab() const {
   auto* page = new FilePage(qobject_cast<QWidget*>(parent()));
-  auto index = tabWidget->addTab(page, QString());
-  tabWidget->setTabIcon(index, QIcon(":file-browser.png"));
-  tabWidget->setCurrentIndex(tabWidget->count() - 1);
-  connect(page, &FilePage::pathChanged, this,
-          &TextEdit::slotFilePagePathChanged);
-  page->slotGoPath();
+  auto index = tab_widget_->addTab(page, QString());
+  tab_widget_->setTabIcon(index, QIcon(":file-browser.png"));
+  tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
+  connect(page, &FilePage::SignalPathChanged, this,
+          &TextEdit::slot_file_page_path_changed);
+  page->SlotGoPath();
 }
 
-void TextEdit::slotOpenFile(QString& path) {
+void TextEdit::SlotOpenFile(QString& path) {
   QFile file(path);
   LOG(INFO) << "path" << path.toStdString();
   auto result = file.open(QIODevice::ReadOnly | QIODevice::Text);
   if (result) {
-    auto* page = new EditorPage(path);
-    connect(page->getTextPage()->document(),
+    auto* page = new PlainTextEditorPage(path);
+    connect(page->GetTextPage()->document(),
             &QTextDocument::modificationChanged, this,
-            &TextEdit::slotShowModified);
-    
+            &TextEdit::SlotShowModified);
+
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    auto index = tabWidget->addTab(page, strippedName(path));
-    tabWidget->setTabIcon(index, QIcon(":file.png"));
-    tabWidget->setCurrentIndex(tabWidget->count() - 1);
+    auto index = tab_widget_->addTab(page, stripped_name(path));
+    tab_widget_->setTabIcon(index, QIcon(":file.png"));
+    tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
     QApplication::restoreOverrideCursor();
-    page->getTextPage()->setFocus();
+    page->GetTextPage()->setFocus();
     page->ReadFile();
   } else {
     QMessageBox::warning(this, _("Warning"),
@@ -103,37 +107,37 @@ void TextEdit::slotOpenFile(QString& path) {
   file.close();
 }
 
-void TextEdit::slotOpen() {
-  QStringList fileNames =
+void TextEdit::SlotOpen() {
+  QStringList file_names =
       QFileDialog::getOpenFileNames(this, _("Open file"), QDir::currentPath());
-  for (const auto& fileName : fileNames) {
-    if (!fileName.isEmpty()) {
-      QFile file(fileName);
+  for (const auto& file_name : file_names) {
+    if (!file_name.isEmpty()) {
+      QFile file(file_name);
 
       if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        auto* page = new EditorPage(fileName);
+        auto* page = new PlainTextEditorPage(file_name);
 
         QTextStream in(&file);
         QApplication::setOverrideCursor(Qt::WaitCursor);
-        page->getTextPage()->setPlainText(in.readAll());
-        page->setFilePath(fileName);
-        QTextDocument* document = page->getTextPage()->document();
+        page->GetTextPage()->setPlainText(in.readAll());
+        page->SetFilePath(file_name);
+        QTextDocument* document = page->GetTextPage()->document();
         document->setModified(false);
 
-        tabWidget->addTab(page, strippedName(fileName));
-        tabWidget->setCurrentIndex(tabWidget->count() - 1);
+        tab_widget_->addTab(page, stripped_name(file_name));
+        tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
         QApplication::restoreOverrideCursor();
-        page->getTextPage()->setFocus();
-        connect(page->getTextPage()->document(),
-                SIGNAL(modificationChanged(bool)), this,
-                SLOT(slotShowModified()));
+        page->GetTextPage()->setFocus();
+        connect(page->GetTextPage()->document(),
+                &QTextDocument::modificationChanged, this,
+                &TextEdit::SlotShowModified);
         // enableAction(true)
         file.close();
       } else {
         QMessageBox::warning(
             this, _("Warning"),
             (boost::format(_("Cannot read file %1%:\n%2%.")) %
-             fileName.toStdString() % file.errorString().toStdString())
+             file_name.toStdString() % file.errorString().toStdString())
                 .str()
                 .c_str());
       }
@@ -141,23 +145,23 @@ void TextEdit::slotOpen() {
   }
 }
 
-void TextEdit::slotSave() {
-  if (tabWidget->count() == 0 || slotCurPageTextEdit() == 0) {
+void TextEdit::SlotSave() {
+  if (tab_widget_->count() == 0 || SlotCurPageTextEdit() == 0) {
     return;
   }
 
-  QString fileName = slotCurPageTextEdit()->getFilePath();
+  QString fileName = SlotCurPageTextEdit()->GetFilePath();
 
   if (fileName.isEmpty()) {
     // QString docname = tabWidget->tabText(tabWidget->currentIndex());
     // docname.remove(0,2);
-    slotSaveAs();
+    SlotSaveAs();
   } else {
-    saveFile(fileName);
+    save_file(fileName);
   }
 }
 
-bool TextEdit::saveFile(const QString& fileName) {
+bool TextEdit::save_file(const QString& fileName) {
   if (fileName.isEmpty()) {
     return false;
   }
@@ -165,19 +169,19 @@ bool TextEdit::saveFile(const QString& fileName) {
   QFile file(fileName);
 
   if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-    EditorPage* page = slotCurPageTextEdit();
+    PlainTextEditorPage* page = SlotCurPageTextEdit();
 
     QTextStream outputStream(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    outputStream << page->getTextPage()->toPlainText();
+    outputStream << page->GetTextPage()->toPlainText();
     QApplication::restoreOverrideCursor();
-    QTextDocument* document = page->getTextPage()->document();
+    QTextDocument* document = page->GetTextPage()->document();
 
     document->setModified(false);
 
-    int curIndex = tabWidget->currentIndex();
-    tabWidget->setTabText(curIndex, strippedName(fileName));
-    page->setFilePath(fileName);
+    int curIndex = tab_widget_->currentIndex();
+    tab_widget_->setTabText(curIndex, stripped_name(fileName));
+    page->SetFilePath(fileName);
     //      statusBar()->showMessage(_("File saved"), 2000);
     file.close();
     return true;
@@ -192,53 +196,53 @@ bool TextEdit::saveFile(const QString& fileName) {
   }
 }
 
-bool TextEdit::slotSaveAs() {
-  if (tabWidget->count() == 0 || slotCurPageTextEdit() == nullptr) {
+bool TextEdit::SlotSaveAs() {
+  if (tab_widget_->count() == 0 || SlotCurPageTextEdit() == nullptr) {
     return true;
   }
 
-  EditorPage* page = slotCurPageTextEdit();
+  PlainTextEditorPage* page = SlotCurPageTextEdit();
   QString path;
-  if (!page->getFilePath().isEmpty()) {
-    path = page->getFilePath();
+  if (!page->GetFilePath().isEmpty()) {
+    path = page->GetFilePath();
   } else {
-    path = tabWidget->tabText(tabWidget->currentIndex()).remove(0, 2);
+    path = tab_widget_->tabText(tab_widget_->currentIndex()).remove(0, 2);
   }
 
   QString fileName = QFileDialog::getSaveFileName(this, _("Save file"), path);
-  return saveFile(fileName);
+  return save_file(fileName);
 }
 
-void TextEdit::slotCloseTab() {
-  removeTab(tabWidget->currentIndex());
-  if (tabWidget->count() != 0) {
-    slotCurPageTextEdit()->getTextPage()->setFocus();
+void TextEdit::SlotCloseTab() {
+  slot_remove_tab(tab_widget_->currentIndex());
+  if (tab_widget_->count() != 0) {
+    SlotCurPageTextEdit()->GetTextPage()->setFocus();
   }
 }
 
-void TextEdit::removeTab(int index) {
+void TextEdit::slot_remove_tab(int index) {
   // Do nothing, if no tab is opened
-  if (tabWidget->count() == 0) {
+  if (tab_widget_->count() == 0) {
     return;
   }
 
   // get the index of the actual current tab
-  int lastIndex = tabWidget->currentIndex();
+  int last_index = tab_widget_->currentIndex();
 
   // set the focus to argument index
-  tabWidget->setCurrentIndex(index);
+  tab_widget_->setCurrentIndex(index);
 
-  if (maybeSaveCurrentTab(true)) {
-    tabWidget->removeTab(index);
+  if (maybe_save_current_tab(true)) {
+    tab_widget_->removeTab(index);
 
-    if (index >= lastIndex) {
-      tabWidget->setCurrentIndex(lastIndex);
+    if (index >= last_index) {
+      tab_widget_->setCurrentIndex(last_index);
     } else {
-      tabWidget->setCurrentIndex(lastIndex - 1);
+      tab_widget_->setCurrentIndex(last_index - 1);
     }
   }
 
-  if (tabWidget->count() == 0) {
+  if (tab_widget_->count() == 0) {
     //  enableAction(false);
   }
 }
@@ -249,28 +253,28 @@ void TextEdit::removeTab(int index) {
  *
  * If it returns false, the close event should be aborted.
  */
-bool TextEdit::maybeSaveCurrentTab(bool askToSave) {
-  EditorPage* page = slotCurPageTextEdit();
+bool TextEdit::maybe_save_current_tab(bool askToSave) {
+  PlainTextEditorPage* page = SlotCurPageTextEdit();
   // if this page is no textedit, there should be nothing to save
   if (page == nullptr) {
     return true;
   }
-  QTextDocument* document = page->getTextPage()->document();
+  QTextDocument* document = page->GetTextPage()->document();
 
   if (page->ReadDone() && document->isModified()) {
     QMessageBox::StandardButton result = QMessageBox::Cancel;
 
     // write title of tab to docname and remove the leading *
-    QString docname = tabWidget->tabText(tabWidget->currentIndex());
-    docname.remove(0, 2);
+    QString doc_name = tab_widget_->tabText(tab_widget_->currentIndex());
+    doc_name.remove(0, 2);
 
-    const QString& filePath = page->getFilePath();
+    const QString& file_path = page->GetFilePath();
     if (askToSave) {
       result = QMessageBox::warning(
           this, _("Unsaved document"),
           QString(_("The document \"%1\" has been modified. Do you want to "
                     "save your changes?"))
-                  .arg(docname) +
+                  .arg(doc_name) +
               "<br/><b>" + _("Note:") + "</b>" +
               _("If you don't save these files, all changes are "
                 "lost.") +
@@ -278,12 +282,12 @@ bool TextEdit::maybeSaveCurrentTab(bool askToSave) {
           QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     }
     if ((result == QMessageBox::Save) || (!askToSave)) {
-      if (filePath.isEmpty()) {
+      if (file_path.isEmpty()) {
         // QString docname = tabWidget->tabText(tabWidget->currentIndex());
         // docname.remove(0,2);
-        return slotSaveAs();
+        return SlotSaveAs();
       } else {
-        return saveFile(filePath);
+        return save_file(file_path);
       }
     } else if (result == QMessageBox::Discard) {
       return true;
@@ -297,9 +301,9 @@ bool TextEdit::maybeSaveCurrentTab(bool askToSave) {
   return true;
 }
 
-bool TextEdit::maybeSaveAnyTab() {
+bool TextEdit::MaybeSaveAnyTab() {
   // get a list of all unsaved documents and their tabids
-  QHash<int, QString> unsaved_docs = this->unsavedDocuments();
+  QHash<int, QString> unsaved_docs = this->UnsavedDocuments();
 
   /*
    * no unsaved documents, so app can be closed
@@ -313,8 +317,8 @@ bool TextEdit::maybeSaveAnyTab() {
    */
   if (unsaved_docs.size() == 1) {
     int modifiedTab = unsaved_docs.keys().at(0);
-    tabWidget->setCurrentIndex(modifiedTab);
-    return maybeSaveCurrentTab(true);
+    tab_widget_->setCurrentIndex(modifiedTab);
+    return maybe_save_current_tab(true);
   }
 
   /*
@@ -330,18 +334,18 @@ bool TextEdit::maybeSaveAnyTab() {
     // if result is QDialog::Rejected, discard or cancel was clicked
     if (result == QDialog::Rejected) {
       // return true, if discard is clicked, so app can be closed
-      if (dialog->isDiscarded()) {
+      if (dialog->IsDiscarded()) {
         return true;
       } else {
         return false;
       }
     } else {
       bool all_saved = true;
-      QList<int> tabIdsToSave = dialog->getTabIdsToSave();
+      QList<int> tabIdsToSave = dialog->GetTabIdsToSave();
 
       for (const auto& tabId : tabIdsToSave) {
-        tabWidget->setCurrentIndex(tabId);
-        if (!maybeSaveCurrentTab(false)) {
+        tab_widget_->setCurrentIndex(tabId);
+        if (!maybe_save_current_tab(false)) {
           all_saved = false;
         }
       }
@@ -352,17 +356,12 @@ bool TextEdit::maybeSaveAnyTab() {
   return false;
 }
 
-QTextEdit* TextEdit::curTextPage() const {
-  auto* curTextPage = qobject_cast<EditorPage*>(tabWidget->currentWidget());
-  if (curTextPage != nullptr) {
-    return curTextPage->getTextPage();
-  } else {
-    return nullptr;
-  }
+PlainTextEditorPage* TextEdit::CurTextPage() const {
+  return qobject_cast<PlainTextEditorPage*>(tab_widget_->currentWidget());
 }
 
-FilePage* TextEdit::curFilePage() const {
-  auto* curFilePage = qobject_cast<FilePage*>(tabWidget->currentWidget());
+FilePage* TextEdit::CurFilePage() const {
+  auto* curFilePage = qobject_cast<FilePage*>(tab_widget_->currentWidget());
   if (curFilePage != nullptr) {
     return curFilePage;
   } else {
@@ -370,24 +369,25 @@ FilePage* TextEdit::curFilePage() const {
   }
 }
 
-int TextEdit::tabCount() const { return tabWidget->count(); }
+int TextEdit::TabCount() const { return tab_widget_->count(); }
 
-EditorPage* TextEdit::slotCurPageTextEdit() const {
-  auto* curPage = qobject_cast<EditorPage*>(tabWidget->currentWidget());
+PlainTextEditorPage* TextEdit::SlotCurPageTextEdit() const {
+  auto* curPage =
+      qobject_cast<PlainTextEditorPage*>(tab_widget_->currentWidget());
   return curPage;
 }
 
-FilePage* TextEdit::slotCurPageFileTreeView() const {
-  auto* curPage = qobject_cast<FilePage*>(tabWidget->currentWidget());
+FilePage* TextEdit::SlotCurPageFileTreeView() const {
+  auto* curPage = qobject_cast<FilePage*>(tab_widget_->currentWidget());
   return curPage;
 }
 
-void TextEdit::slotQuote() const {
-  if (tabWidget->count() == 0 || curTextPage() == nullptr) {
+void TextEdit::SlotQuote() const {
+  if (tab_widget_->count() == 0 || CurTextPage() == nullptr) {
     return;
   }
 
-  QTextCursor cursor(curTextPage()->document());
+  QTextCursor cursor(CurTextPage()->GetTextPage()->document());
 
   // beginEditBlock and endEditBlock() let operation look like single undo/redo
   // operation
@@ -404,15 +404,15 @@ void TextEdit::slotQuote() const {
   cursor.endEditBlock();
 }
 
-void TextEdit::slotFillTextEditWithText(const QString& text) const {
-  QTextCursor cursor(curTextPage()->document());
+void TextEdit::SlotFillTextEditWithText(const QString& text) const {
+  QTextCursor cursor(CurTextPage()->GetTextPage()->document());
   cursor.beginEditBlock();
-  this->curTextPage()->selectAll();
-  this->curTextPage()->insertPlainText(text);
+  this->CurTextPage()->GetTextPage()->selectAll();
+  this->CurTextPage()->GetTextPage()->insertPlainText(text);
   cursor.endEditBlock();
 }
 
-void TextEdit::loadFile(const QString& fileName) {
+void TextEdit::LoadFile(const QString& fileName) {
   QFile file(fileName);
   if (!file.open(QFile::ReadOnly | QFile::Text)) {
     QMessageBox::warning(
@@ -425,27 +425,27 @@ void TextEdit::loadFile(const QString& fileName) {
   }
   QTextStream in(&file);
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  curTextPage()->setPlainText(in.readAll());
+  CurTextPage()->GetTextPage()->setPlainText(in.readAll());
   QApplication::restoreOverrideCursor();
-  slotCurPageTextEdit()->setFilePath(fileName);
-  tabWidget->setTabText(tabWidget->currentIndex(), strippedName(fileName));
+  SlotCurPageTextEdit()->SetFilePath(fileName);
+  tab_widget_->setTabText(tab_widget_->currentIndex(), stripped_name(fileName));
   file.close();
   // statusBar()->showMessage(_("File loaded"), 2000);
 }
 
-QString TextEdit::strippedName(const QString& full_file_name) {
+QString TextEdit::stripped_name(const QString& full_file_name) {
   return QFileInfo(full_file_name).fileName();
 }
 
-void TextEdit::slotPrint() {
-  if (tabWidget->count() == 0) {
+void TextEdit::SlotPrint() {
+  if (tab_widget_->count() == 0) {
     return;
   }
 
 #ifndef QT_NO_PRINTER
   QTextDocument* document;
-  if (curTextPage() != nullptr) {
-    document = curTextPage()->document();
+  if (CurTextPage() != nullptr) {
+    document = CurTextPage()->GetTextPage()->document();
   }
   QPrinter printer;
 
@@ -459,45 +459,45 @@ void TextEdit::slotPrint() {
 #endif
 }
 
-void TextEdit::slotShowModified() const {
-  int index = tabWidget->currentIndex();
-  QString title = tabWidget->tabText(index);
+void TextEdit::SlotShowModified() const {
+  int index = tab_widget_->currentIndex();
+  QString title = tab_widget_->tabText(index);
   // if doc is modified now, add leading * to title,
   // otherwise remove the leading * from the title
-  if (curTextPage()->document()->isModified()) {
-    tabWidget->setTabText(index, title.prepend("* "));
+  if (CurTextPage()->GetTextPage()->document()->isModified()) {
+    tab_widget_->setTabText(index, title.prepend("* "));
   } else {
-    tabWidget->setTabText(index, title.remove(0, 2));
+    tab_widget_->setTabText(index, title.remove(0, 2));
   }
 }
 
-void TextEdit::slotSwitchTabUp() const {
-  if (tabWidget->count() > 1) {
-    int new_index = (tabWidget->currentIndex() + 1) % (tabWidget->count());
-    tabWidget->setCurrentIndex(new_index);
+void TextEdit::SlotSwitchTabUp() const {
+  if (tab_widget_->count() > 1) {
+    int new_index = (tab_widget_->currentIndex() + 1) % (tab_widget_->count());
+    tab_widget_->setCurrentIndex(new_index);
   }
 }
 
-void TextEdit::slotSwitchTabDown() const {
-  if (tabWidget->count() > 1) {
-    int newindex = (tabWidget->currentIndex() - 1 + tabWidget->count()) %
-                   tabWidget->count();
-    tabWidget->setCurrentIndex(newindex);
+void TextEdit::SlotSwitchTabDown() const {
+  if (tab_widget_->count() > 1) {
+    int newindex = (tab_widget_->currentIndex() - 1 + tab_widget_->count()) %
+                   tab_widget_->count();
+    tab_widget_->setCurrentIndex(newindex);
   }
 }
 
 /*
  *   return a hash of tabindexes and title of unsaved tabs
  */
-QHash<int, QString> TextEdit::unsavedDocuments() const {
+QHash<int, QString> TextEdit::UnsavedDocuments() const {
   QHash<int, QString> unsavedDocs;  // this list could be used to implement
                                     // gedit like "unsaved changed"-dialog
 
-  for (int i = 0; i < tabWidget->count(); i++) {
-    auto* ep = qobject_cast<EditorPage*>(tabWidget->widget(i));
+  for (int i = 0; i < tab_widget_->count(); i++) {
+    auto* ep = qobject_cast<PlainTextEditorPage*>(tab_widget_->widget(i));
     if (ep != nullptr && ep->ReadDone() &&
-        ep->getTextPage()->document()->isModified()) {
-      QString doc_name = tabWidget->tabText(i);
+        ep->GetTextPage()->document()->isModified()) {
+      QString doc_name = tab_widget_->tabText(i);
       LOG(INFO) << "unsaved" << doc_name.toStdString();
 
       // remove * before name of modified doc
@@ -508,77 +508,77 @@ QHash<int, QString> TextEdit::unsavedDocuments() const {
   return unsavedDocs;
 }
 
-void TextEdit::slotCut() const {
-  if (tabWidget->count() == 0 || curTextPage() == nullptr) {
+void TextEdit::SlotCut() const {
+  if (tab_widget_->count() == 0 || CurTextPage() == nullptr) {
     return;
   }
 
-  curTextPage()->cut();
+  CurTextPage()->GetTextPage()->cut();
 }
 
-void TextEdit::slotCopy() const {
-  if (tabWidget->count() == 0) {
+void TextEdit::SlotCopy() const {
+  if (tab_widget_->count() == 0) {
     return;
   }
 
-  if (curTextPage() != nullptr) {
-    curTextPage()->copy();
+  if (CurTextPage() != nullptr) {
+    CurTextPage()->GetTextPage()->copy();
   }
 }
 
-void TextEdit::slotPaste() const {
-  if (tabWidget->count() == 0 || curTextPage() == nullptr) {
+void TextEdit::SlotPaste() const {
+  if (tab_widget_->count() == 0 || CurTextPage() == nullptr) {
     return;
   }
 
-  curTextPage()->paste();
+  CurTextPage()->GetTextPage()->paste();
 }
 
-void TextEdit::slotUndo() const {
-  if (tabWidget->count() == 0 || curTextPage() == nullptr) {
+void TextEdit::SlotUndo() const {
+  if (tab_widget_->count() == 0 || CurTextPage() == nullptr) {
     return;
   }
 
-  curTextPage()->undo();
+  CurTextPage()->GetTextPage()->undo();
 }
 
-void TextEdit::slotRedo() const {
-  if (tabWidget->count() == 0 || curTextPage() == nullptr) {
+void TextEdit::SlotRedo() const {
+  if (tab_widget_->count() == 0 || CurTextPage() == nullptr) {
     return;
   }
 
-  curTextPage()->redo();
+  CurTextPage()->GetTextPage()->redo();
 }
 
-void TextEdit::slotZoomIn() const {
-  if (tabWidget->count() == 0) {
+void TextEdit::SlotZoomIn() const {
+  if (tab_widget_->count() == 0) {
     return;
   }
 
-  if (curTextPage() != nullptr) {
-    curTextPage()->zoomIn();
+  if (CurTextPage() != nullptr) {
+    CurTextPage()->GetTextPage()->zoomIn();
   }
 }
 
-void TextEdit::slotZoomOut() const {
-  if (tabWidget->count() == 0) {
+void TextEdit::SlotZoomOut() const {
+  if (tab_widget_->count() == 0) {
     return;
   }
 
-  if (curTextPage() != nullptr) {
-    curTextPage()->zoomOut();
+  if (CurTextPage() != nullptr) {
+    CurTextPage()->GetTextPage()->zoomOut();
   }
 }
 
-void TextEdit::slotSelectAll() const {
-  if (tabWidget->count() == 0 || curTextPage() == nullptr) {
+void TextEdit::SlotSelectAll() const {
+  if (tab_widget_->count() == 0 || CurTextPage() == nullptr) {
     return;
   }
-  curTextPage()->selectAll();
+  CurTextPage()->GetTextPage()->selectAll();
 }
 
-void TextEdit::slotFilePagePathChanged(const QString& path) const {
-  int index = tabWidget->currentIndex();
+void TextEdit::slot_file_page_path_changed(const QString& path) const {
+  int index = tab_widget_->currentIndex();
   QString mPath;
   QFileInfo fileInfo(path);
   QString tPath = fileInfo.absoluteFilePath();
@@ -587,7 +587,7 @@ void TextEdit::slotFilePagePathChanged(const QString& path) const {
   } else {
     mPath = tPath;
   }
-  tabWidget->setTabText(index, mPath);
+  tab_widget_->setTabText(index, mPath);
 }
 
 }  // namespace GpgFrontend::UI
