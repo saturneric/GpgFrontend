@@ -72,19 +72,11 @@ read the [User Manual](https://www.gpgfrontend.pub/#/quick-start) instead of REA
 
 ## Build Source Code
 
-### For Ubuntu 20.04
+For some capable users, building Gpg Frontend from source code is a good option. We encourage people to freely build,
+package and distribute their own versions. The way we build in common systems is as follows:
 
-Install and compile dependencies.
-
-```shell
-$ sudo apt-get update
-$ sudo apt-get -y install gettext texinfo git ninja-build cmake
-$ sudo apt-get -y install gcc g++ build-essential binutils autoconf automake 
-$ sudo apt-get -y libconfig++-dev libboost-all-dev qt5-default
-$ sudo apt-get -y install gpg # If you need to run directly after building.
-```
-
-Clone the latest stable version code for users around the world.
+Note: "$" Symbols indicate commands to be executed with a normal user. Before you start, please clone the latest stable
+version code for users around the world.
 
 ```shell
 $ git clone --recurse-submodules https://github.com/saturneric/GpgFrontend.git
@@ -94,6 +86,76 @@ $ git clone --recurse-submodules https://github.com/saturneric/GpgFrontend.git
 
 ```shell
 $ git clone --recurse-submodules https://git.codesdream.com/GpgFrontend.git
+```
+
+### For Windows
+
+Before building, you need to install MSYS2. After installation, open the MSYS2 terminal (MSYS2 MinGW 64-bit), enter the
+MSYS2 directory, and execute the following commands:
+
+```shell
+pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
+pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake 
+pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel mingw-w64-x86_64-gpgme
+pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
+```
+
+After executing these commands, you will start compiling.
+
+```shell
+$ cd GpgFrontend
+$ mkdir build && cd build
+$ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Release" ..
+$ ninja
+```
+
+After compiling, a release directory will be generated, which contains executable files that can be run directly.
+
+```shell
+$ ./release/GpgFrontend.exe
+```
+
+### For macOS
+
+Install and compile dependencies.
+
+```shell
+$ brew install cmake git autoconf automake qt@5 texinfo gettext openssl@1.1 
+$ brew install boost ninja
+$ brew unlink gettext && brew link --force gettext
+$ brew link qt@5
+```
+
+Build the code separately for debug.
+
+```shell
+$ cd GpgFrontend
+$ mkdir build && cd build
+$ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Debug" -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1  ..
+$ ninja
+$ ./release/GpgFrontend # run the program
+```
+
+Build the code and make the App Bundle.
+
+```shell
+$ cd GpgFrontend
+$ mkdir build && cd build
+$ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Release" -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1 ..
+$ ninja
+$ macdeployqt ./release/GpgFrontend.app
+```
+
+### For Ubuntu 18.04 And Later
+
+Install and compile dependencies.
+
+```shell
+$ sudo apt-get update
+$ sudo apt-get -y install gettext texinfo git ninja-build cmake
+$ sudo apt-get -y install gcc g++ build-essential binutils autoconf automake 
+$ sudo apt-get -y libboost-all-dev qt5-default
+$ sudo apt-get -y install gpg # If you need to run directly after building.
 ```
 
 Build the code and make the deb package.
@@ -114,6 +176,20 @@ $ mkdir build && cd build
 $ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Debug" ..
 $ ninja
 $ ./release/GpgFrontend # run the program
+```
+
+Package the AppImage.
+
+```shell
+$ cd GpgFrontend
+$ mkdir build && cd build
+$ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Release" ..
+$ ninja
+$ mkdir ./AppImageOut
+$ cd ./AppImageOut
+$ wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+$ chmod u+x linuxdeployqt-continuous-x86_64.AppImage
+$ ./linuxdeployqt-continuous-x86_64.AppImage ../release/gpgfrontend/usr/share/applications/*.desktop -appimage
 ```
 
 ## Languages Support
