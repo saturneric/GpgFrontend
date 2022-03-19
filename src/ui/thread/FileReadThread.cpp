@@ -47,18 +47,25 @@ void FileReadThread::run() {
   if (is_regular_file(read_file_path)) {
     LOG(INFO) << "read open" << read_file_path;
 
-    QFile file;
-    file.setFileName(QString::fromStdString(read_file_path.u8string()));
-    file.open(QIODevice::ReadOnly);
+    QFile target_file;
+    target_file.setFileName(QString::fromStdString(read_file_path.u8string()));
+    target_file.open(QIODevice::ReadOnly);
     QByteArray read_buffer;
     LOG(INFO) << "thread start reading";
 
     const size_t buffer_size = 4096;
-    while ((read_buffer = file.read(buffer_size)).size() > 0) {
+    if(!(target_file.isOpen() && target_file.isReadable())) {
+      LOG(ERROR) << "file not open or not readable";
+      if(target_file.isOpen())
+        target_file.close();
+      return;
+    }
+
+    while (!target_file.atEnd() && (read_buffer = target_file.read(buffer_size)).size() > 0) {
       // Check isInterruptionRequested
       if (QThread::currentThread()->isInterruptionRequested()) {
         LOG(INFO) << "thread is interruption requested ";
-        file.close();
+        target_file.close();
         return;
       }
       LOG(INFO) << "block size " << read_buffer.size();
@@ -71,7 +78,7 @@ void FileReadThread::run() {
       QThread::msleep(128);
 #endif
     }
-    file.close();
+    target_file.close();
     emit SignalReadDone();
     LOG(INFO) << "thread end reading";
   }

@@ -49,6 +49,19 @@ class IMAPFolder {
   explicit IMAPFolder(std::shared_ptr<vmime::net::folder> folder);
 
   /**
+   * @brief Copy and construct the IMAPFolder object
+   */
+  IMAPFolder(const IMAPFolder &) = default;
+
+  /**
+   * @brief Copy the IMAPFolder object
+   *
+   * @return
+   */
+  IMAPFolder &operator=(const IMAPFolder &) = default;
+
+
+  /**
    * @brief Set the Parent Folder object
    *
    * @param parent_node
