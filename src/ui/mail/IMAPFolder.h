@@ -55,7 +55,7 @@ class IMAPFolder {
 
   /**
    * @brief Copy the IMAPFolder object
-   */
+   *
    * @return
    */
   IMAPFolder &operator=(const IMAPFolder &) = default;
