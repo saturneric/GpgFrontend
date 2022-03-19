@@ -1,4 +1,6 @@
 /**
+ * Copyright (C) 2021 Saturneric
+ *
  * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
@@ -6,53 +8,56 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * GpgFrontend is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
  *
- * The initial version of the source code is inherited from gpg4usb-team.
- * Their source code version also complies with GNU General Public License.
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
 #include "MainWindow.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/settings/GlobalSettingStation.h"
+#include "ui/struct/SettingsObject.h"
 
 namespace GpgFrontend::UI {
 
-void MainWindow::slotSetStatusBarText(const QString& text) {
+void MainWindow::SlotSetStatusBarText(const QString& text) {
   statusBar()->showMessage(text, 20000);
 }
 
-void MainWindow::slotStartWizard() {
+void MainWindow::slot_start_wizard() {
   auto* wizard = new Wizard(this);
   wizard->show();
   wizard->setModal(true);
 }
 
-void MainWindow::slotImportKeyFromEdit() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
-  CommonUtils::GetInstance()->slotImportKeys(
-      this, edit->curTextPage()->toPlainText().toStdString());
+void MainWindow::slot_import_key_from_edit() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
+  CommonUtils::GetInstance()->SlotImportKeys(
+      this, edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
 }
 
-void MainWindow::slotOpenKeyManagement() {
+void MainWindow::slot_open_key_management() {
   auto* dialog = new KeyMgmt(this);
   dialog->show();
   dialog->raise();
 }
 
-void MainWindow::slotOpenFileTab() { edit->slotNewFileTab(); }
+void MainWindow::slot_open_file_tab() { edit_->SlotNewFileTab(); }
 
-void MainWindow::slotDisableTabActions(int number) {
+void MainWindow::slot_disable_tab_actions(int number) {
   bool disable;
 
   if (number == -1)
@@ -60,109 +65,105 @@ void MainWindow::slotDisableTabActions(int number) {
   else
     disable = false;
 
-  if (edit->curFilePage() != nullptr) {
+  if (edit_->CurFilePage() != nullptr) {
     disable = true;
   }
 
-  printAct->setDisabled(disable);
-  saveAct->setDisabled(disable);
-  saveAsAct->setDisabled(disable);
-  quoteAct->setDisabled(disable);
-  cutAct->setDisabled(disable);
-  copyAct->setDisabled(disable);
-  pasteAct->setDisabled(disable);
-  closeTabAct->setDisabled(disable);
-  selectAllAct->setDisabled(disable);
-  findAct->setDisabled(disable);
-  verifyAct->setDisabled(disable);
-  signAct->setDisabled(disable);
-  encryptAct->setDisabled(disable);
-  encryptSignAct->setDisabled(disable);
-  decryptAct->setDisabled(disable);
-  decryptVerifyAct->setDisabled(disable);
+  print_act_->setDisabled(disable);
+  save_act_->setDisabled(disable);
+  save_as_act_->setDisabled(disable);
+  quote_act_->setDisabled(disable);
+  cut_act_->setDisabled(disable);
+  copy_act_->setDisabled(disable);
+  paste_act_->setDisabled(disable);
+  close_tab_act_->setDisabled(disable);
+  select_all_act_->setDisabled(disable);
+  find_act_->setDisabled(disable);
+  verify_act_->setDisabled(disable);
+  sign_act_->setDisabled(disable);
+  encrypt_act_->setDisabled(disable);
+  encrypt_sign_act_->setDisabled(disable);
+  decrypt_act_->setDisabled(disable);
+  decrypt_verify_act_->setDisabled(disable);
 
-  redoAct->setDisabled(disable);
-  undoAct->setDisabled(disable);
-  zoomOutAct->setDisabled(disable);
-  zoomInAct->setDisabled(disable);
-  cleanDoubleLinebreaksAct->setDisabled(disable);
-  quoteAct->setDisabled(disable);
-  appendSelectedKeysAct->setDisabled(disable);
-  importKeyFromEditAct->setDisabled(disable);
+  redo_act_->setDisabled(disable);
+  undo_act_->setDisabled(disable);
+  zoom_out_act_->setDisabled(disable);
+  zoom_in_act_->setDisabled(disable);
+  clean_double_line_breaks_act_->setDisabled(disable);
+  quote_act_->setDisabled(disable);
+  append_selected_keys_act_->setDisabled(disable);
+  import_key_from_edit_act_->setDisabled(disable);
 
-  cutPgpHeaderAct->setDisabled(disable);
-  addPgpHeaderAct->setDisabled(disable);
+  cut_pgp_header_act_->setDisabled(disable);
+  add_pgp_header_act_->setDisabled(disable);
 }
 
-void MainWindow::slotOpenSettingsDialog() {
+void MainWindow::slot_open_settings_dialog() {
   auto dialog = new SettingsDialog(this);
 
   connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
     LOG(INFO) << "Setting Dialog Finished";
 
-    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+    SettingsObject main_windows_state("main_windows_state");
 
-    int icon_width = settings["window"]["icon_size"]["width"];
-    int icon_height = settings["window"]["icon_size"]["height"];
+    int width = main_windows_state.Check("icon_size").Check("width", 24),
+        height = main_windows_state.Check("icon_size").Check("height", 24);
+    LOG(INFO) << "icon_size" << width << height;
 
-    this->setIconSize(QSize(icon_width, icon_height));
-    importButton->setIconSize(QSize(icon_width, icon_height));
+    main_windows_state.Check("info_font_size", 10);
 
-    // Iconstyle
+    // icon_style
+    int s_icon_style =
+        main_windows_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
+    auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
+    this->setToolButtonStyle(icon_style);
+    import_button_->setToolButtonStyle(icon_style);
 
-    int icon_style = settings["window"]["icon_style"];
-    auto button_style = static_cast<Qt::ToolButtonStyle>(icon_style);
-    this->setToolButtonStyle(button_style);
-    importButton->setToolButtonStyle(button_style);
+    // icons ize
+    this->setIconSize(QSize(width, height));
+    import_button_->setIconSize(QSize(width, height));
 
     // restart mainwindow if necessary
-    if (getRestartNeeded()) {
-      if (edit->maybeSaveAnyTab()) {
-        saveSettings();
+    if (get_restart_needed()) {
+      if (edit_->MaybeSaveAnyTab()) {
+        save_settings();
         qApp->exit(RESTART_CODE);
       }
     }
-#ifdef ADVANCED_SUPPORT
-    // steganography hide/show
-    if (!settings.value("advanced/steganography").toBool()) {
-      this->menuBar()->removeAction(steganoMenu->menuAction());
-    } else {
-      this->menuBar()->insertAction(viewMenu->menuAction(),
-                                    steganoMenu->menuAction());
-    }
-#endif
   });
 }
 
-void MainWindow::slotCleanDoubleLinebreaks() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
+void MainWindow::slot_clean_double_line_breaks() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
     return;
   }
 
-  QString content = edit->curTextPage()->toPlainText();
+  QString content = edit_->CurTextPage()->GetTextPage()->toPlainText();
   content.replace("\n\n", "\n");
-  edit->slotFillTextEditWithText(content);
+  edit_->SlotFillTextEditWithText(content);
 }
 
-void MainWindow::slotAddPgpHeader() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
+void MainWindow::slot_add_pgp_header() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
     return;
   }
 
-  QString content = edit->curTextPage()->toPlainText().trimmed();
+  QString content =
+      edit_->CurTextPage()->GetTextPage()->toPlainText().trimmed();
 
   content.prepend("\n\n").prepend(GpgConstants::PGP_CRYPT_BEGIN);
   content.append("\n").append(GpgConstants::PGP_CRYPT_END);
 
-  edit->slotFillTextEditWithText(content);
+  edit_->SlotFillTextEditWithText(content);
 }
 
-void MainWindow::slotCutPgpHeader() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
+void MainWindow::slot_cut_pgp_header() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
     return;
   }
 
-  QString content = edit->curTextPage()->toPlainText();
+  QString content = edit_->CurTextPage()->GetTextPage()->toPlainText();
   int start = content.indexOf(GpgConstants::PGP_CRYPT_BEGIN);
   int end = content.indexOf(GpgConstants::PGP_CRYPT_END);
 
@@ -178,13 +179,46 @@ void MainWindow::slotCutPgpHeader() {
   end = content.indexOf(GpgConstants::PGP_CRYPT_END);
   content.remove(end, QString(GpgConstants::PGP_CRYPT_END).size());
 
-  edit->slotFillTextEditWithText(content.trimmed());
+  edit_->SlotFillTextEditWithText(content.trimmed());
 }
 
-void MainWindow::slotSetRestartNeeded(bool needed) {
-  this->restartNeeded = needed;
+void MainWindow::SlotSetRestartNeeded(bool needed) {
+  this->restart_needed_ = needed;
 }
 
-bool MainWindow::getRestartNeeded() const { return this->restartNeeded; }
+bool MainWindow::get_restart_needed() const { return this->restart_needed_; }
+
+void MainWindow::SetCryptoMenuStatus(
+    MainWindow::CryptoMenu::OperationType type) {
+  LOG(INFO) << "SetCryptoMenuStatus" << type;
+
+  // refresh status to disable all
+  verify_act_->setDisabled(true);
+  sign_act_->setDisabled(true);
+  encrypt_act_->setDisabled(true);
+  encrypt_sign_act_->setDisabled(true);
+  decrypt_act_->setDisabled(true);
+  decrypt_verify_act_->setDisabled(true);
+
+  // enable according to type
+  if (type & MainWindow::CryptoMenu::Verify) {
+    verify_act_->setDisabled(false);
+  }
+  if (type & MainWindow::CryptoMenu::Sign) {
+    sign_act_->setDisabled(false);
+  }
+  if (type & MainWindow::CryptoMenu::Encrypt) {
+    encrypt_act_->setDisabled(false);
+  }
+  if (type & MainWindow::CryptoMenu::EncryptAndSign) {
+    encrypt_sign_act_->setDisabled(false);
+  }
+  if (type & MainWindow::CryptoMenu::Decrypt) {
+    decrypt_act_->setDisabled(false);
+  }
+  if (type & MainWindow::CryptoMenu::DecryptAndVerify) {
+    decrypt_verify_act_->setDisabled(false);
+  }
+}
 
 }  // namespace GpgFrontend::UI

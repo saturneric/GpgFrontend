@@ -1,6 +1,3 @@
-[submodule "third_party/AppImageUpdate"]
-	path = third_party/AppImageUpdate
-	url = https://github.com/AppImage/AppImageUpdate
 [submodule "third_party/gpgme"]
 	path = third_party/gpgme
 	url = https://github.com/saturneric/gpgme
@@ -10,3 +7,24 @@
 [submodule "third_party/libgpg-error"]
 	path = third_party/libgpg-error
 	url = https://github.com/saturneric/libgpg-error
+[submodule "third_party/vmime"]
+	path = third_party/vmime
+	url = https://github.com/saturneric/vmime.git
+[submodule "third_party/json"]
+	path = third_party/json
+	url = https://github.com/saturneric/json
+[submodule "third_party/easyloggingpp"]
+	path = third_party/easyloggingpp
+	url = https://github.com/saturneric/easyloggingpp
+[submodule "third_party/qt-aes"]
+	path = third_party/qt-aes
+	url = https://github.com/saturneric/Qt-AES
+[submodule "third_party/smtp-mime"]
+	path = third_party/smtp-mime
+	url = https://github.com/saturneric/SmtpClient-for-Qt.git
+[submodule "third_party/libarchive"]
+	path = third_party/libarchive
+	url = https://github.com/saturneric/libarchive.git
+[submodule "third_party/libconfig"]
+	path = third_party/libconfig
+	url = https://github.com/saturneric/libconfig

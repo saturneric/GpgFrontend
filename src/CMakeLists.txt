@@ -1,17 +1,38 @@
+#
+# Copyright (C) 2021 Saturneric
+#
+# This file is part of GpgFrontend.
+#
+# GpgFrontend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GpgFrontend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
+#
+# The initial version of the source code is inherited from
+# the gpg4usb project, which is under GPL-3.0-or-later.
+#
+# All the source code of GpgFrontend was modified and released by
+# Saturneric<eric@bktus.com> starting on May 12, 2021.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+
 if (GPG_CORE)
     message(STATUS "Build Gpg Core")
-    add_subdirectory(gpg)
+    add_subdirectory(core)
 endif ()
 
 if (UI_CORE)
     message(STATUS "Build UI Core")
     add_subdirectory(ui)
-endif ()
-
-if (SMTP_SUPPORT)
-    message(STATUS "Build SMTP Support")
-    add_compile_definitions(SMTP_SUPPORT)
-    add_subdirectory(smtp)
 endif ()
 
 if (SERVER_SUPPORT)
@@ -114,6 +135,7 @@ if (APPLICATION_BUILD)
     # Copy Resource Files
     file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+    file(COPY ${CMAKE_SOURCE_DIR}/resource/certs DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/TRANSLATORS DESTINATION ${RESOURCE_OUTPUT_DIRECTORY} FOLLOW_SYMLINK_CHAIN)
     if (GPG_STANDALONE_MODE)
         file(COPY ${CMAKE_SOURCE_DIR}/resource/gpg1.4 DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
@@ -231,92 +253,62 @@ if (APPLICATION_BUILD)
 
 endif ()
 
+# link options for GpgFrontend
 if (APPLICATION_BUILD)
-
-    if (ADVANCE_SUPPORT)
-        set(GPGFRONTEND_BEFORE_UI_LIBS ${GPGFRONTEND_BEFORE_UI_LIBS} advance)
-    endif ()
-    if (ADVANCE_SUPPORT)
-        set(GPGFRONTEND_BEFORE_UI_LIBS ${GPGFRONTEND_BEFORE_UI_LIBS} server)
-    endif ()
-    if (SMTP_SUPPORT)
-        set(GPGFRONTEND_BEFORE_UI_LIBS ${GPGFRONTEND_BEFORE_UI_LIBS} smtp)
-    endif ()
-
-    set(GPGFRONTEND_LIBS ${GPGFRONTEND_AFTER_UI_LIBS} gpgfrontend-ui gpg_core ${GPGFRONTEND_BEFORE_UI_LIBS} easy_logging_pp)
-    set(QT_DEPENDENCY_LIBS Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
-
+    target_link_libraries(${AppName} gpgfrontend_ui)
     IF (MINGW)
         message(STATUS "Link Application Static Library For MINGW")
-        find_library(libconfig NAMES libconfig++.a)
-        find_library(libintl NAMES libintl.a)
-        find_library(libiconv NAMES libiconv.a)
-
-        target_link_libraries(${AppName}
-                ${GPGFRONTEND_LIBS}
-                ${QT_DEPENDENCY_LIBS}
-                ${Boost_LIBRARIES}
-                ${libintl} ${libiconv} ${libconfig} crypto ssl)
+        target_link_libraries(${AppName} crypto)
     elseif (APPLE)
         message(STATUS "Link Application Static Library For macOS")
-        target_link_libraries(${AppName}
-                ${GPGFRONTEND_LIBS}
-                ${QT_DEPENDENCY_LIBS}
-                ${Boost_LIBRARIES}
-                crypto ssl intl)
+        target_link_libraries(${AppName} intl)
     else ()
-        message(STATUS "Link Application Static Library For UNIX ")
-        if (APP_IMAGE_UPDATE)
-            target_link_libraries(${AppName}
-                    libappimageupdate)
-        endif ()
-        target_link_libraries(${AppName}
-                ${GPGFRONTEND_LIBS}
-                ${QT_DEPENDENCY_LIBS}
-                ${Boost_LIBRARIES}
-                crypto ssl pthread)
+        message(STATUS "Link Application Static Library For Linux")
+        target_link_libraries(${AppName} crypto pthread)
     endif ()
 endif ()
 
-if (LINUX_INSTALL_SOFTWARE)
-    if (LINUX)
-        if (INSTALL_GPGFRONTEND_APP)
-            install(TARGETS ${AppName}
-                    EXPORT GpgFrontendTargets
-                    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-                    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                    )
-            install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
-                    DESTINATION /usr/local/share/${AppName}/)
-            install(FILES ${CMAKE_SOURCE_DIR}/resource/meta/pub.gpgfrontend.gpgfrontend.appdata.xml
-                    DESTINATION /usr/share/metainfo/)
-            install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/desktop/
-                    DESTINATION /usr/share/applications/)
-            install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/pixmaps/
-                    DESTINATION /usr/share/pixmaps/)
-            install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/hicolor/
-                    DESTINATION /usr/share/icons/hicolor/)
-        endif ()
-        if (MULTI_LANG_SUPPORT)
-            install(DIRECTORY ${LOCALE_OUTPUT_PATH}/
-                    DESTINATION ${CMAKE_INSTALL_FULL_LOCALEDIR})
-        endif ()
-        if (APP_PACKAGE_DEB)
-            message(STATUS "Configure Deb Package")
-            SET(CPACK_GENERATOR "DEB")
-            set(CPACK_INSTALL_PREFIX "/usr/local/")
-            set(CPACK_PACKAGE_NAME "gpgfrontend")
-            set(CPACK_DEBIAN_PACKAGE_NAME "gpgfrontend")
-            set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-            set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
-            SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Saturneric")
-            set(CPACK_DEBIAN_PACKAGE_DEPENDS "gpg (>= 2.2), libqt5core5a (>= 5.9), libqt5gui5 (>= 5.9), libqt5widgets5 (>= 5.9), libqt5network5 (>= 5.9), libqt5printsupport5 (>= 5.9), libconfig++-dev (>=1.5)")
-            set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-            set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-            set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
-            include(CPack)
-        endif ()
+# using c++ standard 17
+target_compile_features(${AppName} PUBLIC cxx_std_17)
+
+# if building linux package
+if (LINUX AND LINUX_INSTALL_SOFTWARE)
+    if (INSTALL_GPGFRONTEND_APP)
+        install(TARGETS ${AppName}
+                EXPORT GpgFrontendTargets
+                RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                )
+        install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
+                DESTINATION /usr/local/share/${AppName}/)
+        install(FILES ${CMAKE_SOURCE_DIR}/resource/meta/pub.gpgfrontend.gpgfrontend.appdata.xml
+                DESTINATION /usr/share/metainfo/)
+        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/desktop/
+                DESTINATION /usr/share/applications/)
+        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/pixmaps/
+                DESTINATION /usr/share/pixmaps/)
+        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/hicolor/
+                DESTINATION /usr/share/icons/hicolor/)
+    endif ()
+    if (MULTI_LANG_SUPPORT)
+        install(DIRECTORY ${LOCALE_OUTPUT_PATH}/
+                DESTINATION ${CMAKE_INSTALL_FULL_LOCALEDIR})
+    endif ()
+    if (APP_PACKAGE_DEB)
+        message(STATUS "Configure Deb Package")
+        SET(CPACK_GENERATOR "DEB")
+        set(CPACK_INSTALL_PREFIX "/usr/local/")
+        set(CPACK_PACKAGE_NAME "gpgfrontend")
+        set(CPACK_DEBIAN_PACKAGE_NAME "gpgfrontend")
+        set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+        set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
+        SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Saturneric")
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "gpg (>= 2.2), libqt5core5a (>= 5.9), libqt5gui5 (>= 5.9), libqt5widgets5 (>= 5.9), libqt5network5 (>= 5.9), libqt5printsupport5 (>= 5.9), libconfig++-dev (>=1.5)")
+        set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
+        set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
+        set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+        include(CPack)
     endif ()
 endif ()
 

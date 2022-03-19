@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="2" column="0">
-    <widget class="QDialogButtonBox" name="buttonBox">
+    <widget class="QDialogButtonBox" name="button_box_">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -60,7 +60,9 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Tips: For the sake of security, the key is valid for up to two years. If you are an expert user, please unlock it for a longer time in the settings.</string>
+        <string>Tips: For the sake of security, the key is valid for up to two years. If you are
+                                    an expert user, please unlock it for a longer time in the settings.
+                                </string>
        </property>
        <property name="wordWrap">
         <bool>true</bool>
@@ -87,7 +89,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>button_box_</sender>
    <signal>accepted()</signal>
    <receiver>ModifiedExpirationDateTime</receiver>
    <slot>accept()</slot>
@@ -103,7 +105,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>button_box_</sender>
    <signal>rejected()</signal>
    <receiver>ModifiedExpirationDateTime</receiver>
    <slot>reject()</slot>

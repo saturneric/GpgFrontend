@@ -1,4 +1,6 @@
 /**
+ * Copyright (C) 2021 Saturneric
+ *
  * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
@@ -6,19 +8,21 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * GpgFrontend is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
  *
- * The initial version of the source code is inherited from gpg4usb-team.
- * Their source code version also complies with GNU General Public License.
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
@@ -27,7 +31,7 @@
 
 #include "KeyNewUIDDialog.h"
 #include "KeyUIDSignDialog.h"
-#include "gpg/GpgContext.h"
+#include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
@@ -36,65 +40,165 @@ class KeyPairUIDTab : public QWidget {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Key Pair U I D Tab object
+   *
+   * @param key_id
+   * @param parent
+   */
   KeyPairUIDTab(const std::string& key_id, QWidget* parent);
 
  signals:
-  void signalUpdateUIDInfo();
+
+  /**
+   * @brief
+   *
+   */
+  void SignalUpdateUIDInfo();
 
  private:
-  GpgKey mKey;
-  QTableWidget* uidList{};
-  QTableWidget* sigList{};
-  QTabWidget* tofuTabs{};
-  QMenu* manageSelectedUIDMenu{};
-  QMenu* uidPopupMenu{};
-  QMenu* signPopupMenu{};
-  std::vector<GpgUID> buffered_uids;
-  std::vector<GpgKeySignature> buffered_signatures;
+  GpgKey m_key_;
+  QTableWidget* uid_list_{};                          ///<
+  QTableWidget* sig_list_{};                          ///<
+  QTabWidget* tofu_tabs_{};                           ///<
+  QMenu* manage_selected_uid_menu_{};                 ///<
+  QMenu* uid_popup_menu_{};                           ///<
+  QMenu* sign_popup_menu_{};                          ///<
+  std::vector<GpgUID> buffered_uids_;                 ///<
+  std::vector<GpgKeySignature> buffered_signatures_;  ///<
 
-  void createUIDList();
+  /**
+   * @brief Create a uid list object
+   *
+   */
+  void create_uid_list();
 
-  void createSignList();
+  /**
+   * @brief Create a sign list object
+   *
+   */
+  void create_sign_list();
 
-  void createManageUIDMenu();
+  /**
+   * @brief Create a manage uid menu object
+   *
+   */
+  void create_manage_uid_menu();
 
-  void createUIDPopupMenu();
+  /**
+   * @brief Create a uid popup menu object
+   *
+   */
+  void create_uid_popup_menu();
 
-  void createSignPopupMenu();
+  /**
+   * @brief Create a sign popup menu object
+   *
+   */
+  void create_sign_popup_menu();
 
-  UIDArgsListPtr getUIDChecked();
+  /**
+   * @brief Get the uid checked object
+   *
+   * @return UIDArgsListPtr
+   */
+  UIDArgsListPtr get_uid_checked();
 
-  UIDArgsListPtr getUIDSelected();
+  /**
+   * @brief Get the uid selected object
+   *
+   * @return UIDArgsListPtr
+   */
+  UIDArgsListPtr get_uid_selected();
 
-  SignIdArgsListPtr getSignSelected();
+  /**
+   * @brief Get the sign selected object
+   *
+   * @return SignIdArgsListPtr
+   */
+  SignIdArgsListPtr get_sign_selected();
 
  private slots:
 
-  void slotRefreshUIDList();
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh_uid_list();
 
-  void slotRefreshTOFUInfo();
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh_tofu_info();
 
-  void slotRefreshSigList();
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh_sig_list();
 
-  void slotAddSign();
+  /**
+   * @brief
+   *
+   */
+  void slot_add_sign();
 
-  void slotAddSignSingle();
+  /**
+   * @brief
+   *
+   */
+  void slot_add_sign_single();
 
-  void slotAddUID();
+  /**
+   * @brief
+   *
+   */
+  void slot_add_uid();
 
-  void slotDelUID();
+  /**
+   * @brief
+   *
+   */
+  void slot_del_uid();
 
-  void slotDelUIDSingle();
+  /**
+   * @brief
+   *
+   */
+  void slot_del_uid_single();
 
-  void slotSetPrimaryUID();
+  /**
+   * @brief
+   *
+   */
+  void slot_set_primary_uid();
 
-  void slotDelSign();
+  /**
+   * @brief
+   *
+   */
+  void slot_del_sign();
 
-  void slotRefreshKey();
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh_key();
 
-  static void slotAddUIDResult(int result);
+  /**
+   * @brief
+   *
+   * @param result
+   */
+  static void slot_add_uid_result(int result);
 
  protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
   void contextMenuEvent(QContextMenuEvent* event) override;
 };
 

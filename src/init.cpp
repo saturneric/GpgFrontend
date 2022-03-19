@@ -1,4 +1,6 @@
 /**
+ * Copyright (C) 2021 Saturneric
+ *
  * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
@@ -6,26 +8,53 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * GpgFrontend is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
  *
- * The initial version of the source code is inherited from gpg4usb-team.
- * Their source code version also complies with GNU General Public License.
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
 #include <boost/date_time.hpp>
 
-#include "ui/settings/GlobalSettingStation.h"
+#include "core/function/GlobalSettingStation.h"
 
+/**
+ * @brief Get the files of a given directory
+ *
+ * @param _path target directory
+ * @return std::vector<std::filesystem::path>
+ */
+std::vector<std::filesystem::path> get_files_of_directory(
+    const std::filesystem::path& _path) {
+  namespace fs = std::filesystem;
+  std::vector<fs::path> path_list;
+  if (!_path.empty()) {
+    fs::recursive_directory_iterator end;
+
+    for (fs::recursive_directory_iterator i(_path); i != end; ++i) {
+      const fs::path cp = (*i);
+      path_list.push_back(cp);
+    }
+  }
+  return path_list;
+}
+
+/**
+ * @brief setup logging system and do proper initialization
+ *
+ */
 void init_logging() {
   using namespace boost::posix_time;
   using namespace boost::gregorian;
@@ -37,25 +66,53 @@ void init_logging() {
   defaultConf.setToDefault();
   el::Loggers::reconfigureLogger("default", defaultConf);
 
+  // apply settings
   defaultConf.setGlobally(el::ConfigurationType::Format,
                           "%datetime %level %func %msg");
 
+  // get the log directory
   auto logfile_path =
-      (GpgFrontend::UI::GlobalSettingStation::GetInstance().GetLogDir() /
+      (GpgFrontend::GlobalSettingStation::GetInstance().GetLogDir() /
        to_iso_string(now));
   logfile_path.replace_extension(".log");
   defaultConf.setGlobally(el::ConfigurationType::Filename,
-                          logfile_path.string());
+                          logfile_path.u8string());
 
   el::Loggers::reconfigureLogger("default", defaultConf);
 
-  LOG(INFO) << _("Logfile Path") << logfile_path;
+  LOG(INFO) << _("log file path") << logfile_path;
 }
 
-void init_locale() {
-  auto& settings =
-      GpgFrontend::UI::GlobalSettingStation::GetInstance().GetUISettings();
+/**
+ * @brief load all certificates from the given path
+ *      and add them to the given certificate store in GlobalSettingStation
+ */
+void init_certs() {
+  // get the certificate directory
+  auto cert_file_paths = get_files_of_directory(
+      GpgFrontend::GlobalSettingStation::GetInstance().GetCertsDir());
 
+  // get the instance of the GlobalSettingStation
+  auto& _instance = GpgFrontend::GlobalSettingStation::GetInstance();
+  for (const auto& cert_file_path : cert_file_paths) {
+    // add the certificate to the store
+    _instance.AddRootCert(cert_file_path);
+  }
+
+  // show the number of loaded certificates
+  LOG(INFO) << _("root certs loaded") << _instance.GetRootCerts().size();
+}
+
+/**
+ * @brief setup the locale and load the translations
+ *
+ */
+void init_locale() {
+  // get the instance of the GlobalSettingStation
+  auto& settings =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+
+  // create general settings if not exist
   if (!settings.exists("general") ||
       settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
     settings.add("general", libconfig::Setting::TypeGroup);
@@ -65,20 +122,21 @@ void init_locale() {
   if (!general.exists("lang"))
     general.add("lang", libconfig::Setting::TypeString) = "";
 
-  GpgFrontend::UI::GlobalSettingStation::GetInstance().Sync();
+  // sync the settings to the file
+  GpgFrontend::GlobalSettingStation::GetInstance().SyncSettings();
 
   LOG(INFO) << "current system locale" << setlocale(LC_ALL, nullptr);
 
   // read from settings file
   std::string lang;
   if (!general.lookupValue("lang", lang)) {
-    LOG(ERROR) << _("Could not read properly from configure file");
+    LOG(ERROR) << _("could not read properly from configure file");
   };
 
   LOG(INFO) << "lang from settings" << lang;
-  LOG(INFO) << "PROJECT_NAME" << PROJECT_NAME;
+  LOG(INFO) << "project name" << PROJECT_NAME;
   LOG(INFO) << "locales path"
-            << GpgFrontend::UI::GlobalSettingStation::GetInstance()
+            << GpgFrontend::GlobalSettingStation::GetInstance()
                    .GetLocaleDir()
                    .c_str();
 
@@ -119,9 +177,9 @@ void init_locale() {
 #endif
 
   bindtextdomain(PROJECT_NAME,
-                 GpgFrontend::UI::GlobalSettingStation::GetInstance()
+                 GpgFrontend::GlobalSettingStation::GetInstance()
                      .GetLocaleDir()
-                     .string()
+                     .u8string()
                      .c_str());
   bind_textdomain_codeset(PROJECT_NAME, "utf-8");
   textdomain(PROJECT_NAME);

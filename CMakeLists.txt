@@ -1,8 +1,47 @@
+#
+# Copyright (C) 2021 Saturneric
+#
+# This file is part of GpgFrontend.
+#
+# GpgFrontend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GpgFrontend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
+#
+# The initial version of the source code is inherited from
+# the gpg4usb project, which is under GPL-3.0-or-later.
+#
+# All the source code of GpgFrontend was modified and released by
+# Saturneric<eric@bktus.com> starting on May 12, 2021.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 cmake_minimum_required(VERSION 3.16)
 
-project(GpgFrontend VERSION 2.0.4 LANGUAGES CXX)
+# define project
+project(GpgFrontend VERSION 2.0.5 LANGUAGES CXX)
 
+# show cmake version
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
+
+INCLUDE(CheckIncludeFiles)
+INCLUDE(CheckIncludeFileCXX)
+INCLUDE(CheckFunctionExists)
+INCLUDE(CheckSymbolExists)
+INCLUDE(CheckTypeSize)
+INCLUDE(CheckLibraryExists)
+INCLUDE(CheckCXXSourceCompiles)
+
+# generate compile_commands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # options
 option(GPGFRONTEND_BUILD_TYPE_TEST_CORE
@@ -15,9 +54,10 @@ option(GPGFRONTEND_BUILD_TYPE_TEST_ALL
         "Generate a graphical interface with all functions" OFF)
 option(GPGFRONTEND_BUILD_TYPE_STABLE
         "Generate release version" ON)
-option(GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
-option(GENERATE_APP_PACKAGE_DEB "Generate DEB package" OFF)
-option(CONFIGURE_FOR_XCODE_BUILD "Generate a version that can be successfully compiled and packaged in Xcode" OFF)
+option(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
+option(GPGFRONTEND_GENERATE_APP_PACKAGE_DEB "Generate DEB package" OFF)
+option(GPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD "Generate a version that can be successfully compiled and packaged in Xcode" OFF)
+option(GPGFRONTEND_USE_QT_DEFAULT_ENV "Build with the qt version provided by the qt-default package" ON)
 
 # analyse options
 if (GPGFRONTEND_BUILD_TYPE_TEST_CORE)
@@ -40,6 +80,7 @@ if (GPGFRONTEND_BUILD_TYPE_TEST_ALL)
     set(GPGFRONTEND_BUILD_CONFIG "test_all")
 endif ()
 
+# stable features
 if (GPGFRONTEND_BUILD_TYPE_STABLE)
 
     set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
@@ -51,7 +92,8 @@ if (GPGFRONTEND_BUILD_TYPE_STABLE)
     set(STABLE_APPLICATION_BUILD 1)
 endif ()
 
-if (GENERATE_LINUX_INSTALL_SOFTWARE)
+# linux package build
+if (GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE)
 
     set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
     set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
@@ -60,16 +102,18 @@ if (GENERATE_LINUX_INSTALL_SOFTWARE)
     unset(GPGFRONTEND_BUILD_CONFIG)
 
     set(LINUX_INSTALL_SOFTWARE 1)
-    set(GENERATE_APP_PACKAGE_DEB 1)
+    set(GPGFRONTEND_GENERATE_APP_PACKAGE_DEB 1)
 endif ()
 
-if (GENERATE_LINUX_INSTALL_SOFTWARE AND GENERATE_APP_PACKAGE_DEB)
+# linux package build
+if (GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE AND GPGFRONTEND_GENERATE_APP_PACKAGE_DEB)
     set(APP_PACKAGE_DEB 1)
 endif ()
 
-if (CONFIGURE_FOR_XCODE_BUILD)
-    set(GENERATE_LINUX_INSTALL_SOFTWARE 0)
-    set(GENERATE_APP_PACKAGE_DEB 0)
+# xcode archive build
+if (GPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD)
+    set(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE 0)
+    set(GPGFRONTEND_GENERATE_APP_PACKAGE_DEB 0)
     set(LINUX_INSTALL_SOFTWARE 0)
     set(APP_PACKAGE_DEB 0)
 
@@ -83,21 +127,33 @@ if (CONFIGURE_FOR_XCODE_BUILD)
 endif ()
 
 # C++
-#Detect Compiler
+
+# options for ccache
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)
+
+# detect compiler
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    # using Clang
-    message(STATUS "Using Complier Clang")
+    # using clang
+    message(STATUS "Using Compiler clang")
+    message(STATUS "clang version ${CMAKE_CXX_COMPILER_VERSION}")
     set(USING_COMPILER_CLANG 1)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    # using GCC
-    message(STATUS "Using Complier Gcc")
+    # using gcc
+    message(STATUS "Using Compiler gcc")
+    message(STATUS "gcc version ${CMAKE_CXX_COMPILER_VERSION}")
     set(USING_COMPILER_GCC 1)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     # using Intel C++
-    message(STATUS "Using Complier Intel")
+    message(STATUS "Using Compiler Intel")
+    message(WARNING "Compilation with this compiler is untested, which may create some problems that need to be solved by the user.")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     # using Visual Studio C++
-    message(STATUS "Using Complier Msvc")
+    message(STATUS "Using Compiler MSVC")
+    message(WARNING "Compilation with this compiler is untested, which may create some problems that need to be solved by the user.")
 endif ()
 
 # Using Standard C++-17 (Consider compatibility)
@@ -164,7 +220,7 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
 else ()
     set(BUILD_FLAG 1)
     ADD_DEFINITIONS(-DDEBUG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
     # Generate branch coverage information using gcc
     if (TEST_COVERAGE_BUILD)
         if (USING_COMPILER_GCC)
@@ -209,6 +265,7 @@ message(STATUS "GpgFrontend Build Timestamp ${BUILD_TIMESTAMP}")
 message(STATUS "GpgFrontend Build Version ${BUILD_VERSION}")
 message(STATUS "GpgFrontend Git Repo Version ${GIT_VERSION}")
 
+# Windows
 IF (MINGW)
     message(STATUS "GpgFrontend Configuration For OS Platform Microsoft Windows")
     message(STATUS "Build Environment MINGW")
@@ -224,10 +281,12 @@ IF (MINGW)
             /mingw64/include
     )
     link_directories(
+            ${CMAKE_SOURCE_DIR}/lib/mingw
             /mingw64/lib
     )
 endif ()
 
+# macOS
 if (APPLE)
     message(STATUS "GpgFrontend Configuration For OS Platform MacOS")
 
@@ -251,7 +310,6 @@ if (APPLE)
     )
     link_directories(
             /usr/local/lib
-            /usr/local/opt/openssl/lib
     )
 endif ()
 
@@ -291,11 +349,13 @@ if (GPG_STANDALONE_MODE)
     add_compile_definitions(GPG_STANDALONE_MODE)
 endif ()
 
+
 if (LINUX_INSTALL_SOFTWARE)
     message(STATUS "Configure Linux Install ON")
     include(GNUInstallDirs)
     set(INSTALL_GPGFRONTEND_APP 1)
     set(APP_INSTALL_FLAG LINUX_INSTALL)
+    set(GPGFRONTEND_USE_QT_DEFAULT_ENV ON)
     add_compile_definitions(LINUX_INSTALL_BUILD)
     set(Boost_USE_STATIC_LIBS ON)
 else ()
@@ -303,10 +363,9 @@ else ()
     add_compile_definitions(BUNDLE_BUILD)
 endif ()
 
-# Basic Environment Configure
+# Basic ENV Configure
 set(BASIC_ENV_CONFIG 1)
 set(QT_MOC_CONFIG 1)
-set(EASY_LOGGING_PP 1)
 
 if (FULL_APPLICATION_BUILD)
     message(STATUS "Build Full Application")
@@ -320,6 +379,7 @@ if (FULL_APPLICATION_BUILD)
     set(BASIC_ENV_CONFIG 1)
     set(MULTI_LANG_SUPPORT 1)
 elseif (MINIMUM_APPLICATION_BUILD)
+    message(STATUS "Build Minimum Application")
     set(QT5_ENV_SUPPORT 1)
     set(GPG_CORE 1)
     set(UI_CORE 1)
@@ -330,6 +390,7 @@ elseif (MINIMUM_APPLICATION_BUILD)
     #        set(APP_IMAGE_UPDATE 1)
     #    endif ()
 elseif (STABLE_APPLICATION_BUILD)
+    message(STATUS "Build Stable Application")
     set(QT5_ENV_SUPPORT 1)
     set(GPG_CORE 1)
     set(UI_CORE 1)
@@ -349,11 +410,14 @@ elseif (TEST_CORE_BUILD)
 endif ()
 
 # Introduce boost
-find_package(Boost COMPONENTS date_time filesystem REQUIRED)
+find_package(Boost COMPONENTS date_time system REQUIRED)
+
+# Introduce OpenSSL
+find_package(OpenSSL REQUIRED)
 
 if (QT5_ENV_SUPPORT)
     # Support Qt version Both 5.12.x and 5.15.x
-    if (LINUX_INSTALL_SOFTWARE)
+    if (GPGFRONTEND_USE_QT_DEFAULT_ENV)
         find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
     else ()
         find_package(Qt5 5.15 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
@@ -387,10 +451,13 @@ if (MULTI_LANG_SUPPORT)
     add_compile_definitions(MULTI_LANG_SUPPORT)
 endif ()
 
-
+# third_party
 add_subdirectory(third_party)
+
+# source code
 add_subdirectory(src)
 
+# build to test gpgfrontend core
 if (TEST_CORE_BUILD)
     include(CTest)
     enable_testing()

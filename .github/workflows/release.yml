@@ -23,9 +23,14 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ 'ubuntu-18.04', 'macos-10.15', 'windows-latest' ]
+        os: [ 'ubuntu-18.04', 'macos-10.15', 'windows-2019' ]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Set git to use LF(Windows) or CRLF(MacOS) line endings
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+        if: matrix.os == 'windows-2019' || matrix.os == 'macos-10.15'
 
       - uses: actions/checkout@v2
         with:
@@ -63,12 +68,11 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5 gcc texinfo gettext libgpg-error libassuan gpgme openssl 
-          brew install boost libconfig gettext
+          brew install cmake git autoconf automake qt@5 texinfo gettext openssl@1.1 
+          brew install boost ninja
           brew unlink gettext && brew link --force gettext
           brew link qt@5
-          brew link gcc
-          brew link openssl --force
+          brew link openssl@1.1 --force
         if: matrix.os == 'macos-10.15'
 
       - name: Cache Qt
@@ -90,63 +94,39 @@ jobs:
         with:
           install: git msys2-devel base-devel binutils mingw-w64-x86_64-toolchain
           release: false
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
 
       - name: Set up Dependence (Windows)
         shell: msys2 {0}
         run: |
-          pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-gpgme
-          pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost mingw-w64-x86_64-gnupg gettext-devel libintl msys2-runtime-devel
-          pacman --noconfirm -S --needed mingw-w64-x86_64-qt5
-        if: matrix.os == 'windows-latest'
-
-      - name: Build gpg-error (Linux)
-        run: |
-          cd  ${{github.workspace}}/third_party/libgpg-error
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-18.04'
-
-      - name: Build assuan (Linux)
-        run: |
-          cd ${{github.workspace}}/third_party/libassuan
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-18.04'
-
-      - name: Build GpgME (Linux & macOS)
-        run: |
-          cd  ${{github.workspace}}/third_party/gpgme
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes --enable-languages=cpp && make -j2
-          sudo make install
-          cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-18.04' || matrix.os == 'macos-10.15'
+          pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
+          pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake 
+          pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel mingw-w64-x86_64-gpgme
+          pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
+        if: matrix.os == 'windows-2019'
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}
         run: |
-          git clone https://github.com/saturneric/gpgme
-          cd gpgme
+          cd $(echo "/${{github.workspace}}/third_party/gpgme"  | sed 's/\\/\//g' | sed 's/://')
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-static=yes --disable-gpg-test --enable-languages=cpp LDFLAGS="-static" && make -j2
           make install
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
 
-      - name: Configure CMake
-        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON
-        if: matrix.os == 'ubuntu-18.04' || matrix.os == 'macos-10.15'
+      - name: Build GpgFrontend (Linux)
+        # Build your GpgFrontend with the given configuration
+        run: |
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
+        if: matrix.os == 'ubuntu-18.04'
 
-      - name: Build GpgFrontend
-        # Build your program with the given configuration
-        run: cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}}  -- -j 2
-        if: matrix.os == 'ubuntu-18.04' || matrix.os == 'macos-10.15'
+      - name: Build GpgFrontend (macOS)
+        # Build your GpgFrontend with the given configuration
+        run: |
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1
+          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
+        if: matrix.os == 'macos-10.15'
 
       - name: Build & Sign App Bundle (macOS)
         run: |
@@ -185,10 +165,10 @@ jobs:
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           mkdir build && cd build
-          cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON ..
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON ..
           # Build your program with the given configuration
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
 
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@master
@@ -209,4 +189,4 @@ jobs:
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
           path: ${{github.workspace}}/build/release/*
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'

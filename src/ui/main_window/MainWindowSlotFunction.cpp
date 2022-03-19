@@ -1,4 +1,6 @@
 /**
+ * Copyright (C) 2021 Saturneric
+ *
  * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
@@ -6,19 +8,21 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * GpgFrontend is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
  *
- * The initial version of the source code is inherited from gpg4usb-team.
- * Their source code version also complies with GNU General Public License.
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
@@ -32,25 +36,28 @@
 #endif
 
 #ifdef SMTP_SUPPORT
-#include "ui/smtp/SendMailDialog.h"
+#include "ui/mail/SendMailDialog.h"
 #endif
 
-#include "gpg/function/BasicOperator.h"
-#include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/GpgKeyImportExporter.h"
+#include "core/function/GlobalSettingStation.h"
+#include "core/function/gpg/GpgBasicOperator.h"
+#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/help/AboutDialog.h"
-#include "ui/settings/GlobalSettingStation.h"
 #include "ui/widgets/SignersPicker.h"
 
 namespace GpgFrontend::UI {
 /**
  * Encrypt Entry(Text & File)
  */
-void MainWindow::slotEncrypt() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
+void MainWindow::slot_encrypt() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) this->SlotFileEncrypt();
+    return;
+  }
 
-  auto key_ids = mKeyList->getChecked();
+  auto key_ids = m_key_list_->GetChecked();
 
   GpgEncrResult result = nullptr;
   GpgError error;
@@ -61,7 +68,7 @@ void MainWindow::slotEncrypt() {
     // Symmetric Encrypt
     auto ret = QMessageBox::information(
         this, _("Symmetric Encryption"),
-        _("No Key Selected. Do you want to encrypt with a "
+        _("No Key Checked. Do you want to encrypt with a "
           "symmetric cipher using a passphrase?"),
         QMessageBox::Ok | QMessageBox::Cancel);
 
@@ -69,8 +76,9 @@ void MainWindow::slotEncrypt() {
 
     process_operation(this, _("Symmetrically Encrypting"), [&]() {
       try {
-        auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
-        error = GpgFrontend::BasicOperator::GetInstance().EncryptSymmetric(
+        auto buffer =
+            edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString();
+        error = GpgFrontend::GpgBasicOperator::GetInstance().EncryptSymmetric(
             buffer, tmp, result);
       } catch (const std::runtime_error& e) {
         if_error = true;
@@ -80,22 +88,23 @@ void MainWindow::slotEncrypt() {
     auto key_getter = GpgFrontend::GpgKeyGetter::GetInstance();
     auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
     for (const auto& key : *keys) {
-      if (!key.CanEncrActual()) {
+      if (!key.IsHasActualEncryptionCapability()) {
         QMessageBox::information(
-            nullptr, _("Invalid Operation"),
+            this, _("Invalid Operation"),
             QString(_(
                 "The selected key contains a key that does not actually have a "
                 "encrypt usage.")) +
                 "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-                QString::fromStdString(key.uids()->front().uid()));
+                QString::fromStdString(key.GetUIDs()->front().GetUID()));
         return;
       }
     }
 
     process_operation(this, _("Encrypting"), [&]() {
       try {
-        auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
-        error = GpgFrontend::BasicOperator::GetInstance().Encrypt(
+        auto buffer =
+            edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString();
+        error = GpgFrontend::GpgBasicOperator::GetInstance().Encrypt(
             std::move(keys), buffer, tmp, result);
       } catch (const std::runtime_error& e) {
         if_error = true;
@@ -105,16 +114,17 @@ void MainWindow::slotEncrypt() {
 
   if (!if_error) {
     LOG(INFO) << "result" << result.get();
-    auto resultAnalyse = EncryptResultAnalyse(error, std::move(result));
-    resultAnalyse.analyse();
-    process_result_analyse(edit, infoBoard, resultAnalyse);
+    auto resultAnalyse = GpgEncryptResultAnalyse(error, std::move(result));
+    resultAnalyse.Analyse();
+    process_result_analyse(edit_, info_board_, resultAnalyse);
 
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
-    infoBoard->resetOptionActionsMenu();
+      edit_->SlotFillTextEditWithText(QString::fromStdString(*tmp));
+    info_board_->ResetOptionActionsMenu();
 #ifdef SMTP_SUPPORT
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      send_an_email(this, infoBoard, edit->curTextPage()->toPlainText());
+      send_an_email(this, info_board_,
+                    edit_->CurTextPage()->GetTextPage()->toPlainText());
 #endif
   } else {
     QMessageBox::critical(this, _("Error"),
@@ -123,28 +133,31 @@ void MainWindow::slotEncrypt() {
   }
 }
 
-void MainWindow::slotSign() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
+void MainWindow::slot_sign() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) this->SlotFileSign();
+    return;
+  }
 
-  auto key_ids = mKeyList->getPrivateChecked();
+  auto key_ids = m_key_list_->GetPrivateChecked();
 
   if (key_ids->empty()) {
     QMessageBox::critical(
-        this, _("No Key Selected"),
-        _("Please select the key in the key toolbox on the right."));
+        this, _("No Key Checked"),
+        _("Please check the key in the key toolbox on the right."));
     return;
   }
 
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
   for (const auto& key : *keys) {
-    if (!key.CanSignActual()) {
+    if (!key.IsHasActualSigningCapability()) {
       QMessageBox::information(
           this, _("Invalid Operation"),
           QString(
               _("The selected key contains a key that does not actually have a "
                 "signature usage.")) +
               "<br/><br/>" + _("For example the Following Key:") + "<br/>" +
-              key.uids()->front().uid().c_str());
+              key.GetUIDs()->front().GetUID().c_str());
       return;
     }
   }
@@ -157,8 +170,12 @@ void MainWindow::slotSign() {
 
   process_operation(this, _("Signing"), [&]() {
     try {
-      auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
-      error = GpgFrontend::BasicOperator::GetInstance().Sign(
+      auto buffer = edit_->CurTextPage()
+                        ->GetTextPage()
+                        ->toPlainText()
+                        .toUtf8()
+                        .toStdString();
+      error = GpgFrontend::GpgBasicOperator::GetInstance().Sign(
           std::move(keys), buffer, tmp, GPGME_SIG_MODE_CLEAR, result);
     } catch (const std::runtime_error& e) {
       if_error = true;
@@ -166,12 +183,12 @@ void MainWindow::slotSign() {
   });
 
   if (!if_error) {
-    auto resultAnalyse = SignResultAnalyse(error, std::move(result));
-    resultAnalyse.analyse();
-    process_result_analyse(edit, infoBoard, resultAnalyse);
+    auto resultAnalyse = GpgSignResultAnalyse(error, std::move(result));
+    resultAnalyse.Analyse();
+    process_result_analyse(edit_, info_board_, resultAnalyse);
 
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
+      edit_->SlotFillTextEditWithText(QString::fromStdString(*tmp));
   } else {
     QMessageBox::critical(this, _("Error"),
                           _("An error occurred during operation."));
@@ -179,11 +196,14 @@ void MainWindow::slotSign() {
   }
 }
 
-void MainWindow::slotDecrypt() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
+void MainWindow::slot_decrypt() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) this->SlotFileDecrypt();
+    return;
+  }
 
   auto decrypted = std::make_unique<ByteArray>();
-  QByteArray text = edit->curTextPage()->toPlainText().toUtf8();
+  QByteArray text = edit_->CurTextPage()->GetTextPage()->toPlainText().toUtf8();
 
   if (text.trimmed().startsWith(GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD)) {
     QMessageBox::critical(
@@ -198,7 +218,7 @@ void MainWindow::slotDecrypt() {
   process_operation(this, _("Decrypting"), [&]() {
     try {
       auto buffer = text.toStdString();
-      error = GpgFrontend::BasicOperator::GetInstance().Decrypt(
+      error = GpgFrontend::GpgBasicOperator::GetInstance().Decrypt(
           buffer, decrypted, result);
     } catch (const std::runtime_error& e) {
       if_error = true;
@@ -206,12 +226,12 @@ void MainWindow::slotDecrypt() {
   });
 
   if (!if_error) {
-    auto resultAnalyse = DecryptResultAnalyse(error, std::move(result));
-    resultAnalyse.analyse();
-    process_result_analyse(edit, infoBoard, resultAnalyse);
+    auto resultAnalyse = GpgDecryptResultAnalyse(error, std::move(result));
+    resultAnalyse.Analyse();
+    process_result_analyse(edit_, info_board_, resultAnalyse);
 
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      edit->slotFillTextEditWithText(QString::fromStdString(*decrypted));
+      edit_->SlotFillTextEditWithText(QString::fromStdString(*decrypted));
   } else {
     QMessageBox::critical(this, _("Error"),
                           _("An error occurred during operation."));
@@ -219,22 +239,25 @@ void MainWindow::slotDecrypt() {
   }
 }
 
-void MainWindow::slotFind() {
-  if (edit->tabCount() == 0 || edit->curTextPage() == nullptr) {
+void MainWindow::slot_find() {
+  if (edit_->TabCount() == 0 || edit_->CurTextPage() == nullptr) {
     return;
   }
 
   // At first close verifynotification, if existing
-  edit->slotCurPageTextEdit()->closeNoteByClass("findwidget");
+  edit_->SlotCurPageTextEdit()->CloseNoteByClass("findwidget");
 
-  auto* fw = new FindWidget(this, edit->curTextPage());
-  edit->slotCurPageTextEdit()->showNotificationWidget(fw, "findWidget");
+  auto* fw = new FindWidget(this, edit_->CurTextPage());
+  edit_->SlotCurPageTextEdit()->ShowNotificationWidget(fw, "findWidget");
 }
 
-void MainWindow::slotVerify() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
+void MainWindow::slot_verify() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) this->SlotFileVerify();
+    return;
+  }
 
-  auto text = edit->curTextPage()->toPlainText().toUtf8();
+  auto text = edit_->CurTextPage()->GetTextPage()->toPlainText().toUtf8();
   // TODO(Saturneric) PreventNoDataErr
 
   auto sig_buffer = std::make_unique<ByteArray>();
@@ -246,7 +269,7 @@ void MainWindow::slotVerify() {
   process_operation(this, _("Verifying"), [&]() {
     try {
       auto buffer = text.toStdString();
-      error = GpgFrontend::BasicOperator::GetInstance().Verify(
+      error = GpgFrontend::GpgBasicOperator::GetInstance().Verify(
           buffer, sig_buffer, result);
     } catch (const std::runtime_error& e) {
       if_error = true;
@@ -254,59 +277,63 @@ void MainWindow::slotVerify() {
   });
 
   if (!if_error) {
-    auto result_analyse = VerifyResultAnalyse(error, result);
-    result_analyse.analyse();
-    process_result_analyse(edit, infoBoard, result_analyse);
+    auto result_analyse = GpgVerifyResultAnalyse(error, result);
+    result_analyse.Analyse();
+    process_result_analyse(edit_, info_board_, result_analyse);
 
-    if (result_analyse.getStatus() == -2)
+    if (result_analyse.GetStatus() == -2)
       import_unknown_key_from_keyserver(this, result_analyse);
 
-    if (result_analyse.getStatus() >= 0)
-      show_verify_details(this, infoBoard, error, result);
+    if (result_analyse.GetStatus() >= 0)
+      show_verify_details(this, info_board_, error, result);
   }
 }
 
-void MainWindow::slotEncryptSign() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
+void MainWindow::slot_encrypt_sign() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    if (edit_->SlotCurPageFileTreeView() != nullptr)
+      this->SlotFileEncryptSign();
+    return;
+  }
 
-  auto key_ids = mKeyList->getChecked();
+  auto key_ids = m_key_list_->GetChecked();
 
   if (key_ids->empty()) {
     QMessageBox::critical(
-        nullptr, _("No Key Selected"),
-        _("Please select the key in the key toolbox on the right."));
+        this, _("No Key Checked"),
+        _("Please check some key in the key toolbox on the right."));
     return;
   }
 
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
   for (const auto& key : *keys) {
-    bool key_can_encrypt = key.CanEncrActual();
+    bool key_can_encrypt = key.IsHasActualEncryptionCapability();
 
     if (!key_can_encrypt) {
       QMessageBox::critical(
-          nullptr, _("Invalid KeyPair"),
+          this, _("Invalid KeyPair"),
           QString(_("The selected keypair cannot be used for encryption.")) +
               "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.uids()->front().uid()));
+              QString::fromStdString(key.GetUIDs()->front().GetUID()));
       return;
     }
   }
 
   auto signersPicker = new SignersPicker(this);
   QEventLoop loop;
-  connect(signersPicker, SIGNAL(finished(int)), &loop, SLOT(quit()));
+  connect(signersPicker, &SignersPicker::finished, &loop, &QEventLoop::quit);
   loop.exec();
 
-  auto signer_key_ids = signersPicker->getCheckedSigners();
+  auto signer_key_ids = signersPicker->GetCheckedSigners();
   auto signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
 
   for (const auto& key : *keys) {
-    LOG(INFO) << "Keys " << key.email();
+    LOG(INFO) << "Keys " << key.GetEmail();
   }
 
   for (const auto& signer : *signer_keys) {
-    LOG(INFO) << "Signers " << signer.email();
+    LOG(INFO) << "Signers " << signer.GetEmail();
   }
 
   GpgEncrResult encr_result = nullptr;
@@ -317,8 +344,12 @@ void MainWindow::slotEncryptSign() {
   auto tmp = std::make_unique<ByteArray>();
   process_operation(this, _("Encrypting and Signing"), [&]() {
     try {
-      auto buffer = edit->curTextPage()->toPlainText().toUtf8().toStdString();
-      error = GpgFrontend::BasicOperator::GetInstance().EncryptSign(
+      auto buffer = edit_->CurTextPage()
+                        ->GetTextPage()
+                        ->toPlainText()
+                        .toUtf8()
+                        .toStdString();
+      error = GpgFrontend::GpgBasicOperator::GetInstance().EncryptSign(
           std::move(keys), std::move(signer_keys), buffer, tmp, encr_result,
           sign_result);
     } catch (const std::runtime_error& e) {
@@ -340,19 +371,20 @@ void MainWindow::slotEncryptSign() {
       }
     }
 #endif
-    LOG(INFO) << "ResultAnalyse Started";
-    auto encrypt_res = EncryptResultAnalyse(error, std::move(encr_result));
-    auto sign_res = SignResultAnalyse(error, std::move(sign_result));
-    encrypt_res.analyse();
-    sign_res.analyse();
-    process_result_analyse(edit, infoBoard, encrypt_res, sign_res);
+    LOG(INFO) << "GpgResultAnalyse Started";
+    auto encrypt_res = GpgEncryptResultAnalyse(error, std::move(encr_result));
+    auto sign_res = GpgSignResultAnalyse(error, std::move(sign_result));
+    encrypt_res.Analyse();
+    sign_res.Analyse();
+    process_result_analyse(edit_, info_board_, encrypt_res, sign_res);
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      edit->slotFillTextEditWithText(QString::fromStdString(*tmp));
+      edit_->SlotFillTextEditWithText(QString::fromStdString(*tmp));
 
-    infoBoard->resetOptionActionsMenu();
+    info_board_->ResetOptionActionsMenu();
 #ifdef SMTP_SUPPORT
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      send_an_email(this, infoBoard, edit->curTextPage()->toPlainText(), false);
+      send_an_email(this, info_board_,
+                    edit_->CurTextPage()->GetTextPage()->toPlainText(), false);
 #endif
 
 #ifdef ADVANCE_SUPPORT
@@ -373,10 +405,14 @@ void MainWindow::slotEncryptSign() {
   }
 }
 
-void MainWindow::slotDecryptVerify() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) return;
+void MainWindow::slot_decrypt_verify() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    if (edit_->SlotCurPageFileTreeView() != nullptr)
+      this->SlotFileDecryptVerify();
+    return;
+  }
 
-  QString plainText = edit->curTextPage()->toPlainText();
+  QString plainText = edit_->CurTextPage()->GetTextPage()->toPlainText();
 
 #ifdef ADVANCE_SUPPORT
   if (plainText.trimmed().startsWith(
@@ -412,27 +448,27 @@ void MainWindow::slotDecryptVerify() {
   process_operation(this, _("Decrypting and Verifying"), [&]() {
     try {
       auto buffer = text.toStdString();
-      error = BasicOperator::GetInstance().DecryptVerify(buffer, decrypted,
-                                                         d_result, v_result);
+      error = GpgBasicOperator::GetInstance().DecryptVerify(buffer, decrypted,
+                                                            d_result, v_result);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }
   });
 
   if (!if_error) {
-    auto decrypt_res = DecryptResultAnalyse(error, std::move(d_result));
-    auto verify_res = VerifyResultAnalyse(error, v_result);
-    decrypt_res.analyse();
-    verify_res.analyse();
-    process_result_analyse(edit, infoBoard, decrypt_res, verify_res);
+    auto decrypt_res = GpgDecryptResultAnalyse(error, std::move(d_result));
+    auto verify_res = GpgVerifyResultAnalyse(error, v_result);
+    decrypt_res.Analyse();
+    verify_res.Analyse();
+    process_result_analyse(edit_, info_board_, decrypt_res, verify_res);
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      edit->slotFillTextEditWithText(QString::fromStdString(*decrypted));
+      edit_->SlotFillTextEditWithText(QString::fromStdString(*decrypted));
 
-    if (verify_res.getStatus() == -2)
+    if (verify_res.GetStatus() == -2)
       import_unknown_key_from_keyserver(this, verify_res);
 
-    if (verify_res.getStatus() >= 0)
-      show_verify_details(this, infoBoard, error, v_result);
+    if (verify_res.GetStatus() >= 0)
+      show_verify_details(this, info_board_, error, v_result);
 
   } else {
     QMessageBox::critical(this, _("Error"),
@@ -444,62 +480,63 @@ void MainWindow::slotDecryptVerify() {
 /*
  * Append the selected (not checked!) Key(s) To Textedit
  */
-void MainWindow::slotAppendSelectedKeys() {
-  if (edit->tabCount() == 0 || edit->slotCurPageTextEdit() == nullptr) {
+void MainWindow::slot_append_selected_keys() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
     return;
   }
 
   auto exported = std::make_unique<ByteArray>();
-  auto key_ids = mKeyList->getSelected();
+  auto key_ids = m_key_list_->GetSelected();
 
   GpgKeyImportExporter::GetInstance().ExportKeys(key_ids, exported);
-  edit->curTextPage()->append(QString::fromStdString(*exported));
+  edit_->CurTextPage()->GetTextPage()->appendPlainText(
+      QString::fromStdString(*exported));
 }
 
-void MainWindow::slotCopyMailAddressToClipboard() {
-  auto key_ids = mKeyList->getSelected();
+void MainWindow::slot_copy_mail_address_to_clipboard() {
+  auto key_ids = m_key_list_->GetSelected();
   if (key_ids->empty()) return;
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
-  if (!key.good()) {
-    QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
+  if (!key.IsGood()) {
+    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
     return;
   }
   QClipboard* cb = QApplication::clipboard();
-  cb->setText(QString::fromStdString(key.email()));
+  cb->setText(QString::fromStdString(key.GetEmail()));
 }
 
-void MainWindow::slotShowKeyDetails() {
-  auto key_ids = mKeyList->getSelected();
+void MainWindow::slot_show_key_details() {
+  auto key_ids = m_key_list_->GetSelected();
   if (key_ids->empty()) return;
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
-  if (key.good()) {
+  if (key.IsGood()) {
     new KeyDetailsDialog(key, this);
   } else {
-    QMessageBox::critical(nullptr, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
   }
 }
 
-void MainWindow::refreshKeysFromKeyserver() {
-  auto key_ids = mKeyList->getSelected();
+void MainWindow::refresh_keys_from_key_server() {
+  auto key_ids = m_key_list_->GetSelected();
   if (key_ids->empty()) return;
 
   auto* dialog = new KeyServerImportDialog(this);
   dialog->show();
-  dialog->slotImport(key_ids);
+  dialog->SlotImport(key_ids);
 }
 
-void MainWindow::uploadKeyToServer() {
-  auto key_ids = mKeyList->getSelected();
+void MainWindow::upload_key_to_server() {
+  auto key_ids = m_key_list_->GetSelected();
   auto* dialog = new KeyUploadDialog(key_ids, this);
   dialog->show();
-  dialog->slotUpload();
+  dialog->SlotUpload();
 }
 
-void MainWindow::slotOpenFile(QString& path) { edit->slotOpenFile(path); }
+void MainWindow::SlotOpenFile(QString& path) { edit_->SlotOpenFile(path); }
 
-void MainWindow::slotVersionUpgrade(const SoftwareVersion& version) {
+void MainWindow::slot_version_upgrade(const SoftwareVersion& version) {
   LOG(INFO) << _("called");
   if (version.NeedUpgrade()) {
     statusBar()->showMessage(

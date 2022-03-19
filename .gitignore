@@ -2,7 +2,7 @@
 src/GpgFrontend.h
 src/GpgFrontendBuildInfo.h
 src/GpgFrontendBuildInstallInfo.h
-third_party/AppImageUpdate
+docs/
 
 # gettext
 *.mo
@@ -113,4 +113,3 @@ target_wrapper.*
 
 # QtCreator
 *.autosave
-

@@ -1,4 +1,6 @@
 /**
+ * Copyright (C) 2021 Saturneric
+ *
  * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
@@ -6,100 +8,181 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * GpgFrontend is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
  *
- * The initial version of the source code is inherited from gpg4usb-team.
- * Their source code version also complies with GNU General Public License.
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
 #ifndef __KEYMGMT_H__
 #define __KEYMGMT_H__
 
-#include "KeyImportDetailDialog.h"
-#include "KeyServerImportDialog.h"
+#include "import_export/KeyImportDetailDialog.h"
+#include "import_export/KeyServerImportDialog.h"
 #include "ui/GpgFrontendUI.h"
-#include "ui/keygen/KeygenDialog.h"
+#include "ui/key_generate/KeygenDialog.h"
 #include "ui/keypair_details/KeyDetailsDialog.h"
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief
+ *
+ */
 class KeyMgmt : public QMainWindow {
   Q_OBJECT
 
  public:
+  /**
+   * @brief Construct a new Key Mgmt object
+   *
+   * @param parent
+   */
   explicit KeyMgmt(QWidget* parent = nullptr);
 
  public slots:
 
-  void slotGenerateSubKey();
+  /**
+   * @brief
+   *
+   */
+  void SlotGenerateSubKey();
 
-  void slotExportKeyToKeyPackage();
+  /**
+   * @brief
+   *
+   */
+  void SlotExportKeyToKeyPackage();
 
-  void slotExportKeyToClipboard();
+  /**
+   * @brief
+   *
+   */
+  void SlotExportKeyToClipboard();
 
-  void slotExportAsOpenSSHFormat();
+  /**
+   * @brief
+   *
+   */
+  void SlotExportAsOpenSSHFormat();
 
-  void slotDeleteSelectedKeys();
+  /**
+   * @brief
+   *
+   */
+  void SlotDeleteSelectedKeys();
 
-  void slotDeleteCheckedKeys();
+  /**
+   * @brief
+   *
+   */
+  void SlotDeleteCheckedKeys();
 
-  void slotGenerateKeyDialog();
+  /**
+   * @brief
+   *
+   */
+  void SlotGenerateKeyDialog();
 
-  void slotShowKeyDetails();
+  /**
+   * @brief
+   *
+   */
+  void SlotShowKeyDetails();
 
-  void slotSaveWindowState();
+  /**
+   * @brief
+   *
+   */
+  void SlotSaveWindowState();
 
-  void slotImportKeyPackage();
+  /**
+   * @brief
+   *
+   */
+  void SlotImportKeyPackage();
 
  signals:
 
-  void signalStatusBarChanged(QString);
+  /**
+   * @brief
+   *
+   */
+  void SignalStatusBarChanged(QString);
 
-  void signalKeyStatusUpdated();
+  /**
+   * @brief
+   *
+   */
+  void SignalKeyStatusUpdated();
 
  private:
-  void createMenus();
+  /**
+   * @brief Create a menus object
+   *
+   */
+  void create_menus();
 
-  void createActions();
+  /**
+   * @brief Create a actions object
+   *
+   */
+  void create_actions();
 
-  void createToolBars();
+  /**
+   * @brief Create a tool bars object
+   *
+   */
+  void create_tool_bars();
 
-  void deleteKeysWithWarning(GpgFrontend::KeyIdArgsListPtr uidList);
+  /**
+   * @brief
+   *
+   * @param uidList
+   */
+  void delete_keys_with_warning(GpgFrontend::KeyIdArgsListPtr uidList);
 
-  KeyList* key_list_;
-  QMenu* fileMenu{};
-  QMenu* keyMenu{};
-  QMenu* generateKeyMenu{};
-  QMenu* importKeyMenu{};
-  QAction* openKeyFileAct{};
-  QAction* exportKeyToFileAct{};
-  QAction* exportKeyAsOpenSSHFormat{};
-  QAction* exportKeyToClipboardAct{};
-  QAction* deleteCheckedKeysAct{};
-  QAction* deleteSelectedKeysAct{};
-  QAction* generateKeyDialogAct{};
-  QAction* generateKeyPairAct{};
-  QAction* generateSubKeyAct{};
-  QAction* importKeyFromClipboardAct{};
-  QAction* importKeyFromFileAct{};
-  QAction* importKeyFromKeyServerAct{};
-  QAction* importKeysFromKeyPackageAct{};
-  QAction* closeAct{};
-  QAction* showKeyDetailsAct{};
-  KeyServerImportDialog* importDialog{};
+  KeyList* key_list_;                            ///<
+  QMenu* file_menu_{};                           ///<
+  QMenu* key_menu_{};                            ///<
+  QMenu* generate_key_menu_{};                   ///<
+  QMenu* import_key_menu_{};                     ///<
+  QAction* open_key_file_act_{};                 ///<
+  QAction* export_key_to_file_act_{};            ///<
+  QAction* export_key_as_open_ssh_format_{};     ///<
+  QAction* export_key_to_clipboard_act_{};       ///<
+  QAction* delete_checked_keys_act_{};           ///<
+  QAction* delete_selected_keys_act_{};          ///<
+  QAction* generate_key_dialog_act_{};           ///<
+  QAction* generate_key_pair_act_{};             ///<
+  QAction* generate_subkey_act_{};               ///<
+  QAction* import_key_from_clipboard_act_{};     ///<
+  QAction* import_key_from_file_act_{};          ///<
+  QAction* import_key_from_key_server_act_{};    ///<
+  QAction* import_keys_from_key_package_act_{};  ///<
+  QAction* close_act_{};                         ///<
+  QAction* show_key_details_act_{};              ///<
+  KeyServerImportDialog* import_dialog_{};       ///<
 
  protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
   void closeEvent(QCloseEvent* event) override;
 };
 
