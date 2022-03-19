@@ -51,7 +51,7 @@ GpgFrontend::DataObjectOperator::DataObjectOperator(int channel)
   }
 
   std::string key;
-  if (!FileOperator::ReadFileStd(app_secure_key_path_.string(), key)) {
+  if (!FileOperator::ReadFileStd(app_secure_key_path_.u8string(), key)) {
     LOG(FATAL) << _("Failed to read app secure key file")
                << app_secure_key_path_;
     throw std::runtime_error(_("Failed to read app secure key file"));
@@ -94,7 +94,7 @@ std::string GpgFrontend::DataObjectOperator::SaveDataObj(
 
   LOG(INFO) << _("Saving data object") << _hash_obj_key << "to" << obj_path << encoded.size() << "bytes";
 
-  FileOperator::WriteFileStd(obj_path.string(), encoded.toStdString());
+  FileOperator::WriteFileStd(obj_path.u8string(), encoded.toStdString());
 
   return _key.empty() ? _hash_obj_key : std::string();
 }
@@ -117,7 +117,7 @@ std::optional<nlohmann::json> GpgFrontend::DataObjectOperator::GetDataObject(
     }
 
     std::string buffer;
-    if (!FileOperator::ReadFileStd(obj_path.string(), buffer)) {
+    if (!FileOperator::ReadFileStd(obj_path.u8string(), buffer)) {
       LOG(ERROR) << _("Failed to read data object") << _key;
       return {};
     }
@@ -153,7 +153,7 @@ GpgFrontend::DataObjectOperator::GetDataObjectByRef(const std::string& _ref) {
     if (!std::filesystem::exists(obj_path)) return {};
 
     std::string buffer;
-    if (!FileOperator::ReadFileStd(obj_path.string(), buffer)) return {};
+    if (!FileOperator::ReadFileStd(obj_path.u8string(), buffer)) return {};
     auto encoded = QByteArray::fromStdString(buffer);
 
     QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,

@@ -55,15 +55,18 @@ bool GpgFrontend::FileOperator::WriteFile(const QString& file_name,
 bool GpgFrontend::FileOperator::ReadFileStd(
     const std::filesystem::path& file_name, std::string& data) {
   QByteArray byte_data;
-  bool res = ReadFile(QString::fromStdString(file_name.string()), byte_data);
+#ifdef WINDOWS
+  bool res = ReadFile(QString::fromStdU16String(file_name.u16string()).toUtf8(), byte_data);
+#else
+  bool res = ReadFile(QString::fromStdString(file_name.u8string()).toUtf8(), byte_data);
+#endif
   data = byte_data.toStdString();
   return res;
 }
 
 bool GpgFrontend::FileOperator::WriteFileStd(
     const std::filesystem::path& file_name, const std::string& data) {
-  return WriteFile(QString::fromStdString(file_name.string()),
-                       QByteArray::fromStdString(data));
+  return WriteFile(QString::fromStdString(file_name.u8string()).toUtf8(), QByteArray::fromStdString(data));
 }
 
 std::string GpgFrontend::FileOperator::CalculateHash(
@@ -75,7 +78,7 @@ std::string GpgFrontend::FileOperator::CalculateHash(
   if (info.isFile() && info.isReadable()) {
     ss << "[#] " << _("File Hash Information") << std::endl;
     ss << "    " << _("filename") << _(": ")
-       << file_path.filename().string().c_str() << std::endl;
+       << file_path.filename().u8string().c_str() << std::endl;
 
 
     QFile f(info.filePath());

@@ -76,7 +76,7 @@ void init_logging() {
        to_iso_string(now));
   logfile_path.replace_extension(".log");
   defaultConf.setGlobally(el::ConfigurationType::Filename,
-                          logfile_path.string());
+                          logfile_path.u8string());
 
   el::Loggers::reconfigureLogger("default", defaultConf);
 
@@ -179,7 +179,7 @@ void init_locale() {
   bindtextdomain(PROJECT_NAME,
                  GpgFrontend::GlobalSettingStation::GetInstance()
                      .GetLocaleDir()
-                     .string()
+                     .u8string()
                      .c_str());
   bind_textdomain_codeset(PROJECT_NAME, "utf-8");
   textdomain(PROJECT_NAME);

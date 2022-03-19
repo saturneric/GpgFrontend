@@ -36,10 +36,10 @@
 
 namespace GpgFrontend::UI {
 
-PlainTextEditorPage::PlainTextEditorPage(QString filePath, QWidget *parent)
+PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
     : QWidget(parent),
       ui_(std::make_shared<Ui_PlainTextEditor>()),
-      full_file_path_(std::move(filePath)) {
+      full_file_path_(std::move(file_path)) {
   ui_->setupUi(this);
 
   if (full_file_path_.isEmpty()) read_done_ = true;

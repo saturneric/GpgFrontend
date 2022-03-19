@@ -46,10 +46,10 @@ class PlainTextEditorPage : public QWidget {
   /**
    * @details Add layout and add plaintextedit
    *
-   * @param filePath Path of the file handled in this tab
+   * @param file_path Path of the file handled in this tab
    * @param parent Pointer to the parent widget
    */
-  explicit PlainTextEditorPage(QString filePath = "",
+  explicit PlainTextEditorPage(QString file_path = "",
                                QWidget* parent = nullptr);
 
   /**

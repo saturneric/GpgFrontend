@@ -73,13 +73,13 @@ bool KeyPackageOperator::ImportKeyPackage(
     const std::filesystem::path& phrase_path,
     GpgFrontend::GpgImportInformation& import_info) {
 
-  LOG(INFO) << "Importing key package: " << key_package_path.string();
+  LOG(INFO) << "Importing key package: " << key_package_path.u8string();
 
   std::string encrypted_data;
   FileOperator::ReadFileStd(key_package_path, encrypted_data);
 
   if (encrypted_data.empty()) {
-    LOG(ERROR) << "Failed to read key package: " << key_package_path.string();
+    LOG(ERROR) << "Failed to read key package: " << key_package_path.u8string();
     return false;
   };
 
@@ -87,7 +87,7 @@ bool KeyPackageOperator::ImportKeyPackage(
   FileOperator::ReadFileStd(phrase_path, passphrase);
   LOG(INFO) << "Passphrase: " << passphrase.size() << " bytes";
   if (passphrase.size() != 256) {
-    LOG(ERROR) << "Failed to read passphrase: " << phrase_path.string();
+    LOG(ERROR) << "Failed to read passphrase: " << phrase_path.u8string();
     return false;
   }
 

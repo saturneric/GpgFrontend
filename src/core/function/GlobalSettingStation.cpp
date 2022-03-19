@@ -39,7 +39,7 @@
 void GpgFrontend::GlobalSettingStation::SyncSettings() noexcept {
   using namespace libconfig;
   try {
-    ui_cfg_.writeFile(ui_config_path_.string().c_str());
+    ui_cfg_.writeFile(ui_config_path_.u8string().c_str());
     LOG(INFO) << _("Updated ui configuration successfully written to")
               << ui_config_path_;
 
@@ -72,7 +72,7 @@ GpgFrontend::GlobalSettingStation::GlobalSettingStation(int channel) noexcept
 
   if (!exists(ui_config_path_)) {
     try {
-      this->ui_cfg_.writeFile(ui_config_path_.string().c_str());
+      this->ui_cfg_.writeFile(ui_config_path_.u8string().c_str());
       LOG(INFO) << _("UserInterface configuration successfully written to")
                 << ui_config_path_;
 
@@ -83,7 +83,7 @@ GpgFrontend::GlobalSettingStation::GlobalSettingStation(int channel) noexcept
     }
   } else {
     try {
-      this->ui_cfg_.readFile(ui_config_path_.string().c_str());
+      this->ui_cfg_.readFile(ui_config_path_.u8string().c_str());
       LOG(INFO) << _("UserInterface configuration successfully read from")
                 << ui_config_path_;
     } catch (const FileIOException &fioex) {
@@ -98,7 +98,7 @@ GpgFrontend::GlobalSettingStation::GlobalSettingStation(int channel) noexcept
 void GpgFrontend::GlobalSettingStation::AddRootCert(
     const std::filesystem::path &path) {
   std::string out_buffer;
-  if (!FileOperator::ReadFileStd(path.string(), out_buffer)) {
+  if (!FileOperator::ReadFileStd(path.u8string(), out_buffer)) {
     LOG(ERROR) << _("Failed to read root certificate file") << path;
     return;
   }

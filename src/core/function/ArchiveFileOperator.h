@@ -52,7 +52,7 @@ class ArchiveFileOperator {
     a = archive_read_new();
     archive_read_support_filter_all(a);
     archive_read_support_format_all(a);
-    r = archive_read_open_filename(a, archive_path.string().c_str(),
+    r = archive_read_open_filename(a, archive_path.u8string().c_str(),
                                    10240);  // Note 1
     if (r != ARCHIVE_OK) return;
     while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
