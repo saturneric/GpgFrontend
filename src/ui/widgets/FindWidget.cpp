@@ -59,7 +59,7 @@ FindWidget::FindWidget(QWidget* parent, PlainTextEditorPage* edit)
 }
 
 void FindWidget::set_background() {
-  auto cursor = m_text_page_->GetTextPage()->textCursor();
+  // auto cursor = m_text_page_->GetTextPage()->textCursor();
   // if match is found set background of QLineEdit to white, otherwise to red
   QPalette bgPalette(find_edit_->palette());
 

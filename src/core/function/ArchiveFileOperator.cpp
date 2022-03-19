@@ -231,11 +231,11 @@ void GpgFrontend::ArchiveFileOperator::ExtractArchive(
     LOG(ERROR) << "cannot read from stdin";
   }
 #ifdef WINDOWS
-  if ((r = archive_read_open_filename_w(a, archive_path.wstring().c_str(),
-                                        10240))) {
+  if (archive_read_open_filename_w(a, archive_path.wstring().c_str(),
+                                        10240) != ARCHIVE_OK) {
 #else
-  if ((r = archive_read_open_filename(a, archive_path.u8string().c_str(),
-                                      10240))) {
+  if (archive_read_open_filename(a, archive_path.u8string().c_str(),
+                                      10240) != ARCHIVE_OK) {
 #endif
     LOG(ERROR) << "archive_read_open_filename() failed: "
                << archive_error_string(a);
