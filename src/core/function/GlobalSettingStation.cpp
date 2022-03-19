@@ -98,7 +98,7 @@ GpgFrontend::GlobalSettingStation::GlobalSettingStation(int channel) noexcept
 void GpgFrontend::GlobalSettingStation::AddRootCert(
     const std::filesystem::path &path) {
   std::string out_buffer;
-  if (!FileOperator::ReadFileStd(path.u8string(), out_buffer)) {
+  if (!FileOperator::ReadFileStd(path, out_buffer)) {
     LOG(ERROR) << _("Failed to read root certificate file") << path;
     return;
   }
