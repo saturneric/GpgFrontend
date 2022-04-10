@@ -64,7 +64,7 @@ if (MINGW)
     find_library(LIBARCHIVE_LIB libarchive.a)
     target_link_libraries(gpgfrontend_core ${LIBARCHIVE_LIB} b2 expat lz4 zstd bcrypt lzma bz2 z)
 else ()
-    target_link_libraries(gpgfrontend_core archive_static)
+    target_link_libraries(gpgfrontend_core archive)
 endif ()
 # link json
 target_link_libraries(gpgfrontend_core

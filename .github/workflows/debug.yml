@@ -41,7 +41,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-          sudo apt-get -y install gcc g++ libconfig++-dev libboost-all-dev ninja-build
+          sudo apt-get -y install gcc g++ libconfig++-dev libboost-all-dev ninja-build libarchive-dev
           sudo apt-get -y install gpg
         if: matrix.os == 'ubuntu-latest'
 
@@ -62,7 +62,7 @@ jobs:
       - name: Install Dependence (macOS)
         run: |
           brew install cmake git autoconf automake qt@5 texinfo gettext openssl@1.1 
-          brew install boost ninja
+          brew install boost ninja libarchive libconfig
           brew unlink gettext && brew link --force gettext
           brew link qt@5
           brew link openssl@1.1 --force

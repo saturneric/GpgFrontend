@@ -26,17 +26,17 @@
 
 # easyloggingpp
 set(build_static_lib 1 CACHE BOOL "" FORCE)
-add_subdirectory(easyloggingpp)
+add_subdirectory(easyloggingpp EXCLUDE_FROM_ALL)
 target_include_directories(easyloggingpp PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/easyloggingpp/src)
 
 # json
 set(JSON_BuildTests OFF CACHE INTERNAL "")
-add_subdirectory(json)
+add_subdirectory(json EXCLUDE_FROM_ALL)
 
 # qt-aes
 include(GenerateExportHeader)
-add_subdirectory(qt-aes)
+add_subdirectory(qt-aes EXCLUDE_FROM_ALL)
 
 # vmime
 set(VMIME_HAVE_MESSAGING_PROTO_SENDMAIL OFF CACHE BOOL "" FORCE)
@@ -53,7 +53,7 @@ set(VMIME_INCLUDES ${VMIME_DIR}/src ${CMAKE_BINARY_DIR}/src/vmime/ ${CMAKE_BINAR
 
 set(VMIME_BIN_STATIC_LIB ${VMIME_BIN}/build/lib/libvmime.a)
 
-add_subdirectory(vmime)
+add_subdirectory(vmime EXCLUDE_FROM_ALL)
 
 add_library(gpgfrontend_vmime STATIC IMPORTED GLOBAL)
 add_dependencies(gpgfrontend_vmime vmime-static vmime-static-config)
@@ -65,7 +65,6 @@ set_target_properties(gpgfrontend_vmime PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
 include(ExternalProject)
 
 # libgpg-error
-
 
 if (NOT MINGW)
     set(GPG_ERROR_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libgpg-error)
@@ -204,14 +203,3 @@ endif ()
 # encoding detect library
 aux_source_directory(./encoding-detect ENCODING_DETECT_SOURCE_CODE)
 add_library(encoding_detect STATIC ${ENCODING_DETECT_SOURCE_CODE})
-
-# libarchive
-if (NOT MINGW)
-    remove_definitions(-DDEBUG)
-    add_subdirectory(libarchive)
-endif ()
-
-if (NOT MINGW)
-# libconfig
-add_subdirectory(libconfig)
-endif ()

@@ -44,7 +44,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-          sudo apt-get -y install gcc-8 g++-8 libconfig++-dev libboost-all-dev
+          sudo apt-get -y install gcc-8 g++-8 libconfig++-dev libboost-all-dev libarchive-dev
           sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
           sudo apt-get -y install libgcrypt11-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp ninja-build
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-image0
@@ -69,7 +69,7 @@ jobs:
       - name: Install Dependence (macOS)
         run: |
           brew install cmake git autoconf automake qt@5 texinfo gettext openssl@1.1 
-          brew install boost ninja
+          brew install boost ninja libarchive libconfig
           brew unlink gettext && brew link --force gettext
           brew link qt@5
           brew link openssl@1.1 --force
@@ -148,7 +148,7 @@ jobs:
 
       - name: Notarize Release Build (macOS)
         run: |
-          xcrun altool --notarize-app -f ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg  --primary-bundle-id pub.gpgfrontend.gpgfrontend -u ${{secrets.APPLE_DEVELOPER_ID}} -p ${{secrets.APPLE_DEVELOPER_ID_SECRET}}
+          xcrun altool --notarize-app -f ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg  a
         if: matrix.os == 'macos-10.15'
 
       - name: Package App Image (Linux)
