@@ -39,7 +39,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo qt5-default ninja-build
-          sudo apt-get -y install gcc g++ libconfig++-dev libboost-all-dev
+          sudo apt-get -y install gcc g++ libconfig++-dev libboost-all-dev libarchive-dev
           sudo apt-get -y install gpg
         if: matrix.os == 'ubuntu-20.04'
 
