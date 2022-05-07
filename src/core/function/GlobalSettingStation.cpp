@@ -28,8 +28,6 @@
 
 #include "GlobalSettingStation.h"
 
-#include <vmime/vmime.hpp>
-
 #include "core/function/FileOperator.h"
 
 void GpgFrontend::GlobalSettingStation::SyncSettings() noexcept {
