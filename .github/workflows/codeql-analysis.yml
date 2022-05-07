@@ -62,9 +62,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-          sudo apt-get -y install gcc g++ libconfig++-dev libboost-all-dev ninja-build libarchive-dev
+          sudo apt-get -y install gcc g++ ninja-build
+          sudo apt-get -y install libarchive-dev libconfig++-dev libboost-all-dev libgpgme-dev
           sudo apt-get -y install gpg
-
       - name: Cache Qt
         id: cache-qt
         uses: actions/cache@v1
