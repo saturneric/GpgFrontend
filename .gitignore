@@ -2,6 +2,7 @@
 src/GpgFrontend.h
 src/GpgFrontendBuildInfo.h
 src/GpgFrontendBuildInstallInfo.h
+src/core/GpgFrontendCoreExport.h
 docs/
 
 # gettext
