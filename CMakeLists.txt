@@ -265,6 +265,9 @@ message(STATUS "GpgFrontend Build Timestamp ${BUILD_TIMESTAMP}")
 message(STATUS "GpgFrontend Build Version ${BUILD_VERSION}")
 message(STATUS "GpgFrontend Git Repo Version ${GIT_VERSION}")
 
+# support for dymatic libraries
+include (GenerateExportHeader)
+
 # Windows
 IF (MINGW)
     message(STATUS "GpgFrontend Configuration For OS Platform Microsoft Windows")
@@ -272,8 +275,6 @@ IF (MINGW)
 
     set(OS_PLATFORM 0)
     add_definitions(-DWINDOWS)
-
-    include (GenerateExportHeader)
 
     set(Boost_USE_STATIC_LIBS OFF)
     set(Boost_USE_MULTITHREADED ON)
