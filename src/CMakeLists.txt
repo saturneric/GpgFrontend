@@ -274,12 +274,21 @@ target_compile_features(${AppName} PUBLIC cxx_std_17)
 # if building linux package
 if (LINUX AND LINUX_INSTALL_SOFTWARE)
     if (INSTALL_GPGFRONTEND_APP)
-        install(TARGETS ${AppName}
+        install(TARGETS ${AppName} gpgfrontend_core gpgfrontend_ui
                 EXPORT GpgFrontendTargets
                 RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
                 LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
                 ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
                 )
+        install(DIRECTORY /usr/local/lib/
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                FILES_MATCHING PATTERN "libgpgme.so*")
+        install(DIRECTORY /usr/local/lib/
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                FILES_MATCHING PATTERN "libassuan.so*")
+        install(DIRECTORY /usr/local/lib/
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                FILES_MATCHING PATTERN "libgpg-error.so*")
         install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
                 DESTINATION /usr/local/share/${AppName}/)
         install(FILES ${CMAKE_SOURCE_DIR}/resource/meta/pub.gpgfrontend.gpgfrontend.appdata.xml

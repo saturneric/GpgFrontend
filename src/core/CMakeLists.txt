@@ -55,16 +55,8 @@ target_include_directories(gpgfrontend_core PUBLIC
 target_sources(gpgfrontend_core PUBLIC
         ${CMAKE_SOURCE_DIR}/third_party/easyloggingpp/src/easylogging++.cc)
 
-if (LINUX AND GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE)
-    # froce to link gnupg static libraries for deb
-    find_library(GPG_ERROR_LIB libgpg-error.a)
-    find_library(ASSUAN_LIB libassuan.a)
-    find_library(GPGME_LIB libgpgme.a)
-    target_link_libraries(gpgfrontend_core ${GPGME_LIB} ${ASSUAN_LIB} ${GPG_ERROR_LIB})
-else ()
-    # link gnupg libraries
-    target_link_libraries(gpgfrontend_core gpgme assuan gpg-error)
-endif ()
+# link gnupg libraries
+target_link_libraries(gpgfrontend_core gpgme assuan gpg-error)
 # link openssl
 target_link_libraries(gpgfrontend_core OpenSSL::SSL OpenSSL::Crypto)
 # link Qt AES
