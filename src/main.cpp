@@ -125,19 +125,6 @@ int main(int argc, char* argv[]) {
   file.close();
 #endif
 
-#ifdef GPG_STANDALONE_MODE
-  LOG(INFO) << "GPG_STANDALONE_MODE Enabled";
-  auto gpg_path =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetStandaloneGpgBinDir();
-  auto db_path = GpgFrontend::GlobalSettingStation::GetInstance()
-                     .GetStandaloneDatabaseDir();
-  GpgFrontend::GpgContext::CreateInstance(
-      GpgFrontend::SingletonFunctionObject<
-          GpgFrontend::GpgContext>::GetDefaultChannel(),
-      std::make_unique<GpgFrontend::GpgContext>(true, db_path.u8string(), true,
-                                                gpg_path.u8string()));
-#endif
-
   // create the thread to load the gpg context
   auto* init_ctx_thread = new GpgFrontend::CtxCheckThread();
   QApplication::connect(init_ctx_thread, &QThread::finished, init_ctx_thread,

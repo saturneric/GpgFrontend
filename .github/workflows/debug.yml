@@ -42,7 +42,7 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc g++ ninja-build
-          sudo apt-get -y install libarchive-dev libconfig++-dev libboost-all-dev
+          sudo apt-get -y install libarchive-dev libconfig++-dev libboost-all-dev libssl-dev
           sudo apt-get -y install gpg
         if: matrix.os == 'ubuntu-latest'
 
@@ -125,15 +125,6 @@ jobs:
           pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel
           pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg  mingw-w64-x86_64-gpgme
           pacman --noconfirm -S --needed mingw-w64-x86_64-libarchive
-        if: matrix.os == 'windows-latest'
-
-      - name: Build GpgME (Windows)
-        shell: msys2 {0}
-        run: |
-          cd $(echo "/${{github.workspace}}/third_party/gpgme"  | sed 's/\\/\//g' | sed 's/://')
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes --disable-gpg-test --enable-languages=cpp LDFLAGS="-static" && make -j2
-          make install
         if: matrix.os == 'windows-latest'
 
       - name: Build GpgFrontend (Linux)
