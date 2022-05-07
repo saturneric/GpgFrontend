@@ -42,7 +42,7 @@ struct ArchiveStruct {
   std::string name;
 };
 
-class ArchiveFileOperator {
+class GPGFRONTEND_CORE_EXPORT ArchiveFileOperator {
  public:
   static void ListArchive(const std::filesystem::path &archive_path);
 

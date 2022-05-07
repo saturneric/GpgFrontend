@@ -37,7 +37,7 @@ namespace GpgFrontend {
  * @brief provides file operations
  *
  */
-class FileOperator {
+class GPGFRONTEND_CORE_EXPORT FileOperator {
  public:
   /**
    * @brief read file content using std struct

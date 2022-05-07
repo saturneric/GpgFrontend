@@ -32,6 +32,9 @@
 
 #include "GpgConstants.h"
 
+GpgFrontend::GpgKeyGetter::GpgKeyGetter(int channel)
+    : SingletonFunctionObject<GpgKeyGetter>(channel) {}
+
 GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr) {
   gpgme_key_t _p_key = nullptr;
   gpgme_get_key(ctx_, fpr.c_str(), &_p_key, 1);
@@ -56,6 +59,9 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
   gpgme_error_t err;
 
   auto keys_list = std::make_unique<GpgKeyLinkList>();
+
+  LOG(INFO) << "GpgKeyGetter FetchKey"
+            << "ctx address" << ctx_;
 
   err = gpgme_op_keylist_start(ctx_, nullptr, 0);
   assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);

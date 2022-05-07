@@ -40,7 +40,8 @@ namespace GpgFrontend {
  * @brief Basic operation collection
  *
  */
-class GpgBasicOperator : public SingletonFunctionObject<GpgBasicOperator> {
+class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
+    : public SingletonFunctionObject<GpgBasicOperator> {
  public:
   /**
    * @brief Construct a new Basic Operator object
@@ -48,8 +49,7 @@ class GpgBasicOperator : public SingletonFunctionObject<GpgBasicOperator> {
    * @param channel Channel corresponding to the context
    */
   explicit GpgBasicOperator(
-      int channel = SingletonFunctionObject::GetDefaultChannel())
-      : SingletonFunctionObject<GpgBasicOperator>(channel) {}
+      int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
    * @brief Call the interface provided by gpgme for encryption operation

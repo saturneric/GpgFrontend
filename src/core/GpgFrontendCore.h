@@ -40,22 +40,14 @@
 // Qt includes
 #include <QtCore>
 
-// vmime includes
-#define VMIME_STATIC
-#undef VMIME_HAVE_MLANG
-#include <vmime/vmime.hpp>
-
 // libconfig includes
-#undef LIBCONFIGXX_STATIC
-#define LIBCONFIGXX_STATIC
 #include <libconfig.h++>
-
 
 // libarchive includes
 #include <libarchive/libarchive/archive.h>
 #include <libarchive/libarchive/archive_entry.h>
 
-#include "core/GpgModel.h"
+#include "GpgConstants.h"
 
 
 #endif  // GPGFRONTEND_GPGFRONTENDCORE_H

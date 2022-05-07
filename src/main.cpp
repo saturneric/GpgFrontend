@@ -36,8 +36,9 @@
 
 #include "GpgFrontendBuildInfo.h"
 #include "core/GpgFunctionObject.h"
+#include "core/thread/CtxCheckThread.h"
+#include "ui/GpgFrontendUIInit.h"
 #include "ui/main_window/MainWindow.h"
-#include "ui/thread/CtxCheckThread.h"
 
 #if !defined(RELEASE) && defined(WINDOWS)
 #include "core/function/GlobalSettingStation.h"
@@ -52,18 +53,6 @@ INITIALIZE_EASYLOGGINGPP
  * \brief Store the jump buff and make it possible to recover from a crash.
  */
 jmp_buf recover_env;
-
-/**
- * @brief
- *
- */
-extern void init_logging();
-
-/**
- * @brief
- *
- */
-extern void init_certs();
 
 /**
  * @brief
@@ -114,12 +103,6 @@ int main(int argc, char* argv[]) {
   QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
 
-  // initialize logging system
-  init_logging();
-
-  // init certs for tls connection
-  init_certs();
-
   // set the extra information of the build
   QApplication::setApplicationVersion(BUILD_VERSION);
   QApplication::setApplicationName(PROJECT_NAME);
@@ -144,8 +127,8 @@ int main(int argc, char* argv[]) {
 
 #ifdef GPG_STANDALONE_MODE
   LOG(INFO) << "GPG_STANDALONE_MODE Enabled";
-  auto gpg_path = GpgFrontend::GlobalSettingStation::GetInstance()
-                      .GetStandaloneGpgBinDir();
+  auto gpg_path =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetStandaloneGpgBinDir();
   auto db_path = GpgFrontend::GlobalSettingStation::GetInstance()
                      .GetStandaloneDatabaseDir();
   GpgFrontend::GpgContext::CreateInstance(
@@ -156,7 +139,7 @@ int main(int argc, char* argv[]) {
 #endif
 
   // create the thread to load the gpg context
-  auto* init_ctx_thread = new GpgFrontend::UI::CtxCheckThread();
+  auto* init_ctx_thread = new GpgFrontend::CtxCheckThread();
   QApplication::connect(init_ctx_thread, &QThread::finished, init_ctx_thread,
                         &QThread::deleteLater);
 
@@ -194,6 +177,9 @@ int main(int argc, char* argv[]) {
   QApplication::connect(init_ctx_thread, &QThread::finished, &loop,
                         &QEventLoop::quit);
   loop.exec();
+
+  // init ui logging
+  GpgFrontend::UI::init_logging();
 
   /**
    * internationalisation. loop to restart main window

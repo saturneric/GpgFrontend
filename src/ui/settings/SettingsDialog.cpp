@@ -36,36 +36,19 @@
 #include "ui/settings/SettingsNetwork.h"
 #include "ui/main_window/MainWindow.h"
 
-#ifdef SMTP_SUPPORT
-#include "ui/settings/SettingsSendMail.h"
-#endif
-
 namespace GpgFrontend::UI {
 
 SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
   tab_widget_ = new QTabWidget();
   general_tab_ = new GeneralTab();
   appearance_tab_ = new AppearanceTab();
-#ifdef SMTP_SUPPORT
-  send_mail_tab_ = new SendMailTab();
-#endif
   key_server_tab_ = new KeyserverTab();
   network_tab_ = new NetworkTab();
-#ifdef ADVANCED_SUPPORT
-  advancedTab = new AdvancedTab;
-#endif
 
   tab_widget_->addTab(general_tab_, _("General"));
   tab_widget_->addTab(appearance_tab_, _("Appearance"));
-#ifdef SMTP_SUPPORT
-  tab_widget_->addTab(send_mail_tab_, _("Send Mail"));
-#endif
   tab_widget_->addTab(key_server_tab_, _("Key Server"));
-  // tabWidget->addTab(gpgPathsTab, _("Gpg paths"));
   tab_widget_->addTab(network_tab_, _("Network"));
-#ifdef ADVANCED_SUPPORT
-  tabWidget->addTab(advancedTab, _("Advanced"));
-#endif
 
   button_box_ =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
@@ -105,15 +88,9 @@ void SettingsDialog::SlotAccept() {
   LOG(INFO) << "Called";
 
   general_tab_->ApplySettings();
-#ifdef SMTP_SUPPORT
-  send_mail_tab_->ApplySettings();
-#endif
   appearance_tab_->ApplySettings();
   key_server_tab_->ApplySettings();
   network_tab_->ApplySettings();
-#ifdef ADVANCED_SUPPORT
-  advancedTab->applySettings();
-#endif
 
   LOG(INFO) << "apply done";
 

@@ -38,35 +38,12 @@ aux_source_directory(struct UI_SOURCE)
 aux_source_directory(import_export UI_SOURCE)
 aux_source_directory(dialog UI_SOURCE)
 
-if (SMTP_SUPPORT)
-    aux_source_directory(mail UI_SOURCE)
-endif ()
-
 # define libgpgfrontend_ui
-add_library(gpgfrontend_ui STATIC ${UI_SOURCE})
-
-# link smtp-mime
-if (SMTP_SUPPORT)
-    target_link_libraries(gpgfrontend_ui
-            smtp-mime)
-endif ()
+add_library(gpgfrontend_ui SHARED ${UI_SOURCE})
 
 # link Qt
 target_link_libraries(gpgfrontend_ui
         Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
-
-# link vmime
-if (NOT LINUX)
-    # macOS
-    target_link_libraries(gpgfrontend_ui
-            gpgfrontend_vmime intl iconv)
-    if (MINGW)
-        target_link_libraries(gpgfrontend_ui ws2_32)
-    endif ()
-else ()
-    target_link_libraries(gpgfrontend_ui
-            gpgfrontend_vmime anl ssl crypto)
-endif ()
 
 # link gpgfrontend_core
 target_link_libraries(gpgfrontend_ui

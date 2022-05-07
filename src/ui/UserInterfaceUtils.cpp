@@ -30,44 +30,17 @@
 
 #include <utility>
 
+#include "core/common/CoreCommonUtil.h"
 #include "core/function/FileOperator.h"
-#include "core/function/result_analyse/GpgResultAnalyse.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui/SignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
-#include "ui/mail/SendMailDialog.h"
-#include "core/function/GlobalSettingStation.h"
-#include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
 
 std::unique_ptr<GpgFrontend::UI::CommonUtils>
     GpgFrontend::UI::CommonUtils::instance_ = nullptr;
-
-#ifdef SMTP_SUPPORT
-void send_an_email(QWidget *parent, InfoBoardWidget *info_board,
-                   const QString &text, bool attach_signature) {
-  info_board->AddOptionalAction(_("Send Encrypted Mail"), [=]() {
-    bool smtp_enabled = false;
-    try {
-      smtp_enabled = GlobalSettingStation::GetInstance().GetUISettings().lookup(
-          "smtp.enable");
-    } catch (...) {
-      LOG(INFO) << "Reading smtp settings error";
-    }
-    if (smtp_enabled) {
-      auto dialog = new SendMailDialog(text, parent);
-      dialog->SetContentEncryption(false);
-      dialog->SetAttachSignature(attach_signature);
-      dialog->show();
-    } else {
-      QMessageBox::warning(nullptr, _("Function Disabled"),
-                           _("Please go to the settings interface to "
-                             "enable and configure this function."));
-    }
-  });
-}
-#endif
 
 void show_verify_details(QWidget *parent, InfoBoardWidget *info_board,
                          GpgError error, const GpgVerifyResult &verify_result) {
@@ -156,6 +129,8 @@ CommonUtils *CommonUtils::GetInstance() {
 }
 
 CommonUtils::CommonUtils() : QWidget(nullptr) {
+  connect(CoreCommonUtil::GetInstance(), &CoreCommonUtil::SignalGnupgNotInstall,
+          this, &CommonUtils::SignalGnupgNotInstall);
   connect(this, &CommonUtils::SignalKeyStatusUpdated,
           SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefresh);
@@ -252,7 +227,7 @@ void CommonUtils::SlotExecuteGpgCommand(
 }
 
 void CommonUtils::SlotImportKeyFromKeyServer(
-    int ctx_channel, const KeyIdArgsList &key_ids,
+    const KeyIdArgsList &key_ids,
     const ImportCallbackFunctiopn &callback) {
   std::string target_keyserver;
   if (target_keyserver.empty()) {
@@ -274,7 +249,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
   }
 
   auto thread =
-      QThread::create([target_keyserver, key_ids, callback, ctx_channel]() {
+      QThread::create([target_keyserver, key_ids, callback]() {
         QUrl target_keyserver_url(target_keyserver.c_str());
 
         auto network_manager = std::make_unique<QNetworkAccessManager>();
@@ -323,7 +298,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
 
           // Try importing
           GpgImportInformation result =
-              GpgKeyImportExporter::GetInstance(ctx_channel)
+              GpgKeyImportExporter::GetInstance()
                   .ImportKey(std::move(key_data_ptr));
 
           if (result.imported == 1) {
