@@ -42,7 +42,7 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc g++ ninja-build
-          sudo apt-get -y install libarchive-dev libconfig++-dev libboost-all-dev libgpgme-dev
+          sudo apt-get -y install libarchive-dev libconfig++-dev libboost-all-dev
           sudo apt-get -y install gpg
         if: matrix.os == 'ubuntu-latest'
 
@@ -68,6 +68,33 @@ jobs:
           brew link qt@5
           brew link openssl@1.1 --force
         if: matrix.os == 'macos-10.15'
+
+      - name: Build gpg-error (Linux)
+        run: |
+          cd  ${{github.workspace}}/third_party/libgpg-error
+          ./autogen.sh
+          ./configure --enable-maintainer-mode && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Build assuan (Linux)
+        run: |
+          cd ${{github.workspace}}/third_party/libassuan
+          ./autogen.sh
+          ./configure --enable-maintainer-mode && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Build GpgME (Linux)
+        run: |
+          cd  ${{github.workspace}}/third_party/gpgme
+          ./autogen.sh
+          ./configure --enable-maintainer-mode --enable-languages=cpp && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-latest'
 
       - name: Cache Qt
         id: cache-qt
