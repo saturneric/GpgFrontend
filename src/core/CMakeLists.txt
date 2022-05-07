@@ -44,23 +44,27 @@ set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
 set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 
 # link third-party libraries
-target_link_libraries(gpgfrontend_core config++ intl)
+target_link_libraries(gpgfrontend_core config++)
+if (NOT LINUX)
+    target_link_libraries(gpgfrontend_core config++ intl)
+endif ()
+
 # easyloggingpp
 target_include_directories(gpgfrontend_core PUBLIC
         ${CMAKE_SOURCE_DIR}/third_party/easyloggingpp/src)
 target_sources(gpgfrontend_core PUBLIC
         ${CMAKE_SOURCE_DIR}/third_party/easyloggingpp/src/easylogging++.cc)
 
-if(LINUX AND GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE)
+if (LINUX AND GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE)
     # froce to link gnupg static libraries for deb
     find_library(GPG_ERROR_LIB libgpg-error.a)
     find_library(ASSUAN_LIB libassuan.a)
     find_library(GPGME_LIB libgpgme.a)
     target_link_libraries(gpgfrontend_core ${GPGME_LIB} ${ASSUAN_LIB} ${GPG_ERROR_LIB})
-else()
+else ()
     # link gnupg libraries
     target_link_libraries(gpgfrontend_core gpgme assuan gpg-error)
-endif()
+endif ()
 # link openssl
 target_link_libraries(gpgfrontend_core OpenSSL::SSL OpenSSL::Crypto)
 # link Qt AES
