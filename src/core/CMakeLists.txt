@@ -28,44 +28,40 @@ aux_source_directory(./function/result_analyse GPG_SOURCE)
 aux_source_directory(./function/gpg GPG_SOURCE)
 aux_source_directory(./function/aes GPG_SOURCE)
 aux_source_directory(./function GPG_SOURCE)
+aux_source_directory(./thread GPG_SOURCE)
 aux_source_directory(./model GPG_SOURCE)
+aux_source_directory(./common GPG_SOURCE)
 aux_source_directory(. GPG_SOURCE)
 
 # define libgpgfrontend_core
-add_library(gpgfrontend_core STATIC ${GPG_SOURCE})
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+add_library(gpgfrontend_core SHARED ${GPG_SOURCE})
+set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendCoreExport.h")
+generate_export_header(gpgfrontend_core EXPORT_FILE_NAME "${_export_file}")
 
 set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
 set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 
 # link third-party libraries
-target_link_libraries(gpgfrontend_core easyloggingpp config++)
-# link boost libraries
-target_link_libraries(gpgfrontend_core Boost::date_time Boost::system)
+target_link_libraries(gpgfrontend_core config++ intl)
+# easyloggingpp
+target_include_directories(gpgfrontend_core PUBLIC
+        ${CMAKE_SOURCE_DIR}/third_party/easyloggingpp/src)
+target_sources(gpgfrontend_core PUBLIC
+        ${CMAKE_SOURCE_DIR}/third_party/easyloggingpp/src/easylogging++.cc)
 # link gnupg libraries
 target_link_libraries(gpgfrontend_core gpgme assuan gpg-error)
 # link openssl
 target_link_libraries(gpgfrontend_core OpenSSL::SSL OpenSSL::Crypto)
 # link Qt AES
 target_link_libraries(gpgfrontend_core QtAES)
-# link vmime
-if (NOT LINUX)
-    # macOS
-    target_link_libraries(gpgfrontend_core
-            gpgfrontend_vmime intl iconv)
-    if (MINGW)
-        target_link_libraries(gpgfrontend_core ws2_32)
-    endif ()
-else ()
-    target_link_libraries(gpgfrontend_core
-            gpgfrontend_vmime anl ssl crypto)
-endif ()
+# link boost libraries
+target_link_libraries(gpgfrontend_core ${Boost_LIBRARIES})
+
 # link libarchive
-if (MINGW)
-    find_library(LIBARCHIVE_LIB libarchive.a)
-    target_link_libraries(gpgfrontend_core ${LIBARCHIVE_LIB} ssl crypto b2 expat lz4 zstd bcrypt lzma bz2 z)
-else ()
-    target_link_libraries(gpgfrontend_core archive)
-endif ()
+target_link_libraries(gpgfrontend_core archive)
+
 # link json
 target_link_libraries(gpgfrontend_core
         nlohmann_json::nlohmann_json)

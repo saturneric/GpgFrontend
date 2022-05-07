@@ -26,55 +26,39 @@
  *
  */
 
-#ifndef GPGFRONTEND_RECEIVEMAILDIALOG_H
-#define GPGFRONTEND_RECEIVEMAILDIALOG_H
+#include "GpgFrontendUIInit.h"
 
-#include "ui/GpgFrontendUI.h"
+#include "core/function/GlobalSettingStation.h"
 
-class Ui_ReceiveMailDialog;
-
-namespace vmime::net {
-class folder;
-};
+// init easyloggingpp library
+INITIALIZE_EASYLOGGINGPP
 
 namespace GpgFrontend::UI {
 
-class IMAPFolder;
+void init_logging() {
+  using namespace boost::posix_time;
+  using namespace boost::gregorian;
 
-/**
- * @brief
- *
- */
-class ReceiveMailDialog : public QDialog {
-  Q_OBJECT
- public:
-  /**
-   * @brief Construct a new Receive Mail Dialog object
-   *
-   * @param parent
-   */
-  explicit ReceiveMailDialog(QWidget* parent);
+  ptime now = second_clock::local_time();
 
- private slots:
-  /**
-   * @brief
-   *
-   */
-  void slot_refresh_data();
+  el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
+  el::Configurations defaultConf;
+  defaultConf.setToDefault();
+  el::Loggers::reconfigureLogger("default", defaultConf);
 
- private:
-  std::shared_ptr<Ui_ReceiveMailDialog> ui_;          ///<
-  std::vector<std::shared_ptr<IMAPFolder>> folders_;  ///<
+  // apply settings
+  defaultConf.setGlobally(el::ConfigurationType::Format,
+                          "%datetime %level %func %msg");
 
-  /**
-   * @brief
-   *
-   * @param parent_folder
-   */
-  void list_sub_folders(IMAPFolder* parent_folder,
-                        const std::shared_ptr<vmime::net::folder>&);
-};
+  // get the log directory
+  auto logfile_path =
+      (GlobalSettingStation::GetInstance().GetLogDir() / to_iso_string(now));
+  logfile_path.replace_extension(".log");
+  defaultConf.setGlobally(el::ConfigurationType::Filename,
+                          logfile_path.u8string());
 
+  el::Loggers::reconfigureLogger("default", defaultConf);
+
+  LOG(INFO) << _("log file path") << logfile_path;
+}
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_RECEIVEMAILDIALOG_H

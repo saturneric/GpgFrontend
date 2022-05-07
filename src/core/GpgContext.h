@@ -56,7 +56,8 @@ struct GpgContextInitArgs {
  * @brief
  *
  */
-class GpgContext : public SingletonFunctionObject<GpgContext> {
+class GPGFRONTEND_CORE_EXPORT GpgContext
+    : public SingletonFunctionObject<GpgContext> {
  public:
   /**
    * @brief Construct a new Gpg Context object
@@ -70,8 +71,7 @@ class GpgContext : public SingletonFunctionObject<GpgContext> {
    *
    * @param channel
    */
-  explicit GpgContext(int channel)
-      : SingletonFunctionObject<GpgContext>(channel) {}
+  explicit GpgContext(int channel);
 
   /**
    * @brief Destroy the Gpg Context object

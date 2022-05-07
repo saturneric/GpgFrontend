@@ -41,6 +41,10 @@
 #include "GpgCommandExecutor.h"
 #include "GpgKeyGetter.h"
 
+GpgFrontend::GpgKeyOpera::GpgKeyOpera(
+    int channel)
+    : SingletonFunctionObject<GpgKeyOpera>(channel) {}
+
 /**
  * Delete keys
  * @param uidList key ids
@@ -177,6 +181,8 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
   }
 
   GpgError err;
+
+  LOG(INFO) << "ctx version" << ctx_.GetInfo().GnupgVersion;
 
   if (ctx_.GetInfo().GnupgVersion >= "2.1.0") {
     unsigned int flags = 0;

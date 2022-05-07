@@ -37,6 +37,12 @@ namespace GpgFrontend {
  * @brief
  *
  */
+void init_logging();
+
+/**
+ * @brief
+ *
+ */
 void init_gpgfrontend_core();
 
 /**

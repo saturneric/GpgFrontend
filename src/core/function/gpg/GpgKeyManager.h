@@ -39,7 +39,8 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GpgKeyManager : public SingletonFunctionObject<GpgKeyManager> {
+class GPGFRONTEND_CORE_EXPORT GpgKeyManager
+    : public SingletonFunctionObject<GpgKeyManager> {
  public:
   /**
    * @brief Construct a new Gpg Key Manager object
@@ -47,8 +48,7 @@ class GpgKeyManager : public SingletonFunctionObject<GpgKeyManager> {
    * @param channel
    */
   explicit GpgKeyManager(
-      int channel = SingletonFunctionObject::GetDefaultChannel())
-      : SingletonFunctionObject<GpgKeyManager>(channel) {}
+      int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
    * @brief Sign a key pair(actually a certain uid)

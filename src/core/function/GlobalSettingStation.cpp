@@ -28,10 +28,6 @@
 
 #include "GlobalSettingStation.h"
 
-#include <openssl/bio.h>
-#include <openssl/pem.h>
-
-#include <vmime/security/cert/openssl/X509Certificate_OpenSSL.hpp>
 #include <vmime/vmime.hpp>
 
 #include "core/function/FileOperator.h"
@@ -93,47 +89,6 @@ GpgFrontend::GlobalSettingStation::GlobalSettingStation(int channel) noexcept
                  << pex.getLine() << " - " << pex.getError();
     }
   }
-}
-
-void GpgFrontend::GlobalSettingStation::AddRootCert(
-    const std::filesystem::path &path) {
-  std::string out_buffer;
-  if (!FileOperator::ReadFileStd(path, out_buffer)) {
-    LOG(ERROR) << _("Failed to read root certificate file") << path;
-    return;
-  }
-
-  auto mem_bio = std::shared_ptr<BIO>(
-      BIO_new_mem_buf(out_buffer.data(), static_cast<int>(out_buffer.size())),
-      [](BIO *_p) { BIO_free(_p); });
-
-  auto x509 = std::shared_ptr<X509>(
-      PEM_read_bio_X509(mem_bio.get(), nullptr, nullptr, nullptr),
-      [](X509 *_p) { X509_free(_p); });
-
-  if (!x509) return;
-
-  root_certs_.push_back(x509);
-}
-
-vmime::shared_ptr<vmime::security::cert::defaultCertificateVerifier>
-GpgFrontend::GlobalSettingStation::GetCertVerifier() const {
-  auto p_cv =
-      vmime::make_shared<vmime::security::cert::defaultCertificateVerifier>();
-
-  std::vector<vmime::shared_ptr<vmime::security::cert::X509Certificate>>
-      _root_certs;
-  for (const auto &cert : root_certs_) {
-    _root_certs.push_back(
-        std::make_shared<vmime::security::cert::X509Certificate_OpenSSL>(
-            cert.get()));
-  }
-  return p_cv;
-}
-
-const std::vector<std::shared_ptr<X509>>
-    &GpgFrontend::GlobalSettingStation::GetRootCerts() {
-  return root_certs_;
 }
 
 void GpgFrontend::GlobalSettingStation::init_app_secure_key() {}

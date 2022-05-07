@@ -329,8 +329,6 @@ class KeyList : public QWidget {
    */
   void check_all();
 
-  static int key_list_id_;              ///<
-  int m_key_list_id_;                   ///<
   std::mutex buffered_key_list_mutex_;  ///<
 
   std::shared_ptr<Ui_KeyList> ui_;                                   ///<

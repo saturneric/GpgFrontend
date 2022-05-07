@@ -29,10 +29,7 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
 #define GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
 
-#include <list>
-#include <utility>
-
-#include "GpgConstants.h"
+#include "core/GpgConstants.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgSignature.h"

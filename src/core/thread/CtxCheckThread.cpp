@@ -24,25 +24,31 @@
  *
  */
 
-#include "SMTPConnectionTestThread.h"
-namespace GpgFrontend::UI {
+#include "core/thread/CtxCheckThread.h"
 
-void SMTPConnectionTestThread::run() {
-  SmtpClient smtp(host_.c_str(), port_, connection_type_);
-  if (identify_) {
-    smtp.setUser(username_.c_str());
-    smtp.setPassword(password_.c_str());
-  }
-  if (!smtp.connectToHost()) {
-    emit SignalSMTPConnectionTestResult("Fail to connect SMTP server");
-    return;
-  }
-  if (!smtp.login()) {
-    emit SignalSMTPConnectionTestResult("Fail to login");
-    return;
-  }
-  smtp.quit();
-  emit SignalSMTPConnectionTestResult("Succeed in testing connection");
+#include "core/GpgContext.h"
+#include "core/GpgCoreInit.h"
+#include "core/common/CoreCommonUtil.h"
+#include "core/function/gpg/GpgKeyGetter.h"
+
+GpgFrontend::CtxCheckThread::CtxCheckThread() : QThread(nullptr) {
+  connect(this, &CtxCheckThread::SignalGnupgNotInstall,
+          CoreCommonUtil::GetInstance(),
+          &CoreCommonUtil::SignalGnupgNotInstall);
 }
 
-}  // namespace GpgFrontend::UI
+void GpgFrontend::CtxCheckThread::run() {
+  // init logging
+  init_logging();
+
+  // Init GpgFrontend Core
+  init_gpgfrontend_core();
+
+  // Create & Check Gnupg Context Status
+  if (!GpgContext::GetInstance().good()) {
+    emit SignalGnupgNotInstall();
+  }
+  // Try fetching key
+  else
+    GpgFrontend::GpgKeyGetter::GetInstance().FetchKey();
+}

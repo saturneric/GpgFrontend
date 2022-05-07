@@ -24,12 +24,6 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# easyloggingpp
-set(build_static_lib 1 CACHE BOOL "" FORCE)
-add_subdirectory(easyloggingpp EXCLUDE_FROM_ALL)
-target_include_directories(easyloggingpp PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/easyloggingpp/src)
-
 # json
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(json EXCLUDE_FROM_ALL)
@@ -37,28 +31,6 @@ add_subdirectory(json EXCLUDE_FROM_ALL)
 # qt-aes
 include(GenerateExportHeader)
 add_subdirectory(qt-aes EXCLUDE_FROM_ALL)
-
-# vmime
-set(VMIME_HAVE_MESSAGING_PROTO_SENDMAIL OFF CACHE BOOL "" FORCE)
-set(VMIME_HAVE_SASL_SUPPORT OFF CACHE BOOL "" FORCE)
-set(VMIME_BUILD_STATIC_LIBRARY ON CACHE BOOL "" FORCE)
-set(VMIME_BUILD_SHARED_LIBRARY OFF CACHE BOOL "" FORCE)
-set(VMIME_CHARSETCONV_LIB "iconv" CACHE STRING "" FORCE)
-set(VMIME_TLS_SUPPORT_LIB "openssl" CACHE STRING "" FORCE)
-
-set(VMIME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vmime)
-set(VMIME_BIN ${CMAKE_CURRENT_BINARY_DIR}/vmime)
-
-set(VMIME_INCLUDES ${VMIME_DIR}/src ${CMAKE_BINARY_DIR}/src/vmime/ ${CMAKE_BINARY_DIR}/src/)
-
-set(VMIME_BIN_STATIC_LIB ${VMIME_BIN}/build/lib/libvmime.a)
-
-add_subdirectory(vmime EXCLUDE_FROM_ALL)
-
-add_library(gpgfrontend_vmime STATIC IMPORTED GLOBAL)
-add_dependencies(gpgfrontend_vmime vmime-static vmime-static-config)
-set_target_properties(gpgfrontend_vmime PROPERTIES IMPORTED_LOCATION ${VMIME_BIN_STATIC_LIB})
-set_target_properties(gpgfrontend_vmime PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${VMIME_INCLUDES}")
 
 # gnupg
 
@@ -182,23 +154,6 @@ if (NOT MINGW)
     set_target_properties(gpgme PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${GPGME_INCLUDES})
 endif ()
 set_target_properties(gpgme PROPERTIES IMPORTED_LOCATION ${GPGME_STATIC_LIB})
-
-if (SMTP_SUPPORT)
-    message(STATUS "Build SMTP Support")
-    aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/smtp-mime/src SMTP_MIME_SOURCE)
-    add_library(smtp-mime STATIC ${SMTP_MIME_SOURCE})
-    target_link_libraries(smtp-mime
-            Qt5::Network Qt5::Core)
-    target_include_directories(smtp-mime PUBLIC
-            ${CMAKE_CURRENT_SOURCE_DIR}/smtp-mime/src)
-    if (XCODE_BUILD)
-        set_target_properties(smtp-mime
-                PROPERTIES
-                ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-                LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-                LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
-    endif ()
-endif ()
 
 # encoding detect library
 aux_source_directory(./encoding-detect ENCODING_DETECT_SOURCE_CODE)

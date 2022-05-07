@@ -42,7 +42,7 @@ namespace GpgFrontend {
  * @brief Extra commands related to GPG
  *
  */
-class GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
+class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
  public:
   /**
    * @brief Construct a new Gpg Command Executor object
@@ -50,8 +50,7 @@ class GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
    * @param channel Corresponding context
    */
   explicit GpgCommandExecutor(
-      int channel = SingletonFunctionObject::GetDefaultChannel())
-      : SingletonFunctionObject<GpgCommandExecutor>(channel) {}
+      int channel = SingletonFunctionObject::GetDefaultChannel());
 
 #ifndef WINDOWS
 

@@ -24,6 +24,21 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# configure for output path and resources
+if (APPLICATION_BUILD)
+    aux_source_directory(. BASE_SOURCE)
+    set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
+    set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
+
+    if (NOT XCODE_BUILD)
+        # Set Binary Output Path
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
+    else ()
+        # Set Binary Output Path
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+    endif ()
+endif ()
+
 
 if (GPG_CORE)
     message(STATUS "Build Gpg Core")
@@ -46,21 +61,6 @@ if (ADVANCE_SUPPORT)
     add_compile_definitions(ADVANCE_SUPPORT)
     add_subdirectory(advance)
 endif ()
-
-if (APPLICATION_BUILD)
-    aux_source_directory(. BASE_SOURCE)
-    set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
-    set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
-
-    if (NOT XCODE_BUILD)
-        # Set Binary Output Path
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
-    else ()
-        # Set Binary Output Path
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
-    endif ()
-endif ()
-
 
 if (APPLICATION_BUILD)
     # Set Resource Output Path
