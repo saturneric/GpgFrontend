@@ -27,7 +27,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # define project
-project(GpgFrontend VERSION 2.0.5 LANGUAGES CXX)
+project(GpgFrontend VERSION 2.0.6 LANGUAGES CXX)
 
 # show cmake version
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
@@ -213,7 +213,7 @@ message(STATUS "Define CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
     set(BUILD_FLAG 0)
     ADD_DEFINITIONS(-DRELEASE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1")
     # Release Version force to build using option STABLE_APPLICATION_BUILD
     set(FULL_APPLICATION_BUILD 0)
     set(STABLE_APPLICATION_BUILD 1)
