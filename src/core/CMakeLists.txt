@@ -54,13 +54,18 @@ target_include_directories(gpgfrontend_core PUBLIC
         ${CMAKE_SOURCE_DIR}/third_party/easyloggingpp/src)
 target_sources(gpgfrontend_core PUBLIC
         ${CMAKE_SOURCE_DIR}/third_party/easyloggingpp/src/easylogging++.cc)
+# qt-aes
+target_sources(gpgfrontend_core PUBLIC
+        ${CMAKE_SOURCE_DIR}/third_party/qt-aes/qaesencryption.cpp)
+
+# encoding detect library
+aux_source_directory(${CMAKE_SOURCE_DIR}/third_party/encoding-detect ENCODING_DETECT_SOURCE_CODE)
+target_sources(gpgfrontend_core PUBLIC ${ENCODING_DETECT_SOURCE_CODE})
 
 # link gnupg libraries
 target_link_libraries(gpgfrontend_core gpgme assuan gpg-error)
 # link openssl
 target_link_libraries(gpgfrontend_core OpenSSL::SSL OpenSSL::Crypto)
-# link Qt AES
-target_link_libraries(gpgfrontend_core QtAES)
 # link boost libraries
 target_link_libraries(gpgfrontend_core ${Boost_LIBRARIES})
 
@@ -93,7 +98,9 @@ elseif (APPLE)
                 PROPERTIES
                 ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
                 LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-                LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+                LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+                XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
+                XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
     endif ()
 else ()
     # linux

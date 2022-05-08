@@ -1,0 +1,26 @@
+name: Doxygen Generation
+
+on:
+  push:
+    branches: [ main, 'develop-**', 'dev/**' ]
+    paths-ignore:
+      - 'resource/locale/template/**'
+      - 'docs/**'
+      - '**.md'
+
+jobs:
+  build:
+    name: Dispatch to GpgFrontend-Doxygen
+    runs-on: ubuntu-latest
+    steps:
+      - name: Emit repository_dispatch
+        uses: mvasigh/dispatch-action@main
+        with:
+          token: ${{ secrets.API_TOKEN_GITHUB }}
+          repo: GpgFrontend-Doxygen
+          owner: saturneric
+          event_type: CodePush
+          message: |
+            {
+              "branch": "${{github.ref}}"
+            }
