@@ -135,7 +135,6 @@ if (APPLICATION_BUILD)
     # Copy Resource Files
     file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/certs DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/TRANSLATORS DESTINATION ${RESOURCE_OUTPUT_DIRECTORY} FOLLOW_SYMLINK_CHAIN)
     if (GPG_STANDALONE_MODE)
         file(COPY ${CMAKE_SOURCE_DIR}/resource/gpg1.4 DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
@@ -181,6 +180,7 @@ if (APPLICATION_BUILD)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (MINGW)
             add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+        # custom app bundle packing
         elseif (APPLE AND NOT XCODE_BUILD)
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             set_target_properties(${AppName} PROPERTIES
@@ -209,6 +209,7 @@ if (APPLICATION_BUILD)
                     COMMAND /bin/mkdir -p ./gpgfrontend/usr/lib
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Complement to build the required architecture")
+        # app bundle packing using xcode
         elseif (APPLE AND XCODE_BUILD)
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             set_target_properties(${AppName} PROPERTIES
@@ -239,7 +240,9 @@ if (APPLICATION_BUILD)
                     XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
                     XCODE_ATTRIBUTE_SKIP_INSTALL "No"
                     XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep --entitlements ${CMAKE_SOURCE_DIR}/resource/plist/entitlement.plist"
-                    XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes"
+                    XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "No"
+                    XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "Yes"
+                    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}"
                     )
         else ()
             add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})

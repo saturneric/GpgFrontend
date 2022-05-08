@@ -57,7 +57,7 @@ option(GPGFRONTEND_BUILD_TYPE_STABLE
 option(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
 option(GPGFRONTEND_GENERATE_APP_PACKAGE_DEB "Generate DEB package" OFF)
 option(GPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD "Generate a version that can be successfully compiled and packaged in Xcode" OFF)
-option(GPGFRONTEND_USE_QT_DEFAULT_ENV "Build with the qt version provided by the qt-default package" ON)
+option(GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "")
 
 # analyse options
 if (GPGFRONTEND_BUILD_TYPE_TEST_CORE)
@@ -360,7 +360,6 @@ if (LINUX_INSTALL_SOFTWARE)
     include(GNUInstallDirs)
     set(INSTALL_GPGFRONTEND_APP 1)
     set(APP_INSTALL_FLAG LINUX_INSTALL)
-    set(GPGFRONTEND_USE_QT_DEFAULT_ENV ON)
     add_compile_definitions(LINUX_INSTALL_BUILD)
     set(Boost_USE_STATIC_LIBS ON)
 else ()
@@ -414,19 +413,21 @@ elseif (TEST_CORE_BUILD)
 
 endif ()
 
+# For instance in order to select the highest version one
+SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
+SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
+
 # Introduce boost
 find_package(Boost COMPONENTS date_time system REQUIRED)
 
 # Introduce OpenSSL
 find_package(OpenSSL REQUIRED)
 
+# Introduce Qt
 if (QT5_ENV_SUPPORT)
     # Support Qt version Both 5.12.x and 5.15.x
-    if (GPGFRONTEND_USE_QT_DEFAULT_ENV)
-        find_package(Qt5 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
-    else ()
-        find_package(Qt5 5.15 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
-    endif ()
+    find_package(Qt5 5.12 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    
     # Qt configuration
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
