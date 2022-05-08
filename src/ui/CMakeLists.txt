@@ -49,9 +49,6 @@ target_link_libraries(gpgfrontend_ui
 target_link_libraries(gpgfrontend_ui
         gpgfrontend_core)
 
-# link encoding_detect
-target_link_libraries(gpgfrontend_ui encoding_detect)
-
 # set up pch
 target_precompile_headers(gpgfrontend_ui PUBLIC GpgFrontendUI.h)
 
@@ -68,6 +65,8 @@ if (XCODE_BUILD)
             PROPERTIES
             ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
             LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+            XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
+            XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
 endif ()
 target_compile_features(gpgfrontend_ui PUBLIC cxx_std_17)

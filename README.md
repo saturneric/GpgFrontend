@@ -37,6 +37,7 @@ GpgFrontend is permanently free, and you can also "donate" it through the STAR p
 
 - [Usage](#usage)
 - [User Manual](#user-manual)
+- [Developer Document](#developer-document)
 - [Build Source Code](#build-source-code)
 - [Languages Support](#languages-support)
 - [Contract](#contract)
@@ -69,6 +70,13 @@ What about files?
 
 GpgFrontend provides detailed documentation on his main features. If you want to know how to install with it, please
 read the [User Manual](https://www.gpgfrontend.pub/#/quick-start) instead of README.
+
+## Developer Document
+
+You can view the developer documentation that is synchronized with the current latest release code. This document will 
+help you understand the source code and get involved more quickly in the process of contributing to open source.
+
+[Developer Document](https://doxygen.gpgfrontend.pub)
 
 ## Build Source Code
 
