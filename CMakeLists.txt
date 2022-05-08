@@ -427,7 +427,6 @@ if (QT5_ENV_SUPPORT)
     else ()
         find_package(Qt5 5.15 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
     endif ()
-    # find_package(Qt5 5.15.2 EXACT COMPONENTS Core Test Widgets PrintSupport Network LinguistTools REQUIRED)
     # Qt configuration
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)

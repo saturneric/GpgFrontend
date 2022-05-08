@@ -27,11 +27,3 @@
 # json
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(json EXCLUDE_FROM_ALL)
-
-# qt-aes
-include(GenerateExportHeader)
-add_subdirectory(qt-aes EXCLUDE_FROM_ALL)
-
-# encoding detect library
-aux_source_directory(./encoding-detect ENCODING_DETECT_SOURCE_CODE)
-add_library(encoding_detect STATIC ${ENCODING_DETECT_SOURCE_CODE})

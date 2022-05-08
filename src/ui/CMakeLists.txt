@@ -49,9 +49,6 @@ target_link_libraries(gpgfrontend_ui
 target_link_libraries(gpgfrontend_ui
         gpgfrontend_core)
 
-# link encoding_detect
-target_link_libraries(gpgfrontend_ui encoding_detect)
-
 # set up pch
 target_precompile_headers(gpgfrontend_ui PUBLIC GpgFrontendUI.h)
 
