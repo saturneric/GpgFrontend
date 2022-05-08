@@ -32,38 +32,22 @@
 #include <utility>
 
 #include "core/GpgCoreInit.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
-#include "core/function/GlobalSettingStation.h"
 #include "ui_KeyList.h"
 
 namespace GpgFrontend::UI {
 
-int KeyList::key_list_id_ = 2048;
-
 KeyList::KeyList(KeyMenuAbility::AbilityType menu_ability, QWidget* parent)
     : QWidget(parent),
-      m_key_list_id_(key_list_id_++),
       ui_(std::make_shared<Ui_KeyList>()),
       menu_ability_(menu_ability) {
   init();
 }
 
 void KeyList::init() {
-#ifdef GPG_STANDALONE_MODE
-  LOG(INFO) << "GPG_STANDALONE_MODE Enabled";
-  auto gpg_path = GpgFrontend::GlobalSettingStation::GetInstance()
-                      .GetStandaloneGpgBinDir();
-  auto db_path = GpgFrontend::GlobalSettingStation::GetInstance()
-                     .GetStandaloneDatabaseDir();
-  GpgContext::CreateInstance(
-      _m_key_list_id, std::make_unique<GpgContext>(true, db_path.u8string(), true,
-                                                   gpg_path.string()));
-#else
-  new_default_settings_channel(m_key_list_id_);
-#endif
-
   ui_->setupUi(this);
 
   ui_->menuWidget->setHidden(!menu_ability_);
@@ -170,13 +154,13 @@ void KeyList::AddListGroupTab(
 }
 
 void KeyList::SlotRefresh() {
-  LOG(INFO) << _("Called") << "_m_key_list_id" << m_key_list_id_;
+  LOG(INFO) << _("Called");
   emit SignalRefreshStatusBar(_("Refreshing Key List..."), 3000);
-  auto thread = QThread::create([this, _id = m_key_list_id_]() {
+  auto thread = QThread::create([this]() {
     std::lock_guard<std::mutex> guard(buffered_key_list_mutex_);
     buffered_keys_list_ = nullptr;
     // buffered keys list
-    buffered_keys_list_ = GpgKeyGetter::GetInstance(_id).FetchKey();
+    buffered_keys_list_ = GpgKeyGetter::GetInstance().FetchKey();
   });
   connect(thread, &QThread::finished, this, &KeyList::slot_refresh_ui);
   connect(thread, &QThread::finished, thread, &QThread::deleteLater);
@@ -402,8 +386,7 @@ void KeyList::dragEnterEvent(QDragEnterEvent* event) {
 void KeyList::import_keys(const QByteArray& inBuffer) {
   auto std_buffer = std::make_unique<ByteArray>(inBuffer.toStdString());
   GpgImportInformation result =
-      GpgKeyImportExporter::GetInstance(m_key_list_id_)
-          .ImportKey(std::move(std_buffer));
+      GpgKeyImportExporter::GetInstance().ImportKey(std::move(std_buffer));
   new KeyImportDetailDialog(result, false, this);
 }
 
@@ -412,8 +395,8 @@ void KeyList::slot_double_clicked(const QModelIndex& index) {
   const auto& buffered_keys =
       m_key_tables_[ui_->keyGroupTab->currentIndex()].buffered_keys_;
   if (m_action_ != nullptr) {
-    const auto key = GpgKeyGetter::GetInstance(m_key_list_id_)
-                         .GetKey(buffered_keys[index.row()].GetId());
+    const auto key =
+        GpgKeyGetter::GetInstance().GetKey(buffered_keys[index.row()].GetId());
     m_action_(key, this);
   }
 }
@@ -464,12 +447,11 @@ void KeyList::slot_sync_with_key_server() {
 
   emit SignalRefreshStatusBar(_("Syncing Key List..."), 3000);
   CommonUtils::SlotImportKeyFromKeyServer(
-      m_key_list_id_, key_ids,
-      [=](const std::string& key_id, const std::string& status,
-          size_t current_index, size_t all_index) {
+      key_ids, [=](const std::string& key_id, const std::string& status,
+                   size_t current_index, size_t all_index) {
         LOG(INFO) << _("Called") << key_id << status << current_index
                   << all_index;
-        auto key = GpgKeyGetter::GetInstance(m_key_list_id_).GetKey(key_id);
+        auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
 
         boost::format status_str = boost::format(_("Sync [%1%/%2%] %3% %4%")) %
                                    current_index % all_index %

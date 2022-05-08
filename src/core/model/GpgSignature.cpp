@@ -28,5 +28,103 @@
 
 #include "GpgSignature.h"
 
+/**
+ * @brief Construct a new Gpg Signature object
+ *
+ */
+GpgFrontend::GpgSignature::GpgSignature(GpgSignature &&) noexcept = default;
+
+/**
+ * @brief
+ *
+ * @return GpgSignature&
+ */
+GpgFrontend::GpgSignature &GpgFrontend::GpgSignature::operator=(
+    GpgFrontend::GpgSignature &&) noexcept = default;
+
 GpgFrontend::GpgSignature::GpgSignature(gpgme_signature_t sig)
     : signature_ref_(sig, [&](gpgme_signature_t signature) {}) {}
+
+/**
+ * @brief
+ *
+ * @return gpgme_validity_t
+ */
+gpgme_validity_t GpgFrontend::GpgSignature::GetValidity() const {
+  return signature_ref_->validity;
+}
+
+/**
+ * @brief
+ *
+ * @return gpgme_error_t
+ */
+gpgme_error_t GpgFrontend::GpgSignature::GetStatus() const {
+  return signature_ref_->status;
+}
+
+/**
+ * @brief
+ *
+ * @return gpgme_error_t
+ */
+gpgme_error_t GpgFrontend::GpgSignature::GetSummary() const {
+  return signature_ref_->summary;
+}
+
+/**
+ * @brief
+ *
+ * @return std::string
+ */
+std::string GpgFrontend::GpgSignature::GetPubkeyAlgo() const {
+  return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
+}
+
+/**
+ * @brief
+ *
+ * @return std::string
+ */
+std::string GpgFrontend::GpgSignature::GetHashAlgo() const {
+  return gpgme_hash_algo_name(signature_ref_->hash_algo);
+}
+
+/**
+ * @brief Create a time object
+ *
+ * @return boost::posix_time::ptime
+ */
+boost::posix_time::ptime GpgFrontend::GpgSignature::GetCreateTime() const {
+  return boost::posix_time::from_time_t(signature_ref_->timestamp);
+}
+
+/**
+ * @brief
+ *
+ * @return boost::posix_time::ptime
+ */
+boost::posix_time::ptime GpgFrontend::GpgSignature::GetExpireTime() const {
+  return boost::posix_time::from_time_t(signature_ref_->exp_timestamp);
+}
+
+/**
+ * @brief
+ *
+ * @return std::string
+ */
+std::string GpgFrontend::GpgSignature::GetFingerprint() const {
+  return signature_ref_->fpr;
+}
+
+/**
+ * @brief Construct a new Gpg Signature object
+ *
+ */
+GpgFrontend::GpgSignature::GpgSignature() = default;
+
+/**
+ * @brief Destroy the Gpg Signature object
+ *
+ */
+GpgFrontend::GpgSignature::~GpgSignature() = default;

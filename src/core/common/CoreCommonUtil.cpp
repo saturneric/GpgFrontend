@@ -24,37 +24,17 @@
  *
  */
 
-#ifndef GPGFRONTEND_CTXCHECKTRHEAD_H
-#define GPGFRONTEND_CTXCHECKTRHEAD_H
-#include "ui/GpgFrontendUI.h"
-namespace GpgFrontend::UI {
-/**
- * @brief
- *
- */
-class CtxCheckThread : public QThread {
-  Q_OBJECT
- public:
-  /**
-   * @brief Construct a new Ctx Check Thread object
-   *
-   */
-  CtxCheckThread();
+#include "CoreCommonUtil.h"
 
- signals:
-  /**
-   * @brief
-   *
-   */
-  void SignalGnupgNotInstall();
+namespace GpgFrontend {
 
- protected:
-  /**
-   * @brief
-   *
-   */
-  void run() override;
-};
-}  // namespace GpgFrontend::UI
+std::unique_ptr<CoreCommonUtil> CoreCommonUtil::instance_ = nullptr;  ///<
 
-#endif  // GPGFRONTEND_CTXCHECKTRHEAD_H
+CoreCommonUtil *CoreCommonUtil::GetInstance() {
+  LOG(INFO) << "called";
+  if (instance_ == nullptr) {
+    instance_ = std::make_unique<CoreCommonUtil>();
+  }
+  return instance_.get();
+}
+}  // namespace GpgFrontend

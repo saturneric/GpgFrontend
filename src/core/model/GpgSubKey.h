@@ -40,39 +40,35 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GpgSubKey {
+class GPGFRONTEND_CORE_EXPORT GpgSubKey {
  public:
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetID() const { return _subkey_ref->keyid; }
+  [[nodiscard]] std::string GetID() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetFingerprint() const { return _subkey_ref->fpr; }
+  [[nodiscard]] std::string GetFingerprint() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetPubkeyAlgo() const {
-    return gpgme_pubkey_algo_name(_subkey_ref->pubkey_algo);
-  }
+  [[nodiscard]] std::string GetPubkeyAlgo() const;
 
   /**
    * @brief
    *
    * @return unsigned int
    */
-  [[nodiscard]] unsigned int GetKeyLength() const {
-    return _subkey_ref->length;
-  }
+  [[nodiscard]] unsigned int GetKeyLength() const;
 
   /**
    * @brief
@@ -80,9 +76,7 @@ class GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasEncryptionCapability() const {
-    return _subkey_ref->can_encrypt;
-  }
+  [[nodiscard]] bool IsHasEncryptionCapability() const;
 
   /**
    * @brief
@@ -90,9 +84,7 @@ class GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasSigningCapability() const {
-    return _subkey_ref->can_sign;
-  }
+  [[nodiscard]] bool IsHasSigningCapability() const;
 
   /**
    * @brief
@@ -100,9 +92,7 @@ class GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasCertificationCapability() const {
-    return _subkey_ref->can_certify;
-  }
+  [[nodiscard]] bool IsHasCertificationCapability() const;
 
   /**
    * @brief
@@ -110,9 +100,7 @@ class GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasAuthenticationCapability() const {
-    return _subkey_ref->can_authenticate;
-  }
+  [[nodiscard]] bool IsHasAuthenticationCapability() const;
 
   /**
    * @brief
@@ -120,7 +108,7 @@ class GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsPrivateKey() const { return _subkey_ref->secret; }
+  [[nodiscard]] bool IsPrivateKey() const;
 
   /**
    * @brief
@@ -128,7 +116,7 @@ class GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsExpired() const { return _subkey_ref->expired; }
+  [[nodiscard]] bool IsExpired() const;
 
   /**
    * @brief
@@ -136,7 +124,7 @@ class GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsRevoked() const { return _subkey_ref->revoked; }
+  [[nodiscard]] bool IsRevoked() const;
 
   /**
    * @brief
@@ -144,7 +132,7 @@ class GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsDisabled() const { return _subkey_ref->disabled; }
+  [[nodiscard]] bool IsDisabled() const;
 
   /**
    * @brief
@@ -152,7 +140,7 @@ class GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsSecretKey() const { return _subkey_ref->secret; }
+  [[nodiscard]] bool IsSecretKey() const;
 
   /**
    * @brief
@@ -160,31 +148,27 @@ class GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsCardKey() const { return _subkey_ref->is_cardkey; }
+  [[nodiscard]] bool IsCardKey() const;
 
   /**
    * @brief
    *
    * @return boost::posix_time::ptime
    */
-  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const {
-    return boost::posix_time::from_time_t(_subkey_ref->timestamp);
-  }
+  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const;
 
   /**
    * @brief
    *
    * @return boost::posix_time::ptime
    */
-  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const {
-    return boost::posix_time::from_time_t(_subkey_ref->expires);
-  }
+  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const;
 
   /**
    * @brief Construct a new Gpg Sub Key object
    *
    */
-  GpgSubKey() = default;
+  GpgSubKey();
 
   /**
    * @brief Construct a new Gpg Sub Key object
@@ -198,7 +182,7 @@ class GpgSubKey {
    *
    * @param o
    */
-  GpgSubKey(GpgSubKey&& o) noexcept { swap(_subkey_ref, o._subkey_ref); }
+  GpgSubKey(GpgSubKey&& o) noexcept;
 
   /**
    * @brief Construct a new Gpg Sub Key object
@@ -212,10 +196,7 @@ class GpgSubKey {
    * @param o
    * @return GpgSubKey&
    */
-  GpgSubKey& operator=(GpgSubKey&& o) noexcept {
-    swap(_subkey_ref, o._subkey_ref);
-    return *this;
-  };
+  GpgSubKey& operator=(GpgSubKey&& o) noexcept;
 
   /**
    * @brief
@@ -231,9 +212,7 @@ class GpgSubKey {
    * @return true
    * @return false
    */
-  bool operator==(const GpgSubKey& o) const {
-    return GetFingerprint() == o.GetFingerprint();
-  }
+  bool operator==(const GpgSubKey& o) const;
 
  private:
   using SubkeyRefHandler =

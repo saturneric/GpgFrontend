@@ -19,24 +19,44 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
- *
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * The source code version of this software was modified and released
+ * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
  *
  */
 
-#include "ReceiveMailDialog.h"
+#ifndef GPGFRONTEND_CTXCHECKTRHEAD_H
+#define GPGFRONTEND_CTXCHECKTRHEAD_H
 
-#include "ui_ReceiveMailDialog.h"
+#include "core/GpgFrontendCore.h"
 
-GpgFrontend::UI::ReceiveMailDialog::ReceiveMailDialog(QWidget *parent)
-    : QDialog(parent), ui_(std::make_shared<Ui_ReceiveMailDialog>()) {
-  ui_->setupUi(this);
-}
+namespace GpgFrontend {
+/**
+ * @brief
+ *
+ */
+class GPGFRONTEND_CORE_EXPORT CtxCheckThread : public QThread {
+  Q_OBJECT
+ public:
+  /**
+   * @brief Construct a new Ctx Check Thread object
+   *
+   */
+  CtxCheckThread();
 
-void GpgFrontend::UI::ReceiveMailDialog::slot_refresh_data() {}
+ signals:
+  /**
+   * @brief
+   *
+   */
+  void SignalGnupgNotInstall();
 
-void GpgFrontend::UI::ReceiveMailDialog::list_sub_folders(
-    GpgFrontend::UI::IMAPFolder *parent_folder,
-    const std::shared_ptr<vmime::net::folder> &) {}
+ protected:
+  /**
+   * @brief
+   *
+   */
+  void run() override;
+};
+}  // namespace GpgFrontend
+
+#endif  // GPGFRONTEND_CTXCHECKTRHEAD_H

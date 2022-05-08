@@ -27,7 +27,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # define project
-project(GpgFrontend VERSION 2.0.5 LANGUAGES CXX)
+project(GpgFrontend VERSION 2.0.6 LANGUAGES CXX)
 
 # show cmake version
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
@@ -213,7 +213,7 @@ message(STATUS "Define CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
     set(BUILD_FLAG 0)
     ADD_DEFINITIONS(-DRELEASE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
     # Release Version force to build using option STABLE_APPLICATION_BUILD
     set(FULL_APPLICATION_BUILD 0)
     set(STABLE_APPLICATION_BUILD 1)
@@ -265,6 +265,9 @@ message(STATUS "GpgFrontend Build Timestamp ${BUILD_TIMESTAMP}")
 message(STATUS "GpgFrontend Build Version ${BUILD_VERSION}")
 message(STATUS "GpgFrontend Git Repo Version ${GIT_VERSION}")
 
+# support for dymatic libraries
+include (GenerateExportHeader)
+
 # Windows
 IF (MINGW)
     message(STATUS "GpgFrontend Configuration For OS Platform Microsoft Windows")
@@ -273,8 +276,10 @@ IF (MINGW)
     set(OS_PLATFORM 0)
     add_definitions(-DWINDOWS)
 
-    set(Boost_USE_STATIC_LIBS ON)
-    set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
+    set(Boost_USE_STATIC_LIBS OFF)
+    set(Boost_USE_MULTITHREADED ON)
+    set(Boost_USE_STATIC_RUNTIME OFF)
+
     include_directories(
             ${CMAKE_CURRENT_SOURCE_DIR}/src
             ${CMAKE_CURRENT_SOURCE_DIR}/third_party

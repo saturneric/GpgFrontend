@@ -37,7 +37,8 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GpgEncryptResultAnalyse : public GpgResultAnalyse {
+class GPGFRONTEND_CORE_EXPORT GpgEncryptResultAnalyse
+    : public GpgResultAnalyse {
  public:
   /**
    * @brief Construct a new Encrypt Result Analyse object

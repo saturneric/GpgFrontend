@@ -39,7 +39,7 @@
 
 namespace GpgFrontend {
 
-class GenKeyInfo {
+class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
   bool standalone_ = false;  ///<
   bool subkey_ = false;      ///<
   std::string name_;         ///<

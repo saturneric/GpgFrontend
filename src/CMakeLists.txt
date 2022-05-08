@@ -24,6 +24,21 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# configure for output path and resources
+if (APPLICATION_BUILD)
+    aux_source_directory(. BASE_SOURCE)
+    set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
+    set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
+
+    if (NOT XCODE_BUILD)
+        # Set Binary Output Path
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
+    else ()
+        # Set Binary Output Path
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+    endif ()
+endif ()
+
 
 if (GPG_CORE)
     message(STATUS "Build Gpg Core")
@@ -46,21 +61,6 @@ if (ADVANCE_SUPPORT)
     add_compile_definitions(ADVANCE_SUPPORT)
     add_subdirectory(advance)
 endif ()
-
-if (APPLICATION_BUILD)
-    aux_source_directory(. BASE_SOURCE)
-    set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
-    set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
-
-    if (NOT XCODE_BUILD)
-        # Set Binary Output Path
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
-    else ()
-        # Set Binary Output Path
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
-    endif ()
-endif ()
-
 
 if (APPLICATION_BUILD)
     # Set Resource Output Path
@@ -257,13 +257,13 @@ endif ()
 if (APPLICATION_BUILD)
     target_link_libraries(${AppName} gpgfrontend_ui)
     IF (MINGW)
-        message(STATUS "Link Application Static Library For MINGW")
+        message(STATUS "Link Application Library For MINGW")
         target_link_libraries(${AppName} crypto)
     elseif (APPLE)
-        message(STATUS "Link Application Static Library For macOS")
+        message(STATUS "Link Application Library For macOS")
         target_link_libraries(${AppName} intl)
     else ()
-        message(STATUS "Link Application Static Library For Linux")
+        message(STATUS "Link Application Library For Linux")
         target_link_libraries(${AppName} crypto pthread)
     endif ()
 endif ()
@@ -274,12 +274,21 @@ target_compile_features(${AppName} PUBLIC cxx_std_17)
 # if building linux package
 if (LINUX AND LINUX_INSTALL_SOFTWARE)
     if (INSTALL_GPGFRONTEND_APP)
-        install(TARGETS ${AppName}
+        install(TARGETS ${AppName} gpgfrontend_core gpgfrontend_ui
                 EXPORT GpgFrontendTargets
                 RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
                 LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
                 ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
                 )
+        install(DIRECTORY /usr/local/lib/
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                FILES_MATCHING PATTERN "libgpgme.so*")
+        install(DIRECTORY /usr/local/lib/
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                FILES_MATCHING PATTERN "libassuan.so*")
+        install(DIRECTORY /usr/local/lib/
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                FILES_MATCHING PATTERN "libgpg-error.so*")
         install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
                 DESTINATION /usr/local/share/${AppName}/)
         install(FILES ${CMAKE_SOURCE_DIR}/resource/meta/pub.gpgfrontend.gpgfrontend.appdata.xml
@@ -304,7 +313,7 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
         set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
         set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
         SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Saturneric")
-        set(CPACK_DEBIAN_PACKAGE_DEPENDS "gpg (>= 2.2), libqt5core5a (>= 5.9), libqt5gui5 (>= 5.9), libqt5widgets5 (>= 5.9), libqt5network5 (>= 5.9), libqt5printsupport5 (>= 5.9), libconfig++-dev (>=1.5)")
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "gpg (>= 2.2), libqt5core5a (>= 5.9), libqt5gui5 (>= 5.9), libqt5widgets5 (>= 5.9), libqt5network5 (>= 5.9), libqt5printsupport5 (>= 5.9), libconfig++9v5 (>=1.5), libarchive13(>= 3.4), openssl(>= 1.1.1)")
         set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
         set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
         set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")

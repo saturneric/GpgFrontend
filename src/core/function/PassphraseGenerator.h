@@ -39,7 +39,7 @@ namespace GpgFrontend {
  *
  * This class is used to generate a passphrase.
  */
-class PassphraseGenerator
+class GPGFRONTEND_CORE_EXPORT PassphraseGenerator
     : public SingletonFunctionObject<PassphraseGenerator> {
  public:
   /**

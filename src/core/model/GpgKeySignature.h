@@ -44,7 +44,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GpgKeySignature {
+class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
  public:
   /**
    * @brief
@@ -52,7 +52,7 @@ class GpgKeySignature {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsRevoked() const { return signature_ref_->revoked; }
+  [[nodiscard]] bool IsRevoked() const;
 
   /**
    * @brief
@@ -60,7 +60,7 @@ class GpgKeySignature {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsExpired() const { return signature_ref_->expired; }
+  [[nodiscard]] bool IsExpired() const;
 
   /**
    * @brief
@@ -68,7 +68,7 @@ class GpgKeySignature {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsInvalid() const { return signature_ref_->invalid; }
+  [[nodiscard]] bool IsInvalid() const;
 
   /**
    * @brief
@@ -76,92 +76,82 @@ class GpgKeySignature {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsExportable() const { return signature_ref_->exportable; }
+  [[nodiscard]] bool IsExportable() const;
 
   /**
    * @brief
    *
    * @return gpgme_error_t
    */
-  [[nodiscard]] gpgme_error_t GetStatus() const {
-    return signature_ref_->status;
-  }
+  [[nodiscard]] gpgme_error_t GetStatus() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetKeyID() const { return signature_ref_->keyid; }
+  [[nodiscard]] std::string GetKeyID() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetPubkeyAlgo() const {
-    return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
-  }
+  [[nodiscard]] std::string GetPubkeyAlgo() const;
 
   /**
    * @brief Create a time object
    *
    * @return boost::posix_time::ptime
    */
-  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const {
-    return boost::posix_time::from_time_t(signature_ref_->timestamp);
-  }
+  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const;
 
   /**
    * @brief
    *
    * @return boost::posix_time::ptime
    */
-  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const {
-    return boost::posix_time::from_time_t(signature_ref_->expires);
-  }
+  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetUID() const { return signature_ref_->uid; }
+  [[nodiscard]] std::string GetUID() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetName() const { return signature_ref_->name; }
+  [[nodiscard]] std::string GetName() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetEmail() const { return signature_ref_->email; }
+  [[nodiscard]] std::string GetEmail() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetComment() const {
-    return signature_ref_->comment;
-  }
+  [[nodiscard]] std::string GetComment() const;
 
   /**
    * @brief Construct a new Gpg Key Signature object
    *
    */
-  GpgKeySignature() = default;
+  GpgKeySignature();
 
   /**
    * @brief Destroy the Gpg Key Signature object
    *
    */
-  ~GpgKeySignature() = default;
+  ~GpgKeySignature();
 
   /**
    * @brief Construct a new Gpg Key Signature object
@@ -174,7 +164,7 @@ class GpgKeySignature {
    * @brief Construct a new Gpg Key Signature object
    *
    */
-  GpgKeySignature(GpgKeySignature &&) noexcept = default;
+  GpgKeySignature(GpgKeySignature &&) noexcept;
 
   /**
    * @brief Construct a new Gpg Key Signature object
@@ -187,7 +177,7 @@ class GpgKeySignature {
    *
    * @return GpgKeySignature&
    */
-  GpgKeySignature &operator=(GpgKeySignature &&) noexcept = default;
+  GpgKeySignature &operator=(GpgKeySignature &&) noexcept;
 
   /**
    * @brief

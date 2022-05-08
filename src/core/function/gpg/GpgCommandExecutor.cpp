@@ -26,6 +26,10 @@
  *
  */
 #include "GpgCommandExecutor.h"
+
+GpgFrontend::GpgCommandExecutor::GpgCommandExecutor(int channel)
+    : SingletonFunctionObject<GpgCommandExecutor>(channel) {}
+
 #ifndef WINDOWS
 #include <boost/asio.hpp>
 #endif

@@ -26,8 +26,6 @@
  *
  */
 
-#include <boost/date_time.hpp>
-
 #include "core/function/GlobalSettingStation.h"
 
 /**
@@ -49,58 +47,6 @@ std::vector<std::filesystem::path> get_files_of_directory(
     }
   }
   return path_list;
-}
-
-/**
- * @brief setup logging system and do proper initialization
- *
- */
-void init_logging() {
-  using namespace boost::posix_time;
-  using namespace boost::gregorian;
-
-  ptime now = second_clock::local_time();
-
-  el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
-  el::Configurations defaultConf;
-  defaultConf.setToDefault();
-  el::Loggers::reconfigureLogger("default", defaultConf);
-
-  // apply settings
-  defaultConf.setGlobally(el::ConfigurationType::Format,
-                          "%datetime %level %func %msg");
-
-  // get the log directory
-  auto logfile_path =
-      (GpgFrontend::GlobalSettingStation::GetInstance().GetLogDir() /
-       to_iso_string(now));
-  logfile_path.replace_extension(".log");
-  defaultConf.setGlobally(el::ConfigurationType::Filename,
-                          logfile_path.u8string());
-
-  el::Loggers::reconfigureLogger("default", defaultConf);
-
-  LOG(INFO) << _("log file path") << logfile_path;
-}
-
-/**
- * @brief load all certificates from the given path
- *      and add them to the given certificate store in GlobalSettingStation
- */
-void init_certs() {
-  // get the certificate directory
-  auto cert_file_paths = get_files_of_directory(
-      GpgFrontend::GlobalSettingStation::GetInstance().GetCertsDir());
-
-  // get the instance of the GlobalSettingStation
-  auto& _instance = GpgFrontend::GlobalSettingStation::GetInstance();
-  for (const auto& cert_file_path : cert_file_paths) {
-    // add the certificate to the store
-    _instance.AddRootCert(cert_file_path);
-  }
-
-  // show the number of loaded certificates
-  LOG(INFO) << _("root certs loaded") << _instance.GetRootCerts().size();
 }
 
 /**

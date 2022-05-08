@@ -34,6 +34,9 @@
 #include "GpgBasicOperator.h"
 #include "GpgKeyGetter.h"
 
+GpgFrontend::GpgKeyManager::GpgKeyManager(int channel)
+    : SingletonFunctionObject<GpgKeyManager>(channel) {}
+
 bool GpgFrontend::GpgKeyManager::SignKey(
     const GpgFrontend::GpgKey& target, GpgFrontend::KeyArgsList& keys,
     const std::string& uid,

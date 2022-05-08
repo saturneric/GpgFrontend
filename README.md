@@ -120,7 +120,7 @@ $ ./release/GpgFrontend.exe
 Install and compile dependencies.
 
 ```shell
-$ brew install cmake git autoconf automake qt@5 texinfo gettext openssl@1.1 
+$ brew install cmake git autoconf automake qt@5 texinfo gettext openssl@1.1 libarchive
 $ brew install boost ninja
 $ brew unlink gettext && brew link --force gettext
 $ brew link qt@5
@@ -152,13 +152,36 @@ Install and compile dependencies.
 
 ```shell
 $ sudo apt-get update
-$ sudo apt-get -y install gettext texinfo git ninja-build cmake
-$ sudo apt-get -y install gcc g++ build-essential binutils autoconf automake 
-$ sudo apt-get -y libboost-all-dev qt5-default
+$ sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
+$ sudo apt-get -y install gcc-8 g++-8 ninja-build
+$ sudo apt-get -y install libconfig++-dev libboost-all-dev libarchive-dev libssl-dev
 $ sudo apt-get -y install gpg # If you need to run directly after building.
 ```
 
-Build the code and make the deb package.
+Compile and install libgpg-error/libassuan/gpgme. Notice: These in third_party directory is newer than those in apt.
+
+```shell
+# libgpg-error
+$ cd GpgFrontend
+$ cd  ./third_party/libgpg-error
+$ ./autogen.sh
+$ ./configure --enable-maintainer-mode && make
+$ sudo make install
+# libassuan
+$ cd GpgFrontend
+$ cd  ./third_party/libassuan
+$ ./autogen.sh
+$ ./configure --enable-maintainer-mode && make
+$ sudo make install
+# gpgme
+$ cd GpgFrontend
+$ cd  ./third_party/gpgme
+$ ./autogen.sh
+$ ./configure --enable-maintainer-mode --enable-languages=cpp && make
+$ sudo make install
+```
+
+Build the code and make the deb package(Please use Ubuntu 20.04 or later).
 
 ```shell
 $ cd GpgFrontend
@@ -168,7 +191,7 @@ $ ninja
 $ ninja package
 ```
 
-Build the code separately for debug.
+Build the code separately for debug(Please use ubuntu 18.04 or later).
 
 ```shell
 $ cd GpgFrontend
@@ -178,7 +201,7 @@ $ ninja
 $ ./release/GpgFrontend # run the program
 ```
 
-Package the AppImage.
+Package the AppImage(Should use ubuntu 18.04).
 
 ```shell
 $ cd GpgFrontend

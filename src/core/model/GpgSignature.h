@@ -40,91 +40,75 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GpgSignature {
+class GPGFRONTEND_CORE_EXPORT GpgSignature {
  public:
   /**
    * @brief
    *
    * @return gpgme_validity_t
    */
-  [[nodiscard]] gpgme_validity_t GetValidity() const {
-    return signature_ref_->validity;
-  }
+  [[nodiscard]] gpgme_validity_t GetValidity() const;
 
   /**
    * @brief
    *
    * @return gpgme_error_t
    */
-  [[nodiscard]] gpgme_error_t GetStatus() const {
-    return signature_ref_->status;
-  }
+  [[nodiscard]] gpgme_error_t GetStatus() const;
 
   /**
    * @brief
    *
    * @return gpgme_error_t
    */
-  [[nodiscard]] gpgme_error_t GetSummary() const {
-    return signature_ref_->summary;
-  }
+  [[nodiscard]] gpgme_error_t GetSummary() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetPubkeyAlgo() const {
-    return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
-  }
+  [[nodiscard]] std::string GetPubkeyAlgo() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetHashAlgo() const {
-    return gpgme_hash_algo_name(signature_ref_->hash_algo);
-  }
+  [[nodiscard]] std::string GetHashAlgo() const;
 
   /**
    * @brief Create a time object
    *
    * @return boost::posix_time::ptime
    */
-  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const {
-    return boost::posix_time::from_time_t(signature_ref_->timestamp);
-  }
+  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const;
 
   /**
    * @brief
    *
    * @return boost::posix_time::ptime
    */
-  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const {
-    return boost::posix_time::from_time_t(signature_ref_->exp_timestamp);
-  }
+  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetFingerprint() const {
-    return signature_ref_->fpr;
-  }
+  [[nodiscard]] std::string GetFingerprint() const;
 
   /**
    * @brief Construct a new Gpg Signature object
    *
    */
-  GpgSignature() = default;
+  GpgSignature();
 
   /**
    * @brief Destroy the Gpg Signature object
    *
    */
-  ~GpgSignature() = default;
+  ~GpgSignature();
 
   /**
    * @brief Construct a new Gpg Signature object
@@ -137,7 +121,7 @@ class GpgSignature {
    * @brief Construct a new Gpg Signature object
    *
    */
-  GpgSignature(GpgSignature &&) noexcept = default;
+  GpgSignature(GpgSignature &&) noexcept;
 
   /**
    * @brief Construct a new Gpg Signature object
@@ -150,7 +134,7 @@ class GpgSignature {
    *
    * @return GpgSignature&
    */
-  GpgSignature &operator=(GpgSignature &&) noexcept = default;
+  GpgSignature &operator=(GpgSignature &&) noexcept;
 
   /**
    * @brief

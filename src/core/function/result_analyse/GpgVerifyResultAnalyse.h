@@ -37,7 +37,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GpgVerifyResultAnalyse : public GpgResultAnalyse {
+class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
  public:
   /**
    * @brief Construct a new Verify Result Analyse object

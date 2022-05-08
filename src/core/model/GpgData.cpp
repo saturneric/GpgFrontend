@@ -74,3 +74,5 @@ GpgFrontend::ByteArrayPtr GpgFrontend::GpgData::Read2Buffer() {
   }
   return out_buffer;
 }
+
+GpgFrontend::GpgData::operator gpgme_data_t() { return data_ref_.get(); }

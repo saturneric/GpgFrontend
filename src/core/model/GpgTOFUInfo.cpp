@@ -28,5 +28,64 @@
 
 #include "GpgTOFUInfo.h"
 
+GpgFrontend::GpgTOFUInfo::GpgTOFUInfo() = default;
+
 GpgFrontend::GpgTOFUInfo::GpgTOFUInfo(gpgme_tofu_info_t tofu_info)
     : _tofu_info_ref(tofu_info, [&](gpgme_tofu_info_t tofu_info) {}) {}
+
+GpgFrontend::GpgTOFUInfo::GpgTOFUInfo(GpgTOFUInfo&& o) noexcept {
+  swap(_tofu_info_ref, o._tofu_info_ref);
+}
+
+GpgFrontend::GpgTOFUInfo& GpgFrontend::GpgTOFUInfo::operator=(
+    GpgTOFUInfo&& o) noexcept {
+  swap(_tofu_info_ref, o._tofu_info_ref);
+  return *this;
+};
+
+unsigned GpgFrontend::GpgTOFUInfo::GetValidity() const {
+  return _tofu_info_ref->validity;
+}
+
+unsigned GpgFrontend::GpgTOFUInfo::GetPolicy() const {
+  return _tofu_info_ref->policy;
+}
+
+unsigned long GpgFrontend::GpgTOFUInfo::GetSignCount() const {
+  return _tofu_info_ref->signcount;
+}
+
+unsigned long GpgFrontend::GpgTOFUInfo::GetEncrCount() const {
+  return _tofu_info_ref->encrcount;
+}
+
+unsigned long GpgFrontend::GpgTOFUInfo::GetSignFirst() const {
+  return _tofu_info_ref->signfirst;
+}
+
+/**
+ * @brief
+ *
+ * @return unsigned long
+ */
+unsigned long GpgFrontend::GpgTOFUInfo::GetSignLast() const {
+  return _tofu_info_ref->signlast;
+}
+
+/**
+ * @brief
+ *
+ * @return unsigned long
+ */
+unsigned long GpgFrontend::GpgTOFUInfo::GetEncrLast() const {
+  return _tofu_info_ref->encrlast;
+}
+
+/**
+ * @brief
+ *
+ * @return std::string
+ */
+std::string GpgFrontend::GpgTOFUInfo::GetDescription() const {
+  return _tofu_info_ref->description;
+}

@@ -341,7 +341,6 @@ class MainWindow : public QMainWindow {
   QToolBar*
       special_edit_tool_bar_{};  ///<  Toolbar holding special edit actions
   QToolBar* key_tool_bar_{};     ///<  Toolbar holding key operations
-  QToolBar* email_tool_bar_{};   ///<  Toolbar holding key operations
   QToolButton*
       import_button_{};  ///<  Tool button for import dropdown menu in toolbar
   QDockWidget* key_list_dock_{};    ///<  Encrypt Dock
@@ -391,12 +390,6 @@ class MainWindow : public QMainWindow {
   QAction* start_wizard_act_{};         ///< Action to open the wizard
   QAction* cut_pgp_header_act_{};       ///< Action for cutting the PGP header
   QAction* add_pgp_header_act_{};       ///< Action for adding the PGP header
-
-#ifdef SMTP_SUPPORT
-  QAction* send_mail_act_{};     ///< Action for sending a email
-  QAction* receive_mail_act_{};  ///< Action for receive emails
-#endif
-
   QAction* import_key_from_file_act_{};        ///<
   QAction* import_key_from_clipboard_act_{};   ///<
   QAction* import_key_from_key_server_act_{};  ///<

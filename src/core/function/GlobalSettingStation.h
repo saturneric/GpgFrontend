@@ -38,18 +38,13 @@
 #include "core/GpgFrontendCore.h"
 #include "core/GpgFunctionObject.h"
 
-namespace vmime::security::cert {
-class defaultCertificateVerifier;
-class X509Certificate;
-}  // namespace vmime::security::cert
-
 namespace GpgFrontend {
 
 /**
  * @brief
  *
  */
-class GlobalSettingStation
+class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
     : public SingletonFunctionObject<GlobalSettingStation> {
  public:
   /**
@@ -146,36 +141,6 @@ class GlobalSettingStation
   }
 
   /**
-   * @brief Get the Cert Verifier object
-   *
-   * @return std::shared_ptr<
-   * vmime::security::cert::defaultCertificateVerifier>
-   */
-  [[nodiscard]] std::shared_ptr<
-      vmime::security::cert::defaultCertificateVerifier>
-  GetCertVerifier() const;
-
-  /**
-   * @brief
-   *
-   * @param path
-   */
-  void AddRootCert(const std::filesystem::path &path);
-
-  /**
-   * @brief Get the Root Certs object
-   *
-   * @return const std::vector<std::shared_ptr<X509>>&
-   */
-  const std::vector<std::shared_ptr<X509>> &GetRootCerts();
-
-  /**
-   * @brief
-   *
-   */
-  void ResetRootCerts() { root_certs_.clear(); }
-
-  /**
    * @brief sync the settings to the file
    *
    */
@@ -218,8 +183,7 @@ class GlobalSettingStation
   std::filesystem::path ui_config_path_ =
       ui_config_dir_path_ / "ui.cfg";  ///< UI Configure File Location
 
-  libconfig::Config ui_cfg_;                       ///<
-  std::vector<std::shared_ptr<X509>> root_certs_;  ///<
+  libconfig::Config ui_cfg_;  ///< UI Configure File
 
   /**
    * @brief

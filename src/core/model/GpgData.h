@@ -58,7 +58,7 @@ class GpgData {
    *
    * @return gpgme_data_t
    */
-  operator gpgme_data_t() { return data_ref_.get(); }
+  operator gpgme_data_t();
 
   /**
    * @brief

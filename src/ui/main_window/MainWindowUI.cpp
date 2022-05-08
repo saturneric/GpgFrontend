@@ -28,10 +28,6 @@
 
 #include "MainWindow.h"
 #include "ui/UserInterfaceUtils.h"
-#ifdef SMTP_SUPPORT
-#include "ui/mail/ReceiveMailDialog.h"
-#include "ui/mail/SendMailDialog.h"
-#endif
 
 namespace GpgFrontend::UI {
 
@@ -314,23 +310,6 @@ void MainWindow::create_actions() {
   add_pgp_header_act_ = new QAction(_("Add PGP Header"), this);
   connect(add_pgp_header_act_, &QAction::triggered, this,
           &MainWindow::slot_add_pgp_header);
-
-#ifdef SMTP_SUPPORT
-  send_mail_act_ = new QAction(_("New Message"), this);
-  send_mail_act_->setIcon(QIcon(":email.png"));
-  connect(send_mail_act_, &QAction::triggered, this, [=]() {
-    auto* dialog = new SendMailDialog({}, this);
-    dialog->show();
-  });
-
-  receive_mail_act_ = new QAction(_("Message Inbox"), this);
-  receive_mail_act_->setVisible(false);
-  receive_mail_act_->setIcon(QIcon(":receive_email.png"));
-  connect(receive_mail_act_, &QAction::triggered, this, [=]() {
-    auto* dialog = new ReceiveMailDialog(this);
-    dialog->show();
-  });
-#endif
 }
 
 void MainWindow::create_menus() {
@@ -387,11 +366,6 @@ void MainWindow::create_menus() {
   steganography_menu_ = menuBar()->addMenu(_("Steganography"));
   steganography_menu_->addAction(cut_pgp_header_act_);
   steganography_menu_->addAction(add_pgp_header_act_);
-#ifdef SMTP_SUPPORT
-  email_menu_ = menuBar()->addMenu(_("Email"));
-  email_menu_->addAction(send_mail_act_);
-  email_menu_->addAction(receive_mail_act_);
-#endif
 
   view_menu_ = menuBar()->addMenu(_("View"));
 
@@ -441,12 +415,6 @@ void MainWindow::create_tool_bars() {
   special_edit_tool_bar_->addAction(clean_double_line_breaks_act_);
   special_edit_tool_bar_->hide();
   view_menu_->addAction(special_edit_tool_bar_->toggleViewAction());
-
-  email_tool_bar_ = addToolBar(_("Email"));
-  email_tool_bar_->setObjectName("emailToolBar");
-  email_tool_bar_->addAction(send_mail_act_);
-  email_tool_bar_->addAction(receive_mail_act_);
-  view_menu_->addAction(email_tool_bar_->toggleViewAction());
 
   // Add dropdown menu for key import to keytoolbar
   import_button_ = new QToolButton();

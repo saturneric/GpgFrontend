@@ -43,6 +43,9 @@
 
 namespace GpgFrontend {
 
+GpgContext::GpgContext(int channel)
+    : SingletonFunctionObject<GpgContext>(channel) {}
+
 /**
  * Constructor
  *  Set up gpgme-context, set paths to app-run path

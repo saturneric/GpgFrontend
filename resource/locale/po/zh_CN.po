@@ -530,14 +530,14 @@ msgstr "Gnupg(gpg) 安装不正确，请按照 Github 中的 ReadME 说明安装
 
 #: /home/eric/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:183
 msgid "Open Key"
-msgstr "开关键"
+msgstr "打开密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:184
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:153
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:196
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:236
 msgid "Key Files"
-msgstr "关键文件"
+msgstr "密钥文件"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:184
 msgid "Keyring files"
@@ -1093,7 +1093,7 @@ msgstr "导出密钥包对话框"
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:40
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:60
 msgid "Key Update Details"
-msgstr "关键更新详情"
+msgstr "密钥更新详情"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:41
 msgid "No keys found"
@@ -1110,7 +1110,7 @@ msgstr "找不到要导入的密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:78
 msgid "General key info"
-msgstr "一般关键信息"
+msgstr "一般密钥信息"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:81
 msgid "Considered"
@@ -1130,15 +1130,15 @@ msgstr "未进口"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:109
 msgid "Private Read"
-msgstr "私人阅读"
+msgstr "私有可读"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:116
 msgid "Private Imported"
-msgstr "私人进口"
+msgstr "私有导入"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:123
 msgid "Private Unchanged"
-msgstr "私人不变"
+msgstr "私有未变更"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:141
 #: /home/eric/Develop/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:377
@@ -1268,11 +1268,11 @@ msgstr "来自密钥服务器的响应太多！"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:287
 msgid "No keys found, input may be kexId, retrying search with 0x."
-msgstr "未找到键，输入可能是 kexId，使用 0x 重试搜索。"
+msgstr "未找到密钥，输入可能是 kexId，使用 0x 重试搜索。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:296
 msgid "No keys found containing the search string!"
-msgstr "未找到包含搜索字符串的键！"
+msgstr "未找到包含搜索字符串的密钥！"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:303
 msgid "Insufficiently specific search string!"
@@ -1288,7 +1288,7 @@ msgstr "残疾"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:382
 msgid "%1 keys found. Double click a key to import it."
-msgstr "找到 %1 个密钥。双击一个键来导入它。"
+msgstr "找到 %1 个密钥。双击一个密钥来导入它。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:394
 msgid "Current Row"
@@ -1381,7 +1381,7 @@ msgstr "所选密钥包含一个实际上没有加密用途的密钥。"
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:230
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:532
 msgid "For example the Following Key:"
-msgstr "例如以下键："
+msgstr "例如以下密钥："
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:103
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:236
@@ -1734,7 +1734,7 @@ msgstr "解密和验证消息"
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:218
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:261
 msgid "Sign"
-msgstr "标志"
+msgstr "签名"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:197
 msgid "Sign Message"
@@ -1742,7 +1742,7 @@ msgstr "签名留言"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:200
 msgid "Verify"
-msgstr "核实"
+msgstr "验证"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:203
 msgid "Verify Message"
@@ -1796,7 +1796,7 @@ msgstr "管理密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:241
 msgid "Open Key Management"
-msgstr "开放式密钥管理"
+msgstr "打开密钥管理"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:248
 #: /home/eric/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:38
@@ -1805,7 +1805,7 @@ msgstr "关于"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:250
 msgid "Show the application's About box"
-msgstr "显示应用程序的关于框"
+msgstr "显示应用程序的关于界面"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
 msgid "Translate"
@@ -1837,7 +1837,7 @@ msgstr "将公钥附加到文本编辑器"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:279
 msgid "Append The Selected Keys To Text in Editor"
-msgstr "将选定的键附加到编辑器中的文本"
+msgstr "将选定的密钥附加到编辑器中的文本"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:283
 msgid "Copy Email"
@@ -1850,12 +1850,12 @@ msgstr "将选定的电子邮件复制到剪贴板"
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:291
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:258
 msgid "Show Key Details"
-msgstr "显示关键细节"
+msgstr "显示密钥细节"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:292
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:259
 msgid "Show Details for this Key"
-msgstr "显示此键的详细信息"
+msgstr "显示此密钥的详细信息"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:310
 msgid "Remove PGP Header"
@@ -1876,7 +1876,7 @@ msgstr "编辑"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:368
 msgid "Crypt"
-msgstr "地穴"
+msgstr "加密"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:378
 msgid "Keys"
@@ -2029,7 +2029,7 @@ msgstr "所选密钥包含一个实际上没有符号用法的密钥。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:358
 msgid "for example the Following Key:"
-msgstr "例如以下键："
+msgstr "例如以下密钥："
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:386
 msgid "The signature file \"%1\" exists, do you need to overwrite it?"
@@ -2449,7 +2449,7 @@ msgstr "一个签名"
 #: /home/eric/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:132
 #: /home/eric/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:147
 msgid "Key Information is NOT Available"
-msgstr "关键信息不可用"
+msgstr "密钥信息不可用"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:77
 msgid "Cert Revoked"
@@ -3089,7 +3089,7 @@ msgstr "导出私钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:63
 msgid "Modify Expiration Datetime (Primary Key)"
-msgstr "修改到期日期时间（主键）"
+msgstr "修改到期日期时间（主密钥）"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:66
 msgid "Modify Password"
@@ -3240,7 +3240,7 @@ msgstr "所有者"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:41
 msgid "Primary Key"
-msgstr "首要的关键"
+msgstr "主密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:43
 msgid "Additional UIDs"
@@ -3261,7 +3261,7 @@ msgstr "上次更新（当地时间）"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:87
 msgid "Primary Key Existence"
-msgstr "主键存在"
+msgstr "主密钥存在"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:128
 msgid "copy fingerprint to clipboard"
@@ -3295,11 +3295,11 @@ msgstr "没有数据"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:259
 msgid "Warning: The primary key has expired."
-msgstr "警告：主键已过期。"
+msgstr "警告：主密钥已过期。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:264
 msgid "Warning: The primary key has been revoked."
-msgstr "警告：主键已被撤销。"
+msgstr "警告：主密钥已被撤销。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:41
 msgid "KeyPair"
@@ -3307,19 +3307,19 @@ msgstr "密钥对"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:44
 msgid "Subkeys"
-msgstr "子键"
+msgstr "子密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:56
 msgid "Key Details"
-msgstr "关键细节"
+msgstr "密钥细节"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:44
 msgid "Subkey List"
-msgstr "子键列表"
+msgstr "子密钥列表"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:45
 msgid "Detail of Selected Subkey"
-msgstr "所选子键的详细信息"
+msgstr "所选子密钥的详细信息"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:49
 msgid "Generate A New Subkey"
@@ -3404,7 +3404,7 @@ msgstr "解锁密钥有效期设置长达 30 年。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:50
 msgid "Confirm drag'n'drop key import"
-msgstr "确认拖放键导入"
+msgstr "确认拖放密钥对导入"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:52
 msgid "Import files dropped on the Key List without confirmation."
@@ -3762,7 +3762,7 @@ msgstr "全部"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:70
 msgid "No Primary Key"
-msgstr "无主键"
+msgstr "无主密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:79
 msgid "Revoked"
@@ -3822,7 +3822,7 @@ msgstr "导出到剪贴板"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:229
 msgid "Export Selected Key(s) To Clipboard"
-msgstr "将选定的键导出到剪贴板"
+msgstr "将选定的密钥对导出到剪贴板"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:233
 msgid "Export To Key Package"
@@ -3842,11 +3842,11 @@ msgstr "将选定的密钥以 OpenSSH 格式导出到文件"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:247
 msgid "Delete Selected Key(s)"
-msgstr "删除选定的键"
+msgstr "删除这些选定的密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:248
 msgid "Delete the Selected keys"
-msgstr "删除选定的键"
+msgstr "删除这个选定的密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:252
 msgid "Delete Checked Key(s)"
@@ -3854,7 +3854,7 @@ msgstr "删除选中的密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:253
 msgid "Delete the Checked keys"
-msgstr "删除选中的键"
+msgstr "删除选中的密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:296
 msgid "Generate"
@@ -3870,12 +3870,12 @@ msgstr "删除密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:348
 msgid "Are you sure that you want to delete the following keys?"
-msgstr "您确定要删除以下键吗？"
+msgstr "您确定要删除以下密钥吗？"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:378
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:391
 msgid "Please check some keys before doing this operation."
-msgstr "请在执行此操作之前检查一些键。"
+msgstr "请在执行此操作之前检查一些密钥。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:383
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:524
@@ -3896,7 +3896,7 @@ msgstr "如果密钥对没有私钥，那么它将无法生成子密钥。"
 msgid ""
 "Please select a key before performing this operation. If you select multiple"
 " keys, only the first key will be exported."
-msgstr "请在执行此操作前选择一个键。如果您选择多个密钥，则只会导出第一个密钥。"
+msgstr "请在执行此操作前选择一个密钥。如果您选择多个密钥，则只会导出第一个密钥。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:498
 msgid "An error occur in exporting."
@@ -4103,7 +4103,7 @@ msgstr "无法从配置文件中正确读取"
 #~ msgstr "签名时发生错误"
 
 #~ msgid "Key List Menu: "
-#~ msgstr "按键列表菜单："
+#~ msgstr "密钥列表菜单："
 
 #~ msgid "InfoBoard's Actions Menu"
 #~ msgstr "InfoBoard 的操作菜单"
@@ -4115,7 +4115,7 @@ msgstr "无法从配置文件中正确读取"
 #~ msgstr "没有读取签名文件的权限。"
 
 #~ msgid "Append Selected Key(s) To Text"
-#~ msgstr "将选定的键附加到文本"
+#~ msgstr "将选定的密钥对附加到文本"
 
 #~ msgid "Unreleased Version"
 #~ msgstr "未发布版本"

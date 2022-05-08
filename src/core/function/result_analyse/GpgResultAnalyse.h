@@ -34,7 +34,7 @@
 #include "core/GpgConstants.h"
 namespace GpgFrontend {
 
-class GpgResultAnalyse {
+class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse {
  public:
   /**
    * @brief Construct a new Result Analyse object
