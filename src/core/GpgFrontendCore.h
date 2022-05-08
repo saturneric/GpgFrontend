@@ -32,6 +32,7 @@
 #include "GpgFrontend.h"
 
 // std includes
+#include <random>
 #include <filesystem>
 
 // boost includes
