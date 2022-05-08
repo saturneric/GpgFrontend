@@ -29,6 +29,7 @@
 #include "DataObjectOperator.h"
 
 #include <qt-aes/qaesencryption.h>
+#include <boost/date_time.hpp>
 
 #include "core/function/FileOperator.h"
 #include "core/function/PassphraseGenerator.h"
@@ -65,7 +66,6 @@ GpgFrontend::DataObjectOperator::DataObjectOperator(int channel)
 
 std::string GpgFrontend::DataObjectOperator::SaveDataObj(
     const std::string& _key, const nlohmann::json& value) {
-
   std::string _hash_obj_key = {};
   if (_key.empty()) {
     _hash_obj_key =
@@ -92,7 +92,8 @@ std::string GpgFrontend::DataObjectOperator::SaveDataObj(
   auto encoded =
       encryption.encode(QByteArray::fromStdString(to_string(value)), hash_key_);
 
-  LOG(INFO) << _("Saving data object") << _hash_obj_key << "to" << obj_path << encoded.size() << "bytes";
+  LOG(INFO) << _("Saving data object") << _hash_obj_key << "to" << obj_path
+            << encoded.size() << "bytes";
 
   FileOperator::WriteFileStd(obj_path.u8string(), encoded.toStdString());
 
@@ -128,7 +129,8 @@ std::optional<nlohmann::json> GpgFrontend::DataObjectOperator::GetDataObject(
     QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                               QAESEncryption::Padding::ISO);
 
-    LOG(INFO) << _("Decrypting data object") << encoded.size() << hash_key_.size();
+    LOG(INFO) << _("Decrypting data object") << encoded.size()
+              << hash_key_.size();
 
     auto decoded =
         encryption.removePadding(encryption.decode(encoded, hash_key_));

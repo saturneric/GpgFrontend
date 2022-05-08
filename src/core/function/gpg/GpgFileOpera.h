@@ -40,11 +40,12 @@ namespace GpgFrontend {
  * GpgBasicOperator
  * @class class: GpgBasicOperator
  */
-class GpgFileOpera : public SingletonFunctionObject<GpgFileOpera> {
+class GPGFRONTEND_CORE_EXPORT GpgFileOpera
+    : public SingletonFunctionObject<GpgFileOpera> {
  public:
+
   explicit GpgFileOpera(
-      int channel = SingletonFunctionObject::GetDefaultChannel())
-      : SingletonFunctionObject<GpgFileOpera>(channel) {}
+      int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
    * @brief Encrypted file

@@ -42,7 +42,7 @@
  * Project internal dependencies
  */
 #include "GpgFrontend.h"
-#include "core/GpgConstants.h"
+#include "core/GpgFrontendCore.h"
 #include "core/GpgModel.h"
 
 /**
@@ -50,9 +50,5 @@
  */
 
 #include <qt-aes/qaesencryption.h>
-
-#ifdef SMTP_SUPPORT
-#include <SmtpMime>
-#endif
 
 #endif  // GPGFRONTEND_GPGFRONTENDUI_H

@@ -37,7 +37,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GpgSignResultAnalyse : public GpgResultAnalyse {
+class GPGFRONTEND_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
  public:
   /**
    * @brief Construct a new Sign Result Analyse object

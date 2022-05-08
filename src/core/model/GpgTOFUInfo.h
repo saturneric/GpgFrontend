@@ -36,83 +36,68 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GpgTOFUInfo {
+class GPGFRONTEND_CORE_EXPORT GpgTOFUInfo {
  public:
   /**
    * @brief
    *
    * @return unsigned
    */
-  [[nodiscard]] unsigned GetValidity() const {
-    return _tofu_info_ref->validity;
-  }
-
+  [[nodiscard]] unsigned GetValidity() const;
   /**
    * @brief
    *
    * @return unsigned
    */
-  [[nodiscard]] unsigned GetPolicy() const { return _tofu_info_ref->policy; }
+  [[nodiscard]] unsigned GetPolicy() const;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetSignCount() const {
-    return _tofu_info_ref->signcount;
-  }
+  [[nodiscard]] unsigned long GetSignCount() const;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetEncrCount() const {
-    return _tofu_info_ref->encrcount;
-  }
+  [[nodiscard]] unsigned long GetEncrCount() const;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetSignFirst() const {
-    return _tofu_info_ref->signfirst;
-  }
+  [[nodiscard]] unsigned long GetSignFirst() const;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetSignLast() const {
-    return _tofu_info_ref->signlast;
-  }
+  [[nodiscard]] unsigned long GetSignLast() const;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetEncrLast() const {
-    return _tofu_info_ref->encrlast;
-  }
+  [[nodiscard]] unsigned long GetEncrLast() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetDescription() const {
-    return _tofu_info_ref->description;
-  }
+  [[nodiscard]] std::string GetDescription() const;
 
   /**
    * @brief Construct a new Gpg T O F U Info object
    *
    */
-  GpgTOFUInfo() = default;
+  GpgTOFUInfo();
 
   /**
    * @brief Construct a new Gpg T O F U Info object
@@ -126,9 +111,7 @@ class GpgTOFUInfo {
    *
    * @param o
    */
-  GpgTOFUInfo(GpgTOFUInfo&& o) noexcept {
-    swap(_tofu_info_ref, o._tofu_info_ref);
-  }
+  GpgTOFUInfo(GpgTOFUInfo&& o) noexcept;
 
   /**
    * @brief Construct a new Gpg T O F U Info object
@@ -142,10 +125,7 @@ class GpgTOFUInfo {
    * @param o
    * @return GpgTOFUInfo&
    */
-  GpgTOFUInfo& operator=(GpgTOFUInfo&& o) noexcept {
-    swap(_tofu_info_ref, o._tofu_info_ref);
-    return *this;
-  };
+  GpgTOFUInfo& operator=(GpgTOFUInfo&& o) noexcept;
 
   /**
    * @brief

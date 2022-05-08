@@ -19,32 +19,25 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#include "CtxCheckThread.h"
+#ifndef GPGFRONTEND_GPGFRONTENDUIINIT_H
+#define GPGFRONTEND_GPGFRONTENDUIINIT_H
 
-#include "core/GpgContext.h"
-#include "core/GpgCoreInit.h"
-#include "core/function/gpg/GpgKeyGetter.h"
-#include "ui/UserInterfaceUtils.h"
+#include "GpgFrontendUI.h"
 
-GpgFrontend::UI::CtxCheckThread::CtxCheckThread() : QThread(nullptr) {
-  connect(this, &CtxCheckThread::SignalGnupgNotInstall,
-          CommonUtils::GetInstance(), &CommonUtils::SignalGnupgNotInstall);
-}
+namespace GpgFrontend::UI {
 
-void GpgFrontend::UI::CtxCheckThread::run() {
-  // Init GpgFrontend Core
-  init_gpgfrontend_core();
+/**
+ * @brief
+ */
+void init_logging();
 
-  // Create & Check Gnupg Context Status
-  if (!GpgContext::GetInstance().good()) {
-    emit SignalGnupgNotInstall();
-  }
-  // Try fetching key
-  else
-    GpgFrontend::GpgKeyGetter::GetInstance().FetchKey();
-}
+};  // namespace GpgFrontend::UI
+
+#endif  // GPGFRONTEND_GPGFRONTENDUIINIT_H

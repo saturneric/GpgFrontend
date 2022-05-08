@@ -37,35 +37,35 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GpgUID {
+class GPGFRONTEND_CORE_EXPORT GpgUID {
  public:
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetName() const { return uid_ref_->name; }
+  [[nodiscard]] std::string GetName() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetEmail() const { return uid_ref_->email; }
+  [[nodiscard]] std::string GetEmail() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetComment() const { return uid_ref_->comment; }
+  [[nodiscard]] std::string GetComment() const;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetUID() const { return uid_ref_->uid; }
+  [[nodiscard]] std::string GetUID() const;
 
   /**
    * @brief
@@ -73,7 +73,7 @@ class GpgUID {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool GetRevoked() const { return uid_ref_->revoked; }
+  [[nodiscard]] bool GetRevoked() const;
 
   /**
    * @brief
@@ -81,22 +81,14 @@ class GpgUID {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool GetInvalid() const { return uid_ref_->invalid; }
+  [[nodiscard]] bool GetInvalid() const;
 
   /**
    * @brief
    *
    * @return std::unique_ptr<std::vector<GpgTOFUInfo>>
    */
-  [[nodiscard]] std::unique_ptr<std::vector<GpgTOFUInfo>> GetTofuInfos() const {
-    auto infos = std::make_unique<std::vector<GpgTOFUInfo>>();
-    auto info_next = uid_ref_->tofu;
-    while (info_next != nullptr) {
-      infos->push_back(GpgTOFUInfo(info_next));
-      info_next = info_next->next;
-    }
-    return infos;
-  }
+  [[nodiscard]] std::unique_ptr<std::vector<GpgTOFUInfo>> GetTofuInfos() const;
 
   /**
    * @brief
@@ -104,21 +96,13 @@ class GpgUID {
    * @return std::unique_ptr<std::vector<GpgKeySignature>>
    */
   [[nodiscard]] std::unique_ptr<std::vector<GpgKeySignature>> GetSignatures()
-      const {
-    auto sigs = std::make_unique<std::vector<GpgKeySignature>>();
-    auto sig_next = uid_ref_->signatures;
-    while (sig_next != nullptr) {
-      sigs->push_back(GpgKeySignature(sig_next));
-      sig_next = sig_next->next;
-    }
-    return sigs;
-  }
+      const;
 
   /**
    * @brief Construct a new Gpg U I D object
    *
    */
-  GpgUID() = default;
+  GpgUID();
 
   /**
    * @brief Construct a new Gpg U I D object
@@ -132,7 +116,7 @@ class GpgUID {
    *
    * @param o
    */
-  GpgUID(GpgUID &&o) noexcept { swap(uid_ref_, o.uid_ref_); }
+  GpgUID(GpgUID &&o) noexcept;
 
   /**
    * @brief Construct a new Gpg U I D object
@@ -146,10 +130,7 @@ class GpgUID {
    * @param o
    * @return GpgUID&
    */
-  GpgUID &operator=(GpgUID &&o) noexcept {
-    swap(uid_ref_, o.uid_ref_);
-    return *this;
-  }
+  GpgUID &operator=(GpgUID &&o) noexcept;
 
   /**
    * @brief

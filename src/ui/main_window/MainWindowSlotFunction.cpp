@@ -28,17 +28,6 @@
 
 #include "MainWindow.h"
 
-#ifdef ADVANCE_SUPPORT
-#include "advance/UnknownSignersChecker.h"
-#endif
-#ifdef SERVER_SUPPORT
-#include "server/api/PubkeyUploader.h"
-#endif
-
-#ifdef SMTP_SUPPORT
-#include "ui/mail/SendMailDialog.h"
-#endif
-
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -121,11 +110,6 @@ void MainWindow::slot_encrypt() {
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
       edit_->SlotFillTextEditWithText(QString::fromStdString(*tmp));
     info_board_->ResetOptionActionsMenu();
-#ifdef SMTP_SUPPORT
-    if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      send_an_email(this, info_board_,
-                    edit_->CurTextPage()->GetTextPage()->toPlainText());
-#endif
   } else {
     QMessageBox::critical(this, _("Error"),
                           _("An error occurred during operation."));
@@ -381,23 +365,6 @@ void MainWindow::slot_encrypt_sign() {
       edit_->SlotFillTextEditWithText(QString::fromStdString(*tmp));
 
     info_board_->ResetOptionActionsMenu();
-#ifdef SMTP_SUPPORT
-    if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      send_an_email(this, info_board_,
-                    edit_->CurTextPage()->GetTextPage()->toPlainText(), false);
-#endif
-
-#ifdef ADVANCE_SUPPORT
-    infoBoard->addOptionalAction("Shorten Ciphertext", [this]() {
-      if (settings.value("general/serviceToken").toString().isEmpty())
-        QMessageBox::warning(nullptr, _("Service Token Empty"),
-                             _("Please go to the settings interface to set "
-                               "Own Key and get Service Token."));
-      else {
-        shortenCryptText();
-      }
-    });
-#endif
   } else {
     QMessageBox::critical(this, _("Error"),
                           _("An error occurred during operation."));

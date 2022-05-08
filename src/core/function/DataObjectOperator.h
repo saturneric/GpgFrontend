@@ -37,7 +37,8 @@
 
 namespace GpgFrontend {
 
-class DataObjectOperator : public SingletonFunctionObject<DataObjectOperator> {
+class GPGFRONTEND_CORE_EXPORT DataObjectOperator
+        : public SingletonFunctionObject<DataObjectOperator> {
  public:
   /**
    * @brief DataObjectOperator constructor

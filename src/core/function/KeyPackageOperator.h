@@ -38,7 +38,7 @@ namespace GpgFrontend {
  * @brief give the possibility to import or export a key package
  *
  */
-class KeyPackageOperator {
+class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
  public:
   /**
    * @brief generate passphrase for key package and save it to file

@@ -42,18 +42,6 @@ namespace GpgFrontend::UI {
 class InfoBoardWidget;
 class TextEdit;
 
-#ifdef SMTP_SUPPORT
-/**
- * @brief
- *
- * @param parent
- * @param info_board
- * @param text
- * @param attach_signature
- */
-void send_an_email(QWidget* parent, InfoBoardWidget* info_board,
-                   const QString& text, bool attach_signature = true);
-#endif
 /**
  * @brief
  *
@@ -194,7 +182,7 @@ class CommonUtils : public QWidget {
    * @param callback
    */
   static void SlotImportKeyFromKeyServer(
-      int ctx_channel, const GpgFrontend::KeyIdArgsList& key_ids,
+      const GpgFrontend::KeyIdArgsList& key_ids,
       const GpgFrontend::UI::CommonUtils::ImportCallbackFunctiopn& callback);
 
   /**

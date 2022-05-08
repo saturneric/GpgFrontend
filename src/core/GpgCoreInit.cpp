@@ -28,9 +28,47 @@
 
 #include "GpgCoreInit.h"
 
-#include "GpgContext.h"
+#include "core/GpgContext.h"
+#include "core/function/GlobalSettingStation.h"
 
-void GpgFrontend::init_gpgfrontend_core() {
+// init easyloggingpp library
+INITIALIZE_EASYLOGGINGPP
+
+namespace GpgFrontend {
+
+/**
+ * @brief setup logging system and do proper initialization
+ *
+ */
+void init_logging() {
+  using namespace boost::posix_time;
+  using namespace boost::gregorian;
+
+  ptime now = second_clock::local_time();
+
+  el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
+  el::Configurations defaultConf;
+  defaultConf.setToDefault();
+  el::Loggers::reconfigureLogger("default", defaultConf);
+
+  // apply settings
+  defaultConf.setGlobally(el::ConfigurationType::Format,
+                          "%datetime %level %func %msg");
+
+  // get the log directory
+  auto logfile_path =
+      (GlobalSettingStation::GetInstance().GetLogDir() / to_iso_string(now));
+  logfile_path.replace_extension(".log");
+  defaultConf.setGlobally(el::ConfigurationType::Filename,
+                          logfile_path.u8string());
+
+  el::Loggers::reconfigureLogger("default", defaultConf);
+
+  LOG(INFO) << _("log file path") << logfile_path;
+}
+
+void init_gpgfrontend_core() {
+  // init default channel
   GpgFrontend::GpgContext::CreateInstance(
       GPGFRONTEND_DEFAULT_CHANNEL,
       [&]() -> std::unique_ptr<GpgFrontend::GpgContext> {
@@ -38,6 +76,7 @@ void GpgFrontend::init_gpgfrontend_core() {
         return std::make_unique<GpgFrontend::GpgContext>(args);
       });
 
+  // init non-ascii channel
   GpgFrontend::GpgContext::CreateInstance(
       GPGFRONTEND_NON_ASCII_CHANNEL,
       [&]() -> std::unique_ptr<GpgFrontend::GpgContext> {
@@ -47,10 +86,12 @@ void GpgFrontend::init_gpgfrontend_core() {
       });
 }
 
-void GpgFrontend::new_default_settings_channel(int channel) {
+void new_default_settings_channel(int channel) {
   GpgFrontend::GpgContext::CreateInstance(
       channel, [&]() -> std::unique_ptr<GpgFrontend::GpgContext> {
         GpgFrontend::GpgContextInitArgs args;
         return std::make_unique<GpgFrontend::GpgContext>(args);
       });
 }
+
+}  // namespace GpgFrontend

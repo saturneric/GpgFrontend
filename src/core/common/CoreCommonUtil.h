@@ -19,50 +19,45 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
- *
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * The source code version of this software was modified and released
+ * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
  *
  */
 
-#ifndef GPGFRONTEND_RECIPENTSPICKER_H
-#define GPGFRONTEND_RECIPENTSPICKER_H
+#ifndef GPGFRONTEND_CORECOMMONUTIL_H
+#define GPGFRONTEND_CORECOMMONUTIL_H
 
-#include "GpgFrontendUI.h"
+#include "core/GpgFrontendCore.h"
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
-class KeyList;
-
-/**
- * @brief
- *
- */
-class RecipientsPicker : public QDialog {
+class GPGFRONTEND_CORE_EXPORT CoreCommonUtil : public QObject {
   Q_OBJECT
-
  public:
   /**
-   * @brief Construct a new Recipients Picker object
+   * @brief Construct a new Core Common Util object
    *
-   * @param current_key_ids
-   * @param parent
    */
-  explicit RecipientsPicker(
-      const GpgFrontend::KeyIdArgsListPtr& current_key_ids,
-      QWidget* parent = nullptr);
+  static CoreCommonUtil *GetInstance();
 
   /**
-   * @brief Get the Checked Recipients object
+   * @brief
    *
-   * @return GpgFrontend::KeyIdArgsListPtr
    */
-  GpgFrontend::KeyIdArgsListPtr GetCheckedRecipients();
+  CoreCommonUtil() = default;
+
+ signals:
+
+  /**
+   * @brief
+   *
+   */
+  void SignalGnupgNotInstall();
 
  private:
-  KeyList* key_list_;  ///<
+  static std::unique_ptr<CoreCommonUtil> instance_;  ///<
 };
-}  // namespace GpgFrontend::UI
 
-#endif  // GPGFRONTEND_RECIPENTSPICKER_H
+}  // namespace GpgFrontend
+
+#endif  // GPGFRONTEND_CORECOMMONUTIL_H

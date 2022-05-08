@@ -44,9 +44,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-          sudo apt-get -y install gcc-8 g++-8 libconfig++-dev libboost-all-dev
+          sudo apt-get -y install gcc-8 g++-8 ninja-build
+          sudo apt-get -y install libconfig++-dev libboost-all-dev libarchive-dev libssl-dev
           sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
-          sudo apt-get -y install libgcrypt11-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp ninja-build
+          sudo apt-get -y install libgcrypt11-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-image0
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-*
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 8
@@ -68,12 +69,39 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5 texinfo gettext openssl@1.1 
-          brew install boost ninja
+          brew install cmake autoconf automake qt@5 texinfo gettext openssl@1.1
+          brew install boost ninja libarchive libconfig gpgme
           brew unlink gettext && brew link --force gettext
           brew link qt@5
           brew link openssl@1.1 --force
         if: matrix.os == 'macos-10.15'
+
+      - name: Build gpg-error (Linux)
+        run: |
+          cd  ${{github.workspace}}/third_party/libgpg-error
+          ./autogen.sh
+          ./configure --enable-maintainer-mode && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-18.04'
+
+      - name: Build assuan (Linux)
+        run: |
+          cd ${{github.workspace}}/third_party/libassuan
+          ./autogen.sh
+          ./configure --enable-maintainer-mode && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-18.04'
+
+      - name: Build GpgME (Linux)
+        run: |
+          cd  ${{github.workspace}}/third_party/gpgme
+          ./autogen.sh
+          ./configure --enable-maintainer-mode --enable-languages=cpp && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-18.04'
 
       - name: Cache Qt
         id: cache-qt
@@ -103,15 +131,6 @@ jobs:
           pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake 
           pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel mingw-w64-x86_64-gpgme
           pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
-        if: matrix.os == 'windows-2019'
-
-      - name: Build GpgME (Windows)
-        shell: msys2 {0}
-        run: |
-          cd $(echo "/${{github.workspace}}/third_party/gpgme"  | sed 's/\\/\//g' | sed 's/://')
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes --disable-gpg-test --enable-languages=cpp LDFLAGS="-static" && make -j2
-          make install
         if: matrix.os == 'windows-2019'
 
       - name: Build GpgFrontend (Linux)

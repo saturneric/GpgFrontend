@@ -39,7 +39,8 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GpgKeyGetter : public SingletonFunctionObject<GpgKeyGetter> {
+class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
+    : public SingletonFunctionObject<GpgKeyGetter> {
  public:
   /**
    * @brief Construct a new Gpg Key Getter object
@@ -47,8 +48,7 @@ class GpgKeyGetter : public SingletonFunctionObject<GpgKeyGetter> {
    * @param channel
    */
   explicit GpgKeyGetter(
-      int channel = SingletonFunctionObject::GetDefaultChannel())
-      : SingletonFunctionObject<GpgKeyGetter>(channel) {}
+      int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
    * @brief Get the Key object

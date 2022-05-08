@@ -35,18 +35,9 @@
 namespace GpgFrontend::UI {
 
 class GeneralTab;
-
-#ifdef SMTP_SUPPORT
-class SendMailTab;
-#endif
-
 class AppearanceTab;
 class KeyserverTab;
 class NetworkTab;
-
-#ifdef ADVANCED_SUPPORT
-class AdvancedTab;
-#endif
 
 /**
  * @brief
@@ -64,15 +55,9 @@ class SettingsDialog : public QDialog {
   explicit SettingsDialog(QWidget* parent = nullptr);
 
   GeneralTab* general_tab_;  ///<
-#ifdef SMTP_SUPPORT
-  SendMailTab* send_mail_tab_;  ///<
-#endif
   AppearanceTab* appearance_tab_;  ///<
   KeyserverTab* key_server_tab_;   ///<
   NetworkTab* network_tab_;        ///<
-#ifdef ADVANCED_SUPPORT
-  AdvancedTab* advanced_tab_;  ///<
-#endif
 
   /**
    * @brief

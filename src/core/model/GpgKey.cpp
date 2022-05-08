@@ -37,6 +37,118 @@ GpgFrontend::GpgKey &GpgFrontend::GpgKey::operator=(GpgKey &&k) noexcept {
   return *this;
 }
 
+bool GpgFrontend::GpgKey::operator==(const GpgKey &o) const {
+  return o.GetId() == this->GetId();
+}
+
+bool GpgFrontend::GpgKey::operator<=(const GpgKey &o) const {
+  return this->GetId() < o.GetId();
+}
+
+GpgFrontend::GpgKey::operator gpgme_key_t() const {
+  return key_ref_.get();
+}
+
+bool GpgFrontend::GpgKey::IsGood() const { return key_ref_ != nullptr; }
+
+std::string GpgFrontend::GpgKey::GetId() const {
+  return key_ref_->subkeys->keyid;
+}
+
+std::string GpgFrontend::GpgKey::GetName() const {
+  return key_ref_->uids->name;
+};
+
+std::string GpgFrontend::GpgKey::GetEmail() const {
+  return key_ref_->uids->email;
+}
+
+std::string GpgFrontend::GpgKey::GetComment() const {
+  return key_ref_->uids->comment;
+}
+
+std::string GpgFrontend::GpgKey::GetFingerprint() const {
+  return key_ref_->fpr;
+}
+
+std::string GpgFrontend::GpgKey::GetProtocol() const {
+  return gpgme_get_protocol_name(key_ref_->protocol);
+}
+
+std::string GpgFrontend::GpgKey::GetOwnerTrust() const {
+  switch (key_ref_->owner_trust) {
+    case GPGME_VALIDITY_UNKNOWN:
+      return "Unknown";
+    case GPGME_VALIDITY_UNDEFINED:
+      return "Undefined";
+    case GPGME_VALIDITY_NEVER:
+      return "Never";
+    case GPGME_VALIDITY_MARGINAL:
+      return "Marginal";
+    case GPGME_VALIDITY_FULL:
+      return "FULL";
+    case GPGME_VALIDITY_ULTIMATE:
+      return "Ultimate";
+  }
+  return "Invalid";
+}
+
+std::string GpgFrontend::GpgKey::GetPublicKeyAlgo() const {
+  return gpgme_pubkey_algo_name(key_ref_->subkeys->pubkey_algo);
+}
+
+boost::posix_time::ptime GpgFrontend::GpgKey::GetLastUpdateTime() const {
+  return boost::posix_time::from_time_t(
+      static_cast<time_t>(key_ref_->last_update));
+}
+
+boost::posix_time::ptime GpgFrontend::GpgKey::GetExpireTime() const {
+  return boost::posix_time::from_time_t(key_ref_->subkeys->expires);
+};
+
+boost::posix_time::ptime GpgFrontend::GpgKey::GetCreateTime() const {
+  return boost::posix_time::from_time_t(key_ref_->subkeys->timestamp);
+};
+
+unsigned int GpgFrontend::GpgKey::GetPrimaryKeyLength() const {
+  return key_ref_->subkeys->length;
+}
+
+bool GpgFrontend::GpgKey::IsHasEncryptionCapability() const {
+  return key_ref_->can_encrypt;
+}
+
+bool GpgFrontend::GpgKey::IsHasSigningCapability() const {
+  return key_ref_->can_sign;
+}
+
+bool GpgFrontend::GpgKey::IsHasCertificationCapability() const {
+  return key_ref_->can_certify;
+}
+
+bool GpgFrontend::GpgKey::IsHasAuthenticationCapability() const {
+  return key_ref_->can_authenticate;
+}
+
+bool GpgFrontend::GpgKey::IsHasCardKey() const {
+  auto subkeys = GetSubKeys();
+  return std::any_of(
+      subkeys->begin(), subkeys->end(),
+      [](const GpgSubKey &subkey) -> bool { return subkey.IsCardKey(); });
+}
+
+bool GpgFrontend::GpgKey::IsPrivateKey() const { return key_ref_->secret; }
+
+bool GpgFrontend::GpgKey::IsExpired() const { return key_ref_->expired; }
+
+bool GpgFrontend::GpgKey::IsRevoked() const { return key_ref_->revoked; }
+
+bool GpgFrontend::GpgKey::IsDisabled() const { return key_ref_->disabled; }
+
+bool GpgFrontend::GpgKey::IsHasMasterKey() const {
+  return key_ref_->subkeys->secret;
+}
+
 std::unique_ptr<std::vector<GpgFrontend::GpgSubKey>>
 GpgFrontend::GpgKey::GetSubKeys() const {
   auto p_keys = std::make_unique<std::vector<GpgSubKey>>();
@@ -112,4 +224,15 @@ bool GpgFrontend::GpgKey::IsHasActualEncryptionCapability() const {
     return true;
   else
     return false;
+}
+
+
+GpgFrontend::GpgKey GpgFrontend::GpgKey::Copy() const {
+  gpgme_key_ref(key_ref_.get());
+  auto* _new_key_ref = key_ref_.get();
+  return GpgKey(std::move(_new_key_ref));
+}
+
+void GpgFrontend::GpgKey::_key_ref_deleter::operator()(gpgme_key_t _key) {
+  if (_key != nullptr) gpgme_key_unref(_key);
 }

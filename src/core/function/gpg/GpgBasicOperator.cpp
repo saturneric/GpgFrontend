@@ -32,6 +32,9 @@
 
 #include "GpgKeyGetter.h"
 
+GpgFrontend::GpgBasicOperator::GpgBasicOperator(int channel)
+    : SingletonFunctionObject<GpgBasicOperator>(channel) {}
+
 GpgFrontend::GpgError GpgFrontend::GpgBasicOperator::Encrypt(
     KeyListPtr keys, GpgFrontend::BypeArrayRef in_buffer,
     GpgFrontend::ByteArrayPtr& out_buffer, GpgFrontend::GpgEncrResult& result) {
@@ -95,11 +98,9 @@ GpgFrontend::GpgError GpgFrontend::GpgBasicOperator::Verify(
   return err;
 }
 
-GpgFrontend::GpgError GpgFrontend::GpgBasicOperator::Sign(KeyListPtr signers,
-                                                       BypeArrayRef in_buffer,
-                                                       ByteArrayPtr& out_buffer,
-                                                       gpgme_sig_mode_t mode,
-                                                       GpgSignResult& result) {
+GpgFrontend::GpgError GpgFrontend::GpgBasicOperator::Sign(
+    KeyListPtr signers, BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
+    gpgme_sig_mode_t mode, GpgSignResult& result) {
   gpgme_error_t err;
 
   // Set Singers of this opera

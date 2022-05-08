@@ -31,6 +31,9 @@
 #include "GpgConstants.h"
 #include "GpgKeyGetter.h"
 
+GpgFrontend::GpgKeyImportExporter::GpgKeyImportExporter(int channel)
+    : SingletonFunctionObject<GpgKeyImportExporter>(channel) {}
+
 /**
  * Import key pair
  * @param inBuffer input byte array
@@ -175,4 +178,24 @@ bool GpgFrontend::GpgKeyImportExporter::ExportSecretKeyShortest(
   auto temp_out_buffer = data_out.Read2Buffer();
   std::swap(out_buffer, temp_out_buffer);
   return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
+}
+
+GpgFrontend::GpgImportInformation::GpgImportInformation() = default;
+
+GpgFrontend::GpgImportInformation::GpgImportInformation(
+    gpgme_import_result_t result) {
+  if (result->unchanged) unchanged = result->unchanged;
+  if (result->considered) considered = result->considered;
+  if (result->no_user_id) no_user_id = result->no_user_id;
+  if (result->imported) imported = result->imported;
+  if (result->imported_rsa) imported_rsa = result->imported_rsa;
+  if (result->unchanged) unchanged = result->unchanged;
+  if (result->new_user_ids) new_user_ids = result->new_user_ids;
+  if (result->new_sub_keys) new_sub_keys = result->new_sub_keys;
+  if (result->new_signatures) new_signatures = result->new_signatures;
+  if (result->new_revocations) new_revocations = result->new_revocations;
+  if (result->secret_read) secret_read = result->secret_read;
+  if (result->secret_imported) secret_imported = result->secret_imported;
+  if (result->secret_unchanged) secret_unchanged = result->secret_unchanged;
+  if (result->not_imported) not_imported = result->not_imported;
 }

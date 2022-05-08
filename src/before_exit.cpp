@@ -34,5 +34,4 @@
  */
 void before_exit() {
   LOG(INFO) << "called";
-  GpgFrontend::GlobalSettingStation::GetInstance().ResetRootCerts();
 }

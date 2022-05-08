@@ -30,24 +30,28 @@
 #include <memory>
 #include <string>
 
-#include "GpgConstants.h"
 #include "GpgBasicOperator.h"
+#include "GpgConstants.h"
 #include "function/FileOperator.h"
+
+GpgFrontend::GpgFileOpera::GpgFileOpera(int channel)
+    : SingletonFunctionObject<GpgFileOpera>(channel) {}
 
 GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
     KeyListPtr keys, const std::string& in_path, const std::string& out_path,
     GpgEncrResult& result, int _channel) {
-
 #ifdef WINDOWS
-  auto in_path_std = std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
-  auto out_path_std = std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
+  auto in_path_std =
+      std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
+  auto out_path_std =
+      std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
 #else
-    auto in_path_std = std::filesystem::path(in_path);
-    auto out_path_std = std::filesystem::path(out_path);
+  auto in_path_std = std::filesystem::path(in_path);
+  auto out_path_std = std::filesystem::path(out_path);
 #endif
 
   std::string in_buffer;
-  if(!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
+  if (!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
     throw std::runtime_error("read file error");
   }
 
@@ -67,17 +71,18 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
 GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
     const std::string& in_path, const std::string& out_path,
     GpgDecrResult& result) {
-
 #ifdef WINDOWS
-  auto in_path_std = std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
-  auto out_path_std = std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
+  auto in_path_std =
+      std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
+  auto out_path_std =
+      std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
 #else
   auto in_path_std = std::filesystem::path(in_path);
   auto out_path_std = std::filesystem::path(out_path);
 #endif
 
   std::string in_buffer;
-  if(!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
+  if (!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
     throw std::runtime_error("read file error");
   }
   std::unique_ptr<std::string> out_buffer;
@@ -100,17 +105,18 @@ gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
                                                   const std::string& out_path,
                                                   GpgSignResult& result,
                                                   int _channel) {
-
 #ifdef WINDOWS
-  auto in_path_std = std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
-  auto out_path_std = std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
+  auto in_path_std =
+      std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
+  auto out_path_std =
+      std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
 #else
   auto in_path_std = std::filesystem::path(in_path);
   auto out_path_std = std::filesystem::path(out_path);
 #endif
 
   std::string in_buffer;
-  if(!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
+  if (!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
     throw std::runtime_error("read file error");
   }
   std::unique_ptr<std::string> out_buffer;
@@ -129,17 +135,18 @@ gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
 gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(
     const std::string& data_path, const std::string& sign_path,
     GpgVerifyResult& result, int _channel) {
-
 #ifdef WINDOWS
-  auto data_path_std = std::filesystem::path(QString::fromStdString(data_path).toStdU16String());
-  auto sign_path_std = std::filesystem::path(QString::fromStdString(sign_path).toStdU16String());
+  auto data_path_std =
+      std::filesystem::path(QString::fromStdString(data_path).toStdU16String());
+  auto sign_path_std =
+      std::filesystem::path(QString::fromStdString(sign_path).toStdU16String());
 #else
   auto data_path_std = std::filesystem::path(data_path);
   auto sign_path_std = std::filesystem::path(sign_path);
 #endif
 
   std::string in_buffer;
-  if(!FileOperator::ReadFileStd(data_path_std, in_buffer)) {
+  if (!FileOperator::ReadFileStd(data_path_std, in_buffer)) {
     throw std::runtime_error("read file error");
   }
   std::unique_ptr<std::string> sign_buffer = nullptr;
@@ -148,11 +155,10 @@ gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(
     if (!FileOperator::ReadFileStd(sign_path_std, sign_buffer_str)) {
       throw std::runtime_error("read file error");
     }
-    sign_buffer =
-        std::make_unique<std::string>(sign_buffer_str);
+    sign_buffer = std::make_unique<std::string>(sign_buffer_str);
   }
-  auto err = GpgBasicOperator::GetInstance(_channel).Verify(in_buffer, sign_buffer,
-                                                         result);
+  auto err = GpgBasicOperator::GetInstance(_channel).Verify(
+      in_buffer, sign_buffer, result);
   return err;
 }
 
@@ -160,17 +166,18 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
     KeyListPtr keys, KeyListPtr signer_keys, const std::string& in_path,
     const std::string& out_path, GpgEncrResult& encr_res,
     GpgSignResult& sign_res, int _channel) {
-
 #ifdef WINDOWS
-  auto in_path_std = std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
-  auto out_path_std = std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
+  auto in_path_std =
+      std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
+  auto out_path_std =
+      std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
 #else
   auto in_path_std = std::filesystem::path(in_path);
   auto out_path_std = std::filesystem::path(out_path);
 #endif
 
   std::string in_buffer;
-  if(!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
+  if (!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
     throw std::runtime_error("read file error");
   }
   std::unique_ptr<std::string> out_buffer = nullptr;
@@ -190,23 +197,24 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
 gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
     const std::string& in_path, const std::string& out_path,
     GpgDecrResult& decr_res, GpgVerifyResult& verify_res) {
-
 #ifdef WINDOWS
-  auto in_path_std = std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
-  auto out_path_std = std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
+  auto in_path_std =
+      std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
+  auto out_path_std =
+      std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
 #else
   auto in_path_std = std::filesystem::path(in_path);
   auto out_path_std = std::filesystem::path(out_path);
 #endif
 
   std::string in_buffer;
-  if(!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
+  if (!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
     throw std::runtime_error("read file error");
   }
 
   std::unique_ptr<std::string> out_buffer = nullptr;
-  auto err = GpgBasicOperator::GetInstance().DecryptVerify(in_buffer, out_buffer,
-                                                        decr_res, verify_res);
+  auto err = GpgBasicOperator::GetInstance().DecryptVerify(
+      in_buffer, out_buffer, decr_res, verify_res);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
     if (!FileOperator::WriteFileStd(out_path_std, *out_buffer)) {
@@ -218,17 +226,18 @@ gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
 unsigned int GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
     const std::string& in_path, const std::string& out_path,
     GpgFrontend::GpgEncrResult& result, int _channel) {
-
 #ifdef WINDOWS
-  auto in_path_std = std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
-  auto out_path_std = std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
+  auto in_path_std =
+      std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
+  auto out_path_std =
+      std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
 #else
   auto in_path_std = std::filesystem::path(in_path);
   auto out_path_std = std::filesystem::path(out_path);
 #endif
 
   std::string in_buffer;
-  if(!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
+  if (!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
     throw std::runtime_error("read file error");
   }
 

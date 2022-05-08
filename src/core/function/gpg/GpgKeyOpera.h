@@ -44,7 +44,8 @@ class GenKeyInfo;
  * @brief
  *
  */
-class GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
+class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
+    : public SingletonFunctionObject<GpgKeyOpera> {
  public:
   /**
    * @brief Construct a new Gpg Key Opera object
@@ -52,8 +53,7 @@ class GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
    * @param channel
    */
   explicit GpgKeyOpera(
-      int channel = SingletonFunctionObject::GetDefaultChannel())
-      : SingletonFunctionObject<GpgKeyOpera>(channel) {}
+      int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
    * @brief

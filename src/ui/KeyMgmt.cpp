@@ -42,6 +42,7 @@
 #include "core/function/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
+
 KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
   /* the list of Keys available*/
   key_list_ = new KeyList(KeyMenuAbility::ALL, this);

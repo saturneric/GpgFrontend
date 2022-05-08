@@ -62,8 +62,33 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-          sudo apt-get -y install gcc g++ libconfig++-dev libboost-all-dev ninja-build
+          sudo apt-get -y install gcc g++ ninja-build
+          sudo apt-get -y install libarchive-dev libconfig++-dev libboost-all-dev
           sudo apt-get -y install gpg
+
+      - name: Build gpg-error (Linux)
+        run: |
+          cd  ${{github.workspace}}/third_party/libgpg-error
+          ./autogen.sh
+          ./configure --enable-maintainer-mode && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+
+      - name: Build assuan (Linux)
+        run: |
+          cd ${{github.workspace}}/third_party/libassuan
+          ./autogen.sh
+          ./configure --enable-maintainer-mode && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+
+      - name: Build GpgME (Linux)
+        run: |
+          cd  ${{github.workspace}}/third_party/gpgme
+          ./autogen.sh
+          ./configure --enable-maintainer-mode --enable-languages=cpp && make -j2
+          sudo make install
+          cd ${{github.workspace}}
 
       - name: Cache Qt
         id: cache-qt

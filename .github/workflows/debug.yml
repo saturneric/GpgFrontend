@@ -41,7 +41,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-          sudo apt-get -y install gcc g++ libconfig++-dev libboost-all-dev ninja-build
+          sudo apt-get -y install gcc g++ ninja-build
+          sudo apt-get -y install libarchive-dev libconfig++-dev libboost-all-dev libssl-dev
           sudo apt-get -y install gpg
         if: matrix.os == 'ubuntu-latest'
 
@@ -61,12 +62,39 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake git autoconf automake qt@5 texinfo gettext openssl@1.1 
-          brew install boost ninja
+          brew install cmake autoconf automake qt@5 texinfo gettext openssl@1.1
+          brew install boost ninja libarchive libconfig gpgme
           brew unlink gettext && brew link --force gettext
           brew link qt@5
           brew link openssl@1.1 --force
         if: matrix.os == 'macos-10.15'
+
+      - name: Build gpg-error (Linux)
+        run: |
+          cd  ${{github.workspace}}/third_party/libgpg-error
+          ./autogen.sh
+          ./configure --enable-maintainer-mode && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Build assuan (Linux)
+        run: |
+          cd ${{github.workspace}}/third_party/libassuan
+          ./autogen.sh
+          ./configure --enable-maintainer-mode && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Build GpgME (Linux)
+        run: |
+          cd  ${{github.workspace}}/third_party/gpgme
+          ./autogen.sh
+          ./configure --enable-maintainer-mode --enable-languages=cpp && make -j2
+          sudo make install
+          cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-latest'
 
       - name: Cache Qt
         id: cache-qt
@@ -97,15 +125,6 @@ jobs:
           pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel
           pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg  mingw-w64-x86_64-gpgme
           pacman --noconfirm -S --needed mingw-w64-x86_64-libarchive
-        if: matrix.os == 'windows-latest'
-
-      - name: Build GpgME (Windows)
-        shell: msys2 {0}
-        run: |
-          cd $(echo "/${{github.workspace}}/third_party/gpgme"  | sed 's/\\/\//g' | sed 's/://')
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-static=yes --disable-gpg-test --enable-languages=cpp LDFLAGS="-static" && make -j2
-          make install
         if: matrix.os == 'windows-latest'
 
       - name: Build GpgFrontend (Linux)
