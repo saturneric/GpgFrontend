@@ -29,6 +29,9 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_GPGKEYGETTER_H
 #define GPGFRONTEND_ZH_CN_TS_GPGKEYGETTER_H
 
+#include <mutex>
+#include <vector>
+
 #include "core/GpgContext.h"
 #include "core/GpgFunctionObject.h"
 #include "core/GpgModel.h"
@@ -56,7 +59,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param fpr
    * @return GpgKey
    */
-  GpgKey GetKey(const std::string& fpr);
+  GpgKey GetKey(const std::string& id);
 
   /**
    * @brief Get the Keys object
@@ -72,14 +75,20 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param fpr
    * @return GpgKey
    */
-  GpgKey GetPubkey(const std::string& fpr);
+  GpgKey GetPubkey(const std::string& id);
 
   /**
-   * @brief
+   * @brief Get all the keys by receiving a linked list
    *
    * @return KeyLinkListPtr
    */
   KeyLinkListPtr FetchKey();
+
+  /**
+   * @brief flush the keys in the cache
+   *
+   */
+  void FlushKeyCache();
 
   /**
    * @brief Get the Keys Copy object
@@ -87,7 +96,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param keys
    * @return KeyListPtr
    */
-  static KeyListPtr GetKeysCopy(const KeyListPtr& keys);
+  KeyListPtr GetKeysCopy(const KeyListPtr& keys);
 
   /**
    * @brief Get the Keys Copy object
@@ -95,7 +104,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param keys
    * @return KeyLinkListPtr
    */
-  static KeyLinkListPtr GetKeysCopy(const KeyLinkListPtr& keys);
+  KeyLinkListPtr GetKeysCopy(const KeyLinkListPtr& keys);
 
  private:
   /**
@@ -104,6 +113,24 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    */
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+
+  /**
+   * @brief shared mutex for the keys cache
+   *
+   */
+  mutable std::mutex ctx_mutex_;
+
+  /**
+   * @brief cache the keys with key fpr
+   *
+   */
+  std::map<std::string, GpgKey> keys_cache_;
+
+  /**
+   * @brief shared mutex for the keys cache
+   *
+   */
+  mutable std::mutex keys_cache_mutex_;
 };
 }  // namespace GpgFrontend
 

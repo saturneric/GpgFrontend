@@ -165,8 +165,8 @@ int main(int argc, char* argv[]) {
                         &QEventLoop::quit);
   loop.exec();
 
-  // init ui logging
-  GpgFrontend::UI::init_logging();
+  // init ui library
+  GpgFrontend::UI::InitGpgFrontendUI();
 
   /**
    * internationalisation. loop to restart main window

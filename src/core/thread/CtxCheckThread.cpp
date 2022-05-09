@@ -48,7 +48,7 @@ void GpgFrontend::CtxCheckThread::run() {
   if (!GpgContext::GetInstance().good()) {
     emit SignalGnupgNotInstall();
   }
-  // Try fetching key
+  // Try flushing key cache
   else
-    GpgFrontend::GpgKeyGetter::GetInstance().FetchKey();
+    GpgFrontend::GpgKeyGetter::GetInstance().FlushKeyCache();
 }

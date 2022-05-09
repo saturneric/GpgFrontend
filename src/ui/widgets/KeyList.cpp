@@ -29,6 +29,7 @@
 #include "ui/widgets/KeyList.h"
 
 #include <boost/format.hpp>
+#include <mutex>
 #include <utility>
 
 #include "core/GpgCoreInit.h"
@@ -63,7 +64,7 @@ void KeyList::init() {
   connect(this, &KeyList::SignalRefreshDatabase, SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefresh);
   connect(SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh, this,
+          &SignalStation::SignalKeyDatabaseRefreshDone, this,
           &KeyList::SlotRefresh);
   connect(ui_->refreshKeyListButton, &QPushButton::clicked, this,
           &KeyList::SlotRefresh);
@@ -154,19 +155,15 @@ void KeyList::AddListGroupTab(
 }
 
 void KeyList::SlotRefresh() {
-  LOG(INFO) << _("Called");
-  emit SignalRefreshStatusBar(_("Refreshing Key List..."), 3000);
-  auto thread = QThread::create([this]() {
-    std::lock_guard<std::mutex> guard(buffered_key_list_mutex_);
-    buffered_keys_list_ = nullptr;
-    // buffered keys list
-    buffered_keys_list_ = GpgKeyGetter::GetInstance().FetchKey();
-  });
-  connect(thread, &QThread::finished, this, &KeyList::slot_refresh_ui);
-  connect(thread, &QThread::finished, thread, &QThread::deleteLater);
+  LOG(INFO) << _("Called") << "address" << this;
+
   ui_->refreshKeyListButton->setDisabled(true);
   ui_->syncButton->setDisabled(true);
-  thread->start();
+
+  emit SignalRefreshStatusBar(_("Refreshing Key List..."), 3000);
+
+  this->buffered_keys_list_ = GpgKeyGetter::GetInstance().FetchKey();
+  this->slot_refresh_ui();
 }
 
 KeyIdArgsListPtr KeyList::GetChecked(const KeyTable& key_table) {
@@ -424,7 +421,8 @@ void KeyList::slot_refresh_ui() {
   if (buffered_keys_list_ != nullptr) {
     std::lock_guard<std::mutex> guard(buffered_key_list_mutex_);
     for (auto& key_table : m_key_tables_) {
-      key_table.Refresh(GpgKeyGetter::GetKeysCopy(buffered_keys_list_));
+      key_table.Refresh(
+          GpgKeyGetter::GetInstance().GetKeysCopy(buffered_keys_list_));
     }
   }
   emit SignalRefreshStatusBar(_("Key List Refreshed."), 1000);

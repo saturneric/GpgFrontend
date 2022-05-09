@@ -30,10 +30,10 @@
 
 #include <utility>
 
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
-#include "core/function/GlobalSettingStation.h"
 #include "ui_ModifiedExpirationDateTime.h"
 
 namespace GpgFrontend::UI {
@@ -72,21 +72,20 @@ void KeySetExpireDateDialog::slot_confirm() {
   auto err = GpgKeyOpera::GetInstance().SetExpire(m_key_, m_subkey_, expires);
 
   if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR) {
-    auto* msg_box = new QMessageBox(nullptr);
+    auto* msg_box = new QMessageBox((QWidget*)this->parent());
     msg_box->setAttribute(Qt::WA_DeleteOnClose);
     msg_box->setStandardButtons(QMessageBox::Ok);
     msg_box->setWindowTitle(_("Success"));
     msg_box->setText(_("The expire date of the key pair has been updated."));
-    msg_box->setModal(false);
+    msg_box->setModal(true);
     msg_box->open();
 
     emit SignalKeyExpireDateUpdated();
 
+    this->close();
   } else {
     QMessageBox::critical(this, _("Failure"), _(gpgme_strerror(err)));
   }
-
-  this->close();
 }
 
 void KeySetExpireDateDialog::init() {
@@ -113,8 +112,11 @@ void KeySetExpireDateDialog::init() {
   ui_->dateEdit->setMaximumDateTime(max_date_time);
   ui_->dateEdit->setMinimumDateTime(min_date_time);
 
-  ui_->dateEdit->setDateTime(max_date_time);
-  ui_->timeEdit->setDateTime(max_date_time);
+  // set default date time to expire date time
+  auto current_expire_time =
+      QDateTime::fromTime_t(to_time_t(m_key_.GetExpireTime()));
+  ui_->dateEdit->setDateTime(current_expire_time);
+  ui_->timeEdit->setDateTime(current_expire_time);
 
   connect(ui_->noExpirationCheckBox, &QCheckBox::stateChanged, this,
           &KeySetExpireDateDialog::slot_non_expired_checked);
