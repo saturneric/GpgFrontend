@@ -330,28 +330,32 @@ void CommonUtils::SlotImportKeyFromKeyServer(
 
 void CommonUtils::slot_update_key_status() {
   LOG(INFO) << "called";
+  auto *thread = QThread::create([this]() {
+    std::vector<QThread *> threads;
 
-  std::vector<QThread *> threads;
+    // flush key cache for all GpgKeyGetter Intances.
+    for (const auto &channel_id : GpgKeyGetter::GetAllChannelId()) {
+      // multi threading
+      auto *refresh_thread = QThread::create([channel_id]() {
+        LOG(INFO) << "FlushKeyCache thread start"
+                  << "channel:" << channel_id;
+        GpgKeyGetter::GetInstance(channel_id).FlushKeyCache();
+      });
+      refresh_thread->start();
+      threads.push_back(refresh_thread);
+    }
 
-  // flush key cache for all GpgKeyGetter Intances.
-  for (const auto &channel_id : GpgKeyGetter::GetAllChannelId()) {
-    // multi threading
-    auto *thread = QThread::create([channel_id]() {
-      LOG(INFO) << "thread start"
-                << "channel:" << channel_id;
-      GpgKeyGetter::GetInstance(channel_id).FlushKeyCache();
-    });
-    thread->start();
-    threads.push_back(thread);
-  }
+    for (auto *thread : threads) {
+      thread->wait();
+      thread->deleteLater();
+    }
 
-  for (auto *thread : threads) {
-    thread->wait();
-    thread->deleteLater();
-  }
-
-  emit SignalKeyDatabaseRefreshDone();
-  LOG(INFO) << "finished";
+    emit SignalKeyDatabaseRefreshDone();
+    LOG(INFO) << "finished";
+  });
+  connect(thread, &QThread::finished, thread, &QThread::deleteLater);
+  LOG(INFO) << "start thread";
+  thread->start();
 }
 
 }  // namespace GpgFrontend::UI
