@@ -45,6 +45,8 @@
 #include "core/GpgFrontendCore.h"
 #include "core/GpgModel.h"
 
+#include "ui/GpgFrontendUIExport.h"
+
 /**
  * 3rd party dependencies
  */
