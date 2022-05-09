@@ -28,6 +28,8 @@
 
 #include "SignalStation.h"
 
+#include "UserInterfaceUtils.h"
+
 namespace GpgFrontend::UI {
 
 std::unique_ptr<SignalStation> SignalStation::_instance = nullptr;
