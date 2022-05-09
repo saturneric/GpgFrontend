@@ -26,9 +26,9 @@
 
 #include "ui/keypair_details/KeyPairDetailTab.h"
 
-#include "dialog/WaitingDialog.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "dialog/WaitingDialog.h"
 #include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {
@@ -152,7 +152,8 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   mvbox->setContentsMargins(0, 0, 0, 0);
 
   // when key database updated
-  connect(SignalStation::GetInstance(), &SignalStation::SignalKeyDatabaseRefresh, this,
+  connect(SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefreshDone, this,
           &KeyPairDetailTab::slot_refresh_key);
 
   slot_refresh_key_info();
@@ -169,11 +170,12 @@ void KeyPairDetailTab::slot_copy_fingerprint() {
 
 void KeyPairDetailTab::slot_refresh_key_info() {
   // Show the situation that primary key not exists.
-  primary_key_exist_var_label_->setText(key_.IsHasMasterKey() ? _("Exists")
-                                                        : _("Not Exists"));
+  primary_key_exist_var_label_->setText(
+      key_.IsHasMasterKey() ? _("Exists") : _("Not Exists"));
   if (!key_.IsHasMasterKey()) {
     auto palette_expired = primary_key_exist_var_label_->palette();
-    palette_expired.setColor(primary_key_exist_var_label_->foregroundRole(), Qt::red);
+    palette_expired.setColor(primary_key_exist_var_label_->foregroundRole(),
+                             Qt::red);
     primary_key_exist_var_label_->setPalette(palette_expired);
   } else {
     auto palette_valid = primary_key_exist_var_label_->palette();

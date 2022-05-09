@@ -102,7 +102,7 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
 
   // Key Database Refresh
   connect(SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh, this,
+          &SignalStation::SignalKeyDatabaseRefreshDone, this,
           &KeyPairUIDTab::slot_refresh_key);
 
   connect(this, &KeyPairUIDTab::SignalUpdateUIDInfo,
@@ -419,7 +419,7 @@ void KeyPairUIDTab::slot_set_primary_uid() {
 
   if (ret == QMessageBox::Yes) {
     if (!GpgUIDOperator::GetInstance().SetPrimaryUID(m_key_,
-                                                  selected_uids->front())) {
+                                                     selected_uids->front())) {
       QMessageBox::critical(nullptr, _("Operation Failed"),
                             _("An error occurred during the operation."));
     } else {

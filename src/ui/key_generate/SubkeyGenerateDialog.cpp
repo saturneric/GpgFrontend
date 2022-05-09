@@ -26,11 +26,11 @@
 
 #include "ui/key_generate/SubkeyGenerateDialog.h"
 
-#include "dialog/WaitingDialog.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
+#include "dialog/WaitingDialog.h"
 #include "ui/SignalStation.h"
-#include "core/function/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -73,7 +73,8 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
   this->setLayout(vbox2);
   this->setModal(true);
 
-  connect(this, &SubkeyGenerateDialog::SignalSubKeyGenerated, SignalStation::GetInstance(),
+  connect(this, &SubkeyGenerateDialog::SignalSubKeyGenerated,
+          SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefresh);
 
   set_signal_slot();
@@ -156,8 +157,10 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
 }
 
 void SubkeyGenerateDialog::set_signal_slot() {
-  connect(button_box_, &QDialogButtonBox::accepted, this, &SubkeyGenerateDialog::slot_key_gen_accept);
-  connect(button_box_, &QDialogButtonBox::rejected, this, &SubkeyGenerateDialog::reject);
+  connect(button_box_, &QDialogButtonBox::accepted, this,
+          &SubkeyGenerateDialog::slot_key_gen_accept);
+  connect(button_box_, &QDialogButtonBox::rejected, this,
+          &SubkeyGenerateDialog::reject);
 
   connect(expire_check_box_, &QCheckBox::stateChanged, this,
           &SubkeyGenerateDialog::slot_expire_box_changed);
@@ -171,8 +174,8 @@ void SubkeyGenerateDialog::set_signal_slot() {
   connect(key_usage_check_boxes_[3], &QCheckBox::stateChanged, this,
           &SubkeyGenerateDialog::slot_authentication_box_changed);
 
-  connect(key_type_combo_box_, qOverload<int>(&QComboBox::currentIndexChanged), this,
-          &SubkeyGenerateDialog::slot_activated_key_type);
+  connect(key_type_combo_box_, qOverload<int>(&QComboBox::currentIndexChanged),
+          this, &SubkeyGenerateDialog::slot_activated_key_type);
 }
 
 void SubkeyGenerateDialog::slot_expire_box_changed() {
@@ -271,12 +274,12 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     dialog->close();
 
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR) {
-      auto* msg_box = new QMessageBox(nullptr);
+      auto* msg_box = new QMessageBox((QWidget*)this->parent());
       msg_box->setAttribute(Qt::WA_DeleteOnClose);
       msg_box->setStandardButtons(QMessageBox::Ok);
       msg_box->setWindowTitle(_("Success"));
       msg_box->setText(_("The new subkey has been generated."));
-      msg_box->setModal(false);
+      msg_box->setModal(true);
       msg_box->open();
 
       emit SignalSubKeyGenerated();

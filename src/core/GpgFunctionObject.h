@@ -35,19 +35,143 @@
 #include <shared_mutex>
 #include <stdexcept>
 #include <string>
+#include <typeinfo>
+#include <utility>
+#include <vector>
 
 #include "GpgConstants.h"
+#include "easylogging++.h"
 
 namespace GpgFrontend {
 
+/**
+ * @brief object which in channel system
+ *
+ */
+class GPGFRONTEND_CORE_EXPORT ChannelObject {
+ public:
+  /**
+   * @brief Construct a new Default Channel Object object
+   *
+   */
+  ChannelObject() noexcept;
+
+  /**
+   * @brief Construct a new Channel Object object
+   *
+   * @param channel
+   */
+  ChannelObject(int channel);
+
+  /**
+   * @brief Get the Default Channel object
+   *
+   * @return int
+   */
+  static int GetDefaultChannel();
+
+  /**
+   * @brief Get the Channel object
+   *
+   * @return int
+   */
+  [[nodiscard]] int GetChannel() const;
+
+  /**
+   * @brief Set the Channel object
+   *
+   * @param channel
+   */
+  void SetChannel(int channel);
+
+ private:
+  int channel_ = _default_channel;            ///< The channel id
+  static constexpr int _default_channel = 0;  ///< The default channel id
+};
+
+class GPGFRONTEND_CORE_EXPORT SingletonStorage {
+ public:
+  /**
+   * @brief
+   *
+   * @param channel
+   */
+  void ReleaseChannel(int channel);
+
+  /**
+   * @brief
+   *
+   * @param channel
+   * @return T*
+   */
+  ChannelObject* FindObjectInChannel(int channel);
+
+  /**
+   * @brief Get all the channel ids
+   *
+   * @return std::vector<int>
+   */
+  std::vector<int> GetAllChannelId();
+
+  /**
+   * @brief Set a new object in channel object
+   *
+   * @param channel
+   * @param p_obj
+   * @return T*
+   */
+  ChannelObject* SetObjectInChannel(int channel,
+                                    std::unique_ptr<ChannelObject> p_obj);
+
+ private:
+  std::shared_mutex instances_mutex_;  ///< mutex for _instances_map
+  std::map<int, std::unique_ptr<ChannelObject>>
+      instances_map_;  ///< map of singleton instances
+};
+
+class GPGFRONTEND_CORE_EXPORT SingletonStorageCollection {
+ public:
+  /**
+   * @brief Get the Instance object
+   *
+   * @return SingletonStorageCollection*
+   */
+  static SingletonStorageCollection* GetInstance();
+
+  /**
+   * @brief Get the Singleton Storage object
+   *
+   * @param singleton_function_object
+   * @return SingletonStorage*
+   */
+  SingletonStorage* GetSingletonStorage(const std::type_info&);
+
+ private:
+  std::shared_mutex storages_mutex_;  ///< mutex for storages_map_
+  std::map<size_t, std::unique_ptr<SingletonStorage>> storages_map_;
+};
 /**
  * @brief
  *
  * @tparam T
  */
 template <typename T>
-class SingletonFunctionObject {
+class SingletonFunctionObject : public ChannelObject {
  public:
+  /**
+   * @brief prohibit copy
+   *
+   */
+  SingletonFunctionObject(const SingletonFunctionObject<T>&) = delete;
+
+  /**
+   * @brief prohibit copy
+   *
+   * @return SingletonFunctionObject&
+   */
+  SingletonFunctionObject& operator=(const SingletonFunctionObject<T>&) =
+      delete;
+
   /**
    * @brief Get the Instance object
    *
@@ -59,10 +183,19 @@ class SingletonFunctionObject {
     static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
                   "T not derived from SingletonFunctionObject<T>");
 
-    auto _p_pbj = find_object_in_channel(channel);
-    if (_p_pbj == nullptr)
-      return *set_object_in_channel(channel, std::make_unique<T>(channel));
-    else
+    auto p_storage =
+        SingletonStorageCollection::GetInstance()->GetSingletonStorage(
+            typeid(T));
+
+    auto* _p_pbj = (T*)(p_storage->FindObjectInChannel(channel));
+
+    LOG(INFO) << "object address" << _p_pbj;
+
+    if (_p_pbj == nullptr) {
+      auto new_obj = std::unique_ptr<ChannelObject>(new T(channel));
+      LOG(INFO) << "create new object";
+      return *(T*)(p_storage->SetObjectInChannel(channel, std::move(new_obj)));
+    } else
       return *_p_pbj;
   }
 
@@ -73,33 +206,22 @@ class SingletonFunctionObject {
    * @param factory
    * @return T&
    */
-  static T& CreateInstance(int channel,
-                           std::function<std::unique_ptr<T>(void)> factory) {
+  static T& CreateInstance(
+      int channel,
+      std::function<std::unique_ptr<ChannelObject>(void)> factory) {
     static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
                   "T not derived from SingletonFunctionObject<T>");
 
-    auto _p_pbj = find_object_in_channel(channel);
-    if (_p_pbj == nullptr)
-      return *set_object_in_channel(channel, std::move(factory()));
-    else
-      return *_p_pbj;
-  }
+    auto p_storage =
+        SingletonStorageCollection::GetInstance()->GetSingletonStorage(
+            typeid(T));
 
-  /**
-   * @brief Create a Instance object
-   *
-   * @param channel
-   * @param p_obj
-   * @return T&
-   */
-  static T& CreateInstance(int channel, std::unique_ptr<T> p_obj = nullptr) {
-    static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
-                  "T not derived from SingletonFunctionObject<T>");
+    auto _p_pbj = (T*)(p_storage->FindObjectInChannel(channel));
 
-    auto _p_pbj = find_object_in_channel(channel);
-    if (_p_pbj == nullptr)
-      return *set_object_in_channel(channel, std::move(p_obj));
-    else
+    if (_p_pbj == nullptr) {
+      return *(
+          T*)(p_storage->SetObjectInChannel(channel, std::move(factory())));
+    } else
       return *_p_pbj;
   }
 
@@ -109,14 +231,10 @@ class SingletonFunctionObject {
    * @param channel
    * @return T&
    */
-  static T& ReleaseChannel(int channel) {
-    decltype(_instances_map.end()) _it;
-    {
-      std::shared_lock lock(_instances_mutex);
-      _it = _instances_map.find(channel);
-    }
-    if (_it != _instances_map.end()) _instances_map.erase(_it);
-    DLOG(INFO) << "channel" << channel << "released";
+  static void ReleaseChannel(int channel) {
+    SingletonStorageCollection::GetInstance()
+        ->GetSingletonStorage(typeid(T))
+        ->ReleaseChannel(channel);
   }
 
   /**
@@ -124,14 +242,25 @@ class SingletonFunctionObject {
    *
    * @return int
    */
-  static int GetDefaultChannel() { return _default_channel; }
+  static int GetDefaultChannel() { return ChannelObject::GetDefaultChannel(); }
 
   /**
    * @brief Get the Channel object
    *
    * @return int
    */
-  [[nodiscard]] int GetChannel() const { return channel_; }
+  [[nodiscard]] int GetChannel() const { return ChannelObject::GetChannel(); }
+
+  /**
+   * @brief Get all the channel ids
+   *
+   * @return std::vector<int>
+   */
+  static std::vector<int> GetAllChannelId() {
+    return SingletonStorageCollection::GetInstance()
+        ->GetSingletonStorage(typeid(T))
+        ->GetAllChannelId();
+  }
 
   /**
    * @brief Construct a new Singleton Function Object object
@@ -163,85 +292,17 @@ class SingletonFunctionObject {
    *
    * @param channel
    */
-  explicit SingletonFunctionObject(int channel) : channel_(channel) {}
+  explicit SingletonFunctionObject(int channel) : ChannelObject(channel) {
+    LOG(INFO) << "called"
+              << "channel:" << channel;
+  }
 
   /**
    * @brief Destroy the Singleton Function Object object
    *
    */
   virtual ~SingletonFunctionObject() = default;
-
-  /**
-   * @brief Set the Channel object
-   *
-   * @param channel
-   */
-  void SetChannel(int channel) { this->channel_ = channel; }
-
- private:
-  int channel_ = _default_channel;                          ///<
-  static int _default_channel;                              ///<
-  static std::mutex _instance_mutex;                        ///<
-  static std::shared_mutex _instances_mutex;                ///<
-  static std::unique_ptr<T> _instance;                      ///<
-  static std::map<int, std::unique_ptr<T>> _instances_map;  ///<
-
-  /**
-   * @brief
-   *
-   * @param channel
-   * @return T*
-   */
-  static T* find_object_in_channel(int channel) {
-    // read _instances_map
-    decltype(_instances_map.end()) _it;
-    {
-      std::shared_lock lock(_instances_mutex);
-      _it = _instances_map.find(channel);
-      if (_it == _instances_map.end())
-        return nullptr;
-      else
-        return _it->second.get();
-    }
-  }
-
-  /**
-   * @brief Set the object in channel object
-   *
-   * @param channel
-   * @param p_obj
-   * @return T*
-   */
-  static T* set_object_in_channel(int channel, std::unique_ptr<T> p_obj) {
-    {
-      if (p_obj == nullptr) p_obj = std::make_unique<T>();
-      T* obj = p_obj.get();
-      obj->SetChannel(channel);
-      {
-        std::unique_lock lock(_instances_mutex);
-        _instances_map.insert({channel, std::move(p_obj)});
-      }
-      return obj;
-    }
-  }
 };
-
-template <typename T>
-int SingletonFunctionObject<T>::_default_channel =
-    GpgFrontend::GPGFRONTEND_DEFAULT_CHANNEL;
-
-template <typename T>
-std::mutex SingletonFunctionObject<T>::_instance_mutex;
-
-template <typename T>
-std::shared_mutex SingletonFunctionObject<T>::_instances_mutex;
-
-template <typename T>
-std::unique_ptr<T> SingletonFunctionObject<T>::_instance = nullptr;
-
-template <typename T>
-std::map<int, std::unique_ptr<T>> SingletonFunctionObject<T>::_instances_map;
-
 }  // namespace GpgFrontend
 
 #endif  // GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H

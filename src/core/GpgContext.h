@@ -116,9 +116,7 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
    *
    */
   struct _ctx_ref_deleter {
-    void operator()(gpgme_ctx_t _ctx) {
-      if (_ctx != nullptr) gpgme_release(_ctx);
-    }
+    void operator()(gpgme_ctx_t _ctx);
   };
 
   using CtxRefHandler =

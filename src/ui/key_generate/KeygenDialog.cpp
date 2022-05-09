@@ -28,10 +28,10 @@
 
 #include "ui/key_generate/KeygenDialog.h"
 
-#include "dialog/WaitingDialog.h"
-#include "core/function/gpg/GpgKeyOpera.h"
-#include "ui/SignalStation.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/gpg/GpgKeyOpera.h"
+#include "dialog/WaitingDialog.h"
+#include "ui/SignalStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -144,14 +144,18 @@ void KeyGenDialog::slot_key_gen_accept() {
 
     dialog->close();
 
+    LOG(INFO) << "generate done";
+
     if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
-      auto* msg_box = new QMessageBox(nullptr);
+      auto* msg_box = new QMessageBox((QWidget*)this->parent());
       msg_box->setAttribute(Qt::WA_DeleteOnClose);
       msg_box->setStandardButtons(QMessageBox::Ok);
       msg_box->setWindowTitle(_("Success"));
       msg_box->setText(_("The new key pair has been generated."));
-      msg_box->setModal(false);
+      msg_box->setModal(true);
       msg_box->open();
+
+      LOG(INFO) << "generate success";
 
       emit SignalKeyGenerated();
       this->close();

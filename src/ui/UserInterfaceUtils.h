@@ -59,8 +59,8 @@ void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
  * @param parent
  * @param verify_res
  */
-void import_unknown_key_from_keyserver(QWidget* parent,
-                                       const GpgVerifyResultAnalyse& verify_res);
+void import_unknown_key_from_keyserver(
+    QWidget* parent, const GpgVerifyResultAnalyse& verify_res);
 
 /**
  * @brief
@@ -144,6 +144,12 @@ class CommonUtils : public QWidget {
    */
   void SignalGnupgNotInstall();
 
+  /**
+   * @brief emit when the key database is refreshed
+   *
+   */
+  void SignalKeyDatabaseRefreshDone();
+
  public slots:
   /**
    * @brief
@@ -194,6 +200,14 @@ class CommonUtils : public QWidget {
   void SlotExecuteGpgCommand(
       const QStringList& arguments,
       const std::function<void(QProcess*)>& interact_func);
+
+ private slots:
+
+  /**
+   * @brief update the key status when signal is emitted
+   *
+   */
+  void slot_update_key_status();
 
  private:
   static std::unique_ptr<CommonUtils> instance_;  ///<
