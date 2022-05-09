@@ -124,10 +124,10 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
 
   // key database refresh signal
   connect(SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh, this,
+          &SignalStation::SignalKeyDatabaseRefreshDone, this,
           &KeyPairSubkeyTab::slot_refresh_key_info);
   connect(SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh, this,
+          &SignalStation::SignalKeyDatabaseRefreshDone, this,
           &KeyPairSubkeyTab::slot_refresh_subkey_list);
 
   baseLayout->setContentsMargins(0, 0, 0, 0);

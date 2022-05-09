@@ -30,9 +30,9 @@
 
 #include <utility>
 
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/SignalStation.h"
-#include "core/function/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -47,12 +47,15 @@ KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
     // Buttons
 
     close_button_ = new QPushButton(_("Close"));
-    connect(close_button_, &QPushButton::clicked, this, &KeyServerImportDialog::close);
+    connect(close_button_, &QPushButton::clicked, this,
+            &KeyServerImportDialog::close);
     import_button_ = new QPushButton(_("Import ALL"));
-    connect(import_button_, &QPushButton::clicked, this, &KeyServerImportDialog::slot_import);
+    connect(import_button_, &QPushButton::clicked, this,
+            &KeyServerImportDialog::slot_import);
     import_button_->setDisabled(true);
     search_button_ = new QPushButton(_("Search"));
-    connect(search_button_, &QPushButton::clicked, this, &KeyServerImportDialog::slot_search);
+    connect(search_button_, &QPushButton::clicked, this,
+            &KeyServerImportDialog::slot_search);
 
     // Line edits for search string
     search_label_ = new QLabel(QString(_("Search String")) + _(": "));
@@ -139,11 +142,13 @@ KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
 
   this->setModal(true);
 
-  connect(this, &KeyServerImportDialog::SignalKeyImported, SignalStation::GetInstance(),
+  connect(this, &KeyServerImportDialog::SignalKeyImported,
+          SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefresh);
 
   // save window pos and size to configure file
-  connect(this, &KeyServerImportDialog::finished, this, &KeyServerImportDialog::slot_save_window_state);
+  connect(this, &KeyServerImportDialog::finished, this,
+          &KeyServerImportDialog::slot_save_window_state);
 }
 
 QComboBox* KeyServerImportDialog::create_comboBox() {
@@ -222,7 +227,8 @@ void KeyServerImportDialog::slot_search() {
   QNetworkReply* reply =
       network_access_manager_->get(QNetworkRequest(url_from_remote));
 
-  connect(reply, &QNetworkReply::finished, this, &KeyServerImportDialog::slot_search_finished);
+  connect(reply, &QNetworkReply::finished, this,
+          &KeyServerImportDialog::slot_search_finished);
 
   set_loading(true);
   this->search_button_->setDisabled(true);

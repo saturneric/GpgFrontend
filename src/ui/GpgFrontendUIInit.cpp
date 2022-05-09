@@ -28,12 +28,22 @@
 
 #include "GpgFrontendUIInit.h"
 
+#include "SignalStation.h"
+#include "UserInterfaceUtils.h"
 #include "core/function/GlobalSettingStation.h"
 
 // init easyloggingpp library
 INITIALIZE_EASYLOGGINGPP
 
 namespace GpgFrontend::UI {
+
+extern void init_logging();
+
+void InitGpgFrontendUI() {
+  init_logging();
+  SignalStation::GetInstance();
+  CommonUtils::GetInstance();
+}
 
 void init_logging() {
   using namespace boost::posix_time;

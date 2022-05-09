@@ -28,6 +28,9 @@
 
 #include "GpgCoreInit.h"
 
+#include <memory>
+
+#include "GpgFunctionObject.h"
 #include "core/GpgContext.h"
 #include "core/function/GlobalSettingStation.h"
 
@@ -70,27 +73,25 @@ void init_logging() {
 void init_gpgfrontend_core() {
   // init default channel
   GpgFrontend::GpgContext::CreateInstance(
-      GPGFRONTEND_DEFAULT_CHANNEL,
-      [&]() -> std::unique_ptr<GpgFrontend::GpgContext> {
+      GPGFRONTEND_DEFAULT_CHANNEL, [&]() -> std::unique_ptr<ChannelObject> {
         GpgFrontend::GpgContextInitArgs args;
-        return std::make_unique<GpgFrontend::GpgContext>(args);
+        return std::unique_ptr<ChannelObject>(new GpgContext(args));
       });
 
   // init non-ascii channel
   GpgFrontend::GpgContext::CreateInstance(
-      GPGFRONTEND_NON_ASCII_CHANNEL,
-      [&]() -> std::unique_ptr<GpgFrontend::GpgContext> {
+      GPGFRONTEND_NON_ASCII_CHANNEL, [&]() -> std::unique_ptr<ChannelObject> {
         GpgFrontend::GpgContextInitArgs args;
         args.ascii = false;
-        return std::make_unique<GpgFrontend::GpgContext>(args);
+        return std::unique_ptr<ChannelObject>(new GpgContext(args));
       });
 }
 
 void new_default_settings_channel(int channel) {
   GpgFrontend::GpgContext::CreateInstance(
-      channel, [&]() -> std::unique_ptr<GpgFrontend::GpgContext> {
+      channel, [&]() -> std::unique_ptr<ChannelObject> {
         GpgFrontend::GpgContextInitArgs args;
-        return std::make_unique<GpgFrontend::GpgContext>(args);
+        return std::unique_ptr<ChannelObject>(new GpgContext(args));
       });
 }
 

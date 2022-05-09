@@ -115,7 +115,7 @@ msgstr "未知"
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:76
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:66
 msgid "Key ID"
-msgstr "钥匙编号"
+msgstr "密钥编号"
 
 #: /home/eric/Develop/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:95
 #: /home/eric/Develop/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:80
@@ -155,7 +155,7 @@ msgstr "普通的"
 #: /home/eric/Develop/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:65
 #: /home/eric/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:45
 msgid "Clear"
-msgstr "清除"
+msgstr "清空面板"
 
 #: /home/eric/Develop/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:67
 msgid "Detach"
@@ -241,11 +241,11 @@ msgstr "已到期"
 
 #: /home/eric/Develop/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:91
 msgid "Missing Key's"
-msgstr "钥匙不见了"
+msgstr "密钥不见了"
 
 #: /home/eric/Develop/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:94
 msgid "Revoked Key's"
-msgstr "撤销的钥匙"
+msgstr "撤销的密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:97
 msgid "Expired Key's"
@@ -292,7 +292,7 @@ msgstr "还有一些其他错误阻止了签名验证。"
 
 #: /home/eric/Develop/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:157
 msgid "Error for key with fingerprint"
-msgstr "带指纹的钥匙错误"
+msgstr "带指纹的密钥错误"
 
 #: /home/eric/Develop/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:168
 msgid "Could not find information that can be used for verification."
@@ -541,7 +541,7 @@ msgstr "密钥文件"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:184
 msgid "Keyring files"
-msgstr "钥匙圈文件"
+msgstr "密钥圈文件"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/UserInterfaceUtils.cpp:189
 msgid "File Open Failed"
@@ -937,7 +937,7 @@ msgstr "密码"
 #: /home/eric/Develop/GpgFrontend/src/ui/mail/SendMailDialog.cpp:364
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:100
 msgid "port"
-msgstr "港口"
+msgstr "端口"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/mail/SendMailDialog.cpp:370
 msgid "connection_type"
@@ -1006,7 +1006,7 @@ msgstr "导出密钥包"
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:219
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:534
 msgid "Key Package"
-msgstr "钥匙包"
+msgstr "密钥包"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:61
 msgid "Export Key Package Passphrase"
@@ -1097,7 +1097,7 @@ msgstr "密钥更新详情"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:41
 msgid "No keys found"
-msgstr "没有找到钥匙"
+msgstr "没有找到密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:43
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:62
@@ -1185,7 +1185,7 @@ msgstr "不变"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:179
 msgid "New Key"
-msgstr "新钥匙"
+msgstr "新密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:182
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:188
@@ -1312,7 +1312,7 @@ msgstr "一般连接错误"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:505
 msgid "Key Imported"
-msgstr "钥匙进口"
+msgstr "密钥导入"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:54
 msgid "Uploading Public Key"
@@ -1413,7 +1413,7 @@ msgstr "未检查密钥"
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:348
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:520
 msgid "Please check the key in the key toolbox on the right."
-msgstr "请检查右侧钥匙工具箱中的钥匙。"
+msgstr "请检查右侧密钥工具箱中的密钥。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:154
 msgid ""
@@ -1454,7 +1454,7 @@ msgstr "验证"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:301
 msgid "Please check some key in the key toolbox on the right."
-msgstr "请检查右侧钥匙工具箱中的一些钥匙。"
+msgstr "请检查右侧密钥工具箱中的一些密钥。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:312
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:228
@@ -1566,7 +1566,7 @@ msgstr "打开文件浏览器"
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:62
 #: /home/eric/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:44
 msgid "Save File"
-msgstr "保存存档"
+msgstr "保存文件"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:65
 msgid "Save the current File"
@@ -1634,7 +1634,7 @@ msgstr "从剪贴板粘贴文本"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:117
 msgid "Cut"
-msgstr "切"
+msgstr "剪切"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:121
 msgid "Cut the current selection's contents to the clipboard"
@@ -1671,7 +1671,7 @@ msgstr "选择整个文本"
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:144
 #: /home/eric/Develop/GpgFrontend/src/ui/widgets/FindWidget.cpp:44
 msgid "Find"
-msgstr "找"
+msgstr "查找"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:146
 msgid "Find a word"
@@ -1880,7 +1880,7 @@ msgstr "加密"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:378
 msgid "Keys"
-msgstr "钥匙"
+msgstr "密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:379
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:274
@@ -1912,7 +1912,7 @@ msgstr "操作"
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:269
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:288
 msgid "Key"
-msgstr "钥匙"
+msgstr "密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:438
 msgid "Special Edit"
@@ -1933,7 +1933,7 @@ msgstr "准备好"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:480
 msgid "Key ToolBox"
-msgstr "钥匙工具箱"
+msgstr "密钥工具箱"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:488
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:52
@@ -1953,7 +1953,7 @@ msgstr "有私钥"
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:518
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:91
 msgid "Information Board"
-msgstr "信息板"
+msgstr "信息面板"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:44
 msgid "The path %1 does not exist."
@@ -2055,11 +2055,11 @@ msgstr "输出文件 %1 已经存在，是否需要覆盖？"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:45
 msgid "About Software"
-msgstr "关于软件"
+msgstr "关于此软件"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:46
 msgid "Translators"
-msgstr "翻译员"
+msgstr "翻译贡献者"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/help/AboutDialog.cpp:47
 msgid "Update"
@@ -2230,7 +2230,7 @@ msgstr "电子邮件地址"
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:48
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:71
 msgid "Comment"
-msgstr "评论"
+msgstr "注释"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:380
 #: /home/eric/Develop/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:141
@@ -2252,11 +2252,11 @@ msgstr "密钥大小（以位为单位）"
 #: /home/eric/Develop/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:383
 #: /home/eric/Develop/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:144
 msgid "Key Type"
-msgstr "钥匙类型"
+msgstr "密钥类型"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:384
 msgid "Non Pass Phrase"
-msgstr "不合格短语"
+msgstr "不设置密码"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:397
 #: /home/eric/Develop/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:153
@@ -2277,7 +2277,7 @@ msgstr "新的子密钥已生成。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:165
 msgid "Save Information Board's Content"
-msgstr "保存信息板的内容"
+msgstr "保存信息面板的内容"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:175
 msgid "The file path is not exists, unprivileged or unreachable."
@@ -2482,7 +2482,7 @@ msgstr "签名者电子邮件"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:174
 msgid "Key's Fingerprint"
-msgstr "钥匙的指纹"
+msgstr "密钥的指纹"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:175
 msgid "Valid"
@@ -2502,7 +2502,7 @@ msgstr "不完全有效"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:200
 msgid "Missing Key"
-msgstr "缺少钥匙"
+msgstr "缺少密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:203
 msgid "Revoked Key"
@@ -2908,7 +2908,7 @@ msgstr "UID"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:72
 msgid "TOFU"
-msgstr "豆腐"
+msgstr "TOFU"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:84
 msgid "Signature of Selected UID"
@@ -2925,7 +2925,7 @@ msgstr "到期日期 (UTC)"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:237
 msgid "TOFU %1"
-msgstr "豆腐 %1"
+msgstr "TOFU %1"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:288
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:238
@@ -3105,7 +3105,7 @@ msgstr "生成撤销证书"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:90
 msgid "Modify TOFU Policy"
-msgstr "修改豆腐政策"
+msgstr "修改TOFU政策"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:106
 msgid "Upload Key Pair to Key Server"
@@ -3224,7 +3224,7 @@ msgstr "政策未知"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:327
 msgid "Modify TOFU Policy(Default is Auto)"
-msgstr "修改豆腐策略（默认为自动）"
+msgstr "修改TOFU策略（默认为自动）"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:328
 msgid "Policy for the Key Pair:"
@@ -3311,7 +3311,7 @@ msgstr "子密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:56
 msgid "Key Details"
-msgstr "密钥细节"
+msgstr "密钥详情"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:44
 msgid "Subkey List"
@@ -3335,7 +3335,7 @@ msgstr "存在"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:79
 msgid "Key in Smart Card"
-msgstr "输入智能卡"
+msgstr "在智能卡中"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:160
 msgid "Subkey ID"
@@ -3566,7 +3566,7 @@ msgstr "退出时保存窗口大小和位置。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:97
 msgid "Font Size in Information Board"
-msgstr "信息板中的字体大小"
+msgstr "信息面板中的字体大小"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:49
 msgid "Proxy"
@@ -3834,7 +3834,7 @@ msgstr "将检查的密钥导出到密钥包"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:240
 msgid "Export As OpenSSH"
-msgstr "导出为 OpenSSH"
+msgstr "导出为OpenSSH密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:243
 msgid "Export Selected Key(s) As OpenSSH Format to File"
@@ -3858,7 +3858,7 @@ msgstr "删除选中的密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:296
 msgid "Generate"
-msgstr "产生"
+msgstr "生成密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:297
 msgid "Generate A New Keypair or Subkey"
@@ -4144,7 +4144,7 @@ msgstr "无法从配置文件中正确读取"
 #~ msgstr "提供短密钥和密钥交换服务的服务器"
 
 #~ msgid "Own key"
-#~ msgstr "自己的钥匙"
+#~ msgstr "我的密钥"
 
 #~ msgid "Get Service Token"
 #~ msgstr "获取服务令牌"
@@ -4179,7 +4179,7 @@ msgstr "无法从配置文件中正确读取"
 #~ msgstr "身份证号"
 
 #~ msgid "Public Algo"
-#~ msgstr "公共算法"
+#~ msgstr "公钥算法"
 
 #~ msgid "Verify Result Analyse Started"
 #~ msgstr "验证结果分析开始"

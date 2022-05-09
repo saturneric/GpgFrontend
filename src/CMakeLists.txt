@@ -259,7 +259,7 @@ endif ()
 # link options for GpgFrontend
 if (APPLICATION_BUILD)
     target_link_libraries(${AppName} gpgfrontend_ui)
-    IF (MINGW)
+    if (MINGW)
         message(STATUS "Link Application Library For MINGW")
         target_link_libraries(${AppName} crypto)
     elseif (APPLE)
@@ -268,7 +268,11 @@ if (APPLICATION_BUILD)
     else ()
         message(STATUS "Link Application Library For Linux")
         target_link_libraries(${AppName} crypto pthread)
-    endif ()
+        # issue on filesystem support of gcc
+        if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 9.0)
+            target_link_libraries(${AppName} stdc++fs)
+        endif ()
+    endif()
 endif ()
 
 # using c++ standard 17

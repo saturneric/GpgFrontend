@@ -34,9 +34,10 @@
 namespace GpgFrontend::UI {
 
 /**
- * @brief
+ * @brief init the UI library
+ *
  */
-void init_logging();
+void InitGpgFrontendUI();
 
 };  // namespace GpgFrontend::UI
 

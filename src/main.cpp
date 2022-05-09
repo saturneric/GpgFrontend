@@ -125,48 +125,8 @@ int main(int argc, char* argv[]) {
   file.close();
 #endif
 
-  // create the thread to load the gpg context
-  auto* init_ctx_thread = new GpgFrontend::CtxCheckThread();
-  QApplication::connect(init_ctx_thread, &QThread::finished, init_ctx_thread,
-                        &QThread::deleteLater);
-
-  // create and show loading window before starting the main window
-  auto* waiting_dialog = new QProgressDialog();
-  waiting_dialog->setMaximum(0);
-  waiting_dialog->setMinimum(0);
-  auto waiting_dialog_label =
-      new QLabel(QString(_("Loading Gnupg Info...")) + "<br /><br />" +
-                 _("If this process is too slow, please set the key "
-                   "server address appropriately in the gnupg configuration "
-                   "file (depending "
-                   "on the network situation in your country or region)."));
-  waiting_dialog_label->setWordWrap(true);
-  waiting_dialog->setLabel(waiting_dialog_label);
-  waiting_dialog->resize(420, 120);
-  QApplication::connect(init_ctx_thread, &QThread::finished, [=]() {
-    waiting_dialog->finished(0);
-    waiting_dialog->deleteLater();
-  });
-  QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
-    LOG(INFO) << "cancel clicked";
-    if (init_ctx_thread->isRunning()) init_ctx_thread->terminate();
-    QCoreApplication::quit();
-    exit(0);
-  });
-
-  // show the loading window
-  waiting_dialog->show();
-  waiting_dialog->setFocus();
-
-  // start the thread to load the gpg context
-  init_ctx_thread->start();
-  QEventLoop loop;
-  QApplication::connect(init_ctx_thread, &QThread::finished, &loop,
-                        &QEventLoop::quit);
-  loop.exec();
-
-  // init ui logging
-  GpgFrontend::UI::init_logging();
+  // init ui library
+  GpgFrontend::UI::InitGpgFrontendUI();
 
   /**
    * internationalisation. loop to restart main window
@@ -186,6 +146,46 @@ int main(int argc, char* argv[]) {
 #endif
         // init the i18n support
         init_locale();
+
+        // create the thread to load the gpg context
+        auto* init_ctx_thread = new GpgFrontend::CtxCheckThread();
+        QApplication::connect(init_ctx_thread, &QThread::finished, init_ctx_thread,
+                              &QThread::deleteLater);
+
+        // create and show loading window before starting the main window
+        auto* waiting_dialog = new QProgressDialog();
+        waiting_dialog->setMaximum(0);
+        waiting_dialog->setMinimum(0);
+        auto waiting_dialog_label =
+            new QLabel(QString(_("Loading Gnupg Info...")) + "<br /><br />" +
+                       _("If this process is too slow, please set the key "
+                         "server address appropriately in the gnupg configuration "
+                         "file (depending "
+                         "on the network situation in your country or region)."));
+        waiting_dialog_label->setWordWrap(true);
+        waiting_dialog->setLabel(waiting_dialog_label);
+        waiting_dialog->resize(420, 120);
+        QApplication::connect(init_ctx_thread, &QThread::finished, [=]() {
+          waiting_dialog->finished(0);
+          waiting_dialog->deleteLater();
+        });
+        QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
+          LOG(INFO) << "cancel clicked";
+          if (init_ctx_thread->isRunning()) init_ctx_thread->terminate();
+          QCoreApplication::quit();
+          exit(0);
+        });
+
+        // show the loading window
+        waiting_dialog->show();
+        waiting_dialog->setFocus();
+
+        // start the thread to load the gpg context
+        init_ctx_thread->start();
+        QEventLoop loop;
+        QApplication::connect(init_ctx_thread, &QThread::finished, &loop,
+                              &QEventLoop::quit);
+        loop.exec();
 
         QApplication::setQuitOnLastWindowClosed(true);
 

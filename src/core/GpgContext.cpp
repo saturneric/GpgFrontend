@@ -224,4 +224,8 @@ gpgme_error_t GpgContext::test_status_cb(void *hook, const char *keyword,
   return GPG_ERR_NO_ERROR;
 }
 
+void GpgContext::_ctx_ref_deleter::operator()(gpgme_ctx_t _ctx) {
+  if (_ctx != nullptr) gpgme_release(_ctx);
+}
+
 }  // namespace GpgFrontend

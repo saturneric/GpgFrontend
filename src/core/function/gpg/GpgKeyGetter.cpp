@@ -30,12 +30,32 @@
 
 #include <gpg-error.h>
 
+#include <mutex>
+#include <shared_mutex>
+#include <utility>
+
 #include "GpgConstants.h"
+#include "easylogging++.h"
+#include "model/GpgKey.h"
 
 GpgFrontend::GpgKeyGetter::GpgKeyGetter(int channel)
-    : SingletonFunctionObject<GpgKeyGetter>(channel) {}
+    : SingletonFunctionObject<GpgKeyGetter>(channel) {
+  LOG(INFO) << "called"
+            << "channel:" << channel;
+}
 
 GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr) {
+  LOG(INFO) << "called";
+
+  // find in cache first
+  {
+    std::lock_guard<std::mutex> lock(keys_cache_mutex_);
+    if (keys_cache_.find(fpr) != keys_cache_.end()) {
+      std::lock_guard<std::mutex> lock(ctx_mutex_);
+      return keys_cache_[fpr].Copy();
+    }
+  }
+
   gpgme_key_t _p_key = nullptr;
   gpgme_get_key(ctx_, fpr.c_str(), &_p_key, 1);
   if (_p_key == nullptr) {
@@ -48,6 +68,15 @@ GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr) {
 
 GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetPubkey(
     const std::string& fpr) {
+  // find in cache first
+  {
+    std::lock_guard<std::mutex> lock(keys_cache_mutex_);
+    if (keys_cache_.find(fpr) != keys_cache_.end()) {
+      std::lock_guard<std::mutex> lock(ctx_mutex_);
+      return keys_cache_[fpr].Copy();
+    }
+  }
+
   gpgme_key_t _p_key = nullptr;
   gpgme_get_key(ctx_, fpr.c_str(), &_p_key, 0);
   if (_p_key == nullptr)
@@ -56,28 +85,59 @@ GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetPubkey(
 }
 
 GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
-  gpgme_error_t err;
+  // get the lock
+  std::lock_guard<std::mutex> lock(keys_cache_mutex_);
+
+  LOG(INFO) << "GpgKeyGetter FetchKey"
+            << "channel id:" << GetChannel();
 
   auto keys_list = std::make_unique<GpgKeyLinkList>();
 
-  LOG(INFO) << "GpgKeyGetter FetchKey"
-            << "ctx address" << ctx_;
+  LOG(INFO) << "cache address:" << &keys_cache_ << "object address" << this;
 
-  err = gpgme_op_keylist_start(ctx_, nullptr, 0);
+  for (const auto& [key, value] : keys_cache_) {
+    LOG(INFO) << "FetchKey Id:" << value.GetId();
+    keys_list->push_back(value.Copy());
+  }
+  LOG(INFO) << "ended";
+  return keys_list;
+}
+
+void GpgFrontend::GpgKeyGetter::FlushKeyCache() {
+  LOG(INFO) << "called"
+            << "channel id: " << GetChannel();
+
+  // clear the keys cache
+  keys_cache_.clear();
+
+  // init
+  GpgError err = gpgme_op_keylist_start(ctx_, nullptr, 0);
+
+  // for debug
   assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
 
-  gpgme_key_t key;
-  while ((err = gpgme_op_keylist_next(ctx_, &key)) == GPG_ERR_NO_ERROR) {
-    keys_list->push_back(GetKey(key->fpr));
+  // return when error
+  if (check_gpg_error_2_err_code(err) != GPG_ERR_NO_ERROR) return;
+
+  {
+    // get the lock
+    std::lock_guard<std::mutex> lock(keys_cache_mutex_);
+    gpgme_key_t key;
+    while ((err = gpgme_op_keylist_next(ctx_, &key)) == GPG_ERR_NO_ERROR) {
+      LOG(INFO) << "LoadKey Fpr:" << key->fpr << "Id:" << key->subkeys->keyid;
+      keys_cache_.insert({key->subkeys->keyid, GpgKey(std::move(key))});
+    }
   }
 
+  LOG(INFO) << "cache address:" << &keys_cache_ << "object address" << this;
+
+  // for debug
   assert(check_gpg_error_2_err_code(err, GPG_ERR_EOF) == GPG_ERR_EOF);
 
   err = gpgme_op_keylist_end(ctx_);
-
   assert(check_gpg_error_2_err_code(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
 
-  return keys_list;
+  LOG(INFO) << "ended";
 }
 
 GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeys(
@@ -89,6 +149,8 @@ GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeys(
 
 GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::GetKeysCopy(
     const GpgFrontend::KeyLinkListPtr& keys) {
+  // get the lock
+  std::lock_guard<std::mutex> lock(ctx_mutex_);
   auto keys_copy = std::make_unique<GpgKeyLinkList>();
   for (const auto& key : *keys) keys_copy->push_back(key.Copy());
   return keys_copy;
@@ -96,6 +158,8 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::GetKeysCopy(
 
 GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeysCopy(
     const GpgFrontend::KeyListPtr& keys) {
+  // get the lock
+  std::lock_guard<std::mutex> lock(ctx_mutex_);
   auto keys_copy = std::make_unique<KeyArgsList>();
   for (const auto& key : *keys) keys_copy->push_back(key.Copy());
   return keys_copy;

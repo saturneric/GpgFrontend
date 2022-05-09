@@ -27,7 +27,6 @@
  */
 
 #include "MainWindow.h"
-
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -74,7 +73,7 @@ void MainWindow::slot_encrypt() {
       }
     });
   } else {
-    auto key_getter = GpgFrontend::GpgKeyGetter::GetInstance();
+    auto& key_getter = GpgFrontend::GpgKeyGetter::GetInstance();
     auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
     for (const auto& key : *keys) {
       if (!key.IsHasActualEncryptionCapability()) {
