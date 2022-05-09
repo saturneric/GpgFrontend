@@ -28,9 +28,11 @@
 
 #include "GpgFrontendUIInit.h"
 
-#include "SignalStation.h"
-#include "UserInterfaceUtils.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/thread/CtxCheckThread.h"
+#include "ui/SignalStation.h"
+#include "ui/UserInterfaceUtils.h"
+#include "ui/main_window/MainWindow.h"
 
 // init easyloggingpp library
 INITIALIZE_EASYLOGGINGPP
@@ -38,11 +40,61 @@ INITIALIZE_EASYLOGGINGPP
 namespace GpgFrontend::UI {
 
 extern void init_logging();
+extern void init_locale();
 
 void InitGpgFrontendUI() {
+  init_locale();
   init_logging();
   SignalStation::GetInstance();
   CommonUtils::GetInstance();
+
+  // create the thread to load the gpg context
+  auto* init_ctx_thread = new GpgFrontend::CtxCheckThread();
+  QApplication::connect(init_ctx_thread, &QThread::finished, init_ctx_thread,
+                        &QThread::deleteLater);
+
+  // create and show loading window before starting the main window
+  auto* waiting_dialog = new QProgressDialog();
+  waiting_dialog->setMaximum(0);
+  waiting_dialog->setMinimum(0);
+  auto waiting_dialog_label =
+      new QLabel(QString(_("Loading Gnupg Info...")) + "<br /><br />" +
+                 _("If this process is too slow, please set the key "
+                   "server address appropriately in the gnupg configuration "
+                   "file (depending "
+                   "on the network situation in your country or region)."));
+  waiting_dialog_label->setWordWrap(true);
+  waiting_dialog->setLabel(waiting_dialog_label);
+  waiting_dialog->resize(420, 120);
+  QApplication::connect(init_ctx_thread, &QThread::finished, [=]() {
+    waiting_dialog->finished(0);
+    waiting_dialog->deleteLater();
+  });
+  QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
+    LOG(INFO) << "cancel clicked";
+    if (init_ctx_thread->isRunning()) init_ctx_thread->terminate();
+    QCoreApplication::quit();
+    exit(0);
+  });
+
+  // show the loading window
+  waiting_dialog->show();
+  waiting_dialog->setFocus();
+
+  // start the thread to load the gpg context
+  init_ctx_thread->start();
+  QEventLoop loop;
+  QApplication::connect(init_ctx_thread, &QThread::finished, &loop,
+                        &QEventLoop::quit);
+  loop.exec();
+}
+
+int RunGpgFrontendUI() {
+  // create main window and show it
+  auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
+  main_window->Init();
+  main_window->show();
+  return QApplication::exec();
 }
 
 void init_logging() {
@@ -71,4 +123,86 @@ void init_logging() {
 
   LOG(INFO) << _("log file path") << logfile_path;
 }
+
+/**
+ * @brief setup the locale and load the translations
+ *
+ */
+void init_locale() {
+  // get the instance of the GlobalSettingStation
+  auto& settings =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+
+  // create general settings if not exist
+  if (!settings.exists("general") ||
+      settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
+    settings.add("general", libconfig::Setting::TypeGroup);
+
+  // set system default at first
+  auto& general = settings["general"];
+  if (!general.exists("lang"))
+    general.add("lang", libconfig::Setting::TypeString) = "";
+
+  // sync the settings to the file
+  GpgFrontend::GlobalSettingStation::GetInstance().SyncSettings();
+
+  LOG(INFO) << "current system locale" << setlocale(LC_ALL, nullptr);
+
+  // read from settings file
+  std::string lang;
+  if (!general.lookupValue("lang", lang)) {
+    LOG(ERROR) << _("could not read properly from configure file");
+  };
+
+  LOG(INFO) << "lang from settings" << lang;
+  LOG(INFO) << "project name" << PROJECT_NAME;
+  LOG(INFO) << "locales path"
+            << GpgFrontend::GlobalSettingStation::GetInstance()
+                   .GetLocaleDir()
+                   .c_str();
+
+#ifndef WINDOWS
+  if (!lang.empty()) {
+    std::string lc = lang.empty() ? "" : lang + ".UTF-8";
+
+    // set LC_ALL
+    auto* locale_name = setlocale(LC_ALL, lc.c_str());
+    if (locale_name == nullptr) LOG(WARNING) << "set LC_ALL failed" << lc;
+    auto language = getenv("LANGUAGE");
+    // set LANGUAGE
+    std::string language_env = language == nullptr ? "en" : language;
+    language_env.insert(0, lang + ":");
+    LOG(INFO) << "language env" << language_env;
+    if (setenv("LANGUAGE", language_env.c_str(), 1)) {
+      LOG(WARNING) << "set LANGUAGE failed" << language_env;
+    };
+  }
+#else
+  if (!lang.empty()) {
+    std::string lc = lang.empty() ? "" : lang;
+
+    // set LC_ALL
+    auto* locale_name = setlocale(LC_ALL, lc.c_str());
+    if (locale_name == nullptr) LOG(WARNING) << "set LC_ALL failed" << lc;
+
+    auto language = getenv("LANGUAGE");
+    // set LANGUAGE
+    std::string language_env = language == nullptr ? "en" : language;
+    language_env.insert(0, lang + ":");
+    language_env.insert(0, "LANGUAGE=");
+    LOG(INFO) << "language env" << language_env;
+    if (putenv(language_env.c_str())) {
+      LOG(WARNING) << "set LANGUAGE failed" << language_env;
+    };
+  }
+#endif
+
+  bindtextdomain(PROJECT_NAME, GpgFrontend::GlobalSettingStation::GetInstance()
+                                   .GetLocaleDir()
+                                   .u8string()
+                                   .c_str());
+  bind_textdomain_codeset(PROJECT_NAME, "utf-8");
+  textdomain(PROJECT_NAME);
+}
+
 }  // namespace GpgFrontend::UI
