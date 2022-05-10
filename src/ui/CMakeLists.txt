@@ -39,7 +39,11 @@ aux_source_directory(import_export UI_SOURCE)
 aux_source_directory(dialog UI_SOURCE)
 
 # define libgpgfrontend_ui
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 add_library(gpgfrontend_ui SHARED ${UI_SOURCE})
+set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendUIExport.h")
+generate_export_header(gpgfrontend_ui EXPORT_FILE_NAME "${_export_file}")
 
 # link Qt
 target_link_libraries(gpgfrontend_ui
