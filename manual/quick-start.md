@@ -55,9 +55,6 @@ command line tool. **In general, it is recommended to install versions of GnuPG 
 
 ### Windows (No Setup)
 
-0. If you haven't installed gnupg,
-   please [Download](https://gnupg.org/ftp/gcrypt/binary/gnupg-w32-2.3.1_20210420.exe) `gnupg-w32-******.exe` and
-   install it.
 1. [Download](https://github.com/saturneric/GpgFrontend/releases/latest)`GpgFrontend-*******-Windows-NoSetup.zip`
 2. Unzip `GpgFrontend-*******-Windows-NoSetup.zip`
 3. Go into the directory and double click `GpgFrontend.exe`.
@@ -69,10 +66,11 @@ command line tool. **In general, it is recommended to install versions of GnuPG 
 
 ### macOS
 
+0. Install gnupg using homebrew.
 1. [Download](https://github.com/saturneric/GpgFrontend/releases) `GpgFrontend-*******-x86_64.dmg`
 2. Double-Click GpgFrontend.dmg to load it
     - macOS will automatically decompress the zip file and then you will be able to see the dmg
-3. Double click and run it. All published app packages have passed Apple's check, which means you can open it directly.
+3. Double click and run it. All published app packages have passed Apple's binary check, which means you can open it directly.
 4. If it satisfies you, you can drag it into your Application folder.
 
 #### Debian/Ubuntu/CentOS (AppImage)
