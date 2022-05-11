@@ -21,15 +21,11 @@ it to guarantee the authenticity of your information.
 [Languages Supported](#languages-support) by GpgFrontend that are widely used in most countries and regions around the
 world, including English, Chinese, French, Russian, German, Spanish, Portuguese, Arabic, etc.
 
-**Notice:** GpgFrontend does not provide an embedded [gnupg](https://gnupg.org/) (gpg) binary and needs to be installed
-by the user. **This is to ensure safety and avoid code or binary files involved in encryption and decryption being
-implanted in the back-door during the delivery process.**
+GpgFrontend is permanently free, but you can also "donate" it through the STAR project. Thanks!
 
-GpgFrontend is permanently free, and you can also "donate" it through the STAR project. Thanks!
-
-[>> Overview <<](https://www.gpgfrontend.pub/#/overview) |
-[>> Code & Binary Security <<](https://gpgfrontend.pub/#/about/code-binary-verify)
-| [>> Track Development <<](https://global.git.codesdream.com/)
+[>> Download <<](https://github.com/saturneric/GpgFrontend/releases/latest)
+| [>> User Manual <<](https://www.gpgfrontend.pub/#/overview)
+| [>> Developer Document <<](https://doxygen.gpgfrontend.pub/)
 
 <img src="https://github.com/saturneric/Blob/blob/master/screenshots/main-ubuntu.png?raw=true" alt="Ubuntu Main Screenshot"/>
 
