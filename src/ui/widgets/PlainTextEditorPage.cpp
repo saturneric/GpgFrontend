@@ -24,13 +24,13 @@
  *
  */
 
-#include "ui/widgets/PlainTextEditorPage.h"
-
-#include <encoding-detect/TextEncodingDetect.h>
+#include "PlainTextEditorPage.h"
 
 #include <boost/format.hpp>
+#include <string>
 #include <utility>
 
+#include "core/function/CharsetOperator.h"
 #include "ui/thread/FileReadThread.h"
 #include "ui_PlainTextEditor.h"
 
@@ -42,8 +42,6 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
       full_file_path_(std::move(file_path)) {
   ui_->setupUi(this);
 
-  if (full_file_path_.isEmpty()) read_done_ = true;
-
   ui_->textPage->setFocus();
   ui_->loadingLabel->setHidden(true);
 
@@ -52,21 +50,26 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
   this->setAttribute(Qt::WA_DeleteOnClose);
 
   this->ui_->characterLabel->setText(_("0 character"));
-  this->ui_->lfLabel->setText(_("None"));
-  this->ui_->encodingLabel->setText(_("Binary"));
+  this->ui_->lfLabel->setText(_("lf"));
+  this->ui_->encodingLabel->setText(_("utf-8"));
 
   connect(ui_->textPage, &QPlainTextEdit::textChanged, this, [=]() {
+    // if file is loaded
     if (!read_done_) return;
 
     auto text = ui_->textPage->document()->toPlainText();
     auto str = boost::format(_("%1% character(s)")) % text.size();
     this->ui_->characterLabel->setText(str.str().c_str());
-
-    detect_cr_lf(text);
-    detect_encoding(text.toStdString());
   });
 
-  ui_->loadingLabel->setText(_("Loading..."));
+  if (full_file_path_.isEmpty()) {
+    read_done_ = true;
+    ui_->loadingLabel->setHidden(true);
+  } else {
+    read_done_ = false;
+    ui_->loadingLabel->setText(_("Loading..."));
+    ui_->loadingLabel->setHidden(false);
+  }
 }
 
 const QString &PlainTextEditorPage::GetFilePath() const {
@@ -74,6 +77,26 @@ const QString &PlainTextEditorPage::GetFilePath() const {
 }
 
 QPlainTextEdit *PlainTextEditorPage::GetTextPage() { return ui_->textPage; }
+
+bool PlainTextEditorPage::WillCharsetChange() const {
+  // detect if the line-ending will change
+  if (is_crlf_) return true;
+
+  // detect if the charset of the file will change
+  if (charset_name_ != "UTF-8" && charset_name_ != "ISO-8859-1")
+    return true;
+  else
+    return false;
+}
+
+void PlainTextEditorPage::NotifyFileSaved() {
+  this->is_crlf_ = false;
+  this->charset_confidence_ = 100;
+  this->charset_name_ = "UTF-8";
+
+  this->ui_->lfLabel->setText(_("lf"));
+  this->ui_->encodingLabel->setText(_("UTF-8"));
+}
 
 void PlainTextEditorPage::SetFilePath(const QString &filePath) {
   full_file_path_ = filePath;
@@ -150,25 +173,24 @@ void PlainTextEditorPage::ReadFile() {
     if (!binary_mode_) {
       text_page->setReadOnly(false);
     }
-  });
-
-  connect(thread, &FileReadThread::finished, this, [=]() {
-    LOG(INFO) << "thread finished";
-    thread->deleteLater();
-    read_done_ = true;
-    read_thread_ = nullptr;
-    ui_->textPage->setEnabled(true);
+    this->read_done_ = true;
+    this->ui_->textPage->setEnabled(true);
     text_page->document()->setModified(false);
-    ui_->textPage->blockSignals(false);
-    ui_->textPage->document()->blockSignals(false);
-    ui_->loadingLabel->setHidden(true);
+    this->ui_->textPage->blockSignals(false);
+    this->ui_->textPage->document()->blockSignals(false);
+    this->ui_->loadingLabel->setHidden(true);
+
+    // delete thread
+    read_thread_->deleteLater();
   });
 
   connect(this, &PlainTextEditorPage::destroyed, [=]() {
     LOG(INFO) << "request interruption for read thread";
-    if (read_thread_ && thread->isRunning()) thread->requestInterruption();
+    if (read_thread_ != nullptr && read_thread_->isRunning())
+      read_thread_->requestInterruption();
     read_thread_ = nullptr;
   });
+
   this->read_thread_ = thread;
   thread->start();
 }
@@ -185,13 +207,14 @@ void PlainTextEditorPage::slot_insert_text(const std::string &data) {
   LOG(INFO) << "data size" << data.size();
   read_bytes_ += data.size();
   // If binary format is detected, the entire file is converted to binary format
-  // for display
+  // for display.
   bool if_last_binary_mode = binary_mode_;
-  if (!binary_mode_) {
+  if (!binary_mode_ && !read_done_) {
     detect_encoding(data);
   }
 
   if (binary_mode_) {
+    // change formery displayed text to binary format
     if (if_last_binary_mode != binary_mode_) {
       auto text_buffer =
           ui_->textPage->document()->toRawText().toLocal8Bit().toStdString();
@@ -200,17 +223,33 @@ void PlainTextEditorPage::slot_insert_text(const std::string &data) {
           binary_to_string(text_buffer).c_str());
       this->ui_->lfLabel->setText("None");
     }
+
+    // insert new data
     this->GetTextPage()->insertPlainText(binary_to_string(data).c_str());
 
+    // update the size of the file
     auto str = boost::format(_("%1% byte(s)")) % read_bytes_;
     this->ui_->characterLabel->setText(str.str().c_str());
   } else {
-    this->GetTextPage()->insertPlainText(data.c_str());
+    // detect crlf/lf line ending
+    if (!binary_mode_) detect_cr_lf(data);
+
+    // when reding from a text file
+    // try convert the any of thetext to utf8
+    std::string utf8_data;
+    if (!read_done_ && charset_confidence_ > 25) {
+      CharsetOperator::Convert2Utf8(data, utf8_data, charset_name_);
+    } else {
+      // when editing a text file, do nothing.
+      utf8_data = data;
+    }
+
+    // insert the text to the text page
+    this->GetTextPage()->insertPlainText(utf8_data.c_str());
 
     auto text = this->GetTextPage()->toPlainText();
     auto str = boost::format(_("%1% character(s)")) % text.size();
     this->ui_->characterLabel->setText(str.str().c_str());
-    detect_cr_lf(text);
   }
 }
 
@@ -222,38 +261,42 @@ void PlainTextEditorPage::PrepareToDestroy() {
 }
 
 void PlainTextEditorPage::detect_encoding(const std::string &data) {
-  AutoIt::Common::TextEncodingDetect text_detect;
-  AutoIt::Common::TextEncodingDetect::Encoding encoding =
-      text_detect.DetectEncoding((unsigned char *)(data.data()), data.size());
+  // skip the binary data to avoid the false detection of the encoding
+  if (binary_mode_) return;
 
-  if (encoding == AutoIt::Common::TextEncodingDetect::None) {
+  // detect the encoding
+  auto charset = CharsetOperator::Detect(data);
+  this->charset_name_ = std::get<0>(charset).c_str();
+  this->language_name_ = std::get<1>(charset).c_str();
+  this->charset_confidence_ = std::get<2>(charset);
+
+  // probably there is no need to detect the encoding again
+  if (this->charset_confidence_ < 10) {
     binary_mode_ = true;
-    ui_->encodingLabel->setText(_("Binary"));
-  } else if (encoding == AutoIt::Common::TextEncodingDetect::ASCII) {
-    ui_->encodingLabel->setText(_("ASCII(7 bits)"));
-  } else if (encoding == AutoIt::Common::TextEncodingDetect::ANSI) {
-    ui_->encodingLabel->setText(_("ASCII(8 bits)"));
-  } else if (encoding == AutoIt::Common::TextEncodingDetect::UTF8_BOM ||
-             encoding == AutoIt::Common::TextEncodingDetect::UTF8_NOBOM) {
-    ui_->encodingLabel->setText(_("UTF-8"));
-  } else if (encoding == AutoIt::Common::TextEncodingDetect::UTF16_LE_BOM ||
-             encoding == AutoIt::Common::TextEncodingDetect::UTF16_LE_NOBOM) {
-    ui_->encodingLabel->setText(_("UTF-16"));
-  } else if (encoding == AutoIt::Common::TextEncodingDetect::UTF16_BE_BOM ||
-             encoding == AutoIt::Common::TextEncodingDetect::UTF16_BE_NOBOM) {
-    ui_->encodingLabel->setText(_("UTF-16(BE)"));
+  }
+
+  if (binary_mode_) {
+    // hide the line ending label, when the file is binary
+    this->ui_->lfLabel->setHidden(true);
+    this->ui_->encodingLabel->setText(_("binary"));
+  } else {
+    ui_->encodingLabel->setText(this->charset_name_.c_str());
   }
 }
 
-void PlainTextEditorPage::detect_cr_lf(const QString &data) {
+void PlainTextEditorPage::detect_cr_lf(const std::string &data) {
   if (binary_mode_) {
-    this->ui_->lfLabel->setText("None");
     return;
   }
-  if (data.contains("\r\n")) {
-    this->ui_->lfLabel->setText("CRLF");
+
+  // if contain crlf, set the label to crlf
+  if (is_crlf_) return;
+
+  if (data.find("\r\n") != std::string::npos) {
+    this->ui_->lfLabel->setText("crlf");
+    is_crlf_ = true;
   } else {
-    this->ui_->lfLabel->setText("LF");
+    this->ui_->lfLabel->setText("lf");
   }
 }
 
