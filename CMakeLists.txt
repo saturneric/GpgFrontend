@@ -422,6 +422,9 @@ SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 find_package(Boost COMPONENTS date_time system REQUIRED)
 
 # Introduce OpenSSL
+if(APPLE)
+    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl@1.1)
+endif()
 find_package(OpenSSL REQUIRED)
 
 # Introduce Qt
