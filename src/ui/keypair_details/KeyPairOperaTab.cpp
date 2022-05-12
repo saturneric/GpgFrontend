@@ -145,8 +145,12 @@ void KeyPairOperaTab::slot_export_public_key() {
                           _("An error occurred during the export operation."));
     return;
   }
-  auto file_string = m_key_.GetName() + " " + m_key_.GetEmail() + "(" +
+
+  // generate a file name
+  auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
                      m_key_.GetId() + ")_pub.asc";
+  std::replace(file_string.begin(), file_string.end(), ' ', '_');
+
   auto file_name =
       QFileDialog::getSaveFileName(
           this, _("Export Key To File"), QString::fromStdString(file_string),
@@ -188,8 +192,11 @@ void KeyPairOperaTab::slot_export_short_private_key() {
           _("An error occurred during the export operation."));
       return;
     }
-    auto file_string = m_key_.GetName() + " " + m_key_.GetEmail() + "(" +
+
+    auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
                        m_key_.GetId() + ")_short_secret.asc";
+    std::replace(file_string.begin(), file_string.end(), ' ', '_');
+
     auto file_name =
         QFileDialog::getSaveFileName(
             this, _("Export Key To File"), QString::fromStdString(file_string),
@@ -228,8 +235,10 @@ void KeyPairOperaTab::slot_export_private_key() {
           _("An error occurred during the export operation."));
       return;
     }
-    auto file_string = m_key_.GetName() + " " + m_key_.GetEmail() + "(" +
+    auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
                        m_key_.GetId() + ")_full_secret.asc";
+    std::replace(file_string.begin(), file_string.end(), ' ', '_');
+
     auto file_name =
         QFileDialog::getSaveFileName(
             this, _("Export Key To File"), QString::fromStdString(file_string),
