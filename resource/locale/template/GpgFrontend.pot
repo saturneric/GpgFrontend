@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.7\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-05-12 21:51+0800\n"
+"POT-Creation-Date: 2022-05-13 01:10+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -90,7 +90,7 @@ msgstr ""
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/TextEdit.cpp:138
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/TextEdit.cpp:210
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/TextEdit.cpp:439
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:379
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:384
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/UserInterfaceUtils.cpp:233
 msgid "Warning"
 msgstr ""
@@ -223,7 +223,7 @@ msgstr ""
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:465
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:573
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindow.cpp:261
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:321
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:324
 msgid "Setting Operation Error"
 msgstr ""
 
@@ -243,7 +243,7 @@ msgid "lang"
 msgstr ""
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:123
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:321
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:324
 msgid "confirm_import_keys"
 msgstr ""
 
@@ -504,8 +504,8 @@ msgstr ""
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/KeyMgmt.cpp:513
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/KeyMgmt.cpp:556
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:144
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:187
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:227
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:191
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:234
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:113
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:176
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:219
@@ -526,16 +526,16 @@ msgstr ""
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:613
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:646
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:721
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:213
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:330
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:341
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:369
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:388
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:432
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:216
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:335
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:346
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:374
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:393
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:437
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:174
-#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:57
-#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:68
-#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:78
+#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:59
+#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:70
+#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:80
 msgid "Error"
 msgstr ""
 
@@ -676,7 +676,7 @@ msgstr ""
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:160
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:46
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:147
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:150
 msgid "Name"
 msgstr ""
 
@@ -908,11 +908,11 @@ msgstr ""
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/Wizard.cpp:63
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:271
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindow.cpp:147
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:100
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:158
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:420
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:450
-#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:222
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:103
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:161
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:423
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:453
+#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:201
 msgid "Called"
 msgstr ""
 
@@ -997,7 +997,7 @@ msgid "KeyPair Management"
 msgstr ""
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/KeyMgmt.cpp:170
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:222
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:225
 msgid "Open"
 msgstr ""
 
@@ -1038,7 +1038,7 @@ msgstr ""
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:205
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:316
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:381
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:240
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:243
 msgid "File"
 msgstr ""
 
@@ -1313,7 +1313,7 @@ msgstr ""
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:382
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:70
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:147
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:150
 msgid "Email Address"
 msgstr ""
 
@@ -1603,120 +1603,120 @@ msgid "Export Shortest Secret Key"
 msgstr ""
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:145
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:188
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:228
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:192
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:235
 msgid "An error occurred during the export operation."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:152
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:195
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:235
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:156
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:202
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:244
 msgid "Export Key To File"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:153
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:196
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:236
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:157
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:203
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:245
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/UserInterfaceUtils.cpp:175
 msgid "Key Files"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:160
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:203
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:243
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:164
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:210
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:252
 msgid "Export Error"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:161
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:204
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:244
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:165
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:211
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:253
 msgid "Couldn't open %1 for writing"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:169
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:173
 msgid "Exporting short private Key"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:170
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:214
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:174
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:221
 msgid "You are about to export your"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:171
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:215
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:175
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:222
 msgid " PRIVATE KEY "
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:172
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:216
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:176
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:223
 msgid "This is NOT your Public Key, so DON'T give it away."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:173
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:177
 msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:176
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:180
 msgid ""
 "For OpenPGP keys it removes all signatures except for the latest self-"
 "signatures."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:213
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:220
 msgid "Exporting private Key"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:217
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:224
 msgid "Do you REALLY want to export your PRIVATE KEY?"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:272
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:281
 msgid "Revocation Certificates"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:315
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:345
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:324
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:354
 msgid "Not Successful"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:316
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:325
 msgid "Modify password not successfully."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:322
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:332
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:331
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:341
 msgid "Policy Auto"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:322
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:334
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:331
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:343
 msgid "Policy Good"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:322
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:336
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:331
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:345
 msgid "Policy Bad"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:323
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:338
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:332
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:347
 msgid "Policy Ask"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:323
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:340
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:332
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:349
 msgid "Policy Unknown"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:327
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:336
 msgid "Modify TOFU Policy(Default is Auto)"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:328
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:337
 msgid "Policy for the Key Pair:"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:346
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:355
 msgid "Modify TOFU policy not successfully."
 msgstr ""
 
@@ -1921,7 +1921,7 @@ msgid "Signature of Selected UID"
 msgstr ""
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:147
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:150
 msgid "Select"
 msgstr ""
 
@@ -2059,7 +2059,7 @@ msgid "Generate A New Subkey"
 msgstr ""
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:71
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:148
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:151
 msgid "Usage"
 msgstr ""
 
@@ -2367,7 +2367,7 @@ msgid "Loading Failed"
 msgstr ""
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:37
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:250
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:253
 msgid "New"
 msgstr ""
 
@@ -2663,87 +2663,87 @@ msgstr ""
 msgid "Key ToolBox"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:82
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:85
 msgid "Refresh"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:84
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:87
 msgid "Refresh the key list to synchronize changes."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:85
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:88
 msgid "Sync Public Key"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:87
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:90
 msgid "Sync public key with your default keyserver."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:88
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:91
 msgid "Uncheck ALL"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:90
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:93
 msgid "Cancel all checked items in the current tab at once."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:91
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:94
 msgid "Check ALL"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:93
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:96
 msgid "Check all items in the current tab at once"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:147
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:150
 msgid "Type"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:148
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:151
 msgid "Validity"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:148
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:151
 msgid "Finger Print"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:163
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:166
 msgid "Refreshing Key List..."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:303
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:306
 msgid "Import Keys"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:306
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:309
 msgid "You've dropped something on the table."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:307
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:310
 msgid "GpgFrontend will now try to import key(s)."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:312
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:315
 msgid "Always import without bothering."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:359
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:362
 msgid "Couldn't Open File"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:428
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:431
 msgid "Key List Refreshed."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:446
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:449
 msgid "Syncing Key List..."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:454
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:457
 msgid "Sync [%1%/%2%] %3% %4%"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:462
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/KeyList.cpp:465
 msgid "Key List Sync Done."
 msgstr ""
 
@@ -2897,7 +2897,7 @@ msgid "Open file"
 msgstr ""
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/TextEdit.cpp:174
-msgid "Charset Will Change"
+msgid "Save"
 msgstr ""
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/TextEdit.cpp:176
@@ -2927,80 +2927,80 @@ msgstr ""
 msgid "Note:"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:214
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:217
 msgid "The path is not exists, unprivileged or unreachable."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:225
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:354
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:228
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:359
 msgid "Rename"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:228
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:231
 msgid "Delete"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:232
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:235
 msgid "Calculate Hash"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:236
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:239
 msgid "Directory"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:244
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:247
 msgid "Compress..."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:264
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:267
 msgid "Show Hidden File"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:276
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:279
 msgid "Show System File"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:331
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:336
 msgid "The directory is unprivileged or unreachable."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:342
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:347
 msgid "The file is unprivileged or unreachable."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:354
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:359
 msgid "New Filename"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:370
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:375
 msgid "Unable to rename the file or folder."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:380
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:385
 msgid "Are you sure you want to delete it?"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:389
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:394
 msgid "Unable to delete the file or folder."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:404
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:409
 msgid "Make New Directory"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:404
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:409
 msgid "Directory Name"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:421
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:426
 msgid "Create Empty File"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:422
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:427
 msgid "Filename (you can given extension)"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:432
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:437
 msgid "Unable to create the file."
 msgstr ""
 
@@ -3009,17 +3009,16 @@ msgid "0 character"
 msgstr ""
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:53
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:89
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:97
 msgid "lf"
 msgstr ""
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:54
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:90
 msgid "utf-8"
 msgstr ""
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:61
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:243
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:251
 msgid "%1% character(s)"
 msgstr ""
 
@@ -3027,11 +3026,15 @@ msgstr ""
 msgid "Loading..."
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:223
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:98
+msgid "UTF-8"
+msgstr ""
+
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:231
 msgid "%1% byte(s)"
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:273
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:281
 msgid "binary"
 msgstr ""
 
@@ -3530,15 +3533,15 @@ msgstr ""
 msgid "Parse error at "
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:58
-#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:69
-#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:79
+#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:60
+#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:71
+#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:81
 msgid "Source: "
 msgstr ""
 
-#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:59
-#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:70
-#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:80
+#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:61
+#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:72
+#: /Users/saturneric/Documents/community/GpgFrontend/src/core/GpgConstants.cpp:82
 msgid "Description: "
 msgstr ""
 
