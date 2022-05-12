@@ -66,8 +66,11 @@ void KeyList::init() {
   connect(SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefreshDone, this,
           &KeyList::SlotRefresh);
+
+  // register key database sync signal for refresh button
   connect(ui_->refreshKeyListButton, &QPushButton::clicked, this,
-          &KeyList::SlotRefresh);
+          &KeyList::SignalRefreshDatabase);
+
   connect(ui_->uncheckButton, &QPushButton::clicked, this,
           &KeyList::uncheck_all);
   connect(ui_->checkALLButton, &QPushButton::clicked, this,
