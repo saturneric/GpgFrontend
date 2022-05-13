@@ -35,9 +35,13 @@
 #include "core/function/FileOperator.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/thread/Task.h"
+#include "core/thread/TaskRunner.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "easylogging++.h"
 #include "ui/SignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
+#include "ui/struct/SettingsObject.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
@@ -111,17 +115,21 @@ void process_result_analyse(TextEdit *edit, InfoBoardWidget *info_board,
 
 void process_operation(QWidget *parent, const std::string &waiting_title,
                        const std::function<void()> &func) {
+  auto *dialog =
+      new WaitingDialog(QString::fromStdString(waiting_title), parent);
+
   auto thread = QThread::create(func);
   QApplication::connect(thread, &QThread::finished, thread,
                         &QThread::deleteLater);
-  thread->start();
+  QApplication::connect(thread, &QThread::finished, dialog, &QDialog::close);
+  QApplication::connect(thread, &QThread::finished, dialog,
+                        &QDialog::deleteLater);
 
-  auto *dialog =
-      new WaitingDialog(QString::fromStdString(waiting_title), parent);
-  while (thread->isRunning()) {
-    QApplication::processEvents();
-  }
-  dialog->close();
+  QEventLoop looper;
+  QApplication::connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
+
+  thread->start();
+  looper.exec();
 }
 
 CommonUtils *CommonUtils::GetInstance() {
@@ -245,11 +253,23 @@ void CommonUtils::SlotExecuteGpgCommand(
 void CommonUtils::SlotImportKeyFromKeyServer(
     const KeyIdArgsList &key_ids, const ImportCallbackFunctiopn &callback) {
   std::string target_keyserver;
+
   if (target_keyserver.empty()) {
     try {
       auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
+      SettingsObject key_server_json("key_server");
 
-      target_keyserver = settings.lookup("keyserver.default_server").c_str();
+      // get key servers from settings
+      const auto key_server_list =
+          key_server_json.Check("server_list", nlohmann::json::array());
+      if (key_server_list.empty()) {
+        throw std::runtime_error("No key server configured");
+      }
+
+      const int target_key_server_index =
+          key_server_json.Check("default_server", 0);
+      target_keyserver =
+          key_server_list[target_key_server_index].get<std::string>();
 
       LOG(INFO) << _("Set target Key Server to default Key Server")
                 << target_keyserver;
@@ -323,39 +343,26 @@ void CommonUtils::SlotImportKeyFromKeyServer(
       current_index++;
     }
   });
-
   connect(thread, &QThread::finished, thread, &QThread::deleteLater);
   thread->start();
 }
 
 void CommonUtils::slot_update_key_status() {
   LOG(INFO) << "called";
-  auto *thread = QThread::create([this]() {
-    std::vector<QThread *> threads;
 
+  auto refresh_task = new Thread::Task([]() -> int {
     // flush key cache for all GpgKeyGetter Intances.
     for (const auto &channel_id : GpgKeyGetter::GetAllChannelId()) {
-      // multi threading
-      auto *refresh_thread = QThread::create([channel_id]() {
-        LOG(INFO) << "FlushKeyCache thread start"
-                  << "channel:" << channel_id;
-        GpgKeyGetter::GetInstance(channel_id).FlushKeyCache();
-      });
-      refresh_thread->start();
-      threads.push_back(refresh_thread);
+      GpgKeyGetter::GetInstance(channel_id).FlushKeyCache();
     }
-
-    for (auto *thread : threads) {
-      thread->wait();
-      thread->deleteLater();
-    }
-
-    emit SignalKeyDatabaseRefreshDone();
-    LOG(INFO) << "finished";
+    return 0;
   });
-  connect(thread, &QThread::finished, thread, &QThread::deleteLater);
-  LOG(INFO) << "start thread";
-  thread->start();
+  connect(refresh_task, &Thread::Task::SignalTaskFinished, this,
+          &CommonUtils::SignalKeyDatabaseRefreshDone);
+
+  // post the task to the default task runner
+  Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
+      refresh_task);
 }
 
 }  // namespace GpgFrontend::UI

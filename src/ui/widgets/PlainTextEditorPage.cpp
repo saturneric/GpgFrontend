@@ -31,7 +31,9 @@
 #include <utility>
 
 #include "core/function/CharsetOperator.h"
-#include "ui/thread/FileReadThread.h"
+#include "core/thread/FileReadTask.h"
+#include "core/thread/Task.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "ui_PlainTextEditor.h"
 
 namespace GpgFrontend::UI {
@@ -54,7 +56,7 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
   this->ui_->encodingLabel->setText(_("utf-8"));
 
   connect(ui_->textPage, &QPlainTextEdit::textChanged, this, [=]() {
-    // if file is loaded
+    // if file is loading
     if (!read_done_) return;
 
     auto text = ui_->textPage->document()->toPlainText();
@@ -163,36 +165,34 @@ void PlainTextEditorPage::ReadFile() {
 
   auto text_page = this->GetTextPage();
   text_page->setReadOnly(true);
-  auto thread = new FileReadThread(this->full_file_path_.toStdString());
 
-  connect(thread, &FileReadThread::SignalSendReadBlock, this,
-          &PlainTextEditorPage::slot_insert_text);
+  const auto target_path = this->full_file_path_.toStdString();
 
-  connect(thread, &FileReadThread::SignalReadDone, this, [=]() {
-    LOG(INFO) << "thread read done";
-    if (!binary_mode_) {
-      text_page->setReadOnly(false);
-    }
+  auto *task_runner =
+      GpgFrontend::Thread::TaskRunnerGetter::GetInstance().GetTaskRunner();
+
+  auto *read_task = new FileReadTask(target_path);
+  connect(read_task, &FileReadTask::SignalFileBytesRead, this,
+          &PlainTextEditorPage::slot_insert_text, Qt::QueuedConnection);
+  connect(this, &PlainTextEditorPage::SignalUIBytesDisplayed, read_task,
+          &FileReadTask::SignalFileBytesReadNext, Qt::QueuedConnection);
+
+  connect(read_task, &FileReadTask::SignalTaskFinished, this,
+          []() { LOG(INFO) << "read thread closed"; });
+  connect(this, &PlainTextEditorPage::close, read_task,
+          &FileReadTask::SignalTaskFinished);
+  connect(read_task, &FileReadTask::SignalFileBytesReadEnd, this, [=]() {
+    // set the UI
+    if (!binary_mode_) text_page->setReadOnly(false);
     this->read_done_ = true;
     this->ui_->textPage->setEnabled(true);
     text_page->document()->setModified(false);
     this->ui_->textPage->blockSignals(false);
     this->ui_->textPage->document()->blockSignals(false);
     this->ui_->loadingLabel->setHidden(true);
-
-    // delete thread
-    read_thread_->deleteLater();
   });
 
-  connect(this, &PlainTextEditorPage::destroyed, [=]() {
-    LOG(INFO) << "request interruption for read thread";
-    if (read_thread_ != nullptr && read_thread_->isRunning())
-      read_thread_->requestInterruption();
-    read_thread_ = nullptr;
-  });
-
-  this->read_thread_ = thread;
-  thread->start();
+  task_runner->PostTask(read_task);
 }
 
 std::string binary_to_string(const std::string &source) {
@@ -203,11 +203,12 @@ std::string binary_to_string(const std::string &source) {
   return ss.str();
 }
 
-void PlainTextEditorPage::slot_insert_text(const std::string &data) {
+void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
+  std::string data = bytes_data.toStdString();
   LOG(INFO) << "data size" << data.size();
   read_bytes_ += data.size();
-  // If binary format is detected, the entire file is converted to binary format
-  // for display.
+  // If binary format is detected, the entire file is converted to binary
+  // format for display.
   bool if_last_binary_mode = binary_mode_;
   if (!binary_mode_ && !read_done_) {
     detect_encoding(data);
@@ -251,13 +252,8 @@ void PlainTextEditorPage::slot_insert_text(const std::string &data) {
     auto str = boost::format(_("%1% character(s)")) % text.size();
     this->ui_->characterLabel->setText(str.str().c_str());
   }
-}
-
-void PlainTextEditorPage::PrepareToDestroy() {
-  if (read_thread_) {
-    read_thread_->requestInterruption();
-    read_thread_ = nullptr;
-  }
+  QTimer::singleShot(25, this, &PlainTextEditorPage::SignalUIBytesDisplayed);
+  LOG(INFO) << "end";
 }
 
 void PlainTextEditorPage::detect_encoding(const std::string &data) {
