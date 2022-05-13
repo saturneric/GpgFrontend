@@ -72,6 +72,7 @@ void InitGpgFrontendUI() {
                           waiting_dialog->finished(0);
                           waiting_dialog->deleteLater();
                         });
+
   QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
     LOG(INFO) << "cancel clicked";
     QCoreApplication::quit();
@@ -83,9 +84,18 @@ void InitGpgFrontendUI() {
   waiting_dialog->show();
   waiting_dialog->setFocus();
 
+  // new local event looper
+  QEventLoop looper;
+  QApplication::connect(init_ctx_task,
+                        &Thread::CtxCheckTask::SignalTaskFinished, &looper,
+                        &QEventLoop::quit);
+
   // start the thread to load the gpg context
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
       init_ctx_task);
+
+  // block the main thread until the gpg context is loaded
+  looper.exec();
 }
 
 int RunGpgFrontendUI() {
