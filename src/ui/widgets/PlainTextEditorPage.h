@@ -101,12 +101,6 @@ class PlainTextEditorPage : public QWidget {
   [[nodiscard]] bool ReadDone() const { return this->read_done_; }
 
   /**
-   * @brief
-   *
-   */
-  void PrepareToDestroy();
-
-  /**
    * @brief detect if the charset of the file will change
    *
    */
@@ -118,18 +112,25 @@ class PlainTextEditorPage : public QWidget {
    */
   void NotifyFileSaved();
 
+ signals:
+
+  /**
+   * @brief this signal is emitted when the bytes has been append in texteditor.
+   *
+   */
+  void SignalUIBytesDisplayed();
+
  private:
   std::shared_ptr<Ui_PlainTextEditor> ui_;  ///<
   QString full_file_path_;  ///< The path to the file handled in the tab
   bool sign_marked_{};  ///< true, if the signed header is marked, false if not
-  bool read_done_ = false;          ///<
-  QThread* read_thread_ = nullptr;  ///<
-  bool binary_mode_ = false;        ///<
-  size_t read_bytes_ = 0;           ///<
-  std::string charset_name_;        ///<
-  std::string language_name_;       ///<
-  int32_t charset_confidence_;      ///<
-  bool is_crlf_ = false;            ///<
+  bool read_done_ = false;      ///<
+  bool binary_mode_ = false;    ///<
+  size_t read_bytes_ = 0;       ///<
+  std::string charset_name_;    ///<
+  std::string language_name_;   ///<
+  int32_t charset_confidence_;  ///<
+  bool is_crlf_ = false;        ///<
 
   /**
    * @brief
@@ -157,7 +158,7 @@ class PlainTextEditorPage : public QWidget {
    *
    * @param data
    */
-  void slot_insert_text(const std::string& data);
+  void slot_insert_text(QByteArray bytes_data);
 };
 
 }  // namespace GpgFrontend::UI

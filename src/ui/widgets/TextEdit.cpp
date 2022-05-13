@@ -315,9 +315,7 @@ bool TextEdit::maybe_save_current_tab(bool askToSave) {
       return false;
     }
   }
-
-  // destroy
-  page->PrepareToDestroy();
+  page->deleteLater();
   return true;
 }
 

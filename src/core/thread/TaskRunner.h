@@ -24,54 +24,52 @@
  *
  */
 
-#ifndef GPGFRONTEND_FILEREADTHREAD_H
-#define GPGFRONTEND_FILEREADTHREAD_H
+#ifndef GPGFRONTEND_TASKRUNNER_H
+#define GPGFRONTEND_TASKRUNNER_H
 
-#include "ui/GpgFrontendUI.h"
+#include <mutex>
+#include <queue>
 
-namespace GpgFrontend::UI {
+#include "core/GpgFrontendCore.h"
 
-/**
- * @brief
- *
- */
-class FileReadThread : public QThread {
+namespace GpgFrontend::Thread {
+
+class Task;
+
+class GPGFRONTEND_CORE_EXPORT TaskRunner : public QThread {
   Q_OBJECT
-
  public:
   /**
-   * @brief Construct a new File Read Thread object
+   * @brief Construct a new Task Runner object
    *
-   * @param path
    */
-  explicit FileReadThread(std::string path);
-
- signals:
+  TaskRunner();
 
   /**
-   * @brief
-   *
-   * @param block
-   */
-  void SignalSendReadBlock(const std::string& block);
-
-  /**
-   * @brief
+   * @brief Destroy the Task Runner object
    *
    */
-  void SignalReadDone();
+  virtual ~TaskRunner() override;
 
- protected:
   /**
    * @brief
    *
    */
   void run() override;
 
+ public slots:
+
+  /**
+   * @brief
+   *
+   * @param task
+   */
+  void PostTask(Task* task);
+
  private:
-  std::string path_;  ///<
+  std::queue<Task*> tasks;  ///< The task queue
+  std::mutex tasks_mutex_;  ///< The task queue mutex
 };
+}  // namespace GpgFrontend::Thread
 
-}  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_FILEREADTHREAD_H
+#endif  // GPGFRONTEND_TASKRUNNER_H

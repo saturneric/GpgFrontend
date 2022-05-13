@@ -28,20 +28,21 @@
 #define GPGFRONTEND_CTXCHECKTRHEAD_H
 
 #include "core/GpgFrontendCore.h"
+#include "core/thread/Task.h"
 
-namespace GpgFrontend {
+namespace GpgFrontend::Thread {
 /**
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT CtxCheckThread : public QThread {
+class GPGFRONTEND_CORE_EXPORT CtxCheckTask : public Task {
   Q_OBJECT
  public:
   /**
    * @brief Construct a new Ctx Check Thread object
    *
    */
-  CtxCheckThread();
+  CtxCheckTask();
 
  signals:
   /**
@@ -55,8 +56,8 @@ class GPGFRONTEND_CORE_EXPORT CtxCheckThread : public QThread {
    * @brief
    *
    */
-  void run() override;
+  void Run() override;
 };
-}  // namespace GpgFrontend
+}  // namespace GpgFrontend::Thread
 
 #endif  // GPGFRONTEND_CTXCHECKTRHEAD_H

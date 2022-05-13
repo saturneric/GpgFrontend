@@ -36,7 +36,6 @@
 
 #include "GpgFrontendBuildInfo.h"
 #include "core/GpgFunctionObject.h"
-#include "core/thread/CtxCheckThread.h"
 #include "ui/GpgFrontendUIInit.h"
 #include "ui/main_window/MainWindow.h"
 
