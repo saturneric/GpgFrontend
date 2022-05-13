@@ -225,7 +225,7 @@ void KeyserverTab::slot_refresh_table() {
 void KeyserverTab::slot_test_listed_key_server() {
   auto timeout =
       QInputDialog::getInt(this, _("Set TCP Timeout"), tr("timeout(ms): "),
-                           QLineEdit::Normal, 500, 2000);
+                           QLineEdit::Normal, 800, 3000);
 
   QStringList urls;
   const auto row_size = ui_->keyServerListTable->rowCount();

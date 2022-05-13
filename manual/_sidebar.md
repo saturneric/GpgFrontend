@@ -13,8 +13,6 @@
     - [View Key Pair Details](manual/view-keypair-info.md)
     - [Import & Export Key Pair](manual/import-export-key-pair.md)
     - [Key Server Operations](manual/key-server-operations.md)
-    - [Email Operations](manual/email-operations.md)
-    - [Advanced Key Operation](manual/advance-key-opera.md)
 - Features Guides
     - [Introduce](features/introduce.md)
     - [Short Cipher-text](features/short-ciphertext.md)

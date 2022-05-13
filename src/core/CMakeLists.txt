@@ -44,9 +44,9 @@ set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
 set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
 
 # link third-party libraries
-target_link_libraries(gpgfrontend_core config++)
+target_link_libraries(gpgfrontend_core PUBLIC config++)
 if (NOT LINUX)
-    target_link_libraries(gpgfrontend_core config++ intl)
+    target_link_libraries(gpgfrontend_core PUBLIC config++ intl)
 endif ()
 
 # easyloggingpp
@@ -55,28 +55,40 @@ target_include_directories(gpgfrontend_core PUBLIC
 target_sources(gpgfrontend_core PUBLIC
         ${CMAKE_SOURCE_DIR}/third_party/easyloggingpp/src/easylogging++.cc)
 # qt-aes
-target_sources(gpgfrontend_core PUBLIC
+target_sources(gpgfrontend_core PRIVATE
         ${CMAKE_SOURCE_DIR}/third_party/qt-aes/qaesencryption.cpp)
 
 # encoding detect library
 aux_source_directory(${CMAKE_SOURCE_DIR}/third_party/encoding-detect ENCODING_DETECT_SOURCE_CODE)
 target_sources(gpgfrontend_core PUBLIC ${ENCODING_DETECT_SOURCE_CODE})
 
+# icu
+if(APPLE)
+    target_include_directories(gpgfrontend_core PRIVATE /usr/local/opt/icu4c/include)
+    target_link_directories(gpgfrontend_core PRIVATE /usr/local/opt/icu4c/lib)
+    target_link_libraries(gpgfrontend_core PRIVATE icui18n icuuc icudata)
+else ()
+    find_package(ICU 60.0 REQUIRED COMPONENTS i18n uc data)
+    message("ICU version: ${ICU_VERSION}")
+    message("ICU libraries: ${ICU_LIBRARIES}")
+    target_link_libraries(gpgfrontend_core PRIVATE ${ICU_LIBRARIES})
+endif ()
+
 # link gnupg libraries
-target_link_libraries(gpgfrontend_core gpgme assuan gpg-error)
+target_link_libraries(gpgfrontend_core PUBLIC gpgme assuan gpg-error)
 # link openssl
-target_link_libraries(gpgfrontend_core OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(gpgfrontend_core PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 # link boost libraries
-target_link_libraries(gpgfrontend_core ${Boost_LIBRARIES})
+target_link_libraries(gpgfrontend_core PUBLIC ${Boost_LIBRARIES})
 
 # link libarchive
-target_link_libraries(gpgfrontend_core archive)
+target_link_libraries(gpgfrontend_core PRIVATE archive)
 
 # link json
 target_link_libraries(gpgfrontend_core
-        nlohmann_json::nlohmann_json)
+        PUBLIC nlohmann_json::nlohmann_json)
 # link Qt core
-target_link_libraries(gpgfrontend_core Qt5::Core)
+target_link_libraries(gpgfrontend_core PUBLIC Qt5::Core)
 
 # set up pch
 target_precompile_headers(gpgfrontend_core
@@ -89,10 +101,10 @@ target_compile_features(gpgfrontend_core PUBLIC cxx_std_17)
 # link for different platforms
 if (MINGW)
     message(STATUS "Link GPG Static Library For MINGW")
-    target_link_libraries(gpgfrontend_core wsock32)
+    target_link_libraries(gpgfrontend_core PUBLIC wsock32)
 elseif (APPLE)
     message(STATUS "Link GPG Static Library For macOS")
-    target_link_libraries(gpgfrontend_core dl)
+    target_link_libraries(gpgfrontend_core PUBLIC dl)
     if (XCODE_BUILD)
         set_target_properties(gpgfrontend_core
                 PROPERTIES
@@ -105,5 +117,5 @@ elseif (APPLE)
 else ()
     # linux
     message(STATUS "Link GPG Static Library For Unix")
-    target_link_libraries(gpgfrontend_core pthread dl)
+    target_link_libraries(gpgfrontend_core PUBLIC pthread dl)
 endif ()

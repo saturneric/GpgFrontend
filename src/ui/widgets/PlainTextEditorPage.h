@@ -29,6 +29,8 @@
 #ifndef __EDITORPAGE_H__
 #define __EDITORPAGE_H__
 
+#include <string>
+
 #include "core/GpgConstants.h"
 #include "ui/GpgFrontendUI.h"
 
@@ -49,7 +51,7 @@ class PlainTextEditorPage : public QWidget {
    * @param file_path Path of the file handled in this tab
    * @param parent Pointer to the parent widget
    */
-  explicit PlainTextEditorPage(QString file_path = "",
+  explicit PlainTextEditorPage(QString file_path = {},
                                QWidget* parent = nullptr);
 
   /**
@@ -99,19 +101,36 @@ class PlainTextEditorPage : public QWidget {
   [[nodiscard]] bool ReadDone() const { return this->read_done_; }
 
   /**
-   * @brief
+   * @brief detect if the charset of the file will change
    *
    */
-  void PrepareToDestroy();
+  bool WillCharsetChange() const;
+
+  /**
+   * @brief notify the user that the file has been saved.
+   *
+   */
+  void NotifyFileSaved();
+
+ signals:
+
+  /**
+   * @brief this signal is emitted when the bytes has been append in texteditor.
+   *
+   */
+  void SignalUIBytesDisplayed();
 
  private:
   std::shared_ptr<Ui_PlainTextEditor> ui_;  ///<
   QString full_file_path_;  ///< The path to the file handled in the tab
   bool sign_marked_{};  ///< true, if the signed header is marked, false if not
-  bool read_done_ = false;          ///<
-  QThread* read_thread_ = nullptr;  ///<
-  bool binary_mode_ = false;        ///<
-  size_t read_bytes_ = 0;           ///<
+  bool read_done_ = false;      ///<
+  bool binary_mode_ = false;    ///<
+  size_t read_bytes_ = 0;       ///<
+  std::string charset_name_;    ///<
+  std::string language_name_;   ///<
+  int32_t charset_confidence_;  ///<
+  bool is_crlf_ = false;        ///<
 
   /**
    * @brief
@@ -125,7 +144,7 @@ class PlainTextEditorPage : public QWidget {
    *
    * @param data
    */
-  void detect_cr_lf(const QString& data);
+  void detect_cr_lf(const std::string& data);
 
  private slots:
 
@@ -139,7 +158,7 @@ class PlainTextEditorPage : public QWidget {
    *
    * @param data
    */
-  void slot_insert_text(const std::string& data);
+  void slot_insert_text(QByteArray bytes_data);
 };
 
 }  // namespace GpgFrontend::UI

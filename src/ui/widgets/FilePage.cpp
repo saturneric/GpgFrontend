@@ -118,29 +118,30 @@ void FilePage::slot_file_tree_view_item_clicked(const QModelIndex& index) {
     QFileInfo info(QString::fromStdString(selected_path_.u8string()));
 
     if ((info.isDir() || info.isFile()) &&
-        (info.suffix() != "gpg" && info.suffix() != "sig" &&
-         info.suffix() != "asc")) {
+        (info.suffix() != "gpg" && info.suffix() != "pgp" &&
+         info.suffix() != "sig" && info.suffix() != "asc")) {
       operation_type |= MainWindow::CryptoMenu::Encrypt;
     }
 
     if ((info.isDir() || info.isFile()) &&
-        (info.suffix() != "gpg" && info.suffix() != "sig" &&
-         info.suffix() != "asc")) {
+        (info.suffix() != "gpg" && info.suffix() != "pgp" &&
+         info.suffix() != "sig" && info.suffix() != "asc")) {
       operation_type |= MainWindow::CryptoMenu::EncryptAndSign;
     }
 
-    if (info.isFile() && (info.suffix() == "gpg" || info.suffix() == "asc")) {
+    if (info.isFile() && (info.suffix() == "gpg" || info.suffix() == "pgp" ||
+                          info.suffix() == "asc")) {
       operation_type |= MainWindow::CryptoMenu::Decrypt;
       operation_type |= MainWindow::CryptoMenu::DecryptAndVerify;
     }
 
-    if (info.isFile() && (info.suffix() != "gpg" && info.suffix() != "sig" &&
-                          info.suffix() != "asc")) {
+    if (info.isFile() && (info.suffix() != "gpg" && info.suffix() != "pgp" &&
+                          info.suffix() != "sig" && info.suffix() != "asc")) {
       operation_type |= MainWindow::CryptoMenu::Sign;
     }
 
     if (info.isFile() && (info.suffix() == "sig" || info.suffix() == "gpg" ||
-                          info.suffix() == "asc")) {
+                          info.suffix() == "pgp" || info.suffix() == "asc")) {
       operation_type |= MainWindow::CryptoMenu::Verify;
     }
   }
@@ -155,8 +156,10 @@ void FilePage::slot_up_level() {
   auto str_path =
       dir_model_->fileInfo(currentRoot).absoluteFilePath().toStdU16String();
 #else
-  auto str_path =
-      dir_model_->fileInfo(currentRoot).absoluteFilePath().toUtf8().toStdString();
+  auto str_path = dir_model_->fileInfo(currentRoot)
+                      .absoluteFilePath()
+                      .toUtf8()
+                      .toStdString();
 #endif
   std::filesystem::path path_obj(str_path);
 
@@ -291,9 +294,11 @@ void FilePage::onCustomContextMenu(const QPoint& point) {
   LOG(INFO) << "right click" << selected_path_.u8string();
 
 #ifdef WINDOWS
-  auto index_dir_str = dir_model_->fileInfo(index).absoluteFilePath().toStdU16String();
+  auto index_dir_str =
+      dir_model_->fileInfo(index).absoluteFilePath().toStdU16String();
 #else
-  auto index_dir_str = dir_model_->fileInfo(index).absoluteFilePath().toStdString();
+  auto index_dir_str =
+      dir_model_->fileInfo(index).absoluteFilePath().toStdString();
 #endif
 
   selected_path_ = std::filesystem::path(index_dir_str);
@@ -350,9 +355,9 @@ void FilePage::slot_rename_item() {
   new_name_path = new_name_path.remove_filename();
 
   bool ok;
-  auto text =
-      QInputDialog::getText(this, _("Rename"), _("New Filename"),
-                            QLineEdit::Normal, QString::fromStdString(old_name.u8string()), &ok);
+  auto text = QInputDialog::getText(
+      this, _("Rename"), _("New Filename"), QLineEdit::Normal,
+      QString::fromStdString(old_name.u8string()), &ok);
   if (ok && !text.isEmpty()) {
     try {
 #ifdef WINDOWS

@@ -29,7 +29,8 @@
 #include "GpgFrontendUIInit.h"
 
 #include "core/function/GlobalSettingStation.h"
-#include "core/thread/CtxCheckThread.h"
+#include "core/thread/CtxCheckTask.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/main_window/MainWindow.h"
@@ -49,9 +50,7 @@ void InitGpgFrontendUI() {
   CommonUtils::GetInstance();
 
   // create the thread to load the gpg context
-  auto* init_ctx_thread = new GpgFrontend::CtxCheckThread();
-  QApplication::connect(init_ctx_thread, &QThread::finished, init_ctx_thread,
-                        &QThread::deleteLater);
+  auto* init_ctx_task = new Thread::CtxCheckTask();
 
   // create and show loading window before starting the main window
   auto* waiting_dialog = new QProgressDialog();
@@ -66,27 +65,37 @@ void InitGpgFrontendUI() {
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
-  QApplication::connect(init_ctx_thread, &QThread::finished, [=]() {
-    waiting_dialog->finished(0);
-    waiting_dialog->deleteLater();
-  });
+  QApplication::connect(init_ctx_task,
+                        &Thread::CtxCheckTask::SignalTaskFinished,
+                        waiting_dialog, [=]() {
+                          LOG(INFO) << "Gpg context loaded";
+                          waiting_dialog->finished(0);
+                          waiting_dialog->deleteLater();
+                        });
+
   QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
     LOG(INFO) << "cancel clicked";
-    if (init_ctx_thread->isRunning()) init_ctx_thread->terminate();
     QCoreApplication::quit();
     exit(0);
   });
 
   // show the loading window
+  waiting_dialog->setModal(true);
   waiting_dialog->show();
   waiting_dialog->setFocus();
 
-  // start the thread to load the gpg context
-  init_ctx_thread->start();
-  QEventLoop loop;
-  QApplication::connect(init_ctx_thread, &QThread::finished, &loop,
+  // new local event looper
+  QEventLoop looper;
+  QApplication::connect(init_ctx_task,
+                        &Thread::CtxCheckTask::SignalTaskFinished, &looper,
                         &QEventLoop::quit);
-  loop.exec();
+
+  // start the thread to load the gpg context
+  Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
+      init_ctx_task);
+
+  // block the main thread until the gpg context is loaded
+  looper.exec();
 }
 
 int RunGpgFrontendUI() {

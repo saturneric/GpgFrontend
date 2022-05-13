@@ -166,11 +166,30 @@ bool TextEdit::save_file(const QString& fileName) {
     return false;
   }
 
+  PlainTextEditorPage* page = SlotCurPageTextEdit();
+  if (page == nullptr) return false;
+
+  if (page->WillCharsetChange()) {
+    auto result = QMessageBox::warning(
+        this, _("Save"),
+        QString("<p>") +
+            _("After saving, the encoding of the current file will be "
+              "converted to UTF-8 and the line endings will be changed to "
+              "LF. ") +
+            "</p>" + "<p>" +
+            _("If this is not the result you expect, please use \"save "
+              "as\".") +
+            "</p>",
+        QMessageBox::Save | QMessageBox::Cancel, QMessageBox::Cancel);
+
+    if (result == QMessageBox::Cancel) {
+      return false;
+    }
+  }
+
   QFile file(fileName);
 
   if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-    PlainTextEditorPage* page = SlotCurPageTextEdit();
-
     QTextStream outputStream(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
     outputStream << page->GetTextPage()->toPlainText();
@@ -182,7 +201,8 @@ bool TextEdit::save_file(const QString& fileName) {
     int curIndex = tab_widget_->currentIndex();
     tab_widget_->setTabText(curIndex, stripped_name(fileName));
     page->SetFilePath(fileName);
-    //      statusBar()->showMessage(_("File saved"), 2000);
+    page->NotifyFileSaved();
+
     file.close();
     return true;
   } else {
@@ -295,9 +315,7 @@ bool TextEdit::maybe_save_current_tab(bool askToSave) {
       return false;
     }
   }
-
-  // destroy
-  page->PrepareToDestroy();
+  page->deleteLater();
   return true;
 }
 
