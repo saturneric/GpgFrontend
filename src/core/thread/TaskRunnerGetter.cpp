@@ -24,31 +24,23 @@
  *
  */
 
-#include "core/thread/CtxCheckThread.h"
+#include "core/thread/TaskRunnerGetter.h"
 
-#include "core/GpgContext.h"
-#include "core/GpgCoreInit.h"
-#include "core/common/CoreCommonUtil.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+GpgFrontend::Thread::TaskRunnerGetter::TaskRunnerGetter(int channel)
+    : SingletonFunctionObject<TaskRunnerGetter>(channel) {}
 
-GpgFrontend::CtxCheckThread::CtxCheckThread() : QThread(nullptr) {
-  connect(this, &CtxCheckThread::SignalGnupgNotInstall,
-          CoreCommonUtil::GetInstance(),
-          &CoreCommonUtil::SignalGnupgNotInstall);
-}
-
-void GpgFrontend::CtxCheckThread::run() {
-  // init logging
-  init_logging();
-
-  // Init GpgFrontend Core
-  init_gpgfrontend_core();
-
-  // Create & Check Gnupg Context Status
-  if (!GpgContext::GetInstance().good()) {
-    emit SignalGnupgNotInstall();
+GpgFrontend::Thread::TaskRunner*
+GpgFrontend::Thread::TaskRunnerGetter::GetTaskRunner(
+    TaskRunnerType runner_type) {
+  while (true) {
+    auto it = task_runners_.find(runner_type);
+    if (it != task_runners_.end()) {
+      return it->second;
+    } else {
+      auto runner = new TaskRunner();
+      task_runners_[runner_type] = runner;
+      runner->start();
+      continue;
+    }
   }
-  // Try flushing key cache
-  else
-    GpgFrontend::GpgKeyGetter::GetInstance().FlushKeyCache();
 }

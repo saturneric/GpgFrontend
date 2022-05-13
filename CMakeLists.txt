@@ -27,7 +27,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # define project
-project(GpgFrontend VERSION 2.0.7 LANGUAGES CXX)
+project(GpgFrontend VERSION 2.0.8 LANGUAGES CXX)
 
 # show cmake version
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
@@ -422,6 +422,9 @@ SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 find_package(Boost COMPONENTS date_time system REQUIRED)
 
 # Introduce OpenSSL
+if(APPLE)
+    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl@1.1)
+endif()
 find_package(OpenSSL REQUIRED)
 
 # Introduce Qt

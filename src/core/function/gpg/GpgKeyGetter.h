@@ -59,7 +59,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param fpr
    * @return GpgKey
    */
-  GpgKey GetKey(const std::string& id);
+  GpgKey GetKey(const std::string& id, bool use_cache = true);
 
   /**
    * @brief Get the Keys object
@@ -75,7 +75,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param fpr
    * @return GpgKey
    */
-  GpgKey GetPubkey(const std::string& id);
+  GpgKey GetPubkey(const std::string& id, bool use_cache = true);
 
   /**
    * @brief Get all the keys by receiving a linked list
@@ -108,7 +108,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
 
  private:
   /**
-   * @brief
+   * @brief Get the gpgme context object
    *
    */
   GpgContext& ctx_ =
@@ -121,7 +121,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
   mutable std::mutex ctx_mutex_;
 
   /**
-   * @brief cache the keys with key fpr
+   * @brief cache the keys with key id
    *
    */
   std::map<std::string, GpgKey> keys_cache_;
@@ -131,6 +131,14 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    *
    */
   mutable std::mutex keys_cache_mutex_;
+
+  /**
+   * @brief Get the Key object
+   *
+   * @param id
+   * @return GpgKey
+   */
+  GpgKey get_key_in_cache(const std::string& id);
 };
 }  // namespace GpgFrontend
 

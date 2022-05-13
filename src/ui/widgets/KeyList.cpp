@@ -66,8 +66,11 @@ void KeyList::init() {
   connect(SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefreshDone, this,
           &KeyList::SlotRefresh);
+
+  // register key database sync signal for refresh button
   connect(ui_->refreshKeyListButton, &QPushButton::clicked, this,
-          &KeyList::SlotRefresh);
+          &KeyList::SignalRefreshDatabase);
+
   connect(ui_->uncheckButton, &QPushButton::clicked, this,
           &KeyList::uncheck_all);
   connect(ui_->checkALLButton, &QPushButton::clicked, this,
@@ -161,7 +164,6 @@ void KeyList::SlotRefresh() {
   ui_->syncButton->setDisabled(true);
 
   emit SignalRefreshStatusBar(_("Refreshing Key List..."), 3000);
-
   this->buffered_keys_list_ = GpgKeyGetter::GetInstance().FetchKey();
   this->slot_refresh_ui();
 }
@@ -460,7 +462,7 @@ void KeyList::slot_sync_with_key_server() {
           ui_->syncButton->setDisabled(false);
           ui_->refreshKeyListButton->setDisabled(false);
           emit SignalRefreshStatusBar(_("Key List Sync Done."), 3000);
-          emit SignalRefreshDatabase();
+          emit this->SignalRefreshDatabase();
         }
       });
 }
@@ -498,8 +500,9 @@ KeyIdArgsListPtr& KeyTable::GetChecked() {
   if (checked_key_ids_ == nullptr)
     checked_key_ids_ = std::make_unique<KeyIdArgsList>();
   auto& ret = checked_key_ids_;
-  for (int i = 0; i < key_list_->rowCount(); i++) {
+  for (int i = 0; i < buffered_keys_.size(); i++) {
     auto key_id = buffered_keys_[i].GetId();
+    LOG(INFO) << "i: " << i << " key_id: " << key_id;
     if (key_list_->item(i, 0)->checkState() == Qt::Checked &&
         std::find(ret->begin(), ret->end(), key_id) == ret->end()) {
       ret->push_back(key_id);
@@ -514,7 +517,7 @@ void KeyTable::SetChecked(KeyIdArgsListPtr key_ids) {
 }
 
 void KeyTable::Refresh(KeyLinkListPtr m_keys) {
-  LOG(INFO) << "Called";
+  LOG(INFO) << "called";
 
   auto& checked_key_list = GetChecked();
   // while filling the table, sort enabled causes errors
@@ -529,16 +532,19 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
   else
     keys = std::move(m_keys);
 
+  LOG(INFO) << "keys size: " << keys->size();
   auto it = keys->begin();
   int row_count = 0;
 
   while (it != keys->end()) {
+    LOG(INFO) << "filtering key id: " << it->GetId();
     if (filter_ != nullptr) {
       if (!filter_(*it)) {
         it = keys->erase(it);
         continue;
       }
     }
+    LOG(INFO) << "adding key id: " << it->GetId();
     if (select_type_ == KeyListRow::ONLY_SECRET_KEY && !it->IsPrivateKey()) {
       it = keys->erase(it);
       continue;
@@ -547,18 +553,15 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
     it++;
   }
 
+  LOG(INFO) << "row_count: " << row_count;
   key_list_->setRowCount(row_count);
 
   int row_index = 0;
   it = keys->begin();
 
-  auto& table_buffered_keys = buffered_keys_;
-
-  table_buffered_keys.clear();
+  buffered_keys_.clear();
 
   while (it != keys->end()) {
-    table_buffered_keys.push_back(it->Copy());
-
     auto* tmp0 = new QTableWidgetItem(QString::number(row_index));
     tmp0->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled |
                    Qt::ItemIsSelectable);
@@ -624,6 +627,12 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
       tmp2->setFont(strike);
       tmp3->setFont(strike);
     }
+
+    LOG(INFO) << "key id: " << it->GetId() << "added into key_list_:" << this;
+
+    // move to buffered keys
+    buffered_keys_.emplace_back(std::move(*it));
+
     it++;
     ++row_index;
   }

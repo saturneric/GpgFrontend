@@ -33,6 +33,8 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <string>
 
+#include "function/FileOperator.h"
+
 const char* GpgFrontend::GpgConstants::PGP_CRYPT_BEGIN =
     "-----BEGIN PGP MESSAGE-----";  ///<
 const char* GpgFrontend::GpgConstants::PGP_CRYPT_END =
@@ -115,37 +117,14 @@ static inline std::string trim(std::string& s) {
 }
 
 std::string GpgFrontend::read_all_data_in_file(const std::string& utf8_path) {
-  using namespace std::filesystem;
-  class path file_info(utf8_path.c_str());
-  if (!exists(file_info) || !is_regular_file(file_info)) return {};
-  std::ifstream in_file;
-#ifndef WINDOWS
-  in_file.open(file_info.u8string(), std::ios::in);
-#else
-  in_file.open(file_info.wstring().c_str(), std::ios::in);
-#endif
-  if (!in_file.good()) return {};
-  std::istreambuf_iterator<char> begin(in_file);
-  std::istreambuf_iterator<char> end;
-  std::string in_buffer(begin, end);
-  in_file.close();
-  return in_buffer;
+  std::string data;
+  FileOperator::ReadFileStd(utf8_path, data);
+  return data;
 }
 
 bool GpgFrontend::write_buffer_to_file(const std::string& utf8_path,
                                        const std::string& out_buffer) {
-  using namespace std::filesystem;
-  class path file_info(utf8_path.c_str());
-#ifndef WINDOWS
-  std::ofstream out_file(file_info.u8string(), std::ios::out | std::ios::trunc);
-#else
-  std::ofstream out_file(file_info.wstring().c_str(),
-                         std::ios::out | std::ios::trunc);
-#endif
-  if (!out_file.good()) return false;
-  out_file.write(out_buffer.c_str(), out_buffer.size());
-  out_file.close();
-  return true;
+  return FileOperator::WriteFileStd(utf8_path, out_buffer);
 }
 
 std::string GpgFrontend::get_file_extension(const std::string& path) {
