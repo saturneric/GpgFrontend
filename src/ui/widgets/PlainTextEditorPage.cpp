@@ -233,7 +233,7 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
     this->ui_->characterLabel->setText(str.str().c_str());
   } else {
     // detect crlf/lf line ending
-    if (!binary_mode_) detect_cr_lf(data);
+    detect_cr_lf(data);
 
     // when reding from a text file
     // try convert the any of thetext to utf8
