@@ -147,7 +147,7 @@ void GpgFrontend::GpgKeyGetter::FlushKeyCache() {
 GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeys(
     const KeyIdArgsListPtr& ids) {
   auto keys = std::make_unique<KeyArgsList>();
-  for (const auto& id : *ids) keys->push_back(GetKey(id));
+  for (const auto& id : *ids) keys->emplace_back(GetKey(id));
   return keys;
 }
 
@@ -156,7 +156,7 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::GetKeysCopy(
   // get the lock
   std::lock_guard<std::mutex> lock(ctx_mutex_);
   auto keys_copy = std::make_unique<GpgKeyLinkList>();
-  for (const auto& key : *keys) keys_copy->push_back(key.Copy());
+  for (const auto& key : *keys) keys_copy->emplace_back(key.Copy());
   return keys_copy;
 }
 
@@ -165,7 +165,7 @@ GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeysCopy(
   // get the lock
   std::lock_guard<std::mutex> lock(ctx_mutex_);
   auto keys_copy = std::make_unique<KeyArgsList>();
-  for (const auto& key : *keys) keys_copy->push_back(key.Copy());
+  for (const auto& key : *keys) keys_copy->emplace_back(key.Copy());
   return keys_copy;
 }
 
