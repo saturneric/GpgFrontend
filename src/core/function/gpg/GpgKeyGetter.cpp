@@ -128,8 +128,9 @@ void GpgFrontend::GpgKeyGetter::FlushKeyCache() {
         gpg_key = GetKey(gpg_key.GetId(), false);
       }
 
-      LOG(INFO) << "LoadKey Fpr:" << key->fpr << "Id:" << key->subkeys->keyid;
-      keys_cache_.insert({key->subkeys->keyid, std::move(gpg_key)});
+      LOG(INFO) << "LoadKey Fpr:" << gpg_key.GetFingerprint()
+                << "Id:" << gpg_key.GetId();
+      keys_cache_.insert({gpg_key.GetId(), std::move(gpg_key)});
     }
   }
 
