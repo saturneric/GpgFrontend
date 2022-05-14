@@ -26,6 +26,8 @@
 
 #include "core/thread/TaskRunner.h"
 
+#include <exception>
+
 #include "core/thread/Task.h"
 #include "easylogging++.h"
 
@@ -34,7 +36,9 @@ GpgFrontend::Thread::TaskRunner::TaskRunner() = default;
 GpgFrontend::Thread::TaskRunner::~TaskRunner() = default;
 
 void GpgFrontend::Thread::TaskRunner::PostTask(Task* task) {
-  LOG(INFO) << "called";
+  LOG(INFO) << "called"
+            << "Post Task" << task->GetUUID();
+
   if (task == nullptr) return;
   task->setParent(nullptr);
   task->moveToThread(this);
@@ -46,13 +50,14 @@ void GpgFrontend::Thread::TaskRunner::PostTask(Task* task) {
 }
 
 void GpgFrontend::Thread::TaskRunner::run() {
-  LOG(INFO) << "called";
+  LOG(INFO) << "called"
+            << "thread id:" << QThread::currentThreadId();
   while (true) {
     if (tasks.empty()) {
-      LOG(INFO) << "TaskRunner: No tasks to run";
+      LOG(INFO) << "TaskRunner: No tasks to run.";
       exec();
     } else {
-      LOG(INFO) << "TaskRunner: Running task, queue size:" << tasks.size();
+      LOG(INFO) << "TaskRunner: Queue size:" << tasks.size();
 
       Task* task = nullptr;
       {
@@ -60,7 +65,20 @@ void GpgFrontend::Thread::TaskRunner::run() {
         task = std::move(tasks.front());
         tasks.pop();
       }
-      if (task != nullptr) task->run();
+
+      if (task != nullptr) {
+        // Run the task
+        LOG(INFO) << "TaskRunner: Running Task" << task->GetUUID();
+        try {
+          task->run();
+        } catch (const std::exception& e) {
+          LOG(ERROR) << "TaskRunner: Exception in Task" << task->GetUUID()
+                     << "Exception: " << e.what();
+        } catch (...) {
+          LOG(ERROR) << "TaskRunner: Unknwon Exception in Task"
+                     << task->GetUUID();
+        }
+      }
     }
   }
 }
