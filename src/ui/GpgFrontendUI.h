@@ -44,7 +44,7 @@
 #include "GpgFrontend.h"
 #include "core/GpgFrontendCore.h"
 #include "core/GpgModel.h"
-
+#include "core/Thread/ThreadingModel.h"
 #include "ui/GpgFrontendUIExport.h"
 
 /**
