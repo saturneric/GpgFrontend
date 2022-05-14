@@ -101,8 +101,11 @@ void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
  * @param waiting_title
  * @param func
  */
-void process_operation(QWidget* parent, const std::string& waiting_title,
-                       const std::function<void()>& func);
+void process_operation(
+    QWidget* parent, const std::string& waiting_title,
+    GpgFrontend::Thread::Task::TaskRunnable func,
+    GpgFrontend::Thread::Task::TaskCallback callback = nullptr,
+    Thread::Task::DataObjectPtr data_object = nullptr);
 
 /**
  * @brief
