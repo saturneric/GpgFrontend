@@ -49,16 +49,6 @@ jobs:
       - name: Git Sumbodule Update
         run: |
           git submodule update --init --recursive
-      - name: Codesign Configuration (macOS)
-        run: |
-          echo ${{secrets.MACOS_CERTIFICATE}} | base64 --decode > certificate.p12
-          security create-keychain -p gpgfrontend build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p gpgfrontend build.keychain
-          security import certificate.p12 -k build.keychain -P ${{secrets.MAOS_CERTIFICATE_PWD}} -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
-          security set-keychain-settings -lut 3600
-        if: matrix.os == 'macos-10.15'
 
       - name: Install Dependence (macOS)
         run: |
