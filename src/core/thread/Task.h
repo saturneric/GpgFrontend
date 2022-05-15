@@ -19,8 +19,10 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
@@ -54,7 +56,7 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    * @brief DataObject to be passed to the callback function.
    *
    */
-  class DataObject {
+  class GPGFRONTEND_CORE_EXPORT DataObject {
    public:
     struct Destructor {
       const void *p_obj;
@@ -79,6 +81,28 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
       LOG(INFO) << "called:" << this;
       auto *obj_dstr = this->get_heap_ptr(sizeof(T));
       auto *ptr_heap = new ((void *)obj_dstr->p_obj) T(std::move(obj));
+      if (std::is_class_v<T>) {
+        auto destructor = [](const void *x) {
+          static_cast<const T *>(x)->~T();
+        };
+        obj_dstr->destroy = destructor;
+      } else {
+        obj_dstr->destroy = nullptr;
+      }
+      data_objects_.push(std::move(obj_dstr));
+    }
+
+    /**
+     * @brief
+     *
+     * @tparam T
+     * @param ptr
+     */
+    template <typename T>
+    void AppendObject(T *obj) {
+      LOG(INFO) << "called:" << this;
+      auto *obj_dstr = this->get_heap_ptr(sizeof(T));
+      auto *ptr_heap = new ((void *)obj_dstr->p_obj) T(std::move(*obj));
       if (std::is_class_v<T>) {
         auto destructor = [](const void *x) {
           static_cast<const T *>(x)->~T();
