@@ -58,13 +58,22 @@ jobs:
 
       - name: Codesign Configuration (macOS)
         run: |
-          echo ${{secrets.MACOS_CERTIFICATE}} | base64 --decode > certificate.p12
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}.provisionprofile
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          echo -n "${{secrets.MACOS_CERTIFICATE}}" | base64 --decode --output $CERTIFICATE_PATH
+          echo -n "${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_DATA}}" | base64 --decode --output $PP_PATH
+
           security create-keychain -p gpgfrontend build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p gpgfrontend build.keychain
-          security import certificate.p12 -k build.keychain -P ${{secrets.MAOS_CERTIFICATE_PWD}} -T /usr/bin/codesign
+          security import $CERTIFICATE_PATH -k build.keychain -P ${{secrets.MAOS_CERTIFICATE_PWD}} -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
           security set-keychain-settings -lut 3600
+
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
         if: matrix.os == 'macos-10.15'
 
       - name: Install Dependence (macOS)
@@ -145,6 +154,7 @@ jobs:
         # Build your GpgFrontend with the given configuration
         run: |
           cmake -B ${{github.workspace}}/build -G Xcode \
+            -DGPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD=On \
            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
            -DGPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY="${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" \
            -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
@@ -152,7 +162,8 @@ jobs:
            -DGPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID="${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}"
           xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
           cd ${{github.workspace}}/build/
-          xcodebuild -scheme GpgFrontend -configuration Release -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive archive
+          xcodebuild -scheme GpgFrontend -configuration "${{env.BUILD_TYPE}}"\
+            -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive archive
           mkdir ${{github.workspace}}/build/package
           xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
             -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
@@ -162,9 +173,8 @@ jobs:
       - name: Package & Sign App Bundle (macOS)
         run: |
           security -v unlock-keychain -p gpgfrontend
-          ditto -c -k --keepParent ${{github.workspace}}/build/package/GpgFrontend.app ${{github.workspace}}/build/package/GpgFrontend.app.zip
-
-          hdiutil create ${{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/package/GpgFrontend.app
+          ditto -c -k --keepParent ${{github.workspace}}/build/package/GpgFrontend.app ${{github.workspace}}/build/GpgFrontend.app.zip
+          hdiutil create ${{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/package/
           mkdir ${{github.workspace}}/build/artifactOut
           hdiutil convert ${{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
           codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
@@ -174,7 +184,7 @@ jobs:
       - name: Notarize Release Build (macOS)
         run: |
           xcrun altool --notarize-app \
-          -f ${{github.workspace}}/build/package/GpgFrontend.app.zip \
+          -f ${{github.workspace}}/build/GpgFrontend.app.zip \
           --primary-bundle-id ${{secrets.GPGFRONTEND_XOCDE_APPID}} \
           -u ${{secrets.APPLE_DEVELOPER_ID}} \
           -p ${{secrets.APPLE_DEVELOPER_ID_SECRET}}
