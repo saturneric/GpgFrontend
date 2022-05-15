@@ -174,17 +174,21 @@ jobs:
         run: |
           security -v unlock-keychain -p gpgfrontend
           ditto -c -k --keepParent ${{github.workspace}}/build/package/GpgFrontend.app ${{github.workspace}}/build/GpgFrontend.app.zip
-          hdiutil create ${{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/package/
+          hdiutil create ${{github.workspace}}/build/tmp.dmg -ov \
+            -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/package/
           mkdir ${{github.workspace}}/build/artifactOut
-          hdiutil convert ${{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
+          hdiutil convert ${{github.workspace}}/build/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
           codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
-          mv ${{github.workspace}}/build/package/GpgFrontend.app.zip ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.zip
+          mv ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg \
+            ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg
+          mv ${{github.workspace}}/build/GpgFrontend.app.zip \
+            ${{github.workspace}}/build/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.zip
         if: matrix.os == 'macos-10.15'
 
       - name: Notarize Release Build (macOS)
         run: |
           xcrun altool --notarize-app \
-          -f ${{github.workspace}}/build/GpgFrontend.app.zip \
+          -f ${{github.workspace}}/build/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.zip \
           --primary-bundle-id ${{secrets.GPGFRONTEND_XOCDE_APPID}} \
           -u ${{secrets.APPLE_DEVELOPER_ID}} \
           -p ${{secrets.APPLE_DEVELOPER_ID_SECRET}}
