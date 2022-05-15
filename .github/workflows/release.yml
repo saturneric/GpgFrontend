@@ -141,34 +141,43 @@ jobs:
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
         if: matrix.os == 'ubuntu-18.04'
 
-      - name: Build GpgFrontend (macOS)
+      - name: Build & Export GpgFrontend (macOS)
         # Build your GpgFrontend with the given configuration
         run: |
-          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
-        if: matrix.os == 'macos-10.15'
-
-      - name: Build & Sign App Bundle (macOS)
-        run: |
-          security -v unlock-keychain -p gpgfrontend
-          macdeployqt ${{github.workspace}}/build/release/GpgFrontend.app
-          codesign --deep --force --options=runtime -s "Developer ID Application: Yu Hu (4279AWUL3X)" ${{github.workspace}}/build/release/GpgFrontend.app -v
-          mkdir ${{github.workspace}}/build/tmp/
+          cmake -B ${{github.workspace}}/build -G Xcode \
+           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+           -DGPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY="${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" \
+           -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
+           -DGPGFRONTEND_XOCDE_APPID="${{secrets.GPGFRONTEND_XOCDE_APPID}}" \
+           -DGPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID="${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}"
+          xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
+          cd ${{github.workspace}}/build/
+          xcodebuild -scheme GpgFrontend -configuration Release -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive archive
+          mkdir ${{github.workspace}}/build/package
+          xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
+            -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
+            -exportPath ${{github.workspace}}/build/package/
         if: matrix.os == 'macos-10.15'
 
       - name: Package & Sign App Bundle (macOS)
         run: |
           security -v unlock-keychain -p gpgfrontend
-          hdiutil create ${{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/release/
+          ditto -c -k --keepParent ${{github.workspace}}/build/package/GpgFrontend.app ${{github.workspace}}/build/package/GpgFrontend.app.zip
+
+          hdiutil create ${{github.workspace}}/build/tmp/tmp.dmg -ov -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/package/GpgFrontend.app
           mkdir ${{github.workspace}}/build/artifactOut
           hdiutil convert ${{github.workspace}}/build/tmp/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
-          codesign -s "Developer ID Application: Yu Hu (4279AWUL3X)" ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
-          mv ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg
+          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
+          mv ${{github.workspace}}/build/package/GpgFrontend.app.zip ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.zip
         if: matrix.os == 'macos-10.15'
 
       - name: Notarize Release Build (macOS)
         run: |
-          xcrun altool --notarize-app -f ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg  --primary-bundle-id pub.gpgfrontend.gpgfrontend -u ${{secrets.APPLE_DEVELOPER_ID}} -p ${{secrets.APPLE_DEVELOPER_ID_SECRET}}
+          xcrun altool --notarize-app \
+          -f ${{github.workspace}}/build/package/GpgFrontend.app.zip \
+          --primary-bundle-id ${{secrets.GPGFRONTEND_XOCDE_APPID}} \
+          -u ${{secrets.APPLE_DEVELOPER_ID}} \
+          -p ${{secrets.APPLE_DEVELOPER_ID_SECRET}}
         if: matrix.os == 'macos-10.15'
 
       - name: Package App Image (Linux)
