@@ -1,8 +1,10 @@
-# Download GpgFrontend
+# Downloads
 
-Currently you can download and use GpgFrontend through various channels.
+Currently you can download GpgFrontend through various channels.
 
-## GitHub
+---
+
+## GitHub Releases
 
 [![GitHub release (latest by date)](https://img.shields.io/github/downloads/saturneric/GpgFrontend/latest/total?style=for-the-badge)](https://github.com/saturneric/GpgFrontend/releases/latest)
 
