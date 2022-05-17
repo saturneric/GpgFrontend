@@ -26,23 +26,47 @@
 
 #include "core/thread/Task.h"
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <functional>
+#include <string>
+#include <utility>
 
 #include "core/thread/TaskRunner.h"
+#include "easylogging++.h"
 
-GpgFrontend::Thread::Task::Task() { init(); }
-
-GpgFrontend::Thread::Task::Task(TaskCallback callback)
-    : callback_(std::move(callback)) {
+GpgFrontend::Thread::Task::Task() : uuid_(generate_uuid()) {
+  LOG(INFO) << "Task" << uuid_ << "created";
   init();
 }
 
-GpgFrontend::Thread::Task::Task(TaskRunnable runnable, TaskCallback callback)
-    : runnable_(runnable), callback_(std::move(callback)) {
+GpgFrontend::Thread::Task::Task(TaskCallback callback,
+                                DataObjectPtr data_object)
+    : uuid_(generate_uuid()),
+      callback_(std::move(callback)),
+      callback_thread_(QThread::currentThread()),
+      data_object_(data_object) {
+  LOG(INFO) << "Task" << uuid_ << "created with callback"
+            << "callback_thread_: " << callback_thread_;
   init();
+}
+
+GpgFrontend::Thread::Task::Task(TaskRunnable runnable, TaskCallback callback,
+                                DataObjectPtr data_object)
+    : uuid_(generate_uuid()),
+      runnable_(std::move(runnable)),
+      callback_(std::move(callback)),
+      callback_thread_(QThread::currentThread()),
+      data_object_(data_object) {
+  init();
+  LOG(INFO) << "Task" << uuid_ << "created with runnable and callback"
+            << "callback_thread_: " << callback_thread_;
 }
 
 GpgFrontend::Thread::Task::~Task() = default;
+
+std::string GpgFrontend::Thread::Task::GetUUID() const { return uuid_; }
 
 void GpgFrontend::Thread::Task::SetFinishAfterRun(bool finish_after_run) {
   this->finish_after_run_ = finish_after_run;
@@ -51,24 +75,71 @@ void GpgFrontend::Thread::Task::SetFinishAfterRun(bool finish_after_run) {
 void GpgFrontend::Thread::Task::SetRTN(int rtn) { this->rtn_ = rtn; }
 
 void GpgFrontend::Thread::Task::init() {
-  LOG(INFO) << "called";
   connect(this, &Task::SignalTaskFinished, this, &Task::before_finish_task);
   connect(this, &Task::SignalTaskFinished, this, &Task::deleteLater);
 }
 
 void GpgFrontend::Thread::Task::before_finish_task() {
-  LOG(INFO) << "called";
-  if (callback_) callback_(rtn_);
+  LOG(INFO) << "Task" << uuid_ << "finished";
+  if (callback_) {
+    bool if_invoke = QMetaObject::invokeMethod(
+        callback_thread_,
+        [callback = callback_, rtn = rtn_, data_object = data_object_]() {
+          callback(rtn, data_object);
+        });
+    if (!if_invoke) {
+      LOG(ERROR) << "failed to invoke callback";
+    }
+  }
 }
 
 void GpgFrontend::Thread::Task::run() {
-  LOG(INFO) << "called";
+  LOG(INFO) << "Task" << uuid_ << "started";
   Run();
   if (finish_after_run_) emit SignalTaskFinished();
 }
 
 void GpgFrontend::Thread::Task::Run() {
   if (runnable_) {
-    rtn_ = runnable_();
+    bool if_invoke = QMetaObject::invokeMethod(
+        this, [=]() { return runnable_(data_object_); }, &rtn_);
+    if (!if_invoke) {
+      LOG(ERROR) << "invokeMethod failed";
+    }
   }
+}
+
+GpgFrontend::Thread::Task::DataObject::Destructor *
+GpgFrontend::Thread::Task::DataObject::get_heap_ptr(size_t bytes_size) {
+  Destructor *dstr_ptr = new Destructor();
+  dstr_ptr->p_obj = malloc(bytes_size);
+  return dstr_ptr;
+}
+
+GpgFrontend::Thread::Task::DataObject::~DataObject() {
+  if (!data_objects_.empty())
+    LOG(WARNING) << "data_objects_ is not empty"
+                 << "address:" << this;
+  while (!data_objects_.empty()) {
+    free_heap_ptr(data_objects_.top());
+    data_objects_.pop();
+  }
+}
+
+size_t GpgFrontend::Thread::Task::DataObject::GetObjectSize() {
+  return data_objects_.size();
+}
+
+void GpgFrontend::Thread::Task::DataObject::free_heap_ptr(Destructor *ptr) {
+  LOG(INFO) << "p_obj: " << ptr->p_obj << "destructor: " << ptr->destroy
+            << "DataObject:" << this;
+  if (ptr->destroy != nullptr) {
+    ptr->destroy(ptr->p_obj);
+  }
+  free((void *)ptr->p_obj);
+  delete ptr;
+}
+
+std::string GpgFrontend::Thread::Task::generate_uuid() {
+  return boost::uuids::to_string(boost::uuids::random_generator()());
 }

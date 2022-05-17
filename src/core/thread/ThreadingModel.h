@@ -26,31 +26,11 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDUI_H
-#define GPGFRONTEND_GPGFRONTENDUI_H
+#ifndef GPGFRONTEND_THREADINGMODEL_H
+#define GPGFRONTEND_THREADINGMODEL_H
 
-/**
- * Basic dependency
- */
-#include <QtCore>
-#include <QtNetwork>
-#include <QtPrintSupport>
-#include <QtWidgets>
-#include <optional>
+#include "core/thread/Task.h"
+#include "core/thread/TaskRunner.h"
+#include "core/thread/TaskRunnerGetter.h"
 
-/**
- * Project internal dependencies
- */
-#include "GpgFrontend.h"
-#include "core/GpgFrontendCore.h"
-#include "core/GpgModel.h"
-#include "core/thread/ThreadingModel.h"
-#include "ui/GpgFrontendUIExport.h"
-
-/**
- * 3rd party dependencies
- */
-
-#include <qt-aes/qaesencryption.h>
-
-#endif  // GPGFRONTEND_GPGFRONTENDUI_H
+#endif  // GPGFRONTEND_THREADINGMODEL_H

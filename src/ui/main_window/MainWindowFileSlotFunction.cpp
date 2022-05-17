@@ -31,6 +31,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgFileOpera.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/thread/Task.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/widgets/SignersPicker.h"
 
@@ -66,7 +67,6 @@ bool path_pre_check(QWidget* parent, const QString& path) {
  */
 bool process_tarball_into_directory(QWidget* parent,
                                     std::filesystem::path& path) {
-
   LOG(INFO) << "Converting directory into tarball" << path;
   auto selected_dir_path = std::filesystem::path(path);
 
@@ -85,14 +85,16 @@ bool process_tarball_into_directory(QWidget* parent,
               << target_path.u8string();
 
     bool if_error = false;
-    process_operation(parent, _("Extracting Tarball"), [&]() {
-      try {
-        GpgFrontend::ArchiveFileOperator::ExtractArchive(target_path,
-                                                         base_path);
-      } catch (const std::runtime_error& e) {
-        if_error = true;
-      }
-    });
+    process_operation(parent, _("Extracting Tarball"),
+                      [&](Thread::Task::DataObjectPtr) -> int {
+                        try {
+                          GpgFrontend::ArchiveFileOperator::ExtractArchive(
+                              target_path, base_path);
+                        } catch (const std::runtime_error& e) {
+                          if_error = true;
+                        }
+                        return 0;
+                      });
 
     if (if_error || !exists(target_path)) {
       throw std::runtime_error("Decompress Failed");
@@ -112,7 +114,6 @@ bool process_tarball_into_directory(QWidget* parent,
  * @param path the tarball to be converted
  */
 bool process_directory_into_tarball(QWidget* parent, QString& path) {
-
 #ifdef WINDOWS
   std::filesystem::path selected_dir_path = path.toStdU16String();
 #else
@@ -128,14 +129,16 @@ bool process_directory_into_tarball(QWidget* parent, QString& path) {
               << target_path << "selected_dir_path" << selected_dir_path;
 
     bool if_error = false;
-    process_operation(parent, _("Making Tarball"), [&]() {
-      try {
-        GpgFrontend::ArchiveFileOperator::CreateArchive(base_path, target_path,
-                                                        0, {selected_dir_path});
-      } catch (const std::runtime_error& e) {
-        if_error = true;
-      }
-    });
+    process_operation(parent, _("Making Tarball"),
+                      [&](Thread::Task::DataObjectPtr) -> int {
+                        try {
+                          GpgFrontend::ArchiveFileOperator::CreateArchive(
+                              base_path, target_path, 0, {selected_dir_path});
+                        } catch (const std::runtime_error& e) {
+                          if_error = true;
+                        }
+                        return 0;
+                      });
 
     if (if_error || !exists(target_path)) {
       throw std::runtime_error("Compress Failed");
@@ -223,14 +226,17 @@ void MainWindow::SlotFileEncrypt() {
 
     if (ret == QMessageBox::Cancel) return;
 
-    process_operation(this, _("Symmetrically Encrypting"), [&]() {
-      try {
-        error = GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
-            path.toStdString(), out_path.toStdString(), result, _channel);
-      } catch (const std::runtime_error& e) {
-        if_error = true;
-      }
-    });
+    process_operation(
+        this, _("Symmetrically Encrypting"),
+        [&](Thread::Task::DataObjectPtr) -> int {
+          try {
+            error = GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
+                path.toStdString(), out_path.toStdString(), result, _channel);
+          } catch (const std::runtime_error& e) {
+            if_error = true;
+          }
+          return 0;
+        });
   } else {
     auto p_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
@@ -248,15 +254,17 @@ void MainWindow::SlotFileEncrypt() {
       }
     }
 
-    process_operation(this, _("Encrypting"), [&]() {
-      try {
-        error =
-            GpgFileOpera::EncryptFile(std::move(p_keys), path.toStdString(),
-                                      out_path.toStdString(), result, _channel);
-      } catch (const std::runtime_error& e) {
-        if_error = true;
-      }
-    });
+    process_operation(this, _("Encrypting"),
+                      [&](Thread::Task::DataObjectPtr) -> int {
+                        try {
+                          error = GpgFileOpera::EncryptFile(
+                              std::move(p_keys), path.toStdString(),
+                              out_path.toStdString(), result, _channel);
+                        } catch (const std::runtime_error& e) {
+                          if_error = true;
+                        }
+                        return 0;
+                      });
   }
 
   // remove xxx.tar and only left xxx.tar.gpg
@@ -310,14 +318,16 @@ void MainWindow::SlotFileDecrypt() {
   GpgDecrResult result = nullptr;
   gpgme_error_t error;
   bool if_error = false;
-  process_operation(this, _("Decrypting"), [&]() {
-    try {
-      error = GpgFileOpera::DecryptFile(path.toStdString(), out_path.u8string(),
-                                        result);
-    } catch (const std::runtime_error& e) {
-      if_error = true;
-    }
-  });
+  process_operation(this, _("Decrypting"),
+                    [&](Thread::Task::DataObjectPtr) -> int {
+                      try {
+                        error = GpgFileOpera::DecryptFile(
+                            path.toStdString(), out_path.u8string(), result);
+                      } catch (const std::runtime_error& e) {
+                        if_error = true;
+                      }
+                      return 0;
+                    });
 
   if (!if_error) {
     auto resultAnalyse = GpgDecryptResultAnalyse(error, std::move(result));
@@ -349,7 +359,6 @@ void MainWindow::SlotFileDecrypt() {
       }
     }
   }
-
 }
 
 void MainWindow::SlotFileSign() {
@@ -419,14 +428,17 @@ void MainWindow::SlotFileSign() {
   gpgme_error_t error;
   bool if_error = false;
 
-  process_operation(this, _("Signing"), [&]() {
-    try {
-      error = GpgFileOpera::SignFile(std::move(keys), in_path.u8string(),
-                                     sig_file_path.u8string(), result, _channel);
-    } catch (const std::runtime_error& e) {
-      if_error = true;
-    }
-  });
+  process_operation(
+      this, _("Signing"), [&](Thread::Task::DataObjectPtr) -> int {
+        try {
+          error = GpgFileOpera::SignFile(std::move(keys), in_path.u8string(),
+                                         sig_file_path.u8string(), result,
+                                         _channel);
+        } catch (const std::runtime_error& e) {
+          if_error = true;
+        }
+        return 0;
+      });
 
   if (!if_error) {
     auto resultAnalyse = GpgSignResultAnalyse(error, std::move(result));
@@ -480,9 +492,9 @@ void MainWindow::SlotFileVerify() {
 
   if (in_path.extension() != ".gpg") {
     bool ok;
-    QString text = QInputDialog::getText(this, _("Origin file to verify"),
-                                         _("Filepath"), QLineEdit::Normal,
-                                         data_file_path.u8string().c_str(), &ok);
+    QString text = QInputDialog::getText(
+        this, _("Origin file to verify"), _("Filepath"), QLineEdit::Normal,
+        data_file_path.u8string().c_str(), &ok);
     if (ok && !text.isEmpty()) {
       data_file_path = text.toStdString();
     } else {
@@ -505,14 +517,17 @@ void MainWindow::SlotFileVerify() {
   GpgVerifyResult result = nullptr;
   gpgme_error_t error;
   bool if_error = false;
-  process_operation(this, _("Verifying"), [&]() {
-    try {
-      error = GpgFileOpera::VerifyFile(
-          data_file_path.u8string(), sign_file_path.u8string(), result, _channel);
-    } catch (const std::runtime_error& e) {
-      if_error = true;
-    }
-  });
+  process_operation(
+      this, _("Verifying"), [&](Thread::Task::DataObjectPtr) -> int {
+        try {
+          error = GpgFileOpera::VerifyFile(data_file_path.u8string(),
+                                           sign_file_path.u8string(), result,
+                                           _channel);
+        } catch (const std::runtime_error& e) {
+          if_error = true;
+        }
+        return 0;
+      });
 
   if (!if_error) {
     auto result_analyse = GpgVerifyResultAnalyse(error, result);
@@ -622,15 +637,18 @@ void MainWindow::SlotFileEncryptSign() {
   gpgme_error_t error;
   bool if_error = false;
 
-  process_operation(this, _("Encrypting and Signing"), [&]() {
-    try {
-      error = GpgFileOpera::EncryptSignFile(
-          std::move(p_keys), std::move(p_signer_keys), path.toStdString(),
-          out_path.toStdString(), encr_result, sign_result, _channel);
-    } catch (const std::runtime_error& e) {
-      if_error = true;
-    }
-  });
+  process_operation(this, _("Encrypting and Signing"),
+                    [&](Thread::Task::DataObjectPtr) -> int {
+                      try {
+                        error = GpgFileOpera::EncryptSignFile(
+                            std::move(p_keys), std::move(p_signer_keys),
+                            path.toStdString(), out_path.toStdString(),
+                            encr_result, sign_result, _channel);
+                      } catch (const std::runtime_error& e) {
+                        if_error = true;
+                      }
+                      return 0;
+                    });
 
   if (!if_error) {
     auto encrypt_result =
@@ -656,7 +674,6 @@ void MainWindow::SlotFileEncryptSign() {
       std::filesystem::remove(target_path);
     }
   }
-
 }
 
 void MainWindow::SlotFileDecryptVerify() {
@@ -694,14 +711,17 @@ void MainWindow::SlotFileDecryptVerify() {
   GpgVerifyResult v_result = nullptr;
   gpgme_error_t error;
   bool if_error = false;
-  process_operation(this, _("Decrypting and Verifying"), [&]() {
-    try {
-      error = GpgFileOpera::DecryptVerifyFile(
-          path.toStdString(), out_path.u8string(), d_result, v_result);
-    } catch (const std::runtime_error& e) {
-      if_error = true;
-    }
-  });
+  process_operation(this, _("Decrypting and Verifying"),
+                    [&](Thread::Task::DataObjectPtr) -> int {
+                      try {
+                        error = GpgFileOpera::DecryptVerifyFile(
+                            path.toStdString(), out_path.u8string(), d_result,
+                            v_result);
+                      } catch (const std::runtime_error& e) {
+                        if_error = true;
+                      }
+                      return 0;
+                    });
 
   if (!if_error) {
     auto decrypt_res = GpgDecryptResultAnalyse(error, std::move(d_result));
@@ -741,7 +761,6 @@ void MainWindow::SlotFileDecryptVerify() {
       }
     }
   }
-
 }
 
 }  // namespace GpgFrontend::UI

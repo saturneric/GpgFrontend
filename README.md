@@ -276,11 +276,7 @@ AppImage: https://appimage.org
 
 JSON for Modern C++: https://github.com/nlohmann/json
 
-SMTP Client for Qt (C++): https://github.com/bluetiger9/SmtpClient-for-Qt
-
 Qt-AES: https://github.com/saturneric/Qt-AES
-
-vmime: https://www.vmime.org/
 
 MacOS Application
 Bundles: [Link](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)

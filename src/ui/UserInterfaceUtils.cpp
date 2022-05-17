@@ -114,21 +114,29 @@ void process_result_analyse(TextEdit *edit, InfoBoardWidget *info_board,
 }
 
 void process_operation(QWidget *parent, const std::string &waiting_title,
-                       const std::function<void()> &func) {
+                       const Thread::Task::TaskRunnable func,
+                       const Thread::Task::TaskCallback callback,
+                       Thread::Task::DataObjectPtr data_object) {
   auto *dialog =
       new WaitingDialog(QString::fromStdString(waiting_title), parent);
 
-  auto thread = QThread::create(func);
-  QApplication::connect(thread, &QThread::finished, thread,
-                        &QThread::deleteLater);
-  QApplication::connect(thread, &QThread::finished, dialog, &QDialog::close);
-  QApplication::connect(thread, &QThread::finished, dialog,
-                        &QDialog::deleteLater);
+  auto *process_task =
+      new Thread::Task(std::move(func), std::move(callback), data_object);
+
+  QApplication::connect(process_task, &Thread::Task::SignalTaskFinished, dialog,
+                        &QDialog::close);
 
   QEventLoop looper;
-  QApplication::connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
+  QApplication::connect(process_task, &Thread::Task::SignalTaskFinished,
+                        &looper, &QEventLoop::quit);
 
-  thread->start();
+  // post process task to task runner
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
+      ->PostTask(process_task);
+
+  // block until task finished
+  // this is to keep reference vaild until task finished
   looper.exec();
 }
 
@@ -350,7 +358,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
 void CommonUtils::slot_update_key_status() {
   LOG(INFO) << "called";
 
-  auto refresh_task = new Thread::Task([]() -> int {
+  auto refresh_task = new Thread::Task([](Thread::Task::DataObjectPtr) -> int {
     // flush key cache for all GpgKeyGetter Intances.
     for (const auto &channel_id : GpgKeyGetter::GetAllChannelId()) {
       GpgKeyGetter::GetInstance(channel_id).FlushKeyCache();
