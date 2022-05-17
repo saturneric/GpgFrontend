@@ -5,7 +5,7 @@
 - Manual
     - [Understand Interface](manual/understand-interface.md)
     - [Encrypt & Decrypt Text](manual/encrypt-decrypt-text.md)
-    - Symmetric Encrypt & Decrypt Text
+    - [Symmetric Encrypt & Decrypt Text](manual/symmetric-encrypt-decrypt-text.md)
     - [Sign & Verify Text](manual/sign-verify-text.md)
     - [Encrypt & Decrypt File](manual/encrypt-decrypt-file.md)
     - [Sign & Verify File](manual/sign-verify-file.md)
