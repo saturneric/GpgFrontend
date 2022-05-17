@@ -1,6 +1,7 @@
 - Getting Start
     - [Overview](overview.md)
     - [Quick Start](quick-start.md)
+    - [Downloads](downloads.md)
     - [Basic concepts](basic-concepts.md)
 - Manual
     - [Understand Interface](manual/understand-interface.md)

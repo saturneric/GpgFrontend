@@ -22,7 +22,7 @@
 - Open source, Installation-free and Free forever.
 - Supports multiple languages.
 
-[Download](download.md)
+[Downloads](downloads.md)
 [Manual](overview.md)
 [Document](https://doxygen.gpgfrontend.pub)
 
