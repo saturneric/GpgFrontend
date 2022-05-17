@@ -19,8 +19,10 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
@@ -28,6 +30,11 @@
 #define GPGFRONTEND_TASK_H
 
 #include <functional>
+#include <memory>
+#include <stack>
+#include <string>
+#include <type_traits>
+#include <utility>
 
 #include "core/GpgFrontendCore.h"
 
@@ -38,9 +45,117 @@ class TaskRunner;
 class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
   Q_OBJECT
  public:
-  using TaskRunnable = std::function<int()>;      ///<
-  using TaskCallback = std::function<void(int)>;  ///<
+  class DataObject;
+  using DataObjectPtr = std::shared_ptr<DataObject>;             ///<
+  using TaskRunnable = std::function<int(DataObjectPtr)>;        ///<
+  using TaskCallback = std::function<void(int, DataObjectPtr)>;  ///<
+
   friend class TaskRunner;
+
+  /**
+   * @brief DataObject to be passed to the callback function.
+   *
+   */
+  class GPGFRONTEND_CORE_EXPORT DataObject {
+   public:
+    struct Destructor {
+      const void *p_obj;
+      void (*destroy)(const void *);
+    };
+
+    /**
+     * @brief Get the Objects Size
+     *
+     * @return size_t
+     */
+    size_t GetObjectSize();
+
+    /**
+     * @brief
+     *
+     * @tparam T
+     * @param ptr
+     */
+    template <typename T>
+    void AppendObject(T &&obj) {
+      LOG(INFO) << "called:" << this;
+      auto *obj_dstr = this->get_heap_ptr(sizeof(T));
+      auto *ptr_heap = new ((void *)obj_dstr->p_obj) T(std::move(obj));
+      if (std::is_class_v<T>) {
+        auto destructor = [](const void *x) {
+          static_cast<const T *>(x)->~T();
+        };
+        obj_dstr->destroy = destructor;
+      } else {
+        obj_dstr->destroy = nullptr;
+      }
+      data_objects_.push(std::move(obj_dstr));
+    }
+
+    /**
+     * @brief
+     *
+     * @tparam T
+     * @param ptr
+     */
+    template <typename T>
+    void AppendObject(T *obj) {
+      LOG(INFO) << "called:" << this;
+      auto *obj_dstr = this->get_heap_ptr(sizeof(T));
+      auto *ptr_heap = new ((void *)obj_dstr->p_obj) T(std::move(*obj));
+      if (std::is_class_v<T>) {
+        auto destructor = [](const void *x) {
+          static_cast<const T *>(x)->~T();
+        };
+        obj_dstr->destroy = destructor;
+      } else {
+        obj_dstr->destroy = nullptr;
+      }
+      data_objects_.push(std::move(obj_dstr));
+    }
+
+    /**
+     * @brief
+     *
+     * @tparam T
+     * @return std::shared_ptr<T>
+     */
+    template <typename T>
+    T PopObject() {
+      LOG(INFO) << "called:" << this;
+      if (data_objects_.empty()) throw std::runtime_error("No object to pop");
+      auto *obj_dstr = data_objects_.top();
+      auto *heap_ptr = (T *)obj_dstr->p_obj;
+      auto obj = std::move(*(T *)(heap_ptr));
+      this->free_heap_ptr(obj_dstr);
+      data_objects_.pop();
+      return obj;
+    }
+
+    /**
+     * @brief Destroy the Data Object object
+     *
+     */
+    ~DataObject();
+
+   private:
+    std::stack<Destructor *> data_objects_;  ///<
+
+    /**
+     * @brief Get the heap ptr object
+     *
+     * @param bytes_size
+     * @return void*
+     */
+    Destructor *get_heap_ptr(size_t bytes_size);
+
+    /**
+     * @brief
+     *
+     * @param heap_ptr
+     */
+    void free_heap_ptr(Destructor *);
+  };
 
   /**
    * @brief Construct a new Task object
@@ -52,9 +167,8 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    * @brief Construct a new Task object
    *
    * @param callback The callback function to be executed.
-   *                 callback must not be nullptr, and not tp opreate UI object.
    */
-  Task(TaskCallback callback);
+  Task(TaskCallback callback, DataObjectPtr data_object = nullptr);
 
   /**
    * @brief Construct a new Task object
@@ -62,7 +176,9 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    * @param runnable
    */
   Task(
-      TaskRunnable runnable, TaskCallback callback = [](int) {});
+      TaskRunnable runnable,
+      TaskCallback callback = [](int, std::shared_ptr<DataObject>) {},
+      DataObjectPtr data = nullptr);
 
   /**
    * @brief Destroy the Task object
@@ -76,19 +192,43 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    */
   virtual void Run();
 
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  std::string GetUUID() const;
+
  signals:
+  /**
+   * @brief
+   *
+   */
   void SignalTaskFinished();
 
  protected:
+  /**
+   * @brief Set the Finish After Run object
+   *
+   * @param finish_after_run
+   */
   void SetFinishAfterRun(bool finish_after_run);
 
+  /**
+   * @brief
+   *
+   * @param rtn
+   */
   void SetRTN(int rtn);
 
  private:
-  TaskCallback callback_;         ///<
-  TaskRunnable runnable_;         ///<
-  bool finish_after_run_ = true;  ///<
-  int rtn_ = 0;                   ///<
+  const std::string uuid_;
+  TaskCallback callback_;                ///<
+  TaskRunnable runnable_;                ///<
+  bool finish_after_run_ = true;         ///<
+  int rtn_ = 0;                          ///<
+  QThread *callback_thread_ = nullptr;   ///<
+  DataObjectPtr data_object_ = nullptr;  ///<
 
   /**
    * @brief
@@ -107,6 +247,13 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    *
    */
   virtual void run() override;
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  static std::string generate_uuid();
 };
 }  // namespace GpgFrontend::Thread
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>method</key>
+	<string>developer-id</string>
+	<key>teamID</key>
+	<string>@GPGFRONTEND_XCODE_TEAM_ID@</string>
+	<key>compileBitcode</key>
+	<true/>
+	<key>signingStyle</key>
+	<string>automatic</string>
+	<key>signingCertificate</key>
+	<string>@GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY@</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>@GPGFRONTEND_XOCDE_APPID@</key>
+		<string>@GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID@</string>
+	</dict>
+</dict>
+</plist>

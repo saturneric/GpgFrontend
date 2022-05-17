@@ -6,20 +6,23 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
   <meta name="description" content="Description">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-defaults.css">
   <link rel="shortcut icon" href="/_media/icon.svg" type="image/x-icon">
 </head>
 <body>
   <div id="app"></div>
   <script>
     window.$docsify = {
-	  logo: '/_media/trademark.png',
-	  name: 'GpgFrontend',
+      search: 'auto',
+	    logo: '/_media/trademark.png',
+	    name: 'GpgFrontend',
       loadNavbar: true,
       loadSidebar: true,
       coverpage: true,
       onlyCover: true,
       subMaxLevel: 3,
+      repo: 'https://github.com/saturneric/GpgFrontend',
+      mergeNavbar: true,
       alias: {
         '/.*/_sidebar.md': '/_sidebar.md'
       }
@@ -29,5 +32,7 @@
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-php.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-edit-on-github"></script>
+  <script type="module" src="https://getbadgecdn.azureedge.net/ms-store-badge.bundled.js"></script>
 </body>
 </html>

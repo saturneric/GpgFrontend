@@ -80,6 +80,10 @@ target_link_libraries(gpgfrontend_core PUBLIC gpgme assuan gpg-error)
 target_link_libraries(gpgfrontend_core PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 # link boost libraries
 target_link_libraries(gpgfrontend_core PUBLIC ${Boost_LIBRARIES})
+if(MINGW)
+    # for uuid ability in mingw
+    target_link_libraries(gpgfrontend_core PUBLIC bcrypt)
+endif()
 
 # link libarchive
 target_link_libraries(gpgfrontend_core PRIVATE archive)
