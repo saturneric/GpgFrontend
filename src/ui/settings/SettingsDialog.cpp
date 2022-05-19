@@ -29,12 +29,12 @@
 #include "SettingsDialog.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "ui/main_window/MainWindow.h"
 #include "ui/settings/SettingsAdvanced.h"
 #include "ui/settings/SettingsAppearance.h"
 #include "ui/settings/SettingsGeneral.h"
 #include "ui/settings/SettingsKeyServer.h"
 #include "ui/settings/SettingsNetwork.h"
-#include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::UI {
 
@@ -45,31 +45,38 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
   key_server_tab_ = new KeyserverTab();
   network_tab_ = new NetworkTab();
 
+  auto* mainLayout = new QVBoxLayout;
+  mainLayout->addWidget(tab_widget_);
+  mainLayout->stretch(0);
+
   tab_widget_->addTab(general_tab_, _("General"));
   tab_widget_->addTab(appearance_tab_, _("Appearance"));
   tab_widget_->addTab(key_server_tab_, _("Key Server"));
   tab_widget_->addTab(network_tab_, _("Network"));
 
+#ifndef MACOS
   button_box_ =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-
-  connect(button_box_, &QDialogButtonBox::accepted, this, &SettingsDialog::SlotAccept);
-  connect(button_box_, &QDialogButtonBox::rejected, this, &SettingsDialog::reject);
-
-  auto* mainLayout = new QVBoxLayout;
-  mainLayout->addWidget(tab_widget_);
-  mainLayout->stretch(0);
+  connect(button_box_, &QDialogButtonBox::accepted, this,
+          &SettingsDialog::SlotAccept);
+  connect(button_box_, &QDialogButtonBox::rejected, this,
+          &SettingsDialog::reject);
   mainLayout->addWidget(button_box_);
   mainLayout->stretch(0);
-  setLayout(mainLayout);
-
   setWindowTitle(_("Settings"));
+#else
+  connect(this, &QDialog::close, this, &SettingsDialog::SlotAccept);
+  setWindowTitle(_("Preference"));
+#endif
+
+  setLayout(mainLayout);
 
   // slots for handling the restart needed member
   this->slot_set_restart_needed(false);
   connect(general_tab_, &GeneralTab::SignalRestartNeeded, this,
           &SettingsDialog::slot_set_restart_needed);
-  connect(this, &SettingsDialog::SignalRestartNeeded, qobject_cast<MainWindow *>(parent), &MainWindow::SlotSetRestartNeeded);
+  connect(this, &SettingsDialog::SignalRestartNeeded,
+          qobject_cast<MainWindow*>(parent), &MainWindow::SlotSetRestartNeeded);
 
   this->setMinimumSize(480, 680);
   this->adjustSize();
