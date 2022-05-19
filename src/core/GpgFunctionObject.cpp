@@ -51,19 +51,19 @@ void GpgFrontend::SingletonStorage::ReleaseChannel(int channel) {
     _it = instances_map_.find(channel);
   }
   if (_it != instances_map_.end()) instances_map_.erase(_it);
-  DLOG(INFO) << "channel" << channel << "released";
+  DLOG(TRACE) << "channel" << channel << "released";
 }
 
 GpgFrontend::ChannelObject* GpgFrontend::SingletonStorage::FindObjectInChannel(
     int channel) {
-  LOG(INFO) << "channel:" << channel << "instance address:" << &instances_map_;
+  LOG(TRACE) << "channel:" << channel << "instance address:" << &instances_map_;
   // read instances_map_
   decltype(instances_map_.end()) _it;
   {
     std::shared_lock<std::shared_mutex> lock(instances_mutex_);
     _it = instances_map_.find(channel);
     if (_it == instances_map_.end()) {
-      LOG(INFO) << "channel:" << channel << "not found";
+      LOG(TRACE) << "channel:" << channel << "not found";
       return nullptr;
     } else {
       return _it->second.get();
@@ -82,8 +82,8 @@ std::vector<int> GpgFrontend::SingletonStorage::GetAllChannelId() {
 GpgFrontend::ChannelObject* GpgFrontend::SingletonStorage::SetObjectInChannel(
     int channel, std::unique_ptr<ChannelObject> p_obj) {
   {
-    LOG(INFO) << "channel:" << channel
-              << "instance address:" << &instances_map_;
+    LOG(TRACE) << "channel:" << channel
+               << "instance address:" << &instances_map_;
 
     assert(p_obj != nullptr);
     if (p_obj == nullptr) return nullptr;
@@ -102,7 +102,7 @@ GpgFrontend::SingletonStorage*
 GpgFrontend::SingletonStorageCollection::GetSingletonStorage(
     const std::type_info& type_id) {
   const auto hash = type_id.hash_code();
-  LOG(INFO) << "hash" << hash << "type_name:" << type_id.name();
+  LOG(TRACE) << "hash" << hash << "type_name:" << type_id.name();
 
   while (true) {
     decltype(storages_map_.end()) _it;
@@ -111,16 +111,16 @@ GpgFrontend::SingletonStorageCollection::GetSingletonStorage(
       _it = storages_map_.find(hash);
     }
     if (_it == storages_map_.end()) {
-      LOG(INFO) << "hash:" << hash << "not found";
+      LOG(TRACE) << "hash:" << hash << "not found";
       {
         std::unique_lock<std::shared_mutex> lock(storages_mutex_);
         storages_map_.insert({hash, std::make_unique<SingletonStorage>()});
-        LOG(INFO) << "hash:" << hash << "created"
-                  << "storage address:" << &storages_map_;
+        LOG(TRACE) << "hash:" << hash << "created"
+                   << "storage address:" << &storages_map_;
       }
       continue;
     } else {
-      LOG(INFO) << "hash:" << hash << "found";
+      LOG(TRACE) << "hash:" << hash << "found";
       return _it->second.get();
     }
   }
@@ -138,6 +138,6 @@ GpgFrontend::SingletonStorageCollection::GetInstance() {
 GpgFrontend::ChannelObject::ChannelObject() noexcept = default;
 
 GpgFrontend::ChannelObject::ChannelObject(int channel) : channel_(channel) {
-  LOG(INFO) << "called"
-            << "channel:" << channel;
+  LOG(TRACE) << "called"
+             << "channel:" << channel;
 }
