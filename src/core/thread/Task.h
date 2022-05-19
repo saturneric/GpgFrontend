@@ -78,7 +78,7 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
      */
     template <typename T>
     void AppendObject(T &&obj) {
-      LOG(INFO) << "called:" << this;
+      DLOG(TRACE) << "called:" << this;
       auto *obj_dstr = this->get_heap_ptr(sizeof(T));
       auto *ptr_heap = new ((void *)obj_dstr->p_obj) T(std::move(obj));
       if (std::is_class_v<T>) {
@@ -100,10 +100,11 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
      */
     template <typename T>
     void AppendObject(T *obj) {
-      LOG(INFO) << "called:" << this;
+      DLOG(TRACE) << "called:" << this;
       auto *obj_dstr = this->get_heap_ptr(sizeof(T));
       auto *ptr_heap = new ((void *)obj_dstr->p_obj) T(std::move(*obj));
       if (std::is_class_v<T>) {
+        LOG(TRACE) << "is class";
         auto destructor = [](const void *x) {
           static_cast<const T *>(x)->~T();
         };
@@ -122,7 +123,7 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
      */
     template <typename T>
     T PopObject() {
-      LOG(INFO) << "called:" << this;
+      DLOG(TRACE) << "called:" << this;
       if (data_objects_.empty()) throw std::runtime_error("No object to pop");
       auto *obj_dstr = data_objects_.top();
       auto *heap_ptr = (T *)obj_dstr->p_obj;

@@ -29,18 +29,7 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
 #define GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
 
-#include <map>
-#include <memory>
-#include <mutex>
-#include <shared_mutex>
-#include <stdexcept>
-#include <string>
-#include <typeinfo>
-#include <utility>
-#include <vector>
-
 #include "GpgConstants.h"
-#include "easylogging++.h"
 
 namespace GpgFrontend {
 
@@ -189,14 +178,14 @@ class SingletonFunctionObject : public ChannelObject {
 
     auto* _p_pbj = (T*)(p_storage->FindObjectInChannel(channel));
 
-    LOG(INFO) << "object address" << _p_pbj;
-
     if (_p_pbj == nullptr) {
       auto new_obj = std::unique_ptr<ChannelObject>(new T(channel));
-      LOG(INFO) << "create new object";
+      LOG(TRACE) << "create new object" << new_obj.get();
       return *(T*)(p_storage->SetObjectInChannel(channel, std::move(new_obj)));
-    } else
+    } else {
+      LOG(TRACE) << "saved object address" << _p_pbj;
       return *_p_pbj;
+    }
   }
 
   /**
@@ -293,8 +282,8 @@ class SingletonFunctionObject : public ChannelObject {
    * @param channel
    */
   explicit SingletonFunctionObject(int channel) : ChannelObject(channel) {
-    LOG(INFO) << "called"
-              << "channel:" << channel;
+    LOG(TRACE) << "called"
+               << "channel:" << channel;
   }
 
   /**
