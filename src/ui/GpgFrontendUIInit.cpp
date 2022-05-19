@@ -28,12 +28,17 @@
 
 #include "GpgFrontendUIInit.h"
 
+#include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/CtxCheckTask.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/main_window/MainWindow.h"
+
+#if !defined(RELEASE) && defined(WINDOWS)
+#include "core/function/GlobalSettingStation.h"
+#endif
 
 // init easyloggingpp library
 INITIALIZE_EASYLOGGINGPP
@@ -43,10 +48,50 @@ namespace GpgFrontend::UI {
 extern void init_logging();
 extern void init_locale();
 
-void InitGpgFrontendUI() {
+void InitGpgFrontendUI(QApplication* app) {
+  app->setQuitOnLastWindowClosed(true);
+
+#ifndef MACOS
+  app->setWindowIcon(QIcon(":gpgfrontend.png"));
+#endif
+
+#ifdef MACOS
+  // support retina screen
+  app->setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
+
+  // set the extra information of the build
+  app->setApplicationVersion(BUILD_VERSION);
+  app->setApplicationName(PROJECT_NAME);
+
+  // don't show icons in menus
+  app->setAttribute(Qt::AA_DontShowIconsInMenus);
+
+  // unicode in source
+  QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
+
+#if !defined(RELEASE) && defined(WINDOWS)
+  // css
+  std::filesystem::path css_path =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetResourceDir() /
+      "css" / "default.qss";
+  QFile file(css_path.u8string().c_str());
+  file.open(QFile::ReadOnly);
+  QString styleSheet = QLatin1String(file.readAll());
+  qApp->setStyleSheet(styleSheet);
+  file.close();
+#endif
+
+  // init locale
   init_locale();
+
+  // init logging system
   init_logging();
+
+  // init signal station
   SignalStation::GetInstance();
+
+  // init common utils
   CommonUtils::GetInstance();
 
   // create the thread to load the gpg context
@@ -65,15 +110,14 @@ void InitGpgFrontendUI() {
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
-  QApplication::connect(init_ctx_task,
-                        &Thread::CtxCheckTask::SignalTaskFinished,
-                        waiting_dialog, [=]() {
-                          LOG(INFO) << "Gpg context loaded";
-                          waiting_dialog->finished(0);
-                          waiting_dialog->deleteLater();
-                        });
+  app->connect(init_ctx_task, &Thread::CtxCheckTask::SignalTaskFinished,
+               waiting_dialog, [=]() {
+                 LOG(INFO) << "Gpg context loaded";
+                 waiting_dialog->finished(0);
+                 waiting_dialog->deleteLater();
+               });
 
-  QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
+  app->connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
     LOG(INFO) << "cancel clicked";
     QCoreApplication::quit();
     exit(0);
@@ -86,9 +130,8 @@ void InitGpgFrontendUI() {
 
   // new local event looper
   QEventLoop looper;
-  QApplication::connect(init_ctx_task,
-                        &Thread::CtxCheckTask::SignalTaskFinished, &looper,
-                        &QEventLoop::quit);
+  app->connect(init_ctx_task, &Thread::CtxCheckTask::SignalTaskFinished,
+               &looper, &QEventLoop::quit);
 
   // start the thread to load the gpg context
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
@@ -98,7 +141,7 @@ void InitGpgFrontendUI() {
   looper.exec();
 }
 
-int RunGpgFrontendUI() {
+int RunGpgFrontendUI(QApplication* app) {
   // create main window and show it
   auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
   main_window->Init();
