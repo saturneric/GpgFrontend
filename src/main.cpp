@@ -97,17 +97,17 @@ int main(int argc, char* argv[]) {
   // clean something before exit
   atexit(before_exit);
 
-  // init the logging system
-  init_logging_system();
-
-  // init the logging system for core
-  GpgFrontend::InitLoggingSystem();
-
   // initialize qt resources
   Q_INIT_RESOURCE(gpgfrontend);
 
   // create qt application
   auto* app = init_qapplication(argc, argv);
+
+  // init the logging system
+  init_logging_system();
+
+  // init the logging system for core
+  GpgFrontend::InitLoggingSystem();
 
   /**
    * internationalisation. loop to restart main window

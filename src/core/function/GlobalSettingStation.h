@@ -143,7 +143,7 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
 
  private:
   std::filesystem::path app_path_ =
-      qApp->applicationDirPath().toStdString();  ///< Program Location
+      QCoreApplication::applicationDirPath().toStdString();  ///< Program Location
   std::filesystem::path app_data_path_ =
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
           .toStdString();  ///< Program Data Location
