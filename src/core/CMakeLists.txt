@@ -40,9 +40,6 @@ add_library(gpgfrontend_core SHARED ${GPG_SOURCE})
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendCoreExport.h")
 generate_export_header(gpgfrontend_core EXPORT_FILE_NAME "${_export_file}")
 
-set(UTILS_DIR ${CMAKE_SOURCE_DIR}/utils)
-set(GPGME_LIB_DIR ${UTILS_DIR}/gpgme/lib)
-
 # link third-party libraries
 target_link_libraries(gpgfrontend_core PUBLIC config++)
 if (NOT LINUX)
@@ -75,7 +72,7 @@ else ()
 endif ()
 
 # link gnupg libraries
-target_link_libraries(gpgfrontend_core PUBLIC gpgme assuan gpg-error)
+target_link_libraries(gpgfrontend_core PRIVATE gpgme assuan gpg-error)
 # link openssl
 target_link_libraries(gpgfrontend_core PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 # link boost libraries
@@ -97,7 +94,8 @@ target_link_libraries(gpgfrontend_core PUBLIC Qt5::Core)
 # set up pch
 target_precompile_headers(gpgfrontend_core
         PUBLIC ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h
-        PUBLIC GpgFrontendCore.h)
+        PUBLIC GpgFrontendCore.h
+        PUBLIC GpgConstants.h)
 
 # using std c++ 17
 target_compile_features(gpgfrontend_core PUBLIC cxx_std_17)
