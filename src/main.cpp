@@ -32,16 +32,11 @@
 
 #include <csetjmp>
 #include <csignal>
-#include <cstdlib>
+#include <cstddef>
 
-#include "GpgFrontendBuildInfo.h"
-#include "core/GpgFunctionObject.h"
-#include "ui/GpgFrontendUIInit.h"
-#include "ui/main_window/MainWindow.h"
-
-#if !defined(RELEASE) && defined(WINDOWS)
+#include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
-#endif
+#include "ui/GpgFrontendUIInit.h"
 
 /**
  * \brief initialize the easylogging++ library.
@@ -54,17 +49,38 @@ INITIALIZE_EASYLOGGINGPP
 jmp_buf recover_env;
 
 /**
- * @brief
+ * @brief handle the signal SIGSEGV
  *
  * @param sig
  */
 extern void handle_signal(int sig);
 
 /**
- * @brief
+ * @brief processes before exit the program.
  *
  */
 extern void before_exit();
+
+/**
+ * @brief init a new instance of QApplication.
+ *
+ * @param argc
+ * @param argv
+ */
+extern QApplication* init_qapplication(int argc, char* argv[]);
+
+/**
+ * @brief destroy the instance of QApplication.
+ *
+ * @param app
+ */
+extern void destory_qapplication(QApplication* app);
+
+/**
+ * @brief initialize the logging system.
+ *
+ */
+extern void init_logging_system();
 
 /**
  *
@@ -81,42 +97,17 @@ int main(int argc, char* argv[]) {
   // clean something before exit
   atexit(before_exit);
 
+  // init the logging system
+  init_logging_system();
+
+  // init the logging system for core
+  GpgFrontend::InitLoggingSystem();
+
   // initialize qt resources
   Q_INIT_RESOURCE(gpgfrontend);
 
   // create qt application
-  QApplication app(argc, argv);
-
-#ifndef MACOS
-  QApplication::setWindowIcon(QIcon(":gpgfrontend.png"));
-#endif
-
-#ifdef MACOS
-  // support retina screen
-  QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-#endif
-
-  // set the extra information of the build
-  QApplication::setApplicationVersion(BUILD_VERSION);
-  QApplication::setApplicationName(PROJECT_NAME);
-
-  // don't show icons in menus
-  QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
-
-  // unicode in source
-  QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
-
-#if !defined(RELEASE) && defined(WINDOWS)
-  // css
-  std::filesystem::path css_path =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetResourceDir() /
-      "css" / "default.qss";
-  QFile file(css_path.u8string().c_str());
-  file.open(QFile::ReadOnly);
-  QString styleSheet = QLatin1String(file.readAll());
-  qApp->setStyleSheet(styleSheet);
-  file.close();
-#endif
+  auto* app = init_qapplication(argc, argv);
 
   /**
    * internationalisation. loop to restart main window
@@ -134,13 +125,14 @@ int main(int argc, char* argv[]) {
 #ifdef RELEASE
       try {
 #endif
-        QApplication::setQuitOnLastWindowClosed(true);
+        // renew application
+        if (app == nullptr) app = init_qapplication(argc, argv);
 
         // init ui library
-        GpgFrontend::UI::InitGpgFrontendUI();
+        GpgFrontend::UI::InitGpgFrontendUI(app);
 
         // create main window
-        return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI();
+        return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
 #ifdef RELEASE
       } catch (...) {
         // catch all unhandled exceptions and notify the user
@@ -152,10 +144,8 @@ int main(int argc, char* argv[]) {
               "serious problem, it may be the negligence of the programmer, "
               "please report this problem if you can."));
         return_from_event_loop_code = RESTART_CODE;
-        continue;
       }
 #endif
-
     } else {
       // when signal is caught, restart the main window
       QMessageBox::information(
@@ -163,11 +153,16 @@ int main(int argc, char* argv[]) {
           _("Oh no! GpgFrontend caught a serious error in the software, so it "
             "needs to be restarted. If the problem recurs, please manually "
             "terminate the program and report the problem to the developer."));
-      QCoreApplication::quit();
       return_from_event_loop_code = RESTART_CODE;
       LOG(INFO) << "return_from_event_loop_code" << return_from_event_loop_code;
-      continue;
     }
+
+    // destory the application
+    if (app) {
+      destory_qapplication(app);
+      app = nullptr;
+    }
+
     LOG(INFO) << "loop refresh";
   } while (return_from_event_loop_code == RESTART_CODE);
 
