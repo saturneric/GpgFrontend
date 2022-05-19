@@ -29,9 +29,6 @@
 #ifndef GPGFRONTEND_GPGKEY_H
 #define GPGFRONTEND_GPGKEY_H
 
-#include <boost/date_time.hpp>
-#include <boost/date_time/posix_time/conversion.hpp>
-
 #include "GpgSubKey.h"
 #include "GpgUID.h"
 

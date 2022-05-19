@@ -28,10 +28,7 @@
 
 #include "core/GpgConstants.h"
 
-#include <gpg-error.h>
-
 #include <boost/algorithm/string/predicate.hpp>
-#include <string>
 
 #include "function/FileOperator.h"
 
@@ -56,9 +53,9 @@ const char* GpgFrontend::GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD =
 
 gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    LOG(ERROR) << "[" << _("Error") << " " << gpg_err_code(err) << "] "
-               << _("Source: ") << gpgme_strsource(err) << " "
-               << _("Description: ") << gpgme_strerror(err);
+    LOG(ERROR) << "[" << _("Error") << gpg_err_code(err) << "]" << _("Source: ")
+               << gpgme_strsource(err) << _("Description: ")
+               << gpgme_strerror(err);
   }
   return err;
 }
@@ -66,10 +63,16 @@ gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err) {
 gpg_err_code_t GpgFrontend::check_gpg_error_2_err_code(gpgme_error_t err,
                                                        gpgme_error_t predict) {
   auto err_code = gpg_err_code(err);
-  if (err_code != predict) {
-    LOG(ERROR) << "[" << _("Error") << " " << gpg_err_code(err) << "] "
-               << _("Source: ") << gpgme_strsource(err) << " "
-               << _("Description: ") << gpgme_strerror(err);
+  if (err_code != gpg_err_code(predict)) {
+    if (err_code == GPG_ERR_NO_ERROR)
+      LOG(WARNING) << "[" << _("Warning") << gpg_err_code(err) << "]"
+                   << _("Source: ") << gpgme_strsource(err)
+                   << _("Description: ") << gpgme_strerror(err) << _("Predict")
+                   << gpgme_strerror(err);
+    else
+      LOG(ERROR) << "[" << _("Error") << gpg_err_code(err) << "]"
+                 << _("Source: ") << gpgme_strsource(err) << _("Description: ")
+                 << gpgme_strerror(err) << _("Predict") << gpgme_strerror(err);
   }
   return err_code;
 }
@@ -77,9 +80,9 @@ gpg_err_code_t GpgFrontend::check_gpg_error_2_err_code(gpgme_error_t err,
 gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
                                            const std::string& comment) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    LOG(ERROR) << "[" << _("Error") << " " << gpg_err_code(err) << "] "
-               << _("Source: ") << gpgme_strsource(err) << " "
-               << _("Description: ") << gpgme_strerror(err);
+    LOG(ERROR) << "[" << _("Error") << gpg_err_code(err) << "]" << _("Source: ")
+               << gpgme_strsource(err) << _("Description: ")
+               << gpgme_strerror(err);
   }
   return err;
 }

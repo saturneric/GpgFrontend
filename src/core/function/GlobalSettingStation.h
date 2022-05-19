@@ -29,11 +29,6 @@
 #ifndef GPGFRONTEND_GLOBALSETTINGSTATION_H
 #define GPGFRONTEND_GLOBALSETTINGSTATION_H
 
-#include <openssl/x509.h>
-
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
-
 #include "GpgFrontendBuildInstallInfo.h"
 #include "core/GpgFrontendCore.h"
 #include "core/GpgFunctionObject.h"
