@@ -38,9 +38,6 @@ GpgFrontend::Thread::CtxCheckTask::CtxCheckTask() {
 }
 
 void GpgFrontend::Thread::CtxCheckTask::Run() {
-  // init logging
-  init_logging();
-
   // Init GpgFrontend Core
   init_gpgfrontend_core();
 
