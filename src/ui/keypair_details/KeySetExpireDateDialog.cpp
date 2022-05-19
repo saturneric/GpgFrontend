@@ -84,7 +84,9 @@ void KeySetExpireDateDialog::slot_confirm() {
 
     this->close();
   } else {
-    QMessageBox::critical(this, _("Failure"), _(gpgme_strerror(err)));
+    QMessageBox::critical(
+        this, _("Failure"),
+        _("Failed to update the expire date of the key pair."));
   }
 }
 

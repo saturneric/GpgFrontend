@@ -285,7 +285,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
       emit SignalSubKeyGenerated();
       this->close();
     } else
-      QMessageBox::critical(this, _("Failure"), _(gpgme_strerror(error)));
+      QMessageBox::critical(this, _("Failure"), _("Failed to generate key."));
 
   } else {
     /**
