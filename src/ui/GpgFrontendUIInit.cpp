@@ -28,7 +28,6 @@
 
 #include "GpgFrontendUIInit.h"
 
-#include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/CtxCheckTask.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -45,30 +44,15 @@ INITIALIZE_EASYLOGGINGPP
 
 namespace GpgFrontend::UI {
 
-extern void init_logging();
+extern void init_logging_system();
 extern void init_locale();
 
 void InitGpgFrontendUI(QApplication* app) {
-  app->setQuitOnLastWindowClosed(true);
+  // init logging system
+  init_logging_system();
 
-#ifndef MACOS
-  app->setWindowIcon(QIcon(":gpgfrontend.png"));
-#endif
-
-#ifdef MACOS
-  // support retina screen
-  app->setAttribute(Qt::AA_UseHighDpiPixmaps);
-#endif
-
-  // set the extra information of the build
-  app->setApplicationVersion(BUILD_VERSION);
-  app->setApplicationName(PROJECT_NAME);
-
-  // don't show icons in menus
-  app->setAttribute(Qt::AA_DontShowIconsInMenus);
-
-  // unicode in source
-  QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
+  // init locale
+  init_locale();
 
 #if !defined(RELEASE) && defined(WINDOWS)
   // css
@@ -81,12 +65,6 @@ void InitGpgFrontendUI(QApplication* app) {
   qApp->setStyleSheet(styleSheet);
   file.close();
 #endif
-
-  // init locale
-  init_locale();
-
-  // init logging system
-  init_logging();
 
   // init signal station
   SignalStation::GetInstance();
@@ -119,7 +97,7 @@ void InitGpgFrontendUI(QApplication* app) {
 
   app->connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
     LOG(INFO) << "cancel clicked";
-    QCoreApplication::quit();
+    app->quit();
     exit(0);
   });
 
@@ -145,31 +123,42 @@ int RunGpgFrontendUI(QApplication* app) {
   // create main window and show it
   auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
   main_window->Init();
+  LOG(INFO) << "Main window inited";
   main_window->show();
-  return QApplication::exec();
+  // start the main event loop
+  return app->exec();
 }
 
-void init_logging() {
+void init_logging_system() {
   using namespace boost::posix_time;
   using namespace boost::gregorian;
 
-  ptime now = second_clock::local_time();
-
   el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
+  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+  el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
+
   el::Configurations defaultConf;
   defaultConf.setToDefault();
-  el::Loggers::reconfigureLogger("default", defaultConf);
 
   // apply settings
   defaultConf.setGlobally(el::ConfigurationType::Format,
-                          "%datetime %level %func %msg");
+                          "%datetime %level [ui] {%func} -> %msg");
+
+  // apply settings no written to file
+  defaultConf.setGlobally(el::ConfigurationType::ToFile, "false");
+
+  // apply settings
+  el::Loggers::reconfigureLogger("default", defaultConf)->reconfigure();
 
   // get the log directory
-  auto logfile_path =
-      (GlobalSettingStation::GetInstance().GetLogDir() / to_iso_string(now));
+  auto logfile_path = (GlobalSettingStation::GetInstance().GetLogDir() /
+                       to_iso_string(second_clock::local_time()));
   logfile_path.replace_extension(".log");
   defaultConf.setGlobally(el::ConfigurationType::Filename,
                           logfile_path.u8string());
+
+  // apply settings written to file
+  defaultConf.setGlobally(el::ConfigurationType::ToFile, "false");
 
   el::Loggers::reconfigureLogger("default", defaultConf);
 

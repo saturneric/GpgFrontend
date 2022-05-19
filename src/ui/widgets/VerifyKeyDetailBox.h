@@ -65,7 +65,7 @@ class VerifyKeyDetailBox : public QGroupBox {
    */
   QGridLayout* create_key_info_grid(const GpgSignature& signature);
 
-  std::string fpr_;  ///<
+  std::string fpr_;  ///< fingerprint of the key
 };
 
 }  // namespace GpgFrontend::UI
