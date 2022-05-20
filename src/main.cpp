@@ -35,7 +35,7 @@
 #include <cstddef>
 
 #include "core/GpgCoreInit.h"
-#include "core/function/GlobalSettingStation.h"
+#include "ui/GpgFrontendApplication.h"
 #include "ui/GpgFrontendUIInit.h"
 
 /**
@@ -47,6 +47,8 @@ INITIALIZE_EASYLOGGINGPP
  * \brief Store the jump buff and make it possible to recover from a crash.
  */
 jmp_buf recover_env;
+
+constexpr int CRASH_CODE = ~0;  ///<
 
 /**
  * @brief handle the signal SIGSEGV
@@ -60,21 +62,6 @@ extern void handle_signal(int sig);
  *
  */
 extern void before_exit();
-
-/**
- * @brief init a new instance of QApplication.
- *
- * @param argc
- * @param argv
- */
-extern QApplication* init_qapplication(int argc, char* argv[]);
-
-/**
- * @brief destroy the instance of QApplication.
- *
- * @param app
- */
-extern void destory_qapplication(QApplication* app);
 
 /**
  * @brief initialize the logging system.
@@ -101,7 +88,8 @@ int main(int argc, char* argv[]) {
   Q_INIT_RESOURCE(gpgfrontend);
 
   // create qt application
-  auto* app = init_qapplication(argc, argv);
+  auto* app =
+      GpgFrontend::UI::GpgFrontendApplication::GetInstance(argc, argv, true);
 
   // init the logging system
   init_logging_system();
@@ -122,49 +110,33 @@ int main(int argc, char* argv[]) {
     int r = setjmp(recover_env);
 #endif
     if (!r) {
-#ifdef RELEASE
-      try {
-#endif
-        // renew application
-        if (app == nullptr) app = init_qapplication(argc, argv);
+      // init ui library
+      GpgFrontend::UI::InitGpgFrontendUI(app);
 
-        // init ui library
-        GpgFrontend::UI::InitGpgFrontendUI(app);
-
-        // create main window
-        return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
-#ifdef RELEASE
-      } catch (...) {
-        // catch all unhandled exceptions and notify the user
-        QMessageBox::information(
-            nullptr, _("Unhandled Exception Thrown"),
-            _("Oops, an unhandled exception was thrown "
-              "during the running of the "
-              "program, and now it needs to be restarted. This is not a "
-              "serious problem, it may be the negligence of the programmer, "
-              "please report this problem if you can."));
-        return_from_event_loop_code = RESTART_CODE;
-      }
-#endif
+      // create main window
+      return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
     } else {
+      LOG(ERROR) << "recover from a crash";
       // when signal is caught, restart the main window
-      QMessageBox::information(
-          nullptr, _("A serious error has occurred"),
-          _("Oh no! GpgFrontend caught a serious error in the software, so it "
-            "needs to be restarted. If the problem recurs, please manually "
-            "terminate the program and report the problem to the developer."));
-      return_from_event_loop_code = RESTART_CODE;
-      LOG(INFO) << "return_from_event_loop_code" << return_from_event_loop_code;
+      auto* message_box = new QMessageBox(
+          QMessageBox::Critical, _("A serious error has occurred"),
+          _("Oh no! GpgFrontend caught a serious error in the software, so "
+            "it needs to be restarted. If the problem recurs, please "
+            "manually terminate the program and report the problem to the "
+            "developer."),
+          QMessageBox::Ok, nullptr);
+      message_box->exec();
+      return_from_event_loop_code = CRASH_CODE;
     }
 
-    // destory the application
-    if (app) {
-      destory_qapplication(app);
-      app = nullptr;
+    if (return_from_event_loop_code == CRASH_CODE) {
+      app = GpgFrontend::UI::GpgFrontendApplication::GetInstance(argc, argv,
+                                                                 true);
     }
 
     LOG(INFO) << "loop refresh";
-  } while (return_from_event_loop_code == RESTART_CODE);
+  } while (return_from_event_loop_code == RESTART_CODE ||
+           return_from_event_loop_code == CRASH_CODE);
 
   // exit the program
   return return_from_event_loop_code;
