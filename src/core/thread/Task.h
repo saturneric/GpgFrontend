@@ -207,6 +207,12 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    */
   void SignalTaskFinished();
 
+  /**
+   * @brief
+   *
+   */
+  void SignalTaskPostFinishedDone();
+
  protected:
   /**
    * @brief Set the Finish After Run object
