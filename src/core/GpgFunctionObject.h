@@ -180,10 +180,8 @@ class SingletonFunctionObject : public ChannelObject {
 
     if (_p_pbj == nullptr) {
       auto new_obj = std::unique_ptr<ChannelObject>(new T(channel));
-      LOG(TRACE) << "create new object" << new_obj.get();
       return *(T*)(p_storage->SetObjectInChannel(channel, std::move(new_obj)));
     } else {
-      LOG(TRACE) << "saved object address" << _p_pbj;
       return *_p_pbj;
     }
   }
@@ -281,10 +279,7 @@ class SingletonFunctionObject : public ChannelObject {
    *
    * @param channel
    */
-  explicit SingletonFunctionObject(int channel) : ChannelObject(channel) {
-    LOG(TRACE) << "called"
-               << "channel:" << channel;
-  }
+  explicit SingletonFunctionObject(int channel) : ChannelObject(channel) {}
 
   /**
    * @brief Destroy the Singleton Function Object object
