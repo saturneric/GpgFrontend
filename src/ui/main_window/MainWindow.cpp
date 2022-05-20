@@ -28,13 +28,11 @@
 
 #include "MainWindow.h"
 
-#include "ui/UserInterfaceUtils.h"
-#ifdef RELEASE
-#include "ui/thread/VersionCheckThread.h"
-#endif
 #include "core/function/GlobalSettingStation.h"
 #include "ui/SignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/thread/VersionCheckTask.h"
 
 namespace GpgFrontend::UI {
 
@@ -114,16 +112,14 @@ void MainWindow::Init() noexcept {
 
     // if not prohibit update checking
     if (!prohibit_update_checking_) {
-#ifdef RELEASE
-      auto version_thread = new VersionCheckThread();
+      auto *version_task = new VersionCheckTask();
 
-      connect(version_thread, &VersionCheckThread::finished, version_thread,
-              &VersionCheckThread::deleteLater);
-      connect(version_thread, &VersionCheckThread::SignalUpgradeVersion, this,
+      connect(version_task, &VersionCheckTask::SignalUpgradeVersion, this,
               &MainWindow::slot_version_upgrade);
 
-      version_thread->start();
-#endif
+      Thread::TaskRunnerGetter::GetInstance()
+          .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+          ->PostTask(version_task);
     }
 
   } catch (...) {
