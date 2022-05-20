@@ -58,7 +58,7 @@ GpgFrontendApplication *GpgFrontendApplication::GetInstance(int argc,
                                                             bool new_instance) {
   static GpgFrontendApplication *instance = nullptr;
   if (new_instance || !instance) {
-    if (!instance) {
+    if (instance != nullptr) {
       instance->quit();
       delete instance;
     }
