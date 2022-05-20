@@ -30,35 +30,6 @@
 #include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
 
-QApplication* init_qapplication(int argc, char* argv[]) {
-  auto* app = new QApplication(argc, argv);
-#ifndef MACOS
-  app->setWindowIcon(QIcon(":gpgfrontend.png"));
-#endif
-
-#ifdef MACOS
-  // support retina screen
-  app->setAttribute(Qt::AA_UseHighDpiPixmaps);
-#endif
-
-  // set the extra information of the build
-  app->setApplicationVersion(BUILD_VERSION);
-  app->setApplicationName(PROJECT_NAME);
-  app->setQuitOnLastWindowClosed(true);
-
-  // don't show icons in menus
-  app->setAttribute(Qt::AA_DontShowIconsInMenus);
-
-  // unicode in source
-  QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
-  return app;
-}
-
-void destory_qapplication(QApplication* app) {
-  app->quit();
-  delete app;
-}
-
 void init_logging_system() {
   el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
   el::Configurations defaultConf;
