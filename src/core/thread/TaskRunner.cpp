@@ -36,12 +36,23 @@ GpgFrontend::Thread::TaskRunner::TaskRunner() = default;
 GpgFrontend::Thread::TaskRunner::~TaskRunner() = default;
 
 void GpgFrontend::Thread::TaskRunner::PostTask(Task* task) {
-  LOG(TRACE) << "called"
-             << "Post Task" << task->GetUUID();
+  LOG(TRACE) << "Post Task" << task->GetUUID();
 
   if (task == nullptr) return;
   task->setParent(nullptr);
   task->moveToThread(this);
+
+  connect(task, &Task::SignalTaskPostFinishedDone, this, [=]() {
+    auto it = pending_tasks_.find(task->GetUUID());
+    if (it == pending_tasks_.end()) {
+      LOG(ERROR) << "Task" << task->GetUUID() << "not found in pending tasks";
+      return;
+    } else {
+      LOG(TRACE) << "Task" << task->GetUUID() << "found in pending tasks";
+      it->second->deleteLater();
+      pending_tasks_.erase(it);
+    }
+  });
   {
     std::lock_guard<std::mutex> lock(tasks_mutex_);
     tasks.push(task);
@@ -53,17 +64,19 @@ void GpgFrontend::Thread::TaskRunner::run() {
   LOG(TRACE) << "called"
              << "thread id:" << QThread::currentThreadId();
   while (true) {
+    LOG(TRACE) << "TaskRunner: A new cycle start";
     if (tasks.empty()) {
-      LOG(TRACE) << "TaskRunner: No tasks to run.";
+      LOG(TRACE) << "TaskRunner: No tasks to run, trapping into event loop...";
       exec();
     } else {
-      LOG(TRACE) << "TaskRunner: Queue size:" << tasks.size();
+      LOG(TRACE) << "TaskRunner: Task queue size:" << tasks.size();
 
       Task* task = nullptr;
       {
         std::lock_guard<std::mutex> lock(tasks_mutex_);
         task = std::move(tasks.front());
         tasks.pop();
+        pending_tasks_.insert({task->GetUUID(), task});
       }
 
       if (task != nullptr) {
@@ -74,9 +87,17 @@ void GpgFrontend::Thread::TaskRunner::run() {
         } catch (const std::exception& e) {
           LOG(ERROR) << "TaskRunner: Exception in Task" << task->GetUUID()
                      << "Exception: " << e.what();
+
+          // destroy the task, remove the task from the pending tasks
+          task->deleteLater();
+          pending_tasks_.erase(task->GetUUID());
         } catch (...) {
           LOG(ERROR) << "TaskRunner: Unknwon Exception in Task"
                      << task->GetUUID();
+
+          // destroy the task, remove the task from the pending tasks
+          task->deleteLater();
+          pending_tasks_.erase(task->GetUUID());
         }
       }
     }

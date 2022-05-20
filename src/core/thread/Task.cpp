@@ -64,7 +64,9 @@ GpgFrontend::Thread::Task::Task(TaskRunnable runnable, TaskCallback callback,
              << "callback_thread_: " << callback_thread_;
 }
 
-GpgFrontend::Thread::Task::~Task() = default;
+GpgFrontend::Thread::Task::~Task() {
+  LOG(TRACE) << "Task" << uuid_ << "destroyed";
+}
 
 std::string GpgFrontend::Thread::Task::GetUUID() const { return uuid_; }
 
@@ -76,21 +78,27 @@ void GpgFrontend::Thread::Task::SetRTN(int rtn) { this->rtn_ = rtn; }
 
 void GpgFrontend::Thread::Task::init() {
   connect(this, &Task::SignalTaskFinished, this, &Task::before_finish_task);
-  connect(this, &Task::SignalTaskFinished, this, &Task::deleteLater);
 }
 
 void GpgFrontend::Thread::Task::before_finish_task() {
   LOG(TRACE) << "Task" << uuid_ << "finished";
-  if (callback_) {
-    bool if_invoke = QMetaObject::invokeMethod(
-        callback_thread_,
-        [callback = callback_, rtn = rtn_, data_object = data_object_]() {
-          callback(rtn, data_object);
-        });
-    if (!if_invoke) {
-      LOG(ERROR) << "failed to invoke callback";
+  try {
+    if (callback_) {
+      bool if_invoke = QMetaObject::invokeMethod(
+          callback_thread_,
+          [callback = callback_, rtn = rtn_, data_object = data_object_]() {
+            callback(rtn, data_object);
+          });
+      if (!if_invoke) {
+        LOG(ERROR) << "failed to invoke callback";
+      }
     }
+  } catch (std::exception &e) {
+    LOG(ERROR) << "exception caught: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "unknown exception caught";
   }
+  emit SignalTaskPostFinishedDone();
 }
 
 void GpgFrontend::Thread::Task::run() {

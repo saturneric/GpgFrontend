@@ -67,8 +67,9 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QThread {
   void PostTask(Task* task);
 
  private:
-  std::queue<Task*> tasks;  ///< The task queue
-  std::mutex tasks_mutex_;  ///< The task queue mutex
+  std::queue<Task*> tasks;                      ///< The task queue
+  std::map<std::string, Task*> pending_tasks_;  ///< The pending tasks
+  std::mutex tasks_mutex_;                      ///< The task queue mutex
 };
 }  // namespace GpgFrontend::Thread
 
