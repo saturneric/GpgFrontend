@@ -65,7 +65,8 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
   mainLayout->stretch(0);
   setWindowTitle(_("Settings"));
 #else
-  connect(this, &QDialog::close, this, &SettingsDialog::SlotAccept);
+  connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
+  connect(this, &QDialog::finished, this, &SettingsDialog::deleteLater);
   setWindowTitle(_("Preference"));
 #endif
 
