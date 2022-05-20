@@ -86,7 +86,7 @@ GpgFrontend::GpgError GpgFrontend::GpgBasicOperator::Verify(
   GpgData data_in(in_buffer.data(), in_buffer.size());
   GpgData data_out;
 
-  if (sig_buffer != nullptr) {
+  if (sig_buffer != nullptr && sig_buffer->size() > 0) {
     GpgData sig_data(sig_buffer->data(), sig_buffer->size());
     err = check_gpg_error(gpgme_op_verify(ctx_, sig_data, data_in, nullptr));
   } else
