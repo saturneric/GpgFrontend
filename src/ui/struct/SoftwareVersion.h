@@ -54,6 +54,14 @@ struct SoftwareVersion {
    * @return true
    * @return false
    */
+  [[nodiscard]] bool InfoVaild() const { return load_info_done; }
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
   [[nodiscard]] bool NeedUpgrade() const {
     return load_info_done && !latest_prerelease && !latest_draft &&
            current_version < latest_version;
