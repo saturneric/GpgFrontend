@@ -29,8 +29,6 @@
 #ifndef GPGFRONTEND_DATAOBJECTOPERATOR_H
 #define GPGFRONTEND_DATAOBJECTOPERATOR_H
 
-#include <json/single_include/nlohmann/json.hpp>
-
 #include "core/GpgFrontendCore.h"
 #include "core/GpgFunctionObject.h"
 #include "core/function/GlobalSettingStation.h"
@@ -38,7 +36,7 @@
 namespace GpgFrontend {
 
 class GPGFRONTEND_CORE_EXPORT DataObjectOperator
-        : public SingletonFunctionObject<DataObjectOperator> {
+    : public SingletonFunctionObject<DataObjectOperator> {
  public:
   /**
    * @brief DataObjectOperator constructor

@@ -160,7 +160,7 @@ void KeyGenDialog::slot_key_gen_accept() {
       emit SignalKeyGenerated();
       this->close();
     } else {
-      QMessageBox::critical(this, _("Failure"), _(gpgme_strerror(error)));
+      QMessageBox::critical(this, _("Failure"), _("Key generation failed."));
     }
 
   } else {

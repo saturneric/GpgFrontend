@@ -30,7 +30,8 @@
 
 #include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
-#include "ui/thread/VersionCheckThread.h"
+#include "core/thread/TaskRunnerGetter.h"
+#include "ui/thread/VersionCheckTask.h"
 
 namespace GpgFrontend::UI {
 
@@ -115,7 +116,7 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
       GlobalSettingStation::GetInstance().GetResourceDir() / "TRANSLATORS";
   translators_qfile.setFileName(translators_file.u8string().c_str());
 #ifdef LINUX
-  if(!translators_qfile.exists()) {
+  if (!translators_qfile.exists()) {
     translators_qfile.setFileName("/usr/local/share/GpgFrontend/TRANSLATORS");
   }
 #endif
@@ -198,14 +199,14 @@ void UpdateTab::getLatestVersion() {
 
   LOG(INFO) << _("try to get latest version");
 
-  auto version_thread = new VersionCheckThread();
+  auto* version_task = new VersionCheckTask();
 
-  connect(version_thread, &VersionCheckThread::finished, version_thread,
-          &VersionCheckThread::deleteLater);
-  connect(version_thread, &VersionCheckThread::SignalUpgradeVersion, this,
+  connect(version_task, &VersionCheckTask::SignalUpgradeVersion, this,
           &UpdateTab::slot_show_version_status);
 
-  version_thread->start();
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+      ->PostTask(version_task);
 }
 
 void UpdateTab::slot_show_version_status(const SoftwareVersion& version) {
@@ -221,7 +222,7 @@ void UpdateTab::slot_show_version_status(const SoftwareVersion& version) {
                   "github.")) +
         "</center><center>" + _("Please click") +
         " <a "
-        "href=\"https://github.com/saturneric/GpgFrontend/releases\">" +
+        "href=\"https://www.gpgfrontend.pub/#/downloads\">" +
         _("Here") + "</a> " + _("to download the latest stable version.") +
         "</center>");
     upgrade_label_->show();
@@ -244,7 +245,7 @@ void UpdateTab::slot_show_version_status(const SoftwareVersion& version) {
                   "stability, please do not use this version.")) +
         "</center><center>" + _("Please click") +
         " <a "
-        "href=\"https://github.com/saturneric/GpgFrontend/releases\">" +
+        "href=\"https://www.gpgfrontend.pub/#/downloads\">" +
         _("Here") + "</a> " + _("to download the latest stable version.") +
         "</center>");
     upgrade_label_->show();

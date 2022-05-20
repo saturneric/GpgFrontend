@@ -53,7 +53,8 @@ void MainWindow::create_actions() {
   browser_act_->setIcon(QIcon(":file-browser.png"));
   browser_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
   browser_act_->setToolTip(_("Open a file browser"));
-  connect(browser_act_, &QAction::triggered, this, &MainWindow::slot_open_file_tab);
+  connect(browser_act_, &QAction::triggered, this,
+          &MainWindow::slot_open_file_tab);
 
   save_act_ = new QAction(_("Save File"), this);
   save_act_->setIcon(QIcon(":filesave.png"));
@@ -135,7 +136,8 @@ void MainWindow::create_actions() {
   select_all_act_->setIcon(QIcon(":edit.png"));
   select_all_act_->setShortcut(QKeySequence::SelectAll);
   select_all_act_->setToolTip(_("Select the whole text"));
-  connect(select_all_act_, &QAction::triggered, edit_, &TextEdit::SlotSelectAll);
+  connect(select_all_act_, &QAction::triggered, edit_,
+          &TextEdit::SlotSelectAll);
 
   find_act_ = new QAction(_("Find"), this);
   find_act_->setShortcut(QKeySequence::Find);
@@ -153,6 +155,7 @@ void MainWindow::create_actions() {
 
   open_settings_act_ = new QAction(_("Settings"), this);
   open_settings_act_->setToolTip(_("Open settings dialog"));
+  open_settings_act_->setMenuRole(QAction::PreferencesRole);
   open_settings_act_->setShortcut(QKeySequence::Preferences);
   connect(open_settings_act_, &QAction::triggered, this,
           &MainWindow::slot_open_settings_dialog);
@@ -244,6 +247,7 @@ void MainWindow::create_actions() {
   about_act_ = new QAction(_("About"), this);
   about_act_->setIcon(QIcon(":help.png"));
   about_act_->setToolTip(_("Show the application's About box"));
+  about_act_->setMenuRole(QAction::AboutRole);
   connect(about_act_, &QAction::triggered, this,
           [=]() { new AboutDialog(0, this); });
 
@@ -269,8 +273,7 @@ void MainWindow::create_actions() {
 
   /* Popup-Menu-Action for KeyList
    */
-  append_selected_keys_act_ =
-      new QAction(_("Append To Text Editor"), this);
+  append_selected_keys_act_ = new QAction(_("Append To Text Editor"), this);
   append_selected_keys_act_->setToolTip(
       _("Append The Selected Public Key To Text in Editor"));
   connect(append_selected_keys_act_, &QAction::triggered, this,

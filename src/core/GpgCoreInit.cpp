@@ -28,8 +28,6 @@
 
 #include "GpgCoreInit.h"
 
-#include <memory>
-
 #include "GpgFunctionObject.h"
 #include "core/GpgContext.h"
 #include "core/function/GlobalSettingStation.h"
@@ -43,28 +41,37 @@ namespace GpgFrontend {
  * @brief setup logging system and do proper initialization
  *
  */
-void init_logging() {
+void InitLoggingSystem() {
   using namespace boost::posix_time;
   using namespace boost::gregorian;
 
-  ptime now = second_clock::local_time();
-
   el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
+  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+  el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
   el::Configurations defaultConf;
   defaultConf.setToDefault();
-  el::Loggers::reconfigureLogger("default", defaultConf);
 
   // apply settings
   defaultConf.setGlobally(el::ConfigurationType::Format,
-                          "%datetime %level %func %msg");
+                          "%datetime %level [core] {%func} -> %msg");
+
+  // apply settings no written to file
+  defaultConf.setGlobally(el::ConfigurationType::ToFile, "false");
+
+  // set the logger
+  el::Loggers::reconfigureLogger("default", defaultConf);
 
   // get the log directory
-  auto logfile_path =
-      (GlobalSettingStation::GetInstance().GetLogDir() / to_iso_string(now));
+  auto logfile_path = (GlobalSettingStation::GetInstance().GetLogDir() /
+                       to_iso_string(second_clock::local_time()));
   logfile_path.replace_extension(".log");
   defaultConf.setGlobally(el::ConfigurationType::Filename,
                           logfile_path.u8string());
 
+  // apply settings written to file
+  defaultConf.setGlobally(el::ConfigurationType::ToFile, "true");
+
+  // set the logger
   el::Loggers::reconfigureLogger("default", defaultConf);
 
   LOG(INFO) << _("log file path") << logfile_path;

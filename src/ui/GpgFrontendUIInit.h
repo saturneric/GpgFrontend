@@ -37,12 +37,12 @@ namespace GpgFrontend::UI {
  * @brief init the UI library
  *
  */
-void GPGFRONTEND_UI_EXPORT InitGpgFrontendUI();
+void GPGFRONTEND_UI_EXPORT InitGpgFrontendUI(QApplication *);
 
 /**
  * @brief run main window
  */
-int GPGFRONTEND_UI_EXPORT RunGpgFrontendUI();
+int GPGFRONTEND_UI_EXPORT RunGpgFrontendUI(QApplication *);
 
 };  // namespace GpgFrontend::UI
 

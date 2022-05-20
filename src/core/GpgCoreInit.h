@@ -37,7 +37,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-void init_logging();
+void GPGFRONTEND_CORE_EXPORT InitLoggingSystem();
 
 /**
  * @brief

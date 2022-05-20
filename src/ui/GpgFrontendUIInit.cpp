@@ -35,18 +35,41 @@
 #include "ui/UserInterfaceUtils.h"
 #include "ui/main_window/MainWindow.h"
 
+#if !defined(RELEASE) && defined(WINDOWS)
+#include "core/function/GlobalSettingStation.h"
+#endif
+
 // init easyloggingpp library
 INITIALIZE_EASYLOGGINGPP
 
 namespace GpgFrontend::UI {
 
-extern void init_logging();
+extern void init_logging_system();
 extern void init_locale();
 
-void InitGpgFrontendUI() {
+void InitGpgFrontendUI(QApplication* app) {
+  // init logging system
+  init_logging_system();
+
+  // init locale
   init_locale();
-  init_logging();
+
+#if !defined(RELEASE) && defined(WINDOWS)
+  // css
+  std::filesystem::path css_path =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetResourceDir() /
+      "css" / "default.qss";
+  QFile file(css_path.u8string().c_str());
+  file.open(QFile::ReadOnly);
+  QString styleSheet = QLatin1String(file.readAll());
+  qApp->setStyleSheet(styleSheet);
+  file.close();
+#endif
+
+  // init signal station
   SignalStation::GetInstance();
+
+  // init common utils
   CommonUtils::GetInstance();
 
   // create the thread to load the gpg context
@@ -65,17 +88,16 @@ void InitGpgFrontendUI() {
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
-  QApplication::connect(init_ctx_task,
-                        &Thread::CtxCheckTask::SignalTaskFinished,
-                        waiting_dialog, [=]() {
-                          LOG(INFO) << "Gpg context loaded";
-                          waiting_dialog->finished(0);
-                          waiting_dialog->deleteLater();
-                        });
+  app->connect(init_ctx_task, &Thread::CtxCheckTask::SignalTaskFinished,
+               waiting_dialog, [=]() {
+                 LOG(INFO) << "Gpg context loaded";
+                 waiting_dialog->finished(0);
+                 waiting_dialog->deleteLater();
+               });
 
-  QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
+  app->connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
     LOG(INFO) << "cancel clicked";
-    QCoreApplication::quit();
+    app->quit();
     exit(0);
   });
 
@@ -86,9 +108,8 @@ void InitGpgFrontendUI() {
 
   // new local event looper
   QEventLoop looper;
-  QApplication::connect(init_ctx_task,
-                        &Thread::CtxCheckTask::SignalTaskFinished, &looper,
-                        &QEventLoop::quit);
+  app->connect(init_ctx_task, &Thread::CtxCheckTask::SignalTaskFinished,
+               &looper, &QEventLoop::quit);
 
   // start the thread to load the gpg context
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
@@ -98,35 +119,46 @@ void InitGpgFrontendUI() {
   looper.exec();
 }
 
-int RunGpgFrontendUI() {
+int RunGpgFrontendUI(QApplication* app) {
   // create main window and show it
   auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
   main_window->Init();
+  LOG(INFO) << "Main window inited";
   main_window->show();
-  return QApplication::exec();
+  // start the main event loop
+  return app->exec();
 }
 
-void init_logging() {
+void init_logging_system() {
   using namespace boost::posix_time;
   using namespace boost::gregorian;
 
-  ptime now = second_clock::local_time();
-
   el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
+  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
+  el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
+
   el::Configurations defaultConf;
   defaultConf.setToDefault();
-  el::Loggers::reconfigureLogger("default", defaultConf);
 
   // apply settings
   defaultConf.setGlobally(el::ConfigurationType::Format,
-                          "%datetime %level %func %msg");
+                          "%datetime %level [ui] {%func} -> %msg");
+
+  // apply settings no written to file
+  defaultConf.setGlobally(el::ConfigurationType::ToFile, "false");
+
+  // apply settings
+  el::Loggers::reconfigureLogger("default", defaultConf)->reconfigure();
 
   // get the log directory
-  auto logfile_path =
-      (GlobalSettingStation::GetInstance().GetLogDir() / to_iso_string(now));
+  auto logfile_path = (GlobalSettingStation::GetInstance().GetLogDir() /
+                       to_iso_string(second_clock::local_time()));
   logfile_path.replace_extension(".log");
   defaultConf.setGlobally(el::ConfigurationType::Filename,
                           logfile_path.u8string());
+
+  // apply settings written to file
+  defaultConf.setGlobally(el::ConfigurationType::ToFile, "false");
 
   el::Loggers::reconfigureLogger("default", defaultConf);
 

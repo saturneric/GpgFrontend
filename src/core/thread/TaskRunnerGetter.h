@@ -40,6 +40,7 @@ class GPGFRONTEND_CORE_EXPORT TaskRunnerGetter
     kTaskRunnerType_Default,
     kTaskRunnerType_GPG,
     kTaskRunnerType_IO,
+    kTaskRunnerType_Network,
   };
 
   TaskRunnerGetter(int channel = SingletonFunctionObject::GetDefaultChannel());

@@ -29,11 +29,6 @@
 #ifndef GPGFRONTEND_GLOBALSETTINGSTATION_H
 #define GPGFRONTEND_GLOBALSETTINGSTATION_H
 
-#include <openssl/x509.h>
-
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
-
 #include "GpgFrontendBuildInstallInfo.h"
 #include "core/GpgFrontendCore.h"
 #include "core/GpgFunctionObject.h"
@@ -148,7 +143,7 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
 
  private:
   std::filesystem::path app_path_ =
-      qApp->applicationDirPath().toStdString();  ///< Program Location
+      QCoreApplication::applicationDirPath().toStdString();  ///< Program Location
   std::filesystem::path app_data_path_ =
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
           .toStdString();  ///< Program Data Location

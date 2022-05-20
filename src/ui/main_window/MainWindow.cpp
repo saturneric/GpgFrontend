@@ -28,13 +28,11 @@
 
 #include "MainWindow.h"
 
-#include "ui/UserInterfaceUtils.h"
-#ifdef RELEASE
-#include "ui/thread/VersionCheckThread.h"
-#endif
 #include "core/function/GlobalSettingStation.h"
 #include "ui/SignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/thread/VersionCheckTask.h"
 
 namespace GpgFrontend::UI {
 
@@ -85,14 +83,6 @@ void MainWindow::Init() noexcept {
 
     restore_settings();
 
-    // open filename if provided as first command line parameter
-    QStringList args = qApp->arguments();
-    if (args.size() > 1) {
-      if (!args[1].startsWith("-")) {
-        if (QFile::exists(args[1]))
-          edit_->LoadFile(args[1]);
-      }
-    }
     edit_->CurTextPage()->setFocus();
 
     auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
@@ -122,16 +112,14 @@ void MainWindow::Init() noexcept {
 
     // if not prohibit update checking
     if (!prohibit_update_checking_) {
-#ifdef RELEASE
-      auto version_thread = new VersionCheckThread();
+      auto *version_task = new VersionCheckTask();
 
-      connect(version_thread, &VersionCheckThread::finished, version_thread,
-              &VersionCheckThread::deleteLater);
-      connect(version_thread, &VersionCheckThread::SignalUpgradeVersion, this,
+      connect(version_task, &VersionCheckTask::SignalUpgradeVersion, this,
               &MainWindow::slot_version_upgrade);
 
-      version_thread->start();
-#endif
+      Thread::TaskRunnerGetter::GetInstance()
+          .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+          ->PostTask(version_task);
     }
 
   } catch (...) {
@@ -147,7 +135,6 @@ void MainWindow::restore_settings() {
   LOG(INFO) << _("Called");
 
   try {
-
     LOG(INFO) << "restore settings main_windows_state";
 
     SettingsObject main_windows_state("main_windows_state");
@@ -230,7 +217,6 @@ void MainWindow::restore_settings() {
     general.lookupValue("save_key_checked", save_key_checked);
 
     try {
-
       LOG(INFO) << "restore settings default_key_checked";
 
       // Checked Keys
@@ -248,11 +234,6 @@ void MainWindow::restore_settings() {
       LOG(ERROR) << "restore default_key_checked failed";
     }
 
-    LOG(INFO) << "restore settings smtp_passport";
-
-    SettingsObject smtp_passport("smtp_passport");
-    smtp_passport.Check("enable", false);
-
     prohibit_update_checking_ = false;
     try {
       prohibit_update_checking_ =
@@ -267,6 +248,7 @@ void MainWindow::restore_settings() {
   }
 
   GlobalSettingStation::GetInstance().SyncSettings();
+  LOG(INFO) << _("settings restored");
 }
 
 void MainWindow::save_settings() {
@@ -329,4 +311,4 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   //  GpgContext::GetInstance().clearPasswordCache();
 }
 
-} // namespace GpgFrontend::UI
+}  // namespace GpgFrontend::UI
