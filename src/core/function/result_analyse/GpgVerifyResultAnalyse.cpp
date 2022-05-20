@@ -34,8 +34,8 @@
 #include "core/GpgConstants.h"
 #include "function/gpg/GpgKeyGetter.h"
 
-GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(GpgError error,
-                                                      GpgVerifyResult result)
+GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(
+    GpgError error, GpgVerifyResult result)
     : error_(error), result_(std::move(result)) {}
 
 void GpgFrontend::GpgVerifyResultAnalyse::do_analyse() {
@@ -104,6 +104,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::do_analyse() {
             stream_ << _("Signature Fully Valid.") << std::endl;
           } else {
             stream_ << _("Signature Not Fully Valid.") << std::endl;
+            stream_ << _("(May used a subkey to sign)") << std::endl;
           }
 
           if (!(sign->status & GPGME_SIGSUM_KEY_MISSING)) {
@@ -172,8 +173,8 @@ void GpgFrontend::GpgVerifyResultAnalyse::do_analyse() {
   }
 }
 
-bool GpgFrontend::GpgVerifyResultAnalyse::print_signer(std::stringstream &stream,
-                                                    gpgme_signature_t sign) {
+bool GpgFrontend::GpgVerifyResultAnalyse::print_signer(
+    std::stringstream &stream, gpgme_signature_t sign) {
   bool keyFound = true;
   auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(sign->fpr);
 
