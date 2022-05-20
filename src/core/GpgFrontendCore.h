@@ -66,6 +66,9 @@
 #include <libarchive/libarchive/archive.h>
 #include <libarchive/libarchive/archive_entry.h>
 
+// json includes
+#include <nlohmann/json.hpp>
+
 // dll export macro
 #include "GpgFrontendCoreExport.h"
 
