@@ -324,56 +324,71 @@ void MainWindow::slot_decrypt() {
                     std::move(result_callback), data_object);
 }
 
-void MainWindow::slot_find() {
-  if (edit_->TabCount() == 0 || edit_->CurTextPage() == nullptr) {
-    return;
-  }
-
-  // At first close verifynotification, if existing
-  edit_->SlotCurPageTextEdit()->CloseNoteByClass("findwidget");
-
-  auto* fw = new FindWidget(this, edit_->CurTextPage());
-  edit_->SlotCurPageTextEdit()->ShowNotificationWidget(fw, "findWidget");
-}
-
 void MainWindow::slot_verify() {
   if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
     if (edit_->SlotCurPageFileTreeView() != nullptr) this->SlotFileVerify();
     return;
   }
 
-  auto text = edit_->CurTextPage()->GetTextPage()->toPlainText().toUtf8();
-  // TODO(Saturneric) PreventNoDataErr
+  // data to transfer into task
+  auto data_object = std::make_shared<Thread::Task::DataObject>();
 
-  auto sig_buffer = std::make_unique<ByteArray>();
-  sig_buffer.reset();
+  // set input buffer
+  auto buffer =
+      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString();
+  data_object->AppendObject(std::move(buffer));
 
-  GpgVerifyResult result = nullptr;
-  GpgError error;
-  bool if_error = false;
-  process_operation(
-      this, _("Verifying"), [&](Thread::Task::DataObjectPtr) -> int {
-        try {
-          auto buffer = text.toStdString();
-          error = GpgFrontend::GpgBasicOperator::GetInstance().Verify(
-              buffer, sig_buffer, result);
-        } catch (const std::runtime_error& e) {
-          if_error = true;
-        }
-        return 0;
-      });
+  auto verify_runner = [](Thread::Task::DataObjectPtr data_object) -> int {
+    // check the size of the data object
+    if (data_object == nullptr || data_object->GetObjectSize() != 1)
+      throw std::runtime_error("Invalid data object size");
 
-  if (!if_error) {
-    auto result_analyse = GpgVerifyResultAnalyse(error, result);
-    result_analyse.Analyse();
-    process_result_analyse(edit_, info_board_, result_analyse);
+    auto buffer = data_object->PopObject<std::string>();
 
-    if (result_analyse.GetStatus() == -2)
-      import_unknown_key_from_keyserver(this, result_analyse);
+    LOG(INFO) << "Verify buffer: " << buffer.size();
 
-    if (result_analyse.GetStatus() >= 0)
-      show_verify_details(this, info_board_, error, result);
-  }
+    try {
+      GpgVerifyResult verify_result = nullptr;
+      auto sig_buffer = std::unique_ptr<ByteArray>(nullptr);
+      GpgError error = GpgFrontend::GpgBasicOperator::GetInstance().Verify(
+          buffer, sig_buffer, verify_result);
+
+      data_object->AppendObject(std::move(verify_result));
+      data_object->AppendObject(std::move(error));
+    } catch (const std::runtime_error& e) {
+      return -1;
+    }
+    return 0;
+  };
+
+  auto result_callback = [this](int rtn,
+                                Thread::Task::DataObjectPtr data_object) {
+    if (!rtn) {
+      if (data_object == nullptr || data_object->GetObjectSize() != 2)
+        throw std::runtime_error("Invalid data object size");
+      auto error = data_object->PopObject<GpgError>();
+      auto verify_result = data_object->PopObject<GpgVerifyResult>();
+
+      auto result_analyse = GpgVerifyResultAnalyse(error, verify_result);
+      result_analyse.Analyse();
+      process_result_analyse(edit_, info_board_, result_analyse);
+
+      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR) {
+        if (result_analyse.GetStatus() == -2)
+          import_unknown_key_from_keyserver(this, result_analyse);
+
+        if (result_analyse.GetStatus() >= 0)
+          show_verify_details(this, info_board_, error, verify_result);
+      }
+    } else {
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
+      return;
+    }
+  };
+
+  process_operation(this, _("Verifying"), verify_runner, result_callback,
+                    data_object);
 }
 
 void MainWindow::slot_encrypt_sign() {
@@ -423,59 +438,77 @@ void MainWindow::slot_encrypt_sign() {
     LOG(INFO) << "Signers " << signer.GetEmail();
   }
 
-  GpgEncrResult encr_result = nullptr;
-  GpgSignResult sign_result = nullptr;
-  GpgError error;
-  bool if_error = false;
+  // data to transfer into task
+  auto data_object = std::make_shared<Thread::Task::DataObject>();
 
-  auto tmp = std::make_unique<ByteArray>();
-  process_operation(
-      this, _("Encrypting and Signing"),
-      [&](Thread::Task::DataObjectPtr) -> int {
-        try {
-          auto buffer = edit_->CurTextPage()
-                            ->GetTextPage()
-                            ->toPlainText()
-                            .toUtf8()
-                            .toStdString();
-          error = GpgFrontend::GpgBasicOperator::GetInstance().EncryptSign(
-              std::move(keys), std::move(signer_keys), buffer, tmp, encr_result,
-              sign_result);
-        } catch (const std::runtime_error& e) {
-          if_error = true;
-        }
-        return 0;
-      });
+  // set input buffer
+  auto buffer =
+      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString();
+  data_object->AppendObject(std::move(buffer));
+  // push the keys into data object
+  data_object->AppendObject(std::move(keys));
+  data_object->AppendObject(std::move(signer_keys));
 
-  if (!if_error) {
-#ifdef ADVANCE_SUPPORT
-    if (settings.value("advanced/autoPubkeyExchange").toBool()) {
-      PubkeyUploader pubkeyUploader(mCtx, signerKeys);
-      pubkeyUploader.start();
-      if (!pubkeyUploader.result()) {
-        QMessageBox::warning(nullptr, _("Automatic Key Exchange Warning"),
-                             _("Part of the automatic key exchange failed, "
-                               "which may be related to your key.") +
-                                 _("If possible, try to use the RSA algorithm "
-                                   "compatible with the server for signing."));
-      }
+  auto encrypt_sign_runner =
+      [](Thread::Task::DataObjectPtr data_object) -> int {
+    // check the size of the data object
+    if (data_object == nullptr || data_object->GetObjectSize() != 3)
+      throw std::runtime_error("Invalid data object size");
+
+    auto signer_keys = data_object->PopObject<KeyListPtr>();
+    auto keys = data_object->PopObject<KeyListPtr>();
+    auto buffer = data_object->PopObject<std::string>();
+    try {
+      GpgEncrResult encr_result = nullptr;
+      GpgSignResult sign_result = nullptr;
+      auto tmp = std::make_unique<ByteArray>();
+      GpgError error = GpgFrontend::GpgBasicOperator::GetInstance().EncryptSign(
+          std::move(keys), std::move(signer_keys), buffer, tmp, encr_result,
+          sign_result);
+
+      data_object->AppendObject(std::move(tmp));
+      data_object->AppendObject(std::move(sign_result));
+      data_object->AppendObject(std::move(encr_result));
+      data_object->AppendObject(std::move(error));
+
+    } catch (const std::runtime_error& e) {
+      return -1;
     }
-#endif
-    LOG(INFO) << "GpgResultAnalyse Started";
-    auto encrypt_res = GpgEncryptResultAnalyse(error, std::move(encr_result));
-    auto sign_res = GpgSignResultAnalyse(error, std::move(sign_result));
-    encrypt_res.Analyse();
-    sign_res.Analyse();
-    process_result_analyse(edit_, info_board_, encrypt_res, sign_res);
-    if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      edit_->SlotFillTextEditWithText(QString::fromStdString(*tmp));
+    return 0;
+  };
 
-    info_board_->ResetOptionActionsMenu();
-  } else {
-    QMessageBox::critical(this, _("Error"),
-                          _("An error occurred during operation."));
-    return;
-  }
+  auto result_callback = [this](int rtn,
+                                Thread::Task::DataObjectPtr data_object) {
+    if (!rtn) {
+      if (data_object == nullptr || data_object->GetObjectSize() != 4)
+        throw std::runtime_error("Invalid data object size");
+      auto error = data_object->PopObject<GpgError>();
+      auto encrypt_result = data_object->PopObject<GpgEncrResult>();
+      auto sign_result = data_object->PopObject<GpgSignResult>();
+      auto tmp = data_object->PopObject<std::unique_ptr<ByteArray>>();
+
+      LOG(INFO) << "GpgResultAnalyse Started";
+      auto encrypt_result_analyse =
+          GpgEncryptResultAnalyse(error, std::move(encrypt_result));
+      auto sign_result_analyse =
+          GpgSignResultAnalyse(error, std::move(sign_result));
+      encrypt_result_analyse.Analyse();
+      sign_result_analyse.Analyse();
+      process_result_analyse(edit_, info_board_, encrypt_result_analyse,
+                             sign_result_analyse);
+      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+        edit_->SlotFillTextEditWithText(QString::fromStdString(*tmp));
+
+      info_board_->ResetOptionActionsMenu();
+    } else {
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
+      return;
+    }
+  };
+
+  process_operation(this, _("Encrypting and Signing"), encrypt_sign_runner,
+                    result_callback, data_object);
 }
 
 void MainWindow::slot_decrypt_verify() {
@@ -485,72 +518,87 @@ void MainWindow::slot_decrypt_verify() {
     return;
   }
 
-  QString plainText = edit_->CurTextPage()->GetTextPage()->toPlainText();
+  // data to transfer into task
+  auto data_object = std::make_shared<Thread::Task::DataObject>();
 
-#ifdef ADVANCE_SUPPORT
-  if (plainText.trimmed().startsWith(
-          GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD)) {
-    auto cryptoText = getCryptText(plainText);
-    if (!cryptoText.isEmpty()) {
-      plainText = cryptoText;
+  // set input buffer
+  auto buffer =
+      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString();
+  data_object->AppendObject(std::move(buffer));
+
+  auto decrypt_verify_runner =
+      [](Thread::Task::DataObjectPtr data_object) -> int {
+    // check the size of the data object
+    if (data_object == nullptr || data_object->GetObjectSize() != 1)
+      throw std::runtime_error("Invalid data object size");
+
+    auto buffer = data_object->PopObject<std::string>();
+    try {
+      GpgDecrResult decrypt_result = nullptr;
+      GpgVerifyResult verify_result = nullptr;
+      auto decrypted_buffer = std::make_unique<ByteArray>();
+      GpgError error = GpgBasicOperator::GetInstance().DecryptVerify(
+          buffer, decrypted_buffer, decrypt_result, verify_result);
+
+      data_object->AppendObject(std::move(decrypted_buffer));
+      data_object->AppendObject(std::move(verify_result));
+      data_object->AppendObject(std::move(decrypt_result));
+      data_object->AppendObject(std::move(error));
+    } catch (const std::runtime_error& e) {
+      LOG(ERROR) << e.what();
+      return -1;
     }
-  }
-#endif
+    return 0;
+  };
 
-  QByteArray text = plainText.toUtf8();
+  auto result_callback = [this](int rtn,
+                                Thread::Task::DataObjectPtr data_object) {
+    if (!rtn) {
+      if (data_object == nullptr || data_object->GetObjectSize() != 4)
+        throw std::runtime_error("Invalid data object size");
 
-  GpgDecrResult d_result = nullptr;
-  GpgVerifyResult v_result = nullptr;
-  gpgme_error_t error;
-  bool if_error = false;
+      auto error = data_object->PopObject<GpgError>();
+      auto decrypt_result = data_object->PopObject<GpgDecrResult>();
+      auto verify_result = data_object->PopObject<GpgVerifyResult>();
+      auto decrypted = data_object->PopObject<std::unique_ptr<ByteArray>>();
 
-#ifdef ADVANCE_SUPPORT
-  // Automatically import public keys that are not stored locally
-  if (settings.value("advanced/autoPubkeyExchange").toBool()) {
-    gpgme_verify_result_t tmp_v_result = nullptr;
-    auto thread = QThread::create([&](Thread::Task::DataObjectPtr) -> int {
-      mCtx->verify(&text, nullptr, &tmp_v_result);
-    });
-    thread->start();
-    while (thread->isRunning()) QApplication::processEvents();
-    auto* checker = new UnknownSignersChecker(mCtx, tmp_v_result);
-    checker->start();
-    checker->deleteLater();
-  }
-#endif
-  auto decrypted = std::make_unique<ByteArray>();
-  process_operation(this, _("Decrypting and Verifying"),
-                    [&](Thread::Task::DataObjectPtr) -> int {
-                      try {
-                        auto buffer = text.toStdString();
-                        error = GpgBasicOperator::GetInstance().DecryptVerify(
-                            buffer, decrypted, d_result, v_result);
-                      } catch (const std::runtime_error& e) {
-                        if_error = true;
-                      }
-                      return 0;
-                    });
+      auto decrypt_result_analyse =
+          GpgDecryptResultAnalyse(error, std::move(decrypt_result));
+      auto verify_result_analyse = GpgVerifyResultAnalyse(error, verify_result);
+      decrypt_result_analyse.Analyse();
+      verify_result_analyse.Analyse();
+      process_result_analyse(edit_, info_board_, decrypt_result_analyse,
+                             verify_result_analyse);
+      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+        edit_->SlotFillTextEditWithText(QString::fromStdString(*decrypted));
 
-  if (!if_error) {
-    auto decrypt_res = GpgDecryptResultAnalyse(error, std::move(d_result));
-    auto verify_res = GpgVerifyResultAnalyse(error, v_result);
-    decrypt_res.Analyse();
-    verify_res.Analyse();
-    process_result_analyse(edit_, info_board_, decrypt_res, verify_res);
-    if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
-      edit_->SlotFillTextEditWithText(QString::fromStdString(*decrypted));
+      if (verify_result_analyse.GetStatus() == -2)
+        import_unknown_key_from_keyserver(this, verify_result_analyse);
 
-    if (verify_res.GetStatus() == -2)
-      import_unknown_key_from_keyserver(this, verify_res);
+      if (verify_result_analyse.GetStatus() >= 0)
+        show_verify_details(this, info_board_, error, verify_result);
 
-    if (verify_res.GetStatus() >= 0)
-      show_verify_details(this, info_board_, error, v_result);
+    } else {
+      QMessageBox::critical(this, _("Error"),
+                            _("An error occurred during operation."));
+      return;
+    }
+  };
 
-  } else {
-    QMessageBox::critical(this, _("Error"),
-                          _("An error occurred during operation."));
+  process_operation(this, _("Decrypting and Verifying"), decrypt_verify_runner,
+                    result_callback, data_object);
+}
+
+void MainWindow::slot_find() {
+  if (edit_->TabCount() == 0 || edit_->CurTextPage() == nullptr) {
     return;
   }
+
+  // At first close verifynotification, if existing
+  edit_->SlotCurPageTextEdit()->CloseNoteByClass("findwidget");
+
+  auto* fw = new FindWidget(this, edit_->CurTextPage());
+  edit_->SlotCurPageTextEdit()->ShowNotificationWidget(fw, "findWidget");
 }
 
 /*
@@ -613,7 +661,13 @@ void MainWindow::upload_key_to_server() {
 void MainWindow::SlotOpenFile(QString& path) { edit_->SlotOpenFile(path); }
 
 void MainWindow::slot_version_upgrade(const SoftwareVersion& version) {
-  LOG(INFO) << _("called");
+  LOG(INFO) << _("Called");
+
+  if (!version.InfoVaild()) {
+    LOG(INFO) << "Invalid version info";
+    return;
+  }
+
   if (version.NeedUpgrade()) {
     statusBar()->showMessage(
         QString(_("GpgFrontend Upgradeable (New Version: %1)."))

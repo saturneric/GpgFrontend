@@ -29,14 +29,7 @@
 #ifndef GPG_CONSTANTS_H
 #define GPG_CONSTANTS_H
 
-#include <GpgFrontend.h>
-#include <gpgme.h>
-
-#include <cassert>
-#include <functional>
-
-// dll export macro
-#include "GpgFrontendCoreExport.h"
+#include "GpgFrontendCore.h"
 
 const int RESTART_CODE = 1000;  ///<
 

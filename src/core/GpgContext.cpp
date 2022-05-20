@@ -87,13 +87,13 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
       continue;
     }
 
-    DLOG(INFO) << gpgme_get_protocol_name(engine_info->protocol)
-               << std::string(engine_info->file_name == nullptr
-                                  ? "null"
-                                  : engine_info->file_name)
-               << std::string(engine_info->home_dir == nullptr
-                                  ? "null"
-                                  : engine_info->home_dir);
+    LOG(INFO) << gpgme_get_protocol_name(engine_info->protocol)
+              << std::string(engine_info->file_name == nullptr
+                                 ? "null"
+                                 : engine_info->file_name)
+              << std::string(engine_info->home_dir == nullptr
+                                 ? "null"
+                                 : engine_info->home_dir);
 
     switch (engine_info->protocol) {
       case GPGME_PROTOCOL_OpenPGP:
@@ -136,7 +136,7 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
     LOG(ERROR) << "Env check failed";
     return;
   } else {
-    DLOG(INFO) << "gnupg version" << info_.GnupgVersion;
+    LOG(INFO) << "gnupg version" << info_.GnupgVersion;
     init_ctx();
     good_ = true;
   }
@@ -146,7 +146,7 @@ void GpgContext::init_ctx() {
   // Set Independent Database
   if (info_.GnupgVersion <= "2.0.0" && args_.independent_database) {
     info_.DatabasePath = args_.db_path;
-    DLOG(INFO) << "custom key db path" << info_.DatabasePath;
+    LOG(INFO) << "custom key db path" << info_.DatabasePath;
     auto err = gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_OpenPGP,
                                          info_.AppPath.c_str(),
                                          info_.DatabasePath.c_str());

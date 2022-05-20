@@ -29,6 +29,10 @@
 #ifndef GPGFRONTEND_VERSIONCHECKTHREAD_H
 #define GPGFRONTEND_VERSIONCHECKTHREAD_H
 
+#include <memory>
+#include <string>
+
+#include "core/thread/Task.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/struct/SoftwareVersion.h"
 
@@ -38,7 +42,7 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class VersionCheckThread : public QThread {
+class VersionCheckTask : public Thread::Task {
   Q_OBJECT
 
  public:
@@ -46,7 +50,7 @@ class VersionCheckThread : public QThread {
    * @brief Construct a new Version Check Thread object
    *
    */
-  explicit VersionCheckThread();
+  explicit VersionCheckTask();
 
  signals:
 
@@ -63,11 +67,30 @@ class VersionCheckThread : public QThread {
 
    *
    */
-  void run() override;
+  void Run() override;
+
+ private slots:
+
+  /**
+   * @brief
+   *
+   */
+  void slot_parse_latest_version_info();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_parse_current_version_info();
 
  private:
-  QByteArray latest_reply_bytes_;   ///<
-  QByteArray current_reply_bytes_;  ///<
+  QByteArray latest_reply_bytes_;           ///<
+  QByteArray current_reply_bytes_;          ///<
+  QNetworkReply* latest_reply_ = nullptr;   ///< latest version info reply
+  QNetworkReply* current_reply_ = nullptr;  ///< current version info reply
+  QNetworkAccessManager* network_manager_;  ///<
+  std::string current_version_;
+  SoftwareVersion version_;
 };
 
 }  // namespace GpgFrontend::UI

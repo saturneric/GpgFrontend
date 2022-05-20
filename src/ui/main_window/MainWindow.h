@@ -53,15 +53,14 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
  public:
-
-  struct CryptoMenu{
+  struct CryptoMenu {
     using OperationType = unsigned int;
 
     static constexpr OperationType None = 0;
     static constexpr OperationType Encrypt = 1 << 0;
     static constexpr OperationType Sign = 1 << 1;
     static constexpr OperationType Decrypt = 1 << 2;
-    static constexpr OperationType Verify =  1 << 3;
+    static constexpr OperationType Verify = 1 << 3;
     static constexpr OperationType EncryptAndSign = 1 << 4;
     static constexpr OperationType DecryptAndVerify = 1 << 5;
   };
@@ -88,7 +87,6 @@ class MainWindow : public QMainWindow {
    * @brief
    */
   void SignalLoaded();
-
 
  public slots:
 
@@ -371,26 +369,26 @@ class MainWindow : public QMainWindow {
       append_selected_keys_act_{};  ///< Action to append selected keys to edit
   QAction* copy_mail_address_to_clipboard_act_{};  ///< Action to copy mail to
                                                    ///< clipboard
-  QAction* open_key_management_act_{};  ///< Action to open key management
-  QAction* copy_act_{};                 ///< Action to copy text
-  QAction* quote_act_{};                ///< Action to quote text
-  QAction* cut_act_{};                  ///< Action to cut text
-  QAction* paste_act_{};                ///< Action to paste text
-  QAction* select_all_act_{};           ///< Action to select whole text
-  QAction* find_act_{};                 ///< Action to find text
-  QAction* undo_act_{};                 ///< Action to undo last action
-  QAction* redo_act_{};                 ///< Action to redo last action
-  QAction* zoom_in_act_{};              ///< Action to zoom in
-  QAction* zoom_out_act_{};             ///< Action to zoom out
-  QAction* about_act_{};                ///< Action to open about dialog
-  QAction* check_update_act_{};         ///< Action to open about dialog
-  QAction* translate_act_{};            ///< Action to open about dialog
-  QAction* open_settings_act_{};        ///< Action to open settings dialog
-  QAction* show_key_details_act_{};     ///< Action to open key-details dialog
-  QAction* start_wizard_act_{};         ///< Action to open the wizard
-  QAction* cut_pgp_header_act_{};       ///< Action for cutting the PGP header
-  QAction* add_pgp_header_act_{};       ///< Action for adding the PGP header
-  QAction* import_key_from_file_act_{};        ///<
+  QAction* open_key_management_act_{};   ///< Action to open key management
+  QAction* copy_act_{};                  ///< Action to copy text
+  QAction* quote_act_{};                 ///< Action to quote text
+  QAction* cut_act_{};                   ///< Action to cut text
+  QAction* paste_act_{};                 ///< Action to paste text
+  QAction* select_all_act_{};            ///< Action to select whole text
+  QAction* find_act_{};                  ///< Action to find text
+  QAction* undo_act_{};                  ///< Action to undo last action
+  QAction* redo_act_{};                  ///< Action to redo last action
+  QAction* zoom_in_act_{};               ///< Action to zoom in
+  QAction* zoom_out_act_{};              ///< Action to zoom out
+  QAction* about_act_{};                 ///< Action to open about dialog
+  QAction* check_update_act_{};          ///< Action to open about dialog
+  QAction* translate_act_{};             ///< Action to open about dialog
+  QAction* open_settings_act_{};         ///< Action to open settings dialog
+  QAction* show_key_details_act_{};      ///< Action to open key-details dialog
+  QAction* start_wizard_act_{};          ///< Action to open the wizard
+  QAction* cut_pgp_header_act_{};        ///< Action for cutting the PGP header
+  QAction* add_pgp_header_act_{};        ///< Action for adding the PGP header
+  QAction* import_key_from_file_act_{};  ///<
   QAction* import_key_from_clipboard_act_{};   ///<
   QAction* import_key_from_key_server_act_{};  ///<
 

@@ -29,8 +29,6 @@
 #ifndef GPGFRONTEND_CHARSETDETECTOR_H
 #define GPGFRONTEND_CHARSETDETECTOR_H
 
-#include <string>
-
 #include "core/GpgFrontendCore.h"
 
 namespace GpgFrontend {

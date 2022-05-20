@@ -24,53 +24,49 @@
  *
  */
 
-#ifndef GPGFRONTEND_TASKRUNNER_H
-#define GPGFRONTEND_TASKRUNNER_H
+#include "ui/GpgFrontendUI.h"
 
-#include <mutex>
-#include <queue>
+#ifndef GPGFRONTEND_GPGFRONTENDAPPLICATION_H
+#define GPGFRONTEND_GPGFRONTENDAPPLICATION_H
 
-#include "core/GpgFrontendCore.h"
+namespace GpgFrontend::UI {
 
-namespace GpgFrontend::Thread {
-
-class Task;
-
-class GPGFRONTEND_CORE_EXPORT TaskRunner : public QThread {
+class GPGFRONTEND_UI_EXPORT GpgFrontendApplication : public QApplication {
   Q_OBJECT
  public:
   /**
-   * @brief Construct a new Task Runner object
+   * @brief Construct a new GpgFrontend Application object
    *
+   * @param argc
+   * @param argv
    */
-  TaskRunner();
+  explicit GpgFrontendApplication(int &argc, char **argv);
 
   /**
-   * @brief Destroy the Task Runner object
+   * @brief Destroy the GpgFrontend Application object
    *
    */
-  virtual ~TaskRunner() override;
+  ~GpgFrontendApplication() override = default;
 
+  /**
+   * @brief Get the GpgFrontend Application object
+   *
+   * @return GpgFrontendApplication*
+   */
+  static GpgFrontendApplication *GetInstance(int argc = 0,
+                                             char *argv[] = nullptr,
+                                             bool new_instance = false);
+
+ protected:
   /**
    * @brief
    *
+   * @param event
+   * @return bool
    */
-  void run() override;
-
- public slots:
-
-  /**
-   * @brief
-   *
-   * @param task
-   */
-  void PostTask(Task* task);
-
- private:
-  std::queue<Task*> tasks;                      ///< The task queue
-  std::map<std::string, Task*> pending_tasks_;  ///< The pending tasks
-  std::mutex tasks_mutex_;                      ///< The task queue mutex
+  bool notify(QObject *receiver, QEvent *event) override;
 };
-}  // namespace GpgFrontend::Thread
 
-#endif  // GPGFRONTEND_TASKRUNNER_H
+}  // namespace GpgFrontend::UI
+
+#endif  // GPGFRONTEND_GPGFRONTENDAPPLICATION_H
