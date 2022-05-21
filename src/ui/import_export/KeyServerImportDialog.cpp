@@ -33,13 +33,14 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/SignalStation.h"
+#include "ui/struct/SettingsObject.h"
 
 namespace GpgFrontend::UI {
 
 KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
     : QDialog(parent), m_automatic_(automatic) {
   // Layout for messagebox
-  auto* messageLayout = new QHBoxLayout;
+  auto* message_layout = new QHBoxLayout();
 
   if (automatic) {
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
@@ -67,14 +68,14 @@ KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
 
     // table containing the keys found
     create_keys_table();
-    message_ = new QLabel;
+    message_ = new QLabel();
     message_->setFixedHeight(24);
-    icon_ = new QLabel;
+    icon_ = new QLabel();
     icon_->setFixedHeight(24);
 
-    messageLayout->addWidget(icon_);
-    messageLayout->addWidget(message_);
-    messageLayout->addStretch();
+    message_layout->addWidget(icon_);
+    message_layout->addWidget(message_);
+    message_layout->addStretch();
   }
 
   // Network Waiting
@@ -82,13 +83,13 @@ KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
   waiting_bar_->setVisible(false);
   waiting_bar_->setRange(0, 0);
   waiting_bar_->setFixedWidth(200);
-  messageLayout->addWidget(waiting_bar_);
+  message_layout->addWidget(waiting_bar_);
 
   auto* mainLayout = new QGridLayout;
 
   // 自动化调用界面布局
   if (automatic) {
-    mainLayout->addLayout(messageLayout, 0, 0, 1, 3);
+    mainLayout->addLayout(message_layout, 0, 0, 1, 3);
   } else {
     mainLayout->addWidget(search_label_, 1, 0);
     mainLayout->addWidget(search_line_edit_, 1, 1);
@@ -96,7 +97,7 @@ KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
     mainLayout->addWidget(key_server_label_, 2, 0);
     mainLayout->addWidget(key_server_combo_box_, 2, 1);
     mainLayout->addWidget(keys_table_, 3, 0, 1, 3);
-    mainLayout->addLayout(messageLayout, 4, 0, 1, 3);
+    mainLayout->addLayout(message_layout, 4, 0, 1, 3);
 
     // Layout for import and close button
     auto* buttonsLayout = new QHBoxLayout;
@@ -122,18 +123,24 @@ KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
     auto size = QSize(800, 500);
 
     try {
-      auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+      SettingsObject key_server_import_state("key_server_import_state");
+      bool window_save = key_server_import_state.Check("window_save", true);
 
-      int x, y, width, height;
-      x = settings.lookup("window.import_from_keyserver.position.x");
-      y = settings.lookup("window.import_from_keyserver.position.y");
-      width = settings.lookup("window.import_from_keyserver.size.width");
-      height = settings.lookup("window.import_from_keyserver.size.height");
-      pos = QPoint(x, y);
-      size = QSize(width, height);
+      // Restore window size & location
+      if (window_save) {
+        int x = key_server_import_state.Check("window_pos").Check("x", pos.x()),
+            y = key_server_import_state.Check("window_pos").Check("y", pos.y());
 
+        pos = QPoint(x, y);
+        int width = key_server_import_state.Check("window_size")
+                        .Check("width", size.width()),
+            height = key_server_import_state.Check("window_size")
+                         .Check("height", size.height());
+
+        size = QSize(width, height);
+      }
     } catch (...) {
-      LOG(WARNING) << "cannot read pos or size from settings";
+      LOG(WARNING) << "cannot read pos or size from settings object";
     }
 
     this->resize(size);
@@ -155,25 +162,25 @@ QComboBox* KeyServerImportDialog::create_comboBox() {
   auto* comboBox = new QComboBox;
   comboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-
   try {
-    auto& server_list = settings.lookup("keyserver.server_list");
-    const auto server_list_size = server_list.getLength();
-    for (int i = 0; i < server_list_size; i++) {
-      std::string server_url = server_list[i];
-      comboBox->addItem(server_url.c_str());
+    SettingsObject key_server_json("key_server");
+
+    const auto key_server_list =
+        key_server_json.Check("server_list", nlohmann::json::array());
+
+    for (const auto& key_server : key_server_list) {
+      const auto key_server_str = key_server.get<std::string>();
+      comboBox->addItem(key_server_str.c_str());
     }
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("server_list");
-  }
 
-  // set default keyserver in combobox
-  try {
-    std::string default_server = settings.lookup("keyserver.default_server");
-    comboBox->setCurrentText(default_server.c_str());
+    int default_key_server_index = key_server_json.Check("default_server", 0);
+    std::string default_key_server =
+        key_server_list[default_key_server_index].get<std::string>();
+
+    comboBox->setCurrentText(default_key_server.c_str());
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("default_server");
+    LOG(ERROR) << _("Setting Operation Error") << "server_list"
+               << "default_server";
   }
 
   return comboBox;
@@ -565,47 +572,15 @@ void KeyServerImportDialog::slot_save_window_state() {
 
   if (m_automatic_) return;
 
-  auto& settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+  SettingsObject key_server_import_state("key_server_import_state");
 
-  if (!settings.exists("window") ||
-      settings.lookup("window").getType() != libconfig::Setting::TypeGroup)
-    settings.add("window", libconfig::Setting::TypeGroup);
+  // window position and size
+  key_server_import_state["window_pos"]["x"] = pos().x();
+  key_server_import_state["window_pos"]["y"] = pos().y();
 
-  auto& window = settings["window"];
-
-  if (!window.exists("import_from_keyserver") ||
-      window.lookup("import_from_keyserver").getType() !=
-          libconfig::Setting::TypeGroup)
-    window.add("import_from_keyserver", libconfig::Setting::TypeGroup);
-
-  auto& import_from_keyserver = window["import_from_keyserver"];
-
-  if (!import_from_keyserver.exists("position") ||
-      import_from_keyserver.lookup("position").getType() !=
-          libconfig::Setting::TypeGroup) {
-    auto& position =
-        import_from_keyserver.add("position", libconfig::Setting::TypeGroup);
-    position.add("x", libconfig::Setting::TypeInt) = pos().x();
-    position.add("y", libconfig::Setting::TypeInt) = pos().y();
-  } else {
-    import_from_keyserver["position"]["x"] = pos().x();
-    import_from_keyserver["position"]["y"] = pos().y();
-  }
-
-  if (!import_from_keyserver.exists("size") ||
-      import_from_keyserver.lookup("size").getType() !=
-          libconfig::Setting::TypeGroup) {
-    auto& size =
-        import_from_keyserver.add("size", libconfig::Setting::TypeGroup);
-    size.add("width", libconfig::Setting::TypeInt) = QWidget::width();
-    size.add("height", libconfig::Setting::TypeInt) = QWidget::height();
-  } else {
-    import_from_keyserver["size"]["width"] = QWidget::width();
-    import_from_keyserver["size"]["height"] = QWidget::height();
-  }
-
-  GlobalSettingStation::GetInstance().SyncSettings();
+  key_server_import_state["window_size"]["width"] = size().width();
+  key_server_import_state["window_size"]["height"] = size().height();
+  key_server_import_state["window_save"] = true;
 }
 
 }  // namespace GpgFrontend::UI
