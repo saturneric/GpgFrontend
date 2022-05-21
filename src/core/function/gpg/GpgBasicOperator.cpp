@@ -203,6 +203,7 @@ GpgFrontend::GpgBasicOperator::GetSigners() {
 gpg_error_t GpgFrontend::GpgBasicOperator::EncryptSymmetric(
     GpgFrontend::ByteArray& in_buffer, GpgFrontend::ByteArrayPtr& out_buffer,
     GpgFrontend::GpgEncrResult& result) {
+  // deepcopy from ByteArray to GpgData
   GpgData data_in(in_buffer.data(), in_buffer.size()), data_out;
 
   gpgme_error_t err = check_gpg_error(gpgme_op_encrypt(
