@@ -27,7 +27,10 @@
 #ifndef GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
 #define GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
 
+#include <vector>
+
 #include "GpgFrontendUI.h"
+#include "core/thread/Task.h"
 
 namespace GpgFrontend::UI {
 
@@ -35,12 +38,17 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class ListedKeyServerTestThread : public QThread {
+class ListedKeyServerTestTask : public Thread::Task {
   Q_OBJECT
  public:
-  explicit ListedKeyServerTestThread(const QStringList& urls, int timeout,
-                                     QWidget* parent = nullptr)
-      : QThread(parent), urls_(urls), timeout_(timeout) {}
+  enum KeyServerTestResultType {
+    kTestResultType_Success,
+    kTestResultType_Timeout,
+    kTestResultType_Error,
+  };
+
+  explicit ListedKeyServerTestTask(const QStringList& urls, int timeout,
+                                   QWidget* parent = nullptr);
 
  signals:
   /**
@@ -48,7 +56,8 @@ class ListedKeyServerTestThread : public QThread {
    *
    * @param result
    */
-  void SignalKeyServerListTestResult(const QStringList& result);
+  void SignalKeyServerListTestResult(
+      std::vector<KeyServerTestResultType> result);
 
  protected:
   /**
@@ -58,9 +67,19 @@ class ListedKeyServerTestThread : public QThread {
   void run() override;
 
  private:
-  QStringList urls_;    ///<
-  QStringList result_;  ///<
-  int timeout_ = 500;   ///<
+  QStringList urls_;                             ///<
+  std::vector<KeyServerTestResultType> result_;  ///<
+  QNetworkAccessManager* network_manager_;       ///<
+  int timeout_ = 500;                            ///<
+  int result_count_ = 0;                         ///<
+
+  /**
+   * @brief
+   *
+   * @param index
+   * @param reply
+   */
+  void slot_process_network_reply(int index, QNetworkReply* reply);
 };
 
 }  // namespace GpgFrontend::UI
