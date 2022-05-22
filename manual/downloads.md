@@ -8,9 +8,9 @@ Currently you can download GpgFrontend through various channels.
 
 [![GitHub release (latest by date)](https://img.shields.io/github/downloads/saturneric/GpgFrontend/latest/total?style=for-the-badge)](https://github.com/saturneric/GpgFrontend/releases/latest)
 
-## SourgeForge
+## SourceForge
 
-[![Download GogFrontend](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/gogfrontend/files/latest/download)
+[![Download GpgFrontend](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/gogfrontend/files/latest/download)
 
 ## Microsoft Store
 
