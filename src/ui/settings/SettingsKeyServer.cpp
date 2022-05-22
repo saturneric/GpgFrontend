@@ -29,8 +29,10 @@
 #include "SettingsKeyServer.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/thread/Task.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "ui/struct/SettingsObject.h"
-#include "ui/thread/ListedKeyServerTestThread.h"
+#include "ui/thread/ListedKeyServerTestTask.h"
 #include "ui_KeyServerSettings.h"
 
 namespace GpgFrontend::UI {
@@ -128,8 +130,6 @@ void KeyserverTab::SetSettings() {
     this->key_server_str_list_.append(key_server_str.c_str());
   }
 
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-
   int default_key_server_index = key_server_json.Check("default_server", 0);
   std::string default_key_server =
       key_server_list[default_key_server_index].get<std::string>();
@@ -223,9 +223,8 @@ void KeyserverTab::slot_refresh_table() {
 }
 
 void KeyserverTab::slot_test_listed_key_server() {
-  auto timeout =
-      QInputDialog::getInt(this, _("Set TCP Timeout"), tr("timeout(ms): "),
-                           QLineEdit::Normal, 800, 3000);
+  auto timeout = QInputDialog::getInt(this, _("Set TCP Timeout"),
+                                      tr("timeout(ms): "), 2500, 200, 16000);
 
   QStringList urls;
   const auto row_size = ui_->keyServerListTable->rowCount();
@@ -234,28 +233,30 @@ void KeyserverTab::slot_test_listed_key_server() {
     urls.push_back(keyserver_url);
   }
 
-  auto thread = new ListedKeyServerTestThread(urls, timeout, this);
-  connect(thread,
-          &GpgFrontend::UI::ListedKeyServerTestThread::
-              SignalKeyServerListTestResult,
-          this, [=](const QStringList& result) {
-            const auto row_size = ui_->keyServerListTable->rowCount();
-            if (result.size() != row_size) return;
-            ui_->keyServerListTable->blockSignals(true);
-            for (int i = 0; i < row_size; i++) {
-              const auto status = result[i];
-              auto status_iem = ui_->keyServerListTable->item(i, 3);
-              if (status == "Reachable") {
-                status_iem->setText(_("Reachable"));
-                status_iem->setForeground(QBrush(QColor::fromRgb(0, 255, 0)));
-              } else {
-                status_iem->setText(_("Not Reachable"));
-                status_iem->setForeground(QBrush(QColor::fromRgb(255, 0, 0)));
-              }
-            }
-            ui_->keyServerListTable->blockSignals(false);
-          });
-  connect(thread, &QThread::finished, thread, &QThread::deleteLater);
+  auto* task = new ListedKeyServerTestTask(urls, timeout, this);
+
+  connect(
+      task,
+      &GpgFrontend::UI::ListedKeyServerTestTask::SignalKeyServerListTestResult,
+      this,
+      [=](std::vector<ListedKeyServerTestTask::KeyServerTestResultType>
+              result) {
+        const auto row_size = ui_->keyServerListTable->rowCount();
+        if (result.size() != row_size) return;
+        ui_->keyServerListTable->blockSignals(true);
+        for (int i = 0; i < row_size; i++) {
+          const auto status = result[i];
+          auto status_iem = ui_->keyServerListTable->item(i, 3);
+          if (status == ListedKeyServerTestTask::kTestResultType_Success) {
+            status_iem->setText(_("Reachable"));
+            status_iem->setForeground(QBrush(QColor::fromRgb(0, 255, 0)));
+          } else {
+            status_iem->setText(_("Not Reachable"));
+            status_iem->setForeground(QBrush(QColor::fromRgb(255, 0, 0)));
+          }
+        }
+        ui_->keyServerListTable->blockSignals(false);
+      });
 
   // Waiting Dialog
   auto* waiting_dialog = new QProgressDialog(this);
@@ -269,23 +270,18 @@ void KeyserverTab::slot_test_listed_key_server() {
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
-  connect(thread, &QThread::finished, [=]() {
-    waiting_dialog->finished(0);
+  waiting_dialog->setModal(true);
+  connect(task, &Thread::Task::SignalTaskFinished, [=]() {
+    waiting_dialog->close();
     waiting_dialog->deleteLater();
   });
-  connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
-    LOG(INFO) << "cancel clicked";
-    if (thread->isRunning()) thread->terminate();
-  });
-
   // Show Waiting Dialog
   waiting_dialog->show();
   waiting_dialog->setFocus();
 
-  thread->start();
-  QEventLoop loop;
-  connect(thread, &QThread::finished, &loop, &QEventLoop::quit);
-  loop.exec();
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+      ->PostTask(task);
 }
 
 void KeyserverTab::contextMenuEvent(QContextMenuEvent* event) {
