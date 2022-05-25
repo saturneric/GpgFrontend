@@ -53,7 +53,7 @@ The original code repository of Gpg Frontend is hosted on the server of Codes Dr
 submitted to the code repository first. You can click [Here](https://global.git.codesdream.com/GpgFrontend.git) to visit
 the original code repository and track development progress.
 
-注意：中国用户请访问[这里](https://git.codesdream.com/GpgFrontend.git)
+注意：中国用户请访问[这里](https://git.codesdream.com/main/GpgFrontend.git)
 
 ### License
 
