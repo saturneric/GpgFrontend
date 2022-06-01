@@ -1,0 +1,4300 @@
+# Language UK translations for GpgFrontend package.
+# Copyright (C) 2021 Saturneric
+# This file is distributed under the same license as the GpgFrontend package.
+# Automatically generated, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GpgFrontend 2.0.8\n"
+"Report-Msgid-Bugs-To: eric@bktus.com\n"
+"POT-Creation-Date: 2022-06-01 22:21+0800\n"
+"PO-Revision-Date: 2022-06-01 22:25-0800\n"
+"Last-Translator: Google Translation <eric@bktus.com>\n"
+"Language-Team: Google Translation <eric@bktus.com>\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:56
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:58
+msgid "Failed to read app secure key file"
+msgstr "Не вдалося прочитати файл безпечного ключа програми"
+
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:95
+msgid "Saving data object"
+msgstr "Збереження об'єкта даних"
+
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:106
+msgid "Get data object"
+msgstr "Отримати об’єкт даних"
+
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:116
+msgid "Data object not found"
+msgstr "Об’єкт даних не знайдено"
+
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:122
+msgid "Failed to read data object"
+msgstr "Не вдалося прочитати об’єкт даних"
+
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:126
+msgid "Data object found"
+msgstr "Об’єкт даних знайдено"
+
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:132
+msgid "Decrypting data object"
+msgstr "Розшифровка об’єкта даних"
+
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:138
+msgid "Data object decoded"
+msgstr "Об'єкт даних декодований"
+
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:142
+msgid "Failed to get data object"
+msgstr "Не вдалося отримати об’єкт даних"
+
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:79
+msgid "File Hash Information"
+msgstr "Інформація про хеш файлу"
+
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:80
+msgid "filename"
+msgstr "ім'я файлу"
+
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:80
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:87
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:97
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:105
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:113
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:169
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:66
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:61
+msgid ": "
+msgstr ":"
+
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:87
+msgid "file size(bytes)"
+msgstr "розмір файлу (байти)"
+
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:118
+msgid "Error in Calculating File Hash "
+msgstr "Помилка під час обчислення хешу файлу"
+
+#: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:37
+msgid "Updated ui configuration successfully written to"
+msgstr "Оновлену конфігурацію інтерфейсу успішно записано до"
+
+#: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:41
+msgid "I/O error while writing ui configuration file"
+msgstr ""
+"Помилка введення-виведення під час запису файлу конфігурації інтерфейсу "
+"користувача"
+
+#: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:53
+msgid "App Path"
+msgstr "Шлях до програми"
+
+#: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:54
+msgid "App Configure Path"
+msgstr "Шлях налаштування програми"
+
+#: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:55
+msgid "App Data Path"
+msgstr "Шлях даних програми"
+
+#: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:56
+msgid "App Log Path"
+msgstr "Шлях журналу програми"
+
+#: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:57
+msgid "App Locale Path"
+msgstr "Шлях мови програми"
+
+#: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:70
+msgid "UserInterface configuration successfully written to"
+msgstr "Конфігурація інтерфейсу користувача успішно записана"
+
+#: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:75
+msgid "I/O error while writing UserInterface configuration file"
+msgstr ""
+"Помилка введення-виведення під час запису файлу конфігурації інтерфейсу "
+"користувача"
+
+#: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:81
+msgid "UserInterface configuration successfully read from"
+msgstr "Конфігурацію інтерфейсу користувача успішно прочитано"
+
+#: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:84
+msgid "I/O error while reading UserInterface configure file"
+msgstr ""
+"Помилка введення-виведення під час читання файлу конфігурації інтерфейсу "
+"користувача"
+
+#: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:86
+msgid "Parse error at "
+msgstr "Помилка аналізу на"
+
+#: /mnt/h/GpgFrontend/src/core/function/gpg/GpgKeyOpera.cpp:279
+#: /mnt/h/GpgFrontend/src/core/function/gpg/GpgKeyOpera.cpp:288
+msgid "operator not support"
+msgstr "оператор не підтримується"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:38
+msgid "Decrypt Operation"
+msgstr "Операція дешифрування"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:41
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:41
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:43
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:47
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:106
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:78
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:280
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:245
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:246
+msgid "Success"
+msgstr "Успіх"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:43
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:43
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:45
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:49
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:250
+msgid "Failed"
+msgstr "Не вдалося"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:48
+msgid "Unsupported Algo"
+msgstr "Непідтримуваний алгоритм"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:56
+msgid "File Name"
+msgstr "Ім'я файлу"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
+msgid "MIME"
+msgstr "MIME"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:206
+msgid "true"
+msgstr "правда"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:64
+msgid "Recipient(s)"
+msgstr "одержувач(и)"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:80
+msgid "Recipient"
+msgstr "одержувач"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:88
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:183
+msgid "Unknown"
+msgstr "Невідомо"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:94
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:76
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:66
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:160
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:34
+msgid "Key ID"
+msgstr "ID ключа"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:95
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:80
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:191
+msgid "Public Key Algo"
+msgstr "Алгоритм відкритого ключа"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:36
+msgid "Start Encrypt Result Analyse"
+msgstr "Почніть аналіз результатів шифрування"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:38
+msgid "Encrypt Operation"
+msgstr "Операція шифрування"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:51
+msgid "Invalid Recipients"
+msgstr "Недійсні одержувачі"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:54
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:105
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:141
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:42
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:68
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:84
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:100
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:118
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:134
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:149
+msgid "Fingerprint"
+msgstr "Відбиток пальця"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:55
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:107
+msgid "Reason"
+msgstr "Причина"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:38
+msgid "Start Sign Result Analyse"
+msgstr "Почати аналіз результату знака"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:40
+msgid "Sign Operation"
+msgstr "Підписати операцію"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:52
+msgid "Sign Result Analyse Getting Result"
+msgstr "Підпишіть результат Аналізуйте Отримання результату"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:57
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:186
+msgid "New Signature"
+msgstr "Новий підпис"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:59
+msgid "Signers Fingerprint"
+msgstr "Відбитки пальців підписників"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:61
+msgid "Sign Mode"
+msgstr "Режим знаку"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:63
+msgid "Normal"
+msgstr "Нормальний"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:65
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:45
+msgid "Clear"
+msgstr "Ясно"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:67
+msgid "Detach"
+msgstr "Від’єднати"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:74
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:77
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:104
+msgid "Signer"
+msgstr "Підписувач"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:82
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:194
+msgid "Hash Algo"
+msgstr "Hash Algo"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:84
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:197
+msgid "Date"
+msgstr "Дата"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:84
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:58
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:197
+msgid "UTC"
+msgstr "UTC"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:95
+msgid "Sign Result Analyse Getting Invalid Signer"
+msgstr "Аналіз результату підписання. Отримання недійсного підписувача"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:100
+msgid "Invalid Signers"
+msgstr "Недійсні підписувачі"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:42
+msgid "started"
+msgstr "почався"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:44
+msgid "Verify Operation"
+msgstr "Перевірити дію"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:58
+msgid "Signed On"
+msgstr "Підписаний"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:64
+msgid "Signatures List"
+msgstr "Список підписів"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:70
+msgid "Signature [%1%]:"
+msgstr "Підпис [%1%]:"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:73
+msgid "A Bad Signature."
+msgstr "Поганий підпис."
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:75
+msgid "This Signature is invalid."
+msgstr "Цей підпис недійсний."
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:80
+msgid "A"
+msgstr "А"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:82
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:191
+msgid "Good"
+msgstr "добре"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:85
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:194
+msgid "Bad"
+msgstr "Погано"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:88
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:86
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:197
+msgid "Expired"
+msgstr "Термін дії закінчився"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:91
+msgid "Missing Key's"
+msgstr "Відсутні ключі"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:94
+msgid "Revoked Key's"
+msgstr "Відкликані ключі"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:97
+msgid "Expired Key's"
+msgstr "Термін дії ключів закінчився"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:100
+msgid "Missing CRL's"
+msgstr "Відсутні CRL"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:104
+msgid "Signature Fully Valid."
+msgstr "Підпис повністю дійсний."
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:106
+msgid "Signature Not Fully Valid."
+msgstr "Підпис не повністю дійсний."
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:107
+msgid "(May used a subkey to sign)"
+msgstr "(Можливо використовувати підключ для підпису)"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:113
+msgid "Key is NOT present with ID 0x"
+msgstr "Ключ НЕ присутній з ідентифікатором 0x"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:121
+msgid "A signature could NOT be verified due to a Missing Key"
+msgstr "Підпис НЕ можна перевірити через відсутній ключ"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:126
+msgid ""
+"A signature is valid but the key used to verify the signature has been "
+"revoked"
+msgstr ""
+"Підпис дійсний, але ключ, який використовується для перевірки підпису, "
+"відкликано"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:135
+msgid "A signature is valid but expired"
+msgstr "Підпис дійсний, але термін його дії закінчився"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:142
+msgid ""
+"A signature is valid but the key used to verify the signature has expired."
+msgstr ""
+"Підпис дійсний, але термін дії ключа, який використовувався для перевірки "
+"підпису, закінчився."
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:150
+msgid "There was some other error which prevented the signature verification."
+msgstr "Була інша помилка, яка перешкодила перевірці підпису."
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:158
+msgid "Error for key with fingerprint"
+msgstr "Помилка ключа з відбитком пальця"
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:169
+msgid "Could not find information that can be used for verification."
+msgstr "Не вдалося знайти інформацію, яку можна використати для перевірки."
+
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:182
+#: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:187
+msgid "Signed By"
+msgstr "Підписаний"
+
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:56
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:73
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:83
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:68
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:120
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:367
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:424
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:499
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:505
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:513
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:556
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:144
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:234
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:44
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:49
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:74
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:213
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:285
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:339
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:451
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:508
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:545
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:628
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:664
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:741
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:85
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:249
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:317
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:384
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:504
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:582
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:626
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:641
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:216
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:335
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:346
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:374
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:393
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:437
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:174
+msgid "Error"
+msgstr "Помилка"
+
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:56
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:69
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:74
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:83
+msgid "Source: "
+msgstr "Джерело:"
+
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:57
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:70
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:74
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:84
+msgid "Description: "
+msgstr "Опис:"
+
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:68
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:311
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:418
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:609
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:701
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:158
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:249
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:384
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:100
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:138
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:210
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:437
+msgid "Warning"
+msgstr "Увага"
+
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:70
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:75
+msgid "Predict"
+msgstr "Передбачити"
+
+#: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:204
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:463
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:571
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:271
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:664
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:161
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:422
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
+msgid "Called"
+msgstr "Подзвонив"
+
+#: /mnt/h/GpgFrontend/src/core/GpgCoreInit.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:165
+msgid "log file path"
+msgstr "шлях до файлу журналу"
+
+#: /mnt/h/GpgFrontend/src/main.cpp:122
+msgid "A serious error has occurred"
+msgstr "Сталася серйозна помилка"
+
+#: /mnt/h/GpgFrontend/src/main.cpp:123
+msgid ""
+"Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
+" restarted. If the problem recurs, please manually terminate the program and"
+" report the problem to the developer."
+msgstr ""
+"О ні! GpgFrontend виявив серйозну помилку в програмному забезпеченні, тому "
+"його потрібно перезапустити. Якщо проблема повторюється, будь ласка, вручну "
+"завершіть програму та повідомте про проблему розробнику."
+
+#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:38
+msgid "Signatures Details"
+msgstr "Відомості про підписи"
+
+#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:61
+msgid "No valid input found"
+msgstr "Не знайдено дійсних даних"
+
+#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:72
+msgid "Error Validating signature"
+msgstr "Помилка перевірки підпису"
+
+#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:74
+msgid "File was signed on %1%"
+msgstr "Файл підписано %1%"
+
+#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:83
+msgid "It Contains"
+msgstr "Це містить"
+
+#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:80
+msgid "Signed on %1%"
+msgstr "Підписано на %1%"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/QuitDialog.cpp:37
+msgid "Unsaved Files"
+msgstr "Незбережені файли"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/QuitDialog.cpp:86
+msgid ""
+"%1% files contain unsaved information.<br/>Save the changes before closing?"
+msgstr ""
+"%1% файлів містить незбережену інформацію.<br/>Зберегти зміни перед "
+"закриттям?"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/QuitDialog.cpp:100
+msgid "Check the files you want to save:"
+msgstr "Виберіть файли, які ви хочете зберегти:"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/QuitDialog.cpp:102
+msgid "Note"
+msgstr "Примітка"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/QuitDialog.cpp:103
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:299
+msgid "If you don't save these files, all changes are lost."
+msgstr "Якщо ви не збережете ці файли, усі зміни буде втрачено."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:43
+msgid "First Start Wizard"
+msgstr "Майстер першого запуску"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:78
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:182
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:115
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:124
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:104
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:51
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:48
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:242
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:477
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:588
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:63
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:72
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:88
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:98
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:113
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:123
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:133
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:79
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:86
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:93
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:100
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:108
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:120
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:149
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:323
+msgid "Setting Operation Error"
+msgstr "Помилка налаштування"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:86
+msgid "Getting Started..."
+msgstr "Починаємо..."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:87
+msgid "... with GpgFrontend"
+msgstr "... з GpgFrontend"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:90
+msgid "Welcome to use GpgFrontend for decrypting and signing text or file!"
+msgstr ""
+"Ласкаво просимо до використання GpgFrontend для розшифрування та підписання "
+"тексту або файлу!"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:93
+msgid ""
+"is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free "
+"OpenPGP Crypto Tool."
+msgstr ""
+"— це потужний, простий у використанні, компактний, міжплатформний і "
+"безкоштовний інструмент OpenPGP Crypto Tool."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:95
+msgid "For brief information have a look at the"
+msgstr "Щоб отримати коротку інформацію, подивіться на"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:97
+msgid "Overview"
+msgstr "Огляд"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:98
+msgid "by clicking the link, the page will open in the web browser"
+msgstr "натиснувши посилання, сторінка відкриється у веб-браузері"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:107
+msgid ""
+"If it supports the language currently being used in your system, GpgFrontend"
+" will automatically set it."
+msgstr ""
+"Якщо він підтримує мову, яка зараз використовується у вашій системі, "
+"GpgFrontend автоматично встановить її."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:125
+msgid "Choose your action..."
+msgstr "Виберіть свою дію..."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:126
+msgid "...by clicking on the appropriate link."
+msgstr "..., натиснувши на відповідне посилання."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:130
+msgid ""
+"If you have never used GpgFrontend before and also don't own a gpg key yet "
+"you may possibly want to read how to"
+msgstr ""
+"Якщо ви ніколи раніше не використовували GpgFrontend, а також ще не маєте "
+"ключа gpg, можливо, ви захочете прочитати, як"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:134
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:271
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:58
+msgid "Generate Key"
+msgstr "Згенерувати ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:142
+msgid ""
+"If you want to learn how to encrypt, decrypt, sign and verify text, you can "
+"read "
+msgstr ""
+"Якщо ви хочете навчитися шифрувати, дешифрувати, підписувати та перевіряти "
+"текст, ви можете прочитати"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:147
+msgid "Encrypt & Decrypt Text"
+msgstr "Шифрування та дешифрування тексту"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:147
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:162
+msgid "or"
+msgstr "або"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:150
+msgid "Sign & Verify Text"
+msgstr "Підпишіть і підтвердьте текст"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:158
+msgid "If you want to operate file, you can read "
+msgstr "Якщо ви хочете працювати з файлом, ви можете читати"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:162
+msgid "Encrypt & Sign File"
+msgstr "Шифруйте та підписуйте файл"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:165
+msgid "Sign & Verify File"
+msgstr "Підписати та підтвердити файл"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:191
+msgid "Create a keypair..."
+msgstr "Створити пару ключів..."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:192
+msgid "...for decrypting and signing messages"
+msgstr "...для розшифровки та підписання повідомлень"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:194
+msgid ""
+"You should create a new keypair.The pair consists of a public and a private "
+"key.<br>Other users can use the public key to encrypt messages for you and "
+"verify messages signed by you.You can use the private key to decrypt and "
+"sign messages.<br>For more information have a look at the offline tutorial "
+"(which then is shown in the main window):"
+msgstr ""
+"Вам слід створити нову пару ключів. Пара складається з відкритого та "
+"приватного ключа.<br>Інші користувачі можуть використовувати відкритий ключ "
+"для шифрування повідомлень для вас і перевірки підписаних вами повідомлень. "
+"Ви можете використовувати приватний ключ для розшифрування та підпису "
+"повідомлення.<br>Для отримання додаткової інформації перегляньте офлайн-"
+"підручник (який потім відображається в головному вікні):"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:206
+msgid "Offline tutorial"
+msgstr "Офлайн-підручник"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:210
+msgid "Create New Key"
+msgstr "Створити новий ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:232
+msgid "Ready."
+msgstr "Готовий."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:233
+msgid "Have fun with GpgFrontend!"
+msgstr "Розважайтеся з GpgFrontend!"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:236
+msgid "You are ready to use GpgFrontend now.<br><br>"
+msgstr "Ви готові використовувати GpgFrontend зараз.<br><br>"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:240
+msgid "The Online Document"
+msgstr "Документ онлайн"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:241
+msgid ""
+" will get you started with GpgFrontend. Anytime you encounter problems, "
+"please try to find help from the documentation"
+msgstr ""
+" допоможе вам розпочати роботу з GpgFrontend. Щоразу, коли у вас виникнуть "
+"проблеми, спробуйте знайти допомогу в документації"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:250
+msgid "Open offline help."
+msgstr "Відкрийте офлайн-довідку."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:253
+msgid "Dont show the wizard again."
+msgstr "Не показуйте майстра знову."
+
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:76
+msgid "Standard Exception Thrown"
+msgstr "Стандартний виняток"
+
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:77
+msgid ""
+"Oops, an standard exception was thrown during the running of the program. "
+"This is not a serious problem, it may be the negligence of the programmer, "
+"please report this problem if you can."
+msgstr ""
+"На жаль, під час роботи програми було викликано стандартний виняток. Це не "
+"серйозна проблема, можливо, це недбалість програміста, будь ласка, повідомте"
+" про цю проблему, якщо можете."
+
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:85
+msgid "Unhandled Exception Thrown"
+msgstr "Викинуто необроблений виняток"
+
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:86
+msgid ""
+"Oops, an unhandled exception was thrown during the running of the program. "
+"This is not a serious problem, it may be the negligence of the programmer, "
+"please report this problem if you can."
+msgstr ""
+"На жаль, під час роботи програми було викликано необроблений виняток. Це не "
+"серйозна проблема, можливо, це недбалість програміста, будь ласка, повідомте"
+" про цю проблему, якщо можете."
+
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:83
+msgid "Loading Gnupg Info..."
+msgstr "Завантаження інформації Gnupg..."
+
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:84
+msgid ""
+"If this process is too slow, please set the key server address appropriately"
+" in the gnupg configuration file (depending on the network situation in your"
+" country or region)."
+msgstr ""
+"Якщо цей процес надто повільний, встановіть відповідну адресу сервера ключів"
+" у файлі конфігурації gnupg (залежно від ситуації в мережі у вашій країні чи"
+" регіоні)."
+
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:195
+msgid "could not read properly from configure file"
+msgstr "не вдалося правильно прочитати файл конфігурації"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:39
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
+msgid "About"
+msgstr "Про"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:46
+msgid "About Software"
+msgstr "Про програмне забезпечення"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:47
+msgid "Translators"
+msgstr "Перекладачі"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:48
+msgid "Update"
+msgstr "Оновлення"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:81
+msgid ""
+"GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
+"free gpg front-end tool.It visualizes most of the common operations of gpg "
+"commands.It's licensed under the GPL v3"
+msgstr ""
+"GpgFrontend — це простий у використанні, компактний, кросплатформний і не "
+"вимагає установки інтерфейсний інструмент gpg. Він візуалізує більшість "
+"поширених операцій команд gpg. Він ліцензований під GPL v3."
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:87
+msgid "Developer:"
+msgstr "Розробник:"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:88
+msgid "If you have any questions or suggestions, raise an issue at"
+msgstr ""
+"Якщо у вас виникли запитання чи пропозиції, подайте питання за адресою"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:91
+msgid "or send a mail to my mailing list at"
+msgstr "або надішліть листа до мого списку розсилки за адресою"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:93
+msgid "Built with Qt"
+msgstr "Створено за допомогою Qt"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:93
+msgid "and GPGME"
+msgstr "і GPGME"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:95
+msgid "Built at"
+msgstr "Побудований на"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:134
+msgid ""
+"If you think there are any problems with the translation, why not "
+"participate in the translation work? If you want to participate, please read"
+" the document or contact me via email."
+msgstr ""
+"Якщо ви вважаєте, що є якісь проблеми з перекладом, чому б не взяти участь у"
+" перекладацькій роботі? Якщо ви хочете взяти участь, будь ласка, прочитайте "
+"документ або зв’яжіться зі мною електронною поштою."
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:159
+msgid ""
+"It is recommended that you always check the version of GpgFrontend and "
+"upgrade to the latest version."
+msgstr ""
+"Рекомендується завжди перевіряти версію GpgFrontend та оновлювати до "
+"останньої версії."
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:162
+msgid ""
+"New versions not only represent new features, but also often represent "
+"functional and security fixes."
+msgstr ""
+"Нові версії не тільки представляють нові функції, але також часто "
+"представляють функціональні виправлення та виправлення безпеки."
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:168
+msgid "Current Version"
+msgstr "Поточна версія"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:200
+msgid "try to get latest version"
+msgstr "спробуйте отримати останню версію"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:215
+msgid "Latest Version From Github"
+msgstr "Остання версія з Github"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:221
+msgid "The current version is less than the latest version on github."
+msgstr "Поточна версія менша за останню версію на github."
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:223
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:234
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:246
+msgid "Please click"
+msgstr "Будь ласка, натисніть"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:226
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:237
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:249
+msgid "Here"
+msgstr "Тут"
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:226
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:237
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:249
+msgid "to download the latest stable version."
+msgstr "щоб завантажити останню стабільну версію."
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:232
+msgid ""
+"This version has serious problems and has been withdrawn. Please stop using "
+"it immediately."
+msgstr ""
+"Ця версія має серйозні проблеми і була відкликана. Будь ласка, негайно "
+"припиніть його використовувати."
+
+#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:243
+msgid ""
+"This version has not been released yet, it may be a beta version. If you are"
+" not a tester and care about version stability, please do not use this "
+"version."
+msgstr ""
+"Ця версія ще не випущена, можливо, це бета-версія. Якщо ви не тестувальник і"
+" дбаєте про стабільність версії, будь ласка, не використовуйте цю версію."
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:54
+msgid "Export Key Package"
+msgstr "Експортувати пакет ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:220
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:535
+msgid "Key Package"
+msgstr "Пакет ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:61
+msgid "Export Key Package Passphrase"
+msgstr "Експорт ключової кодової фрази"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:63
+msgid "Key File"
+msgstr "Ключовий файл"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:69
+msgid "An error occurred while generating the passphrase file."
+msgstr "Під час створення файлу парольної фрази сталася помилка."
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:78
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:85
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:378
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:391
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:490
+msgid "Forbidden"
+msgstr "Заборонено"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:79
+msgid "Please select an output path before exporting."
+msgstr "Будь ласка, виберіть вихідний шлях перед експортом."
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:86
+msgid ""
+"Please generate a password to protect your key before exporting, it is very "
+"important. Don't forget to back up your password in a safe place."
+msgstr ""
+"Згенеруйте пароль для захисту вашого ключа перед експортом, це дуже важливо."
+" Не забудьте створити резервну копію свого пароля в безпечному місці."
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:108
+msgid ""
+"The Key Package has been successfully generated and has been protected by "
+"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
+"Package."
+msgstr ""
+"Пакет ключів був успішно згенерований і захищений алгоритмами шифрування "
+"(AES-256-ECB). Ви можете безпечно передати свій пакет ключів."
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:112
+msgid ""
+"But the key file cannot be leaked under any circumstances. Please delete the"
+" Key Package and key file as soon as possible after completing the transfer "
+"operation."
+msgstr ""
+"Але ключовий файл не може бути витоком ні за яких обставин. Будь ласка, "
+"видаліть пакет ключів і ключовий файл якомога швидше після завершення "
+"операції передачі."
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:121
+msgid "An error occurred while exporting the key package."
+msgstr "Під час експорту пакета ключів сталася помилка."
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:128
+msgid "Key Package Name"
+msgstr "Назва пакету ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:129
+msgid "Output Path"
+msgstr "Вихідний шлях"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:130
+msgid "Passphrase"
+msgstr "Парольна фраза"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:132
+msgid ""
+"Tips: You can use Key Package to safely and conveniently transfer your "
+"public and private keys between devices."
+msgstr ""
+"Поради. Ви можете використовувати пакет ключів для безпечного та зручного "
+"перенесення відкритих та закритих ключів між пристроями."
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:134
+msgid "Generate and Save Passphrase"
+msgstr "Згенеруйте та збережіть парольну фразу"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:135
+msgid "Generate Key Package Name"
+msgstr "Створити назву пакета ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:136
+msgid "Select Output Path"
+msgstr "Виберіть вихідний шлях"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:139
+msgid "Include secret key (Think twice before acting)"
+msgstr "Включити секретний ключ (Двічі подумайте, перш ніж діяти)"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:141
+msgid "Exclude keys that do not have a private key"
+msgstr "Виключити ключі, які не мають приватного ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:144
+msgid "exportKeyPackageDialog"
+msgstr "exportKeyPackageDialog"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:60
+msgid "Key Update Details"
+msgstr "Ключові відомості про оновлення"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:41
+msgid "No keys found"
+msgstr "Не знайдено ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:43
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:62
+msgid "Key Import Details"
+msgstr "Основні відомості про імпорт"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:44
+msgid "No keys found to import"
+msgstr "Не знайдено ключів для імпорту"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:78
+msgid "General key info"
+msgstr "Загальна ключова інформація"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:81
+msgid "Considered"
+msgstr "Розглянуто"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:88
+msgid "Public unchanged"
+msgstr "Громадська без змін"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:94
+msgid "Imported"
+msgstr "Імпортні"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:102
+msgid "Not Imported"
+msgstr "Не імпортований"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:109
+msgid "Private Read"
+msgstr "Приватне читання"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:116
+msgid "Private Imported"
+msgstr "Приватне імпортне"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:123
+msgid "Private Unchanged"
+msgstr "Приватне Без змін"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:141
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:46
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:69
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:160
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:381
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Name"
+msgstr "Ім'я"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:141
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:47
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:160
+msgid "Email"
+msgstr "Електронна пошта"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:141
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:51
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:93
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:109
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:111
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:127
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:142
+msgid "Status"
+msgstr "Статус"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:170
+msgid "Private"
+msgstr "Приватний"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:173
+msgid "Public"
+msgstr "Громадський"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:176
+msgid "Unchanged"
+msgstr "Без змін"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:179
+msgid "New Key"
+msgstr "Новий ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:182
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:189
+msgid "New Subkey"
+msgstr "Новий підключ"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:190
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:47
+msgid "New UID"
+msgstr "Новий UID"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:50
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:176
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:179
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:77
+msgid "Close"
+msgstr "Закрити"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:53
+msgid "Import ALL"
+msgstr "Імпортувати ВСЕ"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:57
+msgid "Search"
+msgstr "Пошук"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:62
+msgid "Search String"
+msgstr "Пошук рядка"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:66
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
+msgid "Key Server"
+msgstr "Сервер ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:112
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:565
+msgid "Update Keys from Keyserver"
+msgstr "Оновлення ключів із сервера ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:114
+msgid "Import Keys from Keyserver"
+msgstr "Імпорт ключів із сервера ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:201
+msgid "UID"
+msgstr "UID"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:201
+msgid "Creation date"
+msgstr "Дата створення"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:201
+msgid "KeyID"
+msgstr "KeyID"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:201
+msgid "Tag"
+msgstr "тег"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:226
+msgid "Text is empty."
+msgstr "Текст пустий."
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:272
+msgid "Not Key Found"
+msgstr "Ключ не знайдено"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:275
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:478
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:495
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:139
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:328
+msgid "Timeout"
+msgstr "Час вийшов"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:278
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:481
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:142
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
+msgid "Key Server Not Found"
+msgstr "Сервер ключів не знайдено"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:281
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:484
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:502
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:145
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:334
+msgid "Connection Error"
+msgstr "Помилка з'єднання"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:290
+msgid "Too many responses from keyserver!"
+msgstr "Забагато відповідей від сервера ключів!"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:300
+msgid "No keys found, input may be kexId, retrying search with 0x."
+msgstr ""
+"Не знайдено ключів, введення може бути kexId, повторна спроба пошуку за "
+"допомогою 0x."
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:309
+msgid "No keys found containing the search string!"
+msgstr "Не знайдено ключів із пошуковим рядком!"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:316
+msgid "Insufficiently specific search string!"
+msgstr "Недостатньо конкретний рядок пошуку!"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:349
+msgid "revoked"
+msgstr "скасовано"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:353
+msgid "disabled"
+msgstr "інвалід"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:395
+msgid "%1 keys found. Double click a key to import it."
+msgstr "Знайдено %1 ключів. Двічі клацніть ключ, щоб імпортувати його."
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:407
+msgid "Current Row"
+msgstr "Поточний ряд"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:425
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:73
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:282
+msgid "Set target Key Server to default Key Server"
+msgstr "Встановити цільовий сервер ключів як сервер ключів за замовчуванням"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:428
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:76
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
+msgid "Cannot read default_keyserver From Settings"
+msgstr "Не вдається прочитати default_keyserver із налаштувань"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:430
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:78
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:287
+msgid "Default Keyserver Not Found"
+msgstr "Сервер ключів за замовчуванням не знайдено"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:431
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:79
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
+msgid ""
+"Cannot read default keyserver from your settings, please set a default "
+"keyserver first"
+msgstr ""
+"Не вдається прочитати сервер ключів за замовчуванням із ваших налаштувань, "
+"спершу встановіть сервер ключів за замовчуванням"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:475
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:136
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:325
+msgid "Key Not Found"
+msgstr "Ключ не знайдено"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:490
+msgid "Public key Not Found"
+msgstr "Відкритий ключ не знайдено"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:491
+msgid "Public key fingerprint %1 not found in the Keyserver"
+msgstr "Відбиток відкритого ключа %1 не знайдено на сервері ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:498
+msgid "Host Not Found"
+msgstr "Хост не знайдено"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:503
+msgid "General Connection Error"
+msgstr "Загальна помилка підключення"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:518
+msgid "Key Imported"
+msgstr "Імпортований ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:54
+msgid "Uploading Public Key"
+msgstr "Завантаження відкритого ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:150
+msgid "Upload Success"
+msgstr "Завантаження успішно"
+
+#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:151
+msgid "Upload Public Key Successfully"
+msgstr "Завантажити відкритий ключ успішно"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:50
+msgid "All"
+msgstr "всі"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:53
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:467
+msgid "Only Public Key"
+msgstr "Тільки відкритий ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:476
+msgid "Has Private Key"
+msgstr "Має приватний ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:71
+msgid "No Primary Key"
+msgstr "Немає первинного ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:80
+msgid "Revoked"
+msgstr "Скасовано"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:115
+msgid "icon_size"
+msgstr "icon_size"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:124
+msgid "icon_style"
+msgstr "icon_style"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:157
+msgid "KeyPair Management"
+msgstr "Управління парою ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:170
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:225
+msgid "Open"
+msgstr "відчинено"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:171
+msgid "Ctrl+O"
+msgstr "Ctrl+O"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:172
+msgid "Open Key File"
+msgstr "Відкрийте файл ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:177
+msgid "Ctrl+Q"
+msgstr "Ctrl+Q"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:182
+msgid "New Keypair"
+msgstr "Нова пара ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:183
+msgid "Ctrl+N"
+msgstr "Ctrl+N"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:185
+msgid "Generate KeyPair"
+msgstr "Створити пару ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:190
+msgid "Ctrl+Shift+N"
+msgstr "Ctrl+Shift+N"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:192
+msgid "Generate Subkey For Selected KeyPair"
+msgstr "Згенерувати підключ для вибраної пари ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:196
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:266
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:208
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:319
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:384
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:243
+msgid "File"
+msgstr "Файл"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:198
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:210
+msgid "Import New Key From File"
+msgstr "Імпорт нового ключа з файлу"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:202
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:214
+msgid "Clipboard"
+msgstr "буфер обміну"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:206
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:218
+msgid "Import New Key From Clipboard"
+msgstr "Імпортуйте новий ключ із буфера обміну"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:211
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:223
+msgid "Keyserver"
+msgstr "Сервер ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:215
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:227
+msgid "Import New Key From Keyserver"
+msgstr "Імпортуйте новий ключ із сервера ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:223
+msgid "Import Key(s) From a Key Package"
+msgstr "Імпорт ключів із пакета ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:227
+msgid "Export To Clipboard"
+msgstr "Експортувати в буфер обміну"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:230
+msgid "Export Selected Key(s) To Clipboard"
+msgstr "Експортувати вибрані ключі в буфер обміну"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:234
+msgid "Export To Key Package"
+msgstr "Експортувати в пакет ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:237
+msgid "Export Checked Key(s) To a Key Package"
+msgstr "Експортувати перевірені ключі в пакет ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:241
+msgid "Export As OpenSSH"
+msgstr "Експортувати як OpenSSH"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:244
+msgid "Export Selected Key(s) As OpenSSH Format to File"
+msgstr "Експортувати вибрані ключі у форматі OpenSSH у файл"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:248
+msgid "Delete Selected Key(s)"
+msgstr "Видалити вибрані ключі"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:249
+msgid "Delete the Selected keys"
+msgstr "Видаліть Вибрані ключі"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:253
+msgid "Delete Checked Key(s)"
+msgstr "Видалити позначений ключ(и)"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:254
+msgid "Delete the Checked keys"
+msgstr "Видаліть позначені ключі"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:259
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
+msgid "Show Key Details"
+msgstr "Показати ключові деталі"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:260
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:291
+msgid "Show Details for this Key"
+msgstr "Показати деталі для цього ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:270
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:289
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:402
+msgid "Key"
+msgstr "Ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:275
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:308
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:361
+msgid "Import Key"
+msgstr "Ключ імпорту"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:297
+msgid "Generate"
+msgstr "Згенерувати"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:298
+msgid "Generate A New Keypair or Subkey"
+msgstr "Створіть нову пару ключів або підключ"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:307
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:428
+msgid "Import key"
+msgstr "Імпортувати ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:346
+msgid "Deleting Keys"
+msgstr "Видалення ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:349
+msgid "Are you sure that you want to delete the following keys?"
+msgstr "Ви впевнені, що хочете видалити наступні ключі?"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:351
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:380
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:417
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:514
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:566
+msgid "The action can not be undone."
+msgstr "Дію не можна скасувати."
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:367
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:424
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:513
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:626
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:641
+msgid "Key Not Found."
+msgstr "Ключ не знайдено."
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:379
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:392
+msgid "Please check some keys before doing this operation."
+msgstr "Будь ласка, перевірте деякі ключі перед виконанням цієї операції."
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:384
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:525
+msgid "key(s) exported"
+msgstr "ключ(и) експортовано"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:418
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:428
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:306
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:363
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:484
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:498
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:540
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:549
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:383
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:131
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:192
+msgid "Invalid Operation"
+msgstr "Недійсна операція"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:419
+msgid "Please select one KeyPair before doing this operation."
+msgstr "Будь ласка, виберіть одну пару ключів перед виконанням цієї операції."
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:429
+msgid ""
+"If a key pair does not have a private key then it will not be able to "
+"generate sub-keys."
+msgstr ""
+"Якщо пара ключів не має приватного ключа, вона не зможе генерувати підключі."
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:491
+msgid ""
+"Please select a key before performing this operation. If you select multiple"
+" keys, only the first key will be exported."
+msgstr ""
+"Будь ласка, виберіть ключ перед виконанням цієї операції. Якщо вибрати "
+"кілька ключів, буде експортовано лише перший ключ."
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:499
+msgid "An error occur in exporting."
+msgstr "Під час експорту сталася помилка."
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:506
+msgid ""
+"This key may not be able to export as OpenSSH format. Please check the key-"
+"size of the subkey(s) used to sign."
+msgstr ""
+"Можливо, цей ключ не можна експортувати у формат OpenSSH. Будь ласка, "
+"перевірте розмір ключа підключів, які використовуються для підпису."
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:520
+msgid "Export OpenSSH Key To File"
+msgstr "Експортувати ключ OpenSSH у файл"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:521
+msgid "OpenSSH Public Key Files"
+msgstr "Файли відкритих ключів OpenSSH"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:534
+msgid "Import Key Package"
+msgstr "Імпортувати пакет ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:538
+msgid "Import Key Package Passphrase File"
+msgstr "Імпорт файлу кодової фрази пакету ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:539
+msgid "Key Package Passphrase File"
+msgstr "Файл кодової фрази пакету ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:550
+msgid "key(s) imported"
+msgstr "імпортовані ключі"
+
+#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:557
+msgid "An error occur in importing key package."
+msgstr "Під час імпортування пакета ключів сталася помилка."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:41
+msgid "KeyPair"
+msgstr "Пара ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:42
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:67
+msgid "UIDs"
+msgstr "UID"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:44
+msgid "Subkeys"
+msgstr "Підключі"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:46
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:392
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:52
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:51
+msgid "Operations"
+msgstr "Операції"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:56
+msgid "Key Details"
+msgstr "Ключові деталі"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:48
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:71
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:383
+msgid "Comment"
+msgstr "Коментар"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:56
+msgid "Notice: The New UID Created will be set as Primary."
+msgstr "Примітка. Новий створений UID буде встановлено як Основний."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:64
+msgid "Create New UID"
+msgstr "Створіть новий UID"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:79
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:96
+msgid "Name must contain at least five characters."
+msgstr "Ім’я має містити щонайменше п’ять символів."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:83
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:101
+msgid "Please give a email address."
+msgstr "Будь ласка, надайте адресу електронної пошти."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:40
+msgid "Owner"
+msgstr "Власник"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:41
+msgid "Primary Key"
+msgstr "Первинний ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:43
+msgid "Additional UIDs"
+msgstr "Додаткові ідентифікатори UID"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:382
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Email Address"
+msgstr "Електронна адреса"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:67
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:35
+msgid "Algorithm"
+msgstr "Алгоритм"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:78
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:69
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:160
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:36
+msgid "Key Size"
+msgstr "Розмір ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:79
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
+msgid "Nominal Usage"
+msgstr "Номінальне використання"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:38
+msgid "Actual Usage"
+msgstr "Фактичне використання"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:81
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:75
+msgid "Create Date (Local Time)"
+msgstr "Дата створення (місцевий час)"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:83
+msgid "Expires on (Local Time)"
+msgstr "Термін дії закінчується (за місцевим часом)"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:85
+msgid "Last Update (Local Time)"
+msgstr "Останнє оновлення (за місцевим часом)"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:87
+msgid "Primary Key Existence"
+msgstr "Існування первинного ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:101
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:126
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:103
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:122
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:43
+msgid "Copy"
+msgstr "Копія"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:128
+msgid "copy fingerprint to clipboard"
+msgstr "копіювати відбиток пальця в буфер обміну"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:267
+msgid "Exists"
+msgstr "Існує"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:268
+msgid "Not Exists"
+msgstr "Не існує"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:206
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:216
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:259
+msgid "Certificate"
+msgstr "Сертифікат"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:207
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:218
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:260
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:165
+msgid "Encrypt"
+msgstr "Шифрувати"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:208
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:220
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:261
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:193
+msgid "Sign"
+msgstr "Підписати"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:209
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:222
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:262
+msgid "Auth"
+msgstr "авт"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:232
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:204
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:385
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:143
+msgid "Never Expire"
+msgstr "Ніколи не закінчується"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:244
+msgid "No Data"
+msgstr "Немає даних"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:261
+msgid "Warning: The primary key has expired."
+msgstr "Попередження: термін дії первинного ключа закінчився."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:266
+msgid "Warning: The primary key has been revoked."
+msgstr "Попередження: первинний ключ скасовано."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:44
+msgid "General Operations"
+msgstr "Загальні операції"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:50
+msgid "Export Public Key"
+msgstr "Експортувати відкритий ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:56
+msgid "Export Private Key"
+msgstr "Експортувати закритий ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:63
+msgid "Modify Expiration Datetime (Primary Key)"
+msgstr "Змінити дату закінчення терміну дії (первинний ключ)"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:66
+msgid "Modify Password"
+msgstr "Змінити пароль"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:77
+msgid "Key Server Operation (Pubkey)"
+msgstr "Робота сервера ключів (Pubkey)"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:84
+msgid "Generate Revoke Certificate"
+msgstr "Створити сертифікат відкликання"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:90
+msgid "Modify TOFU Policy"
+msgstr "Змінити політику TOFU"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:106
+msgid "Upload Key Pair to Key Server"
+msgstr "Завантажте пару ключів на сервер ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:112
+msgid "Sync Key Pair From Key Server"
+msgstr "Синхронізація пари ключів із сервера ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:126
+msgid "Export Full Secret Key"
+msgstr "Експортувати повний секретний ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:132
+msgid "Export Shortest Secret Key"
+msgstr "Експортувати найкоротший секретний ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:145
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:192
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:235
+msgid "An error occurred during the export operation."
+msgstr "Під час операції експорту сталася помилка."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:202
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:244
+msgid "Export Key To File"
+msgstr "Експортувати ключ у файл"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:157
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:203
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:245
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+msgid "Key Files"
+msgstr "Ключові файли"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:164
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:210
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:252
+msgid "Export Error"
+msgstr "Помилка експорту"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:211
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:253
+msgid "Couldn't open %1 for writing"
+msgstr "Не вдалося відкрити %1 для запису"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:173
+msgid "Exporting short private Key"
+msgstr "Експорт короткого приватного ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:221
+msgid "You are about to export your"
+msgstr "Ви збираєтеся експортувати"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:222
+msgid " PRIVATE KEY "
+msgstr " ПРИВАТНИЙ КЛЮЧ"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:176
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:223
+msgid "This is NOT your Public Key, so DON'T give it away."
+msgstr "Це НЕ ваш відкритий ключ, тому НЕ віддавайте його."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:177
+msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
+msgstr ""
+"Ви ДІЙСНО хочете експортувати свій ПРИВАТНИЙ КЛЮЧ у мінімальному розмірі?"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:180
+msgid ""
+"For OpenPGP keys it removes all signatures except for the latest self-"
+"signatures."
+msgstr ""
+"Для ключів OpenPGP він видаляє всі підписи, крім останніх самопідписів."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:220
+msgid "Exporting private Key"
+msgstr "Експорт приватного ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:224
+msgid "Do you REALLY want to export your PRIVATE KEY?"
+msgstr "Ви ДІЙСНО хочете експортувати свій ПРИВАТНИЙ КЛЮЧ?"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:281
+msgid "Revocation Certificates"
+msgstr "Свідоцтва про анулювання"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:324
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:354
+msgid "Not Successful"
+msgstr "Не успішно"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:325
+msgid "Modify password not successfully."
+msgstr "Не вдалося змінити пароль."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:341
+msgid "Policy Auto"
+msgstr "Політика Авто"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:343
+msgid "Policy Good"
+msgstr "Політика хороша"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:345
+msgid "Policy Bad"
+msgstr "Погана політика"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:332
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:347
+msgid "Policy Ask"
+msgstr "Політика Запитайте"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:332
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:349
+msgid "Policy Unknown"
+msgstr "Політика невідома"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:336
+msgid "Modify TOFU Policy(Default is Auto)"
+msgstr "Змінити політику TOFU (за умовчанням – Авто)"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:337
+msgid "Policy for the Key Pair:"
+msgstr "Політика для пари ключів:"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:355
+msgid "Modify TOFU policy not successfully."
+msgstr "Не вдалося змінити політику TOFU."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:44
+msgid "Subkey List"
+msgstr "Список підключів"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:45
+msgid "Detail of Selected Subkey"
+msgstr "Деталі вибраного підключу"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:49
+msgid "Generate A New Subkey"
+msgstr "Створіть новий підключ"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:71
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:151
+msgid "Usage"
+msgstr "Використання"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:73
+msgid "Expires On (Local Time)"
+msgstr "Термін дії закінчується (за місцевим часом)"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:76
+msgid "Existence"
+msgstr "Існування"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:79
+msgid "Key in Smart Card"
+msgstr "Введіть смарт-карту"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:160
+msgid "Subkey ID"
+msgstr "Ідентифікатор підключа"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:160
+msgid "Algo"
+msgstr "Алго"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:161
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:160
+msgid "Create Date (UTC)"
+msgstr "Дата створення (UTC)"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:161
+msgid "Expire Date (UTC)"
+msgstr "Дата закінчення (UTC)"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:288
+msgid "Never Expires"
+msgstr "Ніколи не закінчується"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:271
+msgid "Yes"
+msgstr "Так"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:271
+msgid "No"
+msgstr "Немає"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:301
+msgid "Edit Expire Date"
+msgstr "Редагувати дату закінчення терміну дії"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:48
+msgid "UID Management"
+msgstr "Управління UID"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:72
+msgid "TOFU"
+msgstr "ТОФУ"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:84
+msgid "Signature of Selected UID"
+msgstr "Підпис вибраного UID"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Select"
+msgstr "Виберіть"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:161
+msgid "Expired Date (UTC)"
+msgstr "Дата закінчення терміну дії (UTC)"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:237
+msgid "TOFU %1"
+msgstr "TOFU %1"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:307
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:364
+msgid "Please select one or more UIDs before doing this operation."
+msgstr ""
+"Будь ласка, виберіть один або кілька UID перед виконанням цієї операції."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:328
+msgid "Sign Selected UID(s)"
+msgstr "Підписати вибрані UID"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:330
+msgid "Delete Selected UID(s)"
+msgstr "Видалити вибрані UID"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:350
+msgid "Successful Operation"
+msgstr "Успішна операція"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:351
+msgid "Successfully added a new UID."
+msgstr "Успішно додано новий UID."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:353
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:388
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:423
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:519
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:571
+msgid "Operation Failed"
+msgstr "Не вдалося виконати операцію"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:354
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:424
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:520
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:572
+msgid "An error occurred during the operation."
+msgstr "Під час операції сталася помилка."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:375
+msgid "Deleting UIDs"
+msgstr "Видалення UID"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:378
+msgid "Are you sure that you want to delete the following UIDs?"
+msgstr "Ви впевнені, що хочете видалити наступні UID?"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:389
+msgid "An error occurred during the delete %1 operation."
+msgstr "Під час операції видалення %1 сталася помилка."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:413
+msgid "Set Primary UID"
+msgstr "Встановити первинний UID"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:415
+msgid "Are you sure that you want to set the Primary UID to?"
+msgstr "Ви впевнені, що хочете встановити основний UID?"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:455
+msgid "Set As Primary"
+msgstr "Встановити як основний"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:458
+msgid "Sign UID"
+msgstr "Підпишіть UID"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:461
+msgid "Delete UID"
+msgstr "Видалити UID"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:485
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:499
+msgid "Please select one UID before doing this operation."
+msgstr "Будь ласка, виберіть один UID перед виконанням цієї операції."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:509
+msgid "Deleting UID"
+msgstr "Видалення UID"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:512
+msgid "Are you sure that you want to delete the following uid?"
+msgstr "Ви впевнені, що хочете видалити наступний uid?"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:530
+msgid "Delete(Revoke) Key Signature"
+msgstr "Видалити (відкликати) підпис ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:541
+msgid "Please select one Key Signature before doing this operation."
+msgstr ""
+"Будь ласка, виберіть один підпис ключа перед виконанням цієї операції."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:550
+msgid ""
+"To delete the signature, you need to have its corresponding public key in "
+"the local database."
+msgstr ""
+"Щоб видалити підпис, вам потрібно мати відповідний відкритий ключ у "
+"локальній базі даних."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:561
+msgid "Deleting Key Signature"
+msgstr "Видалення підпису ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:563
+msgid "Are you sure that you want to delete the following signature?"
+msgstr "Ви впевнені, що хочете видалити наступний підпис?"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:79
+msgid "The expire date of the key pair has been updated."
+msgstr "Термін дії пари ключів оновлено."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:88
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:163
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:288
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:238
+msgid "Failure"
+msgstr "Невдача"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:89
+msgid "Failed to update the expire date of the key pair."
+msgstr "Не вдалося оновити дату закінчення дії пари ключів."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:104
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:51
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:48
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:98
+msgid "longer_expiration_date"
+msgstr "довший_термін_придатності"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:131
+msgid "Modified Expiration Date (Local Time)"
+msgstr "Змінений термін придатності (за місцевим часом)"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:133
+msgid ""
+"Tips: For the sake of security, the key is valid for up to two years. If you"
+" are an expert user, please unlock it for a longer time in the settings."
+msgstr ""
+"Поради: з міркувань безпеки ключ дійсний до двох років. Якщо ви досвідчений "
+"користувач, будь ласка, розблокуйте його на довший час у налаштуваннях."
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:136
+msgid "No Expiration"
+msgstr "Без закінчення терміну дії"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:137
+msgid "Modified Expiration Date"
+msgstr "Змінений термін придатності"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:41
+#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:42
+msgid "Signers"
+msgstr "Підписувачі"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:84
+msgid "Expire Date"
+msgstr "Дата закінчення терміну"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:94
+msgid "Sign For Key's UID(s)"
+msgstr "Підпишіть UID(и) ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:121
+msgid "Unsuccessful Operation"
+msgstr "Невдала операція"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:122
+msgid "Signature operation failed for UID %1"
+msgstr "Помилка операції підпису для UID %1"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:126
+msgid "Operation Complete"
+msgstr "Операція завершена"
+
+#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:127
+msgid "The signature operation of the UID is complete"
+msgstr "Операція підпису UID завершена"
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:109
+msgid "Expiration time too long."
+msgstr "Занадто довгий термін придатності."
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:138
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:268
+msgid "Generating"
+msgstr "Генерування"
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:154
+msgid "The new key pair has been generated."
+msgstr "Нова пара ключів створена."
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:163
+msgid "Key generation failed."
+msgstr "Не вдалося створити ключ."
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:192
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:88
+msgid "Key Usage"
+msgstr "Використання ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:194
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:90
+msgid "Encryption"
+msgstr "Шифрування"
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:197
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:93
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:432
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:255
+msgid "Signing"
+msgstr "Підписання"
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:200
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:96
+msgid "Certification"
+msgstr "Сертифікація"
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:203
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:99
+msgid "Authentication"
+msgstr "Аутентифікація"
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:384
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:142
+msgid "Expiration Date"
+msgstr "Термін придатності"
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:386
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:144
+msgid "KeySize (in Bit)"
+msgstr "Розмір ключа (у бітах)"
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:387
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:145
+msgid "Key Type"
+msgstr "Тип ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:388
+msgid "Non Pass Phrase"
+msgstr "Непрохідна фраза"
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:401
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:154
+msgid "Basic Information"
+msgstr "Основна інформація"
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:72
+msgid "Generate New Subkey"
+msgstr "Створити новий підключ"
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:246
+msgid "Expiration time no more than 2 years."
+msgstr "Термін придатності не більше 2 років."
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:281
+msgid "The new subkey has been generated."
+msgstr "Новий підключ згенеровано."
+
+#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:288
+msgid "Failed to generate key."
+msgstr "Не вдалося згенерувати ключ."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:126
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:128
+msgid "Critical error occur while loading GpgFrontend."
+msgstr "Під час завантаження GpgFrontend виникає критична помилка."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:127
+msgid "Loading Failed"
+msgstr "Помилка завантаження"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:243
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:149
+msgid "prohibit_update_checking"
+msgstr "prohibit_update_checking"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:251
+msgid "settings restored"
+msgstr "налаштування відновлено"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:45
+msgid "The path %1 does not exist."
+msgstr "Шлях %1 не існує."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:50
+msgid "No permission to read this file."
+msgstr "Немає дозволу на читання цього файлу."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:55
+msgid "No permission to create file."
+msgstr "Немає дозволу на створення файлу."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:74
+msgid "The file is not a tarball."
+msgstr "Файл не є tar-архівом."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:88
+msgid "Extracting Tarball"
+msgstr "Вилучення Tarball"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:132
+msgid "Making Tarball"
+msgstr "Виготовлення Tarball"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:477
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:588
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:133
+msgid "non_ascii_when_export"
+msgstr "non_ascii_when_export"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:200
+msgid "The target file %1% already exists, do you need to overwrite it?"
+msgstr "Цільовий файл %1% вже існує, чи потрібно його перезаписати?"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:214
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:629
+msgid "Unable to convert the folder into tarball."
+msgstr "Не вдалося перетворити папку в tar-архів."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:222
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:98
+msgid "Symmetric Encryption"
+msgstr "Симетричне шифрування"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:223
+msgid ""
+"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr ""
+"Ключ не вибрано. Ви хочете зашифрувати за допомогою симетричного шифру за "
+"допомогою парольної фрази?"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:230
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:105
+msgid "Symmetrically Encrypting"
+msgstr "Симетричне шифрування"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:249
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:574
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:417
+msgid "Invalid KeyPair"
+msgstr "Недійсна пара ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:575
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:418
+msgid "The selected keypair cannot be used for encryption."
+msgstr "Вибрану пару ключів не можна використовувати для шифрування."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:576
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:135
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:196
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:419
+msgid "For example the Following Key:"
+msgstr "Наприклад, наступний ключ:"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:257
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:145
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:169
+msgid "Encrypting"
+msgstr "Шифрування"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:286
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:340
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:452
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:546
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:665
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:742
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:86
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:318
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:385
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:505
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:583
+msgid "An error occurred during operation."
+msgstr "Під час роботи сталася помилка."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:312
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:610
+msgid "The target file already exists, do you need to overwrite it?"
+msgstr "Цільовий файл уже існує, чи потрібно його перезаписати?"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:321
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:347
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:352
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:357
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:749
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:754
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:759
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:323
+msgid "Decrypting"
+msgstr "Розшифровка"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:348
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:750
+msgid "Do you want to extract and delete the decrypted tarball?"
+msgstr "Ви хочете розпакувати та видалити розшифрований tar-архів?"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:353
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:755
+msgid "Extracting tarball succeeded."
+msgstr "Розпакування tar-архів вдалося."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:358
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:760
+msgid "Extracting tarball failed."
+msgstr "Не вдалося розпакувати tar-архів."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:375
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:563
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:183
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:405
+msgid "No Key Checked"
+msgstr "Ключ не перевірено"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:376
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:564
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:184
+msgid "Please check the key in the key toolbox on the right."
+msgstr "Перевірте ключ у панелі інструментів ключа справа."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:384
+msgid ""
+"The selected key contains a key that does not actually have a sign usage."
+msgstr "Вибраний ключ містить ключ, який фактично не має використання знака."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:386
+msgid "for example the Following Key:"
+msgstr "наприклад наступний ключ:"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:419
+msgid "The signature file \"%1\" exists, do you need to overwrite it?"
+msgstr "Файл підпису \"%1\" існує, чи потрібно його перезаписати?"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:496
+msgid "Origin file to verify"
+msgstr "Початковий файл для перевірки"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:496
+msgid "Filepath"
+msgstr "Шлях до файлу"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:509
+msgid ""
+"Please select the appropriate origin file or signature file. Ensure that "
+"both are in this directory."
+msgstr ""
+"Будь ласка, виберіть відповідний вихідний файл або файл підпису. "
+"Переконайтеся, що обидва вони знаходяться в цьому каталозі."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:521
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:390
+msgid "Verifying"
+msgstr "Перевірка"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:640
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:510
+msgid "Encrypting and Signing"
+msgstr "Шифрування та підпис"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:702
+msgid "The output file %1 already exists, do you need to overwrite it?"
+msgstr "Вихідний файл %1 вже існує, чи потрібно його перезаписати?"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:714
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:588
+msgid "Decrypting and Verifying"
+msgstr "Розшифровка та перевірка"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:99
+msgid ""
+"No Key Checked. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr ""
+"Ключ не перевірено. Ви хочете зашифрувати за допомогою симетричного шифру за"
+" допомогою парольної фрази?"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
+msgid ""
+"The selected key contains a key that does not actually have a encrypt usage."
+msgstr ""
+"Вибраний ключ містить ключ, який насправді не використовує шифрування."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:194
+msgid ""
+"The selected key contains a key that does not actually have a signature "
+"usage."
+msgstr "Вибраний ключ містить ключ, який фактично не має підпису."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:269
+msgid "Notice"
+msgstr "Зверніть увагу"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:270
+msgid "Short Crypto Text only supports Decrypt & Verify."
+msgstr "Короткий криптотекст підтримує лише дешифрування та перевірку."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:406
+msgid "Please check some key in the key toolbox on the right."
+msgstr ""
+"Будь ласка, перевірте деякі ключі на панелі інструментів ключів праворуч."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:673
+msgid "GpgFrontend Upgradeable (New Version: %1)."
+msgstr "GpgFrontend з можливістю оновлення (нова версія: %1)."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:684
+msgid "Withdrawn Version"
+msgstr "Вилучена версія"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:686
+msgid ""
+"This version(%1) may have been withdrawn by the developer due to serious "
+"problems. Please stop using this version immediately and use the latest "
+"stable version."
+msgstr ""
+"Цю версію (%1) можливо, розробник відкликав через серйозні проблеми. Будь "
+"ласка, негайно припиніть використання цієї версії та використовуйте останню "
+"стабільну версію."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:691
+msgid ""
+"You can download the latest stable version(%1) on Github Releases Page.<br/>"
+msgstr ""
+"Ви можете завантажити останню стабільну версію (%1) на сторінці випусків "
+"Github.<br/>"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:697
+msgid "This maybe a BETA Version (Latest Stable Version: %1)."
+msgstr "Можливо, це бета-версія (остання стабільна версія: %1)."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:37
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:253
+msgid "New"
+msgstr "Новий"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:43
+msgid "Open a new file"
+msgstr "Відкрийте новий файл"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:46
+msgid "Open..."
+msgstr "Відчинено..."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:49
+msgid "Open an existing file"
+msgstr "Відкрийте наявний файл"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:52
+msgid "File Browser"
+msgstr "Файловий браузер"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:55
+msgid "Open a file browser"
+msgstr "Відкрийте браузер файлів"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:59
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:44
+msgid "Save File"
+msgstr "Зберегти файл"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:62
+msgid "Save the current File"
+msgstr "Збережіть поточний файл"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:65
+msgid "Save As"
+msgstr "Зберегти як"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:68
+msgid "Save the current File as..."
+msgstr "Зберегти поточний файл як..."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:71
+msgid "Print"
+msgstr "Друк"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:74
+msgid "Print Document"
+msgstr "Роздрукувати документ"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:79
+msgid "Close file"
+msgstr "Закрити файл"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:82
+msgid "Quit"
+msgstr "Вийти"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:85
+msgid "Quit Program"
+msgstr "Вийти з програми"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:90
+msgid "Undo"
+msgstr "Скасувати"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:92
+msgid "Undo Last Edit Action"
+msgstr "Скасувати дію останнього редагування"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:95
+msgid "Redo"
+msgstr "Повторити"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:97
+msgid "Redo Last Edit Action"
+msgstr "Повторити дію останнього редагування"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:100
+msgid "Zoom In"
+msgstr "Приближувати"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:104
+msgid "Zoom Out"
+msgstr "Зменшення"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:108
+msgid "Paste"
+msgstr "Вставити"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:111
+msgid "Paste Text From Clipboard"
+msgstr "Вставити текст з буфера обміну"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:114
+msgid "Cut"
+msgstr "Вирізати"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:118
+msgid "Cut the current selection's contents to the clipboard"
+msgstr "Вирізати вміст поточного виділення в буфер обміну"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:126
+msgid "Copy the current selection's contents to the clipboard"
+msgstr "Скопіюйте вміст поточного виділення в буфер обміну"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:130
+msgid "Quote"
+msgstr "Цитата"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:132
+msgid "Quote whole text"
+msgstr "Процитуйте весь текст"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:135
+msgid "Select All"
+msgstr "Вибрати все"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:138
+msgid "Select the whole text"
+msgstr "Виділіть весь текст"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:142
+#: /mnt/h/GpgFrontend/src/ui/widgets/FindWidget.cpp:44
+msgid "Find"
+msgstr "Знайти"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:144
+msgid "Find a word"
+msgstr "Знайдіть слово"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:147
+msgid "Remove spacing"
+msgstr "Видалити інтервали"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:152
+msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
+msgstr ""
+"Видаліть подвійні розриви рядків, напр. у вставленому тексті з Web Mailer"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:66
+msgid "Settings"
+msgstr "Налаштування"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:157
+msgid "Open settings dialog"
+msgstr "Відкрити діалогове вікно налаштувань"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:168
+msgid "Encrypt Message"
+msgstr "Шифрувати повідомлення"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:171
+msgid "Encrypt Sign"
+msgstr "Шифрувати знак"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:175
+msgid "Encrypt and Sign Message"
+msgstr "Шифруйте та підписуйте повідомлення"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:179
+msgid "Decrypt"
+msgstr "Розшифрувати"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:182
+msgid "Decrypt Message"
+msgstr "Розшифрувати повідомлення"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:185
+msgid "Decrypt Verify"
+msgstr "Розшифрувати Перевірити"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:189
+msgid "Decrypt and Verify Message"
+msgstr "Розшифруйте та перевірте повідомлення"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:196
+msgid "Sign Message"
+msgstr "Підписати повідомлення"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:199
+msgid "Verify"
+msgstr "Перевірити"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:202
+msgid "Verify Message"
+msgstr "Перевірте повідомлення"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:232
+msgid "Editor"
+msgstr "Редактор"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:234
+msgid "Import New Key From Editor"
+msgstr "Імпортуйте новий ключ із редактора"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:238
+msgid "Manage Keys"
+msgstr "Керування ключами"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:240
+msgid "Open Key Management"
+msgstr "Відкрийте керування ключами"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:249
+msgid "Show the application's About box"
+msgstr "Покажіть поле Про програму"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+msgid "Translate"
+msgstr "Перекладіть"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:256
+msgid "Information about translation"
+msgstr "Інформація про переклад"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:263
+msgid "Check for Updates"
+msgstr "Перевірити наявність оновлень"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:265
+msgid "Check for updates"
+msgstr "Перевірити наявність оновлень"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:269
+msgid "Open Wizard"
+msgstr "Відкрийте Майстер"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:270
+msgid "Open the wizard"
+msgstr "Відкрийте майстер"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
+msgid "Append To Text Editor"
+msgstr "Додати до текстового редактора"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:278
+msgid "Append The Selected Public Key To Text in Editor"
+msgstr "Додати вибраний відкритий ключ до тексту в редакторі"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
+msgid "Copy Email"
+msgstr "Копіювати електронну пошту"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:284
+msgid "Copy selected Email to clipboard"
+msgstr "Скопіюйте вибрану електронну пошту в буфер обміну"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:309
+msgid "Remove PGP Header"
+msgstr "Видаліть заголовок PGP"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:313
+msgid "Add PGP Header"
+msgstr "Додати заголовок PGP"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:332
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:407
+msgid "Edit"
+msgstr "Редагувати"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:350
+msgid "Crypt"
+msgstr "Склеп"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:360
+msgid "Keys"
+msgstr "Ключі"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:369
+msgid "Steganography"
+msgstr "Стеганографія"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:373
+msgid "View"
+msgstr "Переглянути"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:375
+msgid "Help"
+msgstr "Допоможіть"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:415
+msgid "Special Edit"
+msgstr "Спеціальне редагування"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:427
+msgid "Import key from..."
+msgstr "Імпортувати ключ із..."
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:444
+msgid "Ready"
+msgstr "Готовий"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:451
+msgid "Key ToolBox"
+msgstr "Key ToolBox"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:459
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
+msgid "Default"
+msgstr "За замовчуванням"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:489
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:91
+msgid "Information Board"
+msgstr "Інформаційна дошка"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:36
+msgid "Show Steganography Options"
+msgstr "Показати параметри стеганографії"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:38
+msgid "Show Steganography Options."
+msgstr "Показати параметри стеганографії."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:42
+msgid "Pubkey Exchange"
+msgstr "Обмін Pubkey"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:45
+msgid "Auto Pubkey Exchange"
+msgstr "Автоматичний обмін Pubkey"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:63
+msgid "stegano_checked"
+msgstr "stegano_checked"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:73
+msgid "auto_pubkey_exchange_checked"
+msgstr "auto_pubkey_exchange_checked"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:40
+msgid "Icon Size"
+msgstr "Розмір значка"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:42
+msgid "small"
+msgstr "малий"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:43
+msgid "medium"
+msgstr "середній"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:44
+msgid "large"
+msgstr "великий"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:60
+msgid "Icon Style"
+msgstr "Стиль значка"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:62
+msgid "just text"
+msgstr "просто текст"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:63
+msgid "just icons"
+msgstr "просто іконки"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:64
+msgid "text and icons"
+msgstr "текст і значки"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:80
+msgid "Window State"
+msgstr "Стан вікна"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:83
+msgid "Save window size and position on exit."
+msgstr "Збережіть розмір і положення вікна при виході."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:97
+msgid "Font Size in Information Board"
+msgstr "Розмір шрифту на інформаційній дошці"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:52
+msgid "General"
+msgstr "Генеральний"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:53
+msgid "Appearance"
+msgstr "Зовнішній вигляд"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:55
+msgid "Network"
+msgstr "мережа"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:70
+msgid "Preference"
+msgstr "перевага"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:118
+msgid "System Default"
+msgstr "Система за замовчуванням"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:44
+msgid "Save Checked Keys"
+msgstr "Зберегти перевірені ключі"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:46
+msgid "Save checked private keys on exit and restore them on next start."
+msgstr ""
+"Збережіть перевірені приватні ключі під час виходу та відновіть їх під час "
+"наступного запуску."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:47
+msgid "Longer Key Expiration Date"
+msgstr "Довший термін дії ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:49
+msgid "Unlock key expiration date setting up to 30 years."
+msgstr "Розблокувати налаштування терміну придатності ключів до 30 років."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:50
+msgid "Confirm drag'n'drop key import"
+msgstr "Підтвердьте імпорт ключів drag'n'drop"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:52
+msgid "Import files dropped on the Key List without confirmation."
+msgstr "Файли імпорту потрапили в список ключів без підтвердження."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:54
+msgid "ASCII Mode"
+msgstr "Режим ASCII"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:56
+msgid "ASCII encoding is not used when file encrypting and signing."
+msgstr ""
+"Кодування ASCII не використовується під час шифрування та підпису файлів."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:59
+msgid "Language"
+msgstr "Мову"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:61
+msgid "NOTE"
+msgstr "ПРИМІТКА"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:62
+msgid "GpgFrontend will restart automatically if you change the language!"
+msgstr "GpgFrontend автоматично перезапуститься, якщо ви зміните мову!"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:88
+msgid "save_key_checked"
+msgstr "save_key_checked"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:113
+msgid "lang"
+msgstr "яз"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:123
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:323
+msgid "confirm_import_keys"
+msgstr "підтвердження_імпортних_ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:51
+msgid "Keyserver List"
+msgstr "Список серверів ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:56
+msgid "Keyserver Address"
+msgstr "Адреса сервера ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:57
+msgid "Security"
+msgstr "Безпека"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:58
+msgid "Available"
+msgstr "Доступний"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:60
+msgid "Add"
+msgstr "Додати"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:61
+msgid "Test Listed Keyserver"
+msgstr "Тестовий сервер ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:64
+msgid "Tips: Please Double-click table item to edit it."
+msgstr "Поради: двічі клацніть елемент таблиці, щоб відредагувати його."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:65
+msgid "Delete Selected"
+msgstr "Видалити вибране"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:67
+msgid "Delete Selected Key Server"
+msgstr "Видалити вибраний сервер ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:68
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:69
+msgid "Set As Default"
+msgstr "Встановити за замовчуванням"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:149
+msgid "Insecure keyserver address"
+msgstr "Незахищена адреса сервера ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:150
+msgid ""
+"For security reasons, using HTTP as the communication protocol with the key "
+"server is not recommended. It is recommended to use HTTPS."
+msgstr ""
+"З міркувань безпеки використання HTTP як протоколу зв’язку з сервером ключів"
+" не рекомендується. Рекомендується використовувати HTTPS."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:159
+msgid ""
+"You may not use HTTPS or HTTP as the protocol for communicating with the key"
+" server, which may not be wrong. But please check the address you entered "
+"again to make sure it is correct. Are you sure that want to add it into the "
+"keyserver list?"
+msgstr ""
+"Ви не можете використовувати HTTPS або HTTP як протокол для зв’язку з "
+"сервером ключів, що не може бути неправильним. Але перевірте введену адресу "
+"ще раз, щоб переконатися, що вона правильна. Ви впевнені, що хочете додати "
+"його до списку серверів ключів?"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:207
+msgid "false"
+msgstr "помилковий"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:212
+msgid "unknown"
+msgstr "невідомий"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:226
+msgid "Set TCP Timeout"
+msgstr "Встановити час очікування TCP"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:251
+msgid "Reachable"
+msgstr "Досяжний"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:254
+msgid "Not Reachable"
+msgstr "Недоступний"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:266
+msgid "Test Key Server Connection..."
+msgstr "Перевірити підключення до сервера ключів..."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:267
+msgid ""
+"This test only tests the network connectivity of the key server. Passing the"
+" test does not mean that the key server is functionally available."
+msgstr ""
+"Цей тест лише перевіряє мережеве підключення ключового сервера. Проходження "
+"тесту не означає, що сервер ключів функціонально доступний."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:49
+msgid "Proxy"
+msgstr "Проксі"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:50
+msgid "Network Capability"
+msgstr "Можливість мережі"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:53
+msgid "Enable Proxy"
+msgstr "Увімкнути проксі"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:57
+msgid "Port"
+msgstr "порт"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:56
+msgid "Host Address"
+msgstr "Адреса хоста"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:58
+msgid "Proxy Type"
+msgstr "Тип проксі"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:59
+msgid "Username"
+msgstr "Ім'я користувача"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:60
+msgid "Password"
+msgstr "Пароль"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:62
+msgid "Forbid all network connection."
+msgstr "Заборонити всі підключення до мережі."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:66
+msgid "Prohibit checking for version updates when the program starts."
+msgstr "Заборонити перевірку оновлень версії під час запуску програми."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:67
+msgid "Check Proxy Connection"
+msgstr "Перевірте підключення проксі"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:79
+msgid "proxy_host"
+msgstr "proxy_host"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:86
+msgid "username"
+msgstr "ім'я користувача"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:93
+msgid "password"
+msgstr "пароль"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:100
+msgid "port"
+msgstr "порт"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:108
+msgid "proxy_type"
+msgstr "proxy_type"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:120
+msgid "proxy_enable"
+msgstr "proxy_enable"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:137
+msgid "forbid_all_connection"
+msgstr "заборонити_всі_підключення"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:235
+msgid "Test Server Url Accessibility"
+msgstr "Перевірка доступності URL-адрес сервера"
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:246
+msgid "Successfully connect to the target server through the proxy server."
+msgstr "Успішно підключитися до цільового сервера через проксі-сервер."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:251
+msgid ""
+"Unable to connect to the target server through the proxy server. Proxy "
+"settings may be invalid."
+msgstr ""
+"Не вдається підключитися до цільового сервера через проксі-сервер. "
+"Налаштування проксі-сервера можуть бути недійсними."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:262
+msgid "Test Proxy Server Connection..."
+msgstr "Перевірити підключення до проксі-сервера..."
+
+#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:263
+msgid ""
+"Is using your proxy settings to access the url. Note that this test "
+"operation will apply your proxy settings to the entire software."
+msgstr ""
+"Використовує ваші налаштування проксі для доступу до URL-адреси. Зауважте, "
+"що ця тестова операція застосує ваші налаштування проксі до всього "
+"програмного забезпечення."
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:65
+msgid "Public key not found locally"
+msgstr "Відкритий ключ не знайдено локально"
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:66
+msgid ""
+"There is no target public key content in local for GpgFrontend to gather "
+"enough information about this Signature. Do you want to import the public "
+"key from Keyserver now?"
+msgstr ""
+"Немає цільового вмісту відкритого ключа в локальному, щоб GpgFrontend міг "
+"зібрати достатньо інформації про цей підпис. Ви хочете імпортувати відкритий"
+" ключ із Keyserver зараз?"
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:171
+msgid "ENV Loading Failed"
+msgstr "Помилка завантаження ENV"
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:172
+msgid ""
+"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
+" in Github to install Gnupg and then open GpgFrontend."
+msgstr ""
+"Gnupg(gpg) встановлено неправильно, дотримуйтесь інструкцій ReadME на "
+"Github, щоб встановити Gnupg, а потім відкрийте GpgFrontend."
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:190
+msgid "Open Key"
+msgstr "Відкрити ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+msgid "Keyring files"
+msgstr "Файли брелоків"
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:196
+msgid "File Open Failed"
+msgstr "Не вдалося відкрити файл"
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
+msgid "Failed to open file: "
+msgstr "Не вдалося відкрити файл:"
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
+msgid "Processing"
+msgstr "Обробка"
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
+msgid "Failed to execute command."
+msgstr "Не вдалося виконати команду."
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
+msgid "Succeed in executing command."
+msgstr "Успіх у виконанні команди."
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
+msgid "Finished executing command."
+msgstr "Завершено виконання команди."
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:346
+msgid "The key has been updated"
+msgstr "Ключ оновлено"
+
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:348
+msgid "No need to update the key"
+msgstr "Не потрібно оновлювати ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:217
+msgid "The path is not exists, unprivileged or unreachable."
+msgstr "Шлях не існує, непривілейований чи недоступний."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:228
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:359
+msgid "Rename"
+msgstr "Перейменувати"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:231
+msgid "Delete"
+msgstr "Видалити"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:235
+msgid "Calculate Hash"
+msgstr "Розрахувати хеш"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:239
+msgid "Directory"
+msgstr "Довідник"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:247
+msgid "Compress..."
+msgstr "Стиснути..."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:267
+msgid "Show Hidden File"
+msgstr "Показати прихований файл"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:279
+msgid "Show System File"
+msgstr "Показати системний файл"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:336
+msgid "The directory is unprivileged or unreachable."
+msgstr "Каталог непривілейований або недоступний."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:347
+msgid "The file is unprivileged or unreachable."
+msgstr "Файл непривілейований або недоступний."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:359
+msgid "New Filename"
+msgstr "Нове ім'я файлу"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:375
+msgid "Unable to rename the file or folder."
+msgstr "Не вдається перейменувати файл або папку."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:385
+msgid "Are you sure you want to delete it?"
+msgstr "Ви впевнені, що хочете видалити його?"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:394
+msgid "Unable to delete the file or folder."
+msgstr "Не вдається видалити файл або папку."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:409
+msgid "Make New Directory"
+msgstr "Створити новий каталог"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:409
+msgid "Directory Name"
+msgstr "Назва каталогу"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:426
+msgid "Create Empty File"
+msgstr "Створити порожній файл"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:427
+msgid "Filename (you can given extension)"
+msgstr "Ім'я файлу (можна дати розширення)"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:437
+msgid "Unable to create the file."
+msgstr "Не вдається створити файл."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:165
+msgid "Save Information Board's Content"
+msgstr "Зберегти вміст інформаційної дошки"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:175
+msgid "The file path is not exists, unprivileged or unreachable."
+msgstr "Шлях до файлу не існує, непривілейований або недоступний."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:85
+msgid "Refresh"
+msgstr "Оновити"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:87
+msgid "Refresh the key list to synchronize changes."
+msgstr "Оновіть список ключів, щоб синхронізувати зміни."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:88
+msgid "Sync Public Key"
+msgstr "Синхронізувати відкритий ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:90
+msgid "Sync public key with your default keyserver."
+msgstr "Синхронізуйте відкритий ключ із сервером ключів за замовчуванням."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:91
+msgid "Uncheck ALL"
+msgstr "Зніміть прапорець ВСЕ"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:93
+msgid "Cancel all checked items in the current tab at once."
+msgstr "Скасуйте відразу всі позначені елементи на поточній вкладці."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:94
+msgid "Check ALL"
+msgstr "Перевірити все"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:96
+msgid "Check all items in the current tab at once"
+msgstr "Перевірте відразу всі елементи поточної вкладки"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Type"
+msgstr "Тип"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:151
+msgid "Validity"
+msgstr "Термін дії"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:151
+msgid "Finger Print"
+msgstr "Відбиток пальця"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:166
+msgid "Refreshing Key List..."
+msgstr "Оновлення списку ключів..."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:305
+msgid "Import Keys"
+msgstr "Імпорт ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:308
+msgid "You've dropped something on the table."
+msgstr "Ти щось упустив на стіл."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:309
+msgid "GpgFrontend will now try to import key(s)."
+msgstr "Тепер GpgFrontend спробує імпортувати ключ(и)."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:314
+msgid "Always import without bothering."
+msgstr "Завжди імпортуйте, не турбуючись."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:361
+msgid "Couldn't Open File"
+msgstr "Не вдалося відкрити файл"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:430
+msgid "Key List Refreshed."
+msgstr "Список ключів оновлено."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:448
+msgid "Syncing Key List..."
+msgstr "Синхронізація списку ключів..."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
+msgid "Sync [%1%/%2%] %3% %4%"
+msgstr "Синхронізувати [%1%/%2%] %3% %4%"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:464
+msgid "Key List Sync Done."
+msgstr "Синхронізація списку ключів завершена."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:54
+msgid "0 character"
+msgstr "0 символів"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:99
+msgid "lf"
+msgstr "lf"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:56
+msgid "utf-8"
+msgstr "utf-8"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:252
+msgid "%1% character(s)"
+msgstr "%1% символ(ів)"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:72
+msgid "Loading..."
+msgstr "Завантаження..."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:100
+msgid "UTF-8"
+msgstr "UTF-8"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:232
+msgid "%1% byte(s)"
+msgstr "%1% байт(ів)"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:277
+msgid "binary"
+msgstr "двійковий"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:36
+msgid "Confirm"
+msgstr "Підтвердьте"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:50
+msgid "Select Signer(s)"
+msgstr "Виберіть підписувача(ів)"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:54
+msgid "Please select one or more private keys you use for signing."
+msgstr ""
+"Виберіть один або кілька приватних ключів, які ви використовуєте для "
+"підписання."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:56
+msgid "If no key is selected, the default key will be used for signing."
+msgstr ""
+"Якщо не вибрано жодного ключа, для підпису буде використаний ключ за "
+"замовчуванням."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:55
+msgid "untitled"
+msgstr "без назви"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:101
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:139
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:211
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:438
+msgid ""
+"Cannot read file %1%:\n"
+"%2%."
+msgstr ""
+"Не вдається прочитати файл %1%:\n"
+"%2%."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:112
+msgid "Open file"
+msgstr "Відкрити файл"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:174
+msgid "Save"
+msgstr "Зберегти"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:176
+msgid ""
+"After saving, the encoding of the current file will be converted to UTF-8 "
+"and the line endings will be changed to LF. "
+msgstr ""
+"Після збереження кодування поточного файлу буде перетворено в UTF-8, а "
+"закінчення рядків буде змінено на LF."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:180
+msgid "If this is not the result you expect, please use \"save as\"."
+msgstr ""
+"Якщо це не той результат, який ви очікуєте, скористайтеся «зберегти як»."
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:232
+msgid "Save file"
+msgstr "Зберегти файл"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:294
+msgid "Unsaved document"
+msgstr "Незбережений документ"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:295
+msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgstr "Документ \"%1\" був змінений. Зберегти зміни?"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:298
+msgid "Note:"
+msgstr "Примітка:"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:39
+msgid "Expires on"
+msgstr "Термін дії закінчується"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:40
+msgid "Last Update"
+msgstr "Останнє оновлення"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:41
+msgid "Secret Key Existence"
+msgstr "Існування секретного ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:43
+msgid "Import from keyserver"
+msgstr "Імпорт із сервера ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:47
+msgid "Key not present with id 0x"
+msgstr "Немає ключа з ідентифікатором 0x"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:51
+msgid ":"
+msgstr ":"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:53
+msgid "Key not present in key list"
+msgstr "Ключа немає в списку ключів"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:61
+msgid "A Signature"
+msgstr "Підпис"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:66
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:82
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:98
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:116
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:132
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:147
+msgid "Key Information is NOT Available"
+msgstr "Ключова інформація НЕ доступна"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:77
+msgid "Cert Revoked"
+msgstr "Сертифікат скасовано"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:93
+msgid "Signature Expired"
+msgstr "Термін дії підпису закінчився"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:109
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:111
+msgid "Key Expired"
+msgstr "Термін дії ключа закінчився"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:127
+msgid "General Error"
+msgstr "Загальна помилка"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:142
+msgid "Unknown Error "
+msgstr "Невідома помилка"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:172
+msgid "Signer Name"
+msgstr "Ім'я підписанта"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:173
+msgid "Signer Email"
+msgstr "Електронна пошта підписувача"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:174
+msgid "Key's Fingerprint"
+msgstr "Відбиток пальця ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:175
+msgid "Valid"
+msgstr "Дійсний"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:176
+msgid "Flags"
+msgstr "Прапори"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:183
+msgid "Fully Valid"
+msgstr "Повністю дійсний"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:185
+msgid "NOT Fully Valid"
+msgstr "НЕ ПОВНЕ ДІЙСНІ"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:200
+msgid "Missing Key"
+msgstr "Відсутній ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:203
+msgid "Revoked Key"
+msgstr "Відкликаний ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:206
+msgid "Expired Key"
+msgstr "Термін дії ключа закінчився"
+
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:209
+msgid "Missing CRL"
+msgstr "Відсутній CRL"
+
+#~ msgid "Failed to read root certificate file"
+#~ msgstr "Не вдалося прочитати файл кореневого сертифіката"
+
+#~ msgid "Send Encrypted Mail"
+#~ msgstr "Надіслати зашифровану пошту"
+
+#~ msgid "Function Disabled"
+#~ msgstr "Функція вимкнена"
+
+#~ msgid ""
+#~ "Please go to the settings interface to enable and configure this function."
+#~ msgstr ""
+#~ "Будь ласка, перейдіть до інтерфейсу налаштувань, щоб увімкнути та "
+#~ "налаштувати цю функцію."
+
+#~ msgid "Select Recipient(s)"
+#~ msgstr "Виберіть одержувача(ів)"
+
+#~ msgid "We use the public key provided by the recipient to encrypt the text."
+#~ msgstr ""
+#~ "Для шифрування тексту ми використовуємо відкритий ключ, наданий одержувачем."
+
+#~ msgid ""
+#~ "If you want to send to multiple recipients at the same time, you can select "
+#~ "multiple keys."
+#~ msgstr ""
+#~ "Якщо ви хочете надіслати кільком одержувачам одночасно, ви можете вибрати "
+#~ "кілька ключів."
+
+#~ msgid "Email List:"
+#~ msgstr "Список електронної пошти:"
+
+#~ msgid ""
+#~ "Tips: You can double-click the email address in the edit list, or click the "
+#~ "email to pop up the option menu."
+#~ msgstr ""
+#~ "Поради. Ви можете двічі клацнути адресу електронної пошти в списку "
+#~ "редагування або клацнути електронну пошту, щоб відкрити меню параметрів."
+
+#~ msgid "Add An Email Address"
+#~ msgstr "Додайте адресу електронної пошти"
+
+#~ msgid "Email List Editor"
+#~ msgstr "Редактор списку розсилки"
+
+#~ msgid "Sender"
+#~ msgstr "Відправник"
+
+#~ msgid "Select Sender"
+#~ msgstr "Виберіть Відправник"
+
+#~ msgid "As the sender of the mail, the private key is generally used."
+#~ msgstr "Як відправник пошти, як правило, використовується закритий ключ."
+
+#~ msgid ""
+#~ " The private key is generally used as a signature for the content of the "
+#~ "mail."
+#~ msgstr " Закритий ключ зазвичай використовується як підпис для вмісту листа."
+
+#~ msgid "Incomplete configuration"
+#~ msgstr "Неповна конфігурація"
+
+#~ msgid ""
+#~ "The SMTP address is empty, please go to the setting interface to complete "
+#~ "the configuration."
+#~ msgstr ""
+#~ "Адреса SMTP порожня, перейдіть до інтерфейсу налаштування, щоб завершити "
+#~ "налаштування."
+
+#~ msgid "CC"
+#~ msgstr "CC"
+
+#~ msgid "BCC"
+#~ msgstr "BCC"
+
+#~ msgid "Mail Subject"
+#~ msgstr "Тема листа"
+
+#~ msgid ""
+#~ "Tips: You can fill in multiple email addresses, please separate them with "
+#~ "\";\"."
+#~ msgstr ""
+#~ "Поради: Ви можете заповнити декілька адрес електронної пошти, розділяючи їх "
+#~ "символом «;»."
+
+#~ msgid "Send Message"
+#~ msgstr "Відправити повідомлення"
+
+#~ msgid "Select Sender GPG Key"
+#~ msgstr "Виберіть ключ GPG відправника"
+
+#~ msgid "Select Recipient(s) GPG Key"
+#~ msgstr "Виберіть ключ GPG одержувача(ів)."
+
+#~ msgid "GPG Operations"
+#~ msgstr "Операції GPG"
+
+#~ msgid "Attach signature"
+#~ msgstr "Додайте підпис"
+
+#~ msgid "Attach sender's public key"
+#~ msgstr "Приєднайте відкритий ключ відправника"
+
+#~ msgid "Encrypt content"
+#~ msgstr "Шифруйте вміст"
+
+#~ msgid "Edit Recipients(s)"
+#~ msgstr "Редагувати одержувачів"
+
+#~ msgid "Edit CC(s)"
+#~ msgstr "Редагувати CC(s)"
+
+#~ msgid "Edit BCC(s)"
+#~ msgstr "Редагувати приховану копію(и)"
+
+#~ msgid "Sender GPG Key: "
+#~ msgstr "Ключ GPG відправника:"
+
+#~ msgid "Recipient(s) GPG Key: "
+#~ msgstr "Ключ GPG одержувача(ів):"
+
+#~ msgid "New Message"
+#~ msgstr "Нове повідомлення"
+
+#~ msgid "Recipient cannot be empty"
+#~ msgstr "Одержувач не може бути порожнім"
+
+#~ msgid "One or more recipient's email is invalid"
+#~ msgstr "Електронна адреса одного або кількох одержувачів недійсна"
+
+#~ msgid "Sender cannot be empty"
+#~ msgstr "Відправник не може бути порожнім"
+
+#~ msgid "Sender's email is invalid"
+#~ msgstr "Електронна адреса відправника недійсна"
+
+#~ msgid "Subject cannot be empty"
+#~ msgstr "Тема не може бути пустою"
+
+#~ msgid "One or more cc email is invalid"
+#~ msgstr "Одна чи кілька копій електронної пошти недійсна"
+
+#~ msgid "One or more bcc email is invalid"
+#~ msgstr "Одна чи кілька прихованих електронних листів недійсна"
+
+#~ msgid ""
+#~ "You have checked the encrypted email content, but you have not selected the "
+#~ "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
+#~ "So the send operation is forbidden"
+#~ msgstr ""
+#~ "Ви перевірили зашифрований вміст електронної пошти, але не вибрали ключ GPG "
+#~ "одержувача. Це небезпечно, і пошта не буде зашифрована. Тому операція "
+#~ "відправки заборонена"
+
+#~ msgid ""
+#~ "You checked the option to attach signature to the email, but did not specify"
+#~ " the sender's GPG Key. This will cause the content of the email to be "
+#~ "inconsistent with your expectations, so the operation is prohibited."
+#~ msgstr ""
+#~ "Ви позначили параметр вкладення підпису до електронного листа, але не "
+#~ "вказали ключ GPG відправника. Це призведе до того, що вміст електронного "
+#~ "листа буде невідповідним вашим очікуванням, тому операція заборонена."
+
+#~ msgid ""
+#~ "You checked the option to attach your public key to the email, but did not "
+#~ "specify the sender's GPG Key. This will cause the content of the email to be"
+#~ " inconsistent with your expectations, so the operation is prohibited."
+#~ msgstr ""
+#~ "Ви позначили параметр вкладати свій відкритий ключ до електронного листа, "
+#~ "але не вказали ключ GPG відправника. Це призведе до того, що вміст "
+#~ "електронного листа буде невідповідним вашим очікуванням, тому операція "
+#~ "заборонена."
+
+#~ msgid "Sending Email..."
+#~ msgstr "Надсилання електронної пошти..."
+
+#~ msgid ""
+#~ "If the process does not end for a long time, please check again whether your"
+#~ " SMTP server configuration is correct."
+#~ msgstr ""
+#~ "Якщо процес не закінчується протягом тривалого часу, перевірте ще раз, чи "
+#~ "правильна конфігурація сервера SMTP."
+
+#~ msgid "identity_enable"
+#~ msgstr "identity_enable"
+
+#~ msgid "mail_address"
+#~ msgstr "Поштова адреса"
+
+#~ msgid "connection_type"
+#~ msgstr "тип_підключення"
+
+#~ msgid "default_sender"
+#~ msgstr "default_sender"
+
+#~ msgid "default_sender_gpg_key_id"
+#~ msgstr "default_sender_gpg_key_id"
+
+#~ msgid "Fail"
+#~ msgstr "Не вдалося"
+
+#~ msgid "Fail to Connect SMTP Server."
+#~ msgstr "Не вдалося підключити SMTP-сервер."
+
+#~ msgid "Fail to Login."
+#~ msgstr "Не вдалося ввійти."
+
+#~ msgid "Succeed in connecting and login"
+#~ msgstr "Успішно підключитися та увійти"
+
+#~ msgid "Succeed in sending the message to the SMTP Server"
+#~ msgstr "Успішно надіслати повідомлення на SMTP-сервер"
+
+#~ msgid "Encryption Error"
+#~ msgstr "Помилка шифрування"
+
+#~ msgid ""
+#~ "An error occurred while encrypting the content of the email. This may be "
+#~ "because you did not complete some operations during Gnupg encryption."
+#~ msgstr ""
+#~ "Під час шифрування вмісту електронного листа сталася помилка. Це може бути "
+#~ "через те, що ви не виконали деякі операції під час шифрування Gnupg."
+
+#~ msgid "Unknown error."
+#~ msgstr "Невідома помилка."
+
+#~ msgid "server_list"
+#~ msgstr "список_сервера"
+
+#~ msgid "default_server"
+#~ msgstr "сервер_за замовчуванням"
+
+#~ msgid "Automatic Key Exchange Warning"
+#~ msgstr "Попередження про автоматичний обмін ключами"
+
+#~ msgid ""
+#~ "Part of the automatic key exchange failed, which may be related to your key."
+#~ msgstr ""
+#~ "Не вдалося виконати частину автоматичного обміну ключами, що може бути "
+#~ "пов’язано з вашим ключем."
+
+#~ msgid ""
+#~ "If possible, try to use the RSA algorithm compatible with the server for "
+#~ "signing."
+#~ msgstr ""
+#~ "Якщо можливо, спробуйте використовувати для підпису алгоритм RSA, сумісний "
+#~ "із сервером."
+
+#~ msgid "Service Token Empty"
+#~ msgstr "Сервісний маркер порожній"
+
+#~ msgid ""
+#~ "Please go to the settings interface to set Own Key and get Service Token."
+#~ msgstr ""
+#~ "Будь ласка, перейдіть до інтерфейсу налаштувань, щоб встановити власний ключ"
+#~ " і отримати токен обслуговування."
+
+#~ msgid "called"
+#~ msgstr "дзвонив"
+
+#~ msgid "Message Inbox"
+#~ msgstr "Вхідні повідомлення"
+
+#~ msgid "None"
+#~ msgstr "Жодного"
+
+#~ msgid "ASCII(7 bits)"
+#~ msgstr "ASCII (7 біт)"
+
+#~ msgid "ASCII(8 bits)"
+#~ msgstr "ASCII (8 біт)"
+
+#~ msgid "UTF-16"
+#~ msgstr "UTF-16"
+
+#~ msgid "UTF-16(BE)"
+#~ msgstr "UTF-16(BE)"
+
+#~ msgid "Send Mail"
+#~ msgstr "Надіслати пошту"
+
+#~ msgid "Advanced"
+#~ msgstr "Розширений"
+
+#~ msgid "Identity Information"
+#~ msgstr "Інформація про особу"
+
+#~ msgid "Enable Send Mail Ability"
+#~ msgstr "Увімкнути можливість надсилання пошти"
+
+#~ msgid "Need Auth"
+#~ msgstr "Потрібна авторизація"
+
+#~ msgid "SMTP Server Address"
+#~ msgstr "Адреса SMTP-сервера"
+
+#~ msgid "SMTP Server Port"
+#~ msgstr "Порт сервера SMTP"
+
+#~ msgid "SMTP Connection Security"
+#~ msgstr "Безпека з'єднання SMTP"
+
+#~ msgid "Default Sender Email"
+#~ msgstr "Електронна пошта відправника за замовчуванням"
+
+#~ msgid "Check Connection"
+#~ msgstr "Перевірте підключення"
+
+#~ msgid "Send Test Email"
+#~ msgstr "Надіслати тестовий електронний лист"
+
+#~ msgid "Default Sender GPG Key ID"
+#~ msgstr "Ідентифікатор ключа GPG відправника за замовчуванням"
+
+#~ msgid ""
+#~ "Tips: It is recommended that you build your own mail server or use a trusted"
+#~ " mail server. If you don't know the detailed configuration information, you "
+#~ "can get it from the mail service provider."
+#~ msgstr ""
+#~ "Поради. Рекомендується створити власний поштовий сервер або використовувати "
+#~ "надійний поштовий сервер. Якщо ви не знаєте детальної інформації про "
+#~ "конфігурацію, ви можете отримати її у постачальника послуг пошти."
+
+#~ msgid "apply settings failed"
+#~ msgstr "не вдалося застосувати налаштування"
+
+#~ msgid "Test SMTP Connection..."
+#~ msgstr "Перевірити з'єднання SMTP..."
+
+#~ msgid "Test SMTP Send Mail Ability..."
+#~ msgstr "Перевірка можливості надсилання пошти SMTP..."
+
+#~ msgid "Test Email from GpgFrontend"
+#~ msgstr "Тестовий лист від GpgFrontend"
+
+#~ msgid ""
+#~ "Hello, this is a test email from GpgFrontend. If you receive this email, it "
+#~ "means that you have configured the correct SMTP server parameters."
+#~ msgstr ""
+#~ "Привіт, це тестовий лист від GpgFrontend. Якщо ви отримали цей електронний "
+#~ "лист, це означає, що ви налаштували правильні параметри SMTP-сервера."
+
+#~ msgid "Succeed in sending a test email to the SMTP Server"
+#~ msgstr "Успішно надіслати тестовий електронний лист на SMTP-сервер"
+
+#~ msgid "root certs loaded"
+#~ msgstr "кореневі сертифікати завантажено"
+
+#~ msgid "Nothing Reply. Please check the Internet connection."
+#~ msgstr "Нічого Відповідь. Перевірте підключення до Інтернету."
+
+#~ msgid "Unknown Error"
+#~ msgstr "Невідома помилка"
+
+#~ msgid "Network Error"
+#~ msgstr "Помилка мережі"
+
+#~ msgid "Outdated Reply"
+#~ msgstr "Застаріла відповідь"
+
+#~ msgid "Unknown Reason"
+#~ msgstr "Невідома причина"
+
+#~ msgid "Unknown Reply Format"
+#~ msgstr "Невідомий формат відповіді"
+
+#~ msgid ""
+#~ "The communication content with the server does not meet the requirements"
+#~ msgstr "Вміст зв’язку із сервером не відповідає вимогам"
+
+#~ msgid "(.gpg .asc)"
+#~ msgstr "(.gpg .asc)"
+
+#~ msgid "(.sig .gpg .asc)"
+#~ msgstr "(.sig .gpg .asc)"
+
+#~ msgid "Export Key(s) Failed."
+#~ msgstr "Не вдалося експортувати ключ(и)."
+
+#~ msgid "info_font_size"
+#~ msgstr "info_font_size"
+
+#~ msgid "Invalid Own Key"
+#~ msgstr "Недійсний власний ключ"
+
+#~ msgid ""
+#~ "Own Key can not be use to do any operation. Please go to the setting "
+#~ "interface to select an OwnKey and get a ServiceToken."
+#~ msgstr ""
+#~ "Власний ключ не можна використовувати для виконання будь-яких операцій. Будь"
+#~ " ласка, перейдіть до інтерфейсу налаштувань, щоб вибрати OwnKey та отримати "
+#~ "ServiceToken."
+
+#~ msgid "Please obtain a Service Token from the server in the settings."
+#~ msgstr "Будь ласка, отримайте токен сервісу від сервера в налаштуваннях."
+
+#~ msgid "Getting Cpt From Server"
+#~ msgstr "Отримання Cpt із сервера"
+
+#~ msgid "Invalid short ciphertext"
+#~ msgstr "Недійсний короткий зашифрований текст"
+
+#~ msgid "Invalid Service Token"
+#~ msgstr "Недійсний маркер служби"
+
+#~ msgid "Please go to the setting interface to get a ServiceToken."
+#~ msgstr ""
+#~ "Будь ласка, перейдіть до інтерфейсу налаштування, щоб отримати ServiceToken."
+
+#~ msgid "Own Key can not be use to do any operation."
+#~ msgstr ""
+#~ "Власний ключ не можна використовувати для виконання будь-яких операцій."
+
+#~ msgid "Getting Scpt From Server"
+#~ msgstr "Отримання Scpt із сервера"
+
+#~ msgid ""
+#~ "Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
+#~ msgstr ""
+#~ "Примітка. Використовуйте операцію «Розшифрувати та перевірити», щоб "
+#~ "розшифрувати цей короткий криптотекст."
+
+#~ msgid "There is a problem with the communication with the server"
+#~ msgstr "Виникла проблема зі зв’язком із сервером"
+
+#~ msgid "Select a file before doing it."
+#~ msgstr "Виберіть файл перед тим, як це зробити."
+
+#~ msgid "No Key Selected"
+#~ msgstr "Ключ не вибрано"
+
+#~ msgid "No data was read from the key package."
+#~ msgstr "З пакету ключів не було прочитано жодних даних."
+
+#~ msgid "Wrong Passphrase"
+#~ msgstr "Неправильна парольна фраза"
+
+#~ msgid "Please double check the passphrase you entered is correct."
+#~ msgstr "Будь ласка, перевірте правильність введеної парольної фрази."
+
+#~ msgid "window_save"
+#~ msgstr "window_save"
+
+#~ msgid "Show Steganographic Options."
+#~ msgstr "Показати стеганографічні параметри."
+
+#~ msgid "Decrypt File"
+#~ msgstr "Розшифрувати файл"
+
+#~ msgid "Encrypt File"
+#~ msgstr "Шифрувати файл"
+
+#~ msgid "Sign File"
+#~ msgstr "Підписати файл"
+
+#~ msgid "Verify File"
+#~ msgstr "Перевірте файл"
+
+#~ msgid "Input Parameters"
+#~ msgstr "Вхідні параметри"
+
+#~ msgid "Target File"
+#~ msgstr "Цільовий файл"
+
+#~ msgid "Signature File(.sig) Path"
+#~ msgstr "Файл підпису (.sig) Шлях"
+
+#~ msgid "Error Occurred During Encryption"
+#~ msgstr "Під час шифрування сталася помилка"
+
+#~ msgid "Error Occurred During Decryption"
+#~ msgstr "Під час дешифрування сталася помилка"
+
+#~ msgid "Error Occurred During Signature"
+#~ msgstr "Під час підписання сталася помилка"
+
+#~ msgid "Key List Menu: "
+#~ msgstr "Меню списку ключів:"
+
+#~ msgid "InfoBoard's Actions Menu"
+#~ msgstr "Меню дій InfoBoard"
+
+#~ msgid "No permission to read target file."
+#~ msgstr "Немає дозволу на читання цільового файлу."
+
+#~ msgid "No permission to read signature file."
+#~ msgstr "Немає дозволу на читання файлу підпису."
+
+#~ msgid "Append Selected Key(s) To Text"
+#~ msgstr "Додати вибрані ключі до тексту"
+
+#~ msgid "Unreleased Version"
+#~ msgstr "Невипущена версія"
+
+#~ msgid ""
+#~ "This version(%1) has not been officially released and is not recommended for"
+#~ " use in a production environment. <br/>"
+#~ msgstr ""
+#~ "Ця версія (%1) офіційно не випущена і не рекомендується для використання у "
+#~ "виробничому середовищі. <br/>"
+
+#~ msgid "Fail to Login into SMTP Server"
+#~ msgstr "Не вдалося ввійти на SMTP-сервер"
+
+#~ msgid "Fail to Send Mail to SMTP Server"
+#~ msgstr "Не вдалося надіслати пошту на SMTP-сервер"
+
+#~ msgid "Succeed in Sending Mail to SMTP Server"
+#~ msgstr "Успішно надіслати пошту на SMTP-сервер"
+
+#~ msgid "Master Key"
+#~ msgstr "Головний ключ"
+
+#~ msgid "GpgFrontend Server"
+#~ msgstr "Сервер GpgFrontend"
+
+#~ msgid "Server that provides short key and key exchange services"
+#~ msgstr "Сервер, який надає послуги обміну короткими ключами"
+
+#~ msgid "Own key"
+#~ msgstr "Власний ключ"
+
+#~ msgid "Get Service Token"
+#~ msgstr "Отримайте токен обслуговування"
+
+#~ msgid "No Service Token Found"
+#~ msgstr "Токен служби не знайдено"
+
+#~ msgid "Key pair for synchronization and identity authentication"
+#~ msgstr "Пара ключів для синхронізації та аутентифікації"
+
+#~ msgid "Own Key can not be None while getting service token."
+#~ msgstr "Власний ключ не може бути None під час отримання токена служби."
+
+#~ msgid "Key Not Exists"
+#~ msgstr "Ключ не існує"
+
+#~ msgid "Succeed in getting service token"
+#~ msgstr "Успіх отримати маркер служби"
+
+#~ msgid "Given a default sender first"
+#~ msgstr "Спочатку вказано відправника за замовчуванням"
+
+#~ msgid "Hello, this is a test email from GpgFrontend."
+#~ msgstr "Привіт, це тестовий лист від GpgFrontend."
+
+#~ msgid ""
+#~ "Fail to send a test email to the SMTP Server, please recheck your "
+#~ "configuration."
+#~ msgstr ""
+#~ "Не вдалося надіслати тестовий електронний лист на SMTP-сервер, перевірте "
+#~ "конфігурацію ще раз."
+
+#~ msgid "Keu ID"
+#~ msgstr "Keu ID"
+
+#~ msgid "Public Algo"
+#~ msgstr "Громадський алгоритм"
+
+#~ msgid "Verify Result Analyse Started"
+#~ msgstr "Перевірка результатів Аналіз розпочато"
+
+#~ msgid "Not Signature Found"
+#~ msgstr "Підпис не знайдено"
+
+#~ msgid "Edit Expire Datetime"
+#~ msgstr "Редагувати дату закінчення терміну дії"
+
+#~ msgid "Selecting Nothing will eventually use default key to sign."
+#~ msgstr ""
+#~ "Якщо вибрати Нічого, для підпису в кінцевому підсумку буде використовуватися"
+#~ " ключ за замовчуванням."
+
+#~ msgid "Refresh Key From Key Server"
+#~ msgstr "Оновити ключ із сервера ключів"
+
+#~ msgid "Upload Public Key(s) To Server"
+#~ msgstr "Завантажте відкритий ключ(и) на сервер"
+
+#~ msgid "Upload The Selected Public Keys To Server"
+#~ msgstr "Завантажте вибрані відкриті ключі на сервер"
+
+#~ msgid "Update Key Pair"
+#~ msgstr "Оновити пару ключів"
+
+#~ msgid "Default Key Server for Import"
+#~ msgstr "Сервер ключів за замовчуванням для імпорту"
