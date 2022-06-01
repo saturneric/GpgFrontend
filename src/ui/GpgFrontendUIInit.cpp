@@ -103,8 +103,9 @@ void InitGpgFrontendUI(QApplication* app) {
 
   // show the loading window
   waiting_dialog->setModal(true);
-  waiting_dialog->show();
   waiting_dialog->setFocus();
+  waiting_dialog->show();
+
 
   // new local event looper
   QEventLoop looper;

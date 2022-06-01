@@ -40,7 +40,7 @@ class GPGFRONTEND_UI_EXPORT GpgFrontendApplication : public QApplication {
    * @param argc
    * @param argv
    */
-  explicit GpgFrontendApplication(int &argc, char **argv);
+  explicit GpgFrontendApplication(int& argc, char *argv[]);
 
   /**
    * @brief Destroy the GpgFrontend Application object
