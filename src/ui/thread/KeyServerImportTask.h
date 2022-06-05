@@ -24,36 +24,33 @@
  *
  */
 
-#ifndef GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
-#define GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
+#ifndef GPGFRONTEND_KEYSERVERIMPORTTASK_H
+#define GPGFRONTEND_KEYSERVERIMPORTTASK_H
 
 #include "GpgFrontendUI.h"
-namespace GpgFrontend::UI {
 
-/**
- * @brief
- *
- */
-class ListedKeyServerTestTask : public Thread::Task {
+namespace GpgFrontend::UI {
+class KeyServerImportTask : public Thread::Task {
   Q_OBJECT
  public:
-  enum KeyServerTestResultType {
-    kTestResultType_Success,
-    kTestResultType_Timeout,
-    kTestResultType_Error,
-  };
-
-  explicit ListedKeyServerTestTask(const QStringList& urls, int timeout,
-                                   QWidget* parent = nullptr);
+  /**
+   * @brief Construct a new Key Server Search Task object
+   *
+   * @param keyserver_url
+   * @param search_string
+   */
+  KeyServerImportTask(std::string keyserver_url,
+                      std::vector<std::string> keyid);
 
  signals:
+
   /**
    * @brief
    *
    * @param result
    */
-  void SignalKeyServerListTestResult(
-      std::vector<KeyServerTestResultType> result);
+  void SignalKeyServerImportResult(QNetworkReply::NetworkError reply,
+                                   QByteArray buffer);
 
  protected:
   /**
@@ -62,24 +59,22 @@ class ListedKeyServerTestTask : public Thread::Task {
    */
   void run() override;
 
- private:
-  QStringList urls_;                             ///<
-  std::vector<KeyServerTestResultType> result_;  ///<
-  QNetworkAccessManager* network_manager_;       ///<
-  int timeout_ = 500;                            ///<
-  int result_count_ = 0;                         ///<
+ private slots:
 
   /**
    * @brief
    *
-   * @param index
-   * @param reply
    */
-  void slot_process_network_reply(int index, QNetworkReply* reply);
-};
+  void dealing_reply_from_server();
 
+ private:
+  std::string keyserver_url_;        ///<
+  std::vector<std::string> keyids_;  ///<
+  int result_count_ = 0;
+
+  QNetworkAccessManager *manager_;  ///<
+  QNetworkReply *reply_;            ///<
+};
 }  // namespace GpgFrontend::UI
 
-class TestListedKeyServerThread {};
-
-#endif  // GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
+#endif  // GPGFRONTEND_KEYSERVERIMPORTTASK_H

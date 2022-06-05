@@ -110,6 +110,16 @@ void process_operation(
 /**
  * @brief
  *
+ * @param parent
+ * @param key_id
+ * @param key_server
+ */
+void import_key_from_keyserver(QWidget* parent, const std::string& key_id,
+                               const std::string& key_server);
+
+/**
+ * @brief
+ *
  */
 class CommonUtils : public QWidget {
   Q_OBJECT
