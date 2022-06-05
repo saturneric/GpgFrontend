@@ -120,23 +120,30 @@ KeyserverTab::KeyserverTab(QWidget* parent)
  * appropriately
  **********************************/
 void KeyserverTab::SetSettings() {
-  SettingsObject key_server_json("key_server");
+  try {
+    SettingsObject key_server_json("key_server");
 
-  const auto key_server_list =
-      key_server_json.Check("server_list", nlohmann::json::array());
+    const auto key_server_list =
+        key_server_json.Check("server_list", nlohmann::json::array());
 
-  for (const auto& key_server : key_server_list) {
-    const auto key_server_str = key_server.get<std::string>();
-    this->key_server_str_list_.append(key_server_str.c_str());
+    for (const auto& key_server : key_server_list) {
+      const auto key_server_str = key_server.get<std::string>();
+      this->key_server_str_list_.append(key_server_str.c_str());
+    }
+
+    int default_key_server_index = key_server_json.Check("default_server", 0);
+    if (default_key_server_index >= key_server_list.size()) {
+      throw std::runtime_error("default_server index out of range");
+    }
+    std::string default_key_server =
+        key_server_list[default_key_server_index].get<std::string>();
+
+    if (!key_server_str_list_.contains(default_key_server.c_str()))
+      key_server_str_list_.append(default_key_server.c_str());
+    default_key_server_ = QString::fromStdString(default_key_server);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Error reading key-server settings: " << e.what();
   }
-
-  int default_key_server_index = key_server_json.Check("default_server", 0);
-  std::string default_key_server =
-      key_server_list[default_key_server_index].get<std::string>();
-
-  if (!key_server_str_list_.contains(default_key_server.c_str()))
-    key_server_str_list_.append(default_key_server.c_str());
-  default_key_server_ = QString::fromStdString(default_key_server);
 }
 
 void KeyserverTab::slot_add_key_server() {

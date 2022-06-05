@@ -28,12 +28,15 @@
 
 #include "KeyServerImportDialog.h"
 
+#include <string>
 #include <utility>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "thread/KeyServerImportTask.h"
 #include "ui/SignalStation.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/thread/KeyServerSearchTask.h"
 
 namespace GpgFrontend::UI {
 
@@ -174,6 +177,9 @@ QComboBox* KeyServerImportDialog::create_comboBox() {
     }
 
     int default_key_server_index = key_server_json.Check("default_server", 0);
+    if (default_key_server_index >= key_server_list.size()) {
+      throw std::runtime_error("default_server index out of range");
+    }
     std::string default_key_server =
         key_server_list[default_key_server_index].get<std::string>();
 
@@ -227,15 +233,20 @@ void KeyServerImportDialog::slot_search() {
     return;
   }
 
-  QUrl url_from_remote = key_server_combo_box_->currentText() +
-                         "/pks/lookup?search=" + search_line_edit_->text() +
-                         "&op=index&options=mr";
-  network_access_manager_ = new QNetworkAccessManager(this);
-  QNetworkReply* reply =
-      network_access_manager_->get(QNetworkRequest(url_from_remote));
+  auto* task = new KeyServerSearchTask(
+      key_server_combo_box_->currentText().toStdString(),
+      search_line_edit_->text().toStdString());
 
-  connect(reply, &QNetworkReply::finished, this,
+  connect(task, &KeyServerSearchTask::SignalKeyServerSearchResult, this,
           &KeyServerImportDialog::slot_search_finished);
+
+  connect(task, &KeyServerSearchTask::SignalKeyServerSearchResult, this, [=]() {
+    this->search_button_->setDisabled(false);
+    this->key_server_combo_box_->setDisabled(false);
+    this->search_line_edit_->setReadOnly(false);
+    this->import_button_->setDisabled(false);
+    set_loading(false);
+  });
 
   set_loading(true);
   this->search_button_->setDisabled(true);
@@ -243,29 +254,23 @@ void KeyServerImportDialog::slot_search() {
   this->search_line_edit_->setReadOnly(true);
   this->import_button_->setDisabled(true);
 
-  while (reply->isRunning()) {
-    QApplication::processEvents();
-  }
-
-  this->search_button_->setDisabled(false);
-  this->key_server_combo_box_->setDisabled(false);
-  this->search_line_edit_->setReadOnly(false);
-  this->import_button_->setDisabled(false);
-  set_loading(false);
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+      ->PostTask(task);
 }
 
-void KeyServerImportDialog::slot_search_finished() {
-  LOG(INFO) << "Called";
-
-  auto* reply = qobject_cast<QNetworkReply*>(sender());
+void KeyServerImportDialog::slot_search_finished(
+    QNetworkReply::NetworkError error, QByteArray buffer) {
+  LOG(INFO) << "Called" << error << buffer.size();
+  LOG(INFO) << buffer.toStdString();
 
   keys_table_->clearContents();
   keys_table_->setRowCount(0);
-  QString first_line = QString(reply->readLine(1024));
 
-  auto error = reply->error();
+  auto stream = QTextStream(buffer);
+
   if (error != QNetworkReply::NoError) {
-    LOG(INFO) << "Error From Reply" << reply->errorString().toStdString();
+    LOG(INFO) << "Error From Reply" << error;
 
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
@@ -283,8 +288,9 @@ void KeyServerImportDialog::slot_search_finished() {
     return;
   }
 
-  if (first_line.contains("Error")) {
-    QString text = QString(reply->readLine(1024));
+  if (stream.readLine().contains("Error")) {
+    auto text = stream.readLine(1024);
+
     if (text.contains("Too many responses")) {
       set_message(
           "<h4>" + QString(_("Too many responses from keyserver!")) + "</h4>",
@@ -324,11 +330,14 @@ void KeyServerImportDialog::slot_search_finished() {
   } else {
     int row = 0;
     bool strikeout = false;
-    while (reply->canReadLine()) {
-      auto line_buff = reply->readLine().trimmed();
-      QString decoded =
-          QString::fromUtf8(line_buff.constData(), line_buff.size());
-      QStringList line = decoded.split(":");
+
+    // read lines until end of steam
+    while (!stream.atEnd()) {
+      QStringList line =
+          QString::fromUtf8(QByteArray::fromPercentEncoding(
+                                stream.readLine().trimmed().toUtf8()))
+              .split(":");
+
       // TODO: have a look at two following pub lines
       if (line[0] == "pub") {
         strikeout = false;
@@ -354,7 +363,9 @@ void KeyServerImportDialog::slot_search_finished() {
           }
         }
 
-        QStringList line2 = QString(reply->readLine()).split(":");
+        QStringList line2 = QString(QByteArray::fromPercentEncoding(
+                                        stream.readLine().trimmed().toUtf8()))
+                                .split(":");
 
         auto* uid = new QTableWidgetItem();
         if (line2.size() > 1) {
@@ -400,32 +411,45 @@ void KeyServerImportDialog::slot_search_finished() {
     keys_table_->resizeColumnsToContents();
     import_button_->setDisabled(keys_table_->size().isEmpty());
   }
-  reply->deleteLater();
 }
 
 void KeyServerImportDialog::slot_import() {
-  LOG(INFO) << _("Current Row") << keys_table_->currentRow();
-  if (keys_table_->currentRow() > -1) {
-    QString keyid = keys_table_->item(keys_table_->currentRow(), 2)->text();
-    SlotImport(QStringList(keyid), key_server_combo_box_->currentText());
+  std::vector<std::string> key_ids;
+  const int row_count = keys_table_->rowCount();
+  for (int i = 0; i < row_count; ++i) {
+    if (keys_table_->item(i, 2)->isSelected()) {
+      QString keyid = keys_table_->item(i, 2)->text();
+      key_ids.push_back(keyid.toStdString());
+    }
   }
+  if (!key_ids.empty())
+    SlotImport(key_ids, key_server_combo_box_->currentText().toStdString());
 }
 
 void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
+  // keyserver host url
   std::string target_keyserver;
+
   if (key_server_combo_box_ != nullptr) {
     target_keyserver = key_server_combo_box_->currentText().toStdString();
   }
   if (target_keyserver.empty()) {
     try {
-      auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+      SettingsObject key_server_json("key_server");
+      const auto key_server_list =
+          key_server_json.Check("server_list", nlohmann::json::array());
 
-      target_keyserver = settings.lookup("keyserver.default_server").c_str();
+      int default_key_server_index = key_server_json.Check("default_server", 0);
+      if (default_key_server_index >= key_server_list.size()) {
+        throw std::runtime_error("default_server index out of range");
+      }
+      std::string default_key_server =
+          key_server_list[default_key_server_index].get<std::string>();
 
-      LOG(INFO) << _("Set target Key Server to default Key Server")
-                << target_keyserver;
+      target_keyserver = default_key_server;
     } catch (...) {
-      LOG(ERROR) << _("Cannot read default_keyserver From Settings");
+      LOG(ERROR) << _("Setting Operation Error") << "server_list"
+                 << "default_server";
       QMessageBox::critical(
           nullptr, _("Default Keyserver Not Found"),
           _("Cannot read default keyserver from your settings, "
@@ -433,42 +457,31 @@ void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
       return;
     }
   }
-  auto key_ids = QStringList();
-  for (const auto& key_id : *keys)
-    key_ids.append(QString::fromStdString(key_id));
-  SlotImport(key_ids, QUrl(target_keyserver.c_str()));
-}
-
-void KeyServerImportDialog::SlotImport(const QStringList& keyIds,
-                                       const QUrl& keyserverUrl) {
-  for (const auto& keyId : keyIds) {
-    QUrl req_url(keyserverUrl.scheme() + "://" + keyserverUrl.host() +
-                 "/pks/lookup?op=get&search=0x" + keyId + "&options=mr");
-
-    LOG(INFO) << "request url" << req_url.toString().toStdString();
-    auto manager = new QNetworkAccessManager(this);
-
-    QNetworkReply* reply = manager->get(QNetworkRequest(req_url));
-    connect(reply, &QNetworkReply::finished, this,
-            [&, keyId]() { this->slot_import_finished(keyId); });
-    LOG(INFO) << "loading start";
-    set_loading(true);
-    while (reply->isRunning()) QApplication::processEvents();
-    set_loading(false);
-    LOG(INFO) << "loading done";
+  std::vector<std::string> key_ids;
+  for (const auto& key_id : *keys) {
+    key_ids.push_back(key_id);
   }
+  SlotImport(key_ids, target_keyserver);
 }
 
-void KeyServerImportDialog::slot_import_finished(const QString& keyid) {
+void KeyServerImportDialog::SlotImport(std::vector<std::string> key_ids,
+                                       std::string keyserver_url) {
+  auto* task = new KeyServerImportTask(keyserver_url, key_ids);
+
+  connect(task, &KeyServerImportTask::SignalKeyServerImportResult, this,
+          &KeyServerImportDialog::slot_import_finished);
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+      ->PostTask(task);
+}
+
+void KeyServerImportDialog::slot_import_finished(
+    QNetworkReply::NetworkError error, QByteArray buffer) {
   LOG(INFO) << _("Called");
 
-  auto* reply = qobject_cast<QNetworkReply*>(sender());
-
-  QByteArray key = reply->readAll();
-
-  auto error = reply->error();
   if (error != QNetworkReply::NoError) {
-    LOG(ERROR) << "Error From Reply" << reply->errorString().toStdString();
+    LOG(ERROR) << "Error From Reply" << buffer.toStdString();
     if (!m_automatic_) {
       switch (error) {
         case QNetworkReply::ContentNotFoundError:
@@ -486,10 +499,8 @@ void KeyServerImportDialog::slot_import_finished(const QString& keyid) {
     } else {
       switch (error) {
         case QNetworkReply::ContentNotFoundError:
-          QMessageBox::critical(
-              nullptr, _("Public key Not Found"),
-              QString(_("Public key fingerprint %1 not found in the Keyserver"))
-                  .arg(keyid));
+          QMessageBox::critical(nullptr, _("Key Not Found"),
+                                QString(_("key not found in the Keyserver")));
           break;
         case QNetworkReply::TimeoutError:
           QMessageBox::critical(nullptr, _("Timeout"), "Connection timeout");
@@ -510,9 +521,8 @@ void KeyServerImportDialog::slot_import_finished(const QString& keyid) {
     return;
   }
 
-  reply->deleteLater();
-
-  this->import_keys(std::make_unique<ByteArray>(key.constData(), key.length()));
+  this->import_keys(
+      std::make_unique<ByteArray>(buffer.constData(), buffer.length()));
 
   if (!m_automatic_) {
     set_message(QString("<h4>") + _("Key Imported") + "</h4>", false);
@@ -522,14 +532,17 @@ void KeyServerImportDialog::slot_import_finished(const QString& keyid) {
 void KeyServerImportDialog::import_keys(ByteArrayPtr in_data) {
   GpgImportInformation result =
       GpgKeyImportExporter::GetInstance().ImportKey(std::move(in_data));
+
+  // refresh the key database
   emit SignalKeyImported();
+
   QWidget* _parent = qobject_cast<QWidget*>(parent());
   if (m_automatic_) {
     auto dialog = new KeyImportDetailDialog(result, true, _parent);
     dialog->show();
     this->accept();
   } else {
-    auto dialog = new KeyImportDetailDialog(result, false, _parent);
+    auto dialog = new KeyImportDetailDialog(result, false, this);
     dialog->exec();
   }
 }

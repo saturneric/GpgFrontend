@@ -185,13 +185,11 @@ void MainWindow::restore_settings() {
     LOG(INFO) << "restore settings key_server";
 
     SettingsObject key_server_json("key_server");
-
-    if (!key_server_json.contains("server_list")) {
+    if (!key_server_json.contains("server_list") ||
+        key_server_json["server_list"].empty()) {
       key_server_json["server_list"] = {"https://keyserver.ubuntu.com",
-                                        "http://keys.gnupg.net",
-                                        "http://pool.sks-keyservers.net"};
+                                        "https://keys.openpgp.org"};
     }
-
     if (!key_server_json.contains("default_server")) {
       key_server_json["default_server"] = 0;
     }
@@ -264,6 +262,7 @@ void MainWindow::save_settings() {
 
     main_windows_state["window_size"]["width"] = size().width();
     main_windows_state["window_size"]["height"] = size().height();
+    main_windows_state["window_save"] = true;
 
     bool save_key_checked = settings.lookup("general.save_key_checked");
 

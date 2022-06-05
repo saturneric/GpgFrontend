@@ -29,6 +29,8 @@
 #ifndef __KEY_SERVER_IMPORT_DIALOG_H__
 #define __KEY_SERVER_IMPORT_DIALOG_H__
 
+#include <string>
+
 #include "KeyImportDetailDialog.h"
 #include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
@@ -74,7 +76,8 @@ class KeyServerImportDialog : public QDialog {
    * @param keyIds
    * @param keyserverUrl
    */
-  void SlotImport(const QStringList& keyIds, const QUrl& keyserverUrl);
+  void SlotImport(std::vector<std::string> key_ids_list,
+                  std::string keyserver_url);
 
  signals:
 
@@ -87,7 +90,7 @@ class KeyServerImportDialog : public QDialog {
  private slots:
 
   /**
-   * @brief
+   * @brief import key(s) for the key table selection
    *
    */
   void slot_import();
@@ -96,14 +99,16 @@ class KeyServerImportDialog : public QDialog {
    * @brief
    *
    */
-  void slot_search_finished();
+  void slot_search_finished(QNetworkReply::NetworkError reply,
+                            QByteArray buffer);
 
   /**
    * @brief
    *
    * @param keyid
    */
-  void slot_import_finished(const QString& keyid);
+  void slot_import_finished(QNetworkReply::NetworkError error,
+                            QByteArray buffer);
 
   /**
    * @brief
@@ -164,18 +169,17 @@ class KeyServerImportDialog : public QDialog {
 
   bool m_automatic_ = false;  ///<
 
-  QLineEdit* search_line_edit_{};                    ///<
-  QComboBox* key_server_combo_box_{};                ///<
-  QProgressBar* waiting_bar_;                        ///<
-  QLabel* search_label_{};                           ///<
-  QLabel* key_server_label_{};                       ///<
-  QLabel* message_{};                                ///<
-  QLabel* icon_{};                                   ///<
-  QPushButton* close_button_{};                      ///<
-  QPushButton* import_button_{};                     ///<
-  QPushButton* search_button_{};                     ///<
-  QTableWidget* keys_table_{};                       ///<
-  QNetworkAccessManager* network_access_manager_{};  ///<
+  QLineEdit* search_line_edit_{};      ///<
+  QComboBox* key_server_combo_box_{};  ///<
+  QProgressBar* waiting_bar_;          ///<
+  QLabel* search_label_{};             ///<
+  QLabel* key_server_label_{};         ///<
+  QLabel* message_{};                  ///<
+  QLabel* icon_{};                     ///<
+  QPushButton* close_button_{};        ///<
+  QPushButton* import_button_{};       ///<
+  QPushButton* search_button_{};       ///<
+  QTableWidget* keys_table_{};         ///<
 };
 
 }  // namespace GpgFrontend::UI
