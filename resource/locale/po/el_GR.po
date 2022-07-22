@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.8\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-06-01 22:21+0800\n"
-"PO-Revision-Date: 2022-06-01 22:24-0800\n"
+"POT-Creation-Date: 2022-07-23 02:52+0800\n"
+"PO-Revision-Date: 2022-07-23 02:58-0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
 "Language: el\n"
@@ -16,68 +16,68 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:56
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:58
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:57
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:59
 msgid "Failed to read app secure key file"
 msgstr "Αποτυχία ανάγνωσης του αρχείου ασφαλούς κλειδιού εφαρμογής"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:95
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:96
 msgid "Saving data object"
 msgstr "Αποθήκευση αντικειμένου δεδομένων"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:106
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:107
 msgid "Get data object"
 msgstr "Λήψη αντικειμένου δεδομένων"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:116
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:117
 msgid "Data object not found"
 msgstr "Το αντικείμενο δεδομένων δεν βρέθηκε"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:122
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:123
 msgid "Failed to read data object"
 msgstr "Απέτυχε η ανάγνωση του αντικειμένου δεδομένων"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:126
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:127
 msgid "Data object found"
 msgstr "Βρέθηκε αντικείμενο δεδομένων"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:132
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:133
 msgid "Decrypting data object"
 msgstr "Αποκρυπτογράφηση αντικειμένου δεδομένων"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:138
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:139
 msgid "Data object decoded"
 msgstr "Το αντικείμενο δεδομένων αποκωδικοποιήθηκε"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:142
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:143
 msgid "Failed to get data object"
 msgstr "Αποτυχία λήψης αντικειμένου δεδομένων"
 
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:79
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:82
 msgid "File Hash Information"
 msgstr "Πληροφορίες κατακερματισμού αρχείων"
 
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:80
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:83
 msgid "filename"
 msgstr "όνομα αρχείου"
 
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:80
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:87
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:97
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:105
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:113
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:169
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:62
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:66
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:61
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:83
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:89
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:99
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:107
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:115
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:170
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:66
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:61
 msgid ": "
 msgstr ":"
 
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:87
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:89
 msgid "file size(bytes)"
 msgstr "μέγεθος αρχείου (byte)"
 
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:118
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:120
 msgid "Error in Calculating File Hash "
 msgstr "Σφάλμα στον υπολογισμό του κατακερματισμού αρχείων"
 
@@ -134,8 +134,8 @@ msgstr ""
 msgid "Parse error at "
 msgstr "Σφάλμα ανάλυσης στο"
 
-#: /mnt/h/GpgFrontend/src/core/function/gpg/GpgKeyOpera.cpp:279
-#: /mnt/h/GpgFrontend/src/core/function/gpg/GpgKeyOpera.cpp:288
+#: /mnt/h/GpgFrontend/src/core/function/gpg/GpgKeyOpera.cpp:278
+#: /mnt/h/GpgFrontend/src/core/function/gpg/GpgKeyOpera.cpp:287
 msgid "operator not support"
 msgstr "ο χειριστής δεν υποστηρίζει"
 
@@ -147,11 +147,11 @@ msgstr "Λειτουργία αποκρυπτογράφησης"
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:41
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:43
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:47
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:106
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:153
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:280
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:245
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:106
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:78
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:154
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:281
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:245
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:246
 msgid "Success"
 msgstr "Επιτυχία"
@@ -160,7 +160,7 @@ msgstr "Επιτυχία"
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:43
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:45
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:49
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:250
 msgid "Failed"
 msgstr "Απέτυχε"
 
@@ -177,7 +177,7 @@ msgid "MIME"
 msgstr "ΜΙΜΟΣ"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:206
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:213
 msgid "true"
 msgstr "αληθής"
 
@@ -195,9 +195,9 @@ msgid "Unknown"
 msgstr "Αγνωστος"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:94
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:76
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:66
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:160
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:76
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:66
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
 #: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:34
 msgid "Key ID"
 msgstr "Αναγνωριστικό κλειδιού"
@@ -222,9 +222,9 @@ msgstr "Μη έγκυροι παραλήπτες"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:54
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:105
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:42
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:142
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:42
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:80
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:68
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:84
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:100
@@ -252,7 +252,7 @@ msgid "Sign Result Analyse Getting Result"
 msgstr "Υπογραφή Αποτελέσματος Ανάλυση Λήψη αποτελέσματος"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:57
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:186
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:187
 msgid "New Signature"
 msgstr "Νέα υπογραφή"
 
@@ -350,7 +350,7 @@ msgid "Bad"
 msgstr "Κακό"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:88
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:86
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:87
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:197
 msgid "Expired"
 msgstr "έχει λήξει"
@@ -432,17 +432,17 @@ msgstr "Υπογεγραμμένο από"
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:56
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:73
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:83
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:68
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:120
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:367
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:424
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:499
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:505
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:513
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:556
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:144
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:191
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:234
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:68
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:120
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:144
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:234
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:321
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:373
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:402
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:408
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:416
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:457
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:44
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:49
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:54
@@ -453,17 +453,17 @@ msgstr "Υπογεγραμμένο από"
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:451
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:508
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:545
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:628
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:664
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:741
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:85
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:249
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:317
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:384
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:504
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:582
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:626
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:641
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:631
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:667
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:744
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:81
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:245
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:313
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:380
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:503
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:581
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:625
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:640
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:216
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:335
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:346
@@ -489,12 +489,12 @@ msgid "Description: "
 msgstr "Περιγραφή:"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:68
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:165
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:311
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:418
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:609
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:701
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:158
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:704
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:249
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:384
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:100
@@ -510,12 +510,15 @@ msgid "Predict"
 msgstr "Προλέγω"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:204
+#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:42
+#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:73
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:473
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:463
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:571
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:271
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:102
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:664
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:161
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:422
@@ -542,30 +545,1301 @@ msgstr ""
 "πρέπει να γίνει επανεκκίνηση. Εάν το πρόβλημα επανεμφανιστεί, τερματίστε μη "
 "αυτόματα το πρόγραμμα και αναφέρετε το πρόβλημα στον προγραμματιστή."
 
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:38
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:38
 msgid "Signatures Details"
 msgstr "Υπογραφές Λεπτομέρειες"
 
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:61
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:61
 msgid "No valid input found"
 msgstr "Δεν βρέθηκε έγκυρη εισαγωγή"
 
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:72
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:72
 msgid "Error Validating signature"
 msgstr "Σφάλμα κατά την επικύρωση της υπογραφής"
 
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:74
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:74
 msgid "File was signed on %1%"
 msgstr "Το αρχείο υπογράφηκε στο %1%"
 
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:77
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:83
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:83
 msgid "It Contains"
 msgstr "Περιέχει"
 
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:80
 msgid "Signed on %1%"
 msgstr "Υπογράφηκε στο %1%"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
+msgid "About"
+msgstr "Σχετικά με"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:47
+msgid "About Software"
+msgstr "Σχετικά με το λογισμικό"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:48
+msgid "Translators"
+msgstr "Μεταφραστές"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:49
+msgid "Update"
+msgstr "Εκσυγχρονίζω"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:82
+msgid ""
+"GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
+"free gpg front-end tool.It visualizes most of the common operations of gpg "
+"commands.It's licensed under the GPL v3"
+msgstr ""
+"Το GpgFrontend είναι ένα εύχρηστο, συμπαγές, πολλαπλών πλατφορμών και χωρίς "
+"εγκατάσταση εργαλείο διεπαφής gpg. Οπτικοποιεί τις περισσότερες από τις "
+"κοινές λειτουργίες των εντολών gpg. Έχει άδεια σύμφωνα με την GPL v3"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:88
+msgid "Developer:"
+msgstr "Προγραμματιστής:"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:89
+msgid "If you have any questions or suggestions, raise an issue at"
+msgstr ""
+"Εάν έχετε οποιεσδήποτε ερωτήσεις ή προτάσεις, αναφέρετε ένα ζήτημα στο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:92
+msgid "or send a mail to my mailing list at"
+msgstr "ή στείλτε ένα μήνυμα στη λίστα αλληλογραφίας μου στη διεύθυνση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+msgid "Built with Qt"
+msgstr "Κατασκευασμένο με Qt"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+msgid "and GPGME"
+msgstr "και GPGME"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:96
+msgid "Built at"
+msgstr "Χτισμένο στο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:135
+msgid ""
+"If you think there are any problems with the translation, why not "
+"participate in the translation work? If you want to participate, please read"
+" the document or contact me via email."
+msgstr ""
+"Εάν πιστεύετε ότι υπάρχουν προβλήματα με τη μετάφραση, γιατί να μην "
+"συμμετέχετε στη μεταφραστική εργασία; Εάν θέλετε να συμμετάσχετε, διαβάστε "
+"το έγγραφο ή επικοινωνήστε μαζί μου μέσω email."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:160
+msgid ""
+"It is recommended that you always check the version of GpgFrontend and "
+"upgrade to the latest version."
+msgstr ""
+"Συνιστάται να ελέγχετε πάντα την έκδοση του GpgFrontend και να κάνετε "
+"αναβάθμιση στην πιο πρόσφατη έκδοση."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
+msgid ""
+"New versions not only represent new features, but also often represent "
+"functional and security fixes."
+msgstr ""
+"Οι νέες εκδόσεις δεν αντιπροσωπεύουν μόνο νέες δυνατότητες, αλλά συχνά "
+"αντιπροσωπεύουν λειτουργικές και διορθώσεις ασφαλείας."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:169
+msgid "Current Version"
+msgstr "Τρέχουσα έκδοση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:201
+msgid "try to get latest version"
+msgstr "προσπαθήστε να πάρετε την τελευταία έκδοση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:216
+msgid "Latest Version From Github"
+msgstr "Τελευταία έκδοση από το Github"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:222
+msgid "The current version is less than the latest version on github."
+msgstr ""
+"Η τρέχουσα έκδοση είναι μικρότερη από την πιο πρόσφατη έκδοση στο github."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:224
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:235
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
+msgid "Please click"
+msgstr "Παρακαλώ πατήστε"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
+msgid "Here"
+msgstr "Εδώ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
+msgid "to download the latest stable version."
+msgstr "για λήψη της πιο πρόσφατης σταθερής έκδοσης."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:233
+msgid ""
+"This version has serious problems and has been withdrawn. Please stop using "
+"it immediately."
+msgstr ""
+"Αυτή η έκδοση έχει σοβαρά προβλήματα και έχει αποσυρθεί. Παρακαλώ σταματήστε"
+" να το χρησιμοποιείτε αμέσως."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:244
+msgid ""
+"This version has not been released yet, it may be a beta version. If you are"
+" not a tester and care about version stability, please do not use this "
+"version."
+msgstr ""
+"Αυτή η έκδοση δεν έχει κυκλοφορήσει ακόμα, μπορεί να είναι έκδοση beta. Εάν "
+"δεν είστε δοκιμαστής και ενδιαφέρεστε για τη σταθερότητα της έκδοσης, μην "
+"χρησιμοποιήσετε αυτήν την έκδοση."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:54
+msgid "Export Key Package"
+msgstr "Εξαγωγή πακέτου κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:437
+msgid "Key Package"
+msgstr "Πακέτο κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:61
+msgid "Export Key Package Passphrase"
+msgstr "Εξαγωγή φράσης πρόσβασης πακέτου κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:63
+msgid "Key File"
+msgstr "Αρχείο κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:69
+msgid "An error occurred while generating the passphrase file."
+msgstr "Παρουσιάστηκε σφάλμα κατά τη δημιουργία του αρχείου φράσης πρόσβασης."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:78
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:85
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:332
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:345
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:393
+msgid "Forbidden"
+msgstr "Απαγορευμένος"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:79
+msgid "Please select an output path before exporting."
+msgstr "Επιλέξτε μια διαδρομή εξόδου πριν την εξαγωγή."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:86
+msgid ""
+"Please generate a password to protect your key before exporting, it is very "
+"important. Don't forget to back up your password in a safe place."
+msgstr ""
+"Δημιουργήστε έναν κωδικό πρόσβασης για την προστασία του κλειδιού σας πριν "
+"από την εξαγωγή, είναι πολύ σημαντικό. Μην ξεχάσετε να δημιουργήσετε "
+"αντίγραφα ασφαλείας του κωδικού πρόσβασής σας σε ασφαλές μέρος."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
+msgid ""
+"The Key Package has been successfully generated and has been protected by "
+"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
+"Package."
+msgstr ""
+"Το πακέτο κλειδιών δημιουργήθηκε με επιτυχία και προστατεύτηκε από "
+"αλγόριθμους κρυπτογράφησης (AES-256-ECB). Μπορείτε να μεταφέρετε με ασφάλεια"
+" το πακέτο κλειδιών σας."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
+msgid ""
+"But the key file cannot be leaked under any circumstances. Please delete the"
+" Key Package and key file as soon as possible after completing the transfer "
+"operation."
+msgstr ""
+"Αλλά το αρχείο κλειδιού δεν μπορεί να διαρρεύσει σε καμία περίπτωση. "
+"Διαγράψτε το πακέτο κλειδιών και το αρχείο κλειδιών το συντομότερο δυνατό "
+"μετά την ολοκλήρωση της λειτουργίας μεταφοράς."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:121
+msgid "An error occurred while exporting the key package."
+msgstr "Παρουσιάστηκε σφάλμα κατά την εξαγωγή του πακέτου κλειδιών."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:128
+msgid "Key Package Name"
+msgstr "Όνομα πακέτου κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:129
+msgid "Output Path"
+msgstr "Διαδρομή εξόδου"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:130
+msgid "Passphrase"
+msgstr "Συνθηματική φράση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:132
+msgid ""
+"Tips: You can use Key Package to safely and conveniently transfer your "
+"public and private keys between devices."
+msgstr ""
+"Συμβουλές: Μπορείτε να χρησιμοποιήσετε το Πακέτο κλειδιών για να μεταφέρετε "
+"με ασφάλεια και άνεση τα δημόσια και ιδιωτικά κλειδιά σας μεταξύ συσκευών."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:134
+msgid "Generate and Save Passphrase"
+msgstr "Δημιουργία και αποθήκευση φράσης πρόσβασης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:135
+msgid "Generate Key Package Name"
+msgstr "Δημιουργία ονόματος πακέτου κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:136
+msgid "Select Output Path"
+msgstr "Επιλέξτε Διαδρομή εξόδου"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:139
+msgid "Include secret key (Think twice before acting)"
+msgstr "Συμπεριλάβετε μυστικό κλειδί (Σκεφτείτε δύο φορές πριν ενεργήσετε)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:141
+msgid "Exclude keys that do not have a private key"
+msgstr "Εξαιρέστε κλειδιά που δεν έχουν ιδιωτικό κλειδί"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:144
+msgid "exportKeyPackageDialog"
+msgstr "exportKeyPackageDialog"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:41
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:61
+msgid "Key Update Details"
+msgstr "Λεπτομέρειες βασικής ενημέρωσης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:42
+msgid "No keys found"
+msgstr "Δεν βρέθηκαν κλειδιά"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:44
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:63
+msgid "Key Import Details"
+msgstr "Βασικά στοιχεία εισαγωγής"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:45
+msgid "No keys found to import"
+msgstr "Δεν βρέθηκαν κλειδιά για εισαγωγή"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:79
+msgid "General key info"
+msgstr "Γενικές βασικές πληροφορίες"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:82
+msgid "Considered"
+msgstr "Θεωρούνται"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:89
+msgid "Public unchanged"
+msgstr "Δημόσιο αμετάβλητο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:95
+msgid "Imported"
+msgstr "Εισαγόμενος"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:103
+msgid "Not Imported"
+msgstr "Μη Εισαγόμενο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:110
+msgid "Private Read"
+msgstr "Ιδιωτική ανάγνωση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:117
+msgid "Private Imported"
+msgstr "Ιδιωτικό Εισαγόμενο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:124
+msgid "Private Unchanged"
+msgstr "Ιδιωτικό Αμετάβλητο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:142
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:47
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:69
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:382
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Name"
+msgstr "Ονομα"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:142
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:48
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+msgid "Email"
+msgstr "ΗΛΕΚΤΡΟΝΙΚΗ ΔΙΕΥΘΥΝΣΗ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:142
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:51
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:93
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:109
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:111
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:127
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:142
+msgid "Status"
+msgstr "Κατάσταση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:171
+msgid "Private"
+msgstr "Ιδιωτικός"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:174
+msgid "Public"
+msgstr "Δημόσιο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:177
+msgid "Unchanged"
+msgstr "Αμετάβλητος"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:180
+msgid "New Key"
+msgstr "Νέο κλειδί"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:183
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:143
+msgid "New Subkey"
+msgstr "Νέο δευτερεύον κλειδί"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:47
+msgid "New UID"
+msgstr "Νέο UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:130
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:133
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:77
+msgid "Close"
+msgstr "Κλείσε"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:57
+msgid "Import ALL"
+msgstr "Εισαγωγή ΟΛΩΝ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:61
+msgid "Search"
+msgstr "Αναζήτηση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:66
+msgid "Search String"
+msgstr "Συμβολοσειρά αναζήτησης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:55
+msgid "Key Server"
+msgstr "Διακομιστής κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:116
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:151
+msgid "Update Keys from Keyserver"
+msgstr "Ενημέρωση κλειδιών από το Keyserver"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:118
+msgid "Import Keys from Keyserver"
+msgstr "Εισαγωγή κλειδιών από το Keyserver"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:180
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:443
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:104
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:52
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:49
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:63
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:72
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:88
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:98
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:113
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:123
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:133
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:79
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:86
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:93
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:100
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:108
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:120
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:149
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:78
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:193
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:477
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:588
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:323
+msgid "Setting Operation Error"
+msgstr "Ρύθμιση σφάλματος λειτουργίας"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:199
+msgid "UID"
+msgstr "UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:199
+msgid "Creation date"
+msgstr "Ημερομηνία δημιουργίας"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:199
+msgid "KeyID"
+msgstr "Αναγνωριστικό κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:199
+msgid "Tag"
+msgstr "Ετικέτα"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:224
+msgid "Text is empty."
+msgstr "Το κείμενο είναι κενό."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:269
+msgid "Not Key Found"
+msgstr "Δεν βρέθηκε το κλειδί"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:272
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:483
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:498
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:141
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
+msgid "Timeout"
+msgstr "Τέλος χρόνου"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:275
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:486
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:144
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:334
+msgid "Key Server Not Found"
+msgstr "Ο διακομιστής κλειδιού δεν βρέθηκε"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:278
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:489
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:505
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:147
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:337
+msgid "Connection Error"
+msgstr "Σφάλμα σύνδεσης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:288
+msgid "Too many responses from keyserver!"
+msgstr "Πάρα πολλές απαντήσεις από τον διακομιστή κλειδιών!"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:298
+msgid "No keys found, input may be kexId, retrying search with 0x."
+msgstr ""
+"Δεν βρέθηκαν κλειδιά, η είσοδος μπορεί να είναι kexId, επανάληψη αναζήτησης "
+"με 0x."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:307
+msgid "No keys found containing the search string!"
+msgstr "Δεν βρέθηκαν κλειδιά που να περιέχουν τη συμβολοσειρά αναζήτησης!"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:314
+msgid "Insufficiently specific search string!"
+msgstr "Ανεπαρκώς συγκεκριμένη συμβολοσειρά αναζήτησης!"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:350
+msgid "revoked"
+msgstr "ανακλήθηκε"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:354
+msgid "disabled"
+msgstr "άτομα με ειδικές ανάγκες"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:398
+msgid "%1 keys found. Double click a key to import it."
+msgstr ""
+"Βρέθηκαν %1 κλειδιά. Κάντε διπλό κλικ σε ένα κλειδί για να το εισαγάγετε."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:446
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:79
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:290
+msgid "Default Keyserver Not Found"
+msgstr "Δεν βρέθηκε ο προεπιλεγμένος διακομιστής κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:447
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
+msgid ""
+"Cannot read default keyserver from your settings, please set a default "
+"keyserver first"
+msgstr ""
+"Δεν είναι δυνατή η ανάγνωση του προεπιλεγμένου διακομιστή κλειδιών από τις "
+"ρυθμίσεις σας, ορίστε πρώτα έναν προεπιλεγμένο διακομιστή κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:480
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:494
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:138
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:328
+msgid "Key Not Found"
+msgstr "Το κλειδί δεν βρέθηκε"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:495
+msgid "key not found in the Keyserver"
+msgstr "κλειδί δεν βρέθηκε στον διακομιστή κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:501
+msgid "Host Not Found"
+msgstr "Ο κεντρικός υπολογιστής δεν βρέθηκε"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:506
+msgid "General Connection Error"
+msgstr "Γενικό σφάλμα σύνδεσης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:520
+msgid "Key Imported"
+msgstr "Κλειδί εισήχθη"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:55
+msgid "Uploading Public Key"
+msgstr "Μεταφόρτωση δημόσιου κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:74
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
+msgid "Set target Key Server to default Key Server"
+msgstr ""
+"Ορίστε τον διακομιστή κλειδιών προορισμού στον προεπιλεγμένο διακομιστή "
+"κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
+msgid "Cannot read default_keyserver From Settings"
+msgstr "Δεν είναι δυνατή η ανάγνωση του default_keyserver από τις ρυθμίσεις"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:152
+msgid "Upload Success"
+msgstr "Επιτυχής μεταφόρτωση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+msgid "Upload Public Key Successfully"
+msgstr "Μεταφόρτωση του δημόσιου κλειδιού με επιτυχία"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:41
+msgid "KeyPair"
+msgstr "Ζεύγος κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:42
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:67
+msgid "UIDs"
+msgstr "UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:44
+msgid "Subkeys"
+msgstr "Υποκλειδιά"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:46
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:52
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:51
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:392
+msgid "Operations"
+msgstr "Λειτουργίες"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:56
+msgid "Key Details"
+msgstr "Βασικά Στοιχεία"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:49
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:71
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:384
+msgid "Comment"
+msgstr "Σχόλιο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:57
+msgid "Notice: The New UID Created will be set as Primary."
+msgstr "Σημείωση: Το Νέο UID που δημιουργήθηκε θα οριστεί ως Κύριο."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:65
+msgid "Create New UID"
+msgstr "Δημιουργία νέου UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:81
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:97
+msgid "Name must contain at least five characters."
+msgstr "Το όνομα πρέπει να περιέχει τουλάχιστον πέντε χαρακτήρες."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:85
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:102
+msgid "Please give a email address."
+msgstr "Δώστε μια διεύθυνση email."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:40
+msgid "Owner"
+msgstr "Ιδιοκτήτης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:41
+msgid "Primary Key"
+msgstr "Πρωτεύων κλειδί"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:43
+msgid "Additional UIDs"
+msgstr "Πρόσθετα UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:383
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Email Address"
+msgstr "Διεύθυνση ηλεκτρονικού ταχυδρομείου"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:67
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:35
+msgid "Algorithm"
+msgstr "Αλγόριθμος"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:78
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:69
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:36
+msgid "Key Size"
+msgstr "Μέγεθος κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:79
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
+msgid "Nominal Usage"
+msgstr "Ονομαστική χρήση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:38
+msgid "Actual Usage"
+msgstr "Πραγματική χρήση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:81
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:75
+msgid "Create Date (Local Time)"
+msgstr "Δημιουργία ημερομηνίας (τοπική ώρα)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:83
+msgid "Expires on (Local Time)"
+msgstr "Λήγει στις (τοπική ώρα)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:85
+msgid "Last Update (Local Time)"
+msgstr "Τελευταία ενημέρωση (τοπική ώρα)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:87
+msgid "Primary Key Existence"
+msgstr "Ύπαρξη Πρωτεύοντος Κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:101
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:126
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:103
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:122
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:43
+msgid "Copy"
+msgstr "αντίγραφο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:128
+msgid "copy fingerprint to clipboard"
+msgstr "αντιγράψτε το δακτυλικό αποτύπωμα στο πρόχειρο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:267
+msgid "Exists"
+msgstr "Υπάρχει"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:268
+msgid "Not Exists"
+msgstr "Δεν υπάρχει"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:206
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:216
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:259
+msgid "Certificate"
+msgstr "Πιστοποιητικό"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:207
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:218
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:260
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:165
+msgid "Encrypt"
+msgstr "Κρυπτογράφηση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:208
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:220
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:261
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:193
+msgid "Sign"
+msgstr "Σημάδι"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:209
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:222
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:262
+msgid "Auth"
+msgstr "Auth"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:232
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:204
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:386
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:144
+msgid "Never Expire"
+msgstr "Να μην λήξει ποτέ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:244
+msgid "No Data"
+msgstr "Χωρίς δεδομένα"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:261
+msgid "Warning: The primary key has expired."
+msgstr "Προειδοποίηση: Το πρωτεύον κλειδί έχει λήξει."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:266
+msgid "Warning: The primary key has been revoked."
+msgstr "Προειδοποίηση: Το πρωτεύον κλειδί έχει ανακληθεί."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:44
+msgid "General Operations"
+msgstr "Γενικές Λειτουργίες"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:50
+msgid "Export Public Key"
+msgstr "Εξαγωγή δημόσιου κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:56
+msgid "Export Private Key"
+msgstr "Εξαγωγή ιδιωτικού κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:63
+msgid "Modify Expiration Datetime (Primary Key)"
+msgstr "Τροποποίηση ημερομηνίας λήξης (πρωτεύον κλειδί)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:66
+msgid "Modify Password"
+msgstr "Τροποποίηση κωδικού πρόσβασης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:77
+msgid "Key Server Operation (Pubkey)"
+msgstr "Λειτουργία διακομιστή κλειδιού (Pubkey)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:84
+msgid "Generate Revoke Certificate"
+msgstr "Δημιουργία πιστοποιητικού ανάκλησης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:90
+msgid "Modify TOFU Policy"
+msgstr "Τροποποιήστε την πολιτική TOFU"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:106
+msgid "Upload Key Pair to Key Server"
+msgstr "Μεταφόρτωση ζεύγους κλειδιών στον διακομιστή κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:112
+msgid "Sync Key Pair From Key Server"
+msgstr "Συγχρονισμός ζεύγους κλειδιών από τον διακομιστή κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:126
+msgid "Export Full Secret Key"
+msgstr "Εξαγωγή πλήρους μυστικού κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:132
+msgid "Export Shortest Secret Key"
+msgstr "Εξαγωγή του συντομότερου μυστικού κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:145
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:192
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:235
+msgid "An error occurred during the export operation."
+msgstr "Παρουσιάστηκε σφάλμα κατά τη λειτουργία εξαγωγής."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:202
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:244
+msgid "Export Key To File"
+msgstr "Εξαγωγή κλειδιού σε αρχείο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:157
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:203
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:245
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+msgid "Key Files"
+msgstr "Αρχεία κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:164
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:210
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:252
+msgid "Export Error"
+msgstr "Σφάλμα εξαγωγής"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:211
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:253
+msgid "Couldn't open %1 for writing"
+msgstr "Δεν ήταν δυνατό το άνοιγμα του %1 για εγγραφή"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:173
+msgid "Exporting short private Key"
+msgstr "Εξαγωγή σύντομου ιδιωτικού κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:221
+msgid "You are about to export your"
+msgstr "Πρόκειται να εξαγάγετε το δικό σας"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:222
+msgid " PRIVATE KEY "
+msgstr " ΙΔΙΩΤΙΚΟ ΚΛΕΙΔΙ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:176
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:223
+msgid "This is NOT your Public Key, so DON'T give it away."
+msgstr "Αυτό ΔΕΝ είναι το δημόσιο κλειδί σας, επομένως ΜΗΝ το χαρίσετε."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:177
+msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
+msgstr ""
+"Θέλετε ΠΡΑΓΜΑΤΙΚΑ να εξαγάγετε το ΙΔΙΩΤΙΚΟ ΚΛΕΙΔΙ σας σε ελάχιστο μέγεθος;"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:180
+msgid ""
+"For OpenPGP keys it removes all signatures except for the latest self-"
+"signatures."
+msgstr ""
+"Για τα κλειδιά OpenPGP αφαιρεί όλες τις υπογραφές εκτός από τις πιο "
+"πρόσφατες αυτο-υπογραφές."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:220
+msgid "Exporting private Key"
+msgstr "Εξαγωγή ιδιωτικού κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:224
+msgid "Do you REALLY want to export your PRIVATE KEY?"
+msgstr "Θέλετε πραγματικά να εξαγάγετε το ΙΔΙΩΤΙΚΟ ΚΛΕΙΔΙ σας;"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:281
+msgid "Revocation Certificates"
+msgstr "Πιστοποιητικά ανάκλησης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:324
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:354
+msgid "Not Successful"
+msgstr "Μη επιτυχημένη"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:325
+msgid "Modify password not successfully."
+msgstr "Η τροποποίηση του κωδικού πρόσβασης δεν ήταν επιτυχής."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:341
+msgid "Policy Auto"
+msgstr "Αυτόματη πολιτική"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:343
+msgid "Policy Good"
+msgstr "Καλή πολιτική"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:345
+msgid "Policy Bad"
+msgstr "Κακή πολιτική"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:332
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:347
+msgid "Policy Ask"
+msgstr "Policy Ask"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:332
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:349
+msgid "Policy Unknown"
+msgstr "Άγνωστη πολιτική"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:336
+msgid "Modify TOFU Policy(Default is Auto)"
+msgstr "Τροποποίηση πολιτικής TOFU (η προεπιλογή είναι αυτόματη)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:337
+msgid "Policy for the Key Pair:"
+msgstr "Πολιτική για το ζεύγος κλειδιών:"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:355
+msgid "Modify TOFU policy not successfully."
+msgstr "Η τροποποίηση της πολιτικής TOFU δεν ήταν επιτυχής."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:44
+msgid "Subkey List"
+msgstr "Λίστα δευτερευόντων κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:45
+msgid "Detail of Selected Subkey"
+msgstr "Λεπτομέρεια του επιλεγμένου δευτερεύοντος κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:49
+msgid "Generate A New Subkey"
+msgstr "Δημιουργήστε ένα νέο δευτερεύον κλειδί"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:71
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:151
+msgid "Usage"
+msgstr "Χρήση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:73
+msgid "Expires On (Local Time)"
+msgstr "Λήγει στις (τοπική ώρα)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:76
+msgid "Existence"
+msgstr "Υπαρξη"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:79
+msgid "Key in Smart Card"
+msgstr "Κλειδί στην έξυπνη κάρτα"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
+msgid "Subkey ID"
+msgstr "Αναγνωριστικό δευτερεύοντος κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
+msgid "Algo"
+msgstr "Algo"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:161
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+msgid "Create Date (UTC)"
+msgstr "Ημερομηνία δημιουργίας (UTC)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:161
+msgid "Expire Date (UTC)"
+msgstr "Ημερομηνία Λήξης (UTC)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:288
+msgid "Never Expires"
+msgstr "Δεν λήγει ποτέ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:271
+msgid "Yes"
+msgstr "Ναί"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:271
+msgid "No"
+msgstr "Οχι"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:301
+msgid "Edit Expire Date"
+msgstr "Επεξεργασία ημερομηνίας λήξης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:48
+msgid "UID Management"
+msgstr "Διαχείριση UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:72
+msgid "TOFU"
+msgstr "TOFU"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:84
+msgid "Signature of Selected UID"
+msgstr "Υπογραφή επιλεγμένου UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Select"
+msgstr "Επιλέγω"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:161
+msgid "Expired Date (UTC)"
+msgstr "Ημερομηνία Λήξης (UTC)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:237
+msgid "TOFU %1"
+msgstr "TOFU % 1"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:306
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:363
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:484
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:498
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:540
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:549
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:367
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:377
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:383
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:127
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:188
+msgid "Invalid Operation"
+msgstr "Μη έγκυρη λειτουργία"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:307
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:364
+msgid "Please select one or more UIDs before doing this operation."
+msgstr "Επιλέξτε ένα ή περισσότερα UID προτού εκτελέσετε αυτήν τη λειτουργία."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:328
+msgid "Sign Selected UID(s)"
+msgstr "Υπογραφή επιλεγμένων UID(ων)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:330
+msgid "Delete Selected UID(s)"
+msgstr "Διαγραφή επιλεγμένων UID(ων)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:350
+msgid "Successful Operation"
+msgstr "Επιτυχής Λειτουργία"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:351
+msgid "Successfully added a new UID."
+msgstr "Προστέθηκε με επιτυχία ένα νέο UID."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:353
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:388
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:423
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:519
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:571
+msgid "Operation Failed"
+msgstr "Η λειτουργία απέτυχε"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:354
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:424
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:520
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:572
+msgid "An error occurred during the operation."
+msgstr "Παρουσιάστηκε σφάλμα κατά τη λειτουργία."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:375
+msgid "Deleting UIDs"
+msgstr "Διαγραφή UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:378
+msgid "Are you sure that you want to delete the following UIDs?"
+msgstr "Είστε βέβαιοι ότι θέλετε να διαγράψετε τα ακόλουθα UID;"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:380
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:417
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:514
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:566
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:305
+msgid "The action can not be undone."
+msgstr "Η ενέργεια δεν μπορεί να αναιρεθεί."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:389
+msgid "An error occurred during the delete %1 operation."
+msgstr "Παρουσιάστηκε σφάλμα κατά τη λειτουργία διαγραφής %1."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:413
+msgid "Set Primary UID"
+msgstr "Ορίστε το κύριο UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:415
+msgid "Are you sure that you want to set the Primary UID to?"
+msgstr "Είστε βέβαιοι ότι θέλετε να ορίσετε το Κύριο UID σε;"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:455
+msgid "Set As Primary"
+msgstr "Ορισμός ως κύριος"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:458
+msgid "Sign UID"
+msgstr "Υπογράψτε UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:461
+msgid "Delete UID"
+msgstr "Διαγραφή UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:485
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:499
+msgid "Please select one UID before doing this operation."
+msgstr "Επιλέξτε ένα UID πριν κάνετε αυτήν τη λειτουργία."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:509
+msgid "Deleting UID"
+msgstr "Διαγραφή UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:512
+msgid "Are you sure that you want to delete the following uid?"
+msgstr "Είστε βέβαιοι ότι θέλετε να διαγράψετε το ακόλουθο uid;"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:530
+msgid "Delete(Revoke) Key Signature"
+msgstr "Διαγραφή (Ανάκληση) υπογραφής κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:541
+msgid "Please select one Key Signature before doing this operation."
+msgstr "Επιλέξτε μια υπογραφή κλειδιού πριν κάνετε αυτήν τη λειτουργία."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:550
+msgid ""
+"To delete the signature, you need to have its corresponding public key in "
+"the local database."
+msgstr ""
+"Για να διαγράψετε την υπογραφή, πρέπει να έχετε το αντίστοιχο δημόσιο κλειδί"
+" της στην τοπική βάση δεδομένων."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:561
+msgid "Deleting Key Signature"
+msgstr "Διαγραφή υπογραφής κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:563
+msgid "Are you sure that you want to delete the following signature?"
+msgstr "Είστε βέβαιοι ότι θέλετε να διαγράψετε την ακόλουθη υπογραφή;"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:79
+msgid "The expire date of the key pair has been updated."
+msgstr "Η ημερομηνία λήξης του ζεύγους κλειδιών έχει ενημερωθεί."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:88
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:164
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:289
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:238
+msgid "Failure"
+msgstr "Αποτυχία"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:89
+msgid "Failed to update the expire date of the key pair."
+msgstr "Η ενημέρωση της ημερομηνίας λήξης του ζεύγους κλειδιών απέτυχε."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:104
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:52
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:49
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:98
+msgid "longer_expiration_date"
+msgstr "μεγαλύτερη_ημερομηνία_λήξης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:131
+msgid "Modified Expiration Date (Local Time)"
+msgstr "Τροποποιημένη ημερομηνία λήξης (τοπική ώρα)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:133
+msgid ""
+"Tips: For the sake of security, the key is valid for up to two years. If you"
+" are an expert user, please unlock it for a longer time in the settings."
+msgstr ""
+"Συμβουλές: Για λόγους ασφαλείας, το κλειδί ισχύει για έως και δύο χρόνια. "
+"Εάν είστε έμπειρος χρήστης, ξεκλειδώστε το για μεγαλύτερο χρονικό διάστημα "
+"στις ρυθμίσεις."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:136
+msgid "No Expiration"
+msgstr "Χωρίς λήξη"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:137
+msgid "Modified Expiration Date"
+msgstr "Τροποποιημένη ημερομηνία λήξης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:43
+#: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:48
+msgid "Signers"
+msgstr "Υπογράφοντες"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:86
+msgid "Expire Date"
+msgstr "Ημερομηνία λήξης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:96
+msgid "Sign For Key's UID(s)"
+msgstr "Υπογραφή για UID(α) κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:123
+msgid "Unsuccessful Operation"
+msgstr "Αποτυχημένη λειτουργία"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:124
+msgid "Signature operation failed for UID %1"
+msgstr "Η λειτουργία υπογραφής απέτυχε για το UID %1"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:128
+msgid "Operation Complete"
+msgstr "Ολοκληρώθηκε η λειτουργία"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:129
+msgid "The signature operation of the UID is complete"
+msgstr "Η λειτουργία υπογραφής του UID έχει ολοκληρωθεί"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:59
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:134
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:225
+msgid "Generate Key"
+msgstr "Δημιουργία κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:110
+msgid "Expiration time too long."
+msgstr "Ο χρόνος λήξης είναι πολύ μεγάλος."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:139
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:269
+msgid "Generating"
+msgstr "Δημιουργία"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:155
+msgid "The new key pair has been generated."
+msgstr "Το νέο ζεύγος κλειδιών δημιουργήθηκε."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:164
+msgid "Key generation failed."
+msgstr "Η δημιουργία κλειδιού απέτυχε."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:193
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:89
+msgid "Key Usage"
+msgstr "Χρήση κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:195
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:91
+msgid "Encryption"
+msgstr "Κρυπτογράφηση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:198
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:94
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:432
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:251
+msgid "Signing"
+msgstr "Υπογραφή"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:201
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:97
+msgid "Certification"
+msgstr "Πιστοποίηση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:204
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:100
+msgid "Authentication"
+msgstr "Αυθεντικοποίηση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:385
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:143
+msgid "Expiration Date"
+msgstr "Ημερομηνία λήξης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:387
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:145
+msgid "KeySize (in Bit)"
+msgstr "Μέγεθος κλειδιού (σε bit)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:388
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:146
+msgid "Key Type"
+msgstr "Τύπος κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:389
+msgid "Non Pass Phrase"
+msgstr "Μη περασμένη φράση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:402
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:155
+msgid "Basic Information"
+msgstr "Βασικές πληροφορίες"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:73
+msgid "Generate New Subkey"
+msgstr "Δημιουργία νέου δευτερεύοντος κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:247
+msgid "Expiration time no more than 2 years."
+msgstr "Χρόνος λήξης όχι περισσότερο από 2 χρόνια."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:282
+msgid "The new subkey has been generated."
+msgstr "Το νέο δευτερεύον κλειδί δημιουργήθηκε."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:289
+msgid "Failed to generate key."
+msgstr "Αποτυχία δημιουργίας κλειδιού."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/QuitDialog.cpp:37
 msgid "Unsaved Files"
@@ -591,41 +1865,418 @@ msgstr "Σημείωση"
 msgid "If you don't save these files, all changes are lost."
 msgstr "Εάν δεν αποθηκεύσετε αυτά τα αρχεία, όλες οι αλλαγές θα χαθούν."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:43
-msgid "First Start Wizard"
-msgstr "Οδηγός πρώτης εκκίνησης"
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:36
+msgid "Show Steganography Options"
+msgstr "Εμφάνιση Επιλογών Στεγανογραφίας"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:55
-#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:182
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:115
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:124
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:104
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:51
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:48
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:242
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:38
+msgid "Show Steganography Options."
+msgstr "Εμφάνιση Επιλογών Στεγανογραφίας."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:42
+msgid "Pubkey Exchange"
+msgstr "Ανταλλαγή Pubkey"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:45
+msgid "Auto Pubkey Exchange"
+msgstr "Αυτόματη ανταλλαγή κλειδιών Pubkey"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:63
+msgid "stegano_checked"
+msgstr "stegano_checked"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:73
+msgid "auto_pubkey_exchange_checked"
+msgstr "auto_pubkey_exchange_checked"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:40
+msgid "Icon Size"
+msgstr "Μέγεθος εικονιδίου"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:42
+msgid "small"
+msgstr "μικρό"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:43
+msgid "medium"
+msgstr "Μεσαίο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:44
+msgid "large"
+msgstr "μεγάλο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
+msgid "Icon Style"
+msgstr "Στυλ εικονιδίων"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:62
+msgid "just text"
+msgstr "απλά κείμενο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:63
+msgid "just icons"
+msgstr "απλά εικονίδια"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:64
+msgid "text and icons"
+msgstr "κείμενο και εικονίδια"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:80
+msgid "Window State"
+msgstr "Κατάσταση παραθύρου"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:83
+msgid "Save window size and position on exit."
+msgstr "Αποθηκεύστε το μέγεθος και τη θέση του παραθύρου κατά την έξοδο."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:489
+msgid "Information Board"
+msgstr "Πίνακας πληροφοριών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:97
+msgid "Font Size in Information Board"
+msgstr "Μέγεθος γραμματοσειράς στον πίνακα πληροφοριών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:53
+msgid "General"
+msgstr "Γενικός"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:54
+msgid "Appearance"
+msgstr "Εμφάνιση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:56
+msgid "Network"
+msgstr "Δίκτυο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:67
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:156
+msgid "Settings"
+msgstr "Ρυθμίσεις"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:71
+msgid "Preference"
+msgstr "Προτίμηση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:119
+msgid "System Default"
+msgstr "Προεπιλογή συστήματος"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:44
+msgid "Save Checked Keys"
+msgstr "Αποθήκευση επιλεγμένων κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:46
+msgid "Save checked private keys on exit and restore them on next start."
+msgstr ""
+"Αποθηκεύστε τα επιλεγμένα ιδιωτικά κλειδιά κατά την έξοδο και επαναφέρετέ τα"
+" στην επόμενη εκκίνηση."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:47
+msgid "Longer Key Expiration Date"
+msgstr "Μεγαλύτερη ημερομηνία λήξης κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:49
+msgid "Unlock key expiration date setting up to 30 years."
+msgstr "Ξεκλειδώστε την ημερομηνία λήξης του κλειδιού έως και 30 χρόνια."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:50
+msgid "Confirm drag'n'drop key import"
+msgstr "Επιβεβαιώστε την εισαγωγή κλειδιού drag'n'drop"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:52
+msgid "Import files dropped on the Key List without confirmation."
+msgstr ""
+"Εισαγάγετε αρχεία που απορρίφθηκαν στη Λίστα κλειδιών χωρίς επιβεβαίωση."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:54
+msgid "ASCII Mode"
+msgstr "Λειτουργία ASCII"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:56
+msgid "ASCII encoding is not used when file encrypting and signing."
+msgstr ""
+"Η κωδικοποίηση ASCII δεν χρησιμοποιείται κατά την κρυπτογράφηση και την "
+"υπογραφή αρχείων."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:59
+msgid "Language"
+msgstr "Γλώσσα"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:61
+msgid "NOTE"
+msgstr "ΣΗΜΕΙΩΣΗ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:62
+msgid "GpgFrontend will restart automatically if you change the language!"
+msgstr "Το GpgFrontend θα επανεκκινήσει αυτόματα εάν αλλάξετε τη γλώσσα!"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:88
+msgid "save_key_checked"
+msgstr "save_key_checked"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:113
+msgid "lang"
+msgstr "lang"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:123
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:323
+msgid "confirm_import_keys"
+msgstr "επιβεβαίωση_εισαγωγής_κλειδιά"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:133
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:175
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:477
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:588
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:72
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:88
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:98
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:113
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:123
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:133
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:86
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:93
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:100
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:108
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:120
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:137
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:149
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:323
-msgid "Setting Operation Error"
-msgstr "Ρύθμιση σφάλματος λειτουργίας"
+msgid "non_ascii_when_export"
+msgstr "non_ascii_when_export"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:51
+msgid "Keyserver List"
+msgstr "Λίστα διακομιστή κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:459
+msgid "Default"
+msgstr "Προκαθορισμένο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:56
+msgid "Keyserver Address"
+msgstr "Διεύθυνση διακομιστή κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:57
+msgid "Security"
+msgstr "Ασφάλεια"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:58
+msgid "Available"
+msgstr "Διαθέσιμος"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:60
+msgid "Add"
+msgstr "Προσθήκη"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:61
+msgid "Test Listed Keyserver"
+msgstr "Δοκιμή καταχωρημένου διακομιστή κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:64
+msgid "Tips: Please Double-click table item to edit it."
+msgstr ""
+"Συμβουλές: Κάντε διπλό κλικ στο στοιχείο του πίνακα για να το "
+"επεξεργαστείτε."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:65
+msgid "Delete Selected"
+msgstr "Διαγραφή επιλεγμένων"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:67
+msgid "Delete Selected Key Server"
+msgstr "Διαγραφή επιλεγμένου διακομιστή κλειδιού"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:68
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:69
+msgid "Set As Default"
+msgstr "Ορίσετε ως προεπιλογή"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:156
+msgid "Insecure keyserver address"
+msgstr "Μη ασφαλής διεύθυνση διακομιστή κλειδιών"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:157
+msgid ""
+"For security reasons, using HTTP as the communication protocol with the key "
+"server is not recommended. It is recommended to use HTTPS."
+msgstr ""
+"Για λόγους ασφαλείας, η χρήση του HTTP ως πρωτοκόλλου επικοινωνίας με τον "
+"διακομιστή κλειδιών δεν συνιστάται. Συνιστάται η χρήση HTTPS."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:166
+msgid ""
+"You may not use HTTPS or HTTP as the protocol for communicating with the key"
+" server, which may not be wrong. But please check the address you entered "
+"again to make sure it is correct. Are you sure that want to add it into the "
+"keyserver list?"
+msgstr ""
+"Δεν επιτρέπεται να χρησιμοποιείτε HTTPS ή HTTP ως πρωτόκολλο για την "
+"επικοινωνία με τον διακομιστή κλειδιών, κάτι που μπορεί να μην είναι λάθος. "
+"Αλλά ελέγξτε ξανά τη διεύθυνση που εισαγάγατε για να βεβαιωθείτε ότι είναι "
+"σωστή. Είστε βέβαιοι ότι θέλετε να το προσθέσετε στη λίστα διακομιστή "
+"κλειδιών;"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
+msgid "false"
+msgstr "ψευδής"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:219
+msgid "unknown"
+msgstr "άγνωστος"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:233
+msgid "Set TCP Timeout"
+msgstr "Ορισμός χρονικού ορίου TCP"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:258
+msgid "Reachable"
+msgstr "Προσιτό"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:261
+msgid "Not Reachable"
+msgstr "Μη προσαβασιμο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:273
+msgid "Test Key Server Connection..."
+msgstr "Δοκιμή σύνδεσης διακομιστή κλειδιού..."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:274
+msgid ""
+"This test only tests the network connectivity of the key server. Passing the"
+" test does not mean that the key server is functionally available."
+msgstr ""
+"Αυτή η δοκιμή ελέγχει μόνο τη συνδεσιμότητα δικτύου του διακομιστή κλειδιού."
+" Η επιτυχία της δοκιμής δεν σημαίνει ότι ο διακομιστής κλειδιών είναι "
+"λειτουργικά διαθέσιμος."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:49
+msgid "Proxy"
+msgstr "Πληρεξούσιο"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:50
+msgid "Network Capability"
+msgstr "Δυνατότητα δικτύου"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:53
+msgid "Enable Proxy"
+msgstr "Ενεργοποίηση διακομιστή μεσολάβησης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:57
+msgid "Port"
+msgstr "Λιμάνι"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:56
+msgid "Host Address"
+msgstr "Διεύθυνση κεντρικού υπολογιστή"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:58
+msgid "Proxy Type"
+msgstr "Τύπος διακομιστή μεσολάβησης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:59
+msgid "Username"
+msgstr "Όνομα χρήστη"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:60
+msgid "Password"
+msgstr "Κωδικός πρόσβασης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:62
+msgid "Forbid all network connection."
+msgstr "Απαγόρευση κάθε σύνδεσης δικτύου."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:66
+msgid "Prohibit checking for version updates when the program starts."
+msgstr ""
+"Απαγορεύεται ο έλεγχος για ενημερώσεις έκδοσης κατά την εκκίνηση του "
+"προγράμματος."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:67
+msgid "Check Proxy Connection"
+msgstr "Ελέγξτε τη σύνδεση διακομιστή μεσολάβησης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:79
+msgid "proxy_host"
+msgstr "proxy_host"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:86
+msgid "username"
+msgstr "όνομα χρήστη"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:93
+msgid "password"
+msgstr "Κωδικός πρόσβασης"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:100
+msgid "port"
+msgstr "Λιμάνι"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:108
+msgid "proxy_type"
+msgstr "proxy_type"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:120
+msgid "proxy_enable"
+msgstr "proxy_enable"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:137
+msgid "forbid_all_connection"
+msgstr "forbid_all_connection"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:149
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:194
+msgid "prohibit_update_checking"
+msgstr "prohibit_update_checking"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:235
+msgid "Test Server Url Accessibility"
+msgstr "Δοκιμή προσβασιμότητας URL διακομιστή"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:246
+msgid "Successfully connect to the target server through the proxy server."
+msgstr ""
+"Επιτυχής σύνδεση στον διακομιστή προορισμού μέσω του διακομιστή μεσολάβησης."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:251
+msgid ""
+"Unable to connect to the target server through the proxy server. Proxy "
+"settings may be invalid."
+msgstr ""
+"Δεν είναι δυνατή η σύνδεση στον διακομιστή προορισμού μέσω του διακομιστή "
+"μεσολάβησης. Οι ρυθμίσεις διακομιστή μεσολάβησης ενδέχεται να μην είναι "
+"έγκυρες."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:262
+msgid "Test Proxy Server Connection..."
+msgstr "Δοκιμή σύνδεσης διακομιστή μεσολάβησης..."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:263
+msgid ""
+"Is using your proxy settings to access the url. Note that this test "
+"operation will apply your proxy settings to the entire software."
+msgstr ""
+"Χρησιμοποιεί τις ρυθμίσεις διακομιστή μεσολάβησης για πρόσβαση στο url. "
+"Σημειώστε ότι αυτή η δοκιμαστική λειτουργία θα εφαρμόσει τις ρυθμίσεις "
+"διακομιστή μεσολάβησης σε ολόκληρο το λογισμικό."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:36
+msgid "Confirm"
+msgstr "Επιβεβαιώνω"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:37
+msgid "Cancel"
+msgstr "Ματαίωση"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:56
+msgid "Select Signer(s)"
+msgstr "Επιλέξτε υπογράφον(ους)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:60
+msgid "Please select one or more private keys you use for signing."
+msgstr ""
+"Επιλέξτε ένα ή περισσότερα ιδιωτικά κλειδιά που χρησιμοποιείτε για την "
+"υπογραφή."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:62
+msgid "If no key is selected, the default key will be used for signing."
+msgstr ""
+"Εάν δεν έχει επιλεγεί κανένα κλειδί, το προεπιλεγμένο κλειδί θα "
+"χρησιμοποιηθεί για την υπογραφή."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:43
+msgid "First Start Wizard"
+msgstr "Οδηγός πρώτης εκκίνησης"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:86
 msgid "Getting Started..."
@@ -686,12 +2337,6 @@ msgid ""
 msgstr ""
 "Εάν δεν έχετε χρησιμοποιήσει ποτέ ξανά το GpgFrontend και επίσης δεν "
 "διαθέτετε κλειδί gpg, ίσως θέλετε να διαβάσετε πώς να"
-
-#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:134
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:271
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:58
-msgid "Generate Key"
-msgstr "Δημιουργία κλειδιού"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:142
 msgid ""
@@ -790,11 +2435,11 @@ msgstr "Ανοίξτε τη βοήθεια εκτός σύνδεσης."
 msgid "Dont show the wizard again."
 msgstr "Μην εμφανίσετε ξανά τον μάγο."
 
-#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:76
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:79
 msgid "Standard Exception Thrown"
 msgstr "Τυπική εξαίρεση που ρίχνεται"
 
-#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:80
 msgid ""
 "Oops, an standard exception was thrown during the running of the program. "
 "This is not a serious problem, it may be the negligence of the programmer, "
@@ -804,11 +2449,11 @@ msgstr ""
 "είναι σοβαρό πρόβλημα, μπορεί να οφείλεται σε αμέλεια του προγραμματιστή, "
 "αναφέρετε αυτό το πρόβλημα εάν μπορείτε."
 
-#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:85
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:88
 msgid "Unhandled Exception Thrown"
 msgstr "Αχειροποίητη Εξαίρεση Ρίχτηκε"
 
-#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:86
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:89
 msgid ""
 "Oops, an unhandled exception was thrown during the running of the program. "
 "This is not a serious problem, it may be the negligence of the programmer, "
@@ -836,610 +2481,71 @@ msgstr ""
 msgid "could not read properly from configure file"
 msgstr "δεν μπόρεσε να διαβάσει σωστά από το αρχείο διαμόρφωσης"
 
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:39
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
-msgid "About"
-msgstr "Σχετικά με"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:46
-msgid "About Software"
-msgstr "Σχετικά με το λογισμικό"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:47
-msgid "Translators"
-msgstr "Μεταφραστές"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:48
-msgid "Update"
-msgstr "Εκσυγχρονίζω"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:81
-msgid ""
-"GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
-"free gpg front-end tool.It visualizes most of the common operations of gpg "
-"commands.It's licensed under the GPL v3"
-msgstr ""
-"Το GpgFrontend είναι ένα εύχρηστο, συμπαγές, πολλαπλών πλατφορμών και χωρίς "
-"εγκατάσταση εργαλείο διεπαφής gpg. Οπτικοποιεί τις περισσότερες από τις "
-"κοινές λειτουργίες των εντολών gpg. Έχει άδεια σύμφωνα με την GPL v3"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:87
-msgid "Developer:"
-msgstr "Προγραμματιστής:"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:88
-msgid "If you have any questions or suggestions, raise an issue at"
-msgstr ""
-"Εάν έχετε οποιεσδήποτε ερωτήσεις ή προτάσεις, αναφέρετε ένα ζήτημα στο"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:91
-msgid "or send a mail to my mailing list at"
-msgstr "ή στείλτε ένα μήνυμα στη λίστα αλληλογραφίας μου στη διεύθυνση"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:93
-msgid "Built with Qt"
-msgstr "Κατασκευασμένο με Qt"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:93
-msgid "and GPGME"
-msgstr "και GPGME"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:95
-msgid "Built at"
-msgstr "Χτισμένο στο"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:134
-msgid ""
-"If you think there are any problems with the translation, why not "
-"participate in the translation work? If you want to participate, please read"
-" the document or contact me via email."
-msgstr ""
-"Εάν πιστεύετε ότι υπάρχουν προβλήματα με τη μετάφραση, γιατί να μην "
-"συμμετέχετε στη μεταφραστική εργασία; Εάν θέλετε να συμμετάσχετε, διαβάστε "
-"το έγγραφο ή επικοινωνήστε μαζί μου μέσω email."
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:159
-msgid ""
-"It is recommended that you always check the version of GpgFrontend and "
-"upgrade to the latest version."
-msgstr ""
-"Συνιστάται να ελέγχετε πάντα την έκδοση του GpgFrontend και να κάνετε "
-"αναβάθμιση στην πιο πρόσφατη έκδοση."
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:162
-msgid ""
-"New versions not only represent new features, but also often represent "
-"functional and security fixes."
-msgstr ""
-"Οι νέες εκδόσεις δεν αντιπροσωπεύουν μόνο νέες δυνατότητες, αλλά συχνά "
-"αντιπροσωπεύουν λειτουργικές και διορθώσεις ασφαλείας."
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:168
-msgid "Current Version"
-msgstr "Τρέχουσα έκδοση"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:200
-msgid "try to get latest version"
-msgstr "προσπαθήστε να πάρετε την τελευταία έκδοση"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:215
-msgid "Latest Version From Github"
-msgstr "Τελευταία έκδοση από το Github"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:221
-msgid "The current version is less than the latest version on github."
-msgstr ""
-"Η τρέχουσα έκδοση είναι μικρότερη από την πιο πρόσφατη έκδοση στο github."
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:223
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:234
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:246
-msgid "Please click"
-msgstr "Παρακαλώ πατήστε"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:226
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:237
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:249
-msgid "Here"
-msgstr "Εδώ"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:226
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:237
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:249
-msgid "to download the latest stable version."
-msgstr "για λήψη της πιο πρόσφατης σταθερής έκδοσης."
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:232
-msgid ""
-"This version has serious problems and has been withdrawn. Please stop using "
-"it immediately."
-msgstr ""
-"Αυτή η έκδοση έχει σοβαρά προβλήματα και έχει αποσυρθεί. Παρακαλώ σταματήστε"
-" να το χρησιμοποιείτε αμέσως."
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:243
-msgid ""
-"This version has not been released yet, it may be a beta version. If you are"
-" not a tester and care about version stability, please do not use this "
-"version."
-msgstr ""
-"Αυτή η έκδοση δεν έχει κυκλοφορήσει ακόμα, μπορεί να είναι έκδοση beta. Εάν "
-"δεν είστε δοκιμαστής και ενδιαφέρεστε για τη σταθερότητα της έκδοσης, μην "
-"χρησιμοποιήσετε αυτήν την έκδοση."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:54
-msgid "Export Key Package"
-msgstr "Εξαγωγή πακέτου κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:55
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:220
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:535
-msgid "Key Package"
-msgstr "Πακέτο κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:61
-msgid "Export Key Package Passphrase"
-msgstr "Εξαγωγή φράσης πρόσβασης πακέτου κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:63
-msgid "Key File"
-msgstr "Αρχείο κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:69
-msgid "An error occurred while generating the passphrase file."
-msgstr "Παρουσιάστηκε σφάλμα κατά τη δημιουργία του αρχείου φράσης πρόσβασης."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:85
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:378
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:391
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:490
-msgid "Forbidden"
-msgstr "Απαγορευμένος"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:79
-msgid "Please select an output path before exporting."
-msgstr "Επιλέξτε μια διαδρομή εξόδου πριν την εξαγωγή."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:86
-msgid ""
-"Please generate a password to protect your key before exporting, it is very "
-"important. Don't forget to back up your password in a safe place."
-msgstr ""
-"Δημιουργήστε έναν κωδικό πρόσβασης για την προστασία του κλειδιού σας πριν "
-"από την εξαγωγή, είναι πολύ σημαντικό. Μην ξεχάσετε να δημιουργήσετε "
-"αντίγραφα ασφαλείας του κωδικού πρόσβασής σας σε ασφαλές μέρος."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:108
-msgid ""
-"The Key Package has been successfully generated and has been protected by "
-"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
-"Package."
-msgstr ""
-"Το πακέτο κλειδιών δημιουργήθηκε με επιτυχία και προστατεύτηκε από "
-"αλγόριθμους κρυπτογράφησης (AES-256-ECB). Μπορείτε να μεταφέρετε με ασφάλεια"
-" το πακέτο κλειδιών σας."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:112
-msgid ""
-"But the key file cannot be leaked under any circumstances. Please delete the"
-" Key Package and key file as soon as possible after completing the transfer "
-"operation."
-msgstr ""
-"Αλλά το αρχείο κλειδιού δεν μπορεί να διαρρεύσει σε καμία περίπτωση. "
-"Διαγράψτε το πακέτο κλειδιών και το αρχείο κλειδιών το συντομότερο δυνατό "
-"μετά την ολοκλήρωση της λειτουργίας μεταφοράς."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:121
-msgid "An error occurred while exporting the key package."
-msgstr "Παρουσιάστηκε σφάλμα κατά την εξαγωγή του πακέτου κλειδιών."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:128
-msgid "Key Package Name"
-msgstr "Όνομα πακέτου κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:129
-msgid "Output Path"
-msgstr "Διαδρομή εξόδου"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:130
-msgid "Passphrase"
-msgstr "Συνθηματική φράση"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:132
-msgid ""
-"Tips: You can use Key Package to safely and conveniently transfer your "
-"public and private keys between devices."
-msgstr ""
-"Συμβουλές: Μπορείτε να χρησιμοποιήσετε το Πακέτο κλειδιών για να μεταφέρετε "
-"με ασφάλεια και άνεση τα δημόσια και ιδιωτικά κλειδιά σας μεταξύ συσκευών."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:134
-msgid "Generate and Save Passphrase"
-msgstr "Δημιουργία και αποθήκευση φράσης πρόσβασης"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:135
-msgid "Generate Key Package Name"
-msgstr "Δημιουργία ονόματος πακέτου κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:136
-msgid "Select Output Path"
-msgstr "Επιλέξτε Διαδρομή εξόδου"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:139
-msgid "Include secret key (Think twice before acting)"
-msgstr "Συμπεριλάβετε μυστικό κλειδί (Σκεφτείτε δύο φορές πριν ενεργήσετε)"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:141
-msgid "Exclude keys that do not have a private key"
-msgstr "Εξαιρέστε κλειδιά που δεν έχουν ιδιωτικό κλειδί"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:144
-msgid "exportKeyPackageDialog"
-msgstr "exportKeyPackageDialog"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:40
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:60
-msgid "Key Update Details"
-msgstr "Λεπτομέρειες βασικής ενημέρωσης"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:41
-msgid "No keys found"
-msgstr "Δεν βρέθηκαν κλειδιά"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:43
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:62
-msgid "Key Import Details"
-msgstr "Βασικά στοιχεία εισαγωγής"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:44
-msgid "No keys found to import"
-msgstr "Δεν βρέθηκαν κλειδιά για εισαγωγή"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:78
-msgid "General key info"
-msgstr "Γενικές βασικές πληροφορίες"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:81
-msgid "Considered"
-msgstr "Θεωρούνται"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:88
-msgid "Public unchanged"
-msgstr "Δημόσιο αμετάβλητο"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:94
-msgid "Imported"
-msgstr "Εισαγόμενος"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:102
-msgid "Not Imported"
-msgstr "Μη Εισαγόμενο"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:109
-msgid "Private Read"
-msgstr "Ιδιωτική ανάγνωση"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:116
-msgid "Private Imported"
-msgstr "Ιδιωτικό Εισαγόμενο"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:123
-msgid "Private Unchanged"
-msgstr "Ιδιωτικό Αμετάβλητο"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:46
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:69
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:160
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:381
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
-msgid "Name"
-msgstr "Ονομα"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:47
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:160
-msgid "Email"
-msgstr "ΗΛΕΚΤΡΟΝΙΚΗ ΔΙΕΥΘΥΝΣΗ"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:51
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:77
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:93
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:109
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:111
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:127
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:142
-msgid "Status"
-msgstr "Κατάσταση"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:170
-msgid "Private"
-msgstr "Ιδιωτικός"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:173
-msgid "Public"
-msgstr "Δημόσιο"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:176
-msgid "Unchanged"
-msgstr "Αμετάβλητος"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:179
-msgid "New Key"
-msgstr "Νέο κλειδί"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:182
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:189
-msgid "New Subkey"
-msgstr "Νέο δευτερεύον κλειδί"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:190
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:47
-msgid "New UID"
-msgstr "Νέο UID"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:176
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:179
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:77
-msgid "Close"
-msgstr "Κλείσε"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:53
-msgid "Import ALL"
-msgstr "Εισαγωγή ΟΛΩΝ"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:57
-msgid "Search"
-msgstr "Αναζήτηση"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:62
-msgid "Search String"
-msgstr "Συμβολοσειρά αναζήτησης"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:66
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
-msgid "Key Server"
-msgstr "Διακομιστής κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:112
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:565
-msgid "Update Keys from Keyserver"
-msgstr "Ενημέρωση κλειδιών από το Keyserver"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:114
-msgid "Import Keys from Keyserver"
-msgstr "Εισαγωγή κλειδιών από το Keyserver"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:201
-msgid "UID"
-msgstr "UID"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:201
-msgid "Creation date"
-msgstr "Ημερομηνία δημιουργίας"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:201
-msgid "KeyID"
-msgstr "Αναγνωριστικό κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:201
-msgid "Tag"
-msgstr "Ετικέτα"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:226
-msgid "Text is empty."
-msgstr "Το κείμενο είναι κενό."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:272
-msgid "Not Key Found"
-msgstr "Δεν βρέθηκε το κλειδί"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:275
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:478
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:495
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:139
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:328
-msgid "Timeout"
-msgstr "Τέλος χρόνου"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:278
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:481
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:142
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
-msgid "Key Server Not Found"
-msgstr "Ο διακομιστής κλειδιού δεν βρέθηκε"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:281
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:484
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:502
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:145
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:334
-msgid "Connection Error"
-msgstr "Σφάλμα σύνδεσης"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:290
-msgid "Too many responses from keyserver!"
-msgstr "Πάρα πολλές απαντήσεις από τον διακομιστή κλειδιών!"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:300
-msgid "No keys found, input may be kexId, retrying search with 0x."
-msgstr ""
-"Δεν βρέθηκαν κλειδιά, η είσοδος μπορεί να είναι kexId, επανάληψη αναζήτησης "
-"με 0x."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:309
-msgid "No keys found containing the search string!"
-msgstr "Δεν βρέθηκαν κλειδιά που να περιέχουν τη συμβολοσειρά αναζήτησης!"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:316
-msgid "Insufficiently specific search string!"
-msgstr "Ανεπαρκώς συγκεκριμένη συμβολοσειρά αναζήτησης!"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:349
-msgid "revoked"
-msgstr "ανακλήθηκε"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:353
-msgid "disabled"
-msgstr "άτομα με ειδικές ανάγκες"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:395
-msgid "%1 keys found. Double click a key to import it."
-msgstr ""
-"Βρέθηκαν %1 κλειδιά. Κάντε διπλό κλικ σε ένα κλειδί για να το εισαγάγετε."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:407
-msgid "Current Row"
-msgstr "Τρέχουσα σειρά"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:425
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:73
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:282
-msgid "Set target Key Server to default Key Server"
-msgstr ""
-"Ορίστε τον διακομιστή κλειδιών προορισμού στον προεπιλεγμένο διακομιστή "
-"κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:428
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:76
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
-msgid "Cannot read default_keyserver From Settings"
-msgstr "Δεν είναι δυνατή η ανάγνωση του default_keyserver από τις ρυθμίσεις"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:430
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:287
-msgid "Default Keyserver Not Found"
-msgstr "Δεν βρέθηκε ο προεπιλεγμένος διακομιστής κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:431
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
-msgid ""
-"Cannot read default keyserver from your settings, please set a default "
-"keyserver first"
-msgstr ""
-"Δεν είναι δυνατή η ανάγνωση του προεπιλεγμένου διακομιστή κλειδιών από τις "
-"ρυθμίσεις σας, ορίστε πρώτα έναν προεπιλεγμένο διακομιστή κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:475
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:136
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:325
-msgid "Key Not Found"
-msgstr "Το κλειδί δεν βρέθηκε"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:490
-msgid "Public key Not Found"
-msgstr "Το δημόσιο κλειδί δεν βρέθηκε"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:491
-msgid "Public key fingerprint %1 not found in the Keyserver"
-msgstr ""
-"Το δακτυλικό αποτύπωμα του δημόσιου κλειδιού % 1 δεν βρέθηκε στο διακομιστή "
-"κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:498
-msgid "Host Not Found"
-msgstr "Ο κεντρικός υπολογιστής δεν βρέθηκε"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:503
-msgid "General Connection Error"
-msgstr "Γενικό σφάλμα σύνδεσης"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:518
-msgid "Key Imported"
-msgstr "Κλειδί εισήχθη"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:54
-msgid "Uploading Public Key"
-msgstr "Μεταφόρτωση δημόσιου κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:150
-msgid "Upload Success"
-msgstr "Επιτυχής μεταφόρτωση"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:151
-msgid "Upload Public Key Successfully"
-msgstr "Μεταφόρτωση του δημόσιου κλειδιού με επιτυχία"
-
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:50
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:51
 msgid "All"
 msgstr "Ολα"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:53
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:54
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:467
 msgid "Only Public Key"
 msgstr "Μόνο Δημόσιο Κλειδί"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:476
 msgid "Has Private Key"
 msgstr "Διαθέτει ιδιωτικό κλειδί"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:71
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:72
 msgid "No Primary Key"
 msgstr "Χωρίς πρωτεύον κλειδί"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:81
 msgid "Revoked"
 msgstr "Ανακλήθηκε"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:115
-msgid "icon_size"
-msgstr "μέγεθος_εικονιδίου"
-
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:124
-msgid "icon_style"
-msgstr "εικονίδιο_στυλ"
-
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:157
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:111
 msgid "KeyPair Management"
 msgstr "Διαχείριση ζεύγους κλειδιών"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:170
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:124
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:225
 msgid "Open"
 msgstr "Ανοιξε"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:171
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:125
 msgid "Ctrl+O"
 msgstr "Ctrl+O"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:172
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:126
 msgid "Open Key File"
 msgstr "Ανοίξτε το Αρχείο κλειδιού"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:177
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:131
 msgid "Ctrl+Q"
 msgstr "Ctrl+Q"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:182
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:136
 msgid "New Keypair"
 msgstr "Νέο ζεύγος κλειδιών"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:183
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:137
 msgid "Ctrl+N"
 msgstr "Ctrl+N"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:185
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:139
 msgid "Generate KeyPair"
 msgstr "Δημιουργία ζεύγους κλειδιών"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:190
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:144
 msgid "Ctrl+Shift+N"
 msgstr "Ctrl+Shift+N"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:192
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:146
 msgid "Generate Subkey For Selected KeyPair"
 msgstr "Δημιουργία δευτερεύοντος κλειδιού για επιλεγμένο ζεύγος κλειδιών"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:196
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:266
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:150
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:220
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:208
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:319
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:384
@@ -1447,163 +2553,141 @@ msgstr "Δημιουργία δευτερεύοντος κλειδιού για 
 msgid "File"
 msgstr "Αρχείο"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:198
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:152
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:210
 msgid "Import New Key From File"
 msgstr "Εισαγωγή νέου κλειδιού από το αρχείο"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:202
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:156
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:214
 msgid "Clipboard"
 msgstr "Πρόχειρο"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:206
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:160
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:218
 msgid "Import New Key From Clipboard"
 msgstr "Εισαγωγή νέου κλειδιού από το Πρόχειρο"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:211
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:165
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:223
 msgid "Keyserver"
 msgstr "Διακομιστής κλειδιών"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:215
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:169
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:227
 msgid "Import New Key From Keyserver"
 msgstr "Εισαγωγή νέου κλειδιού από τον διακομιστή κλειδιών"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:223
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:177
 msgid "Import Key(s) From a Key Package"
 msgstr "Εισαγωγή κλειδιού(ων) από πακέτο κλειδιών"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:227
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:181
 msgid "Export To Clipboard"
 msgstr "Εξαγωγή στο Πρόχειρο"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:230
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:184
 msgid "Export Selected Key(s) To Clipboard"
 msgstr "Εξαγωγή επιλεγμένων κλειδιών στο Πρόχειρο"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:234
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:188
 msgid "Export To Key Package"
 msgstr "Εξαγωγή σε πακέτο κλειδιού"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:237
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:191
 msgid "Export Checked Key(s) To a Key Package"
 msgstr "Εξαγωγή ελεγμένων κλειδιών σε πακέτο κλειδιών"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:241
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:195
 msgid "Export As OpenSSH"
 msgstr "Εξαγωγή ως OpenSSH"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:244
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:198
 msgid "Export Selected Key(s) As OpenSSH Format to File"
 msgstr "Εξαγωγή επιλεγμένων κλειδιών ως μορφή OpenSSH σε Αρχείο"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:248
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:202
 msgid "Delete Selected Key(s)"
 msgstr "Διαγραφή επιλεγμένων κλειδιών"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:249
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:203
 msgid "Delete the Selected keys"
 msgstr "Διαγράψτε τα επιλεγμένα πλήκτρα"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:253
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:207
 msgid "Delete Checked Key(s)"
 msgstr "Διαγραφή επιλεγμένων κλειδιών"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:254
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:208
 msgid "Delete the Checked keys"
 msgstr "Διαγράψτε τα επιλεγμένα κλειδιά"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:259
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:213
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
 msgid "Show Key Details"
 msgstr "Εμφάνιση βασικών λεπτομερειών"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:260
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:214
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:291
 msgid "Show Details for this Key"
 msgstr "Εμφάνιση λεπτομερειών για αυτό το κλειδί"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:270
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:289
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:224
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:243
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:402
 msgid "Key"
 msgstr "Κλειδί"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:275
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:308
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:229
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:262
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:361
 msgid "Import Key"
 msgstr "Κλειδί εισαγωγής"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:297
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:251
 msgid "Generate"
 msgstr "Παράγω"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:298
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:252
 msgid "Generate A New Keypair or Subkey"
 msgstr "Δημιουργήστε ένα νέο ζεύγος κλειδιών ή δευτερεύον κλειδί"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:307
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:261
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:428
 msgid "Import key"
 msgstr "Κλειδί εισαγωγής"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:346
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:300
 msgid "Deleting Keys"
 msgstr "Διαγραφή κλειδιών"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:349
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:303
 msgid "Are you sure that you want to delete the following keys?"
 msgstr "Είστε βέβαιοι ότι θέλετε να διαγράψετε τα ακόλουθα κλειδιά;"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:351
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:380
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:417
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:514
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:566
-msgid "The action can not be undone."
-msgstr "Η ενέργεια δεν μπορεί να αναιρεθεί."
-
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:367
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:424
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:513
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:626
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:641
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:321
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:373
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:416
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:625
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:640
 msgid "Key Not Found."
 msgstr "Το κλειδί δεν βρέθηκε."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:379
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:392
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:333
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:346
 msgid "Please check some keys before doing this operation."
 msgstr "Ελέγξτε μερικά πλήκτρα πριν κάνετε αυτήν τη λειτουργία."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:384
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:525
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:338
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:428
 msgid "key(s) exported"
 msgstr "κλειδί/α εξάγονται"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:418
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:428
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:306
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:363
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:484
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:498
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:540
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:549
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:383
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:131
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:192
-msgid "Invalid Operation"
-msgstr "Μη έγκυρη λειτουργία"
-
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:419
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:368
 msgid "Please select one KeyPair before doing this operation."
 msgstr "Επιλέξτε ένα ζεύγος κλειδιών πριν κάνετε αυτήν τη λειτουργία."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:429
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:378
 msgid ""
 "If a key pair does not have a private key then it will not be able to "
 "generate sub-keys."
@@ -1611,7 +2695,7 @@ msgstr ""
 "Εάν ένα ζεύγος κλειδιών δεν έχει ιδιωτικό κλειδί, τότε δεν θα μπορεί να "
 "δημιουργήσει δευτερεύοντα κλειδιά."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:491
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:394
 msgid ""
 "Please select a key before performing this operation. If you select multiple"
 " keys, only the first key will be exported."
@@ -1619,11 +2703,11 @@ msgstr ""
 "Επιλέξτε ένα κλειδί πριν εκτελέσετε αυτήν τη λειτουργία. Εάν επιλέξετε πολλά"
 " κλειδιά, θα εξαχθεί μόνο το πρώτο κλειδί."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:499
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:402
 msgid "An error occur in exporting."
 msgstr "Παρουσιάστηκε σφάλμα κατά την εξαγωγή."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:506
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:409
 msgid ""
 "This key may not be able to export as OpenSSH format. Please check the key-"
 "size of the subkey(s) used to sign."
@@ -1632,725 +2716,33 @@ msgstr ""
 "Ελέγξτε το μέγεθος κλειδιού των δευτερευόντων κλειδιών που χρησιμοποιήθηκαν "
 "για την υπογραφή."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:520
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:423
 msgid "Export OpenSSH Key To File"
 msgstr "Εξαγωγή κλειδιού OpenSSH σε αρχείο"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:521
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:424
 msgid "OpenSSH Public Key Files"
 msgstr "Αρχεία δημόσιου κλειδιού OpenSSH"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:534
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:436
 msgid "Import Key Package"
 msgstr "Εισαγωγή πακέτου κλειδιού"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:538
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:440
 msgid "Import Key Package Passphrase File"
 msgstr "Εισαγωγή αρχείου φράσης πρόσβασης πακέτου κλειδιού"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:539
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:441
 msgid "Key Package Passphrase File"
 msgstr "Αρχείο συνθηματικής φράσης πακέτου κλειδιού"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:550
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:451
 msgid "key(s) imported"
 msgstr "κλειδί(α) εισήχθησαν"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:557
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:458
 msgid "An error occur in importing key package."
 msgstr "Παρουσιάστηκε σφάλμα κατά την εισαγωγή του πακέτου κλειδιού."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:41
-msgid "KeyPair"
-msgstr "Ζεύγος κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:42
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:67
-msgid "UIDs"
-msgstr "UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:44
-msgid "Subkeys"
-msgstr "Υποκλειδιά"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:46
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:392
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:52
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:51
-msgid "Operations"
-msgstr "Λειτουργίες"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:56
-msgid "Key Details"
-msgstr "Βασικά Στοιχεία"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:48
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:71
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:383
-msgid "Comment"
-msgstr "Σχόλιο"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:56
-msgid "Notice: The New UID Created will be set as Primary."
-msgstr "Σημείωση: Το Νέο UID που δημιουργήθηκε θα οριστεί ως Κύριο."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:64
-msgid "Create New UID"
-msgstr "Δημιουργία νέου UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:96
-msgid "Name must contain at least five characters."
-msgstr "Το όνομα πρέπει να περιέχει τουλάχιστον πέντε χαρακτήρες."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:83
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:101
-msgid "Please give a email address."
-msgstr "Δώστε μια διεύθυνση email."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:40
-msgid "Owner"
-msgstr "Ιδιοκτήτης"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:41
-msgid "Primary Key"
-msgstr "Πρωτεύων κλειδί"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:43
-msgid "Additional UIDs"
-msgstr "Πρόσθετα UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:70
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:382
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
-msgid "Email Address"
-msgstr "Διεύθυνση ηλεκτρονικού ταχυδρομείου"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:77
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:67
-#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:35
-msgid "Algorithm"
-msgstr "Αλγόριθμος"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:69
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:160
-#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:36
-msgid "Key Size"
-msgstr "Μέγεθος κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
-msgid "Nominal Usage"
-msgstr "Ονομαστική χρήση"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:80
-#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:38
-msgid "Actual Usage"
-msgstr "Πραγματική χρήση"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:81
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:75
-msgid "Create Date (Local Time)"
-msgstr "Δημιουργία ημερομηνίας (τοπική ώρα)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:83
-msgid "Expires on (Local Time)"
-msgstr "Λήγει στις (τοπική ώρα)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:85
-msgid "Last Update (Local Time)"
-msgstr "Τελευταία ενημέρωση (τοπική ώρα)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:87
-msgid "Primary Key Existence"
-msgstr "Ύπαρξη Πρωτεύοντος Κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:101
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:126
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:103
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:122
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:43
-msgid "Copy"
-msgstr "αντίγραφο"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:128
-msgid "copy fingerprint to clipboard"
-msgstr "αντιγράψτε το δακτυλικό αποτύπωμα στο πρόχειρο"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:174
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:267
-msgid "Exists"
-msgstr "Υπάρχει"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:174
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:268
-msgid "Not Exists"
-msgstr "Δεν υπάρχει"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:206
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:216
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:259
-msgid "Certificate"
-msgstr "Πιστοποιητικό"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:207
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:218
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:260
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:165
-msgid "Encrypt"
-msgstr "Κρυπτογράφηση"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:208
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:220
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:261
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:193
-msgid "Sign"
-msgstr "Σημάδι"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:209
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:222
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:262
-msgid "Auth"
-msgstr "Auth"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:232
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:204
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:385
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:143
-msgid "Never Expire"
-msgstr "Να μην λήξει ποτέ"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:244
-msgid "No Data"
-msgstr "Χωρίς δεδομένα"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:261
-msgid "Warning: The primary key has expired."
-msgstr "Προειδοποίηση: Το πρωτεύον κλειδί έχει λήξει."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:266
-msgid "Warning: The primary key has been revoked."
-msgstr "Προειδοποίηση: Το πρωτεύον κλειδί έχει ανακληθεί."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:44
-msgid "General Operations"
-msgstr "Γενικές Λειτουργίες"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:50
-msgid "Export Public Key"
-msgstr "Εξαγωγή δημόσιου κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:56
-msgid "Export Private Key"
-msgstr "Εξαγωγή ιδιωτικού κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:63
-msgid "Modify Expiration Datetime (Primary Key)"
-msgstr "Τροποποίηση ημερομηνίας λήξης (πρωτεύον κλειδί)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:66
-msgid "Modify Password"
-msgstr "Τροποποίηση κωδικού πρόσβασης"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:77
-msgid "Key Server Operation (Pubkey)"
-msgstr "Λειτουργία διακομιστή κλειδιού (Pubkey)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:84
-msgid "Generate Revoke Certificate"
-msgstr "Δημιουργία πιστοποιητικού ανάκλησης"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:90
-msgid "Modify TOFU Policy"
-msgstr "Τροποποιήστε την πολιτική TOFU"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:106
-msgid "Upload Key Pair to Key Server"
-msgstr "Μεταφόρτωση ζεύγους κλειδιών στον διακομιστή κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:112
-msgid "Sync Key Pair From Key Server"
-msgstr "Συγχρονισμός ζεύγους κλειδιών από τον διακομιστή κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:126
-msgid "Export Full Secret Key"
-msgstr "Εξαγωγή πλήρους μυστικού κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:132
-msgid "Export Shortest Secret Key"
-msgstr "Εξαγωγή του συντομότερου μυστικού κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:145
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:192
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:235
-msgid "An error occurred during the export operation."
-msgstr "Παρουσιάστηκε σφάλμα κατά τη λειτουργία εξαγωγής."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:156
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:202
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:244
-msgid "Export Key To File"
-msgstr "Εξαγωγή κλειδιού σε αρχείο"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:157
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:203
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
-msgid "Key Files"
-msgstr "Αρχεία κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:164
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:210
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:252
-msgid "Export Error"
-msgstr "Σφάλμα εξαγωγής"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:165
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:211
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:253
-msgid "Couldn't open %1 for writing"
-msgstr "Δεν ήταν δυνατό το άνοιγμα του %1 για εγγραφή"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:173
-msgid "Exporting short private Key"
-msgstr "Εξαγωγή σύντομου ιδιωτικού κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:174
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:221
-msgid "You are about to export your"
-msgstr "Πρόκειται να εξαγάγετε το δικό σας"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:175
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:222
-msgid " PRIVATE KEY "
-msgstr " ΙΔΙΩΤΙΚΟ ΚΛΕΙΔΙ"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:176
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:223
-msgid "This is NOT your Public Key, so DON'T give it away."
-msgstr "Αυτό ΔΕΝ είναι το δημόσιο κλειδί σας, επομένως ΜΗΝ το χαρίσετε."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:177
-msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
-msgstr ""
-"Θέλετε ΠΡΑΓΜΑΤΙΚΑ να εξαγάγετε το ΙΔΙΩΤΙΚΟ ΚΛΕΙΔΙ σας σε ελάχιστο μέγεθος;"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:180
-msgid ""
-"For OpenPGP keys it removes all signatures except for the latest self-"
-"signatures."
-msgstr ""
-"Για τα κλειδιά OpenPGP αφαιρεί όλες τις υπογραφές εκτός από τις πιο "
-"πρόσφατες αυτο-υπογραφές."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:220
-msgid "Exporting private Key"
-msgstr "Εξαγωγή ιδιωτικού κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:224
-msgid "Do you REALLY want to export your PRIVATE KEY?"
-msgstr "Θέλετε πραγματικά να εξαγάγετε το ΙΔΙΩΤΙΚΟ ΚΛΕΙΔΙ σας;"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:281
-msgid "Revocation Certificates"
-msgstr "Πιστοποιητικά ανάκλησης"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:324
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:354
-msgid "Not Successful"
-msgstr "Μη επιτυχημένη"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:325
-msgid "Modify password not successfully."
-msgstr "Η τροποποίηση του κωδικού πρόσβασης δεν ήταν επιτυχής."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:331
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:341
-msgid "Policy Auto"
-msgstr "Αυτόματη πολιτική"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:331
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:343
-msgid "Policy Good"
-msgstr "Καλή πολιτική"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:331
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:345
-msgid "Policy Bad"
-msgstr "Κακή πολιτική"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:332
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:347
-msgid "Policy Ask"
-msgstr "Policy Ask"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:332
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:349
-msgid "Policy Unknown"
-msgstr "Άγνωστη πολιτική"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:336
-msgid "Modify TOFU Policy(Default is Auto)"
-msgstr "Τροποποίηση πολιτικής TOFU (η προεπιλογή είναι αυτόματη)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:337
-msgid "Policy for the Key Pair:"
-msgstr "Πολιτική για το ζεύγος κλειδιών:"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:355
-msgid "Modify TOFU policy not successfully."
-msgstr "Η τροποποίηση της πολιτικής TOFU δεν ήταν επιτυχής."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:44
-msgid "Subkey List"
-msgstr "Λίστα δευτερευόντων κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:45
-msgid "Detail of Selected Subkey"
-msgstr "Λεπτομέρεια του επιλεγμένου δευτερεύοντος κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:49
-msgid "Generate A New Subkey"
-msgstr "Δημιουργήστε ένα νέο δευτερεύον κλειδί"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:71
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:151
-msgid "Usage"
-msgstr "Χρήση"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:73
-msgid "Expires On (Local Time)"
-msgstr "Λήγει στις (τοπική ώρα)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:76
-msgid "Existence"
-msgstr "Υπαρξη"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:79
-msgid "Key in Smart Card"
-msgstr "Κλειδί στην έξυπνη κάρτα"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:160
-msgid "Subkey ID"
-msgstr "Αναγνωριστικό δευτερεύοντος κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:160
-msgid "Algo"
-msgstr "Algo"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:161
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:160
-msgid "Create Date (UTC)"
-msgstr "Ημερομηνία δημιουργίας (UTC)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:161
-msgid "Expire Date (UTC)"
-msgstr "Ημερομηνία Λήξης (UTC)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:238
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:288
-msgid "Never Expires"
-msgstr "Δεν λήγει ποτέ"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:271
-msgid "Yes"
-msgstr "Ναί"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:271
-msgid "No"
-msgstr "Οχι"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:301
-msgid "Edit Expire Date"
-msgstr "Επεξεργασία ημερομηνίας λήξης"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:48
-msgid "UID Management"
-msgstr "Διαχείριση UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:72
-msgid "TOFU"
-msgstr "TOFU"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:84
-msgid "Signature of Selected UID"
-msgstr "Υπογραφή επιλεγμένου UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
-msgid "Select"
-msgstr "Επιλέγω"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:161
-msgid "Expired Date (UTC)"
-msgstr "Ημερομηνία Λήξης (UTC)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:237
-msgid "TOFU %1"
-msgstr "TOFU % 1"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:307
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:364
-msgid "Please select one or more UIDs before doing this operation."
-msgstr "Επιλέξτε ένα ή περισσότερα UID προτού εκτελέσετε αυτήν τη λειτουργία."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:328
-msgid "Sign Selected UID(s)"
-msgstr "Υπογραφή επιλεγμένων UID(ων)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:330
-msgid "Delete Selected UID(s)"
-msgstr "Διαγραφή επιλεγμένων UID(ων)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:350
-msgid "Successful Operation"
-msgstr "Επιτυχής Λειτουργία"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:351
-msgid "Successfully added a new UID."
-msgstr "Προστέθηκε με επιτυχία ένα νέο UID."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:353
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:388
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:423
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:519
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:571
-msgid "Operation Failed"
-msgstr "Η λειτουργία απέτυχε"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:354
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:424
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:520
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:572
-msgid "An error occurred during the operation."
-msgstr "Παρουσιάστηκε σφάλμα κατά τη λειτουργία."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:375
-msgid "Deleting UIDs"
-msgstr "Διαγραφή UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:378
-msgid "Are you sure that you want to delete the following UIDs?"
-msgstr "Είστε βέβαιοι ότι θέλετε να διαγράψετε τα ακόλουθα UID;"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:389
-msgid "An error occurred during the delete %1 operation."
-msgstr "Παρουσιάστηκε σφάλμα κατά τη λειτουργία διαγραφής %1."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:413
-msgid "Set Primary UID"
-msgstr "Ορίστε το κύριο UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:415
-msgid "Are you sure that you want to set the Primary UID to?"
-msgstr "Είστε βέβαιοι ότι θέλετε να ορίσετε το Κύριο UID σε;"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:455
-msgid "Set As Primary"
-msgstr "Ορισμός ως κύριος"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:458
-msgid "Sign UID"
-msgstr "Υπογράψτε UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:461
-msgid "Delete UID"
-msgstr "Διαγραφή UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:485
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:499
-msgid "Please select one UID before doing this operation."
-msgstr "Επιλέξτε ένα UID πριν κάνετε αυτήν τη λειτουργία."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:509
-msgid "Deleting UID"
-msgstr "Διαγραφή UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:512
-msgid "Are you sure that you want to delete the following uid?"
-msgstr "Είστε βέβαιοι ότι θέλετε να διαγράψετε το ακόλουθο uid;"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:530
-msgid "Delete(Revoke) Key Signature"
-msgstr "Διαγραφή (Ανάκληση) υπογραφής κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:541
-msgid "Please select one Key Signature before doing this operation."
-msgstr "Επιλέξτε μια υπογραφή κλειδιού πριν κάνετε αυτήν τη λειτουργία."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:550
-msgid ""
-"To delete the signature, you need to have its corresponding public key in "
-"the local database."
-msgstr ""
-"Για να διαγράψετε την υπογραφή, πρέπει να έχετε το αντίστοιχο δημόσιο κλειδί"
-" της στην τοπική βάση δεδομένων."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:561
-msgid "Deleting Key Signature"
-msgstr "Διαγραφή υπογραφής κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:563
-msgid "Are you sure that you want to delete the following signature?"
-msgstr "Είστε βέβαιοι ότι θέλετε να διαγράψετε την ακόλουθη υπογραφή;"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:79
-msgid "The expire date of the key pair has been updated."
-msgstr "Η ημερομηνία λήξης του ζεύγους κλειδιών έχει ενημερωθεί."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:88
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:163
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:288
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:238
-msgid "Failure"
-msgstr "Αποτυχία"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:89
-msgid "Failed to update the expire date of the key pair."
-msgstr "Η ενημέρωση της ημερομηνίας λήξης του ζεύγους κλειδιών απέτυχε."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:104
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:51
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:48
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:98
-msgid "longer_expiration_date"
-msgstr "μεγαλύτερη_ημερομηνία_λήξης"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:131
-msgid "Modified Expiration Date (Local Time)"
-msgstr "Τροποποιημένη ημερομηνία λήξης (τοπική ώρα)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:133
-msgid ""
-"Tips: For the sake of security, the key is valid for up to two years. If you"
-" are an expert user, please unlock it for a longer time in the settings."
-msgstr ""
-"Συμβουλές: Για λόγους ασφαλείας, το κλειδί ισχύει για έως και δύο χρόνια. "
-"Εάν είστε έμπειρος χρήστης, ξεκλειδώστε το για μεγαλύτερο χρονικό διάστημα "
-"στις ρυθμίσεις."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:136
-msgid "No Expiration"
-msgstr "Χωρίς λήξη"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:137
-msgid "Modified Expiration Date"
-msgstr "Τροποποιημένη ημερομηνία λήξης"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:41
-#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:42
-msgid "Signers"
-msgstr "Υπογράφοντες"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:84
-msgid "Expire Date"
-msgstr "Ημερομηνία λήξης"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:94
-msgid "Sign For Key's UID(s)"
-msgstr "Υπογραφή για UID(α) κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:121
-msgid "Unsuccessful Operation"
-msgstr "Αποτυχημένη λειτουργία"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:122
-msgid "Signature operation failed for UID %1"
-msgstr "Η λειτουργία υπογραφής απέτυχε για το UID %1"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:126
-msgid "Operation Complete"
-msgstr "Ολοκληρώθηκε η λειτουργία"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:127
-msgid "The signature operation of the UID is complete"
-msgstr "Η λειτουργία υπογραφής του UID έχει ολοκληρωθεί"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:109
-msgid "Expiration time too long."
-msgstr "Ο χρόνος λήξης είναι πολύ μεγάλος."
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:138
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:268
-msgid "Generating"
-msgstr "Δημιουργία"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:154
-msgid "The new key pair has been generated."
-msgstr "Το νέο ζεύγος κλειδιών δημιουργήθηκε."
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:163
-msgid "Key generation failed."
-msgstr "Η δημιουργία κλειδιού απέτυχε."
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:192
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:88
-msgid "Key Usage"
-msgstr "Χρήση κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:194
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:90
-msgid "Encryption"
-msgstr "Κρυπτογράφηση"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:197
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:93
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:432
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:255
-msgid "Signing"
-msgstr "Υπογραφή"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:200
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:96
-msgid "Certification"
-msgstr "Πιστοποίηση"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:203
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:99
-msgid "Authentication"
-msgstr "Αυθεντικοποίηση"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:384
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:142
-msgid "Expiration Date"
-msgstr "Ημερομηνία λήξης"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:386
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:144
-msgid "KeySize (in Bit)"
-msgstr "Μέγεθος κλειδιού (σε bit)"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:387
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:145
-msgid "Key Type"
-msgstr "Τύπος κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:388
-msgid "Non Pass Phrase"
-msgstr "Μη περασμένη φράση"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:401
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:154
-msgid "Basic Information"
-msgstr "Βασικές πληροφορίες"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:72
-msgid "Generate New Subkey"
-msgstr "Δημιουργία νέου δευτερεύοντος κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:246
-msgid "Expiration time no more than 2 years."
-msgstr "Χρόνος λήξης όχι περισσότερο από 2 χρόνια."
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:281
-msgid "The new subkey has been generated."
-msgstr "Το νέο δευτερεύον κλειδί δημιουργήθηκε."
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:288
-msgid "Failed to generate key."
-msgstr "Αποτυχία δημιουργίας κλειδιού."
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:126
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:128
@@ -2361,12 +2753,7 @@ msgstr "Παρουσιάζεται κρίσιμο σφάλμα κατά τη φ�
 msgid "Loading Failed"
 msgstr "Η φόρτωση απέτυχε"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:243
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:149
-msgid "prohibit_update_checking"
-msgstr "prohibit_update_checking"
-
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:251
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:202
 msgid "settings restored"
 msgstr "οι ρυθμίσεις αποκαταστάθηκαν"
 
@@ -2394,25 +2781,17 @@ msgstr "Εξαγωγή Tarball"
 msgid "Making Tarball"
 msgstr "Φτιάχνοντας Tarball"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:175
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:477
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:588
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:133
-msgid "non_ascii_when_export"
-msgstr "non_ascii_when_export"
-
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:200
 msgid "The target file %1% already exists, do you need to overwrite it?"
 msgstr "Το αρχείο προορισμού %1% υπάρχει ήδη, πρέπει να το αντικαταστήσετε;"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:214
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:629
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:632
 msgid "Unable to convert the folder into tarball."
 msgstr "Δεν είναι δυνατή η μετατροπή του φακέλου σε tarball."
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:222
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:98
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:94
 msgid "Symmetric Encryption"
 msgstr "Συμμετρική κρυπτογράφηση"
 
@@ -2425,19 +2804,19 @@ msgstr ""
 "κρυπτογράφηση χρησιμοποιώντας μια φράση πρόσβασης;"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:230
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:105
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:101
 msgid "Symmetrically Encrypting"
 msgstr "Συμμετρική κρυπτογράφηση"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:249
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:574
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:417
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:413
 msgid "Invalid KeyPair"
 msgstr "Μη έγκυρο ζεύγος κλειδιών"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:250
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:575
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:418
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:414
 msgid "The selected keypair cannot be used for encryption."
 msgstr ""
 "Το επιλεγμένο ζεύγος κλειδιών δεν μπορεί να χρησιμοποιηθεί για "
@@ -2445,15 +2824,15 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:576
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:135
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:196
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:419
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:131
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:192
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:415
 msgid "For example the Following Key:"
 msgstr "Για παράδειγμα το ακόλουθο κλειδί:"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:257
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:145
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:169
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:141
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:165
 msgid "Encrypting"
 msgstr "Κρυπτογράφηση"
 
@@ -2461,14 +2840,14 @@ msgstr "Κρυπτογράφηση"
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:340
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:452
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:546
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:665
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:742
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:86
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:250
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:318
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:385
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:505
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:583
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:668
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:745
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:82
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:246
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:314
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:381
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:504
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:582
 msgid "An error occurred during operation."
 msgstr "Παρουσιάστηκε σφάλμα κατά τη λειτουργία."
 
@@ -2481,38 +2860,38 @@ msgstr "Το αρχείο προορισμού υπάρχει ήδη, χρειά
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:347
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:352
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:357
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:749
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:754
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:759
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:323
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:752
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:757
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:762
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:319
 msgid "Decrypting"
 msgstr "Αποκρυπτογράφηση"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:348
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:750
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:753
 msgid "Do you want to extract and delete the decrypted tarball?"
 msgstr "Θέλετε να εξαγάγετε και να διαγράψετε το αποκρυπτογραφημένο tarball;"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:353
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:755
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:758
 msgid "Extracting tarball succeeded."
 msgstr "Η εξαγωγή tarball πέτυχε."
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:358
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:760
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:763
 msgid "Extracting tarball failed."
 msgstr "Η εξαγωγή tarball απέτυχε."
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:375
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:563
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:183
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:405
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:179
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:401
 msgid "No Key Checked"
 msgstr "Δεν έχει ελεγχθεί κανένα κλειδί"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:376
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:564
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:184
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:180
 msgid "Please check the key in the key toolbox on the right."
 msgstr "Ελέγξτε το κλειδί στην εργαλειοθήκη κλειδιού στα δεξιά."
 
@@ -2548,25 +2927,25 @@ msgstr ""
 "και τα δύο βρίσκονται σε αυτόν τον κατάλογο."
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:521
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:390
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:386
 msgid "Verifying"
 msgstr "Επαλήθευση"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:640
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:510
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:643
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:509
 msgid "Encrypting and Signing"
 msgstr "Κρυπτογράφηση και υπογραφή"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:702
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:705
 msgid "The output file %1 already exists, do you need to overwrite it?"
 msgstr "Το αρχείο εξόδου %1 υπάρχει ήδη, χρειάζεται να το αντικαταστήσετε;"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:714
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:588
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:717
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:587
 msgid "Decrypting and Verifying"
 msgstr "Αποκρυπτογράφηση και επαλήθευση"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:99
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:95
 msgid ""
 "No Key Checked. Do you want to encrypt with a symmetric cipher using a "
 "passphrase?"
@@ -2574,14 +2953,14 @@ msgstr ""
 "Δεν έχει ελεγχθεί κανένα κλειδί. Θέλετε να κρυπτογραφήσετε με συμμετρικό "
 "κρυπτογράφηση χρησιμοποιώντας μια φράση πρόσβασης;"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:129
 msgid ""
 "The selected key contains a key that does not actually have a encrypt usage."
 msgstr ""
 "Το επιλεγμένο κλειδί περιέχει ένα κλειδί που στην πραγματικότητα δεν έχει "
 "χρήση κρυπτογράφησης."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:194
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:190
 msgid ""
 "The selected key contains a key that does not actually have a signature "
 "usage."
@@ -2589,27 +2968,27 @@ msgstr ""
 "Το επιλεγμένο κλειδί περιέχει ένα κλειδί που στην πραγματικότητα δεν έχει "
 "χρήση υπογραφής."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:269
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:265
 msgid "Notice"
 msgstr "Ειδοποίηση"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:270
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:266
 msgid "Short Crypto Text only supports Decrypt & Verify."
 msgstr "Το Short Crypto Text υποστηρίζει μόνο Decrypt & Verify."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:406
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:402
 msgid "Please check some key in the key toolbox on the right."
 msgstr "Ελέγξτε κάποιο κλειδί στην εργαλειοθήκη κλειδιού στα δεξιά."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:673
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:672
 msgid "GpgFrontend Upgradeable (New Version: %1)."
 msgstr "GpgFrontend με δυνατότητα αναβάθμισης (Νέα έκδοση: %1)."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:684
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:683
 msgid "Withdrawn Version"
 msgstr "Αποσυρμένη έκδοση"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:686
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:685
 msgid ""
 "This version(%1) may have been withdrawn by the developer due to serious "
 "problems. Please stop using this version immediately and use the latest "
@@ -2619,14 +2998,14 @@ msgstr ""
 "σοβαρών προβλημάτων. Σταματήστε αμέσως να χρησιμοποιείτε αυτήν την έκδοση "
 "και χρησιμοποιήστε την πιο πρόσφατη σταθερή έκδοση."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:691
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:690
 msgid ""
 "You can download the latest stable version(%1) on Github Releases Page.<br/>"
 msgstr ""
 "Μπορείτε να κάνετε λήψη της πιο πρόσφατης σταθερής έκδοσης(%1) στη σελίδα "
 "εκδόσεων Github.<br/>"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:697
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:696
 msgid "This maybe a BETA Version (Latest Stable Version: %1)."
 msgstr "Αυτή ίσως είναι μια έκδοση BETA (Τελευταία σταθερή έκδοση: %1)."
 
@@ -2770,11 +3149,6 @@ msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
 msgstr ""
 "Αφαιρέστε τις διπλές αλλαγές γραμμής, π.χ. σε επικολλημένο κείμενο από το "
 "Web Mailer"
-
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:156
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:66
-msgid "Settings"
-msgstr "Ρυθμίσεις"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:157
 msgid "Open settings dialog"
@@ -2931,373 +3305,6 @@ msgstr "Ετοιμος"
 msgid "Key ToolBox"
 msgstr "Key Toolbox"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:459
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
-msgid "Default"
-msgstr "Προκαθορισμένο"
-
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:489
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:91
-msgid "Information Board"
-msgstr "Πίνακας πληροφοριών"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:36
-msgid "Show Steganography Options"
-msgstr "Εμφάνιση Επιλογών Στεγανογραφίας"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:38
-msgid "Show Steganography Options."
-msgstr "Εμφάνιση Επιλογών Στεγανογραφίας."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:42
-msgid "Pubkey Exchange"
-msgstr "Ανταλλαγή Pubkey"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:45
-msgid "Auto Pubkey Exchange"
-msgstr "Αυτόματη ανταλλαγή κλειδιών Pubkey"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:63
-msgid "stegano_checked"
-msgstr "stegano_checked"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:73
-msgid "auto_pubkey_exchange_checked"
-msgstr "auto_pubkey_exchange_checked"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:40
-msgid "Icon Size"
-msgstr "Μέγεθος εικονιδίου"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:42
-msgid "small"
-msgstr "μικρό"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:43
-msgid "medium"
-msgstr "Μεσαίο"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:44
-msgid "large"
-msgstr "μεγάλο"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:60
-msgid "Icon Style"
-msgstr "Στυλ εικονιδίων"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:62
-msgid "just text"
-msgstr "απλά κείμενο"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:63
-msgid "just icons"
-msgstr "απλά εικονίδια"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:64
-msgid "text and icons"
-msgstr "κείμενο και εικονίδια"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:80
-msgid "Window State"
-msgstr "Κατάσταση παραθύρου"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:83
-msgid "Save window size and position on exit."
-msgstr "Αποθηκεύστε το μέγεθος και τη θέση του παραθύρου κατά την έξοδο."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:97
-msgid "Font Size in Information Board"
-msgstr "Μέγεθος γραμματοσειράς στον πίνακα πληροφοριών"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:52
-msgid "General"
-msgstr "Γενικός"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:53
-msgid "Appearance"
-msgstr "Εμφάνιση"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:55
-msgid "Network"
-msgstr "Δίκτυο"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:70
-msgid "Preference"
-msgstr "Προτίμηση"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:118
-msgid "System Default"
-msgstr "Προεπιλογή συστήματος"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:44
-msgid "Save Checked Keys"
-msgstr "Αποθήκευση επιλεγμένων κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:46
-msgid "Save checked private keys on exit and restore them on next start."
-msgstr ""
-"Αποθηκεύστε τα επιλεγμένα ιδιωτικά κλειδιά κατά την έξοδο και επαναφέρετέ τα"
-" στην επόμενη εκκίνηση."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:47
-msgid "Longer Key Expiration Date"
-msgstr "Μεγαλύτερη ημερομηνία λήξης κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:49
-msgid "Unlock key expiration date setting up to 30 years."
-msgstr "Ξεκλειδώστε την ημερομηνία λήξης του κλειδιού έως και 30 χρόνια."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:50
-msgid "Confirm drag'n'drop key import"
-msgstr "Επιβεβαιώστε την εισαγωγή κλειδιού drag'n'drop"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:52
-msgid "Import files dropped on the Key List without confirmation."
-msgstr ""
-"Εισαγάγετε αρχεία που απορρίφθηκαν στη Λίστα κλειδιών χωρίς επιβεβαίωση."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:54
-msgid "ASCII Mode"
-msgstr "Λειτουργία ASCII"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:56
-msgid "ASCII encoding is not used when file encrypting and signing."
-msgstr ""
-"Η κωδικοποίηση ASCII δεν χρησιμοποιείται κατά την κρυπτογράφηση και την "
-"υπογραφή αρχείων."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:59
-msgid "Language"
-msgstr "Γλώσσα"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:61
-msgid "NOTE"
-msgstr "ΣΗΜΕΙΩΣΗ"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:62
-msgid "GpgFrontend will restart automatically if you change the language!"
-msgstr "Το GpgFrontend θα επανεκκινήσει αυτόματα εάν αλλάξετε τη γλώσσα!"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:88
-msgid "save_key_checked"
-msgstr "save_key_checked"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:113
-msgid "lang"
-msgstr "lang"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:123
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:323
-msgid "confirm_import_keys"
-msgstr "επιβεβαίωση_εισαγωγής_κλειδιά"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:51
-msgid "Keyserver List"
-msgstr "Λίστα διακομιστή κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:56
-msgid "Keyserver Address"
-msgstr "Διεύθυνση διακομιστή κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:57
-msgid "Security"
-msgstr "Ασφάλεια"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:58
-msgid "Available"
-msgstr "Διαθέσιμος"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:60
-msgid "Add"
-msgstr "Προσθήκη"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:61
-msgid "Test Listed Keyserver"
-msgstr "Δοκιμή καταχωρημένου διακομιστή κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:64
-msgid "Tips: Please Double-click table item to edit it."
-msgstr ""
-"Συμβουλές: Κάντε διπλό κλικ στο στοιχείο του πίνακα για να το "
-"επεξεργαστείτε."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:65
-msgid "Delete Selected"
-msgstr "Διαγραφή επιλεγμένων"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:67
-msgid "Delete Selected Key Server"
-msgstr "Διαγραφή επιλεγμένου διακομιστή κλειδιού"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:68
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:69
-msgid "Set As Default"
-msgstr "Ορίσετε ως προεπιλογή"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:149
-msgid "Insecure keyserver address"
-msgstr "Μη ασφαλής διεύθυνση διακομιστή κλειδιών"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:150
-msgid ""
-"For security reasons, using HTTP as the communication protocol with the key "
-"server is not recommended. It is recommended to use HTTPS."
-msgstr ""
-"Για λόγους ασφαλείας, η χρήση του HTTP ως πρωτοκόλλου επικοινωνίας με τον "
-"διακομιστή κλειδιών δεν συνιστάται. Συνιστάται η χρήση HTTPS."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:159
-msgid ""
-"You may not use HTTPS or HTTP as the protocol for communicating with the key"
-" server, which may not be wrong. But please check the address you entered "
-"again to make sure it is correct. Are you sure that want to add it into the "
-"keyserver list?"
-msgstr ""
-"Δεν επιτρέπεται να χρησιμοποιείτε HTTPS ή HTTP ως πρωτόκολλο για την "
-"επικοινωνία με τον διακομιστή κλειδιών, κάτι που μπορεί να μην είναι λάθος. "
-"Αλλά ελέγξτε ξανά τη διεύθυνση που εισαγάγατε για να βεβαιωθείτε ότι είναι "
-"σωστή. Είστε βέβαιοι ότι θέλετε να το προσθέσετε στη λίστα διακομιστή "
-"κλειδιών;"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:207
-msgid "false"
-msgstr "ψευδής"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:212
-msgid "unknown"
-msgstr "άγνωστος"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:226
-msgid "Set TCP Timeout"
-msgstr "Ορισμός χρονικού ορίου TCP"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:251
-msgid "Reachable"
-msgstr "Προσιτό"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:254
-msgid "Not Reachable"
-msgstr "Μη προσαβασιμο"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:266
-msgid "Test Key Server Connection..."
-msgstr "Δοκιμή σύνδεσης διακομιστή κλειδιού..."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:267
-msgid ""
-"This test only tests the network connectivity of the key server. Passing the"
-" test does not mean that the key server is functionally available."
-msgstr ""
-"Αυτή η δοκιμή ελέγχει μόνο τη συνδεσιμότητα δικτύου του διακομιστή κλειδιού."
-" Η επιτυχία της δοκιμής δεν σημαίνει ότι ο διακομιστής κλειδιών είναι "
-"λειτουργικά διαθέσιμος."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:49
-msgid "Proxy"
-msgstr "Πληρεξούσιο"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:50
-msgid "Network Capability"
-msgstr "Δυνατότητα δικτύου"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:53
-msgid "Enable Proxy"
-msgstr "Ενεργοποίηση διακομιστή μεσολάβησης"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:54
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:57
-msgid "Port"
-msgstr "Λιμάνι"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:56
-msgid "Host Address"
-msgstr "Διεύθυνση κεντρικού υπολογιστή"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:58
-msgid "Proxy Type"
-msgstr "Τύπος διακομιστή μεσολάβησης"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:59
-msgid "Username"
-msgstr "Όνομα χρήστη"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:60
-msgid "Password"
-msgstr "Κωδικός πρόσβασης"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:62
-msgid "Forbid all network connection."
-msgstr "Απαγόρευση κάθε σύνδεσης δικτύου."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:66
-msgid "Prohibit checking for version updates when the program starts."
-msgstr ""
-"Απαγορεύεται ο έλεγχος για ενημερώσεις έκδοσης κατά την εκκίνηση του "
-"προγράμματος."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:67
-msgid "Check Proxy Connection"
-msgstr "Ελέγξτε τη σύνδεση διακομιστή μεσολάβησης"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:79
-msgid "proxy_host"
-msgstr "proxy_host"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:86
-msgid "username"
-msgstr "όνομα χρήστη"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:93
-msgid "password"
-msgstr "Κωδικός πρόσβασης"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:100
-msgid "port"
-msgstr "Λιμάνι"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:108
-msgid "proxy_type"
-msgstr "proxy_type"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:120
-msgid "proxy_enable"
-msgstr "proxy_enable"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:137
-msgid "forbid_all_connection"
-msgstr "forbid_all_connection"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:235
-msgid "Test Server Url Accessibility"
-msgstr "Δοκιμή προσβασιμότητας URL διακομιστή"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:246
-msgid "Successfully connect to the target server through the proxy server."
-msgstr ""
-"Επιτυχής σύνδεση στον διακομιστή προορισμού μέσω του διακομιστή μεσολάβησης."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:251
-msgid ""
-"Unable to connect to the target server through the proxy server. Proxy "
-"settings may be invalid."
-msgstr ""
-"Δεν είναι δυνατή η σύνδεση στον διακομιστή προορισμού μέσω του διακομιστή "
-"μεσολάβησης. Οι ρυθμίσεις διακομιστή μεσολάβησης ενδέχεται να μην είναι "
-"έγκυρες."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:262
-msgid "Test Proxy Server Connection..."
-msgstr "Δοκιμή σύνδεσης διακομιστή μεσολάβησης..."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:263
-msgid ""
-"Is using your proxy settings to access the url. Note that this test "
-"operation will apply your proxy settings to the entire software."
-msgstr ""
-"Χρησιμοποιεί τις ρυθμίσεις διακομιστή μεσολάβησης για πρόσβαση στο url. "
-"Σημειώστε ότι αυτή η δοκιμαστική λειτουργία θα εφαρμόσει τις ρυθμίσεις "
-"διακομιστή μεσολάβησης σε ολόκληρο το λογισμικό."
-
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:65
 msgid "Public key not found locally"
 msgstr "Το δημόσιο κλειδί δεν βρέθηκε τοπικά"
@@ -3356,11 +3363,11 @@ msgstr "Επιτυχία στην εκτέλεση εντολής."
 msgid "Finished executing command."
 msgstr "Ολοκληρώθηκε η εκτέλεση της εντολής."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:346
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:349
 msgid "The key has been updated"
 msgstr "Το κλειδί έχει ενημερωθεί"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:348
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:351
 msgid "No need to update the key"
 msgstr "Δεν χρειάζεται να ενημερώσετε το κλειδί"
 
@@ -3569,26 +3576,6 @@ msgstr "%1% byte(α)"
 msgid "binary"
 msgstr "δυάδικος"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:36
-msgid "Confirm"
-msgstr "Επιβεβαιώνω"
-
-#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:50
-msgid "Select Signer(s)"
-msgstr "Επιλέξτε υπογράφον(ους)"
-
-#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:54
-msgid "Please select one or more private keys you use for signing."
-msgstr ""
-"Επιλέξτε ένα ή περισσότερα ιδιωτικά κλειδιά που χρησιμοποιείτε για την "
-"υπογραφή."
-
-#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:56
-msgid "If no key is selected, the default key will be used for signing."
-msgstr ""
-"Εάν δεν έχει επιλεγεί κανένα κλειδί, το προεπιλεγμένο κλειδί θα "
-"χρησιμοποιηθεί για την υπογραφή."
-
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:55
 msgid "untitled"
 msgstr "Χωρίς τίτλο"
@@ -3749,6 +3736,18 @@ msgstr "Ληγμένο κλειδί"
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:209
 msgid "Missing CRL"
 msgstr "Λείπει το CRL"
+
+#~ msgid "Current Row"
+#~ msgstr "Τρέχουσα σειρά"
+
+#~ msgid "Public key Not Found"
+#~ msgstr "Το δημόσιο κλειδί δεν βρέθηκε"
+
+#~ msgid "icon_size"
+#~ msgstr "μέγεθος_εικονιδίου"
+
+#~ msgid "icon_style"
+#~ msgstr "εικονίδιο_στυλ"
 
 #~ msgid "Failed to read root certificate file"
 #~ msgstr "Αποτυχία ανάγνωσης του αρχείου πιστοποιητικού ρίζας"

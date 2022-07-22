@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.8\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-06-01 22:21+0800\n"
-"PO-Revision-Date: 2022-06-01 22:23-0800\n"
+"POT-Creation-Date: 2022-07-23 02:52+0800\n"
+"PO-Revision-Date: 2022-07-23 02:58-0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
 "Language: be\n"
@@ -17,68 +17,68 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:56
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:58
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:57
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:59
 msgid "Failed to read app secure key file"
 msgstr "Не ўдалося прачытаць файл бяспечнага ключа праграмы"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:95
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:96
 msgid "Saving data object"
 msgstr "Захаванне аб'екта даных"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:106
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:107
 msgid "Get data object"
 msgstr "Атрымаць аб'ект дадзеных"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:116
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:117
 msgid "Data object not found"
 msgstr "Аб'ект даных не знойдзены"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:122
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:123
 msgid "Failed to read data object"
 msgstr "Не ўдалося прачытаць аб'ект даных"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:126
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:127
 msgid "Data object found"
 msgstr "Аб'ект даных знойдзены"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:132
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:133
 msgid "Decrypting data object"
 msgstr "Расшыфроўка аб'екта даных"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:138
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:139
 msgid "Data object decoded"
 msgstr "Аб'ект даных дэкадаваны"
 
-#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:142
+#: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:143
 msgid "Failed to get data object"
 msgstr "Не ўдалося атрымаць аб'ект даных"
 
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:79
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:82
 msgid "File Hash Information"
 msgstr "Інфармацыя пра хэш файла"
 
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:80
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:83
 msgid "filename"
 msgstr "імя файла"
 
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:80
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:87
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:97
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:105
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:113
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:169
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:62
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:66
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:61
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:83
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:89
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:99
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:107
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:115
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:170
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:66
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:61
 msgid ": "
 msgstr ":"
 
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:87
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:89
 msgid "file size(bytes)"
 msgstr "памер файла (байт)"
 
-#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:118
+#: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:120
 msgid "Error in Calculating File Hash "
 msgstr "Памылка пры вылічэнні хэша файла"
 
@@ -132,8 +132,8 @@ msgstr ""
 msgid "Parse error at "
 msgstr "Памылка разбору ў"
 
-#: /mnt/h/GpgFrontend/src/core/function/gpg/GpgKeyOpera.cpp:279
-#: /mnt/h/GpgFrontend/src/core/function/gpg/GpgKeyOpera.cpp:288
+#: /mnt/h/GpgFrontend/src/core/function/gpg/GpgKeyOpera.cpp:278
+#: /mnt/h/GpgFrontend/src/core/function/gpg/GpgKeyOpera.cpp:287
 msgid "operator not support"
 msgstr "аператар не падтрымліваецца"
 
@@ -145,11 +145,11 @@ msgstr "Расшыфроўка аперацыі"
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:41
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:43
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:47
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:106
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:153
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:280
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:245
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:106
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:78
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:154
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:281
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:245
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:246
 msgid "Success"
 msgstr "Поспех"
@@ -158,7 +158,7 @@ msgstr "Поспех"
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:43
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:45
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:49
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:250
 msgid "Failed"
 msgstr "Не атрымалася"
 
@@ -175,7 +175,7 @@ msgid "MIME"
 msgstr "MIME"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:206
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:213
 msgid "true"
 msgstr "праўда"
 
@@ -193,9 +193,9 @@ msgid "Unknown"
 msgstr "Невядомы"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:94
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:76
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:66
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:160
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:76
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:66
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
 #: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:34
 msgid "Key ID"
 msgstr "Ідэнтыфікатар ключа"
@@ -220,9 +220,9 @@ msgstr "Несапраўдныя атрымальнікі"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:54
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:105
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:42
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:142
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:42
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:80
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:68
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:84
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:100
@@ -250,7 +250,7 @@ msgid "Sign Result Analyse Getting Result"
 msgstr "Падпісаць вынік Аналіз Атрыманне выніку"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:57
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:186
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:187
 msgid "New Signature"
 msgstr "Новы подпіс"
 
@@ -348,7 +348,7 @@ msgid "Bad"
 msgstr "Дрэнна"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:88
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:86
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:87
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:197
 msgid "Expired"
 msgstr "Тэрмін дзеяння скончыўся"
@@ -429,17 +429,17 @@ msgstr "Падпісаны"
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:56
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:73
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:83
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:68
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:120
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:367
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:424
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:499
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:505
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:513
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:556
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:144
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:191
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:234
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:68
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:120
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:144
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:234
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:321
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:373
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:402
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:408
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:416
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:457
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:44
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:49
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:54
@@ -450,17 +450,17 @@ msgstr "Падпісаны"
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:451
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:508
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:545
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:628
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:664
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:741
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:85
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:249
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:317
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:384
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:504
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:582
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:626
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:641
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:631
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:667
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:744
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:81
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:245
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:313
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:380
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:503
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:581
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:625
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:640
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:216
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:335
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:346
@@ -486,12 +486,12 @@ msgid "Description: "
 msgstr "Апісанне:"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:68
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:165
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:311
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:418
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:609
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:701
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:158
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:704
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:249
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:384
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:100
@@ -507,12 +507,15 @@ msgid "Predict"
 msgstr "Прадказаць"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:204
+#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:42
+#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:73
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:473
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:463
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:571
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:271
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:102
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:664
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:161
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:422
@@ -539,30 +542,1297 @@ msgstr ""
 "яго трэба перазапусціць. Калі праблема паўтараецца, калі ласка, спыніце "
 "праграму ўручную і паведаміце пра праблему распрацоўшчыку."
 
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:38
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:38
 msgid "Signatures Details"
 msgstr "Падрабязнасці подпісаў"
 
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:61
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:61
 msgid "No valid input found"
 msgstr "Не знойдзены сапраўдны ўвод"
 
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:72
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:72
 msgid "Error Validating signature"
 msgstr "Памылка праверкі подпісу"
 
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:74
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:74
 msgid "File was signed on %1%"
 msgstr "Файл быў падпісаны на %1%"
 
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:77
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:83
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:83
 msgid "It Contains"
 msgstr "Ён змяшчае"
 
-#: /mnt/h/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:80
 msgid "Signed on %1%"
 msgstr "Падпісаны на %1%"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
+msgid "About"
+msgstr "Аб"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:47
+msgid "About Software"
+msgstr "Аб праграмным забеспячэнні"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:48
+msgid "Translators"
+msgstr "Перакладчыкі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:49
+msgid "Update"
+msgstr "Абнаўленне"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:82
+msgid ""
+"GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
+"free gpg front-end tool.It visualizes most of the common operations of gpg "
+"commands.It's licensed under the GPL v3"
+msgstr ""
+"GpgFrontend - гэта просты ў выкарыстанні, кампактны, міжплатформавы і не "
+"ўсталёўны інструмент gpg front-end. Ён візуалізуе большасць агульных "
+"аперацый каманд gpg. Ён ліцэнзаваны пад GPL v3"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:88
+msgid "Developer:"
+msgstr "Распрацоўшчык:"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:89
+msgid "If you have any questions or suggestions, raise an issue at"
+msgstr ""
+"Калі ў вас ёсць якія-небудзь пытанні ці прапановы, падніміце пытанне па "
+"адрасе"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:92
+msgid "or send a mail to my mailing list at"
+msgstr "або адправіць ліст у мой спіс рассылкі па адрасе"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+msgid "Built with Qt"
+msgstr "Пабудаваны з Qt"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+msgid "and GPGME"
+msgstr "і GPGME"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:96
+msgid "Built at"
+msgstr "Пабудаваны ў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:135
+msgid ""
+"If you think there are any problems with the translation, why not "
+"participate in the translation work? If you want to participate, please read"
+" the document or contact me via email."
+msgstr ""
+"Калі вы лічыце, што ёсць праблемы з перакладам, чаму б не паўдзельнічаць у "
+"працы па перакладзе? Калі вы хочаце прыняць удзел, прачытайце дакумент або "
+"звяжыцеся са мной па электроннай пошце."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:160
+msgid ""
+"It is recommended that you always check the version of GpgFrontend and "
+"upgrade to the latest version."
+msgstr ""
+"Рэкамендуецца заўсёды правяраць версію GpgFrontend і абнаўляць да апошняй "
+"версіі."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
+msgid ""
+"New versions not only represent new features, but also often represent "
+"functional and security fixes."
+msgstr ""
+"Новыя версіі не толькі прадстаўляюць новыя функцыі, але таксама часта "
+"прадстаўляюць функцыянальныя выпраўленні і выпраўленні бяспекі."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:169
+msgid "Current Version"
+msgstr "Бягучая версія"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:201
+msgid "try to get latest version"
+msgstr "паспрабуйце атрымаць апошнюю версію"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:216
+msgid "Latest Version From Github"
+msgstr "Апошняя версія з Github"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:222
+msgid "The current version is less than the latest version on github."
+msgstr "Бягучая версія менш, чым апошняя версія на github."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:224
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:235
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
+msgid "Please click"
+msgstr "Калі ласка, націсніце"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
+msgid "Here"
+msgstr "Тут"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
+msgid "to download the latest stable version."
+msgstr "каб спампаваць апошнюю стабільную версію."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:233
+msgid ""
+"This version has serious problems and has been withdrawn. Please stop using "
+"it immediately."
+msgstr ""
+"Гэтая версія мае сур'ёзныя праблемы і была адклікана. Калі ласка, неадкладна"
+" спыніце яго выкарыстанне."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:244
+msgid ""
+"This version has not been released yet, it may be a beta version. If you are"
+" not a tester and care about version stability, please do not use this "
+"version."
+msgstr ""
+"Гэтая версія яшчэ не выпушчаная, магчыма, гэта бэта-версія. Калі вы не "
+"тэсціроўшчык і клапоціцеся пра стабільнасць версій, калі ласка, не "
+"выкарыстоўвайце гэтую версію."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:54
+msgid "Export Key Package"
+msgstr "Экспартны пакет ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:437
+msgid "Key Package"
+msgstr "Пакет ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:61
+msgid "Export Key Package Passphrase"
+msgstr "Экспарт ключавых ключавых фраз"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:63
+msgid "Key File"
+msgstr "Ключавы файл"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:69
+msgid "An error occurred while generating the passphrase file."
+msgstr "Адбылася памылка падчас стварэння файла парольнай фразы."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:78
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:85
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:332
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:345
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:393
+msgid "Forbidden"
+msgstr "Забаронена"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:79
+msgid "Please select an output path before exporting."
+msgstr "Калі ласка, абярыце шлях вываду перад экспартам."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:86
+msgid ""
+"Please generate a password to protect your key before exporting, it is very "
+"important. Don't forget to back up your password in a safe place."
+msgstr ""
+"Калі ласка, згенеруйце пароль для абароны вашага ключа перад экспартам, гэта"
+" вельмі важна. Не забудзьцеся зрабіць рэзервовую копію пароля ў бяспечным "
+"месцы."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
+msgid ""
+"The Key Package has been successfully generated and has been protected by "
+"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
+"Package."
+msgstr ""
+"Пакет ключоў быў паспяхова створаны і абаронены алгарытмамі шыфравання "
+"(AES-256-ECB). Вы можаце бяспечна перанесці свой пакет ключоў."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
+msgid ""
+"But the key file cannot be leaked under any circumstances. Please delete the"
+" Key Package and key file as soon as possible after completing the transfer "
+"operation."
+msgstr ""
+"Але ключавы файл нельга пратачыць ні пры якіх абставінах. Калі ласка, "
+"выдаліце пакет ключоў і ключавы файл як мага хутчэй пасля завяршэння "
+"аперацыі перадачы."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:121
+msgid "An error occurred while exporting the key package."
+msgstr "Адбылася памылка падчас экспарту пакета ключоў."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:128
+msgid "Key Package Name"
+msgstr "Імя пакета ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:129
+msgid "Output Path"
+msgstr "Выхадны шлях"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:130
+msgid "Passphrase"
+msgstr "Парольная фраза"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:132
+msgid ""
+"Tips: You can use Key Package to safely and conveniently transfer your "
+"public and private keys between devices."
+msgstr ""
+"Парады: вы можаце выкарыстоўваць пакет ключоў для бяспечнай і зручнай "
+"перадачы публічных і прыватных ключоў паміж прыладамі."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:134
+msgid "Generate and Save Passphrase"
+msgstr "Стварыць і захаваць парольную фразу"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:135
+msgid "Generate Key Package Name"
+msgstr "Стварыць назву пакета ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:136
+msgid "Select Output Path"
+msgstr "Выберыце шлях вываду"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:139
+msgid "Include secret key (Think twice before acting)"
+msgstr "Уключыце сакрэтны ключ (Двойчы падумайце, перш чым дзейнічаць)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:141
+msgid "Exclude keys that do not have a private key"
+msgstr "Выключыць ключы, якія не маюць прыватнага ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:144
+msgid "exportKeyPackageDialog"
+msgstr "exportKeyPackageDialog"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:41
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:61
+msgid "Key Update Details"
+msgstr "Ключавыя дэталі абнаўлення"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:42
+msgid "No keys found"
+msgstr "Не знойдзены ключы"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:44
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:63
+msgid "Key Import Details"
+msgstr "Асноўныя дэталі імпарту"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:45
+msgid "No keys found to import"
+msgstr "Не знойдзены ключы для імпарту"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:79
+msgid "General key info"
+msgstr "Агульная ключавая інфармацыя"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:82
+msgid "Considered"
+msgstr "Разгледжаны"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:89
+msgid "Public unchanged"
+msgstr "Грамадскасць без змен"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:95
+msgid "Imported"
+msgstr "Імпартныя"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:103
+msgid "Not Imported"
+msgstr "Не імпартаваны"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:110
+msgid "Private Read"
+msgstr "Прыватнае чытанне"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:117
+msgid "Private Imported"
+msgstr "Прыватны імпартны"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:124
+msgid "Private Unchanged"
+msgstr "Прыват без змен"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:142
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:47
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:69
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:382
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Name"
+msgstr "Імя"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:142
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:48
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+msgid "Email"
+msgstr "Электронная пошта"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:142
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:51
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:93
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:109
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:111
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:127
+#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:142
+msgid "Status"
+msgstr "Статус"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:171
+msgid "Private"
+msgstr "Прыватны"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:174
+msgid "Public"
+msgstr "Грамадскі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:177
+msgid "Unchanged"
+msgstr "Нязменны"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:180
+msgid "New Key"
+msgstr "Новы ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:183
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:143
+msgid "New Subkey"
+msgstr "Новы падключ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:47
+msgid "New UID"
+msgstr "Новы UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:130
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:133
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:77
+msgid "Close"
+msgstr "Закрыць"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:57
+msgid "Import ALL"
+msgstr "Імпартаваць УСЕ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:61
+msgid "Search"
+msgstr "Пошук"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:66
+msgid "Search String"
+msgstr "Радок пошуку"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:55
+msgid "Key Server"
+msgstr "Ключавы сервер"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:116
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:151
+msgid "Update Keys from Keyserver"
+msgstr "Абнавіць ключы з сервера ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:118
+msgid "Import Keys from Keyserver"
+msgstr "Імпарт ключоў з сервера ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:180
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:443
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:104
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:52
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:49
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:63
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:72
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:88
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:98
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:113
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:123
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:133
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:79
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:86
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:93
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:100
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:108
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:120
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:149
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:78
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:193
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:477
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:588
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:323
+msgid "Setting Operation Error"
+msgstr "Памылка пры наладзе аперацыі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:199
+msgid "UID"
+msgstr "UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:199
+msgid "Creation date"
+msgstr "Дата стварэння"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:199
+msgid "KeyID"
+msgstr "ID ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:199
+msgid "Tag"
+msgstr "Тэг"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:224
+msgid "Text is empty."
+msgstr "Тэкст пусты."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:269
+msgid "Not Key Found"
+msgstr "Ключ не знойдзены"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:272
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:483
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:498
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:141
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
+msgid "Timeout"
+msgstr "Тайм-аўт"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:275
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:486
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:144
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:334
+msgid "Key Server Not Found"
+msgstr "Сервер ключоў не знойдзены"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:278
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:489
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:505
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:147
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:337
+msgid "Connection Error"
+msgstr "Памылка падлучэння"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:288
+msgid "Too many responses from keyserver!"
+msgstr "Занадта шмат адказаў ад сервера ключоў!"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:298
+msgid "No keys found, input may be kexId, retrying search with 0x."
+msgstr ""
+"Ключы не знойдзены, увод можа быць kexId, паўторная спроба пошуку з 0x."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:307
+msgid "No keys found containing the search string!"
+msgstr "Не знойдзены ключы, якія змяшчаюць радок пошуку!"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:314
+msgid "Insufficiently specific search string!"
+msgstr "Недастаткова канкрэтны радок пошуку!"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:350
+msgid "revoked"
+msgstr "адменены"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:354
+msgid "disabled"
+msgstr "інваліды"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:398
+msgid "%1 keys found. Double click a key to import it."
+msgstr "Знойдзена %1 ключоў. Двойчы пстрыкніце ключ, каб імпартаваць яго."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:446
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:79
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:290
+msgid "Default Keyserver Not Found"
+msgstr "Сервер ключоў па змаўчанні не знойдзены"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:447
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
+msgid ""
+"Cannot read default keyserver from your settings, please set a default "
+"keyserver first"
+msgstr ""
+"Немагчыма прачытаць сервер ключоў па змаўчанні з вашых налад, калі ласка, "
+"спачатку ўсталюйце сервер ключоў па змаўчанні"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:480
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:494
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:138
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:328
+msgid "Key Not Found"
+msgstr "Ключ не знойдзены"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:495
+msgid "key not found in the Keyserver"
+msgstr "ключ не знойдзены на серверы ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:501
+msgid "Host Not Found"
+msgstr "Хост не знойдзены"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:506
+msgid "General Connection Error"
+msgstr "Агульная памылка падключэння"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:520
+msgid "Key Imported"
+msgstr "Імпартаваны ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:55
+msgid "Uploading Public Key"
+msgstr "Загрузка адкрытага ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:74
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
+msgid "Set target Key Server to default Key Server"
+msgstr "Усталюйце мэтавы сервер ключоў на ключавы сервер па змаўчанні"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
+msgid "Cannot read default_keyserver From Settings"
+msgstr "Немагчыма прачытаць default_keyserver з налад"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:152
+msgid "Upload Success"
+msgstr "Паспяхова загрузка"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+msgid "Upload Public Key Successfully"
+msgstr "Загрузіць адкрыты ключ паспяхова"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:41
+msgid "KeyPair"
+msgstr "Пара ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:42
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:67
+msgid "UIDs"
+msgstr "UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:44
+msgid "Subkeys"
+msgstr "Падключы"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:46
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:52
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:51
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:392
+msgid "Operations"
+msgstr "Аперацыі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:56
+msgid "Key Details"
+msgstr "Ключавыя дэталі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:49
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:71
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:384
+msgid "Comment"
+msgstr "Каментар"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:57
+msgid "Notice: The New UID Created will be set as Primary."
+msgstr "Заўвага: новы створаны UID будзе ўсталяваны як асноўны."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:65
+msgid "Create New UID"
+msgstr "Стварыце новы UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:81
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:97
+msgid "Name must contain at least five characters."
+msgstr "Імя павінна ўтрымліваць не менш за пяць сімвалаў."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:85
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:102
+msgid "Please give a email address."
+msgstr "Калі ласка, дайце адрас электроннай пошты."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:40
+msgid "Owner"
+msgstr "Уладальнік"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:41
+msgid "Primary Key"
+msgstr "Першасны ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:43
+msgid "Additional UIDs"
+msgstr "Дадатковыя UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:383
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Email Address"
+msgstr "Адрас электроннай пошты"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:67
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:35
+msgid "Algorithm"
+msgstr "Алгарытм"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:78
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:69
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:36
+msgid "Key Size"
+msgstr "Памер ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:79
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
+msgid "Nominal Usage"
+msgstr "Намінальнае выкарыстанне"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:38
+msgid "Actual Usage"
+msgstr "Фактычнае выкарыстанне"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:81
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:75
+msgid "Create Date (Local Time)"
+msgstr "Дата стварэння (мясцовы час)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:83
+msgid "Expires on (Local Time)"
+msgstr "Заканчваецца (па мясцовым часе)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:85
+msgid "Last Update (Local Time)"
+msgstr "Апошняе абнаўленне (па мясцовым часе)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:87
+msgid "Primary Key Existence"
+msgstr "Існаванне першаснага ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:101
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:126
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:103
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:122
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:43
+msgid "Copy"
+msgstr "Копія"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:128
+msgid "copy fingerprint to clipboard"
+msgstr "скапіяваць адбітак пальца ў буфер абмену"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:267
+msgid "Exists"
+msgstr "Існуе"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:268
+msgid "Not Exists"
+msgstr "Не існуе"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:206
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:216
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:259
+msgid "Certificate"
+msgstr "Сертыфікат"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:207
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:218
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:260
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:165
+msgid "Encrypt"
+msgstr "Зашыфраваць"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:208
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:220
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:261
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:193
+msgid "Sign"
+msgstr "Знак"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:209
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:222
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:262
+msgid "Auth"
+msgstr "Аўт"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:232
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:204
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:386
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:144
+msgid "Never Expire"
+msgstr "Ніколі не мінае"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:244
+msgid "No Data"
+msgstr "Няма дадзеных"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:261
+msgid "Warning: The primary key has expired."
+msgstr "Папярэджанне: тэрмін дзеяння першаснага ключа скончыўся."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:266
+msgid "Warning: The primary key has been revoked."
+msgstr "Папярэджанне: першасны ключ быў адкліканы."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:44
+msgid "General Operations"
+msgstr "Агульныя аперацыі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:50
+msgid "Export Public Key"
+msgstr "Экспарт адкрытага ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:56
+msgid "Export Private Key"
+msgstr "Экспарт прыватнага ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:63
+msgid "Modify Expiration Datetime (Primary Key)"
+msgstr "Змяніць дату заканчэння тэрміну дзеяння (першасны ключ)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:66
+msgid "Modify Password"
+msgstr "Змяніць пароль"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:77
+msgid "Key Server Operation (Pubkey)"
+msgstr "Аперацыя сервера ключоў (Pubkey)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:84
+msgid "Generate Revoke Certificate"
+msgstr "Стварыць сертыфікат адклікання"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:90
+msgid "Modify TOFU Policy"
+msgstr "Змяніць палітыку TOFU"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:106
+msgid "Upload Key Pair to Key Server"
+msgstr "Загрузіце пару ключоў на сервер ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:112
+msgid "Sync Key Pair From Key Server"
+msgstr "Сінхранізацыя пары ключоў з сервера ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:126
+msgid "Export Full Secret Key"
+msgstr "Экспарт поўнага сакрэтнага ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:132
+msgid "Export Shortest Secret Key"
+msgstr "Экспарт найкарацейшага сакрэтнага ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:145
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:192
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:235
+msgid "An error occurred during the export operation."
+msgstr "Падчас аперацыі экспарту адбылася памылка."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:202
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:244
+msgid "Export Key To File"
+msgstr "Экспарт ключа ў файл"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:157
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:203
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:245
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+msgid "Key Files"
+msgstr "Ключавыя файлы"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:164
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:210
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:252
+msgid "Export Error"
+msgstr "Памылка экспарту"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:211
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:253
+msgid "Couldn't open %1 for writing"
+msgstr "Немагчыма адкрыць %1 для запісу"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:173
+msgid "Exporting short private Key"
+msgstr "Экспарт кароткага закрытага ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:221
+msgid "You are about to export your"
+msgstr "Вы збіраецеся экспартаваць свой"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:222
+msgid " PRIVATE KEY "
+msgstr " ПРЫВАТНЫ КЛЮЧ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:176
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:223
+msgid "This is NOT your Public Key, so DON'T give it away."
+msgstr "Гэта НЕ ваш адкрыты ключ, таму НЕ аддавайце яго."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:177
+msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
+msgstr ""
+"Вы САПРАЎДЫ жадаеце экспартаваць свой прыватны ключ у мінімальным памеры?"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:180
+msgid ""
+"For OpenPGP keys it removes all signatures except for the latest self-"
+"signatures."
+msgstr ""
+"Для ключоў OpenPGP ён выдаляе ўсе подпісы, за выключэннем апошніх уласных "
+"подпісаў."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:220
+msgid "Exporting private Key"
+msgstr "Экспарт прыватнага ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:224
+msgid "Do you REALLY want to export your PRIVATE KEY?"
+msgstr "Вы САПРАЎДЫ жадаеце экспартаваць свой прыватны ключ?"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:281
+msgid "Revocation Certificates"
+msgstr "Сертыфікаты аб адкліканні"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:324
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:354
+msgid "Not Successful"
+msgstr "Непаспяховы"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:325
+msgid "Modify password not successfully."
+msgstr "Не ўдалося змяніць пароль."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:341
+msgid "Policy Auto"
+msgstr "Палітыка аўта"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:343
+msgid "Policy Good"
+msgstr "Палітыка добрая"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:345
+msgid "Policy Bad"
+msgstr "Дрэнная палітыка"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:332
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:347
+msgid "Policy Ask"
+msgstr "Палітыка Спытайце"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:332
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:349
+msgid "Policy Unknown"
+msgstr "Палітыка невядомая"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:336
+msgid "Modify TOFU Policy(Default is Auto)"
+msgstr "Змяніць палітыку TOFU (па змаўчанні - аўтаматычна)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:337
+msgid "Policy for the Key Pair:"
+msgstr "Палітыка для пары ключоў:"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:355
+msgid "Modify TOFU policy not successfully."
+msgstr "Не ўдалося змяніць палітыку TOFU."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:44
+msgid "Subkey List"
+msgstr "Спіс падключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:45
+msgid "Detail of Selected Subkey"
+msgstr "Падрабязнасці выбранага падключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:49
+msgid "Generate A New Subkey"
+msgstr "Стварыць новы падключ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:71
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:151
+msgid "Usage"
+msgstr "Выкарыстанне"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:73
+msgid "Expires On (Local Time)"
+msgstr "Заканчваецца (па мясцовым часе)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:76
+msgid "Existence"
+msgstr "Існаванне"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:79
+msgid "Key in Smart Card"
+msgstr "Увядзіце смарт-карту"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
+msgid "Subkey ID"
+msgstr "Ідэнтыфікатар падключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
+msgid "Algo"
+msgstr "Алга"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:161
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+msgid "Create Date (UTC)"
+msgstr "Дата стварэння (UTC)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:161
+msgid "Expire Date (UTC)"
+msgstr "Дата заканчэння (UTC)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:288
+msgid "Never Expires"
+msgstr "Ніколі не мінае"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:271
+msgid "Yes"
+msgstr "Так"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:271
+msgid "No"
+msgstr "не"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:301
+msgid "Edit Expire Date"
+msgstr "Рэдагаваць дату заканчэння тэрміну дзеяння"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:48
+msgid "UID Management"
+msgstr "Кіраванне UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:72
+msgid "TOFU"
+msgstr "Тофу"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:84
+msgid "Signature of Selected UID"
+msgstr "Подпіс выбранага UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Select"
+msgstr "Выберыце"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:161
+msgid "Expired Date (UTC)"
+msgstr "Тэрмін дзеяння (UTC)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:237
+msgid "TOFU %1"
+msgstr "TOFU %1"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:306
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:363
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:484
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:498
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:540
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:549
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:367
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:377
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:383
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:127
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:188
+msgid "Invalid Operation"
+msgstr "Няправільная аперацыя"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:307
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:364
+msgid "Please select one or more UIDs before doing this operation."
+msgstr ""
+"Калі ласка, абярыце адзін або некалькі UID перад выкананнем гэтай аперацыі."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:328
+msgid "Sign Selected UID(s)"
+msgstr "Падпісаць выбраныя UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:330
+msgid "Delete Selected UID(s)"
+msgstr "Выдаліць выбраныя UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:350
+msgid "Successful Operation"
+msgstr "Паспяховая аперацыя"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:351
+msgid "Successfully added a new UID."
+msgstr "Паспяхова дададзены новы UID."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:353
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:388
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:423
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:519
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:571
+msgid "Operation Failed"
+msgstr "Аперацыя не атрымалася"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:354
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:424
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:520
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:572
+msgid "An error occurred during the operation."
+msgstr "Падчас аперацыі адбылася памылка."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:375
+msgid "Deleting UIDs"
+msgstr "Выдаленне UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:378
+msgid "Are you sure that you want to delete the following UIDs?"
+msgstr "Вы ўпэўнены, што хочаце выдаліць наступныя UID?"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:380
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:417
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:514
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:566
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:305
+msgid "The action can not be undone."
+msgstr "Дзеянне нельга адмяніць."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:389
+msgid "An error occurred during the delete %1 operation."
+msgstr "Падчас аперацыі выдалення %1 адбылася памылка."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:413
+msgid "Set Primary UID"
+msgstr "Усталюйце асноўны UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:415
+msgid "Are you sure that you want to set the Primary UID to?"
+msgstr "Вы ўпэўнены, што хочаце ўсталяваць асноўны UID?"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:455
+msgid "Set As Primary"
+msgstr "Ўсталяваць у якасці асноўнага"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:458
+msgid "Sign UID"
+msgstr "Падпішыце UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:461
+msgid "Delete UID"
+msgstr "Выдаліць UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:485
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:499
+msgid "Please select one UID before doing this operation."
+msgstr "Калі ласка, абярыце адзін UID перад выкананнем гэтай аперацыі."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:509
+msgid "Deleting UID"
+msgstr "Выдаленне UID"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:512
+msgid "Are you sure that you want to delete the following uid?"
+msgstr "Вы ўпэўнены, што жадаеце выдаліць наступны uid?"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:530
+msgid "Delete(Revoke) Key Signature"
+msgstr "Выдаліць (адклікаць) подпіс ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:541
+msgid "Please select one Key Signature before doing this operation."
+msgstr ""
+"Калі ласка, абярыце адну подпіс ключа перад выкананнем гэтай аперацыі."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:550
+msgid ""
+"To delete the signature, you need to have its corresponding public key in "
+"the local database."
+msgstr ""
+"Каб выдаліць подпіс, вам трэба мець адпаведны адкрыты ключ у лакальнай базе "
+"дадзеных."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:561
+msgid "Deleting Key Signature"
+msgstr "Выдаленне подпісы ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:563
+msgid "Are you sure that you want to delete the following signature?"
+msgstr "Вы ўпэўнены, што хочаце выдаліць наступны подпіс?"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:79
+msgid "The expire date of the key pair has been updated."
+msgstr "Тэрмін дзеяння пары ключоў абноўлены."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:88
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:164
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:289
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:238
+msgid "Failure"
+msgstr "Няўдача"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:89
+msgid "Failed to update the expire date of the key pair."
+msgstr "Не атрымалася абнавіць тэрмін дзеяння пары ключоў."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:104
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:52
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:49
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:98
+msgid "longer_expiration_date"
+msgstr "даўжэйшы_тэрмін_прыдатнасці"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:131
+msgid "Modified Expiration Date (Local Time)"
+msgstr "Зменены тэрмін прыдатнасці (па мясцовым часе)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:133
+msgid ""
+"Tips: For the sake of security, the key is valid for up to two years. If you"
+" are an expert user, please unlock it for a longer time in the settings."
+msgstr ""
+"Парады: у мэтах бяспекі ключ дзейнічае да двух гадоў. Калі вы дасведчаны "
+"карыстальнік, разблакуйце яго на большы час у наладах."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:136
+msgid "No Expiration"
+msgstr "Без заканчэння тэрміну дзеяння"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:137
+msgid "Modified Expiration Date"
+msgstr "Зменены тэрмін прыдатнасці"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:43
+#: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:48
+msgid "Signers"
+msgstr "Падпісанты"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:86
+msgid "Expire Date"
+msgstr "Тэрмін дзеяння"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:96
+msgid "Sign For Key's UID(s)"
+msgstr "Падпішыцеся на UID(ы) ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:123
+msgid "Unsuccessful Operation"
+msgstr "Няўдалая аперацыя"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:124
+msgid "Signature operation failed for UID %1"
+msgstr "Не атрымалася аперацыя подпісу для UID %1"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:128
+msgid "Operation Complete"
+msgstr "Аперацыя завершана"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:129
+msgid "The signature operation of the UID is complete"
+msgstr "Аперацыя подпісы UID завершана"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:59
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:134
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:225
+msgid "Generate Key"
+msgstr "Стварыць ключ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:110
+msgid "Expiration time too long."
+msgstr "Тэрмін прыдатнасці занадта доўгі."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:139
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:269
+msgid "Generating"
+msgstr "Стварэнне"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:155
+msgid "The new key pair has been generated."
+msgstr "Новая пара ключоў была створана."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:164
+msgid "Key generation failed."
+msgstr "Збой генерацыі ключа."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:193
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:89
+msgid "Key Usage"
+msgstr "Выкарыстанне ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:195
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:91
+msgid "Encryption"
+msgstr "Шыфраванне"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:198
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:94
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:432
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:251
+msgid "Signing"
+msgstr "Падпісанне"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:201
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:97
+msgid "Certification"
+msgstr "Сертыфікацыя"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:204
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:100
+msgid "Authentication"
+msgstr "Аўтэнтыфікацыя"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:385
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:143
+msgid "Expiration Date"
+msgstr "Тэрмін прыдатнасці"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:387
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:145
+msgid "KeySize (in Bit)"
+msgstr "Памер ключа (у бітах)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:388
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:146
+msgid "Key Type"
+msgstr "Тып ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:389
+msgid "Non Pass Phrase"
+msgstr "Непрахадная фраза"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:402
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:155
+msgid "Basic Information"
+msgstr "Асноўная інфармацыя"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:73
+msgid "Generate New Subkey"
+msgstr "Стварыць новы падключ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:247
+msgid "Expiration time no more than 2 years."
+msgstr "Тэрмін прыдатнасці не больш за 2 гадоў."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:282
+msgid "The new subkey has been generated."
+msgstr "Новы падключ быў створаны."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:289
+msgid "Failed to generate key."
+msgstr "Не атрымалася згенераваць ключ."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/QuitDialog.cpp:37
 msgid "Unsaved Files"
@@ -587,41 +1857,409 @@ msgstr "Нататка"
 msgid "If you don't save these files, all changes are lost."
 msgstr "Калі вы не захаваеце гэтыя файлы, усе змены будуць страчаны."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:43
-msgid "First Start Wizard"
-msgstr "Майстар першага запуску"
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:36
+msgid "Show Steganography Options"
+msgstr "Паказаць параметры стэганографіі"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:55
-#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:182
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:115
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:124
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:104
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:51
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:48
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:242
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:38
+msgid "Show Steganography Options."
+msgstr "Паказаць параметры стэганографіі."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:42
+msgid "Pubkey Exchange"
+msgstr "Абмен Pubkey"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:45
+msgid "Auto Pubkey Exchange"
+msgstr "Аўтаматычны абмен Pubkey"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:63
+msgid "stegano_checked"
+msgstr "stegano_checked"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:73
+msgid "auto_pubkey_exchange_checked"
+msgstr "auto_pubkey_exchange_checked"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:40
+msgid "Icon Size"
+msgstr "Памер значка"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:42
+msgid "small"
+msgstr "невялікі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:43
+msgid "medium"
+msgstr "сярэдні"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:44
+msgid "large"
+msgstr "буйны"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
+msgid "Icon Style"
+msgstr "Стыль значкоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:62
+msgid "just text"
+msgstr "проста тэкст"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:63
+msgid "just icons"
+msgstr "проста абразкі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:64
+msgid "text and icons"
+msgstr "тэкст і абразкі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:80
+msgid "Window State"
+msgstr "Стан акна"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:83
+msgid "Save window size and position on exit."
+msgstr "Захаваць памер і пазіцыю акна пры выхадзе."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:489
+msgid "Information Board"
+msgstr "Інфармацыйная дошка"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:97
+msgid "Font Size in Information Board"
+msgstr "Памер шрыфта на інфармацыйнай дошцы"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:53
+msgid "General"
+msgstr "Агульны"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:54
+msgid "Appearance"
+msgstr "Знешні выгляд"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:56
+msgid "Network"
+msgstr "Сетка"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:67
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:156
+msgid "Settings"
+msgstr "Налады"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:71
+msgid "Preference"
+msgstr "Перавага"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:119
+msgid "System Default"
+msgstr "Сістэма па змаўчанні"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:44
+msgid "Save Checked Keys"
+msgstr "Захаваць правераныя ключы"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:46
+msgid "Save checked private keys on exit and restore them on next start."
+msgstr ""
+"Захавайце правераныя прыватныя ключы пры выхадзе і аднаўляйце іх пры "
+"наступным запуску."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:47
+msgid "Longer Key Expiration Date"
+msgstr "Большы тэрмін прыдатнасці ключа"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:49
+msgid "Unlock key expiration date setting up to 30 years."
+msgstr "Разблакіраваць настройку тэрміну прыдатнасці ключа да 30 гадоў."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:50
+msgid "Confirm drag'n'drop key import"
+msgstr "Пацвердзіце імпарт ключоў drag'n'drop"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:52
+msgid "Import files dropped on the Key List without confirmation."
+msgstr "Файлы імпарту патрапілі ў спіс ключоў без пацверджання."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:54
+msgid "ASCII Mode"
+msgstr "Рэжым ASCII"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:56
+msgid "ASCII encoding is not used when file encrypting and signing."
+msgstr ""
+"Кадаванне ASCII не выкарыстоўваецца пры шыфраванні і падпісанні файлаў."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:59
+msgid "Language"
+msgstr "Мова"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:61
+msgid "NOTE"
+msgstr "НАТАТКА"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:62
+msgid "GpgFrontend will restart automatically if you change the language!"
+msgstr "GpgFrontend аўтаматычна перазапусціцца, калі вы зменіце мову!"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:88
+msgid "save_key_checked"
+msgstr "save_key_checked"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:113
+msgid "lang"
+msgstr "яз"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:123
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:323
+msgid "confirm_import_keys"
+msgstr "пацвердзіць_імпарт_ключаў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:133
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:175
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:477
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:588
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:72
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:88
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:98
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:113
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:123
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:133
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:86
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:93
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:100
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:108
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:120
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:137
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:149
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:323
-msgid "Setting Operation Error"
-msgstr "Памылка пры наладзе аперацыі"
+msgid "non_ascii_when_export"
+msgstr "non_ascii_when_export"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:51
+msgid "Keyserver List"
+msgstr "Спіс сервераў ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:459
+msgid "Default"
+msgstr "Па змаўчанні"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:56
+msgid "Keyserver Address"
+msgstr "Адрас сервера ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:57
+msgid "Security"
+msgstr "Бяспека"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:58
+msgid "Available"
+msgstr "Даступны"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:60
+msgid "Add"
+msgstr "Дадаць"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:61
+msgid "Test Listed Keyserver"
+msgstr "Тэстны спіс ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:64
+msgid "Tips: Please Double-click table item to edit it."
+msgstr ""
+"Парады: Калі ласка, двойчы пстрыкніце элемент табліцы, каб адрэдагаваць яго."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:65
+msgid "Delete Selected"
+msgstr "Выдаліць выбранае"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:67
+msgid "Delete Selected Key Server"
+msgstr "Выдаліць выбраны сервер ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:68
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:69
+msgid "Set As Default"
+msgstr "Ўсталяваць па змаўчанні"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:156
+msgid "Insecure keyserver address"
+msgstr "Небяспечны адрас сервера ключоў"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:157
+msgid ""
+"For security reasons, using HTTP as the communication protocol with the key "
+"server is not recommended. It is recommended to use HTTPS."
+msgstr ""
+"З меркаванняў бяспекі не рэкамендуецца выкарыстоўваць HTTP у якасці "
+"пратаколу сувязі з серверам ключоў. Рэкамендуецца выкарыстоўваць HTTPS."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:166
+msgid ""
+"You may not use HTTPS or HTTP as the protocol for communicating with the key"
+" server, which may not be wrong. But please check the address you entered "
+"again to make sure it is correct. Are you sure that want to add it into the "
+"keyserver list?"
+msgstr ""
+"Вы не можаце выкарыстоўваць HTTPS або HTTP у якасці пратаколу для сувязі з "
+"серверам ключоў, што можа быць няправільным. Але, калі ласка, праверце "
+"адрас, які вы ўвялі яшчэ раз, каб пераканацца, што ён правільны. Вы "
+"ўпэўнены, што хочаце дадаць яго ў спіс сервераў ключоў?"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
+msgid "false"
+msgstr "фальшывы"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:219
+msgid "unknown"
+msgstr "невядомы"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:233
+msgid "Set TCP Timeout"
+msgstr "Усталюйце тайм-аўт TCP"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:258
+msgid "Reachable"
+msgstr "Дасяжны"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:261
+msgid "Not Reachable"
+msgstr "Недасяжны"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:273
+msgid "Test Key Server Connection..."
+msgstr "Тэст падлучэння да сервера ключа..."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:274
+msgid ""
+"This test only tests the network connectivity of the key server. Passing the"
+" test does not mean that the key server is functionally available."
+msgstr ""
+"Гэты тэст правярае толькі сеткавае падключэнне сервера ключоў. Праходжанне "
+"тэсту не азначае, што сервер ключоў функцыянальна даступны."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:49
+msgid "Proxy"
+msgstr "Проксі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:50
+msgid "Network Capability"
+msgstr "Магчымасці сеткі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:53
+msgid "Enable Proxy"
+msgstr "Уключыць проксі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:57
+msgid "Port"
+msgstr "Порт"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:56
+msgid "Host Address"
+msgstr "Адрас хоста"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:58
+msgid "Proxy Type"
+msgstr "Тып проксі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:59
+msgid "Username"
+msgstr "Імя карыстальніка"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:60
+msgid "Password"
+msgstr "Пароль"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:62
+msgid "Forbid all network connection."
+msgstr "Забараніць любое падключэнне да сеткі."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:66
+msgid "Prohibit checking for version updates when the program starts."
+msgstr "Забараніць праверку абнаўленняў версій пры запуску праграмы."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:67
+msgid "Check Proxy Connection"
+msgstr "Праверце падлучэнне проксі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:79
+msgid "proxy_host"
+msgstr "proxy_host"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:86
+msgid "username"
+msgstr "імя карыстальніка"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:93
+msgid "password"
+msgstr "пароль"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:100
+msgid "port"
+msgstr "порт"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:108
+msgid "proxy_type"
+msgstr "тып_проксі"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:120
+msgid "proxy_enable"
+msgstr "proxy_enable"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:137
+msgid "forbid_all_connection"
+msgstr "forbid_all_connection"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:149
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:194
+msgid "prohibit_update_checking"
+msgstr "prohibit_update_checking"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:235
+msgid "Test Server Url Accessibility"
+msgstr "Тэставая даступнасць URL-адрасоў сервера"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:246
+msgid "Successfully connect to the target server through the proxy server."
+msgstr "Паспяхова падключыцца да мэтавага сервера праз проксі-сервер."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:251
+msgid ""
+"Unable to connect to the target server through the proxy server. Proxy "
+"settings may be invalid."
+msgstr ""
+"Немагчыма падключыцца да мэтавага сервера праз проксі-сервер. Магчыма, "
+"няправільныя налады проксі."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:262
+msgid "Test Proxy Server Connection..."
+msgstr "Праверка злучэння з проксі-серверам..."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:263
+msgid ""
+"Is using your proxy settings to access the url. Note that this test "
+"operation will apply your proxy settings to the entire software."
+msgstr ""
+"Выкарыстоўвае налады проксі для доступу да URL. Звярніце ўвагу, што гэтая "
+"тэставая аперацыя прымяняе вашыя налады проксі да ўсяго праграмнага "
+"забеспячэння."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:36
+msgid "Confirm"
+msgstr "Пацвердзіць"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:37
+msgid "Cancel"
+msgstr "Адмяніць"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:56
+msgid "Select Signer(s)"
+msgstr "Выберыце падпісанта(-аў)"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:60
+msgid "Please select one or more private keys you use for signing."
+msgstr ""
+"Калі ласка, абярыце адзін або некалькі прыватных ключоў, якія вы "
+"выкарыстоўваеце для падпісання."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:62
+msgid "If no key is selected, the default key will be used for signing."
+msgstr ""
+"Калі ключ не выбраны, для падпісання будзе выкарыстоўвацца ключ па "
+"змаўчанні."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:43
+msgid "First Start Wizard"
+msgstr "Майстар першага запуску"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:86
 msgid "Getting Started..."
@@ -680,12 +2318,6 @@ msgid ""
 msgstr ""
 "Калі вы ніколі раней не выкарыстоўвалі GpgFrontend, а таксама не маеце ключа"
 " gpg, магчыма, захочаце прачытаць, як"
-
-#: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:134
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:271
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:58
-msgid "Generate Key"
-msgstr "Стварыць ключ"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:142
 msgid ""
@@ -783,11 +2415,11 @@ msgstr "Адкрыйце аўтаномную дапамогу."
 msgid "Dont show the wizard again."
 msgstr "Не паказвайце майстра зноў."
 
-#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:76
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:79
 msgid "Standard Exception Thrown"
 msgstr "Стандартнае выключэнне"
 
-#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:80
 msgid ""
 "Oops, an standard exception was thrown during the running of the program. "
 "This is not a serious problem, it may be the negligence of the programmer, "
@@ -797,11 +2429,11 @@ msgstr ""
 "не сур'ёзная праблема, гэта можа быць нядбайнасць праграміста, калі ласка, "
 "паведаміце аб гэтай праблеме, калі вы можаце."
 
-#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:85
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:88
 msgid "Unhandled Exception Thrown"
 msgstr "Неапрацаванае выключэнне"
 
-#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:86
+#: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:89
 msgid ""
 "Oops, an unhandled exception was thrown during the running of the program. "
 "This is not a serious problem, it may be the negligence of the programmer, "
@@ -829,603 +2461,71 @@ msgstr ""
 msgid "could not read properly from configure file"
 msgstr "не ўдалося правільна прачытаць файл канфігурацыі"
 
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:39
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
-msgid "About"
-msgstr "Аб"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:46
-msgid "About Software"
-msgstr "Аб праграмным забеспячэнні"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:47
-msgid "Translators"
-msgstr "Перакладчыкі"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:48
-msgid "Update"
-msgstr "Абнаўленне"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:81
-msgid ""
-"GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
-"free gpg front-end tool.It visualizes most of the common operations of gpg "
-"commands.It's licensed under the GPL v3"
-msgstr ""
-"GpgFrontend - гэта просты ў выкарыстанні, кампактны, міжплатформавы і не "
-"ўсталёўны інструмент gpg front-end. Ён візуалізуе большасць агульных "
-"аперацый каманд gpg. Ён ліцэнзаваны пад GPL v3"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:87
-msgid "Developer:"
-msgstr "Распрацоўшчык:"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:88
-msgid "If you have any questions or suggestions, raise an issue at"
-msgstr ""
-"Калі ў вас ёсць якія-небудзь пытанні ці прапановы, падніміце пытанне па "
-"адрасе"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:91
-msgid "or send a mail to my mailing list at"
-msgstr "або адправіць ліст у мой спіс рассылкі па адрасе"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:93
-msgid "Built with Qt"
-msgstr "Пабудаваны з Qt"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:93
-msgid "and GPGME"
-msgstr "і GPGME"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:95
-msgid "Built at"
-msgstr "Пабудаваны ў"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:134
-msgid ""
-"If you think there are any problems with the translation, why not "
-"participate in the translation work? If you want to participate, please read"
-" the document or contact me via email."
-msgstr ""
-"Калі вы лічыце, што ёсць праблемы з перакладам, чаму б не паўдзельнічаць у "
-"працы па перакладзе? Калі вы хочаце прыняць удзел, прачытайце дакумент або "
-"звяжыцеся са мной па электроннай пошце."
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:159
-msgid ""
-"It is recommended that you always check the version of GpgFrontend and "
-"upgrade to the latest version."
-msgstr ""
-"Рэкамендуецца заўсёды правяраць версію GpgFrontend і абнаўляць да апошняй "
-"версіі."
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:162
-msgid ""
-"New versions not only represent new features, but also often represent "
-"functional and security fixes."
-msgstr ""
-"Новыя версіі не толькі прадстаўляюць новыя функцыі, але таксама часта "
-"прадстаўляюць функцыянальныя выпраўленні і выпраўленні бяспекі."
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:168
-msgid "Current Version"
-msgstr "Бягучая версія"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:200
-msgid "try to get latest version"
-msgstr "паспрабуйце атрымаць апошнюю версію"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:215
-msgid "Latest Version From Github"
-msgstr "Апошняя версія з Github"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:221
-msgid "The current version is less than the latest version on github."
-msgstr "Бягучая версія менш, чым апошняя версія на github."
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:223
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:234
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:246
-msgid "Please click"
-msgstr "Калі ласка, націсніце"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:226
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:237
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:249
-msgid "Here"
-msgstr "Тут"
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:226
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:237
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:249
-msgid "to download the latest stable version."
-msgstr "каб спампаваць апошнюю стабільную версію."
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:232
-msgid ""
-"This version has serious problems and has been withdrawn. Please stop using "
-"it immediately."
-msgstr ""
-"Гэтая версія мае сур'ёзныя праблемы і была адклікана. Калі ласка, неадкладна"
-" спыніце яго выкарыстанне."
-
-#: /mnt/h/GpgFrontend/src/ui/help/AboutDialog.cpp:243
-msgid ""
-"This version has not been released yet, it may be a beta version. If you are"
-" not a tester and care about version stability, please do not use this "
-"version."
-msgstr ""
-"Гэтая версія яшчэ не выпушчаная, магчыма, гэта бэта-версія. Калі вы не "
-"тэсціроўшчык і клапоціцеся пра стабільнасць версій, калі ласка, не "
-"выкарыстоўвайце гэтую версію."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:54
-msgid "Export Key Package"
-msgstr "Экспартны пакет ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:55
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:220
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:535
-msgid "Key Package"
-msgstr "Пакет ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:61
-msgid "Export Key Package Passphrase"
-msgstr "Экспарт ключавых ключавых фраз"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:63
-msgid "Key File"
-msgstr "Ключавы файл"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:69
-msgid "An error occurred while generating the passphrase file."
-msgstr "Адбылася памылка падчас стварэння файла парольнай фразы."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:85
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:378
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:391
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:490
-msgid "Forbidden"
-msgstr "Забаронена"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:79
-msgid "Please select an output path before exporting."
-msgstr "Калі ласка, абярыце шлях вываду перад экспартам."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:86
-msgid ""
-"Please generate a password to protect your key before exporting, it is very "
-"important. Don't forget to back up your password in a safe place."
-msgstr ""
-"Калі ласка, згенеруйце пароль для абароны вашага ключа перад экспартам, гэта"
-" вельмі важна. Не забудзьцеся зрабіць рэзервовую копію пароля ў бяспечным "
-"месцы."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:108
-msgid ""
-"The Key Package has been successfully generated and has been protected by "
-"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
-"Package."
-msgstr ""
-"Пакет ключоў быў паспяхова створаны і абаронены алгарытмамі шыфравання "
-"(AES-256-ECB). Вы можаце бяспечна перанесці свой пакет ключоў."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:112
-msgid ""
-"But the key file cannot be leaked under any circumstances. Please delete the"
-" Key Package and key file as soon as possible after completing the transfer "
-"operation."
-msgstr ""
-"Але ключавы файл нельга пратачыць ні пры якіх абставінах. Калі ласка, "
-"выдаліце пакет ключоў і ключавы файл як мага хутчэй пасля завяршэння "
-"аперацыі перадачы."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:121
-msgid "An error occurred while exporting the key package."
-msgstr "Адбылася памылка падчас экспарту пакета ключоў."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:128
-msgid "Key Package Name"
-msgstr "Імя пакета ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:129
-msgid "Output Path"
-msgstr "Выхадны шлях"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:130
-msgid "Passphrase"
-msgstr "Парольная фраза"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:132
-msgid ""
-"Tips: You can use Key Package to safely and conveniently transfer your "
-"public and private keys between devices."
-msgstr ""
-"Парады: вы можаце выкарыстоўваць пакет ключоў для бяспечнай і зручнай "
-"перадачы публічных і прыватных ключоў паміж прыладамі."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:134
-msgid "Generate and Save Passphrase"
-msgstr "Стварыць і захаваць парольную фразу"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:135
-msgid "Generate Key Package Name"
-msgstr "Стварыць назву пакета ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:136
-msgid "Select Output Path"
-msgstr "Выберыце шлях вываду"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:139
-msgid "Include secret key (Think twice before acting)"
-msgstr "Уключыце сакрэтны ключ (Двойчы падумайце, перш чым дзейнічаць)"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:141
-msgid "Exclude keys that do not have a private key"
-msgstr "Выключыць ключы, якія не маюць прыватнага ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/ExportKeyPackageDialog.cpp:144
-msgid "exportKeyPackageDialog"
-msgstr "exportKeyPackageDialog"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:40
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:60
-msgid "Key Update Details"
-msgstr "Ключавыя дэталі абнаўлення"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:41
-msgid "No keys found"
-msgstr "Не знойдзены ключы"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:43
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:62
-msgid "Key Import Details"
-msgstr "Асноўныя дэталі імпарту"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:44
-msgid "No keys found to import"
-msgstr "Не знойдзены ключы для імпарту"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:78
-msgid "General key info"
-msgstr "Агульная ключавая інфармацыя"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:81
-msgid "Considered"
-msgstr "Разгледжаны"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:88
-msgid "Public unchanged"
-msgstr "Грамадскасць без змен"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:94
-msgid "Imported"
-msgstr "Імпартныя"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:102
-msgid "Not Imported"
-msgstr "Не імпартаваны"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:109
-msgid "Private Read"
-msgstr "Прыватнае чытанне"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:116
-msgid "Private Imported"
-msgstr "Прыватны імпартны"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:123
-msgid "Private Unchanged"
-msgstr "Прыват без змен"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:46
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:69
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:160
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:381
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
-msgid "Name"
-msgstr "Імя"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:47
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:160
-msgid "Email"
-msgstr "Электронная пошта"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:51
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:77
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:93
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:109
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:111
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:127
-#: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:142
-msgid "Status"
-msgstr "Статус"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:170
-msgid "Private"
-msgstr "Прыватны"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:173
-msgid "Public"
-msgstr "Грамадскі"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:176
-msgid "Unchanged"
-msgstr "Нязменны"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:179
-msgid "New Key"
-msgstr "Новы ключ"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:182
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:189
-msgid "New Subkey"
-msgstr "Новы падключ"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:190
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:47
-msgid "New UID"
-msgstr "Новы UID"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:176
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:179
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:77
-msgid "Close"
-msgstr "Закрыць"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:53
-msgid "Import ALL"
-msgstr "Імпартаваць УСЕ"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:57
-msgid "Search"
-msgstr "Пошук"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:62
-msgid "Search String"
-msgstr "Радок пошуку"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:66
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:54
-msgid "Key Server"
-msgstr "Ключавы сервер"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:112
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:565
-msgid "Update Keys from Keyserver"
-msgstr "Абнавіць ключы з сервера ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:114
-msgid "Import Keys from Keyserver"
-msgstr "Імпарт ключоў з сервера ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:201
-msgid "UID"
-msgstr "UID"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:201
-msgid "Creation date"
-msgstr "Дата стварэння"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:201
-msgid "KeyID"
-msgstr "ID ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:201
-msgid "Tag"
-msgstr "Тэг"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:226
-msgid "Text is empty."
-msgstr "Тэкст пусты."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:272
-msgid "Not Key Found"
-msgstr "Ключ не знойдзены"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:275
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:478
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:495
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:139
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:328
-msgid "Timeout"
-msgstr "Тайм-аўт"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:278
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:481
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:142
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
-msgid "Key Server Not Found"
-msgstr "Сервер ключоў не знойдзены"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:281
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:484
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:502
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:145
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:334
-msgid "Connection Error"
-msgstr "Памылка падлучэння"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:290
-msgid "Too many responses from keyserver!"
-msgstr "Занадта шмат адказаў ад сервера ключоў!"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:300
-msgid "No keys found, input may be kexId, retrying search with 0x."
-msgstr ""
-"Ключы не знойдзены, увод можа быць kexId, паўторная спроба пошуку з 0x."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:309
-msgid "No keys found containing the search string!"
-msgstr "Не знойдзены ключы, якія змяшчаюць радок пошуку!"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:316
-msgid "Insufficiently specific search string!"
-msgstr "Недастаткова канкрэтны радок пошуку!"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:349
-msgid "revoked"
-msgstr "адменены"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:353
-msgid "disabled"
-msgstr "інваліды"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:395
-msgid "%1 keys found. Double click a key to import it."
-msgstr "Знойдзена %1 ключоў. Двойчы пстрыкніце ключ, каб імпартаваць яго."
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:407
-msgid "Current Row"
-msgstr "Бягучы рад"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:425
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:73
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:282
-msgid "Set target Key Server to default Key Server"
-msgstr "Усталюйце мэтавы сервер ключоў на ключавы сервер па змаўчанні"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:428
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:76
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
-msgid "Cannot read default_keyserver From Settings"
-msgstr "Немагчыма прачытаць default_keyserver з налад"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:430
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:287
-msgid "Default Keyserver Not Found"
-msgstr "Сервер ключоў па змаўчанні не знойдзены"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:431
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
-msgid ""
-"Cannot read default keyserver from your settings, please set a default "
-"keyserver first"
-msgstr ""
-"Немагчыма прачытаць сервер ключоў па змаўчанні з вашых налад, калі ласка, "
-"спачатку ўсталюйце сервер ключоў па змаўчанні"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:475
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:136
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:325
-msgid "Key Not Found"
-msgstr "Ключ не знойдзены"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:490
-msgid "Public key Not Found"
-msgstr "Адкрыты ключ не знойдзены"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:491
-msgid "Public key fingerprint %1 not found in the Keyserver"
-msgstr "Адбітак адкрытага ключа %1 не знойдзены на серверы ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:498
-msgid "Host Not Found"
-msgstr "Хост не знойдзены"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:503
-msgid "General Connection Error"
-msgstr "Агульная памылка падключэння"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:518
-msgid "Key Imported"
-msgstr "Імпартаваны ключ"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:54
-msgid "Uploading Public Key"
-msgstr "Загрузка адкрытага ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:150
-msgid "Upload Success"
-msgstr "Паспяхова загрузка"
-
-#: /mnt/h/GpgFrontend/src/ui/import_export/KeyUploadDialog.cpp:151
-msgid "Upload Public Key Successfully"
-msgstr "Загрузіць адкрыты ключ паспяхова"
-
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:50
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:51
 msgid "All"
 msgstr "Усе"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:53
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:54
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:467
 msgid "Only Public Key"
 msgstr "Толькі адкрыты ключ"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:476
 msgid "Has Private Key"
 msgstr "Мае закрыты ключ"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:71
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:72
 msgid "No Primary Key"
 msgstr "Няма першаснага ключа"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:81
 msgid "Revoked"
 msgstr "Адкліканы"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:115
-msgid "icon_size"
-msgstr "памер_значка"
-
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:124
-msgid "icon_style"
-msgstr "icon_style"
-
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:157
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:111
 msgid "KeyPair Management"
 msgstr "Упраўленне KeyPair"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:170
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:124
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:225
 msgid "Open"
 msgstr "Адкрыць"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:171
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:125
 msgid "Ctrl+O"
 msgstr "Ctrl+O"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:172
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:126
 msgid "Open Key File"
 msgstr "Адкрыйце файл ключа"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:177
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:131
 msgid "Ctrl+Q"
 msgstr "Ctrl+Q"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:182
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:136
 msgid "New Keypair"
 msgstr "Новая пара ключоў"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:183
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:137
 msgid "Ctrl+N"
 msgstr "Ctrl+N"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:185
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:139
 msgid "Generate KeyPair"
 msgstr "Стварыць пару ключоў"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:190
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:144
 msgid "Ctrl+Shift+N"
 msgstr "Ctrl+Shift+N"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:192
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:146
 msgid "Generate Subkey For Selected KeyPair"
 msgstr "Стварыць падключ для выбранай пары ключоў"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:196
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:266
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:150
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:220
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:208
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:319
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:384
@@ -1433,170 +2533,148 @@ msgstr "Стварыць падключ для выбранай пары клю�
 msgid "File"
 msgstr "Файл"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:198
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:152
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:210
 msgid "Import New Key From File"
 msgstr "Імпартаваць новы ключ з файла"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:202
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:156
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:214
 msgid "Clipboard"
 msgstr "Буфер абмену"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:206
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:160
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:218
 msgid "Import New Key From Clipboard"
 msgstr "Імпартаваць новы ключ з буфера абмену"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:211
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:165
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:223
 msgid "Keyserver"
 msgstr "Сервер ключоў"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:215
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:169
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:227
 msgid "Import New Key From Keyserver"
 msgstr "Імпарт новага ключа з сервера ключоў"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:223
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:177
 msgid "Import Key(s) From a Key Package"
 msgstr "Імпартаваць ключ(ы) з пакета ключоў"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:227
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:181
 msgid "Export To Clipboard"
 msgstr "Экспарт у буфер абмену"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:230
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:184
 msgid "Export Selected Key(s) To Clipboard"
 msgstr "Экспарт выбраных ключоў у буфер абмену"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:234
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:188
 msgid "Export To Key Package"
 msgstr "Экспарт у ключавы пакет"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:237
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:191
 msgid "Export Checked Key(s) To a Key Package"
 msgstr "Экспарт правераны ключ(ы) у пакет ключоў"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:241
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:195
 msgid "Export As OpenSSH"
 msgstr "Экспарт як OpenSSH"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:244
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:198
 msgid "Export Selected Key(s) As OpenSSH Format to File"
 msgstr "Экспарт абраных ключоў у файл у фармаце OpenSSH"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:248
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:202
 msgid "Delete Selected Key(s)"
 msgstr "Выдаліць выбраныя ключы"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:249
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:203
 msgid "Delete the Selected keys"
 msgstr "Выдаліце выбраныя ключы"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:253
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:207
 msgid "Delete Checked Key(s)"
 msgstr "Выдаліць правераны ключ(ы)"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:254
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:208
 msgid "Delete the Checked keys"
 msgstr "Выдаліце пазначаныя ключы"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:259
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:213
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
 msgid "Show Key Details"
 msgstr "Паказаць асноўныя дэталі"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:260
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:214
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:291
 msgid "Show Details for this Key"
 msgstr "Паказаць дэталі для гэтага ключа"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:270
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:289
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:224
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:243
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:402
 msgid "Key"
 msgstr "Ключ"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:275
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:308
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:229
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:262
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:361
 msgid "Import Key"
 msgstr "Імпартны ключ"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:297
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:251
 msgid "Generate"
 msgstr "Ствараць"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:298
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:252
 msgid "Generate A New Keypair or Subkey"
 msgstr "Стварыце новую пару ключоў або падключ"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:307
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:261
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:428
 msgid "Import key"
 msgstr "Імпартны ключ"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:346
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:300
 msgid "Deleting Keys"
 msgstr "Выдаленне ключоў"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:349
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:303
 msgid "Are you sure that you want to delete the following keys?"
 msgstr "Вы ўпэўнены, што хочаце выдаліць наступныя ключы?"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:351
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:380
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:417
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:514
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:566
-msgid "The action can not be undone."
-msgstr "Дзеянне нельга адмяніць."
-
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:367
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:424
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:513
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:626
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:641
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:321
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:373
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:416
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:625
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:640
 msgid "Key Not Found."
 msgstr "Ключ не знойдзены."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:379
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:392
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:333
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:346
 msgid "Please check some keys before doing this operation."
 msgstr "Калі ласка, праверце некаторыя ключы перад выкананнем гэтай аперацыі."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:384
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:525
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:338
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:428
 msgid "key(s) exported"
 msgstr "ключ(ы) экспартаваны"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:418
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:428
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:306
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:363
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:484
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:498
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:540
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:549
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:383
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:131
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:192
-msgid "Invalid Operation"
-msgstr "Няправільная аперацыя"
-
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:419
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:368
 msgid "Please select one KeyPair before doing this operation."
 msgstr "Калі ласка, абярыце адну пару ключоў перад выкананнем гэтай аперацыі."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:429
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:378
 msgid ""
 "If a key pair does not have a private key then it will not be able to "
 "generate sub-keys."
 msgstr ""
 "Калі пара ключоў не мае прыватнага ключа, яна не зможа генераваць падключы."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:491
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:394
 msgid ""
 "Please select a key before performing this operation. If you select multiple"
 " keys, only the first key will be exported."
@@ -1604,11 +2682,11 @@ msgstr ""
 "Калі ласка, абярыце ключ перад выкананнем гэтай аперацыі. Калі вы вылучыце "
 "некалькі ключоў, будзе экспартаваны толькі першы ключ."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:499
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:402
 msgid "An error occur in exporting."
 msgstr "Пры экспарце адбылася памылка."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:506
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:409
 msgid ""
 "This key may not be able to export as OpenSSH format. Please check the key-"
 "size of the subkey(s) used to sign."
@@ -1616,726 +2694,33 @@ msgstr ""
 "Магчыма, гэты ключ немагчыма экспартаваць у фармат OpenSSH. Калі ласка, "
 "праверце памер ключа падключа(-аў), які выкарыстоўваецца для падпісання."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:520
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:423
 msgid "Export OpenSSH Key To File"
 msgstr "Экспарт ключа OpenSSH у файл"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:521
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:424
 msgid "OpenSSH Public Key Files"
 msgstr "Файлы адкрытага ключа OpenSSH"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:534
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:436
 msgid "Import Key Package"
 msgstr "Імпарт пакета ключоў"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:538
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:440
 msgid "Import Key Package Passphrase File"
 msgstr "Імпарт файла кодавай фразы пакета ключоў"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:539
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:441
 msgid "Key Package Passphrase File"
 msgstr "Файл кодавай фразы пакета ключоў"
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:550
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:451
 msgid "key(s) imported"
 msgstr "імпартаваны ключ(ы)."
 
-#: /mnt/h/GpgFrontend/src/ui/KeyMgmt.cpp:557
+#: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:458
 msgid "An error occur in importing key package."
 msgstr "Адбылася памылка пры імпартаванні пакета ключоў."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:41
-msgid "KeyPair"
-msgstr "Пара ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:42
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:67
-msgid "UIDs"
-msgstr "UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:44
-msgid "Subkeys"
-msgstr "Падключы"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:46
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:392
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:52
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:51
-msgid "Operations"
-msgstr "Аперацыі"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyDetailsDialog.cpp:56
-msgid "Key Details"
-msgstr "Ключавыя дэталі"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:48
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:71
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:383
-msgid "Comment"
-msgstr "Каментар"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:56
-msgid "Notice: The New UID Created will be set as Primary."
-msgstr "Заўвага: новы створаны UID будзе ўсталяваны як асноўны."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:64
-msgid "Create New UID"
-msgstr "Стварыце новы UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:96
-msgid "Name must contain at least five characters."
-msgstr "Імя павінна ўтрымліваць не менш за пяць сімвалаў."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyNewUIDDialog.cpp:83
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:101
-msgid "Please give a email address."
-msgstr "Калі ласка, дайце адрас электроннай пошты."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:40
-msgid "Owner"
-msgstr "Уладальнік"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:41
-msgid "Primary Key"
-msgstr "Першасны ключ"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:43
-msgid "Additional UIDs"
-msgstr "Дадатковыя UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:70
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:382
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
-msgid "Email Address"
-msgstr "Адрас электроннай пошты"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:77
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:67
-#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:35
-msgid "Algorithm"
-msgstr "Алгарытм"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:69
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:160
-#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:36
-msgid "Key Size"
-msgstr "Памер ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
-msgid "Nominal Usage"
-msgstr "Намінальнае выкарыстанне"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:80
-#: /mnt/h/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:38
-msgid "Actual Usage"
-msgstr "Фактычнае выкарыстанне"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:81
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:75
-msgid "Create Date (Local Time)"
-msgstr "Дата стварэння (мясцовы час)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:83
-msgid "Expires on (Local Time)"
-msgstr "Заканчваецца (па мясцовым часе)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:85
-msgid "Last Update (Local Time)"
-msgstr "Апошняе абнаўленне (па мясцовым часе)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:87
-msgid "Primary Key Existence"
-msgstr "Існаванне першаснага ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:101
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:126
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:103
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:122
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:43
-msgid "Copy"
-msgstr "Копія"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:128
-msgid "copy fingerprint to clipboard"
-msgstr "скапіяваць адбітак пальца ў буфер абмену"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:174
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:267
-msgid "Exists"
-msgstr "Існуе"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:174
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:268
-msgid "Not Exists"
-msgstr "Не існуе"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:206
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:216
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:259
-msgid "Certificate"
-msgstr "Сертыфікат"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:207
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:218
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:260
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:165
-msgid "Encrypt"
-msgstr "Зашыфраваць"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:208
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:220
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:261
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:193
-msgid "Sign"
-msgstr "Знак"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:209
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:222
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:262
-msgid "Auth"
-msgstr "Аўт"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:232
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:204
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:385
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:143
-msgid "Never Expire"
-msgstr "Ніколі не мінае"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:244
-msgid "No Data"
-msgstr "Няма дадзеных"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:261
-msgid "Warning: The primary key has expired."
-msgstr "Папярэджанне: тэрмін дзеяння першаснага ключа скончыўся."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairDetailTab.cpp:266
-msgid "Warning: The primary key has been revoked."
-msgstr "Папярэджанне: першасны ключ быў адкліканы."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:44
-msgid "General Operations"
-msgstr "Агульныя аперацыі"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:50
-msgid "Export Public Key"
-msgstr "Экспарт адкрытага ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:56
-msgid "Export Private Key"
-msgstr "Экспарт прыватнага ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:63
-msgid "Modify Expiration Datetime (Primary Key)"
-msgstr "Змяніць дату заканчэння тэрміну дзеяння (першасны ключ)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:66
-msgid "Modify Password"
-msgstr "Змяніць пароль"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:77
-msgid "Key Server Operation (Pubkey)"
-msgstr "Аперацыя сервера ключоў (Pubkey)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:84
-msgid "Generate Revoke Certificate"
-msgstr "Стварыць сертыфікат адклікання"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:90
-msgid "Modify TOFU Policy"
-msgstr "Змяніць палітыку TOFU"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:106
-msgid "Upload Key Pair to Key Server"
-msgstr "Загрузіце пару ключоў на сервер ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:112
-msgid "Sync Key Pair From Key Server"
-msgstr "Сінхранізацыя пары ключоў з сервера ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:126
-msgid "Export Full Secret Key"
-msgstr "Экспарт поўнага сакрэтнага ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:132
-msgid "Export Shortest Secret Key"
-msgstr "Экспарт найкарацейшага сакрэтнага ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:145
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:192
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:235
-msgid "An error occurred during the export operation."
-msgstr "Падчас аперацыі экспарту адбылася памылка."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:156
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:202
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:244
-msgid "Export Key To File"
-msgstr "Экспарт ключа ў файл"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:157
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:203
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
-msgid "Key Files"
-msgstr "Ключавыя файлы"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:164
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:210
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:252
-msgid "Export Error"
-msgstr "Памылка экспарту"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:165
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:211
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:253
-msgid "Couldn't open %1 for writing"
-msgstr "Немагчыма адкрыць %1 для запісу"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:173
-msgid "Exporting short private Key"
-msgstr "Экспарт кароткага закрытага ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:174
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:221
-msgid "You are about to export your"
-msgstr "Вы збіраецеся экспартаваць свой"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:175
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:222
-msgid " PRIVATE KEY "
-msgstr " ПРЫВАТНЫ КЛЮЧ"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:176
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:223
-msgid "This is NOT your Public Key, so DON'T give it away."
-msgstr "Гэта НЕ ваш адкрыты ключ, таму НЕ аддавайце яго."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:177
-msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
-msgstr ""
-"Вы САПРАЎДЫ жадаеце экспартаваць свой прыватны ключ у мінімальным памеры?"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:180
-msgid ""
-"For OpenPGP keys it removes all signatures except for the latest self-"
-"signatures."
-msgstr ""
-"Для ключоў OpenPGP ён выдаляе ўсе подпісы, за выключэннем апошніх уласных "
-"подпісаў."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:220
-msgid "Exporting private Key"
-msgstr "Экспарт прыватнага ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:224
-msgid "Do you REALLY want to export your PRIVATE KEY?"
-msgstr "Вы САПРАЎДЫ жадаеце экспартаваць свой прыватны ключ?"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:281
-msgid "Revocation Certificates"
-msgstr "Сертыфікаты аб адкліканні"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:324
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:354
-msgid "Not Successful"
-msgstr "Непаспяховы"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:325
-msgid "Modify password not successfully."
-msgstr "Не ўдалося змяніць пароль."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:331
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:341
-msgid "Policy Auto"
-msgstr "Палітыка аўта"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:331
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:343
-msgid "Policy Good"
-msgstr "Палітыка добрая"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:331
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:345
-msgid "Policy Bad"
-msgstr "Дрэнная палітыка"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:332
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:347
-msgid "Policy Ask"
-msgstr "Палітыка Спытайце"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:332
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:349
-msgid "Policy Unknown"
-msgstr "Палітыка невядомая"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:336
-msgid "Modify TOFU Policy(Default is Auto)"
-msgstr "Змяніць палітыку TOFU (па змаўчанні - аўтаматычна)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:337
-msgid "Policy for the Key Pair:"
-msgstr "Палітыка для пары ключоў:"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairOperaTab.cpp:355
-msgid "Modify TOFU policy not successfully."
-msgstr "Не ўдалося змяніць палітыку TOFU."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:44
-msgid "Subkey List"
-msgstr "Спіс падключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:45
-msgid "Detail of Selected Subkey"
-msgstr "Падрабязнасці выбранага падключа"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:49
-msgid "Generate A New Subkey"
-msgstr "Стварыць новы падключ"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:71
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:151
-msgid "Usage"
-msgstr "Выкарыстанне"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:73
-msgid "Expires On (Local Time)"
-msgstr "Заканчваецца (па мясцовым часе)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:76
-msgid "Existence"
-msgstr "Існаванне"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:79
-msgid "Key in Smart Card"
-msgstr "Увядзіце смарт-карту"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:160
-msgid "Subkey ID"
-msgstr "Ідэнтыфікатар падключа"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:160
-msgid "Algo"
-msgstr "Алга"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:161
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:160
-msgid "Create Date (UTC)"
-msgstr "Дата стварэння (UTC)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:161
-msgid "Expire Date (UTC)"
-msgstr "Дата заканчэння (UTC)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:238
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:288
-msgid "Never Expires"
-msgstr "Ніколі не мінае"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:271
-msgid "Yes"
-msgstr "Так"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:271
-msgid "No"
-msgstr "не"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairSubkeyTab.cpp:301
-msgid "Edit Expire Date"
-msgstr "Рэдагаваць дату заканчэння тэрміну дзеяння"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:48
-msgid "UID Management"
-msgstr "Кіраванне UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:72
-msgid "TOFU"
-msgstr "Тофу"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:84
-msgid "Signature of Selected UID"
-msgstr "Подпіс выбранага UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:137
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
-msgid "Select"
-msgstr "Выберыце"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:161
-msgid "Expired Date (UTC)"
-msgstr "Тэрмін дзеяння (UTC)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:237
-msgid "TOFU %1"
-msgstr "TOFU %1"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:307
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:364
-msgid "Please select one or more UIDs before doing this operation."
-msgstr ""
-"Калі ласка, абярыце адзін або некалькі UID перад выкананнем гэтай аперацыі."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:328
-msgid "Sign Selected UID(s)"
-msgstr "Падпісаць выбраныя UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:330
-msgid "Delete Selected UID(s)"
-msgstr "Выдаліць выбраныя UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:350
-msgid "Successful Operation"
-msgstr "Паспяховая аперацыя"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:351
-msgid "Successfully added a new UID."
-msgstr "Паспяхова дададзены новы UID."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:353
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:388
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:423
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:519
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:571
-msgid "Operation Failed"
-msgstr "Аперацыя не атрымалася"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:354
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:424
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:520
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:572
-msgid "An error occurred during the operation."
-msgstr "Падчас аперацыі адбылася памылка."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:375
-msgid "Deleting UIDs"
-msgstr "Выдаленне UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:378
-msgid "Are you sure that you want to delete the following UIDs?"
-msgstr "Вы ўпэўнены, што хочаце выдаліць наступныя UID?"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:389
-msgid "An error occurred during the delete %1 operation."
-msgstr "Падчас аперацыі выдалення %1 адбылася памылка."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:413
-msgid "Set Primary UID"
-msgstr "Усталюйце асноўны UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:415
-msgid "Are you sure that you want to set the Primary UID to?"
-msgstr "Вы ўпэўнены, што хочаце ўсталяваць асноўны UID?"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:455
-msgid "Set As Primary"
-msgstr "Ўсталяваць у якасці асноўнага"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:458
-msgid "Sign UID"
-msgstr "Падпішыце UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:461
-msgid "Delete UID"
-msgstr "Выдаліць UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:485
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:499
-msgid "Please select one UID before doing this operation."
-msgstr "Калі ласка, абярыце адзін UID перад выкананнем гэтай аперацыі."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:509
-msgid "Deleting UID"
-msgstr "Выдаленне UID"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:512
-msgid "Are you sure that you want to delete the following uid?"
-msgstr "Вы ўпэўнены, што жадаеце выдаліць наступны uid?"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:530
-msgid "Delete(Revoke) Key Signature"
-msgstr "Выдаліць (адклікаць) подпіс ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:541
-msgid "Please select one Key Signature before doing this operation."
-msgstr ""
-"Калі ласка, абярыце адну подпіс ключа перад выкананнем гэтай аперацыі."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:550
-msgid ""
-"To delete the signature, you need to have its corresponding public key in "
-"the local database."
-msgstr ""
-"Каб выдаліць подпіс, вам трэба мець адпаведны адкрыты ключ у лакальнай базе "
-"дадзеных."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:561
-msgid "Deleting Key Signature"
-msgstr "Выдаленне подпісы ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyPairUIDTab.cpp:563
-msgid "Are you sure that you want to delete the following signature?"
-msgstr "Вы ўпэўнены, што хочаце выдаліць наступны подпіс?"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:79
-msgid "The expire date of the key pair has been updated."
-msgstr "Тэрмін дзеяння пары ключоў абноўлены."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:88
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:163
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:288
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:238
-msgid "Failure"
-msgstr "Няўдача"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:89
-msgid "Failed to update the expire date of the key pair."
-msgstr "Не атрымалася абнавіць тэрмін дзеяння пары ключоў."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:104
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:51
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:48
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:98
-msgid "longer_expiration_date"
-msgstr "даўжэйшы_тэрмін_прыдатнасці"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:131
-msgid "Modified Expiration Date (Local Time)"
-msgstr "Зменены тэрмін прыдатнасці (па мясцовым часе)"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:133
-msgid ""
-"Tips: For the sake of security, the key is valid for up to two years. If you"
-" are an expert user, please unlock it for a longer time in the settings."
-msgstr ""
-"Парады: у мэтах бяспекі ключ дзейнічае да двух гадоў. Калі вы дасведчаны "
-"карыстальнік, разблакуйце яго на большы час у наладах."
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:136
-msgid "No Expiration"
-msgstr "Без заканчэння тэрміну дзеяння"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeySetExpireDateDialog.cpp:137
-msgid "Modified Expiration Date"
-msgstr "Зменены тэрмін прыдатнасці"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:41
-#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:42
-msgid "Signers"
-msgstr "Падпісанты"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:84
-msgid "Expire Date"
-msgstr "Тэрмін дзеяння"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:94
-msgid "Sign For Key's UID(s)"
-msgstr "Падпішыцеся на UID(ы) ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:121
-msgid "Unsuccessful Operation"
-msgstr "Няўдалая аперацыя"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:122
-msgid "Signature operation failed for UID %1"
-msgstr "Не атрымалася аперацыя подпісу для UID %1"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:126
-msgid "Operation Complete"
-msgstr "Аперацыя завершана"
-
-#: /mnt/h/GpgFrontend/src/ui/keypair_details/KeyUIDSignDialog.cpp:127
-msgid "The signature operation of the UID is complete"
-msgstr "Аперацыя подпісы UID завершана"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:109
-msgid "Expiration time too long."
-msgstr "Тэрмін прыдатнасці занадта доўгі."
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:138
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:268
-msgid "Generating"
-msgstr "Стварэнне"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:154
-msgid "The new key pair has been generated."
-msgstr "Новая пара ключоў была створана."
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:163
-msgid "Key generation failed."
-msgstr "Збой генерацыі ключа."
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:192
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:88
-msgid "Key Usage"
-msgstr "Выкарыстанне ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:194
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:90
-msgid "Encryption"
-msgstr "Шыфраванне"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:197
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:93
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:432
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:255
-msgid "Signing"
-msgstr "Падпісанне"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:200
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:96
-msgid "Certification"
-msgstr "Сертыфікацыя"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:203
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:99
-msgid "Authentication"
-msgstr "Аўтэнтыфікацыя"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:384
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:142
-msgid "Expiration Date"
-msgstr "Тэрмін прыдатнасці"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:386
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:144
-msgid "KeySize (in Bit)"
-msgstr "Памер ключа (у бітах)"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:387
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:145
-msgid "Key Type"
-msgstr "Тып ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:388
-msgid "Non Pass Phrase"
-msgstr "Непрахадная фраза"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:401
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:154
-msgid "Basic Information"
-msgstr "Асноўная інфармацыя"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:72
-msgid "Generate New Subkey"
-msgstr "Стварыць новы падключ"
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:246
-msgid "Expiration time no more than 2 years."
-msgstr "Тэрмін прыдатнасці не больш за 2 гадоў."
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:281
-msgid "The new subkey has been generated."
-msgstr "Новы падключ быў створаны."
-
-#: /mnt/h/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:288
-msgid "Failed to generate key."
-msgstr "Не атрымалася згенераваць ключ."
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:126
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:128
@@ -2346,12 +2731,7 @@ msgstr "Пры загрузцы GpgFrontend адбываецца крытычн�
 msgid "Loading Failed"
 msgstr "Збой загрузкі"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:243
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:149
-msgid "prohibit_update_checking"
-msgstr "prohibit_update_checking"
-
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:251
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:202
 msgid "settings restored"
 msgstr "налады адноўлены"
 
@@ -2379,25 +2759,17 @@ msgstr "Выманне Tarball"
 msgid "Making Tarball"
 msgstr "Стварэнне Tarball"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:175
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:477
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:588
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:133
-msgid "non_ascii_when_export"
-msgstr "non_ascii_when_export"
-
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:200
 msgid "The target file %1% already exists, do you need to overwrite it?"
 msgstr "Мэтавы файл %1% ужо існуе, вам трэба яго перазапісаць?"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:214
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:629
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:632
 msgid "Unable to convert the folder into tarball."
 msgstr "Немагчыма пераўтварыць тэчку ў tar-архіў."
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:222
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:98
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:94
 msgid "Symmetric Encryption"
 msgstr "Сіметрычнае шыфраванне"
 
@@ -2410,33 +2782,33 @@ msgstr ""
 "парольнай фразы?"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:230
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:105
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:101
 msgid "Symmetrically Encrypting"
 msgstr "Сіметрычнае шыфраванне"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:249
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:574
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:417
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:413
 msgid "Invalid KeyPair"
 msgstr "Няправільная пара ключоў"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:250
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:575
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:418
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:414
 msgid "The selected keypair cannot be used for encryption."
 msgstr "Выбраную пару ключоў нельга выкарыстоўваць для шыфравання."
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:576
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:135
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:196
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:419
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:131
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:192
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:415
 msgid "For example the Following Key:"
 msgstr "Напрыклад, наступны ключ:"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:257
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:145
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:169
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:141
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:165
 msgid "Encrypting"
 msgstr "Шыфраванне"
 
@@ -2444,14 +2816,14 @@ msgstr "Шыфраванне"
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:340
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:452
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:546
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:665
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:742
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:86
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:250
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:318
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:385
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:505
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:583
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:668
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:745
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:82
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:246
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:314
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:381
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:504
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:582
 msgid "An error occurred during operation."
 msgstr "Падчас працы адбылася памылка."
 
@@ -2464,38 +2836,38 @@ msgstr "Мэтавы файл ужо існуе, ці трэба яго пера
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:347
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:352
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:357
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:749
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:754
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:759
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:323
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:752
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:757
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:762
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:319
 msgid "Decrypting"
 msgstr "Расшыфроўка"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:348
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:750
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:753
 msgid "Do you want to extract and delete the decrypted tarball?"
 msgstr "Вы хочаце атрымаць і выдаліць расшыфраваны tar-архіў?"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:353
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:755
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:758
 msgid "Extracting tarball succeeded."
 msgstr "Выманне tar-архіва атрымалася."
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:358
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:760
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:763
 msgid "Extracting tarball failed."
 msgstr "Не атрымалася распакаваць tar-архіў."
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:375
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:563
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:183
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:405
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:179
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:401
 msgid "No Key Checked"
 msgstr "Ключ не правераны"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:376
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:564
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:184
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:180
 msgid "Please check the key in the key toolbox on the right."
 msgstr "Калі ласка, праверце ключ у панэлі інструментаў ключа справа."
 
@@ -2529,25 +2901,25 @@ msgstr ""
 "Пераканайцеся, што абодва знаходзяцца ў гэтым каталогу."
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:521
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:390
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:386
 msgid "Verifying"
 msgstr "Праверка"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:640
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:510
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:643
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:509
 msgid "Encrypting and Signing"
 msgstr "Шыфраванне і подпіс"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:702
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:705
 msgid "The output file %1 already exists, do you need to overwrite it?"
 msgstr "Выхадны файл %1 ужо існуе, ці трэба яго перазапісаць?"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:714
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:588
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:717
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:587
 msgid "Decrypting and Verifying"
 msgstr "Расшыфроўка і праверка"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:99
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:95
 msgid ""
 "No Key Checked. Do you want to encrypt with a symmetric cipher using a "
 "passphrase?"
@@ -2555,39 +2927,39 @@ msgstr ""
 "Ключ не правераны. Вы хочаце зашыфраваць сіметрычным шыфрам, выкарыстоўваючы"
 " парольную фразу?"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:129
 msgid ""
 "The selected key contains a key that does not actually have a encrypt usage."
 msgstr "Абраны ключ змяшчае ключ, які фактычна не мае шыфравання."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:194
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:190
 msgid ""
 "The selected key contains a key that does not actually have a signature "
 "usage."
 msgstr "Выбраны ключ змяшчае ключ, які фактычна не мае подпісы."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:269
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:265
 msgid "Notice"
 msgstr "Заўважце"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:270
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:266
 msgid "Short Crypto Text only supports Decrypt & Verify."
 msgstr "Кароткі крыптатэкст падтрымлівае толькі расшыфроўку і праверку."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:406
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:402
 msgid "Please check some key in the key toolbox on the right."
 msgstr ""
 "Калі ласка, праверце некаторыя ключы ў панэлі ключавых інструментаў справа."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:673
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:672
 msgid "GpgFrontend Upgradeable (New Version: %1)."
 msgstr "GpgFrontend з магчымасцю абнаўлення (новая версія: %1)."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:684
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:683
 msgid "Withdrawn Version"
 msgstr "Знятая версія"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:686
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:685
 msgid ""
 "This version(%1) may have been withdrawn by the developer due to serious "
 "problems. Please stop using this version immediately and use the latest "
@@ -2597,14 +2969,14 @@ msgstr ""
 "праблем. Калі ласка, неадкладна спыніце выкарыстанне гэтай версіі і "
 "выкарыстоўвайце апошнюю стабільную версію."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:691
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:690
 msgid ""
 "You can download the latest stable version(%1) on Github Releases Page.<br/>"
 msgstr ""
 "Вы можаце спампаваць апошнюю стабільную версію (%1) на старонцы выпускаў "
 "Github.<br/>"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:697
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:696
 msgid "This maybe a BETA Version (Latest Stable Version: %1)."
 msgstr "Магчыма, гэта бэта-версія (апошняя стабільная версія: %1)."
 
@@ -2747,11 +3119,6 @@ msgstr "Выдаліць інтэрвал"
 msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
 msgstr ""
 "Выдаліце падвойныя разрывы радкоў, напр. ва ўстаўленым тэксце з Web Mailer"
-
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:156
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:66
-msgid "Settings"
-msgstr "Налады"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:157
 msgid "Open settings dialog"
@@ -2906,364 +3273,6 @@ msgstr "Гатовы"
 msgid "Key ToolBox"
 msgstr "Key ToolBox"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:459
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:54
-msgid "Default"
-msgstr "Па змаўчанні"
-
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:489
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:91
-msgid "Information Board"
-msgstr "Інфармацыйная дошка"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:36
-msgid "Show Steganography Options"
-msgstr "Паказаць параметры стэганографіі"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:38
-msgid "Show Steganography Options."
-msgstr "Паказаць параметры стэганографіі."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:42
-msgid "Pubkey Exchange"
-msgstr "Абмен Pubkey"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:45
-msgid "Auto Pubkey Exchange"
-msgstr "Аўтаматычны абмен Pubkey"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:63
-msgid "stegano_checked"
-msgstr "stegano_checked"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAdvanced.cpp:73
-msgid "auto_pubkey_exchange_checked"
-msgstr "auto_pubkey_exchange_checked"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:40
-msgid "Icon Size"
-msgstr "Памер значка"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:42
-msgid "small"
-msgstr "невялікі"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:43
-msgid "medium"
-msgstr "сярэдні"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:44
-msgid "large"
-msgstr "буйны"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:60
-msgid "Icon Style"
-msgstr "Стыль значкоў"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:62
-msgid "just text"
-msgstr "проста тэкст"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:63
-msgid "just icons"
-msgstr "проста абразкі"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:64
-msgid "text and icons"
-msgstr "тэкст і абразкі"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:80
-msgid "Window State"
-msgstr "Стан акна"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:83
-msgid "Save window size and position on exit."
-msgstr "Захаваць памер і пазіцыю акна пры выхадзе."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:97
-msgid "Font Size in Information Board"
-msgstr "Памер шрыфта на інфармацыйнай дошцы"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:52
-msgid "General"
-msgstr "Агульны"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:53
-msgid "Appearance"
-msgstr "Знешні выгляд"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:55
-msgid "Network"
-msgstr "Сетка"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:70
-msgid "Preference"
-msgstr "Перавага"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsDialog.cpp:118
-msgid "System Default"
-msgstr "Сістэма па змаўчанні"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:44
-msgid "Save Checked Keys"
-msgstr "Захаваць правераныя ключы"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:46
-msgid "Save checked private keys on exit and restore them on next start."
-msgstr ""
-"Захавайце правераныя прыватныя ключы пры выхадзе і аднаўляйце іх пры "
-"наступным запуску."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:47
-msgid "Longer Key Expiration Date"
-msgstr "Большы тэрмін прыдатнасці ключа"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:49
-msgid "Unlock key expiration date setting up to 30 years."
-msgstr "Разблакіраваць настройку тэрміну прыдатнасці ключа да 30 гадоў."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:50
-msgid "Confirm drag'n'drop key import"
-msgstr "Пацвердзіце імпарт ключоў drag'n'drop"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:52
-msgid "Import files dropped on the Key List without confirmation."
-msgstr "Файлы імпарту патрапілі ў спіс ключоў без пацверджання."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:54
-msgid "ASCII Mode"
-msgstr "Рэжым ASCII"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:56
-msgid "ASCII encoding is not used when file encrypting and signing."
-msgstr ""
-"Кадаванне ASCII не выкарыстоўваецца пры шыфраванні і падпісанні файлаў."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:59
-msgid "Language"
-msgstr "Мова"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:61
-msgid "NOTE"
-msgstr "НАТАТКА"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:62
-msgid "GpgFrontend will restart automatically if you change the language!"
-msgstr "GpgFrontend аўтаматычна перазапусціцца, калі вы зменіце мову!"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:88
-msgid "save_key_checked"
-msgstr "save_key_checked"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:113
-msgid "lang"
-msgstr "яз"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:123
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:323
-msgid "confirm_import_keys"
-msgstr "пацвердзіць_імпарт_ключаў"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:51
-msgid "Keyserver List"
-msgstr "Спіс сервераў ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:56
-msgid "Keyserver Address"
-msgstr "Адрас сервера ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:57
-msgid "Security"
-msgstr "Бяспека"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:58
-msgid "Available"
-msgstr "Даступны"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:60
-msgid "Add"
-msgstr "Дадаць"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:61
-msgid "Test Listed Keyserver"
-msgstr "Тэстны спіс ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:64
-msgid "Tips: Please Double-click table item to edit it."
-msgstr ""
-"Парады: Калі ласка, двойчы пстрыкніце элемент табліцы, каб адрэдагаваць яго."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:65
-msgid "Delete Selected"
-msgstr "Выдаліць выбранае"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:67
-msgid "Delete Selected Key Server"
-msgstr "Выдаліць выбраны сервер ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:68
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:69
-msgid "Set As Default"
-msgstr "Ўсталяваць па змаўчанні"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:149
-msgid "Insecure keyserver address"
-msgstr "Небяспечны адрас сервера ключоў"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:150
-msgid ""
-"For security reasons, using HTTP as the communication protocol with the key "
-"server is not recommended. It is recommended to use HTTPS."
-msgstr ""
-"З меркаванняў бяспекі не рэкамендуецца выкарыстоўваць HTTP у якасці "
-"пратаколу сувязі з серверам ключоў. Рэкамендуецца выкарыстоўваць HTTPS."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:159
-msgid ""
-"You may not use HTTPS or HTTP as the protocol for communicating with the key"
-" server, which may not be wrong. But please check the address you entered "
-"again to make sure it is correct. Are you sure that want to add it into the "
-"keyserver list?"
-msgstr ""
-"Вы не можаце выкарыстоўваць HTTPS або HTTP у якасці пратаколу для сувязі з "
-"серверам ключоў, што можа быць няправільным. Але, калі ласка, праверце "
-"адрас, які вы ўвялі яшчэ раз, каб пераканацца, што ён правільны. Вы "
-"ўпэўнены, што хочаце дадаць яго ў спіс сервераў ключоў?"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:207
-msgid "false"
-msgstr "фальшывы"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:212
-msgid "unknown"
-msgstr "невядомы"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:226
-msgid "Set TCP Timeout"
-msgstr "Усталюйце тайм-аўт TCP"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:251
-msgid "Reachable"
-msgstr "Дасяжны"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:254
-msgid "Not Reachable"
-msgstr "Недасяжны"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:266
-msgid "Test Key Server Connection..."
-msgstr "Тэст падлучэння да сервера ключа..."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:267
-msgid ""
-"This test only tests the network connectivity of the key server. Passing the"
-" test does not mean that the key server is functionally available."
-msgstr ""
-"Гэты тэст правярае толькі сеткавае падключэнне сервера ключоў. Праходжанне "
-"тэсту не азначае, што сервер ключоў функцыянальна даступны."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:49
-msgid "Proxy"
-msgstr "Проксі"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:50
-msgid "Network Capability"
-msgstr "Магчымасці сеткі"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:53
-msgid "Enable Proxy"
-msgstr "Уключыць проксі"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:54
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:57
-msgid "Port"
-msgstr "Порт"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:56
-msgid "Host Address"
-msgstr "Адрас хоста"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:58
-msgid "Proxy Type"
-msgstr "Тып проксі"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:59
-msgid "Username"
-msgstr "Імя карыстальніка"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:60
-msgid "Password"
-msgstr "Пароль"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:62
-msgid "Forbid all network connection."
-msgstr "Забараніць любое падключэнне да сеткі."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:66
-msgid "Prohibit checking for version updates when the program starts."
-msgstr "Забараніць праверку абнаўленняў версій пры запуску праграмы."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:67
-msgid "Check Proxy Connection"
-msgstr "Праверце падлучэнне проксі"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:79
-msgid "proxy_host"
-msgstr "proxy_host"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:86
-msgid "username"
-msgstr "імя карыстальніка"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:93
-msgid "password"
-msgstr "пароль"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:100
-msgid "port"
-msgstr "порт"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:108
-msgid "proxy_type"
-msgstr "тып_проксі"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:120
-msgid "proxy_enable"
-msgstr "proxy_enable"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:137
-msgid "forbid_all_connection"
-msgstr "forbid_all_connection"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:235
-msgid "Test Server Url Accessibility"
-msgstr "Тэставая даступнасць URL-адрасоў сервера"
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:246
-msgid "Successfully connect to the target server through the proxy server."
-msgstr "Паспяхова падключыцца да мэтавага сервера праз проксі-сервер."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:251
-msgid ""
-"Unable to connect to the target server through the proxy server. Proxy "
-"settings may be invalid."
-msgstr ""
-"Немагчыма падключыцца да мэтавага сервера праз проксі-сервер. Магчыма, "
-"няправільныя налады проксі."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:262
-msgid "Test Proxy Server Connection..."
-msgstr "Праверка злучэння з проксі-серверам..."
-
-#: /mnt/h/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:263
-msgid ""
-"Is using your proxy settings to access the url. Note that this test "
-"operation will apply your proxy settings to the entire software."
-msgstr ""
-"Выкарыстоўвае налады проксі для доступу да URL. Звярніце ўвагу, што гэтая "
-"тэставая аперацыя прымяняе вашыя налады проксі да ўсяго праграмнага "
-"забеспячэння."
-
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:65
 msgid "Public key not found locally"
 msgstr "Адкрыты ключ не знойдзены лакальна"
@@ -3322,11 +3331,11 @@ msgstr "Дамагчыся поспеху ў выкананні каманды."
 msgid "Finished executing command."
 msgstr "Выкананне каманды скончана."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:346
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:349
 msgid "The key has been updated"
 msgstr "Ключ быў абноўлены"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:348
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:351
 msgid "No need to update the key"
 msgstr "Не трэба абнаўляць ключ"
 
@@ -3533,26 +3542,6 @@ msgstr "%1% байт(аў)"
 msgid "binary"
 msgstr "двайковы"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:36
-msgid "Confirm"
-msgstr "Пацвердзіць"
-
-#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:50
-msgid "Select Signer(s)"
-msgstr "Выберыце падпісанта(-аў)"
-
-#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:54
-msgid "Please select one or more private keys you use for signing."
-msgstr ""
-"Калі ласка, абярыце адзін або некалькі прыватных ключоў, якія вы "
-"выкарыстоўваеце для падпісання."
-
-#: /mnt/h/GpgFrontend/src/ui/widgets/SignersPicker.cpp:56
-msgid "If no key is selected, the default key will be used for signing."
-msgstr ""
-"Калі ключ не выбраны, для падпісання будзе выкарыстоўвацца ключ па "
-"змаўчанні."
-
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:55
 msgid "untitled"
 msgstr "без назвы"
@@ -3710,6 +3699,18 @@ msgstr "Тэрмін дзеяння ключа скончыўся"
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:209
 msgid "Missing CRL"
 msgstr "Адсутнічае CRL"
+
+#~ msgid "Current Row"
+#~ msgstr "Бягучы рад"
+
+#~ msgid "Public key Not Found"
+#~ msgstr "Адкрыты ключ не знойдзены"
+
+#~ msgid "icon_size"
+#~ msgstr "памер_значка"
+
+#~ msgid "icon_style"
+#~ msgstr "icon_style"
 
 #~ msgid "Failed to read root certificate file"
 #~ msgstr "Не ўдалося прачытаць файл каранёвага сертыфіката"
