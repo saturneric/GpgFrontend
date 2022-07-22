@@ -26,7 +26,7 @@
  *
  */
 
-#include "ui/key_generate/KeygenDialog.h"
+#include "KeygenDialog.h"
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyOpera.h"

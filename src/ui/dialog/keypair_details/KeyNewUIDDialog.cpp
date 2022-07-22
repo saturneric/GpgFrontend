@@ -24,7 +24,7 @@
  *
  */
 
-#include "ui/keypair_details/KeyNewUIDDialog.h"
+#include "KeyNewUIDDialog.h"
 
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgUIDOperator.h"

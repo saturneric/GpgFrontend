@@ -24,7 +24,7 @@
  *
  */
 
-#include "ui/keypair_details/KeyPairDetailTab.h"
+#include "KeyPairDetailTab.h"
 
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"

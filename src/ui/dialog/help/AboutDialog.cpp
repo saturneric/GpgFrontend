@@ -26,7 +26,7 @@
  *
  */
 
-#include "ui/help/AboutDialog.h"
+#include "AboutDialog.h"
 
 #include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"

@@ -26,7 +26,7 @@
  *
  */
 
-#include "ui/keypair_details/KeySetExpireDateDialog.h"
+#include "KeySetExpireDateDialog.h"
 
 #include <utility>
 

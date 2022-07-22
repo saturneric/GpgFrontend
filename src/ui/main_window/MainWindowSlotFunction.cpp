@@ -41,7 +41,7 @@
 #include "core/model/GpgKey.h"
 #include "core/thread/TaskRunner.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/help/AboutDialog.h"
+#include "ui/dialog/help/AboutDialog.h"
 #include "ui/widgets/SignersPicker.h"
 
 namespace GpgFrontend::UI {

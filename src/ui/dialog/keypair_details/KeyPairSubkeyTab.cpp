@@ -26,7 +26,7 @@
  *
  */
 
-#include "ui/keypair_details/KeyPairSubkeyTab.h"
+#include "KeyPairSubkeyTab.h"
 
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "ui/SignalStation.h"

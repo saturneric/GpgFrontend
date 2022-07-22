@@ -26,12 +26,12 @@
  *
  */
 
-#include "ui/keypair_details/KeyDetailsDialog.h"
+#include "KeyDetailsDialog.h"
 
-#include "ui/keypair_details/KeyPairDetailTab.h"
-#include "ui/keypair_details/KeyPairOperaTab.h"
-#include "ui/keypair_details/KeyPairSubkeyTab.h"
-#include "ui/keypair_details/KeyPairUIDTab.h"
+#include "KeyPairDetailTab.h"
+#include "KeyPairOperaTab.h"
+#include "KeyPairSubkeyTab.h"
+#include "KeyPairUIDTab.h"
 
 namespace GpgFrontend::UI {
 KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
