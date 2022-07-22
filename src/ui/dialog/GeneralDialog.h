@@ -1,7 +1,7 @@
-/**
- * Copyright (C) 2021 Saturneric
+/*
+ * Copyright (c) 2022. Saturneric
  *
- * This file is part of GpgFrontend.
+ *  This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,27 +23,47 @@
  * Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
- *
  */
 
-#ifndef __KEYDETAILSDIALOG_H__
-#define __KEYDETAILSDIALOG_H__
 
-#include "core/GpgContext.h"
+#ifndef GPGFRONTEND_GENERALDIALOG_H
+#define GPGFRONTEND_GENERALDIALOG_H
+
 #include "ui/GpgFrontendUI.h"
-#include "ui/dialog/GeneralDialog.h"
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend::UI{
 
-class KeyDetailsDialog : public GeneralDialog {
-  Q_OBJECT
-
+class GeneralDialog: public QDialog {
  public:
-  explicit KeyDetailsDialog(const GpgKey& key, QWidget* parent = nullptr);
+  /**
+   *
+   * @param name
+   */
+  explicit GeneralDialog(std::string name, QWidget* parent = nullptr);
+
+  /**
+   *
+   */
+  ~GeneralDialog() override;
+
+ private slots:
+  /**
+   *
+   */
+  void slot_restore_settings() noexcept;
+
+  /**
+   *
+   */
+  void slot_save_settings() noexcept;
 
  private:
-  QTabWidget* tab_widget_{};
-};
-}  // namespace GpgFrontend::UI
 
-#endif  // __KEYDETAILSDIALOG_H__
+  std::string name_; ///<
+
+};
+}
+
+
+
+#endif  // GPGFRONTEND_GENERALDIALOG_H

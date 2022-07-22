@@ -35,7 +35,8 @@
 
 namespace GpgFrontend::UI {
 
-AboutDialog::AboutDialog(int defaultIndex, QWidget* parent) : QDialog(parent) {
+AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
+    : GeneralDialog(typeid(AboutDialog).name(), parent) {
   this->setWindowTitle(QString(_("About")) + " " + qApp->applicationName());
 
   auto* tabWidget = new QTabWidget;

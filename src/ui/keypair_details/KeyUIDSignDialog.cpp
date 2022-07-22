@@ -34,7 +34,9 @@ namespace GpgFrontend::UI {
 
 KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
                                    QWidget* parent)
-    : QDialog(parent), m_uids_(std::move(uid)), m_key_(key) {
+    : GeneralDialog(typeid(KeyUIDSignDialog).name(), parent),
+      m_uids_(std::move(uid)),
+      m_key_(key) {
   const auto key_id = m_key_.GetId();
   m_key_list_ = new KeyList(KeyMenuAbility::NONE, this);
   m_key_list_->AddListGroupTab(

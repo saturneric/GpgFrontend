@@ -33,12 +33,13 @@
 #include "core/model/GpgKey.h"
 #include "core/model/GpgSubKey.h"
 #include "ui/GpgFrontendUI.h"
+#include "ui/dialog/GeneralDialog.h"
 
 class Ui_ModifiedExpirationDateTime;
 
 namespace GpgFrontend::UI {
 
-class KeySetExpireDateDialog : public QDialog {
+class KeySetExpireDateDialog : public GeneralDialog {
   Q_OBJECT
  public:
   /**

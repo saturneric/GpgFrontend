@@ -65,7 +65,6 @@ GpgFrontendApplication *GpgFrontendApplication::GetInstance(int argc,
     if (instance != nullptr) {
       instance->quit();
       delete instance;
-    } else {
     }
     instance = new GpgFrontendApplication(static_argc, static_argv);
   }

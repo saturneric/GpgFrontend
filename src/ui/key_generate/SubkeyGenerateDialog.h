@@ -30,13 +30,14 @@
 #include "core/GpgContext.h"
 #include "core/GpgGenKeyInfo.h"
 #include "ui/GpgFrontendUI.h"
+#include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {
 /**
  * @brief
  *
  */
-class SubkeyGenerateDialog : public QDialog {
+class SubkeyGenerateDialog : public GeneralDialog {
   Q_OBJECT
 
  public:

@@ -32,7 +32,8 @@
 
 namespace GpgFrontend::UI {
 KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
-    : QDialog(parent), m_key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+    : GeneralDialog(typeid(KeyNewUIDDialog).name(), parent),
+      m_key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
   name_ = new QLineEdit();
   name_->setMinimumWidth(240);
   email_ = new QLineEdit();
@@ -65,7 +66,8 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setModal(true);
 
-  connect(this, &KeyNewUIDDialog::SignalUIDCreated, SignalStation::GetInstance(),
+  connect(this, &KeyNewUIDDialog::SignalUIDCreated,
+          SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefresh);
 }
 
@@ -84,9 +86,9 @@ void KeyNewUIDDialog::slot_create_new_uid() {
   }
   auto error_string = error_stream.str();
   if (error_string.empty()) {
-    if (GpgUIDOperator::GetInstance().AddUID(m_key_, name_->text().toStdString(),
-                                          comment_->text().toStdString(),
-                                          email_->text().toStdString())) {
+    if (GpgUIDOperator::GetInstance().AddUID(
+            m_key_, name_->text().toStdString(), comment_->text().toStdString(),
+            email_->text().toStdString())) {
       emit finished(1);
       emit SignalUIDCreated();
     } else

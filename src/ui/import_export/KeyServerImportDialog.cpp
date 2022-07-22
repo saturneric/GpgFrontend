@@ -41,7 +41,8 @@
 namespace GpgFrontend::UI {
 
 KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
-    : QDialog(parent), m_automatic_(automatic) {
+    : GeneralDialog("key_server_import_dialog", parent),
+      m_automatic_(automatic) {
   // Layout for messagebox
   auto* message_layout = new QHBoxLayout();
 
@@ -118,36 +119,6 @@ KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
 
   if (automatic) {
     this->setFixedSize(240, 42);
-  } else {
-    auto pos = QPoint(150, 150);
-    LOG(INFO) << "parent" << parent;
-    if (parent) pos += parent->pos();
-    LOG(INFO) << "pos default" << pos.x() << pos.y();
-    auto size = QSize(800, 500);
-
-    try {
-      SettingsObject key_server_import_state("key_server_import_state");
-      bool window_save = key_server_import_state.Check("window_save", true);
-
-      // Restore window size & location
-      if (window_save) {
-        int x = key_server_import_state.Check("window_pos").Check("x", pos.x()),
-            y = key_server_import_state.Check("window_pos").Check("y", pos.y());
-
-        pos = QPoint(x, y);
-        int width = key_server_import_state.Check("window_size")
-                        .Check("width", size.width()),
-            height = key_server_import_state.Check("window_size")
-                         .Check("height", size.height());
-
-        size = QSize(width, height);
-      }
-    } catch (...) {
-      LOG(WARNING) << "cannot read pos or size from settings object";
-    }
-
-    this->resize(size);
-    this->move(pos);
   }
 
   this->setModal(true);
@@ -155,10 +126,31 @@ KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
   connect(this, &KeyServerImportDialog::SignalKeyImported,
           SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefresh);
+}
 
-  // save window pos and size to configure file
-  connect(this, &KeyServerImportDialog::finished, this,
-          &KeyServerImportDialog::slot_save_window_state);
+KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)
+    : GeneralDialog("key_server_import_dialog", parent), m_automatic_(true) {
+  setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
+
+  // Network Waiting
+  waiting_bar_ = new QProgressBar();
+  waiting_bar_->setVisible(false);
+  waiting_bar_->setRange(0, 0);
+  waiting_bar_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  waiting_bar_->setTextVisible(false);
+
+  // Layout for messagebox
+  auto* layout = new QHBoxLayout();
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(0);
+  layout->addWidget(waiting_bar_);
+
+  key_server_combo_box_ = create_comboBox();
+
+  this->setLayout(layout);
+  this->setWindowTitle(_("Update Keys from Keyserver"));
+  this->setFixedSize(240, 42);
+  this->setModal(true);
 }
 
 QComboBox* KeyServerImportDialog::create_comboBox() {
@@ -553,47 +545,6 @@ void KeyServerImportDialog::set_loading(bool status) {
     icon_->setVisible(!status);
     message_->setVisible(!status);
   }
-}
-
-KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)
-    : QDialog(parent), m_automatic_(true) {
-  setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
-
-  // Network Waiting
-  waiting_bar_ = new QProgressBar();
-  waiting_bar_->setVisible(false);
-  waiting_bar_->setRange(0, 0);
-  waiting_bar_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-  waiting_bar_->setTextVisible(false);
-
-  // Layout for messagebox
-  auto* layout = new QHBoxLayout();
-  layout->setContentsMargins(0, 0, 0, 0);
-  layout->setSpacing(0);
-  layout->addWidget(waiting_bar_);
-
-  key_server_combo_box_ = create_comboBox();
-
-  this->setLayout(layout);
-  this->setWindowTitle(_("Update Keys from Keyserver"));
-  this->setFixedSize(240, 42);
-  this->setModal(true);
-}
-
-void KeyServerImportDialog::slot_save_window_state() {
-  LOG(INFO) << _("Called");
-
-  if (m_automatic_) return;
-
-  SettingsObject key_server_import_state("key_server_import_state");
-
-  // window position and size
-  key_server_import_state["window_pos"]["x"] = pos().x();
-  key_server_import_state["window_pos"]["y"] = pos().y();
-
-  key_server_import_state["window_size"]["width"] = size().width();
-  key_server_import_state["window_size"]["height"] = size().height();
-  key_server_import_state["window_save"] = true;
 }
 
 }  // namespace GpgFrontend::UI

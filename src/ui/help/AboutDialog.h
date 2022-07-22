@@ -31,6 +31,7 @@
 
 #include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
+#include "ui/dialog/GeneralDialog.h"
 #include "ui/struct/SoftwareVersion.h"
 
 namespace GpgFrontend::UI {
@@ -116,7 +117,7 @@ class UpdateTab : public QWidget {
  * @brief Class for handling the about dialog
  *
  */
-class AboutDialog : public QDialog {
+class AboutDialog : public GeneralDialog {
   Q_OBJECT
 
  public:

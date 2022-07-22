@@ -26,24 +26,26 @@
  *
  */
 
-#include "ui/KeyMgmt.h"
+#include "KeyMgmt.h"
 
 #include <utility>
 
+#include "core/function/GlobalSettingStation.h"
+#include "core/function/KeyPackageOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/function/KeyPackageOperator.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/import_export/ExportKeyPackageDialog.h"
 #include "ui/key_generate/SubkeyGenerateDialog.h"
 #include "ui/main_window/MainWindow.h"
-#include "core/function/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
-KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
+KeyMgmt::KeyMgmt(QWidget* parent)
+    : GeneralMainWindow("key_management", parent) {
+
   /* the list of Keys available*/
   key_list_ = new KeyList(KeyMenuAbility::ALL, this);
 
@@ -105,53 +107,6 @@ KeyMgmt::KeyMgmt(QWidget* parent) : QMainWindow(parent) {
 
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
-  try {
-    int width = settings.lookup("window.icon_size.width");
-    int height = settings.lookup("window.icon_size.height");
-
-    this->setIconSize(QSize(width, height));
-
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("icon_size");
-  }
-
-  // icon_style
-  try {
-    int s_icon_style = settings.lookup("window.icon_style");
-    auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
-    this->setToolButtonStyle(icon_style);
-  } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("icon_style");
-  }
-
-  auto pos = QPoint(50, 50);
-  LOG(INFO) << "parent" << parent;
-  if (parent) pos += parent->pos();
-  LOG(INFO) << "pos default" << pos.x() << pos.y();
-  auto size = QSize(900, 600);
-
-  try {
-    int x, y, width, height;
-    x = settings.lookup("window.key_management.position.x");
-    y = settings.lookup("window.key_management.position.y");
-    width = settings.lookup("window.key_management.size.width");
-    height = settings.lookup("window.key_management.size.height");
-    pos = QPoint(x, y);
-    size = QSize(width, height);
-
-    std::string window_state =
-        settings.lookup("window.key_management.window_state");
-
-    // state sets pos & size of dock-widgets
-    this->restoreState(
-        QByteArray::fromBase64(QByteArray::fromStdString(window_state)));
-
-  } catch (...) {
-    LOG(WARNING) << "cannot read pos or size from settings";
-  }
-
-  this->resize(size);
-  this->move(pos);
   this->statusBar()->show();
 
   setWindowTitle(_("KeyPair Management"));
@@ -406,10 +361,6 @@ void KeyMgmt::SlotGenerateKeyDialog() {
   keyGenDialog->show();
 }
 
-void KeyMgmt::closeEvent(QCloseEvent* event) {
-  SlotSaveWindowState();
-  QMainWindow::closeEvent(event);
-}
 
 void KeyMgmt::SlotGenerateSubKey() {
   auto keys_selected = key_list_->GetSelected();
@@ -433,52 +384,6 @@ void KeyMgmt::SlotGenerateSubKey() {
 
   auto dialog = new SubkeyGenerateDialog(key.GetId(), this);
   dialog->show();
-}
-void KeyMgmt::SlotSaveWindowState() {
-  auto& settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
-
-  if (!settings.exists("window") ||
-      settings.lookup("window").getType() != libconfig::Setting::TypeGroup)
-    settings.add("window", libconfig::Setting::TypeGroup);
-
-  auto& window = settings["window"];
-
-  if (!window.exists("key_management") ||
-      window.lookup("key_management").getType() !=
-          libconfig::Setting::TypeGroup)
-    window.add("key_management", libconfig::Setting::TypeGroup);
-
-  auto& key_management = window["key_management"];
-
-  if (!key_management.exists("position") ||
-      key_management.lookup("position").getType() !=
-          libconfig::Setting::TypeGroup) {
-    auto& position =
-        key_management.add("position", libconfig::Setting::TypeGroup);
-    position.add("x", libconfig::Setting::TypeInt) = pos().x();
-    position.add("y", libconfig::Setting::TypeInt) = pos().y();
-  } else {
-    key_management["position"]["x"] = pos().x();
-    key_management["position"]["y"] = pos().y();
-  }
-
-  if (!key_management.exists("size") ||
-      key_management.lookup("size").getType() !=
-          libconfig::Setting::TypeGroup) {
-    auto& size = key_management.add("size", libconfig::Setting::TypeGroup);
-    size.add("width", libconfig::Setting::TypeInt) = QWidget::width();
-    size.add("height", libconfig::Setting::TypeInt) = QWidget::height();
-  } else {
-    key_management["size"]["width"] = QWidget::width();
-    key_management["size"]["height"] = QWidget::height();
-  }
-
-  if (!key_management.exists("window_state"))
-    key_management.add("window_state", libconfig::Setting::TypeString) =
-        saveState().toBase64().toStdString();
-
-  GlobalSettingStation::GetInstance().SyncSettings();
 }
 
 void KeyMgmt::SlotExportAsOpenSSHFormat() {
@@ -527,7 +432,6 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
 }
 
 void KeyMgmt::SlotImportKeyPackage() {
-
   LOG(INFO) << "Importing key package...";
 
   auto key_package_file_name = QFileDialog::getOpenFileName(
@@ -538,8 +442,7 @@ void KeyMgmt::SlotImportKeyPackage() {
       this, _("Import Key Package Passphrase File"), {},
       QString(_("Key Package Passphrase File")) + " (*.key);;All Files (*)");
 
-  if(key_package_file_name.isEmpty() || key_file_name.isEmpty())
-    return;
+  if (key_package_file_name.isEmpty() || key_file_name.isEmpty()) return;
 
   GpgImportInformation info;
 

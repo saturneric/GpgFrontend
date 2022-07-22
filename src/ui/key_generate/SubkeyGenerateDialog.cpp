@@ -35,7 +35,8 @@
 namespace GpgFrontend::UI {
 
 SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
-    : QDialog(parent), key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+    : GeneralDialog(typeid(SubkeyGenerateDialog).name(), parent),
+      key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
   // max expire date time

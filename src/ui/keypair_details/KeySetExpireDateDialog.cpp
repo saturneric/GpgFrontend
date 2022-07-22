@@ -40,7 +40,7 @@ namespace GpgFrontend::UI {
 
 KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
                                                QWidget* parent)
-    : QDialog(parent),
+    : GeneralDialog(typeid(KeySetExpireDateDialog).name(), parent),
       ui_(std::make_shared<Ui_ModifiedExpirationDateTime>()),
       m_key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
   init();
@@ -49,7 +49,7 @@ KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
 KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
                                                std::string subkey_fpr,
                                                QWidget* parent)
-    : QDialog(parent),
+    : GeneralDialog(typeid(KeySetExpireDateDialog).name(), parent),
       ui_(std::make_shared<Ui_ModifiedExpirationDateTime>()),
       m_key_(GpgKeyGetter::GetInstance().GetKey(key_id)),
       m_subkey_(std::move(subkey_fpr)) {

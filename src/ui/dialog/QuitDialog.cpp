@@ -33,7 +33,7 @@
 namespace GpgFrontend::UI {
 
 QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
-    : QDialog(parent) {
+    : GeneralDialog("quit_dialog", parent) {
   setWindowTitle(_("Unsaved Files"));
   setModal(true);
   discarded_ = false;
@@ -111,7 +111,7 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   connect(buttonBox, &QDialogButtonBox::accepted, this, &QuitDialog::accept);
   connect(buttonBox, &QDialogButtonBox::rejected, this, &QuitDialog::reject);
   QPushButton* btnNoKey = buttonBox->button(QDialogButtonBox::Discard);
-  connect(btnNoKey, &QPushButton::clicked, this,&QuitDialog::slot_my_discard);
+  connect(btnNoKey, &QPushButton::clicked, this, &QuitDialog::slot_my_discard);
 
   /*
    *  Set the layout
