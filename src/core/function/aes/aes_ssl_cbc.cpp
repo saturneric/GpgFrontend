@@ -96,4 +96,4 @@ uint8_t *aes_256_cbc_decrypt(EVP_CIPHER_CTX *e, uint8_t *ciphertext, int *len) {
   return plaintext;
 }
 
-} // namespace GpgFrontend::RawAPI
+}  // namespace GpgFrontend::RawAPI

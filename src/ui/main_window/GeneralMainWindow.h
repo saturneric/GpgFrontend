@@ -50,7 +50,6 @@ class GeneralMainWindow : public QMainWindow {
   ~GeneralMainWindow() override;
 
  protected:
-
   /**
    *
    * @param event
@@ -72,8 +71,7 @@ class GeneralMainWindow : public QMainWindow {
   void slot_save_settings() noexcept;
 
  private:
-
-  std::string name_; ///<
+  std::string name_;  ///<
 };
 }  // namespace GpgFrontend::UI
 

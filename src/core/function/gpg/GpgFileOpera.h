@@ -43,7 +43,6 @@ namespace GpgFrontend {
 class GPGFRONTEND_CORE_EXPORT GpgFileOpera
     : public SingletonFunctionObject<GpgFileOpera> {
  public:
-
   explicit GpgFileOpera(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 

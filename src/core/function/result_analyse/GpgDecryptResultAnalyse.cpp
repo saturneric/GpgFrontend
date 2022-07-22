@@ -30,8 +30,8 @@
 
 #include "function/gpg/GpgKeyGetter.h"
 
-GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(GpgError m_error,
-                                                        GpgDecrResult m_result)
+GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(
+    GpgError m_error, GpgDecrResult m_result)
     : error_(m_error), result_(std::move(m_result)) {}
 
 void GpgFrontend::GpgDecryptResultAnalyse::do_analyse() {

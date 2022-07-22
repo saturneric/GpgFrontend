@@ -34,8 +34,8 @@
 #include "ui/import_export/KeyServerImportDialog.h"
 #include "ui/key_generate/KeygenDialog.h"
 #include "ui/keypair_details/KeyDetailsDialog.h"
-#include "ui/widgets/KeyList.h"
 #include "ui/main_window/GeneralMainWindow.h"
+#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
@@ -171,7 +171,6 @@ class KeyMgmt : public GeneralMainWindow {
   QAction* close_act_{};                         ///<
   QAction* show_key_details_act_{};              ///<
   KeyServerImportDialog* import_dialog_{};       ///<
-
 };
 
 }  // namespace GpgFrontend::UI

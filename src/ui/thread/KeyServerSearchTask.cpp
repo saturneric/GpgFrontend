@@ -51,7 +51,7 @@ void GpgFrontend::UI::KeyServerSearchTask::run() {
 void GpgFrontend::UI::KeyServerSearchTask::dealing_reply_from_server() {
   QByteArray buffer;
   QNetworkReply::NetworkError network_reply = reply_->error();
-  if(network_reply == QNetworkReply::NoError) {
+  if (network_reply == QNetworkReply::NoError) {
     buffer = reply_->readAll();
   }
   emit SignalKeyServerSearchResult(network_reply, buffer);

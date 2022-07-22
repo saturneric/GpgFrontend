@@ -30,8 +30,8 @@
 #define WIZARD_H
 
 #include "core/GpgConstants.h"
-#include "ui/GpgFrontendUI.h"
 #include "main_window/KeyMgmt.h"
+#include "ui/GpgFrontendUI.h"
 #include "ui/key_generate/KeygenDialog.h"
 #include "ui/settings/SettingsDialog.h"
 

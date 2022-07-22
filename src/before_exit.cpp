@@ -32,6 +32,4 @@
  * @brief Actions performed before exiting the application
  *
  */
-void before_exit() {
-  LOG(INFO) << "called";
-}
+void before_exit() { LOG(INFO) << "called"; }

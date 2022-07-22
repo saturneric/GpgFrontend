@@ -49,9 +49,11 @@ FindWidget::FindWidget(QWidget* parent, PlainTextEditorPage* edit)
 
   this->setLayout(notificationWidgetLayout);
   connect(find_edit_, &QLineEdit::textEdited, this, &FindWidget::slot_find);
-  connect(find_edit_, &QLineEdit::returnPressed, this, &FindWidget::slot_find_next);
+  connect(find_edit_, &QLineEdit::returnPressed, this,
+          &FindWidget::slot_find_next);
   connect(nextButton, &QPushButton::clicked, this, &FindWidget::slot_find_next);
-  connect(previousButton, &QPushButton::clicked, this, &FindWidget::slot_find_previous);
+  connect(previousButton, &QPushButton::clicked, this,
+          &FindWidget::slot_find_previous);
   connect(closeButton, &QPushButton::clicked, this, &FindWidget::slot_close);
 
   // The timer is necessary for setting the focus

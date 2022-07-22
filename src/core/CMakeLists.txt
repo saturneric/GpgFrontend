@@ -60,7 +60,7 @@ aux_source_directory(${CMAKE_SOURCE_DIR}/third_party/encoding-detect ENCODING_DE
 target_sources(gpgfrontend_core PUBLIC ${ENCODING_DETECT_SOURCE_CODE})
 
 # icu
-if(APPLE)
+if (APPLE)
     target_include_directories(gpgfrontend_core PRIVATE /usr/local/opt/icu4c/include)
     target_link_directories(gpgfrontend_core PRIVATE /usr/local/opt/icu4c/lib)
     target_link_libraries(gpgfrontend_core PRIVATE icui18n icuuc icudata)
@@ -77,10 +77,10 @@ target_link_libraries(gpgfrontend_core PRIVATE gpgme assuan gpg-error)
 target_link_libraries(gpgfrontend_core PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 # link boost libraries
 target_link_libraries(gpgfrontend_core PUBLIC ${Boost_LIBRARIES})
-if(MINGW)
+if (MINGW)
     # for uuid ability in mingw
     target_link_libraries(gpgfrontend_core PUBLIC bcrypt)
-endif()
+endif ()
 
 # link libarchive
 target_link_libraries(gpgfrontend_core PRIVATE archive)
