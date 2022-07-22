@@ -29,9 +29,10 @@
 
 #include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
+#include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {
-class KeyNewUIDDialog : public QDialog {
+class KeyNewUIDDialog : public GeneralDialog {
   Q_OBJECT
 
  public:

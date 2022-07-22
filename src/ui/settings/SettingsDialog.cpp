@@ -38,7 +38,8 @@
 
 namespace GpgFrontend::UI {
 
-SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
+SettingsDialog::SettingsDialog(QWidget* parent)
+    : GeneralDialog(typeid(SettingsDialog).name(), parent) {
   tab_widget_ = new QTabWidget();
   general_tab_ = new GeneralTab();
   appearance_tab_ = new AppearanceTab();

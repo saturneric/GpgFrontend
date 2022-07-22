@@ -34,6 +34,7 @@
 #include "KeyImportDetailDialog.h"
 #include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
+#include "ui/dialog/GeneralDialog.h"
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
@@ -42,7 +43,7 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class KeyServerImportDialog : public QDialog {
+class KeyServerImportDialog : public GeneralDialog {
   Q_OBJECT
 
  public:
@@ -115,12 +116,6 @@ class KeyServerImportDialog : public QDialog {
    *
    */
   void slot_search();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_save_window_state();
 
  private:
   /**

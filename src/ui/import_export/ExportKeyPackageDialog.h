@@ -30,6 +30,7 @@
 #define GPGFRONTEND_EXPORTKEYPACKAGEDIALOG_H
 
 #include "GpgFrontendUI.h"
+#include "ui/dialog/GeneralDialog.h"
 
 class Ui_exportKeyPackageDialog;
 
@@ -39,7 +40,7 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class ExportKeyPackageDialog : public QDialog {
+class ExportKeyPackageDialog : public GeneralDialog {
   Q_OBJECT
 
  public:

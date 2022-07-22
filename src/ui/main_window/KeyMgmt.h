@@ -35,6 +35,7 @@
 #include "ui/key_generate/KeygenDialog.h"
 #include "ui/keypair_details/KeyDetailsDialog.h"
 #include "ui/widgets/KeyList.h"
+#include "ui/main_window/GeneralMainWindow.h"
 
 namespace GpgFrontend::UI {
 
@@ -42,7 +43,7 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class KeyMgmt : public QMainWindow {
+class KeyMgmt : public GeneralMainWindow {
   Q_OBJECT
 
  public:
@@ -102,12 +103,6 @@ class KeyMgmt : public QMainWindow {
    *
    */
   void SlotShowKeyDetails();
-
-  /**
-   * @brief
-   *
-   */
-  void SlotSaveWindowState();
 
   /**
    * @brief
@@ -177,13 +172,6 @@ class KeyMgmt : public QMainWindow {
   QAction* show_key_details_act_{};              ///<
   KeyServerImportDialog* import_dialog_{};       ///<
 
- protected:
-  /**
-   * @brief
-   *
-   * @param event
-   */
-  void closeEvent(QCloseEvent* event) override;
 };
 
 }  // namespace GpgFrontend::UI

@@ -35,7 +35,7 @@
 
 namespace GpgFrontend::UI {
 KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
-    : QDialog(parent) {
+    : GeneralDialog(typeid(KeyDetailsDialog).name(), parent) {
   tab_widget_ = new QTabWidget();
   tab_widget_->addTab(new KeyPairDetailTab(key.GetId(), tab_widget_),
                       _("KeyPair"));

@@ -31,6 +31,7 @@
 
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/KeyList.h"
+#include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -43,7 +44,7 @@ class NetworkTab;
  * @brief
  *
  */
-class SettingsDialog : public QDialog {
+class SettingsDialog : public GeneralDialog {
   Q_OBJECT
 
  public:

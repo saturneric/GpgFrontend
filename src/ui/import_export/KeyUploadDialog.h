@@ -31,6 +31,7 @@
 
 #include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
+#include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -38,7 +39,7 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class KeyUploadDialog : public QDialog {
+class KeyUploadDialog : public GeneralDialog {
   Q_OBJECT
  public:
   /**

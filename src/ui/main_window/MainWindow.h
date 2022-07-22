@@ -34,7 +34,7 @@
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
 #include "ui/GpgFrontendUI.h"
-#include "ui/KeyMgmt.h"
+#include "KeyMgmt.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/help/AboutDialog.h"
@@ -43,16 +43,21 @@
 #include "ui/widgets/FindWidget.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/TextEdit.h"
+#include "ui/main_window/GeneralMainWindow.h"
 
 namespace GpgFrontend::UI {
 /**
  * @brief
  *
  */
-class MainWindow : public QMainWindow {
+class MainWindow : public GeneralMainWindow {
   Q_OBJECT
 
  public:
+
+  /**
+   *
+   */
   struct CryptoMenu {
     using OperationType = unsigned int;
 

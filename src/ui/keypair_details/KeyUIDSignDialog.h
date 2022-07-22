@@ -30,10 +30,11 @@
 #include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/KeyList.h"
+#include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {
 
-class KeyUIDSignDialog : public QDialog {
+class KeyUIDSignDialog : public GeneralDialog {
   Q_OBJECT
 
  public:

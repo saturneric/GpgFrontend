@@ -33,7 +33,8 @@
 namespace GpgFrontend::UI {
 KeyImportDetailDialog::KeyImportDetailDialog(GpgImportInformation result,
                                              bool automatic, QWidget* parent)
-    : QDialog(parent), m_result_(std::move(result)) {
+    : GeneralDialog(typeid(KeyImportDetailDialog).name(), parent),
+      m_result_(std::move(result)) {
   // If no key for import found, just show a message
   if (m_result_.considered == 0) {
     if (automatic)
@@ -197,6 +198,7 @@ QString KeyImportDetailDialog::get_status_string(int keyStatus) {
 
 void KeyImportDetailDialog::create_button_box() {
   button_box_ = new QDialogButtonBox(QDialogButtonBox::Ok);
-  connect(button_box_, &QDialogButtonBox::accepted, this, &KeyImportDetailDialog::close);
+  connect(button_box_, &QDialogButtonBox::accepted, this,
+          &KeyImportDetailDialog::close);
 }
 }  // namespace GpgFrontend::UI

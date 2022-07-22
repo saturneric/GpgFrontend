@@ -30,15 +30,16 @@
 
 #include <algorithm>
 
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
-#include "core/function/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
 
 KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
                                  QWidget* parent)
-    : QDialog(parent), m_keys_(GpgKeyGetter::GetInstance().GetKeys(keys_ids)) {
+    : GeneralDialog(typeid(KeyUploadDialog).name(), parent),
+      m_keys_(GpgKeyGetter::GetInstance().GetKeys(keys_ids)) {
   auto* pb = new QProgressBar();
   pb->setRange(0, 0);
   pb->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -109,7 +110,8 @@ void KeyUploadDialog::slot_upload_key_to_server(
 
   // Send Post Data
   QNetworkReply* reply = qnam->post(request, postData);
-  connect(reply, &QNetworkReply::finished, this, &KeyUploadDialog::slot_upload_finished);
+  connect(reply, &QNetworkReply::finished, this,
+          &KeyUploadDialog::slot_upload_finished);
 
   // Keep Waiting
   while (reply->isRunning()) {

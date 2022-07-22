@@ -26,67 +26,55 @@
  *
  */
 
-#ifndef __KEYIMPORTDETAILSDIALOG_H__
-#define __KEYIMPORTDETAILSDIALOG_H__
+#ifndef GPGFRONTEND_GENERALMAINWINDOW_H
+#define GPGFRONTEND_GENERALMAINWINDOW_H
 
-#include "core/GpgContext.h"
-#include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/GpgFrontendUI.h"
-#include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {
 
 /**
- * @brief
  *
  */
-class KeyImportDetailDialog : public GeneralDialog {
-  Q_OBJECT
-
+class GeneralMainWindow : public QMainWindow {
  public:
   /**
-   * @brief Construct a new Key Import Detail Dialog object
    *
-   * @param result
-   * @param automatic
-   * @param parent
+   * @param name
    */
-  KeyImportDetailDialog(GpgImportInformation result, bool automatic,
-                        QWidget* parent = nullptr);
+  explicit GeneralMainWindow(std::string name, QWidget* parent = nullptr);
+
+  /**
+   *
+   */
+  ~GeneralMainWindow() override;
+
+ protected:
+
+  /**
+   *
+   * @param event
+   */
+  void closeEvent(QCloseEvent* event);
+
+  QSize icon_size_{};  ///<
+  int font_size_{};    ///<
+
+ private slots:
+  /**
+   *
+   */
+  void slot_restore_settings() noexcept;
+
+  /**
+   *
+   */
+  void slot_save_settings() noexcept;
 
  private:
-  /**
-   * @brief Create a general info box object
-   *
-   */
-  void create_general_info_box();
 
-  /**
-   * @brief Create a keys table object
-   *
-   */
-  void create_keys_table();
-
-  /**
-   * @brief Create a button box object
-   *
-   */
-  void create_button_box();
-
-  /**
-   * @brief Get the status string object
-   *
-   * @param keyStatus
-   * @return QString
-   */
-  static QString get_status_string(int keyStatus);
-
-  QTableWidget* keys_table_{};      ///<
-  QGroupBox* general_info_box_{};   ///<
-  QGroupBox* key_info_box_{};       ///<
-  QDialogButtonBox* button_box_{};  ///<
-  GpgImportInformation m_result_;   ///<
+  std::string name_; ///<
 };
 }  // namespace GpgFrontend::UI
 
-#endif  // __KEYIMPORTDETAILSDIALOG_H__
+#endif  // GPGFRONTEND_GENERALMAINWINDOW_H

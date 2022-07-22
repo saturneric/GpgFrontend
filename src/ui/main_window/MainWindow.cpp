@@ -36,7 +36,7 @@
 
 namespace GpgFrontend::UI {
 
-MainWindow::MainWindow() {
+MainWindow::MainWindow(): GeneralMainWindow("main_window") {
   this->setMinimumSize(1200, 700);
   this->setWindowTitle(qApp->applicationName());
 }
@@ -135,52 +135,6 @@ void MainWindow::restore_settings() {
   LOG(INFO) << _("Called");
 
   try {
-    LOG(INFO) << "restore settings main_windows_state";
-
-    SettingsObject main_windows_state("main_windows_state");
-
-    std::string window_state = main_windows_state.Check(
-        "window_state", saveState().toBase64().toStdString());
-    // state sets pos & size of dock-widgets
-    this->restoreState(
-        QByteArray::fromBase64(QByteArray::fromStdString(window_state)));
-
-    bool window_save = main_windows_state.Check("window_save", true);
-
-    // Restore window size & location
-    if (window_save) {
-      int x = main_windows_state.Check("window_pos").Check("x", 100),
-          y = main_windows_state.Check("window_pos").Check("y", 100);
-
-      auto pos = QPoint(x, y);
-
-      int width = main_windows_state.Check("window_size").Check("width", 800),
-          height = main_windows_state.Check("window_size").Check("height", 450);
-
-      auto size = QSize(width, height);
-      this->resize(size);
-      this->move(pos);
-    } else {
-      this->resize(QSize(800, 450));
-      this->move(QPoint(100, 100));
-    }
-
-    int width = main_windows_state.Check("icon_size").Check("width", 24),
-        height = main_windows_state.Check("icon_size").Check("height", 24);
-    LOG(INFO) << "icon_size" << width << height;
-
-    main_windows_state.Check("info_font_size", 10);
-
-    // icon_style
-    int s_icon_style =
-        main_windows_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
-    auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
-    this->setToolButtonStyle(icon_style);
-    import_button_->setToolButtonStyle(icon_style);
-
-    // icons ize
-    this->setIconSize(QSize(width, height));
-    import_button_->setIconSize(QSize(width, height));
 
     LOG(INFO) << "restore settings key_server";
 
@@ -253,16 +207,6 @@ void MainWindow::save_settings() {
   auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
 
   try {
-    SettingsObject main_windows_state("main_windows_state");
-
-    // window position and size
-    main_windows_state["window_state"] = saveState().toBase64().toStdString();
-    main_windows_state["window_pos"]["x"] = pos().x();
-    main_windows_state["window_pos"]["y"] = pos().y();
-
-    main_windows_state["window_size"]["width"] = size().width();
-    main_windows_state["window_size"]["height"] = size().height();
-    main_windows_state["window_save"] = true;
 
     bool save_key_checked = settings.lookup("general.save_key_checked");
 
