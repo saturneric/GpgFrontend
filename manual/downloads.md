@@ -10,7 +10,7 @@ Currently you can download GpgFrontend through various channels.
 
 ## SourceForge
 
-[![Download GpgFrontend](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/gogfrontend/files/latest/download)
+[![Download GogFrontend](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/gpgfrontend/files/latest/download)
 
 ## Microsoft Store
 
