@@ -834,7 +834,7 @@ msgstr "一封或多封密件抄送电子邮件无效"
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:390
 #: /home/eric/Develop/GpgFrontend/src/ui/KeyMgmt.cpp:489
 msgid "Forbidden"
-msgstr "禁止的"
+msgstr "禁止"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/mail/SendMailDialog.cpp:255
 msgid ""
@@ -1114,27 +1114,27 @@ msgstr "一般密钥信息"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:81
 msgid "Considered"
-msgstr "经过考虑的"
+msgstr "经过认证"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:88
 msgid "Public unchanged"
-msgstr "公开不变"
+msgstr "公开且不变"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:94
 msgid "Imported"
-msgstr "进口"
+msgstr "导入"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:102
 msgid "Not Imported"
-msgstr "未进口"
+msgstr "未导入"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:109
 msgid "Private Read"
-msgstr "私有可读"
+msgstr "私有且可读"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:116
 msgid "Private Imported"
-msgstr "私有导入"
+msgstr "私有并导入"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:123
 msgid "Private Unchanged"
@@ -1169,7 +1169,7 @@ msgstr "电子邮件"
 #: /home/eric/Develop/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:142
 #: /home/eric/Develop/GpgFrontend/src/ui/details/VerifyDetailsDialog.cpp:58
 msgid "Status"
-msgstr "地位"
+msgstr "状态"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:170
 msgid "Private"
@@ -1177,11 +1177,11 @@ msgstr "私人的"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:173
 msgid "Public"
-msgstr "民众"
+msgstr "公开的"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:176
 msgid "Unchanged"
-msgstr "不变"
+msgstr "未变化"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyImportDetailDialog.cpp:179
 msgid "New Key"
@@ -1244,7 +1244,7 @@ msgstr "用户识别码"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:189
 msgid "Creation date"
-msgstr "创立日期"
+msgstr "创建日期"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/import_export/KeyServerImportDialog.cpp:189
 msgid "KeyID"
@@ -1349,7 +1349,7 @@ msgstr "对称加密"
 msgid ""
 "No Key Checked. Do you want to encrypt with a symmetric cipher using a "
 "passphrase?"
-msgstr "未检查密钥。您想使用密码短语使用对称密码进行加密吗？"
+msgstr "未选中任何密钥。您想使用密码对文字进行对称加密吗？"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:77
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:211
@@ -1426,7 +1426,7 @@ msgstr "所选密钥包含一个实际上没有签名用法的密钥。"
 #: /home/eric/Develop/GpgFrontend/src/ui/key_generate/KeygenDialog.cpp:193
 #: /home/eric/Develop/GpgFrontend/src/ui/key_generate/SubkeyGenerateDialog.cpp:92
 msgid "Signing"
-msgstr "签约"
+msgstr "签名"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:207
 msgid "Notice"
@@ -1916,7 +1916,7 @@ msgstr "密钥"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:438
 msgid "Special Edit"
-msgstr "特别编辑"
+msgstr "特殊编辑操作"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:456
 msgid "Import key from..."
@@ -3364,11 +3364,11 @@ msgstr "编辑到期日期"
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:58
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsSendMail.cpp:66
 msgid "General"
-msgstr "一般的"
+msgstr "通用"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:59
 msgid "Appearance"
-msgstr "外貌"
+msgstr "显示"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:61
 msgid "Send Mail"
@@ -3380,7 +3380,7 @@ msgstr "网络"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:67
 msgid "Advanced"
-msgstr "先进的"
+msgstr "高级"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsDialog.cpp:133
 msgid "System Default"
@@ -3400,7 +3400,7 @@ msgstr "更长的密钥到期日期"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:49
 msgid "Unlock key expiration date setting up to 30 years."
-msgstr "解锁密钥有效期设置长达 30 年。"
+msgstr "解锁长达 30 年的密钥有效期。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:50
 msgid "Confirm drag'n'drop key import"
@@ -3420,11 +3420,11 @@ msgstr "文件加密和签名时不使用 ASCII 编码。"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:59
 msgid "Language"
-msgstr "语"
+msgstr "语言"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:61
 msgid "NOTE"
-msgstr "笔记"
+msgstr "提示"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:62
 msgid "GpgFrontend will restart automatically if you change the language!"
@@ -3432,7 +3432,7 @@ msgstr "如果您更改语言，GpgFrontend 将自动重启！"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsGeneral.cpp:113
 msgid "lang"
-msgstr "朗"
+msgstr "语言"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:49
 msgid "Keyserver List"
@@ -3512,7 +3512,7 @@ msgstr "可达"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:252
 msgid "Not Reachable"
-msgstr "不能达到"
+msgstr "不可达"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsKeyServer.cpp:265
 msgid "Test Key Server Connection..."
@@ -3530,15 +3530,15 @@ msgstr "图标大小"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:42
 msgid "small"
-msgstr "小的"
+msgstr "小"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:43
 msgid "medium"
-msgstr "中等的"
+msgstr "中"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:44
 msgid "large"
-msgstr "大的"
+msgstr "大"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:60
 msgid "Icon Style"
@@ -3546,11 +3546,11 @@ msgstr "图标样式"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:62
 msgid "just text"
-msgstr "只是文字"
+msgstr "文字"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:63
 msgid "just icons"
-msgstr "只是图标"
+msgstr "图标"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsAppearance.cpp:64
 msgid "text and icons"
@@ -3570,7 +3570,7 @@ msgstr "信息面板中的字体大小"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:49
 msgid "Proxy"
-msgstr "代理人"
+msgstr "代理"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:50
 msgid "Network Capability"
@@ -3583,7 +3583,7 @@ msgstr "启用代理"
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:54
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:57
 msgid "Port"
-msgstr "港口"
+msgstr "端口"
 
 #: /home/eric/Develop/GpgFrontend/src/ui/settings/SettingsNetwork.cpp:56
 msgid "Host Address"
@@ -4176,7 +4176,7 @@ msgstr "无法从配置文件中正确读取"
 #~ msgstr "无法向 SMTP 服务器发送测试电子邮件，请重新检查您的配置。"
 
 #~ msgid "Keu ID"
-#~ msgstr "身份证号"
+#~ msgstr "密钥ID"
 
 #~ msgid "Public Algo"
 #~ msgstr "公钥算法"
