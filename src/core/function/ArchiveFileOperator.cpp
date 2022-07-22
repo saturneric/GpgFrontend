@@ -151,7 +151,8 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
 
 #ifdef WINDOWS
       auto entry_path =
-          QString::fromStdWString(std::wstring(archive_entry_pathname_w(entry))).toUtf8()
+          QString::fromStdWString(std::wstring(archive_entry_pathname_w(entry)))
+              .toUtf8()
               .toStdString();
 #else
       auto entry_path = std::string(archive_entry_pathname_utf8(entry));
@@ -160,7 +161,6 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
       LOG(INFO) << "Adding: " << archive_entry_pathname_utf8(entry) << "size"
                 << archive_entry_size(entry) << " bytes"
                 << "file type" << archive_entry_filetype(entry);
-
 
       r = archive_write_header(a, entry);
       if (r < ARCHIVE_OK) {
@@ -231,11 +231,11 @@ void GpgFrontend::ArchiveFileOperator::ExtractArchive(
     LOG(ERROR) << "cannot read from stdin";
   }
 #ifdef WINDOWS
-  if (archive_read_open_filename_w(a, archive_path.wstring().c_str(),
-                                        10240) != ARCHIVE_OK) {
+  if (archive_read_open_filename_w(a, archive_path.wstring().c_str(), 10240) !=
+      ARCHIVE_OK) {
 #else
-  if (archive_read_open_filename(a, archive_path.u8string().c_str(),
-                                      10240) != ARCHIVE_OK) {
+  if (archive_read_open_filename(a, archive_path.u8string().c_str(), 10240) !=
+      ARCHIVE_OK) {
 #endif
     LOG(ERROR) << "archive_read_open_filename() failed: "
                << archive_error_string(a);

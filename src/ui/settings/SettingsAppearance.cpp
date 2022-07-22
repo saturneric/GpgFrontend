@@ -114,7 +114,6 @@ AppearanceTab::AppearanceTab(QWidget* parent) : QWidget(parent) {
  * appropriately
  **********************************/
 void AppearanceTab::SetSettings() {
-
   SettingsObject main_windows_state("main_windows_state");
 
   int width = main_windows_state.Check("icon_size").Check("width", 24),
@@ -166,7 +165,6 @@ void AppearanceTab::SetSettings() {
  * write them to settings-file
  *************************************/
 void AppearanceTab::ApplySettings() {
-
   SettingsObject main_windows_state("main_windows_state");
 
   int icon_size = 24;
@@ -203,7 +201,6 @@ void AppearanceTab::ApplySettings() {
   main_windows_state["window_save"] = window_size_check_box_->isChecked();
 
   main_windows_state["info_font_size"] = info_board_font_size_spin_->value();
-
 }
 
 }  // namespace GpgFrontend::UI

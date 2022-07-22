@@ -38,7 +38,7 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class QuitDialog : public GeneralDialog  {
+class QuitDialog : public GeneralDialog {
   Q_OBJECT
 
  public:

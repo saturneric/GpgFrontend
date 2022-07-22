@@ -29,8 +29,8 @@
 
 #include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
-#include "ui/widgets/KeyList.h"
 #include "ui/dialog/GeneralDialog.h"
+#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 

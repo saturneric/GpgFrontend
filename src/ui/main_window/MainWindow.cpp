@@ -36,7 +36,7 @@
 
 namespace GpgFrontend::UI {
 
-MainWindow::MainWindow(): GeneralMainWindow("main_window") {
+MainWindow::MainWindow() : GeneralMainWindow("main_window") {
   this->setMinimumSize(1200, 700);
   this->setWindowTitle(qApp->applicationName());
 }
@@ -135,7 +135,6 @@ void MainWindow::restore_settings() {
   LOG(INFO) << _("Called");
 
   try {
-
     LOG(INFO) << "restore settings key_server";
 
     SettingsObject key_server_json("key_server");
@@ -207,7 +206,6 @@ void MainWindow::save_settings() {
   auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
 
   try {
-
     bool save_key_checked = settings.lookup("general.save_key_checked");
 
     // keyid-list of private checked keys

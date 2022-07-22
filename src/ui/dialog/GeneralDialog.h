@@ -25,15 +25,14 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-
 #ifndef GPGFRONTEND_GENERALDIALOG_H
 #define GPGFRONTEND_GENERALDIALOG_H
 
 #include "ui/GpgFrontendUI.h"
 
-namespace GpgFrontend::UI{
+namespace GpgFrontend::UI {
 
-class GeneralDialog: public QDialog {
+class GeneralDialog : public QDialog {
  public:
   /**
    *
@@ -58,12 +57,8 @@ class GeneralDialog: public QDialog {
   void slot_save_settings() noexcept;
 
  private:
-
-  std::string name_; ///<
-
+  std::string name_;  ///<
 };
-}
-
-
+}  // namespace GpgFrontend::UI
 
 #endif  // GPGFRONTEND_GENERALDIALOG_H

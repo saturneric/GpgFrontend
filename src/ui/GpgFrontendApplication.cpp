@@ -30,7 +30,7 @@
 
 namespace GpgFrontend::UI {
 
-GpgFrontendApplication::GpgFrontendApplication(int& argc, char *argv[])
+GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
     : QApplication(argc, argv) {
 #ifndef MACOS
   this->setWindowIcon(QIcon(":gpgfrontend.png"));
@@ -56,7 +56,6 @@ GpgFrontendApplication::GpgFrontendApplication(int& argc, char *argv[])
 GpgFrontendApplication *GpgFrontendApplication::GetInstance(int argc,
                                                             char *argv[],
                                                             bool new_instance) {
-
   static GpgFrontendApplication *instance = nullptr;
   static int static_argc = argc;
   static char **static_argv = argv;

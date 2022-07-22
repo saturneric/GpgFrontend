@@ -30,8 +30,8 @@
 #define __SETTINGSDIALOG_H__
 
 #include "ui/GpgFrontendUI.h"
-#include "ui/widgets/KeyList.h"
 #include "ui/dialog/GeneralDialog.h"
+#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
@@ -55,7 +55,7 @@ class SettingsDialog : public GeneralDialog {
    */
   explicit SettingsDialog(QWidget* parent = nullptr);
 
-  GeneralTab* general_tab_;  ///<
+  GeneralTab* general_tab_;        ///<
   AppearanceTab* appearance_tab_;  ///<
   KeyserverTab* key_server_tab_;   ///<
   NetworkTab* network_tab_;        ///<

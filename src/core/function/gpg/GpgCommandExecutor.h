@@ -42,7 +42,8 @@ namespace GpgFrontend {
  * @brief Extra commands related to GPG
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor : public SingletonFunctionObject<GpgCommandExecutor> {
+class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
+    : public SingletonFunctionObject<GpgCommandExecutor> {
  public:
   /**
    * @brief Construct a new Gpg Command Executor object

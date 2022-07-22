@@ -29,21 +29,21 @@
 #ifndef __GPGWIN_H__
 #define __GPGWIN_H__
 
+#include "KeyMgmt.h"
 #include "core/GpgConstants.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
 #include "ui/GpgFrontendUI.h"
-#include "KeyMgmt.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/help/AboutDialog.h"
 #include "ui/import_export/KeyUploadDialog.h"
+#include "ui/main_window/GeneralMainWindow.h"
 #include "ui/settings/SettingsDialog.h"
 #include "ui/widgets/FindWidget.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/TextEdit.h"
-#include "ui/main_window/GeneralMainWindow.h"
 
 namespace GpgFrontend::UI {
 /**
@@ -54,7 +54,6 @@ class MainWindow : public GeneralMainWindow {
   Q_OBJECT
 
  public:
-
   /**
    *
    */

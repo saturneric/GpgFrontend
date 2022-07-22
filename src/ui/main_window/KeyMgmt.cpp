@@ -45,7 +45,6 @@ namespace GpgFrontend::UI {
 
 KeyMgmt::KeyMgmt(QWidget* parent)
     : GeneralMainWindow("key_management", parent) {
-
   /* the list of Keys available*/
   key_list_ = new KeyList(KeyMenuAbility::ALL, this);
 
@@ -360,7 +359,6 @@ void KeyMgmt::SlotGenerateKeyDialog() {
   auto* keyGenDialog = new KeyGenDialog(this);
   keyGenDialog->show();
 }
-
 
 void KeyMgmt::SlotGenerateSubKey() {
   auto keys_selected = key_list_->GetSelected();

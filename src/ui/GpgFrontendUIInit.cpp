@@ -106,7 +106,6 @@ void InitGpgFrontendUI(QApplication* app) {
   waiting_dialog->setFocus();
   waiting_dialog->show();
 
-
   // new local event looper
   QEventLoop looper;
   app->connect(init_ctx_task, &Thread::CtxCheckTask::SignalTaskFinished,

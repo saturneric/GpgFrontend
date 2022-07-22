@@ -129,7 +129,7 @@ if (BASIC_ENV_CONFIG)
     configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
     configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
     configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h @ONLY)
-    if(APPLE)
+    if (APPLE)
         configure_file(${CMAKE_SOURCE_DIR}/resource/plist/ExportOptions.plist.in ${CMAKE_BINARY_DIR}/ExportOptions.plist @ONLY)
     endif ()
 endif ()
@@ -183,7 +183,7 @@ if (APPLICATION_BUILD)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (MINGW)
             add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
-        # custom app bundle packing
+            # custom app bundle packing
         elseif (APPLE AND NOT XCODE_BUILD)
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             set_target_properties(${AppName} PROPERTIES
@@ -212,7 +212,7 @@ if (APPLICATION_BUILD)
                     COMMAND /bin/mkdir -p ./gpgfrontend/usr/lib
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Complement to build the required architecture")
-        # app bundle packing using xcode
+            # app bundle packing using xcode
         elseif (APPLE AND XCODE_BUILD)
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             set_target_properties(${AppName} PROPERTIES
@@ -272,10 +272,10 @@ if (APPLICATION_BUILD)
         message(STATUS "Link Application Library For Linux")
         target_link_libraries(${AppName} crypto pthread)
         # issue on filesystem support of gcc
-        if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 9.0)
+        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 9.0)
             target_link_libraries(${AppName} stdc++fs)
         endif ()
-    endif()
+    endif ()
 endif ()
 
 # using c++ standard 17

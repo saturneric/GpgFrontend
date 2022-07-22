@@ -35,7 +35,8 @@
 
 namespace GpgFrontend::UI {
 
-KeyGenDialog::KeyGenDialog(QWidget* parent) : GeneralDialog(typeid(KeyGenDialog).name(), parent) {
+KeyGenDialog::KeyGenDialog(QWidget* parent)
+    : GeneralDialog(typeid(KeyGenDialog).name(), parent) {
   button_box_ =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 

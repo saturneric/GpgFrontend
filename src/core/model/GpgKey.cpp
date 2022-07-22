@@ -45,9 +45,7 @@ bool GpgFrontend::GpgKey::operator<=(const GpgKey &o) const {
   return this->GetId() < o.GetId();
 }
 
-GpgFrontend::GpgKey::operator gpgme_key_t() const {
-  return key_ref_.get();
-}
+GpgFrontend::GpgKey::operator gpgme_key_t() const { return key_ref_.get(); }
 
 bool GpgFrontend::GpgKey::IsGood() const { return key_ref_ != nullptr; }
 
@@ -226,10 +224,9 @@ bool GpgFrontend::GpgKey::IsHasActualEncryptionCapability() const {
     return false;
 }
 
-
 GpgFrontend::GpgKey GpgFrontend::GpgKey::Copy() const {
   gpgme_key_ref(key_ref_.get());
-  auto* _new_key_ref = key_ref_.get();
+  auto *_new_key_ref = key_ref_.get();
   return GpgKey(std::move(_new_key_ref));
 }
 
