@@ -1,7 +1,7 @@
-/**
- * Copyright (C) 2021 Saturneric
+/*
+ * Copyright (c) 2022. Saturneric
  *
- * This file is part of GpgFrontend.
+ *  This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,13 +23,13 @@
  * Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
- *
  */
 
 #ifndef GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
 #define GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
 
 #include "GpgFrontendUI.h"
+#include "ui/dialog//GeneralDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -39,7 +39,7 @@ class KeyList;
  * @brief
  *
  */
-class SignersPicker : public QDialog {
+class SignersPicker : public GeneralDialog {
   Q_OBJECT
 
  public:
@@ -57,8 +57,15 @@ class SignersPicker : public QDialog {
    */
   GpgFrontend::KeyIdArgsListPtr GetCheckedSigners();
 
+  /**
+   *
+   * @return
+   */
+  [[nodiscard]] bool GetStatus() const;
+
  private:
   KeyList* key_list_;  ///<
+  bool accepted_ = false;
 };
 
 }  // namespace GpgFrontend::UI

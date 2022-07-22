@@ -28,6 +28,7 @@
 
 #ifndef GPGFRONTEND_SIGNATUREDETAILSDIALOG_H
 #define GPGFRONTEND_SIGNATUREDETAILSDIALOG_H
+
 #include "ui/GpgFrontendUI.h"
 
 class SignatureDetailsDialog : public QDialog {
