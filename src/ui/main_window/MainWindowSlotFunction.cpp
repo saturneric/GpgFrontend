@@ -26,7 +26,6 @@
  *
  */
 
-#include <cstddef>
 #include <memory>
 #include <string>
 #include <utility>
@@ -34,15 +33,12 @@
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
 #include "core/GpgModel.h"
-#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
-#include "core/model/GpgKey.h"
-#include "core/thread/TaskRunner.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/help/AboutDialog.h"
-#include "ui/widgets/SignersPicker.h"
+#include "dialog/SignersPicker.h"
 
 namespace GpgFrontend::UI {
 /**
@@ -426,6 +422,9 @@ void MainWindow::slot_encrypt_sign() {
   QEventLoop loop;
   connect(signersPicker, &SignersPicker::finished, &loop, &QEventLoop::quit);
   loop.exec();
+
+  // return when canceled
+  if (!signersPicker->GetStatus()) return;
 
   auto signer_key_ids = signersPicker->GetCheckedSigners();
   auto signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);

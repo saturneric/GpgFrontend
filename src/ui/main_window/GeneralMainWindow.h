@@ -72,6 +72,8 @@ class GeneralMainWindow : public QMainWindow {
 
  private:
   std::string name_;  ///<
+  QPoint pos_;        ///<
+  QSize size_;        ///<
 };
 }  // namespace GpgFrontend::UI
 

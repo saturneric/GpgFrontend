@@ -50,16 +50,17 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
       int x = general_windows_state.Check("window_pos").Check("x", 100),
           y = general_windows_state.Check("window_pos").Check("y", 100);
 
-      auto pos = QPoint(x, y);
+      this->move({x, y});
+      pos_ = {x, y};
 
       int width =
-              general_windows_state.Check("window_size").Check("width", 800),
+              general_windows_state.Check("window_size").Check("width", 400),
           height =
-              general_windows_state.Check("window_size").Check("height", 450);
+              general_windows_state.Check("window_size").Check("height", 247);
 
-      auto size = QSize(width, height);
-      this->resize(size);
-      this->move(pos);
+      this->resize({width, height});
+      size_ = {width, height};
+
     }
 
   } catch (...) {
@@ -77,8 +78,8 @@ void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
     general_windows_state["window_pos"]["x"] = pos().x();
     general_windows_state["window_pos"]["y"] = pos().y();
 
-    general_windows_state["window_size"]["width"] = size().width();
-    general_windows_state["window_size"]["height"] = size().height();
+    general_windows_state["window_size"]["width"] = size_.width();
+    general_windows_state["window_size"]["height"] = size_.height();
     general_windows_state["window_save"] = true;
 
   } catch (...) {

@@ -1,7 +1,7 @@
-/**
- * Copyright (C) 2021 Saturneric
+/*
+ * Copyright (c) 2022. Saturneric
  *
- * This file is part of GpgFrontend.
+ *  This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,18 +23,24 @@
  * Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
- *
  */
 
-#include "ui/widgets/SignersPicker.h"
+#include "SignersPicker.h"
 
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
-SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
+SignersPicker::SignersPicker(QWidget* parent)
+    : GeneralDialog(typeid(SignersPicker).name(), parent) {
   auto confirm_button = new QPushButton(_("Confirm"));
-  connect(confirm_button, &QPushButton::clicked, this, &SignersPicker::accept);
+  auto cancel_button = new QPushButton(_("Cancel"));
+
+  connect(confirm_button, &QPushButton::clicked, [=]() {
+    this->accepted_ = true;
+  });
+  connect(confirm_button, &QPushButton::clicked, this, &QDialog::accept);
+  connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
   /*Setup KeyList*/
   key_list_ = new KeyList(false, this);
@@ -55,6 +61,7 @@ SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
       "\n" +
       _("If no key is selected, the default key will be used for signing.")));
   vbox2->addWidget(confirm_button);
+  vbox2->addWidget(cancel_button);
   vbox2->addStretch(0);
   setLayout(vbox2);
 
@@ -70,5 +77,7 @@ SignersPicker::SignersPicker(QWidget* parent) : QDialog(parent) {
 GpgFrontend::KeyIdArgsListPtr SignersPicker::GetCheckedSigners() {
   return key_list_->GetPrivateChecked();
 }
+
+bool SignersPicker::GetStatus() const { return this->accepted_; }
 
 }  // namespace GpgFrontend::UI

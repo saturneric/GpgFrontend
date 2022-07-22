@@ -141,5 +141,5 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
       _("Exclude keys that do not have a private key"));
 
   setAttribute(Qt::WA_DeleteOnClose);
-  setWindowTitle(_("exportKeyPackageDialog"));
+  setWindowTitle(_("Export As Key Package"));
 }

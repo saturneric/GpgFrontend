@@ -58,6 +58,8 @@ class GeneralDialog : public QDialog {
 
  private:
   std::string name_;  ///<
+  QPoint pos_;        ///<
+  QSize size_;        ///<
 };
 }  // namespace GpgFrontend::UI
 
