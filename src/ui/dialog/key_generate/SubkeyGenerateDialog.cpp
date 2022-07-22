@@ -24,7 +24,7 @@
  *
  */
 
-#include "ui/key_generate/SubkeyGenerateDialog.h"
+#include "SubkeyGenerateDialog.h"
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"

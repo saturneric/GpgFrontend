@@ -37,8 +37,8 @@
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/import_export/ExportKeyPackageDialog.h"
-#include "ui/key_generate/SubkeyGenerateDialog.h"
+#include "ui/dialog/import_export/ExportKeyPackageDialog.h"
+#include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
 #include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::UI {

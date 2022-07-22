@@ -29,9 +29,9 @@
 
 #include "KeySetExpireDateDialog.h"
 #include "core/GpgContext.h"
-#include "import_export/KeyServerImportDialog.h"
-#include "import_export/KeyUploadDialog.h"
 #include "ui/GpgFrontendUI.h"
+#include "ui/dialog/import_export/KeyServerImportDialog.h"
+#include "ui/dialog/import_export/KeyUploadDialog.h"
 
 namespace GpgFrontend::UI {
 

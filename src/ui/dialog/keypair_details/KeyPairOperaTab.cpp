@@ -26,12 +26,12 @@
 
 #include "KeyPairOperaTab.h"
 
+#include "KeySetExpireDateDialog.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "import_export/KeyUploadDialog.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/keypair_details/KeySetExpireDateDialog.h"
+#include "ui/dialog/import_export/KeyUploadDialog.h"
 
 namespace GpgFrontend::UI {
 

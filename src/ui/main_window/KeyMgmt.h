@@ -30,10 +30,10 @@
 #define __KEYMGMT_H__
 
 #include "ui/GpgFrontendUI.h"
-#include "ui/import_export/KeyImportDetailDialog.h"
-#include "ui/import_export/KeyServerImportDialog.h"
-#include "ui/key_generate/KeygenDialog.h"
-#include "ui/keypair_details/KeyDetailsDialog.h"
+#include "ui/dialog/import_export/KeyImportDetailDialog.h"
+#include "ui/dialog/import_export/KeyServerImportDialog.h"
+#include "ui/dialog/key_generate/KeygenDialog.h"
+#include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/widgets/KeyList.h"
 
