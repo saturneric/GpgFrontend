@@ -56,8 +56,9 @@ class GeneralMainWindow : public QMainWindow {
    */
   void closeEvent(QCloseEvent* event);
 
-  QSize icon_size_{};  ///<
-  int font_size_{};    ///<
+  QSize icon_size_{};               ///<
+  int font_size_{};                 ///<
+  Qt::ToolButtonStyle icon_style_;  ///<
 
  private slots:
   /**

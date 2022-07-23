@@ -167,6 +167,9 @@ void MainWindow::restore_settings() {
     bool save_key_checked = true;
     general.lookupValue("save_key_checked", save_key_checked);
 
+    // set appearance
+    import_button_->setToolButtonStyle(icon_style_);
+
     try {
       LOG(INFO) << "restore settings default_key_checked";
 

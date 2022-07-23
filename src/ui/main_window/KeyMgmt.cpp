@@ -250,7 +250,7 @@ void KeyMgmt::create_tool_bars() {
   generateToolButton->setIcon(QIcon(":key_generate.png"));
   generateToolButton->setText(_("Generate"));
   generateToolButton->setToolTip(_("Generate A New Keypair or Subkey"));
-  generateToolButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+  generateToolButton->setToolButtonStyle(icon_style_);
   keyToolBar->addWidget(generateToolButton);
 
   // add button with popup menu for import
@@ -260,7 +260,7 @@ void KeyMgmt::create_tool_bars() {
   toolButton->setIcon(QIcon(":key_import.png"));
   toolButton->setToolTip(_("Import key"));
   toolButton->setText(_("Import Key"));
-  toolButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+  toolButton->setToolButtonStyle(icon_style_);
   keyToolBar->addWidget(toolButton);
 
   keyToolBar->addSeparator();

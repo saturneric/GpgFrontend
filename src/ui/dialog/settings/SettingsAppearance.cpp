@@ -114,10 +114,10 @@ AppearanceTab::AppearanceTab(QWidget* parent) : QWidget(parent) {
  * appropriately
  **********************************/
 void AppearanceTab::SetSettings() {
-  SettingsObject main_windows_state("main_windows_state");
+  SettingsObject general_settings_state("general_settings_state");
 
-  int width = main_windows_state.Check("icon_size").Check("width", 24),
-      height = main_windows_state.Check("icon_size").Check("height", 24);
+  int width = general_settings_state.Check("icon_size").Check("width", 24),
+      height = general_settings_state.Check("icon_size").Check("height", 24);
 
   auto icon_size = QSize(width, height);
 
@@ -135,7 +135,7 @@ void AppearanceTab::SetSettings() {
 
   // icon_style
   int s_icon_style =
-      main_windows_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
+      general_settings_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
   auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
 
   switch (icon_style) {
@@ -152,10 +152,10 @@ void AppearanceTab::SetSettings() {
       break;
   }
 
-  bool window_save = main_windows_state.Check("window_save", true);
+  bool window_save = general_settings_state.Check("window_save", true);
   if (window_save) window_size_check_box_->setCheckState(Qt::Checked);
 
-  auto info_font_size = main_windows_state.Check("info_font_size", 10);
+  auto info_font_size = general_settings_state.Check("font_size", 10);
   if (info_font_size < 9 || info_font_size > 18) info_font_size = 10;
   info_board_font_size_spin_->setValue(info_font_size);
 }
@@ -165,7 +165,8 @@ void AppearanceTab::SetSettings() {
  * write them to settings-file
  *************************************/
 void AppearanceTab::ApplySettings() {
-  SettingsObject main_windows_state("main_windows_state");
+
+  SettingsObject general_settings_state("general_settings_state");
 
   int icon_size = 24;
   switch (icon_size_group_->checkedId()) {
@@ -180,8 +181,8 @@ void AppearanceTab::ApplySettings() {
       break;
   }
 
-  main_windows_state["icon_size"]["width"] = icon_size;
-  main_windows_state["icon_size"]["height"] = icon_size;
+  general_settings_state["icon_size"]["width"] = icon_size;
+  general_settings_state["icon_size"]["height"] = icon_size;
 
   auto icon_style = Qt::ToolButtonTextUnderIcon;
   switch (icon_style_group_->checkedId()) {
@@ -196,11 +197,11 @@ void AppearanceTab::ApplySettings() {
       break;
   }
 
-  main_windows_state["icon_style"] = icon_style;
+  general_settings_state["icon_style"] = icon_style;
 
-  main_windows_state["window_save"] = window_size_check_box_->isChecked();
+  general_settings_state["window_save"] = window_size_check_box_->isChecked();
 
-  main_windows_state["info_font_size"] = info_board_font_size_spin_->value();
+  general_settings_state["info_font_size"] = info_board_font_size_spin_->value();
 }
 
 }  // namespace GpgFrontend::UI
