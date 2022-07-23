@@ -32,8 +32,8 @@
 #include "core/function/gpg/GpgFileOpera.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/thread/Task.h"
+#include "dialog/SignersPicker.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/widgets/SignersPicker.h"
 
 namespace GpgFrontend::UI {
 
@@ -617,6 +617,9 @@ void MainWindow::SlotFileEncryptSign() {
   QEventLoop loop;
   connect(signersPicker, &SignersPicker::finished, &loop, &QEventLoop::quit);
   loop.exec();
+
+  // return when canceled
+  if (!signersPicker->GetStatus()) return;
 
   auto signer_key_ids = signersPicker->GetCheckedSigners();
   auto p_signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);

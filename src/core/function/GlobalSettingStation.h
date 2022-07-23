@@ -142,8 +142,8 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
   void SyncSettings() noexcept;
 
  private:
-  std::filesystem::path app_path_ =
-      QCoreApplication::applicationDirPath().toStdString();  ///< Program Location
+  std::filesystem::path app_path_ = QCoreApplication::applicationDirPath()
+                                        .toStdString();  ///< Program Location
   std::filesystem::path app_data_path_ =
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
           .toStdString();  ///< Program Data Location

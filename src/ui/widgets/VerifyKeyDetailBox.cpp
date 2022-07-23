@@ -41,7 +41,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
     case GPG_ERR_NO_PUBKEY: {
       this->setTitle("A Error Signature");
       auto* importButton = new QPushButton(_("Import from keyserver"));
-      connect(importButton,&QPushButton::clicked, this,
+      connect(importButton, &QPushButton::clicked, this,
               &VerifyKeyDetailBox::slot_import_form_key_server);
 
       this->setTitle(QString(_("Key not present with id 0x")) + fpr_.c_str());

@@ -72,7 +72,6 @@ bool KeyPackageOperator::ImportKeyPackage(
     const std::filesystem::path& key_package_path,
     const std::filesystem::path& phrase_path,
     GpgFrontend::GpgImportInformation& import_info) {
-
   LOG(INFO) << "Importing key package: " << key_package_path.u8string();
 
   std::string encrypted_data;
@@ -101,7 +100,7 @@ bool KeyPackageOperator::ImportKeyPackage(
   auto decoded = encryption.removePadding(encryption.decode(encoded, hash_key));
   auto key_data = QByteArray::fromBase64(decoded);
 
-  LOG(INFO)  << "key data" << key_data.size();
+  LOG(INFO) << "key data" << key_data.size();
   if (!key_data.startsWith(GpgConstants::PGP_PUBLIC_KEY_BEGIN) &&
       !key_data.startsWith(GpgConstants::PGP_PRIVATE_KEY_BEGIN)) {
     return false;

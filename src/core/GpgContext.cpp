@@ -93,7 +93,9 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
                                  : engine_info->file_name)
               << std::string(engine_info->home_dir == nullptr
                                  ? "null"
-                                 : engine_info->home_dir);
+                                 : engine_info->home_dir)
+              << std::string(engine_info->version ? "null"
+                                                  : engine_info->version);
 
     switch (engine_info->protocol) {
       case GPGME_PROTOCOL_OpenPGP:
@@ -110,6 +112,7 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
         info_.GpgConfPath = engine_info->file_name;
         break;
       case GPGME_PROTOCOL_ASSUAN:
+        info_.AssuanPath = engine_info->file_name;
         break;
       case GPGME_PROTOCOL_G13:
         break;

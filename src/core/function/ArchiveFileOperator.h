@@ -46,15 +46,13 @@ class GPGFRONTEND_CORE_EXPORT ArchiveFileOperator {
  public:
   static void ListArchive(const std::filesystem::path &archive_path);
 
-  static void CreateArchive(
-      const std::filesystem::path &base_path,
-      const std::filesystem::path &archive_path,
+  static void CreateArchive(const std::filesystem::path &base_path,
+                            const std::filesystem::path &archive_path,
                             int compress,
                             const std::vector<std::filesystem::path> &files);
 
-  static void ExtractArchive(
-      const std::filesystem::path &archive_path,
-      const std::filesystem::path &base_path);
+  static void ExtractArchive(const std::filesystem::path &archive_path,
+                             const std::filesystem::path &base_path);
 };
 }  // namespace GpgFrontend
 

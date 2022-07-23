@@ -31,7 +31,7 @@
 
 #include "PlainTextEditorPage.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
-#include "ui/details/VerifyDetailsDialog.h"
+#include "ui/dialog/details/VerifyDetailsDialog.h"
 
 class Ui_InfoBoard;
 

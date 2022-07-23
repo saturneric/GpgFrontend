@@ -27,11 +27,7 @@
 #ifndef GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
 #define GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
 
-#include <vector>
-
 #include "GpgFrontendUI.h"
-#include "core/thread/Task.h"
-
 namespace GpgFrontend::UI {
 
 /**

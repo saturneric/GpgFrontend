@@ -27,7 +27,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # define project
-project(GpgFrontend VERSION 2.0.8 LANGUAGES CXX)
+project(GpgFrontend VERSION 2.0.9 LANGUAGES CXX)
 
 # show cmake version
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
@@ -433,7 +433,7 @@ find_package(OpenSSL REQUIRED)
 # Introduce Qt
 if (QT5_ENV_SUPPORT)
     # Support Qt version Both 5.12.x and 5.15.x
-    find_package(Qt5 5.12 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    find_package(Qt5 5.9 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
     
     # Qt configuration
     set(CMAKE_AUTOMOC ON)

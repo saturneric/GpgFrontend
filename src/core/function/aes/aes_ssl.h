@@ -29,10 +29,10 @@
 #ifndef GPGFRONTEND_AES_SSL_H
 #define GPGFRONTEND_AES_SSL_H
 
-#include "GpgFrontend.h"
-
 #include <openssl/aes.h>
 #include <openssl/evp.h>
+
+#include "GpgFrontend.h"
 
 namespace GpgFrontend::RawAPI {
 
@@ -69,6 +69,6 @@ uint8_t *aes_256_cbc_encrypt(EVP_CIPHER_CTX *e, uint8_t *plaintext, int *len);
  */
 uint8_t *aes_256_cbc_decrypt(EVP_CIPHER_CTX *e, uint8_t *ciphertext, int *len);
 
-} // namespace GpgFrontend::RawAPI
+}  // namespace GpgFrontend::RawAPI
 
-#endif // GPGFRONTEND_AES_SSL_H
+#endif  // GPGFRONTEND_AES_SSL_H

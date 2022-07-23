@@ -28,8 +28,8 @@
 
 #include "GpgEncryptResultAnalyse.h"
 
-GpgFrontend::GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(GpgError error,
-                                                        GpgEncrResult result)
+GpgFrontend::GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(
+    GpgError error, GpgEncrResult result)
     : error_(error), result_(std::move(result)) {}
 
 void GpgFrontend::GpgEncryptResultAnalyse::do_analyse() {

@@ -251,11 +251,17 @@ void MainWindow::create_actions() {
   connect(about_act_, &QAction::triggered, this,
           [=]() { new AboutDialog(0, this); });
 
+  gnupg_act_ = new QAction(_("GnuPG"), this);
+  gnupg_act_->setIcon(QIcon(":help.png"));
+  gnupg_act_->setToolTip(_("Information about Gnupg"));
+  connect(gnupg_act_, &QAction::triggered, this,
+          [=]() { new AboutDialog(1, this); });
+
   translate_act_ = new QAction(_("Translate"), this);
   translate_act_->setIcon(QIcon(":help.png"));
   translate_act_->setToolTip(_("Information about translation"));
   connect(translate_act_, &QAction::triggered, this,
-          [=]() { new AboutDialog(1, this); });
+          [=]() { new AboutDialog(2, this); });
 
   /*
    * Check Update Menu
@@ -377,6 +383,7 @@ void MainWindow::create_menus() {
   help_menu_->addSeparator();
   help_menu_->addAction(check_update_act_);
   help_menu_->addAction(translate_act_);
+  help_menu_->addAction(gnupg_act_);
   help_menu_->addAction(about_act_);
 }
 

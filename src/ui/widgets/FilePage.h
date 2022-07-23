@@ -29,8 +29,6 @@
 #ifndef GPGFRONTEND_FILEPAGE_H
 #define GPGFRONTEND_FILEPAGE_H
 
-
-
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/InfoBoardWidget.h"
 

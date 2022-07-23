@@ -69,7 +69,8 @@ class SettingsObject : public nlohmann::json {
    * @param default_value
    * @return nlohmann::json&
    */
-  nlohmann::json& Check(const std::string& key, const nlohmann::json& default_value);
+  nlohmann::json& Check(const std::string& key,
+                        const nlohmann::json& default_value);
 
   /**
    * @brief
