@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: GpgFrontend 2.0.8\n"
+"Project-Id-Version: GpgFrontend 2.0.9\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-07-23 02:52+0800\n"
-"PO-Revision-Date: 2022-07-23 02:58-0800\n"
+"POT-Creation-Date: 2022-07-23 20:16+0800\n"
+"PO-Revision-Date: 2022-07-23 20:23-0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
 "Language: ko\n"
@@ -67,7 +67,7 @@ msgstr "파일 이름"
 #: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:99
 #: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:107
 #: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:115
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:170
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:173
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:66
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:70
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:61
@@ -506,7 +506,7 @@ msgstr "예측하다"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:102
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:106
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
@@ -559,24 +559,31 @@ msgstr "포함"
 msgid "Signed on %1%"
 msgstr "%1%에 서명됨"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:41
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
 msgid "About"
 msgstr "에 대한"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:47
-msgid "About Software"
-msgstr "소프트웨어 정보"
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:49
+msgid "About GpgFrontend"
+msgstr "GpgFrontend 정보"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:48
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:50
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:48
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+msgid "GnuPG"
+msgstr "그누PG"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:51
 msgid "Translators"
 msgstr "번역가"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:49
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:52
 msgid "Update"
 msgstr "업데이트"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:82
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:85
 msgid ""
 "GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
 "free gpg front-end tool.It visualizes most of the common operations of gpg "
@@ -585,31 +592,31 @@ msgstr ""
 "GpgFrontend는 사용하기 쉽고 컴팩트한 플랫폼 간 설치가 필요 없는 gpg 프런트 엔드 도구입니다. gpg 명령의 대부분의 "
 "일반적인 작업을 시각화합니다. GPL v3에 따라 라이선스가 부여됩니다."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:88
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:91
 msgid "Developer:"
 msgstr "개발자:"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:89
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:92
 msgid "If you have any questions or suggestions, raise an issue at"
 msgstr "질문이나 제안 사항이 있으면 다음에서 문제를 제기하십시오."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:92
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:95
 msgid "or send a mail to my mailing list at"
 msgstr "또는 내 메일 링리스트로 메일을 보내십시오."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:97
 msgid "Built with Qt"
 msgstr "Qt로 구축"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:97
 msgid "and GPGME"
 msgstr "및 GPGME"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:96
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:99
 msgid "Built at"
 msgstr "건설 시간"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:135
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:138
 msgid ""
 "If you think there are any problems with the translation, why not "
 "participate in the translation work? If you want to participate, please read"
@@ -618,59 +625,59 @@ msgstr ""
 "번역에 문제가 있다고 생각되면 번역 작업에 참여해 보시지 않겠습니까? 참여를 원하시는 분은 문서를 읽어주시거나 이메일로 연락주시기 "
 "바랍니다."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:160
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
 msgid ""
 "It is recommended that you always check the version of GpgFrontend and "
 "upgrade to the latest version."
 msgstr "항상 GpgFrontend의 버전을 확인하고 최신 버전으로 업그레이드하는 것이 좋습니다."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:166
 msgid ""
 "New versions not only represent new features, but also often represent "
 "functional and security fixes."
 msgstr "새 버전은 새 기능을 나타낼 뿐만 아니라 종종 기능 및 보안 수정 사항을 나타냅니다."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:169
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:172
 msgid "Current Version"
 msgstr "현재 버전"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:201
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:204
 msgid "try to get latest version"
 msgstr "최신 버전을 얻으려고"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:216
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:219
 msgid "Latest Version From Github"
 msgstr "Github의 최신 버전"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:222
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:225
 msgid "The current version is less than the latest version on github."
 msgstr "현재 버전이 github의 최신 버전보다 낮습니다."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:224
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:235
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
 msgid "Please click"
 msgstr "클릭하세요"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:230
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:241
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:253
 msgid "Here"
 msgstr "여기"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:230
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:241
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:253
 msgid "to download the latest stable version."
 msgstr "최신 안정 버전을 다운로드합니다."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:233
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:236
 msgid ""
 "This version has serious problems and has been withdrawn. Please stop using "
 "it immediately."
 msgstr "이 버전은 심각한 문제가 있어 철회되었습니다. 즉시 사용을 중지해 주십시오."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:244
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
 msgid ""
 "This version has not been released yet, it may be a beta version. If you are"
 " not a tester and care about version stability, please do not use this "
@@ -678,6 +685,26 @@ msgid ""
 msgstr ""
 "이 버전은 아직 출시되지 않았으며 베타 버전일 수 있습니다. 테스터가 아니고 버전 안정성에 관심이 있는 분은 이 버전을 사용하지 "
 "마십시오."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:41
+msgid "GnuPG Version"
+msgstr "GnuPG 버전"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:44
+msgid "GpgME Version"
+msgstr "GpgME 버전"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:46
+msgid "PATHs"
+msgstr "경로"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:46
+msgid "GpgConf"
+msgstr "GpgConf"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:49
+msgid "CMS"
+msgstr "CMS"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:54
 msgid "Export Key Package"
@@ -779,8 +806,8 @@ msgid "Exclude keys that do not have a private key"
 msgstr "개인 키가 없는 키 제외"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:144
-msgid "exportKeyPackageDialog"
-msgstr "내보내기 키 패키지 대화 상자"
+msgid "Export As Key Package"
+msgstr "키 패키지로 내보내기"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:41
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:61
@@ -941,7 +968,7 @@ msgstr "키 서버에서 키 가져오기"
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:149
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:55
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:193
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:196
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:175
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:477
@@ -1100,7 +1127,7 @@ msgstr "하위 키"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:46
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:52
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:51
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:392
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:399
 msgid "Operations"
 msgstr "운영"
 
@@ -1883,7 +1910,7 @@ msgid "Save window size and position on exit."
 msgstr "종료 시 창 크기와 위치를 저장합니다."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:489
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:496
 msgid "Information Board"
 msgstr "안내 게시판"
 
@@ -1986,7 +2013,7 @@ msgid "Keyserver List"
 msgstr "키 서버 목록"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:54
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:459
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:466
 msgid "Default"
 msgstr "기본"
 
@@ -2153,7 +2180,7 @@ msgid "forbid_all_connection"
 msgstr "forbid_all_connection"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:149
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:194
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:197
 msgid "prohibit_update_checking"
 msgstr "금지_업데이트_확인"
 
@@ -2391,12 +2418,12 @@ msgid "All"
 msgstr "모두"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:54
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:467
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:474
 msgid "Only Public Key"
 msgstr "공개 키만"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:476
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:483
 msgid "Has Private Key"
 msgstr "개인 키 있음"
 
@@ -2452,8 +2479,8 @@ msgstr "선택한 키 쌍에 대한 하위 키 생성"
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:150
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:220
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:208
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:319
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:384
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:325
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:391
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:243
 msgid "File"
 msgstr "파일"
@@ -2528,24 +2555,24 @@ msgid "Delete the Checked keys"
 msgstr "선택한 키 삭제"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:213
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:296
 msgid "Show Key Details"
 msgstr "주요 세부 정보 표시"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:214
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:291
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:297
 msgid "Show Details for this Key"
 msgstr "이 키에 대한 세부 정보 표시"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:224
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:243
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:402
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:409
 msgid "Key"
 msgstr "열쇠"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:229
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:262
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:361
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:367
 msgid "Import Key"
 msgstr "키 가져오기"
 
@@ -2558,7 +2585,7 @@ msgid "Generate A New Keypair or Subkey"
 msgstr "새 키 쌍 또는 하위 키 생성"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:261
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:428
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:435
 msgid "Import key"
 msgstr "키 가져오기"
 
@@ -2651,7 +2678,7 @@ msgstr "GpgFrontend를 로드하는 동안 치명적인 오류가 발생했습�
 msgid "Loading Failed"
 msgstr "로드 실패"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:202
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:205
 msgid "settings restored"
 msgstr "복원된 설정"
 
@@ -3092,92 +3119,96 @@ msgstr "오픈 키 관리"
 msgid "Show the application's About box"
 msgstr "애플리케이션의 정보 상자 표시"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:256
+msgid "Information about Gnupg"
+msgstr "Gnupg에 대한 정보"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:260
 msgid "Translate"
 msgstr "번역하다"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:256
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:262
 msgid "Information about translation"
 msgstr "번역에 대한 정보"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:263
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:269
 msgid "Check for Updates"
 msgstr "업데이트 확인"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:265
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:271
 msgid "Check for updates"
 msgstr "업데이트 확인"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:269
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:275
 msgid "Open Wizard"
 msgstr "마법사 열기"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:270
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
 msgid "Open the wizard"
 msgstr "마법사 열기"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
 msgid "Append To Text Editor"
 msgstr "텍스트 편집기에 추가"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:278
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:284
 msgid "Append The Selected Public Key To Text in Editor"
 msgstr "편집기에서 선택한 공개 키를 텍스트에 추가"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:288
 msgid "Copy Email"
 msgstr "이메일 복사"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:284
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
 msgid "Copy selected Email to clipboard"
 msgstr "선택한 이메일을 클립보드에 복사"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:309
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:315
 msgid "Remove PGP Header"
 msgstr "PGP 헤더 제거"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:313
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:319
 msgid "Add PGP Header"
 msgstr "PGP 헤더 추가"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:332
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:407
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:338
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:414
 msgid "Edit"
 msgstr "편집하다"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:350
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:356
 msgid "Crypt"
 msgstr "토굴"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:360
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:366
 msgid "Keys"
 msgstr "열쇠"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:369
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:375
 msgid "Steganography"
 msgstr "스테가노그래피"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:373
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:379
 msgid "View"
 msgstr "보다"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:375
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:381
 msgid "Help"
 msgstr "돕다"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:415
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:422
 msgid "Special Edit"
 msgstr "특별 편집"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:427
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:434
 msgid "Import key from..."
 msgstr "다음에서 키 가져오기..."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:444
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:451
 msgid "Ready"
 msgstr "준비가 된"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:451
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:458
 msgid "Key ToolBox"
 msgstr "키 도구 상자"
 
@@ -3603,6 +3634,12 @@ msgstr "만료된 키"
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:209
 msgid "Missing CRL"
 msgstr "누락된 CRL"
+
+#~ msgid "About Software"
+#~ msgstr "소프트웨어 정보"
+
+#~ msgid "exportKeyPackageDialog"
+#~ msgstr "내보내기 키 패키지 대화 상자"
 
 #~ msgid "Current Row"
 #~ msgstr "현재 행"

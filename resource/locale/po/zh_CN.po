@@ -6,10 +6,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: GpgFrontend 2.0.8\n"
+"Project-Id-Version: GpgFrontend 2.0.9\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-07-23 02:52+0800\n"
-"PO-Revision-Date: 2022-07-23 02:58-0800\n"
+"POT-Creation-Date: 2022-07-23 20:16+0800\n"
+"PO-Revision-Date: 2022-07-23 20:23-0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
 "Language: zh\n"
@@ -67,7 +67,7 @@ msgstr "文档名称"
 #: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:99
 #: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:107
 #: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:115
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:170
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:173
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:66
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:70
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:61
@@ -506,7 +506,7 @@ msgstr "预测"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:102
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:106
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
@@ -557,24 +557,31 @@ msgstr "它包含了"
 msgid "Signed on %1%"
 msgstr "已在 %1% 上签名"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:41
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
 msgid "About"
 msgstr "关于"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:47
-msgid "About Software"
-msgstr "关于此软件"
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:49
+msgid "About GpgFrontend"
+msgstr "关于 GpgFrontend"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:48
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:50
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:48
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+msgid "GnuPG"
+msgstr "GnuPG"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:51
 msgid "Translators"
 msgstr "翻译贡献者"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:49
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:52
 msgid "Update"
 msgstr "更新"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:82
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:85
 msgid ""
 "GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
 "free gpg front-end tool.It visualizes most of the common operations of gpg "
@@ -582,95 +589,115 @@ msgid ""
 msgstr ""
 "gpgFrontend 是一款简单易用、小巧、跨平台、免安装的gpg前端工具。它可视化了gpg命令的大部分常用操作。它在GPL v3下获得许可"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:88
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:91
 msgid "Developer:"
 msgstr "开发商："
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:89
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:92
 msgid "If you have any questions or suggestions, raise an issue at"
 msgstr "如果您有任何问题或建议，请在以下位置提出问题"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:92
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:95
 msgid "or send a mail to my mailing list at"
 msgstr "或发送邮件到我的邮件列表"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:97
 msgid "Built with Qt"
 msgstr "用 Qt 构建"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:97
 msgid "and GPGME"
 msgstr "和GPGME"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:96
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:99
 msgid "Built at"
 msgstr "建于"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:135
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:138
 msgid ""
 "If you think there are any problems with the translation, why not "
 "participate in the translation work? If you want to participate, please read"
 " the document or contact me via email."
 msgstr "如果觉得翻译有问题，何不参与翻译工作呢？如果您想参加，请阅读文档或通过电子邮件与我联系。"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:160
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
 msgid ""
 "It is recommended that you always check the version of GpgFrontend and "
 "upgrade to the latest version."
 msgstr "建议您经常检查 GpgFrontend 的版本并升级到最新版本。"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:166
 msgid ""
 "New versions not only represent new features, but also often represent "
 "functional and security fixes."
 msgstr "新版本不仅代表新功能，而且通常代表功能和安全修复。"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:169
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:172
 msgid "Current Version"
 msgstr "当前版本"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:201
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:204
 msgid "try to get latest version"
 msgstr "尝试获取最新版本"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:216
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:219
 msgid "Latest Version From Github"
 msgstr "来自 Github 的最新版本"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:222
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:225
 msgid "The current version is less than the latest version on github."
 msgstr "当前版本低于github上的最新版本。"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:224
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:235
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
 msgid "Please click"
 msgstr "请点击"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:230
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:241
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:253
 msgid "Here"
 msgstr "这里"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:230
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:241
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:253
 msgid "to download the latest stable version."
 msgstr "下载最新的稳定版本。"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:233
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:236
 msgid ""
 "This version has serious problems and has been withdrawn. Please stop using "
 "it immediately."
 msgstr "此版本存在严重问题，已撤回。请立即停止使用。"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:244
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
 msgid ""
 "This version has not been released yet, it may be a beta version. If you are"
 " not a tester and care about version stability, please do not use this "
 "version."
 msgstr "此版本尚未发布，可能是测试版。如果您不是测试人员并且关心版本稳定性，请不要使用此版本。"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:41
+msgid "GnuPG Version"
+msgstr "GnuPG 版本"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:44
+msgid "GpgME Version"
+msgstr "GpgME 版本"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:46
+msgid "PATHs"
+msgstr "路径"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:46
+msgid "GpgConf"
+msgstr "GpgConf"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:49
+msgid "CMS"
+msgstr "内容管理系统"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:54
 msgid "Export Key Package"
@@ -769,8 +796,8 @@ msgid "Exclude keys that do not have a private key"
 msgstr "排除没有私钥的密钥"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:144
-msgid "exportKeyPackageDialog"
-msgstr "导出密钥包对话框"
+msgid "Export As Key Package"
+msgstr "导出为密钥包"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:41
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:61
@@ -931,7 +958,7 @@ msgstr "从密钥服务器导入密钥"
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:149
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:55
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:193
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:196
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:175
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:477
@@ -1090,7 +1117,7 @@ msgstr "子密钥"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:46
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:52
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:51
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:392
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:399
 msgid "Operations"
 msgstr "操作"
 
@@ -1873,7 +1900,7 @@ msgid "Save window size and position on exit."
 msgstr "退出时保存窗口大小和位置。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:489
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:496
 msgid "Information Board"
 msgstr "信息面板"
 
@@ -1976,7 +2003,7 @@ msgid "Keyserver List"
 msgstr "密钥服务器列表"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:54
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:459
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:466
 msgid "Default"
 msgstr "默认"
 
@@ -2140,7 +2167,7 @@ msgid "forbid_all_connection"
 msgstr "禁止所有连接"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:149
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:194
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:197
 msgid "prohibit_update_checking"
 msgstr "禁止更新检查"
 
@@ -2371,12 +2398,12 @@ msgid "All"
 msgstr "全部"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:54
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:467
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:474
 msgid "Only Public Key"
 msgstr "只有公钥"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:476
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:483
 msgid "Has Private Key"
 msgstr "有私钥"
 
@@ -2432,8 +2459,8 @@ msgstr "为选定的密钥对生成子密钥"
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:150
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:220
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:208
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:319
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:384
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:325
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:391
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:243
 msgid "File"
 msgstr "文件"
@@ -2508,24 +2535,24 @@ msgid "Delete the Checked keys"
 msgstr "删除选中的密钥"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:213
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:296
 msgid "Show Key Details"
 msgstr "显示密钥细节"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:214
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:291
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:297
 msgid "Show Details for this Key"
 msgstr "显示此密钥的详细信息"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:224
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:243
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:402
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:409
 msgid "Key"
 msgstr "密钥"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:229
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:262
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:361
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:367
 msgid "Import Key"
 msgstr "导入密钥"
 
@@ -2538,7 +2565,7 @@ msgid "Generate A New Keypair or Subkey"
 msgstr "生成新的密钥对或子密钥"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:261
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:428
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:435
 msgid "Import key"
 msgstr "导入密钥"
 
@@ -2631,7 +2658,7 @@ msgstr "加载 GpgFrontend 时发生严重错误。"
 msgid "Loading Failed"
 msgstr "加载失败"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:202
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:205
 msgid "settings restored"
 msgstr "设置已恢复"
 
@@ -3071,92 +3098,96 @@ msgstr "打开密钥管理"
 msgid "Show the application's About box"
 msgstr "显示应用程序的关于界面"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:256
+msgid "Information about Gnupg"
+msgstr "关于 Gnupg 的信息"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:260
 msgid "Translate"
 msgstr "翻译"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:256
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:262
 msgid "Information about translation"
 msgstr "翻译信息"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:263
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:269
 msgid "Check for Updates"
 msgstr "检查更新"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:265
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:271
 msgid "Check for updates"
 msgstr "检查更新"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:269
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:275
 msgid "Open Wizard"
 msgstr "打开向导"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:270
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
 msgid "Open the wizard"
 msgstr "打开向导"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
 msgid "Append To Text Editor"
 msgstr "附加到文本编辑器"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:278
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:284
 msgid "Append The Selected Public Key To Text in Editor"
 msgstr "将选定的公钥附加到编辑器中的文本"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:288
 msgid "Copy Email"
 msgstr "复制电子邮件"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:284
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
 msgid "Copy selected Email to clipboard"
 msgstr "将选定的电子邮件复制到剪贴板"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:309
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:315
 msgid "Remove PGP Header"
 msgstr "删除 PGP 标头"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:313
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:319
 msgid "Add PGP Header"
 msgstr "添加 PGP 标头"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:332
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:407
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:338
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:414
 msgid "Edit"
 msgstr "编辑"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:350
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:356
 msgid "Crypt"
 msgstr "加密"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:360
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:366
 msgid "Keys"
 msgstr "密钥"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:369
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:375
 msgid "Steganography"
 msgstr "隐写术"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:373
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:379
 msgid "View"
 msgstr "看法"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:375
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:381
 msgid "Help"
 msgstr "帮助"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:415
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:422
 msgid "Special Edit"
 msgstr "特殊编辑操作"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:427
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:434
 msgid "Import key from..."
 msgstr "从...导入密钥"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:444
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:451
 msgid "Ready"
 msgstr "准备好"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:451
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:458
 msgid "Key ToolBox"
 msgstr "密钥工具箱"
 
@@ -3578,6 +3609,12 @@ msgstr "过期密钥"
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:209
 msgid "Missing CRL"
 msgstr "缺少 CRL"
+
+#~ msgid "About Software"
+#~ msgstr "关于此软件"
+
+#~ msgid "exportKeyPackageDialog"
+#~ msgstr "导出密钥包对话框"
 
 #~ msgid "Current Row"
 #~ msgstr "当前行"

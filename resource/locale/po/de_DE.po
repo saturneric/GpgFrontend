@@ -6,10 +6,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: GpgFrontend 2.0.8\n"
+"Project-Id-Version: GpgFrontend 2.0.9\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-07-23 02:52+0800\n"
-"PO-Revision-Date: 2022-07-23 02:58-0800\n"
+"POT-Creation-Date: 2022-07-23 20:16+0800\n"
+"PO-Revision-Date: 2022-07-23 20:22-0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
 "Language: de\n"
@@ -68,7 +68,7 @@ msgstr "Dateiname"
 #: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:99
 #: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:107
 #: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:115
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:170
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:173
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:66
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:70
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:61
@@ -515,7 +515,7 @@ msgstr "Vorhersagen"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:102
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:106
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
@@ -570,24 +570,31 @@ msgstr "Es beinhaltet"
 msgid "Signed on %1%"
 msgstr "Angemeldet am %1%"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:41
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
 msgid "About"
 msgstr "Über"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:47
-msgid "About Software"
-msgstr "Über Software"
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:49
+msgid "About GpgFrontend"
+msgstr "Über GpgFrontend"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:48
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:50
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:48
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+msgid "GnuPG"
+msgstr "GnuPG"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:51
 msgid "Translators"
 msgstr "Übersetzer"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:49
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:52
 msgid "Update"
 msgstr "Aktualisieren"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:82
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:85
 msgid ""
 "GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
 "free gpg front-end tool.It visualizes most of the common operations of gpg "
@@ -598,31 +605,31 @@ msgstr ""
 "visualisiert die meisten gängigen Operationen von gpg-Befehlen. Es ist unter"
 " der GPL v3 lizenziert"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:88
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:91
 msgid "Developer:"
 msgstr "Entwickler:"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:89
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:92
 msgid "If you have any questions or suggestions, raise an issue at"
 msgstr "Wenn Sie Fragen oder Anregungen haben, wenden Sie sich an"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:92
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:95
 msgid "or send a mail to my mailing list at"
 msgstr "oder sende eine Mail an meine Mailingliste an"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:97
 msgid "Built with Qt"
 msgstr "Mit Qt . gebaut"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:97
 msgid "and GPGME"
 msgstr "und GPGME"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:96
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:99
 msgid "Built at"
 msgstr "Gebaut bei"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:135
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:138
 msgid ""
 "If you think there are any problems with the translation, why not "
 "participate in the translation work? If you want to participate, please read"
@@ -632,7 +639,7 @@ msgstr ""
 "beteiligen Sie sich nicht an der Übersetzungsarbeit? Wenn Sie teilnehmen "
 "möchten, lesen Sie bitte das Dokument oder kontaktieren Sie mich per E-Mail."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:160
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
 msgid ""
 "It is recommended that you always check the version of GpgFrontend and "
 "upgrade to the latest version."
@@ -640,7 +647,7 @@ msgstr ""
 "Es wird empfohlen, immer die Version von GpgFrontend zu überprüfen und auf "
 "die neueste Version zu aktualisieren."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:166
 msgid ""
 "New versions not only represent new features, but also often represent "
 "functional and security fixes."
@@ -648,41 +655,41 @@ msgstr ""
 "Neue Versionen stellen nicht nur neue Funktionen dar, sondern stellen oft "
 "auch Funktions- und Sicherheitskorrekturen dar."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:169
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:172
 msgid "Current Version"
 msgstr "Aktuelle Version"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:201
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:204
 msgid "try to get latest version"
 msgstr "versuche die neueste Version zu bekommen"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:216
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:219
 msgid "Latest Version From Github"
 msgstr "Neueste Version von Github"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:222
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:225
 msgid "The current version is less than the latest version on github."
 msgstr "Die aktuelle Version ist kleiner als die neueste Version auf github."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:224
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:235
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
 msgid "Please click"
 msgstr "bitte klicken"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:230
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:241
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:253
 msgid "Here"
 msgstr "Hier"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:230
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:241
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:253
 msgid "to download the latest stable version."
 msgstr "um die neueste stabile Version herunterzuladen."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:233
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:236
 msgid ""
 "This version has serious problems and has been withdrawn. Please stop using "
 "it immediately."
@@ -690,7 +697,7 @@ msgstr ""
 "Diese Version hat ernsthafte Probleme und wurde zurückgezogen. Bitte hören "
 "Sie sofort auf, es zu verwenden."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:244
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
 msgid ""
 "This version has not been released yet, it may be a beta version. If you are"
 " not a tester and care about version stability, please do not use this "
@@ -699,6 +706,26 @@ msgstr ""
 "Diese Version wurde noch nicht veröffentlicht, möglicherweise handelt es "
 "sich um eine Beta-Version. Wenn Sie kein Tester sind und sich um "
 "Versionsstabilität kümmern, verwenden Sie diese Version bitte nicht."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:41
+msgid "GnuPG Version"
+msgstr "GnuPG-Version"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:44
+msgid "GpgME Version"
+msgstr "GpgME-Version"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:46
+msgid "PATHs"
+msgstr "PFADE"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:46
+msgid "GpgConf"
+msgstr "GpgConf"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:49
+msgid "CMS"
+msgstr "CMS"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:54
 msgid "Export Key Package"
@@ -809,8 +836,8 @@ msgid "Exclude keys that do not have a private key"
 msgstr "Schlüssel ausschließen, die keinen privaten Schlüssel haben"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:144
-msgid "exportKeyPackageDialog"
-msgstr "exportKeyPackageDialog"
+msgid "Export As Key Package"
+msgstr "Als Schlüsselpaket exportieren"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:41
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:61
@@ -971,7 +998,7 @@ msgstr "Schlüssel vom Schlüsselserver importieren"
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:149
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:55
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:193
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:196
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:175
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:477
@@ -1136,7 +1163,7 @@ msgstr "Unterschlüssel"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:46
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:52
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:51
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:392
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:399
 msgid "Operations"
 msgstr "Betrieb"
 
@@ -1933,7 +1960,7 @@ msgid "Save window size and position on exit."
 msgstr "Fenstergröße und Position beim Beenden speichern."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:489
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:496
 msgid "Information Board"
 msgstr "Informationstafel"
 
@@ -2043,7 +2070,7 @@ msgid "Keyserver List"
 msgstr "Keyserver-Liste"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:54
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:459
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:466
 msgid "Default"
 msgstr "Standard"
 
@@ -2219,7 +2246,7 @@ msgid "forbid_all_connection"
 msgstr "forbid_all_connection"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:149
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:194
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:197
 msgid "prohibit_update_checking"
 msgstr "prohibit_update_checking"
 
@@ -2488,12 +2515,12 @@ msgid "All"
 msgstr "Alle"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:54
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:467
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:474
 msgid "Only Public Key"
 msgstr "Nur öffentlicher Schlüssel"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:476
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:483
 msgid "Has Private Key"
 msgstr "Hat privaten Schlüssel"
 
@@ -2549,8 +2576,8 @@ msgstr "Unterschlüssel für ausgewähltes Schlüsselpaar generieren"
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:150
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:220
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:208
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:319
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:384
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:325
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:391
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:243
 msgid "File"
 msgstr "Datei"
@@ -2626,24 +2653,24 @@ msgid "Delete the Checked keys"
 msgstr "Löschen Sie die markierten Schlüssel"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:213
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:296
 msgid "Show Key Details"
 msgstr "Schlüsseldetails anzeigen"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:214
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:291
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:297
 msgid "Show Details for this Key"
 msgstr "Details zu diesem Schlüssel anzeigen"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:224
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:243
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:402
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:409
 msgid "Key"
 msgstr "Taste"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:229
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:262
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:361
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:367
 msgid "Import Key"
 msgstr "Schlüssel importieren"
 
@@ -2657,7 +2684,7 @@ msgstr ""
 "Generieren Sie ein neues Schlüsselpaar oder einen neuen Unterschlüssel"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:261
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:428
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:435
 msgid "Import key"
 msgstr "Schlüssel importieren"
 
@@ -2759,7 +2786,7 @@ msgstr "Beim Laden von GpgFrontend ist ein kritischer Fehler aufgetreten."
 msgid "Loading Failed"
 msgstr "Laden fehlgeschlagen"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:202
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:205
 msgid "settings restored"
 msgstr "Einstellungen wiederhergestellt"
 
@@ -3225,93 +3252,97 @@ msgstr "Offene Schlüsselverwaltung"
 msgid "Show the application's About box"
 msgstr "Zeigen Sie das Info-Feld der Anwendung an"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:256
+msgid "Information about Gnupg"
+msgstr "Informationen über Gnupg"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:260
 msgid "Translate"
 msgstr "Übersetzen"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:256
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:262
 msgid "Information about translation"
 msgstr "Informationen zur Übersetzung"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:263
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:269
 msgid "Check for Updates"
 msgstr "Auf Updates prüfen"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:265
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:271
 msgid "Check for updates"
 msgstr "Auf Updates prüfen"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:269
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:275
 msgid "Open Wizard"
 msgstr "Assistent öffnen"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:270
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
 msgid "Open the wizard"
 msgstr "Öffne den Assistenten"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
 msgid "Append To Text Editor"
 msgstr "An Texteditor anhängen"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:278
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:284
 msgid "Append The Selected Public Key To Text in Editor"
 msgstr ""
 "Hängen Sie den ausgewählten öffentlichen Schlüssel an den Text im Editor an"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:288
 msgid "Copy Email"
 msgstr "E-Mail kopieren"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:284
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
 msgid "Copy selected Email to clipboard"
 msgstr "Ausgewählte E-Mail in die Zwischenablage kopieren"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:309
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:315
 msgid "Remove PGP Header"
 msgstr "PGP-Header entfernen"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:313
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:319
 msgid "Add PGP Header"
 msgstr "PGP-Header hinzufügen"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:332
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:407
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:338
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:414
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:350
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:356
 msgid "Crypt"
 msgstr "Krypta"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:360
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:366
 msgid "Keys"
 msgstr "Schlüssel"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:369
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:375
 msgid "Steganography"
 msgstr "Steganographie"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:373
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:379
 msgid "View"
 msgstr "Sicht"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:375
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:381
 msgid "Help"
 msgstr "Hilfe"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:415
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:422
 msgid "Special Edit"
 msgstr "Sonderbearbeitung"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:427
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:434
 msgid "Import key from..."
 msgstr "Schlüssel importieren von..."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:444
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:451
 msgid "Ready"
 msgstr "Bereit"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:451
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:458
 msgid "Key ToolBox"
 msgstr "Schlüssel-ToolBox"
 
@@ -3751,6 +3782,12 @@ msgstr "Abgelaufener Schlüssel"
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:209
 msgid "Missing CRL"
 msgstr "Fehlende Zertifikatssperrliste"
+
+#~ msgid "About Software"
+#~ msgstr "Über Software"
+
+#~ msgid "exportKeyPackageDialog"
+#~ msgstr "exportKeyPackageDialog"
 
 #~ msgid "Current Row"
 #~ msgstr "Aktuelle Reihe"

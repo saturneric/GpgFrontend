@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: GpgFrontend 2.0.8\n"
+"Project-Id-Version: GpgFrontend 2.0.9\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-07-23 02:52+0800\n"
-"PO-Revision-Date: 2022-07-23 02:58-0800\n"
+"POT-Creation-Date: 2022-07-23 20:16+0800\n"
+"PO-Revision-Date: 2022-07-23 20:22-0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
 "Language: fa\n"
@@ -66,7 +66,7 @@ msgstr "نام فایل"
 #: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:99
 #: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:107
 #: /mnt/h/GpgFrontend/src/core/function/FileOperator.cpp:115
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:170
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:173
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:66
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:70
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:61
@@ -505,7 +505,7 @@ msgstr "پیش بینی"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:102
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:106
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
@@ -559,24 +559,31 @@ msgstr "آن شامل"
 msgid "Signed on %1%"
 msgstr "امضا در %1%"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:41
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
 msgid "About"
 msgstr "در باره"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:47
-msgid "About Software"
-msgstr "درباره نرم افزار"
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:49
+msgid "About GpgFrontend"
+msgstr "درباره GpgFrontend"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:48
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:50
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:48
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+msgid "GnuPG"
+msgstr "GnuPG"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:51
 msgid "Translators"
 msgstr "مترجمان"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:49
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:52
 msgid "Update"
 msgstr "به روز رسانی"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:82
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:85
 msgid ""
 "GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
 "free gpg front-end tool.It visualizes most of the common operations of gpg "
@@ -586,31 +593,31 @@ msgstr ""
 "gpg front-end است. این ابزار اکثر عملیات رایج دستورات gpg را به تصویر می "
 "کشد. تحت مجوز GPL v3 است."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:88
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:91
 msgid "Developer:"
 msgstr "توسعه دهنده:"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:89
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:92
 msgid "If you have any questions or suggestions, raise an issue at"
 msgstr "اگر سوال یا پیشنهادی دارید، موضوعی را مطرح کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:92
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:95
 msgid "or send a mail to my mailing list at"
 msgstr "یا یک ایمیل به لیست پستی من به آدرس ارسال کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:97
 msgid "Built with Qt"
 msgstr "ساخته شده با Qt"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:97
 msgid "and GPGME"
 msgstr "و GPGME"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:96
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:99
 msgid "Built at"
 msgstr "ساخته شده در"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:135
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:138
 msgid ""
 "If you think there are any problems with the translation, why not "
 "participate in the translation work? If you want to participate, please read"
@@ -620,7 +627,7 @@ msgstr ""
 "اگر می خواهید شرکت کنید، لطفا سند را بخوانید یا از طریق ایمیل با من تماس "
 "بگیرید."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:160
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
 msgid ""
 "It is recommended that you always check the version of GpgFrontend and "
 "upgrade to the latest version."
@@ -628,7 +635,7 @@ msgstr ""
 "توصیه می شود همیشه نسخه GpgFrontend را بررسی کرده و به آخرین نسخه ارتقا "
 "دهید."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:166
 msgid ""
 "New versions not only represent new features, but also often represent "
 "functional and security fixes."
@@ -636,41 +643,41 @@ msgstr ""
 "نسخه‌های جدید نه تنها ویژگی‌های جدید را نشان می‌دهند، بلکه اغلب نشان‌دهنده "
 "اصلاحات کاربردی و امنیتی هستند."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:169
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:172
 msgid "Current Version"
 msgstr "نسخه فعلی"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:201
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:204
 msgid "try to get latest version"
 msgstr "سعی کنید آخرین نسخه را دریافت کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:216
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:219
 msgid "Latest Version From Github"
 msgstr "آخرین نسخه از Github"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:222
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:225
 msgid "The current version is less than the latest version on github."
 msgstr "نسخه فعلی کمتر از آخرین نسخه در github است."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:224
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:235
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
 msgid "Please click"
 msgstr "لطفا کلیک کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:230
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:241
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:253
 msgid "Here"
 msgstr "اینجا"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:227
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:238
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:230
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:241
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:253
 msgid "to download the latest stable version."
 msgstr "برای دانلود آخرین نسخه پایدار"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:233
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:236
 msgid ""
 "This version has serious problems and has been withdrawn. Please stop using "
 "it immediately."
@@ -678,7 +685,7 @@ msgstr ""
 "این نسخه مشکلات جدی دارد و حذف شده است. لطفا فورا استفاده از آن را متوقف "
 "کنید."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:244
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
 msgid ""
 "This version has not been released yet, it may be a beta version. If you are"
 " not a tester and care about version stability, please do not use this "
@@ -686,6 +693,26 @@ msgid ""
 msgstr ""
 "این نسخه هنوز منتشر نشده است، ممکن است نسخه بتا باشد. اگر آزمایشگر نیستید و "
 "به پایداری نسخه اهمیت می دهید، لطفاً از این نسخه استفاده نکنید."
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:41
+msgid "GnuPG Version"
+msgstr "نسخه GnuPG"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:44
+msgid "GpgME Version"
+msgstr "نسخه GpgME"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:46
+msgid "PATHs"
+msgstr "راه ها"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:46
+msgid "GpgConf"
+msgstr "GpgConf"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:49
+msgid "CMS"
+msgstr "CMS"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:54
 msgid "Export Key Package"
@@ -794,8 +821,8 @@ msgid "Exclude keys that do not have a private key"
 msgstr "کلیدهایی را که کلید خصوصی ندارند حذف کنید"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:144
-msgid "exportKeyPackageDialog"
-msgstr "exportKeyPackageDialog"
+msgid "Export As Key Package"
+msgstr "صادرات به عنوان بسته کلیدی"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:41
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:61
@@ -956,7 +983,7 @@ msgstr "وارد کردن کلیدها از Keyserver"
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:149
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:55
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:78
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:193
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:196
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:175
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:398
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:477
@@ -1117,7 +1144,7 @@ msgstr "کلیدهای فرعی"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:46
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:52
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:51
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:392
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:399
 msgid "Operations"
 msgstr "عملیات"
 
@@ -1906,7 +1933,7 @@ msgid "Save window size and position on exit."
 msgstr "اندازه و موقعیت پنجره را در هنگام خروج ذخیره کنید."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:489
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:496
 msgid "Information Board"
 msgstr "تابلوی اطلاعات"
 
@@ -2012,7 +2039,7 @@ msgid "Keyserver List"
 msgstr "لیست سرورهای کلیدی"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:54
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:459
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:466
 msgid "Default"
 msgstr "پیش فرض"
 
@@ -2183,7 +2210,7 @@ msgid "forbid_all_connection"
 msgstr "forbid_all_connection"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:149
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:194
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:197
 msgid "prohibit_update_checking"
 msgstr "prohibit_update_checking"
 
@@ -2442,12 +2469,12 @@ msgid "All"
 msgstr "همه"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:54
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:467
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:474
 msgid "Only Public Key"
 msgstr "فقط کلید عمومی"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:476
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:483
 msgid "Has Private Key"
 msgstr "دارای کلید خصوصی"
 
@@ -2503,8 +2530,8 @@ msgstr "ایجاد کلید فرعی برای جفت کلید انتخابی"
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:150
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:220
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:208
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:319
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:384
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:325
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:391
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:243
 msgid "File"
 msgstr "فایل"
@@ -2579,24 +2606,24 @@ msgid "Delete the Checked keys"
 msgstr "کلیدهای بررسی شده را حذف کنید"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:213
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:296
 msgid "Show Key Details"
 msgstr "نمایش جزئیات کلیدی"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:214
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:291
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:297
 msgid "Show Details for this Key"
 msgstr "نمایش جزئیات برای این کلید"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:224
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:243
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:402
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:409
 msgid "Key"
 msgstr "کلید"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:229
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:262
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:361
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:367
 msgid "Import Key"
 msgstr "کلید واردات"
 
@@ -2609,7 +2636,7 @@ msgid "Generate A New Keypair or Subkey"
 msgstr "یک جفت کلید یا کلید فرعی جدید ایجاد کنید"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:261
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:428
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:435
 msgid "Import key"
 msgstr "کلید واردات"
 
@@ -2707,7 +2734,7 @@ msgstr "هنگام بارگیری GpgFrontend خطای بحرانی رخ می د
 msgid "Loading Failed"
 msgstr "بارگیری انجام نشد"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:202
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:205
 msgid "settings restored"
 msgstr "تنظیمات بازیابی شد"
 
@@ -3158,92 +3185,96 @@ msgstr "مدیریت کلید را باز کنید"
 msgid "Show the application's About box"
 msgstr "کادر درباره برنامه را نشان دهید"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:254
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:256
+msgid "Information about Gnupg"
+msgstr "اطلاعاتی در مورد Gnupg"
+
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:260
 msgid "Translate"
 msgstr "ترجمه کردن"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:256
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:262
 msgid "Information about translation"
 msgstr "اطلاعاتی در مورد ترجمه"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:263
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:269
 msgid "Check for Updates"
 msgstr "به روز رسانی ها را بررسی کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:265
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:271
 msgid "Check for updates"
 msgstr "به روز رسانی را بررسی کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:269
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:275
 msgid "Open Wizard"
 msgstr "Wizard را باز کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:270
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
 msgid "Open the wizard"
 msgstr "جادوگر را باز کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
 msgid "Append To Text Editor"
 msgstr "افزودن به ویرایشگر متن"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:278
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:284
 msgid "Append The Selected Public Key To Text in Editor"
 msgstr "کلید عمومی انتخاب شده را به متن در ویرایشگر اضافه کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:288
 msgid "Copy Email"
 msgstr "ایمیل را کپی کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:284
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
 msgid "Copy selected Email to clipboard"
 msgstr "ایمیل انتخاب شده را در کلیپ بورد کپی کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:309
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:315
 msgid "Remove PGP Header"
 msgstr "سربرگ PGP را حذف کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:313
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:319
 msgid "Add PGP Header"
 msgstr "هدر PGP را اضافه کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:332
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:407
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:338
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:414
 msgid "Edit"
 msgstr "ویرایش کنید"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:350
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:356
 msgid "Crypt"
 msgstr "دخمه"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:360
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:366
 msgid "Keys"
 msgstr "کلیدها"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:369
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:375
 msgid "Steganography"
 msgstr "استگانوگرافی"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:373
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:379
 msgid "View"
 msgstr "چشم انداز"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:375
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:381
 msgid "Help"
 msgstr "کمک"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:415
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:422
 msgid "Special Edit"
 msgstr "ویرایش ویژه"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:427
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:434
 msgid "Import key from..."
 msgstr "وارد کردن کلید از ..."
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:444
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:451
 msgid "Ready"
 msgstr "آماده"
 
-#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:451
+#: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:458
 msgid "Key ToolBox"
 msgstr "جعبه ابزار کلیدی"
 
@@ -3674,6 +3705,12 @@ msgstr "کلید منقضی شده"
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:209
 msgid "Missing CRL"
 msgstr "CRL موجود نیست"
+
+#~ msgid "About Software"
+#~ msgstr "درباره نرم افزار"
+
+#~ msgid "exportKeyPackageDialog"
+#~ msgstr "exportKeyPackageDialog"
 
 #~ msgid "Current Row"
 #~ msgstr "ردیف فعلی"
