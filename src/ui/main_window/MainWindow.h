@@ -387,6 +387,7 @@ class MainWindow : public GeneralMainWindow {
   QAction* about_act_{};                 ///< Action to open about dialog
   QAction* check_update_act_{};          ///< Action to open about dialog
   QAction* translate_act_{};             ///< Action to open about dialog
+  QAction* gnupg_act_{};             ///< Action to open about dialog
   QAction* open_settings_act_{};         ///< Action to open settings dialog
   QAction* show_key_details_act_{};      ///< Action to open key-details dialog
   QAction* start_wizard_act_{};          ///< Action to open the wizard
