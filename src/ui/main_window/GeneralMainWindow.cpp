@@ -77,20 +77,24 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
       size_ = {width, height};
     }
 
-    int width = general_windows_state.Check("icon_size").Check("width", 24),
-        height = general_windows_state.Check("icon_size").Check("height", 24);
+
+    // appearance
+    SettingsObject general_settings_state("general_settings_state");
+
+    int width = general_settings_state.Check("icon_size").Check("width", 24),
+        height = general_settings_state.Check("icon_size").Check("height", 24);
     LOG(INFO) << "icon_size" << width << height;
 
     icon_size_ = {width, height};
-    font_size_ = general_windows_state.Check("font_size", 10);
+    font_size_ = general_settings_state.Check("font_size", 10);
 
     this->setIconSize(icon_size_);
 
     // icon_style
     int s_icon_style =
-        general_windows_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
-    auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
-    this->setToolButtonStyle(icon_style);
+        general_settings_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
+    this->setToolButtonStyle(static_cast<Qt::ToolButtonStyle>(s_icon_style));
+    icon_style_ = toolButtonStyle();
 
   } catch (...) {
     LOG(ERROR) << name_ << "error";
@@ -113,12 +117,17 @@ void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
     general_windows_state["window_size"]["height"] = size_.height();
     general_windows_state["window_save"] = true;
 
+    SettingsObject general_settings_state("general_settings_state");
+
     // icon size
-    general_windows_state["icon_size"]["width"] = icon_size_.width();
-    general_windows_state["icon_size"]["height"] = icon_size_.height();
+    general_settings_state["icon_size"]["width"] = icon_size_.width();
+    general_settings_state["icon_size"]["height"] = icon_size_.height();
 
     // font size
-    general_windows_state["font_size"] = font_size_;
+    general_settings_state["font_size"] = font_size_;
+
+    // tool button style
+    general_settings_state["icon_style"] = this->toolButtonStyle();
 
   } catch (...) {
     LOG(ERROR) << name_ << "error";

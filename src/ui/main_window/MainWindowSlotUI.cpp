@@ -105,17 +105,17 @@ void MainWindow::slot_open_settings_dialog() {
   connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
     LOG(INFO) << "Setting Dialog Finished";
 
-    SettingsObject main_windows_state("main_windows_state");
+    SettingsObject general_settings_state("general_settings_state");
 
-    int width = main_windows_state.Check("icon_size").Check("width", 24),
-        height = main_windows_state.Check("icon_size").Check("height", 24);
+    int width = general_settings_state.Check("icon_size").Check("width", 24),
+        height = general_settings_state.Check("icon_size").Check("height", 24);
     LOG(INFO) << "icon_size" << width << height;
 
-    main_windows_state.Check("info_font_size", 10);
+    general_settings_state.Check("info_font_size", 10);
 
     // icon_style
     int s_icon_style =
-        main_windows_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
+        general_settings_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
     auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
     this->setToolButtonStyle(icon_style);
     import_button_->setToolButtonStyle(icon_style);
