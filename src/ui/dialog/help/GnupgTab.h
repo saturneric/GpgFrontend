@@ -1,7 +1,7 @@
-/**
- * Copyright (C) 2021 Saturneric
+/*
+ * Copyright (c) 2022. Saturneric
  *
- * This file is part of GpgFrontend.
+ *  This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,29 +23,31 @@
  * Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
- *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGINFO_H
-#define GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+//
+// Created by eric on 2022/7/23.
+//
 
-#include <string>
+#ifndef GPGFRONTEND_GNUPGTAB_H
+#define GPGFRONTEND_GNUPGTAB_H
 
-namespace GpgFrontend {
-/**
- * @brief  Use to record some info about gnupg
- *
- */
-class GpgInfo {
+#include "core/GpgContext.h"
+#include "ui/GpgFrontendUI.h"
+
+namespace GpgFrontend::UI{
+class GnupgTab: public QWidget {
+  Q_OBJECT
  public:
-  std::string AppPath;       ///<  executable binary path of gnupg
-  std::string DatabasePath;  ///<
-  std::string GnupgVersion;  ///<
-  std::string GpgConfPath;   ///<
-  std::string AssuanPath;   ///<
-  std::string CMSPath;       ///<
-  std::string GpgMEVersion;  ///<
+  /**
+   * @brief Construct a new Info Tab object
+   *
+   * @param parent
+   */
+  explicit GnupgTab(QWidget* parent = nullptr);
 };
-}  // namespace GpgFrontend
+}
 
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+
+
+#endif  // GPGFRONTEND_GNUPGTAB_H

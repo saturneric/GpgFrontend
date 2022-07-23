@@ -31,6 +31,7 @@
 #include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "ui/dialog/help/GnupgTab.h"
 #include "ui/thread/VersionCheckTask.h"
 
 namespace GpgFrontend::UI {
@@ -39,27 +40,29 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
     : GeneralDialog(typeid(AboutDialog).name(), parent) {
   this->setWindowTitle(QString(_("About")) + " " + qApp->applicationName());
 
-  auto* tabWidget = new QTabWidget;
-  auto* infoTab = new InfoTab();
-  auto* translatorsTab = new TranslatorsTab();
+  auto* tab_widget = new QTabWidget;
+  auto* info_tab = new InfoTab();
+  auto* gnupg_tab = new GnupgTab();
+  auto* translators_tab = new TranslatorsTab();
   update_tab_ = new UpdateTab();
 
-  tabWidget->addTab(infoTab, _("About Software"));
-  tabWidget->addTab(translatorsTab, _("Translators"));
-  tabWidget->addTab(update_tab_, _("Update"));
+  tab_widget->addTab(info_tab, _("About GpgFrontend"));
+  tab_widget->addTab(gnupg_tab, _("GnuPG"));
+  tab_widget->addTab(translators_tab, _("Translators"));
+  tab_widget->addTab(update_tab_, _("Update"));
 
-  connect(tabWidget, &QTabWidget::currentChanged, this,
+  connect(tab_widget, &QTabWidget::currentChanged, this,
           [&](int index) { LOG(INFO) << "Current Index" << index; });
 
-  if (defaultIndex < tabWidget->count() && defaultIndex >= 0) {
-    tabWidget->setCurrentIndex(defaultIndex);
+  if (defaultIndex < tab_widget->count() && defaultIndex >= 0) {
+    tab_widget->setCurrentIndex(defaultIndex);
   }
 
   auto* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
   connect(buttonBox, &QDialogButtonBox::accepted, this, &AboutDialog::close);
 
   auto* mainLayout = new QVBoxLayout;
-  mainLayout->addWidget(tabWidget);
+  mainLayout->addWidget(tab_widget);
   mainLayout->addWidget(buttonBox);
   setLayout(mainLayout);
 
