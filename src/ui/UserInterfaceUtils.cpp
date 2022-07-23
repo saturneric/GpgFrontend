@@ -276,6 +276,9 @@ void CommonUtils::SlotImportKeyFromKeyServer(
 
       const int target_key_server_index =
           key_server_json.Check("default_server", 0);
+      if (target_key_server_index >= key_server_list.size()) {
+        throw std::runtime_error("default_server index out of range");
+      }
       target_keyserver =
           key_server_list[target_key_server_index].get<std::string>();
 

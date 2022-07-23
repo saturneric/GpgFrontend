@@ -29,17 +29,18 @@
 #ifndef __GPGWIN_H__
 #define __GPGWIN_H__
 
+#include "KeyMgmt.h"
 #include "core/GpgConstants.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
 #include "ui/GpgFrontendUI.h"
-#include "ui/KeyMgmt.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/Wizard.h"
-#include "ui/help/AboutDialog.h"
-#include "ui/import_export/KeyUploadDialog.h"
-#include "ui/settings/SettingsDialog.h"
+#include "ui/dialog/help/AboutDialog.h"
+#include "ui/dialog/import_export/KeyUploadDialog.h"
+#include "ui/dialog/settings/SettingsDialog.h"
+#include "ui/main_window/GeneralMainWindow.h"
 #include "ui/widgets/FindWidget.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/TextEdit.h"
@@ -49,10 +50,13 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class MainWindow : public QMainWindow {
+class MainWindow : public GeneralMainWindow {
   Q_OBJECT
 
  public:
+  /**
+   *
+   */
   struct CryptoMenu {
     using OperationType = unsigned int;
 
@@ -383,6 +387,7 @@ class MainWindow : public QMainWindow {
   QAction* about_act_{};                 ///< Action to open about dialog
   QAction* check_update_act_{};          ///< Action to open about dialog
   QAction* translate_act_{};             ///< Action to open about dialog
+  QAction* gnupg_act_{};             ///< Action to open about dialog
   QAction* open_settings_act_{};         ///< Action to open settings dialog
   QAction* show_key_details_act_{};      ///< Action to open key-details dialog
   QAction* start_wizard_act_{};          ///< Action to open the wizard

@@ -36,13 +36,12 @@
 #include <string>
 #include <vector>
 
-#include "core/GpgConstants.h"
-#include "core/GpgGenKeyInfo.h"
 #include "GpgCommandExecutor.h"
 #include "GpgKeyGetter.h"
+#include "core/GpgConstants.h"
+#include "core/GpgGenKeyInfo.h"
 
-GpgFrontend::GpgKeyOpera::GpgKeyOpera(
-    int channel)
+GpgFrontend::GpgKeyOpera::GpgKeyOpera(int channel)
     : SingletonFunctionObject<GpgKeyOpera>(channel) {}
 
 /**

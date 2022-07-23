@@ -31,7 +31,7 @@
 #include "function/gpg/GpgKeyGetter.h"
 
 GpgFrontend::GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error,
-                                                  GpgSignResult result)
+                                                        GpgSignResult result)
     : error_(error), result_(std::move(result)) {}
 
 void GpgFrontend::GpgSignResultAnalyse::do_analyse() {

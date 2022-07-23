@@ -32,7 +32,7 @@
 #include <utility>
 
 #include "core/GpgContext.h"
-#include "ui/import_export/KeyImportDetailDialog.h"
+#include "ui/dialog/import_export/KeyImportDetailDialog.h"
 
 class Ui_KeyList;
 

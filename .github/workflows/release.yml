@@ -23,8 +23,9 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ 'ubuntu-18.04', 'macos-10.15', 'windows-2019' ]
+        os: [ 'ubuntu-18.04', 'macos-10.15', 'macos-11', 'macos-12', 'windows-2019' ]
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     steps:
       - name: Set git to use LF(Windows) or CRLF(MacOS) line endings
         run: |

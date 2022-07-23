@@ -42,6 +42,7 @@ class GpgInfo {
   std::string DatabasePath;  ///<
   std::string GnupgVersion;  ///<
   std::string GpgConfPath;   ///<
+  std::string AssuanPath;   ///<
   std::string CMSPath;       ///<
   std::string GpgMEVersion;  ///<
 };

@@ -26,16 +26,16 @@
 
 # tracking source files
 aux_source_directory(. UI_SOURCE)
-aux_source_directory(keypair_details UI_SOURCE)
+aux_source_directory(dialog/keypair_details UI_SOURCE)
 aux_source_directory(widgets UI_SOURCE)
-aux_source_directory(key_generate UI_SOURCE)
+aux_source_directory(dialog/key_generate UI_SOURCE)
 aux_source_directory(main_window UI_SOURCE)
-aux_source_directory(help UI_SOURCE)
-aux_source_directory(settings UI_SOURCE)
+aux_source_directory(dialog/help UI_SOURCE)
+aux_source_directory(dialog/settings UI_SOURCE)
 aux_source_directory(thread UI_SOURCE)
-aux_source_directory(details UI_SOURCE)
+aux_source_directory(dialog/details UI_SOURCE)
 aux_source_directory(struct UI_SOURCE)
-aux_source_directory(import_export UI_SOURCE)
+aux_source_directory(dialog/import_export UI_SOURCE)
 aux_source_directory(dialog UI_SOURCE)
 
 # define libgpgfrontend_ui
