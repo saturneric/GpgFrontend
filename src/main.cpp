@@ -46,7 +46,11 @@ INITIALIZE_EASYLOGGINGPP
 /**
  * \brief Store the jump buff and make it possible to recover from a crash.
  */
+#ifdef FREEBSD
+sigjmp_buf recover_env;
+#else
 jmp_buf recover_env;
+#endif
 
 constexpr int CRASH_CODE = ~0;  ///<
 
