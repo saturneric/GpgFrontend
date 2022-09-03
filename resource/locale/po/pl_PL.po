@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.9\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-07-23 20:16+0800\n"
+"POT-Creation-Date: 2022-09-03 20:33+0800\n"
 "PO-Revision-Date: 2022-07-23 20:23-0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
@@ -15,7 +15,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
 
 #: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:57
 #: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:59
@@ -152,7 +153,7 @@ msgstr "Operacja odszyfrowywania"
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:154
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:281
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:246
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
 msgid "Success"
 msgstr "Powodzenie"
 
@@ -177,7 +178,7 @@ msgid "MIME"
 msgstr "MIM"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:213
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:208
 msgid "true"
 msgstr "prawda"
 
@@ -396,8 +397,7 @@ msgid ""
 "A signature is valid but the key used to verify the signature has been "
 "revoked"
 msgstr ""
-"Podpis jest ważny, ale klucz użyty do weryfikacji podpisu został "
-"unieważniony"
+"Podpis jest ważny, ale klucz użyty do weryfikacji podpisu został unieważniony"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:135
 msgid "A signature is valid but expired"
@@ -466,7 +466,7 @@ msgstr "Podpisany przez"
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:374
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:393
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:437
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:176
 msgid "Error"
 msgstr "Błąd"
 
@@ -485,13 +485,13 @@ msgid "Description: "
 msgstr "Opis:"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:68
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:160
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:311
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:418
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:609
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:704
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:249
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:384
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:100
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:138
@@ -507,18 +507,18 @@ msgstr "Przewidywać"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:42
-#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:73
+#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:112
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:473
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:106
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:139
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:161
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:422
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:424
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
 msgid "Called"
 msgstr "Nazywa"
 
@@ -527,15 +527,15 @@ msgstr "Nazywa"
 msgid "log file path"
 msgstr "ścieżka do pliku dziennika"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:122
+#: /mnt/h/GpgFrontend/src/main.cpp:126
 msgid "A serious error has occurred"
 msgstr "Wystąpił poważny błąd"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:123
+#: /mnt/h/GpgFrontend/src/main.cpp:127
 msgid ""
-"Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
-" restarted. If the problem recurs, please manually terminate the program and"
-" report the problem to the developer."
+"Oh no! GpgFrontend caught a serious error in the software, so it needs to be "
+"restarted. If the problem recurs, please manually terminate the program and "
+"report the problem to the developer."
 msgstr ""
 "O nie! GpgFrontend wykrył poważny błąd w oprogramowaniu, więc należy go "
 "ponownie uruchomić. Jeśli problem będzie się powtarzał, ręcznie zamknij "
@@ -627,12 +627,12 @@ msgstr "Zbudowany w"
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:138
 msgid ""
 "If you think there are any problems with the translation, why not "
-"participate in the translation work? If you want to participate, please read"
-" the document or contact me via email."
+"participate in the translation work? If you want to participate, please read "
+"the document or contact me via email."
 msgstr ""
 "Jeśli uważasz, że są jakieś problemy z tłumaczeniem, dlaczego nie wziąć "
-"udziału w pracach tłumaczeniowych? Jeśli chcesz wziąć udział, zapoznaj się z"
-" dokumentem lub skontaktuj się ze mną przez e-mail."
+"udziału w pracach tłumaczeniowych? Jeśli chcesz wziąć udział, zapoznaj się z "
+"dokumentem lub skontaktuj się ze mną przez e-mail."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
 msgid ""
@@ -694,8 +694,8 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
 msgid ""
-"This version has not been released yet, it may be a beta version. If you are"
-" not a tester and care about version stability, please do not use this "
+"This version has not been released yet, it may be a beta version. If you are "
+"not a tester and care about version stability, please do not use this "
 "version."
 msgstr ""
 "Ta wersja nie została jeszcze wydana, może to być wersja beta. Jeśli nie "
@@ -767,16 +767,15 @@ msgstr ""
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
 msgid ""
 "The Key Package has been successfully generated and has been protected by "
-"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
-"Package."
+"encryption algorithms(AES-256-ECB). You can safely transfer your Key Package."
 msgstr ""
 "Pakiet Klucza został pomyślnie wygenerowany i zabezpieczony algorytmami "
 "szyfrowania (AES-256-ECB). Możesz bezpiecznie przenieść swój Pakiet Kluczy."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
 msgid ""
-"But the key file cannot be leaked under any circumstances. Please delete the"
-" Key Package and key file as soon as possible after completing the transfer "
+"But the key file cannot be leaked under any circumstances. Please delete the "
+"Key Package and key file as soon as possible after completing the transfer "
 "operation."
 msgstr ""
 "Ale plik klucza nie może zostać ujawniony w żadnych okolicznościach. Usuń "
@@ -1026,23 +1025,23 @@ msgstr "Nie znaleziono klucza"
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:272
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:483
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:498
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:332
 msgid "Timeout"
 msgstr "Koniec czasu"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:275
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:486
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:144
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:334
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:335
 msgid "Key Server Not Found"
 msgstr "Nie znaleziono serwera kluczy"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:278
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:489
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:505
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:147
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:337
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:159
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:338
 msgid "Connection Error"
 msgstr "Błąd połączenia"
 
@@ -1077,14 +1076,14 @@ msgid "%1 keys found. Double click a key to import it."
 msgstr "Znaleziono %1 kluczy. Kliknij dwukrotnie klucz, aby go zaimportować."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:446
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:290
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:96
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
 msgid "Default Keyserver Not Found"
 msgstr "Nie znaleziono domyślnego serwera kluczy"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:447
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:80
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:292
 msgid ""
 "Cannot read default keyserver from your settings, please set a default "
 "keyserver first"
@@ -1094,8 +1093,8 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:480
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:494
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:138
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:328
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:150
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:329
 msgid "Key Not Found"
 msgstr "Klucz nie odnaleziony"
 
@@ -1115,25 +1114,25 @@ msgstr "Ogólny błąd połączenia"
 msgid "Key Imported"
 msgstr "Zaimportowano klucz"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:57
 msgid "Uploading Public Key"
 msgstr "Przesyłanie klucza publicznego"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:74
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:286
 msgid "Set target Key Server to default Key Server"
 msgstr "Ustaw docelowy serwer kluczy na domyślny serwer kluczy"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:77
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:95
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:289
 msgid "Cannot read default_keyserver From Settings"
 msgstr "Nie można odczytać default_keyserver z ustawień"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:152
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:164
 msgid "Upload Success"
 msgstr "Przesyłanie powiodło się"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:165
 msgid "Upload Public Key Successfully"
 msgstr "Prześlij klucz publiczny pomyślnie"
 
@@ -1374,7 +1373,7 @@ msgstr "Eksportuj klucz do pliku"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:157
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:203
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Key Files"
 msgstr "Kluczowe pliki"
 
@@ -1412,8 +1411,7 @@ msgstr "To NIE jest Twój klucz publiczny, więc NIE PODDAWAJ go."
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:177
 msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
 msgstr ""
-"Czy NAPRAWDĘ chcesz wyeksportować swój KLUCZ PRYWATNY w minimalnym "
-"rozmiarze?"
+"Czy NAPRAWDĘ chcesz wyeksportować swój KLUCZ PRYWATNY w minimalnym rozmiarze?"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:180
 msgid ""
@@ -1704,7 +1702,7 @@ msgstr "Zaktualizowano datę ważności pary kluczy."
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:88
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:164
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:289
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
 msgid "Failure"
 msgstr "Niepowodzenie"
 
@@ -1725,8 +1723,8 @@ msgstr "Zmodyfikowana data ważności (czas lokalny)"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:133
 msgid ""
-"Tips: For the sake of security, the key is valid for up to two years. If you"
-" are an expert user, please unlock it for a longer time in the settings."
+"Tips: For the sake of security, the key is valid for up to two years. If you "
+"are an expert user, please unlock it for a longer time in the settings."
 msgstr ""
 "Wskazówki: Ze względów bezpieczeństwa klucz jest ważny do dwóch lat. Jeśli "
 "jesteś doświadczonym użytkownikiem, odblokuj go na dłużej w ustawieniach."
@@ -1906,7 +1904,7 @@ msgstr "stegano_checked"
 msgid "auto_pubkey_exchange_checked"
 msgstr "auto_pubkey_exchange_checked"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:41
 msgid "Icon Size"
 msgstr "Rozmiar ikony"
 
@@ -1922,36 +1920,46 @@ msgstr "średni"
 msgid "large"
 msgstr "duży"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:46
 msgid "Icon Style"
 msgstr "Styl ikon"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:47
 msgid "just text"
 msgstr "tylko tekst"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:63
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:48
 msgid "just icons"
 msgstr "tylko ikony"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:64
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:49
 msgid "text and icons"
 msgstr "tekst i ikony"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:51
 msgid "Window State"
 msgstr "Stan okna"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:83
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:53
 msgid "Save window size and position on exit."
 msgstr "Zapisz rozmiar okna i pozycję przy wyjściu."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:55
+#, fuzzy
+msgid "Text Editor"
+msgstr "Redaktor"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:56
+#, fuzzy
+msgid "Font Size in Text Editor"
+msgstr "Rozmiar czcionki na tablicy informacyjnej"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:58
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:496
 msgid "Information Board"
 msgstr "Tablica informacyjna"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
 msgid "Font Size in Information Board"
 msgstr "Rozmiar czcionki na tablicy informacyjnej"
 
@@ -2094,11 +2102,11 @@ msgstr "Usuń wybrany serwer kluczy"
 msgid "Set As Default"
 msgstr "Ustaw jako domyślne"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:151
 msgid "Insecure keyserver address"
 msgstr "Niezabezpieczony adres serwera kluczy"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:157
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:152
 msgid ""
 "For security reasons, using HTTP as the communication protocol with the key "
 "server is not recommended. It is recommended to use HTTPS."
@@ -2106,10 +2114,10 @@ msgstr ""
 "Ze względów bezpieczeństwa nie zaleca się używania HTTP jako protokołu "
 "komunikacji z serwerem kluczy. Zaleca się korzystanie z protokołu HTTPS."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:166
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:161
 msgid ""
-"You may not use HTTPS or HTTP as the protocol for communicating with the key"
-" server, which may not be wrong. But please check the address you entered "
+"You may not use HTTPS or HTTP as the protocol for communicating with the key "
+"server, which may not be wrong. But please check the address you entered "
 "again to make sure it is correct. Are you sure that want to add it into the "
 "keyserver list?"
 msgstr ""
@@ -2118,34 +2126,34 @@ msgstr ""
 "aby upewnić się, że jest poprawny. Czy na pewno chcesz dodać go do listy "
 "serwerów kluczy?"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:209
 msgid "false"
 msgstr "fałszywy"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
 msgid "unknown"
 msgstr "nieznany"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:233
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:228
 msgid "Set TCP Timeout"
 msgstr "Ustaw limit czasu TCP"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:258
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:253
 msgid "Reachable"
 msgstr "Osiągalny"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:261
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:256
 msgid "Not Reachable"
 msgstr "Nieosiągalne"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:273
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:268
 msgid "Test Key Server Connection..."
 msgstr "Testuj połączenie z serwerem kluczy..."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:274
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:269
 msgid ""
-"This test only tests the network connectivity of the key server. Passing the"
-" test does not mean that the key server is functionally available."
+"This test only tests the network connectivity of the key server. Passing the "
+"test does not mean that the key server is functionally available."
 msgstr ""
 "Ten test sprawdza tylko łączność sieciową serwera kluczy. Zaliczenie testu "
 "nie oznacza, że serwer kluczy jest funkcjonalnie dostępny."
@@ -2254,8 +2262,8 @@ msgid ""
 "Is using your proxy settings to access the url. Note that this test "
 "operation will apply your proxy settings to the entire software."
 msgstr ""
-"Używa ustawień serwera proxy, aby uzyskać dostęp do adresu URL. Pamiętaj, że"
-" ta operacja testowa zastosuje ustawienia proxy do całego oprogramowania."
+"Używa ustawień serwera proxy, aby uzyskać dostęp do adresu URL. Pamiętaj, że "
+"ta operacja testowa zastosuje ustawienia proxy do całego oprogramowania."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:36
 msgid "Confirm"
@@ -2277,8 +2285,8 @@ msgstr ""
 #: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:62
 msgid "If no key is selected, the default key will be used for signing."
 msgstr ""
-"Jeśli żaden klucz nie zostanie wybrany, do podpisywania zostanie użyty klucz"
-" domyślny."
+"Jeśli żaden klucz nie zostanie wybrany, do podpisywania zostanie użyty klucz "
+"domyślny."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:43
 msgid "First Start Wizard"
@@ -2320,8 +2328,8 @@ msgstr "klikając w link, strona otworzy się w przeglądarce internetowej"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:107
 msgid ""
-"If it supports the language currently being used in your system, GpgFrontend"
-" will automatically set it."
+"If it supports the language currently being used in your system, GpgFrontend "
+"will automatically set it."
 msgstr ""
 "Jeśli obsługuje język aktualnie używany w twoim systemie, GpgFrontend "
 "automatycznie go ustawi."
@@ -2394,8 +2402,8 @@ msgstr ""
 "Powinieneś utworzyć nową parę kluczy.Para składa się z klucza publicznego i "
 "prywatnego.<br>Inni użytkownicy mogą używać klucza publicznego do "
 "szyfrowania wiadomości za Ciebie i weryfikowania podpisanych przez Ciebie "
-"wiadomości.Klucza prywatnego możesz używać do odszyfrowywania i podpisywania"
-" wiadomości.<br>Aby uzyskać więcej informacji, zapoznaj się z samouczkiem "
+"wiadomości.Klucza prywatnego możesz używać do odszyfrowywania i podpisywania "
+"wiadomości.<br>Aby uzyskać więcej informacji, zapoznaj się z samouczkiem "
 "offline (który jest następnie wyświetlany w oknie głównym):"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:206
@@ -2462,8 +2470,8 @@ msgid ""
 "This is not a serious problem, it may be the negligence of the programmer, "
 "please report this problem if you can."
 msgstr ""
-"Ups, podczas działania programu został zgłoszony nieobsługiwany wyjątek. Nie"
-" jest to poważny problem, może to być zaniedbanie programisty, prosimy o "
+"Ups, podczas działania programu został zgłoszony nieobsługiwany wyjątek. Nie "
+"jest to poważny problem, może to być zaniedbanie programisty, prosimy o "
 "zgłoszenie tego problemu, jeśli możesz."
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:83
@@ -2472,9 +2480,9 @@ msgstr "Ładowanie informacji o Gnupg..."
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:84
 msgid ""
-"If this process is too slow, please set the key server address appropriately"
-" in the gnupg configuration file (depending on the network situation in your"
-" country or region)."
+"If this process is too slow, please set the key server address appropriately "
+"in the gnupg configuration file (depending on the network situation in your "
+"country or region)."
 msgstr ""
 "Jeśli ten proces jest zbyt wolny, należy odpowiednio ustawić adres serwera "
 "kluczy w pliku konfiguracyjnym gnupg (w zależności od sytuacji sieciowej w "
@@ -2700,8 +2708,8 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:394
 msgid ""
-"Please select a key before performing this operation. If you select multiple"
-" keys, only the first key will be exported."
+"Please select a key before performing this operation. If you select multiple "
+"keys, only the first key will be exported."
 msgstr ""
 "Wybierz klucz przed wykonaniem tej operacji. Jeśli wybierzesz wiele kluczy, "
 "wyeksportowany zostanie tylko pierwszy klucz."
@@ -2949,8 +2957,8 @@ msgid ""
 "No Key Checked. Do you want to encrypt with a symmetric cipher using a "
 "passphrase?"
 msgstr ""
-"Nie sprawdzono klucza. Czy chcesz szyfrować szyfrem symetrycznym przy użyciu"
-" hasła?"
+"Nie sprawdzono klucza. Czy chcesz szyfrować szyfrem symetrycznym przy użyciu "
+"hasła?"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:129
 msgid ""
@@ -3304,6 +3312,11 @@ msgstr "Gotowy"
 msgid "Key ToolBox"
 msgstr "Kluczowy zestaw narzędzi"
 
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:56
+#, fuzzy
+msgid "Show Verify Details"
+msgstr "Pokaż szczegóły klucza"
+
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:65
 msgid "Public key not found locally"
 msgstr "Klucz publiczny nie został znaleziony lokalnie"
@@ -3315,58 +3328,60 @@ msgid ""
 "key from Keyserver now?"
 msgstr ""
 "Nie ma docelowej zawartości klucza publicznego w lokalizacji lokalnej, aby "
-"GpgFrontend zebrał wystarczającą ilość informacji o tym podpisie. Czy chcesz"
-" teraz zaimportować klucz publiczny z Keyserver?"
+"GpgFrontend zebrał wystarczającą ilość informacji o tym podpisie. Czy chcesz "
+"teraz zaimportować klucz publiczny z Keyserver?"
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:171
 msgid "ENV Loading Failed"
 msgstr "Ładowanie ENV nie powiodło się"
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:172
+#, fuzzy
 msgid ""
-"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
-" in Github to install Gnupg and then open GpgFrontend."
+"Gnupg(gpg) is not installed correctly, please follow <a href='https://www."
+"gpgfrontend.pub/#/faq?id=how-to-deal-with-39env-loading-failed39'>this "
+"notes</a> in FAQ to install Gnupg and then open GpgFrontend."
 msgstr ""
-"Gnupg(gpg) nie jest poprawnie zainstalowany, postępuj zgodnie z instrukcjami"
-" ReadME na Github, aby zainstalować Gnupg, a następnie otwórz GpgFrontend."
+"Gnupg(gpg) nie jest poprawnie zainstalowany, postępuj zgodnie z instrukcjami "
+"ReadME na Github, aby zainstalować Gnupg, a następnie otwórz GpgFrontend."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:190
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
 msgid "Open Key"
 msgstr "Otwórz klucz"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Keyring files"
 msgstr "Pliki kluczy"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:196
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
 msgid "File Open Failed"
 msgstr "Otwarcie pliku nie powiodło się"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:198
 msgid "Failed to open file: "
 msgstr "Nie udało się otworzyć pliku:"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:220
 msgid "Processing"
 msgstr "Przetwarzanie"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:240
 msgid "Failed to execute command."
 msgstr "Nie udało się wykonać polecenia."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:248
 msgid "Succeed in executing command."
 msgstr "Udało się wykonać polecenie."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:251
 msgid "Finished executing command."
 msgstr "Zakończono wykonywanie polecenia."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:349
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:350
 msgid "The key has been updated"
 msgstr "Klucz został zaktualizowany"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:351
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:352
 msgid "No need to update the key"
 msgstr "Nie ma potrzeby aktualizowania klucza"
 
@@ -3447,11 +3462,11 @@ msgstr "Nazwa pliku (możesz podać rozszerzenie)"
 msgid "Unable to create the file."
 msgstr "Nie można utworzyć pliku."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:167
 msgid "Save Information Board's Content"
 msgstr "Zapisz zawartość tablicy informacyjnej"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:177
 msgid "The file path is not exists, unprivileged or unreachable."
 msgstr "Ścieżka do pliku nie istnieje, nieuprzywilejowana lub niedostępna."
 
@@ -3523,53 +3538,53 @@ msgstr "Zawsze importuj bez zawracania sobie głowy."
 msgid "Couldn't Open File"
 msgstr "Nie udało się otworzyć pliku"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:430
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:432
 msgid "Key List Refreshed."
 msgstr "Odświeżono listę kluczy."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:448
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
 msgid "Syncing Key List..."
 msgstr "Synchronizuję listę kluczy..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:460
 msgid "Sync [%1%/%2%] %3% %4%"
 msgstr "Synchronizacja [%1%/%2%] %3% %4%"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:464
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:468
 msgid "Key List Sync Done."
 msgstr "Synchronizacja listy kluczy zakończona."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:61
 msgid "0 character"
 msgstr "0 znaków"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:55
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:99
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:106
 msgid "lf"
 msgstr "jeśli"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:56
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
 msgid "utf-8"
 msgstr "utf-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:252
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:259
 msgid "%1% character(s)"
 msgstr "%1% znaków"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:72
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:79
 msgid "Loading..."
 msgstr "Ładowanie..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:100
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:107
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:232
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:239
 msgid "%1% byte(s)"
 msgstr "%1% bajtów"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:277
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:284
 msgid "binary"
 msgstr "dwójkowy"
 
@@ -3601,8 +3616,8 @@ msgid ""
 "After saving, the encoding of the current file will be converted to UTF-8 "
 "and the line endings will be changed to LF. "
 msgstr ""
-"Po zapisaniu kodowanie bieżącego pliku zostanie przekonwertowane na UTF-8, a"
-" zakończenia linii zostaną zmienione na LF."
+"Po zapisaniu kodowanie bieżącego pliku zostanie przekonwertowane na UTF-8, a "
+"zakończenia linii zostaną zmienione na LF."
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:180
 msgid "If this is not the result you expect, please use \"save as\"."
@@ -3617,7 +3632,8 @@ msgid "Unsaved document"
 msgstr "Niezapisany dokument"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:295
-msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgid ""
+"The document \"%1\" has been modified. Do you want to save your changes?"
 msgstr "Dokument \"%1\" został zmodyfikowany. Czy chcesz zachować zmiany?"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:298
@@ -3771,8 +3787,8 @@ msgstr "Brak listy CRL"
 #~ "odbiorcę."
 
 #~ msgid ""
-#~ "If you want to send to multiple recipients at the same time, you can select "
-#~ "multiple keys."
+#~ "If you want to send to multiple recipients at the same time, you can "
+#~ "select multiple keys."
 #~ msgstr ""
 #~ "Jeśli chcesz wysłać do wielu odbiorców jednocześnie, możesz wybrać kilka "
 #~ "kluczy."
@@ -3781,8 +3797,8 @@ msgstr "Brak listy CRL"
 #~ msgstr "Lista e-mailowa:"
 
 #~ msgid ""
-#~ "Tips: You can double-click the email address in the edit list, or click the "
-#~ "email to pop up the option menu."
+#~ "Tips: You can double-click the email address in the edit list, or click "
+#~ "the email to pop up the option menu."
 #~ msgstr ""
 #~ "Wskazówki: Możesz dwukrotnie kliknąć adres e-mail na liście edycji lub "
 #~ "kliknąć wiadomość e-mail, aby wyświetlić menu opcji."
@@ -3806,7 +3822,8 @@ msgstr "Brak listy CRL"
 #~ " The private key is generally used as a signature for the content of the "
 #~ "mail."
 #~ msgstr ""
-#~ " Klucz prywatny jest zwykle używany jako podpis w treści wiadomości e-mail."
+#~ " Klucz prywatny jest zwykle używany jako podpis w treści wiadomości e-"
+#~ "mail."
 
 #~ msgid "Incomplete configuration"
 #~ msgstr "Niekompletna konfiguracja"
@@ -3830,7 +3847,8 @@ msgstr "Brak listy CRL"
 #~ msgid ""
 #~ "Tips: You can fill in multiple email addresses, please separate them with "
 #~ "\";\"."
-#~ msgstr "Wskazówki: Możesz podać wiele adresów e-mail, oddziel je znakiem „;”."
+#~ msgstr ""
+#~ "Wskazówki: Możesz podać wiele adresów e-mail, oddziel je znakiem „;”."
 
 #~ msgid "Send Message"
 #~ msgstr "Wyślij wiadomość"
@@ -3893,27 +3911,28 @@ msgstr "Brak listy CRL"
 #~ msgstr "Co najmniej jeden adres UDW jest nieprawidłowy"
 
 #~ msgid ""
-#~ "You have checked the encrypted email content, but you have not selected the "
-#~ "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
-#~ "So the send operation is forbidden"
+#~ "You have checked the encrypted email content, but you have not selected "
+#~ "the recipient's GPG key. This is dangerous and the mail will not be "
+#~ "encrypted. So the send operation is forbidden"
 #~ msgstr ""
-#~ "Sprawdziłeś treść zaszyfrowanej wiadomości e-mail, ale nie wybrałeś klucza "
-#~ "GPG odbiorcy. Jest to niebezpieczne i poczta nie zostanie zaszyfrowana. Więc"
-#~ " operacja wysyłania jest zabroniona"
+#~ "Sprawdziłeś treść zaszyfrowanej wiadomości e-mail, ale nie wybrałeś "
+#~ "klucza GPG odbiorcy. Jest to niebezpieczne i poczta nie zostanie "
+#~ "zaszyfrowana. Więc operacja wysyłania jest zabroniona"
 
 #~ msgid ""
-#~ "You checked the option to attach signature to the email, but did not specify"
-#~ " the sender's GPG Key. This will cause the content of the email to be "
-#~ "inconsistent with your expectations, so the operation is prohibited."
+#~ "You checked the option to attach signature to the email, but did not "
+#~ "specify the sender's GPG Key. This will cause the content of the email to "
+#~ "be inconsistent with your expectations, so the operation is prohibited."
 #~ msgstr ""
 #~ "Zaznaczyłeś opcję dołączania podpisu do wiadomości e-mail, ale nie "
 #~ "określiłeś klucza GPG nadawcy. Spowoduje to, że treść e-maila będzie "
 #~ "niezgodna z Twoimi oczekiwaniami, więc operacja jest zabroniona."
 
 #~ msgid ""
-#~ "You checked the option to attach your public key to the email, but did not "
-#~ "specify the sender's GPG Key. This will cause the content of the email to be"
-#~ " inconsistent with your expectations, so the operation is prohibited."
+#~ "You checked the option to attach your public key to the email, but did "
+#~ "not specify the sender's GPG Key. This will cause the content of the "
+#~ "email to be inconsistent with your expectations, so the operation is "
+#~ "prohibited."
 #~ msgstr ""
 #~ "Zaznaczyłeś opcję dołączenia klucza publicznego do wiadomości e-mail, ale "
 #~ "nie określiłeś klucza GPG nadawcy. Spowoduje to, że treść e-maila będzie "
@@ -3923,8 +3942,8 @@ msgstr "Brak listy CRL"
 #~ msgstr "Wysyłać email..."
 
 #~ msgid ""
-#~ "If the process does not end for a long time, please check again whether your"
-#~ " SMTP server configuration is correct."
+#~ "If the process does not end for a long time, please check again whether "
+#~ "your SMTP server configuration is correct."
 #~ msgstr ""
 #~ "Jeśli proces nie zakończy się przez dłuższy czas, sprawdź ponownie, czy "
 #~ "konfiguracja serwera SMTP jest prawidłowa."
@@ -3982,10 +4001,11 @@ msgstr "Brak listy CRL"
 #~ msgstr "Ostrzeżenie o automatycznej wymianie klucza"
 
 #~ msgid ""
-#~ "Part of the automatic key exchange failed, which may be related to your key."
+#~ "Part of the automatic key exchange failed, which may be related to your "
+#~ "key."
 #~ msgstr ""
-#~ "Część automatycznej wymiany kluczy nie powiodła się, co może być związane z "
-#~ "Twoim kluczem."
+#~ "Część automatycznej wymiany kluczy nie powiodła się, co może być związane "
+#~ "z Twoim kluczem."
 
 #~ msgid ""
 #~ "If possible, try to use the RSA algorithm compatible with the server for "
@@ -4061,13 +4081,13 @@ msgstr "Brak listy CRL"
 #~ msgstr "Domyślny identyfikator klucza GPG nadawcy"
 
 #~ msgid ""
-#~ "Tips: It is recommended that you build your own mail server or use a trusted"
-#~ " mail server. If you don't know the detailed configuration information, you "
-#~ "can get it from the mail service provider."
+#~ "Tips: It is recommended that you build your own mail server or use a "
+#~ "trusted mail server. If you don't know the detailed configuration "
+#~ "information, you can get it from the mail service provider."
 #~ msgstr ""
-#~ "Wskazówki: Zaleca się zbudowanie własnego serwera pocztowego lub korzystanie"
-#~ " z zaufanego serwera pocztowego. Jeśli nie znasz szczegółowych informacji o "
-#~ "konfiguracji, możesz je uzyskać od dostawcy usług pocztowych."
+#~ "Wskazówki: Zaleca się zbudowanie własnego serwera pocztowego lub "
+#~ "korzystanie z zaufanego serwera pocztowego. Jeśli nie znasz szczegółowych "
+#~ "informacji o konfiguracji, możesz je uzyskać od dostawcy usług pocztowych."
 
 #~ msgid "apply settings failed"
 #~ msgstr "zastosowanie ustawień nie powiodło się"
@@ -4082,8 +4102,8 @@ msgstr "Brak listy CRL"
 #~ msgstr "Przetestuj e-mail od GpgFrontend"
 
 #~ msgid ""
-#~ "Hello, this is a test email from GpgFrontend. If you receive this email, it "
-#~ "means that you have configured the correct SMTP server parameters."
+#~ "Hello, this is a test email from GpgFrontend. If you receive this email, "
+#~ "it means that you have configured the correct SMTP server parameters."
 #~ msgstr ""
 #~ "Witam, to jest testowy e-mail od GpgFrontend. Otrzymanie tego e-maila "
 #~ "oznacza, że skonfigurowałeś prawidłowe parametry serwera SMTP."
@@ -4162,8 +4182,8 @@ msgstr "Brak listy CRL"
 #~ msgid ""
 #~ "Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
 #~ msgstr ""
-#~ "Uwaga: Użyj operacji Odszyfruj i weryfikuj, aby odszyfrować ten krótki tekst"
-#~ " kryptograficzny."
+#~ "Uwaga: Użyj operacji Odszyfruj i weryfikuj, aby odszyfrować ten krótki "
+#~ "tekst kryptograficzny."
 
 #~ msgid "There is a problem with the communication with the server"
 #~ msgstr "Wystąpił problem z komunikacją z serwerem"
@@ -4238,11 +4258,11 @@ msgstr "Brak listy CRL"
 #~ msgstr "Nieopublikowana wersja"
 
 #~ msgid ""
-#~ "This version(%1) has not been officially released and is not recommended for"
-#~ " use in a production environment. <br/>"
+#~ "This version(%1) has not been officially released and is not recommended "
+#~ "for use in a production environment. <br/>"
 #~ msgstr ""
-#~ "Ta wersja (%1) nie została oficjalnie wydana i nie jest zalecana do użytku w"
-#~ " środowisku produkcyjnym. <br/>"
+#~ "Ta wersja (%1) nie została oficjalnie wydana i nie jest zalecana do "
+#~ "użytku w środowisku produkcyjnym. <br/>"
 
 #~ msgid "Fail to Login into SMTP Server"
 #~ msgstr "Nie udało się zalogować do serwera SMTP"
@@ -4275,7 +4295,8 @@ msgstr "Brak listy CRL"
 #~ msgstr "Para kluczy do synchronizacji i uwierzytelniania tożsamości"
 
 #~ msgid "Own Key can not be None while getting service token."
-#~ msgstr "Własny klucz nie może być Brak podczas pobierania tokena serwisowego."
+#~ msgstr ""
+#~ "Własny klucz nie może być Brak podczas pobierania tokena serwisowego."
 
 #~ msgid "Key Not Exists"
 #~ msgstr "Klucz nie istnieje"

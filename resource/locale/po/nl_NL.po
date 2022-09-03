@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.9\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-07-23 20:16+0800\n"
+"POT-Creation-Date: 2022-09-03 20:33+0800\n"
 "PO-Revision-Date: 2022-07-23 20:23-0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
@@ -150,7 +150,7 @@ msgstr "Decodeerbewerking"
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:154
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:281
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:246
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
 msgid "Success"
 msgstr "Succes"
 
@@ -175,7 +175,7 @@ msgid "MIME"
 msgstr "MIME"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:213
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:208
 msgid "true"
 msgstr "waar"
 
@@ -388,8 +388,7 @@ msgstr "Sleutel is NIET aanwezig met ID 0x"
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:121
 msgid "A signature could NOT be verified due to a Missing Key"
 msgstr ""
-"Een handtekening kon NIET worden geverifieerd vanwege een ontbrekende "
-"sleutel"
+"Een handtekening kon NIET worden geverifieerd vanwege een ontbrekende sleutel"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:126
 msgid ""
@@ -468,7 +467,7 @@ msgstr "Ondertekend door"
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:374
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:393
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:437
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:176
 msgid "Error"
 msgstr "Fout"
 
@@ -487,13 +486,13 @@ msgid "Description: "
 msgstr "Beschrijving:"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:68
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:160
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:311
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:418
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:609
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:704
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:249
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:384
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:100
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:138
@@ -509,18 +508,18 @@ msgstr "Voorspellen"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:42
-#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:73
+#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:112
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:473
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:106
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:139
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:161
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:422
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:424
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
 msgid "Called"
 msgstr "Genaamd"
 
@@ -529,15 +528,15 @@ msgstr "Genaamd"
 msgid "log file path"
 msgstr "pad logbestand"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:122
+#: /mnt/h/GpgFrontend/src/main.cpp:126
 msgid "A serious error has occurred"
 msgstr "Er is een ernstige fout opgetreden"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:123
+#: /mnt/h/GpgFrontend/src/main.cpp:127
 msgid ""
-"Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
-" restarted. If the problem recurs, please manually terminate the program and"
-" report the problem to the developer."
+"Oh no! GpgFrontend caught a serious error in the software, so it needs to be "
+"restarted. If the problem recurs, please manually terminate the program and "
+"report the problem to the developer."
 msgstr ""
 "Oh nee! GpgFrontend heeft een ernstige fout ontdekt in de software, dus het "
 "moet opnieuw worden opgestart. Als het probleem zich opnieuw voordoet, "
@@ -599,8 +598,8 @@ msgid ""
 "free gpg front-end tool.It visualizes most of the common operations of gpg "
 "commands.It's licensed under the GPL v3"
 msgstr ""
-"GpgFrontend is een gebruiksvriendelijke, compacte, platformonafhankelijke en"
-" installatievrije gpg front-end tool. Het visualiseert de meeste "
+"GpgFrontend is een gebruiksvriendelijke, compacte, platformonafhankelijke en "
+"installatievrije gpg front-end tool. Het visualiseert de meeste "
 "gebruikelijke bewerkingen van gpg-commando's. Het is gelicentieerd onder de "
 "GPL v3"
 
@@ -631,8 +630,8 @@ msgstr "Gebouwd bij"
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:138
 msgid ""
 "If you think there are any problems with the translation, why not "
-"participate in the translation work? If you want to participate, please read"
-" the document or contact me via email."
+"participate in the translation work? If you want to participate, please read "
+"the document or contact me via email."
 msgstr ""
 "Als u denkt dat er problemen zijn met de vertaling, waarom zou u dan niet "
 "deelnemen aan het vertaalwerk? Als u wilt deelnemen, lees dan het document "
@@ -698,12 +697,12 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
 msgid ""
-"This version has not been released yet, it may be a beta version. If you are"
-" not a tester and care about version stability, please do not use this "
+"This version has not been released yet, it may be a beta version. If you are "
+"not a tester and care about version stability, please do not use this "
 "version."
 msgstr ""
-"Deze versie is nog niet uitgebracht, het kan een bètaversie zijn. Als u geen"
-" tester bent en u geeft om versiestabiliteit, gebruik deze versie dan niet."
+"Deze versie is nog niet uitgebracht, het kan een bètaversie zijn. Als u geen "
+"tester bent en u geeft om versiestabiliteit, gebruik deze versie dan niet."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:41
 msgid "GnuPG Version"
@@ -772,22 +771,20 @@ msgstr ""
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
 msgid ""
 "The Key Package has been successfully generated and has been protected by "
-"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
-"Package."
+"encryption algorithms(AES-256-ECB). You can safely transfer your Key Package."
 msgstr ""
 "Het sleutelpakket is met succes gegenereerd en is beschermd door "
-"coderingsalgoritmen (AES-256-ECB). U kunt uw Sleutelpakket veilig "
-"overdragen."
+"coderingsalgoritmen (AES-256-ECB). U kunt uw Sleutelpakket veilig overdragen."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
 msgid ""
-"But the key file cannot be leaked under any circumstances. Please delete the"
-" Key Package and key file as soon as possible after completing the transfer "
+"But the key file cannot be leaked under any circumstances. Please delete the "
+"Key Package and key file as soon as possible after completing the transfer "
 "operation."
 msgstr ""
 "Maar het sleutelbestand mag in geen geval worden gelekt. Verwijder het "
-"sleutelpakket en het sleutelbestand zo snel mogelijk na het voltooien van de"
-" overdracht."
+"sleutelpakket en het sleutelbestand zo snel mogelijk na het voltooien van de "
+"overdracht."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:121
 msgid "An error occurred while exporting the key package."
@@ -810,8 +807,8 @@ msgid ""
 "Tips: You can use Key Package to safely and conveniently transfer your "
 "public and private keys between devices."
 msgstr ""
-"Tips: U kunt Key Package gebruiken om uw openbare en privésleutels veilig en"
-" gemakkelijk tussen apparaten over te dragen."
+"Tips: U kunt Key Package gebruiken om uw openbare en privésleutels veilig en "
+"gemakkelijk tussen apparaten over te dragen."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:134
 msgid "Generate and Save Passphrase"
@@ -1032,23 +1029,23 @@ msgstr "Geen sleutel gevonden"
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:272
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:483
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:498
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:332
 msgid "Timeout"
 msgstr "Time-out"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:275
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:486
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:144
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:334
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:335
 msgid "Key Server Not Found"
 msgstr "Sleutelserver niet gevonden"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:278
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:489
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:505
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:147
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:337
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:159
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:338
 msgid "Connection Error"
 msgstr "Verbindingsfout"
 
@@ -1078,18 +1075,17 @@ msgstr "gehandicapt"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:398
 msgid "%1 keys found. Double click a key to import it."
-msgstr ""
-"%1 sleutels gevonden. Dubbelklik op een sleutel om deze te importeren."
+msgstr "%1 sleutels gevonden. Dubbelklik op een sleutel om deze te importeren."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:446
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:290
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:96
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
 msgid "Default Keyserver Not Found"
 msgstr "Standaard sleutelserver niet gevonden"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:447
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:80
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:292
 msgid ""
 "Cannot read default keyserver from your settings, please set a default "
 "keyserver first"
@@ -1099,8 +1095,8 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:480
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:494
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:138
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:328
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:150
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:329
 msgid "Key Not Found"
 msgstr "Sleutel niet gevonden"
 
@@ -1120,25 +1116,25 @@ msgstr "Algemene verbindingsfout"
 msgid "Key Imported"
 msgstr "Sleutel geïmporteerd"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:57
 msgid "Uploading Public Key"
 msgstr "Publieke sleutel uploaden"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:74
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:286
 msgid "Set target Key Server to default Key Server"
 msgstr "Stel doel Key Server in op standaard Key Server"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:77
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:95
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:289
 msgid "Cannot read default_keyserver From Settings"
 msgstr "Kan default_keyserver niet lezen van Instellingen"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:152
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:164
 msgid "Upload Success"
 msgstr "Upload succes"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:165
 msgid "Upload Public Key Successfully"
 msgstr "Upload openbare sleutel succesvol"
 
@@ -1379,7 +1375,7 @@ msgstr "Sleutel exporteren naar bestand"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:157
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:203
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Key Files"
 msgstr "Sleutelbestanden"
 
@@ -1706,7 +1702,7 @@ msgstr "De vervaldatum van het sleutelpaar is bijgewerkt."
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:88
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:164
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:289
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
 msgid "Failure"
 msgstr "Mislukking"
 
@@ -1727,11 +1723,11 @@ msgstr "Gewijzigde vervaldatum (lokale tijd)"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:133
 msgid ""
-"Tips: For the sake of security, the key is valid for up to two years. If you"
-" are an expert user, please unlock it for a longer time in the settings."
+"Tips: For the sake of security, the key is valid for up to two years. If you "
+"are an expert user, please unlock it for a longer time in the settings."
 msgstr ""
-"Tips: Omwille van de veiligheid is de sleutel maximaal twee jaar geldig. Als"
-" je een ervaren gebruiker bent, ontgrendel hem dan voor een langere tijd in "
+"Tips: Omwille van de veiligheid is de sleutel maximaal twee jaar geldig. Als "
+"je een ervaren gebruiker bent, ontgrendel hem dan voor een langere tijd in "
 "de instellingen."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:136
@@ -1909,7 +1905,7 @@ msgstr "stegano_checked"
 msgid "auto_pubkey_exchange_checked"
 msgstr "auto_pubkey_exchange_checked"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:41
 msgid "Icon Size"
 msgstr "Pictogramgrootte"
 
@@ -1925,36 +1921,46 @@ msgstr "medium"
 msgid "large"
 msgstr "groot"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:46
 msgid "Icon Style"
 msgstr "Pictogramstijl"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:47
 msgid "just text"
 msgstr "gewoon sms'en"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:63
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:48
 msgid "just icons"
 msgstr "alleen pictogrammen"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:64
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:49
 msgid "text and icons"
 msgstr "tekst en pictogrammen"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:51
 msgid "Window State"
 msgstr "Vensterstatus:"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:83
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:53
 msgid "Save window size and position on exit."
 msgstr "Bewaar venstergrootte en positie bij afsluiten."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:55
+#, fuzzy
+msgid "Text Editor"
+msgstr "Editor"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:56
+#, fuzzy
+msgid "Font Size in Text Editor"
+msgstr "Lettergrootte in informatiebord"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:58
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:496
 msgid "Information Board"
 msgstr "Informatiebord"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
 msgid "Font Size in Information Board"
 msgstr "Lettergrootte in informatiebord"
 
@@ -1990,8 +1996,8 @@ msgstr "Gecontroleerde sleutels opslaan"
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:46
 msgid "Save checked private keys on exit and restore them on next start."
 msgstr ""
-"Bewaar aangevinkte privésleutels bij afsluiten en herstel ze bij de volgende"
-" start."
+"Bewaar aangevinkte privésleutels bij afsluiten en herstel ze bij de volgende "
+"start."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:47
 msgid "Longer Key Expiration Date"
@@ -2008,8 +2014,7 @@ msgstr "Toetsimport met slepen en neerzetten bevestigen"
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:52
 msgid "Import files dropped on the Key List without confirmation."
 msgstr ""
-"Importeer bestanden die zonder bevestiging op de sleutellijst zijn "
-"geplaatst."
+"Importeer bestanden die zonder bevestiging op de sleutellijst zijn geplaatst."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:54
 msgid "ASCII Mode"
@@ -2100,11 +2105,11 @@ msgstr "Geselecteerde sleutelserver verwijderen"
 msgid "Set As Default"
 msgstr "Stel in als standaard"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:151
 msgid "Insecure keyserver address"
 msgstr "Onveilig sleutelserveradres"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:157
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:152
 msgid ""
 "For security reasons, using HTTP as the communication protocol with the key "
 "server is not recommended. It is recommended to use HTTPS."
@@ -2113,10 +2118,10 @@ msgstr ""
 "met de sleutelserver niet aanbevolen. Het wordt aanbevolen om HTTPS te "
 "gebruiken."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:166
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:161
 msgid ""
-"You may not use HTTPS or HTTP as the protocol for communicating with the key"
-" server, which may not be wrong. But please check the address you entered "
+"You may not use HTTPS or HTTP as the protocol for communicating with the key "
+"server, which may not be wrong. But please check the address you entered "
 "again to make sure it is correct. Are you sure that want to add it into the "
 "keyserver list?"
 msgstr ""
@@ -2125,34 +2130,34 @@ msgstr ""
 "hebt ingevoerd nogmaals om er zeker van te zijn dat het correct is. Weet u "
 "zeker dat u het wilt toevoegen aan de keyserver-lijst?"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:209
 msgid "false"
 msgstr "vals"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
 msgid "unknown"
 msgstr "onbekend"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:233
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:228
 msgid "Set TCP Timeout"
 msgstr "TCP-time-out instellen"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:258
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:253
 msgid "Reachable"
 msgstr "bereikbaar"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:261
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:256
 msgid "Not Reachable"
 msgstr "Onbereikbaar"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:273
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:268
 msgid "Test Key Server Connection..."
 msgstr "Verbinding met sleutelserver testen..."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:274
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:269
 msgid ""
-"This test only tests the network connectivity of the key server. Passing the"
-" test does not mean that the key server is functionally available."
+"This test only tests the network connectivity of the key server. Passing the "
+"test does not mean that the key server is functionally available."
 msgstr ""
 "Deze test test alleen de netwerkconnectiviteit van de sleutelserver. Het "
 "slagen voor de test betekent niet dat de sleutelserver functioneel "
@@ -2197,8 +2202,7 @@ msgstr "Alle netwerkverbindingen verbieden."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:66
 msgid "Prohibit checking for version updates when the program starts."
-msgstr ""
-"Verbied het controleren op versie-updates wanneer het programma start."
+msgstr "Verbied het controleren op versie-updates wanneer het programma start."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:67
 msgid "Check Proxy Connection"
@@ -2280,14 +2284,13 @@ msgstr "Selecteer ondertekenaar(s)"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:60
 msgid "Please select one or more private keys you use for signing."
-msgstr ""
-"Selecteer een of meer privésleutels die u gebruikt om te ondertekenen."
+msgstr "Selecteer een of meer privésleutels die u gebruikt om te ondertekenen."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:62
 msgid "If no key is selected, the default key will be used for signing."
 msgstr ""
-"Als er geen sleutel is geselecteerd, wordt de standaardsleutel gebruikt voor"
-" het ondertekenen."
+"Als er geen sleutel is geselecteerd, wordt de standaardsleutel gebruikt voor "
+"het ondertekenen."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:43
 msgid "First Start Wizard"
@@ -2329,8 +2332,8 @@ msgstr "door op de link te klikken, wordt de pagina geopend in de webbrowser"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:107
 msgid ""
-"If it supports the language currently being used in your system, GpgFrontend"
-" will automatically set it."
+"If it supports the language currently being used in your system, GpgFrontend "
+"will automatically set it."
 msgstr ""
 "Als het de taal ondersteunt die momenteel in uw systeem wordt gebruikt, zal "
 "GpgFrontend dit automatisch instellen."
@@ -2348,8 +2351,8 @@ msgid ""
 "If you have never used GpgFrontend before and also don't own a gpg key yet "
 "you may possibly want to read how to"
 msgstr ""
-"Als je nog nooit GpgFrontend hebt gebruikt en ook nog geen gpg-sleutel hebt,"
-" wil je misschien lezen hoe je"
+"Als je nog nooit GpgFrontend hebt gebruikt en ook nog geen gpg-sleutel hebt, "
+"wil je misschien lezen hoe je"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:142
 msgid ""
@@ -2400,8 +2403,8 @@ msgid ""
 "sign messages.<br>For more information have a look at the offline tutorial "
 "(which then is shown in the main window):"
 msgstr ""
-"U moet een nieuw sleutelpaar maken. Het paar bestaat uit een openbare en een"
-" privésleutel.<br>Andere gebruikers kunnen de openbare sleutel gebruiken om "
+"U moet een nieuw sleutelpaar maken. Het paar bestaat uit een openbare en een "
+"privésleutel.<br>Andere gebruikers kunnen de openbare sleutel gebruiken om "
 "berichten voor u te versleutelen en door u ondertekende berichten te "
 "verifiëren. U kunt de privésleutel gebruiken om te ontsleutelen en te "
 "ondertekenen berichten.<br>Bekijk voor meer informatie de offline tutorial "
@@ -2436,8 +2439,8 @@ msgid ""
 " will get you started with GpgFrontend. Anytime you encounter problems, "
 "please try to find help from the documentation"
 msgstr ""
-" helpt u op weg met GpgFrontend. Probeer elke keer dat u problemen tegenkomt"
-" hulp te vinden in de documentatie"
+" helpt u op weg met GpgFrontend. Probeer elke keer dat u problemen tegenkomt "
+"hulp te vinden in de documentatie"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:250
 msgid "Open offline help."
@@ -2481,9 +2484,9 @@ msgstr "Gnupg-info laden..."
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:84
 msgid ""
-"If this process is too slow, please set the key server address appropriately"
-" in the gnupg configuration file (depending on the network situation in your"
-" country or region)."
+"If this process is too slow, please set the key server address appropriately "
+"in the gnupg configuration file (depending on the network situation in your "
+"country or region)."
 msgstr ""
 "Als dit proces te traag is, stel dan het sleutelserveradres correct in het "
 "gnupg-configuratiebestand in (afhankelijk van de netwerksituatie in uw land "
@@ -2709,8 +2712,8 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:394
 msgid ""
-"Please select a key before performing this operation. If you select multiple"
-" keys, only the first key will be exported."
+"Please select a key before performing this operation. If you select multiple "
+"keys, only the first key will be exported."
 msgstr ""
 "Selecteer een toets voordat u deze bewerking uitvoert. Als u meerdere "
 "sleutels selecteert, wordt alleen de eerste sleutel geëxporteerd."
@@ -2960,8 +2963,8 @@ msgid ""
 "No Key Checked. Do you want to encrypt with a symmetric cipher using a "
 "passphrase?"
 msgstr ""
-"Geen sleutel gecontroleerd. Wilt u coderen met een symmetrische codering met"
-" behulp van een wachtwoordzin?"
+"Geen sleutel gecontroleerd. Wilt u coderen met een symmetrische codering met "
+"behulp van een wachtwoordzin?"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:129
 msgid ""
@@ -3314,6 +3317,11 @@ msgstr "Klaar"
 msgid "Key ToolBox"
 msgstr "Key ToolBox"
 
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:56
+#, fuzzy
+msgid "Show Verify Details"
+msgstr "Toon belangrijke details"
+
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:65
 msgid "Public key not found locally"
 msgstr "Openbare sleutel niet lokaal gevonden"
@@ -3333,50 +3341,52 @@ msgid "ENV Loading Failed"
 msgstr "ENV laden mislukt"
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:172
+#, fuzzy
 msgid ""
-"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
-" in Github to install Gnupg and then open GpgFrontend."
+"Gnupg(gpg) is not installed correctly, please follow <a href='https://www."
+"gpgfrontend.pub/#/faq?id=how-to-deal-with-39env-loading-failed39'>this "
+"notes</a> in FAQ to install Gnupg and then open GpgFrontend."
 msgstr ""
 "Gnupg(gpg) is niet correct geïnstalleerd, volg de ReadME-instructies in "
 "Github om Gnupg te installeren en open vervolgens GpgFrontend."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:190
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
 msgid "Open Key"
 msgstr "Sleutel openen"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Keyring files"
 msgstr "Sleutelhanger bestanden"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:196
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
 msgid "File Open Failed"
 msgstr "Bestand kon niet geopend worden"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:198
 msgid "Failed to open file: "
 msgstr "Gefaald om het document te openen:"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:220
 msgid "Processing"
 msgstr "Verwerken"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:240
 msgid "Failed to execute command."
 msgstr "Kan opdracht niet uitvoeren."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:248
 msgid "Succeed in executing command."
 msgstr "Succes met het uitvoeren van de opdracht."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:251
 msgid "Finished executing command."
 msgstr "Uitvoeren van opdracht voltooid."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:349
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:350
 msgid "The key has been updated"
 msgstr "De sleutel is bijgewerkt"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:351
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:352
 msgid "No need to update the key"
 msgstr "U hoeft de sleutel niet bij te werken"
 
@@ -3457,11 +3467,11 @@ msgstr "Bestandsnaam (u kunt de extensie opgeven)"
 msgid "Unable to create the file."
 msgstr "Kan het bestand niet maken."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:167
 msgid "Save Information Board's Content"
 msgstr "Bewaar de inhoud van het informatiebord"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:177
 msgid "The file path is not exists, unprivileged or unreachable."
 msgstr "Het bestandspad bestaat niet, heeft geen rechten of is onbereikbaar."
 
@@ -3533,53 +3543,53 @@ msgstr "Altijd importeren zonder lastig te vallen."
 msgid "Couldn't Open File"
 msgstr "Kan bestand niet openen"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:430
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:432
 msgid "Key List Refreshed."
 msgstr "Sleutellijst vernieuwd."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:448
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
 msgid "Syncing Key List..."
 msgstr "Sleutellijst synchroniseren..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:460
 msgid "Sync [%1%/%2%] %3% %4%"
 msgstr "Synchronisatie [%1%/%2%] %3% %4%"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:464
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:468
 msgid "Key List Sync Done."
 msgstr "Sleutellijstsynchronisatie voltooid."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:61
 msgid "0 character"
 msgstr "0 karakter"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:55
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:99
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:106
 msgid "lf"
 msgstr "lf"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:56
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
 msgid "utf-8"
 msgstr "utf-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:252
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:259
 msgid "%1% character(s)"
 msgstr "%1% teken(s)"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:72
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:79
 msgid "Loading..."
 msgstr "Bezig met laden..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:100
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:107
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:232
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:239
 msgid "%1% byte(s)"
 msgstr "%1% byte(s)"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:277
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:284
 msgid "binary"
 msgstr "binair"
 
@@ -3628,7 +3638,8 @@ msgid "Unsaved document"
 msgstr "Niet-opgeslagen document"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:295
-msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgid ""
+"The document \"%1\" has been modified. Do you want to save your changes?"
 msgstr "Het document \"%1\" is gewijzigd. Wil je je wijzigingen opslaan?"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:298
@@ -3783,8 +3794,8 @@ msgstr "Ontbrekende CRL"
 #~ "tekst te coderen."
 
 #~ msgid ""
-#~ "If you want to send to multiple recipients at the same time, you can select "
-#~ "multiple keys."
+#~ "If you want to send to multiple recipients at the same time, you can "
+#~ "select multiple keys."
 #~ msgstr ""
 #~ "Als u naar meerdere ontvangers tegelijk wilt verzenden, kunt u meerdere "
 #~ "sleutels selecteren."
@@ -3793,11 +3804,11 @@ msgstr "Ontbrekende CRL"
 #~ msgstr "E-maillijst:"
 
 #~ msgid ""
-#~ "Tips: You can double-click the email address in the edit list, or click the "
-#~ "email to pop up the option menu."
+#~ "Tips: You can double-click the email address in the edit list, or click "
+#~ "the email to pop up the option menu."
 #~ msgstr ""
-#~ "Tips: U kunt dubbelklikken op het e-mailadres in de bewerkingslijst of op de"
-#~ " e-mail klikken om het optiemenu te openen."
+#~ "Tips: U kunt dubbelklikken op het e-mailadres in de bewerkingslijst of op "
+#~ "de e-mail klikken om het optiemenu te openen."
 
 #~ msgid "Add An Email Address"
 #~ msgstr "Voeg een e-mailadres toe"
@@ -3813,14 +3824,15 @@ msgstr "Ontbrekende CRL"
 
 #~ msgid "As the sender of the mail, the private key is generally used."
 #~ msgstr ""
-#~ "Als afzender van de e-mail wordt over het algemeen de privésleutel gebruikt."
+#~ "Als afzender van de e-mail wordt over het algemeen de privésleutel "
+#~ "gebruikt."
 
 #~ msgid ""
 #~ " The private key is generally used as a signature for the content of the "
 #~ "mail."
 #~ msgstr ""
-#~ " De privésleutel wordt over het algemeen gebruikt als handtekening voor de "
-#~ "inhoud van de e-mail."
+#~ " De privésleutel wordt over het algemeen gebruikt als handtekening voor "
+#~ "de inhoud van de e-mail."
 
 #~ msgid "Incomplete configuration"
 #~ msgstr "Onvolledige configuratie"
@@ -3829,8 +3841,8 @@ msgstr "Ontbrekende CRL"
 #~ "The SMTP address is empty, please go to the setting interface to complete "
 #~ "the configuration."
 #~ msgstr ""
-#~ "Het SMTP-adres is leeg, ga naar de instellingeninterface om de configuratie "
-#~ "te voltooien."
+#~ "Het SMTP-adres is leeg, ga naar de instellingeninterface om de "
+#~ "configuratie te voltooien."
 
 #~ msgid "CC"
 #~ msgstr "CC"
@@ -3909,40 +3921,41 @@ msgstr "Ontbrekende CRL"
 #~ msgstr "Een of meer bcc-e-mails zijn ongeldig"
 
 #~ msgid ""
-#~ "You have checked the encrypted email content, but you have not selected the "
-#~ "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
-#~ "So the send operation is forbidden"
+#~ "You have checked the encrypted email content, but you have not selected "
+#~ "the recipient's GPG key. This is dangerous and the mail will not be "
+#~ "encrypted. So the send operation is forbidden"
 #~ msgstr ""
 #~ "U hebt de versleutelde e-mailinhoud gecontroleerd, maar u hebt de GPG-"
 #~ "sleutel van de ontvanger niet geselecteerd. Dit is gevaarlijk en de mail "
 #~ "wordt niet versleuteld. Dus de verzendbewerking is verboden"
 
 #~ msgid ""
-#~ "You checked the option to attach signature to the email, but did not specify"
-#~ " the sender's GPG Key. This will cause the content of the email to be "
-#~ "inconsistent with your expectations, so the operation is prohibited."
+#~ "You checked the option to attach signature to the email, but did not "
+#~ "specify the sender's GPG Key. This will cause the content of the email to "
+#~ "be inconsistent with your expectations, so the operation is prohibited."
 #~ msgstr ""
-#~ "U hebt de optie aangevinkt om een handtekening aan de e-mail toe te voegen, "
-#~ "maar heeft de GPG-sleutel van de afzender niet opgegeven. Hierdoor zal de "
-#~ "inhoud van de e-mail niet overeenkomen met uw verwachtingen, dus de "
-#~ "bewerking is verboden."
+#~ "U hebt de optie aangevinkt om een handtekening aan de e-mail toe te "
+#~ "voegen, maar heeft de GPG-sleutel van de afzender niet opgegeven. "
+#~ "Hierdoor zal de inhoud van de e-mail niet overeenkomen met uw "
+#~ "verwachtingen, dus de bewerking is verboden."
 
 #~ msgid ""
-#~ "You checked the option to attach your public key to the email, but did not "
-#~ "specify the sender's GPG Key. This will cause the content of the email to be"
-#~ " inconsistent with your expectations, so the operation is prohibited."
+#~ "You checked the option to attach your public key to the email, but did "
+#~ "not specify the sender's GPG Key. This will cause the content of the "
+#~ "email to be inconsistent with your expectations, so the operation is "
+#~ "prohibited."
 #~ msgstr ""
 #~ "U hebt de optie aangevinkt om uw openbare sleutel aan de e-mail toe te "
-#~ "voegen, maar heeft de GPG-sleutel van de afzender niet opgegeven. Hierdoor "
-#~ "zal de inhoud van de e-mail niet overeenkomen met uw verwachtingen, dus de "
-#~ "bewerking is verboden."
+#~ "voegen, maar heeft de GPG-sleutel van de afzender niet opgegeven. "
+#~ "Hierdoor zal de inhoud van de e-mail niet overeenkomen met uw "
+#~ "verwachtingen, dus de bewerking is verboden."
 
 #~ msgid "Sending Email..."
 #~ msgstr "Email verzenden..."
 
 #~ msgid ""
-#~ "If the process does not end for a long time, please check again whether your"
-#~ " SMTP server configuration is correct."
+#~ "If the process does not end for a long time, please check again whether "
+#~ "your SMTP server configuration is correct."
 #~ msgstr ""
 #~ "Als het proces lange tijd niet stopt, controleer dan nogmaals of uw SMTP-"
 #~ "serverconfiguratie correct is."
@@ -3984,9 +3997,9 @@ msgstr "Ontbrekende CRL"
 #~ "An error occurred while encrypting the content of the email. This may be "
 #~ "because you did not complete some operations during Gnupg encryption."
 #~ msgstr ""
-#~ "Er is een fout opgetreden bij het versleutelen van de inhoud van de e-mail. "
-#~ "Dit kan zijn omdat u sommige bewerkingen niet hebt voltooid tijdens de "
-#~ "Gnupg-codering."
+#~ "Er is een fout opgetreden bij het versleutelen van de inhoud van de e-"
+#~ "mail. Dit kan zijn omdat u sommige bewerkingen niet hebt voltooid tijdens "
+#~ "de Gnupg-codering."
 
 #~ msgid "Unknown error."
 #~ msgstr "Onbekende fout."
@@ -4001,17 +4014,18 @@ msgstr "Ontbrekende CRL"
 #~ msgstr "Waarschuwing voor automatische sleuteluitwisseling"
 
 #~ msgid ""
-#~ "Part of the automatic key exchange failed, which may be related to your key."
+#~ "Part of the automatic key exchange failed, which may be related to your "
+#~ "key."
 #~ msgstr ""
-#~ "Een deel van de automatische sleuteluitwisseling is mislukt, wat mogelijk te"
-#~ " maken heeft met uw sleutel."
+#~ "Een deel van de automatische sleuteluitwisseling is mislukt, wat mogelijk "
+#~ "te maken heeft met uw sleutel."
 
 #~ msgid ""
 #~ "If possible, try to use the RSA algorithm compatible with the server for "
 #~ "signing."
 #~ msgstr ""
-#~ "Probeer indien mogelijk het RSA-algoritme te gebruiken dat compatibel is met"
-#~ " de server voor ondertekening."
+#~ "Probeer indien mogelijk het RSA-algoritme te gebruiken dat compatibel is "
+#~ "met de server voor ondertekening."
 
 #~ msgid "Service Token Empty"
 #~ msgstr "Servicetoken leeg"
@@ -4080,13 +4094,13 @@ msgstr "Ontbrekende CRL"
 #~ msgstr "Standaard afzender GPG-sleutel-ID"
 
 #~ msgid ""
-#~ "Tips: It is recommended that you build your own mail server or use a trusted"
-#~ " mail server. If you don't know the detailed configuration information, you "
-#~ "can get it from the mail service provider."
+#~ "Tips: It is recommended that you build your own mail server or use a "
+#~ "trusted mail server. If you don't know the detailed configuration "
+#~ "information, you can get it from the mail service provider."
 #~ msgstr ""
-#~ "Tips: Het wordt aanbevolen dat u uw eigen mailserver bouwt of een vertrouwde"
-#~ " mailserver gebruikt. Als u de gedetailleerde configuratie-informatie niet "
-#~ "weet, kunt u deze opvragen bij de e-mailserviceprovider."
+#~ "Tips: Het wordt aanbevolen dat u uw eigen mailserver bouwt of een "
+#~ "vertrouwde mailserver gebruikt. Als u de gedetailleerde configuratie-"
+#~ "informatie niet weet, kunt u deze opvragen bij de e-mailserviceprovider."
 
 #~ msgid "apply settings failed"
 #~ msgstr "instellingen toepassen mislukt"
@@ -4101,11 +4115,12 @@ msgstr "Ontbrekende CRL"
 #~ msgstr "Test e-mail van GpgFrontend"
 
 #~ msgid ""
-#~ "Hello, this is a test email from GpgFrontend. If you receive this email, it "
-#~ "means that you have configured the correct SMTP server parameters."
+#~ "Hello, this is a test email from GpgFrontend. If you receive this email, "
+#~ "it means that you have configured the correct SMTP server parameters."
 #~ msgstr ""
-#~ "Hallo, dit is een test-e-mail van GpgFrontend. Als u deze e-mail ontvangt, "
-#~ "betekent dit dat u de juiste SMTP-serverparameters hebt geconfigureerd."
+#~ "Hallo, dit is een test-e-mail van GpgFrontend. Als u deze e-mail "
+#~ "ontvangt, betekent dit dat u de juiste SMTP-serverparameters hebt "
+#~ "geconfigureerd."
 
 #~ msgid "Succeed in sending a test email to the SMTP Server"
 #~ msgstr "Succes met het verzenden van een test-e-mail naar de SMTP-server"
@@ -4183,8 +4198,8 @@ msgstr "Ontbrekende CRL"
 #~ msgid ""
 #~ "Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
 #~ msgstr ""
-#~ "Opmerking: gebruik de bewerking Decrypt & Verify om deze korte cryptotekst "
-#~ "te decoderen."
+#~ "Opmerking: gebruik de bewerking Decrypt & Verify om deze korte "
+#~ "cryptotekst te decoderen."
 
 #~ msgid "There is a problem with the communication with the server"
 #~ msgstr "Er is een probleem met de communicatie met de server"
@@ -4260,11 +4275,11 @@ msgstr "Ontbrekende CRL"
 #~ msgstr "Niet-uitgebrachte versie"
 
 #~ msgid ""
-#~ "This version(%1) has not been officially released and is not recommended for"
-#~ " use in a production environment. <br/>"
+#~ "This version(%1) has not been officially released and is not recommended "
+#~ "for use in a production environment. <br/>"
 #~ msgstr ""
-#~ "Deze versie(%1) is niet officieel vrijgegeven en wordt niet aanbevolen voor "
-#~ "gebruik in een productieomgeving. <br/>"
+#~ "Deze versie(%1) is niet officieel vrijgegeven en wordt niet aanbevolen "
+#~ "voor gebruik in een productieomgeving. <br/>"
 
 #~ msgid "Fail to Login into SMTP Server"
 #~ msgstr "Inloggen op SMTP-server mislukt"
@@ -4336,8 +4351,8 @@ msgstr "Ontbrekende CRL"
 
 #~ msgid "Selecting Nothing will eventually use default key to sign."
 #~ msgstr ""
-#~ "Als u Niets selecteert, wordt uiteindelijk de standaardsleutel gebruikt om "
-#~ "te ondertekenen."
+#~ "Als u Niets selecteert, wordt uiteindelijk de standaardsleutel gebruikt "
+#~ "om te ondertekenen."
 
 #~ msgid "Refresh Key From Key Server"
 #~ msgstr "Sleutel vernieuwen vanaf sleutelserver"

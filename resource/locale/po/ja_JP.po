@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.9\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-07-23 20:16+0800\n"
+"POT-Creation-Date: 2022-09-03 20:33+0800\n"
 "PO-Revision-Date: 2022-07-23 20:22-0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
@@ -148,7 +148,7 @@ msgstr "復号化操作"
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:154
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:281
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:246
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
 msgid "Success"
 msgstr "成功"
 
@@ -173,7 +173,7 @@ msgid "MIME"
 msgstr "MIME"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:213
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:208
 msgid "true"
 msgstr "true"
 
@@ -460,7 +460,7 @@ msgstr "によって署名されました"
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:374
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:393
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:437
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:176
 msgid "Error"
 msgstr "エラー"
 
@@ -479,13 +479,13 @@ msgid "Description: "
 msgstr "説明："
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:68
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:160
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:311
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:418
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:609
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:704
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:249
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:384
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:100
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:138
@@ -501,18 +501,18 @@ msgstr "予測する"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:42
-#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:73
+#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:112
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:473
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:106
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:139
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:161
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:422
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:424
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
 msgid "Called"
 msgstr "と呼ばれる"
 
@@ -521,18 +521,19 @@ msgstr "と呼ばれる"
 msgid "log file path"
 msgstr "ログファイルのパス"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:122
+#: /mnt/h/GpgFrontend/src/main.cpp:126
 msgid "A serious error has occurred"
 msgstr "重大なエラーが発生しました"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:123
+#: /mnt/h/GpgFrontend/src/main.cpp:127
 msgid ""
-"Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
-" restarted. If the problem recurs, please manually terminate the program and"
-" report the problem to the developer."
+"Oh no! GpgFrontend caught a serious error in the software, so it needs to be "
+"restarted. If the problem recurs, please manually terminate the program and "
+"report the problem to the developer."
 msgstr ""
-"大野！ "
-"GpgFrontendがソフトウェアで重大なエラーを検出したため、再起動する必要があります。問題が再発する場合は、プログラムを手動で終了し、開発者に問題を報告してください。"
+"大野！ GpgFrontendがソフトウェアで重大なエラーを検出したため、再起動する必要"
+"があります。問題が再発する場合は、プログラムを手動で終了し、開発者に問題を報"
+"告してください。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:38
 msgid "Signatures Details"
@@ -589,7 +590,9 @@ msgid ""
 "free gpg front-end tool.It visualizes most of the common operations of gpg "
 "commands.It's licensed under the GPL v3"
 msgstr ""
-"GpgFrontendは、使いやすく、コンパクトで、クロスプラットフォームで、インストール不要のgpgフロントエンドツールです。gpgコマンドの一般的な操作のほとんどを視覚化します。GPLv3の下でライセンスされています。"
+"GpgFrontendは、使いやすく、コンパクトで、クロスプラットフォームで、インストー"
+"ル不要のgpgフロントエンドツールです。gpgコマンドの一般的な操作のほとんどを視"
+"覚化します。GPLv3の下でライセンスされています。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:91
 msgid "Developer:"
@@ -618,21 +621,27 @@ msgstr "で建てられた"
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:138
 msgid ""
 "If you think there are any problems with the translation, why not "
-"participate in the translation work? If you want to participate, please read"
-" the document or contact me via email."
-msgstr "翻訳に問題があると思われる場合は、翻訳作業に参加してみませんか？参加をご希望の場合は、資料をお読みいただくか、メールでご連絡ください。"
+"participate in the translation work? If you want to participate, please read "
+"the document or contact me via email."
+msgstr ""
+"翻訳に問題があると思われる場合は、翻訳作業に参加してみませんか？参加をご希望"
+"の場合は、資料をお読みいただくか、メールでご連絡ください。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
 msgid ""
 "It is recommended that you always check the version of GpgFrontend and "
 "upgrade to the latest version."
-msgstr "常にGpgFrontendのバージョンを確認し、最新バージョンにアップグレードすることをお勧めします。"
+msgstr ""
+"常にGpgFrontendのバージョンを確認し、最新バージョンにアップグレードすることを"
+"お勧めします。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:166
 msgid ""
 "New versions not only represent new features, but also often represent "
 "functional and security fixes."
-msgstr "新しいバージョンは、新機能を表すだけでなく、多くの場合、機能およびセキュリティの修正を表します。"
+msgstr ""
+"新しいバージョンは、新機能を表すだけでなく、多くの場合、機能およびセキュリ"
+"ティの修正を表します。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:172
 msgid "Current Version"
@@ -672,15 +681,19 @@ msgstr "最新の安定バージョンをダウンロードします。"
 msgid ""
 "This version has serious problems and has been withdrawn. Please stop using "
 "it immediately."
-msgstr "このバージョンには重大な問題があり、廃止されました。すぐに使用を中止してください。"
+msgstr ""
+"このバージョンには重大な問題があり、廃止されました。すぐに使用を中止してくだ"
+"さい。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
 msgid ""
-"This version has not been released yet, it may be a beta version. If you are"
-" not a tester and care about version stability, please do not use this "
+"This version has not been released yet, it may be a beta version. If you are "
+"not a tester and care about version stability, please do not use this "
 "version."
 msgstr ""
-"このバージョンはまだリリースされていません。ベータ版である可能性があります。テスターではなく、バージョンの安定性に関心がある場合は、このバージョンを使用しないでください。"
+"このバージョンはまだリリースされていません。ベータ版である可能性があります。"
+"テスターではなく、バージョンの安定性に関心がある場合は、このバージョンを使用"
+"しないでください。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:41
 msgid "GnuPG Version"
@@ -741,22 +754,26 @@ msgid ""
 "Please generate a password to protect your key before exporting, it is very "
 "important. Don't forget to back up your password in a safe place."
 msgstr ""
-"エクスポートする前に、キーを保護するためのパスワードを生成してください。これは非常に重要です。安全な場所にパスワードをバックアップすることを忘れないでください。"
+"エクスポートする前に、キーを保護するためのパスワードを生成してください。これ"
+"は非常に重要です。安全な場所にパスワードをバックアップすることを忘れないでく"
+"ださい。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
 msgid ""
 "The Key Package has been successfully generated and has been protected by "
-"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
-"Package."
-msgstr "キーパッケージは正常に生成され、暗号化アルゴリズム（AES-256-ECB）によって保護されています。キーパッケージを安全に転送できます。"
+"encryption algorithms(AES-256-ECB). You can safely transfer your Key Package."
+msgstr ""
+"キーパッケージは正常に生成され、暗号化アルゴリズム（AES-256-ECB）によって保護"
+"されています。キーパッケージを安全に転送できます。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
 msgid ""
-"But the key file cannot be leaked under any circumstances. Please delete the"
-" Key Package and key file as soon as possible after completing the transfer "
+"But the key file cannot be leaked under any circumstances. Please delete the "
+"Key Package and key file as soon as possible after completing the transfer "
 "operation."
 msgstr ""
-"ただし、どのような状況でもキーファイルが漏洩することはありません。転送操作が完了したら、できるだけ早くキーパッケージとキーファイルを削除してください。"
+"ただし、どのような状況でもキーファイルが漏洩することはありません。転送操作が"
+"完了したら、できるだけ早くキーパッケージとキーファイルを削除してください。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:121
 msgid "An error occurred while exporting the key package."
@@ -778,7 +795,9 @@ msgstr "パスフレーズ"
 msgid ""
 "Tips: You can use Key Package to safely and conveniently transfer your "
 "public and private keys between devices."
-msgstr "ヒント：キーパッケージを使用すると、デバイス間で公開キーと秘密キーを安全かつ便利に転送できます。"
+msgstr ""
+"ヒント：キーパッケージを使用すると、デバイス間で公開キーと秘密キーを安全かつ"
+"便利に転送できます。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:134
 msgid "Generate and Save Passphrase"
@@ -999,23 +1018,23 @@ msgstr "キーが見つかりません"
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:272
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:483
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:498
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:332
 msgid "Timeout"
 msgstr "タイムアウト"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:275
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:486
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:144
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:334
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:335
 msgid "Key Server Not Found"
 msgstr "キーサーバーが見つかりません"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:278
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:489
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:505
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:147
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:337
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:159
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:338
 msgid "Connection Error"
 msgstr "接続エラー"
 
@@ -1025,7 +1044,8 @@ msgstr "キーサーバーからの応答が多すぎます！"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:298
 msgid "No keys found, input may be kexId, retrying search with 0x."
-msgstr "キーが見つかりません。入力はkexIdである可能性があり、0xで検索を再試行します。"
+msgstr ""
+"キーが見つかりません。入力はkexIdである可能性があり、0xで検索を再試行します。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:307
 msgid "No keys found containing the search string!"
@@ -1045,26 +1065,29 @@ msgstr "無効"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:398
 msgid "%1 keys found. Double click a key to import it."
-msgstr "％1個のキーが見つかりました。キーをダブルクリックしてインポートします。"
+msgstr ""
+"％1個のキーが見つかりました。キーをダブルクリックしてインポートします。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:446
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:290
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:96
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
 msgid "Default Keyserver Not Found"
 msgstr "デフォルトのキーサーバーが見つかりません"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:447
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:80
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:292
 msgid ""
 "Cannot read default keyserver from your settings, please set a default "
 "keyserver first"
-msgstr "設定からデフォルトのキーサーバーを読み取ることができません。最初にデフォルトのキーサーバーを設定してください"
+msgstr ""
+"設定からデフォルトのキーサーバーを読み取ることができません。最初にデフォルト"
+"のキーサーバーを設定してください"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:480
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:494
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:138
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:328
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:150
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:329
 msgid "Key Not Found"
 msgstr "キーが見つかりません"
 
@@ -1084,25 +1107,25 @@ msgstr "一般的な接続エラー"
 msgid "Key Imported"
 msgstr "インポートされたキー"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:57
 msgid "Uploading Public Key"
 msgstr "公開鍵のアップロード"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:74
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:286
 msgid "Set target Key Server to default Key Server"
 msgstr "ターゲットキーサーバーをデフォルトのキーサーバーに設定します"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:77
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:95
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:289
 msgid "Cannot read default_keyserver From Settings"
 msgstr "設定からdefault_keyserverを読み取れません"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:152
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:164
 msgid "Upload Success"
 msgstr "アップロードの成功"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:165
 msgid "Upload Public Key Successfully"
 msgstr "公開鍵を正常にアップロードする"
 
@@ -1343,7 +1366,7 @@ msgstr "キーをファイルにエクスポート"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:157
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:203
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Key Files"
 msgstr "キーファイル"
 
@@ -1666,7 +1689,7 @@ msgstr "キーペアの有効期限が更新されました。"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:88
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:164
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:289
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
 msgid "Failure"
 msgstr "失敗"
 
@@ -1687,9 +1710,11 @@ msgstr "変更された有効期限（現地時間）"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:133
 msgid ""
-"Tips: For the sake of security, the key is valid for up to two years. If you"
-" are an expert user, please unlock it for a longer time in the settings."
-msgstr "ヒント：セキュリティ上の理由から、キーは最大2年間有効です。エキスパートユーザーの場合は、設定で長時間ロックを解除してください。"
+"Tips: For the sake of security, the key is valid for up to two years. If you "
+"are an expert user, please unlock it for a longer time in the settings."
+msgstr ""
+"ヒント：セキュリティ上の理由から、キーは最大2年間有効です。エキスパートユー"
+"ザーの場合は、設定で長時間ロックを解除してください。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:136
 msgid "No Expiration"
@@ -1825,7 +1850,9 @@ msgstr "保存されていないファイル"
 #: /mnt/h/GpgFrontend/src/ui/dialog/QuitDialog.cpp:86
 msgid ""
 "%1% files contain unsaved information.<br/>Save the changes before closing?"
-msgstr "％1％のファイルには、保存されていない情報が含まれています。<br/>閉じる前に変更を保存しますか？"
+msgstr ""
+"％1％のファイルには、保存されていない情報が含まれています。<br/>閉じる前に変"
+"更を保存しますか？"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/QuitDialog.cpp:100
 msgid "Check the files you want to save:"
@@ -1864,7 +1891,7 @@ msgstr "stegano_checked"
 msgid "auto_pubkey_exchange_checked"
 msgstr "auto_pubkey_exchange_checked"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:41
 msgid "Icon Size"
 msgstr "アイコンサイズ"
 
@@ -1880,36 +1907,46 @@ msgstr "中くらい"
 msgid "large"
 msgstr "大きい"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:46
 msgid "Icon Style"
 msgstr "アイコンスタイル"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:47
 msgid "just text"
 msgstr "ただのテキスト"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:63
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:48
 msgid "just icons"
 msgstr "アイコンだけ"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:64
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:49
 msgid "text and icons"
 msgstr "テキストとアイコン"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:51
 msgid "Window State"
 msgstr "ウィンドウの状態"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:83
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:53
 msgid "Save window size and position on exit."
 msgstr "ウィンドウのサイズと終了時の位置を保存します。"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:55
+#, fuzzy
+msgid "Text Editor"
+msgstr "編集者"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:56
+#, fuzzy
+msgid "Font Size in Text Editor"
+msgstr "インフォメーションボードのフォントサイズ"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:58
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:496
 msgid "Information Board"
 msgstr "情報板"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
 msgid "Font Size in Information Board"
 msgstr "インフォメーションボードのフォントサイズ"
 
@@ -2049,56 +2086,60 @@ msgstr "選択したキーサーバーを削除する"
 msgid "Set As Default"
 msgstr "デフォルトとして設定"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:151
 msgid "Insecure keyserver address"
 msgstr "安全でないキーサーバーアドレス"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:157
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:152
 msgid ""
 "For security reasons, using HTTP as the communication protocol with the key "
 "server is not recommended. It is recommended to use HTTPS."
 msgstr ""
-"セキュリティ上の理由から、キーサーバーとの通信プロトコルとしてHTTPを使用することはお勧めしません。 HTTPSを使用することをお勧めします。"
+"セキュリティ上の理由から、キーサーバーとの通信プロトコルとしてHTTPを使用する"
+"ことはお勧めしません。 HTTPSを使用することをお勧めします。"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:166
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:161
 msgid ""
-"You may not use HTTPS or HTTP as the protocol for communicating with the key"
-" server, which may not be wrong. But please check the address you entered "
+"You may not use HTTPS or HTTP as the protocol for communicating with the key "
+"server, which may not be wrong. But please check the address you entered "
 "again to make sure it is correct. Are you sure that want to add it into the "
 "keyserver list?"
 msgstr ""
-"キーサーバーと通信するためのプロトコルとしてHTTPSまたはHTTPを使用することはできませんが、これは間違いではない可能性があります。ただし、入力したアドレスが正しいことを確認してください。キーサーバーリストに追加してもよろしいですか？"
+"キーサーバーと通信するためのプロトコルとしてHTTPSまたはHTTPを使用することはで"
+"きませんが、これは間違いではない可能性があります。ただし、入力したアドレスが"
+"正しいことを確認してください。キーサーバーリストに追加してもよろしいですか？"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:209
 msgid "false"
 msgstr "false"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
 msgid "unknown"
 msgstr "わからない"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:233
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:228
 msgid "Set TCP Timeout"
 msgstr "TCPタイムアウトの設定"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:258
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:253
 msgid "Reachable"
 msgstr "到達可能"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:261
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:256
 msgid "Not Reachable"
 msgstr "到達不能"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:273
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:268
 msgid "Test Key Server Connection..."
 msgstr "キーサーバー接続のテスト..."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:274
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:269
 msgid ""
-"This test only tests the network connectivity of the key server. Passing the"
-" test does not mean that the key server is functionally available."
+"This test only tests the network connectivity of the key server. Passing the "
+"test does not mean that the key server is functionally available."
 msgstr ""
-"このテストでは、キーサーバーのネットワーク接続のみをテストします。テストに合格したからといって、キーサーバーが機能的に利用可能であるとは限りません。"
+"このテストでは、キーサーバーのネットワーク接続のみをテストします。テストに合"
+"格したからといって、キーサーバーが機能的に利用可能であるとは限りません。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:49
 msgid "Proxy"
@@ -2190,7 +2231,9 @@ msgstr "プロキシサーバーを介してターゲットサーバーに正常
 msgid ""
 "Unable to connect to the target server through the proxy server. Proxy "
 "settings may be invalid."
-msgstr "プロキシサーバーを介してターゲットサーバーに接続できません。プロキシ設定が無効になっている可能性があります。"
+msgstr ""
+"プロキシサーバーを介してターゲットサーバーに接続できません。プロキシ設定が無"
+"効になっている可能性があります。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:262
 msgid "Test Proxy Server Connection..."
@@ -2200,7 +2243,9 @@ msgstr "プロキシサーバー接続のテスト..."
 msgid ""
 "Is using your proxy settings to access the url. Note that this test "
 "operation will apply your proxy settings to the entire software."
-msgstr "プロキシ設定を使用してURLにアクセスしています。このテスト操作では、プロキシ設定がソフトウェア全体に適用されることに注意してください。"
+msgstr ""
+"プロキシ設定を使用してURLにアクセスしています。このテスト操作では、プロキシ設"
+"定がソフトウェア全体に適用されることに注意してください。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:36
 msgid "Confirm"
@@ -2236,13 +2281,16 @@ msgstr "... GpgFrontendを使用"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:90
 msgid "Welcome to use GpgFrontend for decrypting and signing text or file!"
-msgstr "テキストまたはファイルの復号化と署名にGpgFrontendを使用することを歓迎します！"
+msgstr ""
+"テキストまたはファイルの復号化と署名にGpgFrontendを使用することを歓迎します！"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:93
 msgid ""
 "is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free "
 "OpenPGP Crypto Tool."
-msgstr "は、強力で使いやすく、コンパクトで、クロスプラットフォームで、インストール不要のOpenPGP暗号化ツールです。"
+msgstr ""
+"は、強力で使いやすく、コンパクトで、クロスプラットフォームで、インストール不"
+"要のOpenPGP暗号化ツールです。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:95
 msgid "For brief information have a look at the"
@@ -2258,9 +2306,11 @@ msgstr "リンクをクリックすると、ページがWebブラウザで開き
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:107
 msgid ""
-"If it supports the language currently being used in your system, GpgFrontend"
-" will automatically set it."
-msgstr "システムで現在使用されている言語をサポートしている場合、GpgFrontendは自動的に設定します。"
+"If it supports the language currently being used in your system, GpgFrontend "
+"will automatically set it."
+msgstr ""
+"システムで現在使用されている言語をサポートしている場合、GpgFrontendは自動的に"
+"設定します。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:125
 msgid "Choose your action..."
@@ -2274,13 +2324,17 @@ msgstr "...適切なリンクをクリックして。"
 msgid ""
 "If you have never used GpgFrontend before and also don't own a gpg key yet "
 "you may possibly want to read how to"
-msgstr "これまでにGpgFrontendを使用したことがなく、gpgキーをまだ所有していない場合は、次の方法を読むことをお勧めします。"
+msgstr ""
+"これまでにGpgFrontendを使用したことがなく、gpgキーをまだ所有していない場合"
+"は、次の方法を読むことをお勧めします。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:142
 msgid ""
 "If you want to learn how to encrypt, decrypt, sign and verify text, you can "
 "read "
-msgstr "テキストの暗号化、復号化、署名、検証の方法を学びたい場合は、次のように読むことができます。"
+msgstr ""
+"テキストの暗号化、復号化、署名、検証の方法を学びたい場合は、次のように読むこ"
+"とができます。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:147
 msgid "Encrypt & Decrypt Text"
@@ -2323,7 +2377,11 @@ msgid ""
 "sign messages.<br>For more information have a look at the offline tutorial "
 "(which then is shown in the main window):"
 msgstr ""
-"新しいキーペアを作成する必要があります。ペアは公開キーと秘密キーで構成されます。<br>他のユーザーは、公開キーを使用してメッセージを暗号化し、署名したメッセージを確認できます。秘密キーを使用して、復号化と署名を行うことができます。メッセージ。<br>詳細については、オフラインチュートリアル（メインウィンドウに表示されます）を参照してください。"
+"新しいキーペアを作成する必要があります。ペアは公開キーと秘密キーで構成されま"
+"す。<br>他のユーザーは、公開キーを使用してメッセージを暗号化し、署名したメッ"
+"セージを確認できます。秘密キーを使用して、復号化と署名を行うことができます。"
+"メッセージ。<br>詳細については、オフラインチュートリアル（メインウィンドウに"
+"表示されます）を参照してください。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:206
 msgid "Offline tutorial"
@@ -2353,7 +2411,9 @@ msgstr "オンラインドキュメント"
 msgid ""
 " will get you started with GpgFrontend. Anytime you encounter problems, "
 "please try to find help from the documentation"
-msgstr " GpgFrontendを使い始めることができます。問題が発生した場合は、ドキュメントからヘルプを見つけてください。"
+msgstr ""
+" GpgFrontendを使い始めることができます。問題が発生した場合は、ドキュメントか"
+"らヘルプを見つけてください。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:250
 msgid "Open offline help."
@@ -2373,7 +2433,9 @@ msgid ""
 "This is not a serious problem, it may be the negligence of the programmer, "
 "please report this problem if you can."
 msgstr ""
-"おっと、プログラムの実行中に標準の例外がスローされました。これは深刻な問題ではありません。プログラマーの過失である可能性があります。可能であれば、この問題を報告してください。"
+"おっと、プログラムの実行中に標準の例外がスローされました。これは深刻な問題で"
+"はありません。プログラマーの過失である可能性があります。可能であれば、この問"
+"題を報告してください。"
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:88
 msgid "Unhandled Exception Thrown"
@@ -2385,7 +2447,9 @@ msgid ""
 "This is not a serious problem, it may be the negligence of the programmer, "
 "please report this problem if you can."
 msgstr ""
-"プログラムの実行中に、未処理の例外がスローされました。これは深刻な問題ではありません。プログラマーの過失である可能性があります。可能であれば、この問題を報告してください。"
+"プログラムの実行中に、未処理の例外がスローされました。これは深刻な問題ではあ"
+"りません。プログラマーの過失である可能性があります。可能であれば、この問題を"
+"報告してください。"
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:83
 msgid "Loading Gnupg Info..."
@@ -2393,11 +2457,12 @@ msgstr "Gnupg情報を読み込んでいます..."
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:84
 msgid ""
-"If this process is too slow, please set the key server address appropriately"
-" in the gnupg configuration file (depending on the network situation in your"
-" country or region)."
+"If this process is too slow, please set the key server address appropriately "
+"in the gnupg configuration file (depending on the network situation in your "
+"country or region)."
 msgstr ""
-"このプロセスが遅すぎる場合は、gnupg構成ファイルでキーサーバーアドレスを適切に設定してください（国または地域のネットワーク状況によって異なります）。"
+"このプロセスが遅すぎる場合は、gnupg構成ファイルでキーサーバーアドレスを適切に"
+"設定してください（国または地域のネットワーク状況によって異なります）。"
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:195
 msgid "could not read properly from configure file"
@@ -2617,9 +2682,11 @@ msgstr "キーペアに秘密キーがない場合、サブキーを生成でき
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:394
 msgid ""
-"Please select a key before performing this operation. If you select multiple"
-" keys, only the first key will be exported."
-msgstr "この操作を実行する前に、キーを選択してください。複数のキーを選択すると、最初のキーのみがエクスポートされます。"
+"Please select a key before performing this operation. If you select multiple "
+"keys, only the first key will be exported."
+msgstr ""
+"この操作を実行する前に、キーを選択してください。複数のキーを選択すると、最初"
+"のキーのみがエクスポートされます。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:402
 msgid "An error occur in exporting."
@@ -2629,7 +2696,9 @@ msgstr "エクスポート中にエラーが発生しました。"
 msgid ""
 "This key may not be able to export as OpenSSH format. Please check the key-"
 "size of the subkey(s) used to sign."
-msgstr "このキーは、OpenSSH形式としてエクスポートできない場合があります。署名に使用したサブキーのキーサイズを確認してください。"
+msgstr ""
+"このキーは、OpenSSH形式としてエクスポートできない場合があります。署名に使用し"
+"たサブキーのキーサイズを確認してください。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:423
 msgid "Export OpenSSH Key To File"
@@ -2698,7 +2767,8 @@ msgstr "Tarballの作成"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:200
 msgid "The target file %1% already exists, do you need to overwrite it?"
-msgstr "ターゲットファイル％1％はすでに存在しますが、上書きする必要がありますか？"
+msgstr ""
+"ターゲットファイル％1％はすでに存在しますが、上書きする必要がありますか？"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:214
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:632
@@ -2714,7 +2784,8 @@ msgstr "対称暗号化"
 msgid ""
 "No Key Selected. Do you want to encrypt with a symmetric cipher using a "
 "passphrase?"
-msgstr "キーが選択されていません。パスフレーズを使用して対称暗号で暗号化しますか？"
+msgstr ""
+"キーが選択されていません。パスフレーズを使用して対称暗号で暗号化しますか？"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:230
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:101
@@ -2831,7 +2902,9 @@ msgstr "ファイルパス"
 msgid ""
 "Please select the appropriate origin file or signature file. Ensure that "
 "both are in this directory."
-msgstr "適切なオリジンファイルまたは署名ファイルを選択してください。両方がこのディレクトリにあることを確認してください。"
+msgstr ""
+"適切なオリジンファイルまたは署名ファイルを選択してください。両方がこのディレ"
+"クトリにあることを確認してください。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:521
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:386
@@ -2856,7 +2929,9 @@ msgstr "復号化と検証"
 msgid ""
 "No Key Checked. Do you want to encrypt with a symmetric cipher using a "
 "passphrase?"
-msgstr "キーはチェックされていません。パスフレーズを使用して対称暗号で暗号化しますか？"
+msgstr ""
+"キーはチェックされていません。パスフレーズを使用して対称暗号で暗号化します"
+"か？"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:129
 msgid ""
@@ -2895,12 +2970,16 @@ msgid ""
 "problems. Please stop using this version immediately and use the latest "
 "stable version."
 msgstr ""
-"このバージョン（％1）は、重大な問題のために開発者によって撤回された可能性があります。このバージョンの使用をすぐに中止し、最新の安定バージョンを使用してください。"
+"このバージョン（％1）は、重大な問題のために開発者によって撤回された可能性があ"
+"ります。このバージョンの使用をすぐに中止し、最新の安定バージョンを使用してく"
+"ださい。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:690
 msgid ""
 "You can download the latest stable version(%1) on Github Releases Page.<br/>"
-msgstr "最新の安定バージョン（％1）はGithubリリースページからダウンロードできます。<br/>"
+msgstr ""
+"最新の安定バージョン（％1）はGithubリリースページからダウンロードできます。"
+"<br/>"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:696
 msgid "This maybe a BETA Version (Latest Stable Version: %1)."
@@ -3202,6 +3281,11 @@ msgstr "準備"
 msgid "Key ToolBox"
 msgstr "キーツールボックス"
 
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:56
+#, fuzzy
+msgid "Show Verify Details"
+msgstr "キーの詳細を表示"
+
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:65
 msgid "Public key not found locally"
 msgstr "公開鍵がローカルで見つかりません"
@@ -3212,56 +3296,60 @@ msgid ""
 "enough information about this Signature. Do you want to import the public "
 "key from Keyserver now?"
 msgstr ""
-"GpgFrontendがこの署名に関する十分な情報を収集するためのターゲット公開鍵コンテンツはローカルにありません。今すぐKeyserverから公開鍵をインポートしますか？"
+"GpgFrontendがこの署名に関する十分な情報を収集するためのターゲット公開鍵コンテ"
+"ンツはローカルにありません。今すぐKeyserverから公開鍵をインポートしますか？"
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:171
 msgid "ENV Loading Failed"
 msgstr "ENVの読み込みに失敗しました"
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:172
+#, fuzzy
 msgid ""
-"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
-" in Github to install Gnupg and then open GpgFrontend."
+"Gnupg(gpg) is not installed correctly, please follow <a href='https://www."
+"gpgfrontend.pub/#/faq?id=how-to-deal-with-39env-loading-failed39'>this "
+"notes</a> in FAQ to install Gnupg and then open GpgFrontend."
 msgstr ""
-"Gnupg（gpg）が正しくインストールされていません。GithubのReadMEの手順に従って、Gnupgをインストールしてから、GpgFrontendを開いてください。"
+"Gnupg（gpg）が正しくインストールされていません。GithubのReadMEの手順に従っ"
+"て、Gnupgをインストールしてから、GpgFrontendを開いてください。"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:190
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
 msgid "Open Key"
 msgstr "オープンキー"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Keyring files"
 msgstr "キーリングファイル"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:196
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
 msgid "File Open Failed"
 msgstr "ファイルを開くことができませんでした"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:198
 msgid "Failed to open file: "
 msgstr "ファイルを開けませんでした："
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:220
 msgid "Processing"
 msgstr "処理"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:240
 msgid "Failed to execute command."
 msgstr "コマンドの実行に失敗しました。"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:248
 msgid "Succeed in executing command."
 msgstr "コマンドの実行に成功します。"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:251
 msgid "Finished executing command."
 msgstr "コマンドの実行を終了しました。"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:349
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:350
 msgid "The key has been updated"
 msgstr "キーが更新されました"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:351
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:352
 msgid "No need to update the key"
 msgstr "キーを更新する必要はありません"
 
@@ -3342,11 +3430,11 @@ msgstr "ファイル名（拡張子を付けることができます）"
 msgid "Unable to create the file."
 msgstr "ファイルを作成できません。"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:167
 msgid "Save Information Board's Content"
 msgstr "情報ボードのコンテンツを保存する"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:177
 msgid "The file path is not exists, unprivileged or unreachable."
 msgstr "ファイルパスが存在しないか、特権がないか、到達できません。"
 
@@ -3418,53 +3506,53 @@ msgstr "常に気にせずにインポートします。"
 msgid "Couldn't Open File"
 msgstr "ファイルを開けませんでした"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:430
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:432
 msgid "Key List Refreshed."
 msgstr "キーリストが更新されました。"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:448
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
 msgid "Syncing Key List..."
 msgstr "キーリストの同期..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:460
 msgid "Sync [%1%/%2%] %3% %4%"
 msgstr "同期[％1％/％2％]％3 ％％ 4％"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:464
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:468
 msgid "Key List Sync Done."
 msgstr "キーリストの同期が完了しました。"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:61
 msgid "0 character"
 msgstr "0文字"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:55
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:99
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:106
 msgid "lf"
 msgstr "lf"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:56
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
 msgid "utf-8"
 msgstr "utf-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:252
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:259
 msgid "%1% character(s)"
 msgstr "％1％文字"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:72
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:79
 msgid "Loading..."
 msgstr "読み込んでいます..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:100
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:107
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:232
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:239
 msgid "%1% byte(s)"
 msgstr "％1％バイト"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:277
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:284
 msgid "binary"
 msgstr "バイナリ"
 
@@ -3495,11 +3583,14 @@ msgstr "保存する"
 msgid ""
 "After saving, the encoding of the current file will be converted to UTF-8 "
 "and the line endings will be changed to LF. "
-msgstr "保存後、現在のファイルのエンコーディングはUTF-8に変換され、行末はLFに変更されます。"
+msgstr ""
+"保存後、現在のファイルのエンコーディングはUTF-8に変換され、行末はLFに変更され"
+"ます。"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:180
 msgid "If this is not the result you expect, please use \"save as\"."
-msgstr "これが期待した結果でない場合は、「名前を付けて保存」を使用してください。"
+msgstr ""
+"これが期待した結果でない場合は、「名前を付けて保存」を使用してください。"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:232
 msgid "Save file"
@@ -3510,7 +3601,8 @@ msgid "Unsaved document"
 msgstr "保存されていないドキュメント"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:295
-msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgid ""
+"The document \"%1\" has been modified. Do you want to save your changes?"
 msgstr "ドキュメント「％1」が変更されました。変更を保存しますか？"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:298
@@ -3652,7 +3744,8 @@ msgstr "CRLがありません"
 
 #~ msgid ""
 #~ "Please go to the settings interface to enable and configure this function."
-#~ msgstr "この機能を有効にして構成するには、設定インターフェイスに移動してください。"
+#~ msgstr ""
+#~ "この機能を有効にして構成するには、設定インターフェイスに移動してください。"
 
 #~ msgid "Select Recipient(s)"
 #~ msgstr "受信者を選択します"
@@ -3661,17 +3754,19 @@ msgstr "CRLがありません"
 #~ msgstr "受信者から提供された公開鍵を使用してテキストを暗号化します。"
 
 #~ msgid ""
-#~ "If you want to send to multiple recipients at the same time, you can select "
-#~ "multiple keys."
+#~ "If you want to send to multiple recipients at the same time, you can "
+#~ "select multiple keys."
 #~ msgstr "複数の受信者に同時に送信する場合は、複数のキーを選択できます。"
 
 #~ msgid "Email List:"
 #~ msgstr "メーリングリスト："
 
 #~ msgid ""
-#~ "Tips: You can double-click the email address in the edit list, or click the "
-#~ "email to pop up the option menu."
-#~ msgstr "ヒント：編集リストでメールアドレスをダブルクリックするか、メールをクリックしてオプションメニューをポップアップ表示できます。"
+#~ "Tips: You can double-click the email address in the edit list, or click "
+#~ "the email to pop up the option menu."
+#~ msgstr ""
+#~ "ヒント：編集リストでメールアドレスをダブルクリックするか、メールをクリック"
+#~ "してオプションメニューをポップアップ表示できます。"
 
 #~ msgid "Add An Email Address"
 #~ msgstr "メールアドレスを追加する"
@@ -3699,7 +3794,9 @@ msgstr "CRLがありません"
 #~ msgid ""
 #~ "The SMTP address is empty, please go to the setting interface to complete "
 #~ "the configuration."
-#~ msgstr "SMTPアドレスが空です。設定インターフェースに移動して構成を完了してください。"
+#~ msgstr ""
+#~ "SMTPアドレスが空です。設定インターフェースに移動して構成を完了してくださ"
+#~ "い。"
 
 #~ msgid "CC"
 #~ msgstr "CC"
@@ -3713,7 +3810,8 @@ msgstr "CRLがありません"
 #~ msgid ""
 #~ "Tips: You can fill in multiple email addresses, please separate them with "
 #~ "\";\"."
-#~ msgstr "ヒント：複数のメールアドレスを入力できます。「;」で区切ってください。"
+#~ msgstr ""
+#~ "ヒント：複数のメールアドレスを入力できます。「;」で区切ってください。"
 
 #~ msgid "Send Message"
 #~ msgstr "メッセージを送る"
@@ -3776,33 +3874,42 @@ msgstr "CRLがありません"
 #~ msgstr "1つ以上のBCCメールが無効です"
 
 #~ msgid ""
-#~ "You have checked the encrypted email content, but you have not selected the "
-#~ "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
-#~ "So the send operation is forbidden"
+#~ "You have checked the encrypted email content, but you have not selected "
+#~ "the recipient's GPG key. This is dangerous and the mail will not be "
+#~ "encrypted. So the send operation is forbidden"
 #~ msgstr ""
-#~ "暗号化された電子メールコンテンツを確認しましたが、受信者のGPGキーを選択していません。これは危険であり、メールは暗号化されません。したがって、送信操作は禁止されています"
+#~ "暗号化された電子メールコンテンツを確認しましたが、受信者のGPGキーを選択し"
+#~ "ていません。これは危険であり、メールは暗号化されません。したがって、送信操"
+#~ "作は禁止されています"
 
 #~ msgid ""
-#~ "You checked the option to attach signature to the email, but did not specify"
-#~ " the sender's GPG Key. This will cause the content of the email to be "
-#~ "inconsistent with your expectations, so the operation is prohibited."
+#~ "You checked the option to attach signature to the email, but did not "
+#~ "specify the sender's GPG Key. This will cause the content of the email to "
+#~ "be inconsistent with your expectations, so the operation is prohibited."
 #~ msgstr ""
-#~ "電子メールに署名を添付するオプションをチェックしましたが、送信者のGPGキーを指定しませんでした。これにより、メールの内容が期待と一致しなくなるため、操作を禁止します。"
+#~ "電子メールに署名を添付するオプションをチェックしましたが、送信者のGPGキー"
+#~ "を指定しませんでした。これにより、メールの内容が期待と一致しなくなるため、"
+#~ "操作を禁止します。"
 
 #~ msgid ""
-#~ "You checked the option to attach your public key to the email, but did not "
-#~ "specify the sender's GPG Key. This will cause the content of the email to be"
-#~ " inconsistent with your expectations, so the operation is prohibited."
+#~ "You checked the option to attach your public key to the email, but did "
+#~ "not specify the sender's GPG Key. This will cause the content of the "
+#~ "email to be inconsistent with your expectations, so the operation is "
+#~ "prohibited."
 #~ msgstr ""
-#~ "公開鍵を電子メールに添付するオプションをチェックしましたが、送信者のGPG鍵を指定しませんでした。これにより、メールの内容が期待と一致しなくなるため、操作を禁止します。"
+#~ "公開鍵を電子メールに添付するオプションをチェックしましたが、送信者のGPG鍵"
+#~ "を指定しませんでした。これにより、メールの内容が期待と一致しなくなるため、"
+#~ "操作を禁止します。"
 
 #~ msgid "Sending Email..."
 #~ msgstr "メールを送信しています..."
 
 #~ msgid ""
-#~ "If the process does not end for a long time, please check again whether your"
-#~ " SMTP server configuration is correct."
-#~ msgstr "プロセスが長時間終了しない場合は、SMTPサーバーの構成が正しいかどうかをもう一度確認してください。"
+#~ "If the process does not end for a long time, please check again whether "
+#~ "your SMTP server configuration is correct."
+#~ msgstr ""
+#~ "プロセスが長時間終了しない場合は、SMTPサーバーの構成が正しいかどうかをもう"
+#~ "一度確認してください。"
 
 #~ msgid "identity_enable"
 #~ msgstr "Identity_enable"
@@ -3840,7 +3947,9 @@ msgstr "CRLがありません"
 #~ msgid ""
 #~ "An error occurred while encrypting the content of the email. This may be "
 #~ "because you did not complete some operations during Gnupg encryption."
-#~ msgstr "電子メールの内容の暗号化中にエラーが発生しました。これは、Gnupg暗号化中に一部の操作を完了しなかったことが原因である可能性があります。"
+#~ msgstr ""
+#~ "電子メールの内容の暗号化中にエラーが発生しました。これは、Gnupg暗号化中に"
+#~ "一部の操作を完了しなかったことが原因である可能性があります。"
 
 #~ msgid "Unknown error."
 #~ msgstr "不明なエラー。"
@@ -3855,20 +3964,27 @@ msgstr "CRLがありません"
 #~ msgstr "自動鍵交換警告"
 
 #~ msgid ""
-#~ "Part of the automatic key exchange failed, which may be related to your key."
-#~ msgstr "自動キー交換の一部が失敗しました。これは、キーに関連している可能性があります。"
+#~ "Part of the automatic key exchange failed, which may be related to your "
+#~ "key."
+#~ msgstr ""
+#~ "自動キー交換の一部が失敗しました。これは、キーに関連している可能性がありま"
+#~ "す。"
 
 #~ msgid ""
 #~ "If possible, try to use the RSA algorithm compatible with the server for "
 #~ "signing."
-#~ msgstr "可能であれば、サーバーと互換性のあるRSAアルゴリズムを使用して署名してください。"
+#~ msgstr ""
+#~ "可能であれば、サーバーと互換性のあるRSAアルゴリズムを使用して署名してくだ"
+#~ "さい。"
 
 #~ msgid "Service Token Empty"
 #~ msgstr "サービストークンが空です"
 
 #~ msgid ""
 #~ "Please go to the settings interface to set Own Key and get Service Token."
-#~ msgstr "設定インターフェースに移動して、独自のキーを設定し、サービストークンを取得してください。"
+#~ msgstr ""
+#~ "設定インターフェースに移動して、独自のキーを設定し、サービストークンを取得"
+#~ "してください。"
 
 #~ msgid "called"
 #~ msgstr "と呼ばれる"
@@ -3928,11 +4044,13 @@ msgstr "CRLがありません"
 #~ msgstr "デフォルトの送信者GPGキーID"
 
 #~ msgid ""
-#~ "Tips: It is recommended that you build your own mail server or use a trusted"
-#~ " mail server. If you don't know the detailed configuration information, you "
-#~ "can get it from the mail service provider."
+#~ "Tips: It is recommended that you build your own mail server or use a "
+#~ "trusted mail server. If you don't know the detailed configuration "
+#~ "information, you can get it from the mail service provider."
 #~ msgstr ""
-#~ "ヒント：独自のメールサーバーを構築するか、信頼できるメールサーバーを使用することをお勧めします。詳細な構成情報がわからない場合は、メールサービスプロバイダーから入手できます。"
+#~ "ヒント：独自のメールサーバーを構築するか、信頼できるメールサーバーを使用す"
+#~ "ることをお勧めします。詳細な構成情報がわからない場合は、メールサービスプロ"
+#~ "バイダーから入手できます。"
 
 #~ msgid "apply settings failed"
 #~ msgstr "設定の適用に失敗しました"
@@ -3947,10 +4065,11 @@ msgstr "CRLがありません"
 #~ msgstr "GpgFrontendからのテストメール"
 
 #~ msgid ""
-#~ "Hello, this is a test email from GpgFrontend. If you receive this email, it "
-#~ "means that you have configured the correct SMTP server parameters."
+#~ "Hello, this is a test email from GpgFrontend. If you receive this email, "
+#~ "it means that you have configured the correct SMTP server parameters."
 #~ msgstr ""
-#~ "こんにちは、これはGpgFrontendからのテストメールです。この電子メールを受信した場合は、正しいSMTPサーバーパラメーターを構成したことを意味します。"
+#~ "こんにちは、これはGpgFrontendからのテストメールです。この電子メールを受信"
+#~ "した場合は、正しいSMTPサーバーパラメーターを構成したことを意味します。"
 
 #~ msgid "Succeed in sending a test email to the SMTP Server"
 #~ msgstr "SMTPサーバーにテストメールを送信することに成功しました"
@@ -3999,7 +4118,8 @@ msgstr "CRLがありません"
 #~ "Own Key can not be use to do any operation. Please go to the setting "
 #~ "interface to select an OwnKey and get a ServiceToken."
 #~ msgstr ""
-#~ "自分のキーを使用して操作を行うことはできません。設定インターフェースに移動してOwnKeyを選択し、ServiceTokenを取得してください。"
+#~ "自分のキーを使用して操作を行うことはできません。設定インターフェースに移動"
+#~ "してOwnKeyを選択し、ServiceTokenを取得してください。"
 
 #~ msgid "Please obtain a Service Token from the server in the settings."
 #~ msgstr "設定でサーバーからサービストークンを取得してください。"
@@ -4014,7 +4134,8 @@ msgstr "CRLがありません"
 #~ msgstr "無効なサービストークン"
 
 #~ msgid "Please go to the setting interface to get a ServiceToken."
-#~ msgstr "ServiceTokenを取得するには、設定インターフェイスに移動してください。"
+#~ msgstr ""
+#~ "ServiceTokenを取得するには、設定インターフェイスに移動してください。"
 
 #~ msgid "Own Key can not be use to do any operation."
 #~ msgstr "自分のキーを使用して操作を行うことはできません。"
@@ -4024,7 +4145,9 @@ msgstr "CRLがありません"
 
 #~ msgid ""
 #~ "Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
-#~ msgstr "注意：この短い暗号化テキストを復号化するには、復号化と検証操作を使用します。"
+#~ msgstr ""
+#~ "注意：この短い暗号化テキストを復号化するには、復号化と検証操作を使用しま"
+#~ "す。"
 
 #~ msgid "There is a problem with the communication with the server"
 #~ msgstr "サーバーとの通信に問題があります"
@@ -4099,9 +4222,11 @@ msgstr "CRLがありません"
 #~ msgstr "未リリースバージョン"
 
 #~ msgid ""
-#~ "This version(%1) has not been officially released and is not recommended for"
-#~ " use in a production environment. <br/>"
-#~ msgstr "このバージョン（％1）は正式にリリースされていないため、実稼働環境での使用は推奨されていません。 <br/>"
+#~ "This version(%1) has not been officially released and is not recommended "
+#~ "for use in a production environment. <br/>"
+#~ msgstr ""
+#~ "このバージョン（％1）は正式にリリースされていないため、実稼働環境での使用"
+#~ "は推奨されていません。 <br/>"
 
 #~ msgid "Fail to Login into SMTP Server"
 #~ msgstr "SMTPサーバーへのログインに失敗する"
@@ -4134,7 +4259,9 @@ msgstr "CRLがありません"
 #~ msgstr "同期とID認証用のキーペア"
 
 #~ msgid "Own Key can not be None while getting service token."
-#~ msgstr "サービストークンを取得している間は、自分のキーをNoneにすることはできません。"
+#~ msgstr ""
+#~ "サービストークンを取得している間は、自分のキーをNoneにすることはできませ"
+#~ "ん。"
 
 #~ msgid "Key Not Exists"
 #~ msgstr "キーが存在しない"
@@ -4151,7 +4278,8 @@ msgstr "CRLがありません"
 #~ msgid ""
 #~ "Fail to send a test email to the SMTP Server, please recheck your "
 #~ "configuration."
-#~ msgstr "SMTPサーバーにテストメールを送信できません。構成を再確認してください。"
+#~ msgstr ""
+#~ "SMTPサーバーにテストメールを送信できません。構成を再確認してください。"
 
 #~ msgid "Keu ID"
 #~ msgstr "Keu ID"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.9\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-07-23 20:16+0800\n"
+"POT-Creation-Date: 2022-09-03 20:33+0800\n"
 "PO-Revision-Date: 2022-07-23 20:23-0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
@@ -147,7 +147,7 @@ msgstr "解密操作"
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:154
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:281
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:246
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
 msgid "Success"
 msgstr "成功"
 
@@ -172,7 +172,7 @@ msgid "MIME"
 msgstr "啞劇"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:213
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:208
 msgid "true"
 msgstr "真的"
 
@@ -459,7 +459,7 @@ msgstr "被...簽名"
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:374
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:393
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:437
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:176
 msgid "Error"
 msgstr "錯誤"
 
@@ -478,13 +478,13 @@ msgid "Description: "
 msgstr "描述："
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:68
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:160
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:311
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:418
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:609
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:704
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:249
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:384
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:100
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:138
@@ -500,18 +500,18 @@ msgstr "預測"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:42
-#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:73
+#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:112
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:473
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:106
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:139
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:161
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:422
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:424
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
 msgid "Called"
 msgstr "被調用"
 
@@ -520,16 +520,18 @@ msgstr "被調用"
 msgid "log file path"
 msgstr "日誌文件路徑"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:122
+#: /mnt/h/GpgFrontend/src/main.cpp:126
 msgid "A serious error has occurred"
 msgstr "發生了嚴重錯誤"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:123
+#: /mnt/h/GpgFrontend/src/main.cpp:127
 msgid ""
-"Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
-" restarted. If the problem recurs, please manually terminate the program and"
-" report the problem to the developer."
-msgstr "不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需要重新啟動。如果問題再次出現，請手動終止程序並將問題報告給開發人員。"
+"Oh no! GpgFrontend caught a serious error in the software, so it needs to be "
+"restarted. If the problem recurs, please manually terminate the program and "
+"report the problem to the developer."
+msgstr ""
+"不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需要重新啟動。如果問題再次出"
+"現，請手動終止程序並將問題報告給開發人員。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:38
 msgid "Signatures Details"
@@ -586,7 +588,8 @@ msgid ""
 "free gpg front-end tool.It visualizes most of the common operations of gpg "
 "commands.It's licensed under the GPL v3"
 msgstr ""
-"GpgFrontend 是一款簡單易用、小巧、跨平台、免安裝的gpg前端工具。它可視化了gpg命令的大部分常用操作。它在GPL v3下獲得許可"
+"GpgFrontend 是一款簡單易用、小巧、跨平台、免安裝的gpg前端工具。它可視化了gpg"
+"命令的大部分常用操作。它在GPL v3下獲得許可"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:91
 msgid "Developer:"
@@ -615,9 +618,11 @@ msgstr "建於"
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:138
 msgid ""
 "If you think there are any problems with the translation, why not "
-"participate in the translation work? If you want to participate, please read"
-" the document or contact me via email."
-msgstr "如果覺得翻譯有問題，何不參與翻譯工作呢？如果您想參加，請閱讀文檔或通過電子郵件與我聯繫。"
+"participate in the translation work? If you want to participate, please read "
+"the document or contact me via email."
+msgstr ""
+"如果覺得翻譯有問題，何不參與翻譯工作呢？如果您想參加，請閱讀文檔或通過電子郵"
+"件與我聯繫。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
 msgid ""
@@ -673,10 +678,12 @@ msgstr "此版本存在嚴重問題，已撤回。請立即停止使用。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
 msgid ""
-"This version has not been released yet, it may be a beta version. If you are"
-" not a tester and care about version stability, please do not use this "
+"This version has not been released yet, it may be a beta version. If you are "
+"not a tester and care about version stability, please do not use this "
 "version."
-msgstr "此版本尚未發布，可能是測試版。如果您不是測試人員並且關心版本穩定性，請不要使用此版本。"
+msgstr ""
+"此版本尚未發布，可能是測試版。如果您不是測試人員並且關心版本穩定性，請不要使"
+"用此版本。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:41
 msgid "GnuPG Version"
@@ -736,21 +743,26 @@ msgstr "導出前請選擇輸出路徑。"
 msgid ""
 "Please generate a password to protect your key before exporting, it is very "
 "important. Don't forget to back up your password in a safe place."
-msgstr "請在導出前生成密碼以保護您的密鑰，這非常重要。不要忘記在安全的地方備份您的密碼。"
+msgstr ""
+"請在導出前生成密碼以保護您的密鑰，這非常重要。不要忘記在安全的地方備份您的密"
+"碼。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
 msgid ""
 "The Key Package has been successfully generated and has been protected by "
-"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
-"Package."
-msgstr "密鑰包已成功生成並受到加密算法（AES-256-ECB）的保護。您可以安全地轉移您的密鑰包。"
+"encryption algorithms(AES-256-ECB). You can safely transfer your Key Package."
+msgstr ""
+"密鑰包已成功生成並受到加密算法（AES-256-ECB）的保護。您可以安全地轉移您的密鑰"
+"包。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
 msgid ""
-"But the key file cannot be leaked under any circumstances. Please delete the"
-" Key Package and key file as soon as possible after completing the transfer "
+"But the key file cannot be leaked under any circumstances. Please delete the "
+"Key Package and key file as soon as possible after completing the transfer "
 "operation."
-msgstr "但密鑰文件在任何情況下都不能洩露。請在完成傳輸操作後儘快刪除密鑰包和密鑰文件。"
+msgstr ""
+"但密鑰文件在任何情況下都不能洩露。請在完成傳輸操作後儘快刪除密鑰包和密鑰文"
+"件。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:121
 msgid "An error occurred while exporting the key package."
@@ -993,23 +1005,23 @@ msgstr "未找到密鑰"
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:272
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:483
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:498
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:332
 msgid "Timeout"
 msgstr "暫停"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:275
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:486
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:144
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:334
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:335
 msgid "Key Server Not Found"
 msgstr "未找到密鑰服務器"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:278
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:489
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:505
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:147
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:337
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:159
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:338
 msgid "Connection Error"
 msgstr "連接錯誤"
 
@@ -1042,14 +1054,14 @@ msgid "%1 keys found. Double click a key to import it."
 msgstr "找到 %1 個密鑰。雙擊一個鍵來導入它。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:446
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:290
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:96
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
 msgid "Default Keyserver Not Found"
 msgstr "未找到默認密鑰服務器"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:447
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:80
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:292
 msgid ""
 "Cannot read default keyserver from your settings, please set a default "
 "keyserver first"
@@ -1057,8 +1069,8 @@ msgstr "無法從您的設置中讀取默認密鑰服務器，請先設置默認
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:480
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:494
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:138
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:328
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:150
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:329
 msgid "Key Not Found"
 msgstr "未找到密鑰"
 
@@ -1078,25 +1090,25 @@ msgstr "一般連接錯誤"
 msgid "Key Imported"
 msgstr "鑰匙進口"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:57
 msgid "Uploading Public Key"
 msgstr "上傳公鑰"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:74
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:286
 msgid "Set target Key Server to default Key Server"
 msgstr "將目標密鑰服務器設置為默認密鑰服務器"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:77
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:95
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:289
 msgid "Cannot read default_keyserver From Settings"
 msgstr "無法從設置讀取 default_keyserver"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:152
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:164
 msgid "Upload Success"
 msgstr "上傳成功"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:165
 msgid "Upload Public Key Successfully"
 msgstr "上傳公鑰成功"
 
@@ -1337,7 +1349,7 @@ msgstr "將密鑰導出到文件"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:157
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:203
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Key Files"
 msgstr "關鍵文件"
 
@@ -1660,7 +1672,7 @@ msgstr "密鑰對的到期日期已更新。"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:88
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:164
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:289
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
 msgid "Failure"
 msgstr "失敗"
 
@@ -1681,9 +1693,11 @@ msgstr "修改到期日期（當地時間）"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:133
 msgid ""
-"Tips: For the sake of security, the key is valid for up to two years. If you"
-" are an expert user, please unlock it for a longer time in the settings."
-msgstr "溫馨提示：為安全起見，密鑰有效期最長為兩年。如果您是專家用戶，請在設置中解鎖更長的時間。"
+"Tips: For the sake of security, the key is valid for up to two years. If you "
+"are an expert user, please unlock it for a longer time in the settings."
+msgstr ""
+"溫馨提示：為安全起見，密鑰有效期最長為兩年。如果您是專家用戶，請在設置中解鎖"
+"更長的時間。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:136
 msgid "No Expiration"
@@ -1858,7 +1872,7 @@ msgstr "stegano_checked"
 msgid "auto_pubkey_exchange_checked"
 msgstr "auto_pubkey_exchange_checked"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:41
 msgid "Icon Size"
 msgstr "圖標大小"
 
@@ -1874,36 +1888,46 @@ msgstr "中等的"
 msgid "large"
 msgstr "大的"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:46
 msgid "Icon Style"
 msgstr "圖標樣式"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:47
 msgid "just text"
 msgstr "只是文字"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:63
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:48
 msgid "just icons"
 msgstr "只是圖標"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:64
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:49
 msgid "text and icons"
 msgstr "文字和圖標"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:51
 msgid "Window State"
 msgstr "窗口狀態"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:83
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:53
 msgid "Save window size and position on exit."
 msgstr "退出時保存窗口大小和位置。"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:55
+#, fuzzy
+msgid "Text Editor"
+msgstr "編輯"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:56
+#, fuzzy
+msgid "Font Size in Text Editor"
+msgstr "信息板中的字體大小"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:58
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:496
 msgid "Information Board"
 msgstr "信息板"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
 msgid "Font Size in Information Board"
 msgstr "信息板中的字體大小"
 
@@ -2043,54 +2067,58 @@ msgstr "刪除選定的密鑰服務器"
 msgid "Set As Default"
 msgstr "設為默認"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:151
 msgid "Insecure keyserver address"
 msgstr "不安全的密鑰服務器地址"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:157
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:152
 msgid ""
 "For security reasons, using HTTP as the communication protocol with the key "
 "server is not recommended. It is recommended to use HTTPS."
-msgstr "出於安全原因，不建議使用 HTTP 作為與密鑰服務器的通信協議。建議使用HTTPS。"
+msgstr ""
+"出於安全原因，不建議使用 HTTP 作為與密鑰服務器的通信協議。建議使用HTTPS。"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:166
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:161
 msgid ""
-"You may not use HTTPS or HTTP as the protocol for communicating with the key"
-" server, which may not be wrong. But please check the address you entered "
+"You may not use HTTPS or HTTP as the protocol for communicating with the key "
+"server, which may not be wrong. But please check the address you entered "
 "again to make sure it is correct. Are you sure that want to add it into the "
 "keyserver list?"
 msgstr ""
-"您可能不會使用HTTPS或HTTP作為與密鑰服務器通信的協議，這可能沒有錯。但請再次檢查您輸入的地址以確保其正確無誤。您確定要將其添加到密鑰服務器列表中嗎？"
+"您可能不會使用HTTPS或HTTP作為與密鑰服務器通信的協議，這可能沒有錯。但請再次檢"
+"查您輸入的地址以確保其正確無誤。您確定要將其添加到密鑰服務器列表中嗎？"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:209
 msgid "false"
 msgstr "錯誤的"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
 msgid "unknown"
 msgstr "未知"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:233
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:228
 msgid "Set TCP Timeout"
 msgstr "設置 TCP 超時"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:258
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:253
 msgid "Reachable"
 msgstr "可達"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:261
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:256
 msgid "Not Reachable"
 msgstr "不能達到"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:273
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:268
 msgid "Test Key Server Connection..."
 msgstr "測試密鑰服務器連接..."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:274
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:269
 msgid ""
-"This test only tests the network connectivity of the key server. Passing the"
-" test does not mean that the key server is functionally available."
-msgstr "本測試僅測試密鑰服務器的網絡連通性。通過測試並不意味著密鑰服務器在功能上可用。"
+"This test only tests the network connectivity of the key server. Passing the "
+"test does not mean that the key server is functionally available."
+msgstr ""
+"本測試僅測試密鑰服務器的網絡連通性。通過測試並不意味著密鑰服務器在功能上可"
+"用。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:49
 msgid "Proxy"
@@ -2192,7 +2220,9 @@ msgstr "測試代理服務器連接..."
 msgid ""
 "Is using your proxy settings to access the url. Note that this test "
 "operation will apply your proxy settings to the entire software."
-msgstr "正在使用您的代理設置訪問 url。請注意，此測試操作會將您的代理設置應用於整個軟件。"
+msgstr ""
+"正在使用您的代理設置訪問 url。請注意，此測試操作會將您的代理設置應用於整個軟"
+"件。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:36
 msgid "Confirm"
@@ -2250,8 +2280,8 @@ msgstr "單擊鏈接，頁面將在網絡瀏覽器中打開"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:107
 msgid ""
-"If it supports the language currently being used in your system, GpgFrontend"
-" will automatically set it."
+"If it supports the language currently being used in your system, GpgFrontend "
+"will automatically set it."
 msgstr "如果它支持您系統中當前使用的語言，GpgFrontend 將自動設置它。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:125
@@ -2315,7 +2345,9 @@ msgid ""
 "sign messages.<br>For more information have a look at the offline tutorial "
 "(which then is shown in the main window):"
 msgstr ""
-"您應該創建一個新的密鑰對。該對由一個公鑰和一個私鑰組成。<br>其他用戶可以使用公鑰為您加密消息並驗證您簽署的消息。您可以使用私鑰解密和簽名消息。<br>有關更多信息，請查看離線教程（然後顯示在主窗口中）："
+"您應該創建一個新的密鑰對。該對由一個公鑰和一個私鑰組成。<br>其他用戶可以使用"
+"公鑰為您加密消息並驗證您簽署的消息。您可以使用私鑰解密和簽名消息。<br>有關更"
+"多信息，請查看離線教程（然後顯示在主窗口中）："
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:206
 msgid "Offline tutorial"
@@ -2364,7 +2396,9 @@ msgid ""
 "Oops, an standard exception was thrown during the running of the program. "
 "This is not a serious problem, it may be the negligence of the programmer, "
 "please report this problem if you can."
-msgstr "糟糕，在程序運行期間拋出了一個標準異常。這不是一個嚴重的問題，可能是程序員的疏忽，如果可以的話，請報告這個問題。"
+msgstr ""
+"糟糕，在程序運行期間拋出了一個標準異常。這不是一個嚴重的問題，可能是程序員的"
+"疏忽，如果可以的話，請報告這個問題。"
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:88
 msgid "Unhandled Exception Thrown"
@@ -2375,7 +2409,9 @@ msgid ""
 "Oops, an unhandled exception was thrown during the running of the program. "
 "This is not a serious problem, it may be the negligence of the programmer, "
 "please report this problem if you can."
-msgstr "糟糕，在程序運行期間引發了未處理的異常。這不是一個嚴重的問題，可能是程序員的疏忽，如果可以的話，請報告這個問題。"
+msgstr ""
+"糟糕，在程序運行期間引發了未處理的異常。這不是一個嚴重的問題，可能是程序員的"
+"疏忽，如果可以的話，請報告這個問題。"
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:83
 msgid "Loading Gnupg Info..."
@@ -2383,10 +2419,12 @@ msgstr "正在加載 Gnupg 信息..."
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:84
 msgid ""
-"If this process is too slow, please set the key server address appropriately"
-" in the gnupg configuration file (depending on the network situation in your"
-" country or region)."
-msgstr "如果此過程太慢，請在 gnupg 配置文件中適當設置密鑰服務器地址（取決於您所在國家或地區的網絡情況）。"
+"If this process is too slow, please set the key server address appropriately "
+"in the gnupg configuration file (depending on the network situation in your "
+"country or region)."
+msgstr ""
+"如果此過程太慢，請在 gnupg 配置文件中適當設置密鑰服務器地址（取決於您所在國家"
+"或地區的網絡情況）。"
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:195
 msgid "could not read properly from configure file"
@@ -2606,8 +2644,8 @@ msgstr "如果密鑰對沒有私鑰，那麼它將無法生成子密鑰。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:394
 msgid ""
-"Please select a key before performing this operation. If you select multiple"
-" keys, only the first key will be exported."
+"Please select a key before performing this operation. If you select multiple "
+"keys, only the first key will be exported."
 msgstr "請在執行此操作前選擇一個鍵。如果您選擇多個密鑰，則只會導出第一個密鑰。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:402
@@ -2883,7 +2921,9 @@ msgid ""
 "This version(%1) may have been withdrawn by the developer due to serious "
 "problems. Please stop using this version immediately and use the latest "
 "stable version."
-msgstr "由於嚴重問題，此版本(%1) 可能已被開發人員撤回。請立即停止使用此版本並使用最新的穩定版本。"
+msgstr ""
+"由於嚴重問題，此版本(%1) 可能已被開發人員撤回。請立即停止使用此版本並使用最新"
+"的穩定版本。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:690
 msgid ""
@@ -3190,6 +3230,11 @@ msgstr "準備好"
 msgid "Key ToolBox"
 msgstr "鑰匙工具箱"
 
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:56
+#, fuzzy
+msgid "Show Verify Details"
+msgstr "顯示關鍵細節"
+
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:65
 msgid "Public key not found locally"
 msgstr "本地未找到公鑰"
@@ -3199,55 +3244,61 @@ msgid ""
 "There is no target public key content in local for GpgFrontend to gather "
 "enough information about this Signature. Do you want to import the public "
 "key from Keyserver now?"
-msgstr "本地沒有目標公鑰內容供 GpgFrontend 收集有關此簽名的足夠信息。現在要從 Keyserver 導入公鑰嗎？"
+msgstr ""
+"本地沒有目標公鑰內容供 GpgFrontend 收集有關此簽名的足夠信息。現在要從 "
+"Keyserver 導入公鑰嗎？"
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:171
 msgid "ENV Loading Failed"
 msgstr "ENV加載失敗"
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:172
+#, fuzzy
 msgid ""
-"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
-" in Github to install Gnupg and then open GpgFrontend."
-msgstr "Gnupg(gpg) 安裝不正確，請按照 Github 中的 ReadME 說明安裝 Gnupg，然後打開 GpgFrontend。"
+"Gnupg(gpg) is not installed correctly, please follow <a href='https://www."
+"gpgfrontend.pub/#/faq?id=how-to-deal-with-39env-loading-failed39'>this "
+"notes</a> in FAQ to install Gnupg and then open GpgFrontend."
+msgstr ""
+"Gnupg(gpg) 安裝不正確，請按照 Github 中的 ReadME 說明安裝 Gnupg，然後打開 "
+"GpgFrontend。"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:190
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
 msgid "Open Key"
 msgstr "開關鍵"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Keyring files"
 msgstr "鑰匙圈文件"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:196
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
 msgid "File Open Failed"
 msgstr "文件打開失敗"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:198
 msgid "Failed to open file: "
 msgstr "打開文件失敗："
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:220
 msgid "Processing"
 msgstr "加工"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:240
 msgid "Failed to execute command."
 msgstr "無法執行命令。"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:248
 msgid "Succeed in executing command."
 msgstr "成功執行命令。"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:251
 msgid "Finished executing command."
 msgstr "命令執行完畢。"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:349
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:350
 msgid "The key has been updated"
 msgstr "密鑰已更新"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:351
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:352
 msgid "No need to update the key"
 msgstr "無需更新密鑰"
 
@@ -3328,11 +3379,11 @@ msgstr "文件名（您可以指定擴展名）"
 msgid "Unable to create the file."
 msgstr "無法創建文件。"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:167
 msgid "Save Information Board's Content"
 msgstr "保存信息板的內容"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:177
 msgid "The file path is not exists, unprivileged or unreachable."
 msgstr "文件路徑不存在、無特權或無法訪問。"
 
@@ -3404,53 +3455,53 @@ msgstr "始終導入而無需打擾。"
 msgid "Couldn't Open File"
 msgstr "無法打開文件"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:430
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:432
 msgid "Key List Refreshed."
 msgstr "密鑰列表已刷新。"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:448
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
 msgid "Syncing Key List..."
 msgstr "正在同步密鑰列表..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:460
 msgid "Sync [%1%/%2%] %3% %4%"
 msgstr "同步 [%1%/%2%] %3% %4%"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:464
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:468
 msgid "Key List Sync Done."
 msgstr "密鑰列表同步完成。"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:61
 msgid "0 character"
 msgstr "0 個字符"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:55
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:99
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:106
 msgid "lf"
 msgstr "如果"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:56
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
 msgid "utf-8"
 msgstr "UTF-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:252
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:259
 msgid "%1% character(s)"
 msgstr "%1% 個字符"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:72
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:79
 msgid "Loading..."
 msgstr "正在加載..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:100
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:107
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:232
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:239
 msgid "%1% byte(s)"
 msgstr "%1% 字節"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:277
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:284
 msgid "binary"
 msgstr "二進制"
 
@@ -3496,7 +3547,8 @@ msgid "Unsaved document"
 msgstr "未保存的文件"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:295
-msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgid ""
+"The document \"%1\" has been modified. Do you want to save your changes?"
 msgstr "文檔“%1”已被修改。是否要保存更改？"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:298
@@ -3647,16 +3699,16 @@ msgstr "缺少 CRL"
 #~ msgstr "我們使用收件人提供的公鑰來加密文本。"
 
 #~ msgid ""
-#~ "If you want to send to multiple recipients at the same time, you can select "
-#~ "multiple keys."
+#~ "If you want to send to multiple recipients at the same time, you can "
+#~ "select multiple keys."
 #~ msgstr "如果您想同時發送給多個收件人，您可以選擇多個密鑰。"
 
 #~ msgid "Email List:"
 #~ msgstr "電子郵件列表："
 
 #~ msgid ""
-#~ "Tips: You can double-click the email address in the edit list, or click the "
-#~ "email to pop up the option menu."
+#~ "Tips: You can double-click the email address in the edit list, or click "
+#~ "the email to pop up the option menu."
 #~ msgstr "提示：您可以雙擊編輯列表中的郵箱地址，或點擊郵箱彈出選項菜單。"
 
 #~ msgid "Add An Email Address"
@@ -3762,29 +3814,36 @@ msgstr "缺少 CRL"
 #~ msgstr "一封或多封密件抄送電子郵件無效"
 
 #~ msgid ""
-#~ "You have checked the encrypted email content, but you have not selected the "
-#~ "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
-#~ "So the send operation is forbidden"
-#~ msgstr "您已檢查加密的電子郵件內容，但尚未選擇收件人的 GPG 密鑰。這是危險的，郵件不會被加密。所以禁止發送操作"
+#~ "You have checked the encrypted email content, but you have not selected "
+#~ "the recipient's GPG key. This is dangerous and the mail will not be "
+#~ "encrypted. So the send operation is forbidden"
+#~ msgstr ""
+#~ "您已檢查加密的電子郵件內容，但尚未選擇收件人的 GPG 密鑰。這是危險的，郵件"
+#~ "不會被加密。所以禁止發送操作"
 
 #~ msgid ""
-#~ "You checked the option to attach signature to the email, but did not specify"
-#~ " the sender's GPG Key. This will cause the content of the email to be "
-#~ "inconsistent with your expectations, so the operation is prohibited."
-#~ msgstr "您選中了將簽名附加到電子郵件的選項，但沒有指定發件人的 GPG 密鑰。這會導致郵件內容與您的預期不一致，因此禁止操作。"
+#~ "You checked the option to attach signature to the email, but did not "
+#~ "specify the sender's GPG Key. This will cause the content of the email to "
+#~ "be inconsistent with your expectations, so the operation is prohibited."
+#~ msgstr ""
+#~ "您選中了將簽名附加到電子郵件的選項，但沒有指定發件人的 GPG 密鑰。這會導致"
+#~ "郵件內容與您的預期不一致，因此禁止操作。"
 
 #~ msgid ""
-#~ "You checked the option to attach your public key to the email, but did not "
-#~ "specify the sender's GPG Key. This will cause the content of the email to be"
-#~ " inconsistent with your expectations, so the operation is prohibited."
-#~ msgstr "您選中了將您的公鑰附加到電子郵件的選項，但沒有指定發件人的 GPG 密鑰。這會導致郵件內容與您的預期不一致，因此禁止操作。"
+#~ "You checked the option to attach your public key to the email, but did "
+#~ "not specify the sender's GPG Key. This will cause the content of the "
+#~ "email to be inconsistent with your expectations, so the operation is "
+#~ "prohibited."
+#~ msgstr ""
+#~ "您選中了將您的公鑰附加到電子郵件的選項，但沒有指定發件人的 GPG 密鑰。這會"
+#~ "導致郵件內容與您的預期不一致，因此禁止操作。"
 
 #~ msgid "Sending Email..."
 #~ msgstr "正在發送電子郵件..."
 
 #~ msgid ""
-#~ "If the process does not end for a long time, please check again whether your"
-#~ " SMTP server configuration is correct."
+#~ "If the process does not end for a long time, please check again whether "
+#~ "your SMTP server configuration is correct."
 #~ msgstr "如果該過程長時間沒有結束，請再次檢查您的 SMTP 服務器配置是否正確。"
 
 #~ msgid "identity_enable"
@@ -3823,7 +3882,9 @@ msgstr "缺少 CRL"
 #~ msgid ""
 #~ "An error occurred while encrypting the content of the email. This may be "
 #~ "because you did not complete some operations during Gnupg encryption."
-#~ msgstr "加密電子郵件內容時出錯。這可能是因為您在 Gnupg 加密過程中沒有完成某些操作。"
+#~ msgstr ""
+#~ "加密電子郵件內容時出錯。這可能是因為您在 Gnupg 加密過程中沒有完成某些操"
+#~ "作。"
 
 #~ msgid "Unknown error."
 #~ msgstr "未知錯誤。"
@@ -3838,7 +3899,8 @@ msgstr "缺少 CRL"
 #~ msgstr "自動密鑰交換警告"
 
 #~ msgid ""
-#~ "Part of the automatic key exchange failed, which may be related to your key."
+#~ "Part of the automatic key exchange failed, which may be related to your "
+#~ "key."
 #~ msgstr "部分自動密鑰交換失敗，可能與您的密鑰有關。"
 
 #~ msgid ""
@@ -3911,10 +3973,12 @@ msgstr "缺少 CRL"
 #~ msgstr "默認發件人 GPG 密鑰 ID"
 
 #~ msgid ""
-#~ "Tips: It is recommended that you build your own mail server or use a trusted"
-#~ " mail server. If you don't know the detailed configuration information, you "
-#~ "can get it from the mail service provider."
-#~ msgstr "溫馨提示：建議您自建郵件服務器或使用可信賴的郵件服務器。如果您不知道詳細的配置信息，可以從郵件服務提供商處獲取。"
+#~ "Tips: It is recommended that you build your own mail server or use a "
+#~ "trusted mail server. If you don't know the detailed configuration "
+#~ "information, you can get it from the mail service provider."
+#~ msgstr ""
+#~ "溫馨提示：建議您自建郵件服務器或使用可信賴的郵件服務器。如果您不知道詳細的"
+#~ "配置信息，可以從郵件服務提供商處獲取。"
 
 #~ msgid "apply settings failed"
 #~ msgstr "應用設置失敗"
@@ -3929,9 +3993,11 @@ msgstr "缺少 CRL"
 #~ msgstr "從 GpgFrontend 測試電子郵件"
 
 #~ msgid ""
-#~ "Hello, this is a test email from GpgFrontend. If you receive this email, it "
-#~ "means that you have configured the correct SMTP server parameters."
-#~ msgstr "你好，這是一封來自 GpgFrontend 的測試郵件。如果您收到此電子郵件，則表示您已配置正確的 SMTP 服務器參數。"
+#~ "Hello, this is a test email from GpgFrontend. If you receive this email, "
+#~ "it means that you have configured the correct SMTP server parameters."
+#~ msgstr ""
+#~ "你好，這是一封來自 GpgFrontend 的測試郵件。如果您收到此電子郵件，則表示您"
+#~ "已配置正確的 SMTP 服務器參數。"
 
 #~ msgid "Succeed in sending a test email to the SMTP Server"
 #~ msgstr "成功向 SMTP 服務器發送測試郵件"
@@ -3979,7 +4045,9 @@ msgstr "缺少 CRL"
 #~ msgid ""
 #~ "Own Key can not be use to do any operation. Please go to the setting "
 #~ "interface to select an OwnKey and get a ServiceToken."
-#~ msgstr "不能使用自己的密鑰進行任何操作。請到設置界面選擇一個OwnKey並獲取一個ServiceToken。"
+#~ msgstr ""
+#~ "不能使用自己的密鑰進行任何操作。請到設置界面選擇一個OwnKey並獲取一個"
+#~ "ServiceToken。"
 
 #~ msgid "Please obtain a Service Token from the server in the settings."
 #~ msgstr "請在設置中從服務器獲取服務令牌。"
@@ -4079,8 +4147,8 @@ msgstr "缺少 CRL"
 #~ msgstr "未發布版本"
 
 #~ msgid ""
-#~ "This version(%1) has not been officially released and is not recommended for"
-#~ " use in a production environment. <br/>"
+#~ "This version(%1) has not been officially released and is not recommended "
+#~ "for use in a production environment. <br/>"
 #~ msgstr "此版本（%1）尚未正式發布，不建議在生產環境中使用。 <br/>"
 
 #~ msgid "Fail to Login into SMTP Server"

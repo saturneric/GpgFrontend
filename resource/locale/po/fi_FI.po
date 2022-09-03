@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.9\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-07-23 20:16+0800\n"
+"POT-Creation-Date: 2022-09-03 20:33+0800\n"
 "PO-Revision-Date: 2022-07-23 20:22-0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
@@ -148,7 +148,7 @@ msgstr "Pura toiminnan salaus"
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:154
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:281
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:246
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
 msgid "Success"
 msgstr "Menestys"
 
@@ -173,7 +173,7 @@ msgid "MIME"
 msgstr "MIME"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:213
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:208
 msgid "true"
 msgstr "totta"
 
@@ -392,8 +392,8 @@ msgid ""
 "A signature is valid but the key used to verify the signature has been "
 "revoked"
 msgstr ""
-"Allekirjoitus on kelvollinen, mutta allekirjoituksen vahvistamiseen käytetty"
-" avain on kumottu"
+"Allekirjoitus on kelvollinen, mutta allekirjoituksen vahvistamiseen käytetty "
+"avain on kumottu"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:135
 msgid "A signature is valid but expired"
@@ -403,8 +403,8 @@ msgstr "Allekirjoitus on voimassa, mutta vanhentunut"
 msgid ""
 "A signature is valid but the key used to verify the signature has expired."
 msgstr ""
-"Allekirjoitus on kelvollinen, mutta allekirjoituksen vahvistamiseen käytetty"
-" avain on vanhentunut."
+"Allekirjoitus on kelvollinen, mutta allekirjoituksen vahvistamiseen käytetty "
+"avain on vanhentunut."
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:150
 msgid "There was some other error which prevented the signature verification."
@@ -464,7 +464,7 @@ msgstr "Allekirjoittanut"
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:374
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:393
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:437
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:176
 msgid "Error"
 msgstr "Virhe"
 
@@ -483,13 +483,13 @@ msgid "Description: "
 msgstr "Kuvaus:"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:68
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:160
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:311
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:418
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:609
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:704
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:249
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:384
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:100
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:138
@@ -505,18 +505,18 @@ msgstr "Ennustaa"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:42
-#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:73
+#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:112
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:473
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:106
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:139
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:161
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:422
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:424
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
 msgid "Called"
 msgstr "Olla nimeltään"
 
@@ -525,15 +525,15 @@ msgstr "Olla nimeltään"
 msgid "log file path"
 msgstr "lokitiedoston polku"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:122
+#: /mnt/h/GpgFrontend/src/main.cpp:126
 msgid "A serious error has occurred"
 msgstr "Tapahtui vakava virhe"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:123
+#: /mnt/h/GpgFrontend/src/main.cpp:127
 msgid ""
-"Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
-" restarted. If the problem recurs, please manually terminate the program and"
-" report the problem to the developer."
+"Oh no! GpgFrontend caught a serious error in the software, so it needs to be "
+"restarted. If the problem recurs, please manually terminate the program and "
+"report the problem to the developer."
 msgstr ""
 "Voi ei! GpgFrontend havaitsi vakavan virheen ohjelmistossa, joten se on "
 "käynnistettävä uudelleen. Jos ongelma toistuu, lopeta ohjelma manuaalisesti "
@@ -625,8 +625,8 @@ msgstr "Rakennettu klo"
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:138
 msgid ""
 "If you think there are any problems with the translation, why not "
-"participate in the translation work? If you want to participate, please read"
-" the document or contact me via email."
+"participate in the translation work? If you want to participate, please read "
+"the document or contact me via email."
 msgstr ""
 "Jos uskot, että käännöksessä on ongelmia, miksi et osallistuisi "
 "käännöstyöhön? Jos haluat osallistua, lue asiakirja tai ota yhteyttä "
@@ -692,8 +692,8 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
 msgid ""
-"This version has not been released yet, it may be a beta version. If you are"
-" not a tester and care about version stability, please do not use this "
+"This version has not been released yet, it may be a beta version. If you are "
+"not a tester and care about version stability, please do not use this "
 "version."
 msgstr ""
 "Tätä versiota ei ole vielä julkaistu, se saattaa olla beta-versio. Jos et "
@@ -764,20 +764,19 @@ msgstr ""
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
 msgid ""
 "The Key Package has been successfully generated and has been protected by "
-"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
-"Package."
+"encryption algorithms(AES-256-ECB). You can safely transfer your Key Package."
 msgstr ""
 "Avainpaketti on luotu onnistuneesti ja se on suojattu salausalgoritmeilla "
 "(AES-256-ECB). Voit siirtää avainpakettisi turvallisesti."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
 msgid ""
-"But the key file cannot be leaked under any circumstances. Please delete the"
-" Key Package and key file as soon as possible after completing the transfer "
+"But the key file cannot be leaked under any circumstances. Please delete the "
+"Key Package and key file as soon as possible after completing the transfer "
 "operation."
 msgstr ""
-"Mutta avaintiedostoa ei voi vuotaa missään olosuhteissa. Poista avainpaketti"
-" ja avaintiedosto mahdollisimman pian siirron jälkeen."
+"Mutta avaintiedostoa ei voi vuotaa missään olosuhteissa. Poista avainpaketti "
+"ja avaintiedosto mahdollisimman pian siirron jälkeen."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:121
 msgid "An error occurred while exporting the key package."
@@ -1022,23 +1021,23 @@ msgstr "Avainta ei löydy"
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:272
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:483
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:498
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:332
 msgid "Timeout"
 msgstr "Aikalisä"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:275
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:486
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:144
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:334
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:335
 msgid "Key Server Not Found"
 msgstr "Avainpalvelinta ei löydy"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:278
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:489
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:505
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:147
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:337
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:159
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:338
 msgid "Connection Error"
 msgstr "Yhteysvirhe"
 
@@ -1072,14 +1071,14 @@ msgid "%1 keys found. Double click a key to import it."
 msgstr "%1 avainta löydetty. Tuo avainta kaksoisnapsauttamalla sitä."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:446
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:290
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:96
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
 msgid "Default Keyserver Not Found"
 msgstr "Oletusavainpalvelinta ei löydy"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:447
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:80
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:292
 msgid ""
 "Cannot read default keyserver from your settings, please set a default "
 "keyserver first"
@@ -1089,8 +1088,8 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:480
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:494
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:138
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:328
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:150
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:329
 msgid "Key Not Found"
 msgstr "Avainta ei löydy"
 
@@ -1110,25 +1109,25 @@ msgstr "Yleinen yhteysvirhe"
 msgid "Key Imported"
 msgstr "Avain tuotu"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:57
 msgid "Uploading Public Key"
 msgstr "Ladataan julkista avainta"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:74
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:286
 msgid "Set target Key Server to default Key Server"
 msgstr "Aseta kohdeavainpalvelin oletusavainpalvelimeksi"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:77
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:95
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:289
 msgid "Cannot read default_keyserver From Settings"
 msgstr "Ei voi lukea oletusavainpalvelinta asetuksista"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:152
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:164
 msgid "Upload Success"
 msgstr "Lähetys onnistui"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:165
 msgid "Upload Public Key Successfully"
 msgstr "Julkinen avaimen lataaminen onnistui"
 
@@ -1369,7 +1368,7 @@ msgstr "Vie avain tiedostoon"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:157
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:203
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Key Files"
 msgstr "Avaintiedostot"
 
@@ -1696,7 +1695,7 @@ msgstr "Avainparin viimeinen voimassaolopäivä on päivitetty."
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:88
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:164
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:289
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
 msgid "Failure"
 msgstr "Epäonnistuminen"
 
@@ -1717,8 +1716,8 @@ msgstr "Muokattu viimeinen voimassaolopäivä (paikallista aikaa)"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:133
 msgid ""
-"Tips: For the sake of security, the key is valid for up to two years. If you"
-" are an expert user, please unlock it for a longer time in the settings."
+"Tips: For the sake of security, the key is valid for up to two years. If you "
+"are an expert user, please unlock it for a longer time in the settings."
 msgstr ""
 "Vinkkejä: Turvallisuussyistä avain on voimassa enintään kaksi vuotta. Jos "
 "olet kokenut käyttäjä, avaa se asetuksista pidemmäksi aikaa."
@@ -1898,7 +1897,7 @@ msgstr "stegano_checked"
 msgid "auto_pubkey_exchange_checked"
 msgstr "auto_pubkey_exchange_checked"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:41
 msgid "Icon Size"
 msgstr "Kuvakkeen koko"
 
@@ -1914,36 +1913,46 @@ msgstr "keskikokoinen"
 msgid "large"
 msgstr "suuri"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:46
 msgid "Icon Style"
 msgstr "Ikonin tyyli"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:47
 msgid "just text"
 msgstr "pelkkää tekstiä"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:63
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:48
 msgid "just icons"
 msgstr "vain kuvakkeita"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:64
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:49
 msgid "text and icons"
 msgstr "tekstiä ja kuvakkeita"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:51
 msgid "Window State"
 msgstr "Ikkunan tila"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:83
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:53
 msgid "Save window size and position on exit."
 msgstr "Tallenna ikkunan koko ja sijainti poistuttaessa."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:55
+#, fuzzy
+msgid "Text Editor"
+msgstr "Toimittaja"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:56
+#, fuzzy
+msgid "Font Size in Text Editor"
+msgstr "Fonttikoko tietotaulussa"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:58
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:496
 msgid "Information Board"
 msgstr "Tiedotuslautakunta"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
 msgid "Font Size in Information Board"
 msgstr "Fonttikoko tietotaulussa"
 
@@ -1979,8 +1988,8 @@ msgstr "Tallenna valitut avaimet"
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:46
 msgid "Save checked private keys on exit and restore them on next start."
 msgstr ""
-"Tallenna tarkistetut yksityiset avaimet poistuessasi ja palauta ne seuraavan"
-" käynnistyksen yhteydessä."
+"Tallenna tarkistetut yksityiset avaimet poistuessasi ja palauta ne seuraavan "
+"käynnistyksen yhteydessä."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:47
 msgid "Longer Key Expiration Date"
@@ -2086,11 +2095,11 @@ msgstr "Poista valittu avainpalvelin"
 msgid "Set As Default"
 msgstr "Oletusasetuksena"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:151
 msgid "Insecure keyserver address"
 msgstr "Epäturvallinen avainpalvelimen osoite"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:157
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:152
 msgid ""
 "For security reasons, using HTTP as the communication protocol with the key "
 "server is not recommended. It is recommended to use HTTPS."
@@ -2098,46 +2107,46 @@ msgstr ""
 "Turvallisuussyistä ei suositella HTTP:n käyttöä viestintäprotokollana "
 "avainpalvelimen kanssa. On suositeltavaa käyttää HTTPS:ää."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:166
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:161
 msgid ""
-"You may not use HTTPS or HTTP as the protocol for communicating with the key"
-" server, which may not be wrong. But please check the address you entered "
+"You may not use HTTPS or HTTP as the protocol for communicating with the key "
+"server, which may not be wrong. But please check the address you entered "
 "again to make sure it is correct. Are you sure that want to add it into the "
 "keyserver list?"
 msgstr ""
 "Et saa käyttää HTTPS- tai HTTP-protokollana avainpalvelimen kanssa "
 "viestimiseen, mikä ei välttämättä ole väärin. Tarkista kuitenkin antamasi "
-"osoite uudelleen varmistaaksesi, että se on oikein. Haluatko varmasti lisätä"
-" sen avainpalvelinluetteloon?"
+"osoite uudelleen varmistaaksesi, että se on oikein. Haluatko varmasti lisätä "
+"sen avainpalvelinluetteloon?"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:209
 msgid "false"
 msgstr "väärä"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
 msgid "unknown"
 msgstr "tuntematon"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:233
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:228
 msgid "Set TCP Timeout"
 msgstr "Aseta TCP-aikakatkaisu"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:258
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:253
 msgid "Reachable"
 msgstr "tavoitettavissa"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:261
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:256
 msgid "Not Reachable"
 msgstr "Ei saavutettavissa"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:273
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:268
 msgid "Test Key Server Connection..."
 msgstr "Testaa avainpalvelinyhteyttä..."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:274
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:269
 msgid ""
-"This test only tests the network connectivity of the key server. Passing the"
-" test does not mean that the key server is functionally available."
+"This test only tests the network connectivity of the key server. Passing the "
+"test does not mean that the key server is functionally available."
 msgstr ""
 "Tämä testi testaa vain avainpalvelimen verkkoyhteyden. Testin läpäiseminen "
 "ei tarkoita, että avainpalvelin on toiminnallisesti saatavilla."
@@ -2311,11 +2320,11 @@ msgstr "linkkiä klikkaamalla sivu avautuu verkkoselaimeen"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:107
 msgid ""
-"If it supports the language currently being used in your system, GpgFrontend"
-" will automatically set it."
+"If it supports the language currently being used in your system, GpgFrontend "
+"will automatically set it."
 msgstr ""
-"Jos se tukee järjestelmässäsi tällä hetkellä käytettävää kieltä, GpgFrontend"
-" asettaa sen automaattisesti."
+"Jos se tukee järjestelmässäsi tällä hetkellä käytettävää kieltä, GpgFrontend "
+"asettaa sen automaattisesti."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:125
 msgid "Choose your action..."
@@ -2418,8 +2427,8 @@ msgid ""
 " will get you started with GpgFrontend. Anytime you encounter problems, "
 "please try to find help from the documentation"
 msgstr ""
-" avulla pääset alkuun GpgFrontendin kanssa. Aina kun kohtaat ongelmia, yritä"
-" löytää apua asiakirjoista"
+" avulla pääset alkuun GpgFrontendin kanssa. Aina kun kohtaat ongelmia, yritä "
+"löytää apua asiakirjoista"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:250
 msgid "Open offline help."
@@ -2463,9 +2472,9 @@ msgstr "Ladataan Gnupg-tietoja..."
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:84
 msgid ""
-"If this process is too slow, please set the key server address appropriately"
-" in the gnupg configuration file (depending on the network situation in your"
-" country or region)."
+"If this process is too slow, please set the key server address appropriately "
+"in the gnupg configuration file (depending on the network situation in your "
+"country or region)."
 msgstr ""
 "Jos tämä prosessi on liian hidas, aseta avainpalvelimen osoite oikein gnupg-"
 "määritystiedostoon (maasi tai alueesi verkkotilanteesta riippuen)."
@@ -2689,8 +2698,8 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:394
 msgid ""
-"Please select a key before performing this operation. If you select multiple"
-" keys, only the first key will be exported."
+"Please select a key before performing this operation. If you select multiple "
+"keys, only the first key will be exported."
 msgstr ""
 "Valitse avain ennen tämän toiminnon suorittamista. Jos valitset useita "
 "avaimia, vain ensimmäinen avain viedään."
@@ -3291,6 +3300,11 @@ msgstr "Valmis"
 msgid "Key ToolBox"
 msgstr "Key Toolbox"
 
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:56
+#, fuzzy
+msgid "Show Verify Details"
+msgstr "Näytä tärkeimmät tiedot"
+
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:65
 msgid "Public key not found locally"
 msgstr "Julkista avainta ei löydy paikallisesti"
@@ -3310,50 +3324,52 @@ msgid "ENV Loading Failed"
 msgstr "ENV-lataus epäonnistui"
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:172
+#, fuzzy
 msgid ""
-"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
-" in Github to install Gnupg and then open GpgFrontend."
+"Gnupg(gpg) is not installed correctly, please follow <a href='https://www."
+"gpgfrontend.pub/#/faq?id=how-to-deal-with-39env-loading-failed39'>this "
+"notes</a> in FAQ to install Gnupg and then open GpgFrontend."
 msgstr ""
 "Gnupg(gpg) ei ole asennettu oikein. Asenna Gnupg noudattamalla Githubin "
 "ReadME-ohjeita ja avaa sitten GpgFrontend."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:190
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
 msgid "Open Key"
 msgstr "Avaa avain"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Keyring files"
 msgstr "Avaimenperä tiedostot"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:196
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
 msgid "File Open Failed"
 msgstr "Tiedoston avaaminen epäonnistui"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:198
 msgid "Failed to open file: "
 msgstr "Tiedoston avaaminen epäonnistui:"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:220
 msgid "Processing"
 msgstr "Käsittely"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:240
 msgid "Failed to execute command."
 msgstr "Komennon suorittaminen epäonnistui."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:248
 msgid "Succeed in executing command."
 msgstr "Onnistua komennon suorittamisessa."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:251
 msgid "Finished executing command."
 msgstr "Komennon suoritus on valmis."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:349
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:350
 msgid "The key has been updated"
 msgstr "Avain on päivitetty"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:351
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:352
 msgid "No need to update the key"
 msgstr "Avainta ei tarvitse päivittää"
 
@@ -3434,14 +3450,13 @@ msgstr "Tiedostonimi (voit antaa tunnisteen)"
 msgid "Unable to create the file."
 msgstr "Tiedostoa ei voi luoda."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:167
 msgid "Save Information Board's Content"
 msgstr "Tallenna tietotaulun sisältö"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:177
 msgid "The file path is not exists, unprivileged or unreachable."
-msgstr ""
-"Tiedostopolkua ei ole olemassa, se on etuoikeutettu tai tavoittamaton."
+msgstr "Tiedostopolkua ei ole olemassa, se on etuoikeutettu tai tavoittamaton."
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:85
 msgid "Refresh"
@@ -3511,53 +3526,53 @@ msgstr "Tuo aina vaivattomasti."
 msgid "Couldn't Open File"
 msgstr "Tiedostoa ei voitu avata"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:430
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:432
 msgid "Key List Refreshed."
 msgstr "Avainlista päivitetty."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:448
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
 msgid "Syncing Key List..."
 msgstr "Synkronoidaan avainluetteloa..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:460
 msgid "Sync [%1%/%2%] %3% %4%"
 msgstr "Synkronoi [%1%/%2%] %3% %4%"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:464
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:468
 msgid "Key List Sync Done."
 msgstr "Avainluettelon synkronointi valmis."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:61
 msgid "0 character"
 msgstr "0 merkkiä"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:55
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:99
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:106
 msgid "lf"
 msgstr "lf"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:56
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
 msgid "utf-8"
 msgstr "utf-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:252
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:259
 msgid "%1% character(s)"
 msgstr "%1% merkki(tä)"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:72
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:79
 msgid "Loading..."
 msgstr "Ladataan..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:100
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:107
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:232
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:239
 msgid "%1% byte(s)"
 msgstr "%1 % tavua"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:277
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:284
 msgid "binary"
 msgstr "binääri"
 
@@ -3605,7 +3620,8 @@ msgid "Unsaved document"
 msgstr "Tallentamaton asiakirja"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:295
-msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgid ""
+"The document \"%1\" has been modified. Do you want to save your changes?"
 msgstr "Asiakirjaa \"%1\" on muokattu. Haluatko tallentaa tekemäsi muutokset?"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:298
@@ -3757,8 +3773,8 @@ msgstr "CRL puuttuu"
 #~ "Käytämme vastaanottajan toimittamaa julkista avainta tekstin salaamiseen."
 
 #~ msgid ""
-#~ "If you want to send to multiple recipients at the same time, you can select "
-#~ "multiple keys."
+#~ "If you want to send to multiple recipients at the same time, you can "
+#~ "select multiple keys."
 #~ msgstr ""
 #~ "Jos haluat lähettää useille vastaanottajille samanaikaisesti, voit valita "
 #~ "useita avaimia."
@@ -3767,11 +3783,11 @@ msgstr "CRL puuttuu"
 #~ msgstr "Sähköpostilista:"
 
 #~ msgid ""
-#~ "Tips: You can double-click the email address in the edit list, or click the "
-#~ "email to pop up the option menu."
+#~ "Tips: You can double-click the email address in the edit list, or click "
+#~ "the email to pop up the option menu."
 #~ msgstr ""
-#~ "Vinkkejä: Voit kaksoisnapsauttaa sähköpostiosoitetta muokkausluettelossa tai"
-#~ " napsauttaa sähköpostia avataksesi asetusvalikon."
+#~ "Vinkkejä: Voit kaksoisnapsauttaa sähköpostiosoitetta muokkausluettelossa "
+#~ "tai napsauttaa sähköpostia avataksesi asetusvalikon."
 
 #~ msgid "Add An Email Address"
 #~ msgstr "Lisää sähköpostiosoite"
@@ -3816,8 +3832,8 @@ msgstr "CRL puuttuu"
 #~ "Tips: You can fill in multiple email addresses, please separate them with "
 #~ "\";\"."
 #~ msgstr ""
-#~ "Vinkkejä: Voit kirjoittaa useita sähköpostiosoitteita, erottele ne merkillä "
-#~ "\";\"."
+#~ "Vinkkejä: Voit kirjoittaa useita sähköpostiosoitteita, erottele ne "
+#~ "merkillä \";\"."
 
 #~ msgid "Send Message"
 #~ msgstr "Lähetä viesti"
@@ -3880,27 +3896,28 @@ msgstr "CRL puuttuu"
 #~ msgstr "Yksi tai useampi piilokopiosähköposti on virheellinen"
 
 #~ msgid ""
-#~ "You have checked the encrypted email content, but you have not selected the "
-#~ "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
-#~ "So the send operation is forbidden"
+#~ "You have checked the encrypted email content, but you have not selected "
+#~ "the recipient's GPG key. This is dangerous and the mail will not be "
+#~ "encrypted. So the send operation is forbidden"
 #~ msgstr ""
 #~ "Olet tarkistanut salatun sähköpostin sisällön, mutta et ole valinnut "
-#~ "vastaanottajan GPG-avainta. Tämä on vaarallista ja postia ei salata. Joten "
-#~ "lähetystoiminto on kielletty"
+#~ "vastaanottajan GPG-avainta. Tämä on vaarallista ja postia ei salata. "
+#~ "Joten lähetystoiminto on kielletty"
 
 #~ msgid ""
-#~ "You checked the option to attach signature to the email, but did not specify"
-#~ " the sender's GPG Key. This will cause the content of the email to be "
-#~ "inconsistent with your expectations, so the operation is prohibited."
+#~ "You checked the option to attach signature to the email, but did not "
+#~ "specify the sender's GPG Key. This will cause the content of the email to "
+#~ "be inconsistent with your expectations, so the operation is prohibited."
 #~ msgstr ""
 #~ "Valitsit allekirjoituksen liittämisen sähköpostiin, mutta et määrittänyt "
 #~ "lähettäjän GPG-avainta. Tämä aiheuttaa sen, että sähköpostin sisältö ei "
 #~ "vastaa odotuksiasi, joten toiminto on kielletty."
 
 #~ msgid ""
-#~ "You checked the option to attach your public key to the email, but did not "
-#~ "specify the sender's GPG Key. This will cause the content of the email to be"
-#~ " inconsistent with your expectations, so the operation is prohibited."
+#~ "You checked the option to attach your public key to the email, but did "
+#~ "not specify the sender's GPG Key. This will cause the content of the "
+#~ "email to be inconsistent with your expectations, so the operation is "
+#~ "prohibited."
 #~ msgstr ""
 #~ "Valitsit vaihtoehdon liittää sähköpostiin julkinen avaimesi, mutta et "
 #~ "määrittänyt lähettäjän GPG-avainta. Tämä aiheuttaa sen, että sähköpostin "
@@ -3910,8 +3927,8 @@ msgstr "CRL puuttuu"
 #~ msgstr "Lähetetään sähköpostia..."
 
 #~ msgid ""
-#~ "If the process does not end for a long time, please check again whether your"
-#~ " SMTP server configuration is correct."
+#~ "If the process does not end for a long time, please check again whether "
+#~ "your SMTP server configuration is correct."
 #~ msgstr ""
 #~ "Jos prosessi ei lopu pitkään aikaan, tarkista uudelleen, ovatko SMTP-"
 #~ "palvelimesi asetukset oikein."
@@ -3953,8 +3970,8 @@ msgstr "CRL puuttuu"
 #~ "An error occurred while encrypting the content of the email. This may be "
 #~ "because you did not complete some operations during Gnupg encryption."
 #~ msgstr ""
-#~ "Sähköpostin sisältöä salattaessa tapahtui virhe. Tämä voi johtua siitä, että"
-#~ " et suorittanut kaikkia toimintoja Gnupg-salauksen aikana."
+#~ "Sähköpostin sisältöä salattaessa tapahtui virhe. Tämä voi johtua siitä, "
+#~ "että et suorittanut kaikkia toimintoja Gnupg-salauksen aikana."
 
 #~ msgid "Unknown error."
 #~ msgstr "Tuntematon virhe."
@@ -3969,7 +3986,8 @@ msgstr "CRL puuttuu"
 #~ msgstr "Automaattinen avaimenvaihtovaroitus"
 
 #~ msgid ""
-#~ "Part of the automatic key exchange failed, which may be related to your key."
+#~ "Part of the automatic key exchange failed, which may be related to your "
+#~ "key."
 #~ msgstr ""
 #~ "Osa automaattisesta avainten vaihdosta epäonnistui, mikä saattaa liittyä "
 #~ "avaimesi."
@@ -3986,7 +4004,8 @@ msgstr "CRL puuttuu"
 
 #~ msgid ""
 #~ "Please go to the settings interface to set Own Key and get Service Token."
-#~ msgstr "Mene asetusliittymään asettaaksesi Oma avain ja hanki palvelutunnus."
+#~ msgstr ""
+#~ "Mene asetusliittymään asettaaksesi Oma avain ja hanki palvelutunnus."
 
 #~ msgid "called"
 #~ msgstr "olla nimeltään"
@@ -4046,9 +4065,9 @@ msgstr "CRL puuttuu"
 #~ msgstr "Oletuslähettäjän GPG-avaintunnus"
 
 #~ msgid ""
-#~ "Tips: It is recommended that you build your own mail server or use a trusted"
-#~ " mail server. If you don't know the detailed configuration information, you "
-#~ "can get it from the mail service provider."
+#~ "Tips: It is recommended that you build your own mail server or use a "
+#~ "trusted mail server. If you don't know the detailed configuration "
+#~ "information, you can get it from the mail service provider."
 #~ msgstr ""
 #~ "Vinkkejä: On suositeltavaa rakentaa oma sähköpostipalvelin tai käyttää "
 #~ "luotettavaa sähköpostipalvelinta. Jos et tiedä yksityiskohtaisia "
@@ -4067,11 +4086,11 @@ msgstr "CRL puuttuu"
 #~ msgstr "Testasähköposti GpgFrontendilta"
 
 #~ msgid ""
-#~ "Hello, this is a test email from GpgFrontend. If you receive this email, it "
-#~ "means that you have configured the correct SMTP server parameters."
+#~ "Hello, this is a test email from GpgFrontend. If you receive this email, "
+#~ "it means that you have configured the correct SMTP server parameters."
 #~ msgstr ""
-#~ "Hei, tämä on testisähköposti GpgFrontendilta. Jos saat tämän sähköpostin, se"
-#~ " tarkoittaa, että olet määrittänyt oikeat SMTP-palvelinparametrit."
+#~ "Hei, tämä on testisähköposti GpgFrontendilta. Jos saat tämän sähköpostin, "
+#~ "se tarkoittaa, että olet määrittänyt oikeat SMTP-palvelinparametrit."
 
 #~ msgid "Succeed in sending a test email to the SMTP Server"
 #~ msgstr "Onnistut lähettämään testisähköpostin SMTP-palvelimelle"
@@ -4223,8 +4242,8 @@ msgstr "CRL puuttuu"
 #~ msgstr "Julkaisematon versio"
 
 #~ msgid ""
-#~ "This version(%1) has not been officially released and is not recommended for"
-#~ " use in a production environment. <br/>"
+#~ "This version(%1) has not been officially released and is not recommended "
+#~ "for use in a production environment. <br/>"
 #~ msgstr ""
 #~ "Tätä versiota (%1) ei ole virallisesti julkaistu, eikä sitä suositella "
 #~ "käytettäväksi tuotantoympäristössä. <br/>"
@@ -4298,7 +4317,8 @@ msgstr "CRL puuttuu"
 
 #~ msgid "Selecting Nothing will eventually use default key to sign."
 #~ msgstr ""
-#~ "Jos valitset Ei mitään, allekirjoituksessa käytetään lopulta oletusavainta."
+#~ "Jos valitset Ei mitään, allekirjoituksessa käytetään lopulta "
+#~ "oletusavainta."
 
 #~ msgid "Refresh Key From Key Server"
 #~ msgstr "Päivitä avain avainpalvelimelta"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.9\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-07-23 20:16+0800\n"
+"POT-Creation-Date: 2022-09-03 20:33+0800\n"
 "PO-Revision-Date: 2022-07-23 20:22-0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
@@ -147,7 +147,7 @@ msgstr "डिक्रिप्ट ऑपरेशन"
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:154
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:281
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:246
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
 msgid "Success"
 msgstr "सफलता"
 
@@ -172,7 +172,7 @@ msgid "MIME"
 msgstr "माइम"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:213
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:208
 msgid "true"
 msgstr "सच"
 
@@ -391,8 +391,8 @@ msgid ""
 "A signature is valid but the key used to verify the signature has been "
 "revoked"
 msgstr ""
-"एक हस्ताक्षर मान्य है लेकिन हस्ताक्षर को सत्यापित करने के लिए उपयोग की जाने "
-"वाली कुंजी को निरस्त कर दिया गया है"
+"एक हस्ताक्षर मान्य है लेकिन हस्ताक्षर को सत्यापित करने के लिए उपयोग की जाने वाली कुंजी को "
+"निरस्त कर दिया गया है"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:135
 msgid "A signature is valid but expired"
@@ -402,8 +402,8 @@ msgstr "एक हस्ताक्षर मान्य है लेकि�
 msgid ""
 "A signature is valid but the key used to verify the signature has expired."
 msgstr ""
-"एक हस्ताक्षर मान्य है लेकिन हस्ताक्षर को सत्यापित करने के लिए उपयोग की जाने "
-"वाली कुंजी समाप्त हो गई है।"
+"एक हस्ताक्षर मान्य है लेकिन हस्ताक्षर को सत्यापित करने के लिए उपयोग की जाने वाली कुंजी "
+"समाप्त हो गई है।"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:150
 msgid "There was some other error which prevented the signature verification."
@@ -463,7 +463,7 @@ msgstr "द्वारा हस्ताक्षर किए"
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:374
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:393
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:437
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:176
 msgid "Error"
 msgstr "त्रुटि"
 
@@ -482,13 +482,13 @@ msgid "Description: "
 msgstr "विवरण:"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:68
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:160
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:311
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:418
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:609
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:704
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:249
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:384
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:100
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:138
@@ -504,18 +504,18 @@ msgstr "भविष्यवाणी करना"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:42
-#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:73
+#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:112
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:473
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:106
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:139
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:161
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:422
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:424
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
 msgid "Called"
 msgstr "बुलाया"
 
@@ -524,20 +524,19 @@ msgstr "बुलाया"
 msgid "log file path"
 msgstr "लॉग फ़ाइल पथ"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:122
+#: /mnt/h/GpgFrontend/src/main.cpp:126
 msgid "A serious error has occurred"
 msgstr "एक गंभीर त्रुटि हुई है"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:123
+#: /mnt/h/GpgFrontend/src/main.cpp:127
 msgid ""
-"Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
-" restarted. If the problem recurs, please manually terminate the program and"
-" report the problem to the developer."
+"Oh no! GpgFrontend caught a serious error in the software, so it needs to be "
+"restarted. If the problem recurs, please manually terminate the program and "
+"report the problem to the developer."
 msgstr ""
-"धत्तेरे की! GpgFrontend ने सॉफ़्टवेयर में एक गंभीर त्रुटि पकड़ी है, इसलिए "
-"इसे पुनरारंभ करने की आवश्यकता है। यदि समस्या फिर से आती है, तो कृपया "
-"प्रोग्राम को मैन्युअल रूप से समाप्त करें और डेवलपर को समस्या की रिपोर्ट "
-"करें।"
+"धत्तेरे की! GpgFrontend ने सॉफ़्टवेयर में एक गंभीर त्रुटि पकड़ी है, इसलिए इसे पुनरारंभ करने की "
+"आवश्यकता है। यदि समस्या फिर से आती है, तो कृपया प्रोग्राम को मैन्युअल रूप से समाप्त करें और "
+"डेवलपर को समस्या की रिपोर्ट करें।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:38
 msgid "Signatures Details"
@@ -594,9 +593,9 @@ msgid ""
 "free gpg front-end tool.It visualizes most of the common operations of gpg "
 "commands.It's licensed under the GPL v3"
 msgstr ""
-"GpgFrontend एक उपयोग में आसान, कॉम्पैक्ट, क्रॉस-प्लेटफ़ॉर्म और "
-"इंस्टॉलेशन-मुक्त gpg फ्रंट-एंड टूल है। यह gpg कमांड के अधिकांश सामान्य "
-"संचालन की कल्पना करता है। यह GPL v3 के तहत लाइसेंस प्राप्त है।"
+"GpgFrontend एक उपयोग में आसान, कॉम्पैक्ट, क्रॉस-प्लेटफ़ॉर्म और इंस्टॉलेशन-मुक्त gpg फ्रंट-एंड "
+"टूल है। यह gpg कमांड के अधिकांश सामान्य संचालन की कल्पना करता है। यह GPL v3 के तहत "
+"लाइसेंस प्राप्त है।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:91
 msgid "Developer:"
@@ -625,28 +624,27 @@ msgstr "पर निर्मित"
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:138
 msgid ""
 "If you think there are any problems with the translation, why not "
-"participate in the translation work? If you want to participate, please read"
-" the document or contact me via email."
+"participate in the translation work? If you want to participate, please read "
+"the document or contact me via email."
 msgstr ""
-"यदि आपको लगता है कि अनुवाद में कोई समस्या है, तो अनुवाद कार्य में भाग क्यों "
-"न लें? यदि आप भाग लेना चाहते हैं, तो कृपया दस्तावेज़ पढ़ें या ईमेल के माध्यम"
-" से मुझसे संपर्क करें।"
+"यदि आपको लगता है कि अनुवाद में कोई समस्या है, तो अनुवाद कार्य में भाग क्यों न लें? यदि आप "
+"भाग लेना चाहते हैं, तो कृपया दस्तावेज़ पढ़ें या ईमेल के माध्यम से मुझसे संपर्क करें।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
 msgid ""
 "It is recommended that you always check the version of GpgFrontend and "
 "upgrade to the latest version."
 msgstr ""
-"यह अनुशंसा की जाती है कि आप हमेशा GpgFrontend के संस्करण की जांच करें और "
-"नवीनतम संस्करण में अपग्रेड करें।"
+"यह अनुशंसा की जाती है कि आप हमेशा GpgFrontend के संस्करण की जांच करें और नवीनतम संस्करण "
+"में अपग्रेड करें।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:166
 msgid ""
 "New versions not only represent new features, but also often represent "
 "functional and security fixes."
 msgstr ""
-"नए संस्करण न केवल नई सुविधाओं का प्रतिनिधित्व करते हैं, बल्कि अक्सर "
-"कार्यात्मक और सुरक्षा सुधारों का भी प्रतिनिधित्व करते हैं।"
+"नए संस्करण न केवल नई सुविधाओं का प्रतिनिधित्व करते हैं, बल्कि अक्सर कार्यात्मक और सुरक्षा "
+"सुधारों का भी प्रतिनिधित्व करते हैं।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:172
 msgid "Current Version"
@@ -687,18 +685,17 @@ msgid ""
 "This version has serious problems and has been withdrawn. Please stop using "
 "it immediately."
 msgstr ""
-"इस संस्करण में गंभीर समस्याएं हैं और इसे वापस ले लिया गया है। कृपया इसका "
-"इस्तेमाल तुरंत बंद कर दें।"
+"इस संस्करण में गंभीर समस्याएं हैं और इसे वापस ले लिया गया है। कृपया इसका इस्तेमाल तुरंत बंद कर "
+"दें।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
 msgid ""
-"This version has not been released yet, it may be a beta version. If you are"
-" not a tester and care about version stability, please do not use this "
+"This version has not been released yet, it may be a beta version. If you are "
+"not a tester and care about version stability, please do not use this "
 "version."
 msgstr ""
-"यह वर्जन अभी रिलीज नहीं हुआ है, यह बीटा वर्जन हो सकता है। यदि आप एक परीक्षक "
-"नहीं हैं और संस्करण स्थिरता की परवाह करते हैं, तो कृपया इस संस्करण का उपयोग "
-"न करें।"
+"यह वर्जन अभी रिलीज नहीं हुआ है, यह बीटा वर्जन हो सकता है। यदि आप एक परीक्षक नहीं हैं "
+"और संस्करण स्थिरता की परवाह करते हैं, तो कृपया इस संस्करण का उपयोग न करें।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:41
 msgid "GnuPG Version"
@@ -759,28 +756,25 @@ msgid ""
 "Please generate a password to protect your key before exporting, it is very "
 "important. Don't forget to back up your password in a safe place."
 msgstr ""
-"कृपया निर्यात करने से पहले अपनी कुंजी की सुरक्षा के लिए एक पासवर्ड जनरेट "
-"करें, यह बहुत महत्वपूर्ण है। सुरक्षित स्थान पर अपने पासवर्ड का बैकअप लेना न "
-"भूलें।"
+"कृपया निर्यात करने से पहले अपनी कुंजी की सुरक्षा के लिए एक पासवर्ड जनरेट करें, यह बहुत "
+"महत्वपूर्ण है। सुरक्षित स्थान पर अपने पासवर्ड का बैकअप लेना न भूलें।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
 msgid ""
 "The Key Package has been successfully generated and has been protected by "
-"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
-"Package."
+"encryption algorithms(AES-256-ECB). You can safely transfer your Key Package."
 msgstr ""
-"कुंजी पैकेज सफलतापूर्वक तैयार किया गया है और एन्क्रिप्शन एल्गोरिदम "
-"(एईएस-256-ईसीबी) द्वारा संरक्षित किया गया है। आप अपने कुंजी पैकेज को "
-"सुरक्षित रूप से स्थानांतरित कर सकते हैं।"
+"कुंजी पैकेज सफलतापूर्वक तैयार किया गया है और एन्क्रिप्शन एल्गोरिदम (एईएस-256-ईसीबी) "
+"द्वारा संरक्षित किया गया है। आप अपने कुंजी पैकेज को सुरक्षित रूप से स्थानांतरित कर सकते हैं।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
 msgid ""
-"But the key file cannot be leaked under any circumstances. Please delete the"
-" Key Package and key file as soon as possible after completing the transfer "
+"But the key file cannot be leaked under any circumstances. Please delete the "
+"Key Package and key file as soon as possible after completing the transfer "
 "operation."
 msgstr ""
-"लेकिन की फाइल किसी भी सूरत में लीक नहीं हो सकती। ट्रांसफर ऑपरेशन पूरा करने "
-"के बाद कृपया कुंजी पैकेज और कुंजी फ़ाइल को जल्द से जल्द हटा दें।"
+"लेकिन की फाइल किसी भी सूरत में लीक नहीं हो सकती। ट्रांसफर ऑपरेशन पूरा करने के बाद कृपया "
+"कुंजी पैकेज और कुंजी फ़ाइल को जल्द से जल्द हटा दें।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:121
 msgid "An error occurred while exporting the key package."
@@ -803,8 +797,8 @@ msgid ""
 "Tips: You can use Key Package to safely and conveniently transfer your "
 "public and private keys between devices."
 msgstr ""
-"टिप्स: आप अपनी सार्वजनिक और निजी कुंजियों को उपकरणों के बीच सुरक्षित और "
-"आसानी से स्थानांतरित करने के लिए कुंजी पैकेज का उपयोग कर सकते हैं।"
+"टिप्स: आप अपनी सार्वजनिक और निजी कुंजियों को उपकरणों के बीच सुरक्षित और आसानी से "
+"स्थानांतरित करने के लिए कुंजी पैकेज का उपयोग कर सकते हैं।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:134
 msgid "Generate and Save Passphrase"
@@ -1025,23 +1019,23 @@ msgstr "कुंजी नहीं मिली"
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:272
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:483
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:498
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:332
 msgid "Timeout"
 msgstr "समय समाप्त"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:275
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:486
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:144
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:334
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:335
 msgid "Key Server Not Found"
 msgstr "कुंजी सर्वर नहीं मिला"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:278
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:489
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:505
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:147
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:337
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:159
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:338
 msgid "Connection Error"
 msgstr "कनेक्शन त्रुटि"
 
@@ -1052,8 +1046,7 @@ msgstr "keyserver से बहुत अधिक प्रतिक्रि�
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:298
 msgid "No keys found, input may be kexId, retrying search with 0x."
 msgstr ""
-"कोई कुंजी नहीं मिली, इनपुट kexId हो सकता है, 0x के साथ खोज का पुनः प्रयास कर"
-" रहा है।"
+"कोई कुंजी नहीं मिली, इनपुट kexId हो सकता है, 0x के साथ खोज का पुनः प्रयास कर रहा है।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:307
 msgid "No keys found containing the search string!"
@@ -1073,29 +1066,27 @@ msgstr "विकलांग"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:398
 msgid "%1 keys found. Double click a key to import it."
-msgstr ""
-"% 1 कुंजियाँ मिलीं. किसी कुंजी को आयात करने के लिए उस पर डबल क्लिक करें।"
+msgstr "% 1 कुंजियाँ मिलीं. किसी कुंजी को आयात करने के लिए उस पर डबल क्लिक करें।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:446
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:290
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:96
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
 msgid "Default Keyserver Not Found"
 msgstr "डिफ़ॉल्ट कीसर्वर नहीं मिला"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:447
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:80
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:292
 msgid ""
 "Cannot read default keyserver from your settings, please set a default "
 "keyserver first"
 msgstr ""
-"आपकी सेटिंग्स से डिफ़ॉल्ट कीसर्वर नहीं पढ़ सकता है, कृपया पहले एक डिफ़ॉल्ट "
-"कीसर्वर सेट करें"
+"आपकी सेटिंग्स से डिफ़ॉल्ट कीसर्वर नहीं पढ़ सकता है, कृपया पहले एक डिफ़ॉल्ट कीसर्वर सेट करें"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:480
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:494
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:138
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:328
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:150
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:329
 msgid "Key Not Found"
 msgstr "कुंजी प्राप्त नहीं हुई"
 
@@ -1115,25 +1106,25 @@ msgstr "सामान्य कनेक्शन त्रुटि"
 msgid "Key Imported"
 msgstr "कुंजी आयातित"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:57
 msgid "Uploading Public Key"
 msgstr "सार्वजनिक कुंजी अपलोड करना"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:74
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:286
 msgid "Set target Key Server to default Key Server"
 msgstr "लक्ष्य कुंजी सर्वर को डिफ़ॉल्ट कुंजी सर्वर पर सेट करें"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:77
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:95
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:289
 msgid "Cannot read default_keyserver From Settings"
 msgstr "सेटिंग से default_keyserver नहीं पढ़ सकता"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:152
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:164
 msgid "Upload Success"
 msgstr "सफलतापूर्वक अपलोड हो गया"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:165
 msgid "Upload Public Key Successfully"
 msgstr "सार्वजनिक कुंजी को सफलतापूर्वक अपलोड करें"
 
@@ -1374,7 +1365,7 @@ msgstr "फ़ाइल में निर्यात कुंजी"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:157
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:203
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Key Files"
 msgstr "कुंजी फ़ाइलें"
 
@@ -1411,16 +1402,14 @@ msgstr "यह आपकी सार्वजनिक कुंजी नह�
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:177
 msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
-msgstr ""
-"क्या आप वाकई अपनी निजी कुंजी को न्यूनतम आकार में निर्यात करना चाहते हैं?"
+msgstr "क्या आप वाकई अपनी निजी कुंजी को न्यूनतम आकार में निर्यात करना चाहते हैं?"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:180
 msgid ""
 "For OpenPGP keys it removes all signatures except for the latest self-"
 "signatures."
 msgstr ""
-"OpenPGP कुंजियों के लिए यह नवीनतम स्व-हस्ताक्षर को छोड़कर सभी हस्ताक्षरों को"
-" हटा देता है।"
+"OpenPGP कुंजियों के लिए यह नवीनतम स्व-हस्ताक्षर को छोड़कर सभी हस्ताक्षरों को हटा देता है।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:220
 msgid "Exporting private Key"
@@ -1684,8 +1673,8 @@ msgid ""
 "To delete the signature, you need to have its corresponding public key in "
 "the local database."
 msgstr ""
-"हस्ताक्षर को हटाने के लिए, आपके पास स्थानीय डेटाबेस में इसकी संबंधित "
-"सार्वजनिक कुंजी होनी चाहिए।"
+"हस्ताक्षर को हटाने के लिए, आपके पास स्थानीय डेटाबेस में इसकी संबंधित सार्वजनिक कुंजी होनी "
+"चाहिए।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:561
 msgid "Deleting Key Signature"
@@ -1702,7 +1691,7 @@ msgstr "कुंजी जोड़ी की समाप्ति तिथ�
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:88
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:164
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:289
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
 msgid "Failure"
 msgstr "असफलता"
 
@@ -1723,11 +1712,11 @@ msgstr "संशोधित समाप्ति तिथि (स्था�
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:133
 msgid ""
-"Tips: For the sake of security, the key is valid for up to two years. If you"
-" are an expert user, please unlock it for a longer time in the settings."
+"Tips: For the sake of security, the key is valid for up to two years. If you "
+"are an expert user, please unlock it for a longer time in the settings."
 msgstr ""
-"सुझाव: सुरक्षा की दृष्टि से, कुंजी दो वर्ष तक के लिए वैध है। यदि आप एक "
-"विशेषज्ञ उपयोगकर्ता हैं, तो कृपया सेटिंग में इसे अधिक समय तक अनलॉक करें।"
+"सुझाव: सुरक्षा की दृष्टि से, कुंजी दो वर्ष तक के लिए वैध है। यदि आप एक विशेषज्ञ उपयोगकर्ता "
+"हैं, तो कृपया सेटिंग में इसे अधिक समय तक अनलॉक करें।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:136
 msgid "No Expiration"
@@ -1863,8 +1852,7 @@ msgstr "सहेजी नहीं गई फ़ाइलें"
 #: /mnt/h/GpgFrontend/src/ui/dialog/QuitDialog.cpp:86
 msgid ""
 "%1% files contain unsaved information.<br/>Save the changes before closing?"
-msgstr ""
-"%1% फ़ाइलों में सहेजी न गई जानकारी है।<br/>बंद करने से पहले परिवर्तन सहेजें?"
+msgstr "%1% फ़ाइलों में सहेजी न गई जानकारी है।<br/>बंद करने से पहले परिवर्तन सहेजें?"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/QuitDialog.cpp:100
 msgid "Check the files you want to save:"
@@ -1903,7 +1891,7 @@ msgstr "स्टेगानो_चेक किया गया"
 msgid "auto_pubkey_exchange_checked"
 msgstr "auto_pubkey_exchange_checked"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:41
 msgid "Icon Size"
 msgstr "चिह्न आकार"
 
@@ -1919,36 +1907,46 @@ msgstr "मध्यम"
 msgid "large"
 msgstr "बड़ा"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:46
 msgid "Icon Style"
 msgstr "चिह्न शैली"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:47
 msgid "just text"
 msgstr "बस पाठ"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:63
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:48
 msgid "just icons"
 msgstr "सिर्फ प्रतीक"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:64
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:49
 msgid "text and icons"
 msgstr "पाठ और चिह्न"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:51
 msgid "Window State"
 msgstr "खिड़की की स्थिति"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:83
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:53
 msgid "Save window size and position on exit."
 msgstr "बाहर निकलने पर विंडो का आकार और स्थिति सहेजें।"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:55
+#, fuzzy
+msgid "Text Editor"
+msgstr "संपादक"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:56
+#, fuzzy
+msgid "Font Size in Text Editor"
+msgstr "सूचना बोर्ड में फ़ॉन्ट आकार"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:58
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:496
 msgid "Information Board"
 msgstr "सूचना पट्ट"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
 msgid "Font Size in Information Board"
 msgstr "सूचना बोर्ड में फ़ॉन्ट आकार"
 
@@ -1984,8 +1982,7 @@ msgstr "चेक की गई कुंजी सहेजें"
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:46
 msgid "Save checked private keys on exit and restore them on next start."
 msgstr ""
-"बाहर निकलने पर चेक की गई निजी कुंजियों को सहेजें और अगली शुरुआत में उन्हें "
-"पुनर्स्थापित करें।"
+"बाहर निकलने पर चेक की गई निजी कुंजियों को सहेजें और अगली शुरुआत में उन्हें पुनर्स्थापित करें।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:47
 msgid "Longer Key Expiration Date"
@@ -2010,8 +2007,7 @@ msgstr "ASCII मोड"
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:56
 msgid "ASCII encoding is not used when file encrypting and signing."
 msgstr ""
-"फ़ाइल एन्क्रिप्ट और हस्ताक्षर करते समय ASCII एन्कोडिंग का उपयोग नहीं किया "
-"जाता है।"
+"फ़ाइल एन्क्रिप्ट और हस्ताक्षर करते समय ASCII एन्कोडिंग का उपयोग नहीं किया जाता है।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:59
 msgid "Language"
@@ -2092,63 +2088,60 @@ msgstr "चयनित कुंजी सर्वर हटाएं"
 msgid "Set As Default"
 msgstr "डिफाल्ट के रूप में सेट"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:151
 msgid "Insecure keyserver address"
 msgstr "असुरक्षित कीसर्वर पता"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:157
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:152
 msgid ""
 "For security reasons, using HTTP as the communication protocol with the key "
 "server is not recommended. It is recommended to use HTTPS."
 msgstr ""
-"सुरक्षा कारणों से, कुंजी सर्वर के साथ संचार प्रोटोकॉल के रूप में HTTP का "
-"उपयोग करने की अनुशंसा नहीं की जाती है। HTTPS का उपयोग करने की अनुशंसा की "
-"जाती है।"
+"सुरक्षा कारणों से, कुंजी सर्वर के साथ संचार प्रोटोकॉल के रूप में HTTP का उपयोग करने की "
+"अनुशंसा नहीं की जाती है। HTTPS का उपयोग करने की अनुशंसा की जाती है।"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:166
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:161
 msgid ""
-"You may not use HTTPS or HTTP as the protocol for communicating with the key"
-" server, which may not be wrong. But please check the address you entered "
+"You may not use HTTPS or HTTP as the protocol for communicating with the key "
+"server, which may not be wrong. But please check the address you entered "
 "again to make sure it is correct. Are you sure that want to add it into the "
 "keyserver list?"
 msgstr ""
-"आप कुंजी सर्वर के साथ संचार करने के लिए प्रोटोकॉल के रूप में HTTPS या HTTP "
-"का उपयोग नहीं कर सकते, जो गलत नहीं हो सकता है। लेकिन यह सुनिश्चित करने के "
-"लिए कि आपने जो पता दर्ज किया है, कृपया उसे दोबारा जांचें। क्या आप सुनिश्चित "
-"हैं कि इसे कीसर्वर सूची में जोड़ना चाहते हैं?"
+"आप कुंजी सर्वर के साथ संचार करने के लिए प्रोटोकॉल के रूप में HTTPS या HTTP का उपयोग नहीं "
+"कर सकते, जो गलत नहीं हो सकता है। लेकिन यह सुनिश्चित करने के लिए कि आपने जो पता दर्ज "
+"किया है, कृपया उसे दोबारा जांचें। क्या आप सुनिश्चित हैं कि इसे कीसर्वर सूची में जोड़ना चाहते हैं?"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:209
 msgid "false"
 msgstr "असत्य"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
 msgid "unknown"
 msgstr "अनजान"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:233
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:228
 msgid "Set TCP Timeout"
 msgstr "टीसीपी टाइमआउट सेट करें"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:258
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:253
 msgid "Reachable"
 msgstr "पहुंच योग्य"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:261
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:256
 msgid "Not Reachable"
 msgstr "पहुँच से बाहर"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:273
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:268
 msgid "Test Key Server Connection..."
 msgstr "कुंजी सर्वर कनेक्शन का परीक्षण करें..."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:274
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:269
 msgid ""
-"This test only tests the network connectivity of the key server. Passing the"
-" test does not mean that the key server is functionally available."
+"This test only tests the network connectivity of the key server. Passing the "
+"test does not mean that the key server is functionally available."
 msgstr ""
-"यह परीक्षण केवल कुंजी सर्वर की नेटवर्क कनेक्टिविटी का परीक्षण करता है। "
-"परीक्षण पास करने का मतलब यह नहीं है कि कुंजी सर्वर कार्यात्मक रूप से उपलब्ध "
-"है।"
+"यह परीक्षण केवल कुंजी सर्वर की नेटवर्क कनेक्टिविटी का परीक्षण करता है। परीक्षण पास करने "
+"का मतलब यह नहीं है कि कुंजी सर्वर कार्यात्मक रूप से उपलब्ध है।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:49
 msgid "Proxy"
@@ -2241,8 +2234,8 @@ msgid ""
 "Unable to connect to the target server through the proxy server. Proxy "
 "settings may be invalid."
 msgstr ""
-"प्रॉक्सी सर्वर के माध्यम से लक्ष्य सर्वर से कनेक्ट करने में असमर्थ। प्रॉक्सी"
-" सेटिंग्स अमान्य हो सकती हैं।"
+"प्रॉक्सी सर्वर के माध्यम से लक्ष्य सर्वर से कनेक्ट करने में असमर्थ। प्रॉक्सी सेटिंग्स अमान्य हो "
+"सकती हैं।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:262
 msgid "Test Proxy Server Connection..."
@@ -2253,9 +2246,8 @@ msgid ""
 "Is using your proxy settings to access the url. Note that this test "
 "operation will apply your proxy settings to the entire software."
 msgstr ""
-"यूआरएल तक पहुंचने के लिए आपकी प्रॉक्सी सेटिंग्स का उपयोग कर रहा है। ध्यान "
-"दें कि यह परीक्षण कार्रवाई आपकी प्रॉक्सी सेटिंग को संपूर्ण सॉफ़्टवेयर पर "
-"लागू कर देगी।"
+"यूआरएल तक पहुंचने के लिए आपकी प्रॉक्सी सेटिंग्स का उपयोग कर रहा है। ध्यान दें कि यह परीक्षण "
+"कार्रवाई आपकी प्रॉक्सी सेटिंग को संपूर्ण सॉफ़्टवेयर पर लागू कर देगी।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:36
 msgid "Confirm"
@@ -2272,14 +2264,12 @@ msgstr "हस्ताक्षरकर्ता चुनें"
 #: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:60
 msgid "Please select one or more private keys you use for signing."
 msgstr ""
-"कृपया एक या अधिक निजी कुंजियों का चयन करें जिनका उपयोग आप हस्ताक्षर करने के "
-"लिए करते हैं।"
+"कृपया एक या अधिक निजी कुंजियों का चयन करें जिनका उपयोग आप हस्ताक्षर करने के लिए करते हैं।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:62
 msgid "If no key is selected, the default key will be used for signing."
 msgstr ""
-"यदि कोई कुंजी चयनित नहीं है, तो हस्ताक्षर करने के लिए डिफ़ॉल्ट कुंजी का "
-"उपयोग किया जाएगा।"
+"यदि कोई कुंजी चयनित नहीं है, तो हस्ताक्षर करने के लिए डिफ़ॉल्ट कुंजी का उपयोग किया जाएगा।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:43
 msgid "First Start Wizard"
@@ -2296,16 +2286,16 @@ msgstr "... GpgFrontend . के साथ"
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:90
 msgid "Welcome to use GpgFrontend for decrypting and signing text or file!"
 msgstr ""
-"पाठ या फ़ाइल को डिक्रिप्ट करने और हस्ताक्षर करने के लिए GpgFrontend का उपयोग"
-" करने के लिए आपका स्वागत है!"
+"पाठ या फ़ाइल को डिक्रिप्ट करने और हस्ताक्षर करने के लिए GpgFrontend का उपयोग करने के "
+"लिए आपका स्वागत है!"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:93
 msgid ""
 "is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free "
 "OpenPGP Crypto Tool."
 msgstr ""
-"एक शक्तिशाली, उपयोग में आसान, कॉम्पैक्ट, क्रॉस-प्लेटफ़ॉर्म और "
-"इंस्टॉलेशन-मुक्त OpenPGP क्रिप्टो टूल है।"
+"एक शक्तिशाली, उपयोग में आसान, कॉम्पैक्ट, क्रॉस-प्लेटफ़ॉर्म और इंस्टॉलेशन-मुक्त OpenPGP "
+"क्रिप्टो टूल है।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:95
 msgid "For brief information have a look at the"
@@ -2321,11 +2311,11 @@ msgstr "लिंक पर क्लिक करने से वेब ब्
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:107
 msgid ""
-"If it supports the language currently being used in your system, GpgFrontend"
-" will automatically set it."
+"If it supports the language currently being used in your system, GpgFrontend "
+"will automatically set it."
 msgstr ""
-"यदि यह आपके सिस्टम में वर्तमान में उपयोग की जा रही भाषा का समर्थन करता है, "
-"तो GpgFrontend इसे स्वचालित रूप से सेट कर देगा।"
+"यदि यह आपके सिस्टम में वर्तमान में उपयोग की जा रही भाषा का समर्थन करता है, तो "
+"GpgFrontend इसे स्वचालित रूप से सेट कर देगा।"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:125
 msgid "Choose your action..."
@@ -2340,16 +2330,16 @@ msgid ""
 "If you have never used GpgFrontend before and also don't own a gpg key yet "
 "you may possibly want to read how to"
 msgstr ""
-"यदि आपने पहले कभी GpgFrontend का उपयोग नहीं किया है और आपके पास gpg कुंजी "
-"नहीं है, तो आप संभवतः पढ़ना चाहेंगे कि कैसे"
+"यदि आपने पहले कभी GpgFrontend का उपयोग नहीं किया है और आपके पास gpg कुंजी नहीं है, तो "
+"आप संभवतः पढ़ना चाहेंगे कि कैसे"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:142
 msgid ""
 "If you want to learn how to encrypt, decrypt, sign and verify text, you can "
 "read "
 msgstr ""
-"यदि आप पाठ को एन्क्रिप्ट, डिक्रिप्ट, हस्ताक्षर और सत्यापित करना सीखना चाहते "
-"हैं, तो आप पढ़ सकते हैं"
+"यदि आप पाठ को एन्क्रिप्ट, डिक्रिप्ट, हस्ताक्षर और सत्यापित करना सीखना चाहते हैं, तो आप "
+"पढ़ सकते हैं"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:147
 msgid "Encrypt & Decrypt Text"
@@ -2392,12 +2382,11 @@ msgid ""
 "sign messages.<br>For more information have a look at the offline tutorial "
 "(which then is shown in the main window):"
 msgstr ""
-"आपको एक नया की-युग्म बनाना चाहिए। इस जोड़ी में एक सार्वजनिक और एक निजी कुंजी"
-" होती है।<br>अन्य उपयोगकर्ता आपके लिए संदेशों को एन्क्रिप्ट करने और आपके "
-"द्वारा हस्ताक्षरित संदेशों को सत्यापित करने के लिए सार्वजनिक कुंजी का उपयोग "
-"कर सकते हैं। आप डिक्रिप्ट और हस्ताक्षर करने के लिए निजी कुंजी का उपयोग कर "
-"सकते हैं। संदेश।<br>अधिक जानकारी के लिए ऑफ़लाइन ट्यूटोरियल देखें (जो तब "
-"मुख्य विंडो में दिखाया जाता है):"
+"आपको एक नया की-युग्म बनाना चाहिए। इस जोड़ी में एक सार्वजनिक और एक निजी कुंजी होती है।"
+"<br>अन्य उपयोगकर्ता आपके लिए संदेशों को एन्क्रिप्ट करने और आपके द्वारा हस्ताक्षरित संदेशों को "
+"सत्यापित करने के लिए सार्वजनिक कुंजी का उपयोग कर सकते हैं। आप डिक्रिप्ट और हस्ताक्षर करने "
+"के लिए निजी कुंजी का उपयोग कर सकते हैं। संदेश।<br>अधिक जानकारी के लिए ऑफ़लाइन ट्यूटोरियल "
+"देखें (जो तब मुख्य विंडो में दिखाया जाता है):"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:206
 msgid "Offline tutorial"
@@ -2428,8 +2417,8 @@ msgid ""
 " will get you started with GpgFrontend. Anytime you encounter problems, "
 "please try to find help from the documentation"
 msgstr ""
-" GpgFrontend के साथ आरंभ करेंगे। जब भी आपको कोई समस्या आती है, तो कृपया "
-"दस्तावेज़ीकरण से सहायता प्राप्त करने का प्रयास करें"
+" GpgFrontend के साथ आरंभ करेंगे। जब भी आपको कोई समस्या आती है, तो कृपया दस्तावेज़ीकरण से "
+"सहायता प्राप्त करने का प्रयास करें"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:250
 msgid "Open offline help."
@@ -2449,9 +2438,9 @@ msgid ""
 "This is not a serious problem, it may be the negligence of the programmer, "
 "please report this problem if you can."
 msgstr ""
-"ओह, प्रोग्राम चलाने के दौरान एक मानक अपवाद फेंका गया था। यह कोई गंभीर समस्या"
-" नहीं है, यह प्रोग्रामर की लापरवाही हो सकती है, यदि आप कर सकते हैं तो कृपया "
-"इस समस्या की रिपोर्ट करें।"
+"ओह, प्रोग्राम चलाने के दौरान एक मानक अपवाद फेंका गया था। यह कोई गंभीर समस्या नहीं है, "
+"यह प्रोग्रामर की लापरवाही हो सकती है, यदि आप कर सकते हैं तो कृपया इस समस्या की "
+"रिपोर्ट करें।"
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:88
 msgid "Unhandled Exception Thrown"
@@ -2463,9 +2452,9 @@ msgid ""
 "This is not a serious problem, it may be the negligence of the programmer, "
 "please report this problem if you can."
 msgstr ""
-"ओह, प्रोग्राम चलाने के दौरान एक हैंडल न किया गया अपवाद फेंका गया था। यह कोई "
-"गंभीर समस्या नहीं है, यह प्रोग्रामर की लापरवाही हो सकती है, यदि आप कर सकते "
-"हैं तो कृपया इस समस्या की रिपोर्ट करें।"
+"ओह, प्रोग्राम चलाने के दौरान एक हैंडल न किया गया अपवाद फेंका गया था। यह कोई गंभीर "
+"समस्या नहीं है, यह प्रोग्रामर की लापरवाही हो सकती है, यदि आप कर सकते हैं तो कृपया इस "
+"समस्या की रिपोर्ट करें।"
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:83
 msgid "Loading Gnupg Info..."
@@ -2473,13 +2462,12 @@ msgstr "Gnupg जानकारी लोड हो रही है..."
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:84
 msgid ""
-"If this process is too slow, please set the key server address appropriately"
-" in the gnupg configuration file (depending on the network situation in your"
-" country or region)."
+"If this process is too slow, please set the key server address appropriately "
+"in the gnupg configuration file (depending on the network situation in your "
+"country or region)."
 msgstr ""
-"यदि यह प्रक्रिया बहुत धीमी है, तो कृपया कुंजी सर्वर पता gnupg कॉन्फ़िगरेशन "
-"फ़ाइल (आपके देश या क्षेत्र में नेटवर्क की स्थिति के आधार पर) में उचित रूप से"
-" सेट करें।"
+"यदि यह प्रक्रिया बहुत धीमी है, तो कृपया कुंजी सर्वर पता gnupg कॉन्फ़िगरेशन फ़ाइल (आपके देश "
+"या क्षेत्र में नेटवर्क की स्थिति के आधार पर) में उचित रूप से सेट करें।"
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:195
 msgid "could not read properly from configure file"
@@ -2696,16 +2684,15 @@ msgid ""
 "If a key pair does not have a private key then it will not be able to "
 "generate sub-keys."
 msgstr ""
-"यदि किसी कुंजी युग्म के पास निजी कुंजी नहीं है तो वह उप-कुंजी उत्पन्न करने "
-"में सक्षम नहीं होगा।"
+"यदि किसी कुंजी युग्म के पास निजी कुंजी नहीं है तो वह उप-कुंजी उत्पन्न करने में सक्षम नहीं होगा।"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:394
 msgid ""
-"Please select a key before performing this operation. If you select multiple"
-" keys, only the first key will be exported."
+"Please select a key before performing this operation. If you select multiple "
+"keys, only the first key will be exported."
 msgstr ""
-"कृपया इस ऑपरेशन को करने से पहले एक कुंजी का चयन करें। यदि आप एकाधिक कुंजियों"
-" का चयन करते हैं, तो केवल पहली कुंजी निर्यात की जाएगी।"
+"कृपया इस ऑपरेशन को करने से पहले एक कुंजी का चयन करें। यदि आप एकाधिक कुंजियों का चयन करते "
+"हैं, तो केवल पहली कुंजी निर्यात की जाएगी।"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:402
 msgid "An error occur in exporting."
@@ -2716,9 +2703,8 @@ msgid ""
 "This key may not be able to export as OpenSSH format. Please check the key-"
 "size of the subkey(s) used to sign."
 msgstr ""
-"यह कुंजी ओपनएसएसएच प्रारूप के रूप में निर्यात करने में सक्षम नहीं हो सकती "
-"है। कृपया हस्ताक्षर करने के लिए उपयोग की जाने वाली उपकुंजियों के कुंजी-आकार "
-"की जांच करें।"
+"यह कुंजी ओपनएसएसएच प्रारूप के रूप में निर्यात करने में सक्षम नहीं हो सकती है। कृपया हस्ताक्षर "
+"करने के लिए उपयोग की जाने वाली उपकुंजियों के कुंजी-आकार की जांच करें।"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:423
 msgid "Export OpenSSH Key To File"
@@ -2787,9 +2773,7 @@ msgstr "टारबॉल बनाना"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:200
 msgid "The target file %1% already exists, do you need to overwrite it?"
-msgstr ""
-"लक्ष्य फ़ाइल %1% पहले से मौजूद है, क्या आपको इसे अधिलेखित करने की आवश्यकता "
-"है?"
+msgstr "लक्ष्य फ़ाइल %1% पहले से मौजूद है, क्या आपको इसे अधिलेखित करने की आवश्यकता है?"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:214
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:632
@@ -2806,8 +2790,8 @@ msgid ""
 "No Key Selected. Do you want to encrypt with a symmetric cipher using a "
 "passphrase?"
 msgstr ""
-"कोई कुंजी चयनित नहीं है। क्या आप पासफ़्रेज़ का उपयोग करके सममित सिफर से "
-"एन्क्रिप्ट करना चाहते हैं?"
+"कोई कुंजी चयनित नहीं है। क्या आप पासफ़्रेज़ का उपयोग करके सममित सिफर से एन्क्रिप्ट करना "
+"चाहते हैं?"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:230
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:101
@@ -2858,8 +2842,7 @@ msgstr "ऑपरेशन के दौरान एक त्रुटि ह�
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:312
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:610
 msgid "The target file already exists, do you need to overwrite it?"
-msgstr ""
-"लक्ष्य फ़ाइल पहले से मौजूद है, क्या आपको इसे अधिलेखित करने की आवश्यकता है?"
+msgstr "लक्ष्य फ़ाइल पहले से मौजूद है, क्या आपको इसे अधिलेखित करने की आवश्यकता है?"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:321
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:347
@@ -2903,9 +2886,7 @@ msgstr "कृपया दाईं ओर स्थित कुंजी ट�
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:384
 msgid ""
 "The selected key contains a key that does not actually have a sign usage."
-msgstr ""
-"चयनित कुंजी में एक कुंजी होती है जिसका वास्तव में कोई संकेत उपयोग नहीं होता "
-"है।"
+msgstr "चयनित कुंजी में एक कुंजी होती है जिसका वास्तव में कोई संकेत उपयोग नहीं होता है।"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:386
 msgid "for example the Following Key:"
@@ -2913,9 +2894,7 @@ msgstr "उदाहरण के लिए निम्नलिखित क�
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:419
 msgid "The signature file \"%1\" exists, do you need to overwrite it?"
-msgstr ""
-"हस्ताक्षर फ़ाइल \"% 1\" मौजूद है, क्या आपको इसे अधिलेखित करने की आवश्यकता "
-"है?"
+msgstr "हस्ताक्षर फ़ाइल \"% 1\" मौजूद है, क्या आपको इसे अधिलेखित करने की आवश्यकता है?"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:496
 msgid "Origin file to verify"
@@ -2930,8 +2909,8 @@ msgid ""
 "Please select the appropriate origin file or signature file. Ensure that "
 "both are in this directory."
 msgstr ""
-"कृपया उपयुक्त मूल फ़ाइल या हस्ताक्षर फ़ाइल का चयन करें। सुनिश्चित करें कि "
-"दोनों इस निर्देशिका में हैं।"
+"कृपया उपयुक्त मूल फ़ाइल या हस्ताक्षर फ़ाइल का चयन करें। सुनिश्चित करें कि दोनों इस निर्देशिका "
+"में हैं।"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:521
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:386
@@ -2945,9 +2924,7 @@ msgstr "एन्क्रिप्ट करना और हस्ताक्
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:705
 msgid "The output file %1 already exists, do you need to overwrite it?"
-msgstr ""
-"आउटपुट फ़ाइल% 1 पहले से मौजूद है, क्या आपको इसे अधिलेखित करने की आवश्यकता "
-"है?"
+msgstr "आउटपुट फ़ाइल% 1 पहले से मौजूद है, क्या आपको इसे अधिलेखित करने की आवश्यकता है?"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:717
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:587
@@ -2959,23 +2936,19 @@ msgid ""
 "No Key Checked. Do you want to encrypt with a symmetric cipher using a "
 "passphrase?"
 msgstr ""
-"कोई कुंजी चेक नहीं की गई। क्या आप पासफ़्रेज़ का उपयोग करके सममित सिफर से "
-"एन्क्रिप्ट करना चाहते हैं?"
+"कोई कुंजी चेक नहीं की गई। क्या आप पासफ़्रेज़ का उपयोग करके सममित सिफर से एन्क्रिप्ट करना "
+"चाहते हैं?"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:129
 msgid ""
 "The selected key contains a key that does not actually have a encrypt usage."
-msgstr ""
-"चयनित कुंजी में एक कुंजी होती है जिसका वास्तव में एन्क्रिप्ट उपयोग नहीं होता"
-" है।"
+msgstr "चयनित कुंजी में एक कुंजी होती है जिसका वास्तव में एन्क्रिप्ट उपयोग नहीं होता है।"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:190
 msgid ""
 "The selected key contains a key that does not actually have a signature "
 "usage."
-msgstr ""
-"चयनित कुंजी में एक कुंजी होती है जिसमें वास्तव में हस्ताक्षर का उपयोग नहीं "
-"होता है।"
+msgstr "चयनित कुंजी में एक कुंजी होती है जिसमें वास्तव में हस्ताक्षर का उपयोग नहीं होता है।"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:265
 msgid "Notice"
@@ -3003,15 +2976,13 @@ msgid ""
 "problems. Please stop using this version immediately and use the latest "
 "stable version."
 msgstr ""
-"यह संस्करण (% 1) गंभीर समस्याओं के कारण डेवलपर द्वारा वापस ले लिया गया हो "
-"सकता है। कृपया इस संस्करण का उपयोग तुरंत बंद करें और नवीनतम स्थिर संस्करण का"
-" उपयोग करें।"
+"यह संस्करण (% 1) गंभीर समस्याओं के कारण डेवलपर द्वारा वापस ले लिया गया हो सकता है। "
+"कृपया इस संस्करण का उपयोग तुरंत बंद करें और नवीनतम स्थिर संस्करण का उपयोग करें।"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:690
 msgid ""
 "You can download the latest stable version(%1) on Github Releases Page.<br/>"
-msgstr ""
-"आप Github रिलीज़ पेज पर नवीनतम स्थिर संस्करण (% 1) डाउनलोड कर सकते हैं।<br/>"
+msgstr "आप Github रिलीज़ पेज पर नवीनतम स्थिर संस्करण (% 1) डाउनलोड कर सकते हैं।<br/>"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:696
 msgid "This maybe a BETA Version (Latest Stable Version: %1)."
@@ -3313,6 +3284,11 @@ msgstr "तैयार"
 msgid "Key ToolBox"
 msgstr "कुंजी टूलबॉक्स"
 
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:56
+#, fuzzy
+msgid "Show Verify Details"
+msgstr "मुख्य विवरण दिखाएं"
+
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:65
 msgid "Public key not found locally"
 msgstr "सार्वजनिक कुंजी स्थानीय रूप से नहीं मिली"
@@ -3323,59 +3299,61 @@ msgid ""
 "enough information about this Signature. Do you want to import the public "
 "key from Keyserver now?"
 msgstr ""
-"इस हस्ताक्षर के बारे में पर्याप्त जानकारी एकत्र करने के लिए GpgFrontend के "
-"लिए स्थानीय में कोई लक्षित सार्वजनिक कुंजी सामग्री नहीं है। क्या आप "
-"सार्वजनिक कुंजी को Keyserver से अभी आयात करना चाहते हैं?"
+"इस हस्ताक्षर के बारे में पर्याप्त जानकारी एकत्र करने के लिए GpgFrontend के लिए स्थानीय में "
+"कोई लक्षित सार्वजनिक कुंजी सामग्री नहीं है। क्या आप सार्वजनिक कुंजी को Keyserver से अभी "
+"आयात करना चाहते हैं?"
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:171
 msgid "ENV Loading Failed"
 msgstr "ENV लोड हो रहा है विफल"
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:172
+#, fuzzy
 msgid ""
-"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
-" in Github to install Gnupg and then open GpgFrontend."
+"Gnupg(gpg) is not installed correctly, please follow <a href='https://www."
+"gpgfrontend.pub/#/faq?id=how-to-deal-with-39env-loading-failed39'>this "
+"notes</a> in FAQ to install Gnupg and then open GpgFrontend."
 msgstr ""
-"Gnupg (gpg) ठीक से स्थापित नहीं है, कृपया Gnupg को स्थापित करने के लिए "
-"Github में ReadME निर्देशों का पालन करें और फिर GpgFrontend खोलें।"
+"Gnupg (gpg) ठीक से स्थापित नहीं है, कृपया Gnupg को स्थापित करने के लिए Github में "
+"ReadME निर्देशों का पालन करें और फिर GpgFrontend खोलें।"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:190
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
 msgid "Open Key"
 msgstr "कुंजी खोलें"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Keyring files"
 msgstr "कीरिंग फ़ाइलें"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:196
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
 msgid "File Open Failed"
 msgstr "फ़ाइल खोलना विफल"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:198
 msgid "Failed to open file: "
 msgstr "फ़ाइल खोलने में असफल:"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:220
 msgid "Processing"
 msgstr "प्रसंस्करण"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:240
 msgid "Failed to execute command."
 msgstr "आदेश निष्पादित करने में विफल।"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:248
 msgid "Succeed in executing command."
 msgstr "आदेश को क्रियान्वित करने में सफलता।"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:251
 msgid "Finished executing command."
 msgstr "निष्पादन आदेश समाप्त।"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:349
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:350
 msgid "The key has been updated"
 msgstr "कुंजी अपडेट कर दी गई है"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:351
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:352
 msgid "No need to update the key"
 msgstr "कुंजी को अपडेट करने की आवश्यकता नहीं है"
 
@@ -3456,11 +3434,11 @@ msgstr "फ़ाइल नाम (आप एक्सटेंशन दे स
 msgid "Unable to create the file."
 msgstr "फ़ाइल बनाने में असमर्थ."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:167
 msgid "Save Information Board's Content"
 msgstr "सूचना बोर्ड की सामग्री सहेजें"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:177
 msgid "The file path is not exists, unprivileged or unreachable."
 msgstr "फ़ाइल पथ मौजूद नहीं है, विशेषाधिकार रहित या पहुंच योग्य नहीं है।"
 
@@ -3532,53 +3510,53 @@ msgstr "हमेशा परेशान किए बिना आयात �
 msgid "Couldn't Open File"
 msgstr "फ़ाइल नहीं खोल सका"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:430
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:432
 msgid "Key List Refreshed."
 msgstr "कुंजी सूची रीफ़्रेश की गई."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:448
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
 msgid "Syncing Key List..."
 msgstr "कुंजी सूची समन्वयित की जा रही है..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:460
 msgid "Sync [%1%/%2%] %3% %4%"
 msgstr "सिंक [%1%/%2%] %3%%4%"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:464
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:468
 msgid "Key List Sync Done."
 msgstr "कुंजी सूची समन्वयन हो गया।"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:61
 msgid "0 character"
 msgstr "0 वर्ण"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:55
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:99
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:106
 msgid "lf"
 msgstr "वामो"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:56
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
 msgid "utf-8"
 msgstr "यूटीएफ-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:252
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:259
 msgid "%1% character(s)"
 msgstr "%1% वर्ण"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:72
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:79
 msgid "Loading..."
 msgstr "लोड हो रहा है..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:100
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:107
 msgid "UTF-8"
 msgstr "यूटीएफ-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:232
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:239
 msgid "%1% byte(s)"
 msgstr "%1% बाइट"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:277
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:284
 msgid "binary"
 msgstr "बायनरी"
 
@@ -3610,14 +3588,14 @@ msgid ""
 "After saving, the encoding of the current file will be converted to UTF-8 "
 "and the line endings will be changed to LF. "
 msgstr ""
-"सहेजने के बाद, वर्तमान फ़ाइल की एन्कोडिंग को UTF-8 में बदल दिया जाएगा और "
-"लाइन के अंत को LF में बदल दिया जाएगा।"
+"सहेजने के बाद, वर्तमान फ़ाइल की एन्कोडिंग को UTF-8 में बदल दिया जाएगा और लाइन के अंत को "
+"LF में बदल दिया जाएगा।"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:180
 msgid "If this is not the result you expect, please use \"save as\"."
 msgstr ""
-"यदि यह वह परिणाम नहीं है जिसकी आप अपेक्षा करते हैं, तो कृपया \"इस रूप में "
-"सहेजें\" का उपयोग करें।"
+"यदि यह वह परिणाम नहीं है जिसकी आप अपेक्षा करते हैं, तो कृपया \"इस रूप में सहेजें\" का "
+"उपयोग करें।"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:232
 msgid "Save file"
@@ -3628,10 +3606,10 @@ msgid "Unsaved document"
 msgstr "सहेजा नहीं गया दस्तावेज़"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:295
-msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgid ""
+"The document \"%1\" has been modified. Do you want to save your changes?"
 msgstr ""
-"दस्तावेज़ \"% 1\" को संशोधित किया गया है। क्या आप अपने परिवर्तनों को सहेजना "
-"चाहते हैं?"
+"दस्तावेज़ \"% 1\" को संशोधित किया गया है। क्या आप अपने परिवर्तनों को सहेजना चाहते हैं?"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:298
 msgid "Note:"
@@ -3772,33 +3750,32 @@ msgstr "गुम सीआरएल"
 
 #~ msgid ""
 #~ "Please go to the settings interface to enable and configure this function."
-#~ msgstr ""
-#~ "इस फ़ंक्शन को सक्षम और कॉन्फ़िगर करने के लिए कृपया सेटिंग इंटरफ़ेस पर जाएं।"
+#~ msgstr "इस फ़ंक्शन को सक्षम और कॉन्फ़िगर करने के लिए कृपया सेटिंग इंटरफ़ेस पर जाएं।"
 
 #~ msgid "Select Recipient(s)"
 #~ msgstr "प्राप्तकर्ता का चयन करें"
 
 #~ msgid "We use the public key provided by the recipient to encrypt the text."
 #~ msgstr ""
-#~ "हम पाठ को एन्क्रिप्ट करने के लिए प्राप्तकर्ता द्वारा प्रदान की गई सार्वजनिक "
-#~ "कुंजी का उपयोग करते हैं।"
+#~ "हम पाठ को एन्क्रिप्ट करने के लिए प्राप्तकर्ता द्वारा प्रदान की गई सार्वजनिक कुंजी का "
+#~ "उपयोग करते हैं।"
 
 #~ msgid ""
-#~ "If you want to send to multiple recipients at the same time, you can select "
-#~ "multiple keys."
+#~ "If you want to send to multiple recipients at the same time, you can "
+#~ "select multiple keys."
 #~ msgstr ""
-#~ "यदि आप एक ही समय में एकाधिक प्राप्तकर्ताओं को भेजना चाहते हैं, तो आप एकाधिक "
-#~ "कुंजियों का चयन कर सकते हैं।"
+#~ "यदि आप एक ही समय में एकाधिक प्राप्तकर्ताओं को भेजना चाहते हैं, तो आप एकाधिक कुंजियों "
+#~ "का चयन कर सकते हैं।"
 
 #~ msgid "Email List:"
 #~ msgstr "ईमेल सूची:"
 
 #~ msgid ""
-#~ "Tips: You can double-click the email address in the edit list, or click the "
-#~ "email to pop up the option menu."
+#~ "Tips: You can double-click the email address in the edit list, or click "
+#~ "the email to pop up the option menu."
 #~ msgstr ""
-#~ "टिप्स: आप संपादन सूची में ईमेल पते पर डबल-क्लिक कर सकते हैं, या विकल्प मेनू "
-#~ "को पॉप अप करने के लिए ईमेल पर क्लिक कर सकते हैं।"
+#~ "टिप्स: आप संपादन सूची में ईमेल पते पर डबल-क्लिक कर सकते हैं, या विकल्प मेनू को पॉप अप "
+#~ "करने के लिए ईमेल पर क्लिक कर सकते हैं।"
 
 #~ msgid "Add An Email Address"
 #~ msgstr "एक ईमेल पता जोड़ें"
@@ -3819,8 +3796,7 @@ msgstr "गुम सीआरएल"
 #~ " The private key is generally used as a signature for the content of the "
 #~ "mail."
 #~ msgstr ""
-#~ " निजी कुंजी आमतौर पर मेल की सामग्री के लिए हस्ताक्षर के रूप में उपयोग की "
-#~ "जाती है।"
+#~ " निजी कुंजी आमतौर पर मेल की सामग्री के लिए हस्ताक्षर के रूप में उपयोग की जाती है।"
 
 #~ msgid "Incomplete configuration"
 #~ msgstr "अधूरा विन्यास"
@@ -3828,9 +3804,7 @@ msgstr "गुम सीआरएल"
 #~ msgid ""
 #~ "The SMTP address is empty, please go to the setting interface to complete "
 #~ "the configuration."
-#~ msgstr ""
-#~ "SMTP पता खाली है, कृपया कॉन्फ़िगरेशन को पूरा करने के लिए सेटिंग इंटरफ़ेस पर "
-#~ "जाएँ।"
+#~ msgstr "SMTP पता खाली है, कृपया कॉन्फ़िगरेशन को पूरा करने के लिए सेटिंग इंटरफ़ेस पर जाएँ।"
 
 #~ msgid "CC"
 #~ msgstr "सीसी"
@@ -3907,41 +3881,42 @@ msgstr "गुम सीआरएल"
 #~ msgstr "एक या अधिक गुप्त प्रति ईमेल अमान्य है"
 
 #~ msgid ""
-#~ "You have checked the encrypted email content, but you have not selected the "
-#~ "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
-#~ "So the send operation is forbidden"
+#~ "You have checked the encrypted email content, but you have not selected "
+#~ "the recipient's GPG key. This is dangerous and the mail will not be "
+#~ "encrypted. So the send operation is forbidden"
 #~ msgstr ""
-#~ "आपने एन्क्रिप्टेड ईमेल सामग्री की जांच की है, लेकिन आपने प्राप्तकर्ता की GPG"
-#~ " कुंजी का चयन नहीं किया है। यह खतरनाक है और मेल एन्क्रिप्ट नहीं किया जाएगा। "
-#~ "इसलिए भेजने का कार्य वर्जित है"
+#~ "आपने एन्क्रिप्टेड ईमेल सामग्री की जांच की है, लेकिन आपने प्राप्तकर्ता की GPG कुंजी का चयन "
+#~ "नहीं किया है। यह खतरनाक है और मेल एन्क्रिप्ट नहीं किया जाएगा। इसलिए भेजने का कार्य "
+#~ "वर्जित है"
 
 #~ msgid ""
-#~ "You checked the option to attach signature to the email, but did not specify"
-#~ " the sender's GPG Key. This will cause the content of the email to be "
-#~ "inconsistent with your expectations, so the operation is prohibited."
+#~ "You checked the option to attach signature to the email, but did not "
+#~ "specify the sender's GPG Key. This will cause the content of the email to "
+#~ "be inconsistent with your expectations, so the operation is prohibited."
 #~ msgstr ""
-#~ "आपने ईमेल में हस्ताक्षर संलग्न करने के विकल्प की जाँच की, लेकिन प्रेषक की "
-#~ "GPG कुंजी निर्दिष्ट नहीं की। इससे ईमेल की सामग्री आपकी अपेक्षाओं के अनुरूप "
-#~ "नहीं होगी, इसलिए संचालन प्रतिबंधित है।"
+#~ "आपने ईमेल में हस्ताक्षर संलग्न करने के विकल्प की जाँच की, लेकिन प्रेषक की GPG कुंजी "
+#~ "निर्दिष्ट नहीं की। इससे ईमेल की सामग्री आपकी अपेक्षाओं के अनुरूप नहीं होगी, इसलिए "
+#~ "संचालन प्रतिबंधित है।"
 
 #~ msgid ""
-#~ "You checked the option to attach your public key to the email, but did not "
-#~ "specify the sender's GPG Key. This will cause the content of the email to be"
-#~ " inconsistent with your expectations, so the operation is prohibited."
+#~ "You checked the option to attach your public key to the email, but did "
+#~ "not specify the sender's GPG Key. This will cause the content of the "
+#~ "email to be inconsistent with your expectations, so the operation is "
+#~ "prohibited."
 #~ msgstr ""
-#~ "आपने अपनी सार्वजनिक कुंजी को ईमेल में संलग्न करने के विकल्प की जाँच की, "
-#~ "लेकिन प्रेषक की GPG कुंजी निर्दिष्ट नहीं की। इससे ईमेल की सामग्री आपकी "
-#~ "अपेक्षाओं के अनुरूप नहीं होगी, इसलिए संचालन प्रतिबंधित है।"
+#~ "आपने अपनी सार्वजनिक कुंजी को ईमेल में संलग्न करने के विकल्प की जाँच की, लेकिन प्रेषक की "
+#~ "GPG कुंजी निर्दिष्ट नहीं की। इससे ईमेल की सामग्री आपकी अपेक्षाओं के अनुरूप नहीं होगी, "
+#~ "इसलिए संचालन प्रतिबंधित है।"
 
 #~ msgid "Sending Email..."
 #~ msgstr "ईमेल भेज रहा हूं..."
 
 #~ msgid ""
-#~ "If the process does not end for a long time, please check again whether your"
-#~ " SMTP server configuration is correct."
+#~ "If the process does not end for a long time, please check again whether "
+#~ "your SMTP server configuration is correct."
 #~ msgstr ""
-#~ "यदि प्रक्रिया लंबे समय तक समाप्त नहीं होती है, तो कृपया फिर से जांचें कि "
-#~ "आपका एसएमटीपी सर्वर कॉन्फ़िगरेशन सही है या नहीं।"
+#~ "यदि प्रक्रिया लंबे समय तक समाप्त नहीं होती है, तो कृपया फिर से जांचें कि आपका "
+#~ "एसएमटीपी सर्वर कॉन्फ़िगरेशन सही है या नहीं।"
 
 #~ msgid "identity_enable"
 #~ msgstr "पहचान_सक्षम"
@@ -3980,8 +3955,8 @@ msgstr "गुम सीआरएल"
 #~ "An error occurred while encrypting the content of the email. This may be "
 #~ "because you did not complete some operations during Gnupg encryption."
 #~ msgstr ""
-#~ "ईमेल की सामग्री को एन्क्रिप्ट करते समय एक त्रुटि हुई। ऐसा इसलिए हो सकता है "
-#~ "क्योंकि आपने Gnupg एन्क्रिप्शन के दौरान कुछ ऑपरेशन पूरे नहीं किए थे।"
+#~ "ईमेल की सामग्री को एन्क्रिप्ट करते समय एक त्रुटि हुई। ऐसा इसलिए हो सकता है क्योंकि "
+#~ "आपने Gnupg एन्क्रिप्शन के दौरान कुछ ऑपरेशन पूरे नहीं किए थे।"
 
 #~ msgid "Unknown error."
 #~ msgstr "अज्ञात त्रुटि।"
@@ -3996,16 +3971,16 @@ msgstr "गुम सीआरएल"
 #~ msgstr "स्वचालित कुंजी विनिमय चेतावनी"
 
 #~ msgid ""
-#~ "Part of the automatic key exchange failed, which may be related to your key."
-#~ msgstr ""
-#~ "स्वचालित कुंजी विनिमय का भाग विफल रहा, जो आपकी कुंजी से संबंधित हो सकता है।"
+#~ "Part of the automatic key exchange failed, which may be related to your "
+#~ "key."
+#~ msgstr "स्वचालित कुंजी विनिमय का भाग विफल रहा, जो आपकी कुंजी से संबंधित हो सकता है।"
 
 #~ msgid ""
 #~ "If possible, try to use the RSA algorithm compatible with the server for "
 #~ "signing."
 #~ msgstr ""
-#~ "यदि संभव हो, तो हस्ताक्षर करने के लिए सर्वर के साथ संगत RSA एल्गोरिथम का "
-#~ "उपयोग करने का प्रयास करें।"
+#~ "यदि संभव हो, तो हस्ताक्षर करने के लिए सर्वर के साथ संगत RSA एल्गोरिथम का उपयोग करने "
+#~ "का प्रयास करें।"
 
 #~ msgid "Service Token Empty"
 #~ msgstr "सेवा टोकन खाली"
@@ -4013,8 +3988,7 @@ msgstr "गुम सीआरएल"
 #~ msgid ""
 #~ "Please go to the settings interface to set Own Key and get Service Token."
 #~ msgstr ""
-#~ "ओन की को सेट करने और सर्विस टोकन प्राप्त करने के लिए कृपया सेटिंग इंटरफेस पर"
-#~ " जाएं।"
+#~ "ओन की को सेट करने और सर्विस टोकन प्राप्त करने के लिए कृपया सेटिंग इंटरफेस पर जाएं।"
 
 #~ msgid "called"
 #~ msgstr "बुलाया"
@@ -4074,13 +4048,13 @@ msgstr "गुम सीआरएल"
 #~ msgstr "डिफ़ॉल्ट प्रेषक GPG कुंजी आईडी"
 
 #~ msgid ""
-#~ "Tips: It is recommended that you build your own mail server or use a trusted"
-#~ " mail server. If you don't know the detailed configuration information, you "
-#~ "can get it from the mail service provider."
+#~ "Tips: It is recommended that you build your own mail server or use a "
+#~ "trusted mail server. If you don't know the detailed configuration "
+#~ "information, you can get it from the mail service provider."
 #~ msgstr ""
-#~ "सुझाव: यह अनुशंसा की जाती है कि आप अपना स्वयं का मेल सर्वर बनाएं या किसी "
-#~ "विश्वसनीय मेल सर्वर का उपयोग करें। यदि आप विस्तृत कॉन्फ़िगरेशन जानकारी नहीं "
-#~ "जानते हैं, तो आप इसे मेल सेवा प्रदाता से प्राप्त कर सकते हैं।"
+#~ "सुझाव: यह अनुशंसा की जाती है कि आप अपना स्वयं का मेल सर्वर बनाएं या किसी विश्वसनीय "
+#~ "मेल सर्वर का उपयोग करें। यदि आप विस्तृत कॉन्फ़िगरेशन जानकारी नहीं जानते हैं, तो आप इसे "
+#~ "मेल सेवा प्रदाता से प्राप्त कर सकते हैं।"
 
 #~ msgid "apply settings failed"
 #~ msgstr "सेटिंग लागू करना विफल"
@@ -4095,11 +4069,11 @@ msgstr "गुम सीआरएल"
 #~ msgstr "GpgFrontend से ईमेल का परीक्षण करें"
 
 #~ msgid ""
-#~ "Hello, this is a test email from GpgFrontend. If you receive this email, it "
-#~ "means that you have configured the correct SMTP server parameters."
+#~ "Hello, this is a test email from GpgFrontend. If you receive this email, "
+#~ "it means that you have configured the correct SMTP server parameters."
 #~ msgstr ""
-#~ "नमस्कार, यह GpgFrontend का परीक्षण ईमेल है। यदि आपको यह ईमेल प्राप्त होता "
-#~ "है, तो इसका अर्थ है कि आपने सही SMTP सर्वर पैरामीटर कॉन्फ़िगर किया है।"
+#~ "नमस्कार, यह GpgFrontend का परीक्षण ईमेल है। यदि आपको यह ईमेल प्राप्त होता है, तो "
+#~ "इसका अर्थ है कि आपने सही SMTP सर्वर पैरामीटर कॉन्फ़िगर किया है।"
 
 #~ msgid "Succeed in sending a test email to the SMTP Server"
 #~ msgstr "एसएमटीपी सर्वर पर एक परीक्षण ईमेल भेजने में सफल"
@@ -4148,8 +4122,8 @@ msgstr "गुम सीआरएल"
 #~ "Own Key can not be use to do any operation. Please go to the setting "
 #~ "interface to select an OwnKey and get a ServiceToken."
 #~ msgstr ""
-#~ "ओन की का उपयोग किसी भी ऑपरेशन को करने के लिए नहीं किया जा सकता है। ओनकी का "
-#~ "चयन करने और सर्विस टोकन प्राप्त करने के लिए कृपया सेटिंग इंटरफेस पर जाएं।"
+#~ "ओन की का उपयोग किसी भी ऑपरेशन को करने के लिए नहीं किया जा सकता है। ओनकी का चयन "
+#~ "करने और सर्विस टोकन प्राप्त करने के लिए कृपया सेटिंग इंटरफेस पर जाएं।"
 
 #~ msgid "Please obtain a Service Token from the server in the settings."
 #~ msgstr "कृपया सेटिंग में सर्वर से सेवा टोकन प्राप्त करें।"
@@ -4175,8 +4149,8 @@ msgstr "गुम सीआरएल"
 #~ msgid ""
 #~ "Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
 #~ msgstr ""
-#~ "सूचना: इस संक्षिप्त क्रिप्टो टेक्स्ट को डिक्रिप्ट करने के लिए डिक्रिप्ट और "
-#~ "वेरिफाई ऑपरेशन का उपयोग करें।"
+#~ "सूचना: इस संक्षिप्त क्रिप्टो टेक्स्ट को डिक्रिप्ट करने के लिए डिक्रिप्ट और वेरिफाई ऑपरेशन "
+#~ "का उपयोग करें।"
 
 #~ msgid "There is a problem with the communication with the server"
 #~ msgstr "सर्वर के साथ संचार में कोई समस्या है"
@@ -4251,11 +4225,11 @@ msgstr "गुम सीआरएल"
 #~ msgstr "अप्रकाशित संस्करण"
 
 #~ msgid ""
-#~ "This version(%1) has not been officially released and is not recommended for"
-#~ " use in a production environment. <br/>"
+#~ "This version(%1) has not been officially released and is not recommended "
+#~ "for use in a production environment. <br/>"
 #~ msgstr ""
-#~ "यह संस्करण (% 1) आधिकारिक तौर पर जारी नहीं किया गया है और उत्पादन वातावरण "
-#~ "में उपयोग के लिए अनुशंसित नहीं है। <br/>"
+#~ "यह संस्करण (% 1) आधिकारिक तौर पर जारी नहीं किया गया है और उत्पादन वातावरण में "
+#~ "उपयोग के लिए अनुशंसित नहीं है। <br/>"
 
 #~ msgid "Fail to Login into SMTP Server"
 #~ msgstr "एसएमटीपी सर्वर में लॉग इन करने में विफल"
@@ -4306,8 +4280,8 @@ msgstr "गुम सीआरएल"
 #~ "Fail to send a test email to the SMTP Server, please recheck your "
 #~ "configuration."
 #~ msgstr ""
-#~ "SMTP सर्वर पर एक परीक्षण ईमेल भेजने में विफल, कृपया अपने कॉन्फ़िगरेशन की "
-#~ "दोबारा जाँच करें।"
+#~ "SMTP सर्वर पर एक परीक्षण ईमेल भेजने में विफल, कृपया अपने कॉन्फ़िगरेशन की दोबारा जाँच "
+#~ "करें।"
 
 #~ msgid "Keu ID"
 #~ msgstr "केयू आईडी"
@@ -4325,8 +4299,7 @@ msgstr "गुम सीआरएल"
 #~ msgstr "संपादित करें समाप्ति दिनांक समय"
 
 #~ msgid "Selecting Nothing will eventually use default key to sign."
-#~ msgstr ""
-#~ "कुछ भी नहीं चुनना अंततः हस्ताक्षर करने के लिए डिफ़ॉल्ट कुंजी का उपयोग करेगा।"
+#~ msgstr "कुछ भी नहीं चुनना अंततः हस्ताक्षर करने के लिए डिफ़ॉल्ट कुंजी का उपयोग करेगा।"
 
 #~ msgid "Refresh Key From Key Server"
 #~ msgstr "कुंजी सर्वर से कुंजी ताज़ा करें"

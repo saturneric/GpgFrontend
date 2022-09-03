@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.9\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-07-23 20:16+0800\n"
+"POT-Creation-Date: 2022-09-03 20:33+0800\n"
 "PO-Revision-Date: 2022-07-23 20:22-0800\n"
 "Last-Translator: Google Translation <eric@bktus.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
@@ -151,7 +151,7 @@ msgstr "Operació de desxifrar"
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:154
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:281
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:246
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
 msgid "Success"
 msgstr "Èxit"
 
@@ -176,7 +176,7 @@ msgid "MIME"
 msgstr "MIME"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:213
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:208
 msgid "true"
 msgstr "veritat"
 
@@ -470,7 +470,7 @@ msgstr "Firmat per"
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:374
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:393
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:437
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:176
 msgid "Error"
 msgstr "Error"
 
@@ -489,13 +489,13 @@ msgid "Description: "
 msgstr "Descripció:"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:68
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:160
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:311
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:418
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:609
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:704
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:249
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:384
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:100
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:138
@@ -511,18 +511,18 @@ msgstr "Predir"
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:42
-#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:73
+#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:112
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:473
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:106
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:139
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:161
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:422
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:424
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
 msgid "Called"
 msgstr "Va trucar"
 
@@ -531,15 +531,15 @@ msgstr "Va trucar"
 msgid "log file path"
 msgstr "ruta del fitxer de registre"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:122
+#: /mnt/h/GpgFrontend/src/main.cpp:126
 msgid "A serious error has occurred"
 msgstr "S'ha produït un error greu"
 
-#: /mnt/h/GpgFrontend/src/main.cpp:123
+#: /mnt/h/GpgFrontend/src/main.cpp:127
 msgid ""
-"Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
-" restarted. If the problem recurs, please manually terminate the program and"
-" report the problem to the developer."
+"Oh no! GpgFrontend caught a serious error in the software, so it needs to be "
+"restarted. If the problem recurs, please manually terminate the program and "
+"report the problem to the developer."
 msgstr ""
 "Oh no! GpgFrontend ha detectat un error greu al programari, de manera que "
 "cal reiniciar-lo. Si el problema es repeteix, si us plau, finalitzeu el "
@@ -631,20 +631,20 @@ msgstr "Construït a"
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:138
 msgid ""
 "If you think there are any problems with the translation, why not "
-"participate in the translation work? If you want to participate, please read"
-" the document or contact me via email."
+"participate in the translation work? If you want to participate, please read "
+"the document or contact me via email."
 msgstr ""
-"Si creus que hi ha algun problema amb la traducció, per què no participar en"
-" el treball de traducció? Si voleu participar, llegiu el document o poseu-"
-"vos en contacte amb mi per correu electrònic."
+"Si creus que hi ha algun problema amb la traducció, per què no participar en "
+"el treball de traducció? Si voleu participar, llegiu el document o poseu-vos "
+"en contacte amb mi per correu electrònic."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:163
 msgid ""
 "It is recommended that you always check the version of GpgFrontend and "
 "upgrade to the latest version."
 msgstr ""
-"Es recomana que comproveu sempre la versió de GpgFrontend i actualitzeu-la a"
-" la darrera versió."
+"Es recomana que comproveu sempre la versió de GpgFrontend i actualitzeu-la a "
+"la darrera versió."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:166
 msgid ""
@@ -698,8 +698,8 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
 msgid ""
-"This version has not been released yet, it may be a beta version. If you are"
-" not a tester and care about version stability, please do not use this "
+"This version has not been released yet, it may be a beta version. If you are "
+"not a tester and care about version stability, please do not use this "
 "version."
 msgstr ""
 "Aquesta versió encara no s'ha publicat, pot ser que sigui una versió beta. "
@@ -766,23 +766,22 @@ msgid ""
 "important. Don't forget to back up your password in a safe place."
 msgstr ""
 "Genereu una contrasenya per protegir la vostra clau abans d'exportar, és "
-"molt important. No oblidis fer una còpia de seguretat de la teva contrasenya"
-" en un lloc segur."
+"molt important. No oblidis fer una còpia de seguretat de la teva contrasenya "
+"en un lloc segur."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
 msgid ""
 "The Key Package has been successfully generated and has been protected by "
-"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
-"Package."
+"encryption algorithms(AES-256-ECB). You can safely transfer your Key Package."
 msgstr ""
 "El paquet de claus s'ha generat correctament i ha estat protegit per "
-"algorismes de xifratge (AES-256-ECB). Pots transferir el teu paquet de claus"
-" amb seguretat."
+"algorismes de xifratge (AES-256-ECB). Pots transferir el teu paquet de claus "
+"amb seguretat."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
 msgid ""
-"But the key file cannot be leaked under any circumstances. Please delete the"
-" Key Package and key file as soon as possible after completing the transfer "
+"But the key file cannot be leaked under any circumstances. Please delete the "
+"Key Package and key file as soon as possible after completing the transfer "
 "operation."
 msgstr ""
 "Però el fitxer de claus no es pot filtrar sota cap circumstància. Si us "
@@ -810,8 +809,8 @@ msgid ""
 "Tips: You can use Key Package to safely and conveniently transfer your "
 "public and private keys between devices."
 msgstr ""
-"Consells: podeu utilitzar el paquet de claus per transferir de manera segura"
-" i còmoda les vostres claus públiques i privades entre dispositius."
+"Consells: podeu utilitzar el paquet de claus per transferir de manera segura "
+"i còmoda les vostres claus públiques i privades entre dispositius."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:134
 msgid "Generate and Save Passphrase"
@@ -1032,23 +1031,23 @@ msgstr "No s'ha trobat la clau"
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:272
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:483
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:498
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:141
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:332
 msgid "Timeout"
 msgstr "Temps mort"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:275
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:486
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:144
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:334
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:335
 msgid "Key Server Not Found"
 msgstr "Servidor de claus no trobat"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:278
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:489
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:505
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:147
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:337
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:159
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:338
 msgid "Connection Error"
 msgstr "Error de connexió"
 
@@ -1083,14 +1082,14 @@ msgid "%1 keys found. Double click a key to import it."
 msgstr "S'han trobat %1 claus. Feu doble clic en una tecla per importar-la."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:446
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:79
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:290
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:96
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
 msgid "Default Keyserver Not Found"
 msgstr "No s'ha trobat el servidor de claus predeterminat"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:447
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:80
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:292
 msgid ""
 "Cannot read default keyserver from your settings, please set a default "
 "keyserver first"
@@ -1100,8 +1099,8 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:480
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:494
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:138
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:328
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:150
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:329
 msgid "Key Not Found"
 msgstr "No s'ha trobat la clau"
 
@@ -1121,27 +1120,27 @@ msgstr "Error general de connexió"
 msgid "Key Imported"
 msgstr "Clau importada"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:57
 msgid "Uploading Public Key"
 msgstr "S'està carregant la clau pública"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:74
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:286
 msgid "Set target Key Server to default Key Server"
 msgstr ""
 "Estableix el servidor de claus de destinació al servidor de claus "
 "predeterminat"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:77
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:95
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:289
 msgid "Cannot read default_keyserver From Settings"
 msgstr "No es pot llegir default_keyserver des de la configuració"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:152
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:164
 msgid "Upload Success"
 msgstr "Carrega correctament"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:165
 msgid "Upload Public Key Successfully"
 msgstr "Penja la clau pública correctament"
 
@@ -1382,7 +1381,7 @@ msgstr "Exporta la clau al fitxer"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:157
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:203
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:245
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Key Files"
 msgstr "Arxius clau"
 
@@ -1710,7 +1709,7 @@ msgstr "La data de caducitat del parell de claus s'ha actualitzat."
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:88
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:164
 #: /mnt/h/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:289
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:238
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
 msgid "Failure"
 msgstr "El fracàs"
 
@@ -1731,8 +1730,8 @@ msgstr "Data de caducitat modificada (hora local)"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:133
 msgid ""
-"Tips: For the sake of security, the key is valid for up to two years. If you"
-" are an expert user, please unlock it for a longer time in the settings."
+"Tips: For the sake of security, the key is valid for up to two years. If you "
+"are an expert user, please unlock it for a longer time in the settings."
 msgstr ""
 "Consells: per seguretat, la clau té una validesa de fins a dos anys. Si sou "
 "un usuari expert, desbloquegeu-lo durant més temps a la configuració."
@@ -1912,7 +1911,7 @@ msgstr "stegano_checked"
 msgid "auto_pubkey_exchange_checked"
 msgstr "auto_pubkey_exchange_checked"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:41
 msgid "Icon Size"
 msgstr "Mida de la icona"
 
@@ -1928,36 +1927,46 @@ msgstr "mitjà"
 msgid "large"
 msgstr "gran"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:46
 msgid "Icon Style"
 msgstr "Estil d'icones"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:47
 msgid "just text"
 msgstr "només text"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:63
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:48
 msgid "just icons"
 msgstr "només icones"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:64
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:49
 msgid "text and icons"
 msgstr "text i icones"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:51
 msgid "Window State"
 msgstr "Estat de la finestra"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:83
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:53
 msgid "Save window size and position on exit."
 msgstr "Desa la mida i la posició de la finestra a la sortida."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:55
+#, fuzzy
+msgid "Text Editor"
+msgstr "Editor"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:56
+#, fuzzy
+msgid "Font Size in Text Editor"
+msgstr "Mida de la lletra al tauler informatiu"
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:58
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:496
 msgid "Information Board"
 msgstr "Tauler informatiu"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
 msgid "Font Size in Information Board"
 msgstr "Mida de la lletra al tauler informatiu"
 
@@ -1993,8 +2002,7 @@ msgstr "Desa les claus marcades"
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:46
 msgid "Save checked private keys on exit and restore them on next start."
 msgstr ""
-"Desa les claus privades marcades a la sortida i restaura-les el proper "
-"inici."
+"Desa les claus privades marcades a la sortida i restaura-les el proper inici."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:47
 msgid "Longer Key Expiration Date"
@@ -2099,11 +2107,11 @@ msgstr "Suprimeix el servidor de claus seleccionat"
 msgid "Set As Default"
 msgstr "Establir com a defecte"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:151
 msgid "Insecure keyserver address"
 msgstr "Adreça del servidor de claus no segura"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:157
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:152
 msgid ""
 "For security reasons, using HTTP as the communication protocol with the key "
 "server is not recommended. It is recommended to use HTTPS."
@@ -2111,10 +2119,10 @@ msgstr ""
 "Per motius de seguretat, no es recomana utilitzar HTTP com a protocol de "
 "comunicació amb el servidor de claus. Es recomana utilitzar HTTPS."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:166
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:161
 msgid ""
-"You may not use HTTPS or HTTP as the protocol for communicating with the key"
-" server, which may not be wrong. But please check the address you entered "
+"You may not use HTTPS or HTTP as the protocol for communicating with the key "
+"server, which may not be wrong. But please check the address you entered "
 "again to make sure it is correct. Are you sure that want to add it into the "
 "keyserver list?"
 msgstr ""
@@ -2123,34 +2131,34 @@ msgstr ""
 "comproveu l'adreça que heu introduït de nou per assegurar-vos que és "
 "correcta. Esteu segur que voleu afegir-lo a la llista de servidors de claus?"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:209
 msgid "false"
 msgstr "fals"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
 msgid "unknown"
 msgstr "desconegut"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:233
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:228
 msgid "Set TCP Timeout"
 msgstr "Estableix el temps d'espera TCP"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:258
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:253
 msgid "Reachable"
 msgstr "Accessible"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:261
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:256
 msgid "Not Reachable"
 msgstr "No accessible"
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:273
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:268
 msgid "Test Key Server Connection..."
 msgstr "Prova la connexió del servidor de claus..."
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:274
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:269
 msgid ""
-"This test only tests the network connectivity of the key server. Passing the"
-" test does not mean that the key server is functionally available."
+"This test only tests the network connectivity of the key server. Passing the "
+"test does not mean that the key server is functionally available."
 msgstr ""
 "Aquesta prova només prova la connectivitat de xarxa del servidor de claus. "
 "Superar la prova no vol dir que el servidor de claus estigui disponible "
@@ -2287,8 +2295,7 @@ msgstr "Seleccioneu una o més claus privades que feu servir per signar."
 #: /mnt/h/GpgFrontend/src/ui/dialog/SignersPicker.cpp:62
 msgid "If no key is selected, the default key will be used for signing."
 msgstr ""
-"Si no se selecciona cap clau, s'utilitzarà la clau predeterminada per "
-"signar."
+"Si no se selecciona cap clau, s'utilitzarà la clau predeterminada per signar."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:43
 msgid "First Start Wizard"
@@ -2329,8 +2336,8 @@ msgstr "fent clic a l'enllaç, la pàgina s'obrirà al navegador web"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:107
 msgid ""
-"If it supports the language currently being used in your system, GpgFrontend"
-" will automatically set it."
+"If it supports the language currently being used in your system, GpgFrontend "
+"will automatically set it."
 msgstr ""
 "Si admet l'idioma que s'utilitza actualment al vostre sistema, GpgFrontend "
 "l'establirà automàticament."
@@ -2399,8 +2406,8 @@ msgid ""
 "sign messages.<br>For more information have a look at the offline tutorial "
 "(which then is shown in the main window):"
 msgstr ""
-"Hauríeu de crear un parell de claus nou. El parell consta d'una clau pública"
-" i una privada.<br>La resta d'usuaris poden utilitzar la clau pública per "
+"Hauríeu de crear un parell de claus nou. El parell consta d'una clau pública "
+"i una privada.<br>La resta d'usuaris poden utilitzar la clau pública per "
 "xifrar els missatges i verificar els missatges signats per vosaltres. Podeu "
 "utilitzar la clau privada per desxifrar i signar missatges.<br>Per obtenir "
 "més informació, mireu el tutorial fora de línia (que després es mostra a la "
@@ -2457,8 +2464,8 @@ msgid ""
 "please report this problem if you can."
 msgstr ""
 "Vaja, es va llançar una excepció estàndard durant l'execució del programa. "
-"Aquest no és un problema greu, pot ser la negligència del programador, si us"
-" plau, informeu d'aquest problema si podeu."
+"Aquest no és un problema greu, pot ser la negligència del programador, si us "
+"plau, informeu d'aquest problema si podeu."
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:88
 msgid "Unhandled Exception Thrown"
@@ -2480,13 +2487,13 @@ msgstr "S'està carregant la informació de Gnupg..."
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:84
 msgid ""
-"If this process is too slow, please set the key server address appropriately"
-" in the gnupg configuration file (depending on the network situation in your"
-" country or region)."
+"If this process is too slow, please set the key server address appropriately "
+"in the gnupg configuration file (depending on the network situation in your "
+"country or region)."
 msgstr ""
 "Si aquest procés és massa lent, configureu l'adreça del servidor de claus "
-"adequadament al fitxer de configuració gnupg (segons la situació de la xarxa"
-" al vostre país o regió)."
+"adequadament al fitxer de configuració gnupg (segons la situació de la xarxa "
+"al vostre país o regió)."
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:195
 msgid "could not read properly from configure file"
@@ -2707,8 +2714,8 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:394
 msgid ""
-"Please select a key before performing this operation. If you select multiple"
-" keys, only the first key will be exported."
+"Please select a key before performing this operation. If you select multiple "
+"keys, only the first key will be exported."
 msgstr ""
 "Seleccioneu una clau abans de realitzar aquesta operació. Si seleccioneu "
 "diverses claus, només s'exportarà la primera clau."
@@ -2809,8 +2816,8 @@ msgid ""
 "No Key Selected. Do you want to encrypt with a symmetric cipher using a "
 "passphrase?"
 msgstr ""
-"No s'ha seleccionat cap clau. Voleu xifrar amb un xifrat simètric mitjançant"
-" una contrasenya?"
+"No s'ha seleccionat cap clau. Voleu xifrar amb un xifrat simètric mitjançant "
+"una contrasenya?"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:230
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:101
@@ -2971,8 +2978,7 @@ msgid ""
 "The selected key contains a key that does not actually have a signature "
 "usage."
 msgstr ""
-"La clau seleccionada conté una clau que en realitat no té un ús de "
-"signatura."
+"La clau seleccionada conté una clau que en realitat no té un ús de signatura."
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:265
 msgid "Notice"
@@ -3002,8 +3008,8 @@ msgid ""
 "stable version."
 msgstr ""
 "Aquesta versió (% 1) pot haver estat retirada pel desenvolupador a causa de "
-"problemes greus. Si us plau, deixeu d'utilitzar aquesta versió immediatament"
-" i utilitzeu la darrera versió estable."
+"problemes greus. Si us plau, deixeu d'utilitzar aquesta versió immediatament "
+"i utilitzeu la darrera versió estable."
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:690
 msgid ""
@@ -3312,6 +3318,11 @@ msgstr "A punt"
 msgid "Key ToolBox"
 msgstr "Caixa d'eines clau"
 
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:56
+#, fuzzy
+msgid "Show Verify Details"
+msgstr "Mostra els detalls clau"
+
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:65
 msgid "Public key not found locally"
 msgstr "La clau pública no s'ha trobat localment"
@@ -3331,51 +3342,53 @@ msgid "ENV Loading Failed"
 msgstr "S'ha produït un error en carregar ENV"
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:172
+#, fuzzy
 msgid ""
-"Gnupg(gpg) is not installed correctly, please follow the ReadME instructions"
-" in Github to install Gnupg and then open GpgFrontend."
+"Gnupg(gpg) is not installed correctly, please follow <a href='https://www."
+"gpgfrontend.pub/#/faq?id=how-to-deal-with-39env-loading-failed39'>this "
+"notes</a> in FAQ to install Gnupg and then open GpgFrontend."
 msgstr ""
 "Gnupg(gpg) no està instal·lat correctament, si us plau, seguiu les "
 "instruccions ReadME a Github per instal·lar Gnupg i, a continuació, obriu "
 "GpgFrontend."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:190
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
 msgid "Open Key"
 msgstr "Clau oberta"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:191
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid "Keyring files"
 msgstr "Arxius de clauers"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:196
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
 msgid "File Open Failed"
 msgstr "No s'ha pogut obrir el fitxer"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:198
 msgid "Failed to open file: "
 msgstr "No s'ha pogut obrir el fitxer:"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:220
 msgid "Processing"
 msgstr "Tramitació"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:240
 msgid "Failed to execute command."
 msgstr "No s'ha pogut executar l'ordre."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:247
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:248
 msgid "Succeed in executing command."
 msgstr "Tenir èxit en executar l'ordre."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:250
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:251
 msgid "Finished executing command."
 msgstr "S'ha acabat d'executar l'ordre."
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:349
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:350
 msgid "The key has been updated"
 msgstr "La clau s'ha actualitzat"
 
-#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:351
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:352
 msgid "No need to update the key"
 msgstr "No cal actualitzar la clau"
 
@@ -3456,11 +3469,11 @@ msgstr "Nom del fitxer (es pot donar una extensió)"
 msgid "Unable to create the file."
 msgstr "No es pot crear el fitxer."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:167
 msgid "Save Information Board's Content"
 msgstr "Guarda el contingut del tauler d'informació"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:177
 msgid "The file path is not exists, unprivileged or unreachable."
 msgstr "La ruta del fitxer no existeix, no té privilegis o no és accessible."
 
@@ -3533,53 +3546,53 @@ msgstr "Importa sempre sense molestar-te."
 msgid "Couldn't Open File"
 msgstr "No s'ha pogut obrir el fitxer"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:430
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:432
 msgid "Key List Refreshed."
 msgstr "Llista de claus actualitzada."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:448
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
 msgid "Syncing Key List..."
 msgstr "S'està sincronitzant la llista de claus..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:460
 msgid "Sync [%1%/%2%] %3% %4%"
 msgstr "Sincronitza [%1%/%2%] %3% %4%"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:464
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:468
 msgid "Key List Sync Done."
 msgstr "Sincronització de la llista de claus feta."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:61
 msgid "0 character"
 msgstr "0 caràcter"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:55
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:99
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:106
 msgid "lf"
 msgstr "lf"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:56
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
 msgid "utf-8"
 msgstr "utf-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:252
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:259
 msgid "%1% character(s)"
 msgstr "%1% caràcter(s)"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:72
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:79
 msgid "Loading..."
 msgstr "Carregant..."
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:100
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:107
 msgid "UTF-8"
 msgstr "UTF-8"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:232
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:239
 msgid "%1% byte(s)"
 msgstr "% 1% byte(s)"
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:277
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:284
 msgid "binary"
 msgstr "binari"
 
@@ -3627,7 +3640,8 @@ msgid "Unsaved document"
 msgstr "Document no desat"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:295
-msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgid ""
+"The document \"%1\" has been modified. Do you want to save your changes?"
 msgstr "S'ha modificat el document \"%1\". Voleu desar els vostres canvis?"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:298
@@ -3778,24 +3792,26 @@ msgstr "Falta CRL"
 
 #~ msgid "We use the public key provided by the recipient to encrypt the text."
 #~ msgstr ""
-#~ "Utilitzem la clau pública proporcionada pel destinatari per xifrar el text."
+#~ "Utilitzem la clau pública proporcionada pel destinatari per xifrar el "
+#~ "text."
 
 #~ msgid ""
-#~ "If you want to send to multiple recipients at the same time, you can select "
-#~ "multiple keys."
+#~ "If you want to send to multiple recipients at the same time, you can "
+#~ "select multiple keys."
 #~ msgstr ""
-#~ "Si voleu enviar a diversos destinataris alhora, podeu seleccionar diverses "
-#~ "tecles."
+#~ "Si voleu enviar a diversos destinataris alhora, podeu seleccionar "
+#~ "diverses tecles."
 
 #~ msgid "Email List:"
 #~ msgstr "Llista de correu electrònic:"
 
 #~ msgid ""
-#~ "Tips: You can double-click the email address in the edit list, or click the "
-#~ "email to pop up the option menu."
+#~ "Tips: You can double-click the email address in the edit list, or click "
+#~ "the email to pop up the option menu."
 #~ msgstr ""
-#~ "Consells: podeu fer doble clic a l'adreça de correu electrònic de la llista "
-#~ "d'edició o fer clic al correu electrònic per obrir el menú d'opcions."
+#~ "Consells: podeu fer doble clic a l'adreça de correu electrònic de la "
+#~ "llista d'edició o fer clic al correu electrònic per obrir el menú "
+#~ "d'opcions."
 
 #~ msgid "Add An Email Address"
 #~ msgstr "Afegeix una adreça de correu electrònic"
@@ -3816,8 +3832,8 @@ msgstr "Falta CRL"
 #~ " The private key is generally used as a signature for the content of the "
 #~ "mail."
 #~ msgstr ""
-#~ " La clau privada s'utilitza generalment com a signatura per al contingut del"
-#~ " correu."
+#~ " La clau privada s'utilitza generalment com a signatura per al contingut "
+#~ "del correu."
 
 #~ msgid "Incomplete configuration"
 #~ msgstr "Configuració incompleta"
@@ -3826,8 +3842,8 @@ msgstr "Falta CRL"
 #~ "The SMTP address is empty, please go to the setting interface to complete "
 #~ "the configuration."
 #~ msgstr ""
-#~ "L'adreça SMTP està buida, aneu a la interfície de configuració per completar"
-#~ " la configuració."
+#~ "L'adreça SMTP està buida, aneu a la interfície de configuració per "
+#~ "completar la configuració."
 
 #~ msgid "CC"
 #~ msgstr "CC"
@@ -3906,40 +3922,41 @@ msgstr "Falta CRL"
 #~ msgstr "Un o més correus electrònics CCO no són vàlids"
 
 #~ msgid ""
-#~ "You have checked the encrypted email content, but you have not selected the "
-#~ "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
-#~ "So the send operation is forbidden"
+#~ "You have checked the encrypted email content, but you have not selected "
+#~ "the recipient's GPG key. This is dangerous and the mail will not be "
+#~ "encrypted. So the send operation is forbidden"
 #~ msgstr ""
 #~ "Heu comprovat el contingut del correu electrònic xifrat, però no heu "
-#~ "seleccionat la clau GPG del destinatari. Això és perillós i el correu no es "
-#~ "xifrarà. Per tant, l'operació d'enviament està prohibida"
+#~ "seleccionat la clau GPG del destinatari. Això és perillós i el correu no "
+#~ "es xifrarà. Per tant, l'operació d'enviament està prohibida"
 
 #~ msgid ""
-#~ "You checked the option to attach signature to the email, but did not specify"
-#~ " the sender's GPG Key. This will cause the content of the email to be "
-#~ "inconsistent with your expectations, so the operation is prohibited."
+#~ "You checked the option to attach signature to the email, but did not "
+#~ "specify the sender's GPG Key. This will cause the content of the email to "
+#~ "be inconsistent with your expectations, so the operation is prohibited."
 #~ msgstr ""
-#~ "Heu marcat l'opció d'adjuntar la signatura al correu electrònic, però no heu"
-#~ " especificat la clau GPG del remitent. Això farà que el contingut del correu"
-#~ " electrònic sigui incompatible amb les vostres expectatives, per la qual "
-#~ "cosa l'operació està prohibida."
+#~ "Heu marcat l'opció d'adjuntar la signatura al correu electrònic, però no "
+#~ "heu especificat la clau GPG del remitent. Això farà que el contingut del "
+#~ "correu electrònic sigui incompatible amb les vostres expectatives, per la "
+#~ "qual cosa l'operació està prohibida."
 
 #~ msgid ""
-#~ "You checked the option to attach your public key to the email, but did not "
-#~ "specify the sender's GPG Key. This will cause the content of the email to be"
-#~ " inconsistent with your expectations, so the operation is prohibited."
+#~ "You checked the option to attach your public key to the email, but did "
+#~ "not specify the sender's GPG Key. This will cause the content of the "
+#~ "email to be inconsistent with your expectations, so the operation is "
+#~ "prohibited."
 #~ msgstr ""
-#~ "Heu marcat l'opció d'adjuntar la vostra clau pública al correu electrònic, "
-#~ "però no heu especificat la clau GPG del remitent. Això farà que el contingut"
-#~ " del correu electrònic sigui incompatible amb les vostres expectatives, per "
-#~ "la qual cosa l'operació està prohibida."
+#~ "Heu marcat l'opció d'adjuntar la vostra clau pública al correu "
+#~ "electrònic, però no heu especificat la clau GPG del remitent. Això farà "
+#~ "que el contingut del correu electrònic sigui incompatible amb les vostres "
+#~ "expectatives, per la qual cosa l'operació està prohibida."
 
 #~ msgid "Sending Email..."
 #~ msgstr "S'està enviant el correu electrònic..."
 
 #~ msgid ""
-#~ "If the process does not end for a long time, please check again whether your"
-#~ " SMTP server configuration is correct."
+#~ "If the process does not end for a long time, please check again whether "
+#~ "your SMTP server configuration is correct."
 #~ msgstr ""
 #~ "Si el procés no acaba durant molt de temps, torneu a comprovar si la "
 #~ "configuració del vostre servidor SMTP és correcta."
@@ -3981,8 +3998,9 @@ msgstr "Falta CRL"
 #~ "An error occurred while encrypting the content of the email. This may be "
 #~ "because you did not complete some operations during Gnupg encryption."
 #~ msgstr ""
-#~ "S'ha produït un error en xifrar el contingut del correu electrònic. Això pot"
-#~ " ser perquè no heu completat algunes operacions durant el xifratge Gnupg."
+#~ "S'ha produït un error en xifrar el contingut del correu electrònic. Això "
+#~ "pot ser perquè no heu completat algunes operacions durant el xifratge "
+#~ "Gnupg."
 
 #~ msgid "Unknown error."
 #~ msgstr "Error desconegut."
@@ -3997,7 +4015,8 @@ msgstr "Falta CRL"
 #~ msgstr "Avís d'intercanvi automàtic de claus"
 
 #~ msgid ""
-#~ "Part of the automatic key exchange failed, which may be related to your key."
+#~ "Part of the automatic key exchange failed, which may be related to your "
+#~ "key."
 #~ msgstr ""
 #~ "Ha fallat una part de l'intercanvi automàtic de claus, que pot estar "
 #~ "relacionat amb la vostra clau."
@@ -4015,8 +4034,8 @@ msgstr "Falta CRL"
 #~ msgid ""
 #~ "Please go to the settings interface to set Own Key and get Service Token."
 #~ msgstr ""
-#~ "Aneu a la interfície de configuració per configurar la clau pròpia i obtenir"
-#~ " el testimoni de servei."
+#~ "Aneu a la interfície de configuració per configurar la clau pròpia i "
+#~ "obtenir el testimoni de servei."
 
 #~ msgid "called"
 #~ msgstr "va trucar"
@@ -4076,14 +4095,14 @@ msgstr "Falta CRL"
 #~ msgstr "Identificador de clau GPG del remitent predeterminat"
 
 #~ msgid ""
-#~ "Tips: It is recommended that you build your own mail server or use a trusted"
-#~ " mail server. If you don't know the detailed configuration information, you "
-#~ "can get it from the mail service provider."
+#~ "Tips: It is recommended that you build your own mail server or use a "
+#~ "trusted mail server. If you don't know the detailed configuration "
+#~ "information, you can get it from the mail service provider."
 #~ msgstr ""
 #~ "Consells: es recomana que creeu el vostre propi servidor de correu o "
-#~ "utilitzeu un servidor de correu de confiança. Si no coneixeu la informació "
-#~ "de configuració detallada, podeu obtenir-la al proveïdor de serveis de "
-#~ "correu."
+#~ "utilitzeu un servidor de correu de confiança. Si no coneixeu la "
+#~ "informació de configuració detallada, podeu obtenir-la al proveïdor de "
+#~ "serveis de correu."
 
 #~ msgid "apply settings failed"
 #~ msgstr "No s'ha pogut aplicar la configuració"
@@ -4098,8 +4117,8 @@ msgstr "Falta CRL"
 #~ msgstr "Correu electrònic de prova de GpgFrontend"
 
 #~ msgid ""
-#~ "Hello, this is a test email from GpgFrontend. If you receive this email, it "
-#~ "means that you have configured the correct SMTP server parameters."
+#~ "Hello, this is a test email from GpgFrontend. If you receive this email, "
+#~ "it means that you have configured the correct SMTP server parameters."
 #~ msgstr ""
 #~ "Hola, aquest és un correu electrònic de prova de GpgFrontend. Si rebeu "
 #~ "aquest correu electrònic, vol dir que heu configurat els paràmetres "
@@ -4131,7 +4150,8 @@ msgstr "Falta CRL"
 
 #~ msgid ""
 #~ "The communication content with the server does not meet the requirements"
-#~ msgstr "El contingut de comunicació amb el servidor no compleix els requisits"
+#~ msgstr ""
+#~ "El contingut de comunicació amb el servidor no compleix els requisits"
 
 #~ msgid "(.gpg .asc)"
 #~ msgstr "(.gpg .asc)"
@@ -4181,8 +4201,8 @@ msgstr "Falta CRL"
 #~ msgid ""
 #~ "Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
 #~ msgstr ""
-#~ "Avís: utilitzeu l'operació Desxifrar i verificar per desxifrar aquest text "
-#~ "criptogràfic breu."
+#~ "Avís: utilitzeu l'operació Desxifrar i verificar per desxifrar aquest "
+#~ "text criptogràfic breu."
 
 #~ msgid "There is a problem with the communication with the server"
 #~ msgstr "Hi ha un problema amb la comunicació amb el servidor"
@@ -4258,11 +4278,11 @@ msgstr "Falta CRL"
 #~ msgstr "Versió inèdita"
 
 #~ msgid ""
-#~ "This version(%1) has not been officially released and is not recommended for"
-#~ " use in a production environment. <br/>"
+#~ "This version(%1) has not been officially released and is not recommended "
+#~ "for use in a production environment. <br/>"
 #~ msgstr ""
-#~ "Aquesta versió (% 1) no s'ha llançat oficialment i no es recomana utilitzar-"
-#~ "la en un entorn de producció. <br/>"
+#~ "Aquesta versió (% 1) no s'ha llançat oficialment i no es recomana "
+#~ "utilitzar-la en un entorn de producció. <br/>"
 
 #~ msgid "Fail to Login into SMTP Server"
 #~ msgstr "No s'ha pogut iniciar la sessió al servidor SMTP"
@@ -4292,10 +4312,12 @@ msgstr "Falta CRL"
 #~ msgstr "No s'ha trobat cap testimoni de servei"
 
 #~ msgid "Key pair for synchronization and identity authentication"
-#~ msgstr "Parell de claus per a la sincronització i l'autenticació d'identitat"
+#~ msgstr ""
+#~ "Parell de claus per a la sincronització i l'autenticació d'identitat"
 
 #~ msgid "Own Key can not be None while getting service token."
-#~ msgstr "La clau pròpia no pot ser Cap mentre obteniu el testimoni de servei."
+#~ msgstr ""
+#~ "La clau pròpia no pot ser Cap mentre obteniu el testimoni de servei."
 
 #~ msgid "Key Not Exists"
 #~ msgstr "La clau no existeix"
@@ -4313,8 +4335,8 @@ msgstr "Falta CRL"
 #~ "Fail to send a test email to the SMTP Server, please recheck your "
 #~ "configuration."
 #~ msgstr ""
-#~ "No s'ha pogut enviar un correu electrònic de prova al servidor SMTP, torneu "
-#~ "a comprovar la vostra configuració."
+#~ "No s'ha pogut enviar un correu electrònic de prova al servidor SMTP, "
+#~ "torneu a comprovar la vostra configuració."
 
 #~ msgid "Keu ID"
 #~ msgstr "Keu ID"
@@ -4333,7 +4355,8 @@ msgstr "Falta CRL"
 
 #~ msgid "Selecting Nothing will eventually use default key to sign."
 #~ msgstr ""
-#~ "Si seleccioneu Res, finalment utilitzarà la clau predeterminada per signar."
+#~ "Si seleccioneu Res, finalment utilitzarà la clau predeterminada per "
+#~ "signar."
 
 #~ msgid "Refresh Key From Key Server"
 #~ msgstr "Actualitza la clau del servidor de claus"
