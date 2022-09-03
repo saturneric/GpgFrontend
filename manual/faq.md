@@ -5,7 +5,7 @@
 GpgFrontend is a cross-platform encryption tool that conforms to the OpenPGP standard. It is committed to making OpenPGP
 easier to use, so that more people can use the tool to protect their privacy.
 
-## Relationship with OpenPGP(pgp) and Gnupg(gpg)？
+## Relationship between OpenPGP(pgp) and Gnupg(gpg)？
 
 OpenPGP is a data encryption and decryption standard, and GpgFrontend supports it. GnuPG is a cryptographic software
 used to encrypt, sign communication content and manage keys for asymmetric cryptography. It follows the OpenPGP
@@ -14,7 +14,7 @@ standard. GpgFrontend drives gnupg at runtime to implement operations such as en
 ## How to obtain and use GpgFrontend？
 
 The various versions of GpgFrontend will be released in the GitHub repository, and you can find and download the latest
-version in Releases. After downloading, you can refer to the instructions in ReadME and you can start using it in just a
+version [HERE](https://www.gpgfrontend.pub/#/downloads). After downloading, you can refer to the instructions in ReadME and you can start using it in just a
 few steps.
 
 ## I found some flaws in GpgFrontend, what should I do?
@@ -43,4 +43,13 @@ addition, some support for the beta version may not be complete. But rest assure
 released, and release a stable version at an appropriate time.
 
 But starting from 2.0.0, BETA versions will not be released unless there are special circumstances.
+
+## How to deal with 'ENV Loading Failed'?
+
+The reason for this problem is that GpgFrontend failed to find the GnuGP tool in your computer.
+
+- For macOS users, please install GnuPG for OSX [Here](https://sourceforge.net/p/gpgosx/docu/Download/).
+- For Linux users, please install gnupg through apt or yum.
+- For Windows users, GnuPG is now integrated in the latest version of GpgFrontend, we recommend you to download the
+  latest GpgFrontend.
 

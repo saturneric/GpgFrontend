@@ -31,6 +31,8 @@
 
 #include "ui/GpgFrontendUI.h"
 
+class Ui_AppearanceSettings;
+
 namespace GpgFrontend::UI {
 
 class AppearanceTab : public QWidget {
@@ -57,16 +59,10 @@ class AppearanceTab : public QWidget {
   void ApplySettings();
 
  private:
+  std::shared_ptr<Ui_AppearanceSettings> ui_;  ///<
+
   QButtonGroup* icon_style_group_;       ///<
-  QRadioButton* icon_size_small_;        ///<
-  QRadioButton* icon_size_medium_;       ///<
-  QRadioButton* icon_size_large_;        ///<
-  QButtonGroup* icon_size_group_;        ///<
-  QRadioButton* icon_text_button_;       ///<
-  QRadioButton* icon_icons_button_;      ///<
-  QRadioButton* icon_all_button_;        ///<
-  QSpinBox* info_board_font_size_spin_;  ///<
-  QCheckBox* window_size_check_box_;     ///<
+  QButtonGroup* icon_size_group_;
 
  signals:
 

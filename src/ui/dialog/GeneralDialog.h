@@ -45,6 +45,11 @@ class GeneralDialog : public QDialog {
    */
   ~GeneralDialog() override;
 
+  /**
+   *
+   */
+  void setPosCenterOfScreen();
+
  private slots:
   /**
    *

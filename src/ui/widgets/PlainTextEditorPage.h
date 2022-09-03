@@ -129,7 +129,7 @@ class PlainTextEditorPage : public QWidget {
   size_t read_bytes_ = 0;       ///<
   std::string charset_name_;    ///<
   std::string language_name_;   ///<
-  int32_t charset_confidence_;  ///<
+  int32_t charset_confidence_{};  ///<
   bool is_crlf_ = false;        ///<
 
   /**

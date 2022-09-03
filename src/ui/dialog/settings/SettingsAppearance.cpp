@@ -30,89 +30,48 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui_AppearanceSettings.h"
 
 namespace GpgFrontend::UI {
 
-AppearanceTab::AppearanceTab(QWidget* parent) : QWidget(parent) {
-  /*****************************************
-   * Icon-Size-Box
-   *****************************************/
-  auto* iconSizeBox = new QGroupBox(_("Icon Size"));
-  icon_size_group_ = new QButtonGroup();
-  icon_size_small_ = new QRadioButton(_("small"));
-  icon_size_medium_ = new QRadioButton(_("medium"));
-  icon_size_large_ = new QRadioButton(_("large"));
+AppearanceTab::AppearanceTab(QWidget* parent)
+    : QWidget(parent), ui_(std::make_shared<Ui_AppearanceSettings>()) {
+  ui_->setupUi(this);
 
-  icon_size_group_->addButton(icon_size_small_, 1);
-  icon_size_group_->addButton(icon_size_medium_, 2);
-  icon_size_group_->addButton(icon_size_large_, 3);
+  ui_->iconSizeBox->setTitle(_("Icon Size"));
+  ui_->smallRadioButton->setText(_("small"));
+  ui_->mediumRadioButton->setText(_("medium"));
+  ui_->largeRadioButton->setText(_("large"));
 
-  auto* iconSizeBoxLayout = new QHBoxLayout();
-  iconSizeBoxLayout->addWidget(icon_size_small_);
-  iconSizeBoxLayout->addWidget(icon_size_medium_);
-  iconSizeBoxLayout->addWidget(icon_size_large_);
+  ui_->iconStyleBox->setTitle(_("Icon Style"));
+  ui_->justTextRadioButton->setText(_("just text"));
+  ui_->justIconRadioButton->setText(_("just icons"));
+  ui_->textAndIconsRadioButton->setText(_("text and icons"));
 
-  iconSizeBox->setLayout(iconSizeBoxLayout);
+  ui_->windowStateBox->setTitle(_("Window State"));
+  ui_->windowStateCheckBox->setText(
+      _("Save window size and position on exit."));
 
-  /*****************************************
-   * Icon-Style-Box
-   *****************************************/
-  auto* iconStyleBox = new QGroupBox(_("Icon Style"));
-  icon_style_group_ = new QButtonGroup();
-  icon_text_button_ = new QRadioButton(_("just text"));
-  icon_icons_button_ = new QRadioButton(_("just icons"));
-  icon_all_button_ = new QRadioButton(_("text and icons"));
+  ui_->textEditorBox->setTitle(_("Text Editor"));
+  ui_->fontSizeTextEditorLabel->setText(_("Font Size in Text Editor"));
 
-  icon_style_group_->addButton(icon_text_button_, 1);
-  icon_style_group_->addButton(icon_icons_button_, 2);
-  icon_style_group_->addButton(icon_all_button_, 3);
+  ui_->informationBoardBox->setTitle(_("Information Board"));
+  ui_->fontSizeInformationBoardLabel->setText(
+      _("Font Size in Information Board"));
 
-  auto* iconStyleBoxLayout = new QHBoxLayout();
-  iconStyleBoxLayout->addWidget(icon_text_button_);
-  iconStyleBoxLayout->addWidget(icon_icons_button_);
-  iconStyleBoxLayout->addWidget(icon_all_button_);
+  icon_size_group_ = new QButtonGroup(this);
+  icon_size_group_->addButton(ui_->smallRadioButton, 1);
+  icon_size_group_->addButton(ui_->mediumRadioButton, 2);
+  icon_size_group_->addButton(ui_->largeRadioButton, 3);
 
-  iconStyleBox->setLayout(iconStyleBoxLayout);
+  icon_style_group_ = new QButtonGroup(this);
+  icon_style_group_->addButton(ui_->justTextRadioButton, 1);
+  icon_style_group_->addButton(ui_->justIconRadioButton, 2);
+  icon_style_group_->addButton(ui_->textAndIconsRadioButton, 3);
 
-  /*****************************************
-   * Window-Size-Box
-   *****************************************/
-  auto* windowSizeBox = new QGroupBox(_("Window State"));
-  auto* windowSizeBoxLayout = new QHBoxLayout();
-  window_size_check_box_ =
-      new QCheckBox(_("Save window size and position on exit."), this);
-  windowSizeBoxLayout->addWidget(window_size_check_box_);
-  windowSizeBox->setLayout(windowSizeBoxLayout);
-
-  /*****************************************
-   * Info-Board-Font-Size-Box
-   *****************************************/
-
-  auto* infoBoardBox = new QGroupBox(_("Information Board"));
-  auto* infoBoardLayout = new QHBoxLayout();
-  info_board_font_size_spin_ = new QSpinBox();
-  info_board_font_size_spin_->setRange(9, 18);
-  info_board_font_size_spin_->setValue(10);
-  info_board_font_size_spin_->setSingleStep(1);
-  infoBoardLayout->addWidget(new QLabel(_("Font Size in Information Board")));
-  infoBoardLayout->addWidget(info_board_font_size_spin_);
-  infoBoardBox->setLayout(infoBoardLayout);
-
-  auto* mainLayout = new QVBoxLayout;
-  mainLayout->addWidget(iconSizeBox);
-  mainLayout->addWidget(iconStyleBox);
-  mainLayout->addWidget(windowSizeBox);
-  mainLayout->addWidget(infoBoardBox);
-  mainLayout->addStretch(1);
   SetSettings();
-  setLayout(mainLayout);
 }
 
-/**********************************
- * Read the settings from config
- * and set the buttons and checkboxes
- * appropriately
- **********************************/
 void AppearanceTab::SetSettings() {
   SettingsObject general_settings_state("general_settings_state");
 
@@ -123,13 +82,13 @@ void AppearanceTab::SetSettings() {
 
   switch (icon_size.width()) {
     case 12:
-      icon_size_small_->setChecked(true);
+      ui_->smallRadioButton->setChecked(true);
       break;
     case 24:
-      icon_size_medium_->setChecked(true);
+      ui_->mediumRadioButton->setChecked(true);
       break;
     case 32:
-      icon_size_large_->setChecked(true);
+      ui_->largeRadioButton->setChecked(true);
       break;
   }
 
@@ -140,32 +99,35 @@ void AppearanceTab::SetSettings() {
 
   switch (icon_style) {
     case Qt::ToolButtonTextOnly:
-      icon_text_button_->setChecked(true);
+      ui_->justTextRadioButton->setChecked(true);
       break;
     case Qt::ToolButtonIconOnly:
-      icon_icons_button_->setChecked(true);
+      ui_->justIconRadioButton->setChecked(true);
       break;
     case Qt::ToolButtonTextUnderIcon:
-      icon_all_button_->setChecked(true);
+      ui_->textAndIconsRadioButton->setChecked(true);
       break;
     default:
       break;
   }
 
   bool window_save = general_settings_state.Check("window_save", true);
-  if (window_save) window_size_check_box_->setCheckState(Qt::Checked);
+  if (window_save) ui_->windowStateCheckBox->setCheckState(Qt::Checked);
 
-  auto info_font_size = general_settings_state.Check("font_size", 10);
-  if (info_font_size < 9 || info_font_size > 18) info_font_size = 10;
-  info_board_font_size_spin_->setValue(info_font_size);
+  auto info_board_info_font_size =
+      general_settings_state.Check("info_board").Check("font_size", 10);
+  if (info_board_info_font_size < 9 || info_board_info_font_size > 18)
+    info_board_info_font_size = 10;
+  ui_->fontSizeInformationBoardSpinBox->setValue(info_board_info_font_size);
+
+  auto text_editor_info_font_size =
+      general_settings_state.Check("text_editor").Check("font_size", 10);
+  if (text_editor_info_font_size < 9 || text_editor_info_font_size > 18)
+    text_editor_info_font_size = 10;
+  ui_->fontSizeTextEditorLabelSpinBox->setValue(text_editor_info_font_size);
 }
 
-/***********************************
- * get the values of the buttons and
- * write them to settings-file
- *************************************/
 void AppearanceTab::ApplySettings() {
-
   SettingsObject general_settings_state("general_settings_state");
 
   int icon_size = 24;
@@ -199,9 +161,13 @@ void AppearanceTab::ApplySettings() {
 
   general_settings_state["icon_style"] = icon_style;
 
-  general_settings_state["window_save"] = window_size_check_box_->isChecked();
+  general_settings_state["window_save"] = ui_->windowStateCheckBox->isChecked();
 
-  general_settings_state["info_font_size"] = info_board_font_size_spin_->value();
+  general_settings_state["info_board"]["font_size"] =
+      ui_->fontSizeInformationBoardSpinBox->value();
+
+  general_settings_state["text_editor"]["font_size"] =
+      ui_->fontSizeTextEditorLabelSpinBox->value();
 }
 
 }  // namespace GpgFrontend::UI

@@ -34,6 +34,7 @@
 #include "core/thread/FileReadTask.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "ui/struct/SettingsObject.h"
 #include "ui_PlainTextEditor.h"
 
 namespace GpgFrontend::UI {
@@ -48,7 +49,13 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
   ui_->loadingLabel->setHidden(true);
 
   // Front in same width
-  this->setFont({"Courier"});
+  SettingsObject general_settings_state("general_settings_state");
+
+  // font size
+  auto editor_font_size =
+      general_settings_state.Check("text_editor").Check("font_size", 10);
+  ui_->textPage->setFont(QFont("Courier", editor_font_size));
+
   this->setAttribute(Qt::WA_DeleteOnClose);
 
   this->ui_->characterLabel->setText(_("0 character"));
