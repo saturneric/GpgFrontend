@@ -379,7 +379,9 @@ void KeyList::dragEnterEvent(QDragEnterEvent* event) {
  *
  */
 [[maybe_unused]] void KeyList::MarkKeys(QStringList* keyIds) {
-  foreach (QString id, *keyIds) { qDebug() << "marked: " << id; }
+  foreach (QString id, *keyIds) {
+    qDebug() << "marked: " << id;
+  }
 }
 
 void KeyList::import_keys(const QByteArray& inBuffer) {
@@ -441,6 +443,8 @@ void KeyList::slot_sync_with_key_server() {
         key_ids.push_back(key.GetId());
     }
   }
+
+  if (key_ids.empty()) return;
 
   ui_->refreshKeyListButton->setDisabled(true);
   ui_->syncButton->setDisabled(true);

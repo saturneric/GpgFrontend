@@ -50,7 +50,6 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
       int x = general_windows_state.Check("window_pos").Check("x", 100),
           y = general_windows_state.Check("window_pos").Check("y", 100);
 
-      this->move({x, y});
       pos_ = {x, y};
 
       int width =
@@ -58,9 +57,49 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
           height =
               general_windows_state.Check("window_size").Check("height", 247);
 
-      this->resize({width, height});
       size_ = {width, height};
 
+      if (this->parent() != nullptr) {
+        LOG(INFO) << "parent address" << this->parent();
+
+        QPoint parent_pos = {0, 0};
+        QSize parent_size = {0, 0};
+
+        auto *parent_widget = qobject_cast<QWidget *>(this->parent());
+        if (parent_widget != nullptr) {
+          parent_pos = parent_widget->pos();
+          parent_size = parent_widget->size();
+        }
+
+        auto *parent_dialog = qobject_cast<QDialog *>(this->parent());
+        if (parent_dialog != nullptr) {
+          parent_pos = parent_dialog->pos();
+          parent_size = parent_dialog->size();
+        }
+
+        auto *parent_window = qobject_cast<QMainWindow *>(this->parent());
+        if (parent_window != nullptr) {
+          parent_pos = parent_window->pos();
+          parent_size = parent_window->size();
+        }
+
+        LOG(INFO) << "parent pos x:" << parent_pos.x()
+                  << "y:" << parent_pos.y();
+
+        LOG(INFO) << "parent size width:" << parent_size.width()
+                  << "height:" << parent_size.height();
+
+        if (parent_pos != QPoint{0, 0}) {
+          QPoint parent_center{parent_pos.x() + parent_size.width() / 2,
+                               parent_pos.y() + parent_size.height() / 2};
+
+          pos_ = {parent_center.x() - size_.width() / 2,
+                  parent_center.y() - size_.height() / 2};
+        }
+      }
+
+      this->move(pos_);
+      this->resize(size_);
     }
 
   } catch (...) {
@@ -85,4 +124,18 @@ void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
   } catch (...) {
     LOG(ERROR) << name_ << "error";
   }
+}
+
+void GpgFrontend::UI::GeneralDialog::setPosCenterOfScreen() {
+  auto* screen = QGuiApplication::primaryScreen();
+  QRect geo = screen->availableGeometry();
+  int screen_width = geo.width();
+  int screen_height = geo.height();
+
+  LOG(INFO) << "primary screen available geometry" << screen_width
+            << screen_height;
+
+  pos_ = QPoint((screen_width - QWidget::width()) / 2,
+                    (screen_height - QWidget::height()) / 2);
+  this->move(pos_);
 }

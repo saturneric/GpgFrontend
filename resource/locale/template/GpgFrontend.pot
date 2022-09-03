@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.0.9\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2022-07-23 20:25+0800\n"
+"POT-Creation-Date: 2022-09-03 20:06+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -173,7 +173,7 @@ msgid "MIME"
 msgstr ""
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:213
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:208
 msgid "true"
 msgstr ""
 
@@ -460,7 +460,7 @@ msgstr ""
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:374
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:393
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:437
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:174
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:176
 msgid "Error"
 msgstr ""
 
@@ -479,7 +479,7 @@ msgid "Description: "
 msgstr ""
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:68
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:160
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:311
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:418
@@ -501,18 +501,18 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/core/GpgConstants.cpp:204
 #: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:42
-#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:73
+#: /mnt/h/GpgFrontend/src/ui/dialog/GeneralDialog.cpp:112
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:473
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:271
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:63
 #: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:50
-#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:106
+#: /mnt/h/GpgFrontend/src/ui/main_window/GeneralMainWindow.cpp:139
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindow.cpp:135
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:663
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:103
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:161
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:422
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:424
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
 msgid "Called"
 msgstr ""
 
@@ -521,11 +521,11 @@ msgstr ""
 msgid "log file path"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/main.cpp:122
+#: /mnt/h/GpgFrontend/src/main.cpp:126
 msgid "A serious error has occurred"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/main.cpp:123
+#: /mnt/h/GpgFrontend/src/main.cpp:127
 msgid ""
 "Oh no! GpgFrontend caught a serious error in the software, so it needs to be "
 "restarted. If the problem recurs, please manually terminate the program and "
@@ -992,14 +992,14 @@ msgstr ""
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:272
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:483
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:498
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:141
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
 msgid "Timeout"
 msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:275
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:486
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:144
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:156
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:334
 msgid "Key Server Not Found"
 msgstr ""
@@ -1007,7 +1007,7 @@ msgstr ""
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:278
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:489
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:505
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:147
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:159
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:337
 msgid "Connection Error"
 msgstr ""
@@ -1041,13 +1041,13 @@ msgid "%1 keys found. Double click a key to import it."
 msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:446
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:79
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:96
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:290
 msgid "Default Keyserver Not Found"
 msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:447
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:97
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:291
 msgid ""
 "Cannot read default keyserver from your settings, please set a default "
@@ -1056,7 +1056,7 @@ msgstr ""
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:480
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:494
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:138
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:150
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:328
 msgid "Key Not Found"
 msgstr ""
@@ -1077,25 +1077,25 @@ msgstr ""
 msgid "Key Imported"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:55
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:57
 msgid "Uploading Public Key"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:74
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:91
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
 msgid "Set target Key Server to default Key Server"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:77
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:95
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
 msgid "Cannot read default_keyserver From Settings"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:152
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:164
 msgid "Upload Success"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:153
+#: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:165
 msgid "Upload Public Key Successfully"
 msgstr ""
 
@@ -1857,7 +1857,7 @@ msgstr ""
 msgid "auto_pubkey_exchange_checked"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:40
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:41
 msgid "Icon Size"
 msgstr ""
 
@@ -1873,36 +1873,44 @@ msgstr ""
 msgid "large"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:46
 msgid "Icon Style"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:47
 msgid "just text"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:63
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:48
 msgid "just icons"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:64
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:49
 msgid "text and icons"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:80
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:51
 msgid "Window State"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:83
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:53
 msgid "Save window size and position on exit."
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:91
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:55
+msgid "Text Editor"
+msgstr ""
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:56
+msgid "Font Size in Text Editor"
+msgstr ""
+
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:58
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:496
 msgid "Information Board"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:97
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
 msgid "Font Size in Information Board"
 msgstr ""
 
@@ -2042,17 +2050,17 @@ msgstr ""
 msgid "Set As Default"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:156
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:151
 msgid "Insecure keyserver address"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:157
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:152
 msgid ""
 "For security reasons, using HTTP as the communication protocol with the key "
 "server is not recommended. It is recommended to use HTTPS."
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:166
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:161
 msgid ""
 "You may not use HTTPS or HTTP as the protocol for communicating with the key "
 "server, which may not be wrong. But please check the address you entered "
@@ -2060,31 +2068,31 @@ msgid ""
 "keyserver list?"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:209
 msgid "false"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:219
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
 msgid "unknown"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:233
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:228
 msgid "Set TCP Timeout"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:258
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:253
 msgid "Reachable"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:261
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:256
 msgid "Not Reachable"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:273
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:268
 msgid "Test Key Server Connection..."
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:274
+#: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:269
 msgid ""
 "This test only tests the network connectivity of the key server. Passing the "
 "test does not mean that the key server is functionally available."
@@ -3187,6 +3195,10 @@ msgstr ""
 msgid "Key ToolBox"
 msgstr ""
 
+#: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:56
+msgid "Show Verify Details"
+msgstr ""
+
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:65
 msgid "Public key not found locally"
 msgstr ""
@@ -3325,11 +3337,11 @@ msgstr ""
 msgid "Unable to create the file."
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:165
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:167
 msgid "Save Information Board's Content"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:175
+#: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:177
 msgid "The file path is not exists, unprivileged or unreachable."
 msgstr ""
 
@@ -3401,53 +3413,53 @@ msgstr ""
 msgid "Couldn't Open File"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:430
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:432
 msgid "Key List Refreshed."
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:448
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:452
 msgid "Syncing Key List..."
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:456
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:460
 msgid "Sync [%1%/%2%] %3% %4%"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:464
+#: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:468
 msgid "Key List Sync Done."
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:54
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:61
 msgid "0 character"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:55
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:99
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:62
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:106
 msgid "lf"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:56
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
 msgid "utf-8"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:252
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:70
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:259
 msgid "%1% character(s)"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:72
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:79
 msgid "Loading..."
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:100
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:107
 msgid "UTF-8"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:232
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:239
 msgid "%1% byte(s)"
 msgstr ""
 
-#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:277
+#: /mnt/h/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:284
 msgid "binary"
 msgstr ""
 

@@ -53,7 +53,7 @@ void show_verify_details(QWidget *parent, InfoBoardWidget *info_board,
                          GpgError error, const GpgVerifyResult &verify_result) {
   // take out result
   info_board->ResetOptionActionsMenu();
-  info_board->AddOptionalAction("Show Verify Details", [=]() {
+  info_board->AddOptionalAction(_("Show Verify Details"), [=]() {
     VerifyDetailsDialog(parent, error, verify_result);
   });
 }

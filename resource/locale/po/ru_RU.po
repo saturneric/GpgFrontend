@@ -325,7 +325,7 @@ msgstr "Список подписей"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:70
 msgid "Signature [%1%]:"
-msgstr "Подпись [% 1%]:"
+msgstr "Подпись [%1%]:"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:73
 msgid "A Bad Signature."
