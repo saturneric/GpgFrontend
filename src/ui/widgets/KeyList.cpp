@@ -500,7 +500,6 @@ void KeyList::check_all() {
 }
 
 KeyIdArgsListPtr& KeyTable::GetChecked() {
-  LOG(INFO) << "called";
   if (checked_key_ids_ == nullptr)
     checked_key_ids_ = std::make_unique<KeyIdArgsList>();
   auto& ret = checked_key_ids_;
@@ -521,7 +520,6 @@ void KeyTable::SetChecked(KeyIdArgsListPtr key_ids) {
 }
 
 void KeyTable::Refresh(KeyLinkListPtr m_keys) {
-  LOG(INFO) << "called";
 
   auto& checked_key_list = GetChecked();
   // while filling the table, sort enabled causes errors
@@ -536,7 +534,6 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
   else
     keys = std::move(m_keys);
 
-  LOG(INFO) << "keys size: " << keys->size();
   auto it = keys->begin();
   int row_count = 0;
 
@@ -557,7 +554,6 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
     it++;
   }
 
-  LOG(INFO) << "row_count: " << row_count;
   key_list_->setRowCount(row_count);
 
   int row_index = 0;
@@ -649,8 +645,6 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
       }
     }
   }
-
-  LOG(INFO) << "End";
 }
 
 void KeyTable::UncheckALL() const {
