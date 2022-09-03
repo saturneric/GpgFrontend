@@ -94,7 +94,6 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
     LOG(INFO) << "FetchKey Id:" << value.GetId();
     keys_list->push_back(value.Copy());
   }
-  LOG(INFO) << "ended";
   return keys_list;
 }
 
@@ -142,7 +141,6 @@ void GpgFrontend::GpgKeyGetter::FlushKeyCache() {
   err = gpgme_op_keylist_end(ctx_);
   assert(check_gpg_error_2_err_code(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
 
-  LOG(INFO) << "ended";
 }
 
 GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeys(
