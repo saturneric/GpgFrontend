@@ -9,9 +9,9 @@ It is recommended to use plain text to contact me by email, but HTML is not reco
 
 Name: Saturneric, Eric or Erich.
 
-Email: [eric@bktus.com](mailto:eric@bktus.com)
+Email: [eric@bktus.com](mailto:eric@bktus.com) (Hosted in the Federal Republic of Germany)
 
-Tips: BKTUS(Bakantu Union) is not a company, it is my personal domain name.
+Tips: BKTUS(Bakantu union us) is not a company, it is my personal domain name.
 
 ## Languages
 
