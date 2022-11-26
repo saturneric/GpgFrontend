@@ -1,24 +1,24 @@
 [submodule "third_party/gpgme"]
 	path = third_party/gpgme
-	url = https://github.com/saturneric/gpgme
+	url = https://git.bktus.com/GnuPG/gpgme.git
 [submodule "third_party/libassuan"]
 	path = third_party/libassuan
-	url = https://github.com/saturneric/libassuan
+	url = https://git.bktus.com/GnuPG/libassuan.git
 [submodule "third_party/libgpg-error"]
 	path = third_party/libgpg-error
-	url = https://github.com/saturneric/libgpg-error
+	url = https://git.bktus.com/GnuPG/libgpg-error.git
 [submodule "third_party/json"]
 	path = third_party/json
-	url = https://github.com/saturneric/json
+	url = https://git.bktus.com/GpgFrontend/json.git
 [submodule "third_party/easyloggingpp"]
 	path = third_party/easyloggingpp
-	url = https://github.com/saturneric/easyloggingpp
+	url = https://git.bktus.com/GpgFrontend/easyloggingpp.git
 [submodule "third_party/qt-aes"]
 	path = third_party/qt-aes
-	url = https://github.com/saturneric/Qt-AES
+	url = https://git.bktus.com/GpgFrontend/Qt-AES.git
 [submodule "third_party/libarchive"]
 	path = third_party/libarchive
-	url = https://github.com/saturneric/libarchive.git
+	url = https://git.bktus.com/GpgFrontend/libarchive.git
 [submodule "third_party/libconfig"]
 	path = third_party/libconfig
-	url = https://github.com/saturneric/libconfig
+	url = https://git.bktus.com/GpgFrontend/libconfig.git
