@@ -41,7 +41,6 @@ void GpgFrontend::GenKeyInfo::SetAlgo(
   LOG(INFO) << "set algo name" << m_algo.first;
   // Check algo if supported
   std::string algo_args = m_algo.second;
-  boost::algorithm::to_upper(algo_args);
   if (standalone_) {
     if (!subkey_) {
       auto support_algo = GetSupportedKeyAlgoStandalone();
@@ -156,7 +155,22 @@ void GpgFrontend::GenKeyInfo::SetAlgo(
     suggest_max_key_size_ = -1;
     suggest_size_addition_step_ = -1;
     SetKeyLength(-1);
+  } else if (algo_args == "brainpoolp256r1") {
+    SetAllowAuthentication(false);
+    allow_change_authentication_ = false;
+
+    SetAllowSigning(false);
+    allow_change_signing_ = false;
+
+    SetAllowCertification(false);
+    allow_change_certification_ = false;
+
+    suggest_min_key_size_ = -1;
+    suggest_max_key_size_ = -1;
+    suggest_size_addition_step_ = -1;
+    SetKeyLength(-1);
   }
+
   this->algo_ = algo_args;
 }
 
@@ -237,12 +251,15 @@ const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
 const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
     &GpgFrontend::GenKeyInfo::GetSupportedSubkeyAlgo() {
   static const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
-      support_subkey_algo = {{"RSA", "RSA"},
-                             {"DSA", "DSA"},
-                             {"ECDSA", "ED25519"},
-                             {"ECDH NIST P-256", "NISTP256"},
-                             {"ECDH NIST P-384", "NISTP384"},
-                             {"ECDH NIST P-521", "NISTP521"}};
+      support_subkey_algo = {
+          {"RSA", "RSA"},
+          {"DSA", "DSA"},
+          {"ECDSA", "ED25519"},
+          {"ECDH NIST P-256", "NISTP256"},
+          {"ECDH NIST P-384", "NISTP384"},
+          {"ECDH NIST P-521", "NISTP521"},
+          // {"ECDH BrainPool P-256", "BRAINPOOlP256R1"}
+      };
   return support_subkey_algo;
 }
 
