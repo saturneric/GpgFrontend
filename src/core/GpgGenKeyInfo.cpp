@@ -199,14 +199,16 @@ GpgFrontend::GenKeyInfo::GenKeyInfo(bool m_is_sub_key, bool m_standalone)
 
 const std::vector<std::string> &GpgFrontend::GenKeyInfo::GetSupportedKeyAlgo() {
   static const std::vector<std::string> support_key_algo = {"RSA", "DSA",
-                                                            "ED25519"};
+                                                            "ELG"
+                                                            "ED25519",
+                                                            "CV25519"};
   return support_key_algo;
 }
 
 const std::vector<std::string>
     &GpgFrontend::GenKeyInfo::GetSupportedSubkeyAlgo() {
-  static const std::vector<std::string> support_subkey_algo = {"RSA", "DSA",
-                                                               "ED25519"};
+  static const std::vector<std::string> support_subkey_algo = {
+      "RSA", "DSA", "ELG", "ED25519"};
   return support_subkey_algo;
 }
 

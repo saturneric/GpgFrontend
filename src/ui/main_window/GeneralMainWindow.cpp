@@ -146,6 +146,9 @@ void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
     general_windows_state["window_pos"]["x"] = pos().x();
     general_windows_state["window_pos"]["y"] = pos().y();
 
+    // update size of current dialog
+    size_ = this->size();
+
     general_windows_state["window_size"]["width"] = size_.width();
     general_windows_state["window_size"]["height"] = size_.height();
     general_windows_state["window_save"] = true;

@@ -54,7 +54,7 @@ class GeneralMainWindow : public QMainWindow {
    *
    * @param event
    */
-  void closeEvent(QCloseEvent* event);
+  void closeEvent(QCloseEvent* event) override;
 
   QSize icon_size_{};               ///<
   int font_size_{};                 ///<
