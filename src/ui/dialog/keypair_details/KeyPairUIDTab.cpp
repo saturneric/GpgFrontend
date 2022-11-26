@@ -574,7 +574,12 @@ void KeyPairUIDTab::slot_del_sign() {
   }
 }
 void KeyPairUIDTab::slot_refresh_key() {
-  this->m_key_ = GpgKeyGetter::GetInstance().GetKey(this->m_key_.GetId());
+  LOG(INFO) << "called";
+
+  // refresh the key
+  GpgKey refreshed_key = GpgKeyGetter::GetInstance().GetKey(m_key_.GetId());
+  std::swap(this->m_key_, refreshed_key);
+
   this->slot_refresh_uid_list();
   this->slot_refresh_tofu_info();
   this->slot_refresh_sig_list();

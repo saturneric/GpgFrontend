@@ -158,7 +158,7 @@ void KeyList::AddListGroupTab(
 }
 
 void KeyList::SlotRefresh() {
-  LOG(INFO) << _("Called") << "address" << this;
+  LOG(INFO) << _("called") << "address" << this;
 
   ui_->refreshKeyListButton->setDisabled(true);
   ui_->syncButton->setDisabled(true);
@@ -379,9 +379,7 @@ void KeyList::dragEnterEvent(QDragEnterEvent* event) {
  *
  */
 [[maybe_unused]] void KeyList::MarkKeys(QStringList* keyIds) {
-  foreach (QString id, *keyIds) {
-    qDebug() << "marked: " << id;
-  }
+  foreach (QString id, *keyIds) { qDebug() << "marked: " << id; }
 }
 
 void KeyList::import_keys(const QByteArray& inBuffer) {
@@ -520,7 +518,6 @@ void KeyTable::SetChecked(KeyIdArgsListPtr key_ids) {
 }
 
 void KeyTable::Refresh(KeyLinkListPtr m_keys) {
-
   auto& checked_key_list = GetChecked();
   // while filling the table, sort enabled causes errors
 

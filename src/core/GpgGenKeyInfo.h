@@ -62,34 +62,36 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
 
   std::string passphrase_;  ///<
 
+  using KeyGenAlgo = std::pair<std::string, std::string>;
+
  public:
   /**
    * @brief Get the Supported Key Algo object
    *
    * @return const std::vector<std::string>&
    */
-  static const std::vector<std::string> &GetSupportedKeyAlgo();
+  static const std::vector<KeyGenAlgo> &GetSupportedKeyAlgo();
 
   /**
    * @brief Get the Supported Subkey Algo object
    *
    * @return const std::vector<std::string>&
    */
-  static const std::vector<std::string> &GetSupportedSubkeyAlgo();
+  static const std::vector<KeyGenAlgo> &GetSupportedSubkeyAlgo();
 
   /**
    * @brief Get the Supported Key Algo Standalone object
    *
    * @return const std::vector<std::string>&
    */
-  static const std::vector<std::string> &GetSupportedKeyAlgoStandalone();
+  static const std::vector<KeyGenAlgo> &GetSupportedKeyAlgoStandalone();
 
   /**
    * @brief Get the Supported Subkey Algo Standalone object
    *
    * @return const std::vector<std::string>&
    */
-  static const std::vector<std::string> &GetSupportedSubkeyAlgoStandalone();
+  static const std::vector<KeyGenAlgo> &GetSupportedSubkeyAlgoStandalone();
 
   /**
    * @brief
@@ -171,7 +173,7 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    *
    * @param m_algo
    */
-  void SetAlgo(const std::string &m_algo);
+  void SetAlgo(const GpgFrontend::GenKeyInfo::KeyGenAlgo &m_algo);
 
   /**
    * @brief Get the Key Size Str object
