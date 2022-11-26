@@ -89,12 +89,19 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
         LOG(INFO) << "parent size width:" << parent_size.width()
                   << "height:" << parent_size.height();
 
+        LOG(INFO) << "this dialog size width:" << size_.width()
+                  << "height:" << size_.height();
+
         if (parent_pos != QPoint{0, 0}) {
           QPoint parent_center{parent_pos.x() + parent_size.width() / 2,
                                parent_pos.y() + parent_size.height() / 2};
 
           pos_ = {parent_center.x() - size_.width() / 2,
                   parent_center.y() - size_.height() / 2};
+
+          // record parent_pos_
+          this->parent_pos_ = parent_pos;
+          this->parent_size_ = parent_size;
         }
       }
 
@@ -117,6 +124,9 @@ void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
     general_windows_state["window_pos"]["x"] = pos().x();
     general_windows_state["window_pos"]["y"] = pos().y();
 
+    // update size of current dialog
+    size_ = this->size();
+
     general_windows_state["window_size"]["width"] = size_.width();
     general_windows_state["window_size"]["height"] = size_.height();
     general_windows_state["window_save"] = true;
@@ -127,7 +137,7 @@ void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
 }
 
 void GpgFrontend::UI::GeneralDialog::setPosCenterOfScreen() {
-  auto* screen = QGuiApplication::primaryScreen();
+  auto *screen = QGuiApplication::primaryScreen();
   QRect geo = screen->availableGeometry();
   int screen_width = geo.width();
   int screen_height = geo.height();
@@ -136,6 +146,30 @@ void GpgFrontend::UI::GeneralDialog::setPosCenterOfScreen() {
             << screen_height;
 
   pos_ = QPoint((screen_width - QWidget::width()) / 2,
-                    (screen_height - QWidget::height()) / 2);
+                (screen_height - QWidget::height()) / 2);
   this->move(pos_);
+}
+
+/**
+ * @brief
+ *
+ */
+void GpgFrontend::UI::GeneralDialog::movePosition2CenterOfParent() {
+  LOG(INFO) << "parent pos x:" << parent_pos_.x() << "y:" << parent_pos_.y();
+
+  LOG(INFO) << "parent size width:" << parent_size_.width()
+            << "height:" << parent_size_.height();
+
+  if (parent_pos_ != QPoint{0, 0} && parent_size_ != QSize{0, 0}) {
+    LOG(INFO) << "update current dialog position now";
+    QPoint parent_center{parent_pos_.x() + parent_size_.width() / 2,
+                         parent_pos_.y() + parent_size_.height() / 2};
+
+    // update size of current dialog
+    size_ = this->size();
+
+    pos_ = {parent_center.x() - size_.width() / 2,
+            parent_center.y() - size_.height() / 2};
+    this->move(pos_);
+  }
 }
