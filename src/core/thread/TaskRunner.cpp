@@ -36,19 +36,18 @@ GpgFrontend::Thread::TaskRunner::TaskRunner() = default;
 GpgFrontend::Thread::TaskRunner::~TaskRunner() = default;
 
 void GpgFrontend::Thread::TaskRunner::PostTask(Task* task) {
-  LOG(TRACE) << "Post Task" << task->GetUUID();
+  std::string uuid = task->GetUUID();
+  LOG(TRACE) << "Post Task" << uuid;
 
   if (task == nullptr) return;
   task->setParent(nullptr);
   task->moveToThread(this);
 
-  connect(task, &Task::SignalTaskPostFinishedDone, this, [=]() {
-    auto it = pending_tasks_.find(task->GetUUID());
+  connect(task, &Task::SignalTaskPostFinishedDone, this, [&, uuid]() {
+    auto it = pending_tasks_.find(uuid);
     if (it == pending_tasks_.end()) {
-      LOG(ERROR) << "Task" << task->GetUUID() << "not found in pending tasks";
       return;
     } else {
-      LOG(TRACE) << "Task" << task->GetUUID() << "found in pending tasks";
       it->second->deleteLater();
       pending_tasks_.erase(it);
     }

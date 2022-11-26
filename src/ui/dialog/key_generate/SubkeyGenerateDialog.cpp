@@ -26,6 +26,8 @@
 
 #include "SubkeyGenerateDialog.h"
 
+#include <cassert>
+
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
@@ -120,10 +122,10 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
   key_size_spin_box_ = new QSpinBox(this);
   key_type_combo_box_ = new QComboBox(this);
 
-  for (auto& algo : GenKeyInfo::GetSupportedKeyAlgo()) {
-    key_type_combo_box_->addItem(QString::fromStdString(algo));
+  for (auto& algo : GenKeyInfo::GetSupportedSubkeyAlgo()) {
+    key_type_combo_box_->addItem(QString::fromStdString(algo.first));
   }
-  if (!GenKeyInfo::GetSupportedKeyAlgo().empty()) {
+  if (!GenKeyInfo::GetSupportedSubkeyAlgo().empty()) {
     key_type_combo_box_->setCurrentIndex(0);
   }
 
@@ -188,7 +190,7 @@ void SubkeyGenerateDialog::slot_expire_box_changed() {
 }
 
 void SubkeyGenerateDialog::refresh_widgets_state() {
-  qDebug() << "refresh_widgets_state called";
+  LOG(INFO) << "refresh_widgets_state called";
 
   if (gen_key_info_->IsAllowEncryption())
     key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Checked);
@@ -266,13 +268,13 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     });
     thread->start();
 
-    auto* dialog = new WaitingDialog(_("Generating"), this);
-    dialog->show();
+    auto* waiting_dialog = new WaitingDialog(_("Generating"), this);
+    waiting_dialog->show();
 
     while (thread->isRunning()) {
       QCoreApplication::processEvents();
     }
-    dialog->close();
+    waiting_dialog->close();
 
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR) {
       auto* msg_box = new QMessageBox((QWidget*)this->parent());
@@ -285,8 +287,9 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
 
       emit SignalSubKeyGenerated();
       this->close();
-    } else
+    } else {
       QMessageBox::critical(this, _("Failure"), _("Failed to generate key."));
+    }
 
   } else {
     /**
@@ -336,8 +339,10 @@ void SubkeyGenerateDialog::slot_authentication_box_changed(int state) {
 
 void SubkeyGenerateDialog::slot_activated_key_type(int index) {
   qDebug() << "key type index changed " << index;
-  gen_key_info_->SetAlgo(
-      this->key_type_combo_box_->itemText(index).toStdString());
+
+  // check
+  assert(gen_key_info_->GetSupportedSubkeyAlgo().size() > index);
+  gen_key_info_->SetAlgo(gen_key_info_->GetSupportedSubkeyAlgo()[index]);
   refresh_widgets_state();
 }
 

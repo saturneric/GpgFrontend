@@ -80,10 +80,12 @@ extern void init_logging_system();
  * @return
  */
 int main(int argc, char* argv[]) {
+#ifdef RELEASE
   // re
   signal(SIGSEGV, handle_signal);
   signal(SIGFPE, handle_signal);
   signal(SIGILL, handle_signal);
+#endif
 
   // clean something before exit
   atexit(before_exit);
