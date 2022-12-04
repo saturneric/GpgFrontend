@@ -72,6 +72,13 @@ class GeneralTab : public QWidget {
    */
   void SignalRestartNeeded(bool needed);
 
+  /**
+   * @brief
+   *
+   * @param needed
+   */
+  void SignalDeepRestartNeeded(bool needed);
+
  private:
   std::shared_ptr<Ui_GeneralSettings> ui_;  ///<
 
@@ -91,6 +98,18 @@ class GeneralTab : public QWidget {
    *
    */
   void slot_language_changed();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_update_custom_key_database_path_label(int state);
+
+  /**
+   * @brief
+   *
+   */
+  void slot_key_databse_path_changed();
 
 #endif
 };

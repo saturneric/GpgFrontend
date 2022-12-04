@@ -82,12 +82,12 @@ class SettingsDialog : public GeneralDialog {
    *
    * @param needed
    */
-  void SignalRestartNeeded(bool needed);
+  void SignalRestartNeeded(int);
 
  private:
   QTabWidget* tab_widget_;        ///<
   QDialogButtonBox* button_box_;  ///<
-  bool restart_needed_{};         ///<
+  int restart_needed_{0};         ///<
 
   /**
    * @brief Get the Restart Needed object
@@ -95,7 +95,7 @@ class SettingsDialog : public GeneralDialog {
    * @return true
    * @return false
    */
-  bool get_restart_needed() const;
+  int get_restart_needed() const;
 
  private slots:
 
@@ -104,7 +104,7 @@ class SettingsDialog : public GeneralDialog {
    *
    * @param needed
    */
-  void slot_set_restart_needed(bool needed);
+  void slot_set_restart_needed(int);
 };
 
 }  // namespace GpgFrontend::UI

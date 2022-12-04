@@ -62,11 +62,17 @@ void MainWindow::Init() noexcept {
     /* Variable containing if restart is needed */
     this->SlotSetRestartNeeded(false);
 
+    // init menu bar
+    this->setMenuBar(new QMenuBar());
+
     create_actions();
     create_menus();
     create_tool_bars();
     create_status_bar();
     create_dock_windows();
+
+    // show menu bar
+    this->menuBar()->show();
 
     connect(edit_->tab_widget_, &QTabWidget::currentChanged, this,
             &MainWindow::slot_disable_tab_actions);
