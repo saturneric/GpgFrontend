@@ -29,6 +29,8 @@
 #ifndef GPGFRONTEND_GPGKEY_H
 #define GPGFRONTEND_GPGKEY_H
 
+#include <mutex>
+
 #include "GpgSubKey.h"
 #include "GpgUID.h"
 
@@ -353,6 +355,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
       std::unique_ptr<struct _gpgme_key, _key_ref_deleter>;  ///<
 
   KeyRefHandler key_ref_ = nullptr;  ///<
+
+  mutable std::mutex gpgme_key_opera_mutex;  // mutex for gpgme key operations
 };
 
 }  // namespace GpgFrontend
