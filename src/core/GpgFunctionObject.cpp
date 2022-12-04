@@ -122,11 +122,15 @@ GpgFrontend::SingletonStorageCollection::GetSingletonStorage(
 }
 
 GpgFrontend::SingletonStorageCollection*
-GpgFrontend::SingletonStorageCollection::GetInstance() {
+GpgFrontend::SingletonStorageCollection::GetInstance(
+    bool force_refresh = false) {
   static SingletonStorageCollection* instance = nullptr;
-  if (instance == nullptr) {
+
+  if (force_refresh || instance == nullptr) {
     instance = new SingletonStorageCollection();
+    LOG(INFO) << "new single storage collection created: " << instance;
   }
+
   return instance;
 }
 

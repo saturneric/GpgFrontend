@@ -34,6 +34,7 @@
 #include <csignal>
 #include <cstddef>
 
+#include "core/GpgConstants.h"
 #include "core/GpgCoreInit.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/GpgFrontendUIInit.h"
@@ -110,38 +111,40 @@ int main(int argc, char* argv[]) {
   int return_from_event_loop_code;
 
   do {
+    do {
 #ifndef WINDOWS
-    int r = sigsetjmp(recover_env, 1);
+      int r = sigsetjmp(recover_env, 1);
 #else
-    int r = setjmp(recover_env);
+      int r = setjmp(recover_env);
 #endif
-    if (!r) {
-      // init ui library
-      GpgFrontend::UI::InitGpgFrontendUI(app);
+      if (!r) {
+        // init ui library
+        GpgFrontend::UI::InitGpgFrontendUI(app);
 
-      // create main window
-      return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
-    } else {
-      LOG(ERROR) << "recover from a crash";
-      // when signal is caught, restart the main window
-      auto* message_box = new QMessageBox(
-          QMessageBox::Critical, _("A serious error has occurred"),
-          _("Oh no! GpgFrontend caught a serious error in the software, so "
-            "it needs to be restarted. If the problem recurs, please "
-            "manually terminate the program and report the problem to the "
-            "developer."),
-          QMessageBox::Ok, nullptr);
-      message_box->exec();
-      return_from_event_loop_code = CRASH_CODE;
-    }
+        // create main window
+        return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
+      } else {
+        LOG(ERROR) << "recover from a crash";
+        // when signal is caught, restart the main window
+        auto* message_box = new QMessageBox(
+            QMessageBox::Critical, _("A serious error has occurred"),
+            _("Oh no! GpgFrontend caught a serious error in the software, so "
+              "it needs to be restarted. If the problem recurs, please "
+              "manually terminate the program and report the problem to the "
+              "developer."),
+            QMessageBox::Ok, nullptr);
+        message_box->exec();
+        return_from_event_loop_code = CRASH_CODE;
+      }
 
-    if (return_from_event_loop_code == CRASH_CODE) {
-      app = GpgFrontend::UI::GpgFrontendApplication::GetInstance(argc, argv,
-                                                                 true);
-    }
+      LOG(INFO) << "loop refresh";
+    } while (return_from_event_loop_code == RESTART_CODE);
 
-    LOG(INFO) << "loop refresh";
-  } while (return_from_event_loop_code == RESTART_CODE ||
+    // reset core
+    GpgFrontend::ResetGpgFrontendCore();
+
+    // deep restart mode
+  } while (return_from_event_loop_code == DEEP_RESTART_CODE ||
            return_from_event_loop_code == CRASH_CODE);
 
   // exit the program

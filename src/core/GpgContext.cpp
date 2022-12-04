@@ -102,6 +102,9 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
         find_openpgp = true;
         info_.AppPath = engine_info->file_name;
         info_.GnupgVersion = engine_info->version;
+        info_.DatabasePath = std::string(engine_info->home_dir == nullptr
+                                             ? "default"
+                                             : engine_info->home_dir);
         break;
       case GPGME_PROTOCOL_CMS:
         find_cms = true;
@@ -126,6 +129,16 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
         break;
     }
     engine_info = engine_info->next;
+  }
+
+  // set custom key db path
+  if (!args.db_path.empty()) {
+    info_.DatabasePath = args.db_path;
+    auto err = gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_OpenPGP,
+                                         info_.AppPath.c_str(),
+                                         info_.DatabasePath.c_str());
+    LOG(INFO) << "ctx set custom key db path:" << info_.DatabasePath;
+    assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
   }
 
   // conditional check
