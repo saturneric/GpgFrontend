@@ -908,7 +908,7 @@ msgstr "新密钥"
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:183
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:143
 msgid "New Subkey"
-msgstr "新建子项"
+msgstr "新建子密钥"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:191
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:47
@@ -997,7 +997,7 @@ msgstr "标签"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:224
 msgid "Text is empty."
-msgstr "文字为空。"
+msgstr "文本为空。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:269
 msgid "Not Key Found"
