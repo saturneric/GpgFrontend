@@ -31,36 +31,105 @@
 
 #include "GnupgTab.h"
 
-GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent) : QWidget(parent) {
+#include <vector>
+
+#include "easylogging++.h"
+#include "ui_GnuPGInfo.h"
+
+GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
+    : QWidget(parent),
+      ui_(std::make_shared<Ui_GnuPGInfo>()),
+      gpgconf_process_(new QProcess(this)) {
   GpgContext& ctx = GpgContext::GetInstance();
   auto info = ctx.GetInfo();
 
-  auto* pixmap = new QPixmap(":gnupg.png");
-  auto* text = new QString(
-      "<center><h2>" + QString(_("GnuPG")) + "</h2></center>" + "<center><b>" +
-      QString(_("GnuPG Version")) + ": " +
-      QString::fromStdString(info.GnupgVersion) + "</b></center>" +
-      "<center><b>" + +"</b></center>" + "<center>" +
-      QString(_("GpgME Version")) + ": " +
-      QString::fromStdString(info.GpgMEVersion) + "</center><br /><hr />" +
-      "<h3>" + QString(_("PATHs")) + "</h3>" + QString(_("GpgConf")) + ": " +
-      QString::fromStdString(info.GpgConfPath) + "<br />" +
-      QString(_("GnuPG")) + ": " + QString::fromStdString(info.AppPath) +
-      "<br />" + QString(_("CMS")) + ": " +
-      QString::fromStdString(info.CMSPath) + "<br />");
+  ui_->setupUi(this);
 
-  auto* layout = new QGridLayout();
-  auto* pixmapLabel = new QLabel();
-  pixmapLabel->setPixmap(*pixmap);
-  layout->addWidget(pixmapLabel, 0, 0, 1, -1, Qt::AlignCenter);
-  auto* aboutLabel = new QLabel();
-  aboutLabel->setText(*text);
-  aboutLabel->setWordWrap(true);
-  aboutLabel->setOpenExternalLinks(true);
-  layout->addWidget(aboutLabel, 1, 0, 1, -1);
-  layout->addItem(
-      new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed), 2, 1,
-      1, 1);
+  QStringList column_titles;
+  column_titles << _("Name") << _("Description") << _("Version") << _("Path");
 
-  setLayout(layout);
+  ui_->conponentDetailsTable->setColumnCount(column_titles.length());
+  ui_->conponentDetailsTable->setHorizontalHeaderLabels(column_titles);
+  ui_->conponentDetailsTable->horizontalHeader()->setStretchLastSection(false);
+  ui_->conponentDetailsTable->setSelectionBehavior(
+      QAbstractItemView::SelectRows);
+
+  // tableitems not editable
+  ui_->conponentDetailsTable->setEditTriggers(
+      QAbstractItemView::NoEditTriggers);
+
+  // no focus (rectangle around tableitems)
+  // may be it should focus on whole row
+  ui_->conponentDetailsTable->setFocusPolicy(Qt::NoFocus);
+  ui_->conponentDetailsTable->setAlternatingRowColors(true);
+
+  gpgconf_process_->start(QString::fromStdString(info.GpgConfPath),
+                          QStringList() << "--list-components");
+
+  connect(gpgconf_process_,
+          qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
+          &GnupgTab::process_components_info);
+}
+
+void GpgFrontend::UI::GnupgTab::process_components_info(
+    int exit_code, QProcess::ExitStatus exit_status) {
+  LOG(INFO) << "called";
+
+  GpgContext& ctx = GpgContext::GetInstance();
+  auto info = ctx.GetInfo();
+
+  std::vector<std::vector<std::string>> components_info = {
+      {"gpgme", "GPG Made Easy", info.GpgMEVersion, "/"},
+      {"gpgconf", "GPG Configure", "/", info.GpgConfPath},
+
+  };
+
+  if (gpgconf_process_ != nullptr) {
+    QString data = gpgconf_process_->readAllStandardOutput();
+
+    std::vector<std::string> line_split_list;
+    boost::split(line_split_list, data.toStdString(), boost::is_any_of("\n"));
+
+    for (const auto& line : line_split_list) {
+      std::vector<std::string> info_split_list;
+      boost::split(info_split_list, line, boost::is_any_of(":"));
+      LOG(INFO) << "gpgconf info line" << line << "info size"
+                << info_split_list.size();
+
+      if (info_split_list.size() != 3) continue;
+
+      if (info_split_list[0] == "gpg") {
+        components_info.push_back({info_split_list[0], info_split_list[1],
+                                   info.GnupgVersion, info_split_list[2]});
+      } else {
+        components_info.push_back(
+            {info_split_list[0], info_split_list[1], "/", info_split_list[2]});
+      }
+    }
+  }
+
+  ui_->conponentDetailsTable->setRowCount(components_info.size());
+
+  int row = 0;
+  for (const auto& info : components_info) {
+    if (info.size() != 4) continue;
+
+    auto* tmp0 = new QTableWidgetItem(QString::fromStdString(info[0]));
+    tmp0->setTextAlignment(Qt::AlignCenter);
+    ui_->conponentDetailsTable->setItem(row, 0, tmp0);
+
+    auto* tmp1 = new QTableWidgetItem(QString::fromStdString(info[1]));
+    tmp1->setTextAlignment(Qt::AlignCenter);
+    ui_->conponentDetailsTable->setItem(row, 1, tmp1);
+
+    auto* tmp2 = new QTableWidgetItem(QString::fromStdString(info[2]));
+    tmp2->setTextAlignment(Qt::AlignCenter);
+    ui_->conponentDetailsTable->setItem(row, 2, tmp2);
+
+    auto* tmp3 = new QTableWidgetItem(QString::fromStdString(info[3]));
+    tmp3->setTextAlignment(Qt::AlignLeft);
+    ui_->conponentDetailsTable->setItem(row, 3, tmp3);
+
+    row++;
+  }
 }
