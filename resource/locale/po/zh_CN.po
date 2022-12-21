@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
 "POT-Creation-Date: 2022-07-23 20:16+0800\n"
 "PO-Revision-Date: 2022-07-23 20:23-0800\n"
-"Last-Translator: Google Translation <eric@bktus.com>\n"
+"Last-Translator: huzpsb <huzpsb@qq.com>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
 "Language: zh\n"
 "MIME-Version: 1.0\n"
@@ -44,11 +44,11 @@ msgstr "找到数据对象"
 
 #: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:133
 msgid "Decrypting data object"
-msgstr "解密数据对象"
+msgstr "正在解密数据对象"
 
 #: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:139
 msgid "Data object decoded"
-msgstr "数据对象解码"
+msgstr "数据对象解码成功"
 
 #: /mnt/h/GpgFrontend/src/core/function/DataObjectOperator.cpp:143
 msgid "Failed to get data object"
@@ -108,19 +108,19 @@ msgstr "应用日志路径"
 
 #: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:57
 msgid "App Locale Path"
-msgstr "应用区域路径"
+msgstr "应用语言文件路径"
 
 #: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:70
 msgid "UserInterface configuration successfully written to"
-msgstr "用户界面配置成功写入"
+msgstr "用户界面配置成功导出至"
 
 #: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:75
 msgid "I/O error while writing UserInterface configuration file"
-msgstr "写入用户界面配置文件时出现 I/O 错误"
+msgstr "导出用户界面配置文件时出现 I/O 错误"
 
 #: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:81
 msgid "UserInterface configuration successfully read from"
-msgstr "用户界面配置成功读取"
+msgstr "用户界面配置读取成功"
 
 #: /mnt/h/GpgFrontend/src/core/function/GlobalSettingStation.cpp:84
 msgid "I/O error while reading UserInterface configure file"
@@ -133,7 +133,7 @@ msgstr "解析错误在"
 #: /mnt/h/GpgFrontend/src/core/function/gpg/GpgKeyOpera.cpp:278
 #: /mnt/h/GpgFrontend/src/core/function/gpg/GpgKeyOpera.cpp:287
 msgid "operator not support"
-msgstr "运营商不支持"
+msgstr "操作不支持"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:38
 msgid "Decrypt Operation"
@@ -158,7 +158,7 @@ msgstr "成功"
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:49
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:250
 msgid "Failed"
-msgstr "失败的"
+msgstr "失败"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:48
 msgid "Unsupported Algo"
@@ -170,12 +170,12 @@ msgstr "文档名称"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
 msgid "MIME"
-msgstr "哑剧"
+msgstr "MIME"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:213
 msgid "true"
-msgstr "真的"
+msgstr "是"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:64
 msgid "Recipient(s)"
@@ -241,7 +241,7 @@ msgstr "开始签名结果分析"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:40
 msgid "Sign Operation"
-msgstr "签到操作"
+msgstr "签名操作"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:52
 msgid "Sign Result Analyse Getting Result"
@@ -262,7 +262,7 @@ msgstr "签名模式"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:63
 msgid "Normal"
-msgstr "普通的"
+msgstr "标准"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:65
 #: /mnt/h/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:45
@@ -297,11 +297,11 @@ msgstr "世界标准时间"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:95
 msgid "Sign Result Analyse Getting Invalid Signer"
-msgstr "签名结果分析获取无效签名者"
+msgstr "签名结果分析失败：无效签名者"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:100
 msgid "Invalid Signers"
-msgstr "无效的签名者"
+msgstr "无效签名者"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:42
 msgid "started"
@@ -313,7 +313,7 @@ msgstr "验证操作"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:58
 msgid "Signed On"
-msgstr "已登录"
+msgstr "已签名"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:64
 msgid "Signatures List"
@@ -338,12 +338,12 @@ msgstr "一种"
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:82
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:191
 msgid "Good"
-msgstr "好的"
+msgstr "正常"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:85
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:194
 msgid "Bad"
-msgstr "坏的"
+msgstr "异常"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:88
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:87
@@ -353,7 +353,7 @@ msgstr "已到期"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:91
 msgid "Missing Key's"
-msgstr "密钥不见了"
+msgstr "密钥缺失"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:94
 msgid "Revoked Key's"
@@ -365,7 +365,7 @@ msgstr "过期的密钥"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:100
 msgid "Missing CRL's"
-msgstr "缺少 CRL"
+msgstr "CRL缺失"
 
 #: /mnt/h/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:104
 msgid "Signature Fully Valid."
@@ -587,11 +587,11 @@ msgid ""
 "free gpg front-end tool.It visualizes most of the common operations of gpg "
 "commands.It's licensed under the GPL v3"
 msgstr ""
-"gpgFrontend 是一款简单易用、小巧、跨平台、免安装的gpg前端工具。它可视化了gpg命令的大部分常用操作。它在GPL v3下获得许可"
+"gpgFrontend 是一款简单易用、小巧、跨平台、免安装的gpg前端工具。它可视化了gpg命令的大部分常用操作。它的许可证是GPL v3。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:91
 msgid "Developer:"
-msgstr "开发商："
+msgstr "开发者："
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:92
 msgid "If you have any questions or suggestions, raise an issue at"
@@ -611,7 +611,7 @@ msgstr "和GPGME"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:99
 msgid "Built at"
-msgstr "建于"
+msgstr "构建于"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:138
 msgid ""
@@ -624,7 +624,7 @@ msgstr "如果觉得翻译有问题，何不参与翻译工作呢？如果您想
 msgid ""
 "It is recommended that you always check the version of GpgFrontend and "
 "upgrade to the latest version."
-msgstr "建议您经常检查 GpgFrontend 的版本并升级到最新版本。"
+msgstr "建议您经常检查 GpgFrontend 的版本更新。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:166
 msgid ""
@@ -664,13 +664,13 @@ msgstr "这里"
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:241
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:253
 msgid "to download the latest stable version."
-msgstr "下载最新的稳定版本。"
+msgstr "来下载最新的稳定版本。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:236
 msgid ""
 "This version has serious problems and has been withdrawn. Please stop using "
 "it immediately."
-msgstr "此版本存在严重问题，已撤回。请立即停止使用。"
+msgstr "此版本存在严重问题，已经被召回。请立即停止使用！"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:247
 msgid ""
@@ -727,7 +727,7 @@ msgstr "生成密码短语文件时出错。"
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:345
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:393
 msgid "Forbidden"
-msgstr "禁止"
+msgstr "操作被禁止"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:79
 msgid "Please select an output path before exporting."
@@ -737,14 +737,14 @@ msgstr "导出前请选择输出路径。"
 msgid ""
 "Please generate a password to protect your key before exporting, it is very "
 "important. Don't forget to back up your password in a safe place."
-msgstr "请在导出前生成密码以保护您的密钥，这非常重要。不要忘记在安全的地方备份您的密码。"
+msgstr "请在导出前生成密钥文件以保护您的密钥，这非常重要。不要忘记在安全的地方备份您的密码。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
 msgid ""
 "The Key Package has been successfully generated and has been protected by "
 "encryption algorithms(AES-256-ECB). You can safely transfer your Key "
 "Package."
-msgstr "密钥包已成功生成并受到加密算法（AES-256-ECB）的保护。您可以安全地转移您的密钥包。"
+msgstr "密钥包已成功生成并受到加密算法AES-256-ECB的保护。您可以安全地转移您的密钥包。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
 msgid ""
@@ -767,7 +767,7 @@ msgstr "输出路径"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:130
 msgid "Passphrase"
-msgstr "密码"
+msgstr "密钥文件"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:132
 msgid ""
@@ -789,11 +789,11 @@ msgstr "选择输出路径"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:139
 msgid "Include secret key (Think twice before acting)"
-msgstr "包括秘钥（行动前请三思）"
+msgstr "一并导出私钥（勾选前请三思）"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:141
 msgid "Exclude keys that do not have a private key"
-msgstr "排除没有私钥的密钥"
+msgstr "只导出有私钥的钥对"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:144
 msgid "Export As Key Package"
@@ -879,7 +879,7 @@ msgstr "状态"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:171
 msgid "Private"
-msgstr "私人的"
+msgstr "私有的"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:174
 msgid "Public"
@@ -896,7 +896,7 @@ msgstr "新密钥"
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:183
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:143
 msgid "New Subkey"
-msgstr "新建子项"
+msgstr "新子密钥"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:191
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:47
@@ -969,7 +969,7 @@ msgstr "设置操作错误"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:199
 msgid "UID"
-msgstr "用户识别码"
+msgstr "UID"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:199
 msgid "Creation date"
@@ -997,7 +997,7 @@ msgstr "未找到密钥"
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:141
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:331
 msgid "Timeout"
-msgstr "暂停"
+msgstr "超时"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:275
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:486
@@ -1020,7 +1020,7 @@ msgstr "来自密钥服务器的响应太多！"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:298
 msgid "No keys found, input may be kexId, retrying search with 0x."
-msgstr "未找到密钥，输入可能是 kexId，使用 0x 重试搜索。"
+msgstr "未找到密钥，输入可能是 kexId，正在使用 0x 重试。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:307
 msgid "No keys found containing the search string!"
@@ -1036,7 +1036,7 @@ msgstr "撤销"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:354
 msgid "disabled"
-msgstr "残疾"
+msgstr "被禁用"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:398
 msgid "%1 keys found. Double click a key to import it."
@@ -1077,7 +1077,7 @@ msgstr "一般连接错误"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:520
 msgid "Key Imported"
-msgstr "密钥导入"
+msgstr "密钥导入成功"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:55
 msgid "Uploading Public Key"
@@ -1194,15 +1194,15 @@ msgstr "实际使用"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:81
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:75
 msgid "Create Date (Local Time)"
-msgstr "创建日期（当地时间）"
+msgstr "创建日期（本地时间）"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:83
 msgid "Expires on (Local Time)"
-msgstr "到期时间（当地时间）"
+msgstr "到期时间（本地时间）"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:85
 msgid "Last Update (Local Time)"
-msgstr "上次更新（当地时间）"
+msgstr "上次更新（本地时间）"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:87
 msgid "Primary Key Existence"
@@ -1305,7 +1305,7 @@ msgstr "生成撤销证书"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:90
 msgid "Modify TOFU Policy"
-msgstr "修改TOFU政策"
+msgstr "修改TOFU策略"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:106
 msgid "Upload Key Pair to Key Server"
@@ -1327,7 +1327,7 @@ msgstr "导出最短密钥"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:192
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:235
 msgid "An error occurred during the export operation."
-msgstr "导出操作期间发生错误。"
+msgstr "导出操作发生错误。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:156
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:202
@@ -1371,7 +1371,7 @@ msgstr " 私钥"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:176
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:223
 msgid "This is NOT your Public Key, so DON'T give it away."
-msgstr "这不是你的公钥，所以不要把它泄露出去。"
+msgstr "这不是你的公钥，所以不要把它给别人！"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:177
 msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
@@ -1407,27 +1407,27 @@ msgstr "修改密码不成功。"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:331
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:341
 msgid "Policy Auto"
-msgstr "政策自动"
+msgstr "策略：自动"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:331
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:343
 msgid "Policy Good"
-msgstr "政策好"
+msgstr "策略：正常"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:331
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:345
 msgid "Policy Bad"
-msgstr "政策不好"
+msgstr "策略：异常"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:332
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:347
 msgid "Policy Ask"
-msgstr "政策咨询"
+msgstr "策略：咨询"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:332
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:349
 msgid "Policy Unknown"
-msgstr "政策未知"
+msgstr "策略：未知"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:336
 msgid "Modify TOFU Policy(Default is Auto)"
@@ -1460,7 +1460,7 @@ msgstr "用法"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:73
 msgid "Expires On (Local Time)"
-msgstr "到期时间（当地时间）"
+msgstr "到期时间（本地时间）"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:76
 msgid "Existence"
@@ -1485,7 +1485,7 @@ msgstr "创建日期 (UTC)"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:161
 msgid "Expire Date (UTC)"
-msgstr "到期日 (UTC)"
+msgstr "到期日期 (UTC)"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:238
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:288
@@ -1494,11 +1494,11 @@ msgstr "永不过期"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:271
 msgid "Yes"
-msgstr "是的"
+msgstr "是"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:271
 msgid "No"
-msgstr "不"
+msgstr "否"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:301
 msgid "Edit Expire Date"
@@ -1570,7 +1570,7 @@ msgstr "成功添加了新的 UID。"
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:519
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:571
 msgid "Operation Failed"
-msgstr "手术失败"
+msgstr "操作失败"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:354
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:424
@@ -1678,7 +1678,7 @@ msgstr "long_expiration_date"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:131
 msgid "Modified Expiration Date (Local Time)"
-msgstr "修改到期日期（当地时间）"
+msgstr "修改到期日期（本地时间）"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:133
 msgid ""
@@ -1881,11 +1881,11 @@ msgstr "图标样式"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:62
 msgid "just text"
-msgstr "文字"
+msgstr "只显示文字"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:63
 msgid "just icons"
-msgstr "图标"
+msgstr "只显示图标"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:64
 msgid "text and icons"
@@ -2061,7 +2061,7 @@ msgid ""
 "again to make sure it is correct. Are you sure that want to add it into the "
 "keyserver list?"
 msgstr ""
-"您可能不会使用HTTPS或HTTP作为与密钥服务器通信的协议，这可能没有错。但请再次检查您输入的地址以确保其正确无误。您确定要将其添加到密钥服务器列表中吗？"
+"通常不会使用HTTPS或HTTP作为与密钥服务器通信的协议。当然，您可能需要这么做。但是，烦请您再次检查您输入的地址。您确定要将其添加到密钥服务器列表中吗？"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
 msgid "false"
@@ -2077,15 +2077,15 @@ msgstr "设置 TCP 超时"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:258
 msgid "Reachable"
-msgstr "可达"
+msgstr "正常"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:261
 msgid "Not Reachable"
-msgstr "不可达"
+msgstr "离线"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:273
 msgid "Test Key Server Connection..."
-msgstr "测试密钥服务器连接..."
+msgstr "测试密钥服务器连通性..."
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:274
 msgid ""
@@ -2099,7 +2099,7 @@ msgstr "代理"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:50
 msgid "Network Capability"
-msgstr "网络能力"
+msgstr "网络承载量"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:53
 msgid "Enable Proxy"
@@ -2112,7 +2112,7 @@ msgstr "端口"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:56
 msgid "Host Address"
-msgstr "主机地址"
+msgstr "地址"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:58
 msgid "Proxy Type"
@@ -2173,17 +2173,17 @@ msgstr "禁止更新检查"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:235
 msgid "Test Server Url Accessibility"
-msgstr "测试服务器 URL 可访问性"
+msgstr "测试服务器 URL 连通性"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:246
 msgid "Successfully connect to the target server through the proxy server."
-msgstr "通过代理服务器成功连接到目标服务器。"
+msgstr "连接目标服务器成功（通过代理）。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:251
 msgid ""
 "Unable to connect to the target server through the proxy server. Proxy "
 "settings may be invalid."
-msgstr "无法通过代理服务器连接到目标服务器。代理设置可能无效。"
+msgstr "无法通过代理服务器连接到目标服务器。代理设置可能错误。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:262
 msgid "Test Proxy Server Connection..."
@@ -2217,7 +2217,7 @@ msgstr "如果未选择密钥，则将使用默认密钥进行签名。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:43
 msgid "First Start Wizard"
-msgstr "首次启动向导"
+msgstr "欢迎"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:86
 msgid "Getting Started..."
@@ -2239,7 +2239,7 @@ msgstr "是一款功能强大、易于使用、紧凑、跨平台且免安装的
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:95
 msgid "For brief information have a look at the"
-msgstr "有关简要信息，请查看"
+msgstr "简要信息，请查看"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:97
 msgid "Overview"
@@ -2247,13 +2247,13 @@ msgstr "概述"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:98
 msgid "by clicking the link, the page will open in the web browser"
-msgstr "通过单击链接，页面将在网络浏览器中打开"
+msgstr "单击来在网络浏览器中打开链接"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:107
 msgid ""
 "If it supports the language currently being used in your system, GpgFrontend"
 " will automatically set it."
-msgstr "如果它支持您系统中当前使用的语言，GpgFrontend 将自动设置它。"
+msgstr "GpgFrontend 已经自动将语言设置为中文。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:125
 msgid "Choose your action..."
@@ -2332,7 +2332,7 @@ msgstr "准备好。"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:233
 msgid "Have fun with GpgFrontend!"
-msgstr "与 GpgFrontend 一起玩得开心！"
+msgstr "祝您使用 GpgFrontend 愉快！"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:236
 msgid "You are ready to use GpgFrontend now.<br><br>"
@@ -2346,7 +2346,7 @@ msgstr "在线文档"
 msgid ""
 " will get you started with GpgFrontend. Anytime you encounter problems, "
 "please try to find help from the documentation"
-msgstr " 会让你开始使用 GpgFrontend。任何时候遇到问题，请尝试从文档中寻求帮助"
+msgstr " 会让你学会 GpgFrontend 的基本操作。任何时候遇到问题，请尝试从文档中寻求帮助"
 
 #: /mnt/h/GpgFrontend/src/ui/dialog/Wizard.cpp:250
 msgid "Open offline help."
@@ -2358,18 +2358,18 @@ msgstr "不要再次显示向导。"
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:79
 msgid "Standard Exception Thrown"
-msgstr "抛出标准异常"
+msgstr "小意外"
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:80
 msgid ""
 "Oops, an standard exception was thrown during the running of the program. "
 "This is not a serious problem, it may be the negligence of the programmer, "
 "please report this problem if you can."
-msgstr "糟糕，在程序运行期间抛出了一个标准异常。这不是一个严重的问题，可能是程序员的疏忽，如果可以的话，请报告这个问题。"
+msgstr "糟糕，在程序运行期间遇到了一个小异常。这不是一个严重的问题，应该是由程序员的疏忽导致的，如果可以的话，请报告这个问题。"
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:88
 msgid "Unhandled Exception Thrown"
-msgstr "未处理的异常抛出"
+msgstr "未处理的异常"
 
 #: /mnt/h/GpgFrontend/src/ui/GpgFrontendApplication.cpp:89
 msgid ""
@@ -2413,7 +2413,7 @@ msgstr "无主密钥"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:81
 msgid "Revoked"
-msgstr "撤销"
+msgstr "已吊销"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:111
 msgid "KeyPair Management"
@@ -2597,7 +2597,7 @@ msgstr "导出的密钥"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:368
 msgid "Please select one KeyPair before doing this operation."
-msgstr "请在执行此操作前选择一个 KeyPair。"
+msgstr "请在执行此操作前选择一个钥对。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:378
 msgid ""
@@ -2680,7 +2680,7 @@ msgstr "该文件不是压缩包。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:88
 msgid "Extracting Tarball"
-msgstr "提取压缩包"
+msgstr "解压压缩包"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:132
 msgid "Making Tarball"
@@ -2693,7 +2693,7 @@ msgstr "目标文件 %1% 已经存在，是否需要覆盖？"
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:214
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:632
 msgid "Unable to convert the folder into tarball."
-msgstr "无法将文件夹转换为 tarball。"
+msgstr "无法压缩文件夹。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:222
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:94
@@ -2771,17 +2771,17 @@ msgstr "解密"
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:348
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:753
 msgid "Do you want to extract and delete the decrypted tarball?"
-msgstr "您要提取和删除解密的 tarball 吗？"
+msgstr "您要解压并删除删除解密的压缩包吗？"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:353
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:758
 msgid "Extracting tarball succeeded."
-msgstr "解压 tarball 成功。"
+msgstr "解压压缩包成功。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:358
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:763
 msgid "Extracting tarball failed."
-msgstr "提取 tarball 失败。"
+msgstr "解压压缩包失败。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:375
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:563
@@ -2877,28 +2877,28 @@ msgstr "GpgFrontend 可升级（新版本：%1）。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:683
 msgid "Withdrawn Version"
-msgstr "撤回版"
+msgstr "被召回的版本"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:685
 msgid ""
 "This version(%1) may have been withdrawn by the developer due to serious "
 "problems. Please stop using this version immediately and use the latest "
 "stable version."
-msgstr "由于严重问题，此版本(%1) 可能已被开发人员撤回。请立即停止使用此版本并使用最新的稳定版本。"
+msgstr "由于严重问题，此版本(%1) 可能已被开发人员召回。请立即停止使用此版本并使用最新的稳定版。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:690
 msgid ""
 "You can download the latest stable version(%1) on Github Releases Page.<br/>"
-msgstr "您可以在 Github Releases Page 上下载最新的稳定版本 (%1)。<br/>"
+msgstr "您可以在 Github Releases Page 上下载最新的稳定版 (%1)。<br/>"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:696
 msgid "This maybe a BETA Version (Latest Stable Version: %1)."
-msgstr "这可能是 BETA 版本（最新稳定版本：%1）。"
+msgstr "这可能是 BETA 版本（最新稳定版：%1）。"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:37
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:253
 msgid "New"
-msgstr "新的"
+msgstr "新建"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:43
 msgid "Open a new file"
@@ -3092,7 +3092,7 @@ msgstr "管理密钥"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:240
 msgid "Open Key Management"
-msgstr "打开密钥管理"
+msgstr "打开密钥管理器"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:249
 msgid "Show the application's About box"
@@ -3100,7 +3100,7 @@ msgstr "显示应用程序的关于界面"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:256
 msgid "Information about Gnupg"
-msgstr "关于 Gnupg 的信息"
+msgstr "关于 Gnupg"
 
 #: /mnt/h/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:260
 msgid "Translate"
@@ -3200,7 +3200,7 @@ msgid ""
 "There is no target public key content in local for GpgFrontend to gather "
 "enough information about this Signature. Do you want to import the public "
 "key from Keyserver now?"
-msgstr "本地没有目标公钥内容供 GpgFrontend 收集有关此签名的足够信息。现在要从 Keyserver 导入公钥吗？"
+msgstr "本地没有目标公钥内容供 GpgFrontend 收集有关此签名的足够信息。现在要从密钥服务器导入公钥吗？"
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:171
 msgid "ENV Loading Failed"
@@ -3230,7 +3230,7 @@ msgstr "打开文件失败："
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:219
 msgid "Processing"
-msgstr "加工"
+msgstr "处理中"
 
 #: /mnt/h/GpgFrontend/src/ui/UserInterfaceUtils.cpp:239
 msgid "Failed to execute command."
@@ -3287,11 +3287,11 @@ msgstr "显示系统文件"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:336
 msgid "The directory is unprivileged or unreachable."
-msgstr "该目录没有特权或无法访问。"
+msgstr "该目录不存在，或者您的权限不足。"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:347
 msgid "The file is unprivileged or unreachable."
-msgstr "该文件没有特权或无法访问。"
+msgstr "该目录不存在，或者您的权限不足。"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/FilePage.cpp:359
 msgid "New Filename"
@@ -3355,19 +3355,19 @@ msgstr "将公钥与您的默认密钥服务器同步。"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:91
 msgid "Uncheck ALL"
-msgstr "取消所有"
+msgstr "全不选"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:93
 msgid "Cancel all checked items in the current tab at once."
-msgstr "一次取消当前选项卡中所有选中的项目。"
+msgstr "一次性取消选中当前选项卡中所有的项目。"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:94
 msgid "Check ALL"
-msgstr "选择所有"
+msgstr "全选"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:96
 msgid "Check all items in the current tab at once"
-msgstr "一次检查当前选项卡中的所有项目"
+msgstr "一次性选中当前选项卡中的所有项目"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/KeyList.cpp:150
 msgid "Type"
@@ -3486,7 +3486,7 @@ msgstr "保存后，当前文件的编码将转换为UTF-8，行尾将更改为L
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:180
 msgid "If this is not the result you expect, please use \"save as\"."
-msgstr "如果这不是您期望的结果，请使用“另存为”。"
+msgstr "如果您不希望这样，请使用“另存为”。"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/TextEdit.cpp:232
 msgid "Save file"
@@ -3584,7 +3584,7 @@ msgstr "有效的"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:176
 msgid "Flags"
-msgstr "旗帜"
+msgstr "标志"
 
 #: /mnt/h/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:183
 msgid "Fully Valid"
