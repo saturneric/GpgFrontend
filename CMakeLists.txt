@@ -449,6 +449,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE")
 # Introduce boost
 if(NOT BOOST_ROOT)
     find_package(Boost COMPONENTS date_time system REQUIRED)
+else()
+    find_package(Boost
+            COMPONENTS date_time system REQUIRED
+            PATHS ${BOOST_ROOT} NO_DEFAULT_PATH)
 endif()
 
 # Introduce OpenSSL
