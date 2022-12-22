@@ -114,11 +114,6 @@ KeyserverTab::KeyserverTab(QWidget* parent)
   slot_refresh_table();
 }
 
-/**********************************
- * Read the settings from config
- * and set the buttons and checkboxes
- * appropriately
- **********************************/
 void KeyserverTab::SetSettings() {
   try {
     SettingsObject key_server_json("key_server");

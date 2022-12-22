@@ -77,22 +77,68 @@ void InitLoggingSystem() {
   LOG(INFO) << _("log file path") << logfile_path;
 }
 
+void ResetGpgFrontendCore() { reset_gpgfrontend_core(); }
+
 void init_gpgfrontend_core() {
+  // read from settings file
+
+  bool use_custom_key_database_path = false;
+  try {
+    auto& settings =
+        GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+    use_custom_key_database_path =
+        settings.lookup("general.use_custom_key_database_path");
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error")
+               << _("use_custom_key_database_path");
+  }
+
+  LOG(INFO) << "core loaded if use custom key databse path: "
+            << use_custom_key_database_path;
+
+  std::string custom_key_database_path;
+  try {
+    auto& settings =
+        GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+    custom_key_database_path = static_cast<std::string>(
+        settings.lookup("general.custom_key_database_path"));
+
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("custom_key_database_path");
+  }
+
+  LOG(INFO) << "core loaded custom key databse path: "
+            << custom_key_database_path;
+
   // init default channel
   GpgFrontend::GpgContext::CreateInstance(
-      GPGFRONTEND_DEFAULT_CHANNEL, [&]() -> std::unique_ptr<ChannelObject> {
+      GPGFRONTEND_DEFAULT_CHANNEL, [=]() -> std::unique_ptr<ChannelObject> {
         GpgFrontend::GpgContextInitArgs args;
+
+        // set key database path
+        if (use_custom_key_database_path && !custom_key_database_path.empty()) {
+          args.db_path = custom_key_database_path;
+        }
+
         return std::unique_ptr<ChannelObject>(new GpgContext(args));
       });
 
   // init non-ascii channel
   GpgFrontend::GpgContext::CreateInstance(
-      GPGFRONTEND_NON_ASCII_CHANNEL, [&]() -> std::unique_ptr<ChannelObject> {
+      GPGFRONTEND_NON_ASCII_CHANNEL, [=]() -> std::unique_ptr<ChannelObject> {
         GpgFrontend::GpgContextInitArgs args;
         args.ascii = false;
+
+        // set key database path
+        if (use_custom_key_database_path && !custom_key_database_path.empty()) {
+          args.db_path = custom_key_database_path;
+        }
+
         return std::unique_ptr<ChannelObject>(new GpgContext(args));
       });
 }
+
+void reset_gpgfrontend_core() { SingletonStorageCollection::GetInstance(true); }
 
 void new_default_settings_channel(int channel) {
   GpgFrontend::GpgContext::CreateInstance(

@@ -55,8 +55,12 @@ KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
   this->setLayout(mainLayout);
   this->setWindowTitle(_("Key Details"));
   this->setModal(true);
-  this->setMinimumSize({520, 600});
-  this->resize(this->minimumSize());
+
+  // this->setMinimumSize({520, 600});
+
+  // move to center of the parent
+  this->movePosition2CenterOfParent();
+
   this->show();
 }
 }  // namespace GpgFrontend::UI

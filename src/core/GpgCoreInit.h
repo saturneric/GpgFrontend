@@ -43,7 +43,19 @@ void GPGFRONTEND_CORE_EXPORT InitLoggingSystem();
  * @brief
  *
  */
+void GPGFRONTEND_CORE_EXPORT ResetGpgFrontendCore();
+
+/**
+ * @brief
+ *
+ */
 void init_gpgfrontend_core();
+
+/**
+ * @brief
+ *
+ */
+void reset_gpgfrontend_core();
 
 /**
  * @brief

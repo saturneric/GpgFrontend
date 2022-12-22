@@ -148,7 +148,7 @@ class MainWindow : public GeneralMainWindow {
    * @details get value of member restartNeeded to needed.
    * @param needed true, if application has to be restarted
    */
-  void SlotSetRestartNeeded(bool needed);
+  void SlotSetRestartNeeded(int);
 
  private slots:
 
@@ -322,7 +322,7 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @brief return true, if restart is needed
    */
-  [[nodiscard]] bool get_restart_needed() const;
+  [[nodiscard]] int get_restart_needed() const;
 
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations
@@ -387,7 +387,7 @@ class MainWindow : public GeneralMainWindow {
   QAction* about_act_{};                 ///< Action to open about dialog
   QAction* check_update_act_{};          ///< Action to open about dialog
   QAction* translate_act_{};             ///< Action to open about dialog
-  QAction* gnupg_act_{};             ///< Action to open about dialog
+  QAction* gnupg_act_{};                 ///< Action to open about dialog
   QAction* open_settings_act_{};         ///< Action to open settings dialog
   QAction* show_key_details_act_{};      ///< Action to open key-details dialog
   QAction* start_wizard_act_{};          ///< Action to open the wizard
@@ -403,7 +403,7 @@ class MainWindow : public GeneralMainWindow {
   InfoBoardWidget* info_board_{};  ///<
 
   bool attachment_dock_created_{};         ///<
-  bool restart_needed_{};                  ///<
+  int restart_needed_{0};                  ///<
   bool prohibit_update_checking_ = false;  ///<
 };
 

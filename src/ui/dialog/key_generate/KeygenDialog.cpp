@@ -254,8 +254,9 @@ void KeyGenDialog::slot_authentication_box_changed(int state) {
 void KeyGenDialog::slot_activated_key_type(int index) {
   qDebug() << "key type index changed " << index;
 
-  gen_key_info_->SetAlgo(
-      this->key_type_combo_box_->itemText(index).toStdString());
+  // check
+  assert(gen_key_info_->GetSupportedKeyAlgo().size() > index);
+  gen_key_info_->SetAlgo(gen_key_info_->GetSupportedKeyAlgo()[index]);
   refresh_widgets_state();
 }
 
@@ -357,7 +358,7 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   key_type_combo_box_ = new QComboBox(this);
 
   for (auto& algo : GenKeyInfo::GetSupportedKeyAlgo()) {
-    key_type_combo_box_->addItem(QString::fromStdString(algo));
+    key_type_combo_box_->addItem(QString::fromStdString(algo.first));
   }
   if (!GenKeyInfo::GetSupportedKeyAlgo().empty()) {
     key_type_combo_box_->setCurrentIndex(0);

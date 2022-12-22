@@ -125,7 +125,7 @@ class GPGFRONTEND_CORE_EXPORT SingletonStorageCollection {
    *
    * @return SingletonStorageCollection*
    */
-  static SingletonStorageCollection* GetInstance();
+  static SingletonStorageCollection* GetInstance(bool force_refresh);
 
   /**
    * @brief Get the Singleton Storage object
@@ -173,7 +173,7 @@ class SingletonFunctionObject : public ChannelObject {
                   "T not derived from SingletonFunctionObject<T>");
 
     auto p_storage =
-        SingletonStorageCollection::GetInstance()->GetSingletonStorage(
+        SingletonStorageCollection::GetInstance(false)->GetSingletonStorage(
             typeid(T));
 
     auto* _p_pbj = (T*)(p_storage->FindObjectInChannel(channel));
@@ -200,7 +200,7 @@ class SingletonFunctionObject : public ChannelObject {
                   "T not derived from SingletonFunctionObject<T>");
 
     auto p_storage =
-        SingletonStorageCollection::GetInstance()->GetSingletonStorage(
+        SingletonStorageCollection::GetInstance(false)->GetSingletonStorage(
             typeid(T));
 
     auto _p_pbj = (T*)(p_storage->FindObjectInChannel(channel));
@@ -219,7 +219,7 @@ class SingletonFunctionObject : public ChannelObject {
    * @return T&
    */
   static void ReleaseChannel(int channel) {
-    SingletonStorageCollection::GetInstance()
+    SingletonStorageCollection::GetInstance(false)
         ->GetSingletonStorage(typeid(T))
         ->ReleaseChannel(channel);
   }
@@ -244,7 +244,7 @@ class SingletonFunctionObject : public ChannelObject {
    * @return std::vector<int>
    */
   static std::vector<int> GetAllChannelId() {
-    return SingletonStorageCollection::GetInstance()
+    return SingletonStorageCollection::GetInstance(false)
         ->GetSingletonStorage(typeid(T))
         ->GetAllChannelId();
   }
