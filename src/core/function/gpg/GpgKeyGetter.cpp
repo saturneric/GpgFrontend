@@ -88,13 +88,10 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
 
   auto keys_list = std::make_unique<GpgKeyLinkList>();
 
-  LOG(INFO) << "cache address:" << &keys_cache_ << "object address" << this;
-
   for (const auto& [key, value] : keys_cache_) {
     LOG(INFO) << "FetchKey Id:" << value.GetId();
     keys_list->push_back(value.Copy());
   }
-  LOG(INFO) << "ended";
   return keys_list;
 }
 
@@ -141,8 +138,6 @@ void GpgFrontend::GpgKeyGetter::FlushKeyCache() {
 
   err = gpgme_op_keylist_end(ctx_);
   assert(check_gpg_error_2_err_code(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
-
-  LOG(INFO) << "ended";
 }
 
 GpgFrontend::KeyListPtr GpgFrontend::GpgKeyGetter::GetKeys(

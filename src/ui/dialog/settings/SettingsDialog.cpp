@@ -33,6 +33,7 @@
 #include "SettingsGeneral.h"
 #include "SettingsKeyServer.h"
 #include "SettingsNetwork.h"
+#include "core/GpgConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "ui/main_window/MainWindow.h"
 
@@ -74,9 +75,24 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   setLayout(mainLayout);
 
   // slots for handling the restart needed member
-  this->slot_set_restart_needed(false);
+  this->slot_set_restart_needed(0);
+
+  // restart ui
   connect(general_tab_, &GeneralTab::SignalRestartNeeded, this,
-          &SettingsDialog::slot_set_restart_needed);
+          [=](bool needed) {
+            if (needed && restart_needed_ < RESTART_CODE) {
+              this->restart_needed_ = RESTART_CODE;
+            }
+          });
+
+  // restart core and ui
+  connect(general_tab_, &GeneralTab::SignalDeepRestartNeeded, this,
+          [=](bool needed) {
+            if (needed && restart_needed_ < DEEP_RESTART_CODE)
+              this->restart_needed_ = DEEP_RESTART_CODE;
+          });
+
+  // announce main window
   connect(this, &SettingsDialog::SignalRestartNeeded,
           qobject_cast<MainWindow*>(parent), &MainWindow::SlotSetRestartNeeded);
 
@@ -85,12 +101,10 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   this->show();
 }
 
-bool SettingsDialog::get_restart_needed() const {
-  return this->restart_needed_;
-}
+int SettingsDialog::get_restart_needed() const { return this->restart_needed_; }
 
-void SettingsDialog::slot_set_restart_needed(bool needed) {
-  this->restart_needed_ = needed;
+void SettingsDialog::slot_set_restart_needed(int mode) {
+  this->restart_needed_ = mode;
 }
 
 void SettingsDialog::SlotAccept() {
@@ -108,7 +122,7 @@ void SettingsDialog::SlotAccept() {
 
   LOG(INFO) << "restart needed" << get_restart_needed();
   if (get_restart_needed()) {
-    emit SignalRestartNeeded(true);
+    emit SignalRestartNeeded(get_restart_needed());
   }
   close();
 }

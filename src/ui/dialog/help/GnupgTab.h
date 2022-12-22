@@ -35,8 +35,9 @@
 #include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 
-namespace GpgFrontend::UI{
-class GnupgTab: public QWidget {
+class Ui_GnuPGInfo;
+namespace GpgFrontend::UI {
+class GnupgTab : public QWidget {
   Q_OBJECT
  public:
   /**
@@ -45,9 +46,14 @@ class GnupgTab: public QWidget {
    * @param parent
    */
   explicit GnupgTab(QWidget* parent = nullptr);
+
+ private:
+  std::shared_ptr<Ui_GnuPGInfo> ui_;
+  QProcess* gpgconf_process_;
+
+ private slots:
+  void process_components_info(int, QProcess::ExitStatus);
 };
-}
-
-
+}  // namespace GpgFrontend::UI
 
 #endif  // GPGFRONTEND_GNUPGTAB_H

@@ -30,7 +30,11 @@
 
 #include "GpgFrontend.h"
 
+#ifdef FREEBSD
+extern sigjmp_buf recover_env;
+#else
 extern jmp_buf recover_env;
+#endif
 
 /**
  * @brief handle the signal caught.

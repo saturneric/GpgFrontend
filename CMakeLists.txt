@@ -27,7 +27,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # define project
-project(GpgFrontend VERSION 2.0.9 LANGUAGES CXX)
+project(GpgFrontend VERSION 2.0.10 LANGUAGES CXX)
 
 # show cmake version
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
@@ -56,6 +56,8 @@ option(GPGFRONTEND_BUILD_TYPE_STABLE
         "Generate release version" ON)
 option(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
 option(GPGFRONTEND_GENERATE_APP_PACKAGE_DEB "Generate DEB package" OFF)
+option(GPGFRONTEND_GENERATE_APP_PACKAGE_RPM "Generate RPM package" OFF)
+option(GPGFRONTEND_GENERATE_APP_PACKAGE_FREEBSD "Generate PKG package" OFF)
 option(GPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD "Generate a version that can be successfully compiled and packaged in Xcode" OFF)
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
 option(GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
@@ -108,9 +110,19 @@ if (GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE)
     set(GPGFRONTEND_GENERATE_APP_PACKAGE_DEB 1)
 endif ()
 
-# linux package build
+# linux package build deb
 if (GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE AND GPGFRONTEND_GENERATE_APP_PACKAGE_DEB)
     set(APP_PACKAGE_DEB 1)
+endif ()
+
+# linux package build rpm
+if (GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE AND GPGFRONTEND_GENERATE_APP_PACKAGE_RPM)
+    set(APP_PACKAGE_RPM 1)
+endif ()
+
+# linux package build pkg
+if (GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE AND GPGFRONTEND_GENERATE_APP_PACKAGE_FREEBSD)
+    set(APP_PACKAGE_FREEBSD 1)
 endif ()
 
 # xcode archive build
@@ -333,6 +345,16 @@ if (LINUX)
     set(OS_PLATFORM 2)
     ADD_DEFINITIONS(-DLINUX)
 
+    # Get Env Info
+    exec_program(uname OUTPUT_VARIABLE SYSTEM_NAME)
+    set(SYSTEM_NAME "${SYSTEM_NAME}" CACHE INTERNAL "")
+
+    if(SYSTEM_NAME STREQUAL "FreeBSD")
+        message(STATUS "FreeBSD BOX")
+        ADD_DEFINITIONS(-DFREEBSD)
+        set(FREEBSD TRUE)
+    endif()
+
     message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION}")
     if (CMAKE_CXX_COMPILER_VERSION LESS 9)
         message(STATUS "GCC CXX_FLAGS add filesystem support manually")
@@ -421,8 +443,17 @@ endif ()
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 
+# disable myeasylog.log
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE")
+
 # Introduce boost
-find_package(Boost COMPONENTS date_time system REQUIRED)
+if(NOT BOOST_ROOT)
+    find_package(Boost COMPONENTS date_time system REQUIRED)
+else()
+    find_package(Boost
+            COMPONENTS date_time system REQUIRED
+            PATHS ${BOOST_ROOT} NO_DEFAULT_PATH)
+endif()
 
 # Introduce OpenSSL
 if(APPLE)

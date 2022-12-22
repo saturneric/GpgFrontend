@@ -53,7 +53,7 @@ void show_verify_details(QWidget *parent, InfoBoardWidget *info_board,
                          GpgError error, const GpgVerifyResult &verify_result) {
   // take out result
   info_board->ResetOptionActionsMenu();
-  info_board->AddOptionalAction("Show Verify Details", [=]() {
+  info_board->AddOptionalAction(_("Show Verify Details"), [=]() {
     VerifyDetailsDialog(parent, error, verify_result);
   });
 }
@@ -169,9 +169,10 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
   connect(this, &CommonUtils::SignalGnupgNotInstall, this, []() {
     QMessageBox::critical(
         nullptr, _("ENV Loading Failed"),
-        _("Gnupg(gpg) is not installed correctly, please follow the "
-          "ReadME "
-          "instructions in Github to install Gnupg and then open "
+        _("Gnupg(gpg) is not installed correctly, please follow "
+          "<a href='https://www.gpgfrontend.pub/#/"
+          "faq?id=how-to-deal-with-39env-loading-failed39'>this notes</a>"
+          " in FAQ to install Gnupg and then open "
           "GpgFrontend."));
     QCoreApplication::quit();
   });

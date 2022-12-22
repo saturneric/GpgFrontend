@@ -55,6 +55,7 @@ GpgFrontend::GlobalSettingStation::GlobalSettingStation(int channel) noexcept
   LOG(INFO) << _("App Data Path") << app_data_path_;
   LOG(INFO) << _("App Log Path") << app_log_path_;
   LOG(INFO) << _("App Locale Path") << app_locale_path_;
+  LOG(INFO) << _("App Conf Path") << ui_config_path_;
 
   if (!is_directory(app_configure_path_)) create_directory(app_configure_path_);
 

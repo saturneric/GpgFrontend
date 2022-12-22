@@ -165,7 +165,7 @@ void KeyPairSubkeyTab::create_subkey_list() {
 }
 
 void KeyPairSubkeyTab::slot_refresh_subkey_list() {
-  LOG(INFO) << "Called";
+  LOG(INFO) << "called";
   int row = 0;
 
   subkey_list_->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -176,6 +176,10 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     if (sub_key.IsDisabled() || sub_key.IsRevoked()) continue;
     this->buffered_subkeys_.push_back(std::move(sub_key));
   }
+
+  LOG(INFO) << "buffered_subkeys_"
+            << "refreshed"
+            << "size" << this->buffered_subkeys_.size();
 
   subkey_list_->setRowCount(buffered_subkeys_.size());
 
@@ -212,12 +216,20 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
       }
     }
 
+    LOG(INFO) << "subkey_list_ item" << row << "refreshed";
+
     row++;
   }
+
+  LOG(INFO) << "subkey_list_"
+            << "refreshed";
 
   if (subkey_list_->rowCount() > 0) {
     subkey_list_->selectRow(0);
   }
+
+  LOG(INFO) << "slot_refresh_subkey_list"
+            << "ended";
 }
 
 void KeyPairSubkeyTab::slot_add_subkey() {
@@ -332,6 +344,7 @@ const GpgSubKey& KeyPairSubkeyTab::get_selected_subkey() {
   return buffered_subkeys_[row];
 }
 void KeyPairSubkeyTab::slot_refresh_key_info() {
+  LOG(INFO) << "called";
   key_ = GpgKeyGetter::GetInstance().GetKey(key_.GetId());
 }
 

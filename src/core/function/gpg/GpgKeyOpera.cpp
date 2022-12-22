@@ -245,6 +245,10 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateSubkey(
     const GpgKey& key, const std::unique_ptr<GenKeyInfo>& params) {
   if (!params->IsSubKey()) return GPG_ERR_CANCELED;
 
+  LOG(INFO) << "generate subkey"
+            << "algo" << params->GetAlgo() << "key size"
+            << params->GetKeySizeStr();
+
   auto algo_utf8 = (params->GetAlgo() + params->GetKeySizeStr());
   const char* algo = algo_utf8.c_str();
   unsigned long expires = 0;

@@ -28,38 +28,48 @@
 
 #include "core/GpgGenKeyInfo.h"
 
+#include <algorithm>
 #include <boost/date_time/gregorian/greg_date.hpp>
 #include <boost/date_time/gregorian/greg_duration.hpp>
 #include <boost/date_time/gregorian/gregorian_types.hpp>
+#include <cassert>
 #include <string>
 #include <vector>
 
-void GpgFrontend::GenKeyInfo::SetAlgo(const std::string &m_algo) {
-  LOG(INFO) << "set algo" << m_algo;
+void GpgFrontend::GenKeyInfo::SetAlgo(
+    const GpgFrontend::GenKeyInfo::KeyGenAlgo &m_algo) {
+  LOG(INFO) << "set algo name" << m_algo.first;
   // Check algo if supported
-  std::string algo_args = std::string(m_algo);
-  boost::algorithm::to_upper(algo_args);
+  std::string algo_args = m_algo.second;
   if (standalone_) {
     if (!subkey_) {
       auto support_algo = GetSupportedKeyAlgoStandalone();
-      auto it = std::find(support_algo.begin(), support_algo.end(), algo_args);
+      auto it = std::find_if(
+          support_algo.begin(), support_algo.end(),
+          [=](const KeyGenAlgo &o) { return o.second == algo_args; });
       // Algo Not Supported
       if (it == support_algo.end()) return;
     } else {
       auto support_algo = GetSupportedSubkeyAlgoStandalone();
-      auto it = std::find(support_algo.begin(), support_algo.end(), algo_args);
+      auto it = std::find_if(
+          support_algo.begin(), support_algo.end(),
+          [=](const KeyGenAlgo &o) { return o.second == algo_args; });
       // Algo Not Supported
       if (it == support_algo.end()) return;
     }
   } else {
     if (!subkey_) {
       auto support_algo = GetSupportedKeyAlgo();
-      auto it = std::find(support_algo.begin(), support_algo.end(), algo_args);
+      auto it = std::find_if(
+          support_algo.begin(), support_algo.end(),
+          [=](const KeyGenAlgo &o) { return o.second == algo_args; });
       // Algo Not Supported
       if (it == support_algo.end()) return;
     } else {
       auto support_algo = GetSupportedSubkeyAlgo();
-      auto it = std::find(support_algo.begin(), support_algo.end(), algo_args);
+      auto it = std::find_if(
+          support_algo.begin(), support_algo.end(),
+          [=](const KeyGenAlgo &o) { return o.second == algo_args; });
       // Algo Not Supported
       if (it == support_algo.end()) return;
     }
@@ -116,22 +126,51 @@ void GpgFrontend::GenKeyInfo::SetAlgo(const std::string &m_algo) {
     suggest_max_key_size_ = -1;
     suggest_size_addition_step_ = -1;
     SetKeyLength(-1);
-  } else if (algo_args == "elg") {
-    /**
-     * GnuPG supports the Elgamal asymmetric encryption algorithm in key lengths
-     * ranging from 1024 to 4096 bits.
-     */
+  } else if (algo_args == "cv25519") {
     SetAllowAuthentication(false);
     allow_change_authentication_ = false;
 
     SetAllowSigning(false);
     allow_change_signing_ = false;
 
+    SetAllowCertification(false);
+    allow_change_certification_ = false;
+
     suggest_min_key_size_ = 1024;
     suggest_max_key_size_ = 4096;
     suggest_size_addition_step_ = 1024;
     SetKeyLength(2048);
+  } else if (algo_args == "nistp256" || algo_args == "nistp384" ||
+             algo_args == "nistp521") {
+    SetAllowAuthentication(false);
+    allow_change_authentication_ = false;
+
+    SetAllowSigning(false);
+    allow_change_signing_ = false;
+
+    SetAllowCertification(false);
+    allow_change_certification_ = false;
+
+    suggest_min_key_size_ = -1;
+    suggest_max_key_size_ = -1;
+    suggest_size_addition_step_ = -1;
+    SetKeyLength(-1);
+  } else if (algo_args == "brainpoolp256r1") {
+    SetAllowAuthentication(false);
+    allow_change_authentication_ = false;
+
+    SetAllowSigning(false);
+    allow_change_signing_ = false;
+
+    SetAllowCertification(false);
+    allow_change_certification_ = false;
+
+    suggest_min_key_size_ = -1;
+    suggest_max_key_size_ = -1;
+    suggest_size_addition_step_ = -1;
+    SetKeyLength(-1);
   }
+
   this->algo_ = algo_args;
 }
 
@@ -194,32 +233,52 @@ void GpgFrontend::GenKeyInfo::SetAllowCertification(
 
 GpgFrontend::GenKeyInfo::GenKeyInfo(bool m_is_sub_key, bool m_standalone)
     : standalone_(m_standalone), subkey_(m_is_sub_key) {
-  SetAlgo("rsa");
+  assert(GetSupportedKeyAlgo().size() > 0);
+  SetAlgo(GetSupportedKeyAlgo()[0]);
 }
 
-const std::vector<std::string> &GpgFrontend::GenKeyInfo::GetSupportedKeyAlgo() {
-  static const std::vector<std::string> support_key_algo = {"RSA", "DSA",
-                                                            "ED25519"};
+const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
+    &GpgFrontend::GenKeyInfo::GetSupportedKeyAlgo() {
+  static const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
+      support_key_algo = {
+          {"RSA", "RSA"},
+          {"DSA", "DSA"},
+          {"ECDSA", "ED25519"},
+      };
   return support_key_algo;
 }
 
-const std::vector<std::string>
+const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
     &GpgFrontend::GenKeyInfo::GetSupportedSubkeyAlgo() {
-  static const std::vector<std::string> support_subkey_algo = {"RSA", "DSA",
-                                                               "ED25519"};
+  static const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
+      support_subkey_algo = {
+          {"RSA", "RSA"},
+          {"DSA", "DSA"},
+          {"ECDSA", "ED25519"},
+          {"ECDH NIST P-256", "NISTP256"},
+          {"ECDH NIST P-384", "NISTP384"},
+          {"ECDH NIST P-521", "NISTP521"},
+          // {"ECDH BrainPool P-256", "BRAINPOOlP256R1"}
+      };
   return support_subkey_algo;
 }
 
-const std::vector<std::string>
+const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
     &GpgFrontend::GenKeyInfo::GetSupportedKeyAlgoStandalone() {
-  static const std::vector<std::string> support_subkey_algo_standalone = {
-      "RSA", "DSA"};
+  static const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
+      support_subkey_algo_standalone = {
+          {"RSA", "RSA"},
+          {"DSA", "DSA"},
+      };
   return support_subkey_algo_standalone;
 }
 
-const std::vector<std::string>
+const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
     &GpgFrontend::GenKeyInfo::GetSupportedSubkeyAlgoStandalone() {
-  static const std::vector<std::string> support_subkey_algo_standalone = {
-      "RSA", "DSA", "ELG-E"};
+  static const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
+      support_subkey_algo_standalone = {
+          {"RSA", "RSA"},
+          {"DSA", "DSA"},
+      };
   return support_subkey_algo_standalone;
 }

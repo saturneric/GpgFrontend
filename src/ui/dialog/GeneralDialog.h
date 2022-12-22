@@ -45,6 +45,18 @@ class GeneralDialog : public QDialog {
    */
   ~GeneralDialog() override;
 
+ protected:
+  /**
+   *
+   */
+  void setPosCenterOfScreen();
+
+  /**
+   * @brief
+   *
+   */
+  void movePosition2CenterOfParent();
+
  private slots:
   /**
    *
@@ -60,6 +72,8 @@ class GeneralDialog : public QDialog {
   std::string name_;  ///<
   QPoint pos_;        ///<
   QSize size_;        ///<
+  QPoint parent_pos_;
+  QSize parent_size_;
 };
 }  // namespace GpgFrontend::UI
 

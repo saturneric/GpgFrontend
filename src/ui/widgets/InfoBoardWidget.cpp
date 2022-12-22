@@ -79,11 +79,13 @@ void InfoBoardWidget::SetInfoBoard(const QString& text,
   status.setColor(QPalette::Text, color);
   ui_->infoBoard->setPalette(status);
 
-  SettingsObject main_windows_state("main_windows_state");
+  SettingsObject general_settings_state("general_settings_state");
 
   // info board font size
-  auto info_font_size = main_windows_state.Check("info_font_size", 10);
+  auto info_font_size =
+      general_settings_state.Check("text_editor").Check("font_size", 10);
   ui_->infoBoard->setFont(QFont("Times", info_font_size));
+
 }
 
 void InfoBoardWidget::SlotRefresh(const QString& text, InfoBoardStatus status) {

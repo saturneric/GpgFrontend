@@ -33,6 +33,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "ui/struct/SettingsObject.h"
 
 namespace GpgFrontend::UI {
 
@@ -40,6 +41,7 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
                                  QWidget* parent)
     : GeneralDialog(typeid(KeyUploadDialog).name(), parent),
       m_keys_(GpgKeyGetter::GetInstance().GetKeys(keys_ids)) {
+
   auto* pb = new QProgressBar();
   pb->setRange(0, 0);
   pb->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -54,33 +56,47 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
   this->setModal(true);
   this->setWindowTitle(_("Uploading Public Key"));
   this->setFixedSize(240, 42);
+  this->setPosCenterOfScreen();
 }
 
 void KeyUploadDialog::SlotUpload() {
   auto out_data = std::make_unique<ByteArray>();
   GpgKeyImportExporter::GetInstance().ExportKeys(*m_keys_, out_data);
   slot_upload_key_to_server(*out_data);
+
+  // Done
+  this->hide();
+  this->close();
 }
 
 void KeyUploadDialog::slot_upload_key_to_server(
     const GpgFrontend::ByteArray& keys_data) {
+
   std::string target_keyserver;
-  if (target_keyserver.empty()) {
-    try {
-      auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
-      target_keyserver = settings.lookup("keyserver.default_server").c_str();
+  try {
+    SettingsObject key_server_json("key_server");
 
-      LOG(INFO) << _("Set target Key Server to default Key Server")
-                << target_keyserver;
-    } catch (...) {
-      LOG(ERROR) << _("Cannot read default_keyserver From Settings");
-      QMessageBox::critical(
-          nullptr, _("Default Keyserver Not Found"),
-          _("Cannot read default keyserver from your settings, "
-            "please set a default keyserver first"));
-      return;
+    const auto key_server_list =
+        key_server_json.Check("server_list", nlohmann::json::array());
+
+    int default_key_server_index = key_server_json.Check("default_server", 0);
+    if (default_key_server_index >= key_server_list.size()) {
+      throw std::runtime_error("default_server index out of range");
     }
+
+    target_keyserver =
+        key_server_list[default_key_server_index].get<std::string>();
+
+    LOG(INFO) << _("Set target Key Server to default Key Server")
+              << target_keyserver;
+
+  } catch (...) {
+    LOG(ERROR) << _("Cannot read default_keyserver From Settings");
+    QMessageBox::critical(nullptr, _("Default Keyserver Not Found"),
+                          _("Cannot read default keyserver from your settings, "
+                            "please set a default keyserver first"));
+    return;
   }
 
   QUrl req_url(QString::fromStdString(target_keyserver + "/pks/add"));
@@ -117,10 +133,6 @@ void KeyUploadDialog::slot_upload_key_to_server(
   while (reply->isRunning()) {
     QApplication::processEvents();
   }
-
-  // Done
-  this->hide();
-  this->close();
 }
 
 void KeyUploadDialog::slot_upload_finished() {

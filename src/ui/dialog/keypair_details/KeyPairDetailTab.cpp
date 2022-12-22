@@ -28,6 +28,7 @@
 
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/model/GpgKey.h"
 #include "dialog/WaitingDialog.h"
 #include "ui/SignalStation.h"
 
@@ -268,8 +269,12 @@ void KeyPairDetailTab::slot_refresh_key_info() {
 }
 
 void KeyPairDetailTab::slot_refresh_key() {
-  LOG(INFO) << _("Called");
-  this->key_ = GpgKeyGetter::GetInstance().GetKey(key_.GetId());
+  LOG(INFO) << _("called");
+
+  // refresh the key
+  GpgKey refreshed_key = GpgKeyGetter::GetInstance().GetKey(key_.GetId());
+  std::swap(this->key_, refreshed_key);
+
   this->slot_refresh_key_info();
 }
 

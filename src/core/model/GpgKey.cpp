@@ -28,6 +28,8 @@
 
 #include "core/model/GpgKey.h"
 
+#include <mutex>
+
 GpgFrontend::GpgKey::GpgKey(gpgme_key_t &&key) : key_ref_(std::move(key)) {}
 
 GpgFrontend::GpgKey::GpgKey(GpgKey &&k) noexcept { swap(key_ref_, k.key_ref_); }
@@ -225,7 +227,10 @@ bool GpgFrontend::GpgKey::IsHasActualEncryptionCapability() const {
 }
 
 GpgFrontend::GpgKey GpgFrontend::GpgKey::Copy() const {
-  gpgme_key_ref(key_ref_.get());
+  {
+    const std::lock_guard<std::mutex> guard(gpgme_key_opera_mutex);
+    gpgme_key_ref(key_ref_.get());
+  }
   auto *_new_key_ref = key_ref_.get();
   return GpgKey(std::move(_new_key_ref));
 }

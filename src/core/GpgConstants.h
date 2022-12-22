@@ -31,10 +31,10 @@
 
 #include "GpgFrontendCore.h"
 
-const int RESTART_CODE = 1000;  ///<
+const int RESTART_CODE = 1000;       ///< only refresh ui
+const int DEEP_RESTART_CODE = 1001;  // refresh core and ui
 
 namespace GpgFrontend {
-
 using ByteArray = std::string;                                    ///<
 using ByteArrayPtr = std::unique_ptr<ByteArray>;                  ///<
 using StdBypeArrayPtr = std::unique_ptr<ByteArray>;               ///<

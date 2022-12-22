@@ -27,6 +27,7 @@
  */
 
 #include "MainWindow.h"
+#include "core/GpgConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/struct/SettingsObject.h"
@@ -128,7 +129,7 @@ void MainWindow::slot_open_settings_dialog() {
     if (get_restart_needed()) {
       if (edit_->MaybeSaveAnyTab()) {
         save_settings();
-        qApp->exit(RESTART_CODE);
+        qApp->exit(get_restart_needed());
       }
     }
   });
@@ -182,11 +183,12 @@ void MainWindow::slot_cut_pgp_header() {
   edit_->SlotFillTextEditWithText(content.trimmed());
 }
 
-void MainWindow::SlotSetRestartNeeded(bool needed) {
-  this->restart_needed_ = needed;
+void MainWindow::SlotSetRestartNeeded(int mode) {
+  LOG(INFO) << "restart mode" << mode;
+  this->restart_needed_ = mode;
 }
 
-bool MainWindow::get_restart_needed() const { return this->restart_needed_; }
+int MainWindow::get_restart_needed() const { return this->restart_needed_; }
 
 void MainWindow::SetCryptoMenuStatus(
     MainWindow::CryptoMenu::OperationType type) {

@@ -173,10 +173,9 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
       QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
           .toStdString();  ///< Program Configure Location
   std::filesystem::path ui_config_dir_path_ =
-      app_configure_path_ /
-      "UserInterface";  ///< Configure File Directory Location
+      app_configure_path_ / "conf";  ///< Configure File Directory Location
   std::filesystem::path ui_config_path_ =
-      ui_config_dir_path_ / "ui.cfg";  ///< UI Configure File Location
+      ui_config_dir_path_ / "main.cfg";  ///< Main Configure File Location
 
   libconfig::Config ui_cfg_;  ///< UI Configure File
 
