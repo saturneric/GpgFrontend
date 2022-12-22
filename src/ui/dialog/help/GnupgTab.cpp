@@ -31,8 +31,6 @@
 
 #include "GnupgTab.h"
 
-#include <vector>
-
 #include "easylogging++.h"
 #include "ui_GnuPGInfo.h"
 

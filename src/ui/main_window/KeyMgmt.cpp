@@ -109,6 +109,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   this->statusBar()->show();
 
   setWindowTitle(_("KeyPair Management"));
+  key_list_->AddMenuAction(generate_subkey_act_);
   key_list_->AddMenuAction(delete_selected_keys_act_);
   key_list_->AddMenuAction(show_key_details_act_);
 
