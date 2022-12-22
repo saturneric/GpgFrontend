@@ -32,7 +32,7 @@ jobs:
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
-        if: matrix.os == 'windows-latest' || matrix.os == 'macos-10.15'
+        if: matrix.os == 'windows-latest' || matrix.os == 'macos-10.15' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - uses: actions/checkout@v2
         with:
@@ -58,7 +58,7 @@ jobs:
           brew unlink gettext && brew link --force gettext
           brew link qt@5
           brew link openssl@1.1 --force
-        if: matrix.os == 'macos-10.15'
+        if: matrix.os == 'macos-10.15' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Build gpg-error (Linux)
         run: |
@@ -130,7 +130,7 @@ jobs:
         run: |
           cmake -G Ninja -B ${{github.workspace}}/build  -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
-        if: matrix.os == 'macos-10.15'
+        if: matrix.os == 'macos-10.15' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Configure CMake & Build Binary(Windows)
         shell: msys2 {0}
@@ -158,7 +158,7 @@ jobs:
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
           path: ${{github.workspace}}/build/release/*
-        if: matrix.os == 'macos-10.15'
+        if: matrix.os == 'macos-10.15' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Upload Artifact(Windows)
         uses: actions/upload-artifact@master
