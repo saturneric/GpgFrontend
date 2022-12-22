@@ -443,6 +443,9 @@ endif ()
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 
+# disable myeasylog.log
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE")
+
 # Introduce boost
 find_package(Boost COMPONENTS date_time system REQUIRED)
 
