@@ -46,7 +46,7 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc-8 g++-8 ninja-build
-          sudo apt-get -y install libconfig++-dev libboost-all-dev libarchive-dev libssl-dev
+          sudo apt-get -y install libconfig++-dev libarchive-dev libssl-dev
           sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
           sudo apt-get -y install libgcrypt11-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-image0
@@ -55,6 +55,23 @@ jobs:
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 8
           sudo update-alternatives --set gcc "/usr/bin/gcc-8"
           sudo update-alternatives --set g++ "/usr/bin/g++-8"
+        if: matrix.os == 'ubuntu-18.04'
+
+      - name: Install Boost (Linux)
+        uses: MarkusJx/install-boost@v2.4.1
+        id: install-boost
+        with:
+            # REQUIRED: Specify the required boost version
+            # A list of supported versions can be found here:
+            # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
+            boost_version: 1.78.0
+            # OPTIONAL: Specify a platform version
+            platform_version: 18.04
+            # OPTIONAL: Specify an architecture
+            arch: x86
+
+            # NOTE: If a boost version matching all requirements cannot be found,
+            # this build step will fail
         if: matrix.os == 'ubuntu-18.04'
 
       - name: Codesign Configuration (macOS)
@@ -147,7 +164,7 @@ jobs:
       - name: Build GpgFrontend (Linux)
         # Build your GpgFrontend with the given configuration
         run: |
-          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBOOST_ROOT=${{steps.install-boost.outputs.BOOST_ROOT}}
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
         if: matrix.os == 'ubuntu-18.04'
 
