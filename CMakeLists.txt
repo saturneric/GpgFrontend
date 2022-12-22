@@ -447,7 +447,9 @@ SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE")
 
 # Introduce boost
-find_package(Boost COMPONENTS date_time system REQUIRED)
+if(NOT BOOST_ROOT)
+    find_package(Boost COMPONENTS date_time system REQUIRED)
+endif()
 
 # Introduce OpenSSL
 if(APPLE)
