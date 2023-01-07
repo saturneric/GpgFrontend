@@ -29,6 +29,7 @@
 #include "MainWindow.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/gpg/GpgAdvancedOperator.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/struct/SettingsObject.h"
@@ -127,6 +128,30 @@ void MainWindow::Init() noexcept {
           .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
           ->PostTask(version_task);
     }
+
+    // before application exit
+    connect(qApp, &QCoreApplication::aboutToQuit, this, []() {
+      LOG(INFO) << "about to quit process started";
+
+      auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
+      try {
+        bool clear_gpg_password_cache =
+            settings.lookup("general.clear_gpg_password_cache");
+        
+        if (clear_gpg_password_cache) {
+          if (GpgFrontend::GpgAdvancedOperator::GetInstance()
+                  .ClearGpgPasswordCache()) {
+            LOG(INFO) << "clear gpg password cache done";
+          } else {
+            LOG(ERROR) << "clear gpg password cache error";
+          }
+        }
+
+      } catch (...) {
+        LOG(ERROR) << _("Setting Operation Error")
+                   << _("clear_gpg_password_cache");
+      }
+    });
 
   } catch (...) {
     LOG(FATAL) << _("Critical error occur while loading GpgFrontend.");

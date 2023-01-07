@@ -213,6 +213,41 @@ void CommonUtils::SlotImportKeyFromClipboard(QWidget *parent) {
                  cb->text(QClipboard::Clipboard).toUtf8().toStdString());
 }
 
+void CommonUtils::SlotExecuteCommand(
+    const std::string& cmd,
+    const QStringList &arguments,
+    const std::function<void(QProcess *)> &interact_func) {
+  QEventLoop looper;
+  auto *cmd_process = new QProcess(&looper);
+  cmd_process->setProcessChannelMode(QProcess::MergedChannels);
+
+  connect(cmd_process,
+          qOverload<int, QProcess::ExitStatus>(&QProcess::finished), &looper,
+          &QEventLoop::quit);
+  connect(cmd_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
+  connect(cmd_process, &QProcess::started,
+          []() -> void { LOG(INFO) << "process started"; });
+  connect(cmd_process, &QProcess::readyReadStandardOutput,
+          [interact_func, cmd_process]() { interact_func(cmd_process); });
+  connect(cmd_process, &QProcess::errorOccurred, this, [=]() -> void {
+    LOG(ERROR) << "Error in Process";
+  });
+  connect(cmd_process,
+          qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
+          [=](int, QProcess::ExitStatus status) {
+            if (status == QProcess::NormalExit)
+              LOG(INFO) << "succeed in executing command:" << cmd;
+            else
+              LOG(WARNING) << "error in executing command:" << cmd;
+          });
+
+  cmd_process->setProgram(QString::fromStdString(cmd));
+  cmd_process->setArguments(arguments);
+  cmd_process->start();
+  looper.exec();
+}
+
+
 void CommonUtils::SlotExecuteGpgCommand(
     const QStringList &arguments,
     const std::function<void(QProcess *)> &interact_func) {
@@ -230,7 +265,7 @@ void CommonUtils::SlotExecuteGpgCommand(
           &WaitingDialog::deleteLater);
   connect(gpg_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
   connect(gpg_process, &QProcess::started,
-          []() -> void { LOG(ERROR) << "Gpg Process Started Success"; });
+          []() -> void { LOG(INFO) << "gpg process started"; });
   connect(gpg_process, &QProcess::readyReadStandardOutput,
           [interact_func, gpg_process]() { interact_func(gpg_process); });
   connect(gpg_process, &QProcess::errorOccurred, this, [=]() -> void {
@@ -251,7 +286,8 @@ void CommonUtils::SlotExecuteGpgCommand(
                                        _("Finished executing command."));
           });
 
-  gpg_process->setProgram(GpgContext::GetInstance().GetInfo().AppPath.c_str());
+  gpg_process->setProgram(
+      GpgContext::GetInstance().GetInfo(false).AppPath.c_str());
   gpg_process->setArguments(arguments);
   gpg_process->start();
   looper.exec();

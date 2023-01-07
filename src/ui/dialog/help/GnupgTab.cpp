@@ -31,103 +31,102 @@
 
 #include "GnupgTab.h"
 
-#include "easylogging++.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui_GnuPGInfo.h"
 
 GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
-    : QWidget(parent),
-      ui_(std::make_shared<Ui_GnuPGInfo>()),
-      gpgconf_process_(new QProcess(this)) {
+    : QWidget(parent), ui_(std::make_shared<Ui_GnuPGInfo>()) {
   GpgContext& ctx = GpgContext::GetInstance();
-  auto info = ctx.GetInfo();
+  auto info = ctx.GetInfo(false);
 
   ui_->setupUi(this);
 
-  QStringList column_titles;
-  column_titles << _("Name") << _("Description") << _("Version") << _("Path");
+  QStringList components_column_titles;
+  components_column_titles << _("Name") << _("Description") << _("Version")
+                           << _("Path");
 
-  ui_->conponentDetailsTable->setColumnCount(column_titles.length());
-  ui_->conponentDetailsTable->setHorizontalHeaderLabels(column_titles);
-  ui_->conponentDetailsTable->horizontalHeader()->setStretchLastSection(false);
-  ui_->conponentDetailsTable->setSelectionBehavior(
+  ui_->componentDetailsTable->setColumnCount(components_column_titles.length());
+  ui_->componentDetailsTable->setHorizontalHeaderLabels(
+      components_column_titles);
+  ui_->componentDetailsTable->horizontalHeader()->setStretchLastSection(false);
+  ui_->componentDetailsTable->setSelectionBehavior(
       QAbstractItemView::SelectRows);
 
+  QStringList configurations_column_titles;
+  configurations_column_titles << _("Name") << _("Path");
+
+  ui_->configurationDetailsTable->setColumnCount(
+      configurations_column_titles.length());
+  ui_->configurationDetailsTable->setHorizontalHeaderLabels(
+      configurations_column_titles);
+  ui_->configurationDetailsTable->horizontalHeader()->setStretchLastSection(
+      false);
+  ui_->configurationDetailsTable->setSelectionBehavior(
+      QAbstractItemView::SelectRows);
+
+  ui_->softwareDetailsTableTitle->setText(_("Software Information"));
+
   // tableitems not editable
-  ui_->conponentDetailsTable->setEditTriggers(
+  ui_->componentDetailsTable->setEditTriggers(
       QAbstractItemView::NoEditTriggers);
 
   // no focus (rectangle around tableitems)
   // may be it should focus on whole row
-  ui_->conponentDetailsTable->setFocusPolicy(Qt::NoFocus);
-  ui_->conponentDetailsTable->setAlternatingRowColors(true);
+  ui_->componentDetailsTable->setFocusPolicy(Qt::NoFocus);
+  ui_->componentDetailsTable->setAlternatingRowColors(true);
 
-  gpgconf_process_->start(QString::fromStdString(info.GpgConfPath),
-                          QStringList() << "--list-components");
-
-  connect(gpgconf_process_,
-          qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
-          &GnupgTab::process_components_info);
+  process_software_info();
 }
 
-void GpgFrontend::UI::GnupgTab::process_components_info(
-    int exit_code, QProcess::ExitStatus exit_status) {
+void GpgFrontend::UI::GnupgTab::process_software_info() {
   LOG(INFO) << "called";
 
-  GpgContext& ctx = GpgContext::GetInstance();
-  auto info = ctx.GetInfo();
+  auto ctx_info = GpgContext::GetInstance().GetInfo(true);
 
-  std::vector<std::vector<std::string>> components_info = {
-      {"gpgme", "GPG Made Easy", info.GpgMEVersion, "/"},
-      {"gpgconf", "GPG Configure", "/", info.GpgConfPath},
-
-  };
-
-  if (gpgconf_process_ != nullptr) {
-    QString data = gpgconf_process_->readAllStandardOutput();
-
-    std::vector<std::string> line_split_list;
-    boost::split(line_split_list, data.toStdString(), boost::is_any_of("\n"));
-
-    for (const auto& line : line_split_list) {
-      std::vector<std::string> info_split_list;
-      boost::split(info_split_list, line, boost::is_any_of(":"));
-      LOG(INFO) << "gpgconf info line" << line << "info size"
-                << info_split_list.size();
-
-      if (info_split_list.size() != 3) continue;
-
-      if (info_split_list[0] == "gpg") {
-        components_info.push_back({info_split_list[0], info_split_list[1],
-                                   info.GnupgVersion, info_split_list[2]});
-      } else {
-        components_info.push_back(
-            {info_split_list[0], info_split_list[1], "/", info_split_list[2]});
-      }
-    }
-  }
-
-  ui_->conponentDetailsTable->setRowCount(components_info.size());
+  ui_->componentDetailsTable->setRowCount(ctx_info.ComponentsInfo.size());
 
   int row = 0;
-  for (const auto& info : components_info) {
-    if (info.size() != 4) continue;
+  for (const auto& info : ctx_info.ComponentsInfo) {
+    if (info.second.size() != 3) continue;
 
-    auto* tmp0 = new QTableWidgetItem(QString::fromStdString(info[0]));
+    auto* tmp0 = new QTableWidgetItem(QString::fromStdString(info.first));
     tmp0->setTextAlignment(Qt::AlignCenter);
-    ui_->conponentDetailsTable->setItem(row, 0, tmp0);
+    ui_->componentDetailsTable->setItem(row, 0, tmp0);
 
-    auto* tmp1 = new QTableWidgetItem(QString::fromStdString(info[1]));
+    auto* tmp1 = new QTableWidgetItem(QString::fromStdString(info.second[0]));
     tmp1->setTextAlignment(Qt::AlignCenter);
-    ui_->conponentDetailsTable->setItem(row, 1, tmp1);
+    ui_->componentDetailsTable->setItem(row, 1, tmp1);
 
-    auto* tmp2 = new QTableWidgetItem(QString::fromStdString(info[2]));
+    auto* tmp2 = new QTableWidgetItem(QString::fromStdString(info.second[1]));
     tmp2->setTextAlignment(Qt::AlignCenter);
-    ui_->conponentDetailsTable->setItem(row, 2, tmp2);
+    ui_->componentDetailsTable->setItem(row, 2, tmp2);
 
-    auto* tmp3 = new QTableWidgetItem(QString::fromStdString(info[3]));
+    auto* tmp3 = new QTableWidgetItem(QString::fromStdString(info.second[2]));
     tmp3->setTextAlignment(Qt::AlignLeft);
-    ui_->conponentDetailsTable->setItem(row, 3, tmp3);
+    ui_->componentDetailsTable->setItem(row, 3, tmp3);
 
     row++;
   }
+
+  ui_->componentDetailsTable->resizeColumnsToContents();
+
+  ui_->configurationDetailsTable->setRowCount(
+      ctx_info.ConfigurationsInfo.size());
+
+  row = 0;
+  for (const auto& info : ctx_info.ConfigurationsInfo) {
+    if (info.second.size() != 1) continue;
+
+    auto* tmp0 = new QTableWidgetItem(QString::fromStdString(info.first));
+    tmp0->setTextAlignment(Qt::AlignCenter);
+    ui_->configurationDetailsTable->setItem(row, 0, tmp0);
+
+    auto* tmp1 = new QTableWidgetItem(QString::fromStdString(info.second[0]));
+    tmp1->setTextAlignment(Qt::AlignCenter);
+    ui_->configurationDetailsTable->setItem(row, 1, tmp1);
+
+    row++;
+  }
+
+  ui_->configurationDetailsTable->resizeColumnsToContents();
 }

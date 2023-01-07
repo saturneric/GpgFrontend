@@ -43,9 +43,12 @@ GeneralTab::GeneralTab(QWidget* parent)
     : QWidget(parent), ui_(std::make_shared<Ui_GeneralSettings>()) {
   ui_->setupUi(this);
 
-  ui_->saveCheckedKeysBox->setTitle(_("Save Checked Keys"));
+  ui_->cacheBox->setTitle(_("Cache"));
   ui_->saveCheckedKeysCheckBox->setText(
       _("Save checked private keys on exit and restore them on next start."));
+  ui_->clearGpgPasswordCacheCheckBox->setText(
+      "Clear gpg password cache when closing GpgFrontend.");
+
   ui_->longerKeyExpirationDateBox->setTitle(_("Longer Key Expiration Date"));
   ui_->longerKeyExpirationDateCheckBox->setText(
       _("Unlock key expiration date setting up to 30 years."));
@@ -62,6 +65,10 @@ GeneralTab::GeneralTab(QWidget* parent)
   ui_->langNoteLabel->setText(
       "<b>" + QString(_("NOTE")) + _(": ") + "</b>" +
       _("GpgFrontend will restart automatically if you change the language!"));
+
+  ui_->gnupgDatabaseBox->setTitle(_("GnuPG Key Database Path"));
+  ui_->keyDatabseUseCustomCheckBox->setText(_("Use Custom Path"));
+  ui_->customKeyDatabasePathSelectButton->setText(_("Select Custom Path"));
 
 #ifdef MULTI_LANG_SUPPORT
   lang_ = SettingsDialog::ListLanguages();
@@ -133,6 +140,15 @@ void GeneralTab::SetSettings() {
       ui_->saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
     LOG(ERROR) << _("Setting Operation Error") << _("save_key_checked");
+  }
+
+  try {
+    bool clear_gpg_password_cache =
+        settings.lookup("general.clear_gpg_password_cache");
+    if (clear_gpg_password_cache)
+      ui_->clearGpgPasswordCacheCheckBox->setCheckState(Qt::Checked);
+  } catch (...) {
+    LOG(ERROR) << _("Setting Operation Error") << _("clear_gpg_password_cache");
   }
 
   try {
@@ -223,6 +239,14 @@ void GeneralTab::ApplySettings() {
     general["save_key_checked"] = ui_->saveCheckedKeysCheckBox->isChecked();
   }
 
+  if (!general.exists("clear_gpg_password_cache"))
+    general.add("clear_gpg_password_cache", libconfig::Setting::TypeBoolean) =
+        ui_->clearGpgPasswordCacheCheckBox->isChecked();
+  else {
+    general["clear_gpg_password_cache"] =
+        ui_->saveCheckedKeysCheckBox->isChecked();
+  }
+
   if (!general.exists("non_ascii_when_export"))
     general.add("non_ascii_when_export", libconfig::Setting::TypeBoolean) =
         ui_->asciiModeCheckBox->isChecked();
@@ -265,7 +289,7 @@ void GeneralTab::slot_language_changed() { emit SignalRestartNeeded(true); }
 void GeneralTab::slot_update_custom_key_database_path_label(int state) {
   if (state != Qt::CheckState::Checked) {
     ui_->currentKeyDatabasePathLabel->setText(QString::fromStdString(
-        GpgContext::GetInstance().GetInfo().DatabasePath));
+        GpgContext::GetInstance().GetInfo(false).DatabasePath));
 
     // hide label (not necessary to show the default path)
     this->ui_->currentKeyDatabasePathLabel->setHidden(true);

@@ -139,8 +139,8 @@ size_t GpgFrontend::Thread::Task::DataObject::GetObjectSize() {
 }
 
 void GpgFrontend::Thread::Task::DataObject::free_heap_ptr(Destructor *ptr) {
-  DLOG(TRACE) << "p_obj: " << ptr->p_obj << "destructor: " << ptr->destroy
-              << "DataObject:" << this;
+  LOG(TRACE) << "p_obj: " << ptr->p_obj << "destructor: " << ptr->destroy
+             << "DataObject:" << this;
   if (ptr->destroy != nullptr) {
     ptr->destroy(ptr->p_obj);
   }

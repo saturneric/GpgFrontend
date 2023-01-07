@@ -36,10 +36,11 @@ GpgFrontend::Thread::TaskRunner::TaskRunner() = default;
 GpgFrontend::Thread::TaskRunner::~TaskRunner() = default;
 
 void GpgFrontend::Thread::TaskRunner::PostTask(Task* task) {
+  if (task == nullptr) return;
+
   std::string uuid = task->GetUUID();
   LOG(TRACE) << "Post Task" << uuid;
 
-  if (task == nullptr) return;
   task->setParent(nullptr);
   task->moveToThread(this);
 
@@ -59,7 +60,7 @@ void GpgFrontend::Thread::TaskRunner::PostTask(Task* task) {
   quit();
 }
 
-void GpgFrontend::Thread::TaskRunner::run() {
+[[noreturn]] void GpgFrontend::Thread::TaskRunner::run() {
   LOG(TRACE) << "called"
              << "thread id:" << QThread::currentThreadId();
   while (true) {
@@ -91,7 +92,7 @@ void GpgFrontend::Thread::TaskRunner::run() {
           task->deleteLater();
           pending_tasks_.erase(task->GetUUID());
         } catch (...) {
-          LOG(ERROR) << "TaskRunner: Unknwon Exception in Task"
+          LOG(ERROR) << "TaskRunner: Unknown Exception in Task"
                      << task->GetUUID();
 
           // destroy the task, remove the task from the pending tasks

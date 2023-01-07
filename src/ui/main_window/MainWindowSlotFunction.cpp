@@ -36,9 +36,9 @@
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "dialog/SignersPicker.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/help/AboutDialog.h"
-#include "dialog/SignersPicker.h"
 
 namespace GpgFrontend::UI {
 /**
@@ -662,7 +662,7 @@ void MainWindow::SlotOpenFile(QString& path) { edit_->SlotOpenFile(path); }
 void MainWindow::slot_version_upgrade(const SoftwareVersion& version) {
   LOG(INFO) << _("Called");
 
-  if (!version.InfoVaild()) {
+  if (!version.InfoValid()) {
     LOG(INFO) << "Invalid version info";
     return;
   }

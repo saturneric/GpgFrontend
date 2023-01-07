@@ -80,7 +80,8 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
     void AppendObject(T &&obj) {
       DLOG(TRACE) << "called:" << this;
       auto *obj_dstr = this->get_heap_ptr(sizeof(T));
-      auto *ptr_heap = new ((void *)obj_dstr->p_obj) T(std::move(obj));
+      new ((void *)obj_dstr->p_obj) T(std::forward<T>(obj));
+
       if (std::is_class_v<T>) {
         auto destructor = [](const void *x) {
           static_cast<const T *>(x)->~T();
@@ -89,7 +90,8 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
       } else {
         obj_dstr->destroy = nullptr;
       }
-      data_objects_.push(std::move(obj_dstr));
+
+      data_objects_.push(obj_dstr);
     }
 
     /**
@@ -169,16 +171,16 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    *
    * @param callback The callback function to be executed.
    */
-  Task(TaskCallback callback, DataObjectPtr data_object = nullptr);
+  explicit Task(TaskCallback callback, DataObjectPtr data_object = nullptr);
 
   /**
    * @brief Construct a new Task object
    *
    * @param runnable
    */
-  Task(
+  explicit Task(
       TaskRunnable runnable,
-      TaskCallback callback = [](int, std::shared_ptr<DataObject>) {},
+      TaskCallback callback = [](int, const std::shared_ptr<DataObject> &) {},
       DataObjectPtr data = nullptr);
 
   /**

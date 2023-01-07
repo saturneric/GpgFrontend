@@ -31,11 +31,8 @@
 #include <gpg-error.h>
 #include <gpgme.h>
 
-#include <functional>
-#include <string>
-#include <utility>
-
 #include "GpgConstants.h"
+#include "core/function/gpg/GpgCommandExecutor.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -238,6 +235,168 @@ gpgme_error_t GpgContext::test_status_cb(void *hook, const char *keyword,
                                          const char *args) {
   LOG(INFO) << "keyword" << keyword;
   return GPG_ERR_NO_ERROR;
+}
+
+const GpgInfo &GpgContext::GetInfo(bool refresh) {
+  if (!extend_info_loaded_ || refresh) {
+    GpgCommandExecutor::GetInstance().Execute(
+        info_.GpgConfPath, {"--list-components"},
+        [=](int exit_code, const std::string &p_out, const std::string &p_err) {
+          LOG(INFO) << "gpgconf components exit_code" << exit_code
+                    << "process stdout size" << p_out.size();
+
+          if (exit_code != 0) {
+            LOG(ERROR) << "gpgconf execute error, process stderr:" << p_err
+                      << ", process stdout:" << p_out;
+            return;
+          }
+
+          auto &components_info = info_.ComponentsInfo;
+          components_info["gpgme"] = {"GPG Made Easy", info_.GpgMEVersion,
+                                      _("Embedded In")};
+          components_info["gpgconf"] = {"GPG Configure", "/",
+                                        info_.GpgConfPath};
+
+          std::vector<std::string> line_split_list;
+          boost::split(line_split_list, p_out, boost::is_any_of("\n"));
+
+          for (const auto &line : line_split_list) {
+            std::vector<std::string> info_split_list;
+            boost::split(info_split_list, line, boost::is_any_of(":"));
+            LOG(INFO) << "gpgconf info line" << line << "info size"
+                      << info_split_list.size();
+
+            if (info_split_list.size() != 3) continue;
+
+            auto component_name = info_split_list[0];
+            if (component_name == "gpg") {
+              components_info[component_name] = {
+                  info_split_list[1], info_.GnupgVersion, info_split_list[2]};
+            } else {
+              components_info[component_name] = {info_split_list[1], "/",
+                                                 info_split_list[2]};
+            }
+          }
+        });
+
+    GpgCommandExecutor::GetInstance().Execute(
+        info_.GpgConfPath, {"--list-dirs"},
+        [=](int exit_code, const std::string &p_out, const std::string &p_err) {
+          LOG(INFO) << "gpgconf configurations exit_code" << exit_code
+                    << "process stdout size" << p_out.size();
+
+          if (exit_code != 0) {
+            LOG(ERROR) << "gpgconf execute error, process stderr:" << p_err
+                      << ", process stdout:" << p_out;
+            return;
+          }
+
+          auto &configurations_info = info_.ConfigurationsInfo;
+
+          std::vector<std::string> line_split_list;
+          boost::split(line_split_list, p_out, boost::is_any_of("\n"));
+
+          for (const auto &line : line_split_list) {
+            std::vector<std::string> info_split_list;
+            boost::split(info_split_list, line, boost::is_any_of(":"));
+            LOG(INFO) << "gpgconf info line" << line << "info size"
+                      << info_split_list.size();
+
+            if (info_split_list.size() != 2) continue;
+
+            auto configuration_name = info_split_list[0];
+            configurations_info[configuration_name] = {info_split_list[1]};
+          }
+        });
+
+    for (const auto &component : info_.ComponentsInfo) {
+      LOG(INFO) << "gpgconf check options ready"
+                << "component" << component.first;
+
+      if (component.first == "gpgme" || component.first == "gpgconf") continue;
+
+      GpgCommandExecutor::GetInstance().Execute(
+          info_.GpgConfPath, {"--check-options", component.first},
+          [=](int exit_code, const std::string &p_out,
+              const std::string &p_err) {
+            LOG(INFO) << "gpgconf options exit_code" << exit_code
+                      << "process stdout size" << p_out.size() << "component"
+                      << component.first;
+
+            if (exit_code != 0) {
+              LOG(ERROR) << "gpgconf execute error, process stderr:" << p_err
+                        << ", process stdout:" << p_out;
+              return;
+            }
+
+            auto &options_info = info_.OptionsInfo;
+
+            std::vector<std::string> line_split_list;
+            boost::split(line_split_list, p_out, boost::is_any_of("\n"));
+
+            for (const auto &line : line_split_list) {
+              std::vector<std::string> info_split_list;
+              boost::split(info_split_list, line, boost::is_any_of(":"));
+
+              LOG(INFO) << "gpgconf info line" << line << "info size"
+                        << info_split_list.size();
+
+              if (info_split_list.size() != 6) continue;
+
+              auto configuration_name = info_split_list[0];
+              options_info[configuration_name] = {
+                  info_split_list[1], info_split_list[2], info_split_list[3],
+                  info_split_list[4], info_split_list[5]};
+            }
+          });
+    }
+
+    for (const auto &component : info_.ComponentsInfo) {
+      LOG(INFO) << "gpgconf list options ready"
+                << "component" << component.first;
+
+      if (component.first == "gpgme" || component.first == "gpgconf") continue;
+
+      GpgCommandExecutor::GetInstance().Execute(
+          info_.GpgConfPath, {"--list-options", component.first},
+          [=](int exit_code, const std::string &p_out,
+              const std::string &p_err) {
+            LOG(INFO) << "gpgconf options exit_code" << exit_code
+                      << "process stdout size" << p_out.size() << "component"
+                      << component.first;
+
+            if (exit_code != 0) {
+              LOG(ERROR) << "gpgconf execute error, process stderr:" << p_err
+                        << ", process stdout:" << p_out;
+              return;
+            }
+
+            auto &available_options_info = info_.AvailableOptionsInfo;
+
+            std::vector<std::string> line_split_list;
+            boost::split(line_split_list, p_out, boost::is_any_of("\n"));
+
+            for (const auto &line : line_split_list) {
+              std::vector<std::string> info_split_list;
+              boost::split(info_split_list, line, boost::is_any_of(":"));
+
+              LOG(INFO) << "gpgconf info line" << line << "info size"
+                        << info_split_list.size();
+
+              if (info_split_list.size() != 10) continue;
+
+              auto configuration_name = info_split_list[0];
+              available_options_info[configuration_name] = {
+                  info_split_list[1], info_split_list[2], info_split_list[3],
+                  info_split_list[4], info_split_list[5], info_split_list[6],
+                  info_split_list[7], info_split_list[8], info_split_list[9]};
+            }
+          });
+    }
+
+    extend_info_loaded_ = true;
+  }
+  return info_;
 }
 
 void GpgContext::_ctx_ref_deleter::operator()(gpgme_ctx_t _ctx) {

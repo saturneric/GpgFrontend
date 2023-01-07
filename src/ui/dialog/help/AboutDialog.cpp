@@ -95,7 +95,9 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       _("or send a mail to my mailing list at") + " <a " +
       "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
       _("Built with Qt") + " " + qVersion() + " " + _("and GPGME") + " " +
-      GpgFrontend::GpgContext::GetInstance().GetInfo().GpgMEVersion.c_str() +
+      GpgFrontend::GpgContext::GetInstance()
+          .GetInfo(false)
+          .GpgMEVersion.c_str() +
       "<br>" + _("Built at") + " " + BUILD_TIMESTAMP + "</center>");
 
   auto* layout = new QGridLayout();

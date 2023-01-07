@@ -55,7 +55,7 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QThread {
    * @brief
    *
    */
-  void run() override;
+  [[noreturn]] void run() override;
 
  public slots:
 

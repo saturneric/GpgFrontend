@@ -1,7 +1,7 @@
-/**
- * Copyright (C) 2021 Saturneric
+/*
+ * Copyright (c) 2023. Saturneric
  *
- * This file is part of GpgFrontend.
+ *  This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,34 +23,45 @@
  * Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
- *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGINFO_H
-#define GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+//
+// Created by eric on 07.01.2023.
+//
 
-#include <string>
+#ifndef GPGFRONTEND_GPGADVANCEDOPERATOR_H
+#define GPGFRONTEND_GPGADVANCEDOPERATOR_H
+
+#include "core/GpgConstants.h"
+#include "core/GpgContext.h"
+#include "core/GpgFunctionObject.h"
 
 namespace GpgFrontend {
-/**
- * @brief  Use to record some info about gnupg
- *
- */
-class GpgInfo {
- public:
-  std::string AppPath;       ///<  executable binary path of gnupg
-  std::string DatabasePath;  ///<
-  std::string GnupgVersion;  ///<
-  std::string GpgConfPath;   ///<
-  std::string AssuanPath;    ///<
-  std::string CMSPath;       ///<
-  std::string GpgMEVersion;  ///<
 
-  std::map<std::string, std::vector<std::string>> ComponentsInfo;        ///<
-  std::map<std::string, std::vector<std::string>> ConfigurationsInfo;    ///<
-  std::map<std::string, std::vector<std::string>> OptionsInfo;           ///<
-  std::map<std::string, std::vector<std::string>> AvailableOptionsInfo;  ///<
+class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
+    : public SingletonFunctionObject<GpgAdvancedOperator> {
+ public:
+  /**
+   * @brief Construct a new Basic Operator object
+   *
+   * @param channel Channel corresponding to the context
+   */
+  explicit GpgAdvancedOperator(
+      int channel = SingletonFunctionObject::GetDefaultChannel());
+
+  bool ClearGpgPasswordCache();
+
+  bool ReloadGpgComponents();
+
+  bool RestartGpgComponents();
+
+  bool ResetConfigures();
+
+ private:
+  GpgContext& ctx_ = GpgContext::GetInstance(
+      SingletonFunctionObject::GetChannel());  ///< Corresponding context
 };
+
 }  // namespace GpgFrontend
 
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#endif  // GPGFRONTEND_GPGADVANCEDOPERATOR_H

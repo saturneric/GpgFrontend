@@ -92,7 +92,7 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
    *
    * @return const GpgInfo&
    */
-  [[nodiscard]] const GpgInfo& GetInfo() const { return info_; }
+  [[nodiscard]] const GpgInfo& GetInfo(bool refresh = false);
 
   /**
    * @brief
@@ -104,6 +104,7 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
  private:
   GpgInfo info_;             ///<
   GpgContextInitArgs args_;  ///<
+  bool extend_info_loaded_ = false;
 
   /**
    * @brief
