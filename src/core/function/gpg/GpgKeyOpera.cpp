@@ -103,59 +103,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::SetExpire(
  * @return the process doing this job
  */
 void GpgFrontend::GpgKeyOpera::GenerateRevokeCert(
-    const GpgKey& key, const std::string& output_file_name) {
-  auto args = std::vector<std::string>{"--no-tty",
-                                       "--command-fd",
-                                       "0",
-                                       "--status-fd",
-                                       "1",
-                                       "-o",
-                                       output_file_name,
-                                       "--gen-revoke",
-                                       key.GetFingerprint()};
-
-  using boost::asio::async_write;
-  using boost::process::async_pipe;
-#ifndef WINDOWS
-  GpgCommandExecutor::GetInstance().Execute(
-      args, [](async_pipe& in, async_pipe& out) -> void {
-        //        boost::asio::streambuf buff;
-        //        boost::asio::read_until(in, buff, '\n');
-        //
-        //        std::istream is(&buff);
-        //
-        //        while (!is.eof()) {
-        //          std::string line;
-        //          is >> line;
-        //          LOG(INFO) << "line" << line;
-        //          boost::algorithm::trim(line);
-        //          if (line == std::string("[GNUPG:] GET_BOOL
-        //          gen_revoke.okay")) {
-        //
-        //          } else if (line ==
-        //                     std::string(
-        //                         "[GNUPG:] GET_LINE
-        //                         ask_revocation_reason.code")) {
-        //
-        //          } else if (line ==
-        //                     std::string(
-        //                         "[GNUPG:] GET_LINE
-        //                         ask_revocation_reason.text")) {
-        //
-        //          } else if (line ==
-        //                     std::string("[GNUPG:] GET_BOOL
-        //                     openfile.overwrite.okay")) {
-        //
-        //          } else if (line ==
-        //                     std::string(
-        //                         "[GNUPG:] GET_BOOL
-        //                         ask_revocation_reason.okay")) {
-        //
-        //          }
-        //        }
-      });
-#endif
-}
+    const GpgKey& key, const std::string& output_file_name) {}
 
 /**
  * Generate a new key pair
@@ -181,9 +129,9 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
 
   GpgError err;
 
-  LOG(INFO) << "ctx version" << ctx_.GetInfo().GnupgVersion;
+  LOG(INFO) << "ctx version" << ctx_.GetInfo(false).GnupgVersion;
 
-  if (ctx_.GetInfo().GnupgVersion >= "2.1.0") {
+  if (ctx_.GetInfo(false).GnupgVersion >= "2.1.0") {
     unsigned int flags = 0;
 
     if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
@@ -278,7 +226,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateSubkey(
 
 GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyPassword(
     const GpgFrontend::GpgKey& key) {
-  if (ctx_.GetInfo().GnupgVersion < "2.0.15") {
+  if (ctx_.GetInfo(false).GnupgVersion < "2.0.15") {
     LOG(ERROR) << _("operator not support");
     return GPG_ERR_NOT_SUPPORTED;
   }
@@ -287,7 +235,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyPassword(
 }
 GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyTOFUPolicy(
     const GpgFrontend::GpgKey& key, gpgme_tofu_policy_t tofu_policy) {
-  if (ctx_.GetInfo().GnupgVersion < "2.1.10") {
+  if (ctx_.GetInfo(false).GnupgVersion < "2.1.10") {
     LOG(ERROR) << _("operator not support");
     return GPG_ERR_NOT_SUPPORTED;
   }

@@ -214,6 +214,17 @@ class CommonUtils : public QWidget {
       const QStringList& arguments,
       const std::function<void(QProcess*)>& interact_func);
 
+  /**
+   * @brief
+   *
+   * @param arguments
+   * @param interact_func
+   */
+  void SlotExecuteCommand(
+      const std::string& cmd,
+      const QStringList& arguments,
+      const std::function<void(QProcess*)>& interact_func);
+
  private slots:
 
   /**

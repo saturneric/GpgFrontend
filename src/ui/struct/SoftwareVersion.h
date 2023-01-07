@@ -54,7 +54,7 @@ struct SoftwareVersion {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool InfoVaild() const { return load_info_done; }
+  [[nodiscard]] bool InfoValid() const { return load_info_done; }
 
   /**
    * @brief
@@ -62,10 +62,7 @@ struct SoftwareVersion {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool NeedUpgrade() const {
-    return load_info_done && !latest_prerelease && !latest_draft &&
-           current_version < latest_version;
-  }
+  [[nodiscard]] bool NeedUpgrade() const;
 
   /**
    * @brief
@@ -73,10 +70,7 @@ struct SoftwareVersion {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool VersionWithDrawn() const {
-    return load_info_done && !current_version_found && current_prerelease &&
-           !current_draft;
-  }
+  [[nodiscard]] bool VersionWithDrawn() const;
 
   /**
    * @brief
@@ -84,9 +78,11 @@ struct SoftwareVersion {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool CurrentVersionReleased() const {
-    return load_info_done && current_version_found;
-  }
+  [[nodiscard]] bool CurrentVersionReleased() const;
+
+ private:
+
+  static int version_compare(const std::string& a, const std::string& b);
 };
 }  // namespace GpgFrontend::UI
 

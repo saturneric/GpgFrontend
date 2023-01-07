@@ -35,6 +35,7 @@
 
 #include "core/GpgContext.h"
 #include "core/GpgFunctionObject.h"
+#include "core/thread/Task.h"
 
 namespace GpgFrontend {
 
@@ -53,19 +54,17 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
   explicit GpgCommandExecutor(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
-#ifndef WINDOWS
-
   /**
    * @brief Excuting an order
    *
    * @param arguments Command parameters
    * @param interact_func Command answering function
    */
-  void Execute(StringArgsRef arguments,
-               const std::function<void(boost::process::async_pipe &in,
-                                        boost::process::async_pipe &out)>
-                   &interact_func);
-#endif
+  void Execute(
+      std::string cmd, std::vector<std::string> arguments,
+      std::function<void(int, std::string, std::string)> callback =
+          [](int, std::string, std::string) {},
+      std::function<void(QProcess *)> interact_func = [](QProcess *) {});
 
  private:
   GpgContext &ctx_ = GpgContext::GetInstance(

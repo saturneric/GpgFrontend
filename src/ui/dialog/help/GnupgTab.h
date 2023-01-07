@@ -48,11 +48,9 @@ class GnupgTab : public QWidget {
   explicit GnupgTab(QWidget* parent = nullptr);
 
  private:
-  std::shared_ptr<Ui_GnuPGInfo> ui_;
-  QProcess* gpgconf_process_;
+  std::shared_ptr<Ui_GnuPGInfo> ui_;  ///<
 
- private slots:
-  void process_components_info(int, QProcess::ExitStatus);
+  void process_software_info();
 };
 }  // namespace GpgFrontend::UI
 
