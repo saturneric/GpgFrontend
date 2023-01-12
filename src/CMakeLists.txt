@@ -319,7 +319,7 @@ if (APPLICATION_BUILD)
             add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             # include qt dependencies
             add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND windeployqt --force ${AppName}.exe)
+                    COMMAND windeployqt --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
         elseif (APPLE AND NOT XCODE_BUILD)
             # custom app bundle packing
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
