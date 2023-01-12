@@ -320,8 +320,8 @@ if (APPLICATION_BUILD)
             # include qt dependencies
             add_custom_command(TARGET ${AppName} POST_BUILD
                     COMMAND windeployqt --force ${AppName}.exe)
-            # custom app bundle packing
         elseif (APPLE AND NOT XCODE_BUILD)
+            # custom app bundle packing
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             set_target_properties(${AppName} PROPERTIES
                     BUNDLE True
@@ -351,6 +351,7 @@ if (APPLICATION_BUILD)
                     COMMENT "Complement to build the required architecture")
             # app bundle packing using xcode
         elseif (APPLE AND XCODE_BUILD)
+            # standard app bundle packing
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             set_target_properties(${AppName} PROPERTIES
                     BUNDLE True
@@ -388,10 +389,13 @@ if (APPLICATION_BUILD)
             add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
         endif ()
     else ()
+        # if the status is debug
         add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
-        # include qt dependencies
-        add_custom_command(TARGET ${AppName} POST_BUILD
-                COMMAND windeployqt --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
+        if(MINGW)
+            # include qt dependencies
+            add_custom_command(TARGET ${AppName} POST_BUILD
+                    COMMAND windeployqt --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
+        endif()
     endif ()
 
     # Make app build with resources
