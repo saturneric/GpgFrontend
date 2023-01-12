@@ -160,14 +160,148 @@ if (APPLICATION_BUILD)
     # Copy Utils Files
     if (MINGW)
         message(STATUS "Copying Dependent DLL For Windows Runtime Env")
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/lib/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/gpgme/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/bearer DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/iconengines DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/imageformats DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/printsupport DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/platforms DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/openssl/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+
+        set(ALL_RUNTIME_DEP_PATH_LIST "")
+
+        # get mingw bin path
+        find_file(_libGccDllPath NAMES libgcc_s_seh-1.dll NO_CACHE REQUIRED)
+        cmake_path(GET _libGccDllPath PARENT_PATH _libDllBinPath)
+
+        # find libicu*.dll
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libicu[a-z]*[0-9][0-9].dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libconfig++-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libarchive-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libassuan-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libbz*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libcrypto-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libexpat-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libfreetype-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libgcc_s_seh-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libglib-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libgpg-error-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libgpgme-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libgraphite2.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libharfbuzz-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libiconv-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libintl-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/liblz4.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/liblzma-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libpcre-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libpcre2-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libpng*-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libstdc++-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libwinpthread-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/zlib*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libb2-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        # openssl
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libssl-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libcrypto-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        # gpgme-w32spawn.exe
+        unset(_libExEPath)
+        file(GLOB _libExEPath "${_libDllBinPath}/gpgme-w32spawn.exe")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libExEPath})
+
+        set(ALL_RUNTIME_DLL_FILES "")
+        list(APPEND ALL_RUNTIME_DLL_FILES "Qt5Core.dll;Qt5Gui.dll;Qt5Network.dll;Qt5PrintSupport.dll;Qt5Svg.dll;Qt5Widgets.dll;libbrotlicommon.dll;libbrotlidec.dll;libdouble-conversion.dll;libzstd.dll;libmd4c.dll;")
+        # find the other dlls
+        foreach (_dllFileName ${ALL_RUNTIME_DLL_FILES})
+            message(STATUS "DLL FILE ${_dllFileName}")
+            list(APPEND ALL_DLL_NAME ${_dllFileName})
+            unset(_runtimeDllLocalPath)
+
+            find_file(_runtimeDllLocalPath NAMES ${_dllFileName} NO_CACHE REQUIRED)
+            list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_runtimeDllLocalPath})
+            message(STATUS "DLL ${_dllFileName} Path is ${_runtimeDllLocalPath}")
+        endforeach()
+
+        message(STATUS "All Runtime Dependencies Path ${ALL_RUNTIME_DEP_PATH_LIST}")
+
+        # copy dependencies to release path
+        foreach (_dllRuntimeFilePath ${ALL_RUNTIME_DEP_PATH_LIST})
+            file(COPY ${_dllRuntimeFilePath} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+        endforeach()
+
     endif ()
 endif ()
 
@@ -183,6 +317,9 @@ if (APPLICATION_BUILD)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (MINGW)
             add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            # include qt dependencies
+            add_custom_command(TARGET ${AppName} POST_BUILD
+                    COMMAND windeployqt --force ${AppName}.exe)
             # custom app bundle packing
         elseif (APPLE AND NOT XCODE_BUILD)
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
@@ -252,6 +389,9 @@ if (APPLICATION_BUILD)
         endif ()
     else ()
         add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+        # include qt dependencies
+        add_custom_command(TARGET ${AppName} POST_BUILD
+                COMMAND windeployqt --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
     endif ()
 
     # Make app build with resources
