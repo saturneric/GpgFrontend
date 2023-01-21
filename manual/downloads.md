@@ -14,4 +14,4 @@ Currently you can download GpgFrontend through various channels.
 
 ## Microsoft Store
 
-<ms-store-badge productid="9NH716MQK2B5" size="small"></ms-store-badge>
+<ms-store-badge productid="9NH716MQK2B5"></ms-store-badge>
