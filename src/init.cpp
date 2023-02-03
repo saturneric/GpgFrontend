@@ -26,21 +26,38 @@
  *
  */
 
+#include <spdlog/async.h>
+#include <spdlog/common.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include "GpgFrontend.h"
 #include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
 
 void init_logging_system() {
-  el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
-  el::Configurations defaultConf;
-  defaultConf.setToDefault();
+  using namespace boost::posix_time;
+  using namespace boost::gregorian;
 
-  // apply settings
-  defaultConf.setGlobally(el::ConfigurationType::Format,
-                          "%datetime %level [main] %func %msg");
-  // apply settings no written to file
-  defaultConf.setGlobally(el::ConfigurationType::ToFile, "false");
+  // sinks
+  std::vector<spdlog::sink_ptr> sinks;
+  sinks.push_back(std::make_shared<spdlog::sinks::stderr_color_sink_mt>());
 
-  // set the logger
-  el::Loggers::reconfigureLogger("default", defaultConf);
+  // thread pool
+  spdlog::init_thread_pool(1024, 2);
+
+  // logger
+  auto main_logger = std::make_shared<spdlog::async_logger>(
+      "core", begin(sinks), end(sinks), spdlog::thread_pool());
+  main_logger->set_pattern(
+      "[%H:%M:%S.%e] [T:%t] [%=4n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
+
+#ifdef DEBUG
+  main_logger->set_level(spdlog::level::trace);
+#elif
+  core_logger->set_level(spdlog::level::info);
+#endif
+
+  // register it as default logger
+  spdlog::set_default_logger(main_logger);
 }

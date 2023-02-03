@@ -37,12 +37,11 @@ void GpgFrontend::GpgCommandExecutor::Execute(
     std::string cmd, std::vector<std::string> arguments,
     std::function<void(int, std::string, std::string)> callback,
     std::function<void(QProcess *)> interact_func) {
-  LOG(INFO) << "called"
-            << "cmd" << cmd << "arguments size" << arguments.size();
+  SPDLOG_INFO("called cmd {} arguments size: {}", cmd, arguments.size());
 
   Thread::Task::TaskCallback result_callback =
       [](int rtn, Thread::Task::DataObjectPtr data_object) {
-        LOG(INFO) << "called";
+        SPDLOG_INFO("called");
 
         if (data_object->GetObjectSize() != 4)
           throw std::runtime_error("invalid data object size");
@@ -59,15 +58,15 @@ void GpgFrontend::GpgCommandExecutor::Execute(
 
   Thread::Task::TaskRunnable runner =
       [](GpgFrontend::Thread::Task::DataObjectPtr data_object) -> int {
-    LOG(INFO) << "process runner called, data object size"
-              << data_object->GetObjectSize();
+    SPDLOG_INFO("process runner called, data object size: {}",
+                data_object->GetObjectSize());
 
     if (data_object->GetObjectSize() != 4)
       throw std::runtime_error("invalid data object size");
 
     // get arguments
     auto cmd = data_object->PopObject<std::string>();
-    LOG(INFO) << "get cmd" << cmd;
+    SPDLOG_INFO("get cmd: {}", cmd);
     auto arguments = data_object->PopObject<std::vector<std::string>>();
     auto interact_func =
         data_object->PopObject<std::function<void(QProcess *)>>();
@@ -76,20 +75,20 @@ void GpgFrontend::GpgCommandExecutor::Execute(
     cmd_process->setProcessChannelMode(QProcess::MergedChannels);
 
     QObject::connect(cmd_process, &QProcess::started,
-                     []() -> void { LOG(INFO) << "process started"; });
+                     []() -> void { SPDLOG_INFO("process started"); });
     QObject::connect(
         cmd_process, &QProcess::readyReadStandardOutput,
         [interact_func, cmd_process]() { interact_func(cmd_process); });
     QObject::connect(cmd_process, &QProcess::errorOccurred, [=]() {
-      LOG(ERROR) << "error in executing command:" << cmd;
+      SPDLOG_ERROR("error in executing command: {}", cmd);
     });
     QObject::connect(cmd_process,
                      qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
                      [=](int, QProcess::ExitStatus status) {
                        if (status == QProcess::NormalExit)
-                         LOG(INFO) << "succeed in executing command:" << cmd;
+                         SPDLOG_INFO("succeed in executing command: {}", cmd);
                        else
-                         LOG(WARNING) << "error in executing command:" << cmd;
+                         SPDLOG_WARN("error in executing command: {}", cmd);
                      });
 
     cmd_process->setProgram(QString::fromStdString(cmd));
@@ -99,7 +98,7 @@ void GpgFrontend::GpgCommandExecutor::Execute(
       q_arguments.append(QString::fromStdString(argument));
     cmd_process->setArguments(q_arguments);
 
-    LOG(INFO) << "process execute ready";
+    SPDLOG_INFO("process execute ready");
 
     cmd_process->start();
     cmd_process->waitForFinished(30);

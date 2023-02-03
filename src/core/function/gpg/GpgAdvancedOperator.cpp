@@ -57,8 +57,9 @@ bool GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents() {
         if (exit_code == 0) {
           success = true;
         } else {
-          LOG(ERROR) << "gpgconf execute error, process stderr:" << p_err
-                     << ", process stdout:" << p_out;
+          SPDLOG_ERROR(
+              "gpgconf execute error, process stderr: {}, process stdout: {}",
+              p_err, p_out);
           return;
         }
       });
@@ -74,8 +75,9 @@ bool GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
         if (exit_code == 0) {
           success = true;
         } else {
-          LOG(ERROR) << "gpgconf execute error, process stderr:" << p_err
-                     << ", process stdout:" << p_out;
+          SPDLOG_ERROR(
+              "gpgconf execute error, process stderr: {}, process stdout: {}",
+              p_err, p_out);
           return;
         }
       });
@@ -87,8 +89,9 @@ bool GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
           success = true;
         } else {
           success = false;
-          LOG(ERROR) << "gpgconf execute error, process stderr:" << p_err
-                     << ", process stdout:" << p_out;
+          SPDLOG_ERROR(
+              "gpgconf execute error, process stderr: {}, process stdout: {}",
+              p_err, p_out);
           return;
         }
       });
@@ -104,8 +107,9 @@ bool GpgFrontend::GpgAdvancedOperator::ResetConfigures() {
         if (exit_code == 0) {
           success = true;
         } else {
-          LOG(ERROR) << "gpgconf execute error, process stderr:" << p_err
-                     << ", process stdout:" << p_out;
+          SPDLOG_ERROR(
+              "gpgconf execute error, process stderr: {}, process stdout: {}",
+              p_err, p_out);
           return;
         }
       });

@@ -341,7 +341,7 @@ void MainWindow::slot_verify() {
 
     auto buffer = data_object->PopObject<std::string>();
 
-    LOG(INFO) << "Verify buffer: " << buffer.size();
+    SPDLOG_INFO("verify buffer size: {}", buffer.size());
 
     try {
       GpgVerifyResult verify_result = nullptr;
@@ -430,11 +430,11 @@ void MainWindow::slot_encrypt_sign() {
   auto signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
 
   for (const auto& key : *keys) {
-    LOG(INFO) << "Keys " << key.GetEmail();
+    SPDLOG_INFO("keys {}", key.GetEmail());
   }
 
   for (const auto& signer : *signer_keys) {
-    LOG(INFO) << "Signers " << signer.GetEmail();
+    SPDLOG_INFO("signers {}", signer.GetEmail());
   }
 
   // data to transfer into task
@@ -486,7 +486,6 @@ void MainWindow::slot_encrypt_sign() {
       auto sign_result = data_object->PopObject<GpgSignResult>();
       auto tmp = data_object->PopObject<std::unique_ptr<ByteArray>>();
 
-      LOG(INFO) << "GpgResultAnalyse Started";
       auto encrypt_result_analyse =
           GpgEncryptResultAnalyse(error, std::move(encrypt_result));
       auto sign_result_analyse =
@@ -544,7 +543,7 @@ void MainWindow::slot_decrypt_verify() {
       data_object->AppendObject(std::move(decrypt_result));
       data_object->AppendObject(std::move(error));
     } catch (const std::runtime_error& e) {
-      LOG(ERROR) << e.what();
+      SPDLOG_ERROR(e.what());
       return -1;
     }
     return 0;
@@ -660,10 +659,10 @@ void MainWindow::upload_key_to_server() {
 void MainWindow::SlotOpenFile(QString& path) { edit_->SlotOpenFile(path); }
 
 void MainWindow::slot_version_upgrade(const SoftwareVersion& version) {
-  LOG(INFO) << _("Called");
+  SPDLOG_INFO("called");
 
   if (!version.InfoValid()) {
-    LOG(INFO) << "Invalid version info";
+    SPDLOG_INFO("invalid version info");
     return;
   }
 

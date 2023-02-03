@@ -31,7 +31,7 @@ namespace GpgFrontend {
 std::unique_ptr<CoreCommonUtil> CoreCommonUtil::instance_ = nullptr;  ///<
 
 CoreCommonUtil *CoreCommonUtil::GetInstance() {
-  LOG(INFO) << "called";
+  SPDLOG_INFO("called");
   if (instance_ == nullptr) {
     instance_ = std::make_unique<CoreCommonUtil>();
   }

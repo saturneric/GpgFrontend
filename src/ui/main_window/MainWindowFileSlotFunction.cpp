@@ -67,7 +67,7 @@ bool path_pre_check(QWidget* parent, const QString& path) {
  */
 bool process_tarball_into_directory(QWidget* parent,
                                     std::filesystem::path& path) {
-  LOG(INFO) << "Converting directory into tarball" << path;
+  SPDLOG_INFO("converting directory into tarball: {}", path.u8string());
   auto selected_dir_path = std::filesystem::path(path);
 
   if (selected_dir_path.extension() != ".tar") {
@@ -81,8 +81,8 @@ bool process_tarball_into_directory(QWidget* parent,
     auto target_path = selected_dir_path;
     target_path.replace_extension(".tar");
 
-    LOG(INFO) << "base path" << base_path.u8string() << "target archive path"
-              << target_path.u8string();
+    SPDLOG_INFO("base path: {} target archive path: {]", base_path.u8string(),
+                target_path.u8string());
 
     bool if_error = false;
     process_operation(parent, _("Extracting Tarball"),
@@ -101,7 +101,7 @@ bool process_tarball_into_directory(QWidget* parent,
     }
     path = target_path.u8string().c_str();
   } catch (...) {
-    LOG(ERROR) << "decompress error";
+    SPDLOG_ERROR("decompress error");
     return false;
   }
   return true;
@@ -125,8 +125,9 @@ bool process_directory_into_tarball(QWidget* parent, QString& path) {
     auto target_path = selected_dir_path;
     selected_dir_path.replace_extension("");
 
-    LOG(INFO) << "base path" << base_path << "target archive path"
-              << target_path << "selected_dir_path" << selected_dir_path;
+    SPDLOG_INFO("base path: {} target archive path: {} selected_dir_path: {}",
+                base_path.u8string(), target_path.u8string(),
+                selected_dir_path.u8string());
 
     bool if_error = false;
     process_operation(parent, _("Making Tarball"),
@@ -145,7 +146,7 @@ bool process_directory_into_tarball(QWidget* parent, QString& path) {
     }
     path = target_path.u8string().c_str();
   } catch (...) {
-    LOG(ERROR) << "compress error";
+    SPDLOG_ERROR("compress error");
     return false;
   }
   return true;
@@ -156,7 +157,7 @@ void MainWindow::SlotFileEncrypt() {
   auto path = fileTreeView->GetSelected();
 
   if (!path_pre_check(this, path)) {
-    LOG(ERROR) << "path pre check failed";
+    SPDLOG_ERROR("path pre check failed");
     return;
   }
 
@@ -172,7 +173,7 @@ void MainWindow::SlotFileEncrypt() {
   try {
     non_ascii_when_export = settings.lookup("general.non_ascii_when_export");
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("non_ascii_when_export");
+    SPDLOG_ERROR("setting operation error: non_ascii_when_export");
   }
 
   // get file info
@@ -395,7 +396,7 @@ void MainWindow::SlotFileSign() {
   try {
     non_ascii_when_export = settings.lookup("general.non_ascii_when_export");
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("non_ascii_when_export");
+    SPDLOG_ERROR("setting operation error: non_ascii_when_export");
   }
 
   auto _channel = GPGFRONTEND_DEFAULT_CHANNEL;
@@ -474,7 +475,7 @@ void MainWindow::SlotFileVerify() {
   try {
     non_ascii_when_export = settings.lookup("general.non_ascii_when_export");
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("non_ascii_when_export");
+    SPDLOG_ERROR("setting operation error: non_ascii_when_export");
   }
 
   auto _channel = GPGFRONTEND_DEFAULT_CHANNEL;
@@ -488,7 +489,8 @@ void MainWindow::SlotFileVerify() {
     data_file_path = sign_file_path.parent_path() / sign_file_path.stem();
   }
 
-  LOG(INFO) << "sign_file_path" << sign_file_path << sign_file_path.extension();
+  SPDLOG_INFO("sign_file_path: {} {}", sign_file_path.u8string(),
+              sign_file_path.extension().u8string());
 
   if (in_path.extension() != ".gpg") {
     bool ok;
@@ -511,8 +513,8 @@ void MainWindow::SlotFileVerify() {
     return;
   }
 
-  DLOG(INFO) << "data path" << data_file_path;
-  DLOG(INFO) << "sign path" << sign_file_path;
+  SPDLOG_INFO("data path: {}", data_file_path.u8string());
+  SPDLOG_INFO("sign path: {}", sign_file_path.u8string());
 
   GpgVerifyResult result = nullptr;
   gpgme_error_t error;
@@ -585,7 +587,7 @@ void MainWindow::SlotFileEncryptSign() {
   try {
     non_ascii_when_export = settings.lookup("general.non_ascii_when_export");
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("non_ascii_when_export");
+    SPDLOG_ERROR("setting operation error: non_ascii_when_export");
   }
 
   // get file info
@@ -697,7 +699,7 @@ void MainWindow::SlotFileDecryptVerify() {
   } else {
     out_path += ".out";
   }
-  LOG(INFO) << "out path" << out_path;
+  SPDLOG_INFO("out path: {}", out_path.u8string());
 
   if (QFile::exists(out_path.u8string().c_str())) {
     auto ret =

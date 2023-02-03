@@ -32,7 +32,7 @@ bool GpgFrontend::FileOperator::ReadFile(const QString& file_name,
                                          QByteArray& data) {
   QFile file(file_name);
   if (!file.open(QIODevice::ReadOnly)) {
-    LOG(ERROR) << "failed to open file" << file_name.toStdString();
+    SPDLOG_ERROR("failed to open file: {}", file_name.toStdString());
     return false;
   }
   data = file.readAll();
@@ -44,7 +44,7 @@ bool GpgFrontend::FileOperator::WriteFile(const QString& file_name,
                                           const QByteArray& data) {
   QFile file(file_name);
   if (!file.open(QIODevice::WriteOnly)) {
-    LOG(ERROR) << "failed to open file" << file_name.toStdString();
+    SPDLOG_ERROR("failed to open file: {}", file_name.toStdString());
     return false;
   }
   file.write(data);
@@ -94,7 +94,7 @@ std::string GpgFrontend::FileOperator::CalculateHash(
       // md5
       hash_md5.addData(buffer);
       auto md5 = hash_md5.result().toHex().toStdString();
-      LOG(INFO) << "md5" << md5;
+      SPDLOG_INFO("md5 {}", md5);
       ss << "    "
          << "md5" << _(": ") << md5 << std::endl;
 
@@ -102,7 +102,7 @@ std::string GpgFrontend::FileOperator::CalculateHash(
       // sha1
       hash_sha1.addData(buffer);
       auto sha1 = hash_sha1.result().toHex().toStdString();
-      LOG(INFO) << "sha1" << sha1;
+      SPDLOG_INFO("sha1 {}", sha1);
       ss << "    "
          << "sha1" << _(": ") << sha1 << std::endl;
 
@@ -110,7 +110,7 @@ std::string GpgFrontend::FileOperator::CalculateHash(
       // sha1
       hash_sha256.addData(buffer);
       auto sha256 = hash_sha256.result().toHex().toStdString();
-      LOG(INFO) << "sha256" << sha256;
+      SPDLOG_INFO("sha256 {}", sha256);
       ss << "    "
          << "sha256" << _(": ") << sha256 << std::endl;
 

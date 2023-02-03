@@ -109,7 +109,7 @@ void MainWindow::Init() noexcept {
     bool show_wizard = true;
     wizard.lookupValue("show_wizard", show_wizard);
 
-    LOG(INFO) << "wizard show_wizard" << show_wizard;
+    SPDLOG_INFO("wizard show_wizard: {}", show_wizard);
 
     if (show_wizard) {
       slot_start_wizard();
@@ -131,30 +131,29 @@ void MainWindow::Init() noexcept {
 
     // before application exit
     connect(qApp, &QCoreApplication::aboutToQuit, this, []() {
-      LOG(INFO) << "about to quit process started";
+      SPDLOG_INFO("about to quit process started");
 
       auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
       try {
         bool clear_gpg_password_cache =
             settings.lookup("general.clear_gpg_password_cache");
-        
+
         if (clear_gpg_password_cache) {
           if (GpgFrontend::GpgAdvancedOperator::GetInstance()
                   .ClearGpgPasswordCache()) {
-            LOG(INFO) << "clear gpg password cache done";
+            SPDLOG_INFO("clear gpg password cache done");
           } else {
-            LOG(ERROR) << "clear gpg password cache error";
+            SPDLOG_ERROR("clear gpg password cache error");
           }
         }
 
       } catch (...) {
-        LOG(ERROR) << _("Setting Operation Error")
-                   << _("clear_gpg_password_cache");
+        SPDLOG_ERROR("setting operation error: clear_gpg_password_cache");
       }
     });
 
   } catch (...) {
-    LOG(FATAL) << _("Critical error occur while loading GpgFrontend.");
+    SPDLOG_ERROR(_("Critical error occur while loading GpgFrontend."));
     QMessageBox::critical(nullptr, _("Loading Failed"),
                           _("Critical error occur while loading GpgFrontend."));
     QCoreApplication::quit();
@@ -163,10 +162,10 @@ void MainWindow::Init() noexcept {
 }
 
 void MainWindow::restore_settings() {
-  LOG(INFO) << _("Called");
+  SPDLOG_INFO("called");
 
   try {
-    LOG(INFO) << "restore settings key_server";
+    SPDLOG_INFO("restore settings key_server");
 
     SettingsObject key_server_json("key_server");
     if (!key_server_json.contains("server_list") ||
@@ -202,7 +201,7 @@ void MainWindow::restore_settings() {
     import_button_->setToolButtonStyle(icon_style_);
 
     try {
-      LOG(INFO) << "restore settings default_key_checked";
+      SPDLOG_INFO("restore settings default_key_checked");
 
       // Checked Keys
       SettingsObject default_key_checked("default_key_checked");
@@ -210,13 +209,13 @@ void MainWindow::restore_settings() {
         auto key_ids_ptr = std::make_unique<KeyIdArgsList>();
         for (auto &it : default_key_checked) {
           std::string key_id = it;
-          LOG(INFO) << "get checked key id" << key_id;
+          SPDLOG_INFO("get checked key id: {}", key_id);
           key_ids_ptr->push_back(key_id);
         }
         m_key_list_->SetChecked(std::move(key_ids_ptr));
       }
     } catch (...) {
-      LOG(ERROR) << "restore default_key_checked failed";
+      SPDLOG_ERROR("restore default_key_checked failed");
     }
 
     prohibit_update_checking_ = false;
@@ -224,16 +223,15 @@ void MainWindow::restore_settings() {
       prohibit_update_checking_ =
           settings.lookup("network.prohibit_update_checking");
     } catch (...) {
-      LOG(ERROR) << _("Setting Operation Error")
-                 << _("prohibit_update_checking");
+      SPDLOG_ERROR("setting operation error: prohibit_update_checking");
     }
 
   } catch (...) {
-    LOG(ERROR) << "cannot resolve settings";
+    SPDLOG_ERROR("cannot resolve settings");
   }
 
   GlobalSettingStation::GetInstance().SyncSettings();
-  LOG(INFO) << _("settings restored");
+  SPDLOG_INFO("settings restored");
 }
 
 void MainWindow::save_settings() {
@@ -255,7 +253,7 @@ void MainWindow::save_settings() {
       settings["general"].remove("save_key_checked");
     }
   } catch (...) {
-    LOG(ERROR) << "cannot save settings";
+    SPDLOG_ERROR("cannot save settings");
   };
 
   GlobalSettingStation::GetInstance().SyncSettings();

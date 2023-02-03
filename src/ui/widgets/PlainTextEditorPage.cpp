@@ -160,7 +160,7 @@ void PlainTextEditorPage::slot_format_gpg_header() {
 }
 
 void PlainTextEditorPage::ReadFile() {
-  LOG(INFO) << "called";
+  SPDLOG_INFO("called");
 
   read_done_ = false;
   read_bytes_ = 0;
@@ -185,7 +185,7 @@ void PlainTextEditorPage::ReadFile() {
           &FileReadTask::SignalFileBytesReadNext, Qt::QueuedConnection);
 
   connect(read_task, &FileReadTask::SignalTaskFinished, this,
-          []() { LOG(INFO) << "read thread closed"; });
+          []() { SPDLOG_INFO("read thread closed"); });
   connect(this, &PlainTextEditorPage::close, read_task,
           &FileReadTask::SignalTaskFinished);
   connect(read_task, &FileReadTask::SignalFileBytesReadEnd, this, [=]() {
@@ -212,7 +212,7 @@ std::string binary_to_string(const std::string &source) {
 
 void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
   std::string data = bytes_data.toStdString();
-  LOG(INFO) << "data size" << data.size();
+  SPDLOG_INFO("data size: {}", data.size());
   read_bytes_ += data.size();
   // If binary format is detected, the entire file is converted to binary
   // format for display.
@@ -260,7 +260,7 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
     this->ui_->characterLabel->setText(str.str().c_str());
   }
   QTimer::singleShot(25, this, &PlainTextEditorPage::SignalUIBytesDisplayed);
-  LOG(INFO) << "end";
+  SPDLOG_INFO("end");
 }
 
 void PlainTextEditorPage::detect_encoding(const std::string &data) {

@@ -79,7 +79,7 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
 }
 
 void GpgFrontend::UI::GnupgTab::process_software_info() {
-  LOG(INFO) << "called";
+  SPDLOG_INFO("called");
 
   auto ctx_info = GpgContext::GetInstance().GetInfo(true);
 

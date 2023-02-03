@@ -225,7 +225,7 @@ void KeyPairUIDTab::slot_refresh_tofu_info() {
       continue;
     }
     auto tofu_infos = uid.GetTofuInfos();
-    LOG(INFO) << "tofu info size" << tofu_infos->size();
+    SPDLOG_INFO("tofu info size: {}", tofu_infos->size());
     if (tofu_infos->empty()) {
       tofu_tabs_->hide();
     } else {
@@ -382,7 +382,7 @@ void KeyPairUIDTab::slot_del_uid() {
 
   if (ret == QMessageBox::Yes) {
     for (const auto& uid : *selected_uids) {
-      LOG(INFO) << "KeyPairUIDTab::slot_del_uid UID" << uid;
+      SPDLOG_INFO("uid: {}", uid);
       if (!GpgUIDOperator::GetInstance().RevUID(m_key_, uid)) {
         QMessageBox::critical(
             nullptr, _("Operation Failed"),
@@ -574,7 +574,7 @@ void KeyPairUIDTab::slot_del_sign() {
   }
 }
 void KeyPairUIDTab::slot_refresh_key() {
-  LOG(INFO) << "called";
+  SPDLOG_INFO("called");
 
   // refresh the key
   GpgKey refreshed_key = GpgKeyGetter::GetInstance().GetKey(m_key_.GetId());

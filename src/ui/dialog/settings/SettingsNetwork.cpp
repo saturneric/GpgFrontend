@@ -76,28 +76,28 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
     std::string proxy_host = settings.lookup("proxy.proxy_host");
     ui_->proxyServerAddressEdit->setText(proxy_host.c_str());
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("proxy_host");
+    SPDLOG_ERROR("setting operation error: proxy_host");
   }
 
   try {
     std::string std_username = settings.lookup("proxy.username");
     ui_->usernameEdit->setText(std_username.c_str());
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("username");
+    SPDLOG_ERROR("setting operation error: username");
   }
 
   try {
     std::string std_password = settings.lookup("proxy.password");
     ui_->passwordEdit->setText(std_password.c_str());
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("password");
+    SPDLOG_ERROR("setting operation error: password");
   }
 
   try {
     int port = settings.lookup("proxy.port");
     ui_->portSpin->setValue(port);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("port");
+    SPDLOG_ERROR("setting operation error: port");
   }
 
   ui_->proxyTypeComboBox->setCurrentText("HTTP");
@@ -105,7 +105,7 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
     std::string proxy_type = settings.lookup("proxy.proxy_type");
     ui_->proxyTypeComboBox->setCurrentText(proxy_type.c_str());
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("proxy_type");
+    SPDLOG_ERROR("setting operation error: proxy_type");
   }
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
 
@@ -117,7 +117,7 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
     else
       ui_->enableProxyCheckBox->setCheckState(Qt::Unchecked);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("proxy_enable");
+    SPDLOG_ERROR("setting operation error: proxy_enable");
   }
 
   {
@@ -134,7 +134,7 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
     else
       ui_->forbidALLCheckBox->setCheckState(Qt::Unchecked);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("forbid_all_connection");
+    SPDLOG_ERROR("setting operation error: forbid_all_connection");
   }
 
   ui_->prohibitUpdateCheck->setCheckState(Qt::Unchecked);
@@ -146,12 +146,12 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
     else
       ui_->prohibitUpdateCheck->setCheckState(Qt::Unchecked);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("prohibit_update_checking");
+    SPDLOG_ERROR("setting operation error: prohibit_update_checking");
   }
 }
 
 void GpgFrontend::UI::NetworkTab::ApplySettings() {
-  LOG(INFO) << "called";
+  SPDLOG_INFO("called");
 
   auto &settings =
       GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
@@ -225,7 +225,7 @@ void GpgFrontend::UI::NetworkTab::ApplySettings() {
 
   apply_proxy_settings();
 
-  LOG(INFO) << "done";
+  SPDLOG_INFO("done");
 }
 
 void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
@@ -270,7 +270,7 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
       waiting_dialog->deleteLater();
     });
     connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
-      LOG(INFO) << "cancel clicked";
+      SPDLOG_INFO("cancel clicked");
       if (thread->isRunning()) thread->terminate();
     });
 

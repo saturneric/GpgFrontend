@@ -53,9 +53,8 @@ const char* GpgFrontend::GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD =
 
 gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    LOG(ERROR) << "[" << _("Error") << gpg_err_code(err) << "]" << _("Source: ")
-               << gpgme_strsource(err) << _("Description: ")
-               << gpgme_strerror(err);
+    SPDLOG_ERROR("[error: {}] source: {} description: {}", gpg_err_code(err),
+                 gpgme_strsource(err), gpgme_strerror(err));
   }
   return err;
 }
@@ -65,14 +64,13 @@ gpg_err_code_t GpgFrontend::check_gpg_error_2_err_code(gpgme_error_t err,
   auto err_code = gpg_err_code(err);
   if (err_code != gpg_err_code(predict)) {
     if (err_code == GPG_ERR_NO_ERROR)
-      LOG(WARNING) << "[" << _("Warning") << gpg_err_code(err) << "]"
-                   << _("Source: ") << gpgme_strsource(err)
-                   << _("Description: ") << gpgme_strerror(err) << _("Predict")
-                   << gpgme_strerror(err);
+      SPDLOG_WARN("[Warning {}] Source: {} description: {} predict: {}",
+                  gpg_err_code(err), gpgme_strsource(err), gpgme_strerror(err),
+                  gpgme_strerror(err));
     else
-      LOG(ERROR) << "[" << _("Error") << gpg_err_code(err) << "]"
-                 << _("Source: ") << gpgme_strsource(err) << _("Description: ")
-                 << gpgme_strerror(err) << _("Predict") << gpgme_strerror(err);
+      SPDLOG_ERROR("[Error {}] Source: {} description: {} predict: {}",
+                   gpg_err_code(err), gpgme_strsource(err), gpgme_strerror(err),
+                   gpgme_strerror(err));
   }
   return err_code;
 }
@@ -80,9 +78,9 @@ gpg_err_code_t GpgFrontend::check_gpg_error_2_err_code(gpgme_error_t err,
 gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
                                            const std::string& comment) {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    LOG(ERROR) << "[" << _("Error") << gpg_err_code(err) << "]" << _("Source: ")
-               << gpgme_strsource(err) << _("Description: ")
-               << gpgme_strerror(err);
+    SPDLOG_WARN("[Error {}] Source: {} description: {} predict: {}",
+                gpg_err_code(err), gpgme_strsource(err), gpgme_strerror(err),
+                gpgme_strerror(err));
   }
   return err;
 }
@@ -201,6 +199,6 @@ GpgFrontend::GpgGenKeyResult GpgFrontend::_new_result(
 }
 
 void GpgFrontend::_result_ref_deletor::operator()(void* _result) {
-  DLOG(INFO) << _("Called") << _result;
+  SPDLOG_INFO("called {}", _result);
   if (_result != nullptr) gpgme_result_unref(_result);
 }
