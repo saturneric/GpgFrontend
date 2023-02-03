@@ -46,11 +46,6 @@ if (NOT LINUX)
     target_link_libraries(gpgfrontend_core PUBLIC config++ intl)
 endif ()
 
-# easyloggingpp
-target_include_directories(gpgfrontend_core PUBLIC
-        ${CMAKE_SOURCE_DIR}/third_party/easyloggingpp/src)
-target_sources(gpgfrontend_core PUBLIC
-        ${CMAKE_SOURCE_DIR}/third_party/easyloggingpp/src/easylogging++.cc)
 # qt-aes
 target_sources(gpgfrontend_core PRIVATE
         ${CMAKE_SOURCE_DIR}/third_party/qt-aes/qaesencryption.cpp)
@@ -81,6 +76,9 @@ if (MINGW)
     # for uuid ability in mingw
     target_link_libraries(gpgfrontend_core PUBLIC bcrypt)
 endif ()
+
+# spdlog
+target_link_libraries(gpgfrontend_core PRIVATE spdlog)
 
 # link libarchive
 target_link_libraries(gpgfrontend_core PRIVATE archive)
