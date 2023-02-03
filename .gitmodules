@@ -19,3 +19,6 @@
 [submodule "third_party/libconfig"]
 	path = third_party/libconfig
 	url = https://git.bktus.com/GpgFrontend/libconfig.git
+[submodule "third_party/spdlog"]
+	path = third_party/spdlog
+	url = https://git.bktus.com/GpgFrontend/spdlog.git
