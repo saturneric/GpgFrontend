@@ -60,7 +60,7 @@ void AdvancedTab::SetSettings() {
     bool stegano_checked = settings.lookup("advanced.stegano_checked");
     if (stegano_checked) stegano_check_box_->setCheckState(Qt::Checked);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("stegano_checked");
+    SPDLOG_ERROR("setting operation error: stegano_checked");
   }
 
   try {
@@ -69,8 +69,7 @@ void AdvancedTab::SetSettings() {
     if (auto_pubkey_exchange_checked)
       auto_pubkey_exchange_check_box_->setCheckState(Qt::Checked);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error")
-               << _("auto_pubkey_exchange_checked");
+    SPDLOG_ERROR("setting operation error: auto_pubkey_exchange_checked");
   }
 }
 

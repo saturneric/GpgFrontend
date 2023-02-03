@@ -47,7 +47,7 @@ void GpgFrontend::UI::GeneralMainWindow::closeEvent(QCloseEvent *event) {
 
 void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
   try {
-    LOG(INFO) << name_ << _("Called");
+    SPDLOG_INFO(name_, _("Called"));
 
     SettingsObject general_windows_state(name_ + "_state");
 
@@ -75,7 +75,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
       size_ = {width, height};
 
       if (this->parent() != nullptr) {
-        LOG(INFO) << "parent address" << this->parent();
+        SPDLOG_INFO("parent address: {}", static_cast<void *>(this->parent()));
 
         QPoint parent_pos = {0, 0};
         QSize parent_size = {0, 0};
@@ -92,11 +92,10 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
           parent_size = parent_window->size();
         }
 
-        LOG(INFO) << "parent pos x:" << parent_pos.x()
-                  << "y:" << parent_pos.y();
+        SPDLOG_INFO("parent pos x: {} y: {}", parent_pos.x(), parent_pos.y());
 
-        LOG(INFO) << "parent size width:" << parent_size.width()
-                  << "height:" << parent_size.height();
+        SPDLOG_INFO("parent size width: {} height: {}", parent_size.width(),
+                    parent_size.height());
 
         if (parent_pos != QPoint{0, 0}) {
           QPoint parent_center{parent_pos.x() + parent_size.width() / 2,
@@ -116,7 +115,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
 
     int width = general_settings_state.Check("icon_size").Check("width", 24),
         height = general_settings_state.Check("icon_size").Check("height", 24);
-    LOG(INFO) << "icon_size" << width << height;
+    SPDLOG_INFO("icon size: {} {}", width, height);
 
     icon_size_ = {width, height};
     font_size_ = general_settings_state.Check("font_size", 10);
@@ -130,13 +129,13 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
     icon_style_ = toolButtonStyle();
 
   } catch (...) {
-    LOG(ERROR) << name_ << "error";
+    SPDLOG_ERROR(name_, "error");
   }
 }
 
 void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
   try {
-    LOG(INFO) << name_ << _("Called");
+    SPDLOG_INFO(name_, _("Called"));
 
     SettingsObject general_windows_state(name_ + "_state");
 
@@ -166,6 +165,6 @@ void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
     general_settings_state["icon_style"] = this->toolButtonStyle();
 
   } catch (...) {
-    LOG(ERROR) << name_ << "error";
+    SPDLOG_ERROR(name_, "error");
   }
 }

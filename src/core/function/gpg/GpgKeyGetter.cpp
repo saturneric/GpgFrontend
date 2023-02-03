@@ -35,18 +35,16 @@
 #include <utility>
 
 #include "GpgConstants.h"
-#include "easylogging++.h"
 #include "model/GpgKey.h"
 
 GpgFrontend::GpgKeyGetter::GpgKeyGetter(int channel)
     : SingletonFunctionObject<GpgKeyGetter>(channel) {
-  LOG(INFO) << "called"
-            << "channel:" << channel;
+  SPDLOG_INFO("called channel: {}", channel);
 }
 
 GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr,
                                                       bool use_cache) {
-  LOG(INFO) << "called";
+  SPDLOG_INFO("called");
 
   // find in cache first
   if (use_cache) {
@@ -57,7 +55,7 @@ GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr,
   gpgme_key_t _p_key = nullptr;
   gpgme_get_key(ctx_, fpr.c_str(), &_p_key, 1);
   if (_p_key == nullptr) {
-    DLOG(WARNING) << "GpgKeyGetter GetKey Private _p_key Null fpr" << fpr;
+    SPDLOG_WARN("GpgKeyGetter GetKey Private _p_key Null fpr", fpr);
     return GetPubkey(fpr);
   } else {
     return GpgKey(std::move(_p_key));
@@ -74,8 +72,7 @@ GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetPubkey(const std::string& fpr,
 
   gpgme_key_t _p_key = nullptr;
   gpgme_get_key(ctx_, fpr.c_str(), &_p_key, 0);
-  if (_p_key == nullptr)
-    DLOG(WARNING) << "GpgKeyGetter GetKey _p_key Null" << fpr;
+  if (_p_key == nullptr) SPDLOG_WARN("GpgKeyGetter GetKey _p_key Null", fpr);
   return GpgKey(std::move(_p_key));
 }
 
@@ -83,21 +80,19 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
   // get the lock
   std::lock_guard<std::mutex> lock(keys_cache_mutex_);
 
-  LOG(INFO) << "GpgKeyGetter FetchKey"
-            << "channel id:" << GetChannel();
+  SPDLOG_INFO("channel id: {}", GetChannel());
 
   auto keys_list = std::make_unique<GpgKeyLinkList>();
 
   for (const auto& [key, value] : keys_cache_) {
-    LOG(INFO) << "FetchKey Id:" << value.GetId();
+    SPDLOG_INFO("fetch key id: {}", value.GetId());
     keys_list->push_back(value.Copy());
   }
   return keys_list;
 }
 
 void GpgFrontend::GpgKeyGetter::FlushKeyCache() {
-  LOG(INFO) << "called"
-            << "channel id: " << GetChannel();
+  SPDLOG_INFO("called channel id: {}", GetChannel());
 
   // clear the keys cache
   keys_cache_.clear();
@@ -125,13 +120,14 @@ void GpgFrontend::GpgKeyGetter::FlushKeyCache() {
         gpg_key = GetKey(gpg_key.GetId(), false);
       }
 
-      LOG(INFO) << "LoadKey Fpr:" << gpg_key.GetFingerprint()
-                << "Id:" << gpg_key.GetId();
+      SPDLOG_INFO("load key fpr: {} id: {}", gpg_key.GetFingerprint(),
+                  gpg_key.GetId());
       keys_cache_.insert({gpg_key.GetId(), std::move(gpg_key)});
     }
   }
 
-  LOG(INFO) << "cache address:" << &keys_cache_ << "object address" << this;
+  SPDLOG_INFO("cache address: {} object address: {}",
+              static_cast<void*>(&keys_cache_), static_cast<void*>(this));
 
   // for debug
   assert(check_gpg_error_2_err_code(err, GPG_ERR_EOF) == GPG_ERR_EOF);

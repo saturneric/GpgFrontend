@@ -34,12 +34,12 @@ void GpgFrontend::GlobalSettingStation::SyncSettings() noexcept {
   using namespace libconfig;
   try {
     ui_cfg_.writeFile(ui_config_path_.u8string().c_str());
-    LOG(INFO) << _("Updated ui configuration successfully written to")
-              << ui_config_path_;
+    SPDLOG_INFO("updated ui configuration successfully written to {}",
+                ui_config_path_.u8string());
 
   } catch (const FileIOException &fioex) {
-    LOG(ERROR) << _("I/O error while writing ui configuration file")
-               << ui_config_path_;
+    SPDLOG_ERROR("i/o error while writing ui configuration file: {}",
+                 ui_config_path_.u8string());
   }
 }
 
@@ -48,14 +48,12 @@ GpgFrontend::GlobalSettingStation::GlobalSettingStation(int channel) noexcept
   using namespace std::filesystem;
   using namespace libconfig;
 
-  el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
-
-  LOG(INFO) << _("App Path") << app_path_;
-  LOG(INFO) << _("App Configure Path") << app_configure_path_;
-  LOG(INFO) << _("App Data Path") << app_data_path_;
-  LOG(INFO) << _("App Log Path") << app_log_path_;
-  LOG(INFO) << _("App Locale Path") << app_locale_path_;
-  LOG(INFO) << _("App Conf Path") << ui_config_path_;
+  SPDLOG_INFO("app path: {}", app_path_.u8string());
+  SPDLOG_INFO("app configure path: {}", app_configure_path_.u8string());
+  SPDLOG_INFO("app data path: {}", app_data_path_.u8string());
+  SPDLOG_INFO("app log path: {}", app_log_path_.u8string());
+  SPDLOG_INFO("app locale path: {}", app_locale_path_.u8string());
+  SPDLOG_INFO("app conf path: {}", ui_config_path_.u8string());
 
   if (!is_directory(app_configure_path_)) create_directory(app_configure_path_);
 
@@ -68,24 +66,23 @@ GpgFrontend::GlobalSettingStation::GlobalSettingStation(int channel) noexcept
   if (!exists(ui_config_path_)) {
     try {
       this->ui_cfg_.writeFile(ui_config_path_.u8string().c_str());
-      LOG(INFO) << _("UserInterface configuration successfully written to")
-                << ui_config_path_;
+      SPDLOG_INFO("userInterface configuration successfully written to {}",
+                  ui_config_path_.u8string());
 
     } catch (const FileIOException &fioex) {
-      LOG(ERROR)
-          << _("I/O error while writing UserInterface configuration file")
-          << ui_config_path_;
+      SPDLOG_INFO("i/o error while writing UserInterface configuration file {}",
+                  ui_config_path_.u8string());
     }
   } else {
     try {
       this->ui_cfg_.readFile(ui_config_path_.u8string().c_str());
-      LOG(INFO) << _("UserInterface configuration successfully read from")
-                << ui_config_path_;
+      SPDLOG_INFO("user interface configuration successfully read from {}",
+                  ui_config_path_.u8string());
     } catch (const FileIOException &fioex) {
-      LOG(ERROR) << _("I/O error while reading UserInterface configure file");
+      SPDLOG_ERROR("i/o error while reading UserInterface configure file");
     } catch (const ParseException &pex) {
-      LOG(ERROR) << _("Parse error at ") << pex.getFile() << ":"
-                 << pex.getLine() << " - " << pex.getError();
+      SPDLOG_ERROR("parse error at {} : {} - {}", pex.getFile(), pex.getLine(),
+                   pex.getError());
     }
   }
 }

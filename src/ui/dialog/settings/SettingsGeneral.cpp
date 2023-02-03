@@ -98,8 +98,8 @@ GeneralTab::GeneralTab(QWidget* parent)
                 this, _("Open Directory"), {},
                 QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-        LOG(INFO) << "key databse path selected"
-                  << selected_custom_key_database_path.toStdString();
+        SPDLOG_INFO("key databse path selected: {}",
+                    selected_custom_key_database_path.toStdString());
 
         if (!selected_custom_key_database_path.isEmpty()) {
           auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
@@ -139,7 +139,7 @@ void GeneralTab::SetSettings() {
     if (save_key_checked)
       ui_->saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("save_key_checked");
+    SPDLOG_ERROR("setting operation error: save_key_checked");
   }
 
   try {
@@ -148,24 +148,24 @@ void GeneralTab::SetSettings() {
     if (clear_gpg_password_cache)
       ui_->clearGpgPasswordCacheCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("clear_gpg_password_cache");
+    SPDLOG_ERROR("setting operation error: clear_gpg_password_cache");
   }
 
   try {
     bool longer_expiration_date =
         settings.lookup("general.longer_expiration_date");
-    LOG(INFO) << "longer_expiration_date" << longer_expiration_date;
+    SPDLOG_INFO("longer_expiration_date: {}", longer_expiration_date);
     if (longer_expiration_date)
       ui_->longerKeyExpirationDateCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("longer_expiration_date");
+    SPDLOG_ERROR("setting operation error: longer_expiration_date");
   }
 
 #ifdef MULTI_LANG_SUPPORT
   try {
     std::string lang_key = settings.lookup("general.lang");
     QString lang_value = lang_.value(lang_key.c_str());
-    LOG(INFO) << "lang settings current" << lang_value.toStdString();
+    SPDLOG_INFO("lang settings current: {}", lang_value.toStdString());
     if (!lang_.empty()) {
       ui_->langSelectBox->setCurrentIndex(
           ui_->langSelectBox->findText(lang_value));
@@ -173,27 +173,27 @@ void GeneralTab::SetSettings() {
       ui_->langSelectBox->setCurrentIndex(0);
     }
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("lang");
+    SPDLOG_ERROR("setting operation error: lang");
   }
 #endif
 
   try {
     bool confirm_import_keys = settings.lookup("general.confirm_import_keys");
-    LOG(INFO) << "confirm_import_keys" << confirm_import_keys;
+    SPDLOG_INFO("confirm_import_keys: {}", confirm_import_keys);
     if (confirm_import_keys)
       ui_->importConfirmationCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("confirm_import_keys");
+    SPDLOG_ERROR("setting operation error: confirm_import_keys");
   }
 
   try {
     bool non_ascii_when_export =
         settings.lookup("general.non_ascii_when_export");
-    LOG(INFO) << "non_ascii_when_export" << non_ascii_when_export;
+    SPDLOG_INFO("non_ascii_when_export: {}", non_ascii_when_export);
     if (non_ascii_when_export)
       ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("non_ascii_when_export");
+    SPDLOG_ERROR("setting operation error: non_ascii_when_export");
   }
 
   try {
@@ -202,8 +202,7 @@ void GeneralTab::SetSettings() {
     if (use_custom_key_database_path)
       ui_->keyDatabseUseCustomCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error")
-               << _("use_custom_key_database_path");
+    SPDLOG_ERROR("setting operation error: use_custom_key_database_path");
   }
 
   this->slot_update_custom_key_database_path_label(
@@ -303,12 +302,11 @@ void GeneralTab::slot_update_custom_key_database_path_label(int state) {
           settings.lookup("general.custom_key_database_path"));
 
     } catch (...) {
-      LOG(ERROR) << _("Setting Operation Error")
-                 << _("custom_key_database_path");
+      SPDLOG_ERROR("setting operation error: custom_key_database_path");
     }
 
-    LOG(INFO) << "selected_custom_key_database_path from settings"
-              << custom_key_database_path;
+    SPDLOG_INFO("selected_custom_key_database_path from settings: {}",
+                custom_key_database_path);
 
     // set label value
     if (!custom_key_database_path.empty()) {

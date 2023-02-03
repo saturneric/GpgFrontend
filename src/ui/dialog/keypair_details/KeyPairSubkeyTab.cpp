@@ -35,8 +35,8 @@ namespace GpgFrontend::UI {
 
 KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
     : QWidget(parent), key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
-  LOG(INFO) << key_.GetEmail() << key_.IsPrivateKey() << key_.IsHasMasterKey()
-            << key_.GetSubKeys()->front().IsPrivateKey();
+  SPDLOG_INFO(key_.GetEmail(), key_.IsPrivateKey(), key_.IsHasMasterKey(),
+              key_.GetSubKeys()->front().IsPrivateKey());
 
   create_subkey_list();
   create_subkey_opera_menu();
@@ -165,7 +165,7 @@ void KeyPairSubkeyTab::create_subkey_list() {
 }
 
 void KeyPairSubkeyTab::slot_refresh_subkey_list() {
-  LOG(INFO) << "called";
+  SPDLOG_INFO("called");
   int row = 0;
 
   subkey_list_->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -177,9 +177,8 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     this->buffered_subkeys_.push_back(std::move(sub_key));
   }
 
-  LOG(INFO) << "buffered_subkeys_"
-            << "refreshed"
-            << "size" << this->buffered_subkeys_.size();
+  SPDLOG_INFO("buffered_subkeys_ refreshed size",
+              this->buffered_subkeys_.size());
 
   subkey_list_->setRowCount(buffered_subkeys_.size());
 
@@ -216,20 +215,18 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
       }
     }
 
-    LOG(INFO) << "subkey_list_ item" << row << "refreshed";
+    SPDLOG_INFO("subkey_list_ item {} refreshed", row);
 
     row++;
   }
 
-  LOG(INFO) << "subkey_list_"
-            << "refreshed";
+  SPDLOG_INFO("subkey_list_ refreshed");
 
   if (subkey_list_->rowCount() > 0) {
     subkey_list_->selectRow(0);
   }
 
-  LOG(INFO) << "slot_refresh_subkey_list"
-            << "ended";
+  SPDLOG_INFO("slot_refresh_subkey_list ended");
 }
 
 void KeyPairSubkeyTab::slot_add_subkey() {
@@ -318,7 +315,7 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
 }
 
 void KeyPairSubkeyTab::slot_edit_subkey() {
-  LOG(INFO) << "Fpr" << get_selected_subkey().GetFingerprint();
+  SPDLOG_INFO("fpr {}", get_selected_subkey().GetFingerprint());
 
   auto dialog = new KeySetExpireDateDialog(
       key_.GetId(), get_selected_subkey().GetFingerprint(), this);
@@ -344,7 +341,7 @@ const GpgSubKey& KeyPairSubkeyTab::get_selected_subkey() {
   return buffered_subkeys_[row];
 }
 void KeyPairSubkeyTab::slot_refresh_key_info() {
-  LOG(INFO) << "called";
+  SPDLOG_INFO("called");
   key_ = GpgKeyGetter::GetInstance().GetKey(key_.GetId());
 }
 

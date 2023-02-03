@@ -28,6 +28,7 @@
 
 #include "core/function/CharsetOperator.h"
 
+#include <spdlog/spdlog.h>
 #include <unicode/ucnv.h>
 #include <unicode/ucsdet.h>
 #include <unicode/ustring.h>
@@ -37,8 +38,6 @@
 #include <memory>
 #include <string>
 
-#include "easylogging++.h"
-
 GpgFrontend::CharsetOperator::CharsetInfo GpgFrontend::CharsetOperator::Detect(
     const std::string &buffer) {
   const UCharsetMatch *ucm;
@@ -47,17 +46,17 @@ GpgFrontend::CharsetOperator::CharsetInfo GpgFrontend::CharsetOperator::Detect(
 
   status = U_ZERO_ERROR;
   if (U_FAILURE(status)) {
-    LOG(ERROR) << "Failed to open charset detector: " << u_errorName(status);
+    SPDLOG_ERROR("failed to open charset detector: {}", u_errorName(status));
     return {"unknown", "unknown", 0};
   }
 
-  LOG(INFO) << "Detecting charset buffer:" << buffer.size() << "bytes";
+  SPDLOG_INFO("detecting charset buffer: {} bytes", buffer.size());
 
   status = U_ZERO_ERROR;
   ucsdet_setText(csd, buffer.data(), buffer.size(), &status);
   if (U_FAILURE(status)) {
-    LOG(ERROR) << "Failed to set text to charset detector: "
-               << u_errorName(status);
+    SPDLOG_ERROR("failed to set text to charset detector: {}",
+                 u_errorName(status));
     return {"unknown", "unknown", 0};
   }
 
@@ -78,7 +77,7 @@ GpgFrontend::CharsetOperator::CharsetInfo GpgFrontend::CharsetOperator::Detect(
   const char *language = ucsdet_getLanguage(ucm, &status);
   if (U_FAILURE(status)) return {name, "unknown", confidence};
 
-  LOG(INFO) << "Detected charset: " << name << language << confidence;
+  SPDLOG_INFO("Detected charset: {} {} {}", name, language, confidence);
   return {name, language, confidence};
 }
 
@@ -89,14 +88,14 @@ bool GpgFrontend::CharsetOperator::Convert2Utf8(const std::string &buffer,
   const auto from_encode = std::string("utf-8");
   const auto to_encode = from_charset_name;
 
-  LOG(INFO) << "Converting buffer:" << buffer.size();
+  SPDLOG_INFO("Converting buffer: {}", buffer.size());
 
   // test if the charset is supported
   UConverter *conv = ucnv_open(from_encode.c_str(), &status);
   ucnv_close(conv);
   if (U_FAILURE(status)) {
-    LOG(ERROR) << "Failed to open converter: " << u_errorName(status) << ":"
-               << from_encode;
+    SPDLOG_ERROR("failed to open converter: {}, from encode: {}",
+                 u_errorName(status), from_encode);
     return false;
   }
 
@@ -104,8 +103,8 @@ bool GpgFrontend::CharsetOperator::Convert2Utf8(const std::string &buffer,
   conv = ucnv_open(to_encode.c_str(), &status);
   ucnv_close(conv);
   if (U_FAILURE(status)) {
-    LOG(ERROR) << "Failed to open converter: " << u_errorName(status) << ":"
-               << to_encode;
+    SPDLOG_ERROR("failed to open converter: {}, to encode: {}",
+                 u_errorName(status), to_encode);
     return false;
   }
 
@@ -127,10 +126,10 @@ bool GpgFrontend::CharsetOperator::Convert2Utf8(const std::string &buffer,
   }
 
   if (U_FAILURE(status)) {
-    LOG(ERROR) << "Failed to convert to utf-8: " << u_errorName(status);
+    SPDLOG_ERROR("failed to convert to utf-8: {}", u_errorName(status));
     return false;
   }
 
-  LOG(INFO) << "Converted buffer:" << out_buffer.size() << "bytes";
+  SPDLOG_INFO("converted buffer: {} bytes", out_buffer.size());
   return true;
 }

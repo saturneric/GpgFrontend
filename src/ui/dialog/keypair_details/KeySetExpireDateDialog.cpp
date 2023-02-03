@@ -57,16 +57,17 @@ KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
 }
 
 void KeySetExpireDateDialog::slot_confirm() {
-  LOG(INFO) << "Called" << ui_->dateEdit->date().toString().toStdString()
-            << ui_->timeEdit->time().toString().toStdString();
+  SPDLOG_INFO("called: {} {}", ui_->dateEdit->date().toString().toStdString(),
+              ui_->timeEdit->time().toString().toStdString());
   auto datetime = QDateTime(ui_->dateEdit->date(), ui_->timeEdit->time());
   std::unique_ptr<boost::posix_time::ptime> expires = nullptr;
   if (ui_->noExpirationCheckBox->checkState() == Qt::Unchecked) {
     expires = std::make_unique<boost::posix_time::ptime>(
         boost::posix_time::from_time_t(datetime.toLocalTime().toTime_t()));
-    LOG(INFO) << "keyid" << m_key_.GetId() << m_subkey_ << *expires;
+    SPDLOG_INFO("keyid: {}", m_key_.GetId(), m_subkey_,
+                to_iso_string(*expires));
   } else {
-    LOG(INFO) << "keyid" << m_key_.GetId() << m_subkey_ << "Non Expired";
+    SPDLOG_INFO("keyid: {}", m_key_.GetId(), m_subkey_, "Non Expired");
   }
 
   auto err = GpgKeyOpera::GetInstance().SetExpire(m_key_, m_subkey_, expires);
@@ -98,10 +99,10 @@ void KeySetExpireDateDialog::init() {
   bool longer_expiration_date = false;
   try {
     longer_expiration_date = settings.lookup("general.longer_expiration_date");
-    LOG(INFO) << "longer_expiration_date" << longer_expiration_date;
+    SPDLOG_INFO("longer_expiration_date: {}", longer_expiration_date);
 
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("longer_expiration_date");
+    SPDLOG_ERROR("setting operation error: longer_expiration_date");
   }
 
   auto max_date_time =

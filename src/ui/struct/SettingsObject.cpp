@@ -32,7 +32,7 @@ nlohmann::json& GpgFrontend::UI::SettingsObject::Check(
     const std::string& key, const nlohmann::json& default_value) {
   // check if the self null
   if (this->nlohmann::json::is_null()) {
-    LOG(INFO) << "SettingsObject is null, creating new one";
+    SPDLOG_INFO("settings object is null, creating new one");
     this->nlohmann::json::operator=(nlohmann::json::object());
   }
 
@@ -41,9 +41,9 @@ nlohmann::json& GpgFrontend::UI::SettingsObject::Check(
         this->nlohmann::json::at(key).is_null() ||
         this->nlohmann::json::at(key).type_name() !=
             default_value.type_name()) {
-      LOG(INFO) << "Added missing key: " << key;
+      SPDLOG_INFO("added missing key: {}", key);
       if (default_value.is_null()) {
-        LOG(WARNING) << "Default value is null, using empty object";
+        SPDLOG_WARN("default value is null, using empty object");
         this->nlohmann::json::operator[](key) = nlohmann::json::object();
       } else {
         this->nlohmann::json::operator[](key) = default_value;
@@ -51,7 +51,7 @@ nlohmann::json& GpgFrontend::UI::SettingsObject::Check(
     }
     return this->nlohmann::json::at(key);
   } catch (nlohmann::json::exception& e) {
-    LOG(ERROR) << e.what();
+    SPDLOG_ERROR(e.what());
     throw e;
   }
 }
@@ -60,14 +60,14 @@ GpgFrontend::UI::SettingsObject GpgFrontend::UI::SettingsObject::Check(
     const std::string& key) {
   // check if the self null
   if (this->nlohmann::json::is_null()) {
-    LOG(INFO) << "SettingsObject is null, creating new one";
+    SPDLOG_INFO("settings object is null, creating new one");
     this->nlohmann::json::operator=(nlohmann::json::object());
   }
 
   if (!nlohmann::json::contains(key) ||
       this->nlohmann::json::at(key).is_null() ||
       this->nlohmann::json::at(key).type() != nlohmann::json::value_t::object) {
-    LOG(INFO) << "Added missing key: " << key;
+    SPDLOG_INFO("added missing key: {}", key);
     this->nlohmann::json::operator[](key) = nlohmann::json::object();
   }
   return SettingsObject{nlohmann::json::operator[](key), false};
@@ -76,21 +76,21 @@ GpgFrontend::UI::SettingsObject GpgFrontend::UI::SettingsObject::Check(
 GpgFrontend::UI::SettingsObject::SettingsObject(std::string settings_name)
     : settings_name_(std::move(settings_name)) {
   try {
-    LOG(INFO) << "Loading settings from: " << this->settings_name_;
+    SPDLOG_INFO("loading settings from: {}", this->settings_name_);
     auto _json_optional =
         GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(
             settings_name_);
 
     if (_json_optional.has_value()) {
-      LOG(INFO) << "SettingsObject: " << settings_name_ << " loaded.";
+      SPDLOG_INFO("settings object: {} loaded.", settings_name_);
       nlohmann::json::operator=(_json_optional.value());
     } else {
-      LOG(INFO) << "SettingsObject: " << settings_name_ << " not found.";
+      SPDLOG_INFO("settings object: {} not found.", settings_name_);
       nlohmann::json::operator=({});
     }
 
   } catch (std::exception& e) {
-    LOG(ERROR) << e.what();
+    SPDLOG_ERROR(e.what());
   }
 }
 

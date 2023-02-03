@@ -28,6 +28,11 @@
 
 #include "GpgFrontendUIInit.h"
 
+#include <spdlog/async.h>
+#include <spdlog/common.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/CtxCheckTask.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -38,9 +43,6 @@
 #if !defined(RELEASE) && defined(WINDOWS)
 #include "core/function/GlobalSettingStation.h"
 #endif
-
-// init easyloggingpp library
-INITIALIZE_EASYLOGGINGPP
 
 namespace GpgFrontend::UI {
 
@@ -90,13 +92,13 @@ void InitGpgFrontendUI(QApplication* app) {
   waiting_dialog->resize(420, 120);
   app->connect(init_ctx_task, &Thread::CtxCheckTask::SignalTaskFinished,
                waiting_dialog, [=]() {
-                 LOG(INFO) << "Gpg context loaded";
+                 SPDLOG_INFO("gpg context loaded");
                  waiting_dialog->finished(0);
                  waiting_dialog->deleteLater();
                });
 
   app->connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
-    LOG(INFO) << "cancel clicked";
+    SPDLOG_INFO("cancel clicked");
     app->quit();
     exit(0);
   });
@@ -123,7 +125,7 @@ int RunGpgFrontendUI(QApplication* app) {
   // create main window and show it
   auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
   main_window->Init();
-  LOG(INFO) << "Main window inited";
+  SPDLOG_INFO("main window inited");
   main_window->show();
   // start the main event loop
   return app->exec();
@@ -133,36 +135,33 @@ void init_logging_system() {
   using namespace boost::posix_time;
   using namespace boost::gregorian;
 
-  el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
-  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
-  el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
-
-  el::Configurations defaultConf;
-  defaultConf.setToDefault();
-
-  // apply settings
-  defaultConf.setGlobally(el::ConfigurationType::Format,
-                          "%datetime %level [ui] {%func} -> %msg");
-
-  // apply settings no written to file
-  defaultConf.setGlobally(el::ConfigurationType::ToFile, "false");
-
-  // apply settings
-  el::Loggers::reconfigureLogger("default", defaultConf)->reconfigure();
-
   // get the log directory
-  auto logfile_path = (GlobalSettingStation::GetInstance().GetLogDir() /
-                       to_iso_string(second_clock::local_time()));
+  auto logfile_path = (GlobalSettingStation::GetInstance().GetLogDir() / "ui");
   logfile_path.replace_extension(".log");
-  defaultConf.setGlobally(el::ConfigurationType::Filename,
-                          logfile_path.u8string());
 
-  // apply settings written to file
-  defaultConf.setGlobally(el::ConfigurationType::ToFile, "false");
+  // sinks
+  std::vector<spdlog::sink_ptr> sinks;
+  sinks.push_back(std::make_shared<spdlog::sinks::stderr_color_sink_mt>());
+  sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+      logfile_path.u8string(), 1048576 * 32, 32));
 
-  el::Loggers::reconfigureLogger("default", defaultConf);
+  // thread pool
+  spdlog::init_thread_pool(1024, 2);
 
-  LOG(INFO) << _("log file path") << logfile_path;
+  // logger
+  auto ui_logger = std::make_shared<spdlog::async_logger>(
+      "core", begin(sinks), end(sinks), spdlog::thread_pool());
+  ui_logger->set_pattern(
+      "[%H:%M:%S.%e] [T:%t] [%=4n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
+
+#ifdef DEBUG
+  ui_logger->set_level(spdlog::level::trace);
+#elif
+  core_logger->set_level(spdlog::level::info);
+#endif
+
+  // register it as default logger
+  spdlog::set_default_logger(ui_logger);
 }
 
 /**
@@ -187,20 +186,19 @@ void init_locale() {
   // sync the settings to the file
   GpgFrontend::GlobalSettingStation::GetInstance().SyncSettings();
 
-  LOG(INFO) << "current system locale" << setlocale(LC_ALL, nullptr);
+  SPDLOG_INFO("current system locale: {}", setlocale(LC_ALL, nullptr));
 
   // read from settings file
   std::string lang;
   if (!general.lookupValue("lang", lang)) {
-    LOG(ERROR) << _("could not read properly from configure file");
+    SPDLOG_ERROR(_("could not read properly from configure file"));
   };
 
-  LOG(INFO) << "lang from settings" << lang;
-  LOG(INFO) << "project name" << PROJECT_NAME;
-  LOG(INFO) << "locales path"
-            << GpgFrontend::GlobalSettingStation::GetInstance()
-                   .GetLocaleDir()
-                   .c_str();
+  SPDLOG_INFO("lang from settings: {}", lang);
+  SPDLOG_INFO("project name: {}", PROJECT_NAME);
+  SPDLOG_INFO(
+      "locales path: {}",
+      GpgFrontend::GlobalSettingStation::GetInstance().GetLocaleDir().c_str());
 
 #ifndef WINDOWS
   if (!lang.empty()) {
@@ -208,14 +206,14 @@ void init_locale() {
 
     // set LC_ALL
     auto* locale_name = setlocale(LC_ALL, lc.c_str());
-    if (locale_name == nullptr) LOG(WARNING) << "set LC_ALL failed" << lc;
+    if (locale_name == nullptr) SPDLOG_WARN("set LC_ALL failed: {}", lc);
     auto language = getenv("LANGUAGE");
     // set LANGUAGE
     std::string language_env = language == nullptr ? "en" : language;
     language_env.insert(0, lang + ":");
-    LOG(INFO) << "language env" << language_env;
+    SPDLOG_INFO("language env: {}", language_env);
     if (setenv("LANGUAGE", language_env.c_str(), 1)) {
-      LOG(WARNING) << "set LANGUAGE failed" << language_env;
+      SPDLOG_WARN("set LANGUAGE failed", language_env);
     };
   }
 #else
@@ -224,16 +222,16 @@ void init_locale() {
 
     // set LC_ALL
     auto* locale_name = setlocale(LC_ALL, lc.c_str());
-    if (locale_name == nullptr) LOG(WARNING) << "set LC_ALL failed" << lc;
+    if (locale_name == nullptr) SPDLOG_WARN("set LC_ALL failed", lc);
 
     auto language = getenv("LANGUAGE");
     // set LANGUAGE
     std::string language_env = language == nullptr ? "en" : language;
     language_env.insert(0, lang + ":");
     language_env.insert(0, "LANGUAGE=");
-    LOG(INFO) << "language env" << language_env;
+    SPDLOG_INFO("language env: {}", language_env);
     if (putenv(language_env.c_str())) {
-      LOG(WARNING) << "set LANGUAGE failed" << language_env;
+      spdlog::warn, "set LANGUAGE failed", language_env;
     };
   }
 #endif

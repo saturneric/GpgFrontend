@@ -40,11 +40,6 @@
 #include "ui/GpgFrontendUIInit.h"
 
 /**
- * \brief initialize the easylogging++ library.
- */
-INITIALIZE_EASYLOGGINGPP
-
-/**
  * \brief Store the jump buff and make it possible to recover from a crash.
  */
 #ifdef FREEBSD
@@ -124,7 +119,7 @@ int main(int argc, char* argv[]) {
         // create main window
         return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
       } else {
-        LOG(ERROR) << "recover from a crash";
+        SPDLOG_ERROR("recover from a crash");
         // when signal is caught, restart the main window
         auto* message_box = new QMessageBox(
             QMessageBox::Critical, _("A serious error has occurred"),
@@ -137,7 +132,7 @@ int main(int argc, char* argv[]) {
         return_from_event_loop_code = CRASH_CODE;
       }
 
-      LOG(INFO) << "loop refresh";
+      SPDLOG_INFO("loop refresh");
     } while (return_from_event_loop_code == RESTART_CODE);
 
     // reset core

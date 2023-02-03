@@ -35,8 +35,8 @@
 namespace GpgFrontend::UI {
 KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
     : QWidget(parent), key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
-  LOG(INFO) << key_.GetEmail() << key_.IsPrivateKey() << key_.IsHasMasterKey()
-            << key_.GetSubKeys()->front().IsPrivateKey();
+  SPDLOG_INFO(key_.GetEmail(), key_.IsPrivateKey(), key_.IsHasMasterKey(),
+              key_.GetSubKeys()->front().IsPrivateKey());
 
   owner_box_ = new QGroupBox(_("Owner"));
   key_box_ = new QGroupBox(_("Primary Key"));
@@ -269,7 +269,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
 }
 
 void KeyPairDetailTab::slot_refresh_key() {
-  LOG(INFO) << _("called");
+  SPDLOG_INFO("called");
 
   // refresh the key
   GpgKey refreshed_key = GpgKeyGetter::GetInstance().GetKey(key_.GetId());

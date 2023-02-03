@@ -34,8 +34,6 @@
 #include <mutex>
 #include <shared_mutex>
 
-#include "easylogging++.h"
-
 void GpgFrontend::ChannelObject::SetChannel(int channel) {
   this->channel_ = channel;
 }
@@ -79,8 +77,8 @@ std::vector<int> GpgFrontend::SingletonStorage::GetAllChannelId() {
 GpgFrontend::ChannelObject* GpgFrontend::SingletonStorage::SetObjectInChannel(
     int channel, std::unique_ptr<ChannelObject> p_obj) {
   {
-    LOG(TRACE) << "set channel:" << channel
-               << "instance address:" << &instances_map_;
+    SPDLOG_TRACE("set channel: {} instance address: {}", channel,
+                 static_cast<void*>(&instances_map_));
 
     assert(p_obj != nullptr);
     if (p_obj == nullptr) return nullptr;
@@ -111,9 +109,8 @@ GpgFrontend::SingletonStorageCollection::GetSingletonStorage(
         std::unique_lock<std::shared_mutex> lock(storages_mutex_);
         storages_map_.insert({hash, std::make_unique<SingletonStorage>()});
       }
-      LOG(TRACE) << "hash:" << hash << "created"
-                 << "storage address:" << &storages_map_
-                 << "type_name : " << type_id.name();
+      SPDLOG_TRACE("hash: {} created, storage address: {} type_name: {}", hash,
+                   static_cast<void*>(&storages_map_), type_id.name());
       continue;
     } else {
       return _it->second.get();
@@ -128,7 +125,8 @@ GpgFrontend::SingletonStorageCollection::GetInstance(
 
   if (force_refresh || instance == nullptr) {
     instance = new SingletonStorageCollection();
-    LOG(INFO) << "new single storage collection created: " << instance;
+    SPDLOG_INFO("new single storage collection created: {}",
+                static_cast<void*>(instance));
   }
 
   return instance;

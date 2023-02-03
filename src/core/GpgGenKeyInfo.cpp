@@ -38,7 +38,7 @@
 
 void GpgFrontend::GenKeyInfo::SetAlgo(
     const GpgFrontend::GenKeyInfo::KeyGenAlgo &m_algo) {
-  LOG(INFO) << "set algo name" << m_algo.first;
+  SPDLOG_INFO("set algo name: {}", m_algo.first);
   // Check algo if supported
   std::string algo_args = m_algo.second;
   if (standalone_) {

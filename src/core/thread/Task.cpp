@@ -34,10 +34,9 @@
 #include <utility>
 
 #include "core/thread/TaskRunner.h"
-#include "easylogging++.h"
 
 GpgFrontend::Thread::Task::Task() : uuid_(generate_uuid()) {
-  LOG(TRACE) << "Task" << uuid_ << "created";
+  SPDLOG_TRACE("task {} created", uuid_);
   init();
 }
 
@@ -47,8 +46,8 @@ GpgFrontend::Thread::Task::Task(TaskCallback callback,
       callback_(std::move(callback)),
       callback_thread_(QThread::currentThread()),
       data_object_(data_object) {
-  LOG(TRACE) << "Task" << uuid_ << "created with callback"
-             << "callback_thread_: " << callback_thread_;
+  SPDLOG_TRACE("task {} created with callback, callback_thread_: {}", uuid_,
+               static_cast<void *>(callback_thread_));
   init();
 }
 
@@ -60,13 +59,12 @@ GpgFrontend::Thread::Task::Task(TaskRunnable runnable, TaskCallback callback,
       callback_thread_(QThread::currentThread()),
       data_object_(data_object) {
   init();
-  LOG(TRACE) << "Task" << uuid_ << "created with runnable and callback"
-             << "callback_thread_: " << callback_thread_;
+  SPDLOG_TRACE(
+      "task {} created with runnable and callback, callback_thread_: {}", uuid_,
+      static_cast<void *>(callback_thread_));
 }
 
-GpgFrontend::Thread::Task::~Task() {
-  LOG(TRACE) << "Task" << uuid_ << "destroyed";
-}
+GpgFrontend::Thread::Task::~Task() { SPDLOG_TRACE("task {} destroyed", uuid_); }
 
 std::string GpgFrontend::Thread::Task::GetUUID() const { return uuid_; }
 
@@ -81,7 +79,8 @@ void GpgFrontend::Thread::Task::init() {
 }
 
 void GpgFrontend::Thread::Task::before_finish_task() {
-  LOG(TRACE) << "Task" << uuid_ << "finished";
+  SPDLOG_TRACE("task {} finished", uuid_);
+
   try {
     if (callback_) {
       bool if_invoke = QMetaObject::invokeMethod(
@@ -90,19 +89,19 @@ void GpgFrontend::Thread::Task::before_finish_task() {
             callback(rtn, data_object);
           });
       if (!if_invoke) {
-        LOG(ERROR) << "failed to invoke callback";
+        SPDLOG_ERROR("failed to invoke callback");
       }
     }
   } catch (std::exception &e) {
-    LOG(ERROR) << "exception caught: " << e.what();
+    SPDLOG_ERROR("exception caught: {}", e.what());
   } catch (...) {
-    LOG(ERROR) << "unknown exception caught";
+    SPDLOG_ERROR("unknown exception caught");
   }
   emit SignalTaskPostFinishedDone();
 }
 
 void GpgFrontend::Thread::Task::run() {
-  LOG(TRACE) << "Task" << uuid_ << "started";
+  SPDLOG_TRACE("task {} started", uuid_);
   Run();
   if (finish_after_run_) emit SignalTaskFinished();
 }
@@ -112,7 +111,7 @@ void GpgFrontend::Thread::Task::Run() {
     bool if_invoke = QMetaObject::invokeMethod(
         this, [=]() { return runnable_(data_object_); }, &rtn_);
     if (!if_invoke) {
-      LOG(ERROR) << "Qt invokeMethod failed";
+      SPDLOG_ERROR("qt invokeMethod failed");
     }
   }
 }
@@ -126,8 +125,8 @@ GpgFrontend::Thread::Task::DataObject::get_heap_ptr(size_t bytes_size) {
 
 GpgFrontend::Thread::Task::DataObject::~DataObject() {
   if (!data_objects_.empty())
-    LOG(WARNING) << "data_objects_ is not empty"
-                 << "address:" << this;
+    SPDLOG_WARN("data_objects_ is not empty",
+                "address:", static_cast<void *>(this));
   while (!data_objects_.empty()) {
     free_heap_ptr(data_objects_.top());
     data_objects_.pop();
@@ -139,8 +138,9 @@ size_t GpgFrontend::Thread::Task::DataObject::GetObjectSize() {
 }
 
 void GpgFrontend::Thread::Task::DataObject::free_heap_ptr(Destructor *ptr) {
-  LOG(TRACE) << "p_obj: " << ptr->p_obj << "destructor: " << ptr->destroy
-             << "DataObject:" << this;
+  SPDLOG_TRACE("p_obj: {} data object: {}",
+               static_cast<const void *>(ptr->p_obj),
+               static_cast<void *>(this));
   if (ptr->destroy != nullptr) {
     ptr->destroy(ptr->p_obj);
   }

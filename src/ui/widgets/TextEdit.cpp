@@ -81,7 +81,7 @@ void TextEdit::SlotNewFileTab() const {
 
 void TextEdit::SlotOpenFile(QString& path) {
   QFile file(path);
-  LOG(INFO) << "path" << path.toStdString();
+  SPDLOG_INFO("path: {}", path.toStdString());
   auto result = file.open(QIODevice::ReadOnly | QIODevice::Text);
   if (result) {
     auto* page = new PlainTextEditorPage(path);
@@ -516,7 +516,7 @@ QHash<int, QString> TextEdit::UnsavedDocuments() const {
     if (ep != nullptr && ep->ReadDone() &&
         ep->GetTextPage()->document()->isModified()) {
       QString doc_name = tab_widget_->tabText(i);
-      LOG(INFO) << "unsaved" << doc_name.toStdString();
+      SPDLOG_INFO("unsaved: {}", doc_name.toStdString());
 
       // remove * before name of modified doc
       doc_name.remove(0, 2);

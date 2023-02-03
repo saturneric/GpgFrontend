@@ -104,19 +104,19 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
 }
 
 void KeyUIDSignDialog::slot_sign_key(bool clicked) {
-  LOG(INFO) << "Called";
+  SPDLOG_INFO("called");
 
   // Set Signers
   auto key_ids = m_key_list_->GetChecked();
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
-  LOG(INFO) << "Key Info Got";
+  SPDLOG_INFO("key info got");
   auto expires = std::make_unique<boost::posix_time::ptime>(
       boost::posix_time::from_time_t(expires_edit_->dateTime().toTime_t()));
 
-  LOG(INFO) << "Sign Start";
+  SPDLOG_INFO("sign start");
   for (const auto& uid : *m_uids_) {
-    LOG(INFO) << "Sign UID" << uid;
+    SPDLOG_INFO("sign uid: {}", uid);
     // Sign For mKey
     if (!GpgKeyManager::GetInstance().SignKey(m_key_, *keys, uid, expires)) {
       QMessageBox::critical(

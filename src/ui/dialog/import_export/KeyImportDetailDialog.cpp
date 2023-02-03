@@ -129,7 +129,7 @@ void KeyImportDetailDialog::create_general_info_box() {
 }
 
 void KeyImportDetailDialog::create_keys_table() {
-  LOG(INFO) << "KeyImportDetailDialog::create_keys_table() Called";
+  SPDLOG_INFO("KeyImportDetailDialog::create_keys_table() Called");
 
   keys_table_ = new QTableWidget(this);
   keys_table_->setRowCount(0);

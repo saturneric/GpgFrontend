@@ -100,7 +100,7 @@ void KeyList::AddListGroupTab(
     const QString& name, KeyListRow::KeyType selectType,
     KeyListColumn::InfoType infoType,
     const std::function<bool(const GpgKey&)>& filter) {
-  LOG(INFO) << _("Called") << name.toStdString();
+  SPDLOG_INFO("called: {}", name.toStdString());
 
   auto key_list = new QTableWidget(this);
   if (m_key_list_ == nullptr) {
@@ -158,7 +158,7 @@ void KeyList::AddListGroupTab(
 }
 
 void KeyList::SlotRefresh() {
-  LOG(INFO) << _("called") << "address" << this;
+  SPDLOG_INFO("called address: {}", static_cast<void*>(this));
 
   ui_->refreshKeyListButton->setDisabled(true);
   ui_->syncButton->setDisabled(true);
@@ -317,10 +317,10 @@ void KeyList::dropEvent(QDropEvent* event) {
   bool confirm_import_keys = true;
   try {
     confirm_import_keys = settings.lookup("general.confirm_import_keys");
-    LOG(INFO) << "confirm_import_keys" << confirm_import_keys;
+    SPDLOG_INFO("confirm_import_keys: {}", confirm_import_keys);
     if (confirm_import_keys) checkBox->setCheckState(Qt::Checked);
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("confirm_import_keys");
+    SPDLOG_ERROR("setting operation error: confirm_import_keys");
   }
 
   // Buttons for ok and cancel
@@ -358,8 +358,7 @@ void KeyList::dropEvent(QDropEvent* event) {
       QFile file;
       file.setFileName(tmp.toLocalFile());
       if (!file.open(QIODevice::ReadOnly)) {
-        LOG(INFO) << _("Couldn't Open File") << ":"
-                  << tmp.toString().toStdString();
+        SPDLOG_INFO("couldn't open file: {}", tmp.toString().toStdString());
       }
       QByteArray inBuffer = file.readAll();
       this->import_keys(inBuffer);
@@ -379,7 +378,7 @@ void KeyList::dragEnterEvent(QDragEnterEvent* event) {
  *
  */
 [[maybe_unused]] void KeyList::MarkKeys(QStringList* keyIds) {
-  foreach (QString id, *keyIds) { qDebug() << "marked: " << id; }
+  foreach (QString id, *keyIds) { spdlog::debug("marked: ", id.toStdString()); }
 }
 
 void KeyList::import_keys(const QByteArray& inBuffer) {
@@ -419,7 +418,7 @@ std::string KeyList::GetSelectedKey() {
 }
 
 void KeyList::slot_refresh_ui() {
-  LOG(INFO) << _("Called") << buffered_keys_list_.get();
+  SPDLOG_INFO("called: {}", static_cast<void*>(buffered_keys_list_.get()));
   if (buffered_keys_list_ != nullptr) {
     std::lock_guard<std::mutex> guard(buffered_key_list_mutex_);
     for (auto& key_table : m_key_tables_) {
@@ -451,8 +450,8 @@ void KeyList::slot_sync_with_key_server() {
   CommonUtils::SlotImportKeyFromKeyServer(
       key_ids, [=](const std::string& key_id, const std::string& status,
                    size_t current_index, size_t all_index) {
-        LOG(INFO) << _("Called") << key_id << status << current_index
-                  << all_index;
+        SPDLOG_INFO("called: {} {} {} {}", key_id, status, current_index,
+                    all_index);
         auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
 
         boost::format status_str = boost::format(_("Sync [%1%/%2%] %3% %4%")) %
@@ -503,7 +502,7 @@ KeyIdArgsListPtr& KeyTable::GetChecked() {
   auto& ret = checked_key_ids_;
   for (int i = 0; i < buffered_keys_.size(); i++) {
     auto key_id = buffered_keys_[i].GetId();
-    LOG(INFO) << "i: " << i << " key_id: " << key_id;
+    SPDLOG_INFO("i: {} key_id: {}", i, key_id);
     if (key_list_->item(i, 0)->checkState() == Qt::Checked &&
         std::find(ret->begin(), ret->end(), key_id) == ret->end()) {
       ret->push_back(key_id);
@@ -513,7 +512,7 @@ KeyIdArgsListPtr& KeyTable::GetChecked() {
 }
 
 void KeyTable::SetChecked(KeyIdArgsListPtr key_ids) {
-  LOG(INFO) << "called";
+  SPDLOG_INFO("called");
   checked_key_ids_ = std::move(key_ids);
 }
 
@@ -535,14 +534,14 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
   int row_count = 0;
 
   while (it != keys->end()) {
-    LOG(INFO) << "filtering key id: " << it->GetId();
+    SPDLOG_INFO("filtering key id: {}", it->GetId());
     if (filter_ != nullptr) {
       if (!filter_(*it)) {
         it = keys->erase(it);
         continue;
       }
     }
-    LOG(INFO) << "adding key id: " << it->GetId();
+    SPDLOG_INFO("adding key id: {}", it->GetId());
     if (select_type_ == KeyListRow::ONLY_SECRET_KEY && !it->IsPrivateKey()) {
       it = keys->erase(it);
       continue;
@@ -625,7 +624,8 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
       tmp3->setFont(strike);
     }
 
-    LOG(INFO) << "key id: " << it->GetId() << "added into key_list_:" << this;
+    SPDLOG_INFO("key id: {} added into key_list_: {}", it->GetId(),
+                static_cast<void*>(this));
 
     // move to buffered keys
     buffered_keys_.emplace_back(std::move(*it));

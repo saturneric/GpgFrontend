@@ -108,19 +108,19 @@ void SettingsDialog::slot_set_restart_needed(int mode) {
 }
 
 void SettingsDialog::SlotAccept() {
-  LOG(INFO) << "Called";
+  SPDLOG_INFO("called");
 
   general_tab_->ApplySettings();
   appearance_tab_->ApplySettings();
   key_server_tab_->ApplySettings();
   network_tab_->ApplySettings();
 
-  LOG(INFO) << "apply done";
+  SPDLOG_INFO("apply done");
 
   // write settings to filesystem
   GlobalSettingStation::GetInstance().SyncSettings();
 
-  LOG(INFO) << "restart needed" << get_restart_needed();
+  SPDLOG_INFO("restart needed: {}", get_restart_needed());
   if (get_restart_needed()) {
     emit SignalRestartNeeded(get_restart_needed());
   }
@@ -139,7 +139,7 @@ QHash<QString, QString> SettingsDialog::ListLanguages() {
 
   for (int i = 0; i < file_names.size(); ++i) {
     QString locale = file_names[i];
-    LOG(INFO) << "locale" << locale.toStdString();
+    SPDLOG_INFO("locale: {}", locale.toStdString());
     if (locale == "." || locale == "..") continue;
 
     // this works in qt 4.8

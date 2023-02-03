@@ -43,7 +43,7 @@ extern jmp_buf recover_env;
  */
 void handle_signal(int sig) {
   static int _repeat_handle_num = 1, last_sig = sig;
-  LOG(INFO) << "signal caught" << sig;
+  SPDLOG_INFO("signal caught {}", sig);
 
   if (last_sig == sig)
     _repeat_handle_num++;
@@ -51,8 +51,9 @@ void handle_signal(int sig) {
     _repeat_handle_num = 1, last_sig = sig;
 
   if (_repeat_handle_num > 3) {
-    LOG(INFO) << "The same signal appears three times, execute the termination "
-                 "operation. ";
+    SPDLOG_INFO(
+        "The same signal appears three times, execute the termination "
+        "operation. ");
     exit(-1);
   }
 

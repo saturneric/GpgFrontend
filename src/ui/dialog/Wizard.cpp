@@ -52,7 +52,7 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
   try {
     next_page_id = settings.lookup("wizard.next_page");
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error");
+    SPDLOG_ERROR("setting operation error");
   }
   setStartId(next_page_id);
 
@@ -60,7 +60,7 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
 }
 
 void Wizard::slot_wizard_accepted() {
-  LOG(INFO) << _("Called");
+  SPDLOG_INFO("called");
   // Don't show is mapped to show -> negation
   try {
     auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
@@ -75,7 +75,7 @@ void Wizard::slot_wizard_accepted() {
     }
     GlobalSettingStation::GetInstance().SyncSettings();
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error");
+    SPDLOG_ERROR("setting operation error");
   }
   if (field("openHelp").toBool()) {
     emit SignalOpenHelp("docu.html#content");
@@ -223,7 +223,7 @@ KeyGenPage::KeyGenPage(QWidget* parent) : QWizardPage(parent) {
 int KeyGenPage::nextId() const { return Wizard::Page_Conclusion; }
 
 void KeyGenPage::slot_generate_key_dialog() {
-  LOG(INFO) << "Try Opening KeyGenDialog";
+  SPDLOG_INFO("try opening KeyGenDialog");
   (new KeyGenDialog(this))->show();
   wizard()->next();
 }
