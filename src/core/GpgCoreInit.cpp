@@ -68,7 +68,7 @@ void InitLoggingSystem() {
 
 #ifdef DEBUG
   core_logger->set_level(spdlog::level::trace);
-#elif
+#else 
   core_logger->set_level(spdlog::level::info);
 #endif
 

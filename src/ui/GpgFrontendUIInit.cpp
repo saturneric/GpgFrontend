@@ -156,7 +156,7 @@ void init_logging_system() {
 
 #ifdef DEBUG
   ui_logger->set_level(spdlog::level::trace);
-#elif
+#else
   core_logger->set_level(spdlog::level::info);
 #endif
 
