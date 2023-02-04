@@ -58,7 +58,8 @@ target_precompile_headers(gpgfrontend_ui PUBLIC GpgFrontendUI.h)
 
 # add ui generator include path
 target_include_directories(gpgfrontend_ui PUBLIC
-        ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_ui_autogen/include)
+        ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_ui_autogen/include
+        ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
 
 # using std c++ 17
 target_compile_features(gpgfrontend_ui PUBLIC cxx_std_17)
