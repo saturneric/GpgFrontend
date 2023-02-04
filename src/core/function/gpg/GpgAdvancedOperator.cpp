@@ -32,6 +32,7 @@
 #include "GpgAdvancedOperator.h"
 
 #include "core/function/gpg/GpgCommandExecutor.h"
+#include "spdlog/spdlog.h"
 
 GpgFrontend::GpgAdvancedOperator::GpgAdvancedOperator(int channel)
     : SingletonFunctionObject(channel) {}
@@ -42,6 +43,7 @@ bool GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache() {
       ctx_.GetInfo().GpgConfPath, {"--reload", "gpg-agent"},
       [&](int exit_code, const std::string &p_out, const std::string &p_err) {
         if (exit_code == 0) {
+          SPDLOG_DEBUG("gpgconf reload exit code: {}", exit_code);
           success = true;
         }
       });
