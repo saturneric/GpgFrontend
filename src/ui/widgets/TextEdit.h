@@ -172,7 +172,7 @@ class TextEdit : public QWidget {
    * @details put a * in front of current tabs title, if current textedit is
    * modified
    */
-  void SlotShowModified() const;
+  void SlotShowModified(bool) const;
 
   /**
    * @details close the current tab and decrease TabWidget->count by \a 1
@@ -193,6 +193,8 @@ class TextEdit : public QWidget {
   void SlotSwitchTabDown() const;
 
  private:
+  uint text_page_data_modified_count_ = 0;  ///<
+
   /**
    * @details return just a filename stripped of a whole path
    *
@@ -220,6 +222,13 @@ class TextEdit : public QWidget {
    * @param index Tab-number to remove
    */
   void slot_remove_tab(int index);
+
+  /**
+   * @brief
+   *
+   * @param index
+   */
+  void slot_save_status_to_cache_for_revovery();
 
  public slots:
 
