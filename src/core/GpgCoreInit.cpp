@@ -68,9 +68,13 @@ void InitLoggingSystem() {
 
 #ifdef DEBUG
   core_logger->set_level(spdlog::level::trace);
-#else 
+#else
   core_logger->set_level(spdlog::level::info);
 #endif
+
+  // flush policy
+  core_logger->flush_on(spdlog::level::err);
+  spdlog::flush_every(std::chrono::seconds(5));
 
   // register it as default logger
   spdlog::set_default_logger(core_logger);

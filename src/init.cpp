@@ -48,15 +48,19 @@ void init_logging_system() {
 
   // logger
   auto main_logger = std::make_shared<spdlog::async_logger>(
-      "core", begin(sinks), end(sinks), spdlog::thread_pool());
+      "main", begin(sinks), end(sinks), spdlog::thread_pool());
   main_logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=4n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 
 #ifdef DEBUG
   main_logger->set_level(spdlog::level::trace);
-#else 
+#else
   core_logger->set_level(spdlog::level::info);
 #endif
+
+  // flush policy
+  main_logger->flush_on(spdlog::level::err);
+  spdlog::flush_every(std::chrono::seconds(5));
 
   // register it as default logger
   spdlog::set_default_logger(main_logger);

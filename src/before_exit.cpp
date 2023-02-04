@@ -32,7 +32,11 @@
  * @brief Actions performed before exiting the application
  *
  */
-void before_exit() { 
+void before_exit() {
   SPDLOG_INFO("called");
+
+  // Under VisualStudio, this must be called before main finishes to workaround
+  // a known VS issue
+  spdlog::drop_all();
   spdlog::shutdown();
 }

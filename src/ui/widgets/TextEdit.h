@@ -153,7 +153,7 @@ class TextEdit : public QWidget {
   /**
    * @details Adds a new tab with opening file by path
    */
-  void SlotOpenFile(QString& path);
+  void SlotOpenFile(const QString& path);
 
   /**
    * @details Adds a new tab with the given title and opens given html file.

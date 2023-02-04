@@ -79,7 +79,7 @@ void TextEdit::SlotNewFileTab() const {
   page->SlotGoPath();
 }
 
-void TextEdit::SlotOpenFile(QString& path) {
+void TextEdit::SlotOpenFile(const QString& path) {
   QFile file(path);
   SPDLOG_INFO("path: {}", path.toStdString());
   auto result = file.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -112,35 +112,7 @@ void TextEdit::SlotOpen() {
       QFileDialog::getOpenFileNames(this, _("Open file"), QDir::currentPath());
   for (const auto& file_name : file_names) {
     if (!file_name.isEmpty()) {
-      QFile file(file_name);
-
-      if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        auto* page = new PlainTextEditorPage(file_name);
-
-        QTextStream in(&file);
-        QApplication::setOverrideCursor(Qt::WaitCursor);
-        page->GetTextPage()->setPlainText(in.readAll());
-        page->SetFilePath(file_name);
-        QTextDocument* document = page->GetTextPage()->document();
-        document->setModified(false);
-
-        tab_widget_->addTab(page, stripped_name(file_name));
-        tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
-        QApplication::restoreOverrideCursor();
-        page->GetTextPage()->setFocus();
-        connect(page->GetTextPage()->document(),
-                &QTextDocument::modificationChanged, this,
-                &TextEdit::SlotShowModified);
-        // enableAction(true)
-        file.close();
-      } else {
-        QMessageBox::warning(
-            this, _("Warning"),
-            (boost::format(_("Cannot read file %1%:\n%2%.")) %
-             file_name.toStdString() % file.errorString().toStdString())
-                .str()
-                .c_str());
-      }
+      SlotOpenFile(file_name);
     }
   }
 }
