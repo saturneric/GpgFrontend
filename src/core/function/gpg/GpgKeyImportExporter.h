@@ -132,6 +132,18 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
   /**
    * @brief
    *
+   * @param keys
+   * @param outBuffer
+   * @param secret
+   * @return true
+   * @return false
+   */
+  bool ExportAllKeys(KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer,
+                     bool secret) const;
+
+  /**
+   * @brief
+   *
    * @param key
    * @param out_buffer
    * @return true

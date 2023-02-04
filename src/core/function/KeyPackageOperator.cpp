@@ -50,8 +50,8 @@ bool KeyPackageOperator::GenerateKeyPackage(
   SPDLOG_INFO("generating key package: {}", key_package_name);
 
   ByteArrayPtr key_export_data = nullptr;
-  if (!GpgKeyImportExporter::GetInstance().ExportKeys(key_ids, key_export_data,
-                                                      secret)) {
+  if (!GpgKeyImportExporter::GetInstance().ExportAllKeys(
+          key_ids, key_export_data, secret)) {
     SPDLOG_ERROR("failed to export keys");
     return false;
   }
