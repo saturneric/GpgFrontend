@@ -28,6 +28,8 @@
 
 #include "GpgKeyImportExporter.h"
 
+#include <memory>
+
 #include "GpgConstants.h"
 #include "GpgKeyGetter.h"
 
@@ -113,6 +115,25 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys,
   KeyIdArgsListPtr key_ids = std::make_unique<std::vector<std::string>>();
   for (const auto& key : keys) key_ids->push_back(key.GetId());
   return ExportKeys(key_ids, out_buffer, secret);
+}
+
+/**
+ * Export all the keys both private and public keys
+ * @param uid_list key ids
+ * @param out_buffer output byte array
+ * @return if success
+ */
+bool GpgFrontend::GpgKeyImportExporter::ExportAllKeys(
+    KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer, bool secret) const {
+  bool result = true;
+  result = ExportKeys(uid_list, out_buffer, false) & result;
+
+  ByteArrayPtr temp_buffer;
+  if (secret) {
+    result = ExportKeys(uid_list, temp_buffer, true) & result;
+  }
+  out_buffer->append(*temp_buffer);
+  return true;
 }
 
 /**
