@@ -150,7 +150,7 @@ void init_logging_system() {
 
   // logger
   auto ui_logger = std::make_shared<spdlog::async_logger>(
-      "core", begin(sinks), end(sinks), spdlog::thread_pool());
+      "ui", begin(sinks), end(sinks), spdlog::thread_pool());
   ui_logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=4n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 
@@ -159,6 +159,13 @@ void init_logging_system() {
 #else
   core_logger->set_level(spdlog::level::info);
 #endif
+
+  // flush policy
+  ui_logger->flush_on(spdlog::level::err);
+  spdlog::flush_every(std::chrono::seconds(5));
+
+  // register it
+  spdlog::register_logger(ui_logger);
 
   // register it as default logger
   spdlog::set_default_logger(ui_logger);

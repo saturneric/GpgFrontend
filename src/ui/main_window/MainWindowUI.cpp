@@ -260,13 +260,14 @@ void MainWindow::create_actions() {
   reload_components_act_->setIcon(QIcon(":configure.png"));
   reload_components_act_->setToolTip(_("Reload All GnuPG's Components"));
   connect(reload_components_act_, &QAction::triggered, this, [=]() {
-    if (GpgFrontend::GpgAdvancedOperator::GetInstance()
-            .ReloadGpgComponents()) {
-      QMessageBox::information(this, _("Successful Operation"),
-                               _("Reload all the GnuPG's components successfully"));
+    if (GpgFrontend::GpgAdvancedOperator::GetInstance().ReloadGpgComponents()) {
+      QMessageBox::information(
+          this, _("Successful Operation"),
+          _("Reload all the GnuPG's components successfully"));
     } else {
-      QMessageBox::critical(this, _("Failed Operation"),
-                            _("Failed to reload all or one of the GnuPG's component(s)"));
+      QMessageBox::critical(
+          this, _("Failed Operation"),
+          _("Failed to reload all or one of the GnuPG's component(s)"));
     }
   });
 
@@ -276,11 +277,13 @@ void MainWindow::create_actions() {
   connect(restart_components_act_, &QAction::triggered, this, [=]() {
     if (GpgFrontend::GpgAdvancedOperator::GetInstance()
             .RestartGpgComponents()) {
-      QMessageBox::information(this, _("Successful Operation"),
-                               _("Restart all the GnuPG's components successfully"));
+      QMessageBox::information(
+          this, _("Successful Operation"),
+          _("Restart all the GnuPG's components successfully"));
     } else {
-      QMessageBox::critical(this, _("Failed Operation"),
-                            _("Failed to restart all or one of the GnuPG's component(s)"));
+      QMessageBox::critical(
+          this, _("Failed Operation"),
+          _("Failed to restart all or one of the GnuPG's component(s)"));
     }
   });
 
