@@ -143,6 +143,20 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
   /**
    * @brief
    *
+   * @param opaque
+   * @param uid_hint
+   * @param passphrase_info
+   * @param last_was_bad
+   * @param fd
+   * @return gpgme_error_t
+   */
+  static gpgme_error_t custom_passphrase_cb(void* opaque, const char* uid_hint,
+                                            const char* passphrase_info,
+                                            int last_was_bad, int fd);
+
+  /**
+   * @brief
+   *
    * @param hook
    * @param keyword
    * @param args
