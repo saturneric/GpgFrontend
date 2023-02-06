@@ -197,6 +197,11 @@ void GpgContext::init_ctx() {
     if (info_.GnupgVersion >= "2.1.0") SetPassphraseCb(test_passphrase_cb);
     gpgme_set_status_cb(*this, test_status_cb, nullptr);
   }
+
+#if defined(RELEASE) && defined(MACOS)
+  // running in sandbox
+  SetPassphraseCb(custom_passphrase_cb);
+#endif
 }
 
 bool GpgContext::good() const { return good_; }
@@ -227,6 +232,14 @@ gpgme_error_t GpgContext::test_passphrase_cb(void *opaque, const char *uid_hint,
   } while (res > 0 && off != pass_len);
 
   return off == pass_len ? 0 : gpgme_error_from_errno(errno);
+}
+
+gpgme_error_t GpgContext::custom_passphrase_cb(void *opaque,
+                                               const char *uid_hint,
+                                               const char *passphrase_info,
+                                               int last_was_bad, int fd) {
+  // TODO
+  return 0;
 }
 
 gpgme_error_t GpgContext::test_status_cb(void *hook, const char *keyword,
@@ -289,7 +302,8 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
           if (exit_code != 0) {
             SPDLOG_ERROR(
-                "gpgconf execute error, process stderr: {} process stdout: {}",
+                "gpgconf execute error, process stderr: {} process stdout: "
+                "{}",
                 p_err, p_out);
             return;
           }
@@ -328,7 +342,8 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
             if (exit_code != 0) {
               SPDLOG_ERROR(
-                  "gpgconf execute error, process stderr: {} , process stdout:",
+                  "gpgconf execute error, process stderr: {} , process "
+                  "stdout:",
                   p_err, p_out);
               return;
             }
@@ -371,7 +386,8 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
             if (exit_code != 0) {
               SPDLOG_ERROR(
-                  "gpgconf execute error, process stderr: {} , process stdout:",
+                  "gpgconf execute error, process stderr: {} , process "
+                  "stdout:",
                   p_err, p_out);
               return;
             }
