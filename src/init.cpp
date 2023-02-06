@@ -55,7 +55,7 @@ void init_logging_system() {
 #ifdef DEBUG
   main_logger->set_level(spdlog::level::trace);
 #else
-  core_logger->set_level(spdlog::level::info);
+  main_logger->set_level(spdlog::level::info);
 #endif
 
   // flush policy
