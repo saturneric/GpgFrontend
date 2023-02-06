@@ -33,9 +33,13 @@
 #include <csetjmp>
 #include <csignal>
 #include <cstddef>
+#include <cstdlib>
+#include <string>
 
 #include "core/GpgConstants.h"
 #include "core/GpgCoreInit.h"
+#include "core/function/GlobalSettingStation.h"
+#include "spdlog/spdlog.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/GpgFrontendUIInit.h"
 
@@ -93,11 +97,26 @@ int main(int argc, char* argv[]) {
   auto* app =
       GpgFrontend::UI::GpgFrontendApplication::GetInstance(argc, argv, true);
 
-  // init the logging system
+  // init the logging system for main
   init_logging_system();
 
   // init the logging system for core
   GpgFrontend::InitLoggingSystem();
+
+  // change path to search for related
+  std::string path_value = getenv("PATH");
+  SPDLOG_DEBUG("PATH: {}", path_value);
+  setenv("PATH",
+         ((GpgFrontend::GlobalSettingStation::GetInstance()
+               .GetAppDir()
+               .parent_path() /
+           "GnuPG" / "bin")
+              .u8string() +
+          ":" + path_value)
+             .c_str(),
+         1);
+  std::string modified_path_value = getenv("PATH");
+  SPDLOG_DEBUG("Modified PATH: {}", modified_path_value);
 
   /**
    * internationalisation. loop to restart main window
@@ -132,15 +151,21 @@ int main(int argc, char* argv[]) {
         return_from_event_loop_code = CRASH_CODE;
       }
 
-      SPDLOG_INFO("loop refresh");
+      SPDLOG_INFO("restart loop refresh");
     } while (return_from_event_loop_code == RESTART_CODE);
 
     // reset core
     GpgFrontend::ResetGpgFrontendCore();
 
+    // log for debug
+    SPDLOG_INFO("deep restart or cash loop refresh");
+
     // deep restart mode
   } while (return_from_event_loop_code == DEEP_RESTART_CODE ||
            return_from_event_loop_code == CRASH_CODE);
+
+  // log for debug
+  SPDLOG_INFO("GpgFrontend about to exit");
 
   // exit the program
   return return_from_event_loop_code;
