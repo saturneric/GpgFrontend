@@ -33,10 +33,10 @@
  *
  */
 void before_exit() {
-  SPDLOG_INFO("called");
-
+#ifdef WINDOWS
   // Under VisualStudio, this must be called before main finishes to workaround
   // a known VS issue
   spdlog::drop_all();
   spdlog::shutdown();
+#endif
 }
