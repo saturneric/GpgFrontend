@@ -402,7 +402,7 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   vbox1->addWidget(new QLabel(QString(_("KeySize (in Bit)")) + ": "), 4, 0);
   vbox1->addWidget(new QLabel(QString(_("Key Type")) + ": "), 5, 0);
   vbox1->addWidget(new QLabel(QString(_("Password")) + ": "), 6, 0);
-  vbox1->addWidget(new QLabel(QString(_("Non Pass Phrase")) + ": "), 7, 0);
+  vbox1->addWidget(new QLabel(QString(_("Non Pass Phrase")) + ": "), 6, 3);
 
   vbox1->addWidget(name_edit_, 0, 1, 1, 3);
   vbox1->addWidget(email_edit_, 1, 1, 1, 3);
@@ -412,7 +412,7 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   vbox1->addWidget(key_size_spin_box_, 4, 1);
   vbox1->addWidget(key_type_combo_box_, 5, 1);
   vbox1->addWidget(passphrase_edit_, 6, 1);
-  vbox1->addWidget(no_pass_phrase_check_box_, 7, 1);
+  vbox1->addWidget(no_pass_phrase_check_box_, 6, 2);
 
   auto basicInfoGroupBox = new QGroupBox();
   basicInfoGroupBox->setLayout(vbox1);

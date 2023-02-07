@@ -428,7 +428,7 @@ void CommonUtils::slot_popup_passphrase_input_dialog() {
   dialog->setInputMode(QInputDialog::TextInput);
   dialog->setTextEchoMode(QLineEdit::Password);
   dialog->setLabelText("Please Input The Password");
-  dialog->resize(600, 80);
+  dialog->resize(500, 80);
   dialog->exec();
 
   QString password = dialog->textValue();

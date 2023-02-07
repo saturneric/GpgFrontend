@@ -28,11 +28,12 @@
 
 #include <cassert>
 
+#include "core/common/CoreCommonUtil.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "dialog/WaitingDialog.h"
 #include "ui/SignalStation.h"
+#include "ui/dialog/WaitingDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -60,15 +61,20 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
 
   key_usage_group_box_ = create_key_usage_group_box();
 
-  auto* groupGrid = new QGridLayout(this);
-  groupGrid->addWidget(create_basic_info_group_box(), 0, 0);
-  groupGrid->addWidget(key_usage_group_box_, 1, 0);
+  auto* group_grid = new QGridLayout(this);
+  group_grid->addWidget(create_basic_info_group_box(), 0, 0);
+  group_grid->addWidget(key_usage_group_box_, 1, 0);
 
-  auto* nameList = new QWidget(this);
-  nameList->setLayout(groupGrid);
+  auto* tipps_label = new QLabel(
+      QString(_("Tipps: if the key pair has a passphrase, the subkey's "
+                "passphrase must be equal to it.")));
+  group_grid->addWidget(tipps_label);
+
+  auto* name_list = new QWidget(this);
+  name_list->setLayout(group_grid);
 
   auto* vbox2 = new QVBoxLayout();
-  vbox2->addWidget(nameList);
+  vbox2->addWidget(name_list);
   vbox2->addWidget(error_label_);
   vbox2->addWidget(button_box_);
 
@@ -121,6 +127,8 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
   error_label_ = new QLabel();
   key_size_spin_box_ = new QSpinBox(this);
   key_type_combo_box_ = new QComboBox(this);
+  no_pass_phrase_check_box_ = new QCheckBox(this);
+  passphrase_edit_ = new QLineEdit(this);
 
   for (auto& algo : GenKeyInfo::GetSupportedSubkeyAlgo()) {
     key_type_combo_box_->addItem(QString::fromStdString(algo.first));
@@ -142,15 +150,19 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
 
   auto* vbox1 = new QGridLayout;
 
-  vbox1->addWidget(new QLabel(QString(_("Expiration Date")) + ": "), 2, 0);
-  vbox1->addWidget(new QLabel(QString(_("Never Expire")) + ": "), 2, 3);
-  vbox1->addWidget(new QLabel(QString(_("KeySize (in Bit)")) + ": "), 1, 0);
   vbox1->addWidget(new QLabel(QString(_("Key Type")) + ": "), 0, 0);
+  vbox1->addWidget(new QLabel(QString(_("KeySize (in Bit)")) + ": "), 1, 0);
+  vbox1->addWidget(new QLabel(QString(_("Expiration Date")) + ": "), 2, 0);
+  vbox1->addWidget(new QLabel(QString(_("Never Expire"))), 2, 3);
+  vbox1->addWidget(new QLabel(QString(_("Password")) + ": "), 3, 0);
+  vbox1->addWidget(new QLabel(QString(_("Non Pass Phrase"))), 3, 3);
 
+  vbox1->addWidget(key_type_combo_box_, 0, 1);
+  vbox1->addWidget(key_size_spin_box_, 1, 1);
   vbox1->addWidget(date_edit_, 2, 1);
   vbox1->addWidget(expire_check_box_, 2, 2);
-  vbox1->addWidget(key_size_spin_box_, 1, 1);
-  vbox1->addWidget(key_type_combo_box_, 0, 1);
+  vbox1->addWidget(passphrase_edit_, 3, 1);
+  vbox1->addWidget(no_pass_phrase_check_box_, 3, 2);
 
   auto basicInfoGroupBox = new QGroupBox();
   basicInfoGroupBox->setLayout(vbox1);
@@ -179,6 +191,12 @@ void SubkeyGenerateDialog::set_signal_slot() {
 
   connect(key_type_combo_box_, qOverload<int>(&QComboBox::currentIndexChanged),
           this, &SubkeyGenerateDialog::slot_activated_key_type);
+
+  connect(no_pass_phrase_check_box_, &QCheckBox::stateChanged, this,
+          [this](int state) -> void {
+            gen_key_info_->SetNonPassPhrase(state != 0);
+            passphrase_edit_->setDisabled(state != 0);
+          });
 }
 
 void SubkeyGenerateDialog::slot_expire_box_changed() {
@@ -249,6 +267,10 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     err_stream << "  " << _("Expiration time no more than 2 years.") << "  ";
   }
 
+  if (passphrase_edit_->isEnabled() && passphrase_edit_->text().size() == 0) {
+    err_stream << "  " << _("Password is empty.") << std::endl;
+  }
+
   auto err_string = err_stream.str();
 
   if (err_string.empty()) {
@@ -259,6 +281,11 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     } else {
       gen_key_info_->SetExpireTime(
           boost::posix_time::from_time_t(date_edit_->dateTime().toTime_t()));
+    }
+
+    if (!gen_key_info_->IsNoPassPhrase()) {
+      CoreCommonUtil::GetInstance()->SetTempCacheValue(
+          "__key_passphrase", this->passphrase_edit_->text().toStdString());
     }
 
     GpgError error;
@@ -275,6 +302,10 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
       QCoreApplication::processEvents();
     }
     waiting_dialog->close();
+
+    if (!gen_key_info_->IsNoPassPhrase()) {
+      CoreCommonUtil::GetInstance()->ResetTempCacheValue("__key_passphrase");
+    }
 
     if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR) {
       auto* msg_box = new QMessageBox((QWidget*)this->parent());

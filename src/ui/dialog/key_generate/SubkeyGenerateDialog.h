@@ -69,6 +69,8 @@ class SubkeyGenerateDialog : public GeneralDialog {
   QComboBox* key_type_combo_box_{};  ///<  Combobox for Key tpe
   QDateTimeEdit* date_edit_{};       ///< Date edit for expiration date
   QCheckBox* expire_check_box_{};    ///< Checkbox, if key should expire
+  QCheckBox* no_pass_phrase_check_box_{};  ///< Checkbox, if key should expire
+  QLineEdit* passphrase_edit_{};
 
   std::vector<QCheckBox*> key_usage_check_boxes_;  ///< ENCR, SIGN, CERT, AUTH
   QDateTime max_date_time_;                        ///<

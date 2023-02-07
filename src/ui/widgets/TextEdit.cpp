@@ -632,7 +632,7 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
 
     auto raw_text = document->toRawText().toStdString();
     SPDLOG_DEBUG("unsaved page index: {}, tab title: {} tab content: {}", i,
-                 tab_title, raw_text);
+                 tab_title, raw_text.size());
     unsaved_pages.push_back({i, tab_title, raw_text});
   }
 }
