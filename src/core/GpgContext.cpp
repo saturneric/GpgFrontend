@@ -30,9 +30,17 @@
 
 #include <gpg-error.h>
 #include <gpgme.h>
+#include <unistd.h>
 
-#include "GpgConstants.h"
+#include <string>
+
+#include "core/GpgConstants.h"
+#include "core/GpgModel.h"
+#include "core/common/CoreCommonUtil.h"
+#include "core/function/CoreSignalStation.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
+#include "core/thread/TaskRunnerGetter.h"
+#include "thread/Task.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -85,7 +93,7 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
     }
 
     SPDLOG_INFO(
-        "engine info: {} {} {} {}",
+        "gpg context engine info: {} {} {} {}",
         gpgme_get_protocol_name(engine_info->protocol),
         std::string(engine_info->file_name == nullptr ? "null"
                                                       : engine_info->file_name),
@@ -149,12 +157,19 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
     return;
   } else {
     SPDLOG_INFO("gnupg version {}", info_.GnupgVersion);
-    init_ctx();
+    // async, init context
+    Thread::TaskRunnerGetter::GetInstance()
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
+        ->PostTask(new Thread::Task([=](Thread::Task::DataObjectPtr) -> int {
+          post_init_ctx();
+          return 0;
+        }));
+
     good_ = true;
   }
 }
 
-void GpgContext::init_ctx() {
+void GpgContext::post_init_ctx() {
   // Set Independent Database
   if (info_.GnupgVersion <= "2.0.0" && args_.independent_database) {
     info_.DatabasePath = args_.db_path;
@@ -198,10 +213,14 @@ void GpgContext::init_ctx() {
     gpgme_set_status_cb(*this, test_status_cb, nullptr);
   }
 
-#if defined(RELEASE) && defined(MACOS)
-  // running in sandbox
+  // preload info
+  auto info = GetInfo();
+
+  // listen passphrase input event
   SetPassphraseCb(custom_passphrase_cb);
-#endif
+  connect(this, &GpgContext::SignalNeedUserInputPassphrase,
+          CoreSignalStation::GetInstance(),
+          &CoreSignalStation::SignalNeedUserInputPassphrase);
 }
 
 bool GpgContext::good() const { return good_; }
@@ -238,14 +257,63 @@ gpgme_error_t GpgContext::custom_passphrase_cb(void *opaque,
                                                const char *uid_hint,
                                                const char *passphrase_info,
                                                int last_was_bad, int fd) {
-  // TODO
-  return 0;
+  if (last_was_bad > 3) {
+    SPDLOG_WARN("failure_counts is over three times");
+    return gpgme_error_from_errno(GPG_ERR_CANCELED);
+  }
+
+  std::string passphrase =
+      CoreCommonUtil::GetInstance()->GetTempCacheValue("__key_passphrase");
+  // no pawword is an error situation
+  if (passphrase.empty()) {
+    // user input passphrase
+    SPDLOG_DEBUG("might need user to input passparase");
+    passphrase = GpgContext::GetInstance().need_user_input_passphrase();
+    if (passphrase.empty()) {
+      gpgme_io_write(fd, "\n", 1);
+      return gpgme_error_from_errno(GPG_ERR_CANCELED);
+    }
+  }
+
+  // the user must at least write a newline character before returning from the
+  // callback.
+  passphrase = passphrase.append("\n");
+  auto passpahrase_size = passphrase.size();
+
+  size_t off = 0, res = 0;
+  do {
+    res = gpgme_io_write(fd, &passphrase[off], passpahrase_size - off);
+    if (res > 0) off += res;
+  } while (res > 0 && off != passpahrase_size);
+
+  return off == passpahrase_size ? 0 : gpgme_error_from_errno(GPG_ERR_CANCELED);
 }
 
 gpgme_error_t GpgContext::test_status_cb(void *hook, const char *keyword,
                                          const char *args) {
   SPDLOG_INFO("keyword {}", keyword);
   return GPG_ERR_NO_ERROR;
+}
+
+std::string GpgContext::need_user_input_passphrase() {
+  emit SignalNeedUserInputPassphrase();
+
+  std::string final_passphrase;
+  bool input_done = false;
+  SPDLOG_DEBUG("loop start to wait from user");
+  connect(CoreSignalStation::GetInstance(),
+          &CoreSignalStation::SignalUserInputPassphraseDone, this,
+          [&](QString passphrase) {
+            SPDLOG_DEBUG("SignalUserInputPassphraseDone emitted");
+            final_passphrase = passphrase.toStdString();
+            input_done = true;
+          });
+  while (!input_done) {
+    SPDLOG_DEBUG("loppe still waiting...");
+    sleep(1);
+  }
+  SPDLOG_DEBUG("lopper end");
+  return final_passphrase;
 }
 
 const GpgInfo &GpgContext::GetInfo(bool refresh) {

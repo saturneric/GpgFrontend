@@ -27,6 +27,7 @@
 #ifndef GPGFRONTEND_TASKRUNNER_H
 #define GPGFRONTEND_TASKRUNNER_H
 
+#include <cstddef>
 #include <mutex>
 #include <queue>
 
@@ -65,6 +66,14 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QThread {
    * @param task
    */
   void PostTask(Task* task);
+
+  /**
+   * @brief
+   *
+   * @param task
+   * @param seconds
+   */
+  void PostScheduleTask(Task* task, size_t seconds);
 
  private:
   std::queue<Task*> tasks;                      ///< The task queue

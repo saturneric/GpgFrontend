@@ -151,14 +151,21 @@ int main(int argc, char* argv[]) {
         return_from_event_loop_code = CRASH_CODE;
       }
 
-      SPDLOG_INFO("restart loop refresh");
+      SPDLOG_INFO("restart loop refresh, event loop code: {}",
+                  return_from_event_loop_code);
     } while (return_from_event_loop_code == RESTART_CODE);
 
-    // reset core
-    GpgFrontend::ResetGpgFrontendCore();
-
-    // log for debug
-    SPDLOG_INFO("deep restart or cash loop refresh");
+    if (return_from_event_loop_code == DEEP_RESTART_CODE ||
+        return_from_event_loop_code == CRASH_CODE) {
+      // reset core
+      GpgFrontend::ResetGpgFrontendCore();
+      // log for debug
+      SPDLOG_INFO("deep restart or cash loop refresh");
+    } else {
+      // log for debug
+      SPDLOG_INFO("need to close application, event loop code: {}",
+                  return_from_event_loop_code);
+    }
 
     // deep restart mode
   } while (return_from_event_loop_code == DEEP_RESTART_CODE ||

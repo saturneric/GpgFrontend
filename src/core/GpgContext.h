@@ -29,6 +29,8 @@
 #ifndef __SGPGMEPP_CONTEXT_H__
 #define __SGPGMEPP_CONTEXT_H__
 
+#include <string>
+
 #include "GpgConstants.h"
 #include "GpgFunctionObject.h"
 #include "GpgInfo.h"
@@ -57,7 +59,9 @@ struct GpgContextInitArgs {
  *
  */
 class GPGFRONTEND_CORE_EXPORT GpgContext
-    : public SingletonFunctionObject<GpgContext> {
+    : public QObject,
+      public SingletonFunctionObject<GpgContext> {
+  Q_OBJECT
  public:
   /**
    * @brief Construct a new Gpg Context object
@@ -110,7 +114,14 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
    * @brief
    *
    */
-  void init_ctx();
+  void post_init_ctx();
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  std::string need_user_input_passphrase();
 
   /**
    * @brief
@@ -124,6 +135,13 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
       std::unique_ptr<struct gpgme_context, _ctx_ref_deleter>;  ///<
   CtxRefHandler _ctx_ref = nullptr;                             ///<
   bool good_ = true;                                            ///<
+
+ signals:
+  /**
+   * @brief
+   *
+   */
+  void SignalNeedUserInputPassphrase();
 
  public:
   /**

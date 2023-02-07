@@ -26,21 +26,20 @@
  *
  */
 
-#ifndef GPGFRONTEND_SIGNALSTATION_H
-#define GPGFRONTEND_SIGNALSTATION_H
+#ifndef GPGFRONTEND_CORESIGNALSTATION_H
+#define GPGFRONTEND_CORESIGNALSTATION_H
 
-#include "ui/GpgFrontendUI.h"
-#include "ui/widgets/InfoBoardWidget.h"
+#include "core/GpgFrontendCore.h"
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
 /**
  * @brief
  *
  */
-class SignalStation : public QObject {
+class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
   Q_OBJECT
-  static std::unique_ptr<SignalStation> _instance;
+  static std::unique_ptr<CoreSignalStation> _instance;
 
  public:
   /**
@@ -48,37 +47,9 @@ class SignalStation : public QObject {
    *
    * @return SignalStation*
    */
-  static SignalStation* GetInstance();
+  static CoreSignalStation* GetInstance();
 
  signals:
-  /**
-   * @brief
-   *
-   */
-  void SignalKeyDatabaseRefresh();
-
-  /**
-   * @brief
-   *
-   */
-  void SignalKeyDatabaseRefreshDone();
-
-  /**
-   * @brief
-   *
-   * @param text
-   * @param verify_label_status
-   */
-  void SignalRefreshInfoBoard(const QString& text,
-                              InfoBoardStatus verify_label_status);
-
-  /**
-   * @brief
-   *
-   * @param message
-   * @param timeout
-   */
-  void SignalRefreshStatusBar(const QString& message, int timeout);
 
   /**
    * @brief
@@ -93,6 +64,6 @@ class SignalStation : public QObject {
   void SignalNeedUserInputPassphrase();
 };
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend
 
-#endif  // GPGFRONTEND_SIGNALSTATION_H
+#endif  // GPGFRONTEND_CORESIGNALSTATION_H

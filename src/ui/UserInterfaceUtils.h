@@ -163,6 +163,18 @@ class CommonUtils : public QWidget {
    */
   void SignalKeyDatabaseRefreshDone();
 
+  /**
+   * @brief
+   *
+   */
+  void SignalNeedUserInputPassphrase();
+
+  /**
+   * @brief
+   *
+   */
+  void SignalUserInputPassphraseDone(QString passphrase);
+
  public slots:
   /**
    * @brief
@@ -220,10 +232,8 @@ class CommonUtils : public QWidget {
    * @param arguments
    * @param interact_func
    */
-  void SlotExecuteCommand(
-      const std::string& cmd,
-      const QStringList& arguments,
-      const std::function<void(QProcess*)>& interact_func);
+  void SlotExecuteCommand(const std::string& cmd, const QStringList& arguments,
+                          const std::function<void(QProcess*)>& interact_func);
 
  private slots:
 
@@ -232,6 +242,12 @@ class CommonUtils : public QWidget {
    *
    */
   void slot_update_key_status();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_popup_passphrase_input_dialog();
 
  private:
   static std::unique_ptr<CommonUtils> instance_;  ///<
