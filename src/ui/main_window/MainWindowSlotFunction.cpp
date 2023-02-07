@@ -37,6 +37,7 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "dialog/SignersPicker.h"
+#include "spdlog/spdlog.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/help/AboutDialog.h"
 
@@ -665,6 +666,12 @@ void MainWindow::slot_version_upgrade(const SoftwareVersion& version) {
     SPDLOG_INFO("invalid version info");
     return;
   }
+
+  SPDLOG_DEBUG(
+      "version info, need upgrade: {}, with drawn: {}, current version "
+      "released: {}",
+      version.NeedUpgrade(), version.VersionWithDrawn(),
+      version.CurrentVersionReleased());
 
   if (version.NeedUpgrade()) {
     statusBar()->showMessage(

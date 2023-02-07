@@ -81,7 +81,6 @@ struct SoftwareVersion {
   [[nodiscard]] bool CurrentVersionReleased() const;
 
  private:
-
   static int version_compare(const std::string& a, const std::string& b);
 };
 }  // namespace GpgFrontend::UI

@@ -34,12 +34,12 @@ int GpgFrontend::UI::SoftwareVersion::version_compare(const std::string& a,
 
   if (!temp_a.empty() && temp_a.front() == 'v') {
     temp_a = temp_a.erase(0, 1);
-    SPDLOG_INFO("real version a: {}", temp_a);
+    SPDLOG_DEBUG("real version a: {}", temp_a);
   }
 
   if (!temp_b.empty() && temp_b.front() == 'v') {
     temp_b.erase(0, 1);
-    SPDLOG_INFO("real version b: {}", temp_b);
+    SPDLOG_DEBUG("real version b: {}", temp_b);
   }
 
   // First, split the string.
@@ -81,6 +81,12 @@ int GpgFrontend::UI::SoftwareVersion::version_compare(const std::string& a,
 }
 
 bool GpgFrontend::UI::SoftwareVersion::NeedUpgrade() const {
+  SPDLOG_DEBUG("compair version current {} latest {}, result {}",
+               current_version, latest_version,
+               version_compare(current_version, latest_version));
+
+  SPDLOG_DEBUG("load done: {}, pre-release: {}, draft: {}", load_info_done,
+               latest_prerelease, latest_draft);
   return load_info_done && !latest_prerelease && !latest_draft &&
          version_compare(current_version, latest_version) < 0;
 }

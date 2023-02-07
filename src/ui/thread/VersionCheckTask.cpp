@@ -63,6 +63,7 @@ void VersionCheckTask::Run() {
     version_.load_info_done = true;
 
   } catch (...) {
+    SPDLOG_ERROR("unknown error occurred");
     emit SignalTaskFinished();
   }
 }
@@ -106,7 +107,7 @@ void VersionCheckTask::slot_parse_latest_version_info() {
       version_.release_note = release_note;
     }
   } catch (...) {
-    SPDLOG_INFO("error occurred");
+    SPDLOG_ERROR("unknown error occurred");
     version_.load_info_done = false;
   }
 
@@ -135,8 +136,10 @@ void VersionCheckTask::slot_parse_current_version_info() {
   try {
     if (current_reply_ == nullptr ||
         current_reply_->error() != QNetworkReply::NoError) {
-      SPDLOG_ERROR("current version request network error");
+      SPDLOG_ERROR("current version request network error: {}",
+                   current_reply_->errorString().toStdString());
       version_.current_version_found = false;
+      version_.load_info_done = false;
     } else {
       version_.current_version_found = true;
       current_reply_bytes_ = current_reply_->readAll();
@@ -150,11 +153,12 @@ void VersionCheckTask::slot_parse_current_version_info() {
       version_.load_info_done = true;
     }
   } catch (...) {
-    SPDLOG_INFO("error occurred");
+    SPDLOG_ERROR("unknown error occurred");
     version_.load_info_done = false;
   }
 
-  SPDLOG_INFO("current version parse done: {}", version_.current_version_found);
+  SPDLOG_DEBUG("current version parse done: {}",
+               version_.current_version_found);
 
   if (current_reply_ != nullptr) {
     current_reply_->deleteLater();
