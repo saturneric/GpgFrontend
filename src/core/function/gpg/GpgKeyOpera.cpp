@@ -212,8 +212,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateSubkey(
   if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
   if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
   if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
-
-  flags |= GPGME_CREATE_NOPASSWD;
+  if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
   SPDLOG_INFO("GpgFrontend::GpgKeyOpera::GenerateSubkey args: {} {} {} {}",
               key.GetId(), algo, expires, flags);

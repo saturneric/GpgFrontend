@@ -257,6 +257,8 @@ gpgme_error_t GpgContext::custom_passphrase_cb(void *opaque,
                                                const char *uid_hint,
                                                const char *passphrase_info,
                                                int last_was_bad, int fd) {
+  SPDLOG_INFO("custom passphrase cb called, bad times: {}", last_was_bad);
+
   if (last_was_bad > 3) {
     SPDLOG_WARN("failure_counts is over three times");
     return gpgme_error_from_errno(GPG_ERR_CANCELED);
@@ -301,17 +303,19 @@ std::string GpgContext::need_user_input_passphrase() {
   std::string final_passphrase;
   bool input_done = false;
   SPDLOG_DEBUG("loop start to wait from user");
-  connect(CoreSignalStation::GetInstance(),
-          &CoreSignalStation::SignalUserInputPassphraseDone, this,
-          [&](QString passphrase) {
-            SPDLOG_DEBUG("SignalUserInputPassphraseDone emitted");
-            final_passphrase = passphrase.toStdString();
-            input_done = true;
-          });
+  auto connection =
+      connect(CoreSignalStation::GetInstance(),
+              &CoreSignalStation::SignalUserInputPassphraseDone, this,
+              [&](QString passphrase) {
+                SPDLOG_DEBUG("SignalUserInputPassphraseDone emitted");
+                final_passphrase = passphrase.toStdString();
+                input_done = true;
+              });
   while (!input_done) {
-    SPDLOG_DEBUG("loppe still waiting...");
-    sleep(1);
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 800);
   }
+  disconnect(connection);
+
   SPDLOG_DEBUG("lopper end");
   return final_passphrase;
 }
