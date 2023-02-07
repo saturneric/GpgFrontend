@@ -27,6 +27,8 @@
 #ifndef GPGFRONTEND_CORECOMMONUTIL_H
 #define GPGFRONTEND_CORECOMMONUTIL_H
 
+#include <string>
+
 #include "core/GpgFrontendCore.h"
 
 namespace GpgFrontend {
@@ -46,6 +48,27 @@ class GPGFRONTEND_CORE_EXPORT CoreCommonUtil : public QObject {
    */
   CoreCommonUtil() = default;
 
+  /**
+   * @brief set a temp cache under a certain key
+   *
+   */
+  void SetTempCacheValue(const std::string, const std::string);
+
+  /**
+   * @brief after get the temp cache, its value will be imediately ease in
+   * storage
+   *
+   * @return std::string
+   */
+  std::string GetTempCacheValue(const std::string);
+
+  /**
+   * @brief imediately ease temp cache in storage
+   *
+   * @return std::string
+   */
+  void ResetTempCacheValue(const std::string);
+
  signals:
 
   /**
@@ -56,6 +79,7 @@ class GPGFRONTEND_CORE_EXPORT CoreCommonUtil : public QObject {
 
  private:
   static std::unique_ptr<CoreCommonUtil> instance_;  ///<
+  std::map<std::string, std::string> temp_cache_;    //<
 };
 
 }  // namespace GpgFrontend

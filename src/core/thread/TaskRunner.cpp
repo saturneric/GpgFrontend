@@ -58,6 +58,12 @@ void GpgFrontend::Thread::TaskRunner::PostTask(Task* task) {
   quit();
 }
 
+void GpgFrontend::Thread::TaskRunner::PostScheduleTask(Task* task,
+                                                       size_t seconds) {
+  if (task == nullptr) return;
+  // TODO
+}
+
 [[noreturn]] void GpgFrontend::Thread::TaskRunner::run() {
   SPDLOG_TRACE("called, thread id: {}", QThread::currentThreadId());
   while (true) {

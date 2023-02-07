@@ -28,16 +28,19 @@
 
 #include "UserInterfaceUtils.h"
 
+#include <string>
 #include <utility>
 #include <vector>
 
 #include "core/common/CoreCommonUtil.h"
+#include "core/function/CoreSignalStation.h"
 #include "core/function/FileOperator.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "spdlog/spdlog.h"
 #include "ui/SignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/struct/SettingsObject.h"
@@ -157,6 +160,9 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
   connect(this, &CommonUtils::SignalKeyDatabaseRefreshDone,
           SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefreshDone);
+  connect(this, &CommonUtils::SignalUserInputPassphraseDone,
+          CoreSignalStation::GetInstance(),
+          &CoreSignalStation::SignalUserInputPassphraseDone);
 
   // directly connect to SignalKeyStatusUpdated
   // to avoid the delay of signal emitting
@@ -164,6 +170,10 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
   connect(SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefresh, this,
           &CommonUtils::slot_update_key_status);
+
+  connect(CoreSignalStation::GetInstance(),
+          &CoreSignalStation::SignalNeedUserInputPassphrase, this,
+          &CommonUtils::slot_popup_passphrase_input_dialog);
 
   connect(this, &CommonUtils::SignalGnupgNotInstall, this, []() {
     QMessageBox::critical(
@@ -407,6 +417,25 @@ void CommonUtils::slot_update_key_status() {
   // post the task to the default task runner
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
       refresh_task);
+}
+
+void CommonUtils::slot_popup_passphrase_input_dialog() {
+  SPDLOG_INFO("called");
+
+  auto *dialog = new QInputDialog(QApplication::activeWindow(), Qt::Dialog);
+  dialog->setModal(true);
+  dialog->setWindowTitle(_("Password Input Dialog"));
+  dialog->setInputMode(QInputDialog::TextInput);
+  dialog->setTextEchoMode(QLineEdit::Password);
+  dialog->setLabelText("Please Input The Password");
+  dialog->resize(600, 80);
+  dialog->exec();
+
+  QString password = dialog->textValue();
+  dialog->deleteLater();
+
+  // send signal
+  emit SignalUserInputPassphraseDone(password);
 }
 
 }  // namespace GpgFrontend::UI

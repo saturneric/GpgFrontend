@@ -26,6 +26,8 @@
 
 #include "CoreCommonUtil.h"
 
+#include <string>
+
 namespace GpgFrontend {
 
 std::unique_ptr<CoreCommonUtil> CoreCommonUtil::instance_ = nullptr;  ///<
@@ -37,4 +39,21 @@ CoreCommonUtil *CoreCommonUtil::GetInstance() {
   }
   return instance_.get();
 }
+
+void CoreCommonUtil::SetTempCacheValue(const std::string key,
+                                       const std::string value) {
+  temp_cache_[key] = value;
+}
+
+std::string CoreCommonUtil::GetTempCacheValue(const std::string key) {
+  std::string temp_cache_value;
+  std::swap(temp_cache_value, temp_cache_[key]);
+  return temp_cache_value;
+}
+
+void CoreCommonUtil::ResetTempCacheValue(const std::string key) {
+  std::string temp_cache_value;
+  std::swap(temp_cache_value, temp_cache_[key]);
+}
+
 }  // namespace GpgFrontend
