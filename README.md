@@ -86,12 +86,6 @@ version code for users around the world.
 $ git clone --recurse-submodules https://github.com/saturneric/GpgFrontend.git
 ```
 
-如果你在中国大陆，可以使用这个仓库
-
-```shell
-$ git clone --recurse-submodules https://git.codesdream.com/GpgFrontend.git
-```
-
 ### For Windows
 
 Before building, you need to install MSYS2. After installation, open the MSYS2 terminal (MSYS2 MinGW 64-bit), enter the
