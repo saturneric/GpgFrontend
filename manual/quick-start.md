@@ -1,9 +1,111 @@
 # Quick Start
 
-Getting started with GpgFrontend is very simple, you only need a few very simple steps. Moreover, it is oriented to all
-PC platforms.
+GpgFrontend is cross-platform, which is one of its differences. For your operating system, you'll need to choose
+different ways to lay out GpgFrontend.
 
-## Get channels
+## Pre-conditions
+
+**For Windows users or macOS users using Homebrew, you can just skip this section.**
+
+GpgFrontend runs dependent on basic functions provided by GnuPG, so you need to install GnuPG before you can run
+GpgFrontend. Why does GpgFrontend require users to install GnuPG separately? Starting with GnuPG 2.0, GPG relies on
+separate modules to do all of its functions. This requires that when using GPG, these modules all need to be in the
+correct location on your operating system so that the GPG can find them.
+
+GnuPG is not be able to run in App Sandbox, so this situation has caused GpgFrontend to be temporarily unavailable
+in the Apple Store. I have tried for many times to bundle GnuPG into App Sandbox, but eventually failed.
+
+In general, the latest Linux distributions offer a GnuPG 2.0 environment. You can check by typing `gpg --version` in the
+command line tool. **In general, it is recommended to install versions of GnuPG 2.1 and above.**
+
+## Install & Run Steps
+
+### Windows (No Setup)
+
+1. [Download](https://github.com/saturneric/GpgFrontend/releases/latest)`GpgFrontend-*******-Windows-NoSetup.zip`
+2. Unzip `GpgFrontend-*******-Windows-NoSetup.zip`
+3. Go into the directory and double click `GpgFrontend.exe`.
+
+### Windows（Setup）
+
+1. [Download](https://github.com/saturneric/GpgFrontend/releases/latest) `GpgFrontend-*******-Windows-Setup.exe`
+2. Install it, and you can find GpgFrontend on your desktop.
+
+### macOS
+
+All published app packages have passed Apple's check, which means you can open it directly without
+extra permission.
+
+#### Homebrew Cask
+
+You can use Homebrew Cask to quickly and easily install or remove GpgFrontend in your machine.
+
+0. Check if Homebrew is installed in your machine.
+1. Install GpgFrontend by running command `brew install --cask gpgfrontend`
+2. Find GpgFrontend in Launchpad, double-click and run it.
+
+#### Download and Install from DMG
+
+0. Install `gnupg` using Homebrew OR download "GPG for OS X" [Here](https://sourceforge.net/projects/gpgosx/files).
+1. [Download](https://github.com/saturneric/GpgFrontend/releases) `GpgFrontend-*******-x86_64.dmg`
+   - `x86_64` just means it build in such an x86 machine. Actually, it can run smoothly on both Intel and Apple(M1/M2) Chips.
+2. Double-Click GpgFrontend.dmg to load it.
+3. Double-Click and run it.
+4. If it satisfies you, you can drag it into your Application folder.
+
+#### Debian/Ubuntu/CentOS (AppImage)
+
+AppImage is a format used in Linux systems to distribute portable software without the need for superuser privileges to
+install them. The core idea of AppImage is a file as an application. Each AppImage contains the application and all the
+files needed for the application to run. In other words, in addition to the underlying components of the operating
+system itself, AppImage runs without dependency. This is convenient for users.
+
+0. Install gnupg (If you have already followed please skip)
+   - For Debian/Ubuntu
+     ```shell
+     $ sudo apt update
+     $ sudo apt install gpg
+     ```
+   - For CentOS
+     ```shell
+     $ sudo yum install gnupg
+     ```
+1. [Download](https://github.com/saturneric/GpgFrontend/releases) `GpgFrontend-*******-x86_64.AppImage`
+2. Give `GpgFrontend-***.AppImage` permission to execute
+   ```shell
+   $ chmod u+x ./GpgFrontend-***-x86_64.AppImage
+   ```
+3. Just double-click `GpgFrontend-***-x86_64.AppImage` to run it.
+
+### Debian/Ubuntu (DEB)
+
+With deb, you can easily manage dependencies using the apt tool. Deb packages are small compared to AppImage.
+
+0. Install gnupg (If you have already followed please skip)
+
+   - For Debian/Ubuntu
+
+     ```shell
+     $ sudo apt update
+     $ sudo apt install gpg
+     ```
+
+1. [Download](https://github.com/saturneric/GpgFrontend/releases) `GpgFrontend-*******-x86_64.deb`
+
+2. Use apt to install GpgFrontned.
+
+   ```shell
+   $ apt install ./GpgFrontend-*******-x86_64.deb
+   ```
+
+3. At this point, you can find the GpgFrontend icon in your app menu.
+
+## BSD(FreeBSD/OpenBSD)
+
+For BSD users, unfortunately, the binary release is not provided yet. But you can build and run GpgFrontend
+in these operating systems.
+
+## Get from GitHub Release
 
 The current mainstream distribution channel is the Release feature available through GitHub. It's free and accessible to
 most people in the world, without me having to worry about servers and bandwidth, which allows me to save a lot of
@@ -19,103 +121,17 @@ click change log to get how the source code differs from the previous version. I
 two green tick marks, which represent that I have personally signed up to the source code of the version. This may be
 important for some people with high security needs.
 
-Then, if you swipe down, you can see a lot of Assets, which are releases for GpgFrontned for different operating
-systems. As you can see, the parts of the file name are separated by separators. You need to know that the second
-section(e.g. 6171479) provides a unique identification number for the version's source code, and when pointing out
-problems with a version, you need to provide the 7-digit unique identification number of the released version you are
-using.
+Then, if you swipe down, you can see a lot of Assets, which are releases for GpgFrontend for different operating
+systems. As you can see, the parts of the file name are separated by separators.
+
+You need to know that the second section(e.g. 6171479) provides a unique identification number for the version's source
+code, and when pointing out problems with a version, you need to provide the 7-digit unique identification number of the
+released version you are using.
 
 ![image-20220101225652736](_media/quick-start/image-20220101225652736.png)
 
-Files with sig as the suffix are gpg separate signatures for the released version of the file of the same name. You can
-use gpg to check if the changed file is signed and approved by me.
+Files with signature as the suffix are GPG separate signatures for the released version of the file of the same name.
+You can use GPG to check if the changed file is signed and approved by me.
 
 Follow your needs or follow the instructions below to click on the name of the corresponding release version to
 download.
-
-## Install & Run
-
-GpgFrontend is cross-platform, which is one of its differences. For your operating system, you'll need to choose
-different ways to lay out GpgFrontend. It is worth noting that GpgFrontend only supports 64-bit operating systems.
-Please check your hardware with your operating system.
-
-### Pre-conditions
-
-GpgFrontend runs dependent on the basic features provided by GnuPG, so you need to install GnuPG before you can install
-GpgFrontend. Why does GpgFronend require users to install GnuPG separately?Starting with GnuPG 2.0, gpg relies on
-separate modules to do all of its functions. This requires that when using gpg, these modules all need to be in the
-correct location on your operating system so that the gpg can find them.
-
-GnuPG is not included by default in some operating systems (e.g. Windows and macOS), so this situation has caused
-GpgFrontend to be temporarily unavailable in the Apple Store and Microsoft Store. I have plans to launch GnuPG-based
-version 1.4 in the future, which will enable GpgFrontend users to start using it when they get it.
-
-In general, the latest Linux distributions offer a GnuPG 2.0 environment. You can check by typing `gpg --version` in the
-command line tool. **In general, it is recommended to install versions of GnuPG 2.1 and above.**
-
-### Windows (No Setup)
-
-1. [Download](https://github.com/saturneric/GpgFrontend/releases/latest)`GpgFrontend-*******-Windows-NoSetup.zip`
-2. Unzip `GpgFrontend-*******-Windows-NoSetup.zip`
-3. Go into the directory and double click `GpgFrontend.exe`.
-
-### Windows（Setup）
-
-1. [Download](https://github.com/saturneric/GpgFrontend/releases/latest) `GpgFrontend-*******-Windows-Setup.exe`
-2. Install it and you can find GpgFrontend on your desktop.
-
-### macOS
-
-0. Install gnupg using homebrew.
-1. [Download](https://github.com/saturneric/GpgFrontend/releases) `GpgFrontend-*******-x86_64.dmg`
-2. Double-Click GpgFrontend.dmg to load it
-    - macOS will automatically decompress the zip file and then you will be able to see the dmg
-3. Double click and run it. All published app packages have passed Apple's binary check, which means you can open it directly.
-4. If it satisfies you, you can drag it into your Application folder.
-
-#### Debian/Ubuntu/CentOS (AppImage)
-
-AppImage is a format used in Linux systems to distribute portable software without the need for superuser privileges to
-install them. The core idea of AppImage is a file as an application. Each AppImage contains the application and all the
-files needed for the application to run. In other words, in addition to the underlying components of the operating
-system itself, AppImage runs without dependency. This is convenient for users.
-
-0. Install gnupg (If you have already followed please skip)
-    - For Debian/Ubuntu
-       ```shell
-       $ sudo apt update
-       $ sudo apt install gpg
-       ```
-    - For CentOS
-       ```shell
-       $ sudo yum install gnupg 
-       ```
-1. [Download](https://github.com/saturneric/GpgFrontend/releases) `GpgFrontend-*******-x86_64.AppImage`
-2. Give `GpgFrontend-***.AppImage` permission to execute
-    ```shell
-    $ chmod u+x ./GpgFrontend-***-x86_64.AppImage
-    ```
-3. Just double-click `GpgFrontend-***-x86_64.AppImage` to run it.
-
-### Debian/Ubuntu (DEB)
-
-With deb, you can easily manage dependencies using the apt tool. Deb packages are small compared to AppImage.
-
-0. Install gnupg (If you have already followed please skip)
-
-    - For Debian/Ubuntu
-
-      ```shell
-      $ sudo apt update
-      $ sudo apt install gpg
-      ```
-
-1. [Download](https://github.com/saturneric/GpgFrontend/releases) `GpgFrontend-*******-x86_64.deb`
-
-2. Use apt to install GpgFrontned.
-
-   ```shell
-   $ apt install ./GpgFrontend-*******-x86_64.deb
-   ```
-
-3. At this point, you can find the GpgFrontend icon in your app menu.
