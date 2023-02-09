@@ -1,9 +1,7 @@
 # Contract
 
-Contents related to business and politics are rejected. This tool belongs to all mankind. If you have any questions
+Contents related to business and politics are rejected. GpgFrontend is for all mankind. If you have any questions
 about technology and improving this software, please feel free to contact me.
-
-It is recommended to use plain text to contact me by email, but HTML is not recommended.
 
 ## About ME
 
@@ -11,11 +9,13 @@ Name: Saturneric, Eric or Erich.
 
 Email: [eric@bktus.com](mailto:eric@bktus.com) (Hosted in the Federal Republic of Germany)
 
-Tips: BKTUS(Bakantu union us) is not a company, it is my personal domain name.
+Email Content Style: It is recommended to use plain text without HTML style rich text.
+
+About Domain Name: BKTUS(Bakantu union us) is not a company, it is my personal domain name.
 
 ## Languages
 
-You can write to me in the following language.
+You can write to me in following languages.
 
 1. English
 2. Chinese
@@ -23,8 +23,8 @@ You can write to me in the following language.
 
 ## GPG Public Key Info
 
-This is the PGP public key that I support for a long time. You can use this public key to establish encrypted
-communication with me. Please use plain text for encrypted communication, do not use rich text formats such as HTML.
+This is the PGP public key that I use for a long time. You can use this public key to establish encrypted communication
+with me. Please use plain text for encrypted communication, do not use rich text formats.
 
 ```
 -----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -133,4 +133,3 @@ NBLmnMP3Dxpd21LKW8cWXa31F6E6eNf/45h7UGxVBRoOdPQ/Kwg4z69V9T/AXOuK
 =syqc
 -----END PGP PUBLIC KEY BLOCK-----
 ```
-
