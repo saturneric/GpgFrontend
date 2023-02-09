@@ -7,6 +7,7 @@
 ![CodeSize](https://img.shields.io/github/languages/code-size/saturneric/GpgFrontend)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&utm_medium=referral&utm_content=saturneric/GpgFrontend&utm_campaign=Badge_Grade)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/saturneric/gpgfrontend)
+![Homebrew Cask][https://img.shields.io/homebrew/cask/v/gpgfrontend]
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_small)
 [![Build & Package](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml)
 
@@ -69,7 +70,7 @@ read the [User Manual](https://www.gpgfrontend.pub/#/quick-start) instead of REA
 
 ## Developer Document
 
-You can view the developer documentation that is synchronized with the current latest release code. This document will 
+You can view the developer documentation that is synchronized with the current latest release code. This document will
 help you understand the source code and get involved more quickly in the process of contributing to open source.
 
 [Developer Document](https://doxygen.gpgfrontend.pub)
@@ -92,8 +93,8 @@ Before building, you need to install MSYS2. After installation, open the MSYS2 t
 MSYS2 directory, and execute the following commands:
 
 ```shell
-pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
-pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake 
+pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf
+pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake
 pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel mingw-w64-x86_64-gpgme
 pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
 ```
@@ -216,7 +217,7 @@ $ ./linuxdeployqt-continuous-x86_64.AppImage ../release/gpgfrontend/usr/share/ap
 ## Languages Support
 
 The supported languages are listed here. Some languages use machine translation and have not been verified. If you want
-to join translation and verification work, please refer to  [here](https://gpgfrontend.pub/#/translate-interface).
+to join translation and verification work, please refer to [here](https://gpgfrontend.pub/#/translate-interface).
 
 ### Supported Languages
 
