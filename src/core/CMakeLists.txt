@@ -87,7 +87,11 @@ target_link_libraries(gpgfrontend_core PRIVATE archive)
 target_link_libraries(gpgfrontend_core
         PUBLIC nlohmann_json::nlohmann_json)
 # link Qt core
-target_link_libraries(gpgfrontend_core PUBLIC Qt5::Core)
+if(Qt6_DIR)
+    target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core)
+else()
+    target_link_libraries(gpgfrontend_core PUBLIC Qt5::Core)
+endif()
 
 # set up pch
 target_precompile_headers(gpgfrontend_core
