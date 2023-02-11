@@ -225,7 +225,7 @@ void KeyPairUIDTab::slot_refresh_tofu_info() {
       continue;
     }
     auto tofu_infos = uid.GetTofuInfos();
-    SPDLOG_INFO("tofu info size: {}", tofu_infos->size());
+    SPDLOG_DEBUG("tofu info size: {}", tofu_infos->size());
     if (tofu_infos->empty()) {
       tofu_tabs_->hide();
     } else {
@@ -395,7 +395,7 @@ void KeyPairUIDTab::slot_del_uid() {
 
   if (ret == QMessageBox::Yes) {
     for (const auto& uid : *selected_uids) {
-      SPDLOG_INFO("uid: {}", uid);
+      SPDLOG_DEBUG("uid: {}", uid);
       if (!GpgUIDOperator::GetInstance().RevUID(m_key_, uid)) {
         QMessageBox::critical(
             nullptr, _("Operation Failed"),
@@ -587,8 +587,6 @@ void KeyPairUIDTab::slot_del_sign() {
   }
 }
 void KeyPairUIDTab::slot_refresh_key() {
-  SPDLOG_INFO("called");
-
   // refresh the key
   GpgKey refreshed_key = GpgKeyGetter::GetInstance().GetKey(m_key_.GetId());
   std::swap(this->m_key_, refreshed_key);

@@ -65,7 +65,7 @@ bool GpgFrontend::GpgUIDOperator::AddUID(const GpgFrontend::GpgKey& key,
                                          const std::string& name,
                                          const std::string& comment,
                                          const std::string& email) {
-  SPDLOG_INFO("GpgFrontend::UidOperator::AddUID", name, comment, email);
+  SPDLOG_DEBUG("new uuid: {} {} {}", name, comment, email);
   auto uid = boost::format("%1%(%2%)<%3%>") % name % comment % email;
   return AddUID(key, uid.str());
 }

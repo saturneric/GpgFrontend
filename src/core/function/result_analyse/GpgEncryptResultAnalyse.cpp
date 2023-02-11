@@ -33,7 +33,7 @@ GpgFrontend::GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(
     : error_(error), result_(std::move(result)) {}
 
 void GpgFrontend::GpgEncryptResultAnalyse::do_analyse() {
-  SPDLOG_INFO("start encrypt result analyse");
+  SPDLOG_DEBUG("start encrypt result analyse");
 
   stream_ << "[#] " << _("Encrypt Operation") << " ";
 

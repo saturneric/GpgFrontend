@@ -94,7 +94,7 @@ std::string GpgFrontend::FileOperator::CalculateHash(
       auto hash_md5 = QCryptographicHash(QCryptographicHash::Md5);
       hash_md5.addData(buffer);
       auto md5 = hash_md5.result().toHex().toStdString();
-      SPDLOG_INFO("md5 {}", md5);
+      SPDLOG_DEBUG("md5 {}", md5);
       ss << "    "
          << "md5" << _(": ") << md5 << std::endl;
 
@@ -102,7 +102,7 @@ std::string GpgFrontend::FileOperator::CalculateHash(
       auto hash_sha1 = QCryptographicHash(QCryptographicHash::Sha1);
       hash_sha1.addData(buffer);
       auto sha1 = hash_sha1.result().toHex().toStdString();
-      SPDLOG_INFO("sha1 {}", sha1);
+      SPDLOG_DEBUG("sha1 {}", sha1);
       ss << "    "
          << "sha1" << _(": ") << sha1 << std::endl;
 
@@ -110,7 +110,7 @@ std::string GpgFrontend::FileOperator::CalculateHash(
       auto hash_sha256 = QCryptographicHash(QCryptographicHash::Sha256);
       hash_sha256.addData(buffer);
       auto sha256 = hash_sha256.result().toHex().toStdString();
-      SPDLOG_INFO("sha256 {}", sha256);
+      SPDLOG_DEBUG("sha256 {}", sha256);
       ss << "    "
          << "sha256" << _(": ") << sha256 << std::endl;
 

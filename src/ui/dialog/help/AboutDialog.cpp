@@ -52,7 +52,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
   tab_widget->addTab(update_tab_, _("Update"));
 
   connect(tab_widget, &QTabWidget::currentChanged, this,
-          [&](int index) { SPDLOG_INFO("current index: {}", index); });
+          [&](int index) { SPDLOG_DEBUG("current index: {}", index); });
 
   if (defaultIndex < tab_widget->count() && defaultIndex >= 0) {
     tab_widget->setCurrentIndex(defaultIndex);
@@ -203,7 +203,7 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
 void UpdateTab::getLatestVersion() {
   this->pb_->setHidden(false);
 
-  SPDLOG_INFO("try to get latest version");
+  SPDLOG_DEBUG("try to get latest version");
 
   auto* version_task = new VersionCheckTask();
 

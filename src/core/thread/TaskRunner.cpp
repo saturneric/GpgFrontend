@@ -65,7 +65,7 @@ void GpgFrontend::Thread::TaskRunner::PostScheduleTask(Task* task,
 }
 
 [[noreturn]] void GpgFrontend::Thread::TaskRunner::run() {
-  SPDLOG_TRACE("called, thread id: {}", QThread::currentThreadId());
+  SPDLOG_TRACE("run, thread id: {}", QThread::currentThreadId());
   while (true) {
     SPDLOG_TRACE("task runner: a new cycle start");
     if (tasks.empty()) {

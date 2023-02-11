@@ -108,8 +108,8 @@ GeneralTab::GeneralTab(QWidget* parent)
                 this, _("Open Directory"), {},
                 QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-        SPDLOG_INFO("key databse path selected: {}",
-                    selected_custom_key_database_path.toStdString());
+        SPDLOG_DEBUG("key databse path selected: {}",
+                     selected_custom_key_database_path.toStdString());
 
         if (!selected_custom_key_database_path.isEmpty()) {
           auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
@@ -141,8 +141,8 @@ GeneralTab::GeneralTab(QWidget* parent)
                 this, _("Open Directory"), {},
                 QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-        SPDLOG_INFO("gnupg install path selected: {}",
-                    selected_custom_gnupg_install_path.toStdString());
+        SPDLOG_DEBUG("gnupg install path selected: {}",
+                     selected_custom_gnupg_install_path.toStdString());
 
         if (!selected_custom_gnupg_install_path.isEmpty()) {
           auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
@@ -197,7 +197,7 @@ void GeneralTab::SetSettings() {
   try {
     bool longer_expiration_date =
         settings.lookup("general.longer_expiration_date");
-    SPDLOG_INFO("longer_expiration_date: {}", longer_expiration_date);
+    SPDLOG_DEBUG("longer_expiration_date: {}", longer_expiration_date);
     if (longer_expiration_date)
       ui_->longerKeyExpirationDateCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
@@ -208,7 +208,7 @@ void GeneralTab::SetSettings() {
   try {
     std::string lang_key = settings.lookup("general.lang");
     QString lang_value = lang_.value(lang_key.c_str());
-    SPDLOG_INFO("lang settings current: {}", lang_value.toStdString());
+    SPDLOG_DEBUG("lang settings current: {}", lang_value.toStdString());
     if (!lang_.empty()) {
       ui_->langSelectBox->setCurrentIndex(
           ui_->langSelectBox->findText(lang_value));
@@ -222,7 +222,7 @@ void GeneralTab::SetSettings() {
 
   try {
     bool confirm_import_keys = settings.lookup("general.confirm_import_keys");
-    SPDLOG_INFO("confirm_import_keys: {}", confirm_import_keys);
+    SPDLOG_DEBUG("confirm_import_keys: {}", confirm_import_keys);
     if (confirm_import_keys)
       ui_->importConfirmationCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
@@ -232,7 +232,7 @@ void GeneralTab::SetSettings() {
   try {
     bool non_ascii_when_export =
         settings.lookup("general.non_ascii_when_export");
-    SPDLOG_INFO("non_ascii_when_export: {}", non_ascii_when_export);
+    SPDLOG_DEBUG("non_ascii_when_export: {}", non_ascii_when_export);
     if (non_ascii_when_export)
       ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
@@ -369,8 +369,8 @@ void GeneralTab::slot_update_custom_key_database_path_label(int state) {
       SPDLOG_ERROR("setting operation error: custom_key_database_path");
     }
 
-    SPDLOG_INFO("selected_custom_key_database_path from settings: {}",
-                custom_key_database_path);
+    SPDLOG_DEBUG("selected_custom_key_database_path from settings: {}",
+                 custom_key_database_path);
 
     // set label value
     if (!custom_key_database_path.empty()) {
@@ -403,8 +403,8 @@ void GeneralTab::slot_update_custom_gnupg_install_path_label(int state) {
       SPDLOG_ERROR("setting operation error: custom_gnupg_install_path");
     }
 
-    SPDLOG_INFO("custom_gnupg_install_path from settings: {}",
-                custom_gnupg_install_path);
+    SPDLOG_DEBUG("custom_gnupg_install_path from settings: {}",
+                 custom_gnupg_install_path);
 
     // set label value
     if (!custom_gnupg_install_path.empty()) {

@@ -57,8 +57,8 @@ WaitingDialog::WaitingDialog(const QString& title, QWidget* parent)
     int screen_width = geo.width();
     int screen_height = geo.height();
 
-    SPDLOG_INFO("primary screen available geometry: {} {}", screen_width,
-                screen_height);
+    SPDLOG_DEBUG("primary screen available geometry: {} {}", screen_width,
+                 screen_height);
 
     auto pos = QPoint((screen_width - QWidget::width()) / 2,
                       (screen_height - QWidget::height()) / 2);
@@ -67,7 +67,7 @@ WaitingDialog::WaitingDialog(const QString& title, QWidget* parent)
   } else {
     auto pos = QPoint(parent->x() + (parent->width() - QWidget::width()) / 2,
                       parent->y() + (parent->height() - QWidget::height()) / 2);
-    SPDLOG_INFO("pos: {} {}", pos.x(), pos.y());
+    SPDLOG_DEBUG("pos: {} {}", pos.x(), pos.y());
     this->move(pos);
   }
 

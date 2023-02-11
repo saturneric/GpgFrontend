@@ -39,13 +39,11 @@
 
 GpgFrontend::GpgKeyGetter::GpgKeyGetter(int channel)
     : SingletonFunctionObject<GpgKeyGetter>(channel) {
-  SPDLOG_INFO("called channel: {}", channel);
+  SPDLOG_DEBUG("called channel: {}", channel);
 }
 
 GpgFrontend::GpgKey GpgFrontend::GpgKeyGetter::GetKey(const std::string& fpr,
                                                       bool use_cache) {
-  SPDLOG_INFO("called");
-
   // find in cache first
   if (use_cache) {
     auto key = get_key_in_cache(fpr);
@@ -80,19 +78,19 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
   // get the lock
   std::lock_guard<std::mutex> lock(keys_cache_mutex_);
 
-  SPDLOG_INFO("channel id: {}", GetChannel());
+  SPDLOG_DEBUG("channel id: {}", GetChannel());
 
   auto keys_list = std::make_unique<GpgKeyLinkList>();
 
   for (const auto& [key, value] : keys_cache_) {
-    SPDLOG_INFO("fetch key id: {}", value.GetId());
+    SPDLOG_DEBUG("fetch key id: {}", value.GetId());
     keys_list->push_back(value.Copy());
   }
   return keys_list;
 }
 
 void GpgFrontend::GpgKeyGetter::FlushKeyCache() {
-  SPDLOG_INFO("called channel id: {}", GetChannel());
+  SPDLOG_DEBUG("called channel id: {}", GetChannel());
 
   // clear the keys cache
   keys_cache_.clear();
@@ -120,14 +118,14 @@ void GpgFrontend::GpgKeyGetter::FlushKeyCache() {
         gpg_key = GetKey(gpg_key.GetId(), false);
       }
 
-      SPDLOG_INFO("load key fpr: {} id: {}", gpg_key.GetFingerprint(),
-                  gpg_key.GetId());
+      SPDLOG_DEBUG("load key fpr: {} id: {}", gpg_key.GetFingerprint(),
+                   gpg_key.GetId());
       keys_cache_.insert({gpg_key.GetId(), std::move(gpg_key)});
     }
   }
 
-  SPDLOG_INFO("cache address: {} object address: {}",
-              static_cast<void*>(&keys_cache_), static_cast<void*>(this));
+  SPDLOG_DEBUG("cache address: {} object address: {}",
+               static_cast<void*>(&keys_cache_), static_cast<void*>(this));
 
   // for debug
   assert(check_gpg_error_2_err_code(err, GPG_ERR_EOF) == GPG_ERR_EOF);

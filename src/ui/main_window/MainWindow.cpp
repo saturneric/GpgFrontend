@@ -109,7 +109,7 @@ void MainWindow::Init() noexcept {
     bool show_wizard = true;
     wizard.lookupValue("show_wizard", show_wizard);
 
-    SPDLOG_INFO("wizard show_wizard: {}", show_wizard);
+    SPDLOG_DEBUG("wizard show_wizard: {}", show_wizard);
 
     if (show_wizard) {
       slot_start_wizard();
@@ -131,7 +131,7 @@ void MainWindow::Init() noexcept {
 
     // before application exit
     connect(qApp, &QCoreApplication::aboutToQuit, this, []() {
-      SPDLOG_INFO("about to quit process started");
+      SPDLOG_DEBUG("about to quit process started");
 
       auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
       try {
@@ -141,7 +141,7 @@ void MainWindow::Init() noexcept {
         if (clear_gpg_password_cache) {
           if (GpgFrontend::GpgAdvancedOperator::GetInstance()
                   .ClearGpgPasswordCache()) {
-            SPDLOG_INFO("clear gpg password cache done");
+            SPDLOG_DEBUG("clear gpg password cache done");
           } else {
             SPDLOG_ERROR("clear gpg password cache error");
           }
@@ -162,10 +162,8 @@ void MainWindow::Init() noexcept {
 }
 
 void MainWindow::restore_settings() {
-  SPDLOG_INFO("called");
-
   try {
-    SPDLOG_INFO("restore settings key_server");
+    SPDLOG_DEBUG("restore settings key_server");
 
     SettingsObject key_server_json("key_server");
     if (!key_server_json.contains("server_list") ||
@@ -201,7 +199,7 @@ void MainWindow::restore_settings() {
     import_button_->setToolButtonStyle(icon_style_);
 
     try {
-      SPDLOG_INFO("restore settings default_key_checked");
+      SPDLOG_DEBUG("restore settings default_key_checked");
 
       // Checked Keys
       SettingsObject default_key_checked("default_key_checked");
@@ -209,7 +207,7 @@ void MainWindow::restore_settings() {
         auto key_ids_ptr = std::make_unique<KeyIdArgsList>();
         for (auto &it : default_key_checked) {
           std::string key_id = it;
-          SPDLOG_INFO("get checked key id: {}", key_id);
+          SPDLOG_DEBUG("get checked key id: {}", key_id);
           key_ids_ptr->push_back(key_id);
         }
         m_key_list_->SetChecked(std::move(key_ids_ptr));
@@ -231,7 +229,7 @@ void MainWindow::restore_settings() {
   }
 
   GlobalSettingStation::GetInstance().SyncSettings();
-  SPDLOG_INFO("settings restored");
+  SPDLOG_DEBUG("settings restored");
 }
 
 void MainWindow::save_settings() {

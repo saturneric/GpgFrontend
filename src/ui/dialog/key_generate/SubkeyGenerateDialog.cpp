@@ -46,7 +46,7 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
   bool longer_expiration_date = false;
   try {
     longer_expiration_date = settings.lookup("general.longer_expiration_date");
-    SPDLOG_INFO("longer expiration date: {}", longer_expiration_date);
+    SPDLOG_DEBUG("longer expiration date: {}", longer_expiration_date);
 
   } catch (...) {
     SPDLOG_ERROR("setting operation error: longer_expiration_date");
@@ -208,8 +208,6 @@ void SubkeyGenerateDialog::slot_expire_box_changed() {
 }
 
 void SubkeyGenerateDialog::refresh_widgets_state() {
-  SPDLOG_INFO("refresh_widgets_state called");
-
   if (gen_key_info_->IsAllowEncryption())
     key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Checked);
   else
@@ -294,8 +292,9 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     }
 
     GpgError error;
+    // TODO: remove plain qt thread usage
     auto thread = QThread::create([&]() {
-      SPDLOG_INFO("thread started");
+      SPDLOG_DEBUG("thread started");
       error = GpgKeyOpera::GetInstance().GenerateSubkey(key_, gen_key_info_);
     });
     thread->start();
@@ -374,7 +373,7 @@ void SubkeyGenerateDialog::slot_authentication_box_changed(int state) {
 }
 
 void SubkeyGenerateDialog::slot_activated_key_type(int index) {
-  SPDLOG_INFO("key type index changed: {}", index);
+  SPDLOG_DEBUG("key type index changed: {}", index);
 
   // check
   assert(gen_key_info_->GetSupportedSubkeyAlgo().size() > index);

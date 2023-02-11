@@ -199,6 +199,6 @@ GpgFrontend::GpgGenKeyResult GpgFrontend::_new_result(
 }
 
 void GpgFrontend::_result_ref_deletor::operator()(void* _result) {
-  SPDLOG_INFO("called {}", _result);
+  SPDLOG_TRACE("gpgme unref {}", _result);
   if (_result != nullptr) gpgme_result_unref(_result);
 }

@@ -74,7 +74,7 @@ KeyserverTab::KeyserverTab(QWidget* parent)
 
   connect(ui_->keyServerListTable, &QTableWidget::itemChanged,
           [=](QTableWidgetItem* item) {
-            SPDLOG_INFO("item edited: {}", item->column());
+            SPDLOG_DEBUG("item edited: {}", item->column());
             if (item->column() != 1) return;
             const auto row_size = ui_->keyServerListTable->rowCount();
             // Update Actions

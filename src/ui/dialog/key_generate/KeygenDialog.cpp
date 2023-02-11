@@ -47,7 +47,7 @@ KeyGenDialog::KeyGenDialog(QWidget* parent)
   bool longer_expiration_date = false;
   try {
     longer_expiration_date = settings.lookup("general.longer_expiration_date");
-    SPDLOG_INFO("longer_expiration_date: {}", longer_expiration_date);
+    SPDLOG_DEBUG("longer_expiration_date: {}", longer_expiration_date);
 
   } catch (...) {
     SPDLOG_ERROR("setting operation error: longer_expiration_date");
@@ -164,7 +164,7 @@ void KeyGenDialog::slot_key_gen_accept() {
       CoreCommonUtil::GetInstance()->ResetTempCacheValue("__key_passphrase");
     }
 
-    SPDLOG_INFO("generate done");
+    SPDLOG_DEBUG("generate done");
 
     if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
       auto* msg_box = new QMessageBox((QWidget*)this->parent());
@@ -175,7 +175,7 @@ void KeyGenDialog::slot_key_gen_accept() {
       msg_box->setModal(true);
       msg_box->open();
 
-      SPDLOG_INFO("generate success");
+      SPDLOG_DEBUG("generate success");
 
       emit SignalKeyGenerated();
       this->close();
@@ -271,7 +271,7 @@ void KeyGenDialog::slot_authentication_box_changed(int state) {
 }
 
 void KeyGenDialog::slot_activated_key_type(int index) {
-  SPDLOG_INFO("key type index changed: {}", index);
+  SPDLOG_DEBUG("key type index changed: {}", index);
 
   // check
   assert(gen_key_info_->GetSupportedKeyAlgo().size() > index);
@@ -280,8 +280,6 @@ void KeyGenDialog::slot_activated_key_type(int index) {
 }
 
 void KeyGenDialog::refresh_widgets_state() {
-  SPDLOG_INFO("refresh_widgets_state called");
-
   if (gen_key_info_->IsAllowEncryption())
     key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Checked);
   else

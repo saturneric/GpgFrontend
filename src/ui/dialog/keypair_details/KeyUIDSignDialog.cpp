@@ -104,13 +104,11 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
 }
 
 void KeyUIDSignDialog::slot_sign_key(bool clicked) {
-  SPDLOG_INFO("called");
-
   // Set Signers
   auto key_ids = m_key_list_->GetChecked();
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
-  SPDLOG_INFO("key info got");
+  SPDLOG_DEBUG("key info got");
 #ifdef GPGFRONTEND_GUI_QT6
   auto expires =
       std::make_unique<boost::posix_time::ptime>(boost::posix_time::from_time_t(
@@ -120,9 +118,9 @@ void KeyUIDSignDialog::slot_sign_key(bool clicked) {
       boost::posix_time::from_time_t(expires_edit_->dateTime().toTime_t()));
 #endif
 
-  SPDLOG_INFO("sign start");
+  SPDLOG_DEBUG("sign start");
   for (const auto& uid : *m_uids_) {
-    SPDLOG_INFO("sign uid: {}", uid);
+    SPDLOG_DEBUG("sign uid: {}", uid);
     // Sign For mKey
     if (!GpgKeyManager::GetInstance().SignKey(m_key_, *keys, uid, expires)) {
       QMessageBox::critical(

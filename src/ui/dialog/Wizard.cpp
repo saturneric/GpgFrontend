@@ -60,7 +60,6 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
 }
 
 void Wizard::slot_wizard_accepted() {
-  SPDLOG_INFO("called");
   // Don't show is mapped to show -> negation
   try {
     auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
@@ -223,7 +222,6 @@ KeyGenPage::KeyGenPage(QWidget* parent) : QWizardPage(parent) {
 int KeyGenPage::nextId() const { return Wizard::Page_Conclusion; }
 
 void KeyGenPage::slot_generate_key_dialog() {
-  SPDLOG_INFO("try opening KeyGenDialog");
   (new KeyGenDialog(this))->show();
   wizard()->next();
 }

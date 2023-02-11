@@ -145,8 +145,8 @@ int main(int argc, char* argv[]) {
         return_from_event_loop_code = CRASH_CODE;
       }
 
-      SPDLOG_INFO("restart loop refresh, event loop code: {}",
-                  return_from_event_loop_code);
+      SPDLOG_DEBUG("restart loop refresh, event loop code: {}",
+                   return_from_event_loop_code);
     } while (return_from_event_loop_code == RESTART_CODE);
 
     if (return_from_event_loop_code == DEEP_RESTART_CODE ||
@@ -154,11 +154,11 @@ int main(int argc, char* argv[]) {
       // reset core
       GpgFrontend::ResetGpgFrontendCore();
       // log for debug
-      SPDLOG_INFO("deep restart or cash loop refresh");
+      SPDLOG_DEBUG("deep restart or cash loop refresh");
     } else {
       // log for debug
-      SPDLOG_INFO("need to close application, event loop code: {}",
-                  return_from_event_loop_code);
+      SPDLOG_DEBUG("need to close application, event loop code: {}",
+                   return_from_event_loop_code);
     }
 
     // deep restart mode
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
            return_from_event_loop_code == CRASH_CODE);
 
   // log for debug
-  SPDLOG_INFO("GpgFrontend about to exit");
+  SPDLOG_INFO("GpgFrontend about to exit.");
 
   // exit the program
   return return_from_event_loop_code;

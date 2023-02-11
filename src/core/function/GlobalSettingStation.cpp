@@ -34,8 +34,8 @@ void GpgFrontend::GlobalSettingStation::SyncSettings() noexcept {
   using namespace libconfig;
   try {
     ui_cfg_.writeFile(ui_config_path_.u8string().c_str());
-    SPDLOG_INFO("updated ui configuration successfully written to {}",
-                ui_config_path_.u8string());
+    SPDLOG_DEBUG("updated ui configuration successfully written to {}",
+                 ui_config_path_.u8string());
 
   } catch (const FileIOException &fioex) {
     SPDLOG_ERROR("i/o error while writing ui configuration file: {}",
@@ -66,18 +66,19 @@ GpgFrontend::GlobalSettingStation::GlobalSettingStation(int channel) noexcept
   if (!exists(ui_config_path_)) {
     try {
       this->ui_cfg_.writeFile(ui_config_path_.u8string().c_str());
-      SPDLOG_INFO("userInterface configuration successfully written to {}",
-                  ui_config_path_.u8string());
+      SPDLOG_DEBUG("user interface configuration successfully written to {}",
+                   ui_config_path_.u8string());
 
     } catch (const FileIOException &fioex) {
-      SPDLOG_INFO("i/o error while writing UserInterface configuration file {}",
-                  ui_config_path_.u8string());
+      SPDLOG_DEBUG(
+          "i/o error while writing UserInterface configuration file {}",
+          ui_config_path_.u8string());
     }
   } else {
     try {
       this->ui_cfg_.readFile(ui_config_path_.u8string().c_str());
-      SPDLOG_INFO("user interface configuration successfully read from {}",
-                  ui_config_path_.u8string());
+      SPDLOG_DEBUG("user interface configuration successfully read from {}",
+                   ui_config_path_.u8string());
     } catch (const FileIOException &fioex) {
       SPDLOG_ERROR("i/o error while reading UserInterface configure file");
     } catch (const ParseException &pex) {

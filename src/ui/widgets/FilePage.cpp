@@ -108,7 +108,7 @@ void FilePage::slot_file_tree_view_item_clicked(const QModelIndex& index) {
 #endif
 
   m_path_ = selected_path_;
-  SPDLOG_INFO("selected path: {}", selected_path_.u8string());
+  SPDLOG_DEBUG("selected path: {}", selected_path_.u8string());
 
   selected_path_ = std::filesystem::path(selected_path_);
   MainWindow::CryptoMenu::OperationType operation_type =
@@ -164,10 +164,10 @@ void FilePage::slot_up_level() {
   std::filesystem::path path_obj(str_path);
 
   m_path_ = path_obj;
-  SPDLOG_INFO("get path: {}", m_path_.u8string());
+  SPDLOG_DEBUG("get path: {}", m_path_.u8string());
   if (m_path_.has_parent_path() && !m_path_.parent_path().empty()) {
     m_path_ = m_path_.parent_path();
-    SPDLOG_INFO("parent path: {}", m_path_.u8string());
+    SPDLOG_DEBUG("parent path: {}", m_path_.u8string());
     ui_->pathEdit->setText(m_path_.u8string().c_str());
     this->SlotGoPath();
   }
@@ -204,7 +204,7 @@ void FilePage::SlotGoPath() {
     m_path_ = std::filesystem::path(fileInfo.filePath().toStdString());
 #endif
 
-    SPDLOG_INFO("set path: {}", m_path_.u8string());
+    SPDLOG_DEBUG("set path: {}", m_path_.u8string());
     ui_->fileTreeView->setRootIndex(dir_model_->index(fileInfo.filePath()));
     dir_model_->setRootPath(fileInfo.filePath());
     for (int i = 1; i < dir_model_->columnCount(); ++i) {
@@ -267,7 +267,7 @@ void FilePage::create_popup_menu() {
   auto showHiddenAct = new QAction(_("Show Hidden File"), this);
   showHiddenAct->setCheckable(true);
   connect(showHiddenAct, &QAction::triggered, this, [&](bool checked) {
-    SPDLOG_INFO("set hidden: {}", checked);
+    SPDLOG_DEBUG("set hidden: {}", checked);
     if (checked)
       dir_model_->setFilter(dir_model_->filter() | QDir::Hidden);
     else
@@ -279,7 +279,7 @@ void FilePage::create_popup_menu() {
   auto showSystemAct = new QAction(_("Show System File"), this);
   showSystemAct->setCheckable(true);
   connect(showSystemAct, &QAction::triggered, this, [&](bool checked) {
-    SPDLOG_INFO("set hidden: {}", checked);
+    SPDLOG_DEBUG("set hidden: {}", checked);
     if (checked)
       dir_model_->setFilter(dir_model_->filter() | QDir::System);
     else
@@ -291,7 +291,7 @@ void FilePage::create_popup_menu() {
 
 void FilePage::onCustomContextMenu(const QPoint& point) {
   QModelIndex index = ui_->fileTreeView->indexAt(point);
-  SPDLOG_INFO("right click: {}", selected_path_.u8string());
+  SPDLOG_DEBUG("right click: {}", selected_path_.u8string());
 
 #ifdef WINDOWS
   auto index_dir_str =
@@ -328,7 +328,7 @@ void FilePage::slot_open_item() {
   if (info.isDir()) {
     if (info.isReadable() && info.isExecutable()) {
       const auto file_path = info.filePath().toUtf8().toStdString();
-      SPDLOG_INFO("set path: {}", file_path);
+      SPDLOG_DEBUG("set path: {}", file_path);
       ui_->pathEdit->setText(info.filePath().toUtf8());
       SlotGoPath();
     } else {
@@ -340,7 +340,7 @@ void FilePage::slot_open_item() {
       // handle normal text or binary file
       auto main_window = qobject_cast<MainWindow*>(first_parent_);
       auto qt_open_path = QString::fromStdString(selected_path_.u8string());
-      SPDLOG_INFO("open item: {}", qt_open_path.toStdString());
+      SPDLOG_DEBUG("open item: {}", qt_open_path.toStdString());
       if (main_window != nullptr) main_window->SlotOpenFile(qt_open_path);
     } else {
       QMessageBox::critical(this, _("Error"),
@@ -365,7 +365,7 @@ void FilePage::slot_rename_item() {
 #else
       new_name_path /= text.toStdString();
 #endif
-      SPDLOG_INFO("new name path: {}", new_name_path.u8string());
+      SPDLOG_DEBUG("new name path: {}", new_name_path.u8string());
       std::filesystem::rename(old_name_path, new_name_path);
       // refresh
       this->SlotGoPath();
@@ -387,7 +387,7 @@ void FilePage::slot_delete_item() {
 
   if (ret == QMessageBox::Cancel) return;
 
-  SPDLOG_INFO("delete item: {}", data.toString().toStdString());
+  SPDLOG_DEBUG("delete item: {}", data.toString().toStdString());
 
   if (!dir_model_->remove(index)) {
     QMessageBox::critical(this, _("Error"),
@@ -441,7 +441,7 @@ void FilePage::slot_create_empty_file() {
 }
 
 void FilePage::keyPressEvent(QKeyEvent* event) {
-  SPDLOG_INFO("key press: {}", event->key());
+  SPDLOG_DEBUG("key press: {}", event->key());
   if (ui_->pathEdit->hasFocus() &&
       (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)) {
     SlotGoPath();

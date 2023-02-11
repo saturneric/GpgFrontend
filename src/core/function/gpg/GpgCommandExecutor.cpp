@@ -37,12 +37,10 @@ void GpgFrontend::GpgCommandExecutor::Execute(
     std::string cmd, std::vector<std::string> arguments,
     std::function<void(int, std::string, std::string)> callback,
     std::function<void(QProcess *)> interact_func) {
-  SPDLOG_INFO("called cmd {} arguments size: {}", cmd, arguments.size());
+  SPDLOG_DEBUG("called cmd {} arguments size: {}", cmd, arguments.size());
 
   Thread::Task::TaskCallback result_callback =
       [](int rtn, Thread::Task::DataObjectPtr data_object) {
-        SPDLOG_INFO("called");
-
         if (data_object->GetObjectSize() != 4)
           throw std::runtime_error("invalid data object size");
 
@@ -75,7 +73,7 @@ void GpgFrontend::GpgCommandExecutor::Execute(
     cmd_process->setProcessChannelMode(QProcess::MergedChannels);
 
     QObject::connect(cmd_process, &QProcess::started,
-                     []() -> void { SPDLOG_INFO("process started"); });
+                     []() -> void { SPDLOG_DEBUG("process started"); });
     QObject::connect(
         cmd_process, &QProcess::readyReadStandardOutput,
         [interact_func, cmd_process]() { interact_func(cmd_process); });
@@ -113,7 +111,7 @@ void GpgFrontend::GpgCommandExecutor::Execute(
       q_arguments.append(QString::fromStdString(argument));
     cmd_process->setArguments(q_arguments);
 
-    SPDLOG_INFO("process execute ready");
+    SPDLOG_DEBUG("process execute ready");
 
     cmd_process->start();
     cmd_process->waitForFinished(30);

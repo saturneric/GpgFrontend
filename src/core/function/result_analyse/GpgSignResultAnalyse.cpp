@@ -35,7 +35,7 @@ GpgFrontend::GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error,
     : error_(error), result_(std::move(result)) {}
 
 void GpgFrontend::GpgSignResultAnalyse::do_analyse() {
-  SPDLOG_INFO("start sign result analyse");
+  SPDLOG_DEBUG("start sign result analyse");
 
   stream_ << "[#] " << _("Sign Operation") << " ";
 
@@ -49,14 +49,14 @@ void GpgFrontend::GpgSignResultAnalyse::do_analyse() {
 
   if (result_ != nullptr &&
       (result_->signatures != nullptr || result_->invalid_signers != nullptr)) {
-    SPDLOG_INFO("sign result analyse getting result");
+    SPDLOG_DEBUG("sign result analyse getting result");
     stream_ << "------------>" << std::endl;
     auto new_sign = result_->signatures;
 
     while (new_sign != nullptr) {
       stream_ << "[>]" << _("New Signature") << ": " << std::endl;
 
-      SPDLOG_INFO("signers fingerprint: ", new_sign->fpr);
+      SPDLOG_DEBUG("signers fingerprint: ", new_sign->fpr);
 
       stream_ << "    " << _("Sign Mode") << ": ";
       if (new_sign->type == GPGME_SIG_MODE_NORMAL)
@@ -92,7 +92,7 @@ void GpgFrontend::GpgSignResultAnalyse::do_analyse() {
       new_sign = new_sign->next;
     }
 
-    SPDLOG_INFO("sign result analyse getting invalid signer");
+    SPDLOG_DEBUG("sign result analyse getting invalid signer");
 
     auto invalid_signer = result_->invalid_signers;
 
