@@ -28,6 +28,7 @@
 
 #include "KeyServerImportDialog.h"
 
+#include <QRegExp>
 #include <string>
 #include <utility>
 
@@ -363,8 +364,14 @@ void KeyServerImportDialog::slot_search_finished(
           uid->setText(line2[1]);
           keys_table_->setItem(row, 0, uid);
         }
+#ifdef GPGFRONTEND_GUI_QT6
+        auto* creation_date =
+            new QTableWidgetItem(QDateTime::fromSecsSinceEpoch(line[4].toInt())
+                                     .toString("dd. MMM. yyyy"));
+#else
         auto* creation_date = new QTableWidgetItem(
             QDateTime::fromTime_t(line[4].toInt()).toString("dd. MMM. yyyy"));
+#endif
         keys_table_->setItem(row, 1, creation_date);
         auto* keyid = new QTableWidgetItem(line[1]);
         keys_table_->setItem(row, 2, keyid);

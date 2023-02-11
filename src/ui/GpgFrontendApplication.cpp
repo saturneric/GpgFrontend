@@ -26,6 +26,8 @@
 
 #include "ui/GpgFrontendApplication.h"
 
+#include <QTextCodec>
+
 #include "GpgFrontendBuildInfo.h"
 
 namespace GpgFrontend::UI {
@@ -34,11 +36,6 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
     : QApplication(argc, argv) {
 #ifndef MACOS
   this->setWindowIcon(QIcon(":gpgfrontend.png"));
-#endif
-
-#ifdef MACOS
-  // support retina screen
-  this->setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
 
   // set the extra information of the build

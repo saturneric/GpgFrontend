@@ -232,20 +232,35 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   if (to_time_t(boost::posix_time::ptime(key_.GetExpireTime())) == 0) {
     expire_var_label_->setText(_("Never Expire"));
   } else {
+#ifdef GPGFRONTEND_GUI_QT6
+    expire_var_label_->setText(QLocale::system().toString(
+        QDateTime::fromSecsSinceEpoch(to_time_t(key_.GetExpireTime()))));
+#else
     expire_var_label_->setText(QLocale::system().toString(
         QDateTime::fromTime_t(to_time_t(key_.GetExpireTime()))));
+#endif
   }
 
   key_algo_val = key_.GetPublicKeyAlgo();
 
+#ifdef GPGFRONTEND_GUI_QT6
+  created_var_label_->setText(QLocale::system().toString(
+      QDateTime::fromSecsSinceEpoch(to_time_t(key_.GetCreateTime()))));
+#else
   created_var_label_->setText(QLocale::system().toString(
       QDateTime::fromTime_t(to_time_t(key_.GetCreateTime()))));
+#endif
 
   if (to_time_t(boost::posix_time::ptime(key_.GetLastUpdateTime())) == 0) {
     last_update_var_label_->setText(_("No Data"));
   } else {
+#ifdef GPGFRONTEND_GUI_QT6
+    last_update_var_label_->setText(QLocale::system().toString(
+        QDateTime::fromSecsSinceEpoch(to_time_t(key_.GetLastUpdateTime()))));
+#else
     last_update_var_label_->setText(QLocale::system().toString(
         QDateTime::fromTime_t(to_time_t(key_.GetLastUpdateTime()))));
+#endif
   }
 
   key_size_var_label_->setText(key_size_val.c_str());

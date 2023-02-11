@@ -277,17 +277,30 @@ void KeyPairUIDTab::slot_refresh_sig_list() {
             new QTableWidgetItem(QString::fromStdString(sig.GetEmail()));
         sig_list_->setItem(sigRow, 2, tmp3);
       }
-
+#ifdef GPGFRONTEND_GUI_QT6
+      auto* tmp4 = new QTableWidgetItem(QLocale::system().toString(
+          QDateTime::fromSecsSinceEpoch(to_time_t(sig.GetCreateTime()))));
+#else
       auto* tmp4 = new QTableWidgetItem(QLocale::system().toString(
           QDateTime::fromTime_t(to_time_t(sig.GetCreateTime()))));
+#endif
       sig_list_->setItem(sigRow, 3, tmp4);
 
+#ifdef GPGFRONTEND_GUI_QT6
+      auto* tmp5 = new QTableWidgetItem(
+          boost::posix_time::to_time_t(
+              boost::posix_time::ptime(sig.GetExpireTime())) == 0
+              ? _("Never Expires")
+              : QLocale::system().toString(QDateTime::fromSecsSinceEpoch(
+                    to_time_t(sig.GetExpireTime()))));
+#else
       auto* tmp5 = new QTableWidgetItem(
           boost::posix_time::to_time_t(
               boost::posix_time::ptime(sig.GetExpireTime())) == 0
               ? _("Never Expires")
               : QLocale::system().toString(
                     QDateTime::fromTime_t(to_time_t(sig.GetExpireTime()))));
+#endif
       tmp5->setTextAlignment(Qt::AlignCenter);
       sig_list_->setItem(sigRow, 4, tmp5);
 

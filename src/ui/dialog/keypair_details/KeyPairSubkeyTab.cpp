@@ -243,10 +243,18 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   time_t subkey_time_t = boost::posix_time::to_time_t(
       boost::posix_time::ptime(subkey.GetExpireTime()));
 
+#ifdef GPGFRONTEND_GUI_QT6
+  expire_var_label_->setText(
+      subkey_time_t == 0
+          ? _("Never Expires")
+          : QLocale::system().toString(QDateTime::fromSecsSinceEpoch(
+                to_time_t(subkey.GetExpireTime()))));
+#else
   expire_var_label_->setText(
       subkey_time_t == 0 ? _("Never Expires")
                          : QLocale::system().toString(QDateTime::fromTime_t(
                                to_time_t(subkey.GetExpireTime()))));
+#endif
   if (subkey_time_t != 0 &&
       subkey.GetExpireTime() < boost::posix_time::second_clock::local_time()) {
     auto paletteExpired = expire_var_label_->palette();
@@ -259,8 +267,13 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   }
 
   algorithm_var_label_->setText(QString::fromStdString(subkey.GetPubkeyAlgo()));
+#ifdef GPGFRONTEND_GUI_QT6
+  created_var_label_->setText(QLocale::system().toString(
+      QDateTime::fromSecsSinceEpoch(to_time_t(subkey.GetCreateTime()))));
+#else
   created_var_label_->setText(QLocale::system().toString(
       QDateTime::fromTime_t(to_time_t(subkey.GetCreateTime()))));
+#endif
 
   std::stringstream usage_steam;
 

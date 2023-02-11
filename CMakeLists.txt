@@ -464,8 +464,13 @@ find_package(OpenSSL REQUIRED)
 
 # Introduce Qt
 if (QT5_ENV_SUPPORT)
-    # Support Qt version Both 5.12.x and 5.15.x
-    find_package(Qt5 5.9 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    # Support Qt version: 6.x, 5.12.x and 5.15.x
+    find_package(Qt6 6.3 COMPONENTS Core Test Widgets PrintSupport Network Core5Compat)
+    if(NOT Qt6_DIR)
+        find_package(Qt5 5.9 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    else()
+        add_definitions(-DGPGFRONTEND_GUI_QT6)
+    endif()
     
     # Qt configuration
     set(CMAKE_AUTOMOC ON)

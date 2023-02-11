@@ -62,8 +62,14 @@ void KeySetExpireDateDialog::slot_confirm() {
   auto datetime = QDateTime(ui_->dateEdit->date(), ui_->timeEdit->time());
   std::unique_ptr<boost::posix_time::ptime> expires = nullptr;
   if (ui_->noExpirationCheckBox->checkState() == Qt::Unchecked) {
+#ifdef GPGFRONTEND_GUI_QT6
+    expires = std::make_unique<boost::posix_time::ptime>(
+        boost::posix_time::from_time_t(
+            datetime.toLocalTime().toSecsSinceEpoch()));
+#else
     expires = std::make_unique<boost::posix_time::ptime>(
         boost::posix_time::from_time_t(datetime.toLocalTime().toTime_t()));
+#endif
     SPDLOG_INFO("keyid: {}", m_key_.GetId(), m_subkey_,
                 to_iso_string(*expires));
   } else {
@@ -116,8 +122,13 @@ void KeySetExpireDateDialog::init() {
   ui_->dateEdit->setMinimumDateTime(min_date_time);
 
   // set default date time to expire date time
+#ifdef GPGFRONTEND_GUI_QT6
+  auto current_expire_time =
+      QDateTime::fromSecsSinceEpoch(to_time_t(m_key_.GetExpireTime()));
+#else
   auto current_expire_time =
       QDateTime::fromTime_t(to_time_t(m_key_.GetExpireTime()));
+#endif
   ui_->dateEdit->setDateTime(current_expire_time);
   ui_->timeEdit->setDateTime(current_expire_time);
 
