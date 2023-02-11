@@ -49,13 +49,61 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
   explicit GpgAdvancedOperator(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
   bool ClearGpgPasswordCache();
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
   bool ReloadGpgComponents();
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
   bool RestartGpgComponents();
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
   bool ResetConfigures();
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  bool StartGpgAgent();
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  bool StartDirmngr();
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  bool StartKeyBoxd();
 
  private:
   GpgContext& ctx_ = GpgContext::GetInstance(

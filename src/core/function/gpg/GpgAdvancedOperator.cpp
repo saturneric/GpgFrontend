@@ -47,7 +47,6 @@ bool GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache() {
           success = true;
         }
       });
-
   return success;
 }
 
@@ -65,17 +64,18 @@ bool GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents() {
           return;
         }
       });
-
   return success;
 }
 
 bool GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
   bool success = false;
+
   GpgFrontend::GpgCommandExecutor::GetInstance().Execute(
-      ctx_.GetInfo().GpgConfPath, {"--kill", "all"},
+      ctx_.GetInfo().GpgConfPath, {"--verbose", "--kill", "all"},
       [&](int exit_code, const std::string &p_out, const std::string &p_err) {
         if (exit_code == 0) {
           success = true;
+          return;
         } else {
           SPDLOG_ERROR(
               "gpgconf execute error, process stderr: {}, process stdout: {}",
@@ -84,19 +84,13 @@ bool GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
         }
       });
 
-  GpgFrontend::GpgCommandExecutor::GetInstance().Execute(
-      ctx_.GetInfo().GpgConfPath, {"--launch", "all"},
-      [&](int exit_code, const std::string &p_out, const std::string &p_err) {
-        if (exit_code == 0) {
-          success = true;
-        } else {
-          success = false;
-          SPDLOG_ERROR(
-              "gpgconf execute error, process stderr: {}, process stdout: {}",
-              p_err, p_out);
-          return;
-        }
-      });
+  if (!success) return false;
+
+  success &= StartGpgAgent();
+
+  success &= StartDirmngr();
+
+  success &= StartKeyBoxd();
 
   return success;
 }
@@ -111,6 +105,75 @@ bool GpgFrontend::GpgAdvancedOperator::ResetConfigures() {
         } else {
           SPDLOG_ERROR(
               "gpgconf execute error, process stderr: {}, process stdout: {}",
+              p_err, p_out);
+          return;
+        }
+      });
+
+  return success;
+}
+
+bool GpgFrontend::GpgAdvancedOperator::StartGpgAgent() {
+  bool success = false;
+  GpgFrontend::GpgCommandExecutor::GetInstance().Execute(
+      ctx_.GetInfo().GpgAgentPath,
+      {"--homedir", ctx_.GetInfo().GnuPGHomePath, "--daemon"},
+      [&](int exit_code, const std::string &p_out, const std::string &p_err) {
+        if (exit_code == 0) {
+          success = true;
+          SPDLOG_INFO("start gpg-agent successfully");
+        } else if (exit_code == 2) {
+          success = true;
+          SPDLOG_INFO("gpg-agent already started");
+        } else {
+          SPDLOG_ERROR(
+              "gpg-agent execute error, process stderr: {}, process stdout: {}",
+              p_err, p_out);
+          return;
+        }
+      });
+
+  return success;
+}
+
+bool GpgFrontend::GpgAdvancedOperator::StartDirmngr() {
+  bool success = false;
+  GpgFrontend::GpgCommandExecutor::GetInstance().Execute(
+      ctx_.GetInfo().DirmngrPath,
+      {"--homedir", ctx_.GetInfo().GnuPGHomePath, "--daemon"},
+      [&](int exit_code, const std::string &p_out, const std::string &p_err) {
+        if (exit_code == 0) {
+          success = true;
+          SPDLOG_INFO("start dirmngr successfully");
+        } else if (exit_code == 2) {
+          success = true;
+          SPDLOG_INFO("dirmngr already started");
+        } else {
+          SPDLOG_ERROR(
+              "dirmngr execute error, process stderr: {}, process stdout: {}",
+              p_err, p_out);
+          return;
+        }
+      });
+
+  return success;
+}
+
+bool GpgFrontend::GpgAdvancedOperator::StartKeyBoxd() {
+  bool success = false;
+  GpgFrontend::GpgCommandExecutor::GetInstance().Execute(
+      ctx_.GetInfo().KeyboxdPath,
+      {"--homedir", ctx_.GetInfo().GnuPGHomePath, "--daemon"},
+      [&](int exit_code, const std::string &p_out, const std::string &p_err) {
+        if (exit_code == 0) {
+          success = true;
+          SPDLOG_INFO("start keyboxd successfully");
+        } else if (exit_code == 2) {
+          success = true;
+          SPDLOG_INFO("keyboxd already started");
+        } else {
+          SPDLOG_ERROR(
+              "keyboxd execute error, process stderr: {}, process stdout: {}",
               p_err, p_out);
           return;
         }
