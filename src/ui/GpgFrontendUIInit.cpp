@@ -164,9 +164,6 @@ void init_logging_system() {
   ui_logger->flush_on(spdlog::level::err);
   spdlog::flush_every(std::chrono::seconds(5));
 
-  // register it
-  spdlog::register_logger(ui_logger);
-
   // register it as default logger
   spdlog::set_default_logger(ui_logger);
 }
@@ -193,7 +190,7 @@ void init_locale() {
   // sync the settings to the file
   GpgFrontend::GlobalSettingStation::GetInstance().SyncSettings();
 
-  SPDLOG_INFO("current system locale: {}", setlocale(LC_ALL, nullptr));
+  SPDLOG_DEBUG("current system locale: {}", setlocale(LC_ALL, nullptr));
 
   // read from settings file
   std::string lang;
@@ -201,9 +198,9 @@ void init_locale() {
     SPDLOG_ERROR(_("could not read properly from configure file"));
   };
 
-  SPDLOG_INFO("lang from settings: {}", lang);
-  SPDLOG_INFO("project name: {}", PROJECT_NAME);
-  SPDLOG_INFO(
+  SPDLOG_DEBUG("lang from settings: {}", lang);
+  SPDLOG_DEBUG("project name: {}", PROJECT_NAME);
+  SPDLOG_DEBUG(
       "locales path: {}",
       GpgFrontend::GlobalSettingStation::GetInstance().GetLocaleDir().c_str());
 
@@ -218,7 +215,7 @@ void init_locale() {
     // set LANGUAGE
     std::string language_env = language == nullptr ? "en" : language;
     language_env.insert(0, lang + ":");
-    SPDLOG_INFO("language env: {}", language_env);
+    SPDLOG_DEBUG("language env: {}", language_env);
     if (setenv("LANGUAGE", language_env.c_str(), 1)) {
       SPDLOG_WARN("set LANGUAGE failed", language_env);
     };
@@ -236,7 +233,7 @@ void init_locale() {
     std::string language_env = language == nullptr ? "en" : language;
     language_env.insert(0, lang + ":");
     language_env.insert(0, "LANGUAGE=");
-    SPDLOG_INFO("language env: {}", language_env);
+    SPDLOG_DEBUG("language env: {}", language_env);
     if (putenv(language_env.c_str())) {
       spdlog::warn, "set LANGUAGE failed", language_env;
     };

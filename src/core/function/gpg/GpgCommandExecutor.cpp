@@ -58,15 +58,15 @@ void GpgFrontend::GpgCommandExecutor::Execute(
 
   Thread::Task::TaskRunnable runner =
       [](GpgFrontend::Thread::Task::DataObjectPtr data_object) -> int {
-    SPDLOG_INFO("process runner called, data object size: {}",
-                data_object->GetObjectSize());
+    SPDLOG_DEBUG("process runner called, data object size: {}",
+                 data_object->GetObjectSize());
 
     if (data_object->GetObjectSize() != 4)
       throw std::runtime_error("invalid data object size");
 
     // get arguments
     auto cmd = data_object->PopObject<std::string>();
-    SPDLOG_INFO("get cmd: {}", cmd);
+    SPDLOG_DEBUG("get cmd: {}", cmd);
     auto arguments = data_object->PopObject<std::vector<std::string>>();
     auto interact_func =
         data_object->PopObject<std::function<void(QProcess *)>>();
@@ -79,22 +79,31 @@ void GpgFrontend::GpgCommandExecutor::Execute(
     QObject::connect(
         cmd_process, &QProcess::readyReadStandardOutput,
         [interact_func, cmd_process]() { interact_func(cmd_process); });
-    QObject::connect(
-        cmd_process, &QProcess::errorOccurred,
-        [=](QProcess::ProcessError error) {
-          SPDLOG_ERROR("error in executing command: {} error: {} stdout: {}",
-                       cmd, error,
-                       cmd_process->readAllStandardOutput().toStdString());
-        });
+    QObject::connect(cmd_process, &QProcess::errorOccurred,
+                     [=](QProcess::ProcessError error) {
+                       SPDLOG_ERROR(
+                           "error in executing command: {} error: {} stdout: "
+                           "{}, stderr: {} ",
+                           cmd, error,
+                           cmd_process->readAllStandardOutput().toStdString(),
+                           cmd_process->readAllStandardError().toStdString());
+                     });
     QObject::connect(
         cmd_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
         [=](int, QProcess::ExitStatus status) {
           if (status == QProcess::NormalExit)
-            SPDLOG_INFO("succeed in executing command: {}, exit status: {}",
-                        cmd, status);
+            SPDLOG_DEBUG(
+                "proceess finished, succeed in executing command: {}, exit "
+                "status: {}",
+                cmd, status);
           else
-            SPDLOG_ERROR("error in executing command: {}, exit status: {}", cmd,
-                         status);
+            SPDLOG_ERROR(
+                "proceess finished, error in executing command: {}, exit "
+                "status: {}, arguments: {}, stdout: {}, "
+                "stderr: {}",
+                cmd, status, cmd_process->arguments().join(" ").toStdString(),
+                cmd_process->readAllStandardOutput().toStdString(),
+                cmd_process->readAllStandardError().toStdString());
         });
 
     cmd_process->setProgram(QString::fromStdString(cmd));

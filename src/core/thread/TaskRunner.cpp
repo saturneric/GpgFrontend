@@ -84,11 +84,11 @@ void GpgFrontend::Thread::TaskRunner::PostScheduleTask(Task* task,
 
       if (task != nullptr) {
         // Run the task
-        SPDLOG_TRACE("task runner: running task: {}", task->GetUUID());
+        SPDLOG_TRACE("task runner: running task {}", task->GetUUID());
         try {
           task->run();
         } catch (const std::exception& e) {
-          SPDLOG_ERROR("task runner: exception in task: {} , exception: {}",
+          SPDLOG_ERROR("task runner: exception in task {}, exception: {}",
                        task->GetUUID(), e.what());
 
           // destroy the task, remove the task from the pending tasks
