@@ -29,6 +29,7 @@
 #ifndef __SGPGMEPP_CONTEXT_H__
 #define __SGPGMEPP_CONTEXT_H__
 
+#include <optional>
 #include <string>
 
 #include "GpgConstants.h"
@@ -122,6 +123,12 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
    * @return std::string
    */
   std::string need_user_input_passphrase();
+
+  /**
+   * @brief Construct a new std::check component existence object
+   *
+   */
+  std::optional<std::string> check_binary_chacksum(std::filesystem::path);
 
   /**
    * @brief

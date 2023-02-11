@@ -38,13 +38,17 @@ namespace GpgFrontend {
  */
 class GpgInfo {
  public:
-  std::string AppPath;       ///<  executable binary path of gnupg
-  std::string DatabasePath;  ///<
-  std::string GnupgVersion;  ///<
-  std::string GpgConfPath;   ///<
-  std::string AssuanPath;    ///<
-  std::string CMSPath;       ///<
-  std::string GpgMEVersion;  ///<
+  std::string AppPath;        ///<  executable binary path of gnupg
+  std::string DatabasePath;   ///<
+  std::string GnupgVersion;   ///<
+  std::string GpgConfPath;    ///<
+  std::string AssuanPath;     ///<
+  std::string CMSPath;        ///<
+  std::string GpgAgentPath;   ///<
+  std::string DirmngrPath;    ///<
+  std::string KeyboxdPath;    ///<
+  std::string GpgMEVersion;   ///<
+  std::string GnuPGHomePath;  ///<
 
   std::map<std::string, std::vector<std::string>> ComponentsInfo;        ///<
   std::map<std::string, std::vector<std::string>> ConfigurationsInfo;    ///<

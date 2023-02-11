@@ -66,7 +66,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
   mainLayout->addWidget(buttonBox);
   setLayout(mainLayout);
 
-  this->resize(450, 580);
+  this->resize(550, 650);
   this->setMinimumWidth(450);
   this->show();
 }

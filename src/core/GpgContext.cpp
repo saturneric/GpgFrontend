@@ -339,9 +339,14 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
           auto &components_info = info_.ComponentsInfo;
           components_info["gpgme"] = {"GPG Made Easy", info_.GpgMEVersion,
-                                      _("Embedded In")};
-          components_info["gpgconf"] = {"GPG Configure", "/",
-                                        info_.GpgConfPath};
+                                      _("Embedded In"), "/"};
+
+          auto gpgconf_binary_checksum =
+              check_binary_chacksum(info_.GpgConfPath);
+          components_info["gpgconf"] = {"GPG Configure", "/", info_.GpgConfPath,
+                                        gpgconf_binary_checksum.has_value()
+                                            ? gpgconf_binary_checksum.value()
+                                            : "/"};
 
           std::vector<std::string> line_split_list;
           boost::split(line_split_list, p_out, boost::is_any_of("\n"));
@@ -349,19 +354,39 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
           for (const auto &line : line_split_list) {
             std::vector<std::string> info_split_list;
             boost::split(info_split_list, line, boost::is_any_of(":"));
-            SPDLOG_INFO("gpgconf info line: {} info size: {}", line,
-                        info_split_list.size());
 
             if (info_split_list.size() != 3) continue;
 
             auto component_name = info_split_list[0];
+            auto component_desc = info_split_list[1];
+            auto component_path = info_split_list[2];
+            auto binary_checksum = check_binary_chacksum(component_path);
+
+            SPDLOG_DEBUG(
+                "gnupg component name: {} desc: {} checksum: {} path: {} ",
+                component_name, component_desc,
+                binary_checksum.has_value() ? binary_checksum.value() : "/",
+                component_path);
+
+            std::string version = "/";
+
             if (component_name == "gpg") {
-              components_info[component_name] = {
-                  info_split_list[1], info_.GnupgVersion, info_split_list[2]};
-            } else {
-              components_info[component_name] = {info_split_list[1], "/",
-                                                 info_split_list[2]};
+              version = info_.GnupgVersion;
             }
+            if (component_name == "gpg-agent") {
+              info_.GpgAgentPath = info_split_list[2];
+            }
+            if (component_name == "dirmngr") {
+              info_.DirmngrPath = info_split_list[2];
+            }
+            if (component_name == "keyboxd") {
+              info_.KeyboxdPath = info_split_list[2];
+            }
+
+            // add component info to list
+            components_info[component_name] = {
+                component_desc, version, component_path,
+                binary_checksum.has_value() ? binary_checksum.value() : "/"};
           }
         });
 
@@ -392,6 +417,11 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
                         info_split_list.size());
 
             if (info_split_list.size() != 2) continue;
+
+            // record gnupg home path
+            if (info_split_list[0] == "homedir") {
+              info_.GnuPGHomePath = info_split_list[1];
+            }
 
             auto configuration_name = info_split_list[0];
             configurations_info[configuration_name] = {info_split_list[1]};
@@ -490,6 +520,24 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
     extend_info_loaded_ = true;
   }
   return info_;
+}
+
+std::optional<std::string> GpgContext::check_binary_chacksum(
+    std::filesystem::path path) {
+  QFile f(QString::fromStdString(path.u8string()));
+  if (!f.open(QFile::ReadOnly)) return {};
+
+  // read all data from file
+  auto buffer = f.readAll();
+  f.close();
+
+  auto hash_md5 = QCryptographicHash(QCryptographicHash::Md5);
+  // md5
+  hash_md5.addData(buffer);
+  auto md5 = hash_md5.result().toHex().toStdString();
+  SPDLOG_DEBUG("md5 {}", md5);
+
+  return md5.substr(0, 6);
 }
 
 void GpgContext::_ctx_ref_deleter::operator()(gpgme_ctx_t _ctx) {
