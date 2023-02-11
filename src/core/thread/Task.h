@@ -78,7 +78,7 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
      */
     template <typename T>
     void AppendObject(T &&obj) {
-      SPDLOG_TRACE("called: {}", static_cast<void *>(this));
+      SPDLOG_TRACE("append object: {}", static_cast<void *>(this));
       auto *obj_dstr = this->get_heap_ptr(sizeof(T));
       new ((void *)obj_dstr->p_obj) T(std::forward<T>(obj));
 
@@ -125,7 +125,7 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
      */
     template <typename T>
     T PopObject() {
-      SPDLOG_TRACE("called: {}", static_cast<void *>(this));
+      SPDLOG_TRACE("pop object: {}", static_cast<void *>(this));
       if (data_objects_.empty()) throw std::runtime_error("No object to pop");
       auto *obj_dstr = data_objects_.top();
       auto *heap_ptr = (T *)obj_dstr->p_obj;

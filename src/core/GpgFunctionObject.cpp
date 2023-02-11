@@ -125,8 +125,8 @@ GpgFrontend::SingletonStorageCollection::GetInstance(
 
   if (force_refresh || instance == nullptr) {
     instance = new SingletonStorageCollection();
-    SPDLOG_INFO("new single storage collection created: {}",
-                static_cast<void*>(instance));
+    SPDLOG_DEBUG("new single storage collection created: {}",
+                 static_cast<void*>(instance));
   }
 
   return instance;

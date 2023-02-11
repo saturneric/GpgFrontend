@@ -67,7 +67,7 @@ bool path_pre_check(QWidget* parent, const QString& path) {
  */
 bool process_tarball_into_directory(QWidget* parent,
                                     std::filesystem::path& path) {
-  SPDLOG_INFO("converting directory into tarball: {}", path.u8string());
+  SPDLOG_DEBUG("converting directory into tarball: {}", path.u8string());
   auto selected_dir_path = std::filesystem::path(path);
 
   if (selected_dir_path.extension() != ".tar") {
@@ -81,8 +81,8 @@ bool process_tarball_into_directory(QWidget* parent,
     auto target_path = selected_dir_path;
     target_path.replace_extension(".tar");
 
-    SPDLOG_INFO("base path: {} target archive path: {]", base_path.u8string(),
-                target_path.u8string());
+    SPDLOG_DEBUG("base path: {} target archive path: {]", base_path.u8string(),
+                 target_path.u8string());
 
     bool if_error = false;
     process_operation(parent, _("Extracting Tarball"),
@@ -125,9 +125,9 @@ bool process_directory_into_tarball(QWidget* parent, QString& path) {
     auto target_path = selected_dir_path;
     selected_dir_path.replace_extension("");
 
-    SPDLOG_INFO("base path: {} target archive path: {} selected_dir_path: {}",
-                base_path.u8string(), target_path.u8string(),
-                selected_dir_path.u8string());
+    SPDLOG_DEBUG("base path: {} target archive path: {} selected_dir_path: {}",
+                 base_path.u8string(), target_path.u8string(),
+                 selected_dir_path.u8string());
 
     bool if_error = false;
     process_operation(parent, _("Making Tarball"),
@@ -489,8 +489,8 @@ void MainWindow::SlotFileVerify() {
     data_file_path = sign_file_path.parent_path() / sign_file_path.stem();
   }
 
-  SPDLOG_INFO("sign_file_path: {} {}", sign_file_path.u8string(),
-              sign_file_path.extension().u8string());
+  SPDLOG_DEBUG("sign_file_path: {} {}", sign_file_path.u8string(),
+               sign_file_path.extension().u8string());
 
   if (in_path.extension() != ".gpg") {
     bool ok;
@@ -513,8 +513,8 @@ void MainWindow::SlotFileVerify() {
     return;
   }
 
-  SPDLOG_INFO("data path: {}", data_file_path.u8string());
-  SPDLOG_INFO("sign path: {}", sign_file_path.u8string());
+  SPDLOG_DEBUG("data path: {}", data_file_path.u8string());
+  SPDLOG_DEBUG("sign path: {}", sign_file_path.u8string());
 
   GpgVerifyResult result = nullptr;
   gpgme_error_t error;
@@ -699,7 +699,7 @@ void MainWindow::SlotFileDecryptVerify() {
   } else {
     out_path += ".out";
   }
-  SPDLOG_INFO("out path: {}", out_path.u8string());
+  SPDLOG_DEBUG("out path: {}", out_path.u8string());
 
   if (QFile::exists(out_path.u8string().c_str())) {
     auto ret =

@@ -36,7 +36,7 @@
 #include "core/function/PassphraseGenerator.h"
 
 void GpgFrontend::DataObjectOperator::init_app_secure_key() {
-  SPDLOG_INFO("initializing application secure key");
+  SPDLOG_DEBUG("initializing application secure key");
   FileOperator::WriteFileStd(app_secure_key_path_,
                              PassphraseGenerator::GetInstance().Generate(256));
   std::filesystem::permissions(
@@ -60,7 +60,7 @@ GpgFrontend::DataObjectOperator::DataObjectOperator(int channel)
   }
   hash_key_ = QCryptographicHash::hash(QByteArray::fromStdString(key),
                                        QCryptographicHash::Sha256);
-  SPDLOG_INFO("app secure key loaded {} bytes", hash_key_.size());
+  SPDLOG_DEBUG("app secure key loaded {} bytes", hash_key_.size());
 
   if (!exists(app_data_objs_path_)) create_directory(app_data_objs_path_);
 }
@@ -93,8 +93,8 @@ std::string GpgFrontend::DataObjectOperator::SaveDataObj(
   auto encoded =
       encryption.encode(QByteArray::fromStdString(to_string(value)), hash_key_);
 
-  SPDLOG_INFO("saving data object {} to {} , size: {} bytes", _hash_obj_key,
-              obj_path.u8string(), encoded.size());
+  SPDLOG_DEBUG("saving data object {} to {} , size: {} bytes", _hash_obj_key,
+               obj_path.u8string(), encoded.size());
 
   FileOperator::WriteFileStd(obj_path.u8string(), encoded.toStdString());
 
@@ -104,7 +104,7 @@ std::string GpgFrontend::DataObjectOperator::SaveDataObj(
 std::optional<nlohmann::json> GpgFrontend::DataObjectOperator::GetDataObject(
     const std::string& _key) {
   try {
-    SPDLOG_INFO("get data object {}", _key);
+    SPDLOG_DEBUG("get data object {}", _key);
     auto _hash_obj_key =
         QCryptographicHash::hash(hash_key_ + QByteArray::fromStdString(_key),
                                  QCryptographicHash::Sha256)
@@ -124,19 +124,19 @@ std::optional<nlohmann::json> GpgFrontend::DataObjectOperator::GetDataObject(
       return {};
     }
 
-    SPDLOG_INFO("data object found {}", _key);
+    SPDLOG_DEBUG("data object found {}", _key);
 
     auto encoded = QByteArray::fromStdString(buffer);
     QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                               QAESEncryption::Padding::ISO);
 
-    SPDLOG_INFO("decrypting data object {} , hash key size: {}", encoded.size(),
-                hash_key_.size());
+    SPDLOG_DEBUG("decrypting data object {} , hash key size: {}",
+                 encoded.size(), hash_key_.size());
 
     auto decoded =
         encryption.removePadding(encryption.decode(encoded, hash_key_));
 
-    SPDLOG_INFO("data object decoded: {}", _key);
+    SPDLOG_DEBUG("data object decoded: {}", _key);
 
     return nlohmann::json::parse(decoded.toStdString());
   } catch (...) {

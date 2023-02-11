@@ -46,7 +46,7 @@ void FileReadTask::Run() {
   SetFinishAfterRun(false);
 
   if (is_regular_file(read_file_path_)) {
-    SPDLOG_INFO("read open file: {}", read_file_path_.u8string());
+    SPDLOG_DEBUG("read open file: {}", read_file_path_.u8string());
 
     target_file_.setFileName(
         QString::fromStdString(read_file_path_.u8string()));
@@ -57,7 +57,7 @@ void FileReadTask::Run() {
       if (target_file_.isOpen()) target_file_.close();
       return;
     }
-    SPDLOG_INFO("started reading: {}", read_file_path_.u8string());
+    SPDLOG_DEBUG("started reading: {}", read_file_path_.u8string());
     read_bytes();
   } else {
     emit SignalFileBytesReadEnd();
@@ -68,10 +68,10 @@ void FileReadTask::read_bytes() {
   QByteArray read_buffer;
   if (!target_file_.atEnd() &&
       (read_buffer = target_file_.read(buffer_size_)).size() > 0) {
-    SPDLOG_INFO("read bytes: {}", read_buffer.size());
+    SPDLOG_DEBUG("read bytes: {}", read_buffer.size());
     emit SignalFileBytesRead(std::move(read_buffer));
   } else {
-    SPDLOG_INFO("read bytes end");
+    SPDLOG_DEBUG("read bytes end");
     emit SignalFileBytesReadEnd();
     // finish task
     emit SignalTaskFinished();
@@ -79,7 +79,7 @@ void FileReadTask::read_bytes() {
 }
 
 FileReadTask::~FileReadTask() {
-  SPDLOG_INFO("close file: {}", read_file_path_.u8string());
+  SPDLOG_DEBUG("close file: {}", read_file_path_.u8string());
   if (target_file_.isOpen()) target_file_.close();
 }
 

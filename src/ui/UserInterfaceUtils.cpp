@@ -74,7 +74,7 @@ void import_unknown_key_from_keyserver(
     auto key_ids = std::make_unique<KeyIdArgsList>();
     auto *signature = verify_res.GetSignatures();
     while (signature != nullptr) {
-      SPDLOG_INFO("signature fpr: {}", signature->fpr);
+      SPDLOG_DEBUG("signature fpr: {}", signature->fpr);
       key_ids->push_back(signature->fpr);
       signature = signature->next;
     }
@@ -105,8 +105,6 @@ void process_result_analyse(TextEdit *edit, InfoBoardWidget *info_board,
 void process_result_analyse(TextEdit *edit, InfoBoardWidget *info_board,
                             const GpgResultAnalyse &result_analyse_a,
                             const GpgResultAnalyse &result_analyse_b) {
-  SPDLOG_INFO("process_result_analyse Started");
-
   info_board->AssociateTabWidget(edit->tab_widget_);
 
   refresh_info_board(
@@ -150,8 +148,6 @@ CommonUtils *CommonUtils::GetInstance() {
 }
 
 CommonUtils::CommonUtils() : QWidget(nullptr) {
-  SPDLOG_INFO("common utils created");
-
   connect(CoreCommonUtil::GetInstance(), &CoreCommonUtil::SignalGnupgNotInstall,
           this, &CommonUtils::SignalGnupgNotInstall);
   connect(this, &CommonUtils::SignalKeyStatusUpdated,
@@ -234,7 +230,7 @@ void CommonUtils::SlotExecuteCommand(
           &QEventLoop::quit);
   connect(cmd_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
   connect(cmd_process, &QProcess::started,
-          []() -> void { SPDLOG_INFO("process started"); });
+          []() -> void { SPDLOG_DEBUG("process started"); });
   connect(cmd_process, &QProcess::readyReadStandardOutput,
           [interact_func, cmd_process]() { interact_func(cmd_process); });
   connect(cmd_process, &QProcess::errorOccurred, this,
@@ -243,7 +239,7 @@ void CommonUtils::SlotExecuteCommand(
           qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
           [=](int, QProcess::ExitStatus status) {
             if (status == QProcess::NormalExit)
-              SPDLOG_INFO("succeed in executing command: {}", cmd);
+              SPDLOG_DEBUG("succeed in executing command: {}", cmd);
             else
               SPDLOG_WARN("error in executing command: {}", cmd);
           });
@@ -271,7 +267,7 @@ void CommonUtils::SlotExecuteGpgCommand(
           &WaitingDialog::deleteLater);
   connect(gpg_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
   connect(gpg_process, &QProcess::started,
-          []() -> void { SPDLOG_INFO("gpg process started"); });
+          []() -> void { SPDLOG_DEBUG("gpg process started"); });
   connect(gpg_process, &QProcess::readyReadStandardOutput,
           [interact_func, gpg_process]() { interact_func(gpg_process); });
   connect(gpg_process, &QProcess::errorOccurred, this, [=]() -> void {
@@ -325,8 +321,8 @@ void CommonUtils::SlotImportKeyFromKeyServer(
       target_keyserver =
           key_server_list[target_key_server_index].get<std::string>();
 
-      SPDLOG_INFO("set target key server to default Key Server: {}",
-                  target_keyserver);
+      SPDLOG_DEBUG("set target key server to default Key Server: {}",
+                   target_keyserver);
     } catch (...) {
       SPDLOG_ERROR(_("Cannot read default_keyserver From Settings"));
       QMessageBox::critical(
@@ -349,7 +345,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
           target_keyserver_url.scheme() + "://" + target_keyserver_url.host() +
           "/pks/lookup?op=get&search=0x" + key_id.c_str() + "&options=mr");
 
-      SPDLOG_INFO("request url: {}", req_url.toString().toStdString());
+      SPDLOG_DEBUG("request url: {}", req_url.toString().toStdString());
 
       // Waiting for reply
       QNetworkReply *reply = network_manager->get(QNetworkRequest(req_url));
@@ -402,8 +398,6 @@ void CommonUtils::SlotImportKeyFromKeyServer(
 }
 
 void CommonUtils::slot_update_key_status() {
-  SPDLOG_INFO("called");
-
   auto refresh_task = new Thread::Task([](Thread::Task::DataObjectPtr) -> int {
     // flush key cache for all GpgKeyGetter Intances.
     for (const auto &channel_id : GpgKeyGetter::GetAllChannelId()) {
@@ -420,8 +414,6 @@ void CommonUtils::slot_update_key_status() {
 }
 
 void CommonUtils::slot_popup_passphrase_input_dialog() {
-  SPDLOG_INFO("called");
-
   auto *dialog = new QInputDialog(QApplication::activeWindow(), Qt::Dialog);
   dialog->setModal(true);
   dialog->setWindowTitle(_("Password Input Dialog"));

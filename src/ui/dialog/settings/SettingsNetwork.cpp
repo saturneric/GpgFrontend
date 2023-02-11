@@ -151,8 +151,6 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
 }
 
 void GpgFrontend::UI::NetworkTab::ApplySettings() {
-  SPDLOG_INFO("called");
-
   auto &settings =
       GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
 
@@ -224,8 +222,6 @@ void GpgFrontend::UI::NetworkTab::ApplySettings() {
   }
 
   apply_proxy_settings();
-
-  SPDLOG_INFO("done");
 }
 
 void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
@@ -270,7 +266,7 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
       waiting_dialog->deleteLater();
     });
     connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
-      SPDLOG_INFO("cancel clicked");
+      SPDLOG_DEBUG("cancel clicked");
       if (thread->isRunning()) thread->terminate();
     });
 

@@ -72,7 +72,7 @@ bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
   try {
     app_done = QApplication::notify(receiver, event);
   } catch (const std::exception &ex) {
-    SPDLOG_INFO("exception caught in notify: {}", ex.what());
+    SPDLOG_ERROR("exception caught in notify: {}", ex.what());
     QMessageBox::information(nullptr, _("Standard Exception Thrown"),
                              _("Oops, an standard exception was thrown "
                                "during the running of the "
@@ -80,7 +80,7 @@ bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
                                "be the negligence of the programmer, "
                                "please report this problem if you can."));
   } catch (...) {
-    SPDLOG_INFO("unknown exception caught in notify");
+    SPDLOG_ERROR("unknown exception caught in notify");
     QMessageBox::information(
         nullptr, _("Unhandled Exception Thrown"),
         _("Oops, an unhandled exception was thrown "

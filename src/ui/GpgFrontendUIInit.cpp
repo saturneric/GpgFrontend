@@ -92,13 +92,13 @@ void InitGpgFrontendUI(QApplication* app) {
   waiting_dialog->resize(420, 120);
   app->connect(init_ctx_task, &Thread::CtxCheckTask::SignalTaskFinished,
                waiting_dialog, [=]() {
-                 SPDLOG_INFO("gpg context loaded");
+                 SPDLOG_DEBUG("gpg context loaded");
                  waiting_dialog->finished(0);
                  waiting_dialog->deleteLater();
                });
 
   app->connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
-    SPDLOG_INFO("cancel clicked");
+    SPDLOG_DEBUG("cancel clicked");
     app->quit();
     exit(0);
   });
@@ -125,7 +125,7 @@ int RunGpgFrontendUI(QApplication* app) {
   // create main window and show it
   auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
   main_window->Init();
-  SPDLOG_INFO("main window inited");
+  SPDLOG_DEBUG("main window inited");
   main_window->show();
   // start the main event loop
   return app->exec();

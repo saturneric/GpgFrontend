@@ -253,8 +253,7 @@ void KeyServerImportDialog::slot_search() {
 
 void KeyServerImportDialog::slot_search_finished(
     QNetworkReply::NetworkError error, QByteArray buffer) {
-  SPDLOG_INFO("called {} {}", error, buffer.size());
-  SPDLOG_INFO(buffer.toStdString());
+  SPDLOG_DEBUG("search result {} {}", error, buffer.size());
 
   keys_table_->clearContents();
   keys_table_->setRowCount(0);
@@ -262,7 +261,7 @@ void KeyServerImportDialog::slot_search_finished(
   auto stream = QTextStream(buffer);
 
   if (error != QNetworkReply::NoError) {
-    SPDLOG_INFO("error from reply: {}", error);
+    SPDLOG_DEBUG("error from reply: {}", error);
 
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
@@ -475,8 +474,6 @@ void KeyServerImportDialog::SlotImport(std::vector<std::string> key_ids,
 
 void KeyServerImportDialog::slot_import_finished(
     QNetworkReply::NetworkError error, QByteArray buffer) {
-  SPDLOG_INFO("called");
-
   if (error != QNetworkReply::NoError) {
     SPDLOG_ERROR("Error From Reply", buffer.toStdString());
     if (!m_automatic_) {

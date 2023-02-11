@@ -55,7 +55,7 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
     const std::filesystem::path &base_path,
     const std::filesystem::path &archive_path, int compress,
     const std::vector<std::filesystem::path> &files) {
-  SPDLOG_INFO("CreateArchive: {}", archive_path.u8string());
+  SPDLOG_DEBUG("CreateArchive: {}", archive_path.u8string());
 
   auto current_base_path_backup = QDir::currentPath();
   QDir::setCurrent(base_path.u8string().c_str());
@@ -74,7 +74,7 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
   ssize_t len;
   int fd;
 
-  SPDLOG_INFO("compress: {}", compress);
+  SPDLOG_DEBUG("compress: {}", compress);
 
   a = archive_write_new();
   switch (compress) {
@@ -119,7 +119,7 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
 #endif
     int r;
 
-    SPDLOG_INFO("reading file: {}", file.u8string());
+    SPDLOG_DEBUG("reading file: {}", file.u8string());
 
 #ifdef WINDOWS
     r = archive_read_disk_open_w(disk, file.wstring().c_str());
@@ -127,7 +127,7 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
     r = archive_read_disk_open(disk, file.u8string().c_str());
 #endif
 
-    SPDLOG_INFO("read file done: {}", file.u8string());
+    SPDLOG_DEBUG("read file done: {}", file.u8string());
 
     if (r != ARCHIVE_OK) {
       SPDLOG_ERROR("{archive_read_disk_open() failed: {}",
@@ -158,9 +158,9 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
       auto entry_path = std::string(archive_entry_pathname_utf8(entry));
 #endif
 
-      SPDLOG_INFO("Adding: {} size: {} bytes: {} file type: {}",
-                  archive_entry_pathname_utf8(entry), archive_entry_size(entry),
-                  archive_entry_filetype(entry));
+      SPDLOG_DEBUG("Adding: {} size: {} bytes: {} file type: {}",
+                   archive_entry_pathname_utf8(entry),
+                   archive_entry_size(entry), archive_entry_filetype(entry));
 
       r = archive_write_header(a, entry);
       if (r < ARCHIVE_OK) {
@@ -193,7 +193,7 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
 void GpgFrontend::ArchiveFileOperator::ExtractArchive(
     const std::filesystem::path &archive_path,
     const std::filesystem::path &base_path) {
-  SPDLOG_INFO("ExtractArchive: {}", archive_path.u8string());
+  SPDLOG_DEBUG("ExtractArchive: {}", archive_path.u8string());
 
   auto current_base_path_backup = QDir::currentPath();
   QDir::setCurrent(base_path.u8string().c_str());
@@ -249,9 +249,9 @@ void GpgFrontend::ArchiveFileOperator::ExtractArchive(
                    archive_error_string(a));
       throw std::runtime_error("archive_read_next_header() failed");
     }
-    SPDLOG_INFO("Adding: {} size: {} bytes: {} file type: {}",
-                archive_entry_pathname_utf8(entry), archive_entry_size(entry),
-                archive_entry_filetype(entry));
+    SPDLOG_DEBUG("Adding: {} size: {} bytes: {} file type: {}",
+                 archive_entry_pathname_utf8(entry), archive_entry_size(entry),
+                 archive_entry_filetype(entry));
     r = archive_write_header(ext, entry);
     if (r != ARCHIVE_OK) {
       SPDLOG_ERROR("archive_write_header() failed: {}",
@@ -285,8 +285,8 @@ void GpgFrontend::ArchiveFileOperator::ListArchive(
                                  10240);  // Note 1
   if (r != ARCHIVE_OK) return;
   while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
-    SPDLOG_INFO("File: {}", archive_entry_pathname(entry));
-    SPDLOG_INFO("File Path: {}", archive_entry_pathname(entry));
+    SPDLOG_DEBUG("File: {}", archive_entry_pathname(entry));
+    SPDLOG_DEBUG("File Path: {}", archive_entry_pathname(entry));
     archive_read_data_skip(a);  // Note 2
   }
   r = archive_read_free(a);  // Note 3

@@ -47,8 +47,6 @@ void GpgFrontend::UI::GeneralMainWindow::closeEvent(QCloseEvent *event) {
 
 void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
   try {
-    SPDLOG_INFO(name_, _("Called"));
-
     SettingsObject general_windows_state(name_ + "_state");
 
     std::string window_state = general_windows_state.Check(
@@ -75,7 +73,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
       size_ = {width, height};
 
       if (this->parent() != nullptr) {
-        SPDLOG_INFO("parent address: {}", static_cast<void *>(this->parent()));
+        SPDLOG_DEBUG("parent address: {}", static_cast<void *>(this->parent()));
 
         QPoint parent_pos = {0, 0};
         QSize parent_size = {0, 0};
@@ -92,10 +90,10 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
           parent_size = parent_window->size();
         }
 
-        SPDLOG_INFO("parent pos x: {} y: {}", parent_pos.x(), parent_pos.y());
+        SPDLOG_DEBUG("parent pos x: {} y: {}", parent_pos.x(), parent_pos.y());
 
-        SPDLOG_INFO("parent size width: {} height: {}", parent_size.width(),
-                    parent_size.height());
+        SPDLOG_DEBUG("parent size width: {} height: {}", parent_size.width(),
+                     parent_size.height());
 
         if (parent_pos != QPoint{0, 0}) {
           QPoint parent_center{parent_pos.x() + parent_size.width() / 2,
@@ -115,7 +113,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
 
     int width = general_settings_state.Check("icon_size").Check("width", 24),
         height = general_settings_state.Check("icon_size").Check("height", 24);
-    SPDLOG_INFO("icon size: {} {}", width, height);
+    SPDLOG_DEBUG("icon size: {} {}", width, height);
 
     icon_size_ = {width, height};
     font_size_ = general_settings_state.Check("font_size", 10);
@@ -135,8 +133,6 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
 
 void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
   try {
-    SPDLOG_INFO(name_, _("Called"));
-
     SettingsObject general_windows_state(name_ + "_state");
 
     // window position and size

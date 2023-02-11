@@ -50,7 +50,7 @@ GpgFrontend::CharsetOperator::CharsetInfo GpgFrontend::CharsetOperator::Detect(
     return {"unknown", "unknown", 0};
   }
 
-  SPDLOG_INFO("detecting charset buffer: {} bytes", buffer.size());
+  SPDLOG_DEBUG("detecting charset buffer: {} bytes", buffer.size());
 
   status = U_ZERO_ERROR;
   ucsdet_setText(csd, buffer.data(), buffer.size(), &status);
@@ -77,7 +77,7 @@ GpgFrontend::CharsetOperator::CharsetInfo GpgFrontend::CharsetOperator::Detect(
   const char *language = ucsdet_getLanguage(ucm, &status);
   if (U_FAILURE(status)) return {name, "unknown", confidence};
 
-  SPDLOG_INFO("Detected charset: {} {} {}", name, language, confidence);
+  SPDLOG_DEBUG("Detected charset: {} {} {}", name, language, confidence);
   return {name, language, confidence};
 }
 
@@ -88,7 +88,7 @@ bool GpgFrontend::CharsetOperator::Convert2Utf8(const std::string &buffer,
   const auto from_encode = std::string("utf-8");
   const auto to_encode = from_charset_name;
 
-  SPDLOG_INFO("Converting buffer: {}", buffer.size());
+  SPDLOG_DEBUG("Converting buffer: {}", buffer.size());
 
   // test if the charset is supported
   UConverter *conv = ucnv_open(from_encode.c_str(), &status);
@@ -130,6 +130,6 @@ bool GpgFrontend::CharsetOperator::Convert2Utf8(const std::string &buffer,
     return false;
   }
 
-  SPDLOG_INFO("converted buffer: {} bytes", out_buffer.size());
+  SPDLOG_DEBUG("converted buffer: {} bytes", out_buffer.size());
   return true;
 }

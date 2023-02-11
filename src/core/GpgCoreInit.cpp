@@ -96,8 +96,8 @@ void init_gpgfrontend_core() {
     SPDLOG_ERROR("setting operation error: use_custom_key_database_path");
   }
 
-  SPDLOG_INFO("core loaded if use custom key databse path: {}",
-              use_custom_key_database_path);
+  SPDLOG_DEBUG("core loaded if use custom key databse path: {}",
+               use_custom_key_database_path);
 
   std::string custom_key_database_path;
   try {
@@ -110,8 +110,8 @@ void init_gpgfrontend_core() {
     SPDLOG_ERROR("setting operation error: custom_key_database_path");
   }
 
-  SPDLOG_INFO("core loaded custom key databse path: {}",
-              custom_key_database_path);
+  SPDLOG_DEBUG("core loaded custom key databse path: {}",
+               custom_key_database_path);
 
   // init default channel
   GpgFrontend::GpgContext::CreateInstance(

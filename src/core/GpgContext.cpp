@@ -60,7 +60,7 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
 
   if (_first) {
     /* Initialize the locale environment. */
-    SPDLOG_INFO("locale: {}", setlocale(LC_CTYPE, nullptr));
+    SPDLOG_DEBUG("locale: {}", setlocale(LC_CTYPE, nullptr));
     info_.GpgMEVersion = gpgme_check_version(nullptr);
     gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
 #ifdef LC_MESSAGES
@@ -92,7 +92,7 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
       continue;
     }
 
-    SPDLOG_INFO(
+    SPDLOG_DEBUG(
         "gpg context engine info: {} {} {} {}",
         gpgme_get_protocol_name(engine_info->protocol),
         std::string(engine_info->file_name == nullptr ? "null"
@@ -141,7 +141,7 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
     auto err = gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_OpenPGP,
                                          info_.AppPath.c_str(),
                                          info_.DatabasePath.c_str());
-    SPDLOG_INFO("ctx set custom key db path: {}", info_.DatabasePath);
+    SPDLOG_DEBUG("ctx set custom key db path: {}", info_.DatabasePath);
     assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
   }
 
@@ -156,7 +156,6 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
     SPDLOG_ERROR("env check failed");
     return;
   } else {
-    SPDLOG_INFO("gnupg version {}", info_.GnupgVersion);
     // async, init context
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
@@ -173,7 +172,7 @@ void GpgContext::post_init_ctx() {
   // Set Independent Database
   if (info_.GnupgVersion <= "2.0.0" && args_.independent_database) {
     info_.DatabasePath = args_.db_path;
-    SPDLOG_INFO("custom key db path {}", info_.DatabasePath);
+    SPDLOG_DEBUG("custom key db path {}", info_.DatabasePath);
     auto err = gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_OpenPGP,
                                          info_.AppPath.c_str(),
                                          info_.DatabasePath.c_str());
@@ -257,7 +256,7 @@ gpgme_error_t GpgContext::custom_passphrase_cb(void *opaque,
                                                const char *uid_hint,
                                                const char *passphrase_info,
                                                int last_was_bad, int fd) {
-  SPDLOG_INFO("custom passphrase cb called, bad times: {}", last_was_bad);
+  SPDLOG_DEBUG("custom passphrase cb called, bad times: {}", last_was_bad);
 
   if (last_was_bad > 3) {
     SPDLOG_WARN("failure_counts is over three times");
@@ -293,7 +292,7 @@ gpgme_error_t GpgContext::custom_passphrase_cb(void *opaque,
 
 gpgme_error_t GpgContext::test_status_cb(void *hook, const char *keyword,
                                          const char *args) {
-  SPDLOG_INFO("keyword {}", keyword);
+  SPDLOG_DEBUG("keyword {}", keyword);
   return GPG_ERR_NO_ERROR;
 }
 
@@ -325,7 +324,7 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
     GpgCommandExecutor::GetInstance().Execute(
         info_.GpgConfPath, {"--list-components"},
         [=](int exit_code, const std::string &p_out, const std::string &p_err) {
-          SPDLOG_INFO(
+          SPDLOG_DEBUG(
               "gpgconf components exit_code: {} process stdout size: {}",
               exit_code, p_out.size());
 
@@ -393,7 +392,7 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
     GpgCommandExecutor::GetInstance().Execute(
         info_.GpgConfPath, {"--list-dirs"},
         [=](int exit_code, const std::string &p_out, const std::string &p_err) {
-          SPDLOG_INFO(
+          SPDLOG_DEBUG(
               "gpgconf configurations exit_code: {} process stdout size: {}",
               exit_code, p_out.size());
 
@@ -413,8 +412,8 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
           for (const auto &line : line_split_list) {
             std::vector<std::string> info_split_list;
             boost::split(info_split_list, line, boost::is_any_of(":"));
-            SPDLOG_INFO("gpgconf info line: {} info size: {}", line,
-                        info_split_list.size());
+            SPDLOG_DEBUG("gpgconf info line: {} info size: {}", line,
+                         info_split_list.size());
 
             if (info_split_list.size() != 2) continue;
 
@@ -429,7 +428,7 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
         });
 
     for (const auto &component : info_.ComponentsInfo) {
-      SPDLOG_INFO("gpgconf check options ready", "component", component.first);
+      SPDLOG_DEBUG("gpgconf check options ready", "component", component.first);
 
       if (component.first == "gpgme" || component.first == "gpgconf") continue;
 
@@ -437,7 +436,7 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
           info_.GpgConfPath, {"--check-options", component.first},
           [=](int exit_code, const std::string &p_out,
               const std::string &p_err) {
-            SPDLOG_INFO(
+            SPDLOG_DEBUG(
                 "gpgconf options exit_code: {} process stdout size: {} "
                 "component: {} ",
                 exit_code, p_out.size(), component.first);
@@ -459,8 +458,8 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               std::vector<std::string> info_split_list;
               boost::split(info_split_list, line, boost::is_any_of(":"));
 
-              SPDLOG_INFO("gpgconf info line: {} info size: {}", line,
-                          info_split_list.size());
+              SPDLOG_DEBUG("gpgconf info line: {} info size: {}", line,
+                           info_split_list.size());
 
               if (info_split_list.size() != 6) continue;
 
@@ -473,7 +472,7 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
     }
 
     for (const auto &component : info_.ComponentsInfo) {
-      SPDLOG_INFO("gpgconf list options ready", "component", component.first);
+      SPDLOG_DEBUG("gpgconf list options ready", "component", component.first);
 
       if (component.first == "gpgme" || component.first == "gpgconf") continue;
 
@@ -481,7 +480,7 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
           info_.GpgConfPath, {"--list-options", component.first},
           [=](int exit_code, const std::string &p_out,
               const std::string &p_err) {
-            SPDLOG_INFO(
+            SPDLOG_DEBUG(
                 "gpgconf options exit_code: {} process stdout size: {} "
                 "component: {} ",
                 exit_code, p_out.size(), component.first);
@@ -503,8 +502,8 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               std::vector<std::string> info_split_list;
               boost::split(info_split_list, line, boost::is_any_of(":"));
 
-              SPDLOG_INFO("gpgconf info line: {} info size: {}", line,
-                          info_split_list.size());
+              SPDLOG_DEBUG("gpgconf info line: {} info size: {}", line,
+                           info_split_list.size());
 
               if (info_split_list.size() != 10) continue;
 

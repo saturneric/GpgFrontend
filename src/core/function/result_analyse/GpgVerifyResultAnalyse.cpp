@@ -39,7 +39,7 @@ GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(
     : error_(error), result_(std::move(result)) {}
 
 void GpgFrontend::GpgVerifyResultAnalyse::do_analyse() {
-  SPDLOG_INFO("started");
+  SPDLOG_DEBUG("started");
 
   stream_ << "[#] " << _("Verify Operation") << " ";
 

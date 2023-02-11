@@ -93,8 +93,8 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeys(KeyIdArgsListPtr& uid_list,
 
   delete[] keys_array;
 
-  SPDLOG_INFO("exportKeys read_bytes: {}",
-              gpgme_data_seek(data_out, 0, SEEK_END));
+  SPDLOG_DEBUG("export keys read_bytes: {}",
+               gpgme_data_seek(data_out, 0, SEEK_END));
 
   auto temp_out_buffer = data_out.Read2Buffer();
 
@@ -144,7 +144,7 @@ bool GpgFrontend::GpgKeyImportExporter::ExportAllKeys(
  */
 bool GpgFrontend::GpgKeyImportExporter::ExportSecretKey(
     const GpgKey& key, ByteArrayPtr& out_buffer) const {
-  SPDLOG_INFO("export secret key: {}", key.GetId().c_str());
+  SPDLOG_DEBUG("export secret key: {}", key.GetId().c_str());
 
   gpgme_key_t target_key[2] = {gpgme_key_t(key), nullptr};
 
@@ -165,8 +165,8 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKey(
   GpgData data_out;
   auto err = gpgme_op_export(ctx_, key.GetId().c_str(), 0, data_out);
 
-  SPDLOG_INFO("export keys read_bytes: {}",
-              gpgme_data_seek(data_out, 0, SEEK_END));
+  SPDLOG_DEBUG("export keys read_bytes: {}",
+               gpgme_data_seek(data_out, 0, SEEK_END));
 
   auto temp_out_buffer = data_out.Read2Buffer();
   std::swap(out_buffer, temp_out_buffer);
@@ -180,7 +180,7 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeyOpenSSH(
   auto err = gpgme_op_export(ctx_, key.GetId().c_str(), GPGME_EXPORT_MODE_SSH,
                              data_out);
 
-  SPDLOG_INFO("read_bytes: {}", gpgme_data_seek(data_out, 0, SEEK_END));
+  SPDLOG_DEBUG("read_bytes: {}", gpgme_data_seek(data_out, 0, SEEK_END));
 
   auto temp_out_buffer = data_out.Read2Buffer();
   std::swap(out_buffer, temp_out_buffer);
@@ -194,7 +194,7 @@ bool GpgFrontend::GpgKeyImportExporter::ExportSecretKeyShortest(
   auto err = gpgme_op_export(ctx_, key.GetId().c_str(),
                              GPGME_EXPORT_MODE_MINIMAL, data_out);
 
-  SPDLOG_INFO("read_bytes: {}", gpgme_data_seek(data_out, 0, SEEK_END));
+  SPDLOG_DEBUG("read_bytes: {}", gpgme_data_seek(data_out, 0, SEEK_END));
 
   auto temp_out_buffer = data_out.Read2Buffer();
   std::swap(out_buffer, temp_out_buffer);

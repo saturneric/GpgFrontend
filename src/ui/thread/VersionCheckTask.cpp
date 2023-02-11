@@ -49,7 +49,7 @@ void VersionCheckTask::Run() {
 
   try {
     using namespace nlohmann;
-    SPDLOG_INFO("current version: {}", current_version_);
+    SPDLOG_DEBUG("current version: {}", current_version_);
     std::string latest_version_url =
         "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
 
@@ -90,7 +90,7 @@ void VersionCheckTask::slot_parse_latest_version_info() {
       auto version_match = re.match(latest_version.c_str());
       if (version_match.hasMatch()) {
         latest_version = version_match.captured(0).toStdString();
-        SPDLOG_INFO("latest version matched: {}", latest_version);
+        SPDLOG_DEBUG("latest version matched: {}", latest_version);
       } else {
         latest_version = current_version_;
         SPDLOG_WARN("latest version unknown");
@@ -143,7 +143,7 @@ void VersionCheckTask::slot_parse_current_version_info() {
     } else {
       version_.current_version_found = true;
       current_reply_bytes_ = current_reply_->readAll();
-      SPDLOG_INFO("current version: {}", current_reply_bytes_.size());
+      SPDLOG_DEBUG("current version: {}", current_reply_bytes_.size());
       auto current_reply_json =
           nlohmann::json::parse(current_reply_bytes_.toStdString());
       bool current_prerelease = current_reply_json["prerelease"],
