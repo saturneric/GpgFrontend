@@ -43,7 +43,7 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
 
   QStringList components_column_titles;
   components_column_titles << _("Name") << _("Description") << _("Version")
-                           << _("Path");
+                           << _("Checksum") << _("Path");
 
   ui_->componentDetailsTable->setColumnCount(components_column_titles.length());
   ui_->componentDetailsTable->setHorizontalHeaderLabels(
@@ -64,8 +64,6 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
   ui_->configurationDetailsTable->setSelectionBehavior(
       QAbstractItemView::SelectRows);
 
-  ui_->softwareDetailsTableTitle->setText(_("Software Information"));
-
   // tableitems not editable
   ui_->componentDetailsTable->setEditTriggers(
       QAbstractItemView::NoEditTriggers);
@@ -79,15 +77,16 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
 }
 
 void GpgFrontend::UI::GnupgTab::process_software_info() {
-  SPDLOG_INFO("called");
-
   auto ctx_info = GpgContext::GetInstance().GetInfo(true);
+
+  ui_->gnupgVersionLabel->setText(QString::fromStdString(
+      fmt::format("Version: {}", ctx_info.GnupgVersion)));
 
   ui_->componentDetailsTable->setRowCount(ctx_info.ComponentsInfo.size());
 
   int row = 0;
   for (const auto& info : ctx_info.ComponentsInfo) {
-    if (info.second.size() != 3) continue;
+    if (info.second.size() != 4) continue;
 
     auto* tmp0 = new QTableWidgetItem(QString::fromStdString(info.first));
     tmp0->setTextAlignment(Qt::AlignCenter);
@@ -101,9 +100,13 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
     tmp2->setTextAlignment(Qt::AlignCenter);
     ui_->componentDetailsTable->setItem(row, 2, tmp2);
 
-    auto* tmp3 = new QTableWidgetItem(QString::fromStdString(info.second[2]));
-    tmp3->setTextAlignment(Qt::AlignLeft);
+    auto* tmp3 = new QTableWidgetItem(QString::fromStdString(info.second[3]));
+    tmp3->setTextAlignment(Qt::AlignCenter);
     ui_->componentDetailsTable->setItem(row, 3, tmp3);
+
+    auto* tmp4 = new QTableWidgetItem(QString::fromStdString(info.second[2]));
+    tmp4->setTextAlignment(Qt::AlignLeft);
+    ui_->componentDetailsTable->setItem(row, 4, tmp4);
 
     row++;
   }
