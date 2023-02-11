@@ -74,6 +74,12 @@ extern void before_exit();
 extern void init_logging_system();
 
 /**
+ * @brief init global PATH env
+ *
+ */
+extern void init_global_path_env();
+
+/**
  *
  * @param argc
  * @param argv
@@ -104,19 +110,7 @@ int main(int argc, char* argv[]) {
   GpgFrontend::InitLoggingSystem();
 
   // change path to search for related
-  std::string path_value = getenv("PATH");
-  SPDLOG_DEBUG("PATH: {}", path_value);
-  setenv("PATH",
-         ((GpgFrontend::GlobalSettingStation::GetInstance()
-               .GetAppDir()
-               .parent_path() /
-           "GnuPG" / "bin")
-              .u8string() +
-          ":" + path_value)
-             .c_str(),
-         1);
-  std::string modified_path_value = getenv("PATH");
-  SPDLOG_DEBUG("Modified PATH: {}", modified_path_value);
+  init_global_path_env();
 
   /**
    * internationalisation. loop to restart main window

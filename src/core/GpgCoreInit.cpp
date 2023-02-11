@@ -35,6 +35,7 @@
 #include "GpgFunctionObject.h"
 #include "core/GpgContext.h"
 #include "core/function/GlobalSettingStation.h"
+#include "function/gpg/GpgAdvancedOperator.h"
 
 namespace GpgFrontend {
 
@@ -138,6 +139,9 @@ void init_gpgfrontend_core() {
 
         return std::unique_ptr<ChannelObject>(new GpgContext(args));
       });
+
+  // try to restart all components
+  GpgFrontend::GpgAdvancedOperator::GetInstance().RestartGpgComponents();
 }
 
 void reset_gpgfrontend_core() { SingletonStorageCollection::GetInstance(true); }

@@ -109,7 +109,13 @@ class GeneralTab : public QWidget {
    * @brief
    *
    */
-  void slot_key_databse_path_changed();
+  void slot_update_custom_gnupg_install_path_label(int state);
+
+  /**
+   * @brief
+   *
+   */
+  void slot_gnupg_stettings_changed();
 
 #endif
 };
