@@ -63,6 +63,7 @@ option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
 option(GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
 option(GPGFRONTEND_XOCDE_APPID "GpgFrontend Apple AppID" "NONE")
 option(GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID "GpgFrontend ProvisioningProfile UUID" "NONE")
+option(GPGFRONTEND_XOCDE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 
 # analyse options
 if (GPGFRONTEND_BUILD_TYPE_TEST_CORE)

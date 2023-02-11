@@ -374,19 +374,28 @@ if (APPLICATION_BUILD)
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Copying Resources into App Bundle Resource")
             add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/cp -rf ${CMAKE_SOURCE_DIR}/resource/lfs/macOS/GnuPG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app/Contents/
-                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMENT "Copying Buddled GnuPG into App Bundle Resource")
-            add_custom_command(TARGET ${AppName} POST_BUILD
                     COMMAND macdeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Resolving Qt Dependency")
+            
+            # option for sandbox mode, still under test
+            if(GPGFRONTEND_XOCDE_ENABLE_SANDBOX)
+                set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes")
+                add_custom_command(TARGET ${AppName} POST_BUILD
+                    COMMAND /bin/cp -rf ${CMAKE_SOURCE_DIR}/resource/lfs/macOS/GnuPG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app/Contents/
+                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                    COMMENT "Copying Buddled GnuPG into App Bundle Resource")
+            else()
+                set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "No")
+            endif()
+
             set_target_properties(${AppName} PROPERTIES
                     XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
                     XCODE_ATTRIBUTE_SKIP_INSTALL "No"
                     XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep --entitlements ${CMAKE_SOURCE_DIR}/resource/plist/entitlement.plist"
-                    XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "No"
+                    XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "${CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX}"
                     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "Yes"
+                    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/GpgFrontend.entitlements"
                     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}"
                     )
         else ()
