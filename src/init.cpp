@@ -31,6 +31,8 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+#include <filesystem>
+
 #include "GpgFrontend.h"
 #include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
@@ -64,4 +66,41 @@ void init_logging_system() {
 
   // register it as default logger
   spdlog::set_default_logger(main_logger);
+}
+
+void init_global_path_env() {
+  auto& settings =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+
+  bool use_custom_gnupg_install_path = false;
+  try {
+    use_custom_gnupg_install_path =
+        settings.lookup("general.use_custom_gnupg_install_path");
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: use_custom_gnupg_install_path");
+  }
+
+  // read from settings file
+  std::string custom_gnupg_install_path;
+  try {
+    custom_gnupg_install_path = static_cast<std::string>(
+        settings.lookup("general.custom_gnupg_install_path"));
+
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: custom_gnupg_install_path");
+  }
+
+  // add custom gnupg install path into env $PATH
+  if (use_custom_gnupg_install_path && !custom_gnupg_install_path.empty()) {
+    std::string path_value = getenv("PATH");
+    SPDLOG_DEBUG("PATH: {}", path_value);
+    setenv(
+        "PATH",
+        ((std::filesystem::path{custom_gnupg_install_path} / "bin").u8string() +
+         ":" + path_value)
+            .c_str(),
+        1);
+    std::string modified_path_value = getenv("PATH");
+    SPDLOG_DEBUG("Modified PATH: {}", modified_path_value);
+  }
 }
