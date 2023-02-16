@@ -80,11 +80,8 @@ void GpgFrontend::GpgCommandExecutor::Execute(
     QObject::connect(cmd_process, &QProcess::errorOccurred,
                      [=](QProcess::ProcessError error) {
                        SPDLOG_ERROR(
-                           "error in executing command: {} error: {} stdout: "
-                           "{}, stderr: {} ",
-                           cmd, error,
-                           cmd_process->readAllStandardOutput().toStdString(),
-                           cmd_process->readAllStandardError().toStdString());
+                           "error in executing command: {} error: {}",
+                           cmd, error);
                      });
     QObject::connect(
         cmd_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
@@ -97,11 +94,7 @@ void GpgFrontend::GpgCommandExecutor::Execute(
           else
             SPDLOG_ERROR(
                 "proceess finished, error in executing command: {}, exit "
-                "status: {}, arguments: {}, stdout: {}, "
-                "stderr: {}",
-                cmd, status, cmd_process->arguments().join(" ").toStdString(),
-                cmd_process->readAllStandardOutput().toStdString(),
-                cmd_process->readAllStandardError().toStdString());
+                "status: {}", cmd, status);
         });
 
     cmd_process->setProgram(QString::fromStdString(cmd));
@@ -114,7 +107,7 @@ void GpgFrontend::GpgCommandExecutor::Execute(
     SPDLOG_DEBUG("process execute ready");
 
     cmd_process->start();
-    cmd_process->waitForFinished(30);
+    cmd_process->waitForFinished();
 
     std::string process_stdout =
                     cmd_process->readAllStandardOutput().toStdString(),
