@@ -53,10 +53,10 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake autoconf automake qt@5 texinfo gettext openssl@1.1
+          brew install cmake autoconf automake qt texinfo gettext openssl@1.1
           brew install boost ninja libarchive libconfig gpgme
           brew unlink gettext && brew link --force gettext
-          brew link qt@5
+          brew link qt
           brew link openssl@1.1 --force
         if: matrix.os == 'macos-10.15' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
@@ -92,12 +92,13 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ../Qt
-          key: ${{ runner.os }}-QtCache
+          key: ${{ runner.os }}-qt-cache-6
         if: matrix.os == 'ubuntu-latest'
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v2
+        uses: jurplel/install-qt-action@v3
         with:
+          version: '6.4.2'
           cached: ${{ steps.cache-qt.outputs.cache-hit }}
         if: matrix.os == 'ubuntu-latest'
 
@@ -113,7 +114,7 @@ jobs:
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf
           pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake
-          pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel
+          pacman --noconfirm -S --needed mingw-w64-x86_64-qt6 libintl msys2-runtime-devel gettext-devel
           pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg  mingw-w64-x86_64-gpgme
           pacman --noconfirm -S --needed mingw-w64-x86_64-libarchive mingw-w64-x86_64-icu mingw-w64-x86_64-icu-debug-libs
         if: matrix.os == 'windows-latest'
