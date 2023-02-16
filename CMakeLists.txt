@@ -444,45 +444,6 @@ endif ()
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 
-# disable myeasylog.log
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE")
-
-# Introduce boost
-if(NOT BOOST_ROOT)
-    find_package(Boost COMPONENTS date_time system REQUIRED)
-else()
-    find_package(Boost
-            COMPONENTS date_time system REQUIRED
-            PATHS ${BOOST_ROOT} NO_DEFAULT_PATH)
-endif()
-
-# Introduce OpenSSL
-if(APPLE)
-    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl@1.1)
-endif()
-find_package(OpenSSL REQUIRED)
-
-# Introduce Qt
-if (QT5_ENV_SUPPORT)
-    # Support Qt version: 6.x, 5.12.x and 5.15.x
-    find_package(Qt6 6.3 COMPONENTS Core Test Widgets PrintSupport Network Core5Compat)
-    if(NOT Qt6_DIR)
-        find_package(Qt5 5.9 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
-    else()
-        add_definitions(-DGPGFRONTEND_GUI_QT6)
-    endif()
-    
-    # Qt configuration
-    set(CMAKE_AUTOMOC ON)
-    set(CMAKE_AUTORCC ON)
-    set(CMAKE_AUTOUIC ON)
-
-    set(CMAKE_AUTORCC_OPTIONS "--compress;9")
-    set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
-
-endif ()
-
-
 if (SMTP_SUPPORT)
     add_compile_definitions(SMTP_SUPPORT)
 endif ()

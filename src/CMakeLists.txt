@@ -24,6 +24,40 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# Introduce boost
+if(NOT BOOST_ROOT)
+    find_package(Boost COMPONENTS date_time system REQUIRED)
+else()
+    find_package(Boost
+            COMPONENTS date_time system REQUIRED
+            PATHS ${BOOST_ROOT} NO_DEFAULT_PATH)
+endif()
+
+# Introduce OpenSSL
+if(APPLE)
+    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl@1.1)
+endif()
+find_package(OpenSSL REQUIRED)
+
+# Introduce Qt
+if (QT5_ENV_SUPPORT)
+    # Support Qt version: 6.x, 5.12.x and 5.15.x
+    find_package(Qt6 6.3 COMPONENTS Core Test Widgets PrintSupport Network Core5Compat)
+    if(NOT Qt6_DIR)
+        find_package(Qt5 5.9 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    else()
+        add_definitions(-DGPGFRONTEND_GUI_QT6)
+    endif()
+    
+    # Qt configuration
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTORCC ON)
+    set(CMAKE_AUTOUIC ON)
+
+    set(CMAKE_AUTORCC_OPTIONS "--compress;9")
+    set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
+endif ()
+
 # configure for output path and resources
 if (APPLICATION_BUILD)
     aux_source_directory(. BASE_SOURCE)
@@ -283,7 +317,7 @@ if (APPLICATION_BUILD)
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libExEPath})
 
         set(ALL_RUNTIME_DLL_FILES "")
-        list(APPEND ALL_RUNTIME_DLL_FILES "Qt5Core.dll;Qt5Gui.dll;Qt5Network.dll;Qt5PrintSupport.dll;Qt5Svg.dll;Qt5Widgets.dll;libbrotlicommon.dll;libbrotlidec.dll;libdouble-conversion.dll;libzstd.dll;libmd4c.dll;")
+        list(APPEND ALL_RUNTIME_DLL_FILES "Qt6Core.dll;Qt6Core5Compat.dll;Qt6Gui.dll;Qt6Network.dll;Qt6PrintSupport.dll;Qt6Svg.dll;Qt6Widgets.dll;libbrotlicommon.dll;libbrotlidec.dll;libdouble-conversion.dll;libzstd.dll;libmd4c.dll;")
         # find the other dlls
         foreach (_dllFileName ${ALL_RUNTIME_DLL_FILES})
             message(STATUS "DLL FILE ${_dllFileName}")
@@ -318,8 +352,13 @@ if (APPLICATION_BUILD)
         if (MINGW)
             add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             # include qt dependencies
-            add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND windeployqt --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
+            if(NOT Qt6_DIR)
+                add_custom_command(TARGET ${AppName} POST_BUILD
+                        COMMAND windeployqt --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
+            else()
+                add_custom_command(TARGET ${AppName} POST_BUILD
+                        COMMAND windeployqt-qt6.exe --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
+            endif()
         elseif (APPLE AND NOT XCODE_BUILD)
             # custom app bundle packing
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
@@ -406,8 +445,13 @@ if (APPLICATION_BUILD)
         add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
         if(MINGW)
             # include qt dependencies
-            add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND windeployqt --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
+            if(NOT Qt6_DIR)
+                add_custom_command(TARGET ${AppName} POST_BUILD
+                        COMMAND windeployqt --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
+            else()
+                add_custom_command(TARGET ${AppName} POST_BUILD
+                        COMMAND windeployqt-qt6.exe --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
+            endif()
         endif()
     endif ()
 
