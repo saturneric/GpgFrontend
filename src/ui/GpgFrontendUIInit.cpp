@@ -235,7 +235,7 @@ void init_locale() {
     language_env.insert(0, "LANGUAGE=");
     SPDLOG_DEBUG("language env: {}", language_env);
     if (putenv(language_env.c_str())) {
-      spdlog::warn, "set LANGUAGE failed", language_env;
+      SPDLOG_WARN("set LANGUAGE {} failed", language_env);
     };
   }
 #endif
