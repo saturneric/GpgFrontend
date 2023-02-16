@@ -74,6 +74,12 @@ extern void before_exit();
 extern void init_logging_system();
 
 /**
+ * @brief initialize the logging system.
+ *
+ */
+extern void shutdown_logging_system();
+
+/**
  * @brief init global PATH env
  *
  */
@@ -107,7 +113,10 @@ int main(int argc, char* argv[]) {
   init_logging_system();
 
   // init the logging system for core
-  GpgFrontend::InitLoggingSystem();
+  GpgFrontend::InitCoreLoggingSystem();
+
+  // init the logging system for ui
+  GpgFrontend::UI::InitUILoggingSystem();
 
   // change path to search for related
   init_global_path_env();
@@ -164,6 +173,15 @@ int main(int argc, char* argv[]) {
     // deep restart mode
   } while (return_from_event_loop_code == DEEP_RESTART_CODE ||
            return_from_event_loop_code == CRASH_CODE);
+
+
+  // shutdown the logging system for ui
+  GpgFrontend::UI::ShutdownUILoggingSystem();
+
+  // shutdown the logging system for core
+  GpgFrontend::ShutdownCoreLoggingSystem();
+
+
 
   // log for debug
   SPDLOG_INFO("GpgFrontend about to exit.");

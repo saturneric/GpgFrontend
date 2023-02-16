@@ -43,7 +43,7 @@ namespace GpgFrontend {
  * @brief setup logging system and do proper initialization
  *
  */
-void InitLoggingSystem() {
+void InitCoreLoggingSystem() {
   using namespace boost::posix_time;
   using namespace boost::gregorian;
 
@@ -79,6 +79,15 @@ void InitLoggingSystem() {
 
   // register it as default logger
   spdlog::set_default_logger(core_logger);
+}
+
+void ShutdownCoreLoggingSystem() {
+#ifdef WINDOWS
+  // Under VisualStudio, this must be called before main finishes to workaround
+  // a known VS issue
+  spdlog::drop_all();
+  spdlog::shutdown();
+#endif
 }
 
 void ResetGpgFrontendCore() { reset_gpgfrontend_core(); }
