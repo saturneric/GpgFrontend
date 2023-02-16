@@ -37,6 +37,19 @@
 #include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
 
+#ifdef WINDOWS
+int setenv(const char *name, const char *value, int overwrite)
+{
+    int errcode = 0;
+    if(!overwrite) {
+        size_t envsize = 0;
+        errcode = getenv_s(&envsize, NULL, 0, name);
+        if(errcode || envsize) return errcode;
+    }
+    return _putenv_s(name, value);
+}
+#endif
+
 void init_logging_system() {
   using namespace boost::posix_time;
   using namespace boost::gregorian;
@@ -66,6 +79,15 @@ void init_logging_system() {
 
   // register it as default logger
   spdlog::set_default_logger(main_logger);
+}
+
+void shutdown_logging_system() {
+#ifdef WINDOWS
+  // Under VisualStudio, this must be called before main finishes to workaround
+  // a known VS issue
+  spdlog::drop_all();
+  spdlog::shutdown();
+#endif
 }
 
 void init_global_path_env() {

@@ -40,6 +40,18 @@ namespace GpgFrontend::UI {
 void GPGFRONTEND_UI_EXPORT InitGpgFrontendUI(QApplication *);
 
 /**
+ * @brief 
+ * 
+ */
+void GPGFRONTEND_UI_EXPORT InitUILoggingSystem();
+
+/**
+ * @brief 
+ * 
+ */
+void GPGFRONTEND_UI_EXPORT ShutdownUILoggingSystem();
+
+/**
  * @brief run main window
  */
 int GPGFRONTEND_UI_EXPORT RunGpgFrontendUI(QApplication *);

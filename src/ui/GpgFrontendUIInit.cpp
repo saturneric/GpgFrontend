@@ -50,8 +50,6 @@ extern void init_logging_system();
 extern void init_locale();
 
 void InitGpgFrontendUI(QApplication* app) {
-  // init logging system
-  init_logging_system();
 
   // init locale
   init_locale();
@@ -131,7 +129,7 @@ int RunGpgFrontendUI(QApplication* app) {
   return app->exec();
 }
 
-void init_logging_system() {
+void InitUILoggingSystem() {
   using namespace boost::posix_time;
   using namespace boost::gregorian;
 
@@ -168,6 +166,15 @@ void init_logging_system() {
   spdlog::set_default_logger(ui_logger);
 }
 
+void ShutdownUILoggingSystem() {
+#ifdef WINDOWS
+  // Under VisualStudio, this must be called before main finishes to workaround
+  // a known VS issue
+  spdlog::drop_all();
+  spdlog::shutdown();
+#endif
+}
+
 /**
  * @brief setup the locale and load the translations
  *
@@ -202,7 +209,7 @@ void init_locale() {
   SPDLOG_DEBUG("project name: {}", PROJECT_NAME);
   SPDLOG_DEBUG(
       "locales path: {}",
-      GpgFrontend::GlobalSettingStation::GetInstance().GetLocaleDir().c_str());
+      GpgFrontend::GlobalSettingStation::GetInstance().GetLocaleDir().u8string());
 
 #ifndef WINDOWS
   if (!lang.empty()) {
@@ -210,14 +217,14 @@ void init_locale() {
 
     // set LC_ALL
     auto* locale_name = setlocale(LC_ALL, lc.c_str());
-    if (locale_name == nullptr) SPDLOG_WARN("set LC_ALL failed: {}", lc);
+    if (locale_name == nullptr) SPDLOG_WARN("set LC_ALL failed, lc: {}", lc);
     auto language = getenv("LANGUAGE");
     // set LANGUAGE
     std::string language_env = language == nullptr ? "en" : language;
     language_env.insert(0, lang + ":");
     SPDLOG_DEBUG("language env: {}", language_env);
     if (setenv("LANGUAGE", language_env.c_str(), 1)) {
-      SPDLOG_WARN("set LANGUAGE failed", language_env);
+      SPDLOG_WARN("set LANGUAGE {} failed", language_env);
     };
   }
 #else
@@ -226,7 +233,7 @@ void init_locale() {
 
     // set LC_ALL
     auto* locale_name = setlocale(LC_ALL, lc.c_str());
-    if (locale_name == nullptr) SPDLOG_WARN("set LC_ALL failed", lc);
+    if (locale_name == nullptr) SPDLOG_WARN("set LC_ALL failed, lc: {}", lc);
 
     auto language = getenv("LANGUAGE");
     // set LANGUAGE
