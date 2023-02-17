@@ -107,9 +107,10 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
   operator gpgme_ctx_t() const { return _ctx_ref.get(); }
 
  private:
-  GpgInfo info_;             ///<
-  GpgContextInitArgs args_;  ///<
+  GpgInfo info_{};             ///<
+  GpgContextInitArgs args_{};  ///<
   bool extend_info_loaded_ = false;
+  std::shared_mutex preload_lock_{};
 
   /**
    * @brief

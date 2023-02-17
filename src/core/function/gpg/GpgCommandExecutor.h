@@ -55,7 +55,7 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
-   * @brief Excuting an order
+   * @brief Excuting a command
    *
    * @param arguments Command parameters
    * @param interact_func Command answering function
@@ -64,6 +64,11 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
       std::string cmd, std::vector<std::string> arguments,
       std::function<void(int, std::string, std::string)> callback =
           [](int, std::string, std::string) {},
+      std::function<void(QProcess *)> interact_func = [](QProcess *) {});
+
+  void ExecuteConcurrently(
+      std::string cmd, std::vector<std::string> arguments,
+      std::function<void(int, std::string, std::string)> callback,
       std::function<void(QProcess *)> interact_func = [](QProcess *) {});
 
  private:

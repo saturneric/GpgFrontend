@@ -34,23 +34,29 @@ GpgFrontend::Thread::TaskRunner::TaskRunner() = default;
 GpgFrontend::Thread::TaskRunner::~TaskRunner() = default;
 
 void GpgFrontend::Thread::TaskRunner::PostTask(Task* task) {
-  if (task == nullptr) return;
+  if (task == nullptr) {
+    SPDLOG_ERROR("task posted is null");
+    return;
+  }
 
-  std::string uuid = task->GetUUID();
-  SPDLOG_TRACE("post task: {}", uuid);
+  SPDLOG_TRACE("post task: {}", task->GetFullID());
 
   task->setParent(nullptr);
   task->moveToThread(this);
 
-  connect(task, &Task::SignalTaskPostFinishedDone, this, [&, uuid]() {
-    auto it = pending_tasks_.find(uuid);
-    if (it == pending_tasks_.end()) {
+  connect(task, &Task::SignalTaskPostFinishedDone, this, [&, this, task]() {
+    SPDLOG_DEBUG("cleaning task {}", task->GetFullID());
+    auto pending_task = pending_tasks_.find(task->GetUUID());
+    if (pending_task == pending_tasks_.end()) {
+      SPDLOG_ERROR("cannot find task in pending list: {}", task->GetFullID());
       return;
     } else {
-      it->second->deleteLater();
-      pending_tasks_.erase(it);
+      std::lock_guard<std::mutex> lock(tasks_mutex_);
+      pending_tasks_.erase(pending_task);
     }
+    task->deleteLater();
   });
+
   {
     std::lock_guard<std::mutex> lock(tasks_mutex_);
     tasks.push(task);
@@ -83,24 +89,29 @@ void GpgFrontend::Thread::TaskRunner::PostScheduleTask(Task* task,
       }
 
       if (task != nullptr) {
-        // Run the task
-        SPDLOG_TRACE("task runner: running task {}", task->GetUUID());
         try {
-          task->run();
+          // Run the task
+          SPDLOG_TRACE("task runner: running task {}, sequency: {}",
+                       task->GetFullID(), task->GetSequency());
+          if (task->GetSequency()) {
+            // run sequently
+            task->run();
+          } else {
+            // run concurrently
+            thread_pool_.start(task);
+          }
         } catch (const std::exception& e) {
           SPDLOG_ERROR("task runner: exception in task {}, exception: {}",
-                       task->GetUUID(), e.what());
-
+                       task->GetFullID(), e.what());
           // destroy the task, remove the task from the pending tasks
-          task->deleteLater();
           pending_tasks_.erase(task->GetUUID());
+          task->deleteLater();
         } catch (...) {
           SPDLOG_ERROR("task runner: unknown exception in task: {}",
-                       task->GetUUID());
-
+                       task->GetFullID());
           // destroy the task, remove the task from the pending tasks
-          task->deleteLater();
           pending_tasks_.erase(task->GetUUID());
+          task->deleteLater();
         }
       }
     }

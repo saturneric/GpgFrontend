@@ -28,7 +28,7 @@
 
 namespace GpgFrontend::UI {
 
-FileReadTask::FileReadTask(std::string path) {
+FileReadTask::FileReadTask(std::string path) : Task("file_read_task") {
   connect(this, &FileReadTask::SignalFileBytesReadNext, this,
           &FileReadTask::read_bytes);
 

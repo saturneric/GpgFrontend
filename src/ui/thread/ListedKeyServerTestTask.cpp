@@ -30,7 +30,8 @@
 
 GpgFrontend::UI::ListedKeyServerTestTask::ListedKeyServerTestTask(
     const QStringList& urls, int timeout, QWidget* parent)
-    : urls_(urls),
+    : Task("listed_key_server_test_task"),
+      urls_(urls),
       timeout_(timeout),
       network_manager_(new QNetworkAccessManager(this)),
       result_(urls_.size(), kTestResultType_Error) {

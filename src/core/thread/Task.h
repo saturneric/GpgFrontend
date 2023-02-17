@@ -50,6 +50,8 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
   using TaskRunnable = std::function<int(DataObjectPtr)>;        ///<
   using TaskCallback = std::function<void(int, DataObjectPtr)>;  ///<
 
+  static const std::string DEFAULT_TASK_NAME;
+
   friend class TaskRunner;
 
   /**
@@ -164,14 +166,15 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    * @brief Construct a new Task object
    *
    */
-  Task();
+  Task(std::string name = DEFAULT_TASK_NAME);
 
   /**
    * @brief Construct a new Task object
    *
    * @param callback The callback function to be executed.
    */
-  explicit Task(TaskCallback callback, DataObjectPtr data_object = nullptr);
+  explicit Task(TaskRunnable runnable, std::string name = DEFAULT_TASK_NAME,
+                DataObjectPtr data_object = nullptr, bool sequency = true);
 
   /**
    * @brief Construct a new Task object
@@ -179,9 +182,9 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    * @param runnable
    */
   explicit Task(
-      TaskRunnable runnable,
+      TaskRunnable runnable, std::string name, DataObjectPtr data,
       TaskCallback callback = [](int, const std::shared_ptr<DataObject> &) {},
-      DataObjectPtr data = nullptr);
+      bool sequency = true);
 
   /**
    * @brief Destroy the Task object
@@ -201,6 +204,20 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    * @return std::string
    */
   std::string GetUUID() const;
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  std::string GetFullID() const;
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  bool GetSequency() const;
 
  signals:
   /**
@@ -232,6 +249,8 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
 
  private:
   const std::string uuid_;
+  const std::string name_;
+  const bool sequency_ = true;           ///< must run in the same thread
   TaskCallback callback_;                ///<
   TaskRunnable runnable_;                ///<
   bool finish_after_run_ = true;         ///<
