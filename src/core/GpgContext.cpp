@@ -32,6 +32,8 @@
 #include <gpgme.h>
 #include <unistd.h>
 
+#include <mutex>
+#include <shared_mutex>
 #include <string>
 
 #include "core/GpgConstants.h"
@@ -159,10 +161,12 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
     // async, init context
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
-        ->PostTask(new Thread::Task([=](Thread::Task::DataObjectPtr) -> int {
-          post_init_ctx();
-          return 0;
-        }));
+        ->PostTask(new Thread::Task(
+            [=](Thread::Task::DataObjectPtr) -> int {
+              post_init_ctx();
+              return 0;
+            },
+            "post_init_ctx"));
 
     good_ = true;
   }
@@ -213,7 +217,7 @@ void GpgContext::post_init_ctx() {
   }
 
   // preload info
-  auto info = GetInfo();
+  auto &info = GetInfo();
 
   // listen passphrase input event
   SetPassphraseCb(custom_passphrase_cb);
@@ -321,6 +325,15 @@ std::string GpgContext::need_user_input_passphrase() {
 
 const GpgInfo &GpgContext::GetInfo(bool refresh) {
   if (!extend_info_loaded_ || refresh) {
+    // try lock
+    std::unique_lock lock(preload_lock_);
+
+    // check twice
+    if (extend_info_loaded_ && !refresh) return info_;
+
+    SPDLOG_DEBUG("start to load extra info");
+
+    // get all components
     GpgCommandExecutor::GetInstance().Execute(
         info_.GpgConfPath, {"--list-components"},
         [=](int exit_code, const std::string &p_out, const std::string &p_err) {
@@ -382,12 +395,18 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               info_.KeyboxdPath = info_split_list[2];
             }
 
-            // add component info to list
-            components_info[component_name] = {
-                component_desc, version, component_path,
-                binary_checksum.has_value() ? binary_checksum.value() : "/"};
+            {
+              // try lock
+              std::unique_lock lock(info_.Lock);
+              // add component info to list
+              components_info[component_name] = {
+                  component_desc, version, component_path,
+                  binary_checksum.has_value() ? binary_checksum.value() : "/"};
+            }
           }
         });
+
+    SPDLOG_DEBUG("start to get dirs info");
 
     GpgCommandExecutor::GetInstance().Execute(
         info_.GpgConfPath, {"--list-dirs"},
@@ -423,9 +442,15 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
             }
 
             auto configuration_name = info_split_list[0];
-            configurations_info[configuration_name] = {info_split_list[1]};
+            {
+              // try lock
+              std::unique_lock lock(info_.Lock);
+              configurations_info[configuration_name] = {info_split_list[1]};
+            }
           }
         });
+
+    SPDLOG_DEBUG("start to get components info");
 
     for (const auto &component : info_.ComponentsInfo) {
       SPDLOG_DEBUG("gpgconf check options ready", "component", component.first);
@@ -464,12 +489,18 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               if (info_split_list.size() != 6) continue;
 
               auto configuration_name = info_split_list[0];
-              options_info[configuration_name] = {
-                  info_split_list[1], info_split_list[2], info_split_list[3],
-                  info_split_list[4], info_split_list[5]};
+              {
+                // try lock
+                std::unique_lock lock(info_.Lock);
+                options_info[configuration_name] = {
+                    info_split_list[1], info_split_list[2], info_split_list[3],
+                    info_split_list[4], info_split_list[5]};
+              }
             }
           });
     }
+
+    SPDLOG_DEBUG("start to get component options info");
 
     for (const auto &component : info_.ComponentsInfo) {
       SPDLOG_DEBUG("gpgconf list options ready", "component", component.first);
@@ -508,16 +539,22 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               if (info_split_list.size() != 10) continue;
 
               auto configuration_name = info_split_list[0];
-              available_options_info[configuration_name] = {
-                  info_split_list[1], info_split_list[2], info_split_list[3],
-                  info_split_list[4], info_split_list[5], info_split_list[6],
-                  info_split_list[7], info_split_list[8], info_split_list[9]};
+              {
+                // try lock
+                std::unique_lock lock(info_.Lock);
+                available_options_info[configuration_name] = {
+                    info_split_list[1], info_split_list[2], info_split_list[3],
+                    info_split_list[4], info_split_list[5], info_split_list[6],
+                    info_split_list[7], info_split_list[8], info_split_list[9]};
+              }
             }
           });
     }
-
     extend_info_loaded_ = true;
   }
+
+  // ensure nothing is changing now
+  std::shared_lock lock(preload_lock_);
   return info_;
 }
 

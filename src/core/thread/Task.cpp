@@ -35,38 +35,60 @@
 
 #include "core/thread/TaskRunner.h"
 
-GpgFrontend::Thread::Task::Task() : uuid_(generate_uuid()) {
-  SPDLOG_TRACE("task {} created", uuid_);
+const std::string GpgFrontend::Thread::Task::DEFAULT_TASK_NAME = "default-task";
+
+GpgFrontend::Thread::Task::Task(std::string name)
+    : uuid_(generate_uuid()), name_(name) {
+  SPDLOG_TRACE("task {}/ created", GetFullID());
   init();
 }
 
-GpgFrontend::Thread::Task::Task(TaskCallback callback,
-                                DataObjectPtr data_object)
+GpgFrontend::Thread::Task::Task(TaskRunnable runnable, std::string name,
+                                DataObjectPtr data_object, bool sequency)
     : uuid_(generate_uuid()),
-      callback_(std::move(callback)),
+      name_(name),
+      runnable_(std::move(runnable)),
+      callback_(std::move([](int, const std::shared_ptr<DataObject> &) {})),
       callback_thread_(QThread::currentThread()),
-      data_object_(data_object) {
-  SPDLOG_TRACE("task {} created with callback, callback_thread_: {}", uuid_,
-               static_cast<void *>(callback_thread_));
+      data_object_(data_object),
+      sequency_(sequency) {
+  SPDLOG_TRACE("task {} created with runnable, callback_thread_: {}",
+               GetFullID(), static_cast<void *>(callback_thread_));
   init();
 }
 
-GpgFrontend::Thread::Task::Task(TaskRunnable runnable, TaskCallback callback,
-                                DataObjectPtr data_object)
+GpgFrontend::Thread::Task::Task(TaskRunnable runnable, std::string name,
+                                DataObjectPtr data_object,
+                                TaskCallback callback, bool sequency)
     : uuid_(generate_uuid()),
+      name_(name),
       runnable_(std::move(runnable)),
       callback_(std::move(callback)),
       callback_thread_(QThread::currentThread()),
-      data_object_(data_object) {
+      data_object_(data_object),
+      sequency_(sequency) {
   init();
   SPDLOG_TRACE(
-      "task {} created with runnable and callback, callback_thread_: {}", uuid_,
-      static_cast<void *>(callback_thread_));
+      "task {} created with runnable and callback, callback_thread_: {}",
+      GetFullID(), static_cast<void *>(callback_thread_));
 }
 
-GpgFrontend::Thread::Task::~Task() { SPDLOG_TRACE("task {} destroyed", uuid_); }
+GpgFrontend::Thread::Task::~Task() {
+  SPDLOG_TRACE("task {} destroyed", GetFullID());
+}
+
+/**
+ * @brief
+ *
+ * @return std::string
+ */
+std::string GpgFrontend::Thread::Task::GetFullID() const {
+  return uuid_ + "/" + name_;
+}
 
 std::string GpgFrontend::Thread::Task::GetUUID() const { return uuid_; }
+
+bool GpgFrontend::Thread::Task::GetSequency() const { return sequency_; }
 
 void GpgFrontend::Thread::Task::SetFinishAfterRun(bool finish_after_run) {
   this->finish_after_run_ = finish_after_run;
@@ -79,7 +101,7 @@ void GpgFrontend::Thread::Task::init() {
 }
 
 void GpgFrontend::Thread::Task::before_finish_task() {
-  SPDLOG_TRACE("task {} finished", uuid_);
+  SPDLOG_TRACE("task {} finished", GetFullID());
 
   try {
     if (callback_) {
@@ -101,7 +123,7 @@ void GpgFrontend::Thread::Task::before_finish_task() {
 }
 
 void GpgFrontend::Thread::Task::run() {
-  SPDLOG_TRACE("task {} started", uuid_);
+  SPDLOG_TRACE("task {} started", GetFullID());
   Run();
   if (finish_after_run_) emit SignalTaskFinished();
 }

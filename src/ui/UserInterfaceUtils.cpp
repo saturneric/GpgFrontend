@@ -120,8 +120,8 @@ void process_operation(QWidget *parent, const std::string &waiting_title,
   auto *dialog =
       new WaitingDialog(QString::fromStdString(waiting_title), parent);
 
-  auto *process_task =
-      new Thread::Task(std::move(func), std::move(callback), data_object);
+  auto *process_task = new Thread::Task(std::move(func), waiting_title,
+                                        data_object, std::move(callback));
 
   QApplication::connect(process_task, &Thread::Task::SignalTaskFinished, dialog,
                         &QDialog::close);
@@ -398,13 +398,15 @@ void CommonUtils::SlotImportKeyFromKeyServer(
 }
 
 void CommonUtils::slot_update_key_status() {
-  auto refresh_task = new Thread::Task([](Thread::Task::DataObjectPtr) -> int {
-    // flush key cache for all GpgKeyGetter Intances.
-    for (const auto &channel_id : GpgKeyGetter::GetAllChannelId()) {
-      GpgKeyGetter::GetInstance(channel_id).FlushKeyCache();
-    }
-    return 0;
-  });
+  auto refresh_task = new Thread::Task(
+      [](Thread::Task::DataObjectPtr) -> int {
+        // flush key cache for all GpgKeyGetter Intances.
+        for (const auto &channel_id : GpgKeyGetter::GetAllChannelId()) {
+          GpgKeyGetter::GetInstance(channel_id).FlushKeyCache();
+        }
+        return 0;
+      },
+      "update_key_status_task");
   connect(refresh_task, &Thread::Task::SignalTaskFinished, this,
           &CommonUtils::SignalKeyDatabaseRefreshDone);
 
@@ -419,7 +421,7 @@ void CommonUtils::slot_popup_passphrase_input_dialog() {
   dialog->setWindowTitle(_("Password Input Dialog"));
   dialog->setInputMode(QInputDialog::TextInput);
   dialog->setTextEchoMode(QLineEdit::Password);
-  dialog->setLabelText("Please Input The Password");
+  dialog->setLabelText(_("Please Input The Password"));
   dialog->resize(500, 80);
   dialog->exec();
 

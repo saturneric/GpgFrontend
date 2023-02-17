@@ -31,14 +31,13 @@
 
 #include "GnupgTab.h"
 
+#include <shared_mutex>
+
 #include "ui/UserInterfaceUtils.h"
 #include "ui_GnuPGInfo.h"
 
 GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
     : QWidget(parent), ui_(std::make_shared<Ui_GnuPGInfo>()) {
-  GpgContext& ctx = GpgContext::GetInstance();
-  auto info = ctx.GetInfo(false);
-
   ui_->setupUi(this);
 
   QStringList components_column_titles;
@@ -77,7 +76,7 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
 }
 
 void GpgFrontend::UI::GnupgTab::process_software_info() {
-  auto ctx_info = GpgContext::GetInstance().GetInfo(true);
+  auto& ctx_info = GpgContext::GetInstance().GetInfo(true);
 
   ui_->gnupgVersionLabel->setText(QString::fromStdString(
       fmt::format("Version: {}", ctx_info.GnupgVersion)));

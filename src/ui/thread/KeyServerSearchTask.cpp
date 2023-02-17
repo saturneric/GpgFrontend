@@ -30,7 +30,8 @@
 
 GpgFrontend::UI::KeyServerSearchTask::KeyServerSearchTask(
     std::string keyserver_url, std::string search_string)
-    : keyserver_url_(std::move(keyserver_url)),
+    : Task("key_server_search_task"),
+      keyserver_url_(std::move(keyserver_url)),
       search_string_(std::move(search_string)),
       manager_(new QNetworkAccessManager(this)) {}
 

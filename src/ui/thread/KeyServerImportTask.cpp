@@ -30,7 +30,8 @@
 
 GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
     std::string keyserver_url, std::vector<std::string> keyids)
-    : keyserver_url_(std::move(keyserver_url)),
+    : Task("key_server_import_task"),
+      keyserver_url_(std::move(keyserver_url)),
       keyids_(std::move(keyids)),
       manager_(new QNetworkAccessManager(this)) {}
 

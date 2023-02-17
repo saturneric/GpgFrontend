@@ -29,6 +29,7 @@
 
 #include "GpgFunctionObject.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "spdlog/fmt/bundled/format.h"
 
 GpgFrontend::GpgCommandExecutor::GpgCommandExecutor(int channel)
     : SingletonFunctionObject<GpgCommandExecutor>(channel) {}
@@ -79,9 +80,8 @@ void GpgFrontend::GpgCommandExecutor::Execute(
         [interact_func, cmd_process]() { interact_func(cmd_process); });
     QObject::connect(cmd_process, &QProcess::errorOccurred,
                      [=](QProcess::ProcessError error) {
-                       SPDLOG_ERROR(
-                           "error in executing command: {} error: {}",
-                           cmd, error);
+                       SPDLOG_ERROR("error in executing command: {} error: {}",
+                                    cmd, error);
                      });
     QObject::connect(
         cmd_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
@@ -94,7 +94,8 @@ void GpgFrontend::GpgCommandExecutor::Execute(
           else
             SPDLOG_ERROR(
                 "proceess finished, error in executing command: {}, exit "
-                "status: {}", cmd, status);
+                "status: {}",
+                cmd, status);
         });
 
     cmd_process->setProgram(QString::fromStdString(cmd));
@@ -104,7 +105,8 @@ void GpgFrontend::GpgCommandExecutor::Execute(
       q_arguments.append(QString::fromStdString(argument));
     cmd_process->setArguments(q_arguments);
 
-    SPDLOG_DEBUG("process execute ready");
+    SPDLOG_DEBUG("process execute ready, cmd: {} {}", cmd,
+                 q_arguments.join(" ").toStdString());
 
     cmd_process->start();
     cmd_process->waitForFinished();
@@ -131,10 +133,11 @@ void GpgFrontend::GpgCommandExecutor::Execute(
   data_object->AppendObject(std::move(callback));
   data_object->AppendObject(std::move(interact_func));
   data_object->AppendObject(std::move(arguments));
-  data_object->AppendObject(std::move(cmd));
+  data_object->AppendObject(std::move(std::string{cmd}));
 
   auto *process_task = new GpgFrontend::Thread::Task(
-      std::move(runner), std::move(result_callback), data_object);
+      std::move(runner), fmt::format("Execute/{}", cmd), data_object,
+      std::move(result_callback));
 
   QEventLoop looper;
   QObject::connect(process_task, &Thread::Task::SignalTaskFinished, &looper,
@@ -147,4 +150,113 @@ void GpgFrontend::GpgCommandExecutor::Execute(
   // block until task finished
   // this is to keep reference vaild until task finished
   looper.exec();
+}
+
+void GpgFrontend::GpgCommandExecutor::ExecuteConcurrently(
+    std::string cmd, std::vector<std::string> arguments,
+    std::function<void(int, std::string, std::string)> callback,
+    std::function<void(QProcess *)> interact_func) {
+  SPDLOG_DEBUG("called cmd {} arguments size: {}", cmd, arguments.size());
+
+  Thread::Task::TaskCallback result_callback =
+      [](int rtn, Thread::Task::DataObjectPtr data_object) {
+        if (data_object->GetObjectSize() != 4)
+          throw std::runtime_error("invalid data object size");
+
+        auto exit_code = data_object->PopObject<int>();
+        auto process_stdout = data_object->PopObject<std::string>();
+        auto process_stderr = data_object->PopObject<std::string>();
+        auto callback = data_object->PopObject<
+            std::function<void(int, std::string, std::string)>>();
+
+        // call callback
+        callback(exit_code, process_stdout, process_stderr);
+      };
+
+  Thread::Task::TaskRunnable runner =
+      [](GpgFrontend::Thread::Task::DataObjectPtr data_object) -> int {
+    SPDLOG_DEBUG("process runner called, data object size: {}",
+                 data_object->GetObjectSize());
+
+    if (data_object->GetObjectSize() != 4)
+      throw std::runtime_error("invalid data object size");
+
+    // get arguments
+    auto cmd = data_object->PopObject<std::string>();
+    auto arguments = data_object->PopObject<std::vector<std::string>>();
+    auto interact_func =
+        data_object->PopObject<std::function<void(QProcess *)>>();
+
+    auto *cmd_process = new QProcess();
+    cmd_process->setProcessChannelMode(QProcess::MergedChannels);
+
+    QObject::connect(cmd_process, &QProcess::started,
+                     []() -> void { SPDLOG_DEBUG("process started"); });
+    QObject::connect(
+        cmd_process, &QProcess::readyReadStandardOutput,
+        [interact_func, cmd_process]() { interact_func(cmd_process); });
+    QObject::connect(cmd_process, &QProcess::errorOccurred,
+                     [=](QProcess::ProcessError error) {
+                       SPDLOG_ERROR("error in executing command: {} error: {}",
+                                    cmd, error);
+                     });
+    QObject::connect(
+        cmd_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+        [=](int, QProcess::ExitStatus status) {
+          if (status == QProcess::NormalExit)
+            SPDLOG_DEBUG(
+                "proceess finished, succeed in executing command: {}, exit "
+                "status: {}",
+                cmd, status);
+          else
+            SPDLOG_ERROR(
+                "proceess finished, error in executing command: {}, exit "
+                "status: {}",
+                cmd, status);
+        });
+
+    cmd_process->setProgram(QString::fromStdString(cmd));
+
+    QStringList q_arguments;
+    for (const auto &argument : arguments)
+      q_arguments.append(QString::fromStdString(argument));
+    cmd_process->setArguments(q_arguments);
+
+    SPDLOG_DEBUG("process start ready, cmd: {} {}", cmd,
+                 q_arguments.join(" ").toStdString());
+
+    cmd_process->start();
+    cmd_process->waitForFinished();
+
+    std::string process_stdout =
+                    cmd_process->readAllStandardOutput().toStdString(),
+                process_stderr =
+                    cmd_process->readAllStandardError().toStdString();
+    int exit_code = cmd_process->exitCode();
+
+    cmd_process->close();
+    cmd_process->deleteLater();
+
+    // transfer result
+    data_object->AppendObject(std::move(process_stderr));
+    data_object->AppendObject(std::move(process_stdout));
+    data_object->AppendObject(std::move(exit_code));
+
+    return 0;
+  };
+
+  // data transfer into task
+  auto data_object = std::make_shared<Thread::Task::DataObject>();
+  data_object->AppendObject(std::move(callback));
+  data_object->AppendObject(std::move(interact_func));
+  data_object->AppendObject(std::move(arguments));
+  data_object->AppendObject(std::move(std::string{cmd}));
+
+  auto *process_task = new GpgFrontend::Thread::Task(
+      std::move(runner), fmt::format("ExecuteConcurrently/{}", cmd),
+      data_object, std::move(result_callback), false);
+
+  GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_External_Process)
+      ->PostTask(process_task);
 }

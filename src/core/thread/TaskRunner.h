@@ -79,6 +79,7 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QThread {
   std::queue<Task*> tasks;                      ///< The task queue
   std::map<std::string, Task*> pending_tasks_;  ///< The pending tasks
   std::mutex tasks_mutex_;                      ///< The task queue mutex
+  QThreadPool thread_pool_{this};               ///< run non-sequency task
 };
 }  // namespace GpgFrontend::Thread
 
