@@ -29,6 +29,8 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
 #define GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
 
+#include <mutex>
+
 #include "GpgConstants.h"
 
 namespace GpgFrontend {
@@ -169,16 +171,33 @@ class SingletonFunctionObject : public ChannelObject {
    */
   static T& GetInstance(
       int channel = GpgFrontend::GPGFRONTEND_DEFAULT_CHANNEL) {
+    static std::mutex g_channel_mutex_map_lock;
+    static std::map<int, std::mutex> g_channel_mutex_map;
+
+    {
+      std::lock_guard<std::mutex> guard(g_channel_mutex_map_lock);
+      if (g_channel_mutex_map.find(channel) == g_channel_mutex_map.end()) {
+        g_channel_mutex_map[channel];
+      }
+    }
+
     static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
                   "T not derived from SingletonFunctionObject<T>");
 
-    auto p_storage =
+    auto* p_storage =
         SingletonStorageCollection::GetInstance(false)->GetSingletonStorage(
             typeid(T));
-
     auto* _p_pbj = (T*)(p_storage->FindObjectInChannel(channel));
 
     if (_p_pbj == nullptr) {
+      // lock this channel
+      std::lock_guard<std::mutex> guard(g_channel_mutex_map[channel]);
+
+      // double check
+      if ((_p_pbj = (T*)(p_storage->FindObjectInChannel(channel))) != nullptr)
+        return *_p_pbj;
+
+      // do create object of this channel
       auto new_obj = std::unique_ptr<ChannelObject>(new T(channel));
       return *(T*)(p_storage->SetObjectInChannel(channel, std::move(new_obj)));
     } else {
