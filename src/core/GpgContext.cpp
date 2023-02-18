@@ -408,7 +408,7 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
     SPDLOG_DEBUG("start to get dirs info");
 
-    GpgCommandExecutor::GetInstance().Execute(
+    GpgCommandExecutor::GetInstance().ExecuteConcurrently(
         info_.GpgConfPath, {"--list-dirs"},
         [=](int exit_code, const std::string &p_out, const std::string &p_err) {
           SPDLOG_DEBUG(
@@ -457,20 +457,20 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
       if (component.first == "gpgme" || component.first == "gpgconf") continue;
 
-      GpgCommandExecutor::GetInstance().Execute(
+      GpgCommandExecutor::GetInstance().ExecuteConcurrently(
           info_.GpgConfPath, {"--check-options", component.first},
           [=](int exit_code, const std::string &p_out,
               const std::string &p_err) {
             SPDLOG_DEBUG(
-                "gpgconf options exit_code: {} process stdout size: {} "
-                "component: {} ",
-                exit_code, p_out.size(), component.first);
+                "gpgconf {} options exit_code: {} process stdout "
+                "size: {} ",
+                component.first, exit_code, p_out.size());
 
             if (exit_code != 0) {
               SPDLOG_ERROR(
-                  "gpgconf execute error, process stderr: {} , process "
-                  "stdout:",
-                  p_err, p_out);
+                  "gpgconf {} options execute error, process "
+                  "stderr: {} , process stdout:",
+                  component.first, p_err, p_out);
               return;
             }
 
@@ -483,8 +483,8 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               std::vector<std::string> info_split_list;
               boost::split(info_split_list, line, boost::is_any_of(":"));
 
-              SPDLOG_DEBUG("gpgconf info line: {} info size: {}", line,
-                           info_split_list.size());
+              SPDLOG_DEBUG("component {} options line: {} info size: {}",
+                           component.first, line, info_split_list.size());
 
               if (info_split_list.size() != 6) continue;
 
@@ -500,27 +500,27 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
           });
     }
 
-    SPDLOG_DEBUG("start to get component options info");
+    SPDLOG_DEBUG("start to get avaliable component options info");
 
     for (const auto &component : info_.ComponentsInfo) {
       SPDLOG_DEBUG("gpgconf list options ready", "component", component.first);
 
       if (component.first == "gpgme" || component.first == "gpgconf") continue;
 
-      GpgCommandExecutor::GetInstance().Execute(
+      GpgCommandExecutor::GetInstance().ExecuteConcurrently(
           info_.GpgConfPath, {"--list-options", component.first},
           [=](int exit_code, const std::string &p_out,
               const std::string &p_err) {
             SPDLOG_DEBUG(
-                "gpgconf options exit_code: {} process stdout size: {} "
-                "component: {} ",
-                exit_code, p_out.size(), component.first);
+                "gpgconf {} avaliable options exit_code: {} process stdout "
+                "size: {} ",
+                component.first, exit_code, p_out.size());
 
             if (exit_code != 0) {
               SPDLOG_ERROR(
-                  "gpgconf execute error, process stderr: {} , process "
-                  "stdout:",
-                  p_err, p_out);
+                  "gpgconf {} avaliable options execute error, process stderr: "
+                  "{} , process stdout:",
+                  component.first, p_err, p_out);
               return;
             }
 
@@ -533,8 +533,9 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               std::vector<std::string> info_split_list;
               boost::split(info_split_list, line, boost::is_any_of(":"));
 
-              SPDLOG_DEBUG("gpgconf info line: {} info size: {}", line,
-                           info_split_list.size());
+              SPDLOG_DEBUG(
+                  "component {} avaliable options line: {} info size: {}",
+                  component.first, line, info_split_list.size());
 
               if (info_split_list.size() != 10) continue;
 

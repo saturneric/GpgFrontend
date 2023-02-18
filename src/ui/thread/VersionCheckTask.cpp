@@ -65,7 +65,7 @@ void VersionCheckTask::Run() {
 
   } catch (...) {
     SPDLOG_ERROR("unknown error occurred");
-    emit SignalTaskFinished();
+    emit SignalTaskRunnableEnd(-1);
   }
 }
 
@@ -129,7 +129,7 @@ void VersionCheckTask::slot_parse_latest_version_info() {
             &VersionCheckTask::slot_parse_current_version_info);
   } catch (...) {
     SPDLOG_ERROR("current version request create error");
-    emit SignalTaskFinished();
+    emit SignalTaskRunnableEnd(-1);
   }
 }
 
@@ -166,7 +166,7 @@ void VersionCheckTask::slot_parse_current_version_info() {
   }
 
   emit SignalUpgradeVersion(version_);
-  emit SignalTaskFinished();
+  emit SignalTaskRunnableEnd(0);
 }
 
 }  // namespace GpgFrontend::UI

@@ -56,5 +56,5 @@ void GpgFrontend::UI::KeyServerSearchTask::dealing_reply_from_server() {
     buffer = reply_->readAll();
   }
   emit SignalKeyServerSearchResult(network_reply, buffer);
-  emit SignalTaskFinished();
+  emit SignalTaskRunnableEnd(0);
 }

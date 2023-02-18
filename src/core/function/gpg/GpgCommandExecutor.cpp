@@ -29,7 +29,6 @@
 
 #include "GpgFunctionObject.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "spdlog/fmt/bundled/format.h"
 
 GpgFrontend::GpgCommandExecutor::GpgCommandExecutor(int channel)
     : SingletonFunctionObject<GpgCommandExecutor>(channel) {}
@@ -42,6 +41,7 @@ void GpgFrontend::GpgCommandExecutor::Execute(
 
   Thread::Task::TaskCallback result_callback =
       [](int rtn, Thread::Task::DataObjectPtr data_object) {
+        SPDLOG_DEBUG("data object use count: {}", data_object.use_count());
         if (data_object->GetObjectSize() != 4)
           throw std::runtime_error("invalid data object size");
 
@@ -121,26 +121,30 @@ void GpgFrontend::GpgCommandExecutor::Execute(
     cmd_process->deleteLater();
 
     // transfer result
+    SPDLOG_DEBUG("runner append object");
     data_object->AppendObject(std::move(process_stderr));
     data_object->AppendObject(std::move(process_stdout));
     data_object->AppendObject(std::move(exit_code));
+    SPDLOG_DEBUG("runner append object done");
 
     return 0;
   };
 
   // data transfer into task
   auto data_object = std::make_shared<Thread::Task::DataObject>();
+  SPDLOG_DEBUG("executor append object");
   data_object->AppendObject(std::move(callback));
   data_object->AppendObject(std::move(interact_func));
   data_object->AppendObject(std::move(arguments));
   data_object->AppendObject(std::move(std::string{cmd}));
+  SPDLOG_DEBUG("executor append object done");
 
   auto *process_task = new GpgFrontend::Thread::Task(
       std::move(runner), fmt::format("Execute/{}", cmd), data_object,
       std::move(result_callback));
 
   QEventLoop looper;
-  QObject::connect(process_task, &Thread::Task::SignalTaskFinished, &looper,
+  QObject::connect(process_task, &Thread::Task::SignalTaskEnd, &looper,
                    &QEventLoop::quit);
 
   GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
@@ -181,11 +185,13 @@ void GpgFrontend::GpgCommandExecutor::ExecuteConcurrently(
     if (data_object->GetObjectSize() != 4)
       throw std::runtime_error("invalid data object size");
 
+    SPDLOG_DEBUG("runner pop object");
     // get arguments
     auto cmd = data_object->PopObject<std::string>();
     auto arguments = data_object->PopObject<std::vector<std::string>>();
     auto interact_func =
         data_object->PopObject<std::function<void(QProcess *)>>();
+    SPDLOG_DEBUG("runner pop object done");
 
     auto *cmd_process = new QProcess();
     cmd_process->setProcessChannelMode(QProcess::MergedChannels);
@@ -216,6 +222,7 @@ void GpgFrontend::GpgCommandExecutor::ExecuteConcurrently(
         });
 
     cmd_process->setProgram(QString::fromStdString(cmd));
+    cmd_process->setProcessChannelMode(QProcess::SeparateChannels);
 
     QStringList q_arguments;
     for (const auto &argument : arguments)
@@ -238,9 +245,11 @@ void GpgFrontend::GpgCommandExecutor::ExecuteConcurrently(
     cmd_process->deleteLater();
 
     // transfer result
+    SPDLOG_DEBUG("runner append object");
     data_object->AppendObject(std::move(process_stderr));
     data_object->AppendObject(std::move(process_stdout));
     data_object->AppendObject(std::move(exit_code));
+    SPDLOG_DEBUG("runner append object done");
 
     return 0;
   };

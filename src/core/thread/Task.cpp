@@ -90,28 +90,49 @@ std::string GpgFrontend::Thread::Task::GetUUID() const { return uuid_; }
 
 bool GpgFrontend::Thread::Task::GetSequency() const { return sequency_; }
 
-void GpgFrontend::Thread::Task::SetFinishAfterRun(bool finish_after_run) {
-  this->finish_after_run_ = finish_after_run;
+void GpgFrontend::Thread::Task::SetFinishAfterRun(
+    bool run_callback_after_runnable_finished) {
+  this->run_callback_after_runnable_finished_ =
+      run_callback_after_runnable_finished;
 }
 
 void GpgFrontend::Thread::Task::SetRTN(int rtn) { this->rtn_ = rtn; }
 
 void GpgFrontend::Thread::Task::init() {
-  connect(this, &Task::SignalTaskFinished, this, &Task::before_finish_task);
+  // after runnable finished, running callback
+  connect(this, &Task::SignalTaskRunnableEnd, this,
+          &Task::slot_task_run_callback);
 }
 
-void GpgFrontend::Thread::Task::before_finish_task() {
-  SPDLOG_TRACE("task {} finished", GetFullID());
+void GpgFrontend::Thread::Task::slot_task_run_callback(int rtn) {
+  SPDLOG_TRACE("task runnable {} finished, rtn: {}", GetFullID(), rtn);
+  // set return value
+  this->SetRTN(rtn);
 
   try {
     if (callback_) {
-      bool if_invoke = QMetaObject::invokeMethod(
-          callback_thread_,
-          [callback = callback_, rtn = rtn_, data_object = data_object_]() {
-            callback(rtn, data_object);
-          });
-      if (!if_invoke) {
-        SPDLOG_ERROR("failed to invoke callback");
+      if (callback_thread_ == QThread::currentThread()) {
+        SPDLOG_DEBUG("callback thread is the same thread");
+        if (!QMetaObject::invokeMethod(callback_thread_,
+                                       [callback = callback_, rtn = rtn_,
+                                        data_object = data_object_, this]() {
+                                         callback(rtn, data_object);
+                                         // do cleaning work
+                                         emit SignalTaskEnd();
+                                       })) {
+          SPDLOG_ERROR("failed to invoke callback");
+        }
+        // just finished, let callack thread to raise SignalTaskEnd
+        return;
+      } else {
+        // waiting for callback to finish
+        if (!QMetaObject::invokeMethod(
+                callback_thread_,
+                [callback = callback_, rtn = rtn_,
+                 data_object = data_object_]() { callback(rtn, data_object); },
+                Qt::BlockingQueuedConnection)) {
+          SPDLOG_ERROR("failed to invoke callback");
+        }
       }
     }
   } catch (std::exception &e) {
@@ -119,22 +140,45 @@ void GpgFrontend::Thread::Task::before_finish_task() {
   } catch (...) {
     SPDLOG_ERROR("unknown exception caught");
   }
-  emit SignalTaskPostFinishedDone();
+
+  // raise signal, announcing this task come to an end
+  SPDLOG_DEBUG("task {}, starting calling signal SignalTaskEnd", GetFullID());
+  emit SignalTaskEnd();
 }
 
 void GpgFrontend::Thread::Task::run() {
-  SPDLOG_TRACE("task {} started", GetFullID());
-  Run();
-  if (finish_after_run_) emit SignalTaskFinished();
+  SPDLOG_TRACE("task {} starting", GetFullID());
+
+  // build runnable package for running
+  auto runnable_package = [=, id = GetFullID()]() {
+    SPDLOG_DEBUG("task {} runnable start runing", id);
+    // Run() will set rtn by itself
+    Run();
+    // raise signal to anounce after runnable returned
+    if (run_callback_after_runnable_finished_) emit SignalTaskRunnableEnd(rtn_);
+  };
+
+  if (thread() != QThread::currentThread()) {
+    SPDLOG_DEBUG("task running thread is not object living thread");
+    // running in another thread, blocking until returned
+    if (!QMetaObject::invokeMethod(thread(), runnable_package,
+                                   Qt::BlockingQueuedConnection)) {
+      SPDLOG_ERROR("qt invoke method failed");
+    }
+  } else {
+    if (!QMetaObject::invokeMethod(this, runnable_package)) {
+      SPDLOG_ERROR("qt invoke method failed");
+    }
+  }
 }
+
+void GpgFrontend::Thread::Task::SlotRun() { run(); }
 
 void GpgFrontend::Thread::Task::Run() {
   if (runnable_) {
-    bool if_invoke = QMetaObject::invokeMethod(
-        this, [=]() { return runnable_(data_object_); }, &rtn_);
-    if (!if_invoke) {
-      SPDLOG_ERROR("qt invokeMethod failed");
-    }
+    SetRTN(runnable_(data_object_));
+  } else {
+    SPDLOG_WARN("no runnable in task, do callback operation");
   }
 }
 
