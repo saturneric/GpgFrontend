@@ -80,37 +80,29 @@ void GpgFrontend::Thread::TaskRunner::PostScheduleTask(Task* task,
           SPDLOG_TRACE("running task {}, sequency: {}", task->GetFullID(),
                        task->GetSequency());
 
-          // run sequently
           // when a signal SignalTaskEnd raise, do unregister work
           connect(task, &Task::SignalTaskEnd, this, [this, task]() {
             unregister_finished_task(task->GetUUID());
           });
-          // run task
-          task->run();
-          // if (task->GetSequency()) {
 
-          // } else {
-          //   // run concurrently
-          //   auto* concurrent_thread = new QThread(nullptr);
-          //   task->setParent(nullptr);
-          //   task->moveToThread(concurrent_thread);
-          //   connect(concurrent_thread, &QThread::started, task,
-          //   &Task::SlotRun); connect(task, &Task::SignalTaskPostFinishedDone,
-          //   this,
-          //           [uuid = task->GetUUID(), this]() {
-          //             unregister_finished_task(uuid);
-          //           });
-          //   connect(task, &Task::SignalTaskPostFinishedDone,
-          //   concurrent_thread,
-          //           &QThread::quit);
-          //   connect(concurrent_thread, &QThread::finished, concurrent_thread,
-          //           [task, concurrent_thread]() {
-          //             task->deleteLater();
-          //             concurrent_thread->deleteLater();
-          //           });
-          //   // start thread
-          //   concurrent_thread->start();
-          // }
+          if (!task->GetSequency()) {
+            // if it need to run concurrently, we should create a new thread to
+            // run it.
+            auto* concurrent_thread = new QThread(nullptr);
+            task->setParent(nullptr);
+            task->moveToThread(concurrent_thread);
+            // start thread
+            concurrent_thread->start();
+
+            connect(task, &Task::SignalTaskEnd, concurrent_thread,
+                    &QThread::quit);
+            // concurrent thread is responsible for deleting the task
+            connect(concurrent_thread, &QThread::finished, task,
+                    &Task::deleteLater);
+          }
+
+          // run the task
+          task->run();
         } catch (const std::exception& e) {
           SPDLOG_ERROR("task runner: exception in task {}, exception: {}",
                        task->GetFullID(), e.what());
@@ -143,7 +135,10 @@ void GpgFrontend::Thread::TaskRunner::unregister_finished_task(
     return;
   } else {
     std::lock_guard<std::mutex> lock(tasks_mutex_);
-    pending_task->second->deleteLater();
+    // if thread runs sequenctly, that means the thread is living in this
+    // thread, so we can delete it. Or, its living thread need to delete it.
+    if (pending_task->second->GetSequency())
+      pending_task->second->deleteLater();
     pending_tasks_.erase(pending_task);
   }
 

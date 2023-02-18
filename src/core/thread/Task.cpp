@@ -160,10 +160,18 @@ void GpgFrontend::Thread::Task::run() {
 
   if (thread() != QThread::currentThread()) {
     SPDLOG_DEBUG("task running thread is not object living thread");
-    // running in another thread, blocking until returned
-    if (!QMetaObject::invokeMethod(thread(), runnable_package,
-                                   Qt::BlockingQueuedConnection)) {
-      SPDLOG_ERROR("qt invoke method failed");
+    // if running sequently
+    if (sequency_) {
+      // running in another thread, blocking until returned
+      if (!QMetaObject::invokeMethod(thread(), runnable_package,
+                                     Qt::BlockingQueuedConnection)) {
+        SPDLOG_ERROR("qt invoke method failed");
+      }
+    } else {
+      // running in another thread, non-blocking
+      if (!QMetaObject::invokeMethod(thread(), runnable_package)) {
+        SPDLOG_ERROR("qt invoke method failed");
+      }
     }
   } else {
     if (!QMetaObject::invokeMethod(this, runnable_package)) {
