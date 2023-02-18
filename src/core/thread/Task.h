@@ -219,18 +219,26 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    */
   bool GetSequency() const;
 
- signals:
-  /**
-   * @brief
-   *
-   */
-  void SignalTaskFinished();
+ public slots:
 
   /**
    * @brief
    *
    */
-  void SignalTaskPostFinishedDone();
+  void SlotRun();
+
+ signals:
+  /**
+   * @brief announce runnable finished
+   *
+   */
+  void SignalTaskRunnableEnd(int rtn);
+
+  /**
+   * @brief runnable and callabck all finished
+   *
+   */
+  void SignalTaskEnd();
 
  protected:
   /**
@@ -250,19 +258,13 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
  private:
   const std::string uuid_;
   const std::string name_;
-  const bool sequency_ = true;           ///< must run in the same thread
-  TaskCallback callback_;                ///<
-  TaskRunnable runnable_;                ///<
-  bool finish_after_run_ = true;         ///<
-  int rtn_ = 0;                          ///<
-  QThread *callback_thread_ = nullptr;   ///<
-  DataObjectPtr data_object_ = nullptr;  ///<
-
-  /**
-   * @brief
-   *
-   */
-  void before_finish_task();
+  const bool sequency_ = true;  ///< must run in the same thread
+  TaskCallback callback_;       ///<
+  TaskRunnable runnable_;       ///<
+  bool run_callback_after_runnable_finished_ = true;  ///<
+  int rtn_ = 0;                                       ///<
+  QThread *callback_thread_ = nullptr;                ///<
+  DataObjectPtr data_object_ = nullptr;               ///<
 
   /**
    * @brief
@@ -282,6 +284,13 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    * @return std::string
    */
   static std::string generate_uuid();
+
+ private slots:
+  /**
+   * @brief
+   *
+   */
+  void slot_task_run_callback(int rtn);
 };
 }  // namespace GpgFrontend::Thread
 

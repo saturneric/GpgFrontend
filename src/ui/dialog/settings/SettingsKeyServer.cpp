@@ -273,7 +273,7 @@ void KeyserverTab::slot_test_listed_key_server() {
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
   waiting_dialog->setModal(true);
-  connect(task, &Thread::Task::SignalTaskFinished, [=]() {
+  connect(task, &Thread::Task::SignalTaskEnd, [=]() {
     waiting_dialog->close();
     waiting_dialog->deleteLater();
   });

@@ -73,8 +73,8 @@ void FileReadTask::read_bytes() {
   } else {
     SPDLOG_DEBUG("read bytes end");
     emit SignalFileBytesReadEnd();
-    // finish task
-    emit SignalTaskFinished();
+    // announce finish task
+    emit SignalTaskRunnableEnd(0);
   }
 }
 

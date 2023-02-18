@@ -84,6 +84,6 @@ void GpgFrontend::UI::ListedKeyServerTestTask::slot_process_network_reply(
 
   if (++result_count_ == urls_.size()) {
     emit SignalKeyServerListTestResult(result_);
-    emit SignalTaskFinished();
+    emit SignalTaskRunnableEnd(0);
   }
 }

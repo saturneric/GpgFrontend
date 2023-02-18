@@ -44,19 +44,6 @@ void GpgFrontend::Thread::TaskRunner::PostTask(Task* task) {
   task->setParent(nullptr);
   task->moveToThread(this);
 
-  connect(task, &Task::SignalTaskPostFinishedDone, this, [&, this, task]() {
-    SPDLOG_DEBUG("cleaning task {}", task->GetFullID());
-    auto pending_task = pending_tasks_.find(task->GetUUID());
-    if (pending_task == pending_tasks_.end()) {
-      SPDLOG_ERROR("cannot find task in pending list: {}", task->GetFullID());
-      return;
-    } else {
-      std::lock_guard<std::mutex> lock(tasks_mutex_);
-      pending_tasks_.erase(pending_task);
-    }
-    task->deleteLater();
-  });
-
   {
     std::lock_guard<std::mutex> lock(tasks_mutex_);
     tasks.push(task);
@@ -71,14 +58,13 @@ void GpgFrontend::Thread::TaskRunner::PostScheduleTask(Task* task,
 }
 
 [[noreturn]] void GpgFrontend::Thread::TaskRunner::run() {
-  SPDLOG_TRACE("run, thread id: {}", QThread::currentThreadId());
+  SPDLOG_TRACE("task runner runing, thread id: {}", QThread::currentThreadId());
   while (true) {
-    SPDLOG_TRACE("task runner: a new cycle start");
     if (tasks.empty()) {
-      SPDLOG_TRACE("task runner: no tasks to run, trapping into event loop...");
+      SPDLOG_TRACE("no tasks to run, trapping into event loop...");
       exec();
     } else {
-      SPDLOG_TRACE("task runner: task queue size:", tasks.size());
+      SPDLOG_TRACE("start to run task(s), queue size: {}", tasks.size());
 
       Task* task = nullptr;
       {
@@ -90,30 +76,76 @@ void GpgFrontend::Thread::TaskRunner::PostScheduleTask(Task* task,
 
       if (task != nullptr) {
         try {
-          // Run the task
-          SPDLOG_TRACE("task runner: running task {}, sequency: {}",
-                       task->GetFullID(), task->GetSequency());
-          if (task->GetSequency()) {
-            // run sequently
-            task->run();
-          } else {
-            // run concurrently
-            thread_pool_.start(task);
-          }
+          // triger
+          SPDLOG_TRACE("running task {}, sequency: {}", task->GetFullID(),
+                       task->GetSequency());
+
+          // run sequently
+          // when a signal SignalTaskEnd raise, do unregister work
+          connect(task, &Task::SignalTaskEnd, this, [this, task]() {
+            unregister_finished_task(task->GetUUID());
+          });
+          // run task
+          task->run();
+          // if (task->GetSequency()) {
+
+          // } else {
+          //   // run concurrently
+          //   auto* concurrent_thread = new QThread(nullptr);
+          //   task->setParent(nullptr);
+          //   task->moveToThread(concurrent_thread);
+          //   connect(concurrent_thread, &QThread::started, task,
+          //   &Task::SlotRun); connect(task, &Task::SignalTaskPostFinishedDone,
+          //   this,
+          //           [uuid = task->GetUUID(), this]() {
+          //             unregister_finished_task(uuid);
+          //           });
+          //   connect(task, &Task::SignalTaskPostFinishedDone,
+          //   concurrent_thread,
+          //           &QThread::quit);
+          //   connect(concurrent_thread, &QThread::finished, concurrent_thread,
+          //           [task, concurrent_thread]() {
+          //             task->deleteLater();
+          //             concurrent_thread->deleteLater();
+          //           });
+          //   // start thread
+          //   concurrent_thread->start();
+          // }
         } catch (const std::exception& e) {
           SPDLOG_ERROR("task runner: exception in task {}, exception: {}",
                        task->GetFullID(), e.what());
-          // destroy the task, remove the task from the pending tasks
-          pending_tasks_.erase(task->GetUUID());
-          task->deleteLater();
+          // if any exception caught, destroy the task, remove the task from the
+          // pending tasks
+          unregister_finished_task(task->GetUUID());
         } catch (...) {
           SPDLOG_ERROR("task runner: unknown exception in task: {}",
                        task->GetFullID());
-          // destroy the task, remove the task from the pending tasks
-          pending_tasks_.erase(task->GetUUID());
-          task->deleteLater();
+          // if any exception caught, destroy the task, remove the task from the
+          // pending tasks
+          unregister_finished_task(task->GetUUID());
         }
       }
     }
   }
+}
+
+/**
+ * @brief
+ *
+ */
+void GpgFrontend::Thread::TaskRunner::unregister_finished_task(
+    std::string task_uuid) {
+  SPDLOG_DEBUG("cleaning task {}", task_uuid);
+  // search in map
+  auto pending_task = pending_tasks_.find(task_uuid);
+  if (pending_task == pending_tasks_.end()) {
+    SPDLOG_ERROR("cannot find task in pending list: {}", task_uuid);
+    return;
+  } else {
+    std::lock_guard<std::mutex> lock(tasks_mutex_);
+    pending_task->second->deleteLater();
+    pending_tasks_.erase(pending_task);
+  }
+
+  SPDLOG_DEBUG("clean task {} done", task_uuid);
 }

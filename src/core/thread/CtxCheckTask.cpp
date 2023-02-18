@@ -49,4 +49,6 @@ void GpgFrontend::Thread::CtxCheckTask::Run() {
   // Try flushing key cache
   else
     GpgFrontend::GpgKeyGetter::GetInstance().FlushKeyCache();
+
+  SPDLOG_DEBUG("ctx check task runnable done");
 }

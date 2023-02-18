@@ -182,10 +182,10 @@ void PlainTextEditorPage::ReadFile() {
   connect(this, &PlainTextEditorPage::SignalUIBytesDisplayed, read_task,
           &FileReadTask::SignalFileBytesReadNext, Qt::QueuedConnection);
 
-  connect(read_task, &FileReadTask::SignalTaskFinished, this,
+  connect(read_task, &FileReadTask::SignalTaskRunnableEnd, this,
           []() { SPDLOG_DEBUG("read thread closed"); });
   connect(this, &PlainTextEditorPage::close, read_task,
-          &FileReadTask::SignalTaskFinished);
+          [=]() { read_task->SignalTaskRunnableEnd(0); });
   connect(read_task, &FileReadTask::SignalFileBytesReadEnd, this, [=]() {
     // set the UI
     if (!binary_mode_) text_page->setReadOnly(false);

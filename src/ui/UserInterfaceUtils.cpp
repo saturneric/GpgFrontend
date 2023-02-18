@@ -123,12 +123,12 @@ void process_operation(QWidget *parent, const std::string &waiting_title,
   auto *process_task = new Thread::Task(std::move(func), waiting_title,
                                         data_object, std::move(callback));
 
-  QApplication::connect(process_task, &Thread::Task::SignalTaskFinished, dialog,
+  QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, dialog,
                         &QDialog::close);
 
   QEventLoop looper;
-  QApplication::connect(process_task, &Thread::Task::SignalTaskFinished,
-                        &looper, &QEventLoop::quit);
+  QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, &looper,
+                        &QEventLoop::quit);
 
   // post process task to task runner
   Thread::TaskRunnerGetter::GetInstance()
@@ -406,9 +406,10 @@ void CommonUtils::slot_update_key_status() {
         }
         return 0;
       },
-      "update_key_status_task");
-  connect(refresh_task, &Thread::Task::SignalTaskFinished, this,
-          &CommonUtils::SignalKeyDatabaseRefreshDone);
+      "update_key_database_task");
+  connect(refresh_task, &Thread::Task::SignalTaskEnd, this,
+          &CommonUtils::SignalKeyDatabaseRefreshDone,
+          Qt::BlockingQueuedConnection);
 
   // post the task to the default task runner
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
