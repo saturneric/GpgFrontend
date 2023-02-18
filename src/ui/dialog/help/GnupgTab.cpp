@@ -76,7 +76,7 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
 }
 
 void GpgFrontend::UI::GnupgTab::process_software_info() {
-  auto& ctx_info = GpgContext::GetInstance().GetInfo(true);
+  auto& ctx_info = GpgContext::GetInstance().GetInfo();
 
   ui_->gnupgVersionLabel->setText(QString::fromStdString(
       fmt::format("Version: {}", ctx_info.GnupgVersion)));
