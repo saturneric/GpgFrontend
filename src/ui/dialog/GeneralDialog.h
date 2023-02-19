@@ -49,13 +49,13 @@ class GeneralDialog : public QDialog {
   /**
    *
    */
-  void setPosCenterOfScreen();
+  void movePos2CenterOfScreen();
 
   /**
    * @brief
    *
    */
-  void movePosition2CenterOfParent();
+  void movePos2CenterOfParent();
 
  private slots:
   /**

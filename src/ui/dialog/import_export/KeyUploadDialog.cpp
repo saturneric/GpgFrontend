@@ -55,7 +55,7 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
   this->setModal(true);
   this->setWindowTitle(_("Uploading Public Key"));
   this->setFixedSize(240, 42);
-  this->setPosCenterOfScreen();
+  this->movePos2CenterOfScreen();
 }
 
 void KeyUploadDialog::SlotUpload() {

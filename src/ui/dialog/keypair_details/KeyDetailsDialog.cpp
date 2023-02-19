@@ -59,7 +59,7 @@ KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
   // this->setMinimumSize({520, 600});
 
   // move to center of the parent
-  this->movePosition2CenterOfParent();
+  this->movePos2CenterOfParent();
 
   this->show();
 }

@@ -51,6 +51,7 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
     manageUIDButton->setMenu(manage_selected_uid_menu_);
   } else {
     manageUIDButton->setDisabled(true);
+    addUIDButton->setDisabled(true);
   }
 
   uidButtonsLayout->addWidget(addUIDButton, 0, 1);
