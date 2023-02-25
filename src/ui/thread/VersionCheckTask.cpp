@@ -137,8 +137,14 @@ void VersionCheckTask::slot_parse_current_version_info() {
   try {
     if (current_reply_ == nullptr ||
         current_reply_->error() != QNetworkReply::NoError) {
-      SPDLOG_ERROR("current version request network error: {}",
-                   current_reply_->errorString().toStdString());
+      if (current_reply_ != nullptr) {
+        SPDLOG_ERROR("current version request network error: {}",
+                     current_reply_->errorString().toStdString());
+      } else {
+        SPDLOG_ERROR(
+            "current version request network error, null reply object");
+      }
+
       version_.current_version_found = false;
       version_.load_info_done = false;
     } else {
