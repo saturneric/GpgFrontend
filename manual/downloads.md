@@ -1,16 +1,24 @@
 # Downloads
 
-Currently you can download GpgFrontend through various channels.
+Currently, you can download GpgFrontend in many ways. For more tips, you can see
+the quick start manual [HERE](quick-start.md). It provides more information on
+installing and running.
 
 ---
 
 ## GitHub Releases
 
-[![GitHub release (latest by date)](https://img.shields.io/github/downloads/saturneric/GpgFrontend/latest/total?style=for-the-badge)](https://github.com/saturneric/GpgFrontend/releases/latest)
+[![GitHub Release (latest by date)](https://img.shields.io/github/downloads/saturneric/GpgFrontend/latest/total?style=for-the-badge)](https://github.com/saturneric/GpgFrontend/releases/latest)
 
-## SourgeForge
+## SourceForge
 
-[![Download GogFrontend](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/gpgfrontend/files/latest/download)
+[![Download GpgFrontend](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/gpgfrontend/files/latest/download)
+
+## Homebrew Cask
+
+[![Homebrew Cask](https://img.shields.io/homebrew/cask/v/gpgfrontend?style=for-the-badge)](https://formulae.brew.sh/cask/gpgfrontend)
+
+Or just execute `brew install --cask gpgfrontend`
 
 ## Microsoft Store
 
