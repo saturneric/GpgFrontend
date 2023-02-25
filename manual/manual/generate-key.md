@@ -1,118 +1,150 @@
 # Generate Key Pair & Subkey
 
-For GpgFrontend, to understand the key, you must first understand two concepts: key pair and subkey.
+Sure, let's go through the process of generating a key pair and subkeys.
 
-A key pair can be compared to a key ring. When it is generated, there is a key in the ring called the primary key. This
-primary key can do the intended operation (encryption, decryption, etc.). At the same time, keep this in mind, only
-through the primary key can you open the keychain to add new keys to it.
+To generate a key pair using GpgFrontend, follow these steps:
 
-The sub-keys can be analogous to the keys you add to the key pair later, and each of them can independently perform
-operations such as encryption and decryption. It can be considered that the primary key mentioned above is a special
-subkey.
+1. Open GpgFrontend and click on the "Generate Key" button.
+2. Fill in the required information, such as your name and email address.
+3. Choose the type of key you want to generate (RSA or ECC).
+4. Set the key size and expiration date, if desired.
+5. Create a passphrase to protect your private key.
+6. Click "Generate" to create your key pair.
 
-When there is no primary key in the key pair, you will not be able to open the key ring to add a new sub key, but you
-can still use this sub key if it is changed to exist for your operations. This mechanism is very helpful to the security
-of the key.
+Once your key pair is generated, you can add subkeys to it by following these
+steps:
 
-Let's see how to generate them next.
+1. Select the key pair you want to add a subkey to.
+2. Click on the "Add Subkey" button.
+3. Choose the type of subkey you want to add (encryption, signing,
+   authentication, or all).
+4. Set the subkey size and expiration date, if desired.
+5. Create a passphrase to protect your subkey.
+6. Click "Add" to create your subkey.
+
+You can add multiple subkeys to a key pair, each with their own specific
+purposes. This allows you to have more control over your key pair's security and
+usage.
 
 ## Generate Key Pair
 
-You can quickly grasp the operation of generating a key pair through the following animation.
+You can quickly understand the process of generating a key pair by watching the
+following animation.
 
 ![GIF](https://github.com/saturneric/Blob/blob/master/gif/generate-key-pair.gif?raw=true)
 
 ### Name & Email & Comment
 
-These three fields are used to facilitate people to distinguish this key pair from the card key pair. For these three
-options, except for name and email, which are required, comments are optional.
+The three fields, including name, email, and comment, are used to help users
+differentiate this key pair from other key pairs they may have. Among these
+three options, name and email are mandatory, while comment is optional.
 
-In addition, the length of the name is required to be greater than 5 letters, as long as the email conforms to the
-format (no actual existence is required).
+It is important to note that the name should be at least 5 characters long, and
+the email should follow the correct format (no actual email account is
+required).
 
 ![uid](https://github.com/saturneric/Blob/blob/master/screenshots/uid.png?raw=true)
 
 ### Expiration Date
 
-You can set an expiration date for the key pair. After this date, the key may still be used normally, but the operation
-it does will be logically invalid (especially for signature operations). GpgFrontend recommends and defaults this date
-to two years later. If you wish, check the Never expire checkbox to make this key pair never expire.
+Setting an expiration date for the key pair is a way to limit the validity of
+the key over time. Once the expiration date is reached, the key can still be
+used, but its operations, especially signature operations, will be considered
+invalid. By default, GpgFrontend suggests setting the expiration date to two
+years after generation, but you can also choose to check the "Never expire"
+checkbox to make the key pair permanent.
 
-But don't worry, you can change this option at any time after generation, even long after the expiration date (as long
-as the primary key exists).
+It's important to note that this option can be changed at any time after
+generation, even after the expiration date has passed, as long as the primary
+key still exists.
 
 ![expiration-date](https://github.com/saturneric/Blob/blob/master/screenshots/expriation-date.png?raw=true)
 
 ### Key Size & Algo
 
-These two options are related. In general, different encryption algorithms have different optional lengths. GpgFrontend
-will give you sufficient hints on the UI so that you will not go wrong.
+Setting an expiration date for the key pair is a way to limit the validity of
+the key over time. Once the expiration date is reached, the key can still be
+used, but its operations, especially signature operations, will be considered
+invalid. By default, GpgFrontend suggests setting the expiration date to two
+years after generation, but you can also choose to check the "Never expire"
+checkbox to make the key pair permanent.
 
-Just remember that the larger the key length, the more secure, but it will be slower when performing operations.
+It's important to note that this option can be changed at any time after
+generation, even after the expiration date has passed, as long as the primary
+key still exists.
 
 ![keysize-algo](https://github.com/saturneric/Blob/blob/master/screenshots/keysize-algo.png?raw=true)
 
 ### Passphrase
 
-You can set a key to protect the primary key, which is very important when the primary key is leaked. When the Do not
-set password check box is not checked, an interface for you to enter the password will pop up during the process of
-generating the password. Just follow the prompts. After setting the password, when you need to use the primary key for
-operation, you may enter the password to unlock it
-(some systems have a password networkAccessManager to take over this process).
+Setting a password to protect the primary key is crucial in case of a security
+breach. If the "Do not set password" checkbox is unchecked, you will be prompted
+to enter a password during the key pair generation process. Follow the prompts
+to set the password. Once the password is set, whenever you need to use the
+primary key for an operation, you will need to enter the password to unlock it
+(some systems have a password manager to automate this process).
 
-You can also check the checkbox to not set a protection password for the primary key, but due to security
-considerations, this is not recommended.
+However, you can also check the "Do not set password" checkbox to skip setting a
+protection password for the primary key. But this is not recommended due to
+security concerns.
 
 ### Usage
 
-In the option of generating a key pair, you can specify the usage for the first subkey of the key pair, which is the
-primary key. There are four options:
+When generating a key pair, you can specify the usage for the first subkey,
+which is the primary key. There are four options:
 
 ![usages](https://github.com/saturneric/Blob/blob/master/screenshots/usages.png?raw=true)
 
-- Encryption: After generation, it can be used for encryption operations.
+- Encryption: Once generated, this key can be used for encryption purposes.
 
-- Signing: After generation, it can be used for signature operations.
+- Signing: Once generated, this key can be used for signature purposes.
 
-- Certification: Popular understanding can be used to unlock this key ring (key pair). Only the primary key can check
-  this function.
+- Certification: This key can be used to certify or verify other keys. Only the
+  primary key can have this usage.
 
-- Authentication: It can perform authentication operations like SSH keys.
+- Authentication: This key can be used for authentication purposes, such as with
+  SSH keys.
 
-The third of these four uses (authentication purposes) can only be owned by the primary key. In addition, some usages
-are not available when using certain algorithms for encryption. For example, when the DSA algorithm is selected, the
+The third of these four uses (authentication purposes) can only be owned by the
+primary key. In addition, some usages are not available when using certain
+algorithms for encryption. For example, when the DSA algorithm is selected, the
 encryption uses are disabled.
 
 ## Generate Subkey
 
-We can add sub-keys to the generated key pair. The subkey does not need to fill in the name, email and comment options.
-The rest is basically the same as generating the key pair.
+It is possible to append subkeys to an existing key pair. The subkey does not
+require the input of a name, email, or comment, as the remaining steps are
+essentially identical to those for generating a key pair.
 
 ![GIF](https://github.com/saturneric/Blob/blob/master/gif/generate-subkey.gif?raw=true)
 
 ### Extra note
 
-Here are some tips you might want to know. These tips will help you better understand the above concepts and use this
-tool correctly.
+Below are some guidelines that may prove useful in comprehending the
+aforementioned concepts and utilizing this tool accurately.
 
 #### primary key & Subkey
 
-A key pair can have multiple subkeys and one primary key. Using this design reduces the risk of key leakage. For subkey,
-After the subkey is leaked, you can revoke it at any time to reduce the loss. However, when the primary key is leaked,
-the entire key pair will be insecure (the popular reason is that the main force can be used to manage this key pair).
+A single primary key can be accompanied by several subkeys within a key pair.
+This setup mitigates the risk of key leakage. In the event that a subkey is
+exposed, it can be revoked promptly, thus limiting the damage. However, if the
+primary key is leaked, the entire key pair becomes vulnerable, as the primary
+key enables management of the entire key pair.
 
-Therefore, the recommended approach is to generate multiple subkeys after creating the key pair, and export the master
-key separately and store it in a safe place. This operation is not yet supported by GpgFrontend, you need to use the gpg
-command to perform it. But gpgfrontend can identify and prompt the user whether the primary key exists or not. This is
-very important, because some special operations (adding subkeys, signing other keys, etc.) cannot be performed without
-the primary key.
+Hence, it is advisable to generate multiple subkeys upon creating the key pair
+and store the master key separately in a secure location. This operation is not
+yet supported by GpgFrontend; therefore, the gpg command must be used to carry
+it out. However, GpgFrontend can detect and notify the user whether the primary
+key exists or not, which is critical since certain actions, such as adding
+subkeys or signing other keys, necessitate the presence of the primary key.
 
 #### Some practical tips
 
-The purpose of the primary key cannot be changed after it is generated. If the primary key of this key pair does not
-have a certain purpose, but a certain sub-key has this purpose, this key pair can still be used for operations
-corresponding to this purpose.
+Once generated, the primary key's intended purpose cannot be altered. However,
+if a subkey has been designated for a specific purpose that the primary key
+lacks, the key pair can still be utilized for activities related to that
+purpose.
 
-For example, when you generated the key pair, you didn't check the encryption usage. Don't worry, you can generate a
-subkey and check the encryption usage. In this way, this key pair can still perform encryption operations.
-
+For instance, suppose you overlooked the encryption usage while creating the key
+pair. In that case, generating a subkey and configuring it for encryption usage
+would enable the key pair to perform encryption operations.

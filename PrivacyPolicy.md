@@ -40,8 +40,8 @@ wishes:
 
 ## Changes to this privacy policy
 
-1. If you decide to change the privacy policy, I will post these changes in this policy, on the website, and where we
-   deem appropriate, so that you can understand how we collect and use your personal information, who can access this
-   information, and where Under what circumstances will we disclose this information.
+1. If I decide to change the privacy policy, I will post these changes in this policy, on the website, and where we
+   deem appropriate, so that you can understand how this application collect and use your personal information, who can 
+   access this information, and where Under what circumstances will we disclose this information.
 2. I reserve the right to modify this policy at any time, so please check it frequently. If there is a major change to
-   this policy, the company will notify it through a website notice.
+   this policy, I will notify it through a website notice.

@@ -7,25 +7,29 @@
 ![CodeSize](https://img.shields.io/github/languages/code-size/saturneric/GpgFrontend)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&utm_medium=referral&utm_content=saturneric/GpgFrontend&utm_campaign=Badge_Grade)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/saturneric/gpgfrontend)
+![Homebrew Cask](https://img.shields.io/homebrew/cask/v/gpgfrontend)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_small)
 [![Build & Package](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml)
 
 GpgFrontend is a Free, Open Source, Powerful, Easy-to-Use, Compact, Cross-Platform [OpenPGP](https://www.openpgp.org/)
 Crypt Tool. Also, it's one of the excellent GUI Frontends for Modern [GnuPG](https://www.gnupg.org/) (gpg).
 
-By using GpgFrontend, you can quickly encrypt and decrypt text or files. You can also digitally sign your text or files.
-**GpgFrontend does not need to depend on any server, therefore it may be one of the last lines of defense in protecting
-your privacy.** Please use this tool to transmit or store information that you regard as very precious. You can also use
-it to guarantee the authenticity of your information.
+By using GpgFrontend,
 
-[Languages Supported](#languages-support) by GpgFrontend that are widely used in most countries and regions around the
-world, including English, Chinese, French, Russian, German, Spanish, Portuguese, Arabic, etc.
+- You can quickly make encrypted files or texts.
+- You can digitally sign your texts or files.
+- You can easily manage all your GPG keys on your machine.
+- You can easily and safely transfer all your GPG keys between your machines.
+- Furthermore, you can build and run it on Windows, macOS, Linux, FreeBSD, etc.
 
-GpgFrontend is permanently free, but you can also "donate" it through the STAR project. Thanks!
+GpgFrontend is **PERMANENTLY FREE**, but you can also "DONATE" it through STAR this project. Thanks!
+
+[Languages Supported](#languages-support) by GpgFrontend including English, Chinese, French, Russian, German, Spanish, Portuguese, Arabic, etc.
 
 [>> Download <<](https://github.com/saturneric/GpgFrontend/releases/latest)
 | [>> User Manual <<](https://www.gpgfrontend.pub/#/overview)
 | [>> Developer Document <<](https://doxygen.gpgfrontend.pub/)
+| [>> Develop Code Repo <<](https://git.codesdream.com/?p=public/main/GpgFrontend.git;a=summary)
 
 <img src="https://github.com/saturneric/Blob/blob/master/screenshots/main-ubuntu.png?raw=true" alt="Ubuntu Main Screenshot"/>
 
@@ -34,25 +38,23 @@ GpgFrontend is permanently free, but you can also "donate" it through the STAR p
 - [Usage](#usage)
 - [User Manual](#user-manual)
 - [Developer Document](#developer-document)
-- [Build Source Code](#build-source-code)
+- [Build From Source Code](#build-from-source-code)
 - [Languages Support](#languages-support)
 - [Contract](#contract)
 - [Licenses](#LICENSES)
 
 ## Usage
 
-Here are some common usages to help you understand what GpgFrontend does and where it comes in handy. The interface
-presented may not be exactly the same as the latest stable release.
+Here are some common usages to help you understand what GpgFrontend does. The interface
+presented here may not be exactly the same as the latest stable release.
 
-### Text Encryption
+### Text Encryption & Decryption
 
 Encryption can be done in just a few clicks.
 
 ![GIF](https://github.com/saturneric/Blob/blob/master/gif/encrypt-sign.gif?raw=true)
 
-### Text Decryption
-
-I want to see what you wrote right away.
+Paste the text, and just click decryption.
 
 ![GIF](https://github.com/saturneric/Blob/blob/master/gif/decrypt-verify.gif?raw=true)
 
@@ -64,32 +66,25 @@ What about files?
 
 ## User Manual
 
-GpgFrontend provides detailed documentation on his main features. If you want to know how to install with it, please
+GpgFrontend provides documentations on its main features. If you want to know how to install, please
 read the [User Manual](https://www.gpgfrontend.pub/#/quick-start) instead of README.
 
 ## Developer Document
 
-You can view the developer documentation that is synchronized with the current latest release code. This document will
+You can view the developer documentations that is synchronized with the current latest develop code. This document will
 help you understand the source code and get involved more quickly in the process of contributing to open source.
 
 [Developer Document](https://doxygen.gpgfrontend.pub)
 
-## Build Source Code
+## Build From Source Code
 
-For some capable users, building Gpg Frontend from source code is a good option. We encourage people to freely build,
-package and distribute their own versions. The way we build in common systems is as follows:
+For some experts, building GpgFrontend from source code is a good option. I encourage people to freely build,
+package and distribute their own versions. The method I build in major operating systems is as follows:
 
-Note: "$" Symbols indicate commands to be executed with a normal user. Before you start, please clone the latest stable
-version code for users around the world.
+Note: "$" Symbols indicate commands to should be executed with a normal user.
 
 ```shell
 $ git clone --recurse-submodules https://github.com/saturneric/GpgFrontend.git
-```
-
-如果你在中国大陆，可以使用这个仓库
-
-```shell
-$ git clone --recurse-submodules https://git.codesdream.com/GpgFrontend.git
 ```
 
 ### For Windows
@@ -162,7 +157,8 @@ $ sudo apt-get -y install libconfig++-dev libboost-all-dev libarchive-dev libssl
 $ sudo apt-get -y install gpg # If you need to run directly after building.
 ```
 
-Compile and install libgpg-error/libassuan/gpgme. Notice: These in third_party directory is newer than those in apt.
+Compile and install libgpg-error/libassuan/gpgme. Notice: These component's version in third_party directory is
+newer than those in apt.
 
 ```shell
 # libgpg-error
@@ -221,8 +217,14 @@ $ ./linuxdeployqt-continuous-x86_64.AppImage ../release/gpgfrontend/usr/share/ap
 
 ## Languages Support
 
+<<<<<<< HEAD
 The supported languages are listed here. Some languages use machine translation and have not been verified. If you want
 to join translation and verification work, please refer to [HERE](https://gpgfrontend.pub/#/translate-interface).
+=======
+The supported languages are listed here. Some translations use machine translation and have not been verified. If you want
+to join translation or verification work, please refer to [HERE](https://gpgfrontend.pub/#/translate-interface).
+
+> > > > > > > main
 
 ### Supported Languages
 
@@ -236,7 +238,7 @@ is wrong, you are welcome to join the translation work to provide a more suitabl
 
 ## Contract
 
-Please refer to [here](https://www.gpgfrontend.pub/#/contract) for my contact details.
+Please refer to [HERE](https://www.gpgfrontend.pub/#/contract) for my contact details.
 
 ### Contributing & Bugs Report
 
@@ -257,7 +259,7 @@ GpgFrontend itself is licensed under the [GPLv3](COPYING).
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_large)
 
-### Dependency
+### Dependencies
 
 There are some libraries and binary included in the zip-file which (may) have different licenses, for more information
 check their homepages. You can also obtain the sources from there.
@@ -278,8 +280,7 @@ JSON for Modern C++: https://github.com/nlohmann/json
 
 Qt-AES: https://github.com/saturneric/Qt-AES
 
-MacOS Application
-Bundles: [Link](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
+macOS Application Bundles: [Link](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
 
 The icons of this software use materials from [Alibaba Iconfont](!https://www.iconfont.cn/). The Alibaba vector icon
 library is free to use. The icons in the free library aren't registered as trademarks. There is no copyright issue
