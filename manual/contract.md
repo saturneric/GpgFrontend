@@ -1,7 +1,11 @@
 # Contract
 
-Contents related to business and politics are rejected. GpgFrontend is for all mankind. If you have any questions
-about technology and improving this software, please feel free to contact me.
+We do not accept content related to business and politics on this platform, as
+this tool is meant for the benefit of all humanity. However, if you have any
+inquiries or suggestions regarding the technology and improvement of this
+software, please do not hesitate to contact me.
+
+Please use plain text to reach out to me via email, as HTML is not preferred.
 
 ## About ME
 
@@ -23,8 +27,10 @@ You can write to me in following languages.
 
 ## GPG Public Key Info
 
-This is the PGP public key that I use for a long time. You can use this public key to establish encrypted communication
-with me. Please use plain text for encrypted communication, do not use rich text formats.
+Here is the PGP public key that I have been using for a long time. You can use
+this public key to establish secure and encrypted communication with me. Please
+use plain text for any encrypted communication and avoid using rich text formats
+such as HTML.
 
 ```
 -----BEGIN PGP PUBLIC KEY BLOCK-----
