@@ -133,7 +133,7 @@ bool GpgFrontend::GpgKeyImportExporter::ExportAllKeys(
     result = ExportKeys(uid_list, temp_buffer, true) & result;
   }
   out_buffer->append(*temp_buffer);
-  return true;
+  return result;
 }
 
 /**
