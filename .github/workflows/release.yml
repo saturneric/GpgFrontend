@@ -94,12 +94,27 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
+      - name: Cache Qt (macOS)
+        id: cache-qt-6
+        uses: actions/cache@v1
+        with:
+          path: ../Qt
+          key: ${{ runner.os }}-qt-cache-6
+        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
+
+      - name: Install Qt6 (macOS)
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.4.2'
+          modules: 'qt5compat'
+          cached: ${{ steps.cache-qt.outputs.cache-hit }}
+        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
+
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake autoconf automake qt texinfo gettext openssl@1.1
+          brew install cmake autoconf automake texinfo gettext openssl@1.1
           brew install boost ninja libarchive libconfig gpgme
           brew unlink gettext && brew link --force gettext
-          brew link qt
           brew link openssl@1.1 --force
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
