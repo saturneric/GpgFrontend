@@ -65,7 +65,11 @@ void VerifyDetailsDialog::slot_refresh() {
 
   // Get timestamp of signature of current text
   QDateTime timestamp;
+#ifdef GPGFRONTEND_GUI_QT6
+  timestamp.setSecsSinceEpoch(sign->timestamp);
+#else
   timestamp.setTime_t(sign->timestamp);
+#endif
 
   // Set the title widget depending on sign status
   if (gpg_err_code(sign->status) == GPG_ERR_BAD_SIGNATURE) {

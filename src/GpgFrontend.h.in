@@ -57,9 +57,8 @@
 
 
 // logging system
-#define ELPP_DEFAULT_LOGGING_FLAGS 8192
-#include <easylogging++.h>
-
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#include <spdlog/spdlog.h>
 
 // build info
 #define PROJECT_NAME "@CMAKE_PROJECT_NAME@"

@@ -35,8 +35,8 @@ namespace GpgFrontend::UI {
 
 KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
     : QWidget(parent), key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
-  LOG(INFO) << key_.GetEmail() << key_.IsPrivateKey() << key_.IsHasMasterKey()
-            << key_.GetSubKeys()->front().IsPrivateKey();
+  SPDLOG_DEBUG(key_.GetEmail(), key_.IsPrivateKey(), key_.IsHasMasterKey(),
+               key_.GetSubKeys()->front().IsPrivateKey());
 
   create_subkey_list();
   create_subkey_opera_menu();
@@ -165,7 +165,6 @@ void KeyPairSubkeyTab::create_subkey_list() {
 }
 
 void KeyPairSubkeyTab::slot_refresh_subkey_list() {
-  LOG(INFO) << "called";
   int row = 0;
 
   subkey_list_->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -177,9 +176,8 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     this->buffered_subkeys_.push_back(std::move(sub_key));
   }
 
-  LOG(INFO) << "buffered_subkeys_"
-            << "refreshed"
-            << "size" << this->buffered_subkeys_.size();
+  SPDLOG_DEBUG("buffered_subkeys_ refreshed size",
+               this->buffered_subkeys_.size());
 
   subkey_list_->setRowCount(buffered_subkeys_.size());
 
@@ -216,20 +214,16 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
       }
     }
 
-    LOG(INFO) << "subkey_list_ item" << row << "refreshed";
+    SPDLOG_DEBUG("subkey_list_ item {} refreshed", row);
 
     row++;
   }
 
-  LOG(INFO) << "subkey_list_"
-            << "refreshed";
+  SPDLOG_DEBUG("subkey_list_ refreshed");
 
   if (subkey_list_->rowCount() > 0) {
     subkey_list_->selectRow(0);
   }
-
-  LOG(INFO) << "slot_refresh_subkey_list"
-            << "ended";
 }
 
 void KeyPairSubkeyTab::slot_add_subkey() {
@@ -246,10 +240,18 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   time_t subkey_time_t = boost::posix_time::to_time_t(
       boost::posix_time::ptime(subkey.GetExpireTime()));
 
+#ifdef GPGFRONTEND_GUI_QT6
+  expire_var_label_->setText(
+      subkey_time_t == 0
+          ? _("Never Expires")
+          : QLocale::system().toString(QDateTime::fromSecsSinceEpoch(
+                to_time_t(subkey.GetExpireTime()))));
+#else
   expire_var_label_->setText(
       subkey_time_t == 0 ? _("Never Expires")
                          : QLocale::system().toString(QDateTime::fromTime_t(
                                to_time_t(subkey.GetExpireTime()))));
+#endif
   if (subkey_time_t != 0 &&
       subkey.GetExpireTime() < boost::posix_time::second_clock::local_time()) {
     auto paletteExpired = expire_var_label_->palette();
@@ -262,8 +264,13 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   }
 
   algorithm_var_label_->setText(QString::fromStdString(subkey.GetPubkeyAlgo()));
+#ifdef GPGFRONTEND_GUI_QT6
+  created_var_label_->setText(QLocale::system().toString(
+      QDateTime::fromSecsSinceEpoch(to_time_t(subkey.GetCreateTime()))));
+#else
   created_var_label_->setText(QLocale::system().toString(
       QDateTime::fromTime_t(to_time_t(subkey.GetCreateTime()))));
+#endif
 
   std::stringstream usage_steam;
 
@@ -318,7 +325,7 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
 }
 
 void KeyPairSubkeyTab::slot_edit_subkey() {
-  LOG(INFO) << "Fpr" << get_selected_subkey().GetFingerprint();
+  SPDLOG_DEBUG("fpr {}", get_selected_subkey().GetFingerprint());
 
   auto dialog = new KeySetExpireDateDialog(
       key_.GetId(), get_selected_subkey().GetFingerprint(), this);
@@ -344,7 +351,6 @@ const GpgSubKey& KeyPairSubkeyTab::get_selected_subkey() {
   return buffered_subkeys_[row];
 }
 void KeyPairSubkeyTab::slot_refresh_key_info() {
-  LOG(INFO) << "called";
   key_ = GpgKeyGetter::GetInstance().GetKey(key_.GetId());
 }
 

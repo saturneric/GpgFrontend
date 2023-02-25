@@ -26,21 +26,103 @@
  *
  */
 
+#include <spdlog/async.h>
+#include <spdlog/common.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
+#include <filesystem>
+
 #include "GpgFrontend.h"
 #include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
 
+#ifdef WINDOWS
+int setenv(const char *name, const char *value, int overwrite)
+{
+    if(!overwrite) {
+        int errcode = 0;
+        size_t envsize = 0;
+        errcode = getenv_s(&envsize, NULL, 0, name);
+        if(errcode || envsize) return errcode;
+    }
+    return _putenv_s(name, value);
+}
+#endif
+
 void init_logging_system() {
-  el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
-  el::Configurations defaultConf;
-  defaultConf.setToDefault();
+  using namespace boost::posix_time;
+  using namespace boost::gregorian;
 
-  // apply settings
-  defaultConf.setGlobally(el::ConfigurationType::Format,
-                          "%datetime %level [main] %func %msg");
-  // apply settings no written to file
-  defaultConf.setGlobally(el::ConfigurationType::ToFile, "false");
+  // sinks
+  std::vector<spdlog::sink_ptr> sinks;
+  sinks.push_back(std::make_shared<spdlog::sinks::stderr_color_sink_mt>());
 
-  // set the logger
-  el::Loggers::reconfigureLogger("default", defaultConf);
+  // thread pool
+  spdlog::init_thread_pool(1024, 2);
+
+  // logger
+  auto main_logger = std::make_shared<spdlog::async_logger>(
+      "main", begin(sinks), end(sinks), spdlog::thread_pool());
+  main_logger->set_pattern(
+      "[%H:%M:%S.%e] [T:%t] [%=4n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
+
+#ifdef DEBUG
+  main_logger->set_level(spdlog::level::trace);
+#else
+  main_logger->set_level(spdlog::level::info);
+#endif
+
+  // flush policy
+  main_logger->flush_on(spdlog::level::err);
+  spdlog::flush_every(std::chrono::seconds(5));
+
+  // register it as default logger
+  spdlog::set_default_logger(main_logger);
+}
+
+void shutdown_logging_system() {
+#ifdef WINDOWS
+  // Under VisualStudio, this must be called before main finishes to workaround
+  // a known VS issue
+  spdlog::drop_all();
+  spdlog::shutdown();
+#endif
+}
+
+void init_global_path_env() {
+  auto& settings =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+
+  bool use_custom_gnupg_install_path = false;
+  try {
+    use_custom_gnupg_install_path =
+        settings.lookup("general.use_custom_gnupg_install_path");
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: use_custom_gnupg_install_path");
+  }
+
+  // read from settings file
+  std::string custom_gnupg_install_path;
+  try {
+    custom_gnupg_install_path = static_cast<std::string>(
+        settings.lookup("general.custom_gnupg_install_path"));
+
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: custom_gnupg_install_path");
+  }
+
+  // add custom gnupg install path into env $PATH
+  if (use_custom_gnupg_install_path && !custom_gnupg_install_path.empty()) {
+    std::string path_value = getenv("PATH");
+    SPDLOG_DEBUG("PATH: {}", path_value);
+    setenv(
+        "PATH",
+        ((std::filesystem::path{custom_gnupg_install_path} / "bin").u8string() +
+         ":" + path_value)
+            .c_str(),
+        1);
+    std::string modified_path_value = getenv("PATH");
+    SPDLOG_DEBUG("Modified PATH: {}", modified_path_value);
+  }
 }

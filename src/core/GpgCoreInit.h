@@ -37,7 +37,13 @@ namespace GpgFrontend {
  * @brief
  *
  */
-void GPGFRONTEND_CORE_EXPORT InitLoggingSystem();
+void GPGFRONTEND_CORE_EXPORT InitCoreLoggingSystem();
+
+/**
+ * @brief
+ *
+ */
+void GPGFRONTEND_CORE_EXPORT ShutdownCoreLoggingSystem();
 
 /**
  * @brief

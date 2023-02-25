@@ -39,8 +39,6 @@ GpgFrontend::UI::GeneralDialog::~GeneralDialog() = default;
 
 void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
   try {
-    LOG(INFO) << name_ << _("Called");
-
     SettingsObject general_windows_state(name_ + "_dialog_state");
 
     bool window_save = general_windows_state.Check("window_save", true);
@@ -60,8 +58,6 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
       size_ = {width, height};
 
       if (this->parent() != nullptr) {
-        LOG(INFO) << "parent address" << this->parent();
-
         QPoint parent_pos = {0, 0};
         QSize parent_size = {0, 0};
 
@@ -83,14 +79,13 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
           parent_size = parent_window->size();
         }
 
-        LOG(INFO) << "parent pos x:" << parent_pos.x()
-                  << "y:" << parent_pos.y();
+        SPDLOG_DEBUG("parent pos x: {} y: {}", parent_pos.x(), parent_pos.y());
 
-        LOG(INFO) << "parent size width:" << parent_size.width()
-                  << "height:" << parent_size.height();
+        SPDLOG_DEBUG("parent size width: {} height: {}", parent_size.width(),
+                     parent_size.height());
 
-        LOG(INFO) << "this dialog size width:" << size_.width()
-                  << "height:" << size_.height();
+        SPDLOG_DEBUG("this dialog size width: {} height: {}", size_.width(),
+                     size_.height());
 
         if (parent_pos != QPoint{0, 0}) {
           QPoint parent_center{parent_pos.x() + parent_size.width() / 2,
@@ -110,14 +105,12 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
     }
 
   } catch (...) {
-    LOG(ERROR) << name_ << "error";
+    SPDLOG_ERROR(name_, "error");
   }
 }
 
 void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
   try {
-    LOG(INFO) << name_ << _("Called");
-
     SettingsObject general_windows_state(name_ + "_dialog_state");
 
     // window position and size
@@ -132,7 +125,7 @@ void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
     general_windows_state["window_save"] = true;
 
   } catch (...) {
-    LOG(ERROR) << name_ << "error";
+    SPDLOG_ERROR(name_, "error");
   }
 }
 
@@ -142,8 +135,8 @@ void GpgFrontend::UI::GeneralDialog::setPosCenterOfScreen() {
   int screen_width = geo.width();
   int screen_height = geo.height();
 
-  LOG(INFO) << "primary screen available geometry" << screen_width
-            << screen_height;
+  SPDLOG_DEBUG("primary screen available geometry", screen_width,
+               screen_height);
 
   pos_ = QPoint((screen_width - QWidget::width()) / 2,
                 (screen_height - QWidget::height()) / 2);
@@ -155,13 +148,13 @@ void GpgFrontend::UI::GeneralDialog::setPosCenterOfScreen() {
  *
  */
 void GpgFrontend::UI::GeneralDialog::movePosition2CenterOfParent() {
-  LOG(INFO) << "parent pos x:" << parent_pos_.x() << "y:" << parent_pos_.y();
+  SPDLOG_DEBUG("parent pos x: {} y: {}", parent_pos_.x(), parent_pos_.y());
 
-  LOG(INFO) << "parent size width:" << parent_size_.width()
-            << "height:" << parent_size_.height();
+  SPDLOG_DEBUG("parent size width: {}", parent_size_.width(),
+               "height:", parent_size_.height());
 
   if (parent_pos_ != QPoint{0, 0} && parent_size_ != QSize{0, 0}) {
-    LOG(INFO) << "update current dialog position now";
+    SPDLOG_DEBUG("update current dialog position now");
     QPoint parent_center{parent_pos_.x() + parent_size_.width() / 2,
                          parent_pos_.y() + parent_size_.height() / 2};
 

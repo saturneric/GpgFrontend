@@ -225,7 +225,7 @@ void KeyPairUIDTab::slot_refresh_tofu_info() {
       continue;
     }
     auto tofu_infos = uid.GetTofuInfos();
-    LOG(INFO) << "tofu info size" << tofu_infos->size();
+    SPDLOG_DEBUG("tofu info size: {}", tofu_infos->size());
     if (tofu_infos->empty()) {
       tofu_tabs_->hide();
     } else {
@@ -277,17 +277,30 @@ void KeyPairUIDTab::slot_refresh_sig_list() {
             new QTableWidgetItem(QString::fromStdString(sig.GetEmail()));
         sig_list_->setItem(sigRow, 2, tmp3);
       }
-
+#ifdef GPGFRONTEND_GUI_QT6
+      auto* tmp4 = new QTableWidgetItem(QLocale::system().toString(
+          QDateTime::fromSecsSinceEpoch(to_time_t(sig.GetCreateTime()))));
+#else
       auto* tmp4 = new QTableWidgetItem(QLocale::system().toString(
           QDateTime::fromTime_t(to_time_t(sig.GetCreateTime()))));
+#endif
       sig_list_->setItem(sigRow, 3, tmp4);
 
+#ifdef GPGFRONTEND_GUI_QT6
+      auto* tmp5 = new QTableWidgetItem(
+          boost::posix_time::to_time_t(
+              boost::posix_time::ptime(sig.GetExpireTime())) == 0
+              ? _("Never Expires")
+              : QLocale::system().toString(QDateTime::fromSecsSinceEpoch(
+                    to_time_t(sig.GetExpireTime()))));
+#else
       auto* tmp5 = new QTableWidgetItem(
           boost::posix_time::to_time_t(
               boost::posix_time::ptime(sig.GetExpireTime())) == 0
               ? _("Never Expires")
               : QLocale::system().toString(
                     QDateTime::fromTime_t(to_time_t(sig.GetExpireTime()))));
+#endif
       tmp5->setTextAlignment(Qt::AlignCenter);
       sig_list_->setItem(sigRow, 4, tmp5);
 
@@ -382,7 +395,7 @@ void KeyPairUIDTab::slot_del_uid() {
 
   if (ret == QMessageBox::Yes) {
     for (const auto& uid : *selected_uids) {
-      LOG(INFO) << "KeyPairUIDTab::slot_del_uid UID" << uid;
+      SPDLOG_DEBUG("uid: {}", uid);
       if (!GpgUIDOperator::GetInstance().RevUID(m_key_, uid)) {
         QMessageBox::critical(
             nullptr, _("Operation Failed"),
@@ -574,8 +587,6 @@ void KeyPairUIDTab::slot_del_sign() {
   }
 }
 void KeyPairUIDTab::slot_refresh_key() {
-  LOG(INFO) << "called";
-
   // refresh the key
   GpgKey refreshed_key = GpgKeyGetter::GetInstance().GetKey(m_key_.GetId());
   std::swap(this->m_key_, refreshed_key);

@@ -50,6 +50,8 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
   using TaskRunnable = std::function<int(DataObjectPtr)>;        ///<
   using TaskCallback = std::function<void(int, DataObjectPtr)>;  ///<
 
+  static const std::string DEFAULT_TASK_NAME;
+
   friend class TaskRunner;
 
   /**
@@ -78,9 +80,10 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
      */
     template <typename T>
     void AppendObject(T &&obj) {
-      DLOG(TRACE) << "called:" << this;
+      SPDLOG_TRACE("append object: {}", static_cast<void *>(this));
       auto *obj_dstr = this->get_heap_ptr(sizeof(T));
-      auto *ptr_heap = new ((void *)obj_dstr->p_obj) T(std::move(obj));
+      new ((void *)obj_dstr->p_obj) T(std::forward<T>(obj));
+
       if (std::is_class_v<T>) {
         auto destructor = [](const void *x) {
           static_cast<const T *>(x)->~T();
@@ -89,7 +92,8 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
       } else {
         obj_dstr->destroy = nullptr;
       }
-      data_objects_.push(std::move(obj_dstr));
+
+      data_objects_.push(obj_dstr);
     }
 
     /**
@@ -100,11 +104,11 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
      */
     template <typename T>
     void AppendObject(T *obj) {
-      DLOG(TRACE) << "called:" << this;
+      SPDLOG_TRACE("called: {}", static_cast<void *>(this));
       auto *obj_dstr = this->get_heap_ptr(sizeof(T));
       auto *ptr_heap = new ((void *)obj_dstr->p_obj) T(std::move(*obj));
       if (std::is_class_v<T>) {
-        LOG(TRACE) << "is class";
+        SPDLOG_TRACE("is class");
         auto destructor = [](const void *x) {
           static_cast<const T *>(x)->~T();
         };
@@ -123,7 +127,7 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
      */
     template <typename T>
     T PopObject() {
-      DLOG(TRACE) << "called:" << this;
+      SPDLOG_TRACE("pop object: {}", static_cast<void *>(this));
       if (data_objects_.empty()) throw std::runtime_error("No object to pop");
       auto *obj_dstr = data_objects_.top();
       auto *heap_ptr = (T *)obj_dstr->p_obj;
@@ -162,24 +166,25 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    * @brief Construct a new Task object
    *
    */
-  Task();
+  Task(std::string name = DEFAULT_TASK_NAME);
 
   /**
    * @brief Construct a new Task object
    *
    * @param callback The callback function to be executed.
    */
-  Task(TaskCallback callback, DataObjectPtr data_object = nullptr);
+  explicit Task(TaskRunnable runnable, std::string name = DEFAULT_TASK_NAME,
+                DataObjectPtr data_object = nullptr, bool sequency = true);
 
   /**
    * @brief Construct a new Task object
    *
    * @param runnable
    */
-  Task(
-      TaskRunnable runnable,
-      TaskCallback callback = [](int, std::shared_ptr<DataObject>) {},
-      DataObjectPtr data = nullptr);
+  explicit Task(
+      TaskRunnable runnable, std::string name, DataObjectPtr data,
+      TaskCallback callback = [](int, const std::shared_ptr<DataObject> &) {},
+      bool sequency = true);
 
   /**
    * @brief Destroy the Task object
@@ -200,18 +205,40 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    */
   std::string GetUUID() const;
 
- signals:
   /**
    * @brief
    *
+   * @return std::string
    */
-  void SignalTaskFinished();
+  std::string GetFullID() const;
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  bool GetSequency() const;
+
+ public slots:
 
   /**
    * @brief
    *
    */
-  void SignalTaskPostFinishedDone();
+  void SlotRun();
+
+ signals:
+  /**
+   * @brief announce runnable finished
+   *
+   */
+  void SignalTaskRunnableEnd(int rtn);
+
+  /**
+   * @brief runnable and callabck all finished
+   *
+   */
+  void SignalTaskEnd();
 
  protected:
   /**
@@ -230,18 +257,14 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
 
  private:
   const std::string uuid_;
-  TaskCallback callback_;                ///<
-  TaskRunnable runnable_;                ///<
-  bool finish_after_run_ = true;         ///<
-  int rtn_ = 0;                          ///<
-  QThread *callback_thread_ = nullptr;   ///<
-  DataObjectPtr data_object_ = nullptr;  ///<
-
-  /**
-   * @brief
-   *
-   */
-  void before_finish_task();
+  const std::string name_;
+  const bool sequency_ = true;  ///< must run in the same thread
+  TaskCallback callback_;       ///<
+  TaskRunnable runnable_;       ///<
+  bool run_callback_after_runnable_finished_ = true;  ///<
+  int rtn_ = 0;                                       ///<
+  QThread *callback_thread_ = nullptr;                ///<
+  DataObjectPtr data_object_ = nullptr;               ///<
 
   /**
    * @brief
@@ -261,6 +284,13 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    * @return std::string
    */
   static std::string generate_uuid();
+
+ private slots:
+  /**
+   * @brief
+   *
+   */
+  void slot_task_run_callback(int rtn);
 };
 }  // namespace GpgFrontend::Thread
 

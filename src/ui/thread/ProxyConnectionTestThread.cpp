@@ -31,13 +31,13 @@ void GpgFrontend::UI::ProxyConnectionTestThread::run() {
   auto proxies_list = QNetworkProxyFactory::systemProxyForQuery(npq);
 
   if (proxies_list.isEmpty()) {
-    LOG(INFO) << "no proxy applied";
+    SPDLOG_DEBUG("no proxy applied");
   } else {
-    LOG(INFO) << "proxies list hostname"
-              << proxies_list.front().hostName().toStdString();
+    SPDLOG_DEBUG("proxies list hostname: {}",
+                 proxies_list.front().hostName().toStdString());
   }
 
-  LOG(INFO) << "proxies list size" << proxies_list.size();
+  SPDLOG_DEBUG("proxies list size: {}", proxies_list.size());
 
   auto manager = std::make_unique<QNetworkAccessManager>(nullptr);
   QNetworkRequest url_request;

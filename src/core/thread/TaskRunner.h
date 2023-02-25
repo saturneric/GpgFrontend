@@ -27,6 +27,7 @@
 #ifndef GPGFRONTEND_TASKRUNNER_H
 #define GPGFRONTEND_TASKRUNNER_H
 
+#include <cstddef>
 #include <mutex>
 #include <queue>
 
@@ -55,7 +56,7 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QThread {
    * @brief
    *
    */
-  void run() override;
+  [[noreturn]] void run() override;
 
  public slots:
 
@@ -66,10 +67,25 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QThread {
    */
   void PostTask(Task* task);
 
+  /**
+   * @brief
+   *
+   * @param task
+   * @param seconds
+   */
+  void PostScheduleTask(Task* task, size_t seconds);
+
  private:
   std::queue<Task*> tasks;                      ///< The task queue
   std::map<std::string, Task*> pending_tasks_;  ///< The pending tasks
   std::mutex tasks_mutex_;                      ///< The task queue mutex
+  QThreadPool thread_pool_{this};               ///< run non-sequency task
+
+  /**
+   * @brief
+   *
+   */
+  void unregister_finished_task(std::string);
 };
 }  // namespace GpgFrontend::Thread
 

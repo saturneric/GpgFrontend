@@ -79,6 +79,18 @@ class SignalStation : public QObject {
    * @param timeout
    */
   void SignalRefreshStatusBar(const QString& message, int timeout);
+
+  /**
+   * @brief
+   *
+   */
+  void SignalUserInputPassphraseDone(QString passparase);
+
+  /**
+   * @brief
+   *
+   */
+  void SignalNeedUserInputPassphrase();
 };
 
 }  // namespace GpgFrontend::UI

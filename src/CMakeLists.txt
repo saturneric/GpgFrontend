@@ -24,6 +24,40 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# Introduce boost
+if(NOT BOOST_ROOT)
+    find_package(Boost COMPONENTS date_time system REQUIRED)
+else()
+    find_package(Boost
+            COMPONENTS date_time system REQUIRED
+            PATHS ${BOOST_ROOT} NO_DEFAULT_PATH)
+endif()
+
+# Introduce OpenSSL
+if(APPLE)
+    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl@1.1)
+endif()
+find_package(OpenSSL REQUIRED)
+
+# Introduce Qt
+if (QT5_ENV_SUPPORT)
+    # Support Qt version: 6.x, 5.12.x and 5.15.x
+    find_package(Qt6 6.3 COMPONENTS Core Test Widgets PrintSupport Network Core5Compat)
+    if(NOT Qt6_DIR)
+        find_package(Qt5 5.9 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+    else()
+        add_definitions(-DGPGFRONTEND_GUI_QT6)
+    endif()
+    
+    # Qt configuration
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTORCC ON)
+    set(CMAKE_AUTOUIC ON)
+
+    set(CMAKE_AUTORCC_OPTIONS "--compress;9")
+    set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
+endif ()
+
 # configure for output path and resources
 if (APPLICATION_BUILD)
     aux_source_directory(. BASE_SOURCE)
@@ -160,14 +194,148 @@ if (APPLICATION_BUILD)
     # Copy Utils Files
     if (MINGW)
         message(STATUS "Copying Dependent DLL For Windows Runtime Env")
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/lib/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/gpgme/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/bearer DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/iconengines DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/imageformats DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/printsupport DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/platforms DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/utils/openssl/ DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+
+        set(ALL_RUNTIME_DEP_PATH_LIST "")
+
+        # get mingw bin path
+        find_file(_libGccDllPath NAMES libgcc_s_seh-1.dll NO_CACHE REQUIRED)
+        cmake_path(GET _libGccDllPath PARENT_PATH _libDllBinPath)
+
+        # find libicu*.dll
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libicu[a-z]*[0-9][0-9].dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libconfig++-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libarchive-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libassuan-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libbz*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libcrypto-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libexpat-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libfreetype-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libgcc_s_seh-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libglib-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libgpg-error-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libgpgme-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libgraphite2.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libharfbuzz-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libiconv-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libintl-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/liblz4.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/liblzma-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libpcre-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libpcre2-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libpng*-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libstdc++-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libwinpthread-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/zlib*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libb2-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        # openssl
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libssl-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libcrypto-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        # gpgme-w32spawn.exe
+        unset(_libExEPath)
+        file(GLOB _libExEPath "${_libDllBinPath}/gpgme-w32spawn.exe")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libExEPath})
+
+        set(ALL_RUNTIME_DLL_FILES "")
+        list(APPEND ALL_RUNTIME_DLL_FILES "Qt6Core.dll;Qt6Core5Compat.dll;Qt6Gui.dll;Qt6Network.dll;Qt6PrintSupport.dll;Qt6Svg.dll;Qt6Widgets.dll;libbrotlicommon.dll;libbrotlidec.dll;libdouble-conversion.dll;libzstd.dll;libmd4c.dll;")
+        # find the other dlls
+        foreach (_dllFileName ${ALL_RUNTIME_DLL_FILES})
+            message(STATUS "DLL FILE ${_dllFileName}")
+            list(APPEND ALL_DLL_NAME ${_dllFileName})
+            unset(_runtimeDllLocalPath)
+
+            find_file(_runtimeDllLocalPath NAMES ${_dllFileName} NO_CACHE REQUIRED)
+            list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_runtimeDllLocalPath})
+            message(STATUS "DLL ${_dllFileName} Path is ${_runtimeDllLocalPath}")
+        endforeach()
+
+        message(STATUS "All Runtime Dependencies Path ${ALL_RUNTIME_DEP_PATH_LIST}")
+
+        # copy dependencies to release path
+        foreach (_dllRuntimeFilePath ${ALL_RUNTIME_DEP_PATH_LIST})
+            file(COPY ${_dllRuntimeFilePath} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+        endforeach()
+
     endif ()
 endif ()
 
@@ -183,8 +351,16 @@ if (APPLICATION_BUILD)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (MINGW)
             add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
-            # custom app bundle packing
+            # include qt dependencies
+            if(NOT Qt6_DIR)
+                add_custom_command(TARGET ${AppName} POST_BUILD
+                        COMMAND windeployqt --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
+            else()
+                add_custom_command(TARGET ${AppName} POST_BUILD
+                        COMMAND windeployqt-qt6.exe --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
+            endif()
         elseif (APPLE AND NOT XCODE_BUILD)
+            # custom app bundle packing
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             set_target_properties(${AppName} PROPERTIES
                     BUNDLE True
@@ -214,6 +390,7 @@ if (APPLICATION_BUILD)
                     COMMENT "Complement to build the required architecture")
             # app bundle packing using xcode
         elseif (APPLE AND XCODE_BUILD)
+            # standard app bundle packing
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             set_target_properties(${AppName} PROPERTIES
                     BUNDLE True
@@ -239,19 +416,43 @@ if (APPLICATION_BUILD)
                     COMMAND macdeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Resolving Qt Dependency")
+            
+            # option for sandbox mode, still under test
+            if(GPGFRONTEND_XOCDE_ENABLE_SANDBOX)
+                set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes")
+                add_custom_command(TARGET ${AppName} POST_BUILD
+                    COMMAND /bin/cp -rf ${CMAKE_SOURCE_DIR}/resource/lfs/macOS/GnuPG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app/Contents/
+                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                    COMMENT "Copying Buddled GnuPG into App Bundle Resource")
+            else()
+                set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "No")
+            endif()
+
             set_target_properties(${AppName} PROPERTIES
                     XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
                     XCODE_ATTRIBUTE_SKIP_INSTALL "No"
                     XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep --entitlements ${CMAKE_SOURCE_DIR}/resource/plist/entitlement.plist"
-                    XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "No"
+                    XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "${CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX}"
                     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "Yes"
+                    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/GpgFrontend.entitlements"
                     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}"
                     )
         else ()
             add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
         endif ()
     else ()
+        # if the status is debug
         add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+        if(MINGW)
+            # include qt dependencies
+            if(NOT Qt6_DIR)
+                add_custom_command(TARGET ${AppName} POST_BUILD
+                        COMMAND windeployqt --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
+            else()
+                add_custom_command(TARGET ${AppName} POST_BUILD
+                        COMMAND windeployqt-qt6.exe --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
+            endif()
+        endif()
     endif ()
 
     # Make app build with resources

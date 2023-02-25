@@ -29,6 +29,11 @@
 #include "ui/widgets/TextEdit.h"
 
 #include <boost/format.hpp>
+#include <string>
+#include <tuple>
+#include <vector>
+
+#include "spdlog/spdlog.h"
 
 namespace GpgFrontend::UI {
 
@@ -61,6 +66,8 @@ void TextEdit::SlotNewTab() {
   page->GetTextPage()->setFocus();
   connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
           this, &TextEdit::SlotShowModified);
+  connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
+          this, &TextEdit::slot_save_status_to_cache_for_revovery);
 }
 
 void TextEdit::slotNewHelpTab(const QString& title, const QString& path) const {
@@ -79,15 +86,18 @@ void TextEdit::SlotNewFileTab() const {
   page->SlotGoPath();
 }
 
-void TextEdit::SlotOpenFile(QString& path) {
+void TextEdit::SlotOpenFile(const QString& path) {
   QFile file(path);
-  LOG(INFO) << "path" << path.toStdString();
+  SPDLOG_DEBUG("path: {}", path.toStdString());
   auto result = file.open(QIODevice::ReadOnly | QIODevice::Text);
   if (result) {
     auto* page = new PlainTextEditorPage(path);
     connect(page->GetTextPage()->document(),
             &QTextDocument::modificationChanged, this,
             &TextEdit::SlotShowModified);
+    // connect to cache recovery fucntion
+    connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
+            this, &TextEdit::slot_save_status_to_cache_for_revovery);
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
     auto index = tab_widget_->addTab(page, stripped_name(path));
@@ -112,35 +122,7 @@ void TextEdit::SlotOpen() {
       QFileDialog::getOpenFileNames(this, _("Open file"), QDir::currentPath());
   for (const auto& file_name : file_names) {
     if (!file_name.isEmpty()) {
-      QFile file(file_name);
-
-      if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        auto* page = new PlainTextEditorPage(file_name);
-
-        QTextStream in(&file);
-        QApplication::setOverrideCursor(Qt::WaitCursor);
-        page->GetTextPage()->setPlainText(in.readAll());
-        page->SetFilePath(file_name);
-        QTextDocument* document = page->GetTextPage()->document();
-        document->setModified(false);
-
-        tab_widget_->addTab(page, stripped_name(file_name));
-        tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
-        QApplication::restoreOverrideCursor();
-        page->GetTextPage()->setFocus();
-        connect(page->GetTextPage()->document(),
-                &QTextDocument::modificationChanged, this,
-                &TextEdit::SlotShowModified);
-        // enableAction(true)
-        file.close();
-      } else {
-        QMessageBox::warning(
-            this, _("Warning"),
-            (boost::format(_("Cannot read file %1%:\n%2%.")) %
-             file_name.toStdString() % file.errorString().toStdString())
-                .str()
-                .c_str());
-      }
+      SlotOpenFile(file_name);
     }
   }
 }
@@ -477,9 +459,17 @@ void TextEdit::SlotPrint() {
 #endif
 }
 
-void TextEdit::SlotShowModified() const {
+void TextEdit::SlotShowModified(bool changed) const {
+  // get current tab
   int index = tab_widget_->currentIndex();
   QString title = tab_widget_->tabText(index);
+
+  // if changed
+  if (!changed) {
+    tab_widget_->setTabText(index, title.remove(0, 2));
+    return;
+  }
+
   // if doc is modified now, add leading * to title,
   // otherwise remove the leading * from the title
   if (CurTextPage()->GetTextPage()->document()->isModified()) {
@@ -516,7 +506,7 @@ QHash<int, QString> TextEdit::UnsavedDocuments() const {
     if (ep != nullptr && ep->ReadDone() &&
         ep->GetTextPage()->document()->isModified()) {
       QString doc_name = tab_widget_->tabText(i);
-      LOG(INFO) << "unsaved" << doc_name.toStdString();
+      SPDLOG_DEBUG("unsaved: {}", doc_name.toStdString());
 
       // remove * before name of modified doc
       doc_name.remove(0, 2);
@@ -606,6 +596,45 @@ void TextEdit::slot_file_page_path_changed(const QString& path) const {
     mPath = tPath;
   }
   tab_widget_->setTabText(index, mPath);
+}
+
+void TextEdit::slot_save_status_to_cache_for_revovery() {
+  SPDLOG_DEBUG("catch text page modified event, count: {}",
+               text_page_data_modified_count_);
+  if (this->text_page_data_modified_count_++ % 3 != 0) return;
+
+  int tab_count = tab_widget_->count();
+  SPDLOG_DEBUG("current tabs count {}", tab_count);
+
+  std::vector<std::pair<int, std::string>> saved_pages;
+  std::vector<std::tuple<int, std::string, std::string>> unsaved_pages;
+
+  for (int i = 0; i < tab_count; i++) {
+    auto* target_page =
+        qobject_cast<PlainTextEditorPage*>(tab_widget_->widget(i));
+
+    // if this page is no textedit, there should be nothing to save
+    if (target_page == nullptr) {
+      continue;
+    }
+
+    auto* document = target_page->GetTextPage()->document();
+    auto tab_title = tab_widget_->tabText(i).toStdString();
+    if (!target_page->ReadDone() || !target_page->isEnabled() ||
+        !document->isModified()) {
+      auto file_path = target_page->GetFilePath().toStdString();
+      SPDLOG_DEBUG("saved page index: {}, tab title: {} tab file path: {}", i,
+                   tab_title, file_path);
+
+      saved_pages.push_back({i, file_path});
+      continue;
+    }
+
+    auto raw_text = document->toRawText().toStdString();
+    SPDLOG_DEBUG("unsaved page index: {}, tab title: {} tab content: {}", i,
+                 tab_title, raw_text.size());
+    unsaved_pages.push_back({i, tab_title, raw_text});
+  }
 }
 
 }  // namespace GpgFrontend::UI

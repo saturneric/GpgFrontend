@@ -23,7 +23,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ 'ubuntu-latest', 'macos-10.15', 'macos-11', 'macos-12', 'windows-latest' ]
+        os: [ 'ubuntu-latest', 'macos-11', 'macos-12', 'windows-latest' ]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
@@ -32,7 +32,7 @@ jobs:
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
-        if: matrix.os == 'windows-latest' || matrix.os == 'macos-10.15' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if: matrix.os == 'windows-latest' ||  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - uses: actions/checkout@v2
         with:
@@ -53,12 +53,11 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake autoconf automake qt@5 texinfo gettext openssl@1.1
+          brew install cmake autoconf automake texinfo gettext openssl@1.1
           brew install boost ninja libarchive libconfig gpgme
           brew unlink gettext && brew link --force gettext
-          brew link qt@5
           brew link openssl@1.1 --force
-        if: matrix.os == 'macos-10.15' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Build gpg-error (Linux)
         run: |
@@ -92,14 +91,16 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ../Qt
-          key: ${{ runner.os }}-QtCache
-        if: matrix.os == 'ubuntu-latest'
+          key: ${{ runner.os }}-qt-cache-6
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v2
+        uses: jurplel/install-qt-action@v3
         with:
+          version: '6.4.2'
+          modules: 'qt5compat'
           cached: ${{ steps.cache-qt.outputs.cache-hit }}
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
@@ -113,7 +114,7 @@ jobs:
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf
           pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake
-          pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel
+          pacman --noconfirm -S --needed mingw-w64-x86_64-qt6 libintl msys2-runtime-devel gettext-devel
           pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg  mingw-w64-x86_64-gpgme
           pacman --noconfirm -S --needed mingw-w64-x86_64-libarchive mingw-w64-x86_64-icu mingw-w64-x86_64-icu-debug-libs
         if: matrix.os == 'windows-latest'
@@ -130,7 +131,7 @@ jobs:
         run: |
           cmake -G Ninja -B ${{github.workspace}}/build  -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_TEST_UI=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
-        if: matrix.os == 'macos-10.15' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Configure CMake & Build Binary(Windows)
         shell: msys2 {0}
@@ -158,7 +159,7 @@ jobs:
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
           path: ${{github.workspace}}/build/release/*
-        if: matrix.os == 'macos-10.15' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Upload Artifact(Windows)
         uses: actions/upload-artifact@master

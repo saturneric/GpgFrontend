@@ -34,86 +34,159 @@
 #include <utility>
 
 #include "core/thread/TaskRunner.h"
-#include "easylogging++.h"
 
-GpgFrontend::Thread::Task::Task() : uuid_(generate_uuid()) {
-  LOG(TRACE) << "Task" << uuid_ << "created";
+const std::string GpgFrontend::Thread::Task::DEFAULT_TASK_NAME = "default-task";
+
+GpgFrontend::Thread::Task::Task(std::string name)
+    : uuid_(generate_uuid()), name_(name) {
+  SPDLOG_TRACE("task {}/ created", GetFullID());
   init();
 }
 
-GpgFrontend::Thread::Task::Task(TaskCallback callback,
-                                DataObjectPtr data_object)
+GpgFrontend::Thread::Task::Task(TaskRunnable runnable, std::string name,
+                                DataObjectPtr data_object, bool sequency)
     : uuid_(generate_uuid()),
-      callback_(std::move(callback)),
+      name_(name),
+      runnable_(std::move(runnable)),
+      callback_(std::move([](int, const std::shared_ptr<DataObject> &) {})),
       callback_thread_(QThread::currentThread()),
-      data_object_(data_object) {
-  LOG(TRACE) << "Task" << uuid_ << "created with callback"
-             << "callback_thread_: " << callback_thread_;
+      data_object_(data_object),
+      sequency_(sequency) {
+  SPDLOG_TRACE("task {} created with runnable, callback_thread_: {}",
+               GetFullID(), static_cast<void *>(callback_thread_));
   init();
 }
 
-GpgFrontend::Thread::Task::Task(TaskRunnable runnable, TaskCallback callback,
-                                DataObjectPtr data_object)
+GpgFrontend::Thread::Task::Task(TaskRunnable runnable, std::string name,
+                                DataObjectPtr data_object,
+                                TaskCallback callback, bool sequency)
     : uuid_(generate_uuid()),
+      name_(name),
       runnable_(std::move(runnable)),
       callback_(std::move(callback)),
       callback_thread_(QThread::currentThread()),
-      data_object_(data_object) {
+      data_object_(data_object),
+      sequency_(sequency) {
   init();
-  LOG(TRACE) << "Task" << uuid_ << "created with runnable and callback"
-             << "callback_thread_: " << callback_thread_;
+  SPDLOG_TRACE(
+      "task {} created with runnable and callback, callback_thread_: {}",
+      GetFullID(), static_cast<void *>(callback_thread_));
 }
 
 GpgFrontend::Thread::Task::~Task() {
-  LOG(TRACE) << "Task" << uuid_ << "destroyed";
+  SPDLOG_TRACE("task {} destroyed", GetFullID());
+}
+
+/**
+ * @brief
+ *
+ * @return std::string
+ */
+std::string GpgFrontend::Thread::Task::GetFullID() const {
+  return uuid_ + "/" + name_;
 }
 
 std::string GpgFrontend::Thread::Task::GetUUID() const { return uuid_; }
 
-void GpgFrontend::Thread::Task::SetFinishAfterRun(bool finish_after_run) {
-  this->finish_after_run_ = finish_after_run;
+bool GpgFrontend::Thread::Task::GetSequency() const { return sequency_; }
+
+void GpgFrontend::Thread::Task::SetFinishAfterRun(
+    bool run_callback_after_runnable_finished) {
+  this->run_callback_after_runnable_finished_ =
+      run_callback_after_runnable_finished;
 }
 
 void GpgFrontend::Thread::Task::SetRTN(int rtn) { this->rtn_ = rtn; }
 
 void GpgFrontend::Thread::Task::init() {
-  connect(this, &Task::SignalTaskFinished, this, &Task::before_finish_task);
+  // after runnable finished, running callback
+  connect(this, &Task::SignalTaskRunnableEnd, this,
+          &Task::slot_task_run_callback);
 }
 
-void GpgFrontend::Thread::Task::before_finish_task() {
-  LOG(TRACE) << "Task" << uuid_ << "finished";
+void GpgFrontend::Thread::Task::slot_task_run_callback(int rtn) {
+  SPDLOG_TRACE("task runnable {} finished, rtn: {}", GetFullID(), rtn);
+  // set return value
+  this->SetRTN(rtn);
+
   try {
     if (callback_) {
-      bool if_invoke = QMetaObject::invokeMethod(
-          callback_thread_,
-          [callback = callback_, rtn = rtn_, data_object = data_object_]() {
-            callback(rtn, data_object);
-          });
-      if (!if_invoke) {
-        LOG(ERROR) << "failed to invoke callback";
+      if (callback_thread_ == QThread::currentThread()) {
+        SPDLOG_DEBUG("callback thread is the same thread");
+        if (!QMetaObject::invokeMethod(callback_thread_,
+                                       [callback = callback_, rtn = rtn_,
+                                        data_object = data_object_, this]() {
+                                         callback(rtn, data_object);
+                                         // do cleaning work
+                                         emit SignalTaskEnd();
+                                       })) {
+          SPDLOG_ERROR("failed to invoke callback");
+        }
+        // just finished, let callack thread to raise SignalTaskEnd
+        return;
+      } else {
+        // waiting for callback to finish
+        if (!QMetaObject::invokeMethod(
+                callback_thread_,
+                [callback = callback_, rtn = rtn_,
+                 data_object = data_object_]() { callback(rtn, data_object); },
+                Qt::BlockingQueuedConnection)) {
+          SPDLOG_ERROR("failed to invoke callback");
+        }
       }
     }
   } catch (std::exception &e) {
-    LOG(ERROR) << "exception caught: " << e.what();
+    SPDLOG_ERROR("exception caught: {}", e.what());
   } catch (...) {
-    LOG(ERROR) << "unknown exception caught";
+    SPDLOG_ERROR("unknown exception caught");
   }
-  emit SignalTaskPostFinishedDone();
+
+  // raise signal, announcing this task come to an end
+  SPDLOG_DEBUG("task {}, starting calling signal SignalTaskEnd", GetFullID());
+  emit SignalTaskEnd();
 }
 
 void GpgFrontend::Thread::Task::run() {
-  LOG(TRACE) << "Task" << uuid_ << "started";
-  Run();
-  if (finish_after_run_) emit SignalTaskFinished();
+  SPDLOG_TRACE("task {} starting", GetFullID());
+
+  // build runnable package for running
+  auto runnable_package = [=, id = GetFullID()]() {
+    SPDLOG_DEBUG("task {} runnable start runing", id);
+    // Run() will set rtn by itself
+    Run();
+    // raise signal to anounce after runnable returned
+    if (run_callback_after_runnable_finished_) emit SignalTaskRunnableEnd(rtn_);
+  };
+
+  if (thread() != QThread::currentThread()) {
+    SPDLOG_DEBUG("task running thread is not object living thread");
+    // if running sequently
+    if (sequency_) {
+      // running in another thread, blocking until returned
+      if (!QMetaObject::invokeMethod(thread(), runnable_package,
+                                     Qt::BlockingQueuedConnection)) {
+        SPDLOG_ERROR("qt invoke method failed");
+      }
+    } else {
+      // running in another thread, non-blocking
+      if (!QMetaObject::invokeMethod(thread(), runnable_package)) {
+        SPDLOG_ERROR("qt invoke method failed");
+      }
+    }
+  } else {
+    if (!QMetaObject::invokeMethod(this, runnable_package)) {
+      SPDLOG_ERROR("qt invoke method failed");
+    }
+  }
 }
+
+void GpgFrontend::Thread::Task::SlotRun() { run(); }
 
 void GpgFrontend::Thread::Task::Run() {
   if (runnable_) {
-    bool if_invoke = QMetaObject::invokeMethod(
-        this, [=]() { return runnable_(data_object_); }, &rtn_);
-    if (!if_invoke) {
-      LOG(ERROR) << "Qt invokeMethod failed";
-    }
+    SetRTN(runnable_(data_object_));
+  } else {
+    SPDLOG_WARN("no runnable in task, do callback operation");
   }
 }
 
@@ -126,8 +199,8 @@ GpgFrontend::Thread::Task::DataObject::get_heap_ptr(size_t bytes_size) {
 
 GpgFrontend::Thread::Task::DataObject::~DataObject() {
   if (!data_objects_.empty())
-    LOG(WARNING) << "data_objects_ is not empty"
-                 << "address:" << this;
+    SPDLOG_WARN("data_objects_ is not empty",
+                "address:", static_cast<void *>(this));
   while (!data_objects_.empty()) {
     free_heap_ptr(data_objects_.top());
     data_objects_.pop();
@@ -139,8 +212,9 @@ size_t GpgFrontend::Thread::Task::DataObject::GetObjectSize() {
 }
 
 void GpgFrontend::Thread::Task::DataObject::free_heap_ptr(Destructor *ptr) {
-  DLOG(TRACE) << "p_obj: " << ptr->p_obj << "destructor: " << ptr->destroy
-              << "DataObject:" << this;
+  SPDLOG_TRACE("p_obj: {} data object: {}",
+               static_cast<const void *>(ptr->p_obj),
+               static_cast<void *>(this));
   if (ptr->destroy != nullptr) {
     ptr->destroy(ptr->p_obj);
   }

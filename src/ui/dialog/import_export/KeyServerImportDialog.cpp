@@ -28,6 +28,7 @@
 
 #include "KeyServerImportDialog.h"
 
+#include <QRegExp>
 #include <string>
 #include <utility>
 
@@ -177,8 +178,7 @@ QComboBox* KeyServerImportDialog::create_comboBox() {
 
     comboBox->setCurrentText(default_key_server.c_str());
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << "server_list"
-               << "default_server";
+    SPDLOG_ERROR("setting operation error", "server_list", "default_server");
   }
 
   return comboBox;
@@ -253,8 +253,7 @@ void KeyServerImportDialog::slot_search() {
 
 void KeyServerImportDialog::slot_search_finished(
     QNetworkReply::NetworkError error, QByteArray buffer) {
-  LOG(INFO) << "Called" << error << buffer.size();
-  LOG(INFO) << buffer.toStdString();
+  SPDLOG_DEBUG("search result {} {}", error, buffer.size());
 
   keys_table_->clearContents();
   keys_table_->setRowCount(0);
@@ -262,7 +261,7 @@ void KeyServerImportDialog::slot_search_finished(
   auto stream = QTextStream(buffer);
 
   if (error != QNetworkReply::NoError) {
-    LOG(INFO) << "Error From Reply" << error;
+    SPDLOG_DEBUG("error from reply: {}", error);
 
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
@@ -364,8 +363,14 @@ void KeyServerImportDialog::slot_search_finished(
           uid->setText(line2[1]);
           keys_table_->setItem(row, 0, uid);
         }
+#ifdef GPGFRONTEND_GUI_QT6
+        auto* creation_date =
+            new QTableWidgetItem(QDateTime::fromSecsSinceEpoch(line[4].toInt())
+                                     .toString("dd. MMM. yyyy"));
+#else
         auto* creation_date = new QTableWidgetItem(
             QDateTime::fromTime_t(line[4].toInt()).toString("dd. MMM. yyyy"));
+#endif
         keys_table_->setItem(row, 1, creation_date);
         auto* keyid = new QTableWidgetItem(line[1]);
         keys_table_->setItem(row, 2, keyid);
@@ -440,8 +445,7 @@ void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
 
       target_keyserver = default_key_server;
     } catch (...) {
-      LOG(ERROR) << _("Setting Operation Error") << "server_list"
-                 << "default_server";
+      SPDLOG_ERROR("setting operation error", "server_list", "default_server");
       QMessageBox::critical(
           nullptr, _("Default Keyserver Not Found"),
           _("Cannot read default keyserver from your settings, "
@@ -470,10 +474,8 @@ void KeyServerImportDialog::SlotImport(std::vector<std::string> key_ids,
 
 void KeyServerImportDialog::slot_import_finished(
     QNetworkReply::NetworkError error, QByteArray buffer) {
-  LOG(INFO) << _("Called");
-
   if (error != QNetworkReply::NoError) {
-    LOG(ERROR) << "Error From Reply" << buffer.toStdString();
+    SPDLOG_ERROR("Error From Reply", buffer.toStdString());
     if (!m_automatic_) {
       switch (error) {
         case QNetworkReply::ContentNotFoundError:

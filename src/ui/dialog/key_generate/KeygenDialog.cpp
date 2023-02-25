@@ -28,6 +28,7 @@
 
 #include "KeygenDialog.h"
 
+#include "core/common/CoreCommonUtil.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "dialog/WaitingDialog.h"
@@ -46,10 +47,10 @@ KeyGenDialog::KeyGenDialog(QWidget* parent)
   bool longer_expiration_date = false;
   try {
     longer_expiration_date = settings.lookup("general.longer_expiration_date");
-    LOG(INFO) << "longer_expiration_date" << longer_expiration_date;
+    SPDLOG_DEBUG("longer_expiration_date: {}", longer_expiration_date);
 
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("longer_expiration_date");
+    SPDLOG_ERROR("setting operation error: longer_expiration_date");
   }
 
   max_date_time_ = longer_expiration_date
@@ -110,6 +111,10 @@ void KeyGenDialog::slot_key_gen_accept() {
     error_stream << "  " << _("Expiration time too long.") << std::endl;
   }
 
+  if (passphrase_edit_->isEnabled() && passphrase_edit_->text().size() == 0) {
+    error_stream << "  " << _("Password is empty.") << std::endl;
+  }
+
   auto err_string = error_stream.str();
 
   if (err_string.empty()) {
@@ -125,8 +130,18 @@ void KeyGenDialog::slot_key_gen_accept() {
     if (expire_check_box_->checkState()) {
       gen_key_info_->SetNonExpired(true);
     } else {
+#ifdef GPGFRONTEND_GUI_QT6
+      gen_key_info_->SetExpireTime(boost::posix_time::from_time_t(
+          date_edit_->dateTime().toSecsSinceEpoch()));
+#else
       gen_key_info_->SetExpireTime(
           boost::posix_time::from_time_t(date_edit_->dateTime().toTime_t()));
+#endif
+    }
+
+    if (!gen_key_info_->IsNoPassPhrase()) {
+      CoreCommonUtil::GetInstance()->SetTempCacheValue(
+          "__key_passphrase", this->passphrase_edit_->text().toStdString());
     }
 
     GpgGenKeyResult result;
@@ -145,7 +160,11 @@ void KeyGenDialog::slot_key_gen_accept() {
 
     dialog->close();
 
-    LOG(INFO) << "generate done";
+    if (!gen_key_info_->IsNoPassPhrase()) {
+      CoreCommonUtil::GetInstance()->ResetTempCacheValue("__key_passphrase");
+    }
+
+    SPDLOG_DEBUG("generate done");
 
     if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
       auto* msg_box = new QMessageBox((QWidget*)this->parent());
@@ -156,7 +175,7 @@ void KeyGenDialog::slot_key_gen_accept() {
       msg_box->setModal(true);
       msg_box->open();
 
-      LOG(INFO) << "generate success";
+      SPDLOG_DEBUG("generate success");
 
       emit SignalKeyGenerated();
       this->close();
@@ -252,7 +271,7 @@ void KeyGenDialog::slot_authentication_box_changed(int state) {
 }
 
 void KeyGenDialog::slot_activated_key_type(int index) {
-  qDebug() << "key type index changed " << index;
+  SPDLOG_DEBUG("key type index changed: {}", index);
 
   // check
   assert(gen_key_info_->GetSupportedKeyAlgo().size() > index);
@@ -261,8 +280,6 @@ void KeyGenDialog::slot_activated_key_type(int index) {
 }
 
 void KeyGenDialog::refresh_widgets_state() {
-  qDebug() << "refresh_widgets_state called";
-
   if (gen_key_info_->IsAllowEncryption())
     key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Checked);
   else
@@ -337,11 +354,8 @@ void KeyGenDialog::set_signal_slot() {
 
   connect(no_pass_phrase_check_box_, &QCheckBox::stateChanged, this,
           [this](int state) -> void {
-            if (state == 0) {
-              gen_key_info_->SetNonPassPhrase(false);
-            } else {
-              gen_key_info_->SetNonPassPhrase(true);
-            }
+            gen_key_info_->SetNonPassPhrase(state != 0);
+            passphrase_edit_->setDisabled(state != 0);
           });
 }
 
@@ -356,6 +370,7 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   comment_edit_ = new QLineEdit(this);
   key_size_spin_box_ = new QSpinBox(this);
   key_type_combo_box_ = new QComboBox(this);
+  passphrase_edit_ = new QLineEdit(this);
 
   for (auto& algo : GenKeyInfo::GetSupportedKeyAlgo()) {
     key_type_combo_box_->addItem(QString::fromStdString(algo.first));
@@ -375,6 +390,8 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   expire_check_box_ = new QCheckBox(this);
   expire_check_box_->setCheckState(Qt::Unchecked);
 
+  passphrase_edit_->setEchoMode(QLineEdit::Password);
+
   no_pass_phrase_check_box_ = new QCheckBox(this);
   no_pass_phrase_check_box_->setCheckState(Qt::Unchecked);
 
@@ -387,7 +404,8 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   vbox1->addWidget(new QLabel(QString(_("Never Expire")) + ": "), 3, 3);
   vbox1->addWidget(new QLabel(QString(_("KeySize (in Bit)")) + ": "), 4, 0);
   vbox1->addWidget(new QLabel(QString(_("Key Type")) + ": "), 5, 0);
-  vbox1->addWidget(new QLabel(QString(_("Non Pass Phrase")) + ": "), 6, 0);
+  vbox1->addWidget(new QLabel(QString(_("Password")) + ": "), 6, 0);
+  vbox1->addWidget(new QLabel(QString(_("Non Pass Phrase")) + ": "), 6, 3);
 
   vbox1->addWidget(name_edit_, 0, 1, 1, 3);
   vbox1->addWidget(email_edit_, 1, 1, 1, 3);
@@ -396,7 +414,8 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   vbox1->addWidget(expire_check_box_, 3, 2);
   vbox1->addWidget(key_size_spin_box_, 4, 1);
   vbox1->addWidget(key_type_combo_box_, 5, 1);
-  vbox1->addWidget(no_pass_phrase_check_box_, 6, 1);
+  vbox1->addWidget(passphrase_edit_, 6, 1);
+  vbox1->addWidget(no_pass_phrase_check_box_, 6, 2);
 
   auto basicInfoGroupBox = new QGroupBox();
   basicInfoGroupBox->setLayout(vbox1);

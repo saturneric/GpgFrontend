@@ -328,6 +328,7 @@ class MainWindow : public GeneralMainWindow {
   QMenu* file_menu_{};        ///<  Submenu for file-operations
   QMenu* edit_menu_{};        ///<  Submenu for text-operations
   QMenu* crypt_menu_{};       ///<  Submenu for crypt-operations
+  QMenu* gpg_menu_{};         ///<  Submenu for help-operations
   QMenu* help_menu_{};        ///<  Submenu for help-operations
   QMenu* key_menu_{};         ///<  Submenu for key-operations
   QMenu* view_menu_{};        ///<  Submenu for view operations
@@ -368,6 +369,10 @@ class MainWindow : public GeneralMainWindow {
   QAction* import_key_from_edit_act_{};  ///<  Action to import key from edit
   QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double line
                                              ///<  breaks
+
+  QAction* clean_gpg_password_cache_act_{};  ///<
+  QAction* reload_components_act_{};         ///<
+  QAction* restart_components_act_{};        ///<
 
   QAction*
       append_selected_keys_act_{};  ///< Action to append selected keys to edit

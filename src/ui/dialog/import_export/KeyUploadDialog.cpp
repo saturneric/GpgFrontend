@@ -41,7 +41,6 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
                                  QWidget* parent)
     : GeneralDialog(typeid(KeyUploadDialog).name(), parent),
       m_keys_(GpgKeyGetter::GetInstance().GetKeys(keys_ids)) {
-
   auto* pb = new QProgressBar();
   pb->setRange(0, 0);
   pb->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -71,7 +70,6 @@ void KeyUploadDialog::SlotUpload() {
 
 void KeyUploadDialog::slot_upload_key_to_server(
     const GpgFrontend::ByteArray& keys_data) {
-
   std::string target_keyserver;
 
   try {
@@ -88,11 +86,11 @@ void KeyUploadDialog::slot_upload_key_to_server(
     target_keyserver =
         key_server_list[default_key_server_index].get<std::string>();
 
-    LOG(INFO) << _("Set target Key Server to default Key Server")
-              << target_keyserver;
+    SPDLOG_DEBUG("set target key server to default key server: {}",
+                 target_keyserver);
 
   } catch (...) {
-    LOG(ERROR) << _("Cannot read default_keyserver From Settings");
+    SPDLOG_ERROR(_("Cannot read default_keyserver From Settings"));
     QMessageBox::critical(nullptr, _("Default Keyserver Not Found"),
                           _("Cannot read default keyserver from your settings, "
                             "please set a default keyserver first"));
@@ -139,11 +137,11 @@ void KeyUploadDialog::slot_upload_finished() {
   auto* reply = qobject_cast<QNetworkReply*>(sender());
 
   QByteArray response = reply->readAll();
-  LOG(INFO) << "Response: " << response.toStdString();
+  SPDLOG_DEBUG("response: {}", response.toStdString());
 
   auto error = reply->error();
   if (error != QNetworkReply::NoError) {
-    LOG(INFO) << "Error From Reply" << reply->errorString().toStdString();
+    SPDLOG_DEBUG("error from reply: {}", reply->errorString().toStdString());
     QString message;
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
@@ -163,7 +161,7 @@ void KeyUploadDialog::slot_upload_finished() {
   } else {
     QMessageBox::information(this, _("Upload Success"),
                              _("Upload Public Key Successfully"));
-    LOG(INFO) << "Success while contacting keyserver!";
+    SPDLOG_DEBUG("success while contacting keyserver!");
   }
   reply->deleteLater();
 }
