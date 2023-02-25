@@ -1,58 +1,69 @@
 # Basic Concepts
 
-If you don't know GPG, or PGP, you may need to learn some basic concepts here before using Gpg Frontend. This reduces
-the chance of you making mistakes, such as distributing your private key to the world.
+If you don't know GPG, or PGP, you may need to learn some basic concepts here
+before using Gpg Frontend. This reduces the chance of you making mistakes, such
+as distributing your private key to the world.
 
 ## The most basic concepts you must know
 
-First, you need to generate a key pair, which you can imagine as a key ring. Each key pair has at least two keys, a
-public key and a corresponding private key. These two keys form a key pair. There can also be multiple public keys and
-their (one-to-one correspondence) private keys in a key pair, which will be described later. The public key can be
-released to the outside world. Others can use your public key to encrypt the information they want to give you. The
-private key is kept by yourself. If it is leaked, your encryption will no longer be meaningful.
+To begin using GPG, you must first generate a key pair, which can be thought of
+as a key ring. Each key pair includes at least two keys: a public key and a
+corresponding private key. Together, these keys form a key pair. It is possible
+for a key pair to include multiple public keys and their corresponding private
+keys, but this will be explained later.
 
-What you need to know is that the public key is used to encrypt information, and the ciphertext encrypted by others
-using the public key you released is guaranteed to be decrypted only by the corresponding private key of your key pair.
-This process involves some The principle of cryptography, you can trust this process unless no one knows your private
-key except you. The reverse of this process is also valid, you can encrypt a message with your private key, and someone
-else decrypts the message with your public key. The significance of this inverse process is that if the person using the
-public key cannot normally decrypt a message encrypted with the private key, then it is certain that the message does
-not come from the person who owns the private key corresponding to the public key. . This process can also be trusted.
-It can be seen that this reverse process establishes a process of signing and then verifying. Information encrypted with
-the private key can be seen as a signature. Others can use the public key to verify that the signature is valid.
+The public key can be shared with others, allowing them to encrypt information
+they wish to send to you. The private key must be kept secure, as its disclosure
+would render your encryption ineffective.
 
-If you just want to use the tool, you don't need to understand the cryptography behind it, you just need to remember the
-above.
+It is important to understand that the public key is used for encryption and
+that any ciphertext encrypted using your public key can only be decrypted using
+the corresponding private key of your key pair. This process relies on
+cryptographic principles and is trustworthy unless your private key is known to
+someone else. The reverse process is also valid: you can encrypt a message using
+your private key and someone else can decrypt it using your public key. This
+process establishes a mechanism for signing and verifying information.
+Information encrypted with the private key can be considered a signature, and
+others can use the public key to verify that the signature is valid.
 
-If you want to know more, you can read on.
+For most users, it is not necessary to understand the cryptography behind GPG,
+but it is helpful to remember the basic principles described above. For those
+interested in learning more, further reading is recommended.
 
 ## Multiple pairs of public and private keys in a key pair
 
-In a key pair, there is at least one pair of public key and private key, but there is no limit to the maximum number of
-pairs. You can generate another pair of public and private keys (we call them subkeys), and then add them to the key
-pair, but it is worth noting that the newly added public and private key pairs are the same as the first pair. Pairs
-have a public key and private key (which we call the primary key) pair associated.
+In a key pair, there is always at least one public-private key pair, but there
+is no limit to the maximum number of pairs. It is possible to generate
+additional pairs of public and private subkeys and add them to the key pair.
+However, it should be noted that the newly added subkeys are identical to the
+original pair, as each pair consists of one public key and one private key,
+which we refer to as the primary key pair.
 
-You can specify which process a subkey pair is used for. For example, the first key pair is used for encryption and
-decryption, the second key pair is used for signing and verification, or the third key pair can be used for encryption
-and decryption. Used to do the above two key pairs at the same time. Please specify these things when generating the
-subkey.
+Users can specify the purpose of each subkey pair. For instance, the first key
+pair can be used for encryption and decryption, the second for signing and
+verification, and the third for both encryption/decryption and
+signing/verification. It is important to specify the intended usage when
+generating subkeys.
 
-The master key is automatically generated when the key pair is generated, and the subkey can be added by the user at
-will.
+The master key is automatically generated when the key pair is created, and
+users can add subkeys as needed.
 
-When generating the master key or subkey, you can choose some algorithms such as RSA, DSA, etc. You do not need to
-understand the specific principles of these. You just need to know that subkeys generated by certain algorithms cannot
-perform certain processes (such as encryption and decryption), but can only perform certain processes (such as signing
-and verification). It is worth mentioning that for RSA, you can choose the key length when using the algorithm, you can
-think that the key
+When generating the master key or subkeys, users can select algorithms such as
+RSA or DSA. It is not necessary to understand the underlying principles of these
+algorithms. However, it is important to note that subkeys generated by certain
+algorithms may only perform specific processes, such as signing and
+verification, and cannot perform others, such as encryption and decryption.
+Additionally, for RSA, users can choose the key length when using the algorithm.
 
 ## The first pair of public and private keys in a key pair (primary key)
 
-The first pair of public and private keys (master key) in a key pair is very critical, because subsequent public and
-private keys (sub-keys) are linked to them, you can think that if someone else gets yours Master key (including public
-and private key information), he can generate sub-keys based on the information of the master key, and then he can use
-the sub-keys he generated to impersonate you and communicate with others.
+The initial public-private key pair (master key) in a key pair is crucial, as
+all subsequent sub-keys are linked to it. If someone were to obtain the master
+key (including both the public and private key information), they could generate
+sub-keys based on that information and use them to impersonate the key owner and
+communicate with others.
 
-Therefore, the private key of the master key (the public key can be released to others) must not be leaked. The
-disclosure of its private key means that the entire key pair is no longer safe and must be stopped immediately.
+Therefore, it is essential that the private key of the master key is kept
+confidential, while the public key can be shared with others. If the private key
+of the master key is compromised, it renders the entire key pair vulnerable and
+must be immediately discontinued.
