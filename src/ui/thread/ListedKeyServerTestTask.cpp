@@ -30,7 +30,8 @@
 
 GpgFrontend::UI::ListedKeyServerTestTask::ListedKeyServerTestTask(
     const QStringList& urls, int timeout, QWidget* parent)
-    : urls_(urls),
+    : Task("listed_key_server_test_task"),
+      urls_(urls),
       timeout_(timeout),
       network_manager_(new QNetworkAccessManager(this)),
       result_(urls_.size(), kTestResultType_Error) {
@@ -44,20 +45,20 @@ void GpgFrontend::UI::ListedKeyServerTestTask::run() {
   size_t index = 0;
   for (const auto& url : urls_) {
     auto key_url = QUrl{url};
-    LOG(INFO) << "key server request: " << key_url.host().toStdString();
+    SPDLOG_DEBUG("key server request: {}", key_url.host().toStdString());
 
     auto* network_reply = network_manager_->get(QNetworkRequest{key_url});
     auto* timer = new QTimer(this);
 
     connect(network_reply, &QNetworkReply::finished, this,
             [this, index, network_reply]() {
-              LOG(INFO) << "key server domain reply"
-                        << urls_[index].toStdString();
+              SPDLOG_DEBUG("key server domain reply: {}",
+                           urls_[index].toStdString());
               this->slot_process_network_reply(index, network_reply);
             });
 
     connect(timer, &QTimer::timeout, this, [this, index, network_reply]() {
-      LOG(INFO) << "timeout for key server" << urls_[index].toStdString();
+      SPDLOG_DEBUG("timeout for key server: {}", urls_[index].toStdString());
       if (network_reply->isRunning()) {
         network_reply->abort();
         this->slot_process_network_reply(index, network_reply);
@@ -83,6 +84,6 @@ void GpgFrontend::UI::ListedKeyServerTestTask::slot_process_network_reply(
 
   if (++result_count_ == urls_.size()) {
     emit SignalKeyServerListTestResult(result_);
-    emit SignalTaskFinished();
+    emit SignalTaskRunnableEnd(0);
   }
 }

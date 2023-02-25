@@ -52,7 +52,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
   tab_widget->addTab(update_tab_, _("Update"));
 
   connect(tab_widget, &QTabWidget::currentChanged, this,
-          [&](int index) { LOG(INFO) << "Current Index" << index; });
+          [&](int index) { SPDLOG_DEBUG("current index: {}", index); });
 
   if (defaultIndex < tab_widget->count() && defaultIndex >= 0) {
     tab_widget->setCurrentIndex(defaultIndex);
@@ -66,7 +66,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
   mainLayout->addWidget(buttonBox);
   setLayout(mainLayout);
 
-  this->resize(450, 580);
+  this->resize(550, 650);
   this->setMinimumWidth(450);
   this->show();
 }
@@ -95,7 +95,9 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       _("or send a mail to my mailing list at") + " <a " +
       "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
       _("Built with Qt") + " " + qVersion() + " " + _("and GPGME") + " " +
-      GpgFrontend::GpgContext::GetInstance().GetInfo().GpgMEVersion.c_str() +
+      GpgFrontend::GpgContext::GetInstance()
+          .GetInfo(false)
+          .GpgMEVersion.c_str() +
       "<br>" + _("Built at") + " " + BUILD_TIMESTAMP + "</center>");
 
   auto* layout = new QGridLayout();
@@ -201,7 +203,7 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
 void UpdateTab::getLatestVersion() {
   this->pb_->setHidden(false);
 
-  LOG(INFO) << _("try to get latest version");
+  SPDLOG_DEBUG("try to get latest version");
 
   auto* version_task = new VersionCheckTask();
 

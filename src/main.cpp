@@ -33,16 +33,15 @@
 #include <csetjmp>
 #include <csignal>
 #include <cstddef>
+#include <cstdlib>
+#include <string>
 
 #include "core/GpgConstants.h"
 #include "core/GpgCoreInit.h"
+#include "core/function/GlobalSettingStation.h"
+#include "spdlog/spdlog.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/GpgFrontendUIInit.h"
-
-/**
- * \brief initialize the easylogging++ library.
- */
-INITIALIZE_EASYLOGGINGPP
 
 /**
  * \brief Store the jump buff and make it possible to recover from a crash.
@@ -75,6 +74,18 @@ extern void before_exit();
 extern void init_logging_system();
 
 /**
+ * @brief initialize the logging system.
+ *
+ */
+extern void shutdown_logging_system();
+
+/**
+ * @brief init global PATH env
+ *
+ */
+extern void init_global_path_env();
+
+/**
  *
  * @param argc
  * @param argv
@@ -98,11 +109,17 @@ int main(int argc, char* argv[]) {
   auto* app =
       GpgFrontend::UI::GpgFrontendApplication::GetInstance(argc, argv, true);
 
-  // init the logging system
+  // init the logging system for main
   init_logging_system();
 
   // init the logging system for core
-  GpgFrontend::InitLoggingSystem();
+  GpgFrontend::InitCoreLoggingSystem();
+
+  // init the logging system for ui
+  GpgFrontend::UI::InitUILoggingSystem();
+
+  // change path to search for related
+  init_global_path_env();
 
   /**
    * internationalisation. loop to restart main window
@@ -124,7 +141,7 @@ int main(int argc, char* argv[]) {
         // create main window
         return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
       } else {
-        LOG(ERROR) << "recover from a crash";
+        SPDLOG_ERROR("recover from a crash");
         // when signal is caught, restart the main window
         auto* message_box = new QMessageBox(
             QMessageBox::Critical, _("A serious error has occurred"),
@@ -137,15 +154,37 @@ int main(int argc, char* argv[]) {
         return_from_event_loop_code = CRASH_CODE;
       }
 
-      LOG(INFO) << "loop refresh";
+      SPDLOG_DEBUG("restart loop refresh, event loop code: {}",
+                   return_from_event_loop_code);
     } while (return_from_event_loop_code == RESTART_CODE);
 
-    // reset core
-    GpgFrontend::ResetGpgFrontendCore();
+    if (return_from_event_loop_code == DEEP_RESTART_CODE ||
+        return_from_event_loop_code == CRASH_CODE) {
+      // reset core
+      GpgFrontend::ResetGpgFrontendCore();
+      // log for debug
+      SPDLOG_DEBUG("deep restart or cash loop refresh");
+    } else {
+      // log for debug
+      SPDLOG_DEBUG("need to close application, event loop code: {}",
+                   return_from_event_loop_code);
+    }
 
     // deep restart mode
   } while (return_from_event_loop_code == DEEP_RESTART_CODE ||
            return_from_event_loop_code == CRASH_CODE);
+
+
+  // shutdown the logging system for ui
+  GpgFrontend::UI::ShutdownUILoggingSystem();
+
+  // shutdown the logging system for core
+  GpgFrontend::ShutdownCoreLoggingSystem();
+
+
+
+  // log for debug
+  SPDLOG_INFO("GpgFrontend about to exit.");
 
   // exit the program
   return return_from_event_loop_code;

@@ -93,6 +93,7 @@ class KeyGenDialog : public GeneralDialog {
   QLineEdit* name_edit_{};             ///< Line edit for the keys name
   QLineEdit* email_edit_{};            ///< Line edit for the keys email
   QLineEdit* comment_edit_{};          ///< Line edit for the keys comment
+  QLineEdit* passphrase_edit_{};       ///<
   QSpinBox* key_size_spin_box_{};      ///< Spinbox for the keys size (in bit)
   QComboBox* key_type_combo_box_{};    ///< Combobox for Key type
   QDateTimeEdit* date_edit_{};         ///< Date edit for expiration date

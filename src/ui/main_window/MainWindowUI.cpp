@@ -27,6 +27,7 @@
  */
 
 #include "MainWindow.h"
+#include "core/function/gpg/GpgAdvancedOperator.h"
 #include "ui/UserInterfaceUtils.h"
 
 namespace GpgFrontend::UI {
@@ -37,8 +38,11 @@ void MainWindow::create_actions() {
   new_tab_act_ = new QAction(_("New"), this);
   new_tab_act_->setIcon(QIcon(":misc_doc.png"));
   QList<QKeySequence> newTabActShortcutList;
-  newTabActShortcutList.append(QKeySequence(Qt::CTRL + Qt::Key_N));
-  newTabActShortcutList.append(QKeySequence(Qt::CTRL + Qt::Key_T));
+#ifdef GPGFRONTEND_GUI_QT6
+  newTabActShortcutList.append(QKeySequence(Qt::CTRL | Qt::Key_N));
+  newTabActShortcutList.append(QKeySequence(Qt::CTRL | Qt::Key_T));
+#else
+#endif
   new_tab_act_->setShortcuts(newTabActShortcutList);
   new_tab_act_->setToolTip(_("Open a new file"));
   connect(new_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotNewTab);
@@ -51,7 +55,11 @@ void MainWindow::create_actions() {
 
   browser_act_ = new QAction(_("File Browser"), this);
   browser_act_->setIcon(QIcon(":file-browser.png"));
+#ifdef GPGFRONTEND_GUI_QT6
+  browser_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_B));
+#else
   browser_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
+#endif
   browser_act_->setToolTip(_("Open a file browser"));
   connect(browser_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab);
@@ -164,41 +172,64 @@ void MainWindow::create_actions() {
    */
   encrypt_act_ = new QAction(_("Encrypt"), this);
   encrypt_act_->setIcon(QIcon(":encrypted.png"));
-  encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
+#ifdef GPGFRONTEND_GUI_QT6
+  encrypt_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_E));
+#else
+#endif
   encrypt_act_->setToolTip(_("Encrypt Message"));
   connect(encrypt_act_, &QAction::triggered, this, &MainWindow::slot_encrypt);
 
   encrypt_sign_act_ = new QAction(_("Encrypt Sign"), this);
   encrypt_sign_act_->setIcon(QIcon(":encrypted_signed.png"));
+#ifdef GPGFRONTEND_GUI_QT6
   encrypt_sign_act_->setShortcut(
-      QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_E));
+      QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E));
+#else
+  encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
+#endif
   encrypt_sign_act_->setToolTip(_("Encrypt and Sign Message"));
   connect(encrypt_sign_act_, &QAction::triggered, this,
           &MainWindow::slot_encrypt_sign);
 
   decrypt_act_ = new QAction(_("Decrypt"), this);
   decrypt_act_->setIcon(QIcon(":decrypted.png"));
-  decrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
+#ifdef GPGFRONTEND_GUI_QT6
+  decrypt_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_D));
+#else
+  encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
+#endif
   decrypt_act_->setToolTip(_("Decrypt Message"));
   connect(decrypt_act_, &QAction::triggered, this, &MainWindow::slot_decrypt);
 
   decrypt_verify_act_ = new QAction(_("Decrypt Verify"), this);
   decrypt_verify_act_->setIcon(QIcon(":decrypted_verified.png"));
+#ifdef GPGFRONTEND_GUI_QT6
   decrypt_verify_act_->setShortcut(
-      QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
+      QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D));
+#else
+  encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
+#endif
   decrypt_verify_act_->setToolTip(_("Decrypt and Verify Message"));
   connect(decrypt_verify_act_, &QAction::triggered, this,
           &MainWindow::slot_decrypt_verify);
 
   sign_act_ = new QAction(_("Sign"), this);
   sign_act_->setIcon(QIcon(":signature.png"));
-  sign_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
+#ifdef GPGFRONTEND_GUI_QT6
+  sign_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_I));
+#else
+  encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
+#endif
   sign_act_->setToolTip(_("Sign Message"));
   connect(sign_act_, &QAction::triggered, this, &MainWindow::slot_sign);
 
   verify_act_ = new QAction(_("Verify"), this);
   verify_act_->setIcon(QIcon(":verify.png"));
-  verify_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
+#ifdef GPGFRONTEND_GUI_QT6
+  verify_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_V));
+#else
+  encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
+#endif
   verify_act_->setToolTip(_("Verify Message"));
   connect(verify_act_, &QAction::triggered, this, &MainWindow::slot_verify);
 
@@ -241,6 +272,51 @@ void MainWindow::create_actions() {
   connect(open_key_management_act_, &QAction::triggered, this,
           &MainWindow::slot_open_key_management);
 
+  clean_gpg_password_cache_act_ = new QAction(_("Clear Password Cache"), this);
+  clean_gpg_password_cache_act_->setIcon(QIcon(":configure.png"));
+  clean_gpg_password_cache_act_->setToolTip(_("Clear Password Cache of GnuPG"));
+  connect(clean_gpg_password_cache_act_, &QAction::triggered, this, [=]() {
+    if (GpgFrontend::GpgAdvancedOperator::GetInstance()
+            .ClearGpgPasswordCache()) {
+      QMessageBox::information(this, _("Successful Operation"),
+                               _("Clear password cache successfully"));
+    } else {
+      QMessageBox::critical(this, _("Failed Operation"),
+                            _("Failed to clear password cache of GnuPG"));
+    }
+  });
+
+  reload_components_act_ = new QAction(_("Reload All Components"), this);
+  reload_components_act_->setIcon(QIcon(":configure.png"));
+  reload_components_act_->setToolTip(_("Reload All GnuPG's Components"));
+  connect(reload_components_act_, &QAction::triggered, this, [=]() {
+    if (GpgFrontend::GpgAdvancedOperator::GetInstance().ReloadGpgComponents()) {
+      QMessageBox::information(
+          this, _("Successful Operation"),
+          _("Reload all the GnuPG's components successfully"));
+    } else {
+      QMessageBox::critical(
+          this, _("Failed Operation"),
+          _("Failed to reload all or one of the GnuPG's component(s)"));
+    }
+  });
+
+  restart_components_act_ = new QAction(_("Restart All Components"), this);
+  restart_components_act_->setIcon(QIcon(":configure.png"));
+  restart_components_act_->setToolTip(_("Restart All GnuPG's Components"));
+  connect(restart_components_act_, &QAction::triggered, this, [=]() {
+    if (GpgFrontend::GpgAdvancedOperator::GetInstance()
+            .RestartGpgComponents()) {
+      QMessageBox::information(
+          this, _("Successful Operation"),
+          _("Restart all the GnuPG's components successfully"));
+    } else {
+      QMessageBox::critical(
+          this, _("Failed Operation"),
+          _("Failed to restart all or one of the GnuPG's component(s)"));
+    }
+  });
+
   /*
    * About Menu
    */
@@ -270,7 +346,7 @@ void MainWindow::create_actions() {
   check_update_act_->setIcon(QIcon(":help.png"));
   check_update_act_->setToolTip(_("Check for updates"));
   connect(check_update_act_, &QAction::triggered, this,
-          [=]() { new AboutDialog(2, this); });
+          [=]() { new AboutDialog(3, this); });
 
   start_wizard_act_ = new QAction(_("Open Wizard"), this);
   start_wizard_act_->setToolTip(_("Open the wizard"));
@@ -371,6 +447,12 @@ void MainWindow::create_menus() {
   import_key_menu_->addAction(import_key_from_clipboard_act_);
   import_key_menu_->addAction(import_key_from_key_server_act_);
   key_menu_->addAction(open_key_management_act_);
+
+  gpg_menu_ = menuBar()->addMenu(_("GnuPG"));
+  gpg_menu_->addAction(clean_gpg_password_cache_act_);
+  gpg_menu_->addSeparator();
+  gpg_menu_->addAction(reload_components_act_);
+  gpg_menu_->addAction(restart_components_act_);
 
   steganography_menu_ = menuBar()->addMenu(_("Steganography"));
   steganography_menu_->addAction(cut_pgp_header_act_);

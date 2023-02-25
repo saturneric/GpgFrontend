@@ -36,7 +36,8 @@
 namespace GpgFrontend::UI {
 
 VersionCheckTask::VersionCheckTask()
-    : network_manager_(new QNetworkAccessManager(this)),
+    : Task("version_check_task"),
+      network_manager_(new QNetworkAccessManager(this)),
       current_version_(std::string("v") + std::to_string(VERSION_MAJOR) + "." +
                        std::to_string(VERSION_MINOR) + "." +
                        std::to_string(VERSION_PATCH)) {
@@ -49,7 +50,7 @@ void VersionCheckTask::Run() {
 
   try {
     using namespace nlohmann;
-    LOG(INFO) << "current version" << current_version_;
+    SPDLOG_DEBUG("current version: {}", current_version_);
     std::string latest_version_url =
         "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
 
@@ -63,7 +64,8 @@ void VersionCheckTask::Run() {
     version_.load_info_done = true;
 
   } catch (...) {
-    emit SignalTaskFinished();
+    SPDLOG_ERROR("unknown error occurred");
+    emit SignalTaskRunnableEnd(-1);
   }
 }
 
@@ -73,7 +75,7 @@ void VersionCheckTask::slot_parse_latest_version_info() {
   try {
     if (latest_reply_ == nullptr ||
         latest_reply_->error() != QNetworkReply::NoError) {
-      LOG(ERROR) << "latest version request error";
+      SPDLOG_ERROR("latest version request error");
       version_.latest_version = current_version_;
     } else {
       latest_reply_bytes_ = latest_reply_->readAll();
@@ -83,16 +85,16 @@ void VersionCheckTask::slot_parse_latest_version_info() {
 
       std::string latest_version = latest_reply_json["tag_name"];
 
-      LOG(INFO) << "latest version from Github" << latest_version;
+      SPDLOG_INFO("latest version from Github: {}", latest_version);
 
       QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
       auto version_match = re.match(latest_version.c_str());
       if (version_match.hasMatch()) {
         latest_version = version_match.captured(0).toStdString();
-        LOG(INFO) << "latest version matched" << latest_version;
+        SPDLOG_DEBUG("latest version matched: {}", latest_version);
       } else {
         latest_version = current_version_;
-        LOG(WARNING) << "latest version unknown";
+        SPDLOG_WARN("latest version unknown");
       }
 
       bool prerelease = latest_reply_json["prerelease"],
@@ -106,7 +108,7 @@ void VersionCheckTask::slot_parse_latest_version_info() {
       version_.release_note = release_note;
     }
   } catch (...) {
-    LOG(INFO) << "error occurred";
+    SPDLOG_ERROR("unknown error occurred");
     version_.load_info_done = false;
   }
 
@@ -126,8 +128,8 @@ void VersionCheckTask::slot_parse_latest_version_info() {
     connect(current_reply_, &QNetworkReply::finished, this,
             &VersionCheckTask::slot_parse_current_version_info);
   } catch (...) {
-    LOG(ERROR) << "current version request create error";
-    emit SignalTaskFinished();
+    SPDLOG_ERROR("current version request create error");
+    emit SignalTaskRunnableEnd(-1);
   }
 }
 
@@ -135,12 +137,20 @@ void VersionCheckTask::slot_parse_current_version_info() {
   try {
     if (current_reply_ == nullptr ||
         current_reply_->error() != QNetworkReply::NoError) {
-      LOG(ERROR) << "current version request network error";
+      if (current_reply_ != nullptr) {
+        SPDLOG_ERROR("current version request network error: {}",
+                     current_reply_->errorString().toStdString());
+      } else {
+        SPDLOG_ERROR(
+            "current version request network error, null reply object");
+      }
+
       version_.current_version_found = false;
+      version_.load_info_done = false;
     } else {
       version_.current_version_found = true;
       current_reply_bytes_ = current_reply_->readAll();
-      LOG(INFO) << "current version" << current_reply_bytes_.size();
+      SPDLOG_DEBUG("current version: {}", current_reply_bytes_.size());
       auto current_reply_json =
           nlohmann::json::parse(current_reply_bytes_.toStdString());
       bool current_prerelease = current_reply_json["prerelease"],
@@ -150,18 +160,19 @@ void VersionCheckTask::slot_parse_current_version_info() {
       version_.load_info_done = true;
     }
   } catch (...) {
-    LOG(INFO) << "error occurred";
+    SPDLOG_ERROR("unknown error occurred");
     version_.load_info_done = false;
   }
 
-  LOG(INFO) << "current version parse done" << version_.current_version_found;
+  SPDLOG_DEBUG("current version parse done: {}",
+               version_.current_version_found);
 
   if (current_reply_ != nullptr) {
     current_reply_->deleteLater();
   }
 
   emit SignalUpgradeVersion(version_);
-  emit SignalTaskFinished();
+  emit SignalTaskRunnableEnd(0);
 }
 
 }  // namespace GpgFrontend::UI

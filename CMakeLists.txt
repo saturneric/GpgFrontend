@@ -27,7 +27,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # define project
-project(GpgFrontend VERSION 2.0.10 LANGUAGES CXX)
+project(GpgFrontend VERSION 2.1.0 LANGUAGES CXX)
 
 # show cmake version
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
@@ -63,6 +63,7 @@ option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
 option(GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
 option(GPGFRONTEND_XOCDE_APPID "GpgFrontend Apple AppID" "NONE")
 option(GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID "GpgFrontend ProvisioningProfile UUID" "NONE")
+option(GPGFRONTEND_XOCDE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 
 # analyse options
 if (GPGFRONTEND_BUILD_TYPE_TEST_CORE)
@@ -442,40 +443,6 @@ endif ()
 # For instance in order to select the highest version one
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
-
-# disable myeasylog.log
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_NO_DEFAULT_LOG_FILE")
-
-# Introduce boost
-if(NOT BOOST_ROOT)
-    find_package(Boost COMPONENTS date_time system REQUIRED)
-else()
-    find_package(Boost
-            COMPONENTS date_time system REQUIRED
-            PATHS ${BOOST_ROOT} NO_DEFAULT_PATH)
-endif()
-
-# Introduce OpenSSL
-if(APPLE)
-    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl@1.1)
-endif()
-find_package(OpenSSL REQUIRED)
-
-# Introduce Qt
-if (QT5_ENV_SUPPORT)
-    # Support Qt version Both 5.12.x and 5.15.x
-    find_package(Qt5 5.9 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
-    
-    # Qt configuration
-    set(CMAKE_AUTOMOC ON)
-    set(CMAKE_AUTORCC ON)
-    set(CMAKE_AUTOUIC ON)
-
-    set(CMAKE_AUTORCC_OPTIONS "--compress;9")
-    set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
-
-endif ()
-
 
 if (SMTP_SUPPORT)
     add_compile_definitions(SMTP_SUPPORT)

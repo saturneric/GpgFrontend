@@ -26,11 +26,9 @@
 
 #include "core/thread/FileReadTask.h"
 
-#include <utility>
-
 namespace GpgFrontend::UI {
 
-FileReadTask::FileReadTask(std::string path) {
+FileReadTask::FileReadTask(std::string path) : Task("file_read_task") {
   connect(this, &FileReadTask::SignalFileBytesReadNext, this,
           &FileReadTask::read_bytes);
 
@@ -48,18 +46,18 @@ void FileReadTask::Run() {
   SetFinishAfterRun(false);
 
   if (is_regular_file(read_file_path_)) {
-    LOG(INFO) << "read open file" << read_file_path_;
+    SPDLOG_DEBUG("read open file: {}", read_file_path_.u8string());
 
     target_file_.setFileName(
         QString::fromStdString(read_file_path_.u8string()));
     target_file_.open(QIODevice::ReadOnly);
 
     if (!(target_file_.isOpen() && target_file_.isReadable())) {
-      LOG(ERROR) << "file not open or not readable";
+      SPDLOG_ERROR("file not open or not readable");
       if (target_file_.isOpen()) target_file_.close();
       return;
     }
-    LOG(INFO) << "started reading" << read_file_path_;
+    SPDLOG_DEBUG("started reading: {}", read_file_path_.u8string());
     read_bytes();
   } else {
     emit SignalFileBytesReadEnd();
@@ -70,18 +68,18 @@ void FileReadTask::read_bytes() {
   QByteArray read_buffer;
   if (!target_file_.atEnd() &&
       (read_buffer = target_file_.read(buffer_size_)).size() > 0) {
-    LOG(INFO) << "read bytes" << read_buffer.size();
+    SPDLOG_DEBUG("read bytes: {}", read_buffer.size());
     emit SignalFileBytesRead(std::move(read_buffer));
   } else {
-    LOG(INFO) << "read bytes end";
+    SPDLOG_DEBUG("read bytes end");
     emit SignalFileBytesReadEnd();
-    // finish task
-    emit SignalTaskFinished();
+    // announce finish task
+    emit SignalTaskRunnableEnd(0);
   }
 }
 
 FileReadTask::~FileReadTask() {
-  LOG(INFO) << "close file" << read_file_path_;
+  SPDLOG_DEBUG("close file: {}", read_file_path_.u8string());
   if (target_file_.isOpen()) target_file_.close();
 }
 

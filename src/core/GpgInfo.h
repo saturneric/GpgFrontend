@@ -29,6 +29,7 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_GPGINFO_H
 #define GPGFRONTEND_ZH_CN_TS_GPGINFO_H
 
+#include <mutex>
 #include <string>
 
 namespace GpgFrontend {
@@ -38,13 +39,26 @@ namespace GpgFrontend {
  */
 class GpgInfo {
  public:
-  std::string AppPath;       ///<  executable binary path of gnupg
-  std::string DatabasePath;  ///<
-  std::string GnupgVersion;  ///<
-  std::string GpgConfPath;   ///<
-  std::string AssuanPath;   ///<
-  std::string CMSPath;       ///<
+  std::string GnupgVersion;  ///< version of gnupg
   std::string GpgMEVersion;  ///<
+
+  std::string AppPath;       ///< executable binary path of gnupg
+  std::string DatabasePath;  ///< key database path
+  std::string GpgConfPath;   ///< executable binary path of gpgconf
+  std::string AssuanPath;    ///< executable binary path of assuan
+  std::string CMSPath;       ///< executable binary path of cms
+  std::string GpgAgentPath;  ///< executable binary path of gpg-agent
+  std::string DirmngrPath;   ///< executable binary path of dirmgr
+  std::string KeyboxdPath;   ///< executable binary path of keyboxd
+
+  std::string GnuPGHomePath;  ///< value of ---homedir
+
+  std::map<std::string, std::vector<std::string>> ComponentsInfo;        ///<
+  std::map<std::string, std::vector<std::string>> ConfigurationsInfo;    ///<
+  std::map<std::string, std::vector<std::string>> OptionsInfo;           ///<
+  std::map<std::string, std::vector<std::string>> AvailableOptionsInfo;  ///<
+
+  std::shared_mutex Lock;
 };
 }  // namespace GpgFrontend
 

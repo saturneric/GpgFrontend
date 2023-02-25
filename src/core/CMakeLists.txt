@@ -46,11 +46,6 @@ if (NOT LINUX)
     target_link_libraries(gpgfrontend_core PUBLIC config++ intl)
 endif ()
 
-# easyloggingpp
-target_include_directories(gpgfrontend_core PUBLIC
-        ${CMAKE_SOURCE_DIR}/third_party/easyloggingpp/src)
-target_sources(gpgfrontend_core PUBLIC
-        ${CMAKE_SOURCE_DIR}/third_party/easyloggingpp/src/easylogging++.cc)
 # qt-aes
 target_sources(gpgfrontend_core PRIVATE
         ${CMAKE_SOURCE_DIR}/third_party/qt-aes/qaesencryption.cpp)
@@ -82,6 +77,9 @@ if (MINGW)
     target_link_libraries(gpgfrontend_core PUBLIC bcrypt)
 endif ()
 
+# spdlog
+target_link_libraries(gpgfrontend_core PRIVATE spdlog)
+
 # link libarchive
 target_link_libraries(gpgfrontend_core PRIVATE archive)
 
@@ -89,7 +87,11 @@ target_link_libraries(gpgfrontend_core PRIVATE archive)
 target_link_libraries(gpgfrontend_core
         PUBLIC nlohmann_json::nlohmann_json)
 # link Qt core
-target_link_libraries(gpgfrontend_core PUBLIC Qt5::Core)
+if(Qt6_DIR)
+    target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core)
+else()
+    target_link_libraries(gpgfrontend_core PUBLIC Qt5::Core)
+endif()
 
 # set up pch
 target_precompile_headers(gpgfrontend_core

@@ -30,8 +30,9 @@
 #include "core/GpgCoreInit.h"
 #include "core/common/CoreCommonUtil.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "thread/Task.h"
 
-GpgFrontend::Thread::CtxCheckTask::CtxCheckTask() {
+GpgFrontend::Thread::CtxCheckTask::CtxCheckTask() : Task("ctx_check_task") {
   connect(this, &CtxCheckTask::SignalGnupgNotInstall,
           CoreCommonUtil::GetInstance(),
           &CoreCommonUtil::SignalGnupgNotInstall);
@@ -48,4 +49,6 @@ void GpgFrontend::Thread::CtxCheckTask::Run() {
   // Try flushing key cache
   else
     GpgFrontend::GpgKeyGetter::GetInstance().FlushKeyCache();
+
+  SPDLOG_DEBUG("ctx check task runnable done");
 }

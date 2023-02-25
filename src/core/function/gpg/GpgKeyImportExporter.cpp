@@ -28,6 +28,8 @@
 
 #include "GpgKeyImportExporter.h"
 
+#include <memory>
+
 #include "GpgConstants.h"
 #include "GpgKeyGetter.h"
 
@@ -91,8 +93,8 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeys(KeyIdArgsListPtr& uid_list,
 
   delete[] keys_array;
 
-  DLOG(INFO) << "exportKeys read_bytes"
-             << gpgme_data_seek(data_out, 0, SEEK_END);
+  SPDLOG_DEBUG("export keys read_bytes: {}",
+               gpgme_data_seek(data_out, 0, SEEK_END));
 
   auto temp_out_buffer = data_out.Read2Buffer();
 
@@ -116,6 +118,25 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys,
 }
 
 /**
+ * Export all the keys both private and public keys
+ * @param uid_list key ids
+ * @param out_buffer output byte array
+ * @return if success
+ */
+bool GpgFrontend::GpgKeyImportExporter::ExportAllKeys(
+    KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer, bool secret) const {
+  bool result = true;
+  result = ExportKeys(uid_list, out_buffer, false) & result;
+
+  ByteArrayPtr temp_buffer;
+  if (secret) {
+    result = ExportKeys(uid_list, temp_buffer, true) & result;
+  }
+  out_buffer->append(*temp_buffer);
+  return result;
+}
+
+/**
  * Export the secret key of a key pair(including subkeys)
  * @param key target key pair
  * @param outBuffer output byte array
@@ -123,7 +144,7 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys,
  */
 bool GpgFrontend::GpgKeyImportExporter::ExportSecretKey(
     const GpgKey& key, ByteArrayPtr& out_buffer) const {
-  DLOG(INFO) << "Export Secret Key" << key.GetId().c_str();
+  SPDLOG_DEBUG("export secret key: {}", key.GetId().c_str());
 
   gpgme_key_t target_key[2] = {gpgme_key_t(key), nullptr};
 
@@ -144,8 +165,8 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKey(
   GpgData data_out;
   auto err = gpgme_op_export(ctx_, key.GetId().c_str(), 0, data_out);
 
-  DLOG(INFO) << "exportKeys read_bytes"
-             << gpgme_data_seek(data_out, 0, SEEK_END);
+  SPDLOG_DEBUG("export keys read_bytes: {}",
+               gpgme_data_seek(data_out, 0, SEEK_END));
 
   auto temp_out_buffer = data_out.Read2Buffer();
   std::swap(out_buffer, temp_out_buffer);
@@ -159,7 +180,7 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeyOpenSSH(
   auto err = gpgme_op_export(ctx_, key.GetId().c_str(), GPGME_EXPORT_MODE_SSH,
                              data_out);
 
-  DLOG(INFO) << "read_bytes" << gpgme_data_seek(data_out, 0, SEEK_END);
+  SPDLOG_DEBUG("read_bytes: {}", gpgme_data_seek(data_out, 0, SEEK_END));
 
   auto temp_out_buffer = data_out.Read2Buffer();
   std::swap(out_buffer, temp_out_buffer);
@@ -173,7 +194,7 @@ bool GpgFrontend::GpgKeyImportExporter::ExportSecretKeyShortest(
   auto err = gpgme_op_export(ctx_, key.GetId().c_str(),
                              GPGME_EXPORT_MODE_MINIMAL, data_out);
 
-  DLOG(INFO) << "read_bytes" << gpgme_data_seek(data_out, 0, SEEK_END);
+  SPDLOG_DEBUG("read_bytes: {}", gpgme_data_seek(data_out, 0, SEEK_END));
 
   auto temp_out_buffer = data_out.Read2Buffer();
   std::swap(out_buffer, temp_out_buffer);

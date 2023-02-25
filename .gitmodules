@@ -10,9 +10,6 @@
 [submodule "third_party/json"]
 	path = third_party/json
 	url = https://git.bktus.com/GpgFrontend/json.git
-[submodule "third_party/easyloggingpp"]
-	path = third_party/easyloggingpp
-	url = https://git.bktus.com/GpgFrontend/easyloggingpp.git
 [submodule "third_party/qt-aes"]
 	path = third_party/qt-aes
 	url = https://git.bktus.com/GpgFrontend/Qt-AES.git
@@ -22,3 +19,6 @@
 [submodule "third_party/libconfig"]
 	path = third_party/libconfig
 	url = https://git.bktus.com/GpgFrontend/libconfig.git
+[submodule "third_party/spdlog"]
+	path = third_party/spdlog
+	url = https://git.bktus.com/GpgFrontend/spdlog.git

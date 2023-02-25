@@ -59,7 +59,7 @@ void GpgFrontend::GpgKeyOpera::DeleteKeys(
                               GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
       assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
     } else {
-      LOG(WARNING) << "GpgKeyOpera DeleteKeys get key failed" << tmp;
+      SPDLOG_WARN("GpgKeyOpera DeleteKeys get key failed", tmp);
     }
   }
 }
@@ -84,7 +84,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::SetExpire(
         to_time_t(*expires) - system_clock::to_time_t(system_clock::now());
   }
 
-  LOG(INFO) << key.GetId() << subkey_fpr << expires_time;
+  SPDLOG_DEBUG(key.GetId(), subkey_fpr, expires_time);
 
   GpgError err;
   if (key.GetFingerprint() == subkey_fpr || subkey_fpr.empty())
@@ -103,59 +103,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::SetExpire(
  * @return the process doing this job
  */
 void GpgFrontend::GpgKeyOpera::GenerateRevokeCert(
-    const GpgKey& key, const std::string& output_file_name) {
-  auto args = std::vector<std::string>{"--no-tty",
-                                       "--command-fd",
-                                       "0",
-                                       "--status-fd",
-                                       "1",
-                                       "-o",
-                                       output_file_name,
-                                       "--gen-revoke",
-                                       key.GetFingerprint()};
-
-  using boost::asio::async_write;
-  using boost::process::async_pipe;
-#ifndef WINDOWS
-  GpgCommandExecutor::GetInstance().Execute(
-      args, [](async_pipe& in, async_pipe& out) -> void {
-        //        boost::asio::streambuf buff;
-        //        boost::asio::read_until(in, buff, '\n');
-        //
-        //        std::istream is(&buff);
-        //
-        //        while (!is.eof()) {
-        //          std::string line;
-        //          is >> line;
-        //          LOG(INFO) << "line" << line;
-        //          boost::algorithm::trim(line);
-        //          if (line == std::string("[GNUPG:] GET_BOOL
-        //          gen_revoke.okay")) {
-        //
-        //          } else if (line ==
-        //                     std::string(
-        //                         "[GNUPG:] GET_LINE
-        //                         ask_revocation_reason.code")) {
-        //
-        //          } else if (line ==
-        //                     std::string(
-        //                         "[GNUPG:] GET_LINE
-        //                         ask_revocation_reason.text")) {
-        //
-        //          } else if (line ==
-        //                     std::string("[GNUPG:] GET_BOOL
-        //                     openfile.overwrite.okay")) {
-        //
-        //          } else if (line ==
-        //                     std::string(
-        //                         "[GNUPG:] GET_BOOL
-        //                         ask_revocation_reason.okay")) {
-        //
-        //          }
-        //        }
-      });
-#endif
-}
+    const GpgKey& key, const std::string& output_file_name) {}
 
 /**
  * Generate a new key pair
@@ -168,7 +116,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
   const char* userid = userid_utf8.c_str();
   auto algo_utf8 = params->GetAlgo() + params->GetKeySizeStr();
 
-  LOG(INFO) << "params" << params->GetAlgo() << params->GetKeySizeStr();
+  SPDLOG_DEBUG("params: {} {}", params->GetAlgo(), params->GetKeySizeStr());
 
   const char* algo = algo_utf8.c_str();
   unsigned long expires = 0;
@@ -181,9 +129,9 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
 
   GpgError err;
 
-  LOG(INFO) << "ctx version" << ctx_.GetInfo().GnupgVersion;
+  SPDLOG_DEBUG("ctx version, {}", ctx_.GetInfo(false).GnupgVersion);
 
-  if (ctx_.GetInfo().GnupgVersion >= "2.1.0") {
+  if (ctx_.GetInfo(false).GnupgVersion >= "2.1.0") {
     unsigned int flags = 0;
 
     if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
@@ -193,7 +141,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
     if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
     if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
-    LOG(INFO) << "args: " << userid << algo << expires << flags;
+    SPDLOG_DEBUG("args: {}", userid, algo, expires, flags);
 
     err = gpgme_op_createkey(ctx_, userid, algo, 0, expires, nullptr, flags);
 
@@ -222,7 +170,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
 
     ss << "</GnupgKeyParms>";
 
-    DLOG(INFO) << "params" << std::endl << ss.str();
+    SPDLOG_DEBUG("params: {}", ss.str());
 
     err = gpgme_op_genkey(ctx_, ss.str().c_str(), nullptr, nullptr);
   }
@@ -245,9 +193,8 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateSubkey(
     const GpgKey& key, const std::unique_ptr<GenKeyInfo>& params) {
   if (!params->IsSubKey()) return GPG_ERR_CANCELED;
 
-  LOG(INFO) << "generate subkey"
-            << "algo" << params->GetAlgo() << "key size"
-            << params->GetKeySizeStr();
+  SPDLOG_DEBUG("generate subkey algo {} key size {}", params->GetAlgo(),
+               params->GetKeySizeStr());
 
   auto algo_utf8 = (params->GetAlgo() + params->GetKeySizeStr());
   const char* algo = algo_utf8.c_str();
@@ -265,11 +212,9 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateSubkey(
   if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
   if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
   if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
+  if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
-  flags |= GPGME_CREATE_NOPASSWD;
-
-  LOG(INFO) << "GpgFrontend::GpgKeyOpera::GenerateSubkey Args: " << key.GetId()
-            << algo << expires << flags;
+  SPDLOG_DEBUG("args: {} {} {} {}", key.GetId(), algo, expires, flags);
 
   auto err =
       gpgme_op_createsubkey(ctx_, gpgme_key_t(key), algo, 0, expires, flags);
@@ -278,8 +223,8 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateSubkey(
 
 GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyPassword(
     const GpgFrontend::GpgKey& key) {
-  if (ctx_.GetInfo().GnupgVersion < "2.0.15") {
-    LOG(ERROR) << _("operator not support");
+  if (ctx_.GetInfo(false).GnupgVersion < "2.0.15") {
+    SPDLOG_ERROR("operator not support");
     return GPG_ERR_NOT_SUPPORTED;
   }
   auto err = gpgme_op_passwd(ctx_, gpgme_key_t(key), 0);
@@ -287,8 +232,8 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyPassword(
 }
 GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyTOFUPolicy(
     const GpgFrontend::GpgKey& key, gpgme_tofu_policy_t tofu_policy) {
-  if (ctx_.GetInfo().GnupgVersion < "2.1.10") {
-    LOG(ERROR) << _("operator not support");
+  if (ctx_.GetInfo(false).GnupgVersion < "2.1.10") {
+    SPDLOG_ERROR("operator not support");
     return GPG_ERR_NOT_SUPPORTED;
   }
   auto err = gpgme_op_tofu_policy(ctx_, gpgme_key_t(key), tofu_policy);

@@ -29,6 +29,9 @@
 #ifndef __SGPGMEPP_CONTEXT_H__
 #define __SGPGMEPP_CONTEXT_H__
 
+#include <optional>
+#include <string>
+
 #include "GpgConstants.h"
 #include "GpgFunctionObject.h"
 #include "GpgInfo.h"
@@ -57,7 +60,9 @@ struct GpgContextInitArgs {
  *
  */
 class GPGFRONTEND_CORE_EXPORT GpgContext
-    : public SingletonFunctionObject<GpgContext> {
+    : public QObject,
+      public SingletonFunctionObject<GpgContext> {
+  Q_OBJECT
  public:
   /**
    * @brief Construct a new Gpg Context object
@@ -92,7 +97,7 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
    *
    * @return const GpgInfo&
    */
-  [[nodiscard]] const GpgInfo& GetInfo() const { return info_; }
+  [[nodiscard]] const GpgInfo& GetInfo(bool refresh = false);
 
   /**
    * @brief
@@ -102,14 +107,29 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
   operator gpgme_ctx_t() const { return _ctx_ref.get(); }
 
  private:
-  GpgInfo info_;             ///<
-  GpgContextInitArgs args_;  ///<
+  GpgInfo info_{};             ///<
+  GpgContextInitArgs args_{};  ///<
+  bool extend_info_loaded_ = false;
+  std::shared_mutex preload_lock_{};
 
   /**
    * @brief
    *
    */
-  void init_ctx();
+  void post_init_ctx();
+
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  std::string need_user_input_passphrase();
+
+  /**
+   * @brief Construct a new std::check component existence object
+   *
+   */
+  std::optional<std::string> check_binary_chacksum(std::filesystem::path);
 
   /**
    * @brief
@@ -123,6 +143,13 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
       std::unique_ptr<struct gpgme_context, _ctx_ref_deleter>;  ///<
   CtxRefHandler _ctx_ref = nullptr;                             ///<
   bool good_ = true;                                            ///<
+
+ signals:
+  /**
+   * @brief
+   *
+   */
+  void SignalNeedUserInputPassphrase();
 
  public:
   /**
@@ -138,6 +165,20 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
   static gpgme_error_t test_passphrase_cb(void* opaque, const char* uid_hint,
                                           const char* passphrase_info,
                                           int last_was_bad, int fd);
+
+  /**
+   * @brief
+   *
+   * @param opaque
+   * @param uid_hint
+   * @param passphrase_info
+   * @param last_was_bad
+   * @param fd
+   * @return gpgme_error_t
+   */
+  static gpgme_error_t custom_passphrase_cb(void* opaque, const char* uid_hint,
+                                            const char* passphrase_info,
+                                            int last_was_bad, int fd);
 
   /**
    * @brief

@@ -30,7 +30,8 @@
 
 GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
     std::string keyserver_url, std::vector<std::string> keyids)
-    : keyserver_url_(std::move(keyserver_url)),
+    : Task("key_server_import_task"),
+      keyserver_url_(std::move(keyserver_url)),
       keyids_(std::move(keyids)),
       manager_(new QNetworkAccessManager(this)) {}
 
@@ -59,6 +60,6 @@ void GpgFrontend::UI::KeyServerImportTask::dealing_reply_from_server() {
   emit SignalKeyServerImportResult(network_reply, buffer);
 
   if (result_count_++ == keyids_.size() - 1) {
-    emit SignalTaskFinished();
+    emit SignalTaskRunnableEnd(0);
   }
 }

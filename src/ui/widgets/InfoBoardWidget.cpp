@@ -85,7 +85,6 @@ void InfoBoardWidget::SetInfoBoard(const QString& text,
   auto info_font_size =
       general_settings_state.Check("text_editor").Check("font_size", 10);
   ui_->infoBoard->setFont(QFont("Times", info_font_size));
-
 }
 
 void InfoBoardWidget::SlotRefresh(const QString& text, InfoBoardStatus status) {
@@ -114,7 +113,7 @@ void InfoBoardWidget::AssociateTabWidget(QTabWidget* tab) {
 
 void InfoBoardWidget::AddOptionalAction(const QString& name,
                                         const std::function<void()>& action) {
-  LOG(INFO) << "add option" << name.toStdString();
+  SPDLOG_DEBUG("add option: {}", name.toStdString());
   auto actionButton = new QPushButton(name);
   auto layout = new QHBoxLayout();
   layout->setContentsMargins(5, 0, 5, 0);
@@ -144,8 +143,6 @@ void InfoBoardWidget::SlotReset() {
  */
 void InfoBoardWidget::delete_widgets_in_layout(QLayout* layout,
                                                int start_index) {
-  LOG(INFO) << "Called";
-
   QLayoutItem* item;
   while ((item = layout->layout()->takeAt(start_index)) != nullptr) {
     layout->removeItem(item);
@@ -165,7 +162,7 @@ void InfoBoardWidget::slot_copy() {
 void InfoBoardWidget::slot_save() {
   auto file_path = QFileDialog::getSaveFileName(
       this, _("Save Information Board's Content"), {}, tr("Text (*.txt)"));
-  LOG(INFO) << "file path" << file_path.toStdString();
+  SPDLOG_DEBUG("file path: {}", file_path.toStdString());
   if (file_path.isEmpty()) return;
 
   QFile file(file_path);

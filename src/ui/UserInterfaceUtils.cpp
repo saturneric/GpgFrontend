@@ -28,17 +28,19 @@
 
 #include "UserInterfaceUtils.h"
 
+#include <string>
 #include <utility>
 #include <vector>
 
 #include "core/common/CoreCommonUtil.h"
+#include "core/function/CoreSignalStation.h"
 #include "core/function/FileOperator.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "easylogging++.h"
+#include "spdlog/spdlog.h"
 #include "ui/SignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/struct/SettingsObject.h"
@@ -72,7 +74,7 @@ void import_unknown_key_from_keyserver(
     auto key_ids = std::make_unique<KeyIdArgsList>();
     auto *signature = verify_res.GetSignatures();
     while (signature != nullptr) {
-      LOG(INFO) << "signature fpr" << signature->fpr;
+      SPDLOG_DEBUG("signature fpr: {}", signature->fpr);
       key_ids->push_back(signature->fpr);
       signature = signature->next;
     }
@@ -103,8 +105,6 @@ void process_result_analyse(TextEdit *edit, InfoBoardWidget *info_board,
 void process_result_analyse(TextEdit *edit, InfoBoardWidget *info_board,
                             const GpgResultAnalyse &result_analyse_a,
                             const GpgResultAnalyse &result_analyse_b) {
-  LOG(INFO) << "process_result_analyse Started";
-
   info_board->AssociateTabWidget(edit->tab_widget_);
 
   refresh_info_board(
@@ -120,15 +120,15 @@ void process_operation(QWidget *parent, const std::string &waiting_title,
   auto *dialog =
       new WaitingDialog(QString::fromStdString(waiting_title), parent);
 
-  auto *process_task =
-      new Thread::Task(std::move(func), std::move(callback), data_object);
+  auto *process_task = new Thread::Task(std::move(func), waiting_title,
+                                        data_object, std::move(callback));
 
-  QApplication::connect(process_task, &Thread::Task::SignalTaskFinished, dialog,
+  QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, dialog,
                         &QDialog::close);
 
   QEventLoop looper;
-  QApplication::connect(process_task, &Thread::Task::SignalTaskFinished,
-                        &looper, &QEventLoop::quit);
+  QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, &looper,
+                        &QEventLoop::quit);
 
   // post process task to task runner
   Thread::TaskRunnerGetter::GetInstance()
@@ -148,8 +148,6 @@ CommonUtils *CommonUtils::GetInstance() {
 }
 
 CommonUtils::CommonUtils() : QWidget(nullptr) {
-  LOG(INFO) << "common utils created";
-
   connect(CoreCommonUtil::GetInstance(), &CoreCommonUtil::SignalGnupgNotInstall,
           this, &CommonUtils::SignalGnupgNotInstall);
   connect(this, &CommonUtils::SignalKeyStatusUpdated,
@@ -158,6 +156,9 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
   connect(this, &CommonUtils::SignalKeyDatabaseRefreshDone,
           SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefreshDone);
+  connect(this, &CommonUtils::SignalUserInputPassphraseDone,
+          CoreSignalStation::GetInstance(),
+          &CoreSignalStation::SignalUserInputPassphraseDone);
 
   // directly connect to SignalKeyStatusUpdated
   // to avoid the delay of signal emitting
@@ -165,6 +166,10 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
   connect(SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefresh, this,
           &CommonUtils::slot_update_key_status);
+
+  connect(CoreSignalStation::GetInstance(),
+          &CoreSignalStation::SignalNeedUserInputPassphrase, this,
+          &CommonUtils::slot_popup_passphrase_input_dialog);
 
   connect(this, &CommonUtils::SignalGnupgNotInstall, this, []() {
     QMessageBox::critical(
@@ -213,6 +218,38 @@ void CommonUtils::SlotImportKeyFromClipboard(QWidget *parent) {
                  cb->text(QClipboard::Clipboard).toUtf8().toStdString());
 }
 
+void CommonUtils::SlotExecuteCommand(
+    const std::string &cmd, const QStringList &arguments,
+    const std::function<void(QProcess *)> &interact_func) {
+  QEventLoop looper;
+  auto *cmd_process = new QProcess(&looper);
+  cmd_process->setProcessChannelMode(QProcess::MergedChannels);
+
+  connect(cmd_process,
+          qOverload<int, QProcess::ExitStatus>(&QProcess::finished), &looper,
+          &QEventLoop::quit);
+  connect(cmd_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
+  connect(cmd_process, &QProcess::started,
+          []() -> void { SPDLOG_DEBUG("process started"); });
+  connect(cmd_process, &QProcess::readyReadStandardOutput,
+          [interact_func, cmd_process]() { interact_func(cmd_process); });
+  connect(cmd_process, &QProcess::errorOccurred, this,
+          [=]() -> void { SPDLOG_ERROR("error in process"); });
+  connect(cmd_process,
+          qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
+          [=](int, QProcess::ExitStatus status) {
+            if (status == QProcess::NormalExit)
+              SPDLOG_DEBUG("succeed in executing command: {}", cmd);
+            else
+              SPDLOG_WARN("error in executing command: {}", cmd);
+          });
+
+  cmd_process->setProgram(QString::fromStdString(cmd));
+  cmd_process->setArguments(arguments);
+  cmd_process->start();
+  looper.exec();
+}
+
 void CommonUtils::SlotExecuteGpgCommand(
     const QStringList &arguments,
     const std::function<void(QProcess *)> &interact_func) {
@@ -230,11 +267,11 @@ void CommonUtils::SlotExecuteGpgCommand(
           &WaitingDialog::deleteLater);
   connect(gpg_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
   connect(gpg_process, &QProcess::started,
-          []() -> void { LOG(ERROR) << "Gpg Process Started Success"; });
+          []() -> void { SPDLOG_DEBUG("gpg process started"); });
   connect(gpg_process, &QProcess::readyReadStandardOutput,
           [interact_func, gpg_process]() { interact_func(gpg_process); });
   connect(gpg_process, &QProcess::errorOccurred, this, [=]() -> void {
-    LOG(ERROR) << "Error in Process";
+    SPDLOG_ERROR("Error in Process");
     dialog->close();
     QMessageBox::critical(nullptr, _("Failure"),
                           _("Failed to execute command."));
@@ -251,7 +288,8 @@ void CommonUtils::SlotExecuteGpgCommand(
                                        _("Finished executing command."));
           });
 
-  gpg_process->setProgram(GpgContext::GetInstance().GetInfo().AppPath.c_str());
+  gpg_process->setProgram(
+      GpgContext::GetInstance().GetInfo(false).AppPath.c_str());
   gpg_process->setArguments(arguments);
   gpg_process->start();
   looper.exec();
@@ -283,10 +321,10 @@ void CommonUtils::SlotImportKeyFromKeyServer(
       target_keyserver =
           key_server_list[target_key_server_index].get<std::string>();
 
-      LOG(INFO) << _("Set target Key Server to default Key Server")
-                << target_keyserver;
+      SPDLOG_DEBUG("set target key server to default Key Server: {}",
+                   target_keyserver);
     } catch (...) {
-      LOG(ERROR) << _("Cannot read default_keyserver From Settings");
+      SPDLOG_ERROR(_("Cannot read default_keyserver From Settings"));
       QMessageBox::critical(
           nullptr, _("Default Keyserver Not Found"),
           _("Cannot read default keyserver from your settings, "
@@ -307,7 +345,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
           target_keyserver_url.scheme() + "://" + target_keyserver_url.host() +
           "/pks/lookup?op=get&search=0x" + key_id.c_str() + "&options=mr");
 
-      LOG(INFO) << "request url" << req_url.toString().toStdString();
+      SPDLOG_DEBUG("request url: {}", req_url.toString().toStdString());
 
       // Waiting for reply
       QNetworkReply *reply = network_manager->get(QNetworkRequest(req_url));
@@ -360,21 +398,39 @@ void CommonUtils::SlotImportKeyFromKeyServer(
 }
 
 void CommonUtils::slot_update_key_status() {
-  LOG(INFO) << "called";
-
-  auto refresh_task = new Thread::Task([](Thread::Task::DataObjectPtr) -> int {
-    // flush key cache for all GpgKeyGetter Intances.
-    for (const auto &channel_id : GpgKeyGetter::GetAllChannelId()) {
-      GpgKeyGetter::GetInstance(channel_id).FlushKeyCache();
-    }
-    return 0;
-  });
-  connect(refresh_task, &Thread::Task::SignalTaskFinished, this,
-          &CommonUtils::SignalKeyDatabaseRefreshDone);
+  auto refresh_task = new Thread::Task(
+      [](Thread::Task::DataObjectPtr) -> int {
+        // flush key cache for all GpgKeyGetter Intances.
+        for (const auto &channel_id : GpgKeyGetter::GetAllChannelId()) {
+          GpgKeyGetter::GetInstance(channel_id).FlushKeyCache();
+        }
+        return 0;
+      },
+      "update_key_database_task");
+  connect(refresh_task, &Thread::Task::SignalTaskEnd, this,
+          &CommonUtils::SignalKeyDatabaseRefreshDone,
+          Qt::BlockingQueuedConnection);
 
   // post the task to the default task runner
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
       refresh_task);
+}
+
+void CommonUtils::slot_popup_passphrase_input_dialog() {
+  auto *dialog = new QInputDialog(QApplication::activeWindow(), Qt::Dialog);
+  dialog->setModal(true);
+  dialog->setWindowTitle(_("Password Input Dialog"));
+  dialog->setInputMode(QInputDialog::TextInput);
+  dialog->setTextEchoMode(QLineEdit::Password);
+  dialog->setLabelText(_("Please Input The Password"));
+  dialog->resize(500, 80);
+  dialog->exec();
+
+  QString password = dialog->textValue();
+  dialog->deleteLater();
+
+  // send signal
+  emit SignalUserInputPassphraseDone(password);
 }
 
 }  // namespace GpgFrontend::UI

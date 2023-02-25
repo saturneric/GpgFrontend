@@ -296,7 +296,7 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
           // Code From Gpg4Win
           while (proc->canReadLine()) {
             const QString line = QString::fromUtf8(proc->readLine()).trimmed();
-            LOG(INFO) << "line" << line.toStdString();
+            SPDLOG_DEBUG("line: {}", line.toStdString());
             if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
               proc->write("y\n");
             } else if (line == QLatin1String("[GNUPG:] GET_LINE "
@@ -336,7 +336,7 @@ void KeyPairOperaTab::slot_modify_tofu_policy() {
       this, _("Modify TOFU Policy(Default is Auto)"),
       _("Policy for the Key Pair:"), items, 0, false, &ok);
   if (ok && !item.isEmpty()) {
-    LOG(INFO) << "selected policy" << item.toStdString();
+    SPDLOG_DEBUG("selected policy: {}", item.toStdString());
     gpgme_tofu_policy_t tofu_policy = GPGME_TOFU_POLICY_AUTO;
     if (item == _("Policy Auto")) {
       tofu_policy = GPGME_TOFU_POLICY_AUTO;

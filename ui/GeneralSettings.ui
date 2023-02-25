@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>643</width>
-    <height>656</height>
+    <height>721</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,29 +17,9 @@
    <item row="0" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QGroupBox" name="longerKeyExpirationDateBox">
+      <widget class="QGroupBox" name="cacheBox">
        <property name="title">
-        <string>Longer Key Expiration Date</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <item>
-           <widget class="QCheckBox" name="longerKeyExpirationDateCheckBox">
-            <property name="text">
-             <string>Unlock key expiration date setting up to 30 years.</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="saveCheckedKeysBox">
-       <property name="title">
-        <string>Save Checked Keys</string>
+        <string>Cache</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
@@ -47,7 +27,14 @@
           <item>
            <widget class="QCheckBox" name="saveCheckedKeysCheckBox">
             <property name="text">
-             <string>Save checked private keys on exit and restore them on next start.</string>
+             <string>Save checked keys in Key ToolBox on exit and restore them on next start.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="clearGpgPasswordCacheCheckBox">
+            <property name="text">
+             <string>Clear gpg password cache when closing GpgFrontend.</string>
             </property>
            </widget>
           </item>
@@ -59,7 +46,7 @@
      <item>
       <widget class="QGroupBox" name="importConfirmationBox">
        <property name="title">
-        <string>Confirm drag'n'drop key import</string>
+        <string>Operation</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
@@ -71,23 +58,95 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="longerKeyExpirationDateCheckBox">
+            <property name="text">
+             <string>Enable to use longer key expiration date.</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="asciiModeBox">
+      <widget class="QGroupBox" name="gnupgDatabaseBox">
        <property name="title">
-        <string>ASCII Mode</string>
+        <string>GnuPG</string>
        </property>
-       <layout class="QGridLayout" name="gridLayout_6">
+       <layout class="QGridLayout" name="gridLayout_7">
         <item row="0" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout_6">
+         <layout class="QVBoxLayout" name="verticalLayout_7">
           <item>
            <widget class="QCheckBox" name="asciiModeCheckBox">
             <property name="text">
-             <string>ASCII encoding is not used when file encrypting and signing.</string>
+             <string>No ASCII Mode</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="Line" name="line_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="useCustomGnuPGInstallPathCheckBox">
+            <property name="text">
+             <string>Use Custom GnuPG</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="currentCustomGnuPGInstallPathLabel">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="useCustomGnuPGInstallPathButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Select GnuPG Path</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="Line" name="line">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="keyDatabseUseCustomCheckBox">
+            <property name="text">
+             <string>Use Custom GnuPG Key Database Path</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="currentKeyDatabasePathLabel">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="customKeyDatabasePathSelectButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Select Key Database Path</string>
             </property>
            </widget>
           </item>
@@ -115,46 +174,6 @@
            <widget class="QLabel" name="langNoteLabel">
             <property name="text">
              <string>NOTE: GpgFrontend will restart automatically if you change the language!</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="gnupgDatabaseBox">
-       <property name="title">
-        <string>GnuPG Key Database Path</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_7">
-        <item row="0" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout_7">
-          <item>
-           <widget class="QCheckBox" name="keyDatabseUseCustomCheckBox">
-            <property name="text">
-             <string>Use Custom Path</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="currentKeyDatabasePathLabel">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="customKeyDatabasePathSelectButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Select Custom Path</string>
             </property>
            </widget>
           </item>

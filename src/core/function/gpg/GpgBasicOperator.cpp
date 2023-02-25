@@ -178,15 +178,15 @@ gpgme_error_t GpgFrontend::GpgBasicOperator::EncryptSign(
 void GpgFrontend::GpgBasicOperator::SetSigners(KeyArgsList& signers) {
   gpgme_signers_clear(ctx_);
   for (const GpgKey& key : signers) {
-    DLOG(INFO) << "key" << key.GetFingerprint();
+    SPDLOG_DEBUG("key fpr: {}", key.GetFingerprint());
     if (key.IsHasActualSigningCapability()) {
-      DLOG(INFO) << "signer";
+      SPDLOG_DEBUG("signer");
       auto error = gpgme_signers_add(ctx_, gpgme_key_t(key));
       check_gpg_error(error);
     }
   }
   if (signers.size() != gpgme_signers_count(ctx_))
-    DLOG(INFO) << "No All Signers Added";
+    SPDLOG_DEBUG("not all signers added");
 }
 
 std::unique_ptr<GpgFrontend::KeyArgsList>

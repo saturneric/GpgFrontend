@@ -25,15 +25,17 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
-
 #include "GpgCoreInit.h"
+
+#include <spdlog/async.h>
+#include <spdlog/common.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 #include "GpgFunctionObject.h"
 #include "core/GpgContext.h"
 #include "core/function/GlobalSettingStation.h"
-
-// init easyloggingpp library
-INITIALIZE_EASYLOGGINGPP
+#include "function/gpg/GpgAdvancedOperator.h"
 
 namespace GpgFrontend {
 
@@ -41,40 +43,51 @@ namespace GpgFrontend {
  * @brief setup logging system and do proper initialization
  *
  */
-void InitLoggingSystem() {
+void InitCoreLoggingSystem() {
   using namespace boost::posix_time;
   using namespace boost::gregorian;
 
-  el::Loggers::addFlag(el::LoggingFlag::AutoSpacing);
-  el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
-  el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
-  el::Configurations defaultConf;
-  defaultConf.setToDefault();
-
-  // apply settings
-  defaultConf.setGlobally(el::ConfigurationType::Format,
-                          "%datetime %level [core] {%func} -> %msg");
-
-  // apply settings no written to file
-  defaultConf.setGlobally(el::ConfigurationType::ToFile, "false");
-
-  // set the logger
-  el::Loggers::reconfigureLogger("default", defaultConf);
-
   // get the log directory
-  auto logfile_path = (GlobalSettingStation::GetInstance().GetLogDir() /
-                       to_iso_string(second_clock::local_time()));
+  auto logfile_path =
+      (GlobalSettingStation::GetInstance().GetLogDir() / "core");
   logfile_path.replace_extension(".log");
-  defaultConf.setGlobally(el::ConfigurationType::Filename,
-                          logfile_path.u8string());
 
-  // apply settings written to file
-  defaultConf.setGlobally(el::ConfigurationType::ToFile, "true");
+  // sinks
+  std::vector<spdlog::sink_ptr> sinks;
+  sinks.push_back(std::make_shared<spdlog::sinks::stderr_color_sink_mt>());
+  sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+      logfile_path.u8string(), 1048576 * 32, 8));
 
-  // set the logger
-  el::Loggers::reconfigureLogger("default", defaultConf);
+  // thread pool
+  spdlog::init_thread_pool(1024, 2);
 
-  LOG(INFO) << _("log file path") << logfile_path;
+  // logger
+  auto core_logger = std::make_shared<spdlog::async_logger>(
+      "core", begin(sinks), end(sinks), spdlog::thread_pool());
+  core_logger->set_pattern(
+      "[%H:%M:%S.%e] [T:%t] [%=4n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
+
+#ifdef DEBUG
+  core_logger->set_level(spdlog::level::trace);
+#else
+  core_logger->set_level(spdlog::level::info);
+#endif
+
+  // flush policy
+  core_logger->flush_on(spdlog::level::err);
+  spdlog::flush_every(std::chrono::seconds(5));
+
+  // register it as default logger
+  spdlog::set_default_logger(core_logger);
+}
+
+void ShutdownCoreLoggingSystem() {
+#ifdef WINDOWS
+  // Under VisualStudio, this must be called before main finishes to workaround
+  // a known VS issue
+  spdlog::drop_all();
+  spdlog::shutdown();
+#endif
 }
 
 void ResetGpgFrontendCore() { reset_gpgfrontend_core(); }
@@ -89,12 +102,11 @@ void init_gpgfrontend_core() {
     use_custom_key_database_path =
         settings.lookup("general.use_custom_key_database_path");
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error")
-               << _("use_custom_key_database_path");
+    SPDLOG_ERROR("setting operation error: use_custom_key_database_path");
   }
 
-  LOG(INFO) << "core loaded if use custom key databse path: "
-            << use_custom_key_database_path;
+  SPDLOG_DEBUG("core loaded if use custom key databse path: {}",
+               use_custom_key_database_path);
 
   std::string custom_key_database_path;
   try {
@@ -104,11 +116,11 @@ void init_gpgfrontend_core() {
         settings.lookup("general.custom_key_database_path"));
 
   } catch (...) {
-    LOG(ERROR) << _("Setting Operation Error") << _("custom_key_database_path");
+    SPDLOG_ERROR("setting operation error: custom_key_database_path");
   }
 
-  LOG(INFO) << "core loaded custom key databse path: "
-            << custom_key_database_path;
+  SPDLOG_DEBUG("core loaded custom key databse path: {}",
+               custom_key_database_path);
 
   // init default channel
   GpgFrontend::GpgContext::CreateInstance(
@@ -136,6 +148,9 @@ void init_gpgfrontend_core() {
 
         return std::unique_ptr<ChannelObject>(new GpgContext(args));
       });
+
+  // try to restart all components
+  GpgFrontend::GpgAdvancedOperator::GetInstance().RestartGpgComponents();
 }
 
 void reset_gpgfrontend_core() { SingletonStorageCollection::GetInstance(true); }
