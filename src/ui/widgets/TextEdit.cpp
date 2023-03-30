@@ -603,6 +603,7 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
                text_page_data_modified_count_);
   if (this->text_page_data_modified_count_++ % 3 != 0) return;
 
+#ifdef DEBUG
   int tab_count = tab_widget_->count();
   SPDLOG_DEBUG("current tabs count {}", tab_count);
 
@@ -635,6 +636,7 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
                  tab_title, raw_text.size());
     unsaved_pages.push_back({i, tab_title, raw_text});
   }
+#endif
 }
 
 }  // namespace GpgFrontend::UI
