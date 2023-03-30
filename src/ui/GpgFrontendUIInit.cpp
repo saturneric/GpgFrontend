@@ -71,6 +71,63 @@ void InitGpgFrontendUI(QApplication* app) {
   // init common utils
   CommonUtils::GetInstance();
 
+  // application proxy configure
+
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  bool proxy_enable = false;
+  try {
+    proxy_enable = settings.lookup("proxy.enable");
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: proxy_enable");
+  }
+  SPDLOG_DEBUG("loading proxy configure, proxy_enable: {}", proxy_enable);
+
+  // if enable proxy for application
+  if (proxy_enable) {
+    try {
+      std::string proxy_type = settings.lookup("proxy.proxy_type");
+      std::string proxy_host = settings.lookup("proxy.proxy_host");
+      int proxy_port = settings.lookup("proxy.port");
+      std::string proxy_username = settings.lookup("proxy.username");
+      std::string proxy_password = settings.lookup("proxy.password");
+
+      SPDLOG_DEBUG("proxy settings: type {}, host {}, port: {}", proxy_type,
+                   proxy_host, proxy_port);
+
+      QNetworkProxy::ProxyType proxy_type_qt = QNetworkProxy::NoProxy;
+      if (proxy_type == "HTTP") {
+        proxy_type_qt = QNetworkProxy::HttpProxy;
+      } else if (proxy_type == "Socks5") {
+        proxy_type_qt = QNetworkProxy::Socks5Proxy;
+      } else {
+        proxy_type_qt = QNetworkProxy::DefaultProxy;
+      }
+
+      // create proxy object and apply settings
+      QNetworkProxy proxy;
+      if (proxy_type_qt != QNetworkProxy::DefaultProxy) {
+        proxy.setType(proxy_type_qt);
+        proxy.setHostName(QString::fromStdString(proxy_host));
+        proxy.setPort(proxy_port);
+        if (!proxy_username.empty())
+          proxy.setUser(QString::fromStdString(proxy_username));
+        if (!proxy_password.empty())
+          proxy.setPassword(QString::fromStdString(proxy_password));
+      } else {
+        proxy.setType(proxy_type_qt);
+      }
+      QNetworkProxy::setApplicationProxy(proxy);
+
+    } catch (...) {
+      SPDLOG_ERROR("setting operation error: proxy setings");
+      // no proxy by default
+      QNetworkProxy::setApplicationProxy(QNetworkProxy::NoProxy);
+    }
+  } else {
+    // no proxy by default
+    QNetworkProxy::setApplicationProxy(QNetworkProxy::NoProxy);
+  }
+
   // create the thread to load the gpg context
   auto* init_ctx_task = new Thread::CtxCheckTask();
 

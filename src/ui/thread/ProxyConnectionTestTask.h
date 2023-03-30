@@ -39,7 +39,7 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class ProxyConnectionTestThread : public QThread {
+class ProxyConnectionTestTask : public Thread::Task {
   Q_OBJECT
  public:
   /**
@@ -49,9 +49,7 @@ class ProxyConnectionTestThread : public QThread {
    * @param timeout
    * @param parent
    */
-  explicit ProxyConnectionTestThread(QString url, int timeout,
-                                     QWidget* parent = nullptr)
-      : QThread(parent), url_(std::move(url)), timeout_(timeout) {}
+  explicit ProxyConnectionTestTask(QString url, int timeout);
 
  signals:
   /**
@@ -68,10 +66,14 @@ class ProxyConnectionTestThread : public QThread {
    */
   void run() override;
 
+ private slots:
+  void slot_process_network_reply(QNetworkReply* reply);
+
  private:
-  QString url_;        ///<
-  QString result_;     ///<
-  int timeout_ = 500;  ///<
+  QString url_;                             ///<
+  QString result_;                          ///<
+  int timeout_ = 500;                       ///<
+  QNetworkAccessManager* network_manager_;  ///<
 };
 
 }  // namespace GpgFrontend::UI
