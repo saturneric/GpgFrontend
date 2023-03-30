@@ -28,6 +28,8 @@
 
 #include "AboutDialog.h"
 
+#include <openssl/opensslv.h>
+
 #include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -94,7 +96,8 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       " <a href=\"https://github.com/saturneric/GpgFrontend\">GitHub</a> " +
       _("or send a mail to my mailing list at") + " <a " +
       "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
-      _("Built with Qt") + " " + qVersion() + " " + _("and GPGME") + " " +
+      _("Built with Qt") + " " + qVersion() + ", " + OPENSSL_VERSION_TEXT +
+      " " + _("and") + "GPGME" + " " +
       GpgFrontend::GpgContext::GetInstance()
           .GetInfo(false)
           .GpgMEVersion.c_str() +
