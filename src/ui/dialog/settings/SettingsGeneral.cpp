@@ -47,7 +47,7 @@ GeneralTab::GeneralTab(QWidget* parent)
   ui_->saveCheckedKeysCheckBox->setText(
       _("Save checked private keys on exit and restore them on next start."));
   ui_->clearGpgPasswordCacheCheckBox->setText(
-      "Clear gpg password cache when closing GpgFrontend.");
+      _("Clear gpg password cache when closing GpgFrontend."));
 
   ui_->importConfirmationBox->setTitle(_("Operation"));
   ui_->longerKeyExpirationDateCheckBox->setText(
@@ -168,6 +168,12 @@ GeneralTab::GeneralTab(QWidget* parent)
               this->ui_->useCustomGnuPGInstallPathCheckBox->checkState());
         }
       });
+
+  connect(ui_->usePinentryAsPasswordInputDialogCheckBox,
+          &QCheckBox::stateChanged, this, [=](int state) {
+            // announce the restart
+            this->slot_gnupg_stettings_changed();
+          });
 
   SetSettings();
 }
