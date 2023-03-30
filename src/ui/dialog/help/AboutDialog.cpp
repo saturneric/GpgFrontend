@@ -83,9 +83,9 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       "<center><b>" + qApp->applicationVersion() + "</b></center>" +
       "<center>" + GIT_VERSION + "</center>" + "<br><center>" +
       _("GpgFrontend is an easy-to-use, compact, cross-platform, "
-        "and installation-free gpg front-end tool."
-        "It visualizes most of the common operations of gpg commands."
-        "It's licensed under the GPL v3") +
+        "and installation-free GnuPG Frontend."
+        "It visualizes most of the common operations of GnuPG."
+        "GpgFrontend is licensed under the GPLv3") +
       "<br><br>"
       "<b>" +
       _("Developer:") + "</b><br>" + "Saturneric" + "<br><br>" +
