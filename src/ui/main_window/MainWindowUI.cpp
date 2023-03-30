@@ -464,8 +464,8 @@ void MainWindow::create_menus() {
   help_menu_->addAction(start_wizard_act_);
   help_menu_->addSeparator();
   help_menu_->addAction(check_update_act_);
-  help_menu_->addAction(translate_act_);
   help_menu_->addAction(gnupg_act_);
+  help_menu_->addAction(translate_act_);
   help_menu_->addAction(about_act_);
 }
 
