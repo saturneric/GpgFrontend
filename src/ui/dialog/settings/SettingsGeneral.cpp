@@ -57,6 +57,8 @@ GeneralTab::GeneralTab(QWidget* parent)
 
   ui_->gnupgDatabaseBox->setTitle(_("GnuPG"));
   ui_->asciiModeCheckBox->setText(_("No ASCII Mode"));
+  ui_->usePinentryAsPasswordInputDialogCheckBox->setText(
+      _("Use Pinentry as Password Input Dialog"));
   ui_->useCustomGnuPGInstallPathCheckBox->setText(_("Use Custom GnuPG"));
   ui_->useCustomGnuPGInstallPathButton->setText(_("Select GnuPG Path"));
   ui_->keyDatabseUseCustomCheckBox->setText(
@@ -260,6 +262,16 @@ void GeneralTab::SetSettings() {
     SPDLOG_ERROR("setting operation error: use_custom_gnupg_install_path");
   }
 
+  try {
+    bool use_pinentry_as_password_input_dialog =
+        settings.lookup("general.use_pinentry_as_password_input_dialog");
+    if (use_pinentry_as_password_input_dialog)
+      ui_->usePinentryAsPasswordInputDialogCheckBox->setCheckState(Qt::Checked);
+  } catch (...) {
+    SPDLOG_ERROR(
+        "setting operation error: use_pinentry_as_password_input_dialog");
+  }
+
   this->slot_update_custom_gnupg_install_path_label(
       ui_->useCustomGnuPGInstallPathCheckBox->checkState());
 }
@@ -342,6 +354,15 @@ void GeneralTab::ApplySettings() {
   else {
     general["use_custom_gnupg_install_path"] =
         ui_->useCustomGnuPGInstallPathCheckBox->isChecked();
+  }
+
+  if (!general.exists("use_pinentry_as_password_input_dialog"))
+    general.add("use_pinentry_as_password_input_dialog",
+                libconfig::Setting::TypeBoolean) =
+        ui_->usePinentryAsPasswordInputDialogCheckBox->isChecked();
+  else {
+    general["use_pinentry_as_password_input_dialog"] =
+        ui_->usePinentryAsPasswordInputDialogCheckBox->isChecked();
   }
 }
 
