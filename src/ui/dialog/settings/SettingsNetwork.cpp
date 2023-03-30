@@ -29,7 +29,7 @@
 #include "SettingsNetwork.h"
 
 #include "core/function/GlobalSettingStation.h"
-#include "ui/thread/ProxyConnectionTestThread.h"
+#include "ui/thread/ProxyConnectionTestTask.h"
 #include "ui_NetworkSettings.h"
 
 GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
@@ -148,6 +148,8 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
   } catch (...) {
     SPDLOG_ERROR("setting operation error: prohibit_update_checking");
   }
+
+  switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
 }
 
 void GpgFrontend::UI::NetworkTab::ApplySettings() {
@@ -232,9 +234,9 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
                                    tr("Server Url"), QLineEdit::Normal,
                                    "https://", &ok);
   if (ok && !url.isEmpty()) {
-    auto thread = new ProxyConnectionTestThread(url, 800, this);
-    connect(thread,
-            &GpgFrontend::UI::ProxyConnectionTestThread::
+    auto task = new ProxyConnectionTestTask(url, 800);
+    connect(task,
+            &GpgFrontend::UI::ProxyConnectionTestTask::
                 SignalProxyConnectionTestResult,
             this, [=](const QString &result) {
               if (result == "Reachable") {
@@ -248,7 +250,6 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
                       "proxy server. Proxy settings may be invalid."));
               }
             });
-    connect(thread, &QThread::finished, thread, &QThread::deleteLater);
 
     // Waiting Dialog
     auto *waiting_dialog = new QProgressDialog(this);
@@ -261,43 +262,43 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
     waiting_dialog_label->setWordWrap(true);
     waiting_dialog->setLabel(waiting_dialog_label);
     waiting_dialog->resize(420, 120);
-    connect(thread, &QThread::finished, [=]() {
-      waiting_dialog->finished(0);
+    connect(task, &Thread::Task::SignalTaskEnd, [=]() {
+      waiting_dialog->close();
       waiting_dialog->deleteLater();
-    });
-    connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
-      SPDLOG_DEBUG("cancel clicked");
-      if (thread->isRunning()) thread->terminate();
     });
 
     // Show Waiting Dialog
     waiting_dialog->show();
     waiting_dialog->setFocus();
 
-    thread->start();
+    Thread::TaskRunnerGetter::GetInstance()
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+        ->PostTask(task);
+
     QEventLoop loop;
-    connect(thread, &QThread::finished, &loop, &QEventLoop::quit);
+    connect(task, &Thread::Task::SignalTaskEnd, &loop, &QEventLoop::quit);
+    connect(waiting_dialog, &QProgressDialog::canceled, &loop,
+            &QEventLoop::quit);
     loop.exec();
   }
 }
 
 void GpgFrontend::UI::NetworkTab::apply_proxy_settings() {
   // apply settings
-  QNetworkProxy _proxy;
+  QNetworkProxy proxy;
   if (ui_->enableProxyCheckBox->isChecked() &&
       proxy_type_ != QNetworkProxy::DefaultProxy) {
-    _proxy.setType(proxy_type_);
-    _proxy.setHostName(ui_->proxyServerAddressEdit->text());
-    _proxy.setPort(ui_->portSpin->value());
+    proxy.setType(proxy_type_);
+    proxy.setHostName(ui_->proxyServerAddressEdit->text());
+    proxy.setPort(ui_->portSpin->value());
     if (!ui_->usernameEdit->text().isEmpty()) {
-      _proxy.setUser(ui_->usernameEdit->text());
-      _proxy.setPassword(ui_->passwordEdit->text());
+      proxy.setUser(ui_->usernameEdit->text());
+      proxy.setPassword(ui_->passwordEdit->text());
     }
   } else {
-    _proxy.setType(proxy_type_);
+    proxy.setType(proxy_type_);
   }
-
-  QNetworkProxy::setApplicationProxy(_proxy);
+  QNetworkProxy::setApplicationProxy(proxy);
 }
 
 void GpgFrontend::UI::NetworkTab::switch_ui_enabled(bool enabled) {
