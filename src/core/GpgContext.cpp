@@ -40,6 +40,7 @@
 #include "core/GpgModel.h"
 #include "core/common/CoreCommonUtil.h"
 #include "core/function/CoreSignalStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "thread/Task.h"
@@ -219,8 +220,22 @@ void GpgContext::post_init_ctx() {
   // preload info
   auto &info = GetInfo();
 
-  // listen passphrase input event
-  SetPassphraseCb(custom_passphrase_cb);
+  auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+  bool use_pinentry_as_password_input_dialog = false;
+  try {
+    use_pinentry_as_password_input_dialog =
+        settings.lookup("general.use_pinentry_as_password_input_dialog");
+  } catch (...) {
+    SPDLOG_ERROR(
+        "setting operation error: use_pinentry_as_password_input_dialog");
+  }
+
+  // use custom qt dialog to replace pinentry
+  if (!use_pinentry_as_password_input_dialog) {
+    SetPassphraseCb(custom_passphrase_cb);
+  }
+
   connect(this, &GpgContext::SignalNeedUserInputPassphrase,
           CoreSignalStation::GetInstance(),
           &CoreSignalStation::SignalNeedUserInputPassphrase);
@@ -372,6 +387,12 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
             auto component_name = info_split_list[0];
             auto component_desc = info_split_list[1];
             auto component_path = info_split_list[2];
+
+#ifdef WINDOWS
+            // replace some special substrings on windows platform
+            boost::replace_all(component_path, "%3a", ":");
+#endif
+
             auto binary_checksum = check_binary_chacksum(component_path);
 
             SPDLOG_DEBUG(

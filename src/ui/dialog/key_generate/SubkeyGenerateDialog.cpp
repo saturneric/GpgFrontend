@@ -52,6 +52,16 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
     SPDLOG_ERROR("setting operation error: longer_expiration_date");
   }
 
+  bool use_pinentry_as_password_input_dialog = false;
+  try {
+    use_pinentry_as_password_input_dialog =
+        settings.lookup("general.use_pinentry_as_password_input_dialog");
+  } catch (...) {
+    SPDLOG_ERROR(
+        "setting operation error: use_pinentry_as_password_input_dialog");
+  }
+  use_pinentry_ = use_pinentry_as_password_input_dialog;
+
   max_date_time_ = longer_expiration_date
                        ? QDateTime::currentDateTime().toLocalTime().addYears(30)
                        : QDateTime::currentDateTime().toLocalTime().addYears(2);
@@ -148,20 +158,24 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
   expire_check_box_ = new QCheckBox(this);
   expire_check_box_->setCheckState(Qt::Unchecked);
 
+  passphrase_edit_->setEchoMode(QLineEdit::Password);
+  passphrase_edit_->setHidden(use_pinentry_);
+
   auto* vbox1 = new QGridLayout;
 
   vbox1->addWidget(new QLabel(QString(_("Key Type")) + ": "), 0, 0);
   vbox1->addWidget(new QLabel(QString(_("KeySize (in Bit)")) + ": "), 1, 0);
   vbox1->addWidget(new QLabel(QString(_("Expiration Date")) + ": "), 2, 0);
   vbox1->addWidget(new QLabel(QString(_("Never Expire"))), 2, 3);
-  vbox1->addWidget(new QLabel(QString(_("Password")) + ": "), 3, 0);
+  if (!use_pinentry_)
+    vbox1->addWidget(new QLabel(QString(_("Password")) + ": "), 3, 0);
   vbox1->addWidget(new QLabel(QString(_("Non Pass Phrase"))), 3, 3);
 
   vbox1->addWidget(key_type_combo_box_, 0, 1);
   vbox1->addWidget(key_size_spin_box_, 1, 1);
   vbox1->addWidget(date_edit_, 2, 1);
   vbox1->addWidget(expire_check_box_, 2, 2);
-  vbox1->addWidget(passphrase_edit_, 3, 1);
+  if (!use_pinentry_) vbox1->addWidget(passphrase_edit_, 3, 1);
   vbox1->addWidget(no_pass_phrase_check_box_, 3, 2);
 
   auto basicInfoGroupBox = new QGroupBox();
@@ -265,7 +279,8 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     err_stream << "  " << _("Expiration time no more than 2 years.") << "  ";
   }
 
-  if (passphrase_edit_->isEnabled() && passphrase_edit_->text().size() == 0) {
+  if (!use_pinentry_ && passphrase_edit_->isEnabled() &&
+      passphrase_edit_->text().size() == 0) {
     err_stream << "  " << _("Password is empty.") << std::endl;
   }
 
@@ -286,7 +301,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
 #endif
     }
 
-    if (!gen_key_info_->IsNoPassPhrase()) {
+    if (!use_pinentry_ && !gen_key_info_->IsNoPassPhrase()) {
       CoreCommonUtil::GetInstance()->SetTempCacheValue(
           "__key_passphrase", this->passphrase_edit_->text().toStdString());
     }
@@ -307,7 +322,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     }
     waiting_dialog->close();
 
-    if (!gen_key_info_->IsNoPassPhrase()) {
+    if (!use_pinentry_ && !gen_key_info_->IsNoPassPhrase()) {
       CoreCommonUtil::GetInstance()->ResetTempCacheValue("__key_passphrase");
     }
 
