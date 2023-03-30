@@ -59,9 +59,11 @@ GpgFrontendApplication *GpgFrontendApplication::GetInstance(int argc,
 
   if (new_instance || !instance) {
     if (instance != nullptr) {
+      SPDLOG_DEBUG("old application exists, quitting...");
       instance->quit();
       delete instance;
     }
+    SPDLOG_DEBUG("creating new application instance, argc: {}", argc);
     instance = new GpgFrontendApplication(static_argc, static_argv);
   }
   return instance;
