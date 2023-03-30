@@ -388,6 +388,10 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
             auto component_desc = info_split_list[1];
             auto component_path = info_split_list[2];
 
+            boost::algorithm::trim(component_name);
+            boost::algorithm::trim(component_desc);
+            boost::algorithm::trim(component_path);
+
 #ifdef WINDOWS
             // replace some special substrings on windows platform
             boost::replace_all(component_path, "%3a", ":");
@@ -407,13 +411,13 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               version = info_.GnupgVersion;
             }
             if (component_name == "gpg-agent") {
-              info_.GpgAgentPath = info_split_list[2];
+              info_.GpgAgentPath = component_path;
             }
             if (component_name == "dirmngr") {
-              info_.DirmngrPath = info_split_list[2];
+              info_.DirmngrPath = component_path;
             }
             if (component_name == "keyboxd") {
-              info_.KeyboxdPath = info_split_list[2];
+              info_.KeyboxdPath = component_path;
             }
 
             {
@@ -457,16 +461,25 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
             if (info_split_list.size() != 2) continue;
 
+            auto configuration_name = info_split_list[0];
+            auto configuration_value = info_split_list[1];
+            boost::algorithm::trim(configuration_name);
+            boost::algorithm::trim(configuration_value);
+
+#ifdef WINDOWS
+            // replace some special substrings on windows platform
+            boost::replace_all(configuration_value, "%3a", ":");
+#endif
+
             // record gnupg home path
-            if (info_split_list[0] == "homedir") {
+            if (configuration_name == "homedir") {
               info_.GnuPGHomePath = info_split_list[1];
             }
 
-            auto configuration_name = info_split_list[0];
             {
               // try lock
               std::unique_lock lock(info_.Lock);
-              configurations_info[configuration_name] = {info_split_list[1]};
+              configurations_info[configuration_name] = {configuration_value};
             }
           }
         });
@@ -510,12 +523,19 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               if (info_split_list.size() != 6) continue;
 
               auto configuration_name = info_split_list[0];
+              boost::algorithm::trim(configuration_name);
               {
                 // try lock
                 std::unique_lock lock(info_.Lock);
                 options_info[configuration_name] = {
                     info_split_list[1], info_split_list[2], info_split_list[3],
                     info_split_list[4], info_split_list[5]};
+
+                boost::algorithm::trim(options_info[configuration_name][0]);
+                boost::algorithm::trim(options_info[configuration_name][1]);
+                boost::algorithm::trim(options_info[configuration_name][2]);
+                boost::algorithm::trim(options_info[configuration_name][3]);
+                boost::algorithm::trim(options_info[configuration_name][4]);
               }
             }
           });
@@ -561,6 +581,7 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               if (info_split_list.size() != 10) continue;
 
               auto configuration_name = info_split_list[0];
+              boost::algorithm::trim(configuration_name);
               {
                 // try lock
                 std::unique_lock lock(info_.Lock);
@@ -568,6 +589,25 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
                     info_split_list[1], info_split_list[2], info_split_list[3],
                     info_split_list[4], info_split_list[5], info_split_list[6],
                     info_split_list[7], info_split_list[8], info_split_list[9]};
+
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][0]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][1]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][2]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][3]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][4]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][5]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][6]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][7]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][8]);
               }
             }
           });
@@ -582,20 +622,33 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
 std::optional<std::string> GpgContext::check_binary_chacksum(
     std::filesystem::path path) {
-  QFile f(QString::fromStdString(path.u8string()));
-  if (!f.open(QFile::ReadOnly)) return {};
+  // check file info and access rights
+  QFileInfo info(QString::fromStdString(path.u8string()));
+  if (!info.exists() || !info.isFile() || !info.isReadable()) {
+    SPDLOG_ERROR("get info for file {} error, exists: {}",
+                 info.filePath().toStdString(), info.exists());
+    return {};
+  }
+
+  // open and read file
+  QFile f(info.filePath());
+  if (!f.open(QIODevice::ReadOnly)) {
+    SPDLOG_ERROR("open {} to calculate check sum error: {}", path.u8string(),
+                 f.errorString().toStdString());
+    return {};
+  }
 
   // read all data from file
   auto buffer = f.readAll();
   f.close();
 
-  auto hash_md5 = QCryptographicHash(QCryptographicHash::Md5);
+  auto hash_sha = QCryptographicHash(QCryptographicHash::Sha256);
   // md5
-  hash_md5.addData(buffer);
-  auto md5 = hash_md5.result().toHex().toStdString();
-  SPDLOG_DEBUG("md5 {}", md5);
+  hash_sha.addData(buffer);
+  auto sha = hash_sha.result().toHex().toStdString();
+  SPDLOG_DEBUG("checksum for file {} is {}", path.u8string(), sha);
 
-  return md5.substr(0, 6);
+  return sha.substr(0, 6);
 }
 
 void GpgContext::_ctx_ref_deleter::operator()(gpgme_ctx_t _ctx) {
