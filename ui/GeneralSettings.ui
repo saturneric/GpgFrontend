@@ -86,6 +86,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="usePinentryAsPasswordInputDialogCheckBox">
+            <property name="text">
+             <string>Use Pinentry as Password Input Dialog</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="Line" name="line_2">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
