@@ -147,8 +147,13 @@ void KeyPairOperaTab::slot_export_public_key() {
   }
 
   // generate a file name
+#ifndef WINDOWS
   auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
                      m_key_.GetId() + ")_pub.asc";
+#else
+  auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
+                     m_key_.GetId() + ")_pub.asc";
+#endif
   std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
   auto file_name =
@@ -193,8 +198,14 @@ void KeyPairOperaTab::slot_export_short_private_key() {
       return;
     }
 
+    // generate a file name
+#ifndef WINDOWS
     auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
                        m_key_.GetId() + ")_short_secret.asc";
+#else
+    auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
+                       m_key_.GetId() + ")_short_secret.asc";
+#endif
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
     auto file_name =
@@ -235,8 +246,15 @@ void KeyPairOperaTab::slot_export_private_key() {
           _("An error occurred during the export operation."));
       return;
     }
+
+    // generate a file name
+#ifndef WINDOWS
     auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
                        m_key_.GetId() + ")_full_secret.asc";
+#else
+    auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
+                       m_key_.GetId() + ")_full_secret.asc";
+#endif
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
     auto file_name =
