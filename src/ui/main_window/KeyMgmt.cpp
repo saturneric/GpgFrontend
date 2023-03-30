@@ -241,35 +241,28 @@ void KeyMgmt::create_menus() {
 }
 
 void KeyMgmt::create_tool_bars() {
-  QToolBar* keyToolBar = addToolBar(_("Key"));
-  keyToolBar->setObjectName("keytoolbar");
+  QToolBar* key_tool_bar = addToolBar(_("Key"));
+  key_tool_bar->setObjectName("keytoolbar");
+
+  // genrate key pair
+  key_tool_bar->addAction(generate_key_pair_act_);
 
   // add button with popup menu for import
-  auto* generateToolButton = new QToolButton(this);
-  generateToolButton->setMenu(generate_key_menu_);
-  generateToolButton->setPopupMode(QToolButton::InstantPopup);
-  generateToolButton->setIcon(QIcon(":key_generate.png"));
-  generateToolButton->setText(_("Generate"));
-  generateToolButton->setToolTip(_("Generate A New Keypair or Subkey"));
-  generateToolButton->setToolButtonStyle(icon_style_);
-  keyToolBar->addWidget(generateToolButton);
+  auto* tool_button = new QToolButton(this);
+  tool_button->setMenu(import_key_menu_);
+  tool_button->setPopupMode(QToolButton::InstantPopup);
+  tool_button->setIcon(QIcon(":key_import.png"));
+  tool_button->setToolTip(_("Import key"));
+  tool_button->setText(_("Import Key"));
+  tool_button->setToolButtonStyle(icon_style_);
+  key_tool_bar->addWidget(tool_button);
 
-  // add button with popup menu for import
-  auto* toolButton = new QToolButton(this);
-  toolButton->setMenu(import_key_menu_);
-  toolButton->setPopupMode(QToolButton::InstantPopup);
-  toolButton->setIcon(QIcon(":key_import.png"));
-  toolButton->setToolTip(_("Import key"));
-  toolButton->setText(_("Import Key"));
-  toolButton->setToolButtonStyle(icon_style_);
-  keyToolBar->addWidget(toolButton);
-
-  keyToolBar->addSeparator();
-  keyToolBar->addAction(delete_checked_keys_act_);
-  keyToolBar->addSeparator();
-  keyToolBar->addAction(export_key_to_file_act_);
-  keyToolBar->addAction(export_key_to_clipboard_act_);
-  keyToolBar->addAction(export_key_as_open_ssh_format_);
+  key_tool_bar->addSeparator();
+  key_tool_bar->addAction(delete_checked_keys_act_);
+  key_tool_bar->addSeparator();
+  key_tool_bar->addAction(export_key_to_file_act_);
+  key_tool_bar->addAction(export_key_to_clipboard_act_);
+  key_tool_bar->addAction(export_key_as_open_ssh_format_);
 }
 
 void KeyMgmt::SlotDeleteSelectedKeys() {
