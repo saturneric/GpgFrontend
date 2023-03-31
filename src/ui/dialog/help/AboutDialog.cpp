@@ -97,7 +97,7 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       _("or send a mail to my mailing list at") + " <a " +
       "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
       _("Built with Qt") + " " + qVersion() + ", " + OPENSSL_VERSION_TEXT +
-      " " + _("and") + "GPGME" + " " +
+      " " + _("and") + " " + "GPGME" + " " +
       GpgFrontend::GpgContext::GetInstance()
           .GetInfo(false)
           .GpgMEVersion.c_str() +
