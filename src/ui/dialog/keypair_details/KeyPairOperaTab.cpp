@@ -27,6 +27,7 @@
 #include "KeyPairOperaTab.h"
 
 #include "KeySetExpireDateDialog.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
@@ -73,10 +74,23 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
   }
 
   auto advance_h_box_layout = new QHBoxLayout();
+
+  // get settings
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  // read settings
+  bool forbid_all_gnupg_connection = false;
+  try {
+    forbid_all_gnupg_connection =
+        settings.lookup("network.forbid_all_gnupg_connection");
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
+  }
+
   auto* key_server_opera_button =
       new QPushButton(_("Key Server Operation (Pubkey)"));
   key_server_opera_button->setStyleSheet("text-align:center;");
   key_server_opera_button->setMenu(key_server_opera_menu_);
+  key_server_opera_button->setDisabled(forbid_all_gnupg_connection);
   advance_h_box_layout->addWidget(key_server_opera_button);
 
   if (m_key_.IsPrivateKey() && m_key_.IsHasMasterKey()) {
