@@ -28,6 +28,7 @@
 
 #include "ui/widgets/VerifyKeyDetailBox.h"
 
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 
 namespace GpgFrontend::UI {
@@ -40,8 +41,21 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
   switch (gpg_err_code(signature.GetStatus())) {
     case GPG_ERR_NO_PUBKEY: {
       this->setTitle("A Error Signature");
-      auto* importButton = new QPushButton(_("Import from keyserver"));
-      connect(importButton, &QPushButton::clicked, this,
+
+      // get settings
+      auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+      // read settings
+      bool forbid_all_gnupg_connection = false;
+      try {
+        forbid_all_gnupg_connection =
+            settings.lookup("network.forbid_all_gnupg_connection");
+      } catch (...) {
+        SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
+      }
+
+      auto* import_button = new QPushButton(_("Import from keyserver"));
+      import_button->setDisabled(forbid_all_gnupg_connection);
+      connect(import_button, &QPushButton::clicked, this,
               &VerifyKeyDetailBox::slot_import_form_key_server);
 
       this->setTitle(QString(_("Key not present with id 0x")) + fpr_.c_str());
@@ -52,7 +66,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
       // grid->addWidget(new QLabel(_("Fingerprint:")), 1, 0);
       grid->addWidget(new QLabel(_("Key not present in key list")), 0, 1);
       // grid->addWidget(new QLabel(signature->fpr), 1, 1);
-      grid->addWidget(importButton, 2, 0, 2, 1);
+      grid->addWidget(import_button, 2, 0, 2, 1);
 
       vbox->addLayout(grid);
       break;
