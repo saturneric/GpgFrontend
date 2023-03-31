@@ -147,11 +147,6 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
     SPDLOG_ERROR("setting operation error: proxy_enable");
   }
 
-  {
-    auto state = ui_->enableProxyCheckBox->checkState();
-    switch_ui_enabled(state == Qt::Checked);
-  }
-
   ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(Qt::Unchecked);
   try {
     bool forbid_all_gnupg_connection =
@@ -189,6 +184,7 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
     SPDLOG_ERROR("setting operation error: auto_import_missing_key");
   }
 
+  switch_ui_enabled(ui_->enableProxyCheckBox->isChecked());
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
 }
 
