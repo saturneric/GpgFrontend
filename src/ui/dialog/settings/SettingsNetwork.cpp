@@ -37,7 +37,28 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
   ui_->setupUi(this);
 
   connect(ui_->enableProxyCheckBox, &QCheckBox::stateChanged, this,
-          [=](int state) { switch_ui_enabled(state == Qt::Checked); });
+          [=](int state) {
+            switch_ui_enabled(state == Qt::Checked);
+            // when selecting no proxy option, apply it immediately
+            if (state != Qt::Checked) apply_proxy_settings();
+          });
+
+  connect(
+      ui_->autoImportMissingKeyCheckBox, &QCheckBox::stateChanged, this,
+      [=](int state) {
+        ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
+            state == Qt::Checked
+                ? Qt::Unchecked
+                : ui_->forbidALLGnuPGNetworkConnectionCheckBox->checkState());
+      });
+
+  connect(ui_->forbidALLGnuPGNetworkConnectionCheckBox,
+          &QCheckBox::stateChanged, this, [=](int state) {
+            ui_->autoImportMissingKeyCheckBox->setCheckState(
+                state == Qt::Checked
+                    ? Qt::Unchecked
+                    : ui_->autoImportMissingKeyCheckBox->checkState());
+          });
 
   connect(
       ui_->proxyTypeComboBox, &QComboBox::currentTextChanged, this,
@@ -47,7 +68,7 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
           &NetworkTab::slot_test_proxy_connection_result);
 
   ui_->proxyGroupBox->setTitle(_("Proxy"));
-  ui_->capabilityGroupBox->setTitle(_("Network Capability"));
+  ui_->capabilityGroupBox->setTitle(_("Network Ability"));
   ui_->operationsGroupBox->setTitle(_("Operations"));
 
   ui_->enableProxyCheckBox->setText(_("Enable Proxy"));
@@ -59,12 +80,18 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
   ui_->usernameLabel->setText(_("Username"));
   ui_->passwordLabel->setText(_("Password"));
 
-  ui_->forbidALLCheckBox->setText(_("Forbid all network connection."));
-  ui_->forbidALLCheckBox->setDisabled(true);
+  ui_->checkProxyConnectionButton->setText(
+      _("Apply Proxy Settings and Check Proxy Connection"));
 
+  ui_->forbidALLGnuPGNetworkConnectionCheckBox->setText(
+      _("Forbid all GnuPG network connection."));
   ui_->prohibitUpdateCheck->setText(
       _("Prohibit checking for version updates when the program starts."));
-  ui_->checkProxyConnectionButton->setText(_("Check Proxy Connection"));
+  ui_->autoImportMissingKeyCheckBox->setText(
+      _("Automatically import a missing key for signature verification."));
+  ui_->networkAbilityTipsLabel->setText(
+      _("Tips: These Option Changes take effect only after the "
+        "application restart."));
 
   SetSettings();
 }
@@ -125,16 +152,17 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
     switch_ui_enabled(state == Qt::Checked);
   }
 
-  ui_->forbidALLCheckBox->setCheckState(Qt::Unchecked);
+  ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(Qt::Unchecked);
   try {
-    bool forbid_all_connection =
-        settings.lookup("network.forbid_all_connection");
-    if (forbid_all_connection)
-      ui_->forbidALLCheckBox->setCheckState(Qt::Checked);
+    bool forbid_all_gnupg_connection =
+        settings.lookup("network.forbid_all_gnupg_connection");
+    if (forbid_all_gnupg_connection)
+      ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(Qt::Checked);
     else
-      ui_->forbidALLCheckBox->setCheckState(Qt::Unchecked);
+      ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
+          Qt::Unchecked);
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: forbid_all_connection");
+    SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
   }
 
   ui_->prohibitUpdateCheck->setCheckState(Qt::Unchecked);
@@ -147,6 +175,18 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
       ui_->prohibitUpdateCheck->setCheckState(Qt::Unchecked);
   } catch (...) {
     SPDLOG_ERROR("setting operation error: prohibit_update_checking");
+  }
+
+  ui_->autoImportMissingKeyCheckBox->setCheckState(Qt::Unchecked);
+  try {
+    bool auto_import_missing_key =
+        settings.lookup("network.auto_import_missing_key");
+    if (auto_import_missing_key)
+      ui_->autoImportMissingKeyCheckBox->setCheckState(Qt::Checked);
+    else
+      ui_->autoImportMissingKeyCheckBox->setCheckState(Qt::Unchecked);
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: auto_import_missing_key");
   }
 
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
@@ -209,11 +249,13 @@ void GpgFrontend::UI::NetworkTab::ApplySettings() {
 
   auto &network = settings["network"];
 
-  if (!network.exists("forbid_all_connection"))
-    network.add("forbid_all_connection", libconfig::Setting::TypeBoolean) =
-        ui_->forbidALLCheckBox->isChecked();
+  if (!network.exists("forbid_all_gnupg_connection"))
+    network.add("forbid_all_gnupg_connection",
+                libconfig::Setting::TypeBoolean) =
+        ui_->forbidALLGnuPGNetworkConnectionCheckBox->isChecked();
   else {
-    network["forbid_all_connection"] = ui_->forbidALLCheckBox->isChecked();
+    network["forbid_all_gnupg_connection"] =
+        ui_->forbidALLGnuPGNetworkConnectionCheckBox->isChecked();
   }
 
   if (!network.exists("prohibit_update_checking"))
@@ -221,6 +263,14 @@ void GpgFrontend::UI::NetworkTab::ApplySettings() {
         ui_->prohibitUpdateCheck->isChecked();
   else {
     network["prohibit_update_checking"] = ui_->prohibitUpdateCheck->isChecked();
+  }
+
+  if (!network.exists("auto_import_missing_key"))
+    network.add("auto_import_missing_key", libconfig::Setting::TypeBoolean) =
+        ui_->autoImportMissingKeyCheckBox->isChecked();
+  else {
+    network["auto_import_missing_key"] =
+        ui_->autoImportMissingKeyCheckBox->isChecked();
   }
 
   apply_proxy_settings();
