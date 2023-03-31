@@ -130,13 +130,13 @@ if (MULTI_LANG_SUPPORT)
     else (NOT GETTEXT_MSGFMT_EXECUTABLE)
         message(STATUS "Setting target translations")
         add_custom_target(translations)
-        set(OUTPUT_POT_PATH ${CMAKE_SOURCE_DIR}/resource/locale/template/${PROJECT_NAME}.pot)
+        set(OUTPUT_POT_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/template/${PROJECT_NAME}.pot)
         add_custom_command(
                 TARGET translations
                 COMMAND find ${CMAKE_SOURCE_DIR}/src -iname \"*.cpp\" | xargs xgettext --package-name=${PROJECT_NAME} --copyright-holder=Saturneric --package-version=${PROJECT_VERSION} --msgid-bugs-address=eric@bktus.com --add-comments="/*" --c++ -k_ -o ${OUTPUT_POT_PATH}
         )
 
-        file(GLOB ALL_PO_FILES ${CMAKE_SOURCE_DIR}/resource/locale/po/*.po)
+        file(GLOB ALL_PO_FILES ${CMAKE_SOURCE_DIR}/resource/lfs/locale/po/*.po)
         SET(GMO_FILES)
 
         foreach (_poFile ${ALL_PO_FILES})

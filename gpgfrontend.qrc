@@ -1,4 +1,4 @@
-<!DOCTYPE RCC>resource/lfs/icons/
+<!DOCTYPE RCC>
 <RCC>
     <qresource prefix="/">
         <file alias="keymgmt.png">resource/lfs/icons/keymgmt.png</file>
