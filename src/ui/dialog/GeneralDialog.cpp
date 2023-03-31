@@ -57,52 +57,16 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
 
       size_ = {width, height};
 
-      if (this->parent() != nullptr) {
-        QPoint parent_pos = {0, 0};
-        QSize parent_size = {0, 0};
-
-        auto *parent_widget = qobject_cast<QWidget *>(this->parent());
-        if (parent_widget != nullptr) {
-          parent_pos = parent_widget->pos();
-          parent_size = parent_widget->size();
-        }
-
-        auto *parent_dialog = qobject_cast<QDialog *>(this->parent());
-        if (parent_dialog != nullptr) {
-          parent_pos = parent_dialog->pos();
-          parent_size = parent_dialog->size();
-        }
-
-        auto *parent_window = qobject_cast<QMainWindow *>(this->parent());
-        if (parent_window != nullptr) {
-          parent_pos = parent_window->pos();
-          parent_size = parent_window->size();
-        }
-
-        SPDLOG_DEBUG("parent pos x: {} y: {}", parent_pos.x(), parent_pos.y());
-
-        SPDLOG_DEBUG("parent size width: {} height: {}", parent_size.width(),
-                     parent_size.height());
-
-        SPDLOG_DEBUG("this dialog size width: {} height: {}", size_.width(),
-                     size_.height());
-
-        if (parent_pos != QPoint{0, 0}) {
-          QPoint parent_center{parent_pos.x() + parent_size.width() / 2,
-                               parent_pos.y() + parent_size.height() / 2};
-
-          pos_ = {parent_center.x() - size_.width() / 2,
-                  parent_center.y() - size_.height() / 2};
-
-          // record parent_pos_
-          this->parent_pos_ = parent_pos;
-          this->parent_size_ = parent_size;
-        }
+      // check for valid
+      if (!pos_.isNull() && pos_.x() > 50 && pos_.y() > 50 && size_.isValid()) {
+        this->move(pos_);
+        this->resize(size_);
+        return;
       }
-
-      this->move(pos_);
-      this->resize(size_);
     }
+
+    // default action
+    movePosition2CenterOfParent();
 
   } catch (...) {
     SPDLOG_ERROR(name_, "error");
@@ -148,8 +112,56 @@ void GpgFrontend::UI::GeneralDialog::setPosCenterOfScreen() {
  *
  */
 void GpgFrontend::UI::GeneralDialog::movePosition2CenterOfParent() {
-  SPDLOG_DEBUG("parent pos x: {} y: {}", parent_pos_.x(), parent_pos_.y());
+  // read pos and size from parent
+  if (this->parent() != nullptr) {
+    QPoint parent_pos = {0, 0};
+    QSize parent_size = {0, 0};
 
+    auto *parent_widget = qobject_cast<QWidget *>(this->parent());
+    if (parent_widget != nullptr) {
+      parent_pos = parent_widget->pos();
+      parent_size = parent_widget->size();
+    }
+
+    auto *parent_dialog = qobject_cast<QDialog *>(this->parent());
+    if (parent_dialog != nullptr) {
+      parent_pos = parent_dialog->pos();
+      parent_size = parent_dialog->size();
+    }
+
+    auto *parent_window = qobject_cast<QMainWindow *>(this->parent());
+    if (parent_window != nullptr) {
+      parent_pos = parent_window->pos();
+      parent_size = parent_window->size();
+    }
+
+    SPDLOG_DEBUG("parent pos x: {} y: {}", parent_pos.x(), parent_pos.y());
+
+    SPDLOG_DEBUG("parent size width: {} height: {}", parent_size.width(),
+                 parent_size.height());
+
+    SPDLOG_DEBUG("this dialog size width: {} height: {}", size_.width(),
+                 size_.height());
+
+    if (parent_pos != QPoint{0, 0}) {
+      QPoint parent_center{parent_pos.x() + parent_size.width() / 2,
+                           parent_pos.y() + parent_size.height() / 2};
+
+      pos_ = {parent_center.x() - size_.width() / 2,
+              parent_center.y() - size_.height() / 2};
+
+      // record parent_pos_
+      this->parent_pos_ = parent_pos;
+      this->parent_size_ = parent_size;
+    }
+  } else {
+    // reset parent's pos and size
+    this->parent_pos_ = QPoint{0, 0};
+    this->parent_size_ = QSize{0, 0};
+  }
+
+  // log for debug
+  SPDLOG_DEBUG("parent pos x: {} y: {}", parent_pos_.x(), parent_pos_.y());
   SPDLOG_DEBUG("parent size width: {}", parent_size_.width(),
                "height:", parent_size_.height());
 
@@ -164,5 +176,7 @@ void GpgFrontend::UI::GeneralDialog::movePosition2CenterOfParent() {
     pos_ = {parent_center.x() - size_.width() / 2,
             parent_center.y() - size_.height() / 2};
     this->move(pos_);
+  } else {
+    setPosCenterOfScreen();
   }
 }
