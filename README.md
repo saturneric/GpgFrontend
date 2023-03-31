@@ -217,14 +217,8 @@ $ ./linuxdeployqt-continuous-x86_64.AppImage ../release/gpgfrontend/usr/share/ap
 
 ## Languages Support
 
-<<<<<<< HEAD
 The supported languages are listed here. Some languages use machine translation and have not been verified. If you want
 to join translation and verification work, please refer to [HERE](https://gpgfrontend.pub/#/translate-interface).
-=======
-The supported languages are listed here. Some translations use machine translation and have not been verified. If you want
-to join translation or verification work, please refer to [HERE](https://gpgfrontend.pub/#/translate-interface).
-
-> > > > > > > main
 
 ### Supported Languages
 
