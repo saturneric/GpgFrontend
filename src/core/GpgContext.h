@@ -51,6 +51,8 @@ struct GpgContextInitArgs {
   std::string gpg_path = {};
   bool test_mode = false;
   bool ascii = true;
+  bool offline_mode = false;
+  bool auto_import_missing_key = false;
 
   GpgContextInitArgs() = default;
 };
