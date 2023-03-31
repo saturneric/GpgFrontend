@@ -42,7 +42,10 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
 
   QStringList components_column_titles;
   components_column_titles << _("Name") << _("Description") << _("Version")
-                           << _("Checksum") << _("Path");
+                           << _("Checksum") << _("Binary Path");
+
+  ui_->tabWidget->setTabText(0, _("Components"));
+  ui_->tabWidget->setTabText(1, _("Configurations"));
 
   ui_->componentDetailsTable->setColumnCount(components_column_titles.length());
   ui_->componentDetailsTable->setHorizontalHeaderLabels(
@@ -52,7 +55,7 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
       QAbstractItemView::SelectRows);
 
   QStringList configurations_column_titles;
-  configurations_column_titles << _("Name") << _("Path");
+  configurations_column_titles << _("Key") << _("Value");
 
   ui_->configurationDetailsTable->setColumnCount(
       configurations_column_titles.length());
