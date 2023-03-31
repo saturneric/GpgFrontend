@@ -136,8 +136,6 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
     }
 
     for (;;) {
-      bool needcr = false;
-
       entry = archive_entry_new();
       r = archive_read_next_header2(disk, entry);
 
@@ -148,15 +146,6 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
         throw std::runtime_error("archive_read_next_header2() failed");
       }
       archive_read_disk_descend(disk);
-
-#ifdef WINDOWS
-      auto entry_path =
-          QString::fromStdWString(std::wstring(archive_entry_pathname_w(entry)))
-              .toUtf8()
-              .toStdString();
-#else
-      auto entry_path = std::string(archive_entry_pathname_utf8(entry));
-#endif
 
       SPDLOG_DEBUG("Adding: {} size: {} bytes: {} file type: {}",
                    archive_entry_pathname_utf8(entry),
@@ -201,7 +190,6 @@ void GpgFrontend::ArchiveFileOperator::ExtractArchive(
   struct archive *a;
   struct archive *ext;
   struct archive_entry *entry;
-  int r;
 
   a = archive_read_new();
   ext = archive_write_disk_new();
@@ -241,8 +229,9 @@ void GpgFrontend::ArchiveFileOperator::ExtractArchive(
                  archive_error_string(a));
     throw std::runtime_error("archive_read_open_filename() failed");
   }
+
   for (;;) {
-    r = archive_read_next_header(a, &entry);
+    int r = archive_read_next_header(a, &entry);
     if (r == ARCHIVE_EOF) break;
     if (r != ARCHIVE_OK) {
       SPDLOG_ERROR("archive_read_next_header() failed: {}",

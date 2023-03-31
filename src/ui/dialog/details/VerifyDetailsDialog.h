@@ -60,7 +60,6 @@ class VerifyDetailsDialog : public QDialog {
   void slot_refresh();
 
  private:
-  KeyList* key_list_;               ///<
   QHBoxLayout* main_layout_;        ///<
   QWidget* m_vbox_{};               ///<
   QByteArray* input_data_{};        ///<

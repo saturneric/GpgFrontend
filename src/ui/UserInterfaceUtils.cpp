@@ -299,38 +299,36 @@ void CommonUtils::SlotExecuteGpgCommand(
 
 void CommonUtils::SlotImportKeyFromKeyServer(
     const KeyIdArgsList &key_ids, const ImportCallbackFunctiopn &callback) {
+  // target key server that we need to import key from it
   std::string target_keyserver;
 
-  if (target_keyserver.empty()) {
-    try {
-      auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
-      SettingsObject key_server_json("key_server");
+  try {
+    auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
+    SettingsObject key_server_json("key_server");
 
-      // get key servers from settings
-      const auto key_server_list =
-          key_server_json.Check("server_list", nlohmann::json::array());
-      if (key_server_list.empty()) {
-        throw std::runtime_error("No key server configured");
-      }
-
-      const int target_key_server_index =
-          key_server_json.Check("default_server", 0);
-      if (target_key_server_index >= key_server_list.size()) {
-        throw std::runtime_error("default_server index out of range");
-      }
-      target_keyserver =
-          key_server_list[target_key_server_index].get<std::string>();
-
-      SPDLOG_DEBUG("set target key server to default Key Server: {}",
-                   target_keyserver);
-    } catch (...) {
-      SPDLOG_ERROR(_("Cannot read default_keyserver From Settings"));
-      QMessageBox::critical(
-          nullptr, _("Default Keyserver Not Found"),
-          _("Cannot read default keyserver from your settings, "
-            "please set a default keyserver first"));
-      return;
+    // get key servers from settings
+    const auto key_server_list =
+        key_server_json.Check("server_list", nlohmann::json::array());
+    if (key_server_list.empty()) {
+      throw std::runtime_error("No key server configured");
     }
+
+    const int target_key_server_index =
+        key_server_json.Check("default_server", 0);
+    if (target_key_server_index >= key_server_list.size()) {
+      throw std::runtime_error("default_server index out of range");
+    }
+    target_keyserver =
+        key_server_list[target_key_server_index].get<std::string>();
+
+    SPDLOG_DEBUG("set target key server to default Key Server: {}",
+                 target_keyserver);
+  } catch (...) {
+    SPDLOG_ERROR(_("Cannot read default_keyserver From Settings"));
+    QMessageBox::critical(nullptr, _("Default Keyserver Not Found"),
+                          _("Cannot read default keyserver from your settings, "
+                            "please set a default keyserver first"));
+    return;
   }
 
   auto thread = QThread::create([target_keyserver, key_ids, callback]() {

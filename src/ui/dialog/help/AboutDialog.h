@@ -80,7 +80,6 @@ class UpdateTab : public QWidget {
   QLabel* upgrade_label_;          ///<
   QProgressBar* pb_;               ///<
   QString current_version_;        ///<
-  QPushButton* download_button_;   ///<
 
  public:
   /**

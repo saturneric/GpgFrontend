@@ -124,7 +124,6 @@ void KeyImportDetailDialog::create_general_info_box() {
         new QLabel(QString(_("Private Unchanged")) + ": "), row, 0);
     generalInfoBoxLayout->addWidget(
         new QLabel(QString::number(m_result_.secret_unchanged)), row, 1);
-    row++;
   }
 }
 
@@ -162,36 +161,35 @@ void KeyImportDetailDialog::create_keys_table() {
   keys_table_->resizeColumnsToContents();
 }
 
-QString KeyImportDetailDialog::get_status_string(int keyStatus) {
-  QString statusString;
+QString KeyImportDetailDialog::get_status_string(int key_status) {
+  QString status_string;
   // keystatus is greater than 15, if key is private
-  if (keyStatus > 15) {
-    statusString.append(_("Private"));
-    keyStatus = keyStatus - 16;
+  if (key_status > 15) {
+    status_string.append(_("Private"));
+    key_status = key_status - 16;
   } else {
-    statusString.append(_("Public"));
+    status_string.append(_("Public"));
   }
-  if (keyStatus == 0) {
-    statusString.append(", " + QString(_("Unchanged")));
+  if (key_status == 0) {
+    status_string.append(", " + QString(_("Unchanged")));
   } else {
-    if (keyStatus == 1) {
-      statusString.append(", " + QString(_("New Key")));
+    if (key_status == 1) {
+      status_string.append(", " + QString(_("New Key")));
     } else {
-      if (keyStatus > 7) {
-        statusString.append(", " + QString(_("New Subkey")));
-        keyStatus = keyStatus - 8;
+      if (key_status > 7) {
+        status_string.append(", " + QString(_("New Subkey")));
+        return status_string;
       }
-      if (keyStatus > 3) {
-        statusString.append(", " + QString(_("New Signature")));
-        keyStatus = keyStatus - 4;
+      if (key_status > 3) {
+        status_string.append(", " + QString(_("New Signature")));
+        return status_string;
       }
-      if (keyStatus > 1) {
-        statusString.append(", " + QString(_("New UID")));
-        keyStatus = keyStatus - 2;
+      if (key_status > 1) {
+        status_string.append(", " + QString(_("New UID")));
+        return status_string;
       }
     }
   }
-  return statusString;
 }
 
 void KeyImportDetailDialog::create_button_box() {

@@ -28,6 +28,8 @@
 
 #include "KeygenDialog.h"
 
+#include <qobject.h>
+
 #include "core/common/CoreCommonUtil.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyOpera.h"
@@ -178,7 +180,7 @@ void KeyGenDialog::slot_key_gen_accept() {
     SPDLOG_DEBUG("generate done");
 
     if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
-      auto* msg_box = new QMessageBox((QWidget*)this->parent());
+      auto* msg_box = new QMessageBox(qobject_cast<QWidget*>(this->parent()));
       msg_box->setAttribute(Qt::WA_DeleteOnClose);
       msg_box->setStandardButtons(QMessageBox::Ok);
       msg_box->setWindowTitle(_("Success"));
