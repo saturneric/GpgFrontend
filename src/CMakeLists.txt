@@ -127,7 +127,7 @@ if (MULTI_LANG_SUPPORT)
 
     if (NOT GETTEXT_MSGFMT_EXECUTABLE OR NOT GETTEXT_XGETTEXT_EXECUTABLE)
         message(ERROR "msgfmt or xgettext not found. Translations will *not* be installed")
-    else (NOT GETTEXT_MSGFMT_EXECUTABLE)
+    else()
         message(STATUS "Setting target translations")
         add_custom_target(translations)
         set(OUTPUT_POT_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/template/${PROJECT_NAME}.pot)
