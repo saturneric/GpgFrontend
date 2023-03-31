@@ -190,6 +190,7 @@ QString KeyImportDetailDialog::get_status_string(int key_status) {
       }
     }
   }
+  return status_string;
 }
 
 void KeyImportDetailDialog::create_button_box() {
