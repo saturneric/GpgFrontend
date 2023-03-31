@@ -40,8 +40,10 @@
 #include "core/GpgModel.h"
 #include "core/common/CoreCommonUtil.h"
 #include "core/function/CoreSignalStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "spdlog/spdlog.h"
 #include "thread/Task.h"
 
 #ifdef _WIN32
@@ -58,20 +60,12 @@ GpgContext::GpgContext(int channel)
  *  Set up gpgme-context, set paths to app-run path
  */
 GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
-  static bool _first = true;
-
-  if (_first) {
-    /* Initialize the locale environment. */
-    SPDLOG_DEBUG("locale: {}", setlocale(LC_CTYPE, nullptr));
-    info_.GpgMEVersion = gpgme_check_version(nullptr);
-    gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
-#ifdef LC_MESSAGES
-    gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
-#endif
-    _first = false;
-  }
-
   gpgme_ctx_t _p_ctx;
+
+  // get gpgme library version
+  info_.GpgMEVersion = gpgme_check_version(nullptr);
+
+  // create a new context
   check_gpg_error(gpgme_new(&_p_ctx));
   _ctx_ref = CtxRefHandler(_p_ctx);
 
@@ -83,6 +77,17 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
     assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
   }
 
+  // set context offline mode
+  SPDLOG_DEBUG("gpg context offline mode: {}", args_.offline_mode);
+  gpgme_set_offline(_ctx_ref.get(), args_.offline_mode ? 1 : 0);
+
+  // set option auto import missing key
+  // invalid at offline mode
+  SPDLOG_DEBUG("gpg context auto import missing key: {}", args_.offline_mode);
+  if (!args.offline_mode && args.auto_import_missing_key)
+    check_gpg_error(gpgme_set_ctx_flag(_ctx_ref.get(), "auto-key-import", "1"));
+
+  // get engine info
   auto engine_info = gpgme_ctx_get_engine_info(*this);
   // Check ENV before running
   bool check_passed = false, find_openpgp = false, find_gpgconf = false,
@@ -219,8 +224,22 @@ void GpgContext::post_init_ctx() {
   // preload info
   auto &info = GetInfo();
 
-  // listen passphrase input event
-  SetPassphraseCb(custom_passphrase_cb);
+  auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+  bool use_pinentry_as_password_input_dialog = false;
+  try {
+    use_pinentry_as_password_input_dialog =
+        settings.lookup("general.use_pinentry_as_password_input_dialog");
+  } catch (...) {
+    SPDLOG_ERROR(
+        "setting operation error: use_pinentry_as_password_input_dialog");
+  }
+
+  // use custom qt dialog to replace pinentry
+  if (!use_pinentry_as_password_input_dialog) {
+    SetPassphraseCb(custom_passphrase_cb);
+  }
+
   connect(this, &GpgContext::SignalNeedUserInputPassphrase,
           CoreSignalStation::GetInstance(),
           &CoreSignalStation::SignalNeedUserInputPassphrase);
@@ -372,6 +391,16 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
             auto component_name = info_split_list[0];
             auto component_desc = info_split_list[1];
             auto component_path = info_split_list[2];
+
+            boost::algorithm::trim(component_name);
+            boost::algorithm::trim(component_desc);
+            boost::algorithm::trim(component_path);
+
+#ifdef WINDOWS
+            // replace some special substrings on windows platform
+            boost::replace_all(component_path, "%3a", ":");
+#endif
+
             auto binary_checksum = check_binary_chacksum(component_path);
 
             SPDLOG_DEBUG(
@@ -386,13 +415,13 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               version = info_.GnupgVersion;
             }
             if (component_name == "gpg-agent") {
-              info_.GpgAgentPath = info_split_list[2];
+              info_.GpgAgentPath = component_path;
             }
             if (component_name == "dirmngr") {
-              info_.DirmngrPath = info_split_list[2];
+              info_.DirmngrPath = component_path;
             }
             if (component_name == "keyboxd") {
-              info_.KeyboxdPath = info_split_list[2];
+              info_.KeyboxdPath = component_path;
             }
 
             {
@@ -436,16 +465,25 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
             if (info_split_list.size() != 2) continue;
 
+            auto configuration_name = info_split_list[0];
+            auto configuration_value = info_split_list[1];
+            boost::algorithm::trim(configuration_name);
+            boost::algorithm::trim(configuration_value);
+
+#ifdef WINDOWS
+            // replace some special substrings on windows platform
+            boost::replace_all(configuration_value, "%3a", ":");
+#endif
+
             // record gnupg home path
-            if (info_split_list[0] == "homedir") {
+            if (configuration_name == "homedir") {
               info_.GnuPGHomePath = info_split_list[1];
             }
 
-            auto configuration_name = info_split_list[0];
             {
               // try lock
               std::unique_lock lock(info_.Lock);
-              configurations_info[configuration_name] = {info_split_list[1]};
+              configurations_info[configuration_name] = {configuration_value};
             }
           }
         });
@@ -489,12 +527,19 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               if (info_split_list.size() != 6) continue;
 
               auto configuration_name = info_split_list[0];
+              boost::algorithm::trim(configuration_name);
               {
                 // try lock
                 std::unique_lock lock(info_.Lock);
                 options_info[configuration_name] = {
                     info_split_list[1], info_split_list[2], info_split_list[3],
                     info_split_list[4], info_split_list[5]};
+
+                boost::algorithm::trim(options_info[configuration_name][0]);
+                boost::algorithm::trim(options_info[configuration_name][1]);
+                boost::algorithm::trim(options_info[configuration_name][2]);
+                boost::algorithm::trim(options_info[configuration_name][3]);
+                boost::algorithm::trim(options_info[configuration_name][4]);
               }
             }
           });
@@ -540,6 +585,7 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               if (info_split_list.size() != 10) continue;
 
               auto configuration_name = info_split_list[0];
+              boost::algorithm::trim(configuration_name);
               {
                 // try lock
                 std::unique_lock lock(info_.Lock);
@@ -547,6 +593,25 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
                     info_split_list[1], info_split_list[2], info_split_list[3],
                     info_split_list[4], info_split_list[5], info_split_list[6],
                     info_split_list[7], info_split_list[8], info_split_list[9]};
+
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][0]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][1]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][2]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][3]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][4]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][5]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][6]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][7]);
+                boost::algorithm::trim(
+                    available_options_info[configuration_name][8]);
               }
             }
           });
@@ -561,20 +626,33 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
 std::optional<std::string> GpgContext::check_binary_chacksum(
     std::filesystem::path path) {
-  QFile f(QString::fromStdString(path.u8string()));
-  if (!f.open(QFile::ReadOnly)) return {};
+  // check file info and access rights
+  QFileInfo info(QString::fromStdString(path.u8string()));
+  if (!info.exists() || !info.isFile() || !info.isReadable()) {
+    SPDLOG_ERROR("get info for file {} error, exists: {}",
+                 info.filePath().toStdString(), info.exists());
+    return {};
+  }
+
+  // open and read file
+  QFile f(info.filePath());
+  if (!f.open(QIODevice::ReadOnly)) {
+    SPDLOG_ERROR("open {} to calculate check sum error: {}", path.u8string(),
+                 f.errorString().toStdString());
+    return {};
+  }
 
   // read all data from file
   auto buffer = f.readAll();
   f.close();
 
-  auto hash_md5 = QCryptographicHash(QCryptographicHash::Md5);
+  auto hash_sha = QCryptographicHash(QCryptographicHash::Sha256);
   // md5
-  hash_md5.addData(buffer);
-  auto md5 = hash_md5.result().toHex().toStdString();
-  SPDLOG_DEBUG("md5 {}", md5);
+  hash_sha.addData(buffer);
+  auto sha = hash_sha.result().toHex().toStdString();
+  SPDLOG_DEBUG("checksum for file {} is {}", path.u8string(), sha);
 
-  return md5.substr(0, 6);
+  return sha.substr(0, 6);
 }
 
 void GpgContext::_ctx_ref_deleter::operator()(gpgme_ctx_t _ctx) {

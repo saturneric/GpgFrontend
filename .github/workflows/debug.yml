@@ -34,8 +34,9 @@ jobs:
           git config --global core.eol lf
         if: matrix.os == 'windows-latest' ||  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
+          lfs: 'true'
           submodules: recursive
 
       - name: Install Dependence (Linux)
@@ -88,7 +89,7 @@ jobs:
 
       - name: Cache Qt
         id: cache-qt
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ../Qt
           key: ${{ runner.os }}-qt-cache-6
@@ -99,7 +100,7 @@ jobs:
         with:
           version: '6.4.2'
           modules: 'qt5compat'
-          cached: ${{ steps.cache-qt.outputs.cache-hit }}
+          cache: ${{ steps.cache-qt.outputs.cache-hit }}
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Set up MinGW (Windows)
@@ -145,25 +146,25 @@ jobs:
 
       - name: Get Short SHA of Commit
         id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{env.sha_short}}
           path: ${{github.workspace}}/build/release/*
         if: matrix.os == 'ubuntu-latest'
 
       - name: Upload Artifact(macOS)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{env.sha_short}}
           path: ${{github.workspace}}/build/release/*
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Upload Artifact(Windows)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{env.sha_short}}
           path: ${{github.workspace}}/build/release/*
         if: matrix.os == 'windows-latest'

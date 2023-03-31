@@ -59,7 +59,7 @@ uint8_t *aes_256_cbc_encrypt(EVP_CIPHER_CTX *e, uint8_t *plaintext, int *len) {
   /* max ciphertext len for a n bytes of plaintext is n + AES_BLOCK_SIZE -1
    * bytes */
   int c_len = *len + AES_BLOCK_SIZE, f_len = 0;
-  auto *ciphertext = (uint8_t *)malloc(c_len);
+  auto *ciphertext = static_cast<uint8_t *>(malloc(c_len));
 
   /* allows reusing of 'e' for multiple encryption cycles */
   EVP_EncryptInit_ex(e, nullptr, nullptr, nullptr, nullptr);
@@ -86,7 +86,7 @@ uint8_t *aes_256_cbc_encrypt(EVP_CIPHER_CTX *e, uint8_t *plaintext, int *len) {
 uint8_t *aes_256_cbc_decrypt(EVP_CIPHER_CTX *e, uint8_t *ciphertext, int *len) {
   /* plaintext will always be equal to or lesser than length of ciphertext*/
   int p_len = *len, f_len = 0;
-  auto *plaintext = (uint8_t *)malloc(p_len);
+  auto *plaintext = static_cast<uint8_t *>(malloc(p_len));
 
   EVP_DecryptInit_ex(e, nullptr, nullptr, nullptr, nullptr);
   EVP_DecryptUpdate(e, plaintext, &p_len, ciphertext, *len);

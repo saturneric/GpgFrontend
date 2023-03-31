@@ -40,7 +40,8 @@ GpgFrontend::GpgData::GpgData() {
 GpgFrontend::GpgData::GpgData(void* buffer, size_t size, bool copy) {
   gpgme_data_t data;
 
-  auto err = gpgme_data_new_from_mem(&data, (const char*)buffer, size, copy);
+  auto err = gpgme_data_new_from_mem(&data, static_cast<const char*>(buffer),
+                                     size, copy);
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
   data_ref_ = std::unique_ptr<struct gpgme_data, _data_ref_deleter>(data);

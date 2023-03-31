@@ -36,6 +36,10 @@
 #include "core/GpgContext.h"
 #include "core/function/GlobalSettingStation.h"
 #include "function/gpg/GpgAdvancedOperator.h"
+#include "spdlog/spdlog.h"
+#include "thread/Task.h"
+#include "thread/TaskRunner.h"
+#include "thread/TaskRunnerGetter.h"
 
 namespace GpgFrontend {
 
@@ -93,12 +97,38 @@ void ShutdownCoreLoggingSystem() {
 void ResetGpgFrontendCore() { reset_gpgfrontend_core(); }
 
 void init_gpgfrontend_core() {
-  // read from settings file
+  /* Initialize the locale environment. */
+  SPDLOG_DEBUG("locale: {}", setlocale(LC_CTYPE, nullptr));
+  // init gpgme subsystem
+  gpgme_check_version(nullptr);
+  gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
+#ifdef LC_MESSAGES
+  gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
+#endif
 
+  // get settings
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+  // read settings
+  bool forbid_all_gnupg_connection = false;
+  try {
+    forbid_all_gnupg_connection =
+        settings.lookup("network.forbid_all_gnupg_connection");
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
+  }
+
+  bool auto_import_missing_key = false;
+  try {
+    auto_import_missing_key =
+        settings.lookup("network.auto_import_missing_key");
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: auto_import_missing_key");
+  }
+
+  // read from settings file
   bool use_custom_key_database_path = false;
   try {
-    auto& settings =
-        GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
     use_custom_key_database_path =
         settings.lookup("general.use_custom_key_database_path");
   } catch (...) {
@@ -110,8 +140,6 @@ void init_gpgfrontend_core() {
 
   std::string custom_key_database_path;
   try {
-    auto& settings =
-        GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
     custom_key_database_path = static_cast<std::string>(
         settings.lookup("general.custom_key_database_path"));
 
@@ -123,7 +151,7 @@ void init_gpgfrontend_core() {
                custom_key_database_path);
 
   // init default channel
-  GpgFrontend::GpgContext::CreateInstance(
+  auto& default_ctx = GpgFrontend::GpgContext::CreateInstance(
       GPGFRONTEND_DEFAULT_CHANNEL, [=]() -> std::unique_ptr<ChannelObject> {
         GpgFrontend::GpgContextInitArgs args;
 
@@ -132,22 +160,45 @@ void init_gpgfrontend_core() {
           args.db_path = custom_key_database_path;
         }
 
-        return std::unique_ptr<ChannelObject>(new GpgContext(args));
-      });
-
-  // init non-ascii channel
-  GpgFrontend::GpgContext::CreateInstance(
-      GPGFRONTEND_NON_ASCII_CHANNEL, [=]() -> std::unique_ptr<ChannelObject> {
-        GpgFrontend::GpgContextInitArgs args;
-        args.ascii = false;
-
-        // set key database path
-        if (use_custom_key_database_path && !custom_key_database_path.empty()) {
-          args.db_path = custom_key_database_path;
-        }
+        args.offline_mode = forbid_all_gnupg_connection;
+        args.auto_import_missing_key = auto_import_missing_key;
 
         return std::unique_ptr<ChannelObject>(new GpgContext(args));
       });
+
+  // exit if failed
+  if (!default_ctx.good()) {
+    SPDLOG_ERROR("default gpgme context init error, exit.");
+    QCoreApplication::exit();
+  };
+
+  // async init no-ascii channel
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
+      ->PostTask(
+          new Thread::Task([=](Thread::Task::DataObjectPtr data_obj) -> int {
+            // init non-ascii channel
+            auto& ctx = GpgFrontend::GpgContext::CreateInstance(
+                GPGFRONTEND_NON_ASCII_CHANNEL,
+                [=]() -> std::unique_ptr<ChannelObject> {
+                  GpgFrontend::GpgContextInitArgs args;
+                  args.ascii = false;
+
+                  // set key database path
+                  if (use_custom_key_database_path &&
+                      !custom_key_database_path.empty()) {
+                    args.db_path = custom_key_database_path;
+                  }
+
+                  args.offline_mode = forbid_all_gnupg_connection;
+                  args.auto_import_missing_key = auto_import_missing_key;
+
+                  return std::unique_ptr<ChannelObject>(new GpgContext(args));
+                });
+            if (!ctx.good()) SPDLOG_ERROR("no-ascii channel init error");
+
+            return ctx.good() ? 0 : -1;
+          }));
 
   // try to restart all components
   GpgFrontend::GpgAdvancedOperator::GetInstance().RestartGpgComponents();

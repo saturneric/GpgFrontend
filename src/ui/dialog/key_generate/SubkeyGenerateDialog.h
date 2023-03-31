@@ -74,6 +74,7 @@ class SubkeyGenerateDialog : public GeneralDialog {
 
   std::vector<QCheckBox*> key_usage_check_boxes_;  ///< ENCR, SIGN, CERT, AUTH
   QDateTime max_date_time_;                        ///<
+  bool use_pinentry_ = false;
 
   /**
    * @brief Create a key usage group box object

@@ -28,6 +28,8 @@
 
 #include "AboutDialog.h"
 
+#include <openssl/opensslv.h>
+
 #include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -83,9 +85,9 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       "<center><b>" + qApp->applicationVersion() + "</b></center>" +
       "<center>" + GIT_VERSION + "</center>" + "<br><center>" +
       _("GpgFrontend is an easy-to-use, compact, cross-platform, "
-        "and installation-free gpg front-end tool."
-        "It visualizes most of the common operations of gpg commands."
-        "It's licensed under the GPL v3") +
+        "and installation-free GnuPG Frontend."
+        "It visualizes most of the common operations of GnuPG."
+        "GpgFrontend is licensed under the GPLv3") +
       "<br><br>"
       "<b>" +
       _("Developer:") + "</b><br>" + "Saturneric" + "<br><br>" +
@@ -94,7 +96,8 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       " <a href=\"https://github.com/saturneric/GpgFrontend\">GitHub</a> " +
       _("or send a mail to my mailing list at") + " <a " +
       "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
-      _("Built with Qt") + " " + qVersion() + " " + _("and GPGME") + " " +
+      _("Built with Qt") + " " + qVersion() + ", " + OPENSSL_VERSION_TEXT +
+      " " + _("and") + " " + "GPGME" + " " +
       GpgFrontend::GpgContext::GetInstance()
           .GetInfo(false)
           .GpgMEVersion.c_str() +

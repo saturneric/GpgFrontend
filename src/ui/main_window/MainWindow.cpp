@@ -84,7 +84,13 @@ void MainWindow::Init() noexcept {
             });
 
     m_key_list_->AddMenuAction(append_selected_keys_act_);
+    m_key_list_->AddMenuAction(append_key_create_date_to_editor_act_);
+    m_key_list_->AddMenuAction(append_key_expire_date_to_editor_act_);
+    m_key_list_->AddMenuAction(append_key_fingerprint_to_editor_act_);
+    m_key_list_->AddSeparator();
     m_key_list_->AddMenuAction(copy_mail_address_to_clipboard_act_);
+    m_key_list_->AddMenuAction(copy_key_default_uid_to_clipboard_act_);
+    m_key_list_->AddMenuAction(copy_key_id_to_clipboard_act_);
     m_key_list_->AddSeparator();
     m_key_list_->AddMenuAction(show_key_details_act_);
 

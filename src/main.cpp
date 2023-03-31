@@ -126,6 +126,7 @@ int main(int argc, char* argv[]) {
    * with changed translation when settings change.
    */
   int return_from_event_loop_code;
+  int restart_count = 0;
 
   do {
     do {
@@ -154,16 +155,20 @@ int main(int argc, char* argv[]) {
         return_from_event_loop_code = CRASH_CODE;
       }
 
-      SPDLOG_DEBUG("restart loop refresh, event loop code: {}",
-                   return_from_event_loop_code);
-    } while (return_from_event_loop_code == RESTART_CODE);
+      restart_count++;
+
+      SPDLOG_DEBUG(
+          "restart loop refresh, event loop code: {}, restart count: {}",
+          return_from_event_loop_code, restart_count);
+    } while (return_from_event_loop_code == RESTART_CODE && restart_count < 2);
 
     if (return_from_event_loop_code == DEEP_RESTART_CODE ||
         return_from_event_loop_code == CRASH_CODE) {
       // reset core
       GpgFrontend::ResetGpgFrontendCore();
       // log for debug
-      SPDLOG_DEBUG("deep restart or cash loop refresh");
+      SPDLOG_DEBUG("deep restart or cash loop refresh, restart count: {}",
+                   restart_count);
     } else {
       // log for debug
       SPDLOG_DEBUG("need to close application, event loop code: {}",
@@ -171,17 +176,15 @@ int main(int argc, char* argv[]) {
     }
 
     // deep restart mode
-  } while (return_from_event_loop_code == DEEP_RESTART_CODE ||
-           return_from_event_loop_code == CRASH_CODE);
-
+  } while ((return_from_event_loop_code == DEEP_RESTART_CODE ||
+            return_from_event_loop_code == CRASH_CODE) &&
+           restart_count < 3);
 
   // shutdown the logging system for ui
   GpgFrontend::UI::ShutdownUILoggingSystem();
 
   // shutdown the logging system for core
   GpgFrontend::ShutdownCoreLoggingSystem();
-
-
 
   // log for debug
   SPDLOG_INFO("GpgFrontend about to exit.");
