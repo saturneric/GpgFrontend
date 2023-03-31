@@ -93,12 +93,38 @@ void ShutdownCoreLoggingSystem() {
 void ResetGpgFrontendCore() { reset_gpgfrontend_core(); }
 
 void init_gpgfrontend_core() {
-  // read from settings file
+  /* Initialize the locale environment. */
+  SPDLOG_DEBUG("locale: {}", setlocale(LC_CTYPE, nullptr));
+  // init gpgme subsystem
+  gpgme_check_version(nullptr);
+  gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
+#ifdef LC_MESSAGES
+  gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
+#endif
 
+  // get settings
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
+  // read settings
+  bool forbid_all_gnupg_connection = false;
+  try {
+    forbid_all_gnupg_connection =
+        settings.lookup("network.forbid_all_gnupg_connection");
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
+  }
+
+  bool auto_import_missing_key = false;
+  try {
+    auto_import_missing_key =
+        settings.lookup("network.auto_import_missing_key");
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: auto_import_missing_key");
+  }
+
+  // read from settings file
   bool use_custom_key_database_path = false;
   try {
-    auto& settings =
-        GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
     use_custom_key_database_path =
         settings.lookup("general.use_custom_key_database_path");
   } catch (...) {
@@ -110,8 +136,6 @@ void init_gpgfrontend_core() {
 
   std::string custom_key_database_path;
   try {
-    auto& settings =
-        GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
     custom_key_database_path = static_cast<std::string>(
         settings.lookup("general.custom_key_database_path"));
 
@@ -132,6 +156,9 @@ void init_gpgfrontend_core() {
           args.db_path = custom_key_database_path;
         }
 
+        args.offline_mode = forbid_all_gnupg_connection;
+        args.auto_import_missing_key = auto_import_missing_key;
+
         return std::unique_ptr<ChannelObject>(new GpgContext(args));
       });
 
@@ -145,6 +172,9 @@ void init_gpgfrontend_core() {
         if (use_custom_key_database_path && !custom_key_database_path.empty()) {
           args.db_path = custom_key_database_path;
         }
+
+        args.offline_mode = forbid_all_gnupg_connection;
+        args.auto_import_missing_key = auto_import_missing_key;
 
         return std::unique_ptr<ChannelObject>(new GpgContext(args));
       });
