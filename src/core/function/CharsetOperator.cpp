@@ -117,12 +117,10 @@ bool GpgFrontend::CharsetOperator::Convert2Utf8(const std::string &buffer,
 
   if (status == U_BUFFER_OVERFLOW_ERROR) {
     status = U_ZERO_ERROR;
-    target_limit = target_capacity + 1;
     out_buffer.clear();
     out_buffer.resize(target_capacity);
-    target_capacity =
-        ucnv_convert(from_encode.c_str(), to_encode.c_str(), out_buffer.data(),
-                     out_buffer.size(), buffer.data(), buffer.size(), &status);
+    ucnv_convert(from_encode.c_str(), to_encode.c_str(), out_buffer.data(),
+                 out_buffer.size(), buffer.data(), buffer.size(), &status);
   }
 
   if (U_FAILURE(status)) {

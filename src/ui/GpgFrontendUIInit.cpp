@@ -270,7 +270,7 @@ void init_locale() {
 
 #ifndef WINDOWS
   if (!lang.empty()) {
-    std::string lc = lang.empty() ? "" : lang + ".UTF-8";
+    std::string lc = lang + ".UTF-8";
 
     // set LC_ALL
     auto* locale_name = setlocale(LC_ALL, lc.c_str());
@@ -286,7 +286,7 @@ void init_locale() {
   }
 #else
   if (!lang.empty()) {
-    std::string lc = lang.empty() ? "" : lang;
+    std::string lc = lang;
 
     // set LC_ALL
     auto* locale_name = setlocale(LC_ALL, lc.c_str());

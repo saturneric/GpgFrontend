@@ -218,7 +218,7 @@ void GpgFrontend::Thread::Task::DataObject::free_heap_ptr(Destructor *ptr) {
   if (ptr->destroy != nullptr) {
     ptr->destroy(ptr->p_obj);
   }
-  free((void *)ptr->p_obj);
+  free(const_cast<void *>(ptr->p_obj));
   delete ptr;
 }
 
