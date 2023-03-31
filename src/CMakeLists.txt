@@ -102,7 +102,7 @@ if (APPLICATION_BUILD)
         if (APPLE)
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
-            file(COPY ${CMAKE_SOURCE_DIR}/resource/gpgfrontend DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+            file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/app-image/gpgfrontend DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share)
         else ()
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
@@ -127,16 +127,16 @@ if (MULTI_LANG_SUPPORT)
 
     if (NOT GETTEXT_MSGFMT_EXECUTABLE OR NOT GETTEXT_XGETTEXT_EXECUTABLE)
         message(ERROR "msgfmt or xgettext not found. Translations will *not* be installed")
-    else (NOT GETTEXT_MSGFMT_EXECUTABLE)
+    else()
         message(STATUS "Setting target translations")
         add_custom_target(translations)
-        set(OUTPUT_POT_PATH ${CMAKE_SOURCE_DIR}/resource/locale/template/${PROJECT_NAME}.pot)
+        set(OUTPUT_POT_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/template/${PROJECT_NAME}.pot)
         add_custom_command(
                 TARGET translations
                 COMMAND find ${CMAKE_SOURCE_DIR}/src -iname \"*.cpp\" | xargs xgettext --package-name=${PROJECT_NAME} --copyright-holder=Saturneric --package-version=${PROJECT_VERSION} --msgid-bugs-address=eric@bktus.com --add-comments="/*" --c++ -k_ -o ${OUTPUT_POT_PATH}
         )
 
-        file(GLOB ALL_PO_FILES ${CMAKE_SOURCE_DIR}/resource/locale/po/*.po)
+        file(GLOB ALL_PO_FILES ${CMAKE_SOURCE_DIR}/resource/lfs/locale/po/*.po)
         SET(GMO_FILES)
 
         foreach (_poFile ${ALL_PO_FILES})
@@ -171,7 +171,7 @@ endif ()
 if (APPLICATION_BUILD)
     # Copy Resource Files
     file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+    file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/TRANSLATORS DESTINATION ${RESOURCE_OUTPUT_DIRECTORY} FOLLOW_SYMLINK_CHAIN)
     if (GPG_STANDALONE_MODE)
         file(COPY ${CMAKE_SOURCE_DIR}/resource/gpg1.4 DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
@@ -419,12 +419,17 @@ if (APPLICATION_BUILD)
             
             # option for sandbox mode, still under test
             if(GPGFRONTEND_XOCDE_ENABLE_SANDBOX)
+                message(STATUS "Build Application With App Sandbox")
                 set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes")
                 add_custom_command(TARGET ${AppName} POST_BUILD
                     COMMAND /bin/cp -rf ${CMAKE_SOURCE_DIR}/resource/lfs/macOS/GnuPG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app/Contents/
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Copying Buddled GnuPG into App Bundle Resource")
+                set_target_properties(${AppName} PROPERTIES
+                    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/GpgFrontend.entitlements"
+                )
             else()
+                message(STATUS "Build Application Without App Sandbox")
                 set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "No")
             endif()
 
@@ -434,7 +439,6 @@ if (APPLICATION_BUILD)
                     XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep --entitlements ${CMAKE_SOURCE_DIR}/resource/plist/entitlement.plist"
                     XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "${CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX}"
                     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "Yes"
-                    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/GpgFrontend.entitlements"
                     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}"
                     )
         else ()
@@ -510,9 +514,9 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
                 DESTINATION /usr/share/metainfo/)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/desktop/
                 DESTINATION /usr/share/applications/)
-        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/pixmaps/
+        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/
                 DESTINATION /usr/share/pixmaps/)
-        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/hicolor/
+        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/
                 DESTINATION /usr/share/icons/hicolor/)
     endif ()
     if (MULTI_LANG_SUPPORT)

@@ -91,7 +91,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
 
   setCentralWidget(key_list_);
   key_list_->SetDoubleClickedAction([this](const GpgKey& key, QWidget* parent) {
-    new KeyDetailsDialog(key, parent);
+    new KeyDetailsDialog(key, this);
   });
 
   key_list_->SlotRefresh();
@@ -109,8 +109,10 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   this->statusBar()->show();
 
   setWindowTitle(_("KeyPair Management"));
+
   key_list_->AddMenuAction(generate_subkey_act_);
   key_list_->AddMenuAction(delete_selected_keys_act_);
+  key_list_->AddSeparator();
   key_list_->AddMenuAction(show_key_details_act_);
 
   connect(this, &KeyMgmt::SignalKeyStatusUpdated, SignalStation::GetInstance(),
@@ -163,11 +165,23 @@ void KeyMgmt::create_actions() {
     CommonUtils::GetInstance()->SlotImportKeyFromClipboard(this);
   });
 
+  // get settings
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  // read settings
+  bool forbid_all_gnupg_connection = false;
+  try {
+    forbid_all_gnupg_connection =
+        settings.lookup("network.forbid_all_gnupg_connection");
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
+  }
+
   import_key_from_key_server_act_ = new QAction(_("Keyserver"), this);
   import_key_from_key_server_act_->setIcon(
       QIcon(":import_key_from_server.png"));
   import_key_from_key_server_act_->setToolTip(
       _("Import New Key From Keyserver"));
+  import_key_from_key_server_act_->setDisabled(forbid_all_gnupg_connection);
   connect(import_key_from_key_server_act_, &QAction::triggered, this, [&]() {
     CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(this);
   });
@@ -241,35 +255,28 @@ void KeyMgmt::create_menus() {
 }
 
 void KeyMgmt::create_tool_bars() {
-  QToolBar* keyToolBar = addToolBar(_("Key"));
-  keyToolBar->setObjectName("keytoolbar");
+  QToolBar* key_tool_bar = addToolBar(_("Key"));
+  key_tool_bar->setObjectName("keytoolbar");
+
+  // genrate key pair
+  key_tool_bar->addAction(generate_key_pair_act_);
 
   // add button with popup menu for import
-  auto* generateToolButton = new QToolButton(this);
-  generateToolButton->setMenu(generate_key_menu_);
-  generateToolButton->setPopupMode(QToolButton::InstantPopup);
-  generateToolButton->setIcon(QIcon(":key_generate.png"));
-  generateToolButton->setText(_("Generate"));
-  generateToolButton->setToolTip(_("Generate A New Keypair or Subkey"));
-  generateToolButton->setToolButtonStyle(icon_style_);
-  keyToolBar->addWidget(generateToolButton);
+  auto* tool_button = new QToolButton(this);
+  tool_button->setMenu(import_key_menu_);
+  tool_button->setPopupMode(QToolButton::InstantPopup);
+  tool_button->setIcon(QIcon(":key_import.png"));
+  tool_button->setToolTip(_("Import key"));
+  tool_button->setText(_("Import Key"));
+  tool_button->setToolButtonStyle(icon_style_);
+  key_tool_bar->addWidget(tool_button);
 
-  // add button with popup menu for import
-  auto* toolButton = new QToolButton(this);
-  toolButton->setMenu(import_key_menu_);
-  toolButton->setPopupMode(QToolButton::InstantPopup);
-  toolButton->setIcon(QIcon(":key_import.png"));
-  toolButton->setToolTip(_("Import key"));
-  toolButton->setText(_("Import Key"));
-  toolButton->setToolButtonStyle(icon_style_);
-  keyToolBar->addWidget(toolButton);
-
-  keyToolBar->addSeparator();
-  keyToolBar->addAction(delete_checked_keys_act_);
-  keyToolBar->addSeparator();
-  keyToolBar->addAction(export_key_to_file_act_);
-  keyToolBar->addAction(export_key_to_clipboard_act_);
-  keyToolBar->addAction(export_key_as_open_ssh_format_);
+  key_tool_bar->addSeparator();
+  key_tool_bar->addAction(delete_checked_keys_act_);
+  key_tool_bar->addSeparator();
+  key_tool_bar->addAction(export_key_to_file_act_);
+  key_tool_bar->addAction(export_key_to_clipboard_act_);
+  key_tool_bar->addAction(export_key_as_open_ssh_format_);
 }
 
 void KeyMgmt::SlotDeleteSelectedKeys() {
@@ -323,7 +330,7 @@ void KeyMgmt::SlotShowKeyDetails() {
     return;
   }
 
-  new KeyDetailsDialog(key);
+  new KeyDetailsDialog(key, this);
 }
 
 void KeyMgmt::SlotExportKeyToKeyPackage() {

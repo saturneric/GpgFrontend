@@ -284,6 +284,11 @@ void KeyserverTab::slot_test_listed_key_server() {
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
       ->PostTask(task);
+
+  QEventLoop loop;
+  connect(task, &Thread::Task::SignalTaskEnd, &loop, &QEventLoop::quit);
+  connect(waiting_dialog, &QProgressDialog::canceled, &loop, &QEventLoop::quit);
+  loop.exec();
 }
 
 void KeyserverTab::contextMenuEvent(QContextMenuEvent* event) {

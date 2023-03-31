@@ -28,6 +28,8 @@
 
 #include "KeygenDialog.h"
 
+#include <qobject.h>
+
 #include "core/common/CoreCommonUtil.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyOpera.h"
@@ -52,6 +54,16 @@ KeyGenDialog::KeyGenDialog(QWidget* parent)
   } catch (...) {
     SPDLOG_ERROR("setting operation error: longer_expiration_date");
   }
+
+  bool use_pinentry_as_password_input_dialog = false;
+  try {
+    use_pinentry_as_password_input_dialog =
+        settings.lookup("general.use_pinentry_as_password_input_dialog");
+  } catch (...) {
+    SPDLOG_ERROR(
+        "setting operation error: use_pinentry_as_password_input_dialog");
+  }
+  use_pinentry_ = use_pinentry_as_password_input_dialog;
 
   max_date_time_ = longer_expiration_date
                        ? QDateTime::currentDateTime().toLocalTime().addYears(30)
@@ -111,7 +123,8 @@ void KeyGenDialog::slot_key_gen_accept() {
     error_stream << "  " << _("Expiration time too long.") << std::endl;
   }
 
-  if (passphrase_edit_->isEnabled() && passphrase_edit_->text().size() == 0) {
+  if (!use_pinentry_ && passphrase_edit_->isEnabled() &&
+      passphrase_edit_->text().size() == 0) {
     error_stream << "  " << _("Password is empty.") << std::endl;
   }
 
@@ -139,7 +152,7 @@ void KeyGenDialog::slot_key_gen_accept() {
 #endif
     }
 
-    if (!gen_key_info_->IsNoPassPhrase()) {
+    if (!use_pinentry_ && !gen_key_info_->IsNoPassPhrase()) {
       CoreCommonUtil::GetInstance()->SetTempCacheValue(
           "__key_passphrase", this->passphrase_edit_->text().toStdString());
     }
@@ -160,14 +173,14 @@ void KeyGenDialog::slot_key_gen_accept() {
 
     dialog->close();
 
-    if (!gen_key_info_->IsNoPassPhrase()) {
+    if (!use_pinentry_ && !gen_key_info_->IsNoPassPhrase()) {
       CoreCommonUtil::GetInstance()->ResetTempCacheValue("__key_passphrase");
     }
 
     SPDLOG_DEBUG("generate done");
 
     if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
-      auto* msg_box = new QMessageBox((QWidget*)this->parent());
+      auto* msg_box = new QMessageBox(qobject_cast<QWidget*>(this->parent()));
       msg_box->setAttribute(Qt::WA_DeleteOnClose);
       msg_box->setStandardButtons(QMessageBox::Ok);
       msg_box->setWindowTitle(_("Success"));
@@ -391,6 +404,7 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   expire_check_box_->setCheckState(Qt::Unchecked);
 
   passphrase_edit_->setEchoMode(QLineEdit::Password);
+  passphrase_edit_->setHidden(use_pinentry_);
 
   no_pass_phrase_check_box_ = new QCheckBox(this);
   no_pass_phrase_check_box_->setCheckState(Qt::Unchecked);
@@ -404,8 +418,9 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   vbox1->addWidget(new QLabel(QString(_("Never Expire")) + ": "), 3, 3);
   vbox1->addWidget(new QLabel(QString(_("KeySize (in Bit)")) + ": "), 4, 0);
   vbox1->addWidget(new QLabel(QString(_("Key Type")) + ": "), 5, 0);
-  vbox1->addWidget(new QLabel(QString(_("Password")) + ": "), 6, 0);
-  vbox1->addWidget(new QLabel(QString(_("Non Pass Phrase")) + ": "), 6, 3);
+  if (!use_pinentry_)
+    vbox1->addWidget(new QLabel(QString(_("Password")) + ": "), 6, 0);
+  vbox1->addWidget(new QLabel(QString(_("Non Pass Phrase"))), 6, 3);
 
   vbox1->addWidget(name_edit_, 0, 1, 1, 3);
   vbox1->addWidget(email_edit_, 1, 1, 1, 3);
@@ -414,7 +429,7 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   vbox1->addWidget(expire_check_box_, 3, 2);
   vbox1->addWidget(key_size_spin_box_, 4, 1);
   vbox1->addWidget(key_type_combo_box_, 5, 1);
-  vbox1->addWidget(passphrase_edit_, 6, 1);
+  if (!use_pinentry_) vbox1->addWidget(passphrase_edit_, 6, 1);
   vbox1->addWidget(no_pass_phrase_check_box_, 6, 2);
 
   auto basicInfoGroupBox = new QGroupBox();

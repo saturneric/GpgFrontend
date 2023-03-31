@@ -225,10 +225,40 @@ class MainWindow : public GeneralMainWindow {
   void slot_append_selected_keys();
 
   /**
+   * @brief
+   *
+   */
+  void slot_append_keys_create_datetime();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_append_keys_expire_datetime();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_append_keys_fingerprint();
+
+  /**
    * @details Copy the mailaddress of selected key to clipboard.
    * Method for keylists contextmenu.
    */
   void slot_copy_mail_address_to_clipboard();
+
+  /**
+   * @details Copy the mailaddress of selected key to clipboard.
+   * Method for keylists contextmenu.
+   */
+  void slot_copy_default_uid_to_clipboard();
+
+  /**
+   * @details Copy the mailaddress of selected key to clipboard.
+   * Method for keylists contextmenu.
+   */
+  void slot_copy_key_id_to_clipboard();
 
   /**
    * @details Open key management dialog.
@@ -376,8 +406,15 @@ class MainWindow : public GeneralMainWindow {
 
   QAction*
       append_selected_keys_act_{};  ///< Action to append selected keys to edit
+  QAction* append_key_fingerprint_to_editor_act_{};  ///<
+  QAction* append_key_create_date_to_editor_act_{};  ///<
+  QAction* append_key_expire_date_to_editor_act_{};  ///<
+
   QAction* copy_mail_address_to_clipboard_act_{};  ///< Action to copy mail to
                                                    ///< clipboard
+  QAction* copy_key_id_to_clipboard_act_{};        ///<
+  QAction* copy_key_default_uid_to_clipboard_act_{};  ///<
+
   QAction* open_key_management_act_{};   ///< Action to open key management
   QAction* copy_act_{};                  ///< Action to copy text
   QAction* quote_act_{};                 ///< Action to quote text

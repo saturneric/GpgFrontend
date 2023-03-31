@@ -26,12 +26,15 @@
  *
  */
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/posix_time/posix_time_io.hpp>
 #include <memory>
 #include <string>
 #include <utility>
 
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
+#include "core/GpgContext.h"
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -611,9 +614,86 @@ void MainWindow::slot_append_selected_keys() {
   auto exported = std::make_unique<ByteArray>();
   auto key_ids = m_key_list_->GetSelected();
 
-  GpgKeyImportExporter::GetInstance().ExportKeys(key_ids, exported);
+  if (key_ids->empty()) {
+    SPDLOG_ERROR("no key is selected");
+    return;
+  }
+
+  if (!GpgKeyImportExporter::GetInstance().ExportKeys(key_ids, exported)) {
+    QMessageBox::critical(this, _("Error"), _("Key Export Operation Failed."));
+    return;
+  }
   edit_->CurTextPage()->GetTextPage()->appendPlainText(
       QString::fromStdString(*exported));
+}
+
+void MainWindow::slot_append_keys_create_datetime() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    return;
+  }
+
+  auto key_ids = m_key_list_->GetSelected();
+
+  if (key_ids->empty()) {
+    SPDLOG_ERROR("no key is selected");
+    return;
+  }
+
+  auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
+  if (!key.IsGood()) {
+    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    return;
+  }
+
+  auto create_datetime_format_str =
+      boost::posix_time::to_iso_extended_string(key.GetCreateTime()) +
+      " (UTC) " + "\n";
+
+  edit_->CurTextPage()->GetTextPage()->appendPlainText(
+      QString::fromStdString(create_datetime_format_str));
+}
+
+void MainWindow::slot_append_keys_expire_datetime() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+    return;
+  }
+
+  auto key_ids = m_key_list_->GetSelected();
+
+  if (key_ids->empty()) {
+    SPDLOG_ERROR("no key is selected");
+    return;
+  }
+
+  auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
+  if (!key.IsGood()) {
+    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    return;
+  }
+
+  auto create_datetime_format_str =
+      boost::posix_time::to_iso_extended_string(key.GetCreateTime()) +
+      " (UTC) " + "\n";
+
+  edit_->CurTextPage()->GetTextPage()->appendPlainText(
+      QString::fromStdString(create_datetime_format_str));
+}
+
+void MainWindow::slot_append_keys_fingerprint() {
+  auto key_ids = m_key_list_->GetSelected();
+  if (key_ids->empty()) return;
+
+  auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
+  if (!key.IsGood()) {
+    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    return;
+  }
+
+  auto fingerprint_format_str =
+      beautify_fingerprint(key.GetFingerprint()) + "\n";
+
+  edit_->CurTextPage()->GetTextPage()->appendPlainText(
+      QString::fromStdString(fingerprint_format_str));
 }
 
 void MainWindow::slot_copy_mail_address_to_clipboard() {
@@ -627,6 +707,32 @@ void MainWindow::slot_copy_mail_address_to_clipboard() {
   }
   QClipboard* cb = QApplication::clipboard();
   cb->setText(QString::fromStdString(key.GetEmail()));
+}
+
+void MainWindow::slot_copy_default_uid_to_clipboard() {
+  auto key_ids = m_key_list_->GetSelected();
+  if (key_ids->empty()) return;
+
+  auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
+  if (!key.IsGood()) {
+    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    return;
+  }
+  QClipboard* cb = QApplication::clipboard();
+  cb->setText(QString::fromStdString(key.GetUIDs()->front().GetUID()));
+}
+
+void MainWindow::slot_copy_key_id_to_clipboard() {
+  auto key_ids = m_key_list_->GetSelected();
+  if (key_ids->empty()) return;
+
+  auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
+  if (!key.IsGood()) {
+    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    return;
+  }
+  QClipboard* cb = QApplication::clipboard();
+  cb->setText(QString::fromStdString(key.GetId()));
 }
 
 void MainWindow::slot_show_key_details() {
