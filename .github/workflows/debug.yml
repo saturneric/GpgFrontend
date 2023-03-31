@@ -36,6 +36,7 @@ jobs:
 
       - uses: actions/checkout@v3
         with:
+          lfs: 'true'
           submodules: recursive
 
       - name: Install Dependence (Linux)
@@ -145,25 +146,25 @@ jobs:
 
       - name: Get Short SHA of Commit
         id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{env.sha_short}}
           path: ${{github.workspace}}/build/release/*
         if: matrix.os == 'ubuntu-latest'
 
       - name: Upload Artifact(macOS)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{env.sha_short}}
           path: ${{github.workspace}}/build/release/*
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Upload Artifact(Windows)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{env.sha_short}}
           path: ${{github.workspace}}/build/release/*
         if: matrix.os == 'windows-latest'

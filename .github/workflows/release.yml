@@ -35,11 +35,12 @@ jobs:
 
       - uses: actions/checkout@v3
         with:
+          lfs: 'true'
           submodules: recursive
 
       - name: Get Short SHA of Commit
         id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Install Dependence (Linux)
         run: |
@@ -213,15 +214,15 @@ jobs:
           hdiutil convert ${{github.workspace}}/build/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
           codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
           mv ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg \
-            ${{github.workspace}}/build/artifactOut/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.dmg
+            ${{github.workspace}}/build/artifactOut/GpgFrontend-${{env.sha_short}}-x86_64.dmg
           mv ${{github.workspace}}/build/GpgFrontend.app.zip \
-            ${{github.workspace}}/build/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.zip
+            ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Notarize Release Build (macOS)
         run: |
           xcrun altool --notarize-app \
-          -f ${{github.workspace}}/build/GpgFrontend-${{steps.vars.outputs.sha_short}}-x86_64.zip \
+          -f ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip \
           --primary-bundle-id ${{secrets.GPGFRONTEND_XOCDE_APPID}} \
           -u ${{secrets.APPLE_DEVELOPER_ID}} \
           -p ${{secrets.APPLE_DEVELOPER_ID_SECRET}}
@@ -249,20 +250,20 @@ jobs:
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{env.sha_short}}
           path: ${{github.workspace}}/build/artifactOut/GpgFrontend*.AppImage*
         if: matrix.os == 'ubuntu-18.04'
 
       - name: Upload Artifact(macOS)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{env.sha_short}}
           path: ${{github.workspace}}/build/artifactOut/*
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Upload Artifact(Windows)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{env.sha_short}}
           path: ${{github.workspace}}/build/release/*
         if: matrix.os == 'windows-2019'

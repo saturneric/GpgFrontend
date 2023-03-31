@@ -46,6 +46,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
+          lfs: 'true'
           submodules: recursive
       
       # Initializes the CodeQL tools for scanning.
