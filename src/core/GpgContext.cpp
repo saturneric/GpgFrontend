@@ -43,6 +43,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "spdlog/spdlog.h"
 #include "thread/Task.h"
 
 #ifdef _WIN32
@@ -59,20 +60,12 @@ GpgContext::GpgContext(int channel)
  *  Set up gpgme-context, set paths to app-run path
  */
 GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
-  static bool _first = true;
-
-  if (_first) {
-    /* Initialize the locale environment. */
-    SPDLOG_DEBUG("locale: {}", setlocale(LC_CTYPE, nullptr));
-    info_.GpgMEVersion = gpgme_check_version(nullptr);
-    gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
-#ifdef LC_MESSAGES
-    gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
-#endif
-    _first = false;
-  }
-
   gpgme_ctx_t _p_ctx;
+
+  // get gpgme library version
+  info_.GpgMEVersion = gpgme_check_version(nullptr);
+
+  // create a new context
   check_gpg_error(gpgme_new(&_p_ctx));
   _ctx_ref = CtxRefHandler(_p_ctx);
 
@@ -84,6 +77,17 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
     assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
   }
 
+  // set context offline mode
+  SPDLOG_DEBUG("gpg context offline mode: {}", args_.offline_mode);
+  gpgme_set_offline(_ctx_ref.get(), args_.offline_mode ? 1 : 0);
+
+  // set option auto import missing key
+  // invalid at offline mode
+  SPDLOG_DEBUG("gpg context auto import missing key: {}", args_.offline_mode);
+  if (!args.offline_mode && args.auto_import_missing_key)
+    check_gpg_error(gpgme_set_ctx_flag(_ctx_ref.get(), "auto-key-import", "1"));
+
+  // get engine info
   auto engine_info = gpgme_ctx_get_engine_info(*this);
   // Check ENV before running
   bool check_passed = false, find_openpgp = false, find_gpgconf = false,
