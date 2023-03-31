@@ -419,12 +419,17 @@ if (APPLICATION_BUILD)
             
             # option for sandbox mode, still under test
             if(GPGFRONTEND_XOCDE_ENABLE_SANDBOX)
+                message(STATUS "Build Application With App Sandbox")
                 set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes")
                 add_custom_command(TARGET ${AppName} POST_BUILD
                     COMMAND /bin/cp -rf ${CMAKE_SOURCE_DIR}/resource/lfs/macOS/GnuPG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app/Contents/
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Copying Buddled GnuPG into App Bundle Resource")
+                set_target_properties(${AppName} PROPERTIES
+                    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/GpgFrontend.entitlements"
+                )
             else()
+                message(STATUS "Build Application Without App Sandbox")
                 set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "No")
             endif()
 
@@ -434,7 +439,6 @@ if (APPLICATION_BUILD)
                     XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep --entitlements ${CMAKE_SOURCE_DIR}/resource/plist/entitlement.plist"
                     XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "${CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX}"
                     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "Yes"
-                    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/GpgFrontend.entitlements"
                     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}"
                     )
         else ()
