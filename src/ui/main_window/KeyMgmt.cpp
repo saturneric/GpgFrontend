@@ -91,7 +91,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
 
   setCentralWidget(key_list_);
   key_list_->SetDoubleClickedAction([this](const GpgKey& key, QWidget* parent) {
-    new KeyDetailsDialog(key, parent);
+    new KeyDetailsDialog(key, this);
   });
 
   key_list_->SlotRefresh();
@@ -109,8 +109,10 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   this->statusBar()->show();
 
   setWindowTitle(_("KeyPair Management"));
+
   key_list_->AddMenuAction(generate_subkey_act_);
   key_list_->AddMenuAction(delete_selected_keys_act_);
+  key_list_->AddSeparator();
   key_list_->AddMenuAction(show_key_details_act_);
 
   connect(this, &KeyMgmt::SignalKeyStatusUpdated, SignalStation::GetInstance(),
@@ -163,11 +165,23 @@ void KeyMgmt::create_actions() {
     CommonUtils::GetInstance()->SlotImportKeyFromClipboard(this);
   });
 
+  // get settings
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  // read settings
+  bool forbid_all_gnupg_connection = false;
+  try {
+    forbid_all_gnupg_connection =
+        settings.lookup("network.forbid_all_gnupg_connection");
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
+  }
+
   import_key_from_key_server_act_ = new QAction(_("Keyserver"), this);
   import_key_from_key_server_act_->setIcon(
       QIcon(":import_key_from_server.png"));
   import_key_from_key_server_act_->setToolTip(
       _("Import New Key From Keyserver"));
+  import_key_from_key_server_act_->setDisabled(forbid_all_gnupg_connection);
   connect(import_key_from_key_server_act_, &QAction::triggered, this, [&]() {
     CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(this);
   });
@@ -316,7 +330,7 @@ void KeyMgmt::SlotShowKeyDetails() {
     return;
   }
 
-  new KeyDetailsDialog(key);
+  new KeyDetailsDialog(key, this);
 }
 
 void KeyMgmt::SlotExportKeyToKeyPackage() {
