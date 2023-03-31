@@ -30,11 +30,13 @@ jobs:
 
       - uses: actions/checkout@v3
         with:
+          lfs: 'true'
           submodules: 'recursive'
 
       - name: Get Short SHA of Commit
         id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        
 
       - name: Install Dependence (Ubuntu 20.04)
         run: |
@@ -91,5 +93,5 @@ jobs:
       - name: Upload Artifact(Linux DEB)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{steps.vars.outputs.sha_short}}-deb-${{matrix.os}}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{env.sha_short}}-deb-${{matrix.os}}
           path: ${{github.workspace}}/build-deb-${{matrix.os}}/gpgfrontend*.deb*
