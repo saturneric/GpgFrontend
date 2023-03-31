@@ -102,7 +102,7 @@ if (APPLICATION_BUILD)
         if (APPLE)
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
-            file(COPY ${CMAKE_SOURCE_DIR}/resource/gpgfrontend DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+            file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/app-image/gpgfrontend DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share)
         else ()
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
@@ -171,7 +171,7 @@ endif ()
 if (APPLICATION_BUILD)
     # Copy Resource Files
     file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+    file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/TRANSLATORS DESTINATION ${RESOURCE_OUTPUT_DIRECTORY} FOLLOW_SYMLINK_CHAIN)
     if (GPG_STANDALONE_MODE)
         file(COPY ${CMAKE_SOURCE_DIR}/resource/gpg1.4 DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
@@ -514,9 +514,9 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
                 DESTINATION /usr/share/metainfo/)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/desktop/
                 DESTINATION /usr/share/applications/)
-        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/pixmaps/
+        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/
                 DESTINATION /usr/share/pixmaps/)
-        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/hicolor/
+        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/
                 DESTINATION /usr/share/icons/hicolor/)
     endif ()
     if (MULTI_LANG_SUPPORT)
