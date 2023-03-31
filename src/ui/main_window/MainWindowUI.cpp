@@ -27,6 +27,7 @@
  */
 
 #include "MainWindow.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "ui/UserInterfaceUtils.h"
 
@@ -251,11 +252,23 @@ void MainWindow::create_actions() {
     CommonUtils::GetInstance()->SlotImportKeyFromClipboard(this);
   });
 
+  // get settings
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  // read settings
+  bool forbid_all_gnupg_connection = false;
+  try {
+    forbid_all_gnupg_connection =
+        settings.lookup("network.forbid_all_gnupg_connection");
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
+  }
+
   import_key_from_key_server_act_ = new QAction(_("Keyserver"), this);
   import_key_from_key_server_act_->setIcon(
       QIcon(":import_key_from_server.png"));
   import_key_from_key_server_act_->setToolTip(
       _("Import New Key From Keyserver"));
+  import_key_from_key_server_act_->setDisabled(forbid_all_gnupg_connection);
   connect(import_key_from_key_server_act_, &QAction::triggered, this, [&]() {
     CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(this);
   });
@@ -353,22 +366,53 @@ void MainWindow::create_actions() {
   connect(start_wizard_act_, &QAction::triggered, this,
           &MainWindow::slot_start_wizard);
 
-  /* Popup-Menu-Action for KeyList
-   */
-  append_selected_keys_act_ = new QAction(_("Append To Text Editor"), this);
+  append_selected_keys_act_ =
+      new QAction(_("Append Public Key to Editor"), this);
   append_selected_keys_act_->setToolTip(
-      _("Append The Selected Public Key To Text in Editor"));
+      _("Append selected Keypair's Public Key to Editor"));
   connect(append_selected_keys_act_, &QAction::triggered, this,
           &MainWindow::slot_append_selected_keys);
 
+  append_key_create_date_to_editor_act_ =
+      new QAction(_("Append Create DateTime to Editor"), this);
+  append_key_create_date_to_editor_act_->setToolTip(
+      _("Append selected Key's creation date and time to Editor"));
+  connect(append_key_create_date_to_editor_act_, &QAction::triggered, this,
+          &MainWindow::slot_append_keys_create_datetime);
+
+  append_key_expire_date_to_editor_act_ =
+      new QAction(_("Append Expire DateTime to Editor"), this);
+  append_key_expire_date_to_editor_act_->setToolTip(
+      _("Append selected Key's expiration date and time to Editor"));
+  connect(append_key_expire_date_to_editor_act_, &QAction::triggered, this,
+          &MainWindow::slot_append_keys_expire_datetime);
+
+  append_key_fingerprint_to_editor_act_ =
+      new QAction(_("Append Fingerprint to Editor"), this);
+  append_key_expire_date_to_editor_act_->setToolTip(
+      _("Append selected Key's Fingerprint to Editor"));
+  connect(append_key_fingerprint_to_editor_act_, &QAction::triggered, this,
+          &MainWindow::slot_append_keys_fingerprint);
+
   copy_mail_address_to_clipboard_act_ = new QAction(_("Copy Email"), this);
   copy_mail_address_to_clipboard_act_->setToolTip(
-      _("Copy selected Email to clipboard"));
+      _("Copy selected Keypair's to clipboard"));
   connect(copy_mail_address_to_clipboard_act_, &QAction::triggered, this,
           &MainWindow::slot_copy_mail_address_to_clipboard);
 
-  // TODO: find central place for shared actions, to avoid code-duplication with
-  // keymgmt.cpp
+  copy_key_default_uid_to_clipboard_act_ =
+      new QAction(_("Copy Default UID"), this);
+  copy_key_default_uid_to_clipboard_act_->setToolTip(
+      _("Copy selected Keypair's default UID to clipboard"));
+  connect(copy_key_default_uid_to_clipboard_act_, &QAction::triggered, this,
+          &MainWindow::slot_copy_default_uid_to_clipboard);
+
+  copy_key_id_to_clipboard_act_ = new QAction(_("Copy Key ID"), this);
+  copy_key_id_to_clipboard_act_->setToolTip(
+      _("Copy selected Keypair's ID to clipboard"));
+  connect(copy_key_id_to_clipboard_act_, &QAction::triggered, this,
+          &MainWindow::slot_copy_key_id_to_clipboard);
+
   show_key_details_act_ = new QAction(_("Show Key Details"), this);
   show_key_details_act_->setToolTip(_("Show Details for this Key"));
   connect(show_key_details_act_, &QAction::triggered, this,
