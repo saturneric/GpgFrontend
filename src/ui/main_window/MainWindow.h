@@ -92,6 +92,11 @@ class MainWindow : public GeneralMainWindow {
    */
   void SignalLoaded();
 
+  /**
+   * @brief
+   */
+  void SignalRestartApplication(int);
+
  public slots:
 
   /**
@@ -400,6 +405,7 @@ class MainWindow : public GeneralMainWindow {
   QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double line
                                              ///<  breaks
 
+  QAction* gnupg_controller_open_act_{};     ///<
   QAction* clean_gpg_password_cache_act_{};  ///<
   QAction* reload_components_act_{};         ///<
   QAction* restart_components_act_{};        ///<

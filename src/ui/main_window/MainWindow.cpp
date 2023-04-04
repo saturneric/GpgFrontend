@@ -28,6 +28,7 @@
 
 #include "MainWindow.h"
 
+#include "core/GpgConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "ui/SignalStation.h"
@@ -74,6 +75,10 @@ void MainWindow::Init() noexcept {
 
     // show menu bar
     this->menuBar()->show();
+
+    connect(this, &MainWindow::SignalRestartApplication,
+            SignalStation::GetInstance(),
+            &SignalStation::SignalRestartApplication);
 
     connect(edit_->tab_widget_, &QTabWidget::currentChanged, this,
             &MainWindow::slot_disable_tab_actions);

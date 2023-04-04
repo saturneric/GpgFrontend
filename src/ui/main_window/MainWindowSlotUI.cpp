@@ -127,7 +127,7 @@ void MainWindow::slot_open_settings_dialog() {
     if (get_restart_needed()) {
       if (edit_->MaybeSaveAnyTab()) {
         save_settings();
-        qApp->exit(get_restart_needed());
+        emit SignalRestartApplication(get_restart_needed());
       }
     }
   });
