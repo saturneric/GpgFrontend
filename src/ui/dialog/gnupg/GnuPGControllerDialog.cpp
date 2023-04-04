@@ -56,6 +56,13 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   ui_->customKeyDatabasePathSelectButton->setText(
       _("Select Key Database Path"));
 
+  // tips
+  ui_->customGnuPGPathTipsLabel->setText(
+      _("Tips: please select a directroy where \"gpgconf\" is located in."));
+  ui_->restartTipsLabel->setText(
+      _("Tips: notice that modify any of these settings will cause an "
+        "Application restart."));
+
   // announce main window
   connect(this, &GnuPGControllerDialog::SignalRestartNeeded,
           SignalStation::GetInstance(),
@@ -91,27 +98,39 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
         SPDLOG_DEBUG("key databse path selected: {}",
                      selected_custom_key_database_path.toStdString());
 
-        if (!selected_custom_key_database_path.isEmpty()) {
-          auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-          auto& general = settings["general"];
-
-          // update settings
-          if (!general.exists("custom_key_database_path"))
-            general.add("custom_key_database_path",
-                        libconfig::Setting::TypeString) =
-                selected_custom_key_database_path.toStdString();
-          else {
-            general["custom_key_database_path"] =
-                selected_custom_key_database_path.toStdString();
-          }
-
-          // announce the restart
-          this->slot_set_restart_needed(DEEP_RESTART_CODE);
-
-          // update ui
-          this->slot_update_custom_key_database_path_label(
-              this->ui_->keyDatabseUseCustomCheckBox->checkState());
+        if (selected_custom_key_database_path.isEmpty()) {
+          QMessageBox::critical(this, _("Illegal GnuPG Key Database Path"),
+                                _("Target Path is empty."));
+          return;
         }
+
+        QFileInfo dir_info(selected_custom_key_database_path);
+        if (!dir_info.exists() || !dir_info.isReadable() || !dir_info.isDir()) {
+          QMessageBox::critical(
+              this, _("Illegal GnuPG Key Database Path"),
+              _("Target Path is not an exists readable directory."));
+          return;
+        }
+
+        auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+        auto& general = settings["general"];
+
+        // update settings
+        if (!general.exists("custom_key_database_path"))
+          general.add("custom_key_database_path",
+                      libconfig::Setting::TypeString) =
+              selected_custom_key_database_path.toStdString();
+        else {
+          general["custom_key_database_path"] =
+              selected_custom_key_database_path.toStdString();
+        }
+
+        // announce the restart
+        this->slot_set_restart_needed(DEEP_RESTART_CODE);
+
+        // update ui
+        this->slot_update_custom_key_database_path_label(
+            this->ui_->keyDatabseUseCustomCheckBox->checkState());
       });
 
   connect(
@@ -124,27 +143,59 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
         SPDLOG_DEBUG("gnupg install path selected: {}",
                      selected_custom_gnupg_install_path.toStdString());
 
-        if (!selected_custom_gnupg_install_path.isEmpty()) {
-          auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-          auto& general = settings["general"];
-
-          // update settings
-          if (!general.exists("custom_gnupg_install_path"))
-            general.add("custom_gnupg_install_path",
-                        libconfig::Setting::TypeString) =
-                selected_custom_gnupg_install_path.toStdString();
-          else {
-            general["custom_gnupg_install_path"] =
-                selected_custom_gnupg_install_path.toStdString();
-          }
-
-          // announce the restart
-          this->slot_set_restart_needed(DEEP_RESTART_CODE);
-
-          // update ui
-          this->slot_update_custom_gnupg_install_path_label(
-              this->ui_->useCustomGnuPGInstallPathCheckBox->checkState());
+        if (selected_custom_gnupg_install_path.isEmpty()) {
+          QMessageBox::critical(this, _("Illegal GnuPG Path"),
+                                _("Target Path is empty."));
+          return;
         }
+
+        QFileInfo dir_info(selected_custom_gnupg_install_path);
+        if (!dir_info.exists() || !dir_info.isReadable() || !dir_info.isDir()) {
+          QMessageBox::critical(
+              this, _("Illegal GnuPG Path"),
+              _("Target Path is not an exists readable directory."));
+          return;
+        }
+
+        QDir dir(selected_custom_gnupg_install_path);
+        if (!dir.isAbsolute()) {
+          QMessageBox::critical(this, _("Illegal GnuPG Path"),
+                                _("Target Path is not an absolute path."));
+        }
+#ifdef WINDOWS
+        QFileInfo gpgconf_info(selected_custom_gnupg_install_path +
+                               "/gpgconf.exe");
+#else
+        QFileInfo gpgconf_info(selected_custom_gnupg_install_path + "/gpgconf");
+#endif
+
+        if (!gpgconf_info.exists() || !gpgconf_info.isExecutable() ||
+            !gpgconf_info.isFile()) {
+          QMessageBox::critical(
+              this, _("Illegal GnuPG Path"),
+              _("Target Path contains no \"gpgconf\" executable."));
+          return;
+        }
+
+        auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+        auto& general = settings["general"];
+
+        // update settings
+        if (!general.exists("custom_gnupg_install_path"))
+          general.add("custom_gnupg_install_path",
+                      libconfig::Setting::TypeString) =
+              selected_custom_gnupg_install_path.toStdString();
+        else {
+          general["custom_gnupg_install_path"] =
+              selected_custom_gnupg_install_path.toStdString();
+        }
+
+        // announce the restart
+        this->slot_set_restart_needed(DEEP_RESTART_CODE);
+
+        // update ui
+        this->slot_update_custom_gnupg_install_path_label(
+            this->ui_->useCustomGnuPGInstallPathCheckBox->checkState());
       });
 
   connect(ui_->usePinentryAsPasswordInputDialogCheckBox,
@@ -303,6 +354,8 @@ void GnuPGControllerDialog::set_settings() {
 
   this->slot_update_custom_gnupg_install_path_label(
       ui_->useCustomGnuPGInstallPathCheckBox->checkState());
+
+  this->slot_set_restart_needed(false);
 }
 
 void GnuPGControllerDialog::apply_settings() {
