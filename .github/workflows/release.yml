@@ -46,17 +46,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-          sudo apt-get -y install gcc-8 g++-8 ninja-build
+          sudo apt-get -y install gcc g++ ninja-build
           sudo apt-get -y install libconfig++-dev libarchive-dev libssl-dev
           sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
           sudo apt-get -y install libgcrypt11-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-image0
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-*
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 8
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 8
-          sudo update-alternatives --set gcc "/usr/bin/gcc-8"
-          sudo update-alternatives --set g++ "/usr/bin/g++-8"
-        if: matrix.os == 'ubuntu-18.04'
+        if: matrix.os == 'ubuntu-20.04'
 
       - name: Install Boost (Linux)
         uses: MarkusJx/install-boost@v2.4.1
@@ -65,15 +61,15 @@ jobs:
             # REQUIRED: Specify the required boost version
             # A list of supported versions can be found here:
             # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
-            boost_version: 1.78.0
+            boost_version: 1.81.0
             # OPTIONAL: Specify a platform version
-            platform_version: 18.04
+            platform_version: 20.04
             # OPTIONAL: Specify an architecture
             arch: x86
 
             # NOTE: If a boost version matching all requirements cannot be found,
             # this build step will fail
-        if: matrix.os == 'ubuntu-18.04'
+        if: matrix.os == 'ubuntu-20.04'
 
       - name: Codesign Configuration (macOS)
         run: |
@@ -101,7 +97,7 @@ jobs:
         with:
           path: ../Qt
           key: ${{ runner.os }}-qt-cache-6
-        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if:  matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Install Qt6 (macOS)
         uses: jurplel/install-qt-action@v3
@@ -109,7 +105,7 @@ jobs:
           version: '6.4.2'
           modules: 'qt5compat'
           cache: ${{ steps.cache-qt.outputs.cache-hit }}
-        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if: matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Install Dependence (macOS)
         run: |
@@ -126,7 +122,7 @@ jobs:
           ./configure --enable-maintainer-mode && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-18.04'
+        if: matrix.os == 'ubuntu-20.04'
 
       - name: Build assuan (Linux)
         run: |
@@ -135,7 +131,7 @@ jobs:
           ./configure --enable-maintainer-mode && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-18.04'
+        if: matrix.os == 'ubuntu-20.04'
 
       - name: Build GpgME (Linux)
         run: |
@@ -144,21 +140,7 @@ jobs:
           ./configure --enable-maintainer-mode --enable-languages=cpp && make -j2
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-18.04'
-
-      - name: Cache Qt
-        id: cache-qt
-        uses: actions/cache@v3
-        with:
-          path: ../Qt
-          key: ${{ runner.os }}-QtCache
-        if: matrix.os == 'ubuntu-18.04'
-
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v2
-        with:
-          cache: ${{ steps.cache-qt.outputs.cache-hit }}
-        if: matrix.os == 'ubuntu-18.04'
+        if: matrix.os == 'ubuntu-20.04'
 
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
@@ -182,7 +164,7 @@ jobs:
         run: |
           cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBOOST_ROOT=${{steps.install-boost.outputs.BOOST_ROOT}}
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
-        if: matrix.os == 'ubuntu-18.04'
+        if: matrix.os == 'ubuntu-20.04'
 
       - name: Build & Export GpgFrontend (macOS)
         # Build your GpgFrontend with the given configuration
@@ -235,7 +217,7 @@ jobs:
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
           ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/release/gpgfrontend/usr/share/applications/*.desktop -appimage
-        if: matrix.os == 'ubuntu-18.04'
+        if: matrix.os == 'ubuntu-20.04'
 
       - name: Configure CMake & Build Binary(Windows)
         shell: msys2 {0}
@@ -252,7 +234,7 @@ jobs:
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{env.sha_short}}
           path: ${{github.workspace}}/build/artifactOut/GpgFrontend*.AppImage*
-        if: matrix.os == 'ubuntu-18.04'
+        if: matrix.os == 'ubuntu-20.04'
 
       - name: Upload Artifact(macOS)
         uses: actions/upload-artifact@master
