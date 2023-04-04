@@ -125,15 +125,22 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label">
+           <widget class="QLabel" name="customGnuPGPathTipsLabel">
             <property name="text">
-             <string>Tips: please select a directroy where gpgconf is located.</string>
+             <string>Tips: please select a directroy where &quot;gpgconf&quot; is located in.</string>
             </property>
            </widget>
           </item>
          </layout>
         </item>
        </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="restartTipsLabel">
+       <property name="text">
+        <string>Tips: notice that modify any of these settings will cause an Application restart.</string>
+       </property>
       </widget>
      </item>
      <item>
