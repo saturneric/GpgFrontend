@@ -54,10 +54,10 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake autoconf automake texinfo gettext openssl@1.1
+          brew install cmake autoconf automake texinfo gettext openssl@3
           brew install boost ninja libarchive libconfig gpgme
           brew unlink gettext && brew link --force gettext
-          brew link openssl@1.1 --force
+          brew link openssl@3 --force
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Build gpg-error (Linux)
