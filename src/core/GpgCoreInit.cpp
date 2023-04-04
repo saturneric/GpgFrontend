@@ -32,6 +32,8 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+#include <filesystem>
+
 #include "GpgFunctionObject.h"
 #include "core/GpgContext.h"
 #include "core/function/GlobalSettingStation.h"
@@ -150,6 +152,34 @@ void init_gpgfrontend_core() {
   SPDLOG_DEBUG("core loaded custom key databse path: {}",
                custom_key_database_path);
 
+  bool use_custom_gnupg_install_path = false;
+  try {
+    use_custom_gnupg_install_path =
+        settings.lookup("general.use_custom_gnupg_install_path");
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: use_custom_gnupg_install_path");
+  }
+
+  // read from settings file
+  std::filesystem::path custom_gnupg_install_path;
+  try {
+    custom_gnupg_install_path = std::filesystem::path(static_cast<std::string>(
+        settings.lookup("general.custom_gnupg_install_path")));
+
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: custom_gnupg_install_path");
+  }
+
+  // check gpgconf path
+  if (!custom_gnupg_install_path.is_absolute()) {
+    use_custom_gnupg_install_path = false;
+    SPDLOG_ERROR("core loaded custom gpgconf path error: {}",
+                 custom_gnupg_install_path.u8string());
+  } else {
+    SPDLOG_DEBUG("core loaded custom gpgconf path: {}",
+                 custom_gnupg_install_path.u8string());
+  }
+
   // init default channel
   auto& default_ctx = GpgFrontend::GpgContext::CreateInstance(
       GPGFRONTEND_DEFAULT_CHANNEL, [=]() -> std::unique_ptr<ChannelObject> {
@@ -163,13 +193,19 @@ void init_gpgfrontend_core() {
         args.offline_mode = forbid_all_gnupg_connection;
         args.auto_import_missing_key = auto_import_missing_key;
 
+        if (use_custom_gnupg_install_path) {
+          args.custom_gpgconf = true;
+          args.custom_gpgconf_path =
+              (custom_gnupg_install_path / "gpgconf").u8string();
+        }
+
         return std::unique_ptr<ChannelObject>(new GpgContext(args));
       });
 
   // exit if failed
   if (!default_ctx.good()) {
     SPDLOG_ERROR("default gpgme context init error, exit.");
-    QCoreApplication::exit();
+    return;
   };
 
   // async init no-ascii channel
