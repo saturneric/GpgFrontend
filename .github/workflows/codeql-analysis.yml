@@ -97,7 +97,6 @@ jobs:
           version: '6.4.2'
           cache: 'true'
           modules: 'qt5compat'
-          cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
       - name: Configure CMake && Build GpgFrontend 
         run: |
