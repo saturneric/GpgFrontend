@@ -144,6 +144,12 @@ class CommonUtils : public QWidget {
    */
   static CommonUtils* GetInstance();
 
+  /**
+   * @brief
+   *
+   */
+  bool isApplicationNeedRestart();
+
  signals:
   /**
    * @brief
@@ -174,6 +180,12 @@ class CommonUtils : public QWidget {
    *
    */
   void SignalUserInputPassphraseDone(QString passphrase);
+
+  /**
+   * @brief
+   *
+   */
+  void SignalRestartApplication(int);
 
  public slots:
   /**
@@ -235,6 +247,12 @@ class CommonUtils : public QWidget {
   void SlotExecuteCommand(const std::string& cmd, const QStringList& arguments,
                           const std::function<void(QProcess*)>& interact_func);
 
+  /**
+   * @brief
+   *
+   */
+  void SlotRestartApplication(int);
+
  private slots:
 
   /**
@@ -251,6 +269,7 @@ class CommonUtils : public QWidget {
 
  private:
   static std::unique_ptr<CommonUtils> instance_;  ///<
+  bool application_need_to_restart_at_once_ = false;
 };
 
 }  // namespace GpgFrontend::UI

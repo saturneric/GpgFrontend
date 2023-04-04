@@ -98,25 +98,6 @@ class GeneralTab : public QWidget {
    *
    */
   void slot_language_changed();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_update_custom_key_database_path_label(int state);
-
-  /**
-   * @brief
-   *
-   */
-  void slot_update_custom_gnupg_install_path_label(int state);
-
-  /**
-   * @brief
-   *
-   */
-  void slot_gnupg_stettings_changed();
-
 #endif
 };
 }  // namespace GpgFrontend::UI

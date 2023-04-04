@@ -91,6 +91,12 @@ class SignalStation : public QObject {
    *
    */
   void SignalNeedUserInputPassphrase();
+
+  /**
+   * @brief
+   *
+   */
+  void SignalRestartApplication(int);
 };
 
 }  // namespace GpgFrontend::UI
