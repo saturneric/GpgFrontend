@@ -1,1 +1,0 @@
-resource/lfs/** filter=lfs diff=lfs merge=lfs -text
