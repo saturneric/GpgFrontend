@@ -47,12 +47,17 @@ struct GpgContextInitArgs {
   // make no sense for gpg2
   bool independent_database = false;  ///<
   std::string db_path = {};
+
   bool gpg_alone = false;
   std::string gpg_path = {};
+
   bool test_mode = false;
   bool ascii = true;
   bool offline_mode = false;
   bool auto_import_missing_key = false;
+
+  bool custom_gpgconf = false;
+  std::string custom_gpgconf_path;
 
   GpgContextInitArgs() = default;
 };

@@ -55,17 +55,6 @@ GeneralTab::GeneralTab(QWidget* parent)
   ui_->importConfirmationCheckBox->setText(
       _("Import files dropped on the Key List without confirmation."));
 
-  ui_->gnupgDatabaseBox->setTitle(_("GnuPG"));
-  ui_->asciiModeCheckBox->setText(_("No ASCII Mode"));
-  ui_->usePinentryAsPasswordInputDialogCheckBox->setText(
-      _("Use Pinentry as Password Input Dialog"));
-  ui_->useCustomGnuPGInstallPathCheckBox->setText(_("Use Custom GnuPG"));
-  ui_->useCustomGnuPGInstallPathButton->setText(_("Select GnuPG Path"));
-  ui_->keyDatabseUseCustomCheckBox->setText(
-      _("Use Custom GnuPG Key Database Path"));
-  ui_->customKeyDatabasePathSelectButton->setText(
-      _("Select Key Database Path"));
-
   ui_->langBox->setTitle(_("Language"));
   ui_->langNoteLabel->setText(
       "<b>" + QString(_("NOTE")) + _(": ") + "</b>" +
@@ -80,101 +69,6 @@ GeneralTab::GeneralTab(QWidget* parent)
           this, &GeneralTab::slot_language_changed);
 #endif
 
-  connect(ui_->keyDatabseUseCustomCheckBox, &QCheckBox::stateChanged, this,
-          [=](int state) {
-            ui_->customKeyDatabasePathSelectButton->setDisabled(
-                state != Qt::CheckState::Checked);
-            // announce the restart
-            this->slot_gnupg_stettings_changed();
-          });
-
-  connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::stateChanged,
-          this, [=](int state) {
-            ui_->useCustomGnuPGInstallPathButton->setDisabled(
-                state != Qt::CheckState::Checked);
-            // announce the restart
-            this->slot_gnupg_stettings_changed();
-          });
-
-  connect(ui_->keyDatabseUseCustomCheckBox, &QCheckBox::stateChanged, this,
-          &GeneralTab::slot_update_custom_key_database_path_label);
-
-  connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::stateChanged,
-          this, &GeneralTab::slot_update_custom_gnupg_install_path_label);
-
-  connect(
-      ui_->customKeyDatabasePathSelectButton, &QPushButton::clicked, this,
-      [=]() {
-        QString selected_custom_key_database_path =
-            QFileDialog::getExistingDirectory(
-                this, _("Open Directory"), {},
-                QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-
-        SPDLOG_DEBUG("key databse path selected: {}",
-                     selected_custom_key_database_path.toStdString());
-
-        if (!selected_custom_key_database_path.isEmpty()) {
-          auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-          auto& general = settings["general"];
-
-          // update settings
-          if (!general.exists("custom_key_database_path"))
-            general.add("custom_key_database_path",
-                        libconfig::Setting::TypeString) =
-                selected_custom_key_database_path.toStdString();
-          else {
-            general["custom_key_database_path"] =
-                selected_custom_key_database_path.toStdString();
-          }
-
-          // announce the restart
-          this->slot_gnupg_stettings_changed();
-
-          // update ui
-          this->slot_update_custom_key_database_path_label(
-              this->ui_->keyDatabseUseCustomCheckBox->checkState());
-        }
-      });
-
-  connect(
-      ui_->useCustomGnuPGInstallPathButton, &QPushButton::clicked, this, [=]() {
-        QString selected_custom_gnupg_install_path =
-            QFileDialog::getExistingDirectory(
-                this, _("Open Directory"), {},
-                QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-
-        SPDLOG_DEBUG("gnupg install path selected: {}",
-                     selected_custom_gnupg_install_path.toStdString());
-
-        if (!selected_custom_gnupg_install_path.isEmpty()) {
-          auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-          auto& general = settings["general"];
-
-          // update settings
-          if (!general.exists("custom_gnupg_install_path"))
-            general.add("custom_gnupg_install_path",
-                        libconfig::Setting::TypeString) =
-                selected_custom_gnupg_install_path.toStdString();
-          else {
-            general["custom_gnupg_install_path"] =
-                selected_custom_gnupg_install_path.toStdString();
-          }
-
-          // announce the restart
-          this->slot_gnupg_stettings_changed();
-
-          // update ui
-          this->slot_update_custom_gnupg_install_path_label(
-              this->ui_->useCustomGnuPGInstallPathCheckBox->checkState());
-        }
-      });
-
-  connect(ui_->usePinentryAsPasswordInputDialogCheckBox,
-          &QCheckBox::stateChanged, this, [=](int state) {
-            // announce the restart
-            this->slot_gnupg_stettings_changed();
-          });
-
   SetSettings();
 }
 
@@ -185,6 +79,7 @@ GeneralTab::GeneralTab(QWidget* parent)
  **********************************/
 void GeneralTab::SetSettings() {
   auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+
   try {
     bool save_key_checked = settings.lookup("general.save_key_checked");
     if (save_key_checked)
@@ -236,50 +131,6 @@ void GeneralTab::SetSettings() {
   } catch (...) {
     SPDLOG_ERROR("setting operation error: confirm_import_keys");
   }
-
-  try {
-    bool non_ascii_when_export =
-        settings.lookup("general.non_ascii_when_export");
-    SPDLOG_DEBUG("non_ascii_when_export: {}", non_ascii_when_export);
-    if (non_ascii_when_export)
-      ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: non_ascii_when_export");
-  }
-
-  try {
-    bool use_custom_key_database_path =
-        settings.lookup("general.use_custom_key_database_path");
-    if (use_custom_key_database_path)
-      ui_->keyDatabseUseCustomCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: use_custom_key_database_path");
-  }
-
-  this->slot_update_custom_key_database_path_label(
-      ui_->keyDatabseUseCustomCheckBox->checkState());
-
-  try {
-    bool use_custom_gnupg_install_path =
-        settings.lookup("general.use_custom_gnupg_install_path");
-    if (use_custom_gnupg_install_path)
-      ui_->useCustomGnuPGInstallPathCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: use_custom_gnupg_install_path");
-  }
-
-  try {
-    bool use_pinentry_as_password_input_dialog =
-        settings.lookup("general.use_pinentry_as_password_input_dialog");
-    if (use_pinentry_as_password_input_dialog)
-      ui_->usePinentryAsPasswordInputDialogCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    SPDLOG_ERROR(
-        "setting operation error: use_pinentry_as_password_input_dialog");
-  }
-
-  this->slot_update_custom_gnupg_install_path_label(
-      ui_->useCustomGnuPGInstallPathCheckBox->checkState());
 }
 
 /***********************************
@@ -319,13 +170,6 @@ void GeneralTab::ApplySettings() {
         ui_->saveCheckedKeysCheckBox->isChecked();
   }
 
-  if (!general.exists("non_ascii_when_export"))
-    general.add("non_ascii_when_export", libconfig::Setting::TypeBoolean) =
-        ui_->asciiModeCheckBox->isChecked();
-  else {
-    general["non_ascii_when_export"] = ui_->asciiModeCheckBox->isChecked();
-  }
-
 #ifdef MULTI_LANG_SUPPORT
   if (!general.exists("lang"))
     general.add("lang", libconfig::Setting::TypeBoolean) =
@@ -343,109 +187,10 @@ void GeneralTab::ApplySettings() {
     general["confirm_import_keys"] =
         ui_->importConfirmationCheckBox->isChecked();
   }
-
-  if (!general.exists("use_custom_key_database_path"))
-    general.add("use_custom_key_database_path",
-                libconfig::Setting::TypeBoolean) =
-        ui_->keyDatabseUseCustomCheckBox->isChecked();
-  else {
-    general["use_custom_key_database_path"] =
-        ui_->keyDatabseUseCustomCheckBox->isChecked();
-  }
-
-  if (!general.exists("use_custom_gnupg_install_path"))
-    general.add("use_custom_gnupg_install_path",
-                libconfig::Setting::TypeBoolean) =
-        ui_->useCustomGnuPGInstallPathCheckBox->isChecked();
-  else {
-    general["use_custom_gnupg_install_path"] =
-        ui_->useCustomGnuPGInstallPathCheckBox->isChecked();
-  }
-
-  if (!general.exists("use_pinentry_as_password_input_dialog"))
-    general.add("use_pinentry_as_password_input_dialog",
-                libconfig::Setting::TypeBoolean) =
-        ui_->usePinentryAsPasswordInputDialogCheckBox->isChecked();
-  else {
-    general["use_pinentry_as_password_input_dialog"] =
-        ui_->usePinentryAsPasswordInputDialogCheckBox->isChecked();
-  }
 }
 
 #ifdef MULTI_LANG_SUPPORT
 void GeneralTab::slot_language_changed() { emit SignalRestartNeeded(true); }
 #endif
-
-void GeneralTab::slot_update_custom_key_database_path_label(int state) {
-  if (state != Qt::CheckState::Checked) {
-    ui_->currentKeyDatabasePathLabel->setText(QString::fromStdString(
-        GpgContext::GetInstance().GetInfo(false).DatabasePath));
-
-    // hide label (not necessary to show the default path)
-    this->ui_->currentKeyDatabasePathLabel->setHidden(true);
-  } else {
-    // read from settings file
-    std::string custom_key_database_path;
-    try {
-      auto& settings =
-          GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
-      custom_key_database_path = static_cast<std::string>(
-          settings.lookup("general.custom_key_database_path"));
-
-    } catch (...) {
-      SPDLOG_ERROR("setting operation error: custom_key_database_path");
-    }
-
-    SPDLOG_DEBUG("selected_custom_key_database_path from settings: {}",
-                 custom_key_database_path);
-
-    // set label value
-    if (!custom_key_database_path.empty()) {
-      ui_->currentKeyDatabasePathLabel->setText(
-          QString::fromStdString(custom_key_database_path));
-      this->ui_->currentKeyDatabasePathLabel->setHidden(false);
-    } else {
-      this->ui_->currentKeyDatabasePathLabel->setHidden(true);
-    }
-  }
-}
-
-void GeneralTab::slot_update_custom_gnupg_install_path_label(int state) {
-  if (state != Qt::CheckState::Checked) {
-    ui_->currentCustomGnuPGInstallPathLabel->setText(QString::fromStdString(
-        GpgContext::GetInstance().GetInfo(false).GnuPGHomePath));
-
-    // hide label (not necessary to show the default path)
-    this->ui_->currentCustomGnuPGInstallPathLabel->setHidden(true);
-  } else {
-    // read from settings file
-    std::string custom_gnupg_install_path;
-    try {
-      auto& settings =
-          GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
-      custom_gnupg_install_path = static_cast<std::string>(
-          settings.lookup("general.custom_gnupg_install_path"));
-
-    } catch (...) {
-      SPDLOG_ERROR("setting operation error: custom_gnupg_install_path");
-    }
-
-    SPDLOG_DEBUG("custom_gnupg_install_path from settings: {}",
-                 custom_gnupg_install_path);
-
-    // set label value
-    if (!custom_gnupg_install_path.empty()) {
-      ui_->currentCustomGnuPGInstallPathLabel->setText(
-          QString::fromStdString(custom_gnupg_install_path));
-      this->ui_->currentCustomGnuPGInstallPathLabel->setHidden(false);
-    } else {
-      this->ui_->currentCustomGnuPGInstallPathLabel->setHidden(true);
-    }
-  }
-}
-
-void GeneralTab::slot_gnupg_stettings_changed() {
-  emit SignalDeepRestartNeeded(true);
-}
 
 }  // namespace GpgFrontend::UI

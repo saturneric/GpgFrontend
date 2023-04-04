@@ -77,6 +77,14 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
     assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
   }
 
+  if (args.custom_gpgconf && !args.custom_gpgconf_path.empty()) {
+    SPDLOG_DEBUG("set custom gpgconf path: {}", args.custom_gpgconf_path);
+    auto err =
+        gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_GPGCONF,
+                                  args.custom_gpgconf_path.c_str(), nullptr);
+    assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
+  }
+
   // set context offline mode
   SPDLOG_DEBUG("gpg context offline mode: {}", args_.offline_mode);
   gpgme_set_offline(_ctx_ref.get(), args_.offline_mode ? 1 : 0);
