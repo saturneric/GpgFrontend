@@ -36,6 +36,7 @@ aux_source_directory(thread UI_SOURCE)
 aux_source_directory(dialog/details UI_SOURCE)
 aux_source_directory(struct UI_SOURCE)
 aux_source_directory(dialog/import_export UI_SOURCE)
+aux_source_directory(dialog/gnupg UI_SOURCE)
 aux_source_directory(dialog UI_SOURCE)
 
 # define libgpgfrontend_ui
