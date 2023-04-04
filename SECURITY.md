@@ -3,10 +3,10 @@
 ## Supported Versions
 
 The application white check mark is still in support, without it means there
-version will no longer have a update including security fixture. That's beacuse
+version will no longer have an update including security fixture. That's because
 currently I have a job and a hard learning plain, which means I don't have too
 much time to dealing with this project now, sincerely, I am sorry for that.
-Maybe this situation will get better in the future. So it is recommand to use
+Maybe this situation will get better in the future. So it is recommended to use
 the latest version.
 
 | Version | Supported          |
@@ -18,7 +18,9 @@ the latest version.
 ## Platform & Library Support
 
 According to security concern and my limiting time to contributing, GpgFrontend
-will gradually drop the support of some old platforms.
+will gradually drop the support of some old platforms. Furthermore, GpgFrontend
+will try to use newer libraries when it's more secure or taking another
+advantages.
 
 Starting from v1.0.0, x32 operating system was no longer support. Mainly because
 I have limit time and the fact that x32 machine is getting less and less in the
@@ -29,7 +31,7 @@ Starting from v2.0.1, Ubuntu 16.04 was no longer support. Mainly because Ubuntu
 16.04 LTS's lifetime had come into an end at during that time. Keep using this
 version of Ubuntu is not safe anymore.
 
-Starting from v2.1.0, macOS 10.15 was no longer support. Mainly because this os
+Starting from v2.1.0, macOS 10.15 was no longer support. Mainly because this OS
 will no longer support by GitHub Action in the near future. Also, I think this
 version is old enough to drop it out, and Apple might not longer to support it
 soon.
@@ -39,7 +41,8 @@ Starting from v2.1.1, Ubuntu 18.04 is no longer support. Mainly because Ubuntu
 will move to Qt6, since Ubuntu 20.04 is supported by Qt6.
 
 Starting from v2.1.2, Qt5 API will be removed from source, which means that the
-whole project will use Qt6 API and won't be able to compile under Qt5.
+whole project will use Qt6 API and won't be able to compile under Qt5. I will
+consider removing deb package build.
 
 ## Reporting a Vulnerability
 
