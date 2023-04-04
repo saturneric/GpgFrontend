@@ -93,7 +93,6 @@ jobs:
           version: '6.4.2'
           cache: 'true'
           modules: 'qt5compat'
-          cache: ${{ steps.cache-qt.outputs.cache-hit }}
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Set up MinGW (Windows)
