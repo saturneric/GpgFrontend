@@ -331,7 +331,7 @@ void MainWindow::create_actions() {
     }
   });
 
-  gnupg_controller_open_act_ = new QAction(_("GnuPG Controller"), this);
+  gnupg_controller_open_act_ = new QAction(_("Open GnuPG Controller"), this);
   gnupg_controller_open_act_->setIcon(QIcon(":configure.png"));
   gnupg_controller_open_act_->setToolTip(_("Open GnuPG Controller Dialog"));
   connect(gnupg_controller_open_act_, &QAction::triggered, this,

@@ -127,7 +127,10 @@ void process_operation(QWidget *parent, const std::string &waiting_title,
 
   QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, dialog,
                         &QDialog::close);
+  QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, dialog,
+                        &QDialog::deleteLater);
 
+  // a looper to wait for the operation
   QEventLoop looper;
   QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, &looper,
                         &QEventLoop::quit);
