@@ -38,15 +38,14 @@
 #include "core/function/GlobalSettingStation.h"
 
 #ifdef WINDOWS
-int setenv(const char *name, const char *value, int overwrite)
-{
-    if(!overwrite) {
-        int errcode = 0;
-        size_t envsize = 0;
-        errcode = getenv_s(&envsize, NULL, 0, name);
-        if(errcode || envsize) return errcode;
-    }
-    return _putenv_s(name, value);
+int setenv(const char *name, const char *value, int overwrite) {
+  if (!overwrite) {
+    int errcode = 0;
+    size_t envsize = 0;
+    errcode = getenv_s(&envsize, NULL, 0, name);
+    if (errcode || envsize) return errcode;
+  }
+  return _putenv_s(name, value);
 }
 #endif
 
@@ -91,7 +90,7 @@ void shutdown_logging_system() {
 }
 
 void init_global_path_env() {
-  auto& settings =
+  auto &settings =
       GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
 
   bool use_custom_gnupg_install_path = false;
@@ -115,14 +114,13 @@ void init_global_path_env() {
   // add custom gnupg install path into env $PATH
   if (use_custom_gnupg_install_path && !custom_gnupg_install_path.empty()) {
     std::string path_value = getenv("PATH");
-    SPDLOG_DEBUG("PATH: {}", path_value);
-    setenv(
-        "PATH",
-        ((std::filesystem::path{custom_gnupg_install_path} / "bin").u8string() +
-         ":" + path_value)
-            .c_str(),
-        1);
+    SPDLOG_DEBUG("Current System PATH: {}", path_value);
+    setenv("PATH",
+           ((std::filesystem::path{custom_gnupg_install_path}).u8string() +
+            ":" + path_value)
+               .c_str(),
+           1);
     std::string modified_path_value = getenv("PATH");
-    SPDLOG_DEBUG("Modified PATH: {}", modified_path_value);
+    SPDLOG_DEBUG("Modified System PATH: {}", modified_path_value);
   }
 }

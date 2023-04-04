@@ -33,9 +33,11 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+#include "core/GpgConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/CtxCheckTask.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "spdlog/spdlog.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/main_window/MainWindow.h"
@@ -178,9 +180,17 @@ void InitGpgFrontendUI(QApplication* app) {
 int RunGpgFrontendUI(QApplication* app) {
   // create main window and show it
   auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
-  main_window->Init();
-  SPDLOG_DEBUG("main window inited");
-  main_window->show();
+
+  // pre-check, if application need to restart
+  if (CommonUtils::GetInstance()->isApplicationNeedRestart()) {
+    SPDLOG_DEBUG("application need to restart, before mian window init");
+    return DEEP_RESTART_CODE;
+  } else {
+    main_window->Init();
+    SPDLOG_DEBUG("main window inited");
+    main_window->show();
+  }
+
   // start the main event loop
   return app->exec();
 }
