@@ -1,3 +1,35 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:41f6b634156a5b0f199e13a5e5d016ee81b9561415725f813e9811f03ac5d03e
-size 1315
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2013 First Lastname <your@email.com> -->
+<component type="desktop-application">
+  <id>pub.gpgfrontend.gpgfrontend</id>
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>GPL-3.0+</project_license>
+  <name>GpgFrontend</name>
+  <summary>Take the initiative to protect privacy in your own hands</summary>
+
+  <description>
+    <p>
+      GpgFrontend is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free OpenPGP Crypto Tool.
+    </p>
+    <p>
+      By using GpgFrontend, you can quickly encrypt and decrypt text or files. 
+      Or at the same time as the above operations, you can add your own signature 
+      to let others know that this document or this paragraph of text was issued by you. 
+    </p>
+    <p>For moew information visit https://gpgfrontend.pub/</p>
+
+  </description>
+
+  <launchable type="desktop-id">gpgfrontend.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Main Window</caption>
+      <image>https://raw.githubusercontent.com/saturneric/Blob/master/screenshots/keygen_ubuntu.png</image>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://gpgfrontend.pub/</url>
+  <project_group>GNOME</project_group>
+  <developer_name>Saturneric</developer_name>
+</component>

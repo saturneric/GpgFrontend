@@ -32,6 +32,7 @@
 #include <utility>
 #include <vector>
 
+#include "core/GpgConstants.h"
 #include "core/common/CoreCommonUtil.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/FileOperator.h"
@@ -40,6 +41,7 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "dialog/gnupg/GnuPGControllerDialog.h"
 #include "spdlog/spdlog.h"
 #include "ui/SignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
@@ -125,7 +127,10 @@ void process_operation(QWidget *parent, const std::string &waiting_title,
 
   QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, dialog,
                         &QDialog::close);
+  QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, dialog,
+                        &QDialog::deleteLater);
 
+  // a looper to wait for the operation
   QEventLoop looper;
   QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, &looper,
                         &QEventLoop::quit);
@@ -171,15 +176,46 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
           &CoreSignalStation::SignalNeedUserInputPassphrase, this,
           &CommonUtils::slot_popup_passphrase_input_dialog);
 
-  connect(this, &CommonUtils::SignalGnupgNotInstall, this, []() {
-    QMessageBox::critical(
-        nullptr, _("ENV Loading Failed"),
+  connect(this, &CommonUtils::SignalRestartApplication,
+          SignalStation::GetInstance(),
+          &SignalStation::SignalRestartApplication);
+
+  connect(SignalStation::GetInstance(),
+          &SignalStation::SignalRestartApplication, this,
+          &CommonUtils::SlotRestartApplication);
+
+  connect(this, &CommonUtils::SignalGnupgNotInstall, this, [=]() {
+    QMessageBox msgBox;
+    msgBox.setText(_("GnuPG Context Loading Failed"));
+    msgBox.setInformativeText(
         _("Gnupg(gpg) is not installed correctly, please follow "
           "<a href='https://www.gpgfrontend.pub/#/"
           "faq?id=how-to-deal-with-39env-loading-failed39'>this notes</a>"
           " in FAQ to install Gnupg and then open "
-          "GpgFrontend."));
-    QCoreApplication::quit();
+          "GpgFrontend. Or, you can open GnuPG Controller to set a custom "
+          "GnuPG "
+          "which GpgFrontend should use. Then, GpgFrontend will restart."));
+    msgBox.setStandardButtons(QMessageBox::Open | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Save);
+    int ret = msgBox.exec();
+
+    switch (ret) {
+      case QMessageBox::Open:
+        (new GnuPGControllerDialog(this))->exec();
+        // restart application when loop start
+        application_need_to_restart_at_once_ = true;
+        // restart application, core and ui
+        emit SignalRestartApplication(DEEP_RESTART_CODE);
+        break;
+      case QMessageBox::Cancel:
+        // close application
+        emit SignalRestartApplication(0);
+        break;
+      default:
+        // close application
+        emit SignalRestartApplication(0);
+        break;
+    }
   });
 }
 
@@ -429,6 +465,20 @@ void CommonUtils::slot_popup_passphrase_input_dialog() {
 
   // send signal
   emit SignalUserInputPassphraseDone(password);
+}
+
+void CommonUtils::SlotRestartApplication(int code) {
+  SPDLOG_DEBUG("application need restart, code: {}", code);
+
+  if (code == 0) {
+    std::exit(0);
+  } else {
+    QCoreApplication::exit(code);
+  }
+}
+
+bool CommonUtils::isApplicationNeedRestart() {
+  return application_need_to_restart_at_once_;
 }
 
 }  // namespace GpgFrontend::UI

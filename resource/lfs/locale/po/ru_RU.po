@@ -1,3 +1,4477 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:e2e4165fe52865a917a141571c14b84d8b8b65d669fed6eb848696f39299b0b3
-size 206538
+# Russian translations for GpgFrontend package.
+# Copyright (C) 2021 Saturneric
+# This file is distributed under the same license as the GpgFrontend package.
+# Automatically generated, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GpgFrontend 2.1.0\n"
+"Report-Msgid-Bugs-To: eric@bktus.com\n"
+"POT-Creation-Date: 2023-04-01 00:36+0800\n"
+"PO-Revision-Date: 2023-04-01 00:46-0800\n"
+"Last-Translator: Google Translation <eric@bktus.com>\n"
+"Language-Team: Google Translation <eric@bktus.com>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:70
+msgid "Proxy"
+msgstr "Прокси"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:71
+msgid "Network Ability"
+msgstr "Сетевые возможности"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:72
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:52
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:46
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:525
+msgid "Operations"
+msgstr "Операции"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:74
+msgid "Enable Proxy"
+msgstr "Включить прокси"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:75
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:78
+msgid "Port"
+msgstr "Порт"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:77
+msgid "Host Address"
+msgstr "Адрес хоста"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:79
+msgid "Proxy Type"
+msgstr "Тип прокси"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:80
+msgid "Username"
+msgstr "Имя пользователя"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:81
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:420
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:171
+msgid "Password"
+msgstr "Пароль"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:84
+msgid "Apply Proxy Settings and Check Proxy Connection"
+msgstr ""
+"Примените настройки прокси-сервера и проверьте подключение к прокси-серверу"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:87
+msgid "Forbid all GnuPG network connection."
+msgstr "Запретить все сетевые подключения GnuPG."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:89
+msgid "Prohibit checking for version updates when the program starts."
+msgstr "Запретить проверку обновлений версий при запуске программы."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:91
+msgid "Automatically import a missing key for signature verification."
+msgstr "Автоматически импортировать отсутствующий ключ для проверки подписи."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:93
+msgid ""
+"Tips: These Option Changes take effect only after the application restart."
+msgstr ""
+"Советы: эти изменения параметров вступают в силу только после перезапуска "
+"приложения."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:283
+msgid "Test Server Url Accessibility"
+msgstr "Доступность URL-адреса тестового сервера"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:293
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:85
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:184
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:333
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:106
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:284
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:41
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:43
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:41
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:47
+msgid "Success"
+msgstr "Успех"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:294
+msgid "Successfully connect to the target server through the proxy server."
+msgstr "Успешно подключитесь к целевому серверу через прокси-сервер."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:298
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:43
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:45
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:43
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:49
+msgid "Failed"
+msgstr "Не смогли"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:299
+msgid ""
+"Unable to connect to the target server through the proxy server. Proxy "
+"settings may be invalid."
+msgstr ""
+"Невозможно подключиться к целевому серверу через прокси-сервер. Настройки "
+"прокси могут быть недействительными."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:309
+msgid "Test Proxy Server Connection..."
+msgstr "Проверить подключение к прокси-серверу ..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:310
+msgid ""
+"Is using your proxy settings to access the url. Note that this test "
+"operation will apply your proxy settings to the entire software."
+msgstr ""
+"Использует настройки вашего прокси для доступа к URL-адресу. Обратите "
+"внимание, что эта тестовая операция применит ваши настройки прокси ко всему "
+"программному обеспечению."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:36
+msgid "Show Steganography Options"
+msgstr "Показать параметры стеганографии"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:38
+msgid "Show Steganography Options."
+msgstr "Показать параметры стеганографии."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:42
+msgid "Pubkey Exchange"
+msgstr "Обмен ключами"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:45
+msgid "Auto Pubkey Exchange"
+msgstr "Автоматический обмен ключами"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:54
+msgid "General"
+msgstr "Общий"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:55
+msgid "Appearance"
+msgstr "Появление"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:56
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:88
+msgid "Key Server"
+msgstr "Ключевой сервер"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:57
+msgid "Network"
+msgstr "Сеть"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:68
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:165
+msgid "Settings"
+msgstr "Настройки"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:72
+msgid "Preference"
+msgstr "Предпочтение"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:131
+msgid "System Default"
+msgstr "Системные установки по умолчанию"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:51
+msgid "Keyserver List"
+msgstr "Список серверов ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:54
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:592
+msgid "Default"
+msgstr "Дефолт"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:56
+msgid "Keyserver Address"
+msgstr "Адрес сервера ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:57
+msgid "Security"
+msgstr "Безопасность"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:58
+msgid "Available"
+msgstr "Доступный"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:60
+msgid "Add"
+msgstr "Добавлять"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:61
+msgid "Test Listed Keyserver"
+msgstr "Тестовый сервер ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:64
+msgid "Tips: Please Double-click table item to edit it."
+msgstr "Советы: дважды щелкните элемент таблицы, чтобы отредактировать его."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:65
+msgid "Delete Selected"
+msgstr "Удалить выбранные"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:67
+msgid "Delete Selected Key Server"
+msgstr "Удалить выбранный сервер ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:68
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:69
+msgid "Set As Default"
+msgstr "Установить по умолчанию"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:151
+msgid "Insecure keyserver address"
+msgstr "Небезопасный адрес сервера ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:152
+msgid ""
+"For security reasons, using HTTP as the communication protocol with the key "
+"server is not recommended. It is recommended to use HTTPS."
+msgstr ""
+"По соображениям безопасности не рекомендуется использовать HTTP в качестве "
+"протокола связи с сервером ключей. Рекомендуется использовать HTTPS."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:160
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:205
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:312
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:419
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:611
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:706
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:110
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:192
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:419
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:384
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:287
+msgid "Warning"
+msgstr "Предупреждение"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:161
+msgid ""
+"You may not use HTTPS or HTTP as the protocol for communicating with the key"
+" server, which may not be wrong. But please check the address you entered "
+"again to make sure it is correct. Are you sure that want to add it into the "
+"keyserver list?"
+msgstr ""
+"Вы не можете использовать HTTPS или HTTP в качестве протокола для связи с "
+"сервером ключей, что может быть неправильным. Но, пожалуйста, проверьте "
+"введенный вами адрес еще раз, чтобы убедиться, что он правильный. Вы "
+"уверены, что хотите добавить его в список серверов ключей?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:208
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
+msgid "true"
+msgstr "истинный"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:209
+msgid "false"
+msgstr "ложный"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
+msgid "unknown"
+msgstr "неизвестный"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:228
+msgid "Set TCP Timeout"
+msgstr "Установить тайм-аут TCP"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:253
+msgid "Reachable"
+msgstr "Достижимый"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:256
+msgid "Not Reachable"
+msgstr "Не доступен"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:268
+msgid "Test Key Server Connection..."
+msgstr "Проверить подключение к серверу ключей ..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:269
+msgid ""
+"This test only tests the network connectivity of the key server. Passing the"
+" test does not mean that the key server is functionally available."
+msgstr ""
+"Этот тест проверяет только сетевое подключение ключевого сервера. "
+"Прохождение теста не означает, что сервер ключей функционально доступен."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:46
+msgid "Cache"
+msgstr "Кэш"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:48
+msgid "Save checked private keys on exit and restore them on next start."
+msgstr ""
+"Сохраняйте проверенные приватные ключи при выходе и восстанавливайте их при "
+"следующем запуске."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:50
+msgid "Clear gpg password cache when closing GpgFrontend."
+msgstr "Очистить кеш паролей gpg при закрытии GpgFrontend."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:52
+msgid "Operation"
+msgstr "Операция"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:54
+msgid "Enable to use longer key expiration date."
+msgstr "Включите, чтобы использовать более длительный срок действия ключа."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:56
+msgid "Import files dropped on the Key List without confirmation."
+msgstr "Импортировать файлы, попавшие в список ключей без подтверждения."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:58
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:52
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:343
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:495
+msgid "GnuPG"
+msgstr "ГнуПГ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:59
+msgid "No ASCII Mode"
+msgstr "Нет режима ASCII"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:61
+msgid "Use Pinentry as Password Input Dialog"
+msgstr "Используйте Pinentry в качестве диалогового окна ввода пароля"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:62
+msgid "Use Custom GnuPG"
+msgstr "Использовать собственный GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:63
+msgid "Select GnuPG Path"
+msgstr "Выберите путь GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:65
+msgid "Use Custom GnuPG Key Database Path"
+msgstr "Использовать собственный путь к базе данных ключей GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:67
+msgid "Select Key Database Path"
+msgstr "Выберите путь к базе данных ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:69
+msgid "Language"
+msgstr "Язык"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:71
+msgid "NOTE"
+msgstr "ПРИМЕЧАНИЕ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:71
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:178
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:84
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:88
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:83
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:90
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:99
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:107
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:115
+msgid ": "
+msgstr ":"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:72
+msgid "GpgFrontend will restart automatically if you change the language!"
+msgstr "GpgFrontend автоматически перезапустится, если вы измените язык!"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:110
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:143
+msgid "Open Directory"
+msgstr "Открыть каталог"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:41
+msgid "Icon Size"
+msgstr "Размер значка"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:42
+msgid "small"
+msgstr "небольшой"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:43
+msgid "medium"
+msgstr "Средняя"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:44
+msgid "large"
+msgstr "большой"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:46
+msgid "Icon Style"
+msgstr "Стиль значка"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:47
+msgid "just text"
+msgstr "просто текст"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:48
+msgid "just icons"
+msgstr "просто значки"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:49
+msgid "text and icons"
+msgstr "текст и значки"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:51
+msgid "Window State"
+msgstr "Состояние окна"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:53
+msgid "Save window size and position on exit."
+msgstr "Сохранить размер и положение окна при выходе."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:55
+msgid "Text Editor"
+msgstr "Текстовый редактор"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:56
+msgid "Font Size in Text Editor"
+msgstr "Размер шрифта в текстовом редакторе"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:58
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:622
+msgid "Information Board"
+msgstr "Доска объявлений"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
+msgid "Font Size in Information Board"
+msgstr "Размер шрифта на информационной доске"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:86
+msgid "The expire date of the key pair has been updated."
+msgstr "Дата истечения срока действия пары ключей обновлена."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:95
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:194
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:341
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:276
+msgid "Failure"
+msgstr "Отказ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:96
+msgid "Failed to update the expire date of the key pair."
+msgstr "Не удалось обновить дату истечения срока действия пары ключей."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:143
+msgid "Modified Expiration Date (Local Time)"
+msgstr "Измененная дата истечения срока действия (местное время)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:145
+msgid ""
+"Tips: For the sake of security, the key is valid for up to two years. If you"
+" are an expert user, please unlock it for a longer time in the settings."
+msgstr ""
+"Советы: В целях безопасности ключ действителен до двух лет. Если вы опытный "
+"пользователь, пожалуйста, разблокируйте его на более длительное время в "
+"настройках."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:148
+msgid "No Expiration"
+msgstr "Нет срока годности"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:149
+msgid "Modified Expiration Date"
+msgstr "Измененная дата истечения срока действия"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:41
+msgid "Owner"
+msgstr "Владелец"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:42
+msgid "Primary Key"
+msgstr "Первичный ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:43
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:80
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:140
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:82
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:98
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:114
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:132
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:148
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:163
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:105
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:54
+msgid "Fingerprint"
+msgstr "Отпечаток пальца"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:44
+msgid "Additional UIDs"
+msgstr "Дополнительные UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:70
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:47
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:412
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:44
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:140
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Name"
+msgstr "Имя"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:71
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:413
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Email Address"
+msgstr "Адрес электронной почты"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:72
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:49
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:414
+msgid "Comment"
+msgstr "Комментарий"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:77
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:66
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:34
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:94
+msgid "Key ID"
+msgstr "Идентификатор ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:78
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:67
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:35
+msgid "Algorithm"
+msgstr "Алгоритм"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:79
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:69
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:36
+msgid "Key Size"
+msgstr "Размер ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:80
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
+msgid "Nominal Usage"
+msgstr "Номинальное использование"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:81
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:38
+msgid "Actual Usage"
+msgstr "Фактическое использование"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:82
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:75
+msgid "Create Date (Local Time)"
+msgstr "Дата создания (местное время)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:84
+msgid "Expires on (Local Time)"
+msgstr "Срок действия истекает (местное время)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:86
+msgid "Last Update (Local Time)"
+msgstr "Последнее обновление (местное время)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:88
+msgid "Primary Key Existence"
+msgstr "Существование первичного ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:102
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:127
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:103
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:131
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:43
+msgid "Copy"
+msgstr "Копировать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:129
+msgid "copy fingerprint to clipboard"
+msgstr "скопировать отпечаток пальца в буфер обмена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:175
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:286
+msgid "Exists"
+msgstr "Существуют"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:175
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:287
+msgid "Not Exists"
+msgstr "Не существует"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:207
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:217
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:278
+msgid "Certificate"
+msgstr "Сертификат"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:208
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:219
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:279
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:174
+msgid "Encrypt"
+msgstr "Зашифровать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:209
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:221
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:280
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:217
+msgid "Sign"
+msgstr "Подписать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:210
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:223
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:281
+msgid "Auth"
+msgstr "Auth"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:233
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:206
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:416
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:169
+msgid "Never Expire"
+msgstr "Never Expire"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:255
+msgid "No Data"
+msgstr "Нет данных"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:277
+msgid "Warning: The primary key has expired."
+msgstr "Предупреждение: срок действия первичного ключа истек."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:282
+msgid "Warning: The primary key has been revoked."
+msgstr "Предупреждение: первичный ключ отозван."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:41
+msgid "KeyPair"
+msgstr "KeyPair"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:42
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:67
+msgid "UIDs"
+msgstr "UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:44
+msgid "Subkeys"
+msgstr "Подключи"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:56
+msgid "Key Details"
+msgstr "Ключевые детали"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:47
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:189
+msgid "New UID"
+msgstr "Новый UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:48
+msgid "UID Management"
+msgstr "Управление UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:72
+msgid "TOFU"
+msgstr "TOFU"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:84
+msgid "Signature of Selected UID"
+msgstr "Подпись выбранного UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Select"
+msgstr "Выбирать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:48
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:140
+msgid "Email"
+msgstr "Эл. адрес"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:161
+msgid "Create Date (UTC)"
+msgstr "Дата создания (UTC)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:161
+msgid "Expired Date (UTC)"
+msgstr "Срок действия (UTC)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:237
+msgid "TOFU %1"
+msgstr "TOFU% 1"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:293
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:300
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:246
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:251
+msgid "Never Expires"
+msgstr "Никогда не заканчивается"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:319
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:376
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:497
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:511
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:553
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:562
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:375
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:385
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:384
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:131
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:192
+msgid "Invalid Operation"
+msgstr "Недействительная операция"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:320
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:377
+msgid "Please select one or more UIDs before doing this operation."
+msgstr ""
+"Пожалуйста, выберите один или несколько UID перед выполнением этой операции."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:341
+msgid "Sign Selected UID(s)"
+msgstr "Подписать выбранные UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:343
+msgid "Delete Selected UID(s)"
+msgstr "Удалить выбранные UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:363
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:294
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:308
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:324
+msgid "Successful Operation"
+msgstr "Успешная операция"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:364
+msgid "Successfully added a new UID."
+msgstr "Успешно добавлен новый UID."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:366
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:401
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:436
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:532
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:584
+msgid "Operation Failed"
+msgstr "Операция провалена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:367
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:437
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:533
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:585
+msgid "An error occurred during the operation."
+msgstr "Произошла ошибка во время операции."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:388
+msgid "Deleting UIDs"
+msgstr "Удаление UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:391
+msgid "Are you sure that you want to delete the following UIDs?"
+msgstr "Вы уверены, что хотите удалить следующие UID?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:393
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:430
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:527
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:579
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:313
+msgid "The action can not be undone."
+msgstr "Действие нельзя отменить."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:402
+msgid "An error occurred during the delete %1 operation."
+msgstr "Произошла ошибка во время операции удаления% 1."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:426
+msgid "Set Primary UID"
+msgstr "Установить основной UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:428
+msgid "Are you sure that you want to set the Primary UID to?"
+msgstr "Вы уверены, что хотите установить для основного UID значение?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:468
+msgid "Set As Primary"
+msgstr "Сделать основным"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:471
+msgid "Sign UID"
+msgstr "Подписать UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:474
+msgid "Delete UID"
+msgstr "Удалить UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:498
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:512
+msgid "Please select one UID before doing this operation."
+msgstr "Пожалуйста, выберите один UID перед выполнением этой операции."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:522
+msgid "Deleting UID"
+msgstr "Удаление UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:525
+msgid "Are you sure that you want to delete the following uid?"
+msgstr "Вы уверены, что хотите удалить следующий uid?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:543
+msgid "Delete(Revoke) Key Signature"
+msgstr "Удалить (отозвать) подпись ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:554
+msgid "Please select one Key Signature before doing this operation."
+msgstr "Перед выполнением этой операции выберите одну подпись ключа."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:563
+msgid ""
+"To delete the signature, you need to have its corresponding public key in "
+"the local database."
+msgstr ""
+"Чтобы удалить подпись, вам необходимо иметь соответствующий открытый ключ в "
+"локальной базе данных."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:574
+msgid "Deleting Key Signature"
+msgstr "Удаление ключевой подписи"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:576
+msgid "Are you sure that you want to delete the following signature?"
+msgstr "Вы уверены, что хотите удалить следующую подпись?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:45
+msgid "General Operations"
+msgstr "Общие операции"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:51
+msgid "Export Public Key"
+msgstr "Экспорт открытого ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:57
+msgid "Export Private Key"
+msgstr "Экспорт закрытого ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:64
+msgid "Modify Expiration Datetime (Primary Key)"
+msgstr "Изменить дату истечения срока действия (первичный ключ)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:67
+msgid "Modify Password"
+msgstr "Изменить пароль"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:90
+msgid "Key Server Operation (Pubkey)"
+msgstr "Работа с ключевым сервером (Pubkey)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:98
+msgid "Generate Revoke Certificate"
+msgstr "Создать отзыв сертификата"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:104
+msgid "Modify TOFU Policy"
+msgstr "Изменить политику TOFU"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:120
+msgid "Upload Key Pair to Key Server"
+msgstr "Загрузить пару ключей на сервер ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:126
+msgid "Sync Key Pair From Key Server"
+msgstr "Синхронизация пары ключей с сервера ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:140
+msgid "Export Full Secret Key"
+msgstr "Экспорт полного секретного ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:146
+msgid "Export Shortest Secret Key"
+msgstr "Экспорт кратчайшего секретного ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:158
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:210
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:259
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:68
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:120
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:329
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:381
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:410
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:416
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:424
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:465
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:44
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:49
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:54
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:74
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:214
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:286
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:340
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:452
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:510
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:547
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:633
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:669
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:746
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:85
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:249
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:317
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:384
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:506
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:584
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:623
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:644
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:670
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:688
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:705
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:718
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:731
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:746
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:173
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:216
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:335
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:346
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:374
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:393
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:437
+msgid "Error"
+msgstr "Ошибка"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:159
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:211
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:260
+msgid "An error occurred during the export operation."
+msgstr "Произошла ошибка во время операции экспорта."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:175
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:227
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:276
+msgid "Export Key To File"
+msgstr "Экспорт ключа в файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:176
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:228
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:277
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
+msgid "Key Files"
+msgstr "Ключевые файлы"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:183
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:235
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:284
+msgid "Export Error"
+msgstr "Ошибка экспорта"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:184
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:236
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:285
+msgid "Couldn't open %1 for writing"
+msgstr "Не удалось открыть% 1 для записи"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:192
+msgid "Exporting short private Key"
+msgstr "Экспорт короткого закрытого ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:193
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:246
+msgid "You are about to export your"
+msgstr "Вы собираетесь экспортировать свой"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:194
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:247
+msgid " PRIVATE KEY "
+msgstr " ЧАСТНЫЙ КЛЮЧ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:195
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:248
+msgid "This is NOT your Public Key, so DON'T give it away."
+msgstr "Это НЕ ваш открытый ключ, поэтому НЕ разглашайте его."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:196
+msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
+msgstr ""
+"Вы ДЕЙСТВИТЕЛЬНО хотите экспортировать свой ЧАСТНЫЙ КЛЮЧ в минимальном "
+"размере?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:199
+msgid ""
+"For OpenPGP keys it removes all signatures except for the latest self-"
+"signatures."
+msgstr ""
+"Для ключей OpenPGP удаляются все подписи, кроме последних самоподписей."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:245
+msgid "Exporting private Key"
+msgstr "Экспорт закрытого ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:249
+msgid "Do you REALLY want to export your PRIVATE KEY?"
+msgstr "Вы ДЕЙСТВИТЕЛЬНО хотите экспортировать свой ЧАСТНЫЙ КЛЮЧ?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:313
+msgid "Revocation Certificates"
+msgstr "Сертификаты отзыва"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:356
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:386
+msgid "Not Successful"
+msgstr "Не успешный"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:357
+msgid "Modify password not successfully."
+msgstr "Не удалось изменить пароль."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:363
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:373
+msgid "Policy Auto"
+msgstr "Политика Авто"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:363
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:375
+msgid "Policy Good"
+msgstr "Политика Хорошая"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:363
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:377
+msgid "Policy Bad"
+msgstr "Политика Плохая"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:364
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:379
+msgid "Policy Ask"
+msgstr "Политика Спросите"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:364
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:381
+msgid "Policy Unknown"
+msgstr "Политика неизвестна"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:368
+msgid "Modify TOFU Policy(Default is Auto)"
+msgstr "Изменить политику TOFU (по умолчанию - Авто)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:369
+msgid "Policy for the Key Pair:"
+msgstr "Политика для пары ключей:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:387
+msgid "Modify TOFU policy not successfully."
+msgstr "Не удалось изменить политику TOFU."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:44
+msgid "Subkey List"
+msgstr "Список подключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:45
+msgid "Detail of Selected Subkey"
+msgstr "Деталь выбранного подключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:49
+msgid "Generate A New Subkey"
+msgstr "Создать новый подраздел"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:71
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:151
+msgid "Usage"
+msgstr "использование"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:73
+msgid "Expires On (Local Time)"
+msgstr "Срок действия истекает (местное время)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:76
+msgid "Existence"
+msgstr "Существование"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:79
+msgid "Key in Smart Card"
+msgstr "Введите смарт-карту"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
+msgid "Subkey ID"
+msgstr "ID подраздела"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
+msgid "Algo"
+msgstr "Алго"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:161
+msgid "Expire Date (UTC)"
+msgstr "Дата истечения (UTC)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:290
+msgid "Yes"
+msgstr "да"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:290
+msgid "No"
+msgstr "Нет"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:320
+msgid "Edit Expire Date"
+msgstr "Изменить дату истечения срока действия"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:57
+msgid "Notice: The New UID Created will be set as Primary."
+msgstr "Примечание. Созданный новый UID будет установлен как основной."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:65
+msgid "Create New UID"
+msgstr "Создать новый UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:81
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:108
+msgid "Name must contain at least five characters."
+msgstr "Имя должно содержать не менее пяти символов."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:85
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:113
+msgid "Please give a email address."
+msgstr "Пожалуйста, укажите адрес электронной почты."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:43
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:48
+msgid "Signers"
+msgstr "Подписавшие"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:86
+msgid "Expire Date"
+msgstr "Годен до"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:96
+msgid "Sign For Key's UID(s)"
+msgstr "Подпишите UID ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:127
+msgid "Unsuccessful Operation"
+msgstr "Неудачная операция"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:128
+msgid "Signature operation failed for UID %1"
+msgstr "Ошибка операции подписи для UID% 1"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:132
+msgid "Operation Complete"
+msgstr "Операция завершена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:133
+msgid "The signature operation of the UID is complete"
+msgstr "Операция подписи UID завершена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:38
+msgid "Signatures Details"
+msgstr "Детали подписи"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:61
+msgid "No valid input found"
+msgstr "Действительных входных данных не найдено"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:76
+msgid "Error Validating signature"
+msgstr "Ошибка проверки подписи"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:78
+msgid "File was signed on %1%"
+msgstr "Файл подписан на% 1%"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:81
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:87
+msgid "It Contains"
+msgstr "Это содержит"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:84
+msgid "Signed on %1%"
+msgstr "Подписан на% 1%"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:36
+msgid "Confirm"
+msgstr "Подтверждать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:37
+msgid "Cancel"
+msgstr "Отмена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:56
+msgid "Select Signer(s)"
+msgstr "Выберите подписывающего (-ых) лица (-ей)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:60
+msgid "Please select one or more private keys you use for signing."
+msgstr ""
+"Выберите один или несколько закрытых ключей, которые вы используете для "
+"подписи."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:62
+msgid "If no key is selected, the default key will be used for signing."
+msgstr ""
+"Если ключ не выбран, для подписи будет использоваться ключ по умолчанию."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:37
+msgid "Unsaved Files"
+msgstr "Несохраненные файлы"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:86
+msgid ""
+"%1% files contain unsaved information.<br/>Save the changes before closing?"
+msgstr ""
+"% 1% файлов содержат несохраненную информацию. <br/> Сохранить изменения "
+"перед закрытием?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:100
+msgid "Check the files you want to save:"
+msgstr "Отметьте файлы, которые вы хотите сохранить:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:102
+msgid "Note"
+msgstr "Примечание"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:103
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:281
+msgid "If you don't save these files, all changes are lost."
+msgstr "Если вы не сохраните эти файлы, все изменения будут потеряны."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:70
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:133
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:240
+msgid "Generate Key"
+msgstr "Сгенерировать ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:121
+msgid "Expiration time too long."
+msgstr "Срок годности слишком велик."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:126
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:284
+msgid "Password is empty."
+msgstr "Пароль пуст."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:165
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:317
+msgid "Generating"
+msgstr "Создание"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:185
+msgid "The new key pair has been generated."
+msgstr "Создана новая пара ключей."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:194
+msgid "Key generation failed."
+msgstr "Генерация ключа не удалась."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:223
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:107
+msgid "Key Usage"
+msgstr "Ключевое использование"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:225
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:109
+msgid "Encryption"
+msgstr "Шифрование"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:228
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:112
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:433
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:255
+msgid "Signing"
+msgstr "Подписание"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:231
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:115
+msgid "Certification"
+msgstr "Сертификация"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:234
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:118
+msgid "Authentication"
+msgstr "Аутентификация"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:415
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:168
+msgid "Expiration Date"
+msgstr "Срок хранения"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:417
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:167
+msgid "KeySize (in Bit)"
+msgstr "Размер ключа (в битах)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:418
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:166
+msgid "Key Type"
+msgstr "Тип ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:421
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:172
+msgid "Non Pass Phrase"
+msgstr "Запрещенная фраза"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:435
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:183
+msgid "Basic Information"
+msgstr "Основная информация"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:79
+msgid ""
+"Tipps: if the key pair has a passphrase, the subkey's passphrase must be "
+"equal to it."
+msgstr ""
+"Советы: если у пары ключей есть парольная фраза, парольная фраза "
+"подключаемого ключа должна совпадать с ней."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:91
+msgid "Generate New Subkey"
+msgstr "Создать новый подраздел"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:279
+msgid "Expiration time no more than 2 years."
+msgstr "Срок годности не более 2-х лет."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:334
+msgid "The new subkey has been generated."
+msgstr "Новый подключ создан."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:341
+msgid "Failed to generate key."
+msgstr "Не удалось сгенерировать ключ."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:44
+msgid "Description"
+msgstr "Описание"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:44
+msgid "Version"
+msgstr "Версия"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:45
+msgid "Checksum"
+msgstr "Контрольная сумма"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:45
+msgid "Binary Path"
+msgstr "Бинарный путь"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:47
+msgid "Components"
+msgstr "Компоненты"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:48
+msgid "Configurations"
+msgstr "Конфигурации"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:58
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:239
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:258
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:535
+msgid "Key"
+msgstr "Ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:58
+msgid "Value"
+msgstr "Ценить"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:43
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:336
+msgid "About"
+msgstr "О"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:51
+msgid "About GpgFrontend"
+msgstr "О GpgFrontend"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:53
+msgid "Translators"
+msgstr "Переводчики"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:54
+msgid "Update"
+msgstr "Обновлять"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:87
+msgid ""
+"GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
+"free GnuPG Frontend.It visualizes most of the common operations of "
+"GnuPG.GpgFrontend is licensed under the GPLv3"
+msgstr ""
+"GpgFrontend — это простой в использовании, компактный, кроссплатформенный и "
+"не требующий установки интерфейс GnuPG. Он визуализирует большинство "
+"распространенных операций GnuPG. GpgFrontend распространяется под лицензией "
+"GPLv3."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:93
+msgid "Developer:"
+msgstr "Разработчик:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+msgid "If you have any questions or suggestions, raise an issue at"
+msgstr ""
+"Если у вас есть какие-либо вопросы или предложения, поднимите вопрос на"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:97
+msgid "or send a mail to my mailing list at"
+msgstr "или отправьте письмо в мой список рассылки по адресу"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:99
+msgid "Built with Qt"
+msgstr "Построен с Qt"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:100
+msgid "and"
+msgstr "и"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:104
+msgid "Built at"
+msgstr "Построен в"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:143
+msgid ""
+"If you think there are any problems with the translation, why not "
+"participate in the translation work? If you want to participate, please read"
+" the document or contact me via email."
+msgstr ""
+"Если вы считаете, что есть какие-то проблемы с переводом, почему бы не "
+"принять участие в переводческой работе? Если вы хотите принять участие, "
+"прочтите документ или свяжитесь со мной по электронной почте."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:168
+msgid ""
+"It is recommended that you always check the version of GpgFrontend and "
+"upgrade to the latest version."
+msgstr ""
+"Рекомендуется всегда проверять версию GpgFrontend и обновляться до последней"
+" версии."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:171
+msgid ""
+"New versions not only represent new features, but also often represent "
+"functional and security fixes."
+msgstr ""
+"Новые версии не только представляют собой новые функции, но также часто "
+"содержат функциональные исправления и исправления безопасности."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:177
+msgid "Current Version"
+msgstr "Текущая версия"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:224
+msgid "Latest Version From Github"
+msgstr "Последняя версия с Github"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:230
+msgid "The current version is less than the latest version on github."
+msgstr "Текущая версия меньше последней версии на github."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:232
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:243
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:255
+msgid "Please click"
+msgstr "Пожалуйста, нажмите"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:235
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:246
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:258
+msgid "Here"
+msgstr "Здесь"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:235
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:246
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:258
+msgid "to download the latest stable version."
+msgstr "чтобы скачать последнюю стабильную версию."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:241
+msgid ""
+"This version has serious problems and has been withdrawn. Please stop using "
+"it immediately."
+msgstr ""
+"У этой версии есть серьезные проблемы, и она была отозвана. Пожалуйста, "
+"немедленно прекратите его использовать."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:252
+msgid ""
+"This version has not been released yet, it may be a beta version. If you are"
+" not a tester and care about version stability, please do not use this "
+"version."
+msgstr ""
+"Эта версия еще не выпущена, возможно, это бета-версия. Если вы не являетесь "
+"тестировщиком и заботитесь о стабильности версии, пожалуйста, не используйте"
+" эту версию."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:41
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:61
+msgid "Key Update Details"
+msgstr "Ключевые детали обновления"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:42
+msgid "No keys found"
+msgstr "Ключи не найдены"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:44
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:63
+msgid "Key Import Details"
+msgstr "Основные сведения об импорте"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:45
+msgid "No keys found to import"
+msgstr "Ключей для импорта не найдено"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:79
+msgid "General key info"
+msgstr "Общая ключевая информация"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:82
+msgid "Considered"
+msgstr "Считается"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:89
+msgid "Public unchanged"
+msgstr "Общественный без изменений"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:95
+msgid "Imported"
+msgstr "Импортный"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:103
+msgid "Not Imported"
+msgstr "Не импортировано"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:110
+msgid "Private Read"
+msgstr "Частное чтение"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:117
+msgid "Private Imported"
+msgstr "Частный импорт"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:124
+msgid "Private Unchanged"
+msgstr "Частный без изменений"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:140
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:65
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:91
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:107
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:123
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:125
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:141
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:156
+msgid "Status"
+msgstr "Положение дел"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:169
+msgid "Private"
+msgstr "Частный"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:172
+msgid "Public"
+msgstr "Общественные"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:175
+msgid "Unchanged"
+msgstr "Без изменений"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:178
+msgid "New Key"
+msgstr "Новый ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:181
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:146
+msgid "New Subkey"
+msgstr "Новый подраздел"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:185
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:57
+msgid "New Signature"
+msgstr "Новая подпись"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:56
+msgid "Uploading Public Key"
+msgstr "Загрузка открытого ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:93
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:327
+msgid "Cannot read default_keyserver From Settings"
+msgstr "Невозможно прочитать default_keyserver из настроек"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:94
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:471
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:329
+msgid "Default Keyserver Not Found"
+msgstr "Сервер ключей по умолчанию не найден"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:95
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:472
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:330
+msgid ""
+"Cannot read default keyserver from your settings, please set a default "
+"keyserver first"
+msgstr ""
+"Невозможно прочитать сервер ключей по умолчанию из ваших настроек, сначала "
+"установите сервер ключей по умолчанию"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:148
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:503
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:517
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:367
+msgid "Key Not Found"
+msgstr "Ключ не найден"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:151
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:292
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:506
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:521
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:370
+msgid "Timeout"
+msgstr "Тайм-аут"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:154
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:295
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:509
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:373
+msgid "Key Server Not Found"
+msgstr "Сервер ключей не найден"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:157
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:298
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:512
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:528
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:376
+msgid "Connection Error"
+msgstr "Ошибка подключения"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:162
+msgid "Upload Success"
+msgstr "Успешная загрузка"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:163
+msgid "Upload Public Key Successfully"
+msgstr "Загрузить открытый ключ успешно"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:54
+msgid "Export Key Package"
+msgstr "Экспорт ключевого пакета"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:55
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:189
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:445
+msgid "Key Package"
+msgstr "Ключевой пакет"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:61
+msgid "Export Key Package Passphrase"
+msgstr "Кодовая фраза для экспорта пакета ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:63
+msgid "Key File"
+msgstr "Ключевой файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:69
+msgid "An error occurred while generating the passphrase file."
+msgstr "Произошла ошибка при создании файла парольной фразы."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:78
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:85
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:340
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:353
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:401
+msgid "Forbidden"
+msgstr "Запрещенный"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:79
+msgid "Please select an output path before exporting."
+msgstr "Пожалуйста, выберите выходной путь перед экспортом."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:86
+msgid ""
+"Please generate a password to protect your key before exporting, it is very "
+"important. Don't forget to back up your password in a safe place."
+msgstr ""
+"Пожалуйста, сгенерируйте пароль для защиты вашего ключа перед экспортом, это"
+" очень важно. Не забудьте сделать резервную копию своего пароля в надежном "
+"месте."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
+msgid ""
+"The Key Package has been successfully generated and has been protected by "
+"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
+"Package."
+msgstr ""
+"Пакет ключей был успешно сгенерирован и защищен алгоритмами шифрования "
+"(AES-256-ECB). Вы можете безопасно перенести свой пакет ключей."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
+msgid ""
+"But the key file cannot be leaked under any circumstances. Please delete the"
+" Key Package and key file as soon as possible after completing the transfer "
+"operation."
+msgstr ""
+"Но ключевой файл не может быть пропущен ни при каких обстоятельствах. "
+"Пожалуйста, удалите ключевой пакет и ключевой файл как можно скорее после "
+"завершения операции передачи."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:121
+msgid "An error occurred while exporting the key package."
+msgstr "Произошла ошибка при экспорте пакета ключей."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:128
+msgid "Key Package Name"
+msgstr "Название ключевого пакета"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:129
+msgid "Output Path"
+msgstr "Выходной путь"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:130
+msgid "Passphrase"
+msgstr "Кодовая фраза"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:132
+msgid ""
+"Tips: You can use Key Package to safely and conveniently transfer your "
+"public and private keys between devices."
+msgstr ""
+"Советы: вы можете использовать Key Package для безопасной и удобной передачи"
+" ваших открытых и закрытых ключей между устройствами."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:134
+msgid "Generate and Save Passphrase"
+msgstr "Создать и сохранить кодовую фразу"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:135
+msgid "Generate Key Package Name"
+msgstr "Сгенерировать имя ключевого пакета"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:136
+msgid "Select Output Path"
+msgstr "Выберите выходной путь"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:139
+msgid "Include secret key (Think twice before acting)"
+msgstr "Включите секретный ключ (дважды подумайте, прежде чем действовать)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:141
+msgid "Exclude keys that do not have a private key"
+msgstr "Исключить ключи, у которых нет закрытого ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:144
+msgid "Export As Key Package"
+msgstr "Экспортировать как ключевой пакет"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:72
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:133
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:136
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:86
+msgid "Close"
+msgstr "Закрывать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:75
+msgid "Import ALL"
+msgstr "Импортировать ВСЕ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:79
+msgid "Search"
+msgstr "Поиск"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:84
+msgid "Search String"
+msgstr "Строка поиска"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:134
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:169
+msgid "Update Keys from Keyserver"
+msgstr "Обновить ключи с сервера ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:136
+msgid "Import Keys from Keyserver"
+msgstr "Импорт ключей с сервера ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:216
+msgid "UID"
+msgstr "UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:216
+msgid "Creation date"
+msgstr "Дата создания"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:216
+msgid "KeyID"
+msgstr "KeyID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:216
+msgid "Tag"
+msgstr "Ярлык"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:241
+msgid "Text is empty."
+msgstr "Текст пуст."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:289
+msgid "Not Key Found"
+msgstr "Не найден ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:308
+msgid "Too many responses from keyserver!"
+msgstr "Слишком много ответов с сервера ключей!"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:318
+msgid "No keys found, input may be kexId, retrying search with 0x."
+msgstr ""
+"Ключи не найдены, возможно, введен kexId, повторная попытка поиска с 0x."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:327
+msgid "No keys found containing the search string!"
+msgstr "Ключей, содержащих строку поиска, не найдено!"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:334
+msgid "Insufficiently specific search string!"
+msgstr "Недостаточно конкретная строка поиска!"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:370
+msgid "revoked"
+msgstr "отозван"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:374
+msgid "disabled"
+msgstr "отключен"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:424
+msgid "%1 keys found. Double click a key to import it."
+msgstr "Найдено% 1 ключей. Дважды щелкните ключ, чтобы импортировать его."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:518
+msgid "key not found in the Keyserver"
+msgstr "ключ не найден на сервере ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:524
+msgid "Host Not Found"
+msgstr "Хост не найден"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:529
+msgid "General Connection Error"
+msgstr "Общая ошибка подключения"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:543
+msgid "Key Imported"
+msgstr "Ключ импортирован"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:43
+msgid "First Start Wizard"
+msgstr "Мастер первого запуска"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:85
+msgid "Getting Started..."
+msgstr "Начиная..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:86
+msgid "... with GpgFrontend"
+msgstr "... с GpgFrontend"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:89
+msgid "Welcome to use GpgFrontend for decrypting and signing text or file!"
+msgstr ""
+"Добро пожаловать в GpgFrontend для расшифровки и подписи текста или файла!"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:92
+msgid ""
+"is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free "
+"OpenPGP Crypto Tool."
+msgstr ""
+"это мощный, простой в использовании, компактный, кроссплатформенный "
+"инструмент OpenPGP Crypto, не требующий установки."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:94
+msgid "For brief information have a look at the"
+msgstr "Для краткой информации см."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:96
+msgid "Overview"
+msgstr "Обзор"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:97
+msgid "by clicking the link, the page will open in the web browser"
+msgstr "при нажатии на ссылку откроется страница в веб-браузере"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:106
+msgid ""
+"If it supports the language currently being used in your system, GpgFrontend"
+" will automatically set it."
+msgstr ""
+"Если он поддерживает язык, который в настоящее время используется в вашей "
+"системе, GpgFrontend автоматически установит его."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:124
+msgid "Choose your action..."
+msgstr "Выберите действие ..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:125
+msgid "...by clicking on the appropriate link."
+msgstr "... нажав на соответствующую ссылку."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:129
+msgid ""
+"If you have never used GpgFrontend before and also don't own a gpg key yet "
+"you may possibly want to read how to"
+msgstr ""
+"Если вы никогда раньше не использовали GpgFrontend и у вас еще нет ключа "
+"gpg, возможно, вы захотите прочитать, как"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:141
+msgid ""
+"If you want to learn how to encrypt, decrypt, sign and verify text, you can "
+"read "
+msgstr ""
+"Если вы хотите узнать, как зашифровать, расшифровать, подписать и проверить "
+"текст, вы можете прочитать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:146
+msgid "Encrypt & Decrypt Text"
+msgstr "Зашифровать и расшифровать текст"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:146
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:161
+msgid "or"
+msgstr "или"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:149
+msgid "Sign & Verify Text"
+msgstr "Подписать и подтвердить текст"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:157
+msgid "If you want to operate file, you can read "
+msgstr "Если вы хотите работать с файлом, вы можете прочитать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:161
+msgid "Encrypt & Sign File"
+msgstr "Зашифровать и подписать файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:164
+msgid "Sign & Verify File"
+msgstr "Подписать и проверить файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:190
+msgid "Create a keypair..."
+msgstr "Создать пару ключей ..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:191
+msgid "...for decrypting and signing messages"
+msgstr "... для расшифровки и подписи сообщений"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:193
+msgid ""
+"You should create a new keypair.The pair consists of a public and a private "
+"key.<br>Other users can use the public key to encrypt messages for you and "
+"verify messages signed by you.You can use the private key to decrypt and "
+"sign messages.<br>For more information have a look at the offline tutorial "
+"(which then is shown in the main window):"
+msgstr ""
+"Вам следует создать новую пару ключей. Пара состоит из открытого и закрытого"
+" ключей. <br> Другие пользователи могут использовать открытый ключ для "
+"шифрования сообщений для вас и проверки подписанных вами сообщений. Вы "
+"можете использовать закрытый ключ для расшифровки и подписи сообщения. <br> "
+"Для получения дополнительной информации просмотрите автономное руководство "
+"(которое затем отображается в главном окне):"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:205
+msgid "Offline tutorial"
+msgstr "Автономный учебник"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:209
+msgid "Create New Key"
+msgstr "Создать новый ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:230
+msgid "Ready."
+msgstr "Готовый."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:231
+msgid "Have fun with GpgFrontend!"
+msgstr "Удачи с GpgFrontend!"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:234
+msgid "You are ready to use GpgFrontend now.<br><br>"
+msgstr "Теперь вы готовы использовать GpgFrontend. <br> <br>"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:238
+msgid "The Online Document"
+msgstr "Интернет-документ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:239
+msgid ""
+" will get you started with GpgFrontend. Anytime you encounter problems, "
+"please try to find help from the documentation"
+msgstr ""
+" поможет вам начать работу с GpgFrontend. Каждый раз, когда у вас возникают "
+"проблемы, попробуйте найти помощь в документации."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:248
+msgid "Open offline help."
+msgstr "Откройте автономную справку."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:251
+msgid "Dont show the wizard again."
+msgstr "Не показывать мастер снова."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:51
+msgid "All"
+msgstr "Все"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:54
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:600
+msgid "Only Public Key"
+msgstr "Только открытый ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:63
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:609
+msgid "Has Private Key"
+msgstr "Имеет закрытый ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:72
+msgid "No Primary Key"
+msgstr "Нет первичного ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:81
+msgid "Revoked"
+msgstr "Аннулировано"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:87
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:211
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:88
+msgid "Expired"
+msgstr "Истекший"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:111
+msgid "KeyPair Management"
+msgstr "KeyPair Management"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:127
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:225
+msgid "Open"
+msgstr "Открытым"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:128
+msgid "Ctrl+O"
+msgstr "Ctrl + O"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:129
+msgid "Open Key File"
+msgstr "Открыть ключевой файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:134
+msgid "Ctrl+Q"
+msgstr "Ctrl + Q"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:139
+msgid "New Keypair"
+msgstr "Новая пара ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:140
+msgid "Ctrl+N"
+msgstr "Ctrl + N"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:142
+msgid "Generate KeyPair"
+msgstr "Создать KeyPair"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:147
+msgid "Ctrl+Shift+N"
+msgstr "Ctrl + Shift + N"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:149
+msgid "Generate Subkey For Selected KeyPair"
+msgstr "Создать подраздел для выбранной пары ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:153
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:235
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:240
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:445
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:517
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:243
+msgid "File"
+msgstr "Файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:155
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:242
+msgid "Import New Key From File"
+msgstr "Импортировать новый ключ из файла"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:159
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:246
+msgid "Clipboard"
+msgstr "Буфер обмена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:163
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:250
+msgid "Import New Key From Clipboard"
+msgstr "Импортировать новый ключ из буфера обмена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:179
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:266
+msgid "Keyserver"
+msgstr "Keyserver"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:183
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:270
+msgid "Import New Key From Keyserver"
+msgstr "Импортировать новый ключ с сервера ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:192
+msgid "Import Key(s) From a Key Package"
+msgstr "Импорт ключей из пакета ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:196
+msgid "Export To Clipboard"
+msgstr "Экспорт в буфер обмена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:199
+msgid "Export Selected Key(s) To Clipboard"
+msgstr "Экспорт выбранных ключей в буфер обмена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:203
+msgid "Export To Key Package"
+msgstr "Экспорт в ключевой пакет"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:206
+msgid "Export Checked Key(s) To a Key Package"
+msgstr "Экспорт проверенных ключей в пакет ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:210
+msgid "Export As OpenSSH"
+msgstr "Экспорт как OpenSSH"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:213
+msgid "Export Selected Key(s) As OpenSSH Format to File"
+msgstr "Экспорт выбранных ключей в файл в формате OpenSSH"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:217
+msgid "Delete Selected Key(s)"
+msgstr "Удалить выбранный ключ (и)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:218
+msgid "Delete the Selected keys"
+msgstr "Удалить выбранные ключи"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:222
+msgid "Delete Checked Key(s)"
+msgstr "Удалить отмеченные ключи"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:223
+msgid "Delete the Checked keys"
+msgstr "Удалить отмеченные ключи"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:228
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:416
+msgid "Show Key Details"
+msgstr "Показать ключевые детали"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:229
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:417
+msgid "Show Details for this Key"
+msgstr "Показать детали для этого ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:244
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:270
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:487
+msgid "Import Key"
+msgstr "Ключ импорта"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:269
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:561
+msgid "Import key"
+msgstr "Импортировать ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:308
+msgid "Deleting Keys"
+msgstr "Удаление ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:311
+msgid "Are you sure that you want to delete the following keys?"
+msgstr "Вы уверены, что хотите удалить следующие ключи?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:329
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:381
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:424
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:644
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:670
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:688
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:705
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:718
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:731
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:746
+msgid "Key Not Found."
+msgstr "Ключ не найден."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:341
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:354
+msgid "Please check some keys before doing this operation."
+msgstr ""
+"Пожалуйста, проверьте некоторые ключи перед выполнением этой операции."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:346
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:436
+msgid "key(s) exported"
+msgstr "ключ (ы) экспортирован"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:376
+msgid "Please select one KeyPair before doing this operation."
+msgstr "Перед выполнением этой операции выберите одну пару ключей."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:386
+msgid ""
+"If a key pair does not have a private key then it will not be able to "
+"generate sub-keys."
+msgstr ""
+"Если пара ключей не имеет закрытого ключа, она не сможет сгенерировать "
+"подключи."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:402
+msgid ""
+"Please select a key before performing this operation. If you select multiple"
+" keys, only the first key will be exported."
+msgstr ""
+"Пожалуйста, выберите ключ перед выполнением этой операции. Если вы выберете "
+"несколько ключей, будет экспортирован только первый ключ."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:410
+msgid "An error occur in exporting."
+msgstr "Произошла ошибка при экспорте."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:417
+msgid ""
+"This key may not be able to export as OpenSSH format. Please check the key-"
+"size of the subkey(s) used to sign."
+msgstr ""
+"Этот ключ может быть недоступен для экспорта в формате OpenSSH. Пожалуйста, "
+"проверьте размер ключа подключей, используемых для подписи."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:431
+msgid "Export OpenSSH Key To File"
+msgstr "Экспорт ключа OpenSSH в файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:432
+msgid "OpenSSH Public Key Files"
+msgstr "Файлы открытого ключа OpenSSH"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:444
+msgid "Import Key Package"
+msgstr "Импортировать ключевой пакет"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:448
+msgid "Import Key Package Passphrase File"
+msgstr "Импортировать файл парольной фразы пакета ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:449
+msgid "Key Package Passphrase File"
+msgstr "Файл ключевой фразы пакета"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:459
+msgid "key(s) imported"
+msgstr "ключ(и) импортированы"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:466
+msgid "An error occur in importing key package."
+msgstr "Произошла ошибка при импорте пакета ключей."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:45
+msgid "The path %1 does not exist."
+msgstr "Путь %1 не существует."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:50
+msgid "No permission to read this file."
+msgstr "Нет разрешения на чтение этого файла."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:55
+msgid "No permission to create file."
+msgstr "Нет разрешения на создание файла."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:74
+msgid "The file is not a tarball."
+msgstr "Файл не является архивом."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:88
+msgid "Extracting Tarball"
+msgstr "Извлечение архива"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:133
+msgid "Making Tarball"
+msgstr "Создание архива"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:201
+msgid "The target file %1% already exists, do you need to overwrite it?"
+msgstr "Целевой файл% 1% уже существует. Вам нужно его перезаписать?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:215
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:634
+msgid "Unable to convert the folder into tarball."
+msgstr "Не удалось преобразовать папку в tarball."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:223
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:98
+msgid "Symmetric Encryption"
+msgstr "Симметричное шифрование"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:224
+msgid ""
+"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr ""
+"Ключ не выбран. Вы хотите зашифровать симметричным шифром с использованием "
+"ключевой фразы?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:231
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:105
+msgid "Symmetrically Encrypting"
+msgstr "Симметричное шифрование"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:250
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:576
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:417
+msgid "Invalid KeyPair"
+msgstr "Неверная пара ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:577
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:418
+msgid "The selected keypair cannot be used for encryption."
+msgstr "Выбранную пару ключей нельзя использовать для шифрования."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:252
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:578
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:135
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:196
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:419
+msgid "For example the Following Key:"
+msgstr "Например, следующий ключ:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:258
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:145
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:169
+msgid "Encrypting"
+msgstr "Шифрование"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:287
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:341
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:453
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:548
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:670
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:747
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:86
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:250
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:318
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:385
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:507
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:585
+msgid "An error occurred during operation."
+msgstr "Произошла ошибка во время работы."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:313
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:612
+msgid "The target file already exists, do you need to overwrite it?"
+msgstr "Целевой файл уже существует, вам нужно его перезаписать?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:322
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:348
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:353
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:358
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:754
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:759
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:764
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:323
+msgid "Decrypting"
+msgstr "Расшифровка"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:349
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:755
+msgid "Do you want to extract and delete the decrypted tarball?"
+msgstr "Вы хотите извлечь и удалить расшифрованный архив?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:354
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:760
+msgid "Extracting tarball succeeded."
+msgstr "Распаковка архива выполнена успешно."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:359
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:765
+msgid "Extracting tarball failed."
+msgstr "Не удалось распаковать архив."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:376
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:565
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:183
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:405
+msgid "No Key Checked"
+msgstr "Ключ не проверен"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:377
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:566
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:184
+msgid "Please check the key in the key toolbox on the right."
+msgstr "Пожалуйста, проверьте ключ на панели инструментов справа."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:385
+msgid ""
+"The selected key contains a key that does not actually have a sign usage."
+msgstr ""
+"Выбранный ключ содержит ключ, который фактически не имеет знакового "
+"использования."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:387
+msgid "for example the Following Key:"
+msgstr "например, следующий ключ:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:420
+msgid "The signature file \"%1\" exists, do you need to overwrite it?"
+msgstr "Файл подписи \"% 1\" существует. Вам нужно его перезаписать?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:498
+msgid "Origin file to verify"
+msgstr "Исходный файл для проверки"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:498
+msgid "Filepath"
+msgstr "Путь файла"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:511
+msgid ""
+"Please select the appropriate origin file or signature file. Ensure that "
+"both are in this directory."
+msgstr ""
+"Пожалуйста, выберите соответствующий исходный файл или файл подписи. "
+"Убедитесь, что оба находятся в этом каталоге."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:523
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:390
+msgid "Verifying"
+msgstr "Проверка"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:645
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:512
+msgid "Encrypting and Signing"
+msgstr "Шифрование и подпись"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:707
+msgid "The output file %1 already exists, do you need to overwrite it?"
+msgstr "Выходной файл% 1 уже существует. Вам нужно его перезаписать?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:719
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:590
+msgid "Decrypting and Verifying"
+msgstr "Расшифровка и проверка"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:39
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:253
+msgid "New"
+msgstr "Новый"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:48
+msgid "Open a new file"
+msgstr "Открыть новый файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:51
+msgid "Open..."
+msgstr "Открытым..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:54
+msgid "Open an existing file"
+msgstr "Открыть существующий файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:57
+msgid "File Browser"
+msgstr "Файловый браузер"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:64
+msgid "Open a file browser"
+msgstr "Откройте файловый браузер"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:68
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:44
+msgid "Save File"
+msgstr "Сохранить файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:71
+msgid "Save the current File"
+msgstr "Сохранить текущий файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:74
+msgid "Save As"
+msgstr "Сохранить как"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:77
+msgid "Save the current File as..."
+msgstr "Сохранить текущий файл как ..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:80
+msgid "Print"
+msgstr "Распечатать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:83
+msgid "Print Document"
+msgstr "Распечатать документ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:88
+msgid "Close file"
+msgstr "Закрыть файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:91
+msgid "Quit"
+msgstr "Покидать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:94
+msgid "Quit Program"
+msgstr "Выйти из программы"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:99
+msgid "Undo"
+msgstr "Отменить"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:101
+msgid "Undo Last Edit Action"
+msgstr "Отменить последнее действие редактирования"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:104
+msgid "Redo"
+msgstr "Повторить"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:106
+msgid "Redo Last Edit Action"
+msgstr "Повторить последнее действие редактирования"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:109
+msgid "Zoom In"
+msgstr "Увеличить"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:113
+msgid "Zoom Out"
+msgstr "Уменьшить"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:117
+msgid "Paste"
+msgstr "Вставить"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:120
+msgid "Paste Text From Clipboard"
+msgstr "Вставить текст из буфера обмена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:123
+msgid "Cut"
+msgstr "Резать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:127
+msgid "Cut the current selection's contents to the clipboard"
+msgstr "Вырезать содержимое текущего выделения в буфер обмена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:135
+msgid "Copy the current selection's contents to the clipboard"
+msgstr "Скопируйте содержимое текущего выделения в буфер обмена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:139
+msgid "Quote"
+msgstr "Цитировать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:141
+msgid "Quote whole text"
+msgstr "Цитировать весь текст"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:144
+msgid "Select All"
+msgstr "Выбрать все"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:147
+msgid "Select the whole text"
+msgstr "Выделите весь текст"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:151
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FindWidget.cpp:44
+msgid "Find"
+msgstr "Находить"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:153
+msgid "Find a word"
+msgstr "Найдите слово"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:156
+msgid "Remove spacing"
+msgstr "Удалить интервал"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:161
+msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
+msgstr ""
+"Удалите двойные разрывы строк, например во вставленном тексте из веб-"
+"почтовой программы"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:166
+msgid "Open settings dialog"
+msgstr "Открыть диалог настроек"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:180
+msgid "Encrypt Message"
+msgstr "Зашифровать сообщение"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:183
+msgid "Encrypt Sign"
+msgstr "Зашифровать знак"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:191
+msgid "Encrypt and Sign Message"
+msgstr "Зашифровать и подписать сообщение"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:195
+msgid "Decrypt"
+msgstr "Расшифровать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:202
+msgid "Decrypt Message"
+msgstr "Расшифровать сообщение"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:205
+msgid "Decrypt Verify"
+msgstr "Расшифровать Проверить"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:213
+msgid "Decrypt and Verify Message"
+msgstr "Расшифровать и проверить сообщение"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:224
+msgid "Sign Message"
+msgstr "Подписать сообщение"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:227
+msgid "Verify"
+msgstr "Проверять"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:234
+msgid "Verify Message"
+msgstr "Проверить сообщение"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
+msgid "Editor"
+msgstr "редактор"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:278
+msgid "Import New Key From Editor"
+msgstr "Импортировать новый ключ из редактора"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
+msgid "Manage Keys"
+msgstr "Управление ключами"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:284
+msgid "Open Key Management"
+msgstr "Открытое управление ключами"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:288
+msgid "Clear Password Cache"
+msgstr "Очистить кеш паролей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
+msgid "Clear Password Cache of GnuPG"
+msgstr "Очистить кеш паролей GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:295
+msgid "Clear password cache successfully"
+msgstr "Очистить кеш паролей успешно"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:297
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:312
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:328
+msgid "Failed Operation"
+msgstr "Неудачная операция"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:298
+msgid "Failed to clear password cache of GnuPG"
+msgstr "Не удалось очистить кеш паролей GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:302
+msgid "Reload All Components"
+msgstr "Перезагрузить все компоненты"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:304
+msgid "Reload All GnuPG's Components"
+msgstr "Перезагрузить все компоненты GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:309
+msgid "Reload all the GnuPG's components successfully"
+msgstr "Успешно перезагрузите все компоненты GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:313
+msgid "Failed to reload all or one of the GnuPG's component(s)"
+msgstr "Не удалось перезагрузить все или один из компонентов GnuPG."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:317
+msgid "Restart All Components"
+msgstr "Перезапустить все компоненты"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:319
+msgid "Restart All GnuPG's Components"
+msgstr "Перезапустите все компоненты GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:325
+msgid "Restart all the GnuPG's components successfully"
+msgstr "Успешно перезапустите все компоненты GnuPG."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:329
+msgid "Failed to restart all or one of the GnuPG's component(s)"
+msgstr "Не удалось перезапустить все или один из компонентов GnuPG."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:338
+msgid "Show the application's About box"
+msgstr "Показать окно \"О приложении\""
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:345
+msgid "Information about Gnupg"
+msgstr "Информация о Gnupg"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:349
+msgid "Translate"
+msgstr "Перевести"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:351
+msgid "Information about translation"
+msgstr "Информация о переводе"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:358
+msgid "Check for Updates"
+msgstr "Проверить обновления"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:360
+msgid "Check for updates"
+msgstr "Проверить обновления"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:364
+msgid "Open Wizard"
+msgstr "Открыть Мастер"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:365
+msgid "Open the wizard"
+msgstr "Откройте мастер"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:370
+msgid "Append Public Key to Editor"
+msgstr "Добавить открытый ключ в редактор"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:372
+msgid "Append selected Keypair's Public Key to Editor"
+msgstr "Добавить открытый ключ выбранной пары ключей в редактор"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:377
+msgid "Append Create DateTime to Editor"
+msgstr "Добавить Create DateTime в редактор"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:379
+msgid "Append selected Key's creation date and time to Editor"
+msgstr "Добавить дату и время создания выбранного ключа в редактор"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:384
+msgid "Append Expire DateTime to Editor"
+msgstr "Добавить Expire DateTime в редактор"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:386
+msgid "Append selected Key's expiration date and time to Editor"
+msgstr ""
+"Добавить дату и время истечения срока действия выбранного ключа в редактор"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:391
+msgid "Append Fingerprint to Editor"
+msgstr "Добавить отпечаток пальца в редактор"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:393
+msgid "Append selected Key's Fingerprint to Editor"
+msgstr "Добавить отпечаток выбранного ключа в редактор"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:397
+msgid "Copy Email"
+msgstr "Копировать электронную почту"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:399
+msgid "Copy selected Keypair's to clipboard"
+msgstr "Скопировать выбранную пару ключей в буфер обмена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:404
+msgid "Copy Default UID"
+msgstr "Копировать UID по умолчанию"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:406
+msgid "Copy selected Keypair's default UID to clipboard"
+msgstr "Скопировать UID выбранной пары ключей по умолчанию в буфер обмена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:410
+msgid "Copy Key ID"
+msgstr "Копировать идентификатор ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:412
+msgid "Copy selected Keypair's ID to clipboard"
+msgstr "Скопировать ID выбранной пары ключей в буфер обмена"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:435
+msgid "Remove PGP Header"
+msgstr "Удалить заголовок PGP"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:439
+msgid "Add PGP Header"
+msgstr "Добавить заголовок PGP"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:458
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:540
+msgid "Edit"
+msgstr "Редактировать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:476
+msgid "Crypt"
+msgstr "Склеп"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:486
+msgid "Keys"
+msgstr "Ключи"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:501
+msgid "Steganography"
+msgstr "Стеганография"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:505
+msgid "View"
+msgstr "Вид"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:507
+msgid "Help"
+msgstr "Помощь"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:548
+msgid "Special Edit"
+msgstr "Специальное редактирование"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:560
+msgid "Import key from..."
+msgstr "Импортировать ключ из ..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:577
+msgid "Ready"
+msgstr "Готовый"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:584
+msgid "Key ToolBox"
+msgstr "Key ToolBox"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:99
+msgid ""
+"No Key Checked. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr ""
+"Ключ не проверен. Вы хотите зашифровать с помощью симметричного шифра с "
+"использованием парольной фразы?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
+msgid ""
+"The selected key contains a key that does not actually have a encrypt usage."
+msgstr ""
+"Выбранный ключ содержит ключ, который фактически не используется для "
+"шифрования."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:194
+msgid ""
+"The selected key contains a key that does not actually have a signature "
+"usage."
+msgstr ""
+"Выбранный ключ содержит ключ, для которого фактически не используется "
+"подпись."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:269
+msgid "Notice"
+msgstr "Уведомление"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:270
+msgid "Short Crypto Text only supports Decrypt & Verify."
+msgstr "Short Crypto Text поддерживает только расшифровку и проверку."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:406
+msgid "Please check some key in the key toolbox on the right."
+msgstr "Пожалуйста, проверьте ключ в панели инструментов справа."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:623
+msgid "Key Export Operation Failed."
+msgstr "Не удалось выполнить операцию экспорта ключа."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:782
+msgid "GpgFrontend Upgradeable (New Version: %1)."
+msgstr "GpgFrontend Upgradeable (новая версия:% 1)."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:793
+msgid "Withdrawn Version"
+msgstr "Отозванная версия"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:795
+msgid ""
+"This version(%1) may have been withdrawn by the developer due to serious "
+"problems. Please stop using this version immediately and use the latest "
+"stable version."
+msgstr ""
+"Эта версия (% 1) могла быть удалена разработчиком из-за серьезных проблем. "
+"Немедленно прекратите использование этой версии и используйте последнюю "
+"стабильную версию."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:800
+msgid ""
+"You can download the latest stable version(%1) on Github Releases Page.<br/>"
+msgstr ""
+"Вы можете скачать последнюю стабильную версию (% 1) на странице выпусков "
+"Github. <br/>"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:806
+msgid "This maybe a BETA Version (Latest Stable Version: %1)."
+msgstr "Возможно, это БЕТА-версия (Последняя стабильная версия:% 1)."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindow.cpp:162
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindow.cpp:164
+msgid "Critical error occur while loading GpgFrontend."
+msgstr "При загрузке GpgFrontend возникает критическая ошибка."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindow.cpp:163
+msgid "Loading Failed"
+msgstr "Загрузка не удалась"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:139
+msgid "Loading Gnupg Info..."
+msgstr "Загрузка информации о Gnupg ..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:140
+msgid ""
+"If this process is too slow, please set the key server address appropriately"
+" in the gnupg configuration file (depending on the network situation in your"
+" country or region)."
+msgstr ""
+"Если этот процесс идет слишком медленно, установите соответствующий адрес "
+"сервера ключей в файле конфигурации gnupg (в зависимости от сетевой ситуации"
+" в вашей стране или регионе)."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:261
+msgid "could not read properly from configure file"
+msgstr "не может правильно прочитать файл конфигурации"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:56
+msgid "Import from keyserver"
+msgstr "Импорт с сервера ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:61
+msgid "Key not present with id 0x"
+msgstr "Ключ отсутствует с идентификатором 0x"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:65
+msgid ":"
+msgstr ":"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:67
+msgid "Key not present in key list"
+msgstr "Ключ отсутствует в списке ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:75
+msgid "A Signature"
+msgstr "Подпись"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:80
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:96
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:112
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:130
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:146
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:161
+msgid "Key Information is NOT Available"
+msgstr "Ключевая информация НЕТ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:91
+msgid "Cert Revoked"
+msgstr "Сертификат отозван"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:107
+msgid "Signature Expired"
+msgstr "Срок действия подписи истек"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:123
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:125
+msgid "Key Expired"
+msgstr "Срок действия ключа истек"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:141
+msgid "General Error"
+msgstr "Общая ошибка"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:156
+msgid "Unknown Error "
+msgstr "Неизвестная ошибка"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:186
+msgid "Signer Name"
+msgstr "Имя подписывающего лица"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:187
+msgid "Signer Email"
+msgstr "Электронная почта подписывающего лица"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:188
+msgid "Key's Fingerprint"
+msgstr "Отпечаток ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:189
+msgid "Valid"
+msgstr "Действительный"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:190
+msgid "Flags"
+msgstr "Флаги"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:197
+msgid "Fully Valid"
+msgstr "Полностью Действителен"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:199
+msgid "NOT Fully Valid"
+msgstr "НЕ полностью действителен"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:205
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:82
+msgid "Good"
+msgstr "Хороший"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:208
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:85
+msgid "Bad"
+msgstr "Плохой"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:214
+msgid "Missing Key"
+msgstr "Отсутствует ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:217
+msgid "Revoked Key"
+msgstr "Аннулированный ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:220
+msgid "Expired Key"
+msgstr "Срок действия ключа истек"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:223
+msgid "Missing CRL"
+msgstr "Отсутствует CRL"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:45
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:65
+msgid "Clear"
+msgstr "Прозрачный"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:164
+msgid "Save Information Board's Content"
+msgstr "Сохранить содержимое информационного табло"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:174
+msgid "The file path is not exists, unprivileged or unreachable."
+msgstr "Путь к файлу не существует, непривилегированный или недоступный."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:39
+msgid "Expires on"
+msgstr "Срок истекает"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:40
+msgid "Last Update"
+msgstr "Последнее обновление"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:41
+msgid "Secret Key Existence"
+msgstr "Существование секретного ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:85
+msgid "Refresh"
+msgstr "Обновить"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:87
+msgid "Refresh the key list to synchronize changes."
+msgstr "Обновите список ключей, чтобы синхронизировать изменения."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:88
+msgid "Sync Public Key"
+msgstr "Синхронизировать открытый ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:90
+msgid "Sync public key with your default keyserver."
+msgstr "Синхронизируйте открытый ключ с вашим сервером ключей по умолчанию."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:91
+msgid "Uncheck ALL"
+msgstr "Снять все"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:93
+msgid "Cancel all checked items in the current tab at once."
+msgstr "Отменить сразу все отмеченные элементы на текущей вкладке."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:94
+msgid "Check ALL"
+msgstr "Отметить все"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:96
+msgid "Check all items in the current tab at once"
+msgstr "Проверить сразу все элементы в текущей вкладке"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Type"
+msgstr "Тип"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:151
+msgid "Validity"
+msgstr "Срок действия"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:151
+msgid "Finger Print"
+msgstr "Отпечаток пальца"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:166
+msgid "Refreshing Key List..."
+msgstr "Обновление списка ключей ..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:305
+msgid "Import Keys"
+msgstr "Импорт ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:308
+msgid "You've dropped something on the table."
+msgstr "Вы что-то уронили на стол."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:309
+msgid "GpgFrontend will now try to import key(s)."
+msgstr "GpgFrontend теперь попытается импортировать ключ (и)."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:314
+msgid "Always import without bothering."
+msgstr "Всегда импортируйте, не беспокоясь."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:429
+msgid "Key List Refreshed."
+msgstr "Список ключей обновлен."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:449
+msgid "Syncing Key List..."
+msgstr "Список ключей синхронизации ..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:457
+msgid "Sync [%1%/%2%] %3% %4%"
+msgstr "Синхронизация [% 1% /% 2%]% 3%% 4%"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:465
+msgid "Key List Sync Done."
+msgstr "Синхронизация списка ключей выполнена."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:61
+msgid "0 character"
+msgstr "0 символов"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:62
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:106
+msgid "lf"
+msgstr "лф"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
+msgid "utf-8"
+msgstr "утф-8"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:70
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:257
+msgid "%1% character(s)"
+msgstr "%1% символов"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:79
+msgid "Loading..."
+msgstr "Загрузка..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:107
+msgid "UTF-8"
+msgstr "UTF-8"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:237
+msgid "%1% byte(s)"
+msgstr "%1% байт(ов)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:281
+msgid "binary"
+msgstr "бинарный"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:60
+msgid "untitled"
+msgstr "без названия"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:111
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:193
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:420
+msgid ""
+"Cannot read file %1%:\n"
+"%2%."
+msgstr ""
+"Не удается прочитать файл% 1%:\n"
+"% 2%."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:122
+msgid "Open file"
+msgstr "Открыть файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:156
+msgid "Save"
+msgstr "Сохранять"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:158
+msgid ""
+"After saving, the encoding of the current file will be converted to UTF-8 "
+"and the line endings will be changed to LF. "
+msgstr ""
+"После сохранения кодировка текущего файла будет преобразована в UTF-8, а "
+"окончания строк изменены на LF."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:162
+msgid "If this is not the result you expect, please use \"save as\"."
+msgstr ""
+"Если это не тот результат, который вы ожидаете, используйте «сохранить как»."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:214
+msgid "Save file"
+msgstr "Сохранить файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:276
+msgid "Unsaved document"
+msgstr "Несохраненный документ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:277
+msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgstr "Документ «% 1» был изменен. Вы хотите сохранить изменения?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:280
+msgid "Note:"
+msgstr "Примечание:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:217
+msgid "The path is not exists, unprivileged or unreachable."
+msgstr "Путь не существует, непривилегированный или недоступный."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:228
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:359
+msgid "Rename"
+msgstr "Переименовать"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:231
+msgid "Delete"
+msgstr "Удалить"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:235
+msgid "Calculate Hash"
+msgstr "Рассчитать хеш"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:239
+msgid "Directory"
+msgstr "Каталог"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:247
+msgid "Compress..."
+msgstr "Компресс..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:267
+msgid "Show Hidden File"
+msgstr "Показать скрытый файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:279
+msgid "Show System File"
+msgstr "Показать системный файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:336
+msgid "The directory is unprivileged or unreachable."
+msgstr "Каталог непривилегирован или недоступен."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:347
+msgid "The file is unprivileged or unreachable."
+msgstr "Файл непривилегирован или недоступен."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:359
+msgid "New Filename"
+msgstr "Новое имя файла"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:375
+msgid "Unable to rename the file or folder."
+msgstr "Невозможно переименовать файл или папку."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:385
+msgid "Are you sure you want to delete it?"
+msgstr "Вы уверены, что хотите это удалить?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:394
+msgid "Unable to delete the file or folder."
+msgstr "Невозможно удалить файл или папку."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:409
+msgid "Make New Directory"
+msgstr "Создать новый каталог"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:409
+msgid "Directory Name"
+msgstr "Имя каталога"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:426
+msgid "Create Empty File"
+msgstr "Создать пустой файл"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:427
+msgid "Filename (you can given extension)"
+msgstr "Имя файла (можно указать расширение)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:437
+msgid "Unable to create the file."
+msgstr "Невозможно создать файл."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:58
+msgid "Show Verify Details"
+msgstr "Показать детали проверки"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:67
+msgid "Public key not found locally"
+msgstr "Открытый ключ не найден локально"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:68
+msgid ""
+"There is no target public key content in local for GpgFrontend to gather "
+"enough information about this Signature. Do you want to import the public "
+"key from Keyserver now?"
+msgstr ""
+"Для GpgFrontend нет целевого содержимого открытого ключа на локальном "
+"уровне, чтобы собрать достаточно информации об этой подписи. Вы хотите "
+"сейчас импортировать открытый ключ с сервера ключей?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:176
+msgid "ENV Loading Failed"
+msgstr "Ошибка загрузки ENV"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:177
+msgid ""
+"Gnupg(gpg) is not installed correctly, please follow <a "
+"href='https://www.gpgfrontend.pub/#/faq?id=how-to-deal-with-39env-loading-"
+"failed39'>this notes</a> in FAQ to install Gnupg and then open GpgFrontend."
+msgstr ""
+"Gnupg(gpg) установлен неправильно, следуйте <a "
+"href='https://www.gpgfrontend.pub/#/faq?id=how-to-deal-with-39env-loading-"
+"failed39'>этим примечаниям< /a> в FAQ, чтобы установить Gnupg, а затем "
+"открыть GpgFrontend."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:196
+msgid "Open Key"
+msgstr "Открытый ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
+msgid "Keyring files"
+msgstr "Файлы ключей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:202
+msgid "File Open Failed"
+msgstr "Ошибка открытия файла"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:203
+msgid "Failed to open file: "
+msgstr "Не удалось открыть файл:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:257
+msgid "Processing"
+msgstr "Обработка"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:277
+msgid "Failed to execute command."
+msgstr "Не удалось выполнить команду."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
+msgid "Succeed in executing command."
+msgstr "Успешно выполнить команду."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
+msgid "Finished executing command."
+msgstr "Завершено выполнение команды."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:388
+msgid "The key has been updated"
+msgstr "Ключ обновлен"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:390
+msgid "No need to update the key"
+msgstr "Не нужно обновлять ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:422
+msgid "Password Input Dialog"
+msgstr "Диалог ввода пароля"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:425
+msgid "Please Input The Password"
+msgstr "Пожалуйста, введите пароль"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendApplication.cpp:78
+msgid "Standard Exception Thrown"
+msgstr "Стандартное исключение"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendApplication.cpp:79
+msgid ""
+"Oops, an standard exception was thrown during the running of the program. "
+"This is not a serious problem, it may be the negligence of the programmer, "
+"please report this problem if you can."
+msgstr ""
+"К сожалению, во время работы программы было выдано стандартное исключение. "
+"Это не серьезная проблема, это может быть халатность программиста, "
+"пожалуйста, сообщите об этой проблеме, если можете."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendApplication.cpp:87
+msgid "Unhandled Exception Thrown"
+msgstr "Выброшено необработанное исключение"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendApplication.cpp:88
+msgid ""
+"Oops, an unhandled exception was thrown during the running of the program. "
+"This is not a serious problem, it may be the negligence of the programmer, "
+"please report this problem if you can."
+msgstr ""
+"К сожалению, во время работы программы возникло необработанное исключение. "
+"Это не серьезная проблема, это может быть халатность программиста, "
+"пожалуйста, сообщите об этой проблеме, если можете."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/GpgContext.cpp:373
+msgid "Embedded In"
+msgstr "Встроенный в"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:38
+msgid "Decrypt Operation"
+msgstr "Расшифровать операцию"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:48
+msgid "Unsupported Algo"
+msgstr "Неподдерживаемый алгоритм"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:56
+msgid "File Name"
+msgstr "Имя файла"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
+msgid "MIME"
+msgstr "MIME"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:64
+msgid "Recipient(s)"
+msgstr "Получатель (и)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:80
+msgid "Recipient"
+msgstr "Получатель"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:88
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:183
+msgid "Unknown"
+msgstr "Неизвестный"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:95
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:80
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:191
+msgid "Public Key Algo"
+msgstr "Алгоритм открытого ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:40
+msgid "Sign Operation"
+msgstr "Знак Операция"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:61
+msgid "Sign Mode"
+msgstr "Знак Режим"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:63
+msgid "Normal"
+msgstr "Обычный"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:67
+msgid "Detach"
+msgstr "Отсоединить"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:74
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:77
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:104
+msgid "Signer"
+msgstr "Подписывающее лицо"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:82
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:194
+msgid "Hash Algo"
+msgstr "Хеш-алгоритм"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:84
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:197
+msgid "Date"
+msgstr "Дата"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:84
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:58
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:197
+msgid "UTC"
+msgstr "универсальное глобальное время"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:100
+msgid "Invalid Signers"
+msgstr "Недействительные подписавшие"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:107
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:55
+msgid "Reason"
+msgstr "Причина"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:38
+msgid "Encrypt Operation"
+msgstr "Шифрование операции"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:51
+msgid "Invalid Recipients"
+msgstr "Недействительные получатели"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:44
+msgid "Verify Operation"
+msgstr "Проверить работу"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:58
+msgid "Signed On"
+msgstr "Подписан"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:64
+msgid "Signatures List"
+msgstr "Список подписей"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:70
+msgid "Signature [%1%]:"
+msgstr "Подпись [%1%]:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:73
+msgid "A Bad Signature."
+msgstr "Плохая подпись."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:75
+msgid "This Signature is invalid."
+msgstr "Эта подпись недействительна."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:80
+msgid "A"
+msgstr "А"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:91
+msgid "Missing Key's"
+msgstr "Отсутствующий ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:94
+msgid "Revoked Key's"
+msgstr "Отозванный ключ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:97
+msgid "Expired Key's"
+msgstr "Ключ с истекшим сроком действия"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:100
+msgid "Missing CRL's"
+msgstr "Отсутствующие списки отзыва сертификатов"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:104
+msgid "Signature Fully Valid."
+msgstr "Подпись полностью действительна."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:106
+msgid "Signature Not Fully Valid."
+msgstr "Подпись действительна не полностью."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:107
+msgid "(May used a subkey to sign)"
+msgstr "(Может использовать подраздел для подписи)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:113
+msgid "Key is NOT present with ID 0x"
+msgstr "Ключ НЕТ с идентификатором 0x"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:121
+msgid "A signature could NOT be verified due to a Missing Key"
+msgstr "Подпись НЕ может быть проверена из-за отсутствия ключа"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:126
+msgid ""
+"A signature is valid but the key used to verify the signature has been "
+"revoked"
+msgstr ""
+"Подпись действительна, но ключ, использованный для проверки подписи, отозван"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:135
+msgid "A signature is valid but expired"
+msgstr "Подпись действительна, но срок ее действия истек"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:142
+msgid ""
+"A signature is valid but the key used to verify the signature has expired."
+msgstr ""
+"Подпись действительна, но срок действия ключа, используемого для проверки "
+"подписи, истек."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:150
+msgid "There was some other error which prevented the signature verification."
+msgstr "Произошла другая ошибка, которая помешала проверке подписи."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:158
+msgid "Error for key with fingerprint"
+msgstr "Ошибка ключа с отпечатком пальца"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:169
+msgid "Could not find information that can be used for verification."
+msgstr "Не удалось найти информацию, которую можно использовать для проверки."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:182
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:187
+msgid "Signed By"
+msgstr "Подписано"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:82
+msgid "File Hash Information"
+msgstr "Информация о хэше файла"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:83
+msgid "filename"
+msgstr "имя файла"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:90
+msgid "file size(bytes)"
+msgstr "размер файла (байты)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:120
+msgid "Error in Calculating File Hash "
+msgstr "Ошибка при вычислении хэша файла"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/main.cpp:148
+msgid "A serious error has occurred"
+msgstr "Произошла серьезная ошибка"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/main.cpp:149
+msgid ""
+"Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
+" restarted. If the problem recurs, please manually terminate the program and"
+" report the problem to the developer."
+msgstr ""
+"О, нет! GpgFrontend обнаружил серьезную ошибку в программном обеспечении, "
+"поэтому его необходимо перезапустить. Если проблема повторится, пожалуйста, "
+"закройте программу вручную и сообщите о проблеме разработчику."
+
+#~ msgid "and GPGME"
+#~ msgstr "и GPGME"
+
+#~ msgid "Path"
+#~ msgstr "Дорожка"
+
+#~ msgid "Generate"
+#~ msgstr "Генерировать"
+
+#~ msgid "Generate A New Keypair or Subkey"
+#~ msgstr "Создать новую пару ключей или подключ"
+
+#~ msgid "Source: "
+#~ msgstr "Источник:"
+
+#~ msgid "Description: "
+#~ msgstr "Описание:"
+
+#~ msgid "Predict"
+#~ msgstr "Предсказывать"
+
+#~ msgid "Called"
+#~ msgstr "Называется"
+
+#~ msgid "log file path"
+#~ msgstr "путь к файлу журнала"
+
+#~ msgid "Setting Operation Error"
+#~ msgstr "Ошибка операции настройки"
+
+#~ msgid "use_custom_key_database_path"
+#~ msgstr "use_custom_key_database_path"
+
+#~ msgid "custom_key_database_path"
+#~ msgstr "custom_key_database_path"
+
+#~ msgid "operator not support"
+#~ msgstr "оператор не поддерживает"
+
+#~ msgid "Updated ui configuration successfully written to"
+#~ msgstr ""
+#~ "Обновленная конфигурация пользовательского интерфейса успешно записана в"
+
+#~ msgid "I/O error while writing ui configuration file"
+#~ msgstr ""
+#~ "Ошибка ввода-вывода при записи файла конфигурации пользовательского "
+#~ "интерфейса"
+
+#~ msgid "App Path"
+#~ msgstr "Путь к приложению"
+
+#~ msgid "App Configure Path"
+#~ msgstr "Путь настройки приложения"
+
+#~ msgid "App Data Path"
+#~ msgstr "Путь к данным приложения"
+
+#~ msgid "App Log Path"
+#~ msgstr "Путь к журналу приложения"
+
+#~ msgid "App Locale Path"
+#~ msgstr "Путь к языку приложения"
+
+#~ msgid "App Conf Path"
+#~ msgstr "Путь к конфигурации приложения"
+
+#~ msgid "UserInterface configuration successfully written to"
+#~ msgstr "Конфигурация UserInterface успешно записана в"
+
+#~ msgid "I/O error while writing UserInterface configuration file"
+#~ msgstr "Ошибка ввода-вывода при записи файла конфигурации UserInterface"
+
+#~ msgid "UserInterface configuration successfully read from"
+#~ msgstr "Конфигурация UserInterface успешно прочитана из"
+
+#~ msgid "I/O error while reading UserInterface configure file"
+#~ msgstr "Ошибка ввода-вывода при чтении файла конфигурации UserInterface"
+
+#~ msgid "Parse error at "
+#~ msgstr "Ошибка синтаксического анализа в"
+
+#~ msgid "started"
+#~ msgstr "началось"
+
+#~ msgid "Start Sign Result Analyse"
+#~ msgstr "Начать анализ результатов знак"
+
+#~ msgid "Sign Result Analyse Getting Result"
+#~ msgstr "Подпишите результат Анализируйте Получение результата"
+
+#~ msgid "Signers Fingerprint"
+#~ msgstr "Отпечаток подписывающего лица"
+
+#~ msgid "Sign Result Analyse Getting Invalid Signer"
+#~ msgstr ""
+#~ "Подпись Результат Анализ Получение недействительного подписывающего лица"
+
+#~ msgid "Start Encrypt Result Analyse"
+#~ msgstr "Начать анализ результатов шифрования"
+
+#~ msgid "Failed to read app secure key file"
+#~ msgstr "Не удалось прочитать файл ключа безопасности приложения"
+
+#~ msgid "Saving data object"
+#~ msgstr "Сохранение объекта данных"
+
+#~ msgid "Get data object"
+#~ msgstr "Получить объект данных"
+
+#~ msgid "Data object not found"
+#~ msgstr "Объект данных не найден"
+
+#~ msgid "Failed to read data object"
+#~ msgstr "Не удалось прочитать объект данных"
+
+#~ msgid "Data object found"
+#~ msgstr "Найден объект данных"
+
+#~ msgid "Decrypting data object"
+#~ msgstr "Расшифровка объекта данных"
+
+#~ msgid "Data object decoded"
+#~ msgstr "Объект данных декодирован"
+
+#~ msgid "Failed to get data object"
+#~ msgstr "Не удалось получить объект данных"
+
+#~ msgid "stegano_checked"
+#~ msgstr "stegano_checked"
+
+#~ msgid "auto_pubkey_exchange_checked"
+#~ msgstr "auto_pubkey_exchange_checked"
+
+#~ msgid "proxy_host"
+#~ msgstr "proxy_host"
+
+#~ msgid "username"
+#~ msgstr "имя пользователя"
+
+#~ msgid "password"
+#~ msgstr "пароль"
+
+#~ msgid "port"
+#~ msgstr "порт"
+
+#~ msgid "proxy_type"
+#~ msgstr "proxy_type"
+
+#~ msgid "proxy_enable"
+#~ msgstr "proxy_enable"
+
+#~ msgid "forbid_all_connection"
+#~ msgstr "disable_all_connection"
+
+#~ msgid "prohibit_update_checking"
+#~ msgstr "prohibit_update_checking"
+
+#~ msgid "Save Checked Keys"
+#~ msgstr "Сохранить отмеченные ключи"
+
+#~ msgid "Unlock key expiration date setting up to 30 years."
+#~ msgstr "Установка срока действия ключа разблокировки до 30 лет."
+
+#~ msgid "Confirm drag'n'drop key import"
+#~ msgstr "Подтвердите импорт ключа перетаскивания"
+
+#~ msgid "ASCII encoding is not used when file encrypting and signing."
+#~ msgstr "Кодировка ASCII не используется при шифровании и подписи файлов."
+
+#~ msgid "save_key_checked"
+#~ msgstr "save_key_checked"
+
+#~ msgid "longer_expiration_date"
+#~ msgstr "long_expiration_date"
+
+#~ msgid "lang"
+#~ msgstr "язык"
+
+#~ msgid "confirm_import_keys"
+#~ msgstr "confirm_import_keys"
+
+#~ msgid "non_ascii_when_export"
+#~ msgstr "non_ascii_when_export"
+
+#~ msgid "try to get latest version"
+#~ msgstr "попробуйте получить последнюю версию"
+
+#~ msgid "called"
+#~ msgstr "называется"
+
+#~ msgid "Set target Key Server to default Key Server"
+#~ msgstr "Установите целевой сервер ключей на сервер ключей по умолчанию"
+
+#~ msgid "Couldn't Open File"
+#~ msgstr "Не удалось открыть файл"
+
+#~ msgid "settings restored"
+#~ msgstr "настройки восстановлены"
+
+#~ msgid "GpgME Version"
+#~ msgstr "Версия GpgME"
+
+#~ msgid "PATHs"
+#~ msgstr "ПУТИ"
+
+#~ msgid "GpgConf"
+#~ msgstr "GpgConf"
+
+#~ msgid "CMS"
+#~ msgstr "CMS"
+
+#~ msgid "About Software"
+#~ msgstr "О программном обеспечении"
+
+#~ msgid "exportKeyPackageDialog"
+#~ msgstr "exportKeyPackageDialog"
+
+#~ msgid "Current Row"
+#~ msgstr "Текущая строка"
+
+#~ msgid "Public key Not Found"
+#~ msgstr "Открытый ключ не найден"
+
+#~ msgid "icon_size"
+#~ msgstr "icon_size"
+
+#~ msgid "icon_style"
+#~ msgstr "icon_style"
+
+#~ msgid "Failed to read root certificate file"
+#~ msgstr "Не удалось прочитать файл корневого сертификата"
+
+#~ msgid "Send Encrypted Mail"
+#~ msgstr "Отправить зашифрованную почту"
+
+#~ msgid "Function Disabled"
+#~ msgstr "Функция отключена"
+
+#~ msgid ""
+#~ "Please go to the settings interface to enable and configure this function."
+#~ msgstr ""
+#~ "Перейдите в интерфейс настроек, чтобы включить и настроить эту функцию."
+
+#~ msgid "Select Recipient(s)"
+#~ msgstr "Выберите получателей"
+
+#~ msgid "We use the public key provided by the recipient to encrypt the text."
+#~ msgstr ""
+#~ "Мы используем открытый ключ, предоставленный получателем, для шифрования "
+#~ "текста."
+
+#~ msgid ""
+#~ "If you want to send to multiple recipients at the same time, you can select "
+#~ "multiple keys."
+#~ msgstr ""
+#~ "Если вы хотите отправить одновременно нескольким получателям, вы можете "
+#~ "выбрать несколько ключей."
+
+#~ msgid "Email List:"
+#~ msgstr "Список рассылки:"
+
+#~ msgid ""
+#~ "Tips: You can double-click the email address in the edit list, or click the "
+#~ "email to pop up the option menu."
+#~ msgstr ""
+#~ "Советы: Вы можете дважды щелкнуть адрес электронной почты в списке "
+#~ "редактирования или щелкнуть электронное письмо, чтобы открыть меню "
+#~ "параметров."
+
+#~ msgid "Add An Email Address"
+#~ msgstr "Добавить адрес электронной почты"
+
+#~ msgid "Email List Editor"
+#~ msgstr "Редактор списка рассылки"
+
+#~ msgid "Sender"
+#~ msgstr "Отправитель"
+
+#~ msgid "Select Sender"
+#~ msgstr "Выберите отправителя"
+
+#~ msgid "As the sender of the mail, the private key is generally used."
+#~ msgstr "В качестве отправителя письма обычно используется закрытый ключ."
+
+#~ msgid ""
+#~ " The private key is generally used as a signature for the content of the "
+#~ "mail."
+#~ msgstr ""
+#~ " Закрытый ключ обычно используется в качестве подписи для содержания письма."
+
+#~ msgid ""
+#~ "The SMTP address is empty, please go to the setting interface to complete "
+#~ "the configuration."
+#~ msgstr ""
+#~ "Адрес SMTP пуст, перейдите в интерфейс настроек, чтобы завершить настройку."
+
+#~ msgid "CC"
+#~ msgstr "CC"
+
+#~ msgid "BCC"
+#~ msgstr "BCC"
+
+#~ msgid "Mail Subject"
+#~ msgstr "Тема письма"
+
+#~ msgid ""
+#~ "Tips: You can fill in multiple email addresses, please separate them with "
+#~ "\";\"."
+#~ msgstr ""
+#~ "Советы: вы можете ввести несколько адресов электронной почты, разделяя их "
+#~ "знаком «;»."
+
+#~ msgid "Send Message"
+#~ msgstr "Отправить сообщение"
+
+#~ msgid "Select Sender GPG Key"
+#~ msgstr "Выберите GPG-ключ отправителя"
+
+#~ msgid "Select Recipient(s) GPG Key"
+#~ msgstr "Выберите получателя (ов) GPG Key"
+
+#~ msgid "GPG Operations"
+#~ msgstr "Операции GPG"
+
+#~ msgid "Attach signature"
+#~ msgstr "Прикрепить подпись"
+
+#~ msgid "Attach sender's public key"
+#~ msgstr "Прикрепите открытый ключ отправителя"
+
+#~ msgid "Encrypt content"
+#~ msgstr "Зашифровать контент"
+
+#~ msgid "Edit Recipients(s)"
+#~ msgstr "Изменить получателей"
+
+#~ msgid "Edit CC(s)"
+#~ msgstr "Изменить CC"
+
+#~ msgid "Edit BCC(s)"
+#~ msgstr "Изменить скрытые копии"
+
+#~ msgid "Sender GPG Key: "
+#~ msgstr "Ключ GPG отправителя:"
+
+#~ msgid "Recipient(s) GPG Key: "
+#~ msgstr "Ключ GPG получателя:"
+
+#~ msgid "New Message"
+#~ msgstr "Новое сообщение"
+
+#~ msgid "Recipient cannot be empty"
+#~ msgstr "Получатель не может быть пустым"
+
+#~ msgid "One or more recipient's email is invalid"
+#~ msgstr "Электронная почта одного или нескольких получателей недействительна"
+
+#~ msgid "Sender cannot be empty"
+#~ msgstr "Отправитель не может быть пустым"
+
+#~ msgid "Sender's email is invalid"
+#~ msgstr "Электронная почта отправителя недействительна"
+
+#~ msgid "Subject cannot be empty"
+#~ msgstr "Тема не может быть пустой"
+
+#~ msgid "One or more cc email is invalid"
+#~ msgstr "Один или несколько электронных адресов cc недействительны"
+
+#~ msgid "One or more bcc email is invalid"
+#~ msgstr ""
+#~ "Один или несколько адресов электронной почты скрытой копии недействительны"
+
+#~ msgid ""
+#~ "You have checked the encrypted email content, but you have not selected the "
+#~ "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
+#~ "So the send operation is forbidden"
+#~ msgstr ""
+#~ "Вы проверили зашифрованное содержимое электронной почты, но не выбрали ключ "
+#~ "GPG получателя. Это опасно, и почта не будет зашифрована. Итак, операция "
+#~ "отправки запрещена"
+
+#~ msgid ""
+#~ "You checked the option to attach signature to the email, but did not specify"
+#~ " the sender's GPG Key. This will cause the content of the email to be "
+#~ "inconsistent with your expectations, so the operation is prohibited."
+#~ msgstr ""
+#~ "Вы отметили опцию прикрепления подписи к электронному письму, но не указали "
+#~ "GPG-ключ отправителя. Это приведет к тому, что содержание электронного "
+#~ "письма не будет соответствовать вашим ожиданиям, поэтому операция запрещена."
+
+#~ msgid ""
+#~ "You checked the option to attach your public key to the email, but did not "
+#~ "specify the sender's GPG Key. This will cause the content of the email to be"
+#~ " inconsistent with your expectations, so the operation is prohibited."
+#~ msgstr ""
+#~ "Вы отметили возможность прикрепить свой открытый ключ к электронному письму,"
+#~ " но не указали GPG-ключ отправителя. Это приведет к тому, что содержание "
+#~ "электронного письма не будет соответствовать вашим ожиданиям, поэтому "
+#~ "операция запрещена."
+
+#~ msgid "Sending Email..."
+#~ msgstr "Отправка электронной почты ..."
+
+#~ msgid ""
+#~ "If the process does not end for a long time, please check again whether your"
+#~ " SMTP server configuration is correct."
+#~ msgstr ""
+#~ "Если процесс не завершается в течение долгого времени, еще раз проверьте "
+#~ "правильность конфигурации вашего SMTP-сервера."
+
+#~ msgid "identity_enable"
+#~ msgstr "identity_enable"
+
+#~ msgid "mail_address"
+#~ msgstr "Почта Адрес"
+
+#~ msgid "connection_type"
+#~ msgstr "тип соединения"
+
+#~ msgid "default_sender"
+#~ msgstr "default_sender"
+
+#~ msgid "default_sender_gpg_key_id"
+#~ msgstr "default_sender_gpg_key_id"
+
+#~ msgid "Fail"
+#~ msgstr "Неудача"
+
+#~ msgid "Fail to Connect SMTP Server."
+#~ msgstr "Не удалось подключиться к SMTP-серверу."
+
+#~ msgid "Fail to Login."
+#~ msgstr "Не удалось войти в систему."
+
+#~ msgid "Succeed in connecting and login"
+#~ msgstr "Успешно подключиться и войти в систему"
+
+#~ msgid "Succeed in sending the message to the SMTP Server"
+#~ msgstr "Успешная отправка сообщения на SMTP-сервер"
+
+#~ msgid "Encryption Error"
+#~ msgstr "Ошибка шифрования"
+
+#~ msgid ""
+#~ "An error occurred while encrypting the content of the email. This may be "
+#~ "because you did not complete some operations during Gnupg encryption."
+#~ msgstr ""
+#~ "Произошла ошибка при шифровании содержимого электронного письма. Это может "
+#~ "быть связано с тем, что вы не выполнили некоторые операции во время "
+#~ "шифрования Gnupg."
+
+#~ msgid "Unknown error."
+#~ msgstr "Неизвестная ошибка."
+
+#~ msgid "server_list"
+#~ msgstr "server_list"
+
+#~ msgid "default_server"
+#~ msgstr "default_server"
+
+#~ msgid "Automatic Key Exchange Warning"
+#~ msgstr "Предупреждение об автоматическом обмене ключами"
+
+#~ msgid ""
+#~ "Part of the automatic key exchange failed, which may be related to your key."
+#~ msgstr ""
+#~ "Не удалось выполнить часть автоматического обмена ключами, что может быть "
+#~ "связано с вашим ключом."
+
+#~ msgid ""
+#~ "If possible, try to use the RSA algorithm compatible with the server for "
+#~ "signing."
+#~ msgstr ""
+#~ "Если возможно, попробуйте использовать для подписи алгоритм RSA, совместимый"
+#~ " с сервером."
+
+#~ msgid "Service Token Empty"
+#~ msgstr "Токен службы пуст"
+
+#~ msgid ""
+#~ "Please go to the settings interface to set Own Key and get Service Token."
+#~ msgstr ""
+#~ "Пожалуйста, перейдите в интерфейс настроек, чтобы установить собственный "
+#~ "ключ и получить служебный токен."
+
+#~ msgid "Message Inbox"
+#~ msgstr "Входящие сообщения"
+
+#~ msgid "None"
+#~ msgstr "Никто"
+
+#~ msgid "ASCII(7 bits)"
+#~ msgstr "ASCII (7 бит)"
+
+#~ msgid "ASCII(8 bits)"
+#~ msgstr "ASCII (8 бит)"
+
+#~ msgid "UTF-16"
+#~ msgstr "UTF-16"
+
+#~ msgid "UTF-16(BE)"
+#~ msgstr "UTF-16 (BE)"
+
+#~ msgid "Send Mail"
+#~ msgstr "Отправить письмо"
+
+#~ msgid "Advanced"
+#~ msgstr "Передовой"
+
+#~ msgid "Identity Information"
+#~ msgstr "Идентификационная информация"
+
+#~ msgid "Enable Send Mail Ability"
+#~ msgstr "Включить возможность отправки почты"
+
+#~ msgid "Need Auth"
+#~ msgstr "Требуется авторизация"
+
+#~ msgid "SMTP Server Address"
+#~ msgstr "Адрес SMTP-сервера"
+
+#~ msgid "SMTP Server Port"
+#~ msgstr "Порт SMTP-сервера"
+
+#~ msgid "SMTP Connection Security"
+#~ msgstr "Безопасность SMTP-соединения"
+
+#~ msgid "Default Sender Email"
+#~ msgstr "Электронная почта отправителя по умолчанию"
+
+#~ msgid "Check Connection"
+#~ msgstr "Проверьте подключение"
+
+#~ msgid "Send Test Email"
+#~ msgstr "Отправить тестовое письмо"
+
+#~ msgid "Default Sender GPG Key ID"
+#~ msgstr "Идентификатор ключа GPG отправителя по умолчанию"
+
+#~ msgid ""
+#~ "Tips: It is recommended that you build your own mail server or use a trusted"
+#~ " mail server. If you don't know the detailed configuration information, you "
+#~ "can get it from the mail service provider."
+#~ msgstr ""
+#~ "Советы: рекомендуется создать собственный почтовый сервер или использовать "
+#~ "надежный почтовый сервер. Если вы не знаете подробную информацию о "
+#~ "конфигурации, вы можете получить ее у поставщика услуг электронной почты."
+
+#~ msgid "apply settings failed"
+#~ msgstr "применить настройки не удалось"
+
+#~ msgid "Test SMTP Connection..."
+#~ msgstr "Проверить соединение SMTP ..."
+
+#~ msgid "Test SMTP Send Mail Ability..."
+#~ msgstr "Проверка возможности отправки почты по протоколу SMTP ..."
+
+#~ msgid "Test Email from GpgFrontend"
+#~ msgstr "Тестовое письмо от GpgFrontend"
+
+#~ msgid ""
+#~ "Hello, this is a test email from GpgFrontend. If you receive this email, it "
+#~ "means that you have configured the correct SMTP server parameters."
+#~ msgstr ""
+#~ "Здравствуйте, это тестовое письмо от GpgFrontend. Если вы получили это "
+#~ "письмо, это означает, что вы настроили правильные параметры SMTP-сервера."
+
+#~ msgid "Succeed in sending a test email to the SMTP Server"
+#~ msgstr "Успешно отправить тестовое электронное письмо на SMTP-сервер"
+
+#~ msgid "root certs loaded"
+#~ msgstr "корневые сертификаты загружены"
+
+#~ msgid "Nothing Reply. Please check the Internet connection."
+#~ msgstr "Ничего не ответил. Пожалуйста, проверьте подключение к Интернету."
+
+#~ msgid "Unknown Error"
+#~ msgstr "Неизвестная ошибка"
+
+#~ msgid "Network Error"
+#~ msgstr "Ошибка сети"
+
+#~ msgid "Outdated Reply"
+#~ msgstr "Устаревший ответ"
+
+#~ msgid "Unknown Reason"
+#~ msgstr "Причина неизвестна"
+
+#~ msgid "Unknown Reply Format"
+#~ msgstr "Неизвестный формат ответа"
+
+#~ msgid ""
+#~ "The communication content with the server does not meet the requirements"
+#~ msgstr "Контент связи с сервером не соответствует требованиям"
+
+#~ msgid "(.gpg .asc)"
+#~ msgstr "(.gpg .asc)"
+
+#~ msgid "(.sig .gpg .asc)"
+#~ msgstr "(.sig .gpg .asc)"
+
+#~ msgid "Export Key(s) Failed."
+#~ msgstr "Ошибка экспорта ключей."
+
+#~ msgid "info_font_size"
+#~ msgstr "info_font_size"
+
+#~ msgid "Invalid Own Key"
+#~ msgstr "Неверный собственный ключ"
+
+#~ msgid ""
+#~ "Own Key can not be use to do any operation. Please go to the setting "
+#~ "interface to select an OwnKey and get a ServiceToken."
+#~ msgstr ""
+#~ "Собственный ключ нельзя использовать для выполнения каких-либо операций. "
+#~ "Перейдите в интерфейс настройки, чтобы выбрать OwnKey и получить "
+#~ "ServiceToken."
+
+#~ msgid "Please obtain a Service Token from the server in the settings."
+#~ msgstr "Пожалуйста, получите служебный токен с сервера в настройках."
+
+#~ msgid "Getting Cpt From Server"
+#~ msgstr "Получение Cpt с сервера"
+
+#~ msgid "Invalid short ciphertext"
+#~ msgstr "Недействительный короткий зашифрованный текст"
+
+#~ msgid "Invalid Service Token"
+#~ msgstr "Неверный токен службы"
+
+#~ msgid "Please go to the setting interface to get a ServiceToken."
+#~ msgstr ""
+#~ "Пожалуйста, перейдите в интерфейс настроек, чтобы получить ServiceToken."
+
+#~ msgid "Own Key can not be use to do any operation."
+#~ msgstr ""
+#~ "Собственный ключ нельзя использовать для выполнения каких-либо операций."
+
+#~ msgid "Getting Scpt From Server"
+#~ msgstr "Получение Scpt с сервера"
+
+#~ msgid ""
+#~ "Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
+#~ msgstr ""
+#~ "Примечание. Используйте операцию «Расшифровать и проверить», чтобы "
+#~ "расшифровать этот короткий зашифрованный текст."
+
+#~ msgid "There is a problem with the communication with the server"
+#~ msgstr "Проблема со связью с сервером"
+
+#~ msgid "Select a file before doing it."
+#~ msgstr "Перед тем, как сделать это, выберите файл."
+
+#~ msgid "No Key Selected"
+#~ msgstr "Ключ не выбран"
+
+#~ msgid "No data was read from the key package."
+#~ msgstr "Данные из ключевого пакета не считывались."
+
+#~ msgid "Wrong Passphrase"
+#~ msgstr "Неправильный пароль"
+
+#~ msgid "Please double check the passphrase you entered is correct."
+#~ msgstr ""
+#~ "Пожалуйста, дважды проверьте правильность введенной вами кодовой фразы."
+
+#~ msgid "window_save"
+#~ msgstr "window_save"
+
+#~ msgid "Show Steganographic Options."
+#~ msgstr "Показать параметры стеганографии."
+
+#~ msgid "Decrypt File"
+#~ msgstr "Расшифровать файл"
+
+#~ msgid "Encrypt File"
+#~ msgstr "Зашифровать файл"
+
+#~ msgid "Sign File"
+#~ msgstr "Подписать файл"
+
+#~ msgid "Verify File"
+#~ msgstr "Проверить файл"
+
+#~ msgid "Input Parameters"
+#~ msgstr "Входные параметры"
+
+#~ msgid "Target File"
+#~ msgstr "Целевой файл"
+
+#~ msgid "Signature File(.sig) Path"
+#~ msgstr "Путь к файлу подписи (.sig)"
+
+#~ msgid "Error Occurred During Encryption"
+#~ msgstr "Ошибка при шифровании"
+
+#~ msgid "Error Occurred During Decryption"
+#~ msgstr "Ошибка при расшифровке"
+
+#~ msgid "Error Occurred During Signature"
+#~ msgstr "Ошибка при подписании"
+
+#~ msgid "Key List Menu: "
+#~ msgstr "Меню списка ключей:"
+
+#~ msgid "InfoBoard's Actions Menu"
+#~ msgstr "Меню действий InfoBoard"
+
+#~ msgid "No permission to read target file."
+#~ msgstr "Нет разрешения на чтение целевого файла."
+
+#~ msgid "No permission to read signature file."
+#~ msgstr "Нет разрешения на чтение файла подписи."
+
+#~ msgid "Append Selected Key(s) To Text"
+#~ msgstr "Добавить выбранные ключи в текст"
+
+#~ msgid "Unreleased Version"
+#~ msgstr "Невыпущенная версия"
+
+#~ msgid ""
+#~ "This version(%1) has not been officially released and is not recommended for"
+#~ " use in a production environment. <br/>"
+#~ msgstr ""
+#~ "Эта версия (% 1) официально не выпущена и не рекомендуется для использования"
+#~ " в производственной среде. <br/>"
+
+#~ msgid "Fail to Login into SMTP Server"
+#~ msgstr "Не удалось войти в SMTP-сервер"
+
+#~ msgid "Fail to Send Mail to SMTP Server"
+#~ msgstr "Не удалось отправить почту на SMTP-сервер"
+
+#~ msgid "Succeed in Sending Mail to SMTP Server"
+#~ msgstr "Успешная отправка почты на SMTP-сервер"
+
+#~ msgid "Master Key"
+#~ msgstr "Мастер ключ"
+
+#~ msgid "GpgFrontend Server"
+#~ msgstr "GpgFrontend Сервер"
+
+#~ msgid "Server that provides short key and key exchange services"
+#~ msgstr "Сервер, предоставляющий услуги короткого ключа и обмена ключами"
+
+#~ msgid "Own key"
+#~ msgstr "Собственный ключ"
+
+#~ msgid "Get Service Token"
+#~ msgstr "Получить служебный токен"
+
+#~ msgid "No Service Token Found"
+#~ msgstr "Токен службы не найден"
+
+#~ msgid "Key pair for synchronization and identity authentication"
+#~ msgstr "Пара ключей для синхронизации и аутентификации личности"
+
+#~ msgid "Own Key can not be None while getting service token."
+#~ msgstr "Собственный ключ не может быть None при получении токена службы."
+
+#~ msgid "Key Not Exists"
+#~ msgstr "Ключ не существует"
+
+#~ msgid "Succeed in getting service token"
+#~ msgstr "Успешно получить служебный токен"
+
+#~ msgid "Given a default sender first"
+#~ msgstr "Сначала указан отправитель по умолчанию"
+
+#~ msgid "Hello, this is a test email from GpgFrontend."
+#~ msgstr "Здравствуйте, это тестовое письмо от GpgFrontend."
+
+#~ msgid ""
+#~ "Fail to send a test email to the SMTP Server, please recheck your "
+#~ "configuration."
+#~ msgstr ""
+#~ "Не удалось отправить тестовое электронное письмо на SMTP-сервер, проверьте "
+#~ "конфигурацию еще раз."
+
+#~ msgid "Keu ID"
+#~ msgstr "Keu ID"
+
+#~ msgid "Public Algo"
+#~ msgstr "Публичный алгоритм"
+
+#~ msgid "Verify Result Analyse Started"
+#~ msgstr "Убедитесь, что анализ результатов запущен"
+
+#~ msgid "Not Signature Found"
+#~ msgstr "Подпись не найдена"
+
+#~ msgid "Edit Expire Datetime"
+#~ msgstr "Изменить дату истечения срока действия"
+
+#~ msgid "Selecting Nothing will eventually use default key to sign."
+#~ msgstr ""
+#~ "Если выбрать «Ничего», для подписи будет использован ключ по умолчанию."
+
+#~ msgid "Refresh Key From Key Server"
+#~ msgstr "Обновить ключ с сервера ключей"
+
+#~ msgid "Upload Public Key(s) To Server"
+#~ msgstr "Загрузить открытый ключ (и) на сервер"
+
+#~ msgid "Upload The Selected Public Keys To Server"
+#~ msgstr "Загрузить выбранные открытые ключи на сервер"
+
+#~ msgid "Update Key Pair"
+#~ msgstr "Обновить пару ключей"
+
+#~ msgid "Default Key Server for Import"
+#~ msgstr "Сервер ключей по умолчанию для импорта"
+
+#~ msgid "File..."
+#~ msgstr "Файл..."
+
+#~ msgid "Import missing key from Keyserver"
+#~ msgstr "Импортировать отсутствующий ключ с сервера ключей"
+
+#~ msgid "Actions"
+#~ msgstr "Действия"
+
+#~ msgid "Export Private Key (Include Subkey)"
+#~ msgstr "Экспорт закрытого ключа (включая подраздел)"
+
+#~ msgid "Date & Time"
+#~ msgstr "Дата и время"

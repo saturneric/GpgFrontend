@@ -23,7 +23,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ 'ubuntu-latest', 'macos-11', 'macos-12', 'windows-latest' ]
+        os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
@@ -36,7 +36,7 @@ jobs:
 
       - uses: actions/checkout@v3
         with:
-          lfs: 'true'
+          lfs: 'false'
           submodules: recursive
 
       - name: Install Dependence (Linux)
@@ -54,10 +54,10 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake autoconf automake texinfo gettext openssl@1.1
+          brew install cmake autoconf automake texinfo gettext openssl@3
           brew install boost ninja libarchive libconfig gpgme
           brew unlink gettext && brew link --force gettext
-          brew link openssl@1.1 --force
+          brew link openssl@3 --force
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Build gpg-error (Linux)
@@ -87,20 +87,12 @@ jobs:
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-latest'
 
-      - name: Cache Qt
-        id: cache-qt
-        uses: actions/cache@v3
-        with:
-          path: ../Qt
-          key: ${{ runner.os }}-qt-cache-6
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
-
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
           version: '6.4.2'
+          cache: 'true'
           modules: 'qt5compat'
-          cache: ${{ steps.cache-qt.outputs.cache-hit }}
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Set up MinGW (Windows)

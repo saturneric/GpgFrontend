@@ -29,6 +29,7 @@
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
+#include "dialog/gnupg/GnuPGControllerDialog.h"
 #include "ui/UserInterfaceUtils.h"
 
 namespace GpgFrontend::UI {
@@ -330,6 +331,12 @@ void MainWindow::create_actions() {
     }
   });
 
+  gnupg_controller_open_act_ = new QAction(_("Open GnuPG Controller"), this);
+  gnupg_controller_open_act_->setIcon(QIcon(":configure.png"));
+  gnupg_controller_open_act_->setToolTip(_("Open GnuPG Controller Dialog"));
+  connect(gnupg_controller_open_act_, &QAction::triggered, this,
+          [this]() { (new GnuPGControllerDialog(this))->exec(); });
+
   /*
    * About Menu
    */
@@ -497,6 +504,8 @@ void MainWindow::create_menus() {
   gpg_menu_->addSeparator();
   gpg_menu_->addAction(reload_components_act_);
   gpg_menu_->addAction(restart_components_act_);
+  gpg_menu_->addSeparator();
+  gpg_menu_->addAction(gnupg_controller_open_act_);
 
   steganography_menu_ = menuBar()->addMenu(_("Steganography"));
   steganography_menu_->addAction(cut_pgp_header_act_);

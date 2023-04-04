@@ -1,3 +1,7 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:370d5e78f3c3035e770b1641163fbf945e0a293155a6fecee0808d70ccba59ac
-size 155
+[Desktop Entry]
+Type=Application
+Name=GpgFrontend
+Comment=A Cross-Platform OpenPGP Frontend Software
+Exec=GpgFrontend
+Icon=GpgFrontend
+Categories=Utility;

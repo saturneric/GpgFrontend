@@ -30,7 +30,7 @@ jobs:
 
       - uses: actions/checkout@v3
         with:
-          lfs: 'true'
+          lfs: 'false'
           submodules: 'recursive'
 
       - name: Get Short SHA of Commit

@@ -1,3 +1,4425 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ec01bc3b302dbc5fae7db37b20bac8266641c281b53f182662367bb467b34d34
-size 179793
+# Czech translations for GpgFrontend package.
+# Copyright (C) 2021 Saturneric
+# This file is distributed under the same license as the GpgFrontend package.
+# Automatically generated, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GpgFrontend 2.1.0\n"
+"Report-Msgid-Bugs-To: eric@bktus.com\n"
+"POT-Creation-Date: 2023-04-01 00:36+0800\n"
+"PO-Revision-Date: 2023-04-01 00:46-0800\n"
+"Last-Translator: Google Translation <eric@bktus.com>\n"
+"Language-Team: Google Translation <eric@bktus.com>\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:70
+msgid "Proxy"
+msgstr "Proxy"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:71
+msgid "Network Ability"
+msgstr "Schopnost sítě"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:72
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:52
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:46
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:525
+msgid "Operations"
+msgstr "Operace"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:74
+msgid "Enable Proxy"
+msgstr "Povolit proxy"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:75
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:78
+msgid "Port"
+msgstr "Přístav"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:77
+msgid "Host Address"
+msgstr "Adresa hostitele"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:79
+msgid "Proxy Type"
+msgstr "Typ proxy"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:80
+msgid "Username"
+msgstr "uživatelské jméno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:81
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:420
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:171
+msgid "Password"
+msgstr "Heslo"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:84
+msgid "Apply Proxy Settings and Check Proxy Connection"
+msgstr "Použijte nastavení proxy a zkontrolujte připojení proxy"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:87
+msgid "Forbid all GnuPG network connection."
+msgstr "Zakázat všechna síťová připojení GnuPG."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:89
+msgid "Prohibit checking for version updates when the program starts."
+msgstr "Zakažte kontrolu aktualizací verzí při spuštění programu."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:91
+msgid "Automatically import a missing key for signature verification."
+msgstr "Automaticky importovat chybějící klíč pro ověření podpisu."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:93
+msgid ""
+"Tips: These Option Changes take effect only after the application restart."
+msgstr "Tipy: Tyto změny možností se projeví až po restartu aplikace."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:283
+msgid "Test Server Url Accessibility"
+msgstr "Otestujte dostupnost URL serveru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:293
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:85
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:184
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:333
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:106
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:284
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:41
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:43
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:41
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:47
+msgid "Success"
+msgstr "Úspěch"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:294
+msgid "Successfully connect to the target server through the proxy server."
+msgstr "Úspěšně se připojte k cílovému serveru přes proxy server."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:298
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:43
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:45
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:43
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:49
+msgid "Failed"
+msgstr "Nepodařilo se"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:299
+msgid ""
+"Unable to connect to the target server through the proxy server. Proxy "
+"settings may be invalid."
+msgstr ""
+"Nelze se připojit k cílovému serveru přes proxy server. Nastavení proxy může"
+" být neplatné."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:309
+msgid "Test Proxy Server Connection..."
+msgstr "Testovat připojení proxy serveru..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:310
+msgid ""
+"Is using your proxy settings to access the url. Note that this test "
+"operation will apply your proxy settings to the entire software."
+msgstr ""
+"Používá vaše nastavení proxy pro přístup k adrese URL. Pamatujte, že tato "
+"testovací operace použije vaše nastavení proxy na celý software."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:36
+msgid "Show Steganography Options"
+msgstr "Zobrazit možnosti steganografie"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:38
+msgid "Show Steganography Options."
+msgstr "Zobrazit možnosti steganografie."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:42
+msgid "Pubkey Exchange"
+msgstr "Výměna klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:45
+msgid "Auto Pubkey Exchange"
+msgstr "Automatická výměna klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:54
+msgid "General"
+msgstr "Všeobecné"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:55
+msgid "Appearance"
+msgstr "Vzhled"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:56
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:88
+msgid "Key Server"
+msgstr "Klíčový server"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:57
+msgid "Network"
+msgstr "Síť"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:68
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:165
+msgid "Settings"
+msgstr "Nastavení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:72
+msgid "Preference"
+msgstr "Přednost"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:131
+msgid "System Default"
+msgstr "Výchozí nastavení systému"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:51
+msgid "Keyserver List"
+msgstr "Seznam klíčových serverů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:54
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:592
+msgid "Default"
+msgstr "Výchozí"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:56
+msgid "Keyserver Address"
+msgstr "Adresa klíčového serveru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:57
+msgid "Security"
+msgstr "Bezpečnostní"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:58
+msgid "Available"
+msgstr "Dostupný"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:60
+msgid "Add"
+msgstr "Přidat"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:61
+msgid "Test Listed Keyserver"
+msgstr "Testovaný klíčový server"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:64
+msgid "Tips: Please Double-click table item to edit it."
+msgstr "Tipy: Poklepáním na položku tabulky ji upravte."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:65
+msgid "Delete Selected"
+msgstr "Smazat vybrané"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:67
+msgid "Delete Selected Key Server"
+msgstr "Odstranit vybraný server klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:68
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:69
+msgid "Set As Default"
+msgstr "Nastavit jako výchozí"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:151
+msgid "Insecure keyserver address"
+msgstr "Nezabezpečená adresa klíčového serveru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:152
+msgid ""
+"For security reasons, using HTTP as the communication protocol with the key "
+"server is not recommended. It is recommended to use HTTPS."
+msgstr ""
+"Z bezpečnostních důvodů se nedoporučuje používat HTTP jako komunikační "
+"protokol se serverem klíčů. Doporučuje se používat HTTPS."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:160
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:205
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:312
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:419
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:611
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:706
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:110
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:192
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:419
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:384
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:287
+msgid "Warning"
+msgstr "Varování"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:161
+msgid ""
+"You may not use HTTPS or HTTP as the protocol for communicating with the key"
+" server, which may not be wrong. But please check the address you entered "
+"again to make sure it is correct. Are you sure that want to add it into the "
+"keyserver list?"
+msgstr ""
+"Jako protokol pro komunikaci se serverem klíčů nesmíte používat HTTPS nebo "
+"HTTP, což nemusí být špatně. Zkontrolujte však znovu zadanou adresu, abyste "
+"se ujistili, že je správná. Jste si jisti, že jej chcete přidat do seznamu "
+"klíčových serverů?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:208
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
+msgid "true"
+msgstr "skutečný"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:209
+msgid "false"
+msgstr "Nepravdivé"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:214
+msgid "unknown"
+msgstr "neznámý"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:228
+msgid "Set TCP Timeout"
+msgstr "Nastavte časový limit TCP"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:253
+msgid "Reachable"
+msgstr "Dosažitelný"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:256
+msgid "Not Reachable"
+msgstr "Nedosažitelný"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:268
+msgid "Test Key Server Connection..."
+msgstr "Test připojení k serveru klíče..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:269
+msgid ""
+"This test only tests the network connectivity of the key server. Passing the"
+" test does not mean that the key server is functionally available."
+msgstr ""
+"Tento test testuje pouze síťové připojení klíčového serveru. Absolvování "
+"testu neznamená, že klíčový server je funkčně dostupný."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:46
+msgid "Cache"
+msgstr "Mezipaměti"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:48
+msgid "Save checked private keys on exit and restore them on next start."
+msgstr ""
+"Uložte zkontrolované soukromé klíče při ukončení a obnovte je při příštím "
+"spuštění."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:50
+msgid "Clear gpg password cache when closing GpgFrontend."
+msgstr "Při zavírání GpgFrontend vymažte mezipaměť hesel gpg."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:52
+msgid "Operation"
+msgstr "Úkon"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:54
+msgid "Enable to use longer key expiration date."
+msgstr "Aktivujte, chcete-li použít delší datum vypršení platnosti klíče."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:56
+msgid "Import files dropped on the Key List without confirmation."
+msgstr "Importujte soubory vynechané v seznamu klíčů bez potvrzení."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:58
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:52
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:343
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:495
+msgid "GnuPG"
+msgstr "GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:59
+msgid "No ASCII Mode"
+msgstr "Žádný ASCII režim"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:61
+msgid "Use Pinentry as Password Input Dialog"
+msgstr "Použijte Pinentry jako dialogové okno pro zadání hesla"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:62
+msgid "Use Custom GnuPG"
+msgstr "Použijte vlastní GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:63
+msgid "Select GnuPG Path"
+msgstr "Vyberte cestu GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:65
+msgid "Use Custom GnuPG Key Database Path"
+msgstr "Použijte vlastní cestu databáze klíčů GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:67
+msgid "Select Key Database Path"
+msgstr "Vyberte cestu databáze klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:69
+msgid "Language"
+msgstr "Jazyk"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:71
+msgid "NOTE"
+msgstr "POZNÁMKA"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:71
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:178
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:84
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:88
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:83
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:90
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:99
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:107
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:115
+msgid ": "
+msgstr ":"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:72
+msgid "GpgFrontend will restart automatically if you change the language!"
+msgstr "GpgFrontend se automaticky restartuje, pokud změníte jazyk!"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:110
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:143
+msgid "Open Directory"
+msgstr "Otevřete adresář"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:41
+msgid "Icon Size"
+msgstr "Velikost ikony"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:42
+msgid "small"
+msgstr "malý"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:43
+msgid "medium"
+msgstr "střední"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:44
+msgid "large"
+msgstr "velký"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:46
+msgid "Icon Style"
+msgstr "Styl ikony"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:47
+msgid "just text"
+msgstr "jen text"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:48
+msgid "just icons"
+msgstr "jen ikony"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:49
+msgid "text and icons"
+msgstr "text a ikony"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:51
+msgid "Window State"
+msgstr "Stav okna"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:53
+msgid "Save window size and position on exit."
+msgstr "Uložte velikost a polohu okna při ukončení."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:55
+msgid "Text Editor"
+msgstr "Textový editor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:56
+msgid "Font Size in Text Editor"
+msgstr "Velikost písma v textovém editoru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:58
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:622
+msgid "Information Board"
+msgstr "Informační tabule"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:60
+msgid "Font Size in Information Board"
+msgstr "Velikost písma na informační tabuli"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:86
+msgid "The expire date of the key pair has been updated."
+msgstr "Datum vypršení platnosti páru klíčů bylo aktualizováno."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:95
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:194
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:341
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:276
+msgid "Failure"
+msgstr "Selhání"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:96
+msgid "Failed to update the expire date of the key pair."
+msgstr "Aktualizace data vypršení platnosti páru klíčů se nezdařila."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:143
+msgid "Modified Expiration Date (Local Time)"
+msgstr "Upravené datum vypršení platnosti (místní čas)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:145
+msgid ""
+"Tips: For the sake of security, the key is valid for up to two years. If you"
+" are an expert user, please unlock it for a longer time in the settings."
+msgstr ""
+"Tipy: Z důvodu bezpečnosti má klíč platnost až dva roky. Pokud jste zkušený "
+"uživatel, odemkněte jej prosím v nastavení na delší dobu."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:148
+msgid "No Expiration"
+msgstr "Bez vypršení platnosti"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:149
+msgid "Modified Expiration Date"
+msgstr "Upravené datum vypršení platnosti"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:41
+msgid "Owner"
+msgstr "Majitel"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:42
+msgid "Primary Key"
+msgstr "Primární klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:43
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:80
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:140
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:82
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:98
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:114
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:132
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:148
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:163
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:105
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:54
+msgid "Fingerprint"
+msgstr "otisk prstu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:44
+msgid "Additional UIDs"
+msgstr "Další UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:70
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:47
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:412
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:44
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:140
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Name"
+msgstr "název"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:71
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:413
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Email Address"
+msgstr "Emailová adresa"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:72
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:49
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:414
+msgid "Comment"
+msgstr "Komentář"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:77
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:66
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:34
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:94
+msgid "Key ID"
+msgstr "ID klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:78
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:67
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:35
+msgid "Algorithm"
+msgstr "Algoritmus"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:79
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:69
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:36
+msgid "Key Size"
+msgstr "Velikost klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:80
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
+msgid "Nominal Usage"
+msgstr "Nominální použití"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:81
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:38
+msgid "Actual Usage"
+msgstr "Skutečné použití"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:82
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:75
+msgid "Create Date (Local Time)"
+msgstr "Datum vytvoření (místní čas)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:84
+msgid "Expires on (Local Time)"
+msgstr "Vyprší dne (místního času)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:86
+msgid "Last Update (Local Time)"
+msgstr "Poslední aktualizace (místní čas)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:88
+msgid "Primary Key Existence"
+msgstr "Existence primárního klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:102
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:127
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:103
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:131
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:43
+msgid "Copy"
+msgstr "kopírovat"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:129
+msgid "copy fingerprint to clipboard"
+msgstr "zkopírujte otisk prstu do schránky"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:175
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:286
+msgid "Exists"
+msgstr "existuje"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:175
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:287
+msgid "Not Exists"
+msgstr "Neexistuje"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:207
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:217
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:278
+msgid "Certificate"
+msgstr "Osvědčení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:208
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:219
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:279
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:174
+msgid "Encrypt"
+msgstr "Šifrovat"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:209
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:221
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:280
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:217
+msgid "Sign"
+msgstr "Podepsat"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:210
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:223
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:281
+msgid "Auth"
+msgstr "Auth"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:233
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:206
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:416
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:169
+msgid "Never Expire"
+msgstr "Nikdy nevyprší"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:255
+msgid "No Data"
+msgstr "Žádná data"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:277
+msgid "Warning: The primary key has expired."
+msgstr "Upozornění: Platnost primárního klíče vypršela."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:282
+msgid "Warning: The primary key has been revoked."
+msgstr "Upozornění: Primární klíč byl odvolán."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:41
+msgid "KeyPair"
+msgstr "KeyPair"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:42
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:67
+msgid "UIDs"
+msgstr "UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:44
+msgid "Subkeys"
+msgstr "Podklíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:56
+msgid "Key Details"
+msgstr "Klíčové detaily"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:47
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:189
+msgid "New UID"
+msgstr "Nové UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:48
+msgid "UID Management"
+msgstr "Správa UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:72
+msgid "TOFU"
+msgstr "TOFU"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:84
+msgid "Signature of Selected UID"
+msgstr "Podpis vybraného UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Select"
+msgstr "Vybrat"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:48
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:140
+msgid "Email"
+msgstr "E-mailem"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:160
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:161
+msgid "Create Date (UTC)"
+msgstr "Datum vytvoření (UTC)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:161
+msgid "Expired Date (UTC)"
+msgstr "Datum vypršení platnosti (UTC)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:237
+msgid "TOFU %1"
+msgstr "TOFU %1"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:293
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:300
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:246
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:251
+msgid "Never Expires"
+msgstr "Nikdy nevyprší"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:319
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:376
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:497
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:511
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:553
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:562
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:375
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:385
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:384
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:131
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:192
+msgid "Invalid Operation"
+msgstr "Neplatná operace"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:320
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:377
+msgid "Please select one or more UIDs before doing this operation."
+msgstr "Před provedením této operace vyberte jedno nebo více UID."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:341
+msgid "Sign Selected UID(s)"
+msgstr "Podepsat vybrané UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:343
+msgid "Delete Selected UID(s)"
+msgstr "Smazat vybrané UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:363
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:294
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:308
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:324
+msgid "Successful Operation"
+msgstr "Úspěšná operace"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:364
+msgid "Successfully added a new UID."
+msgstr "Úspěšně přidáno nové UID."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:366
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:401
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:436
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:532
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:584
+msgid "Operation Failed"
+msgstr "Operace selhala"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:367
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:437
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:533
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:585
+msgid "An error occurred during the operation."
+msgstr "Během operace došlo k chybě."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:388
+msgid "Deleting UIDs"
+msgstr "Mazání UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:391
+msgid "Are you sure that you want to delete the following UIDs?"
+msgstr "Jste si jisti, že chcete smazat následující UID?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:393
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:430
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:527
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:579
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:313
+msgid "The action can not be undone."
+msgstr "Akci nelze vrátit zpět."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:402
+msgid "An error occurred during the delete %1 operation."
+msgstr "Během operace odstranění %1 došlo k chybě."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:426
+msgid "Set Primary UID"
+msgstr "Nastavte primární UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:428
+msgid "Are you sure that you want to set the Primary UID to?"
+msgstr "Opravdu chcete nastavit primární UID na?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:468
+msgid "Set As Primary"
+msgstr "Nastavit jako hlavní"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:471
+msgid "Sign UID"
+msgstr "Podepsat UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:474
+msgid "Delete UID"
+msgstr "Smazat UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:498
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:512
+msgid "Please select one UID before doing this operation."
+msgstr "Před provedením této operace vyberte jedno UID."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:522
+msgid "Deleting UID"
+msgstr "Mazání UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:525
+msgid "Are you sure that you want to delete the following uid?"
+msgstr "Jste si jisti, že chcete smazat následující uid?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:543
+msgid "Delete(Revoke) Key Signature"
+msgstr "Smazat (zrušit) podpis klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:554
+msgid "Please select one Key Signature before doing this operation."
+msgstr "Před provedením této operace vyberte jeden podpis klíče."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:563
+msgid ""
+"To delete the signature, you need to have its corresponding public key in "
+"the local database."
+msgstr ""
+"Chcete-li odstranit podpis, musíte mít jeho odpovídající veřejný klíč v "
+"místní databázi."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:574
+msgid "Deleting Key Signature"
+msgstr "Odstranění podpisu klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:576
+msgid "Are you sure that you want to delete the following signature?"
+msgstr "Opravdu chcete smazat následující podpis?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:45
+msgid "General Operations"
+msgstr "Obecné operace"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:51
+msgid "Export Public Key"
+msgstr "Export veřejného klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:57
+msgid "Export Private Key"
+msgstr "Exportovat soukromý klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:64
+msgid "Modify Expiration Datetime (Primary Key)"
+msgstr "Upravit datum vypršení platnosti (primární klíč)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:67
+msgid "Modify Password"
+msgstr "Upravit heslo"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:90
+msgid "Key Server Operation (Pubkey)"
+msgstr "Operace klíčového serveru (Pubkey)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:98
+msgid "Generate Revoke Certificate"
+msgstr "Vygenerovat zrušit certifikát"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:104
+msgid "Modify TOFU Policy"
+msgstr "Upravit zásady TOFU"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:120
+msgid "Upload Key Pair to Key Server"
+msgstr "Nahrajte pár klíčů na server klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:126
+msgid "Sync Key Pair From Key Server"
+msgstr "Synchronizovat pár klíčů ze serveru klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:140
+msgid "Export Full Secret Key"
+msgstr "Exportovat úplný tajný klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:146
+msgid "Export Shortest Secret Key"
+msgstr "Exportovat nejkratší tajný klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:158
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:210
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:259
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:68
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:120
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:329
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:381
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:410
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:416
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:424
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:465
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:44
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:49
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:54
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:74
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:214
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:286
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:340
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:452
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:510
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:547
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:633
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:669
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:746
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:85
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:249
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:317
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:384
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:506
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:584
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:623
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:644
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:670
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:688
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:705
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:718
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:731
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:746
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:173
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:216
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:335
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:346
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:374
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:393
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:437
+msgid "Error"
+msgstr "Chyba"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:159
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:211
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:260
+msgid "An error occurred during the export operation."
+msgstr "Během operace exportu došlo k chybě."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:175
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:227
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:276
+msgid "Export Key To File"
+msgstr "Exportovat klíč do souboru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:176
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:228
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:277
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
+msgid "Key Files"
+msgstr "Klíčové soubory"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:183
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:235
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:284
+msgid "Export Error"
+msgstr "Chyba exportu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:184
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:236
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:285
+msgid "Couldn't open %1 for writing"
+msgstr "Nelze otevřít %1 pro zápis"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:192
+msgid "Exporting short private Key"
+msgstr "Export krátkého soukromého klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:193
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:246
+msgid "You are about to export your"
+msgstr "Chystáte se exportovat svůj"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:194
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:247
+msgid " PRIVATE KEY "
+msgstr " SOUKROMÝ KLÍČ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:195
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:248
+msgid "This is NOT your Public Key, so DON'T give it away."
+msgstr "Toto NENÍ váš veřejný klíč, takže jej NEDÁVEJTE."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:196
+msgid "Do you REALLY want to export your PRIVATE KEY in a Minimum Size?"
+msgstr "OPRAVDU chcete exportovat svůj SOUKROMÝ KLÍČ v minimální velikosti?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:199
+msgid ""
+"For OpenPGP keys it removes all signatures except for the latest self-"
+"signatures."
+msgstr ""
+"U klíčů OpenPGP odebere všechny podpisy kromě nejnovějších vlastních "
+"podpisů."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:245
+msgid "Exporting private Key"
+msgstr "Export soukromého klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:249
+msgid "Do you REALLY want to export your PRIVATE KEY?"
+msgstr "OPRAVDU chcete exportovat svůj SOUKROMÝ KLÍČ?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:313
+msgid "Revocation Certificates"
+msgstr "Zrušovací certifikáty"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:356
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:386
+msgid "Not Successful"
+msgstr "Neúspěšný"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:357
+msgid "Modify password not successfully."
+msgstr "Změna hesla nebyla úspěšná."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:363
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:373
+msgid "Policy Auto"
+msgstr "Zásady Auto"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:363
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:375
+msgid "Policy Good"
+msgstr "Politika Dobrá"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:363
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:377
+msgid "Policy Bad"
+msgstr "Zásady špatné"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:364
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:379
+msgid "Policy Ask"
+msgstr "Zásady Zeptejte se"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:364
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:381
+msgid "Policy Unknown"
+msgstr "Zásady neznámé"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:368
+msgid "Modify TOFU Policy(Default is Auto)"
+msgstr "Upravit zásady TOFU (výchozí je Auto)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:369
+msgid "Policy for the Key Pair:"
+msgstr "Zásady pro klíčový pár:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:387
+msgid "Modify TOFU policy not successfully."
+msgstr "Úprava zásady TOFU nebyla úspěšná."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:44
+msgid "Subkey List"
+msgstr "Seznam podklíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:45
+msgid "Detail of Selected Subkey"
+msgstr "Detail vybraného podklíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:49
+msgid "Generate A New Subkey"
+msgstr "Vygenerovat nový podklíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:71
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:151
+msgid "Usage"
+msgstr "Používání"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:73
+msgid "Expires On (Local Time)"
+msgstr "Vyprší dne (místního času)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:76
+msgid "Existence"
+msgstr "Existence"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:79
+msgid "Key in Smart Card"
+msgstr "Zadejte čipovou kartu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
+msgid "Subkey ID"
+msgstr "ID podklíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
+msgid "Algo"
+msgstr "Algo"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:161
+msgid "Expire Date (UTC)"
+msgstr "Datum vypršení platnosti (UTC)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:290
+msgid "Yes"
+msgstr "Ano"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:290
+msgid "No"
+msgstr "Ne"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:320
+msgid "Edit Expire Date"
+msgstr "Upravit datum vypršení platnosti"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:57
+msgid "Notice: The New UID Created will be set as Primary."
+msgstr "Upozornění: Vytvořené nové UID bude nastaveno jako Primární."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:65
+msgid "Create New UID"
+msgstr "Vytvořit nové UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:81
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:108
+msgid "Name must contain at least five characters."
+msgstr "Název musí obsahovat alespoň pět znaků."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:85
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:113
+msgid "Please give a email address."
+msgstr "Uveďte prosím e-mailovou adresu."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:43
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:48
+msgid "Signers"
+msgstr "Signatáři"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:86
+msgid "Expire Date"
+msgstr "Datum spotřeby"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:96
+msgid "Sign For Key's UID(s)"
+msgstr "Podepsat UID klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:127
+msgid "Unsuccessful Operation"
+msgstr "Neúspěšná operace"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:128
+msgid "Signature operation failed for UID %1"
+msgstr "Operace podpisu pro UID %1 se nezdařila"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:132
+msgid "Operation Complete"
+msgstr "Operace dokončena"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:133
+msgid "The signature operation of the UID is complete"
+msgstr "Operace podpisu UID je dokončena"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:38
+msgid "Signatures Details"
+msgstr "Podrobnosti o podpisech"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:61
+msgid "No valid input found"
+msgstr "Nebyl nalezen žádný platný vstup"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:76
+msgid "Error Validating signature"
+msgstr "Chyba při ověřování podpisu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:78
+msgid "File was signed on %1%"
+msgstr "Soubor byl podepsán %1%"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:81
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:87
+msgid "It Contains"
+msgstr "Obsahuje"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:84
+msgid "Signed on %1%"
+msgstr "Podepsáno %1%"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:36
+msgid "Confirm"
+msgstr "Potvrdit"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:37
+msgid "Cancel"
+msgstr "zrušení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:56
+msgid "Select Signer(s)"
+msgstr "Vyberte signatáře"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:60
+msgid "Please select one or more private keys you use for signing."
+msgstr ""
+"Vyberte prosím jeden nebo více soukromých klíčů, které používáte k "
+"podepisování."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:62
+msgid "If no key is selected, the default key will be used for signing."
+msgstr ""
+"Pokud není vybrán žádný klíč, bude pro podepisování použit výchozí klíč."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:37
+msgid "Unsaved Files"
+msgstr "Neuložené soubory"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:86
+msgid ""
+"%1% files contain unsaved information.<br/>Save the changes before closing?"
+msgstr ""
+"%1% souborů obsahuje neuložené informace.<br/>Uložit změny před zavřením?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:100
+msgid "Check the files you want to save:"
+msgstr "Zaškrtněte soubory, které chcete uložit:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:102
+msgid "Note"
+msgstr "Poznámka"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:103
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:281
+msgid "If you don't save these files, all changes are lost."
+msgstr "Pokud tyto soubory neuložíte, všechny změny budou ztraceny."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:70
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:133
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:240
+msgid "Generate Key"
+msgstr "Generovat klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:121
+msgid "Expiration time too long."
+msgstr "Příliš dlouhá doba platnosti."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:126
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:284
+msgid "Password is empty."
+msgstr "Heslo je prázdné."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:165
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:317
+msgid "Generating"
+msgstr "Generování"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:185
+msgid "The new key pair has been generated."
+msgstr "Nový pár klíčů byl vygenerován."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:194
+msgid "Key generation failed."
+msgstr "Generování klíče se nezdařilo."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:223
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:107
+msgid "Key Usage"
+msgstr "Použití klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:225
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:109
+msgid "Encryption"
+msgstr "Šifrování"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:228
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:112
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:433
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:255
+msgid "Signing"
+msgstr "Podepisování"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:231
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:115
+msgid "Certification"
+msgstr "Osvědčení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:234
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:118
+msgid "Authentication"
+msgstr "Autentizace"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:415
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:168
+msgid "Expiration Date"
+msgstr "Datum spotřeby"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:417
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:167
+msgid "KeySize (in Bit)"
+msgstr "Velikost klíče (v bitech)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:418
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:166
+msgid "Key Type"
+msgstr "Typ klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:421
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:172
+msgid "Non Pass Phrase"
+msgstr "Non Pass Phrase"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:435
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:183
+msgid "Basic Information"
+msgstr "Základní informace"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:79
+msgid ""
+"Tipps: if the key pair has a passphrase, the subkey's passphrase must be "
+"equal to it."
+msgstr ""
+"Tipy: Pokud má pár klíčů přístupovou frázi, musí se jí rovnat přístupová "
+"fráze podklíče."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:91
+msgid "Generate New Subkey"
+msgstr "Vygenerovat nový podklíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:279
+msgid "Expiration time no more than 2 years."
+msgstr "Doba použitelnosti ne více než 2 roky."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:334
+msgid "The new subkey has been generated."
+msgstr "Byl vygenerován nový podklíč."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:341
+msgid "Failed to generate key."
+msgstr "Vygenerování klíče se nezdařilo."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:44
+msgid "Description"
+msgstr "Popis"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:44
+msgid "Version"
+msgstr "Verze"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:45
+msgid "Checksum"
+msgstr "Kontrolní součet"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:45
+msgid "Binary Path"
+msgstr "Binární cesta"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:47
+msgid "Components"
+msgstr "Komponenty"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:48
+msgid "Configurations"
+msgstr "Konfigurace"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:58
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:239
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:258
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:535
+msgid "Key"
+msgstr "Klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:58
+msgid "Value"
+msgstr "Hodnota"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:43
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:336
+msgid "About"
+msgstr "O"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:51
+msgid "About GpgFrontend"
+msgstr "O GpgFrontend"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:53
+msgid "Translators"
+msgstr "Překladatelé"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:54
+msgid "Update"
+msgstr "Aktualizace"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:87
+msgid ""
+"GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
+"free GnuPG Frontend.It visualizes most of the common operations of "
+"GnuPG.GpgFrontend is licensed under the GPLv3"
+msgstr ""
+"GpgFrontend je snadno použitelný, kompaktní, multiplatformní a bezinstalační"
+" GnuPG Frontend. Vizualizuje většinu běžných operací GnuPG. GpgFrontend je "
+"licencován pod GPLv3"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:93
+msgid "Developer:"
+msgstr "Vývojář:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:94
+msgid "If you have any questions or suggestions, raise an issue at"
+msgstr "Máte-li jakékoli dotazy nebo návrhy, uveďte problém na adrese"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:97
+msgid "or send a mail to my mailing list at"
+msgstr "nebo pošlete mail na můj mailing list na"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:99
+msgid "Built with Qt"
+msgstr "Postaveno s Qt"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:100
+msgid "and"
+msgstr "a"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:104
+msgid "Built at"
+msgstr "Postaveno na"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:143
+msgid ""
+"If you think there are any problems with the translation, why not "
+"participate in the translation work? If you want to participate, please read"
+" the document or contact me via email."
+msgstr ""
+"Pokud si myslíte, že jsou nějaké problémy s překladem, proč se nezúčastnit "
+"překladatelské práce? Pokud se chcete zúčastnit, přečtěte si prosím dokument"
+" nebo mě kontaktujte e-mailem."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:168
+msgid ""
+"It is recommended that you always check the version of GpgFrontend and "
+"upgrade to the latest version."
+msgstr ""
+"Doporučuje se vždy zkontrolovat verzi GpgFrontend a upgradovat na nejnovější"
+" verzi."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:171
+msgid ""
+"New versions not only represent new features, but also often represent "
+"functional and security fixes."
+msgstr ""
+"Nové verze představují nejen nové funkce, ale často také funkční a "
+"bezpečnostní opravy."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:177
+msgid "Current Version"
+msgstr "Současná verze"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:224
+msgid "Latest Version From Github"
+msgstr "Nejnovější verze z Github"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:230
+msgid "The current version is less than the latest version on github."
+msgstr "Aktuální verze je nižší než nejnovější verze na githubu."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:232
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:243
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:255
+msgid "Please click"
+msgstr "prosím klikněte"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:235
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:246
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:258
+msgid "Here"
+msgstr "Tady"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:235
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:246
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:258
+msgid "to download the latest stable version."
+msgstr "ke stažení nejnovější stabilní verze."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:241
+msgid ""
+"This version has serious problems and has been withdrawn. Please stop using "
+"it immediately."
+msgstr ""
+"Tato verze má vážné problémy a byla stažena. Okamžitě jej přestaňte "
+"používat."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:252
+msgid ""
+"This version has not been released yet, it may be a beta version. If you are"
+" not a tester and care about version stability, please do not use this "
+"version."
+msgstr ""
+"Tato verze ještě nevyšla, může se jednat o beta verzi. Pokud nejste tester a"
+" záleží vám na stabilitě verze, tuto verzi prosím nepoužívejte."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:41
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:61
+msgid "Key Update Details"
+msgstr "Podrobnosti o aktualizaci klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:42
+msgid "No keys found"
+msgstr "Nebyly nalezeny žádné klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:44
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:63
+msgid "Key Import Details"
+msgstr "Podrobnosti importu klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:45
+msgid "No keys found to import"
+msgstr "Nebyly nalezeny žádné klíče k importu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:79
+msgid "General key info"
+msgstr "Obecné klíčové informace"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:82
+msgid "Considered"
+msgstr "Považováno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:89
+msgid "Public unchanged"
+msgstr "Veřejnost beze změny"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:95
+msgid "Imported"
+msgstr "Dovezeno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:103
+msgid "Not Imported"
+msgstr "Neimportováno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:110
+msgid "Private Read"
+msgstr "Soukromé čtení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:117
+msgid "Private Imported"
+msgstr "Soukromé Importováno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:124
+msgid "Private Unchanged"
+msgstr "Soukromé Nezměněno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:140
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:65
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:91
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:107
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:123
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:125
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:141
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:156
+msgid "Status"
+msgstr "Postavení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:169
+msgid "Private"
+msgstr "soukromé"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:172
+msgid "Public"
+msgstr "Veřejnost"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:175
+msgid "Unchanged"
+msgstr "Beze změny"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:178
+msgid "New Key"
+msgstr "Nový klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:181
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:146
+msgid "New Subkey"
+msgstr "Nový podklíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:185
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:57
+msgid "New Signature"
+msgstr "Nový podpis"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:56
+msgid "Uploading Public Key"
+msgstr "Nahrávání veřejného klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:93
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:327
+msgid "Cannot read default_keyserver From Settings"
+msgstr "Nelze přečíst default_keyserver z Nastavení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:94
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:471
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:329
+msgid "Default Keyserver Not Found"
+msgstr "Výchozí klíčový server nenalezen"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:95
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:472
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:330
+msgid ""
+"Cannot read default keyserver from your settings, please set a default "
+"keyserver first"
+msgstr ""
+"Z vašich nastavení nelze načíst výchozí server klíčů, nejprve nastavte "
+"výchozí server klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:148
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:503
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:517
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:367
+msgid "Key Not Found"
+msgstr "Klíč nenalezen"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:151
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:292
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:506
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:521
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:370
+msgid "Timeout"
+msgstr "Časový limit"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:154
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:295
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:509
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:373
+msgid "Key Server Not Found"
+msgstr "Klíčový server nenalezen"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:157
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:298
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:512
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:528
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:376
+msgid "Connection Error"
+msgstr "Chyba připojení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:162
+msgid "Upload Success"
+msgstr "Nahrání proběhlo úspěšně"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:163
+msgid "Upload Public Key Successfully"
+msgstr "Nahrání veřejného klíče proběhlo úspěšně"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:54
+msgid "Export Key Package"
+msgstr "Exportujte balíček klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:55
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:189
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:445
+msgid "Key Package"
+msgstr "Klíčový balíček"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:61
+msgid "Export Key Package Passphrase"
+msgstr "Exportovat přístupové heslo balíčku klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:63
+msgid "Key File"
+msgstr "Klíčový soubor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:69
+msgid "An error occurred while generating the passphrase file."
+msgstr "Při generování souboru přístupové fráze došlo k chybě."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:78
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:85
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:340
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:353
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:401
+msgid "Forbidden"
+msgstr "Zakázáno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:79
+msgid "Please select an output path before exporting."
+msgstr "Před exportem vyberte výstupní cestu."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:86
+msgid ""
+"Please generate a password to protect your key before exporting, it is very "
+"important. Don't forget to back up your password in a safe place."
+msgstr ""
+"Před exportem si vygenerujte heslo pro ochranu klíče, je to velmi důležité. "
+"Nezapomeňte si zálohovat heslo na bezpečném místě."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
+msgid ""
+"The Key Package has been successfully generated and has been protected by "
+"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
+"Package."
+msgstr ""
+"Klíčový balíček byl úspěšně vygenerován a chráněn šifrovacími algoritmy "
+"(AES-256-ECB). Váš balíček klíčů můžete bezpečně převést."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
+msgid ""
+"But the key file cannot be leaked under any circumstances. Please delete the"
+" Key Package and key file as soon as possible after completing the transfer "
+"operation."
+msgstr ""
+"Soubor klíčů však za žádných okolností nemůže uniknout. Po dokončení převodu"
+" co nejdříve smažte balíček klíčů a soubor klíčů."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:121
+msgid "An error occurred while exporting the key package."
+msgstr "Při exportu balíčku klíčů došlo k chybě."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:128
+msgid "Key Package Name"
+msgstr "Název klíčového balíčku"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:129
+msgid "Output Path"
+msgstr "Výstupní cesta"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:130
+msgid "Passphrase"
+msgstr "Přístupová fráze"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:132
+msgid ""
+"Tips: You can use Key Package to safely and conveniently transfer your "
+"public and private keys between devices."
+msgstr ""
+"Tipy: Balíček klíčů můžete použít k bezpečnému a pohodlnému přenosu vašich "
+"veřejných a soukromých klíčů mezi zařízeními."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:134
+msgid "Generate and Save Passphrase"
+msgstr "Vygenerovat a uložit přístupovou frázi"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:135
+msgid "Generate Key Package Name"
+msgstr "Generovat název balíčku klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:136
+msgid "Select Output Path"
+msgstr "Vyberte výstupní cestu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:139
+msgid "Include secret key (Think twice before acting)"
+msgstr "Zahrnout tajný klíč (dvakrát si to rozmyslete, než začnete jednat)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:141
+msgid "Exclude keys that do not have a private key"
+msgstr "Vyloučit klíče, které nemají soukromý klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:144
+msgid "Export As Key Package"
+msgstr "Exportovat jako klíčový balíček"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:72
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:133
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:136
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:86
+msgid "Close"
+msgstr "Zavřít"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:75
+msgid "Import ALL"
+msgstr "Importovat VŠECHNY"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:79
+msgid "Search"
+msgstr "Vyhledávání"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:84
+msgid "Search String"
+msgstr "Hledat řetězec"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:134
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:169
+msgid "Update Keys from Keyserver"
+msgstr "Aktualizujte klíče z Keyserveru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:136
+msgid "Import Keys from Keyserver"
+msgstr "Importujte klíče z Keyserveru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:216
+msgid "UID"
+msgstr "UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:216
+msgid "Creation date"
+msgstr "Datum vzniku"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:216
+msgid "KeyID"
+msgstr "KeyID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:216
+msgid "Tag"
+msgstr "Štítek"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:241
+msgid "Text is empty."
+msgstr "Text je prázdný."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:289
+msgid "Not Key Found"
+msgstr "Nenalezen klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:308
+msgid "Too many responses from keyserver!"
+msgstr "Příliš mnoho odpovědí z keyserveru!"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:318
+msgid "No keys found, input may be kexId, retrying search with 0x."
+msgstr ""
+"Nebyly nalezeny žádné klíče, vstup může být kexId, opakování vyhledávání s "
+"0x."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:327
+msgid "No keys found containing the search string!"
+msgstr "Nebyly nalezeny žádné klíče obsahující hledaný řetězec!"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:334
+msgid "Insufficiently specific search string!"
+msgstr "Nedostatečně konkrétní vyhledávací řetězec!"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:370
+msgid "revoked"
+msgstr "odvoláno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:374
+msgid "disabled"
+msgstr "zakázáno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:424
+msgid "%1 keys found. Double click a key to import it."
+msgstr ""
+"Počet nalezených klíčů: %1. Dvojitým kliknutím na klíč jej importujete."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:518
+msgid "key not found in the Keyserver"
+msgstr "klíč nebyl nalezen na serveru klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:524
+msgid "Host Not Found"
+msgstr "Hostitel nenalezen"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:529
+msgid "General Connection Error"
+msgstr "Obecná chyba připojení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:543
+msgid "Key Imported"
+msgstr "Klíč importován"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:43
+msgid "First Start Wizard"
+msgstr "Průvodce prvním spuštěním"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:85
+msgid "Getting Started..."
+msgstr "Začínáme..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:86
+msgid "... with GpgFrontend"
+msgstr "... s GpgFrontend"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:89
+msgid "Welcome to use GpgFrontend for decrypting and signing text or file!"
+msgstr ""
+"Vítejte v používání GpgFrontend pro dešifrování a podepisování textu nebo "
+"souboru!"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:92
+msgid ""
+"is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free "
+"OpenPGP Crypto Tool."
+msgstr ""
+"je výkonný, snadno použitelný, kompaktní, multiplatformní a bezinstalační "
+"OpenPGP krypto nástroj."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:94
+msgid "For brief information have a look at the"
+msgstr "Pro stručné informace se podívejte na"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:96
+msgid "Overview"
+msgstr "Přehled"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:97
+msgid "by clicking the link, the page will open in the web browser"
+msgstr "kliknutím na odkaz se stránka otevře ve webovém prohlížeči"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:106
+msgid ""
+"If it supports the language currently being used in your system, GpgFrontend"
+" will automatically set it."
+msgstr ""
+"Pokud podporuje jazyk aktuálně používaný ve vašem systému, GpgFrontend jej "
+"automaticky nastaví."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:124
+msgid "Choose your action..."
+msgstr "Vyberte si akci..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:125
+msgid "...by clicking on the appropriate link."
+msgstr "...kliknutím na příslušný odkaz."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:129
+msgid ""
+"If you have never used GpgFrontend before and also don't own a gpg key yet "
+"you may possibly want to read how to"
+msgstr ""
+"Pokud jste nikdy předtím nepoužili GpgFrontend a také ještě nevlastníte gpg "
+"klíč, možná si budete chtít přečíst, jak"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:141
+msgid ""
+"If you want to learn how to encrypt, decrypt, sign and verify text, you can "
+"read "
+msgstr ""
+"Pokud se chcete naučit šifrovat, dešifrovat, podepisovat a ověřovat text, "
+"můžete číst"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:146
+msgid "Encrypt & Decrypt Text"
+msgstr "Šifrovat a dešifrovat text"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:146
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:161
+msgid "or"
+msgstr "nebo"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:149
+msgid "Sign & Verify Text"
+msgstr "Podepište a ověřte text"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:157
+msgid "If you want to operate file, you can read "
+msgstr "Pokud chcete pracovat se souborem, můžete číst"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:161
+msgid "Encrypt & Sign File"
+msgstr "Šifrovat a podepsat soubor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:164
+msgid "Sign & Verify File"
+msgstr "Podepište a ověřte soubor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:190
+msgid "Create a keypair..."
+msgstr "Vytvořit pár klíčů..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:191
+msgid "...for decrypting and signing messages"
+msgstr "...pro dešifrování a podepisování zpráv"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:193
+msgid ""
+"You should create a new keypair.The pair consists of a public and a private "
+"key.<br>Other users can use the public key to encrypt messages for you and "
+"verify messages signed by you.You can use the private key to decrypt and "
+"sign messages.<br>For more information have a look at the offline tutorial "
+"(which then is shown in the main window):"
+msgstr ""
+"Měli byste vytvořit nový pár klíčů. Pár se skládá z veřejného a soukromého "
+"klíče.<br>Ostatní uživatelé mohou používat veřejný klíč k šifrování zpráv za"
+" vás a ověřování zpráv, které jste podepsali. Soukromý klíč můžete použít k "
+"dešifrování a podepisování zpráv.<br>Další informace naleznete v offline "
+"tutoriálu (který se pak zobrazí v hlavním okně):"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:205
+msgid "Offline tutorial"
+msgstr "Offline výukový program"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:209
+msgid "Create New Key"
+msgstr "Vytvořit nový klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:230
+msgid "Ready."
+msgstr "Připraveno."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:231
+msgid "Have fun with GpgFrontend!"
+msgstr "Bavte se s GpgFrontend!"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:234
+msgid "You are ready to use GpgFrontend now.<br><br>"
+msgstr "Nyní jste připraveni používat GpgFrontend.<br><br>"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:238
+msgid "The Online Document"
+msgstr "Online dokument"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:239
+msgid ""
+" will get you started with GpgFrontend. Anytime you encounter problems, "
+"please try to find help from the documentation"
+msgstr ""
+" vám pomůže začít s GpgFrontend. Kdykoli narazíte na problémy, zkuste prosím"
+" vyhledat pomoc v dokumentaci"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:248
+msgid "Open offline help."
+msgstr "Otevřete offline nápovědu."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:251
+msgid "Dont show the wizard again."
+msgstr "Nezobrazovat znovu průvodce."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:51
+msgid "All"
+msgstr "Všechno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:54
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:600
+msgid "Only Public Key"
+msgstr "Pouze veřejný klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:63
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:609
+msgid "Has Private Key"
+msgstr "Má soukromý klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:72
+msgid "No Primary Key"
+msgstr "Žádný primární klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:81
+msgid "Revoked"
+msgstr "Odvoláno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:87
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:211
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:88
+msgid "Expired"
+msgstr "Platnost vypršela"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:111
+msgid "KeyPair Management"
+msgstr "KeyPair Management"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:127
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:225
+msgid "Open"
+msgstr "Otevřeno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:128
+msgid "Ctrl+O"
+msgstr "Ctrl+O"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:129
+msgid "Open Key File"
+msgstr "Otevřete soubor klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:134
+msgid "Ctrl+Q"
+msgstr "Ctrl+Q"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:139
+msgid "New Keypair"
+msgstr "Nový klíčový pár"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:140
+msgid "Ctrl+N"
+msgstr "Ctrl+N"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:142
+msgid "Generate KeyPair"
+msgstr "Generovat KeyPair"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:147
+msgid "Ctrl+Shift+N"
+msgstr "Ctrl+Shift+N"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:149
+msgid "Generate Subkey For Selected KeyPair"
+msgstr "Generovat podklíč pro vybraný pár klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:153
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:235
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:240
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:445
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:517
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:243
+msgid "File"
+msgstr "Soubor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:155
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:242
+msgid "Import New Key From File"
+msgstr "Importovat nový klíč ze souboru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:159
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:246
+msgid "Clipboard"
+msgstr "Schránka"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:163
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:250
+msgid "Import New Key From Clipboard"
+msgstr "Importovat nový klíč ze schránky"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:179
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:266
+msgid "Keyserver"
+msgstr "klíčový server"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:183
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:270
+msgid "Import New Key From Keyserver"
+msgstr "Importujte nový klíč z Keyserveru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:192
+msgid "Import Key(s) From a Key Package"
+msgstr "Importujte klíč(y) z balíčku klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:196
+msgid "Export To Clipboard"
+msgstr "Exportovat do schránky"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:199
+msgid "Export Selected Key(s) To Clipboard"
+msgstr "Export vybraných klíčů do schránky"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:203
+msgid "Export To Key Package"
+msgstr "Export do balíčku klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:206
+msgid "Export Checked Key(s) To a Key Package"
+msgstr "Exportujte zaškrtnuté klíče do balíčku klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:210
+msgid "Export As OpenSSH"
+msgstr "Exportovat jako OpenSSH"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:213
+msgid "Export Selected Key(s) As OpenSSH Format to File"
+msgstr "Exportujte vybrané klíče jako formát OpenSSH do souboru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:217
+msgid "Delete Selected Key(s)"
+msgstr "Smazat vybrané klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:218
+msgid "Delete the Selected keys"
+msgstr "Odstraňte vybrané klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:222
+msgid "Delete Checked Key(s)"
+msgstr "Smazat zaškrtnuté klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:223
+msgid "Delete the Checked keys"
+msgstr "Odstraňte zaškrtnuté klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:228
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:416
+msgid "Show Key Details"
+msgstr "Zobrazit klíčové podrobnosti"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:229
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:417
+msgid "Show Details for this Key"
+msgstr "Zobrazit podrobnosti tohoto klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:244
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:270
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:487
+msgid "Import Key"
+msgstr "Import klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:269
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:561
+msgid "Import key"
+msgstr "Import klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:308
+msgid "Deleting Keys"
+msgstr "Mazání klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:311
+msgid "Are you sure that you want to delete the following keys?"
+msgstr "Opravdu chcete smazat následující klíče?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:329
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:381
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:424
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:644
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:670
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:688
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:705
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:718
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:731
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:746
+msgid "Key Not Found."
+msgstr "Klíč nenalezen."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:341
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:354
+msgid "Please check some keys before doing this operation."
+msgstr "Před provedením této operace zkontrolujte některé klíče."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:346
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:436
+msgid "key(s) exported"
+msgstr "exportován klíč(y)."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:376
+msgid "Please select one KeyPair before doing this operation."
+msgstr "Před provedením této operace vyberte jeden KeyPair."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:386
+msgid ""
+"If a key pair does not have a private key then it will not be able to "
+"generate sub-keys."
+msgstr ""
+"Pokud pár klíčů nemá soukromý klíč, nebude schopen generovat podklíče."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:402
+msgid ""
+"Please select a key before performing this operation. If you select multiple"
+" keys, only the first key will be exported."
+msgstr ""
+"Před provedením této operace vyberte klíč. Pokud vyberete více klíčů, bude "
+"exportován pouze první klíč."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:410
+msgid "An error occur in exporting."
+msgstr "Při exportu došlo k chybě."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:417
+msgid ""
+"This key may not be able to export as OpenSSH format. Please check the key-"
+"size of the subkey(s) used to sign."
+msgstr ""
+"Tento klíč nemusí být možné exportovat ve formátu OpenSSH. Zkontrolujte "
+"prosím velikost klíče podklíčů použitých k podpisu."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:431
+msgid "Export OpenSSH Key To File"
+msgstr "Exportujte klíč OpenSSH do souboru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:432
+msgid "OpenSSH Public Key Files"
+msgstr "Soubory veřejného klíče OpenSSH"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:444
+msgid "Import Key Package"
+msgstr "Importujte balíček klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:448
+msgid "Import Key Package Passphrase File"
+msgstr "Importujte soubor přístupového hesla balíčku klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:449
+msgid "Key Package Passphrase File"
+msgstr "Soubor přístupového hesla balíčku klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:459
+msgid "key(s) imported"
+msgstr "importovaný klíč (klíče)."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:466
+msgid "An error occur in importing key package."
+msgstr "Při importu balíčku klíčů došlo k chybě."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:45
+msgid "The path %1 does not exist."
+msgstr "Cesta %1 neexistuje."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:50
+msgid "No permission to read this file."
+msgstr "Nemáte oprávnění číst tento soubor."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:55
+msgid "No permission to create file."
+msgstr "Žádné oprávnění k vytvoření souboru."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:74
+msgid "The file is not a tarball."
+msgstr "Soubor není tarball."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:88
+msgid "Extracting Tarball"
+msgstr "Extrahování Tarballu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:133
+msgid "Making Tarball"
+msgstr "Výroba Tarballu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:201
+msgid "The target file %1% already exists, do you need to overwrite it?"
+msgstr "Cílový soubor %1% již existuje, potřebujete jej přepsat?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:215
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:634
+msgid "Unable to convert the folder into tarball."
+msgstr "Složku nelze převést na tarball."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:223
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:98
+msgid "Symmetric Encryption"
+msgstr "Symetrické šifrování"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:224
+msgid ""
+"No Key Selected. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr ""
+"Není vybrán žádný klíč. Chcete šifrovat pomocí symetrické šifry pomocí "
+"přístupové fráze?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:231
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:105
+msgid "Symmetrically Encrypting"
+msgstr "Symetrické šifrování"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:250
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:576
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:417
+msgid "Invalid KeyPair"
+msgstr "Neplatný pár klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:251
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:577
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:418
+msgid "The selected keypair cannot be used for encryption."
+msgstr "Vybraný pár klíčů nelze použít pro šifrování."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:252
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:578
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:135
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:196
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:419
+msgid "For example the Following Key:"
+msgstr "Například následující klíč:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:258
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:145
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:169
+msgid "Encrypting"
+msgstr "Šifrování"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:287
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:341
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:453
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:548
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:670
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:747
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:86
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:250
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:318
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:385
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:507
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:585
+msgid "An error occurred during operation."
+msgstr "Během provozu došlo k chybě."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:313
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:612
+msgid "The target file already exists, do you need to overwrite it?"
+msgstr "Cílový soubor již existuje, potřebujete jej přepsat?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:322
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:348
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:353
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:358
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:754
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:759
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:764
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:323
+msgid "Decrypting"
+msgstr "Dešifrování"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:349
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:755
+msgid "Do you want to extract and delete the decrypted tarball?"
+msgstr "Chcete rozbalit a odstranit dešifrovaný tarball?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:354
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:760
+msgid "Extracting tarball succeeded."
+msgstr "Extrahování tarballu bylo úspěšné."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:359
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:765
+msgid "Extracting tarball failed."
+msgstr "Extrahování tarballu se nezdařilo."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:376
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:565
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:183
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:405
+msgid "No Key Checked"
+msgstr "Nebyl zkontrolován žádný klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:377
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:566
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:184
+msgid "Please check the key in the key toolbox on the right."
+msgstr "Zkontrolujte prosím klíč v panelu klíčových nástrojů vpravo."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:385
+msgid ""
+"The selected key contains a key that does not actually have a sign usage."
+msgstr "Vybraný klíč obsahuje klíč, který ve skutečnosti nemá použití znaku."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:387
+msgid "for example the Following Key:"
+msgstr "například následující klíč:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:420
+msgid "The signature file \"%1\" exists, do you need to overwrite it?"
+msgstr "Soubor podpisu \"% 1\" existuje, potřebujete jej přepsat?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:498
+msgid "Origin file to verify"
+msgstr "Původní soubor k ověření"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:498
+msgid "Filepath"
+msgstr "Cesta k souboru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:511
+msgid ""
+"Please select the appropriate origin file or signature file. Ensure that "
+"both are in this directory."
+msgstr ""
+"Vyberte prosím příslušný původní soubor nebo soubor podpisu. Ujistěte se, že"
+" jsou oba v tomto adresáři."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:523
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:390
+msgid "Verifying"
+msgstr "Ověřování"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:645
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:512
+msgid "Encrypting and Signing"
+msgstr "Šifrování a podepisování"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:707
+msgid "The output file %1 already exists, do you need to overwrite it?"
+msgstr "Výstupní soubor %1 již existuje, potřebujete jej přepsat?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:719
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:590
+msgid "Decrypting and Verifying"
+msgstr "Dešifrování a ověřování"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:39
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:253
+msgid "New"
+msgstr "Nový"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:48
+msgid "Open a new file"
+msgstr "Otevřete nový soubor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:51
+msgid "Open..."
+msgstr "Otevřeno..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:54
+msgid "Open an existing file"
+msgstr "Otevřete existující soubor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:57
+msgid "File Browser"
+msgstr "Prohlížeč souborů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:64
+msgid "Open a file browser"
+msgstr "Otevřete prohlížeč souborů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:68
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:44
+msgid "Save File"
+msgstr "Uložení souboru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:71
+msgid "Save the current File"
+msgstr "Uložit aktuální soubor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:74
+msgid "Save As"
+msgstr "Uložit jako"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:77
+msgid "Save the current File as..."
+msgstr "Uložit aktuální soubor jako..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:80
+msgid "Print"
+msgstr "Tisk"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:83
+msgid "Print Document"
+msgstr "Tisk dokumentu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:88
+msgid "Close file"
+msgstr "Zavřít soubor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:91
+msgid "Quit"
+msgstr "Přestat"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:94
+msgid "Quit Program"
+msgstr "Ukončete program"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:99
+msgid "Undo"
+msgstr "vrátit"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:101
+msgid "Undo Last Edit Action"
+msgstr "Vrátit zpět akci poslední úpravy"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:104
+msgid "Redo"
+msgstr "Předělat"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:106
+msgid "Redo Last Edit Action"
+msgstr "Znovu proveďte akci poslední úpravy"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:109
+msgid "Zoom In"
+msgstr "Přiblížit"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:113
+msgid "Zoom Out"
+msgstr "Oddálit"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:117
+msgid "Paste"
+msgstr "Vložit"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:120
+msgid "Paste Text From Clipboard"
+msgstr "Vložit Text ze schránky"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:123
+msgid "Cut"
+msgstr "Střih"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:127
+msgid "Cut the current selection's contents to the clipboard"
+msgstr "Vyjmout obsah aktuálního výběru do schránky"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:135
+msgid "Copy the current selection's contents to the clipboard"
+msgstr "Zkopírujte obsah aktuálního výběru do schránky"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:139
+msgid "Quote"
+msgstr "Citát"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:141
+msgid "Quote whole text"
+msgstr "Citovat celý text"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:144
+msgid "Select All"
+msgstr "Vybrat vše"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:147
+msgid "Select the whole text"
+msgstr "Vyberte celý text"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:151
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FindWidget.cpp:44
+msgid "Find"
+msgstr "Nalézt"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:153
+msgid "Find a word"
+msgstr "Najděte slovo"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:156
+msgid "Remove spacing"
+msgstr "Odstraňte mezery"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:161
+msgid "Remove double linebreaks, e.g. in pasted text from Web Mailer"
+msgstr ""
+"Odstraňte dvojité zalomení řádků, např. ve vloženém textu z Web Mailer"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:166
+msgid "Open settings dialog"
+msgstr "Otevřete dialogové okno nastavení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:180
+msgid "Encrypt Message"
+msgstr "Šifrovat zprávu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:183
+msgid "Encrypt Sign"
+msgstr "Šifrovat znamení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:191
+msgid "Encrypt and Sign Message"
+msgstr "Zašifrovat a podepsat zprávu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:195
+msgid "Decrypt"
+msgstr "Dešifrovat"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:202
+msgid "Decrypt Message"
+msgstr "Dešifrovat zprávu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:205
+msgid "Decrypt Verify"
+msgstr "Dešifrovat ověřit"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:213
+msgid "Decrypt and Verify Message"
+msgstr "Dešifrujte a ověřte zprávu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:224
+msgid "Sign Message"
+msgstr "Podepsat zprávu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:227
+msgid "Verify"
+msgstr "Ověřte"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:234
+msgid "Verify Message"
+msgstr "Ověřit zprávu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
+msgid "Editor"
+msgstr "Editor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:278
+msgid "Import New Key From Editor"
+msgstr "Importovat nový klíč z editoru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
+msgid "Manage Keys"
+msgstr "Správa klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:284
+msgid "Open Key Management"
+msgstr "Otevřete Správa klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:288
+msgid "Clear Password Cache"
+msgstr "Vymažte mezipaměť hesel"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:290
+msgid "Clear Password Cache of GnuPG"
+msgstr "Vymažte mezipaměť hesel GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:295
+msgid "Clear password cache successfully"
+msgstr "Úspěšně vymažte mezipaměť hesel"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:297
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:312
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:328
+msgid "Failed Operation"
+msgstr "Operace se nezdařila"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:298
+msgid "Failed to clear password cache of GnuPG"
+msgstr "Vymazání mezipaměti hesel GnuPG se nezdařilo"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:302
+msgid "Reload All Components"
+msgstr "Znovu načtěte všechny součásti"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:304
+msgid "Reload All GnuPG's Components"
+msgstr "Znovu načtěte všechny součásti GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:309
+msgid "Reload all the GnuPG's components successfully"
+msgstr "Znovu úspěšně načtěte všechny součásti GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:313
+msgid "Failed to reload all or one of the GnuPG's component(s)"
+msgstr "Nepodařilo se znovu načíst všechny nebo jednu z komponent GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:317
+msgid "Restart All Components"
+msgstr "Restartujte všechny součásti"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:319
+msgid "Restart All GnuPG's Components"
+msgstr "Restartujte všechny komponenty GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:325
+msgid "Restart all the GnuPG's components successfully"
+msgstr "Restartujte všechny součásti GnuPG úspěšně"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:329
+msgid "Failed to restart all or one of the GnuPG's component(s)"
+msgstr "Nepodařilo se restartovat všechny nebo jednu z komponent GnuPG"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:338
+msgid "Show the application's About box"
+msgstr "Zobrazit pole O aplikaci"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:345
+msgid "Information about Gnupg"
+msgstr "Informace o Gnupg"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:349
+msgid "Translate"
+msgstr "přeložit"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:351
+msgid "Information about translation"
+msgstr "Informace o překladu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:358
+msgid "Check for Updates"
+msgstr "Kontrola aktualizací"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:360
+msgid "Check for updates"
+msgstr "Kontrola aktualizací"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:364
+msgid "Open Wizard"
+msgstr "Otevřete průvodce"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:365
+msgid "Open the wizard"
+msgstr "Otevřete průvodce"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:370
+msgid "Append Public Key to Editor"
+msgstr "Připojte veřejný klíč k editoru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:372
+msgid "Append selected Keypair's Public Key to Editor"
+msgstr "Připojte vybraný veřejný klíč k editoru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:377
+msgid "Append Create DateTime to Editor"
+msgstr "Přidejte Create DateTime do Editoru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:379
+msgid "Append selected Key's creation date and time to Editor"
+msgstr "Připojte datum a čas vytvoření vybraného klíče do Editoru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:384
+msgid "Append Expire DateTime to Editor"
+msgstr "Připojte datum vypršení platnosti k editoru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:386
+msgid "Append selected Key's expiration date and time to Editor"
+msgstr "Přidejte datum a čas vypršení platnosti vybraného klíče do Editoru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:391
+msgid "Append Fingerprint to Editor"
+msgstr "Přidejte otisk prstu do editoru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:393
+msgid "Append selected Key's Fingerprint to Editor"
+msgstr "Přidejte otisk vybraného klíče do editoru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:397
+msgid "Copy Email"
+msgstr "Kopírovat e-mail"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:399
+msgid "Copy selected Keypair's to clipboard"
+msgstr "Zkopírujte vybrané páry klíčů do schránky"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:404
+msgid "Copy Default UID"
+msgstr "Kopírovat výchozí UID"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:406
+msgid "Copy selected Keypair's default UID to clipboard"
+msgstr "Zkopírujte výchozí UID vybraného Keypair do schránky"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:410
+msgid "Copy Key ID"
+msgstr "Zkopírovat ID klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:412
+msgid "Copy selected Keypair's ID to clipboard"
+msgstr "Zkopírujte vybrané ID páru klíčů do schránky"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:435
+msgid "Remove PGP Header"
+msgstr "Odstraňte záhlaví PGP"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:439
+msgid "Add PGP Header"
+msgstr "Přidat záhlaví PGP"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:458
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:540
+msgid "Edit"
+msgstr "Upravit"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:476
+msgid "Crypt"
+msgstr "Krypta"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:486
+msgid "Keys"
+msgstr "Klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:501
+msgid "Steganography"
+msgstr "Steganografie"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:505
+msgid "View"
+msgstr "Pohled"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:507
+msgid "Help"
+msgstr "Pomoc"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:548
+msgid "Special Edit"
+msgstr "Speciální úprava"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:560
+msgid "Import key from..."
+msgstr "Importovat klíč z..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:577
+msgid "Ready"
+msgstr "Připraveno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:584
+msgid "Key ToolBox"
+msgstr "Key ToolBox"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:99
+msgid ""
+"No Key Checked. Do you want to encrypt with a symmetric cipher using a "
+"passphrase?"
+msgstr ""
+"Nebyl zkontrolován žádný klíč. Chcete šifrovat pomocí symetrické šifry "
+"pomocí přístupové fráze?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:133
+msgid ""
+"The selected key contains a key that does not actually have a encrypt usage."
+msgstr ""
+"Vybraný klíč obsahuje klíč, který ve skutečnosti nemá použití šifrování."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:194
+msgid ""
+"The selected key contains a key that does not actually have a signature "
+"usage."
+msgstr ""
+"Vybraný klíč obsahuje klíč, který ve skutečnosti nemá použití podpisu."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:269
+msgid "Notice"
+msgstr "Oznámení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:270
+msgid "Short Crypto Text only supports Decrypt & Verify."
+msgstr "Krátký krypto text podporuje pouze dešifrování a ověření."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:406
+msgid "Please check some key in the key toolbox on the right."
+msgstr "Zkontrolujte prosím nějaký klíč v panelu klíčových nástrojů vpravo."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:623
+msgid "Key Export Operation Failed."
+msgstr "Operace exportu klíče se nezdařila."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:782
+msgid "GpgFrontend Upgradeable (New Version: %1)."
+msgstr "GpgFrontend lze upgradovat (nová verze: %1)."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:793
+msgid "Withdrawn Version"
+msgstr "Stažená verze"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:795
+msgid ""
+"This version(%1) may have been withdrawn by the developer due to serious "
+"problems. Please stop using this version immediately and use the latest "
+"stable version."
+msgstr ""
+"Tato verze (%1) mohla být stažena vývojářem kvůli vážným problémům. Okamžitě"
+" přestaňte tuto verzi používat a použijte nejnovější stabilní verzi."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:800
+msgid ""
+"You can download the latest stable version(%1) on Github Releases Page.<br/>"
+msgstr ""
+"Nejnovější stabilní verzi (%1) si můžete stáhnout na stránce vydání "
+"Github.<br/>"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:806
+msgid "This maybe a BETA Version (Latest Stable Version: %1)."
+msgstr "Toto je možná BETA verze (nejnovější stabilní verze: %1)."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindow.cpp:162
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindow.cpp:164
+msgid "Critical error occur while loading GpgFrontend."
+msgstr "Při načítání GpgFrontend došlo ke kritické chybě."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindow.cpp:163
+msgid "Loading Failed"
+msgstr "Načítání se nezdařilo"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:139
+msgid "Loading Gnupg Info..."
+msgstr "Načítání informací o Gnupg..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:140
+msgid ""
+"If this process is too slow, please set the key server address appropriately"
+" in the gnupg configuration file (depending on the network situation in your"
+" country or region)."
+msgstr ""
+"Pokud je tento proces příliš pomalý, nastavte adresu klíčového serveru "
+"správně v konfiguračním souboru gnupg (v závislosti na situaci v síti ve "
+"vaší zemi nebo regionu)."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:261
+msgid "could not read properly from configure file"
+msgstr "nemohl správně číst z konfiguračního souboru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:56
+msgid "Import from keyserver"
+msgstr "Import z keyserveru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:61
+msgid "Key not present with id 0x"
+msgstr "Klíč není přítomen s ID 0x"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:65
+msgid ":"
+msgstr ":"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:67
+msgid "Key not present in key list"
+msgstr "Klíč není uveden v seznamu klíčů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:75
+msgid "A Signature"
+msgstr "Podpis"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:80
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:96
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:112
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:130
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:146
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:161
+msgid "Key Information is NOT Available"
+msgstr "Klíčové informace NENÍ k dispozici"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:91
+msgid "Cert Revoked"
+msgstr "Certifikát odvolán"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:107
+msgid "Signature Expired"
+msgstr "Platnost podpisu vypršela"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:123
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:125
+msgid "Key Expired"
+msgstr "Platnost klíče vypršela"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:141
+msgid "General Error"
+msgstr "Obecná chyba"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:156
+msgid "Unknown Error "
+msgstr "Neznámá chyba"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:186
+msgid "Signer Name"
+msgstr "Jméno signatáře"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:187
+msgid "Signer Email"
+msgstr "E-mail signatáře"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:188
+msgid "Key's Fingerprint"
+msgstr "Otisk klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:189
+msgid "Valid"
+msgstr "Platný"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:190
+msgid "Flags"
+msgstr "Vlajky"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:197
+msgid "Fully Valid"
+msgstr "Plně platné"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:199
+msgid "NOT Fully Valid"
+msgstr "NENÍ plně PLATNÉ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:205
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:82
+msgid "Good"
+msgstr "Dobrý"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:208
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:85
+msgid "Bad"
+msgstr "Špatný"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:214
+msgid "Missing Key"
+msgstr "Chybějící klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:217
+msgid "Revoked Key"
+msgstr "Odvolaný klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:220
+msgid "Expired Key"
+msgstr "Platnost klíče vypršela"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:223
+msgid "Missing CRL"
+msgstr "Chybí CRL"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:45
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:65
+msgid "Clear"
+msgstr "Průhledná"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:164
+msgid "Save Information Board's Content"
+msgstr "Uložit obsah informační tabule"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:174
+msgid "The file path is not exists, unprivileged or unreachable."
+msgstr "Cesta k souboru neexistuje, není privilegovaná nebo nedostupná."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:39
+msgid "Expires on"
+msgstr "Vyprší dne"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:40
+msgid "Last Update"
+msgstr "Poslední aktualizace"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:41
+msgid "Secret Key Existence"
+msgstr "Existence tajného klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:85
+msgid "Refresh"
+msgstr "Obnovit"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:87
+msgid "Refresh the key list to synchronize changes."
+msgstr "Chcete-li synchronizovat změny, obnovte seznam klíčů."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:88
+msgid "Sync Public Key"
+msgstr "Synchronizovat veřejný klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:90
+msgid "Sync public key with your default keyserver."
+msgstr "Synchronizujte veřejný klíč s výchozím serverem klíčů."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:91
+msgid "Uncheck ALL"
+msgstr "Zrušte zaškrtnutí VŠECHNY"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:93
+msgid "Cancel all checked items in the current tab at once."
+msgstr "Zrušit všechny zaškrtnuté položky na aktuální kartě najednou."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:94
+msgid "Check ALL"
+msgstr "Zkontrolovat vše"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:96
+msgid "Check all items in the current tab at once"
+msgstr "Zkontrolujte všechny položky na aktuální kartě najednou"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:150
+msgid "Type"
+msgstr "Typ"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:151
+msgid "Validity"
+msgstr "Platnost"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:151
+msgid "Finger Print"
+msgstr "Otisk prstu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:166
+msgid "Refreshing Key List..."
+msgstr "Obnovování seznamu klíčů..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:305
+msgid "Import Keys"
+msgstr "Importovat klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:308
+msgid "You've dropped something on the table."
+msgstr "Něco jsi upustil na stůl."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:309
+msgid "GpgFrontend will now try to import key(s)."
+msgstr "GpgFrontend se nyní pokusí importovat klíč(y)."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:314
+msgid "Always import without bothering."
+msgstr "Vždy importujte bez obtěžování."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:429
+msgid "Key List Refreshed."
+msgstr "Seznam klíčů byl aktualizován."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:449
+msgid "Syncing Key List..."
+msgstr "Synchronizace seznamu klíčů..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:457
+msgid "Sync [%1%/%2%] %3% %4%"
+msgstr "Synchronizovat [%1%/%2%] %3% %4%"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:465
+msgid "Key List Sync Done."
+msgstr "Synchronizace seznamu klíčů dokončena."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:61
+msgid "0 character"
+msgstr "0 znaků"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:62
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:106
+msgid "lf"
+msgstr "lf"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
+msgid "utf-8"
+msgstr "utf-8"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:70
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:257
+msgid "%1% character(s)"
+msgstr "%1% znaků"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:79
+msgid "Loading..."
+msgstr "Načítání..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:107
+msgid "UTF-8"
+msgstr "UTF-8"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:237
+msgid "%1% byte(s)"
+msgstr "%1 % bajtů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:281
+msgid "binary"
+msgstr "binární"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:60
+msgid "untitled"
+msgstr "nepojmenovaná"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:111
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:193
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:420
+msgid ""
+"Cannot read file %1%:\n"
+"%2%."
+msgstr ""
+"Nelze přečíst soubor %1%:\n"
+"%2 %."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:122
+msgid "Open file"
+msgstr "Otevřít soubor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:156
+msgid "Save"
+msgstr "Uložit"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:158
+msgid ""
+"After saving, the encoding of the current file will be converted to UTF-8 "
+"and the line endings will be changed to LF. "
+msgstr ""
+"Po uložení bude kódování aktuálního souboru převedeno na UTF-8 a konce řádků"
+" budou změněny na LF."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:162
+msgid "If this is not the result you expect, please use \"save as\"."
+msgstr ""
+"Pokud toto není výsledek, který očekáváte, použijte prosím \"uložit jako\"."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:214
+msgid "Save file"
+msgstr "Uložení souboru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:276
+msgid "Unsaved document"
+msgstr "Neuložený dokument"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:277
+msgid "The document \"%1\" has been modified. Do you want to save your changes?"
+msgstr "Dokument \"%1\" byl změněn. Chcete uložit změny?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:280
+msgid "Note:"
+msgstr "Poznámka:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:217
+msgid "The path is not exists, unprivileged or unreachable."
+msgstr "Cesta neexistuje, není privilegovaná nebo nedostupná."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:228
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:359
+msgid "Rename"
+msgstr "Přejmenovat"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:231
+msgid "Delete"
+msgstr "Vymazat"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:235
+msgid "Calculate Hash"
+msgstr "Vypočítejte hash"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:239
+msgid "Directory"
+msgstr "Adresář"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:247
+msgid "Compress..."
+msgstr "Komprimovat..."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:267
+msgid "Show Hidden File"
+msgstr "Zobrazit skrytý soubor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:279
+msgid "Show System File"
+msgstr "Zobrazit systémový soubor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:336
+msgid "The directory is unprivileged or unreachable."
+msgstr "Adresář je nepřivilegovaný nebo nedostupný."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:347
+msgid "The file is unprivileged or unreachable."
+msgstr "Soubor je neprivilegovaný nebo nedostupný."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:359
+msgid "New Filename"
+msgstr "Nový název souboru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:375
+msgid "Unable to rename the file or folder."
+msgstr "Soubor nebo složku nelze přejmenovat."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:385
+msgid "Are you sure you want to delete it?"
+msgstr "Opravdu jej chcete smazat?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:394
+msgid "Unable to delete the file or folder."
+msgstr "Soubor nebo složku nelze odstranit."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:409
+msgid "Make New Directory"
+msgstr "Vytvořit nový adresář"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:409
+msgid "Directory Name"
+msgstr "Název adresáře"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:426
+msgid "Create Empty File"
+msgstr "Vytvořit prázdný soubor"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:427
+msgid "Filename (you can given extension)"
+msgstr "Název souboru (můžete zadat příponu)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:437
+msgid "Unable to create the file."
+msgstr "Soubor nelze vytvořit."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:58
+msgid "Show Verify Details"
+msgstr "Zobrazit podrobnosti ověření"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:67
+msgid "Public key not found locally"
+msgstr "Veřejný klíč nebyl místně nalezen"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:68
+msgid ""
+"There is no target public key content in local for GpgFrontend to gather "
+"enough information about this Signature. Do you want to import the public "
+"key from Keyserver now?"
+msgstr ""
+"Pro GpgFrontend neexistuje žádný cílový obsah veřejného klíče v místním "
+"prostředí, aby bylo možné získat dostatek informací o tomto podpisu. Chcete "
+"nyní importovat veřejný klíč z Keyserveru?"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:176
+msgid "ENV Loading Failed"
+msgstr "Načítání ENV se nezdařilo"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:177
+msgid ""
+"Gnupg(gpg) is not installed correctly, please follow <a "
+"href='https://www.gpgfrontend.pub/#/faq?id=how-to-deal-with-39env-loading-"
+"failed39'>this notes</a> in FAQ to install Gnupg and then open GpgFrontend."
+msgstr ""
+"Gnupg(gpg) není správně nainstalováno, postupujte podle <a "
+"href='https://www.gpgfrontend.pub/#/faq?id=how-to-deal-with-39env-loading-"
+"failed39'>těchto poznámek< /a> v FAQ nainstalujte Gnupg a poté otevřete "
+"GpgFrontend."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:196
+msgid "Open Key"
+msgstr "Otevřít klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:197
+msgid "Keyring files"
+msgstr "Soubory klíčenky"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:202
+msgid "File Open Failed"
+msgstr "Otevření souboru se nezdařilo"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:203
+msgid "Failed to open file: "
+msgstr "Nepodařilo se otevřít soubor:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:257
+msgid "Processing"
+msgstr "zpracovává se"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:277
+msgid "Failed to execute command."
+msgstr "Nepodařilo se provést příkaz."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:285
+msgid "Succeed in executing command."
+msgstr "Úspěch při provádění příkazu."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:288
+msgid "Finished executing command."
+msgstr "Dokončeno provádění příkazu."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:388
+msgid "The key has been updated"
+msgstr "Klíč byl aktualizován"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:390
+msgid "No need to update the key"
+msgstr "Není třeba aktualizovat klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:422
+msgid "Password Input Dialog"
+msgstr "Dialogové okno pro zadání hesla"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:425
+msgid "Please Input The Password"
+msgstr "Zadejte prosím heslo"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendApplication.cpp:78
+msgid "Standard Exception Thrown"
+msgstr "Vyhozena standardní výjimka"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendApplication.cpp:79
+msgid ""
+"Oops, an standard exception was thrown during the running of the program. "
+"This is not a serious problem, it may be the negligence of the programmer, "
+"please report this problem if you can."
+msgstr ""
+"Jejda, během běhu programu byla vyvolána standardní výjimka. Nejedná se o "
+"vážný problém, může jít o nedbalost programátora, pokud můžete, nahlaste "
+"tento problém."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendApplication.cpp:87
+msgid "Unhandled Exception Thrown"
+msgstr "Neošetřená výjimka byla vyvolána"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendApplication.cpp:88
+msgid ""
+"Oops, an unhandled exception was thrown during the running of the program. "
+"This is not a serious problem, it may be the negligence of the programmer, "
+"please report this problem if you can."
+msgstr ""
+"Jejda, během běhu programu byla vyvolána neošetřená výjimka. Nejedná se o "
+"vážný problém, může jít o nedbalost programátora, pokud můžete, nahlaste "
+"tento problém."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/GpgContext.cpp:373
+msgid "Embedded In"
+msgstr "Embedded In"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:38
+msgid "Decrypt Operation"
+msgstr "Operace dešifrování"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:48
+msgid "Unsupported Algo"
+msgstr "Nepodporované Algo"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:56
+msgid "File Name"
+msgstr "Název souboru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
+msgid "MIME"
+msgstr "MIM"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:64
+msgid "Recipient(s)"
+msgstr "Příjemci"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:80
+msgid "Recipient"
+msgstr "Příjemce"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:88
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:183
+msgid "Unknown"
+msgstr "Neznámý"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:95
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:80
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:191
+msgid "Public Key Algo"
+msgstr "Veřejný klíč Algo"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:40
+msgid "Sign Operation"
+msgstr "Operace znamení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:61
+msgid "Sign Mode"
+msgstr "Režim znamení"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:63
+msgid "Normal"
+msgstr "Normální"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:67
+msgid "Detach"
+msgstr "Odpojit"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:74
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:77
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:104
+msgid "Signer"
+msgstr "Signatář"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:82
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:194
+msgid "Hash Algo"
+msgstr "Hash Algo"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:84
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:197
+msgid "Date"
+msgstr "datum"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:84
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:58
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:197
+msgid "UTC"
+msgstr "UTC"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:100
+msgid "Invalid Signers"
+msgstr "Neplatní signatáři"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:107
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:55
+msgid "Reason"
+msgstr "Důvod"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:38
+msgid "Encrypt Operation"
+msgstr "Šifrovací operace"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:51
+msgid "Invalid Recipients"
+msgstr "Neplatní příjemci"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:44
+msgid "Verify Operation"
+msgstr "Ověřte provoz"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:58
+msgid "Signed On"
+msgstr "Podepsáno"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:64
+msgid "Signatures List"
+msgstr "Seznam podpisů"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:70
+msgid "Signature [%1%]:"
+msgstr "Podpis [%1%]:"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:73
+msgid "A Bad Signature."
+msgstr "Špatný podpis."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:75
+msgid "This Signature is invalid."
+msgstr "Tento podpis je neplatný."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:80
+msgid "A"
+msgstr "A"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:91
+msgid "Missing Key's"
+msgstr "Chybí klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:94
+msgid "Revoked Key's"
+msgstr "Odvolaný klíč"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:97
+msgid "Expired Key's"
+msgstr "Prošlé klíče"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:100
+msgid "Missing CRL's"
+msgstr "Chybí CRL"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:104
+msgid "Signature Fully Valid."
+msgstr "Podpis plně platný."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:106
+msgid "Signature Not Fully Valid."
+msgstr "Podpis není plně platný."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:107
+msgid "(May used a subkey to sign)"
+msgstr "(May k podpisu použil podklíč)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:113
+msgid "Key is NOT present with ID 0x"
+msgstr "Klíč NENÍ přítomen s ID 0x"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:121
+msgid "A signature could NOT be verified due to a Missing Key"
+msgstr "Podpis NELZE ověřit kvůli chybějícímu klíči"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:126
+msgid ""
+"A signature is valid but the key used to verify the signature has been "
+"revoked"
+msgstr "Podpis je platný, ale klíč použitý k ověření podpisu byl odvolán"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:135
+msgid "A signature is valid but expired"
+msgstr "Podpis je platný, ale jeho platnost vypršela"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:142
+msgid ""
+"A signature is valid but the key used to verify the signature has expired."
+msgstr ""
+"Podpis je platný, ale platnost klíče použitého k ověření podpisu vypršela."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:150
+msgid "There was some other error which prevented the signature verification."
+msgstr "Došlo k jiné chybě, která bránila ověření podpisu."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:158
+msgid "Error for key with fingerprint"
+msgstr "Chyba klíče s otiskem prstu"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:169
+msgid "Could not find information that can be used for verification."
+msgstr "Nepodařilo se najít informace, které lze použít k ověření."
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:182
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:187
+msgid "Signed By"
+msgstr "Podepsán"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:82
+msgid "File Hash Information"
+msgstr "Informace o hash souboru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:83
+msgid "filename"
+msgstr "název souboru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:90
+msgid "file size(bytes)"
+msgstr "velikost souboru (bajty)"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:120
+msgid "Error in Calculating File Hash "
+msgstr "Chyba při výpočtu hash souboru"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/main.cpp:148
+msgid "A serious error has occurred"
+msgstr "Došlo k závažné chybě"
+
+#: /home/eric/develop/cpp/GpgFrontend/src/main.cpp:149
+msgid ""
+"Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
+" restarted. If the problem recurs, please manually terminate the program and"
+" report the problem to the developer."
+msgstr ""
+"Ach ne! GpgFrontend zachytil vážnou chybu v softwaru, takže je třeba jej "
+"restartovat. Pokud se problém opakuje, ukončete program ručně a nahlaste "
+"problém vývojáři."
+
+#~ msgid "and GPGME"
+#~ msgstr "a GPGME"
+
+#~ msgid "Path"
+#~ msgstr "Cesta"
+
+#~ msgid "Generate"
+#~ msgstr "generovat"
+
+#~ msgid "Generate A New Keypair or Subkey"
+#~ msgstr "Vygenerujte nový klíčový pár nebo podklíč"
+
+#~ msgid "Source: "
+#~ msgstr "Zdroj:"
+
+#~ msgid "Description: "
+#~ msgstr "Popis:"
+
+#~ msgid "Predict"
+#~ msgstr "Předpovědět"
+
+#~ msgid "Called"
+#~ msgstr "Volala"
+
+#~ msgid "log file path"
+#~ msgstr "cesta k souboru protokolu"
+
+#~ msgid "Setting Operation Error"
+#~ msgstr "Chyba operace nastavení"
+
+#~ msgid "use_custom_key_database_path"
+#~ msgstr "use_custom_key_database_path"
+
+#~ msgid "custom_key_database_path"
+#~ msgstr "custom_key_database_path"
+
+#~ msgid "operator not support"
+#~ msgstr "operátor nepodporuje"
+
+#~ msgid "Updated ui configuration successfully written to"
+#~ msgstr ""
+#~ "Aktualizovaná konfigurace uživatelského rozhraní byla úspěšně zapsána do"
+
+#~ msgid "I/O error while writing ui configuration file"
+#~ msgstr "Chyba I/O při zápisu konfiguračního souboru uživatelského rozhraní"
+
+#~ msgid "App Path"
+#~ msgstr "Cesta aplikace"
+
+#~ msgid "App Configure Path"
+#~ msgstr "App Configure Path"
+
+#~ msgid "App Data Path"
+#~ msgstr "Cesta dat aplikace"
+
+#~ msgid "App Log Path"
+#~ msgstr "Cesta protokolu aplikace"
+
+#~ msgid "App Locale Path"
+#~ msgstr "Cesta k místnímu nastavení aplikace"
+
+#~ msgid "App Conf Path"
+#~ msgstr "Cesta konfigurace aplikace"
+
+#~ msgid "UserInterface configuration successfully written to"
+#~ msgstr "Konfigurace uživatelského rozhraní byla úspěšně zapsána"
+
+#~ msgid "I/O error while writing UserInterface configuration file"
+#~ msgstr "Chyba I/O při zápisu konfiguračního souboru uživatelského rozhraní"
+
+#~ msgid "UserInterface configuration successfully read from"
+#~ msgstr "Konfigurace uživatelského rozhraní byla úspěšně načtena z"
+
+#~ msgid "I/O error while reading UserInterface configure file"
+#~ msgstr "Chyba I/O při čtení konfiguračního souboru uživatelského rozhraní"
+
+#~ msgid "Parse error at "
+#~ msgstr "Chyba analýzy v"
+
+#~ msgid "started"
+#~ msgstr "začala"
+
+#~ msgid "Start Sign Result Analyse"
+#~ msgstr "Spusťte analýzu výsledků znamení"
+
+#~ msgid "Sign Result Analyse Getting Result"
+#~ msgstr "Podepsat Výsledek Analyzovat Získání výsledku"
+
+#~ msgid "Signers Fingerprint"
+#~ msgstr "Podepisující otisk prstu"
+
+#~ msgid "Sign Result Analyse Getting Invalid Signer"
+#~ msgstr "Podepsat Výsledek Analyzovat Získání neplatného podepisujícího"
+
+#~ msgid "Start Encrypt Result Analyse"
+#~ msgstr "Spusťte analýzu výsledků šifrování"
+
+#~ msgid "Failed to read app secure key file"
+#~ msgstr "Soubor zabezpečeného klíče aplikace se nepodařilo přečíst"
+
+#~ msgid "Saving data object"
+#~ msgstr "Ukládání datového objektu"
+
+#~ msgid "Get data object"
+#~ msgstr "Získat datový objekt"
+
+#~ msgid "Data object not found"
+#~ msgstr "Datový objekt nebyl nalezen"
+
+#~ msgid "Failed to read data object"
+#~ msgstr "Nepodařilo se přečíst datový objekt"
+
+#~ msgid "Data object found"
+#~ msgstr "Datový objekt nalezen"
+
+#~ msgid "Decrypting data object"
+#~ msgstr "Dešifrování datového objektu"
+
+#~ msgid "Data object decoded"
+#~ msgstr "Datový objekt dekódován"
+
+#~ msgid "Failed to get data object"
+#~ msgstr "Nepodařilo se získat datový objekt"
+
+#~ msgid "stegano_checked"
+#~ msgstr "stegano_checked"
+
+#~ msgid "auto_pubkey_exchange_checked"
+#~ msgstr "auto_pubkey_exchange_checked"
+
+#~ msgid "proxy_host"
+#~ msgstr "proxy_host"
+
+#~ msgid "username"
+#~ msgstr "uživatelské jméno"
+
+#~ msgid "password"
+#~ msgstr "Heslo"
+
+#~ msgid "port"
+#~ msgstr "přístav"
+
+#~ msgid "proxy_type"
+#~ msgstr "proxy_type"
+
+#~ msgid "proxy_enable"
+#~ msgstr "proxy_enable"
+
+#~ msgid "forbid_all_connection"
+#~ msgstr "zakázat_vše_připojení"
+
+#~ msgid "prohibit_update_checking"
+#~ msgstr "prohibit_update_checking"
+
+#~ msgid "Save Checked Keys"
+#~ msgstr "Uložit zaškrtnuté klíče"
+
+#~ msgid "Unlock key expiration date setting up to 30 years."
+#~ msgstr "Nastavení data vypršení platnosti klíče odemknutí až na 30 let."
+
+#~ msgid "Confirm drag'n'drop key import"
+#~ msgstr "Potvrďte import klíče drag'n'drop"
+
+#~ msgid "ASCII encoding is not used when file encrypting and signing."
+#~ msgstr "Při šifrování a podepisování souborů se nepoužívá kódování ASCII."
+
+#~ msgid "save_key_checked"
+#~ msgstr "save_key_checked"
+
+#~ msgid "longer_expiration_date"
+#~ msgstr "delší_datum_vypršení platnosti"
+
+#~ msgid "lang"
+#~ msgstr "lang"
+
+#~ msgid "confirm_import_keys"
+#~ msgstr "potvrdit_import_klíčů"
+
+#~ msgid "non_ascii_when_export"
+#~ msgstr "non_ascii_when_export"
+
+#~ msgid "try to get latest version"
+#~ msgstr "zkuste získat nejnovější verzi"
+
+#~ msgid "called"
+#~ msgstr "volala"
+
+#~ msgid "Set target Key Server to default Key Server"
+#~ msgstr "Nastavte cílový server klíčů na výchozí server klíčů"
+
+#~ msgid "Couldn't Open File"
+#~ msgstr "Soubor nelze otevřít"
+
+#~ msgid "settings restored"
+#~ msgstr "nastavení obnoveno"
+
+#~ msgid "GpgME Version"
+#~ msgstr "Verze GpgME"
+
+#~ msgid "PATHs"
+#~ msgstr "CESTY"
+
+#~ msgid "GpgConf"
+#~ msgstr "GpgConf"
+
+#~ msgid "CMS"
+#~ msgstr "CMS"
+
+#~ msgid "About Software"
+#~ msgstr "O softwaru"
+
+#~ msgid "exportKeyPackageDialog"
+#~ msgstr "exportKeyPackageDialog"
+
+#~ msgid "Current Row"
+#~ msgstr "Aktuální řádek"
+
+#~ msgid "Public key Not Found"
+#~ msgstr "Veřejný klíč nenalezen"
+
+#~ msgid "icon_size"
+#~ msgstr "ikona_velikost"
+
+#~ msgid "icon_style"
+#~ msgstr "icon_style"
+
+#~ msgid "Failed to read root certificate file"
+#~ msgstr "Nepodařilo se přečíst soubor kořenového certifikátu"
+
+#~ msgid "Send Encrypted Mail"
+#~ msgstr "Odeslat šifrovanou poštu"
+
+#~ msgid "Function Disabled"
+#~ msgstr "Funkce zakázána"
+
+#~ msgid ""
+#~ "Please go to the settings interface to enable and configure this function."
+#~ msgstr ""
+#~ "Chcete-li tuto funkci povolit a nakonfigurovat, přejděte do rozhraní "
+#~ "nastavení."
+
+#~ msgid "Select Recipient(s)"
+#~ msgstr "Vyberte příjemce"
+
+#~ msgid "We use the public key provided by the recipient to encrypt the text."
+#~ msgstr "K šifrování textu používáme veřejný klíč poskytnutý příjemcem."
+
+#~ msgid ""
+#~ "If you want to send to multiple recipients at the same time, you can select "
+#~ "multiple keys."
+#~ msgstr ""
+#~ "Pokud chcete odeslat více příjemcům současně, můžete vybrat více klíčů."
+
+#~ msgid "Email List:"
+#~ msgstr "Seznam e-mailů:"
+
+#~ msgid ""
+#~ "Tips: You can double-click the email address in the edit list, or click the "
+#~ "email to pop up the option menu."
+#~ msgstr ""
+#~ "Tipy: Můžete poklepat na e-mailovou adresu v seznamu úprav nebo kliknutím na"
+#~ " e-mail otevřít nabídku možností."
+
+#~ msgid "Add An Email Address"
+#~ msgstr "Přidejte e-mailovou adresu"
+
+#~ msgid "Email List Editor"
+#~ msgstr "Editor seznamu e-mailů"
+
+#~ msgid "Sender"
+#~ msgstr "Odesílatel"
+
+#~ msgid "Select Sender"
+#~ msgstr "Vyberte Odesílatel"
+
+#~ msgid "As the sender of the mail, the private key is generally used."
+#~ msgstr "Jako odesílatel pošty se obecně používá soukromý klíč."
+
+#~ msgid ""
+#~ " The private key is generally used as a signature for the content of the "
+#~ "mail."
+#~ msgstr " Soukromý klíč se obecně používá jako podpis pro obsah pošty."
+
+#~ msgid ""
+#~ "The SMTP address is empty, please go to the setting interface to complete "
+#~ "the configuration."
+#~ msgstr ""
+#~ "Adresa SMTP je prázdná, přejděte prosím do rozhraní nastavení a dokončete "
+#~ "konfiguraci."
+
+#~ msgid "CC"
+#~ msgstr "CC"
+
+#~ msgid "BCC"
+#~ msgstr "BCC"
+
+#~ msgid "Mail Subject"
+#~ msgstr "Předmět pošty"
+
+#~ msgid ""
+#~ "Tips: You can fill in multiple email addresses, please separate them with "
+#~ "\";\"."
+#~ msgstr ""
+#~ "Tipy: Můžete vyplnit více e-mailových adres, oddělte je prosím znakem „;“."
+
+#~ msgid "Send Message"
+#~ msgstr "Poslat zprávu"
+
+#~ msgid "Select Sender GPG Key"
+#~ msgstr "Vyberte klíč GPG odesílatele"
+
+#~ msgid "Select Recipient(s) GPG Key"
+#~ msgstr "Vyberte klíč GPG pro příjemce"
+
+#~ msgid "GPG Operations"
+#~ msgstr "Operace GPG"
+
+#~ msgid "Attach signature"
+#~ msgstr "Připojte podpis"
+
+#~ msgid "Attach sender's public key"
+#~ msgstr "Připojte veřejný klíč odesílatele"
+
+#~ msgid "Encrypt content"
+#~ msgstr "Šifrovat obsah"
+
+#~ msgid "Edit Recipients(s)"
+#~ msgstr "Upravit příjemce"
+
+#~ msgid "Edit CC(s)"
+#~ msgstr "Upravit kopie"
+
+#~ msgid "Edit BCC(s)"
+#~ msgstr "Upravit BCC"
+
+#~ msgid "Sender GPG Key: "
+#~ msgstr "GPG klíč odesílatele:"
+
+#~ msgid "Recipient(s) GPG Key: "
+#~ msgstr "Klíč GPG příjemce:"
+
+#~ msgid "New Message"
+#~ msgstr "Nová zpráva"
+
+#~ msgid "Recipient cannot be empty"
+#~ msgstr "Příjemce nemůže být prázdný"
+
+#~ msgid "One or more recipient's email is invalid"
+#~ msgstr "Jeden nebo více e-mailů příjemce je neplatný"
+
+#~ msgid "Sender cannot be empty"
+#~ msgstr "Odesílatel nemůže být prázdný"
+
+#~ msgid "Sender's email is invalid"
+#~ msgstr "E-mail odesílatele je neplatný"
+
+#~ msgid "Subject cannot be empty"
+#~ msgstr "Předmět nemůže být prázdný"
+
+#~ msgid "One or more cc email is invalid"
+#~ msgstr "Jeden nebo více e-mailů s kopií je neplatných"
+
+#~ msgid "One or more bcc email is invalid"
+#~ msgstr "Jeden nebo více e-mailů se skrytou kopií je neplatných"
+
+#~ msgid ""
+#~ "You have checked the encrypted email content, but you have not selected the "
+#~ "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
+#~ "So the send operation is forbidden"
+#~ msgstr ""
+#~ "Zkontrolovali jste obsah zašifrovaného e-mailu, ale nevybrali jste GPG klíč "
+#~ "příjemce. To je nebezpečné a pošta nebude zašifrována. Operace odeslání je "
+#~ "tedy zakázána"
+
+#~ msgid ""
+#~ "You checked the option to attach signature to the email, but did not specify"
+#~ " the sender's GPG Key. This will cause the content of the email to be "
+#~ "inconsistent with your expectations, so the operation is prohibited."
+#~ msgstr ""
+#~ "Zaškrtli jste možnost připojit k e-mailu podpis, ale neuvedli jste GPG klíč "
+#~ "odesílatele. To způsobí, že obsah e-mailu nebude v souladu s vašimi "
+#~ "očekáváními, takže operace je zakázána."
+
+#~ msgid ""
+#~ "You checked the option to attach your public key to the email, but did not "
+#~ "specify the sender's GPG Key. This will cause the content of the email to be"
+#~ " inconsistent with your expectations, so the operation is prohibited."
+#~ msgstr ""
+#~ "Zaškrtli jste možnost připojit svůj veřejný klíč k e-mailu, ale neuvedli "
+#~ "jste GPG klíč odesílatele. To způsobí, že obsah e-mailu nebude v souladu s "
+#~ "vašimi očekáváními, takže operace je zakázána."
+
+#~ msgid "Sending Email..."
+#~ msgstr "Odesílání e-mailu..."
+
+#~ msgid ""
+#~ "If the process does not end for a long time, please check again whether your"
+#~ " SMTP server configuration is correct."
+#~ msgstr ""
+#~ "Pokud proces po dlouhou dobu neskončí, zkontrolujte prosím znovu, zda je "
+#~ "konfigurace vašeho SMTP serveru správná."
+
+#~ msgid "identity_enable"
+#~ msgstr "identity_enable"
+
+#~ msgid "mail_address"
+#~ msgstr "emailová adresa"
+
+#~ msgid "connection_type"
+#~ msgstr "typ připojení"
+
+#~ msgid "default_sender"
+#~ msgstr "výchozí_odesílatel"
+
+#~ msgid "default_sender_gpg_key_id"
+#~ msgstr "default_sender_gpg_key_id"
+
+#~ msgid "Fail"
+#~ msgstr "Selhat"
+
+#~ msgid "Fail to Connect SMTP Server."
+#~ msgstr "Připojení k serveru SMTP se nezdařilo."
+
+#~ msgid "Fail to Login."
+#~ msgstr "Selhání přihlášení."
+
+#~ msgid "Succeed in connecting and login"
+#~ msgstr "Úspěšné připojení a přihlášení"
+
+#~ msgid "Succeed in sending the message to the SMTP Server"
+#~ msgstr "Úspěšné odeslání zprávy na server SMTP"
+
+#~ msgid "Encryption Error"
+#~ msgstr "Chyba šifrování"
+
+#~ msgid ""
+#~ "An error occurred while encrypting the content of the email. This may be "
+#~ "because you did not complete some operations during Gnupg encryption."
+#~ msgstr ""
+#~ "Při šifrování obsahu e-mailu došlo k chybě. Může to být způsobeno tím, že "
+#~ "jste během šifrování Gnupg nedokončili některé operace."
+
+#~ msgid "Unknown error."
+#~ msgstr "Neznámá chyba."
+
+#~ msgid "server_list"
+#~ msgstr "seznam_serverů"
+
+#~ msgid "default_server"
+#~ msgstr "výchozí_server"
+
+#~ msgid "Automatic Key Exchange Warning"
+#~ msgstr "Upozornění na automatickou výměnu klíčů"
+
+#~ msgid ""
+#~ "Part of the automatic key exchange failed, which may be related to your key."
+#~ msgstr ""
+#~ "Část automatické výměny klíče selhala, což může souviset s vaším klíčem."
+
+#~ msgid ""
+#~ "If possible, try to use the RSA algorithm compatible with the server for "
+#~ "signing."
+#~ msgstr ""
+#~ "Pokud je to možné, zkuste pro podepisování použít algoritmus RSA "
+#~ "kompatibilní se serverem."
+
+#~ msgid "Service Token Empty"
+#~ msgstr "Token služby je prázdný"
+
+#~ msgid ""
+#~ "Please go to the settings interface to set Own Key and get Service Token."
+#~ msgstr ""
+#~ "Přejděte do rozhraní nastavení a nastavte vlastní klíč a získejte servisní "
+#~ "token."
+
+#~ msgid "Message Inbox"
+#~ msgstr "Doručená pošta"
+
+#~ msgid "None"
+#~ msgstr "Žádný"
+
+#~ msgid "ASCII(7 bits)"
+#~ msgstr "ASCII (7 bitů)"
+
+#~ msgid "ASCII(8 bits)"
+#~ msgstr "ASCII (8 bitů)"
+
+#~ msgid "UTF-16"
+#~ msgstr "UTF-16"
+
+#~ msgid "UTF-16(BE)"
+#~ msgstr "UTF-16 (BE)"
+
+#~ msgid "Send Mail"
+#~ msgstr "Poslat mail"
+
+#~ msgid "Advanced"
+#~ msgstr "Pokročilý"
+
+#~ msgid "Identity Information"
+#~ msgstr "Informace o identitě"
+
+#~ msgid "Enable Send Mail Ability"
+#~ msgstr "Povolit možnost odesílání pošty"
+
+#~ msgid "Need Auth"
+#~ msgstr "Potřebujete Auth"
+
+#~ msgid "SMTP Server Address"
+#~ msgstr "Adresa serveru SMTP"
+
+#~ msgid "SMTP Server Port"
+#~ msgstr "Port serveru SMTP"
+
+#~ msgid "SMTP Connection Security"
+#~ msgstr "Zabezpečení připojení SMTP"
+
+#~ msgid "Default Sender Email"
+#~ msgstr "Výchozí e-mail odesílatele"
+
+#~ msgid "Check Connection"
+#~ msgstr "Zkontrolujte připojení"
+
+#~ msgid "Send Test Email"
+#~ msgstr "Odeslat zkušební e-mail"
+
+#~ msgid "Default Sender GPG Key ID"
+#~ msgstr "Výchozí ID klíče GPG odesílatele"
+
+#~ msgid ""
+#~ "Tips: It is recommended that you build your own mail server or use a trusted"
+#~ " mail server. If you don't know the detailed configuration information, you "
+#~ "can get it from the mail service provider."
+#~ msgstr ""
+#~ "Tipy: Doporučuje se vytvořit si vlastní poštovní server nebo používat "
+#~ "důvěryhodný poštovní server. Pokud neznáte podrobné informace o konfiguraci,"
+#~ " můžete je získat od poskytovatele poštovních služeb."
+
+#~ msgid "apply settings failed"
+#~ msgstr "použití nastavení se nezdařilo"
+
+#~ msgid "Test SMTP Connection..."
+#~ msgstr "Test připojení SMTP..."
+
+#~ msgid "Test SMTP Send Mail Ability..."
+#~ msgstr "Testovat schopnost odesílání pošty SMTP..."
+
+#~ msgid "Test Email from GpgFrontend"
+#~ msgstr "Testovací e-mail od GpgFrontend"
+
+#~ msgid ""
+#~ "Hello, this is a test email from GpgFrontend. If you receive this email, it "
+#~ "means that you have configured the correct SMTP server parameters."
+#~ msgstr ""
+#~ "Dobrý den, toto je testovací e-mail od GpgFrontend. Pokud obdržíte tento "
+#~ "e-mail, znamená to, že jste nakonfigurovali správné parametry serveru SMTP."
+
+#~ msgid "Succeed in sending a test email to the SMTP Server"
+#~ msgstr "Úspěšně odeslat testovací e-mail na server SMTP"
+
+#~ msgid "root certs loaded"
+#~ msgstr "kořenové certifikáty načteny"
+
+#~ msgid "Nothing Reply. Please check the Internet connection."
+#~ msgstr "Nic Odpovědět. Zkontrolujte prosím připojení k internetu."
+
+#~ msgid "Unknown Error"
+#~ msgstr "Neznámá chyba"
+
+#~ msgid "Network Error"
+#~ msgstr "Chyba sítě"
+
+#~ msgid "Outdated Reply"
+#~ msgstr "Zastaralá odpověď"
+
+#~ msgid "Unknown Reason"
+#~ msgstr "Neznámý důvod"
+
+#~ msgid "Unknown Reply Format"
+#~ msgstr "Neznámý formát odpovědi"
+
+#~ msgid ""
+#~ "The communication content with the server does not meet the requirements"
+#~ msgstr "Obsah komunikace se serverem nesplňuje požadavky"
+
+#~ msgid "(.gpg .asc)"
+#~ msgstr "(.gpg .asc)"
+
+#~ msgid "(.sig .gpg .asc)"
+#~ msgstr "(.sig .gpg .asc)"
+
+#~ msgid "Export Key(s) Failed."
+#~ msgstr "Export klíče (klíčů) se nezdařil."
+
+#~ msgid "info_font_size"
+#~ msgstr "info_font_size"
+
+#~ msgid "Invalid Own Key"
+#~ msgstr "Neplatný vlastní klíč"
+
+#~ msgid ""
+#~ "Own Key can not be use to do any operation. Please go to the setting "
+#~ "interface to select an OwnKey and get a ServiceToken."
+#~ msgstr ""
+#~ "Vlastní klíč nelze použít k provedení žádné operace. Přejděte prosím do "
+#~ "rozhraní nastavení, vyberte OwnKey a získejte ServiceToken."
+
+#~ msgid "Please obtain a Service Token from the server in the settings."
+#~ msgstr "Získejte servisní token ze serveru v nastavení."
+
+#~ msgid "Getting Cpt From Server"
+#~ msgstr "Získání Cpt ze serveru"
+
+#~ msgid "Invalid short ciphertext"
+#~ msgstr "Neplatný krátký šifrový text"
+
+#~ msgid "Invalid Service Token"
+#~ msgstr "Neplatný servisní token"
+
+#~ msgid "Please go to the setting interface to get a ServiceToken."
+#~ msgstr "Přejděte do rozhraní nastavení a získejte ServiceToken."
+
+#~ msgid "Own Key can not be use to do any operation."
+#~ msgstr "Vlastní klíč nelze použít k provedení žádné operace."
+
+#~ msgid "Getting Scpt From Server"
+#~ msgstr "Získání Scpt ze serveru"
+
+#~ msgid ""
+#~ "Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
+#~ msgstr ""
+#~ "Upozornění: K dešifrování tohoto krátkého kryptografického textu použijte "
+#~ "operaci Decrypt & Verify."
+
+#~ msgid "There is a problem with the communication with the server"
+#~ msgstr "Vyskytl se problém s komunikací se serverem"
+
+#~ msgid "Select a file before doing it."
+#~ msgstr "Než to uděláte, vyberte soubor."
+
+#~ msgid "No Key Selected"
+#~ msgstr "Není vybrán žádný klíč"
+
+#~ msgid "No data was read from the key package."
+#~ msgstr "Z balíčku klíčů nebyla načtena žádná data."
+
+#~ msgid "Wrong Passphrase"
+#~ msgstr "Nesprávné přístupové heslo"
+
+#~ msgid "Please double check the passphrase you entered is correct."
+#~ msgstr "Zkontrolujte prosím, zda je zadané heslo správné."
+
+#~ msgid "window_save"
+#~ msgstr "okno_uložit"
+
+#~ msgid "Show Steganographic Options."
+#~ msgstr "Zobrazit steganografické možnosti."
+
+#~ msgid "Decrypt File"
+#~ msgstr "Dešifrovat soubor"
+
+#~ msgid "Encrypt File"
+#~ msgstr "Šifrovat soubor"
+
+#~ msgid "Sign File"
+#~ msgstr "Podepsat soubor"
+
+#~ msgid "Verify File"
+#~ msgstr "Ověřit soubor"
+
+#~ msgid "Input Parameters"
+#~ msgstr "Vstupní parametry"
+
+#~ msgid "Target File"
+#~ msgstr "Cílový soubor"
+
+#~ msgid "Signature File(.sig) Path"
+#~ msgstr "Cesta k souboru podpisu (.sig)."
+
+#~ msgid "Error Occurred During Encryption"
+#~ msgstr "Během šifrování došlo k chybě"
+
+#~ msgid "Error Occurred During Decryption"
+#~ msgstr "Během dešifrování došlo k chybě"
+
+#~ msgid "Error Occurred During Signature"
+#~ msgstr "Při podpisu došlo k chybě"
+
+#~ msgid "Key List Menu: "
+#~ msgstr "Nabídka seznamu klíčů:"
+
+#~ msgid "InfoBoard's Actions Menu"
+#~ msgstr "Nabídka akcí InfoBoardu"
+
+#~ msgid "No permission to read target file."
+#~ msgstr "Žádné oprávnění ke čtení cílového souboru."
+
+#~ msgid "No permission to read signature file."
+#~ msgstr "Žádné oprávnění ke čtení souboru podpisu."
+
+#~ msgid "Append Selected Key(s) To Text"
+#~ msgstr "Připojit vybrané klávesy k textu"
+
+#~ msgid "Unreleased Version"
+#~ msgstr "Nevydaná verze"
+
+#~ msgid ""
+#~ "This version(%1) has not been officially released and is not recommended for"
+#~ " use in a production environment. <br/>"
+#~ msgstr ""
+#~ "Tato verze (%1) nebyla oficiálně vydána a nedoporučuje se ji používat v "
+#~ "produkčním prostředí. <br/>"
+
+#~ msgid "Fail to Login into SMTP Server"
+#~ msgstr "Selhání přihlášení k serveru SMTP"
+
+#~ msgid "Fail to Send Mail to SMTP Server"
+#~ msgstr "Selhání odeslání pošty na server SMTP"
+
+#~ msgid "Succeed in Sending Mail to SMTP Server"
+#~ msgstr "Úspěch v odesílání pošty na server SMTP"
+
+#~ msgid "Master Key"
+#~ msgstr "Hlavní klíč"
+
+#~ msgid "GpgFrontend Server"
+#~ msgstr "Server GpgFrontend"
+
+#~ msgid "Server that provides short key and key exchange services"
+#~ msgstr "Server, který poskytuje služby krátkého klíče a výměny klíčů"
+
+#~ msgid "Own key"
+#~ msgstr "Vlastní klíč"
+
+#~ msgid "Get Service Token"
+#~ msgstr "Získejte servisní token"
+
+#~ msgid "No Service Token Found"
+#~ msgstr "Nebyl nalezen žádný servisní token"
+
+#~ msgid "Key pair for synchronization and identity authentication"
+#~ msgstr "Klíčový pár pro synchronizaci a ověření identity"
+
+#~ msgid "Own Key can not be None while getting service token."
+#~ msgstr "Vlastní klíč nemůže být při získávání tokenu služby Žádný."
+
+#~ msgid "Key Not Exists"
+#~ msgstr "Klíč neexistuje"
+
+#~ msgid "Succeed in getting service token"
+#~ msgstr "Úspěch v získání tokenu služby"
+
+#~ msgid "Given a default sender first"
+#~ msgstr "Jako první je uveden výchozí odesílatel"
+
+#~ msgid "Hello, this is a test email from GpgFrontend."
+#~ msgstr "Dobrý den, toto je testovací e-mail od GpgFrontend."
+
+#~ msgid ""
+#~ "Fail to send a test email to the SMTP Server, please recheck your "
+#~ "configuration."
+#~ msgstr ""
+#~ "Nepodařilo se odeslat testovací e-mail na server SMTP, znovu zkontrolujte "
+#~ "konfiguraci."
+
+#~ msgid "Keu ID"
+#~ msgstr "Keu ID"
+
+#~ msgid "Public Algo"
+#~ msgstr "Veřejné Algo"
+
+#~ msgid "Verify Result Analyse Started"
+#~ msgstr "Ověřte, že byla zahájena analýza výsledků"
+
+#~ msgid "Not Signature Found"
+#~ msgstr "Nenalezen podpis"
+
+#~ msgid "Edit Expire Datetime"
+#~ msgstr "Upravit datum vypršení platnosti"
+
+#~ msgid "Selecting Nothing will eventually use default key to sign."
+#~ msgstr ""
+#~ "Pokud vyberete možnost Nic, nakonec se k podpisu použije výchozí klíč."
+
+#~ msgid "Refresh Key From Key Server"
+#~ msgstr "Obnovit klíč ze serveru klíčů"
+
+#~ msgid "Upload Public Key(s) To Server"
+#~ msgstr "Nahrajte veřejný klíč(y) na server"
+
+#~ msgid "Upload The Selected Public Keys To Server"
+#~ msgstr "Nahrajte vybrané veřejné klíče na server"
+
+#~ msgid "Update Key Pair"
+#~ msgstr "Aktualizujte pár klíčů"
+
+#~ msgid "Default Key Server for Import"
+#~ msgstr "Výchozí klíčový server pro import"

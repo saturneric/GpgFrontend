@@ -129,56 +129,36 @@ int main(int argc, char* argv[]) {
   int restart_count = 0;
 
   do {
-    do {
 #ifndef WINDOWS
-      int r = sigsetjmp(recover_env, 1);
+    int r = sigsetjmp(recover_env, 1);
 #else
-      int r = setjmp(recover_env);
+    int r = setjmp(recover_env);
 #endif
-      if (!r) {
-        // init ui library
-        GpgFrontend::UI::InitGpgFrontendUI(app);
+    if (!r) {
+      // init ui library
+      GpgFrontend::UI::InitGpgFrontendUI(app);
 
-        // create main window
-        return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
-      } else {
-        SPDLOG_ERROR("recover from a crash");
-        // when signal is caught, restart the main window
-        auto* message_box = new QMessageBox(
-            QMessageBox::Critical, _("A serious error has occurred"),
-            _("Oh no! GpgFrontend caught a serious error in the software, so "
-              "it needs to be restarted. If the problem recurs, please "
-              "manually terminate the program and report the problem to the "
-              "developer."),
-            QMessageBox::Ok, nullptr);
-        message_box->exec();
-        return_from_event_loop_code = CRASH_CODE;
-      }
-
-      restart_count++;
-
-      SPDLOG_DEBUG(
-          "restart loop refresh, event loop code: {}, restart count: {}",
-          return_from_event_loop_code, restart_count);
-    } while (return_from_event_loop_code == RESTART_CODE && restart_count < 2);
-
-    if (return_from_event_loop_code == DEEP_RESTART_CODE ||
-        return_from_event_loop_code == CRASH_CODE) {
-      // reset core
-      GpgFrontend::ResetGpgFrontendCore();
-      // log for debug
-      SPDLOG_DEBUG("deep restart or cash loop refresh, restart count: {}",
-                   restart_count);
+      // create main window
+      return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
     } else {
-      // log for debug
-      SPDLOG_DEBUG("need to close application, event loop code: {}",
-                   return_from_event_loop_code);
+      SPDLOG_ERROR("recover from a crash");
+      // when signal is caught, restart the main window
+      auto* message_box = new QMessageBox(
+          QMessageBox::Critical, _("A serious error has occurred"),
+          _("Oh no! GpgFrontend caught a serious error in the software, so "
+            "it needs to be restarted. If the problem recurs, please "
+            "manually terminate the program and report the problem to the "
+            "developer."),
+          QMessageBox::Ok, nullptr);
+      message_box->exec();
+      return_from_event_loop_code = CRASH_CODE;
     }
 
-    // deep restart mode
-  } while ((return_from_event_loop_code == DEEP_RESTART_CODE ||
-            return_from_event_loop_code == CRASH_CODE) &&
-           restart_count < 3);
+    restart_count++;
+
+    SPDLOG_DEBUG("restart loop refresh, event loop code: {}, restart count: {}",
+                 return_from_event_loop_code, restart_count);
+  } while (return_from_event_loop_code == RESTART_CODE && restart_count < 3);
 
   // shutdown the logging system for ui
   GpgFrontend::UI::ShutdownUILoggingSystem();
@@ -188,6 +168,15 @@ int main(int argc, char* argv[]) {
 
   // log for debug
   SPDLOG_INFO("GpgFrontend about to exit.");
+
+  // deep restart mode
+  if (return_from_event_loop_code == DEEP_RESTART_CODE ||
+      return_from_event_loop_code == CRASH_CODE) {
+    // log for debug
+    SPDLOG_DEBUG(
+        "deep restart or cash loop status caught, restart a new application");
+    QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
+  };
 
   // exit the program
   return return_from_event_loop_code;
