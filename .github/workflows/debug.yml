@@ -87,18 +87,11 @@ jobs:
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-latest'
 
-      - name: Cache Qt
-        id: cache-qt
-        uses: actions/cache@v3
-        with:
-          path: ../Qt
-          key: ${{ runner.os }}-qt-cache-6
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
-
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
           version: '6.4.2'
+          cache: 'true'
           modules: 'qt5compat'
           cache: ${{ steps.cache-qt.outputs.cache-hit }}
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
