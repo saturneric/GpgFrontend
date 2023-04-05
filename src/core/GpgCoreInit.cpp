@@ -163,6 +163,19 @@ void init_gpgfrontend_core() {
                  custom_gnupg_install_fs_path.u8string());
   }
 
+  // check key database path
+  std::filesystem::path custom_key_database_fs_path = custom_key_database_path;
+  if (!custom_key_database_fs_path.is_absolute() ||
+      !std::filesystem::exists(custom_key_database_fs_path) ||
+      !std::filesystem::is_directory(custom_key_database_fs_path)) {
+    use_custom_key_database_path = false;
+    SPDLOG_ERROR("core loaded custom gpg key database is illegal: {}",
+                 custom_key_database_fs_path.u8string());
+  } else {
+    SPDLOG_DEBUG("core loaded custom gpg key database path: {}",
+                 custom_key_database_fs_path.u8string());
+  }
+
   // init default channel
   auto& default_ctx = GpgFrontend::GpgContext::CreateInstance(
       GPGFRONTEND_DEFAULT_CHANNEL, [=]() -> std::unique_ptr<ChannelObject> {
