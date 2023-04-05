@@ -253,16 +253,9 @@ void MainWindow::create_actions() {
     CommonUtils::GetInstance()->SlotImportKeyFromClipboard(this);
   });
 
-  // get settings
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-  // read settings
-  bool forbid_all_gnupg_connection = false;
-  try {
-    forbid_all_gnupg_connection =
-        settings.lookup("network.forbid_all_gnupg_connection");
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
-  }
+  bool forbid_all_gnupg_connection =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "network.forbid_all_gnupg_connection", false);
 
   import_key_from_key_server_act_ = new QAction(_("Keyserver"), this);
   import_key_from_key_server_act_->setIcon(

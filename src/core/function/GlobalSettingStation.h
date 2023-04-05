@@ -60,7 +60,23 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
    *
    * @return libconfig::Setting&
    */
-  libconfig::Setting &GetUISettings() noexcept { return ui_cfg_.getRoot(); }
+  libconfig::Setting &GetUISettings() noexcept;
+
+  /**
+   * @brief
+   *
+   * @return libconfig::Setting&
+   */
+  template <typename T>
+  T LookupSettings(std::string path, T default_value) noexcept {
+    T value = default_value;
+    try {
+      value = static_cast<T>(GetUISettings().lookup(path));
+    } catch (...) {
+      SPDLOG_WARN("setting not found: {}", path);
+    }
+    return value;
+  }
 
   /**
    * @brief Get the App Dir object

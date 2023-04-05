@@ -33,6 +33,8 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+#include <string>
+
 #include "core/GpgConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/CtxCheckTask.h"
@@ -74,25 +76,26 @@ void InitGpgFrontendUI(QApplication* app) {
   CommonUtils::GetInstance();
 
   // application proxy configure
-
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-  bool proxy_enable = false;
-  try {
-    proxy_enable = settings.lookup("proxy.enable");
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: proxy_enable");
-  }
-  SPDLOG_DEBUG("loading proxy configure, proxy_enable: {}", proxy_enable);
+  bool proxy_enable =
+      GlobalSettingStation::GetInstance().LookupSettings("proxy.enable", false);
 
   // if enable proxy for application
   if (proxy_enable) {
     try {
-      std::string proxy_type = settings.lookup("proxy.proxy_type");
-      std::string proxy_host = settings.lookup("proxy.proxy_host");
-      int proxy_port = settings.lookup("proxy.port");
-      std::string proxy_username = settings.lookup("proxy.username");
-      std::string proxy_password = settings.lookup("proxy.password");
-
+      std::string proxy_type =
+          GlobalSettingStation::GetInstance().LookupSettings("proxy.proxy_type",
+                                                             std::string{});
+      std::string proxy_host =
+          GlobalSettingStation::GetInstance().LookupSettings("proxy.proxy_host",
+                                                             std::string{});
+      int proxy_port =
+          GlobalSettingStation::GetInstance().LookupSettings("proxy.port", 0);
+      std::string proxy_username =
+          GlobalSettingStation::GetInstance().LookupSettings("proxy.username",
+                                                             std::string{});
+      std::string proxy_password =
+          GlobalSettingStation::GetInstance().LookupSettings("proxy.password",
+                                                             std::string{});
       SPDLOG_DEBUG("proxy settings: type {}, host {}, port: {}", proxy_type,
                    proxy_host, proxy_port);
 
