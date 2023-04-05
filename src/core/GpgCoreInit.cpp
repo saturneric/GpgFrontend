@@ -175,8 +175,7 @@ void init_gpgfrontend_core() {
 
         if (use_custom_gnupg_install_path) {
           args.custom_gpgconf = true;
-          args.custom_gpgconf_path =
-              (custom_gnupg_install_fs_path / "gpgconf").u8string();
+          args.custom_gpgconf_path = custom_gnupg_install_fs_path.u8string();
         }
 
         args.offline_mode = forbid_all_gnupg_connection;
@@ -212,7 +211,7 @@ void init_gpgfrontend_core() {
                   if (use_custom_gnupg_install_path) {
                     args.custom_gpgconf = true;
                     args.custom_gpgconf_path =
-                        (custom_gnupg_install_fs_path / "gpgconf").u8string();
+                        custom_gnupg_install_fs_path.u8string();
                   }
 
                   args.offline_mode = forbid_all_gnupg_connection;
