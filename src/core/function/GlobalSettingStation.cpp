@@ -56,11 +56,8 @@ GpgFrontend::GlobalSettingStation::GlobalSettingStation(int channel) noexcept
   SPDLOG_INFO("app conf path: {}", ui_config_path_.u8string());
 
   if (!is_directory(app_configure_path_)) create_directory(app_configure_path_);
-
   if (!is_directory(app_data_path_)) create_directory(app_data_path_);
-
   if (!is_directory(app_log_path_)) create_directory(app_log_path_);
-
   if (!is_directory(ui_config_dir_path_)) create_directory(ui_config_dir_path_);
 
   if (!exists(ui_config_path_)) {
@@ -86,6 +83,11 @@ GpgFrontend::GlobalSettingStation::GlobalSettingStation(int channel) noexcept
                    pex.getError());
     }
   }
+}
+
+libconfig::Setting &
+GpgFrontend::GlobalSettingStation::GetUISettings() noexcept {
+  return ui_cfg_.getRoot();
 }
 
 void GpgFrontend::GlobalSettingStation::init_app_secure_key() {}

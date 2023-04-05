@@ -144,22 +144,14 @@ void MainWindow::Init() noexcept {
     connect(qApp, &QCoreApplication::aboutToQuit, this, []() {
       SPDLOG_DEBUG("about to quit process started");
 
-      auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
-      try {
-        bool clear_gpg_password_cache =
-            settings.lookup("general.clear_gpg_password_cache");
-
-        if (clear_gpg_password_cache) {
-          if (GpgFrontend::GpgAdvancedOperator::GetInstance()
-                  .ClearGpgPasswordCache()) {
-            SPDLOG_DEBUG("clear gpg password cache done");
-          } else {
-            SPDLOG_ERROR("clear gpg password cache error");
-          }
+      if (GlobalSettingStation::GetInstance().LookupSettings(
+              "general.clear_gpg_password_cache", false)) {
+        if (GpgFrontend::GpgAdvancedOperator::GetInstance()
+                .ClearGpgPasswordCache()) {
+          SPDLOG_DEBUG("clear gpg password cache done");
+        } else {
+          SPDLOG_ERROR("clear gpg password cache error");
         }
-
-      } catch (...) {
-        SPDLOG_ERROR("setting operation error: clear_gpg_password_cache");
       }
     });
 
@@ -244,26 +236,22 @@ void MainWindow::restore_settings() {
 }
 
 void MainWindow::save_settings() {
-  auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
+  bool save_key_checked = GlobalSettingStation::GetInstance().LookupSettings(
+      "general.save_key_checked", false);
 
-  try {
-    bool save_key_checked = settings.lookup("general.save_key_checked");
+  // keyid-list of private checked keys
+  if (save_key_checked) {
+    auto key_ids_need_to_store = m_key_list_->GetChecked();
 
-    // keyid-list of private checked keys
-    if (save_key_checked) {
-      auto key_ids_need_to_store = m_key_list_->GetChecked();
+    SettingsObject default_key_checked("default_key_checked");
+    default_key_checked.clear();
 
-      SettingsObject default_key_checked("default_key_checked");
-      default_key_checked.clear();
-
-      for (const auto &key_id : *key_ids_need_to_store)
-        default_key_checked.push_back(key_id);
-    } else {
-      settings["general"].remove("save_key_checked");
-    }
-  } catch (...) {
-    SPDLOG_ERROR("cannot save settings");
-  };
+    for (const auto &key_id : *key_ids_need_to_store)
+      default_key_checked.push_back(key_id);
+  } else {
+    auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
+    settings["general"].remove("save_key_checked");
+  }
 
   GlobalSettingStation::GetInstance().SyncSettings();
 }

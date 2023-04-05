@@ -42,16 +42,9 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
     case GPG_ERR_NO_PUBKEY: {
       this->setTitle("A Error Signature");
 
-      // get settings
-      auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-      // read settings
-      bool forbid_all_gnupg_connection = false;
-      try {
-        forbid_all_gnupg_connection =
-            settings.lookup("network.forbid_all_gnupg_connection");
-      } catch (...) {
-        SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
-      }
+      bool forbid_all_gnupg_connection =
+          GlobalSettingStation::GetInstance().LookupSettings(
+              "network.forbid_all_gnupg_connection", false);
 
       auto* import_button = new QPushButton(_("Import from keyserver"));
       import_button->setDisabled(forbid_all_gnupg_connection);

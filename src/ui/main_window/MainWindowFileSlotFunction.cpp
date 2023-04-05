@@ -167,14 +167,9 @@ void MainWindow::SlotFileEncrypt() {
   GpgError error;
   bool if_error = false;
 
-  // Detect ascii mode
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-  bool non_ascii_when_export = true;
-  try {
-    non_ascii_when_export = settings.lookup("general.non_ascii_when_export");
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: non_ascii_when_export");
-  }
+  bool non_ascii_when_export =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "general.non_ascii_when_export", true);
 
   // get file info
   QFileInfo file_info(path);
@@ -390,14 +385,9 @@ void MainWindow::SlotFileSign() {
     }
   }
 
-  // Detect ascii mode
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-  bool non_ascii_when_export = true;
-  try {
-    non_ascii_when_export = settings.lookup("general.non_ascii_when_export");
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: non_ascii_when_export");
-  }
+  bool non_ascii_when_export =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "general.non_ascii_when_export", true);
 
   auto _channel = GPGFRONTEND_DEFAULT_CHANNEL;
   auto _extension = ".asc";
@@ -469,14 +459,9 @@ void MainWindow::SlotFileVerify() {
 
   std::filesystem::path sign_file_path = in_path, data_file_path;
 
-  // Detect ascii mode
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-  bool non_ascii_when_export = true;
-  try {
-    non_ascii_when_export = settings.lookup("general.non_ascii_when_export");
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: non_ascii_when_export");
-  }
+  bool non_ascii_when_export =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "general.non_ascii_when_export", true);
 
   auto _channel = GPGFRONTEND_DEFAULT_CHANNEL;
   if (non_ascii_when_export) {
@@ -581,14 +566,9 @@ void MainWindow::SlotFileEncryptSign() {
     }
   }
 
-  // detect ascii mode
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-  bool non_ascii_when_export = true;
-  try {
-    non_ascii_when_export = settings.lookup("general.non_ascii_when_export");
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: non_ascii_when_export");
-  }
+  bool non_ascii_when_export =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "general.non_ascii_when_export", true);
 
   // get file info
   QFileInfo file_info(path);

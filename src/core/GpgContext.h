@@ -32,10 +32,8 @@
 #include <optional>
 #include <string>
 
-#include "GpgConstants.h"
 #include "GpgFunctionObject.h"
 #include "GpgInfo.h"
-#include "GpgModel.h"
 
 namespace GpgFrontend {
 
@@ -58,6 +56,8 @@ struct GpgContextInitArgs {
 
   bool custom_gpgconf = false;
   std::string custom_gpgconf_path;
+
+  bool use_pinentry = false;
 
   GpgContextInitArgs() = default;
 };

@@ -33,6 +33,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <filesystem>
+#include <string>
 
 #include "GpgFunctionObject.h"
 #include "core/GpgContext.h"
@@ -108,76 +109,58 @@ void init_gpgfrontend_core() {
   gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
 #endif
 
-  // get settings
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-
   // read settings
-  bool forbid_all_gnupg_connection = false;
-  try {
-    forbid_all_gnupg_connection =
-        settings.lookup("network.forbid_all_gnupg_connection");
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
-  }
+  bool forbid_all_gnupg_connection =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "network.forbid_all_gnupg_connection", false);
 
-  bool auto_import_missing_key = false;
-  try {
-    auto_import_missing_key =
-        settings.lookup("network.auto_import_missing_key");
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: auto_import_missing_key");
-  }
+  bool auto_import_missing_key =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "network.auto_import_missing_key", false);
 
-  // read from settings file
-  bool use_custom_key_database_path = false;
-  try {
-    use_custom_key_database_path =
-        settings.lookup("general.use_custom_key_database_path");
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: use_custom_key_database_path");
-  }
+  bool use_custom_key_database_path =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "general.use_custom_key_database_path", false);
+
+  std::string custom_key_database_path =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "general.custom_key_database_path", std::string{});
+
+  bool use_custom_gnupg_install_path =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "general.use_custom_gnupg_install_path", false);
+
+  std::string custom_gnupg_install_path =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "general.custom_gnupg_install_path", std::string{});
+
+  bool use_pinentry_as_password_input_dialog =
+      GpgFrontend::GlobalSettingStation::GetInstance().LookupSettings(
+          "general.use_pinentry_as_password_input_dialog", false);
 
   SPDLOG_DEBUG("core loaded if use custom key databse path: {}",
                use_custom_key_database_path);
-
-  std::string custom_key_database_path;
-  try {
-    custom_key_database_path = static_cast<std::string>(
-        settings.lookup("general.custom_key_database_path"));
-
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: custom_key_database_path");
-  }
-
   SPDLOG_DEBUG("core loaded custom key databse path: {}",
                custom_key_database_path);
 
-  bool use_custom_gnupg_install_path = false;
-  try {
-    use_custom_gnupg_install_path =
-        settings.lookup("general.use_custom_gnupg_install_path");
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: use_custom_gnupg_install_path");
-  }
-
-  // read from settings file
-  std::filesystem::path custom_gnupg_install_path;
-  try {
-    custom_gnupg_install_path = std::filesystem::path(static_cast<std::string>(
-        settings.lookup("general.custom_gnupg_install_path")));
-
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: custom_gnupg_install_path");
-  }
-
   // check gpgconf path
-  if (!custom_gnupg_install_path.is_absolute()) {
+  std::filesystem::path custom_gnupg_install_fs_path =
+      custom_gnupg_install_path;
+#ifdef WINDOWS
+  custom_gnupg_install_fs_path /= "gpgconf.exe";
+#else
+  custom_gnupg_install_fs_path /= "gpgconf";
+#endif
+
+  if (!custom_gnupg_install_fs_path.is_absolute() ||
+      !std::filesystem::exists(custom_gnupg_install_fs_path) ||
+      !std::filesystem::is_regular_file(custom_gnupg_install_fs_path)) {
     use_custom_gnupg_install_path = false;
-    SPDLOG_ERROR("core loaded custom gpgconf path error: {}",
-                 custom_gnupg_install_path.u8string());
+    SPDLOG_ERROR("core loaded custom gpgconf path is illegal: {}",
+                 custom_gnupg_install_fs_path.u8string());
   } else {
     SPDLOG_DEBUG("core loaded custom gpgconf path: {}",
-                 custom_gnupg_install_path.u8string());
+                 custom_gnupg_install_fs_path.u8string());
   }
 
   // init default channel
@@ -190,22 +173,22 @@ void init_gpgfrontend_core() {
           args.db_path = custom_key_database_path;
         }
 
-        args.offline_mode = forbid_all_gnupg_connection;
-        args.auto_import_missing_key = auto_import_missing_key;
-
         if (use_custom_gnupg_install_path) {
           args.custom_gpgconf = true;
           args.custom_gpgconf_path =
-              (custom_gnupg_install_path / "gpgconf").u8string();
+              (custom_gnupg_install_fs_path / "gpgconf").u8string();
         }
+
+        args.offline_mode = forbid_all_gnupg_connection;
+        args.auto_import_missing_key = auto_import_missing_key;
+        args.use_pinentry = use_pinentry_as_password_input_dialog;
 
         return std::unique_ptr<ChannelObject>(new GpgContext(args));
       });
 
   // exit if failed
   if (!default_ctx.good()) {
-    SPDLOG_ERROR("default gpgme context init error, exit.");
-    return;
+    SPDLOG_ERROR("default gnupg context init error");
   };
 
   // async init no-ascii channel
@@ -226,13 +209,20 @@ void init_gpgfrontend_core() {
                     args.db_path = custom_key_database_path;
                   }
 
+                  if (use_custom_gnupg_install_path) {
+                    args.custom_gpgconf = true;
+                    args.custom_gpgconf_path =
+                        (custom_gnupg_install_fs_path / "gpgconf").u8string();
+                  }
+
                   args.offline_mode = forbid_all_gnupg_connection;
                   args.auto_import_missing_key = auto_import_missing_key;
+                  args.use_pinentry = use_pinentry_as_password_input_dialog;
 
                   return std::unique_ptr<ChannelObject>(new GpgContext(args));
                 });
-            if (!ctx.good()) SPDLOG_ERROR("no-ascii channel init error");
 
+            if (!ctx.good()) SPDLOG_ERROR("no-ascii channel init error");
             return ctx.good() ? 0 : -1;
           }));
 

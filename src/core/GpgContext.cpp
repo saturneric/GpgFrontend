@@ -30,6 +30,7 @@
 
 #include <gpg-error.h>
 #include <gpgme.h>
+#include <spdlog/spdlog.h>
 #include <unistd.h>
 
 #include <mutex>
@@ -37,14 +38,11 @@
 #include <string>
 
 #include "core/GpgConstants.h"
-#include "core/GpgModel.h"
 #include "core/common/CoreCommonUtil.h"
 #include "core/function/CoreSignalStation.h"
-#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
+#include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "spdlog/spdlog.h"
-#include "thread/Task.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -232,19 +230,8 @@ void GpgContext::post_init_ctx() {
   // preload info
   auto &info = GetInfo();
 
-  auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
-
-  bool use_pinentry_as_password_input_dialog = false;
-  try {
-    use_pinentry_as_password_input_dialog =
-        settings.lookup("general.use_pinentry_as_password_input_dialog");
-  } catch (...) {
-    SPDLOG_ERROR(
-        "setting operation error: use_pinentry_as_password_input_dialog");
-  }
-
   // use custom qt dialog to replace pinentry
-  if (!use_pinentry_as_password_input_dialog) {
+  if (!args_.use_pinentry) {
     SetPassphraseCb(custom_passphrase_cb);
   }
 

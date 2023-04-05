@@ -47,13 +47,8 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
   setPixmap(QWizard::LogoPixmap, QPixmap(":/logo_small.png"));
   setPixmap(QWizard::BannerPixmap, QPixmap(":/banner.png"));
 
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-  int next_page_id = -1;
-  try {
-    next_page_id = settings.lookup("wizard.next_page");
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error");
-  }
+  int next_page_id = GlobalSettingStation::GetInstance().LookupSettings(
+      "wizard.next_page", -1);
   setStartId(next_page_id);
 
   connect(this, &Wizard::accepted, this, &Wizard::slot_wizard_accepted);
