@@ -29,10 +29,8 @@
 #include "GnuPGControllerDialog.h"
 
 #include "SignalStation.h"
-#include "UserInterfaceUtils.h"
 #include "core/function/GlobalSettingStation.h"
 #include "ui/dialog/GeneralDialog.h"
-#include "ui/main_window/MainWindow.h"
 #include "ui_GnuPGControllerDialog.h"
 
 namespace GpgFrontend::UI {
@@ -395,7 +393,7 @@ bool GnuPGControllerDialog::check_custom_gnupg_path(std::string path) {
                           _("Target GnuPG Path is not an absolute path."));
   }
 #ifdef WINDOWS
-  QFileInfo gpgconf_info(selected_custom_gnupg_install_path + "/gpgconf.exe");
+  QFileInfo gpgconf_info(path_qstr + "/gpgconf.exe");
 #else
   QFileInfo gpgconf_info(path_qstr + "/gpgconf");
 #endif
