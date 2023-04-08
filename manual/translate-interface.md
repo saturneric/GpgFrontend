@@ -20,6 +20,10 @@ online. You just need to follow the next steps:
    comments and create conversations.
 6. Your work will apply in the next release.
 
+If you can't find the language you want to work in at the onilne transaltion
+platform. [Email ME](mailto:eric@bktus.com), and I will import it to the
+platform.
+
 ## Work Offline
 
 Most of the translation work is carried out by Google Translate. In most cases,
