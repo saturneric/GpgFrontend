@@ -55,22 +55,15 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
 }
 
 void AdvancedTab::SetSettings() {
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-  try {
-    bool stegano_checked = settings.lookup("advanced.stegano_checked");
-    if (stegano_checked) stegano_check_box_->setCheckState(Qt::Checked);
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: stegano_checked");
-  }
+  int stegano_checked = GlobalSettingStation::GetInstance().LookupSettings(
+      "advanced.stegano_checked", false);
+  if (stegano_checked) stegano_check_box_->setCheckState(Qt::Checked);
 
-  try {
-    bool auto_pubkey_exchange_checked =
-        settings.lookup("advanced.auto_pubkey_exchange_checked");
-    if (auto_pubkey_exchange_checked)
-      auto_pubkey_exchange_check_box_->setCheckState(Qt::Checked);
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: auto_pubkey_exchange_checked");
-  }
+  int auto_pubkey_exchange_checked =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "advanced.auto_pubkey_exchange_checked", false);
+  if (auto_pubkey_exchange_checked)
+    auto_pubkey_exchange_check_box_->setCheckState(Qt::Checked);
 }
 
 void AdvancedTab::ApplySettings() {
