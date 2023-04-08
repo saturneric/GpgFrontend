@@ -40,26 +40,14 @@ namespace GpgFrontend::UI {
 SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
     : GeneralDialog(typeid(SubkeyGenerateDialog).name(), parent),
       key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  bool longer_expiration_date =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "general.longer_expiration_date", false);
 
-  // max expire date time
-  bool longer_expiration_date = false;
-  try {
-    longer_expiration_date = settings.lookup("general.longer_expiration_date");
-    SPDLOG_DEBUG("longer expiration date: {}", longer_expiration_date);
+  bool use_pinentry_as_password_input_dialog =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "general.use_pinentry_as_password_input_dialog", false);
 
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: longer_expiration_date");
-  }
-
-  bool use_pinentry_as_password_input_dialog = false;
-  try {
-    use_pinentry_as_password_input_dialog =
-        settings.lookup("general.use_pinentry_as_password_input_dialog");
-  } catch (...) {
-    SPDLOG_ERROR(
-        "setting operation error: use_pinentry_as_password_input_dialog");
-  }
   use_pinentry_ = use_pinentry_as_password_input_dialog;
 
   max_date_time_ = longer_expiration_date

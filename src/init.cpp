@@ -32,6 +32,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <filesystem>
+#include <string>
 
 #include "GpgFrontend.h"
 #include "GpgFrontendBuildInfo.h"
@@ -90,26 +91,14 @@ void shutdown_logging_system() {
 }
 
 void init_global_path_env() {
-  auto &settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+  // read settings
+  bool use_custom_gnupg_install_path =
+      GpgFrontend::GlobalSettingStation::GetInstance().LookupSettings(
+          "general.use_custom_gnupg_install_path", false);
 
-  bool use_custom_gnupg_install_path = false;
-  try {
-    use_custom_gnupg_install_path =
-        settings.lookup("general.use_custom_gnupg_install_path");
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: use_custom_gnupg_install_path");
-  }
-
-  // read from settings file
-  std::string custom_gnupg_install_path;
-  try {
-    custom_gnupg_install_path = static_cast<std::string>(
-        settings.lookup("general.custom_gnupg_install_path"));
-
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: custom_gnupg_install_path");
-  }
+  std::string custom_gnupg_install_path =
+      GpgFrontend::GlobalSettingStation::GetInstance().LookupSettings(
+          "general.custom_gnupg_install_path", std::string{});
 
   // add custom gnupg install path into env $PATH
   if (use_custom_gnupg_install_path && !custom_gnupg_install_path.empty()) {

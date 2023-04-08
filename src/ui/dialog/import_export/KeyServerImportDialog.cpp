@@ -47,16 +47,9 @@ KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
   // Layout for messagebox
   auto* message_layout = new QHBoxLayout();
 
-  // get settings
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-  // read settings
-  bool forbid_all_gnupg_connection = false;
-  try {
-    forbid_all_gnupg_connection =
-        settings.lookup("network.forbid_all_gnupg_connection");
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
-  }
+  bool forbid_all_gnupg_connection =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "network.forbid_all_gnupg_connection", false);
 
   if (forbid_all_gnupg_connection) {
     QMessageBox::critical(this, "Forbidden", "GnuPG is in offline mode now.");

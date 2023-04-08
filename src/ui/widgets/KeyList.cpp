@@ -60,6 +60,13 @@ void KeyList::init() {
   ui_->keyGroupTab->clear();
   popup_menu_ = new QMenu(this);
 
+  bool forbid_all_gnupg_connection =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "network.forbid_all_gnupg_connection", false);
+
+  // forbidden networks connections
+  if (forbid_all_gnupg_connection) ui_->syncButton->setDisabled(true);
+
   // register key database refresh signal
   connect(this, &KeyList::SignalRefreshDatabase, SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefresh);
@@ -313,15 +320,9 @@ void KeyList::dropEvent(QDropEvent* event) {
   // "always import keys"-CheckBox
   auto* checkBox = new QCheckBox(_("Always import without bothering."));
 
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
-  bool confirm_import_keys = true;
-  try {
-    confirm_import_keys = settings.lookup("general.confirm_import_keys");
-    SPDLOG_DEBUG("confirm_import_keys: {}", confirm_import_keys);
-    if (confirm_import_keys) checkBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: confirm_import_keys");
-  }
+  bool confirm_import_keys = GlobalSettingStation::GetInstance().LookupSettings(
+      "general.confirm_import_keys", true);
+  if (confirm_import_keys) checkBox->setCheckState(Qt::Checked);
 
   // Buttons for ok and cancel
   auto* buttonBox =
@@ -339,6 +340,8 @@ void KeyList::dropEvent(QDropEvent* event) {
   if (confirm_import_keys) {
     dialog->exec();
     if (dialog->result() == QDialog::Rejected) return;
+
+    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
 
     if (!settings.exists("general") ||
         settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
@@ -378,7 +381,9 @@ void KeyList::dragEnterEvent(QDragEnterEvent* event) {
  *
  */
 [[maybe_unused]] void KeyList::MarkKeys(QStringList* keyIds) {
-  foreach (QString id, *keyIds) { spdlog::debug("marked: ", id.toStdString()); }
+  foreach (QString id, *keyIds) {
+    spdlog::debug("marked: ", id.toStdString());
+  }
 }
 
 void KeyList::import_keys(const QByteArray& inBuffer) {
