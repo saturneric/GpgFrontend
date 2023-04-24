@@ -428,7 +428,7 @@ if (APPLICATION_BUILD)
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Copying Buddled GnuPG into App Bundle Resource")
                 set_target_properties(${AppName} PROPERTIES
-                    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/GpgFrontend.entitlements"
+                    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/resource/entitlements/GpgFrontend.entitlements"
                 )
             else()
                 message(STATUS "Build Application Without App Sandbox")
