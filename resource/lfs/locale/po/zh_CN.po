@@ -349,7 +349,7 @@ msgstr "设置"
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:72
 msgid "Preference"
-msgstr "偏爱"
+msgstr "偏好"
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:131
 msgid "System Default"
@@ -729,7 +729,7 @@ msgstr "上传公钥"
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:93
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/UserInterfaceUtils.cpp:363
 msgid "Cannot read default_keyserver From Settings"
-msgstr "无法从设置读取 default_keyserver"
+msgstr "无法从设置读取密钥服务器"
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:94
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:471
@@ -1611,7 +1611,7 @@ msgstr "删除选定的 UID"
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:309
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:325
 msgid "Successful Operation"
-msgstr "成功运作"
+msgstr "操作成功"
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:364
 msgid "Successfully added a new UID."
@@ -1683,7 +1683,7 @@ msgstr "删除 UID"
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:525
 msgid "Are you sure that you want to delete the following uid?"
-msgstr "您确定要删除以下 uid 吗？"
+msgstr "您确定要删除以下 UID 吗？"
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:543
 msgid "Delete(Revoke) Key Signature"
@@ -2897,7 +2897,7 @@ msgstr "隐写术"
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:514
 msgid "View"
-msgstr "看法"
+msgstr "查看"
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:516
 msgid "Help"
@@ -3178,7 +3178,7 @@ msgstr "删除"
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:235
 msgid "Calculate Hash"
-msgstr "计算哈希"
+msgstr "计算哈希值"
 
 #: /Users/saturneric/Documents/community/GpgFrontend/src/ui/widgets/FilePage.cpp:239
 msgid "Directory"
@@ -4355,4 +4355,4 @@ msgstr "不好了！ GpgFrontend 在软件中发现了严重错误，因此需�
 #~ msgstr "导出私钥（包括子密钥）"
 
 #~ msgid "Date & Time"
-#~ msgstr "约会时间"
+#~ msgstr "日期和时间"
