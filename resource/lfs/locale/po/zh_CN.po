@@ -128,22 +128,6 @@ msgid ""
 "operation will apply your proxy settings to the entire software."
 msgstr "正在使用您的代理设置访问 url。请注意，此测试操作会将您的代理设置应用于整个软件。"
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:36
-msgid "Show Steganography Options"
-msgstr "显示隐写术选项"
-
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:38
-msgid "Show Steganography Options."
-msgstr "显示隐写术选项。"
-
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:42
-msgid "Pubkey Exchange"
-msgstr "公钥交换"
-
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:45
-msgid "Auto Pubkey Exchange"
-msgstr "自动公钥交换"
-
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:54
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:43
 msgid "General"
@@ -166,14 +150,6 @@ msgstr "网络"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:166
 msgid "Settings"
 msgstr "设置"
-
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:72
-msgid "Preference"
-msgstr "偏爱"
-
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:131
-msgid "System Default"
-msgstr "系统默认"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:51
 msgid "Keyserver List"
@@ -371,7 +347,31 @@ msgid ""
 "This will result in loss of all cached form positions, statuses, key servers, etc."
 msgstr "您确定要清除所有数据对象吗？这将导致所有缓存的表单位置、状态、密钥服务器等丢失。"
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:41
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:72
+msgid "Preference"
+msgstr "偏好"
+
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:131
+msgid "System Default"
+msgstr "系统默认"
+
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:36
+msgid "Show Steganography Options"
+msgstr "显示隐写术选项"
+
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:38
+msgid "Show Steganography Options."
+msgstr "显示隐写术选项。"
+
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:42
+msgid "Pubkey Exchange"
+msgstr "公钥交换"
+
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:45
+msgid "Auto Pubkey Exchange"
+msgstr "自动公钥交换"
+
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:41
 msgid "Icon Size"
 msgstr "图标大小"
 
@@ -710,6 +710,11 @@ msgstr "永不过期"
 msgid "Invalid Operation"
 msgstr "无效操作"
 
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:93
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/UserInterfaceUtils.cpp:363
+msgid "Cannot read default_keyserver From Settings"
+msgstr "无法从设置读取密钥服务器"
+
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:320
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:377
 msgid "Please select one or more UIDs before doing this operation."
@@ -722,13 +727,6 @@ msgstr "签署选定的 UID"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:343
 msgid "Delete Selected UID(s)"
 msgstr "删除选定的 UID"
-
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:363
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:288
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:302
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:318
-msgid "Successful Operation"
-msgstr "成功运作"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:364
 msgid "Successfully added a new UID."
@@ -1336,6 +1334,13 @@ msgstr "认证"
 msgid "Authentication"
 msgstr "验证"
 
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:363
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:295
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:309
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:325
+msgid "Successful Operation"
+msgstr "操作成功"
+
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:405
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:156
 msgid "Expiration Date"
@@ -1399,9 +1404,9 @@ msgstr "校验和"
 msgid "Binary Path"
 msgstr "二进制路径"
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:47
-msgid "Components"
-msgstr "成分"
+#: /Users/saturneric/Documents/community/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:525
+msgid "Are you sure that you want to delete the following uid?"
+msgstr "您确定要删除以下 UID 吗？"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:48
 msgid "Configurations"
@@ -1713,11 +1718,6 @@ msgstr "新签名"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:56
 msgid "Uploading Public Key"
 msgstr "上传公钥"
-
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:93
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:364
-msgid "Cannot read default_keyserver From Settings"
-msgstr "无法从设置读取 default_keyserver"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:94
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:464
@@ -2933,7 +2933,7 @@ msgstr "隐写术"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:528
 msgid "View"
-msgstr "看法"
+msgstr "查看"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:530
 msgid "Help"
@@ -3351,7 +3351,7 @@ msgstr "删除"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:235
 msgid "Calculate Hash"
-msgstr "计算哈希"
+msgstr "计算哈希值"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:239
 msgid "Directory"
@@ -4505,4 +4505,4 @@ msgstr "不好了！ GpgFrontend 在软件中发现了严重错误，因此需�
 #~ msgstr "导出私钥（包括子密钥）"
 
 #~ msgid "Date & Time"
-#~ msgstr "约会时间"
+#~ msgstr "日期和时间"
