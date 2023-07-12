@@ -35,7 +35,7 @@ TEST_F(GpgCoreTest, GenerateKeyTestAlone) {
   auto& key_opera = GpgFrontend::GpgKeyOpera::GetInstance(gpg_alone_channel);
   auto keygen_info = std::make_unique<GpgFrontend::GenKeyInfo>(false, true);
   keygen_info->setName("foobar");
-  keygen_info->setEmail("bar@gpgfrontend.pub");
+  keygen_info->setEmail("bar@gpgfrontend.bktus.com");
   keygen_info->setComment("hello");
   keygen_info->setAlgo("rsa");
   keygen_info->setNonExpired(true);
@@ -59,7 +59,7 @@ TEST_F(GpgCoreTest, GenerateKeyTestAlone_1) {
   auto& key_opera = GpgFrontend::GpgKeyOpera::GetInstance(gpg_alone_channel);
   auto keygen_info = std::make_unique<GpgFrontend::GenKeyInfo>(false, true);
   keygen_info->setName("foobar");
-  keygen_info->setEmail("bar@gpgfrontend.pub");
+  keygen_info->setEmail("bar@gpgfrontend.bktus.com");
   keygen_info->setComment("hello gpgfrontend");
   keygen_info->setAlgo("rsa");
   keygen_info->setNonExpired(false);
@@ -86,7 +86,7 @@ TEST_F(GpgCoreTest, GenerateKeyTestAlone_2) {
   auto& key_opera = GpgFrontend::GpgKeyOpera::GetInstance(gpg_alone_channel);
   auto keygen_info = std::make_unique<GpgFrontend::GenKeyInfo>(false, true);
   keygen_info->setName("foobar");
-  keygen_info->setEmail("bar@gpgfrontend.pub");
+  keygen_info->setEmail("bar@gpgfrontend.bktus.com");
   keygen_info->setComment("hi");
   keygen_info->setAlgo("rsa");
   keygen_info->setKeySize(3072);
@@ -112,7 +112,7 @@ TEST_F(GpgCoreTest, GenerateKeyTestAlone_3) {
   auto& key_opera = GpgFrontend::GpgKeyOpera::GetInstance(gpg_alone_channel);
   auto keygen_info = std::make_unique<GpgFrontend::GenKeyInfo>(false, true);
   keygen_info->setName("foo");
-  keygen_info->setEmail("bar@gpgfrontend.pub");
+  keygen_info->setEmail("bar@gpgfrontend.bktus.com");
   keygen_info->setComment("hello");
   keygen_info->setAlgo("rsa");
   keygen_info->setKeySize(4096);
@@ -138,7 +138,7 @@ TEST_F(GpgCoreTest, GenerateKeyTestAlone_4) {
   auto& key_opera = GpgFrontend::GpgKeyOpera::GetInstance(gpg_alone_channel);
   auto keygen_info = std::make_unique<GpgFrontend::GenKeyInfo>(false, true);
   keygen_info->setName("foobar");
-  keygen_info->setEmail("bar@gpgfrontend.pub");
+  keygen_info->setEmail("bar@gpgfrontend.bktus.com");
   keygen_info->setComment("hello");
   keygen_info->setAlgo("dsa");
   keygen_info->setNonExpired(true);

@@ -35,7 +35,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest) {
   auto& key_opera = GpgFrontend::GpgKeyOpera::GetInstance(default_channel);
   auto keygen_info = std::make_unique<GpgFrontend::GenKeyInfo>();
   keygen_info->setName("foo");
-  keygen_info->setEmail("bar@gpgfrontend.pub");
+  keygen_info->setEmail("bar@gpgfrontend.bktus.com");
   keygen_info->setComment("");
   keygen_info->setKeySize(1024);
   keygen_info->setAlgo("rsa");
@@ -60,7 +60,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_1) {
   auto& key_opera = GpgFrontend::GpgKeyOpera::GetInstance(default_channel);
   auto keygen_info = std::make_unique<GpgFrontend::GenKeyInfo>();
   keygen_info->setName("foo");
-  keygen_info->setEmail("bar@gpgfrontend.pub");
+  keygen_info->setEmail("bar@gpgfrontend.bktus.com");
   keygen_info->setComment("hello gpgfrontend");
   keygen_info->setAlgo("rsa");
   keygen_info->setKeySize(4096);
@@ -87,7 +87,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_4) {
   auto& key_opera = GpgFrontend::GpgKeyOpera::GetInstance(default_channel);
   auto keygen_info = std::make_unique<GpgFrontend::GenKeyInfo>();
   keygen_info->setName("foo");
-  keygen_info->setEmail("bar@gpgfrontend.pub");
+  keygen_info->setEmail("bar@gpgfrontend.bktus.com");
   keygen_info->setComment("");
   keygen_info->setAlgo("dsa");
   keygen_info->setNonExpired(true);
@@ -111,7 +111,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_5) {
   auto& key_opera = GpgFrontend::GpgKeyOpera::GetInstance(default_channel);
   auto keygen_info = std::make_unique<GpgFrontend::GenKeyInfo>();
   keygen_info->setName("foo");
-  keygen_info->setEmail("bar@gpgfrontend.pub");
+  keygen_info->setEmail("bar@gpgfrontend.bktus.com");
   keygen_info->setComment("");
   keygen_info->setAlgo("ed25519");
   keygen_info->setNonExpired(true);

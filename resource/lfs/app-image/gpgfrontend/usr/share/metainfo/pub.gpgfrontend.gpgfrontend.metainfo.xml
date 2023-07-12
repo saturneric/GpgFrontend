@@ -16,7 +16,7 @@
       Or at the same time as the above operations, you can add your own signature 
       to let others know that this document or this paragraph of text was issued by you. 
     </p>
-    <p>For moew information visit https://gpgfrontend.pub/</p>
+    <p>For moew information visit https://gpgfrontend.bktus.com/</p>
 
   </description>
 
@@ -29,7 +29,7 @@
     </screenshot>
   </screenshots>
 
-  <url type="homepage">https://gpgfrontend.pub/</url>
+  <url type="homepage">https://gpgfrontend.bktus.com/</url>
   <project_group>GNOME</project_group>
   <developer_name>Saturneric</developer_name>
 </component>

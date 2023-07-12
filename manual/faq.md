@@ -18,7 +18,7 @@ operations such as encryption and decryption.
 
 The various versions of GpgFrontend will be released in the GitHub repository,
 and you can find and download the latest version
-[HERE](https://www.gpgfrontend.pub/#/downloads). After downloading, you can
+[HERE](https://www.gpgfrontend.bktus.com/#/downloads). After downloading, you can
 refer to the instructions in ReadME and you can start using it in just a few
 steps.
 
