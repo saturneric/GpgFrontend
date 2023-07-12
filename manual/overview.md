@@ -31,6 +31,39 @@ Please check the corresponding program release version for the document.
 
 ![image-20220109192100901](_media/overview/image-20220109192100901.png)
 
+## System Requirement
+
+### Operating System
+
+GpgFrontend is compatible with major operating systems including Linux, macOS,
+and Windows. Specifically, it requires Windows 7 and later, macOS 10.13 High
+Sierra and later, and Ubuntu 18.04 LTS or other equivalent Linux distributions.
+
+### Software Dependencies
+
+Qt5 or Later: GpgFrontend is developed using the Qt framework. Therefore, a
+runtime of Qt5 or later is required for the software to function correctly.
+
+GnuPG: As the frontend for GnuPG, it requires GnuPG (version 2.2.0 or higher) to
+be pre-installed in the system.
+
+### Hardware
+
+While specific hardware requirements largely depend on the size and complexity
+of the data you are working with, we generally recommend:
+
+A computer with at least 1 GB of RAM, but preferably 2 GB or more for smoother
+performance. At least 200 MB of free disk space for the software installation,
+and additional space for ongoing work.
+
+### Network
+
+Although not necessary for basic operation, an active Internet connection may be
+required for software updates and accessing online help resources.
+
+Please note that these are the minimal requirements that we tested, and actual
+requirements for your use case could be higher, especially for large datasets.
+
 ## Origin
 
 The GpgFrontend project inherit from a relatively mature but not maintained
