@@ -29,6 +29,7 @@
 #include "KeySetExpireDateDialog.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/function/gpg/GpgKeyManager.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -105,13 +106,25 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
   connect(modify_tofu_button, &QPushButton::clicked, this,
           &KeyPairOperaTab::slot_modify_tofu_policy);
 
+  auto* set_owner_trust_level_button =
+      new QPushButton(_("Set Owner Trust Level"));
+  connect(set_owner_trust_level_button, &QPushButton::clicked, this,
+          &KeyPairOperaTab::slot_set_owner_trust_level);
+
   vbox_p_k->addLayout(advance_h_box_layout);
   opera_key_box->setLayout(vbox_p_k);
   m_vbox->addWidget(opera_key_box);
+  // modify owner trust of public key
+  if (!m_key_.IsPrivateKey()) vbox_p_k->addWidget(set_owner_trust_level_button);
   vbox_p_k->addWidget(modify_tofu_button);
   m_vbox->addStretch(0);
 
   setLayout(m_vbox);
+
+  // set up signal
+  connect(this, &KeyPairOperaTab::SignalKeyDatabaseRefresh,
+          SignalStation::GetInstance(),
+          &SignalStation::SignalKeyDatabaseRefresh);
 }
 
 void KeyPairOperaTab::CreateOperaMenu() {
@@ -385,6 +398,42 @@ void KeyPairOperaTab::slot_modify_tofu_policy() {
     if (check_gpg_error_2_err_code(err) != GPG_ERR_NO_ERROR) {
       QMessageBox::critical(this, _("Not Successful"),
                             QString(_("Modify TOFU policy not successfully.")));
+    }
+  }
+}
+
+void KeyPairOperaTab::slot_set_owner_trust_level() {
+  QStringList items;
+
+  items << _("Ultimate") << _("Full") << _("Marginal") << _("Never")
+        << _("Undefined") << _("Unknown");
+
+  bool ok;
+  QString item =
+      QInputDialog::getItem(this, _("Modify Owner Trust Level"),
+                            _("Trust for the Key Pair:"), items, 0, false, &ok);
+  if (ok && !item.isEmpty()) {
+    SPDLOG_DEBUG("selected policy: {}", item.toStdString());
+    int trust_level = 0;  // Unknown Level
+    if (item == _("Ultimate")) {
+      trust_level = 5;
+    } else if (item == _("Full")) {
+      trust_level = 4;
+    } else if (item == _("Marginal")) {
+      trust_level = 3;
+    } else if (item == _("Never")) {
+      trust_level = 2;
+    } else if (item == _("Undefined")) {
+      trust_level = 1;
+    }
+    bool status =
+        GpgKeyManager::GetInstance().SetOwnerTrustLevel(m_key_, trust_level);
+    if (!status) {
+      QMessageBox::critical(this, _("Failed"),
+                            QString(_("Modify Owner Trust Level failed.")));
+    } else {
+      // update key database and refresh ui
+      emit SignalKeyDatabaseRefresh();
     }
   }
 }

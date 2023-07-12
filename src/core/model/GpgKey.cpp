@@ -78,17 +78,17 @@ std::string GpgFrontend::GpgKey::GetProtocol() const {
 std::string GpgFrontend::GpgKey::GetOwnerTrust() const {
   switch (key_ref_->owner_trust) {
     case GPGME_VALIDITY_UNKNOWN:
-      return "Unknown";
+      return _("Unknown");
     case GPGME_VALIDITY_UNDEFINED:
-      return "Undefined";
+      return _("Undefined");
     case GPGME_VALIDITY_NEVER:
-      return "Never";
+      return _("Never");
     case GPGME_VALIDITY_MARGINAL:
-      return "Marginal";
+      return _("Marginal");
     case GPGME_VALIDITY_FULL:
-      return "FULL";
+      return _("Full");
     case GPGME_VALIDITY_ULTIMATE:
-      return "Ultimate";
+      return _("Ultimate");
   }
   return "Invalid";
 }

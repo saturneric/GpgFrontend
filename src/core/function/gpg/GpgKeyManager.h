@@ -29,6 +29,9 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_GPGKEYMANAGER_H
 #define GPGFRONTEND_ZH_CN_TS_GPGKEYMANAGER_H
 
+#include <functional>
+#include <string>
+
 #include "core/GpgContext.h"
 #include "core/GpgFunctionObject.h"
 #include "core/GpgModel.h"
@@ -83,7 +86,64 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
   bool SetExpire(const GpgKey& key, std::unique_ptr<GpgSubKey>& subkey,
                  std::unique_ptr<boost::posix_time::ptime>& expires);
 
+  /**
+   * @brief
+   *
+   * @return
+   */
+  bool SetOwnerTrustLevel(const GpgKey& key, int trust_level);
+
  private:
+  static gpgme_error_t interactor_cb_fnc(void* handle, const char* status,
+                                         const char* args, int fd);
+
+  using Command = std::string;
+  using AutomatonState = enum {
+    START,
+    COMMAND,
+    VALUE,
+    REALLY_ULTIMATE,
+    SAVE,
+    ERROR,
+    QUIT,
+  };
+
+  struct AutomatonHandelStruct;
+
+  using AutomatonActionHandler =
+      std::function<Command(AutomatonHandelStruct&, AutomatonState)>;
+  using AutomatonNextStateHandler =
+      std::function<AutomatonState(AutomatonState, std::string, std::string)>;
+
+  struct AutomatonHandelStruct {
+    void SetStatus(AutomatonState next_state) { current_state_ = next_state; }
+    AutomatonState CuurentStatus() { return current_state_; }
+    void SetHandler(AutomatonNextStateHandler next_state_handler,
+                    AutomatonActionHandler action_handler) {
+      next_state_handler_ = next_state_handler;
+      action_handler_ = action_handler;
+    }
+    AutomatonState NextState(std::string gpg_status, std::string args) {
+      return next_state_handler_(current_state_, gpg_status, args);
+    }
+    Command Action() { return action_handler_(*this, current_state_); }
+
+    void SetSuccess(bool success) { success_ = success; }
+
+    bool Success() { return success_; }
+
+    std::string KeyFpr() { return key_fpr_; }
+
+    AutomatonHandelStruct(std::string key_fpr) : key_fpr_(key_fpr) {}
+
+   private:
+    AutomatonState current_state_ = START;
+    AutomatonNextStateHandler next_state_handler_;
+    AutomatonActionHandler action_handler_;
+    bool success_ = false;
+    std::string key_fpr_;
+  };
+
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
 };

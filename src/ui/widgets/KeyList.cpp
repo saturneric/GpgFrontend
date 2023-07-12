@@ -155,7 +155,7 @@ void KeyList::AddListGroupTab(
 
   QStringList labels;
   labels << _("Select") << _("Type") << _("Name") << _("Email Address")
-         << _("Usage") << _("Validity") << _("Finger Print");
+         << _("Usage") << _("Trust") << _("Finger Print");
 
   key_list->setHorizontalHeaderLabels(labels);
   key_list->horizontalHeader()->setStretchLastSection(false);
