@@ -24,7 +24,7 @@
 
 [Downloads](downloads.md)
 [Manual](overview.md)
-[Document](https://doxygen.gpgfrontend.pub)
+[Document](https://doxygen.gpgfrontend.bktus.com)
 
 <!-- 背景色 -->
 ![color](#ffffff)

@@ -189,7 +189,7 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
     msgBox.setText(_("GnuPG Context Loading Failed"));
     msgBox.setInformativeText(
         _("Gnupg(gpg) is not installed correctly, please follow "
-          "<a href='https://www.gpgfrontend.pub/#/"
+          "<a href='https://www.gpgfrontend.bktus.com/#/"
           "faq?id=how-to-deal-with-39env-loading-failed39'>this notes</a>"
           " in FAQ to install Gnupg and then open "
           "GpgFrontend. Or, you can open GnuPG Controller to set a custom "
