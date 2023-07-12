@@ -114,6 +114,12 @@ class FilePage : public QWidget {
    * @brief
    *
    */
+  void slot_open_item_by_system_application();
+
+  /**
+   * @brief
+   *
+   */
   void slot_rename_item();
 
   /**

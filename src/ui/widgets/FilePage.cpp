@@ -249,14 +249,23 @@ void FilePage::create_popup_menu() {
   connect(ui_->actionCompressFiles, &QAction::triggered, this,
           &FilePage::slot_compress_files);
 
+  ui_->actionOpenWithSystemDefaultApplication->setText(
+      _("Open with Default System Application"));
+  connect(ui_->actionOpenWithSystemDefaultApplication, &QAction::triggered,
+          this, &FilePage::slot_open_item_by_system_application);
+
   auto new_item_action_menu = new QMenu(this);
   new_item_action_menu->setTitle(_("New"));
   new_item_action_menu->addAction(ui_->actionCreateEmptyFile);
   new_item_action_menu->addAction(ui_->actionMakeDirectory);
 
   popup_menu_->addAction(ui_->actionOpenFile);
+  popup_menu_->addAction(ui_->actionOpenWithSystemDefaultApplication);
+
+  popup_menu_->addSeparator();
   popup_menu_->addMenu(new_item_action_menu);
   popup_menu_->addSeparator();
+
   popup_menu_->addAction(ui_->actionRenameFile);
   popup_menu_->addAction(ui_->actionDeleteFile);
   popup_menu_->addAction(ui_->actionCompressFiles);
@@ -346,6 +355,17 @@ void FilePage::slot_open_item() {
       QMessageBox::critical(this, _("Error"),
                             _("The file is unprivileged or unreachable."));
     }
+  }
+}
+
+void FilePage::slot_open_item_by_system_application() {
+  QFileInfo info(QString::fromStdString(selected_path_.u8string()));
+  if (info.isDir()) {
+    const auto file_path = info.filePath().toUtf8().toStdString();
+    QDesktopServices::openUrl(QUrl::fromLocalFile(file_path.c_str()));
+
+  } else {
+    QDesktopServices::openUrl(QUrl::fromLocalFile(selected_path_.c_str()));
   }
 }
 
