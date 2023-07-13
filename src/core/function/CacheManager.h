@@ -83,7 +83,8 @@ class GPGFRONTEND_CORE_EXPORT CacheManager
  public:
   CacheManager(int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  void SaveCache(std::string key, const nlohmann::json& value);
+  void SaveCache(std::string key, const nlohmann::json& value,
+                 bool flush = false);
 
   nlohmann::json LoadCache(std::string key);
 
