@@ -45,7 +45,8 @@ GpgFrontend::CacheManager::CacheManager(int channel)
 }
 
 void GpgFrontend::CacheManager::SaveCache(std::string key,
-                                          const nlohmann::json& value) {
+                                          const nlohmann::json& value,
+                                          bool flush) {
   auto data_object_key = get_data_object_key(key);
   cache_storage_.insert(key, value);
 
@@ -53,6 +54,10 @@ void GpgFrontend::CacheManager::SaveCache(std::string key,
       key_storage_.end()) {
     SPDLOG_DEBUG("register new key of cache", key);
     key_storage_.push_back(key);
+  }
+
+  if (flush) {
+    flush_cache_storage();
   }
 }
 
