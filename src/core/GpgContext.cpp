@@ -43,6 +43,7 @@
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "function/gpg/GpgKeyGetter.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -169,6 +170,23 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
     SPDLOG_ERROR("env check failed");
     return;
   } else {
+    // speed up loading process
+    gpgme_set_offline(*this, 1);
+
+    // set keylist mode
+    if (info_.GnupgVersion >= "2.0.0") {
+      check_gpg_error(gpgme_set_keylist_mode(
+          *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
+                     GPGME_KEYLIST_MODE_SIGS |
+                     GPGME_KEYLIST_MODE_SIG_NOTATIONS |
+                     GPGME_KEYLIST_MODE_WITH_TOFU));
+    } else {
+      check_gpg_error(gpgme_set_keylist_mode(
+          *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_SIGS |
+                     GPGME_KEYLIST_MODE_SIG_NOTATIONS |
+                     GPGME_KEYLIST_MODE_WITH_TOFU));
+    }
+
     // async, init context
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
@@ -204,21 +222,6 @@ void GpgContext::post_init_ctx() {
     /** Setting the output type must be done at the beginning */
     /** think this means ascii-armor --> ? */
     gpgme_set_armor(*this, 0);
-  }
-
-  // Speed up loading process
-  gpgme_set_offline(*this, 1);
-
-  if (info_.GnupgVersion >= "2.0.0") {
-    check_gpg_error(gpgme_set_keylist_mode(
-        *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
-                   GPGME_KEYLIST_MODE_SIGS | GPGME_KEYLIST_MODE_SIG_NOTATIONS |
-                   GPGME_KEYLIST_MODE_WITH_TOFU));
-  } else {
-    check_gpg_error(gpgme_set_keylist_mode(
-        *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_SIGS |
-                   GPGME_KEYLIST_MODE_SIG_NOTATIONS |
-                   GPGME_KEYLIST_MODE_WITH_TOFU));
   }
 
   // for unit test
