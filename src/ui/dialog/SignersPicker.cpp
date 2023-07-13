@@ -45,7 +45,7 @@ SignersPicker::SignersPicker(QWidget* parent)
   /*Setup KeyList*/
   key_list_ = new KeyList(false, this);
   key_list_->AddListGroupTab(
-      _("Signers"), KeyListRow::ONLY_SECRET_KEY,
+      _("Signers"), "signers", KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage,
       [](const GpgKey& key) -> bool {
         return key.IsHasActualSigningCapability();

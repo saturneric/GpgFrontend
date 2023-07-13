@@ -171,7 +171,7 @@ class KeyList : public QWidget {
    * @param filter
    */
   void AddListGroupTab(
-      const QString& name,
+      const QString& name, const QString& id,
       KeyListRow::KeyType selectType = KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::InfoType infoType = KeyListColumn::ALL,
       const std::function<bool(const GpgKey&)>& filter =
@@ -302,6 +302,12 @@ class KeyList : public QWidget {
    *
    */
   void SlotRefresh();
+
+  /**
+   * @brief
+   *
+   */
+  void SlotRefreshUI();
 
  private:
   /**

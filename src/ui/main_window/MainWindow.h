@@ -97,6 +97,11 @@ class MainWindow : public GeneralMainWindow {
    */
   void SignalRestartApplication(int);
 
+  /**
+   * @brief
+   */
+  void SignalUIRefresh();
+
  public slots:
 
   /**
@@ -307,6 +312,16 @@ class MainWindow : public GeneralMainWindow {
    */
   void slot_version_upgrade(const SoftwareVersion& version);
 
+  /**
+   * @details
+   */
+  void slot_add_key_2_favourite();
+
+  /**
+   * @details
+   */
+  void slot_remove_key_from_favourite();
+
  private:
   /**
    * @details Create actions for the main-menu and the context-menu of the
@@ -420,6 +435,9 @@ class MainWindow : public GeneralMainWindow {
                                                    ///< clipboard
   QAction* copy_key_id_to_clipboard_act_{};        ///<
   QAction* copy_key_default_uid_to_clipboard_act_{};  ///<
+
+  QAction* add_key_2_favourtie_act_{};        ///<
+  QAction* remove_key_from_favourtie_act_{};  ///<
 
   QAction* open_key_management_act_{};   ///< Action to open key management
   QAction* copy_act_{};                  ///< Action to copy text

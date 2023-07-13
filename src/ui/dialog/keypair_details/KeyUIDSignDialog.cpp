@@ -40,7 +40,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
   const auto key_id = m_key_.GetId();
   m_key_list_ = new KeyList(KeyMenuAbility::NONE, this);
   m_key_list_->AddListGroupTab(
-      _("Signers"), KeyListRow::ONLY_SECRET_KEY,
+      _("Signers"), "signers", KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress,
       [key_id](const GpgKey& key) -> bool {
         if (key.IsDisabled() || !key.IsHasCertificationCapability() ||

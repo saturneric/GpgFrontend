@@ -34,6 +34,7 @@
 
 #include "core/GpgConstants.h"
 #include "core/common/CoreCommonUtil.h"
+#include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/FileOperator.h"
 #include "core/function/GlobalSettingStation.h"
@@ -479,6 +480,43 @@ void CommonUtils::SlotRestartApplication(int code) {
 
 bool CommonUtils::isApplicationNeedRestart() {
   return application_need_to_restart_at_once_;
+}
+
+bool CommonUtils::KeyExistsinFavouriteList(const GpgKey &key) {
+  // load cache
+  auto key_array = CacheManager::GetInstance().LoadCache("favourite_key_pair");
+  if (!key_array.is_array()) {
+    CacheManager::GetInstance().SaveCache("favourite_key_pair",
+                                          nlohmann::json::array());
+  }
+  return std::find(key_array.begin(), key_array.end(), key.GetFingerprint()) !=
+         key_array.end();
+}
+
+void CommonUtils::AddKey2Favourtie(const GpgKey &key) {
+  auto key_array = CacheManager::GetInstance().LoadCache("favourite_key_pair");
+  if (!key_array.is_array()) {
+    CacheManager::GetInstance().SaveCache("favourite_key_pair",
+                                          nlohmann::json::array());
+  }
+  key_array.push_back(key.GetFingerprint());
+  CacheManager::GetInstance().SaveCache("favourite_key_pair", key_array);
+}
+
+void CommonUtils::RemoveKeyFromFavourite(const GpgKey &key) {
+  auto key_array = CacheManager::GetInstance().LoadCache("favourite_key_pair");
+  if (!key_array.is_array()) {
+    CacheManager::GetInstance().SaveCache("favourite_key_pair",
+                                          nlohmann::json::array());
+    return;
+  }
+  auto it = std::find(key_array.begin(), key_array.end(), key.GetFingerprint());
+  if (it != key_array.end()) {
+    auto rm_it =
+        std::remove(key_array.begin(), key_array.end(), key.GetFingerprint());
+    key_array.erase(rm_it, key_array.end());
+    CacheManager::GetInstance().SaveCache("favourite_key_pair", key_array);
+  }
 }
 
 }  // namespace GpgFrontend::UI
