@@ -361,13 +361,13 @@ msgstr "بيانات"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:88
 #, c-format
 msgid "Clear All Log (Total Size: %s)"
-msgstr "مسح كافة السجلات (الحجم الإجمالي:٪ s)"
+msgstr "مسح كافة السجلات (الحجم الإجمالي: %s)"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:72
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:104
 #, c-format
 msgid "Clear All Data Objects (Total Size: %s)"
-msgstr "مسح كافة كائنات البيانات (الحجم الإجمالي:٪ s)"
+msgstr "مسح كافة كائنات البيانات (الحجم الإجمالي: %s)"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:96
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:36
