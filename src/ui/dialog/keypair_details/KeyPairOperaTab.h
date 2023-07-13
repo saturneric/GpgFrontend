@@ -48,6 +48,13 @@ class KeyPairOperaTab : public QWidget {
    */
   void CreateOperaMenu();
 
+ signals:
+  /**
+   * @brief
+   *
+   */
+  void SignalKeyDatabaseRefresh();
+
  private slots:
 
   /**
@@ -102,6 +109,12 @@ class KeyPairOperaTab : public QWidget {
    *
    */
   void slot_modify_tofu_policy();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_set_owner_trust_level();
 
  private:
   GpgKey m_key_;                           ///<

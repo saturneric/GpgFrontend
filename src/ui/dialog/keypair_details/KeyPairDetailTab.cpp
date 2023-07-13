@@ -56,6 +56,7 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   usage_var_label_ = new QLabel();
   actual_usage_var_label_ = new QLabel();
 
+  owner_trust_var_label_ = new QLabel();
   key_size_var_label_ = new QLabel();
   expire_var_label_ = new QLabel();
   created_var_label_ = new QLabel();
@@ -79,13 +80,14 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   vboxKD->addWidget(new QLabel(QString(_("Key Size")) + ": "), 2, 0);
   vboxKD->addWidget(new QLabel(QString(_("Nominal Usage")) + ": "), 3, 0);
   vboxKD->addWidget(new QLabel(QString(_("Actual Usage")) + ": "), 4, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Owner Trust Level")) + ": "), 5, 0);
   vboxKD->addWidget(new QLabel(QString(_("Create Date (Local Time)")) + ": "),
-                    5, 0);
-  vboxKD->addWidget(new QLabel(QString(_("Expires on (Local Time)")) + ": "), 6,
+                    6, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Expires on (Local Time)")) + ": "), 7,
                     0);
   vboxKD->addWidget(new QLabel(QString(_("Last Update (Local Time)")) + ": "),
-                    7, 0);
-  vboxKD->addWidget(new QLabel(QString(_("Primary Key Existence")) + ": "), 8,
+                    8, 0);
+  vboxKD->addWidget(new QLabel(QString(_("Primary Key Existence")) + ": "), 9,
                     0);
 
   key_id_var_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -94,10 +96,11 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   vboxKD->addWidget(key_size_var_label_, 2, 1, 1, 2);
   vboxKD->addWidget(usage_var_label_, 3, 1, 1, 2);
   vboxKD->addWidget(actual_usage_var_label_, 4, 1, 1, 2);
-  vboxKD->addWidget(created_var_label_, 5, 1, 1, 2);
-  vboxKD->addWidget(expire_var_label_, 6, 1, 1, 2);
-  vboxKD->addWidget(last_update_var_label_, 7, 1, 1, 2);
-  vboxKD->addWidget(primary_key_exist_var_label_, 8, 1, 1, 2);
+  vboxKD->addWidget(owner_trust_var_label_, 5, 1, 1, 2);
+  vboxKD->addWidget(created_var_label_, 6, 1, 1, 2);
+  vboxKD->addWidget(expire_var_label_, 7, 1, 1, 2);
+  vboxKD->addWidget(last_update_var_label_, 8, 1, 1, 2);
+  vboxKD->addWidget(primary_key_exist_var_label_, 9, 1, 1, 2);
 
   auto* copyKeyIdButton = new QPushButton(_("Copy"));
   copyKeyIdButton->setFlat(true);
@@ -222,7 +225,9 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   if (key_.IsHasActualAuthenticationCapability())
     actual_usage_steam << _("Auth") << " ";
 
-  actual_usage_var_label_->setText(actual_usage_steam.str().c_str());
+  actual_usage_var_label_->setText(
+      QString::fromStdString(actual_usage_steam.str()));
+  owner_trust_var_label_->setText(QString::fromStdString(key_.GetOwnerTrust()));
 
   std::string key_size_val, key_expire_val, key_create_time_val, key_algo_val,
       key_last_update_val;

@@ -196,6 +196,14 @@
     <string>CompressFiles</string>
    </property>
   </action>
+  <action name="actionOpenWithSystemDefaultApplication">
+   <property name="text">
+    <string>OpenWithSystemDefaultApplication</string>
+   </property>
+   <property name="toolTip">
+    <string>OpenWithSystemDefaultApplication</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../gpgfrontend.qrc"/>

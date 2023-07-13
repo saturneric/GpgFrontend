@@ -41,7 +41,9 @@ GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(std::string name,
 GpgFrontend::UI::GeneralMainWindow::~GeneralMainWindow() = default;
 
 void GpgFrontend::UI::GeneralMainWindow::closeEvent(QCloseEvent *event) {
+  SPDLOG_DEBUG("main window close event caught, event type: {}", event->type());
   slot_save_settings();
+
   QMainWindow::closeEvent(event);
 }
 
@@ -51,6 +53,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
 
     std::string window_state = general_windows_state.Check(
         "window_state", saveState().toBase64().toStdString());
+    SPDLOG_DEBUG("restore main window state: {}", window_state);
 
     // state sets pos & size of dock-widgets
     this->restoreState(
@@ -133,6 +136,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
 
 void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
   try {
+    SPDLOG_DEBUG("save main window state, name: {}", name_);
     SettingsObject general_windows_state(name_ + "_state");
 
     // window position and size

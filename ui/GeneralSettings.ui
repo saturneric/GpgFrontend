@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>643</width>
+    <width>645</width>
     <height>721</height>
    </rect>
   </property>
@@ -35,6 +35,13 @@
            <widget class="QCheckBox" name="clearGpgPasswordCacheCheckBox">
             <property name="text">
              <string>Clear gpg password cache when closing GpgFrontend.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="restoreTextEditorPageCheckBox">
+            <property name="text">
+             <string>Automatically restore unsaved Text Editor pages after an application crash.</string>
             </property>
            </widget>
           </item>
@@ -89,6 +96,33 @@
            <widget class="QLabel" name="langNoteLabel">
             <property name="text">
              <string>NOTE: GpgFrontend will restart automatically if you change the language!</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="dataBox">
+       <property name="title">
+        <string>Data</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_7">
+        <item row="0" column="0">
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <widget class="QPushButton" name="clearAllLogFilesButton">
+            <property name="text">
+             <string>Clear All Log Files</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="clearAllDataObjectsButton">
+            <property name="text">
+             <string>Clear All Data Objects Files</string>
             </property>
            </widget>
           </item>

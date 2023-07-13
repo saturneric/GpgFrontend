@@ -79,6 +79,7 @@ class KeyPairDetailTab : public QWidget {
   QLabel* usage_var_label_;
   QLabel* actual_usage_var_label_;
   QLabel* primary_key_exist_var_label_;
+  QLabel* owner_trust_var_label_;
 
   QLabel* icon_label_;  ///<
   QLabel* exp_label_;   ///<

@@ -231,7 +231,7 @@ void UpdateTab::slot_show_version_status(const SoftwareVersion& version) {
                   "github.")) +
         "</center><center>" + _("Please click") +
         " <a "
-        "href=\"https://www.gpgfrontend.pub/#/downloads\">" +
+        "href=\"https://www.gpgfrontend.bktus.com/#/downloads\">" +
         _("Here") + "</a> " + _("to download the latest stable version.") +
         "</center>");
     upgrade_label_->show();
@@ -254,7 +254,7 @@ void UpdateTab::slot_show_version_status(const SoftwareVersion& version) {
                   "stability, please do not use this version.")) +
         "</center><center>" + _("Please click") +
         " <a "
-        "href=\"https://www.gpgfrontend.pub/#/downloads\">" +
+        "href=\"https://www.gpgfrontend.bktus.com/#/downloads\">" +
         _("Here") + "</a> " + _("to download the latest stable version.") +
         "</center>");
     upgrade_label_->show();

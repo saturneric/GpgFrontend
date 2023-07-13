@@ -1,22 +1,25 @@
-# Quick Start
+# Getting Started
 
-GpgFrontend is cross-platform, which is one of its differences. For your operating system, you'll need to choose
-different ways to lay out GpgFrontend.
+One of the unique features of GpgFrontend is its cross-platform capability.
+Depending on your operating system, the installation process might vary.
 
-## Pre-conditions
+## Prerequisites
 
-**For Windows users or macOS users using Homebrew, you can just skip this section.**
+**If you are a Windows or macOS user with Homebrew, you can skip this section.**
 
-GpgFrontend runs dependent on basic functions provided by GnuPG, so you need to install GnuPG before you can run
-GpgFrontend. Why does GpgFrontend require users to install GnuPG separately? Starting with GnuPG 2.0, GPG relies on
-separate modules to do all of its functions. This requires that when using GPG, these modules all need to be in the
-correct location on your operating system so that the GPG can find them.
+GpgFrontend relies on the basic functions provided by GnuPG. Hence, it is
+necessary to install GnuPG before running GpgFrontend. Starting from GnuPG 2.0,
+GPG operates based on separate modules for all its functionalities. For GPG to
+operate smoothly, these modules must be correctly situated within your operating
+system.
 
-GnuPG is not be able to run in App Sandbox, so this situation has caused GpgFrontend to be temporarily unavailable
-in the Apple Store. I have tried for many times to bundle GnuPG into App Sandbox, but eventually failed.
+Unfortunately, GnuPG cannot operate within an App Sandbox, which is why
+GpgFrontend is currently not available on the Apple Store. I have attempted
+multiple times to integrate GnuPG into the App Sandbox but to no avail.
 
-In general, the latest Linux distributions offer a GnuPG 2.0 environment. You can check by typing `gpg --version` in the
-command line tool. **In general, it is recommended to install versions of GnuPG 2.1 and above.**
+By default, most latest Linux distributions come with a GnuPG 2.0 environment.
+You can verify this by entering `gpg --version` in the command line tool. **As a
+general recommendation, you should install versions of GnuPG 2.2 or higher.**
 
 ## Install & Run Steps
 
