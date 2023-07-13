@@ -3,16 +3,16 @@
 ## What is GpgFrontend?
 
 GpgFrontend is a cross-platform encryption tool that adheres to the OpenPGP
-standard. Its goal is to simplify the use of OpenPGP, making it more accessible
-for individuals to protect their privacy.
+standard. Its objective is to make the use of OpenPGP simpler, thereby enabling
+more individuals to secure their privacy.
 
-## Relationship between OpenPGP(PGP) and GnuPG(GPG)？
+## What's the relationship between OpenPGP(PGP) and GnuPG(GPG)?
 
 OpenPGP is a standard for data encryption and decryption, which is supported by
-GpgFrontend. GnuPG is a cryptographic software that is used for encrypting,
-signing, and managing keys for asymmetric cryptography, and it follows the
-OpenPGP standard. GpgFrontend operates GnuPG at runtime to perform various
-operations such as encryption and decryption.
+GpgFrontend. GnuPG is a cryptographic software that's used for encryption,
+signing, and key management for asymmetric cryptography, and it follows the
+OpenPGP standard. GpgFrontend utilizes GnuPG during its operation to perform
+various tasks such as encryption and decryption.
 
 ## How to obtain and use GpgFrontend?
 
