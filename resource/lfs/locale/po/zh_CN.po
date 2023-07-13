@@ -796,10 +796,6 @@ msgstr "请在执行此操作前选择一个 UID。"
 msgid "Deleting UID"
 msgstr "删除 UID"
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:525
-msgid "Are you sure that you want to delete the following uid?"
-msgstr "您确定要删除以下 uid 吗？"
-
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:543
 msgid "Delete(Revoke) Key Signature"
 msgstr "删除（撤销）密钥签名"
