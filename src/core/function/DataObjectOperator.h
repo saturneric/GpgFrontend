@@ -29,7 +29,6 @@
 #ifndef GPGFRONTEND_DATAOBJECTOPERATOR_H
 #define GPGFRONTEND_DATAOBJECTOPERATOR_H
 
-#include "core/GpgFrontendCore.h"
 #include "core/GpgFunctionObject.h"
 #include "core/function/GlobalSettingStation.h"
 
