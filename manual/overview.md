@@ -46,7 +46,7 @@ aligns with the recommended configurations.
 ### Operating System
 
 GpgFrontend is compatible with major operating systems including Linux, macOS,
-and Windows. Specifically, it requires Windows 10 and later, macOS 10.15 High
+and Windows. Specifically, it recommends Windows 10 and later, macOS 10.15 High
 Sierra and later, and Ubuntu 18.04 LTS or other equivalent Linux distributions.
 
 ### Software Dependencies
