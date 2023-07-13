@@ -29,8 +29,6 @@
 #ifndef GPGFRONTEND_GLOBALSETTINGSTATION_H
 #define GPGFRONTEND_GLOBALSETTINGSTATION_H
 
-#include <sys/_types/_int64_t.h>
-
 #include <filesystem>
 
 #include "GpgFrontendBuildInstallInfo.h"
