@@ -500,14 +500,14 @@ void CommonUtils::AddKey2Favourtie(const GpgKey &key) {
                                           nlohmann::json::array());
   }
   key_array.push_back(key.GetFingerprint());
-  CacheManager::GetInstance().SaveCache("favourite_key_pair", key_array);
+  CacheManager::GetInstance().SaveCache("favourite_key_pair", key_array, true);
 }
 
 void CommonUtils::RemoveKeyFromFavourite(const GpgKey &key) {
   auto key_array = CacheManager::GetInstance().LoadCache("favourite_key_pair");
   if (!key_array.is_array()) {
     CacheManager::GetInstance().SaveCache("favourite_key_pair",
-                                          nlohmann::json::array());
+                                          nlohmann::json::array(), true);
     return;
   }
   auto it = std::find(key_array.begin(), key_array.end(), key.GetFingerprint());

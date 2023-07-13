@@ -42,7 +42,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
   m_key_list_->AddListGroupTab(
       _("Signers"), "signers", KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress,
-      [key_id](const GpgKey& key) -> bool {
+      [key_id](const GpgKey& key, const KeyTable&) -> bool {
         if (key.IsDisabled() || !key.IsHasCertificationCapability() ||
             !key.IsHasMasterKey() || key.IsExpired() || key.IsRevoked() ||
             key_id == key.GetId())
