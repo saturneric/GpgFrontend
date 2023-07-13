@@ -111,40 +111,40 @@ bool GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
         boost::split(tokens, args, boost::is_any_of(" "));
 
         switch (state) {
-          case START:
+          case AS_START:
             if (status == "GET_LINE" && args == "keyedit.prompt")
-              return COMMAND;
-            return ERROR;
-          case COMMAND:
+              return AS_COMMAND;
+            return AS_ERROR;
+          case AS_COMMAND:
             if (status == "GET_LINE" && args == "edit_ownertrust.value") {
-              return VALUE;
+              return AS_VALUE;
             }
-            return ERROR;
-          case VALUE:
+            return AS_ERROR;
+          case AS_VALUE:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return QUIT;
+              return AS_QUIT;
             } else if (status == "GET_BOOL" &&
                        args == "edit_ownertrust.set_ultimate.okay") {
-              return REALLY_ULTIMATE;
+              return AS_REALLY_ULTIMATE;
             }
-            return ERROR;
-          case REALLY_ULTIMATE:
+            return AS_ERROR;
+          case AS_REALLY_ULTIMATE:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return QUIT;
+              return AS_QUIT;
             }
-            return ERROR;
-          case QUIT:
+            return AS_ERROR;
+          case AS_QUIT:
             if (status == "GET_LINE" && args == "keyedit.save.okay") {
-              return SAVE;
+              return AS_SAVE;
             }
-            return ERROR;
-          case ERROR:
+            return AS_ERROR;
+          case AS_ERROR:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return QUIT;
+              return AS_QUIT;
             }
-            return ERROR;
+            return AS_ERROR;
           default:
-            return ERROR;
+            return AS_ERROR;
         };
       };
 
@@ -152,21 +152,21 @@ bool GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
       [trust_level](AutomatonHandelStruct& handler, AutomatonState state) {
         SPDLOG_DEBUG("action_handler state: {}", state);
         switch (state) {
-          case COMMAND:
+          case AS_COMMAND:
             return std::string("trust");
-          case VALUE:
+          case AS_VALUE:
             handler.SetSuccess(true);
             return std::to_string(trust_level);
-          case REALLY_ULTIMATE:
+          case AS_REALLY_ULTIMATE:
             handler.SetSuccess(true);
             return std::string("Y");
-          case QUIT:
+          case AS_QUIT:
             return std::string("quit");
-          case SAVE:
+          case AS_SAVE:
             handler.SetSuccess(true);
             return std::string("Y");
-          case START:
-          case ERROR:
+          case AS_START:
+          case AS_ERROR:
             return std::string("");
           default:
             return std::string("");
@@ -221,12 +221,12 @@ gpgme_error_t GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
   }
 
   AutomatonState next_state = handle_struct->NextState(status_s, args_s);
-  if (next_state == ERROR) {
+  if (next_state == AS_ERROR) {
     SPDLOG_DEBUG("handle struct next state caught error, skipping...");
     return GPG_ERR_FALSE;
   }
 
-  if (next_state == SAVE) {
+  if (next_state == AS_SAVE) {
     handle_struct->SetSuccess(true);
   }
 
