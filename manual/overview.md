@@ -46,8 +46,8 @@ aligns with the recommended configurations.
 ### Operating System
 
 GpgFrontend is compatible with major operating systems including Linux, macOS,
-and Windows. Specifically, it recommends Windows 10 and later, macOS 10.15 High
-Sierra and later, and Ubuntu 18.04 LTS or other equivalent Linux distributions.
+and Windows. Specifically, it recommends Windows 10 and later, macOS 11 and
+later, and Ubuntu 20.04 LTS or other equivalent Linux distributions.
 
 ### Software Dependencies
 
@@ -95,53 +95,53 @@ support some new features of OpenPGP based on it and continue to improve it.
 
 ## Purpose
 
-The aim of GpgFrontend is to enable people worldwide, even those without command
-line or programming experience, to safely transmit information to their desired
-destination. Although free software is a common asset for all humankind, there
-are still many individuals who are unable to benefit from it due to their
-limited knowledge and usage habits. We need to break this cycle. GpgFrontend is
-dedicated to enhancing the ease-of-use and intuitiveness of the free software
-GnuPG, with the ultimate goal of making it accessible to a broader audience.
+GpgFrontend is committed to empowering people globally, especially those without
+command-line or programming expertise, to securely transmit information. While
+free software represents a shared asset for all of humanity, many individuals
+remain unable to leverage it due to limited knowledge or ingrained usage habits.
+Our mission is to break this cycle.
 
-The GpgFrontend project is as open source, and it also insists on using open
-source codes and libraries.
+We are dedicated to improving the user-friendliness and intuitive nature of the
+free software GnuPG, with the primary objective of expanding its reach to a
+wider audience.
+
+As an open-source project, GpgFrontend not only advocates for transparency and
+community participation, but also adheres to using open-source codes and
+libraries.
 
 ### Free forever
 
-GpgFrontend will be free forever, and you don't need to worry about being asked
-to pay a fee to use the software one day.
+GpgFrontend is committed to remaining free of charge indefinitely. You can rest
+assured that you will never be asked to pay a fee to use the software.
 
 ## Source Code
 
-The original code repository of Gpg Frontend is hosted on the server of Codes
-Dream, and each submission will be submitted to the code repository first. You
-can click
-[Here](https://git.codesdream.com/?p=public/main/GpgFrontend.git;a=summary) to
-visit the original code repository and track development progress.
+The primary code repository for GpgFrontend resides on the BKTUS server.
+Every update gets committed here first. You can visit the original [code
+repository](https://repo.stdv.de/?p=public/main/GpgFrontend.git;a=summary) to
+follow our development progress and stay updated on the latest changes.
 
-注意：中国用户请访问[这里](https://git.codesdream.com/main/GpgFrontend.git)
 
 ### License
 
-The source code for GpgFrontend is licensed under the GPL-3.0 license, which
-ensures that GpgFrontend is open-source software. You have the right to exercise
-the rights specified in the license, subject to compliance with the terms of the
-license.
+GpgFrontend's source code is licensed under the GPL-3.0 license, affirming its
+status as open-source software. You are entitled to exercise the rights outlined
+in the license, as long as you adhere to its terms and conditions.
 
-### Contribution
+### Contributing
 
-Furthermore, the addition of new features does not compromise the existing core
-functionality. As an individual, my capabilities are limited. Therefore,
-GpgFrontend welcomes volunteers to contribute to the project. You can file
-issues or submit pull requests through the GitHub platform. Additionally, you
-can submit your questions and code contributions via email. Please feel free to
-send problem reports and patches to me.
+We believe that adding new features shouldn't compromise existing core
+functionality. However, as an individual developer, my abilities are limited.
+Therefore, GpgFrontend warmly welcomes contributors. You can report issues or
+submit pull requests through GitHub. Additionally, questions and code
+contributions can be submitted via email. Feel free to send me your bug reports
+and patches.
 
-## Privacy Guarantee
+## Privacy Assurance
 
-GpgFrontend operates without servers, and does not require servers to be
-operational. While it utilizes the OpenPGP protocol for public key transfers, it
-does not collect or upload any additional information.
+GpgFrontend operates serverlessly, it doesn't require any server to function.
+Although it utilizes the OpenPGP protocol for public key transfers, no
+additional information is collected or uploaded.
 
-For users with elevated security requirements, a version of GpgFrontend will be
-available in the future which will not have internet access capability.
+For users with heightened security needs, a version of GpgFrontend will be made
+available in the future that lacks internet access capabilities.
