@@ -55,6 +55,10 @@ GpgFrontend::GlobalSettingStation::GlobalSettingStation(int channel) noexcept
   SPDLOG_INFO("app locale path: {}", app_locale_path_.u8string());
   SPDLOG_INFO("app conf path: {}", ui_config_path_.u8string());
 
+  SPDLOG_INFO("app log files total size: {}", GetLogFilesSize());
+  SPDLOG_INFO("app data objects files total size: {}",
+              GetDataObjectsFilesSize());
+
   if (!is_directory(app_configure_path_)) create_directory(app_configure_path_);
   if (!is_directory(app_data_path_)) create_directory(app_data_path_);
   if (!is_directory(app_log_path_)) create_directory(app_log_path_);
@@ -91,5 +95,69 @@ GpgFrontend::GlobalSettingStation::GetUISettings() noexcept {
 }
 
 void GpgFrontend::GlobalSettingStation::init_app_secure_key() {}
+
+int64_t GpgFrontend::GlobalSettingStation::get_files_size_at_path(
+    std::filesystem::path path, std::string filename_pattern) const {
+  auto dir = QDir(QString::fromStdString(path.u8string()));
+  QFileInfoList fileList = dir.entryInfoList(
+      QStringList() << QString::fromStdString(filename_pattern), QDir::Files);
+  qint64 totalSize = 0;
+
+  for (const QFileInfo &fileInfo : fileList) {
+    totalSize += fileInfo.size();
+  }
+  return totalSize;
+}
+
+std::string GpgFrontend::GlobalSettingStation::get_human_readable_size(
+    int64_t size) const {
+  double num = size;
+  QStringList list;
+  list << "KB"
+       << "MB"
+       << "GB"
+       << "TB";
+
+  QStringListIterator i(list);
+  QString unit("bytes");
+
+  while (num >= 1024.0 && i.hasNext()) {
+    unit = i.next();
+    num /= 1024.0;
+  }
+  return (QString().setNum(num, 'f', 2) + " " + unit).toStdString();
+}
+
+std::string GpgFrontend::GlobalSettingStation::GetLogFilesSize() const {
+  return get_human_readable_size(
+      get_files_size_at_path(app_log_path_, "*.log"));
+}
+
+std::string GpgFrontend::GlobalSettingStation::GetDataObjectsFilesSize() const {
+  return get_human_readable_size(
+      get_files_size_at_path(app_data_objs_path_, "*"));
+}
+
+void GpgFrontend::GlobalSettingStation::ClearAllLogFiles() const {
+  delete_all_files(app_log_path_, "*.log");
+}
+
+void GpgFrontend::GlobalSettingStation::ClearAllDataObjects() const {
+  delete_all_files(app_data_objs_path_, "*");
+}
+
+void GpgFrontend::GlobalSettingStation::delete_all_files(
+    std::filesystem::path path, std::string filename_pattern) const {
+  auto dir = QDir(QString::fromStdString(path.u8string()));
+
+  // 使用name filters来只选取以.log结尾的文件
+  QStringList logFiles = dir.entryList(
+      QStringList() << QString::fromStdString(filename_pattern), QDir::Files);
+
+  // 遍历并删除所有符合条件的文件
+  for (const auto &file : logFiles) {
+    QFile::remove(dir.absoluteFilePath(file));
+  }
+}
 
 GpgFrontend::GlobalSettingStation::~GlobalSettingStation() noexcept = default;

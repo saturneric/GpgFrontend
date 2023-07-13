@@ -63,6 +63,16 @@ GeneralTab::GeneralTab(QWidget* parent)
       "<b>" + QString(_("NOTE")) + _(": ") + "</b>" +
       _("GpgFrontend will restart automatically if you change the language!"));
 
+  ui_->dataBox->setTitle(_("Data"));
+  ui_->clearAllLogFilesButton->setText(QString::fromStdString(
+      (boost::format(_("Clear All Log (Total Size: %s)")) %
+       GlobalSettingStation::GetInstance().GetLogFilesSize())
+          .str()));
+  ui_->clearAllDataObjectsButton->setText(QString::fromStdString(
+      (boost::format(_("Clear All Data Objects (Total Size: %s)")) %
+       GlobalSettingStation::GetInstance().GetDataObjectsFilesSize())
+          .str()));
+
 #ifdef MULTI_LANG_SUPPORT
   lang_ = SettingsDialog::ListLanguages();
   for (const auto& l : lang_) {
@@ -71,6 +81,31 @@ GeneralTab::GeneralTab(QWidget* parent)
   connect(ui_->langSelectBox, qOverload<int>(&QComboBox::currentIndexChanged),
           this, &GeneralTab::slot_language_changed);
 #endif
+
+  connect(ui_->clearAllLogFilesButton, &QPushButton::clicked, this, [=]() {
+    GlobalSettingStation::GetInstance().ClearAllLogFiles();
+    ui_->clearAllLogFilesButton->setText(QString::fromStdString(
+        (boost::format(_("Clear All Log (Total Size: %s)")) %
+         GlobalSettingStation::GetInstance().GetLogFilesSize())
+            .str()));
+  });
+
+  connect(ui_->clearAllDataObjectsButton, &QPushButton::clicked, this, [=]() {
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(
+        this, _("Confirm"),
+        _("Are you sure you want to clear all data objects?\nThis will result "
+          "in "
+          "loss of all cached form positions, statuses, key servers, etc."),
+        QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+      GlobalSettingStation::GetInstance().ClearAllDataObjects();
+      ui_->clearAllDataObjectsButton->setText(QString::fromStdString(
+          (boost::format(_("Clear All Data Objects (Total Size: %s)")) %
+           GlobalSettingStation::GetInstance().GetDataObjectsFilesSize())
+              .str()));
+    }
+  });
 
   SetSettings();
 }

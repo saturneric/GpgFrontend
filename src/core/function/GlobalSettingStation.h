@@ -29,6 +29,10 @@
 #ifndef GPGFRONTEND_GLOBALSETTINGSTATION_H
 #define GPGFRONTEND_GLOBALSETTINGSTATION_H
 
+#include <sys/_types/_int64_t.h>
+
+#include <filesystem>
+
 #include "GpgFrontendBuildInstallInfo.h"
 #include "core/GpgFrontendCore.h"
 #include "core/GpgFunctionObject.h"
@@ -151,6 +155,14 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
     return app_resource_path_ / "certs";
   }
 
+  [[nodiscard]] std::string GetLogFilesSize() const;
+
+  [[nodiscard]] std::string GetDataObjectsFilesSize() const;
+
+  void ClearAllLogFiles() const;
+
+  void ClearAllDataObjects() const;
+
   /**
    * @brief sync the settings to the file
    *
@@ -166,7 +178,7 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
   std::filesystem::path app_log_path_ =
       app_data_path_ / "logs";  ///< Program Data Location
   std::filesystem::path app_data_objs_path_ =
-      app_data_path_ / "objs";  ///< Object storage path
+      app_data_path_ / "data_objs";  ///< Object storage path
 
 #ifdef LINUX_INSTALL_BUILD
   std::filesystem::path app_resource_path_ =
@@ -200,6 +212,26 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
    *
    */
   void init_app_secure_key();
+
+  /**
+   * @brief
+   *
+   */
+  int64_t get_files_size_at_path(std::filesystem::path path,
+                                 std::string filename_pattern) const;
+
+  /**
+   * @brief
+   *
+   */
+  std::string get_human_readable_size(int64_t size) const;
+
+  /**
+   * @brief
+   *
+   */
+  void delete_all_files(std::filesystem::path path,
+                        std::string filename_pattern) const;
 };
 }  // namespace GpgFrontend
 
