@@ -99,13 +99,13 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
 
   using Command = std::string;
   using AutomatonState = enum {
-    START,
-    COMMAND,
-    VALUE,
-    REALLY_ULTIMATE,
-    SAVE,
-    ERROR,
-    QUIT,
+    AS_START,
+    AS_COMMAND,
+    AS_VALUE,
+    AS_REALLY_ULTIMATE,
+    AS_SAVE,
+    AS_ERROR,
+    AS_QUIT,
   };
 
   struct AutomatonHandelStruct;
@@ -137,7 +137,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
     AutomatonHandelStruct(std::string key_fpr) : key_fpr_(key_fpr) {}
 
    private:
-    AutomatonState current_state_ = START;
+    AutomatonState current_state_ = AS_START;
     AutomatonNextStateHandler next_state_handler_;
     AutomatonActionHandler action_handler_;
     bool success_ = false;
