@@ -39,6 +39,7 @@
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui_KeyList.h"
+#include "widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
 
@@ -57,6 +58,7 @@ void KeyList::init() {
                                        KeyMenuAbility::REFRESH);
   ui_->syncButton->setHidden(~menu_ability_ & KeyMenuAbility::SYNC_PUBLIC_KEY);
   ui_->uncheckButton->setHidden(~menu_ability_ & KeyMenuAbility::UNCHECK_ALL);
+  ui_->searchBarEdit->setHidden(~menu_ability_ & KeyMenuAbility::SEARCH_BAR);
 
   ui_->keyGroupTab->clear();
   popup_menu_ = new QMenu(this);
@@ -87,6 +89,8 @@ void KeyList::init() {
           &KeyList::check_all);
   connect(ui_->syncButton, &QPushButton::clicked, this,
           &KeyList::slot_sync_with_key_server);
+  connect(ui_->searchBarEdit, &QLineEdit::textChanged, this,
+          &KeyList::filter_by_keyword);
   connect(this, &KeyList::SignalRefreshStatusBar, SignalStation::GetInstance(),
           &SignalStation::SignalRefreshStatusBar);
 
@@ -104,12 +108,13 @@ void KeyList::init() {
   ui_->checkALLButton->setText(_("Check ALL"));
   ui_->checkALLButton->setToolTip(
       _("Check all items in the current tab at once"));
+  ui_->searchBarEdit->setPlaceholderText(_("Search for keys..."));
 }
 
-void KeyList::AddListGroupTab(
-    const QString& name, const QString& id, KeyListRow::KeyType selectType,
-    KeyListColumn::InfoType infoType,
-    const std::function<bool(const GpgKey&)>& filter) {
+void KeyList::AddListGroupTab(const QString& name, const QString& id,
+                              KeyListRow::KeyType selectType,
+                              KeyListColumn::InfoType infoType,
+                              const KeyTable::KeyTableFilter filter) {
   SPDLOG_DEBUG("add tab: {}", name.toStdString());
 
   auto key_list = new QTableWidget(this);
@@ -119,6 +124,7 @@ void KeyList::AddListGroupTab(
   key_list->setObjectName(id);
   ui_->keyGroupTab->addTab(key_list, name);
   m_key_tables_.emplace_back(key_list, selectType, infoType, filter);
+  m_key_tables_.back().SetMenuAbility(menu_ability_);
 
   key_list->setColumnCount(7);
   key_list->horizontalHeader()->setSectionResizeMode(
@@ -459,6 +465,7 @@ void KeyList::slot_refresh_ui() {
   SPDLOG_DEBUG("refresh: {}", static_cast<void*>(buffered_keys_list_.get()));
   if (buffered_keys_list_ != nullptr) {
     std::lock_guard<std::mutex> guard(buffered_key_list_mutex_);
+
     for (auto& key_table : m_key_tables_) {
       key_table.Refresh(
           GpgKeyGetter::GetInstance().GetKeysCopy(buffered_keys_list_));
@@ -504,6 +511,20 @@ void KeyList::slot_sync_with_key_server() {
           emit this->SignalRefreshDatabase();
         }
       });
+}
+
+void KeyList::filter_by_keyword() {
+  auto keyword = ui_->searchBarEdit->text();
+  keyword = keyword.trimmed();
+
+  SPDLOG_DEBUG("get new keyword of search bar: {}", keyword.toStdString());
+  for (auto& table : m_key_tables_) {
+    // refresh arguments
+    table.SetFilterKeyword(keyword.toLower().toStdString());
+    table.SetMenuAbility(menu_ability_);
+  }
+  // refresh ui
+  SlotRefreshUI();
 }
 
 void KeyList::uncheck_all() {
@@ -572,8 +593,30 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
 
   while (it != keys->end()) {
     SPDLOG_DEBUG("filtering key id: {}", it->GetId());
+    // filter by search bar's keyword
+    if (ability_ & KeyMenuAbility::SEARCH_BAR && !keyword_.empty()) {
+      auto name = it->GetName();
+      std::transform(name.begin(), name.end(), name.begin(),
+                     [](unsigned char c) { return std::tolower(c); });
+
+      auto email = it->GetEmail();
+      std::transform(email.begin(), email.end(), email.begin(),
+                     [](unsigned char c) { return std::tolower(c); });
+
+      auto comment = it->GetComment();
+      std::transform(comment.begin(), comment.end(), comment.begin(),
+                     [](unsigned char c) { return std::tolower(c); });
+
+      if (name.find(keyword_) == std::string::npos &&
+          email.find(keyword_) == std::string::npos &&
+          comment.find(keyword_) == std::string::npos) {
+        it = keys->erase(it);
+        continue;
+      }
+    }
+
     if (filter_ != nullptr) {
-      if (!filter_(*it)) {
+      if (!filter_(*it, *this)) {
         it = keys->erase(it);
         continue;
       }
@@ -691,5 +734,13 @@ void KeyTable::CheckALL() const {
   for (int i = 0; i < key_list_->rowCount(); i++) {
     key_list_->item(i, 0)->setCheckState(Qt::Checked);
   }
+}
+
+void KeyTable::SetMenuAbility(KeyMenuAbility::AbilityType ability) {
+  this->ability_ = ability;
+}
+
+void KeyTable::SetFilterKeyword(std::string keyword) {
+  this->keyword_ = keyword;
 }
 }  // namespace GpgFrontend::UI

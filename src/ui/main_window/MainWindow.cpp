@@ -35,6 +35,7 @@
 #include "ui/UserInterfaceUtils.h"
 #include "ui/struct/SettingsObject.h"
 #include "ui/thread/VersionCheckTask.h"
+#include "widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
@@ -53,8 +54,10 @@ void MainWindow::Init() noexcept {
     setCentralWidget(edit_);
 
     /* the list of Keys available*/
-    m_key_list_ = new KeyList(
-        KeyMenuAbility::REFRESH | KeyMenuAbility::UNCHECK_ALL, this);
+    m_key_list_ =
+        new KeyList(KeyMenuAbility::REFRESH | KeyMenuAbility::UNCHECK_ALL |
+                        KeyMenuAbility::SEARCH_BAR,
+                    this);
 
     info_board_ = new InfoBoardWidget(this);
 

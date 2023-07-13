@@ -54,7 +54,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       _("Only Public Key"), "only_public_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key) -> bool {
+      [](const GpgKey& key, const KeyTable&) -> bool {
         return !key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
@@ -63,7 +63,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       _("Has Private Key"), "has_private_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key) -> bool {
+      [](const GpgKey& key, const KeyTable&) -> bool {
         return key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
@@ -72,7 +72,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       _("No Primary Key"), "no_primary_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key) -> bool {
+      [](const GpgKey& key, const KeyTable&) -> bool {
         return !key.IsHasMasterKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
@@ -81,13 +81,17 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       _("Revoked"), "revoked", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key) -> bool { return key.IsRevoked(); });
+      [](const GpgKey& key, const KeyTable&) -> bool {
+        return key.IsRevoked();
+      });
 
   key_list_->AddListGroupTab(
       _("Expired"), "expired", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key) -> bool { return key.IsExpired(); });
+      [](const GpgKey& key, const KeyTable&) -> bool {
+        return key.IsExpired();
+      });
 
   setCentralWidget(key_list_);
   key_list_->SetDoubleClickedAction([this](const GpgKey& key, QWidget* parent) {
