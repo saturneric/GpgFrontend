@@ -405,13 +405,13 @@ void KeyPairOperaTab::slot_modify_tofu_policy() {
 void KeyPairOperaTab::slot_set_owner_trust_level() {
   QStringList items;
 
-  items << _("Ultimate") << _("Full") << _("Marginal") << _("Never")
-        << _("Undefined") << _("Unknown");
-
+  items << _("Unknown") << _("Undefined") << _("Never") << _("Marginal")
+        << _("Full") << _("Ultimate");
   bool ok;
-  QString item =
-      QInputDialog::getItem(this, _("Modify Owner Trust Level"),
-                            _("Trust for the Key Pair:"), items, 0, false, &ok);
+  QString item = QInputDialog::getItem(this, _("Modify Owner Trust Level"),
+                                       _("Trust for the Key Pair:"), items,
+                                       m_key_.GetOwnerTrustLevel(), false, &ok);
+
   if (ok && !item.isEmpty()) {
     SPDLOG_DEBUG("selected policy: {}", item.toStdString());
     int trust_level = 0;  // Unknown Level
@@ -426,12 +426,23 @@ void KeyPairOperaTab::slot_set_owner_trust_level() {
     } else if (item == _("Undefined")) {
       trust_level = 1;
     }
+
+    if (trust_level == 0) {
+      QMessageBox::warning(
+          this, _("Warning"),
+          QString(_("Owner Trust Level cannot set to Unknown level, automately "
+                    "changing it into Undefined level.")));
+      trust_level = 1;
+    }
+
     bool status =
         GpgKeyManager::GetInstance().SetOwnerTrustLevel(m_key_, trust_level);
     if (!status) {
       QMessageBox::critical(this, _("Failed"),
                             QString(_("Modify Owner Trust Level failed.")));
     } else {
+      QMessageBox::information(this, _("Success"),
+                               QString(_("Set Owner Trust Level successful.")));
       // update key database and refresh ui
       emit SignalKeyDatabaseRefresh();
     }

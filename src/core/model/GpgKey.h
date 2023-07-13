@@ -102,6 +102,13 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
   /**
    * @brief
    *
+   * @return int
+   */
+  [[nodiscard]] int GetOwnerTrustLevel() const;
+
+  /**
+   * @brief
+   *
    * @return std::string
    */
   [[nodiscard]] std::string GetPublicKeyAlgo() const;
