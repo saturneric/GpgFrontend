@@ -747,6 +747,26 @@ void MainWindow::slot_show_key_details() {
   }
 }
 
+void MainWindow::slot_add_key_2_favourite() {
+  auto key_ids = m_key_list_->GetSelected();
+  if (key_ids->empty()) return;
+
+  auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
+  CommonUtils::GetInstance()->AddKey2Favourtie(key);
+
+  emit SignalUIRefresh();
+}
+
+void MainWindow::slot_remove_key_from_favourite() {
+  auto key_ids = m_key_list_->GetSelected();
+  if (key_ids->empty()) return;
+
+  auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
+  CommonUtils::GetInstance()->RemoveKeyFromFavourite(key);
+
+  emit SignalUIRefresh();
+}
+
 void MainWindow::refresh_keys_from_key_server() {
   auto key_ids = m_key_list_->GetSelected();
   if (key_ids->empty()) return;

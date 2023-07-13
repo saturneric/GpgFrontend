@@ -48,10 +48,10 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   /* the list of Keys available*/
   key_list_ = new KeyList(KeyMenuAbility::ALL, this);
 
-  key_list_->AddListGroupTab(_("All"), KeyListRow::SECRET_OR_PUBLIC_KEY);
+  key_list_->AddListGroupTab(_("All"), "all", KeyListRow::SECRET_OR_PUBLIC_KEY);
 
   key_list_->AddListGroupTab(
-      _("Only Public Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      _("Only Public Key"), "only_public_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool {
@@ -60,7 +60,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       });
 
   key_list_->AddListGroupTab(
-      _("Has Private Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      _("Has Private Key"), "has_private_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool {
@@ -69,7 +69,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       });
 
   key_list_->AddListGroupTab(
-      _("No Primary Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      _("No Primary Key"), "no_primary_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool {
@@ -78,13 +78,13 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       });
 
   key_list_->AddListGroupTab(
-      _("Revoked"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      _("Revoked"), "revoked", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool { return key.IsRevoked(); });
 
   key_list_->AddListGroupTab(
-      _("Expired"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      _("Expired"), "expired", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key) -> bool { return key.IsExpired(); });

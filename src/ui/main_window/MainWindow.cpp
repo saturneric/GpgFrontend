@@ -80,6 +80,9 @@ void MainWindow::Init() noexcept {
             SignalStation::GetInstance(),
             &SignalStation::SignalRestartApplication);
 
+    connect(this, &MainWindow::SignalUIRefresh, SignalStation::GetInstance(),
+            &SignalStation::SignalUIRefresh);
+
     connect(edit_->tab_widget_, &QTabWidget::currentChanged, this,
             &MainWindow::slot_disable_tab_actions);
     connect(SignalStation::GetInstance(),
@@ -96,6 +99,8 @@ void MainWindow::Init() noexcept {
     m_key_list_->AddMenuAction(copy_mail_address_to_clipboard_act_);
     m_key_list_->AddMenuAction(copy_key_default_uid_to_clipboard_act_);
     m_key_list_->AddMenuAction(copy_key_id_to_clipboard_act_);
+    m_key_list_->AddMenuAction(add_key_2_favourtie_act_);
+    m_key_list_->AddMenuAction(remove_key_from_favourtie_act_);
     m_key_list_->AddSeparator();
     m_key_list_->AddMenuAction(show_key_details_act_);
 

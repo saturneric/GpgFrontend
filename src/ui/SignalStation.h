@@ -66,6 +66,12 @@ class SignalStation : public QObject {
   /**
    * @brief
    *
+   */
+  void SignalUIRefresh();
+
+  /**
+   * @brief
+   *
    * @param text
    * @param verify_label_status
    */
