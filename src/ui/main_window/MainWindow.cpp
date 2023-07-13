@@ -29,12 +29,17 @@
 #include "MainWindow.h"
 
 #include "core/GpgConstants.h"
+#include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
+#include "main_window/GeneralMainWindow.h"
+#include "nlohmann/json_fwd.hpp"
+#include "spdlog/spdlog.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/struct/SettingsObject.h"
 #include "ui/thread/VersionCheckTask.h"
+#include "widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
@@ -53,8 +58,10 @@ void MainWindow::Init() noexcept {
     setCentralWidget(edit_);
 
     /* the list of Keys available*/
-    m_key_list_ = new KeyList(
-        KeyMenuAbility::REFRESH | KeyMenuAbility::UNCHECK_ALL, this);
+    m_key_list_ =
+        new KeyList(KeyMenuAbility::REFRESH | KeyMenuAbility::UNCHECK_ALL |
+                        KeyMenuAbility::SEARCH_BAR,
+                    this);
 
     info_board_ = new InfoBoardWidget(this);
 
@@ -80,6 +87,12 @@ void MainWindow::Init() noexcept {
             SignalStation::GetInstance(),
             &SignalStation::SignalRestartApplication);
 
+    connect(this, &MainWindow::SignalUIRefresh, SignalStation::GetInstance(),
+            &SignalStation::SignalUIRefresh);
+    connect(this, &MainWindow::SignalKeyDatabaseRefresh,
+            SignalStation::GetInstance(),
+            &SignalStation::SignalKeyDatabaseRefresh);
+
     connect(edit_->tab_widget_, &QTabWidget::currentChanged, this,
             &MainWindow::slot_disable_tab_actions);
     connect(SignalStation::GetInstance(),
@@ -96,6 +109,10 @@ void MainWindow::Init() noexcept {
     m_key_list_->AddMenuAction(copy_mail_address_to_clipboard_act_);
     m_key_list_->AddMenuAction(copy_key_default_uid_to_clipboard_act_);
     m_key_list_->AddMenuAction(copy_key_id_to_clipboard_act_);
+    m_key_list_->AddMenuAction(set_owner_trust_of_key_act_);
+    m_key_list_->AddMenuAction(add_key_2_favourtie_act_);
+    m_key_list_->AddMenuAction(remove_key_from_favourtie_act_);
+
     m_key_list_->AddSeparator();
     m_key_list_->AddMenuAction(show_key_details_act_);
 
@@ -154,6 +171,9 @@ void MainWindow::Init() noexcept {
         }
       }
     });
+
+    // recover unsaved page from cache if it exists
+    recover_editor_unsaved_pages_from_cache();
 
   } catch (...) {
     SPDLOG_ERROR(_("Critical error occur while loading GpgFrontend."));
@@ -235,6 +255,40 @@ void MainWindow::restore_settings() {
   SPDLOG_DEBUG("settings restored");
 }
 
+void MainWindow::recover_editor_unsaved_pages_from_cache() {
+  auto unsaved_page_array =
+      CacheManager::GetInstance().LoadCache("editor_unsaved_pages");
+
+  if (!unsaved_page_array.is_array() || unsaved_page_array.empty()) {
+    return;
+  }
+
+  SPDLOG_DEBUG("plan ot recover unsaved page from cache, page array: {}",
+               unsaved_page_array.dump());
+
+  bool first = true;
+
+  for (auto &unsaved_page_json : unsaved_page_array) {
+    if (!unsaved_page_json.contains("title") ||
+        !unsaved_page_json.contains("content")) {
+      continue;
+    }
+    std::string title = unsaved_page_json["title"];
+    std::string content = unsaved_page_json["content"];
+
+    SPDLOG_DEBUG(
+        "recovering unsaved page from cache, page title: {}, content size",
+        title, content.size());
+
+    if (first) {
+      edit_->SlotCloseTab();
+      first = false;
+    }
+
+    edit_->SlotNewTabWithContent(title, content);
+  }
+}
+
 void MainWindow::save_settings() {
   bool save_key_checked = GlobalSettingStation::GetInstance().LookupSettings(
       "general.save_key_checked", false);
@@ -277,8 +331,17 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     event->ignore();
   }
 
-  // clear password from memory
-  //  GpgContext::GetInstance().clearPasswordCache();
+  if (event->isAccepted()) {
+    // clear cache of unsaved page
+    CacheManager::GetInstance().SaveCache("editor_unsaved_pages",
+                                          nlohmann::json::array(), true);
+
+    // clear password from memory
+    //  GpgContext::GetInstance().clearPasswordCache();
+
+    // call parent
+    GeneralMainWindow::closeEvent(event);
+  }
 }
 
 }  // namespace GpgFrontend::UI

@@ -34,6 +34,7 @@
 
 #include "core/GpgConstants.h"
 #include "core/common/CoreCommonUtil.h"
+#include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/FileOperator.h"
 #include "core/function/GlobalSettingStation.h"
@@ -189,7 +190,7 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
     msgBox.setText(_("GnuPG Context Loading Failed"));
     msgBox.setInformativeText(
         _("Gnupg(gpg) is not installed correctly, please follow "
-          "<a href='https://www.gpgfrontend.pub/#/"
+          "<a href='https://www.gpgfrontend.bktus.com/#/"
           "faq?id=how-to-deal-with-39env-loading-failed39'>this notes</a>"
           " in FAQ to install Gnupg and then open "
           "GpgFrontend. Or, you can open GnuPG Controller to set a custom "
@@ -479,6 +480,43 @@ void CommonUtils::SlotRestartApplication(int code) {
 
 bool CommonUtils::isApplicationNeedRestart() {
   return application_need_to_restart_at_once_;
+}
+
+bool CommonUtils::KeyExistsinFavouriteList(const GpgKey &key) {
+  // load cache
+  auto key_array = CacheManager::GetInstance().LoadCache("favourite_key_pair");
+  if (!key_array.is_array()) {
+    CacheManager::GetInstance().SaveCache("favourite_key_pair",
+                                          nlohmann::json::array());
+  }
+  return std::find(key_array.begin(), key_array.end(), key.GetFingerprint()) !=
+         key_array.end();
+}
+
+void CommonUtils::AddKey2Favourtie(const GpgKey &key) {
+  auto key_array = CacheManager::GetInstance().LoadCache("favourite_key_pair");
+  if (!key_array.is_array()) {
+    CacheManager::GetInstance().SaveCache("favourite_key_pair",
+                                          nlohmann::json::array());
+  }
+  key_array.push_back(key.GetFingerprint());
+  CacheManager::GetInstance().SaveCache("favourite_key_pair", key_array, true);
+}
+
+void CommonUtils::RemoveKeyFromFavourite(const GpgKey &key) {
+  auto key_array = CacheManager::GetInstance().LoadCache("favourite_key_pair");
+  if (!key_array.is_array()) {
+    CacheManager::GetInstance().SaveCache("favourite_key_pair",
+                                          nlohmann::json::array(), true);
+    return;
+  }
+  auto it = std::find(key_array.begin(), key_array.end(), key.GetFingerprint());
+  if (it != key_array.end()) {
+    auto rm_it =
+        std::remove(key_array.begin(), key_array.end(), key.GetFingerprint());
+    key_array.erase(rm_it, key_array.end());
+    CacheManager::GetInstance().SaveCache("favourite_key_pair", key_array);
+  }
 }
 
 }  // namespace GpgFrontend::UI

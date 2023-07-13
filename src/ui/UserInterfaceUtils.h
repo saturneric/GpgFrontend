@@ -31,6 +31,7 @@
 
 #include "core/GpgModel.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
+#include "core/model/GpgKey.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend {
@@ -149,6 +150,24 @@ class CommonUtils : public QWidget {
    *
    */
   bool isApplicationNeedRestart();
+
+  /**
+   * @brief
+   *
+   */
+  bool KeyExistsinFavouriteList(const GpgKey& key);
+
+  /**
+   * @brief
+   *
+   */
+  void AddKey2Favourtie(const GpgKey& key);
+
+  /**
+   * @brief
+   *
+   */
+  void RemoveKeyFromFavourite(const GpgKey& key);
 
  signals:
   /**

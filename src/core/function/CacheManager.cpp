@@ -29,38 +29,120 @@
 #include "CacheManager.h"
 
 #include <algorithm>
+#include <boost/format.hpp>
+#include <string>
 
 #include "function/DataObjectOperator.h"
-#include "nlohmann/json_fwd.hpp"
 #include "spdlog/spdlog.h"
 
+GpgFrontend::CacheManager::CacheManager(int channel)
+    : m_timer_(new QTimer(this)),
+      SingletonFunctionObject<CacheManager>(channel) {
+  connect(m_timer_, &QTimer::timeout, this, &CacheManager::flush_cache_storage);
+  m_timer_->start(15000);
+
+  load_all_cache_storage();
+}
+
 void GpgFrontend::CacheManager::SaveCache(std::string key,
-                                          const nlohmann::json &value) {
+                                          const nlohmann::json& value,
+                                          bool flush) {
+  auto data_object_key = get_data_object_key(key);
+  cache_storage_.insert(key, value);
+
+  if (std::find(key_storage_.begin(), key_storage_.end(), key) ==
+      key_storage_.end()) {
+    SPDLOG_DEBUG("register new key of cache", key);
+    key_storage_.push_back(key);
+  }
+
+  if (flush) {
+    flush_cache_storage();
+  }
+}
+
+nlohmann::json GpgFrontend::CacheManager::LoadCache(std::string key) {
+  auto data_object_key = get_data_object_key(key);
+
+  SPDLOG_DEBUG("load cache, data object key: {}", data_object_key);
+  if (!cache_storage_.exists(key)) {
+    cache_storage_.insert(key, load_cache_storage(key, {}));
+  }
+
+  auto cache = cache_storage_.get(key);
+  if (cache)
+    return *cache;
+  else
+    return {};
+}
+
+nlohmann::json GpgFrontend::CacheManager::LoadCache(
+    std::string key, nlohmann::json default_value) {
+  auto data_object_key = get_data_object_key(key);
+  if (!cache_storage_.exists(key)) {
+    cache_storage_.insert(key, load_cache_storage(key, default_value));
+  }
+
+  auto cache = cache_storage_.get(key);
+  if (cache)
+    return *cache;
+  else
+    return {};
+}
+
+std::string GpgFrontend::CacheManager::get_data_object_key(std::string key) {
+  return (boost::format("__cache_data_%1%") % key).str();
+}
+
+nlohmann::json GpgFrontend::CacheManager::load_cache_storage(
+    std::string key, nlohmann::json default_value) {
+  auto data_object_key = get_data_object_key(key);
   auto stored_data =
       GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(
-          "__cache_data_list");
+          data_object_key);
+
+  if (stored_data.has_value()) {
+    return stored_data.value();
+  } else {
+    return default_value;
+  }
+}
+
+void GpgFrontend::CacheManager::flush_cache_storage() {
+  for (auto cache : cache_storage_.mirror()) {
+    auto key = get_data_object_key(cache.first);
+    SPDLOG_DEBUG("save cache into filesystem, key {}, value size: {}", key,
+                 cache.second.size());
+    GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(key,
+                                                               cache.second);
+  }
+  GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(drk_key_,
+                                                             key_storage_);
+}
+
+void GpgFrontend::CacheManager::register_cache_key(std::string key) {}
+
+void GpgFrontend::CacheManager::load_all_cache_storage() {
+  SPDLOG_DEBUG("start to load all cache from file system");
+  auto stored_data =
+      GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(drk_key_);
 
   // get cache data list from file system
-  nlohmann::json cache_data_list;
+  nlohmann::json registered_key_list;
   if (stored_data.has_value()) {
-    cache_data_list = std::move(stored_data.value());
+    registered_key_list = std::move(stored_data.value());
   }
 
-  if (!cache_data_list.is_array()) {
-    cache_data_list.clear();
-  }
-
-  if (GpgFrontend::DataObjectOperator::GetInstance()
-          .SaveDataObj(key, value)
-          .empty()) {
+  if (!registered_key_list.is_array()) {
+    GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
+        drk_key_, nlohmann::json::array());
+    SPDLOG_ERROR("drk_key_ is not an array, abort.");
     return;
   }
 
-  if (std::find(cache_data_list.begin(), cache_data_list.end(), key) ==
-      cache_data_list.end()) {
-    cache_data_list.push_back(key);
+  for (auto key : registered_key_list) {
+    load_cache_storage(key, {});
   }
 
-  GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
-      "__cache_data_list", cache_data_list);
+  key_storage_ = registered_key_list;
 }

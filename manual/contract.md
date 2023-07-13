@@ -1,36 +1,39 @@
-# Contract
+# Contact
 
-We do not accept content related to business and politics on this platform, as
-this tool is meant for the benefit of all humanity. However, if you have any
-inquiries or suggestions regarding the technology and improvement of this
-software, please do not hesitate to contact me.
+Please refrain from sharing content related to business and politics on this
+platform, as this tool is designed for the betterment of all humanity. However,
+if you have any technical questions or suggestions for improving the software,
+please feel free to contact me.
 
-Please use plain text to reach out to me via email, as HTML is not preferred.
+Preferably, use plain text when reaching out to me via email, as HTML is not
+preferred.
 
-## About ME
+## About Me
 
-Name: Saturneric, Eric or Erich.
+Name: Saturneric, Eric, or Erich.
 
-Email: [eric@bktus.com](mailto:eric@bktus.com) (Hosted in the Federal Republic of Germany)
+Email: [eric@bktus.com](mailto:eric@bktus.com) (Hosted in the Federal Republic
+of Germany)
 
-Email Content Style: It is recommended to use plain text without HTML style rich text.
+Email Content Style: It is recommended to use plain text without HTML style rich
+text.
 
-About Domain Name: BKTUS(Bakantu union us) is not a company, it is my personal domain name.
+About Domain Name: BKTUS(Bakantu union us) is not a company; it is my personal
+domain name.
 
 ## Languages
 
-You can write to me in following languages.
+You can correspond with me in the following languages:
 
 1. English
 2. Chinese
-3. Deutsch
+3. German (Deutsch)
 
 ## GPG Public Key Info
 
-Here is the PGP public key that I have been using for a long time. You can use
-this public key to establish secure and encrypted communication with me. Please
-use plain text for any encrypted communication and avoid using rich text formats
-such as HTML.
+Here is my long-term PGP public key. You can use this public key to establish
+secure and encrypted communication with me. Please use plain text for any
+encrypted communication and avoid using rich text formats such as HTML.
 
 ```
 -----BEGIN PGP PUBLIC KEY BLOCK-----

@@ -36,18 +36,17 @@ SignersPicker::SignersPicker(QWidget* parent)
   auto confirm_button = new QPushButton(_("Confirm"));
   auto cancel_button = new QPushButton(_("Cancel"));
 
-  connect(confirm_button, &QPushButton::clicked, [=]() {
-    this->accepted_ = true;
-  });
+  connect(confirm_button, &QPushButton::clicked,
+          [=]() { this->accepted_ = true; });
   connect(confirm_button, &QPushButton::clicked, this, &QDialog::accept);
   connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
   /*Setup KeyList*/
   key_list_ = new KeyList(false, this);
   key_list_->AddListGroupTab(
-      _("Signers"), KeyListRow::ONLY_SECRET_KEY,
+      _("Signers"), "signers", KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage,
-      [](const GpgKey& key) -> bool {
+      [](const GpgKey& key, const KeyTable&) -> bool {
         return key.IsHasActualSigningCapability();
       });
   key_list_->SlotRefresh();

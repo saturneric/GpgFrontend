@@ -83,11 +83,11 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   auto* topLabel = new QLabel(
       QString(_("Welcome to use GpgFrontend for decrypting and signing text or "
                 "file!")) +
-      " <br><br><a href='https://gpgfrontend.pub'>GpgFrontend</a> " +
+      " <br><br><a href='https://gpgfrontend.bktus.com'>GpgFrontend</a> " +
       _("is a Powerful, Easy-to-Use, Compact, Cross-Platform, and "
         "Installation-Free OpenPGP Crypto Tool.") +
       _("For brief information have a look at the") +
-      " <a href='https://gpgfrontend.pub/index.html#/overview'>" +
+      " <a href='https://gpgfrontend.bktus.com/index.html#/overview'>" +
       _("Overview") + "</a> (" +
       _("by clicking the link, the page will open in the web browser") +
       "). <br>");
@@ -124,7 +124,9 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
           "If you have never used GpgFrontend before and also don't own a gpg "
           "key yet you "
           "may possibly want to read how to")) +
-      " <a href=\"https://gpgfrontend.pub/index.html#/manual/generate-key\">" +
+      " <a "
+      "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
+      "generate-key\">" +
       _("Generate Key") + "</a><hr>");
   keygenLabel->setTextFormat(Qt::RichText);
   keygenLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -136,11 +138,12 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
           "If you want to learn how to encrypt, decrypt, sign and verify text, "
           "you can read ")) +
       "<a "
-      "href=\"https://gpgfrontend.pub/index.html#/manual/"
+      "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
       "encrypt-decrypt-text\">" +
       _("Encrypt & Decrypt Text") + "</a> " + _("or") +
       " <a "
-      "href=\"https://gpgfrontend.pub/index.html#/manual/sign-verify-text\">" +
+      "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
+      "sign-verify-text\">" +
       _("Sign & Verify Text") + "</a><hr>");
 
   encrDecyTextLabel->setTextFormat(Qt::RichText);
@@ -148,15 +151,16 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
   encrDecyTextLabel->setOpenExternalLinks(true);
   encrDecyTextLabel->setWordWrap(true);
 
-  auto* signVerifyTextLabel = new QLabel(
-      QString(_("If you want to operate file, you can read ")) +
-      "<a "
-      "href=\"https://gpgfrontend.pub/index.html#/manual/"
-      "encrypt-decrypt-file\">" +
-      _("Encrypt & Sign File") + "</a> " + _("or") +
-      " <a "
-      "href=\"https://gpgfrontend.pub/index.html#/manual/sign-verify-file\">" +
-      _("Sign & Verify File") + "</a><hr>");
+  auto* signVerifyTextLabel =
+      new QLabel(QString(_("If you want to operate file, you can read ")) +
+                 "<a "
+                 "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
+                 "encrypt-decrypt-file\">" +
+                 _("Encrypt & Sign File") + "</a> " + _("or") +
+                 " <a "
+                 "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
+                 "sign-verify-file\">" +
+                 _("Sign & Verify File") + "</a><hr>");
   signVerifyTextLabel->setTextFormat(Qt::RichText);
   signVerifyTextLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
   signVerifyTextLabel->setOpenExternalLinks(true);

@@ -29,6 +29,7 @@
 #ifndef __KEYLIST_H__
 #define __KEYLIST_H__
 
+#include <string>
 #include <utility>
 
 #include "core/GpgContext.h"
@@ -78,6 +79,7 @@ struct KeyMenuAbility {
   static constexpr AbilityType SYNC_PUBLIC_KEY = 1 << 1;  ///<
   static constexpr AbilityType UNCHECK_ALL = 1 << 3;      ///<
   static constexpr AbilityType CHECK_ALL = 1 << 5;        ///<
+  static constexpr AbilityType SEARCH_BAR = 1 << 6;       ///<
 };
 
 /**
@@ -85,12 +87,16 @@ struct KeyMenuAbility {
  *
  */
 struct KeyTable {
-  QTableWidget* key_list_;                     ///<
-  KeyListRow::KeyType select_type_;            ///<
-  KeyListColumn::InfoType info_type_;          ///<
-  std::vector<GpgKey> buffered_keys_;          ///<
-  std::function<bool(const GpgKey&)> filter_;  ///<
-  KeyIdArgsListPtr checked_key_ids_;           ///<
+  using KeyTableFilter = std::function<bool(const GpgKey&, const KeyTable&)>;
+
+  QTableWidget* key_list_;               ///<
+  KeyListRow::KeyType select_type_;      ///<
+  KeyListColumn::InfoType info_type_;    ///<
+  std::vector<GpgKey> buffered_keys_;    ///<
+  KeyTableFilter filter_;                ///<
+  KeyIdArgsListPtr checked_key_ids_;     ///<
+  KeyMenuAbility::AbilityType ability_;  ///<
+  std::string keyword_;                  ///<
 
   /**
    * @brief Construct a new Key Table object
@@ -103,7 +109,7 @@ struct KeyTable {
   KeyTable(
       QTableWidget* _key_list, KeyListRow::KeyType _select_type,
       KeyListColumn::InfoType _info_type,
-      std::function<bool(const GpgKey&)> _filter = [](const GpgKey&) -> bool {
+      KeyTableFilter _filter = [](const GpgKey&, const KeyTable&) -> bool {
         return true;
       })
       : key_list_(_key_list),
@@ -143,6 +149,18 @@ struct KeyTable {
    * @param key_ids
    */
   void SetChecked(KeyIdArgsListPtr key_ids);
+
+  /**
+   * @brief
+   *
+   */
+  void SetMenuAbility(KeyMenuAbility::AbilityType ability);
+
+  /**
+   * @brief
+   *
+   */
+  void SetFilterKeyword(std::string keyword);
 };
 
 /**
@@ -171,11 +189,11 @@ class KeyList : public QWidget {
    * @param filter
    */
   void AddListGroupTab(
-      const QString& name,
+      const QString& name, const QString& id,
       KeyListRow::KeyType selectType = KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::InfoType infoType = KeyListColumn::ALL,
-      const std::function<bool(const GpgKey&)>& filter =
-          [](const GpgKey&) -> bool { return true; });
+      const KeyTable::KeyTableFilter filter =
+          [](const GpgKey&, const KeyTable&) -> bool { return true; });
 
   /**
    * @brief Set the Double Clicked Action object
@@ -303,6 +321,12 @@ class KeyList : public QWidget {
    */
   void SlotRefresh();
 
+  /**
+   * @brief
+   *
+   */
+  void SlotRefreshUI();
+
  private:
   /**
    * @brief
@@ -328,6 +352,12 @@ class KeyList : public QWidget {
    *
    */
   void check_all();
+
+  /**
+   * @brief
+   *
+   */
+  void filter_by_keyword();
 
   std::mutex buffered_key_list_mutex_;  ///<
 

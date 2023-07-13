@@ -29,15 +29,83 @@
 #ifndef GPGFRONTEND_CACHEMANAGER_H
 #define GPGFRONTEND_CACHEMANAGER_H
 
+#include <string>
+
+#include "core/GpgFunctionObject.h"
+
 namespace GpgFrontend {
 
-class CacheManager {
+template <typename Key, typename Value>
+class ThreadSafeMap {
  public:
-  static void SaveCache(std::string key, const nlohmann::json &value);
+  using MapType = std::map<Key, Value>;
+  using IteratorType = typename MapType::iterator;
 
-  static nlohmann::json LoadCache(std::string name);
+  void insert(const Key& key, const Value& value) {
+    std::unique_lock lock(mutex_);
+    map_[key] = value;
+  }
 
-  static void ClearAllCache();
+  std::optional<Value> get(const Key& key) {
+    std::shared_lock lock(mutex_);
+    auto it = map_.find(key);
+    if (it != map_.end()) {
+      return it->second;
+    }
+    return std::nullopt;
+  }
+
+  bool exists(const Key& key) {
+    std::shared_lock lock(mutex_);
+    return map_.count(key) > 0;
+  }
+
+  IteratorType begin() { return map_mirror_.begin(); }
+
+  IteratorType end() { return map_mirror_.end(); }
+
+  ThreadSafeMap& mirror() {
+    std::shared_lock lock(mutex_);
+    map_mirror_ = map_;
+    return *this;
+  }
+
+ private:
+  MapType map_mirror_;
+  MapType map_;
+  mutable std::shared_mutex mutex_;
+};
+
+class GPGFRONTEND_CORE_EXPORT CacheManager
+    : public QObject,
+      public SingletonFunctionObject<CacheManager> {
+  Q_OBJECT
+ public:
+  CacheManager(int channel = SingletonFunctionObject::GetDefaultChannel());
+
+  void SaveCache(std::string key, const nlohmann::json& value,
+                 bool flush = false);
+
+  nlohmann::json LoadCache(std::string key);
+
+  nlohmann::json LoadCache(std::string key, nlohmann::json default_value);
+
+ private:
+  std::string get_data_object_key(std::string key);
+
+  nlohmann::json load_cache_storage(std::string key,
+                                    nlohmann::json default_value);
+
+  void load_all_cache_storage();
+
+  void flush_cache_storage();
+
+  void register_cache_key(std::string key);
+
+  ThreadSafeMap<std::string, nlohmann::json> cache_storage_;
+  nlohmann::json key_storage_;
+  QTimer* m_timer_;
+  const std::string drk_key_ = "__cache_manage_data_register_key_list";
 };
 
 }  // namespace GpgFrontend

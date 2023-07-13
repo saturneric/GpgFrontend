@@ -72,7 +72,7 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
 
   ASSERT_EQ(key.name(), "GpgFrontendTest");
   ASSERT_TRUE(key.comment().empty());
-  ASSERT_EQ(key.email(), "gpgfrontend@gpgfrontend.pub");
+  ASSERT_EQ(key.email(), "gpgfrontend@gpgfrontend.bktus.com");
   ASSERT_EQ(key.id(), "81704859182661FB");
   ASSERT_EQ(key.fpr(), "9490795B78F8AFE9F93BD09281704859182661FB");
   ASSERT_EQ(key.expires(),
@@ -129,8 +129,8 @@ TEST_F(GpgCoreTest, GpgUIDTest) {
 
   ASSERT_EQ(uid.name(), "GpgFrontendTest");
   ASSERT_TRUE(uid.comment().empty());
-  ASSERT_EQ(uid.email(), "gpgfrontend@gpgfrontend.pub");
-  ASSERT_EQ(uid.uid(), "GpgFrontendTest <gpgfrontend@gpgfrontend.pub>");
+  ASSERT_EQ(uid.email(), "gpgfrontend@gpgfrontend.bktus.com");
+  ASSERT_EQ(uid.uid(), "GpgFrontendTest <gpgfrontend@gpgfrontend.bktus.com>");
   ASSERT_FALSE(uid.invalid());
   ASSERT_FALSE(uid.revoked());
 }
@@ -148,7 +148,7 @@ TEST_F(GpgCoreTest, GpgKeySignatureTest) {
 
   ASSERT_EQ(signature.name(), "GpgFrontendTest");
   ASSERT_TRUE(signature.comment().empty());
-  ASSERT_EQ(signature.email(), "gpgfrontend@gpgfrontend.pub");
+  ASSERT_EQ(signature.email(), "gpgfrontend@gpgfrontend.bktus.com");
   ASSERT_EQ(signature.keyid(), "81704859182661FB");
   ASSERT_EQ(signature.pubkey_algo(), "RSA");
 
@@ -156,7 +156,8 @@ TEST_F(GpgCoreTest, GpgKeySignatureTest) {
   ASSERT_FALSE(signature.invalid());
   ASSERT_EQ(GpgFrontend::check_gpg_error_2_err_code(signature.status()),
             GPG_ERR_NO_ERROR);
-  ASSERT_EQ(signature.uid(), "GpgFrontendTest <gpgfrontend@gpgfrontend.pub>");
+  ASSERT_EQ(signature.uid(),
+            "GpgFrontendTest <gpgfrontend@gpgfrontend.bktus.com>");
 }
 
 TEST_F(GpgCoreTest, GpgKeyGetterTest) {

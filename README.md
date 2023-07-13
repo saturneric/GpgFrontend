@@ -11,25 +11,29 @@
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_small)
 [![Build & Package](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml)
 
-GpgFrontend is a Free, Open Source, Powerful, Easy-to-Use, Compact, Cross-Platform [OpenPGP](https://www.openpgp.org/)
-Crypt Tool. Also, it's one of the excellent GUI Frontends for Modern [GnuPG](https://www.gnupg.org/) (gpg).
+GpgFrontend is a free, open-source, robust yet user-friendly, compact and
+cross-platform tool for [OpenPGP](https://www.openpgp.org/) encryption. It
+stands out as an exceptional GUI frontend for the modern
+[GnuPG](https://www.gnupg.org/) (gpg).
 
-By using GpgFrontend,
+When using GpgFrontend, you can:
 
-- You can quickly make encrypted files or texts.
-- You can digitally sign your texts or files.
-- You can easily manage all your GPG keys on your machine.
-- You can easily and safely transfer all your GPG keys between your machines.
-- Furthermore, you can build and run it on Windows, macOS, Linux, FreeBSD, etc.
+- Rapidly encrypt files or text.
+- Digitally sign your files or text with ease.
+- Conveniently manage all your GPG keys on your device.
+- Transfer all your GPG keys between devices safely and effortlessly.
+- Furthermore, you can build and run it on various operating systems, including
+  Windows, macOS, Linux, FreeBSD, and more.
 
-GpgFrontend is **PERMANENTLY FREE**, but you can also "DONATE" it through STAR this project. Thanks!
+GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
+"starring" this project. Your contributions are highly appreciated!
 
 [Languages Supported](#languages-support) by GpgFrontend including English, Chinese, French, Russian, German, Spanish, Portuguese, Arabic, etc.
 
 [>> Download <<](https://github.com/saturneric/GpgFrontend/releases/latest)
-| [>> User Manual <<](https://www.gpgfrontend.pub/#/overview)
-| [>> Developer Document <<](https://doxygen.gpgfrontend.pub/)
-| [>> Develop Code Repo <<](https://git.codesdream.com/?p=public/main/GpgFrontend.git;a=summary)
+| [>> User Manual <<](https://www.gpgfrontend.bktus.com/#/overview)
+| [>> Developer Document <<](https://doxygen.gpgfrontend.bktus.com/)
+| [>> Develop Code Repo <<](https://repo.stdv.de/?p=public/main/GpgFrontend.git;a=summary)
 
 <img src="https://github.com/saturneric/Blob/blob/master/screenshots/main-ubuntu.png?raw=true" alt="Ubuntu Main Screenshot"/>
 
@@ -37,6 +41,7 @@ GpgFrontend is **PERMANENTLY FREE**, but you can also "DONATE" it through STAR t
 
 - [Usage](#usage)
 - [User Manual](#user-manual)
+- [System Requirement](#system-requirement)
 - [Developer Document](#developer-document)
 - [Build From Source Code](#build-from-source-code)
 - [Languages Support](#languages-support)
@@ -45,8 +50,9 @@ GpgFrontend is **PERMANENTLY FREE**, but you can also "DONATE" it through STAR t
 
 ## Usage
 
-Here are some common usages to help you understand what GpgFrontend does. The interface
-presented here may not be exactly the same as the latest stable release.
+Here are some typical use cases to provide you with a better understanding of
+GpgFrontend's functionalities. Please note that the interface showcased here may
+not exactly mirror the latest stable release.
 
 ### Text Encryption & Decryption
 
@@ -67,14 +73,69 @@ What about files?
 ## User Manual
 
 GpgFrontend provides documentations on its main features. If you want to know how to install, please
-read the [User Manual](https://www.gpgfrontend.pub/#/quick-start) instead of README.
+read the [User Manual](https://www.gpgfrontend.bktus.com/#/quick-start) instead of README.
+
+## System Requirement
+
+Before proceeding with the installation and usage of GpgFrontend, it's crucial
+to understand the system requirements that ensure optimal performance. This
+section provides comprehensive details about the necessary software
+dependencies, hardware specifications, and the compatible operating systems.
+Meeting these requirements will ensure a smooth, efficient experience while
+using GpgFrontend.
+
+Please read the following subsections carefully to confirm that your system
+aligns with the recommended configurations.
+
+### Operating System
+
+GpgFrontend is compatible with major operating systems including Linux, macOS,
+and Windows. Specifically, it recommends Windows 10 and later, macOS 11 and
+later, and Ubuntu 20.04 LTS or other equivalent Linux distributions.
+
+### Software Dependencies
+
+Qt5 or Later: GpgFrontend is developed using the Qt framework. Therefore, a
+runtime of Qt5 or later is required for the software to function correctly.
+Please note, the Qt5 runtime is integrated into the Release Package for Linux,
+macOS, and Windows, so it generally does not need to be considered separately.
+This allows for easier setup and ensures compatibility across different systems.
+
+GnuPG: As the frontend for GnuPG, GpgFrontend requires GnuPG (version 2.2.0 or
+higher) to be pre-installed in your system. Please note, GpgFrontend is not
+compatible with GnuPG 1.x versions. Users employing earlier versions of GnuPG 2
+may encounter some unforeseen issues. We strongly recommend updating to the
+supported versions to ensure a seamless experience.
+
+### Hardware
+
+While the specific hardware requirements largely depend on the size and
+complexity of the data you're working with, we generally recommend:
+
+A computer with at least 1 GB of RAM. However, 2 GB or more is preferable for
+smoother performance. The majority of these resources are allocated to your
+operating system, but around 100 MB of memory is needed to ensure the smooth
+running of GpgFrontend. At least 200 MB of free disk space for software
+installation. Additional space will be needed for ongoing work.
+
+Please note, these requirements are intended to be guidelines rather than strict
+rules. It's possible that GpgFrontend will work on lower-spec hardware, but for
+optimal performance, the above specifications are recommended.
+
+### Network
+
+Although not necessary for basic operation, an active Internet connection may be
+required for software updates and accessing online help resources.
+
+Please note that these are the minimal requirements that we tested, and actual
+requirements for your use case could be higher, especially for large datasets.
 
 ## Developer Document
 
 You can view the developer documentations that is synchronized with the current latest develop code. This document will
 help you understand the source code and get involved more quickly in the process of contributing to open source.
 
-[Developer Document](https://doxygen.gpgfrontend.pub)
+[Developer Document](https://doxygen.gpgfrontend.bktus.com)
 
 ## Build From Source Code
 
@@ -215,26 +276,59 @@ $ chmod u+x linuxdeployqt-continuous-x86_64.AppImage
 $ ./linuxdeployqt-continuous-x86_64.AppImage ../release/gpgfrontend/usr/share/applications/*.desktop -appimage
 ```
 
-## Languages Support
+## Language Support
 
-The supported languages are listed here. Some languages use machine translation and have not been verified. If you want
-to join translation and verification work, please refer to [HERE](https://gpgfrontend.pub/#/translate-interface).
+Listed below are the languages currently supported by GpgFrontend. Please be
+aware that some of these languages are translated via machine translation and
+may not have been manually verified for accuracy. If you are interested in
+joining our translation and verification work, please refer to [this
+link](https://gpgfrontend.bktus.com/#/translate-interface).
 
 ### Supported Languages
 
-'zh_CN', 'zh_TW', 'zh_HK', 'es_ES', 'fr_FR', 'de_DE', 'pl_PL', 'ru_RU', 'ja_JP', 'it_IT',
-'ko_KR', 'pt_BR', 'ar_SA', 'ar_IQ', 'hi_IN', 'af_ZA', 'sq_AL', 'be_BY', 'bg_BG', 'ca_ES',
-'hr_HR', 'cs_CZ', 'da_DK', 'nl_NL', 'et_EE', 'fa_IR', 'fi_FI', 'fr_CA', 'he_IL', 'id_ID',
-'lt_LT', 'de_AT', 'de_CH', 'el_GR', 'es_MX', 'iw_IL', 'uk_UA', 'en_US', 'en_GB', 'en_AU',
+GpgFrontend currently supports a wide array of languages including:
 
-Notice: Most translations are generated by Google's automatic translation
-machine. If you find that a certain translation is wrong, you are welcome to
-[join the translation work](https://www.gpgfrontend.pub/#/translate-interface)
-to provide a more suitable human translation.
+- Chinese (Simplified): 'zh_CN'
+- Chinese (Traditional): 'zh_TW', 'zh_HK'
+- Spanish: 'es_ES', 'es_MX'
+- French: 'fr_FR', 'fr_CA'
+- German: 'de_DE', 'de_AT', 'de_CH'
+- Polish: 'pl_PL'
+- Russian: 'ru_RU'
+- Japanese: 'ja_JP'
+- Italian: 'it_IT'
+- Korean: 'ko_KR'
+- Brazilian Portuguese: 'pt_BR'
+- Arabic: 'ar_SA', 'ar_IQ'
+- Hindi: 'hi_IN'
+- Afrikaans: 'af_ZA'
+- Albanian: 'sq_AL'
+- Belarusian: 'be_BY'
+- Bulgarian: 'bg_BG'
+- Catalan: 'ca_ES'
+- Croatian: 'hr_HR'
+- Czech: 'cs_CZ'
+- Danish: 'da_DK'
+- Dutch: 'nl_NL'
+- Estonian: 'et_EE'
+- Persian: 'fa_IR'
+- Finnish: 'fi_FI'
+- Hebrew: 'he_IL', 'iw_IL'
+- Indonesian: 'id_ID'
+- Lithuanian: 'lt_LT'
+- Greek: 'el_GR'
+- Ukrainian: 'uk_UA'
+- English: 'en_US', 'en_GB', 'en_AU'
+
+**Notice:** Please note that most translations are generated by Google's
+automatic translation service. If you find an error in any of the translations,
+we welcome you to [join our translation
+work](https://www.gpgfrontend.bktus.com/#/translate-interface) to provide a more
+accurate human translation.
 
 ## Contract
 
-Please refer to [HERE](https://www.gpgfrontend.pub/#/contract) for my contact details.
+Please refer to [HERE](https://www.gpgfrontend.bktus.com/#/contract) for my contact details.
 
 ### Contributing & Bugs Report
 
@@ -255,29 +349,23 @@ GpgFrontend itself is licensed under the [GPLv3](COPYING).
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_large)
 
-### Dependencies
+### Dependencies and Acknowledgements
 
-There are some libraries and binary included in the zip-file which (may) have different licenses, for more information
-check their homepages. You can also obtain the sources from there.
+GpgFrontend incorporates various libraries and binaries that come with their
+unique licenses. For additional details or to obtain the source code, please
+visit their respective homepages:
 
-gnupg: https://gnupg.org
+- **GnuPG**: [https://gnupg.org](https://gnupg.org)
+- **GPGME**: [https://gnupg.org/software/gpgme/index.html](https://gnupg.org/software/gpgme/index.html)
+- **Qt (Open Source)**: [https://www.qt.io](https://www.qt.io)
+- **MSYS2**: [https://www.msys2.org](https://www.msys2.org)
+- **Mingw-w64**: [http://mingw-w64.org/doku.php](http://mingw-w64.org/doku.php)
+- **AppImage**: [https://appimage.org](https://appimage.org)
+- **JSON for Modern C++**: [https://github.com/nlohmann/json](https://github.com/nlohmann/json)
+- **Qt-AES**: [https://github.com/saturneric/Qt-AES](https://github.com/saturneric/Qt-AES)
+- **macOS Application Bundles**: [Link](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
 
-gpgme: https://gnupg.org/software/gpgme/index.html
-
-Qt(opensource): https://www.qt.io
-
-MSYS2: https://www.msys2.org
-
-mingw-w64: http://mingw-w64.org/doku.php
-
-AppImage: https://appimage.org
-
-JSON for Modern C++: https://github.com/nlohmann/json
-
-Qt-AES: https://github.com/saturneric/Qt-AES
-
-macOS Application Bundles: [Link](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
-
-The icons of this software use materials from [Alibaba Iconfont](!https://www.iconfont.cn/). The Alibaba vector icon
-library is free to use. The icons in the free library aren't registered as trademarks. There is no copyright issue
-involved and can be used commercially.
+The icons utilized in this software are sourced from [Alibaba
+Iconfont](https://www.iconfont.cn/). This vector icon library is free of use,
+isn't registered as a trademark, has no copyright issues, and can be
+commercially utilized.

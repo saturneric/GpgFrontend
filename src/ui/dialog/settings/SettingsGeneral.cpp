@@ -48,6 +48,9 @@ GeneralTab::GeneralTab(QWidget* parent)
       _("Save checked private keys on exit and restore them on next start."));
   ui_->clearGpgPasswordCacheCheckBox->setText(
       _("Clear gpg password cache when closing GpgFrontend."));
+  ui_->restoreTextEditorPageCheckBox->setText(
+      _("Automatically restore unsaved Text Editor pages after an application "
+        "crash."));
 
   ui_->importConfirmationBox->setTitle(_("Operation"));
   ui_->longerKeyExpirationDateCheckBox->setText(
@@ -60,6 +63,16 @@ GeneralTab::GeneralTab(QWidget* parent)
       "<b>" + QString(_("NOTE")) + _(": ") + "</b>" +
       _("GpgFrontend will restart automatically if you change the language!"));
 
+  ui_->dataBox->setTitle(_("Data"));
+  ui_->clearAllLogFilesButton->setText(QString::fromStdString(
+      (boost::format(_("Clear All Log (Total Size: %s)")) %
+       GlobalSettingStation::GetInstance().GetLogFilesSize())
+          .str()));
+  ui_->clearAllDataObjectsButton->setText(QString::fromStdString(
+      (boost::format(_("Clear All Data Objects (Total Size: %s)")) %
+       GlobalSettingStation::GetInstance().GetDataObjectsFilesSize())
+          .str()));
+
 #ifdef MULTI_LANG_SUPPORT
   lang_ = SettingsDialog::ListLanguages();
   for (const auto& l : lang_) {
@@ -68,6 +81,31 @@ GeneralTab::GeneralTab(QWidget* parent)
   connect(ui_->langSelectBox, qOverload<int>(&QComboBox::currentIndexChanged),
           this, &GeneralTab::slot_language_changed);
 #endif
+
+  connect(ui_->clearAllLogFilesButton, &QPushButton::clicked, this, [=]() {
+    GlobalSettingStation::GetInstance().ClearAllLogFiles();
+    ui_->clearAllLogFilesButton->setText(QString::fromStdString(
+        (boost::format(_("Clear All Log (Total Size: %s)")) %
+         GlobalSettingStation::GetInstance().GetLogFilesSize())
+            .str()));
+  });
+
+  connect(ui_->clearAllDataObjectsButton, &QPushButton::clicked, this, [=]() {
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(
+        this, _("Confirm"),
+        _("Are you sure you want to clear all data objects?\nThis will result "
+          "in "
+          "loss of all cached form positions, statuses, key servers, etc."),
+        QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+      GlobalSettingStation::GetInstance().ClearAllDataObjects();
+      ui_->clearAllDataObjectsButton->setText(QString::fromStdString(
+          (boost::format(_("Clear All Data Objects (Total Size: %s)")) %
+           GlobalSettingStation::GetInstance().GetDataObjectsFilesSize())
+              .str()));
+    }
+  });
 
   SetSettings();
 }
@@ -95,6 +133,15 @@ void GeneralTab::SetSettings() {
       ui_->clearGpgPasswordCacheCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
     SPDLOG_ERROR("setting operation error: clear_gpg_password_cache");
+  }
+
+  try {
+    bool restore_text_editor_page =
+        settings.lookup("general.restore_text_editor_page");
+    if (restore_text_editor_page)
+      ui_->restoreTextEditorPageCheckBox->setCheckState(Qt::Checked);
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: restore_text_editor_page");
   }
 
   try {
@@ -168,6 +215,14 @@ void GeneralTab::ApplySettings() {
   else {
     general["clear_gpg_password_cache"] =
         ui_->saveCheckedKeysCheckBox->isChecked();
+  }
+
+  if (!general.exists("restore_text_editor_page"))
+    general.add("restore_text_editor_page", libconfig::Setting::TypeBoolean) =
+        ui_->restoreTextEditorPageCheckBox->isChecked();
+  else {
+    general["restore_text_editor_page"] =
+        ui_->restoreTextEditorPageCheckBox->isChecked();
   }
 
 #ifdef MULTI_LANG_SUPPORT

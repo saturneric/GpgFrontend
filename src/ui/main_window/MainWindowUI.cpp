@@ -418,6 +418,27 @@ void MainWindow::create_actions() {
   connect(show_key_details_act_, &QAction::triggered, this,
           &MainWindow::slot_show_key_details);
 
+  add_key_2_favourtie_act_ = new QAction(_("Add To Favourite"), this);
+  add_key_2_favourtie_act_->setToolTip(_("Add this key to Favourite Table"));
+  add_key_2_favourtie_act_->setData(QVariant("add_key_2_favourite_action"));
+  connect(add_key_2_favourtie_act_, &QAction::triggered, this,
+          &MainWindow::slot_add_key_2_favourite);
+
+  remove_key_from_favourtie_act_ =
+      new QAction(_("Remove From Favourite"), this);
+  remove_key_from_favourtie_act_->setToolTip(
+      _("Remove this key from Favourite Table"));
+  remove_key_from_favourtie_act_->setData(
+      QVariant("remove_key_from_favourtie_action"));
+  connect(remove_key_from_favourtie_act_, &QAction::triggered, this,
+          &MainWindow::slot_remove_key_from_favourite);
+
+  set_owner_trust_of_key_act_ = new QAction(_("Set Owner Trust Level"), this);
+  set_owner_trust_of_key_act_->setToolTip(_("Set Owner Trust Level"));
+  set_owner_trust_of_key_act_->setData(QVariant("set_owner_trust_level"));
+  connect(set_owner_trust_of_key_act_, &QAction::triggered, this,
+          &MainWindow::slot_set_owner_trust_level_of_key);
+
   /* Key-Shortcuts for Tab-Switchung-Action
    */
   switch_tab_up_act_ = new QAction(this);
@@ -591,27 +612,35 @@ void MainWindow::create_dock_windows() {
   addDockWidget(Qt::RightDockWidgetArea, key_list_dock_);
 
   m_key_list_->AddListGroupTab(
-      _("Default"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      _("Default"), "default", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key) -> bool {
+      [](const GpgKey& key, const KeyTable&) -> bool {
         return !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   m_key_list_->AddListGroupTab(
-      _("Only Public Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      _("Favourite"), "favourite", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key) -> bool {
+      [](const GpgKey& key, const KeyTable&) -> bool {
+        return CommonUtils::GetInstance()->KeyExistsinFavouriteList(key);
+      });
+
+  m_key_list_->AddListGroupTab(
+      _("Only Public Key"), "only_public_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
+      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
+          KeyListColumn::Usage | KeyListColumn::Validity,
+      [](const GpgKey& key, const KeyTable&) -> bool {
         return !key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   m_key_list_->AddListGroupTab(
-      _("Has Private Key"), KeyListRow::SECRET_OR_PUBLIC_KEY,
+      _("Has Private Key"), "has_private_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key) -> bool {
+      [](const GpgKey& key, const KeyTable&) -> bool {
         return key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
