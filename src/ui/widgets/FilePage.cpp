@@ -360,12 +360,13 @@ void FilePage::slot_open_item() {
 
 void FilePage::slot_open_item_by_system_application() {
   QFileInfo info(QString::fromStdString(selected_path_.u8string()));
+  auto q_selected_path = QString::fromStdString(selected_path_.u8string());
   if (info.isDir()) {
     const auto file_path = info.filePath().toUtf8().toStdString();
-    QDesktopServices::openUrl(QUrl::fromLocalFile(file_path.c_str()));
+    QDesktopServices::openUrl(QUrl::fromLocalFile(q_selected_path));
 
   } else {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(selected_path_.c_str()));
+    QDesktopServices::openUrl(QUrl::fromLocalFile(q_selected_path));
   }
 }
 
