@@ -77,6 +77,13 @@
             </property>
            </spacer>
           </item>
+          <item>
+           <widget class="QLineEdit" name="searchBarEdit">
+            <property name="maxLength">
+             <number>32</number>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
