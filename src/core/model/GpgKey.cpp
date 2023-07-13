@@ -93,6 +93,24 @@ std::string GpgFrontend::GpgKey::GetOwnerTrust() const {
   return "Invalid";
 }
 
+int GpgFrontend::GpgKey::GetOwnerTrustLevel() const {
+  switch (key_ref_->owner_trust) {
+    case GPGME_VALIDITY_UNKNOWN:
+      return 0;
+    case GPGME_VALIDITY_UNDEFINED:
+      return 1;
+    case GPGME_VALIDITY_NEVER:
+      return 2;
+    case GPGME_VALIDITY_MARGINAL:
+      return 3;
+    case GPGME_VALIDITY_FULL:
+      return 4;
+    case GPGME_VALIDITY_ULTIMATE:
+      return 5;
+  }
+  return 0;
+}
+
 std::string GpgFrontend::GpgKey::GetPublicKeyAlgo() const {
   return gpgme_pubkey_algo_name(key_ref_->subkeys->pubkey_algo);
 }
