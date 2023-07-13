@@ -2,10 +2,10 @@ name: Doxygen Generation
 
 on:
   push:
-    branches: [ main, 'develop-**', 'dev/**' ]
+    branches: [ main, 'develop', 'dev/**' ]
     paths-ignore:
       - 'resource/locale/template/**'
-      - 'docs/**'
+      - 'manual/**'
       - '**.md'
 
 jobs:
