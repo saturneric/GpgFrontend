@@ -544,7 +544,7 @@ msgstr "实际使用"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:83
 msgid "Owner Trust Level"
-msgstr "业主信任度"
+msgstr "所有者信级别"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:84
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:75
@@ -1056,7 +1056,7 @@ msgstr "未知"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:806
 #: /home/eric/develop/cpp/GpgFrontend/src/core/model/GpgKey.cpp:83
 msgid "Undefined"
-msgstr "不明确的"
+msgstr "不明确"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:408
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:424
@@ -1080,7 +1080,7 @@ msgstr "边缘"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:800
 #: /home/eric/develop/cpp/GpgFrontend/src/core/model/GpgKey.cpp:89
 msgid "Full"
-msgstr "满的"
+msgstr "完全"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:409
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:418
@@ -1088,7 +1088,7 @@ msgstr "满的"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:798
 #: /home/eric/develop/cpp/GpgFrontend/src/core/model/GpgKey.cpp:91
 msgid "Ultimate"
-msgstr "最终的"
+msgstr "终极"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:411
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:791
@@ -3211,7 +3211,7 @@ msgstr "类型"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:168
 msgid "Trust"
-msgstr "相信"
+msgstr "信任"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:168
 msgid "Finger Print"
