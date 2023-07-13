@@ -2,16 +2,16 @@ name: Build Linux Packages
 
 on:
   push:
-    branches: [ main, 'develop-**', 'dev/**' ]
+    branches: [ main, 'develop', 'dev/**' ]
     paths-ignore:
       - 'resource/locale/template/**'
-      - 'docs/**'
+      - 'manual/**'
       - '**.md'
   pull_request:
-    branches: [ 'develop-**', 'dev/**' ]
+    branches: [ 'develop', 'dev/**' ]
     paths-ignore:
       - 'resource/locale/template/**'
-      - 'docs/**'
+      - 'manual/**'
       - '**.md'
 
 env:
