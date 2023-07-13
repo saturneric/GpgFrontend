@@ -433,6 +433,12 @@ void MainWindow::create_actions() {
   connect(remove_key_from_favourtie_act_, &QAction::triggered, this,
           &MainWindow::slot_remove_key_from_favourite);
 
+  set_owner_trust_of_key_act_ = new QAction(_("Set Owner Trust Level"), this);
+  set_owner_trust_of_key_act_->setToolTip(_("Set Owner Trust Level"));
+  set_owner_trust_of_key_act_->setData(QVariant("set_owner_trust_level"));
+  connect(set_owner_trust_of_key_act_, &QAction::triggered, this,
+          &MainWindow::slot_set_owner_trust_level_of_key);
+
   /* Key-Shortcuts for Tab-Switchung-Action
    */
   switch_tab_up_act_ = new QAction(this);

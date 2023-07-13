@@ -33,6 +33,9 @@
 #include <tuple>
 #include <vector>
 
+#include "core/function/CacheManager.h"
+#include "core/function/GlobalSettingStation.h"
+#include "nlohmann/json_fwd.hpp"
 #include "spdlog/spdlog.h"
 
 namespace GpgFrontend::UI {
@@ -68,6 +71,33 @@ void TextEdit::SlotNewTab() {
           this, &TextEdit::SlotShowModified);
   connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
           this, &TextEdit::slot_save_status_to_cache_for_revovery);
+}
+
+void TextEdit::SlotNewTabWithContent(std::string title,
+                                     const std::string& content) {
+  QString header = _("untitled") + QString::number(++count_page_) + ".txt";
+  if (!title.empty()) {
+    // modify title
+    if (!title.empty() && title[0] == '*') {
+      title.erase(0, 1);
+    }
+    // set title
+    header = QString::fromStdString(title);
+  }
+
+  auto* page = new PlainTextEditorPage();
+  auto index = tab_widget_->addTab(page, header);
+  tab_widget_->setTabIcon(index, QIcon(":file.png"));
+  tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
+  page->GetTextPage()->setFocus();
+  connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
+          this, &TextEdit::SlotShowModified);
+  connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
+          this, &TextEdit::slot_save_status_to_cache_for_revovery);
+
+  // set content with modified status
+  page->GetTextPage()->document()->setPlainText(
+      QString::fromStdString(content));
 }
 
 void TextEdit::slotNewHelpTab(const QString& title, const QString& path) const {
@@ -599,15 +629,29 @@ void TextEdit::slot_file_page_path_changed(const QString& path) const {
 }
 
 void TextEdit::slot_save_status_to_cache_for_revovery() {
-  SPDLOG_DEBUG("catch text page modified event, count: {}",
-               text_page_data_modified_count_);
-  if (this->text_page_data_modified_count_++ % 3 != 0) return;
+  if (this->text_page_data_modified_count_++ % 8 != 0) return;
 
-#ifdef DEBUG
+  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  bool restore_text_editor_page = false;
+  try {
+    restore_text_editor_page =
+        settings.lookup("general.restore_text_editor_page");
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: restore_text_editor_page");
+  }
+
+  if (!restore_text_editor_page) {
+    SPDLOG_DEBUG("restore_text_editor_page is false, ignoring...");
+    return;
+  }
+
   int tab_count = tab_widget_->count();
-  SPDLOG_DEBUG("current tabs count {}", tab_count);
+  SPDLOG_DEBUG(
+      "restore_text_editor_page is true, pan to save pages, current tabs "
+      "count: "
+      "{}",
+      tab_count);
 
-  std::vector<std::pair<int, std::string>> saved_pages;
   std::vector<std::tuple<int, std::string, std::string>> unsaved_pages;
 
   for (int i = 0; i < tab_count; i++) {
@@ -623,11 +667,6 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
     auto tab_title = tab_widget_->tabText(i).toStdString();
     if (!target_page->ReadDone() || !target_page->isEnabled() ||
         !document->isModified()) {
-      auto file_path = target_page->GetFilePath().toStdString();
-      SPDLOG_DEBUG("saved page index: {}, tab title: {} tab file path: {}", i,
-                   tab_title, file_path);
-
-      saved_pages.push_back({i, file_path});
       continue;
     }
 
@@ -636,7 +675,20 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
                  tab_title, raw_text.size());
     unsaved_pages.push_back({i, tab_title, raw_text});
   }
-#endif
+
+  nlohmann::json unsaved_page_array = nlohmann::json::array();
+  for (const auto& page : unsaved_pages) {
+    nlohmann::json page_json;
+    page_json["index"] = std::get<0>(page);
+    page_json["title"] = std::get<1>(page);
+    page_json["content"] = std::get<2>(page);
+
+    unsaved_page_array.push_back(page_json);
+  }
+
+  SPDLOG_DEBUG("unsaved page json array: {}", unsaved_page_array.dump());
+  CacheManager::GetInstance().SaveCache("editor_unsaved_pages",
+                                        unsaved_page_array);
 }
 
 }  // namespace GpgFrontend::UI

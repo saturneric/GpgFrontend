@@ -102,6 +102,11 @@ class MainWindow : public GeneralMainWindow {
    */
   void SignalUIRefresh();
 
+  /**
+   * @brief
+   */
+  void SignalKeyDatabaseRefresh();
+
  public slots:
 
   /**
@@ -322,6 +327,11 @@ class MainWindow : public GeneralMainWindow {
    */
   void slot_remove_key_from_favourite();
 
+  /**
+   * @details
+   */
+  void slot_set_owner_trust_level_of_key();
+
  private:
   /**
    * @details Create actions for the main-menu and the context-menu of the
@@ -363,6 +373,11 @@ class MainWindow : public GeneralMainWindow {
    * @details Load settings from ini-file.
    */
   void restore_settings();
+
+  /**
+   * @details
+   */
+  void recover_editor_unsaved_pages_from_cache();
 
   /**
    * @details Save settings to ini-file.
@@ -438,6 +453,7 @@ class MainWindow : public GeneralMainWindow {
 
   QAction* add_key_2_favourtie_act_{};        ///<
   QAction* remove_key_from_favourtie_act_{};  ///<
+  QAction* set_owner_trust_of_key_act_{};     ///<
 
   QAction* open_key_management_act_{};   ///< Action to open key management
   QAction* copy_act_{};                  ///< Action to copy text
