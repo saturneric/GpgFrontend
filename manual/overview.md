@@ -33,28 +33,50 @@ Please check the corresponding program release version for the document.
 
 ## System Requirement
 
+Before proceeding with the installation and usage of GpgFrontend, it's crucial
+to understand the system requirements that ensure optimal performance. This
+section provides comprehensive details about the necessary software
+dependencies, hardware specifications, and the compatible operating systems.
+Meeting these requirements will ensure a smooth, efficient experience while
+using GpgFrontend.
+
+Please read the following subsections carefully to confirm that your system
+aligns with the recommended configurations.
+
 ### Operating System
 
 GpgFrontend is compatible with major operating systems including Linux, macOS,
-and Windows. Specifically, it requires Windows 7 and later, macOS 10.13 High
+and Windows. Specifically, it requires Windows 10 and later, macOS 10.15 High
 Sierra and later, and Ubuntu 18.04 LTS or other equivalent Linux distributions.
 
 ### Software Dependencies
 
 Qt5 or Later: GpgFrontend is developed using the Qt framework. Therefore, a
 runtime of Qt5 or later is required for the software to function correctly.
+Please note, the Qt5 runtime is integrated into the Release Package for Linux,
+macOS, and Windows, so it generally does not need to be considered separately.
+This allows for easier setup and ensures compatibility across different systems.
 
-GnuPG: As the frontend for GnuPG, it requires GnuPG (version 2.2.0 or higher) to
-be pre-installed in the system.
+GnuPG: As the frontend for GnuPG, GpgFrontend requires GnuPG (version 2.2.0 or
+higher) to be pre-installed in your system. Please note, GpgFrontend is not
+compatible with GnuPG 1.x versions. Users employing earlier versions of GnuPG 2
+may encounter some unforeseen issues. We strongly recommend updating to the
+supported versions to ensure a seamless experience.
 
 ### Hardware
 
-While specific hardware requirements largely depend on the size and complexity
-of the data you are working with, we generally recommend:
+While the specific hardware requirements largely depend on the size and
+complexity of the data you're working with, we generally recommend:
 
-A computer with at least 1 GB of RAM, but preferably 2 GB or more for smoother
-performance. At least 200 MB of free disk space for the software installation,
-and additional space for ongoing work.
+A computer with at least 1 GB of RAM. However, 2 GB or more is preferable for
+smoother performance. The majority of these resources are allocated to your
+operating system, but around 100 MB of memory is needed to ensure the smooth
+running of GpgFrontend. At least 200 MB of free disk space for software
+installation. Additional space will be needed for ongoing work.
+
+Please note, these requirements are intended to be guidelines rather than strict
+rules. It's possible that GpgFrontend will work on lower-spec hardware, but for
+optimal performance, the above specifications are recommended.
 
 ### Network
 
