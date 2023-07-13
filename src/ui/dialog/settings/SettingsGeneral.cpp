@@ -48,6 +48,9 @@ GeneralTab::GeneralTab(QWidget* parent)
       _("Save checked private keys on exit and restore them on next start."));
   ui_->clearGpgPasswordCacheCheckBox->setText(
       _("Clear gpg password cache when closing GpgFrontend."));
+  ui_->restoreTextEditorPageCheckBox->setText(
+      _("Automatically restore unsaved Text Editor pages after an application "
+        "crash."));
 
   ui_->importConfirmationBox->setTitle(_("Operation"));
   ui_->longerKeyExpirationDateCheckBox->setText(
@@ -95,6 +98,15 @@ void GeneralTab::SetSettings() {
       ui_->clearGpgPasswordCacheCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
     SPDLOG_ERROR("setting operation error: clear_gpg_password_cache");
+  }
+
+  try {
+    bool restore_text_editor_page =
+        settings.lookup("general.restore_text_editor_page");
+    if (restore_text_editor_page)
+      ui_->restoreTextEditorPageCheckBox->setCheckState(Qt::Checked);
+  } catch (...) {
+    SPDLOG_ERROR("setting operation error: restore_text_editor_page");
   }
 
   try {
@@ -168,6 +180,14 @@ void GeneralTab::ApplySettings() {
   else {
     general["clear_gpg_password_cache"] =
         ui_->saveCheckedKeysCheckBox->isChecked();
+  }
+
+  if (!general.exists("restore_text_editor_page"))
+    general.add("restore_text_editor_page", libconfig::Setting::TypeBoolean) =
+        ui_->restoreTextEditorPageCheckBox->isChecked();
+  else {
+    general["restore_text_editor_page"] =
+        ui_->restoreTextEditorPageCheckBox->isChecked();
   }
 
 #ifdef MULTI_LANG_SUPPORT
