@@ -28,7 +28,7 @@ When using GpgFrontend, you can:
 GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
 "starring" this project. Your contributions are highly appreciated!
 
-[Languages Supported](#languages-support) by GpgFrontend including English, Chinese, French, Russian, German, Spanish, Portuguese, Arabic, etc.
+[Language Supported](#language-support) by GpgFrontend including English, Chinese, French, Russian, German, Spanish, Portuguese, Arabic, etc.
 
 [>> Download <<](https://github.com/saturneric/GpgFrontend/releases/latest)
 | [>> User Manual <<](https://www.gpgfrontend.bktus.com/#/overview)
@@ -44,9 +44,9 @@ GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
 - [System Requirement](#system-requirement)
 - [Developer Document](#developer-document)
 - [Build From Source Code](#build-from-source-code)
-- [Languages Support](#languages-support)
+- [Language Support](#language-support)
 - [Contract](#contract)
-- [Licenses](#LICENSES)
+- [Licenses](#licenses)
 
 ## Usage
 
