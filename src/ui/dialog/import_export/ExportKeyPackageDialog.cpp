@@ -53,6 +53,10 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     auto file_name = QFileDialog::getSaveFileName(
         this, _("Export Key Package"), ui_->nameValueLabel->text() + ".gfepack",
         QString(_("Key Package")) + " (*.gfepack);;All Files (*)");
+
+    // check path
+    if (file_name.isEmpty()) return;
+
     ui_->outputPathLabel->setText(file_name);
   });
 
@@ -61,6 +65,9 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
         this, _("Export Key Package Passphrase"),
         ui_->nameValueLabel->text() + ".key",
         QString(_("Key File")) + " (*.key);;All Files (*)");
+
+    // check path
+    if (file_name.isEmpty()) return;
 
     if (!KeyPackageOperator::GeneratePassphrase(file_name.toStdString(),
                                                 passphrase_)) {

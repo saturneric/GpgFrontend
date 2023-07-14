@@ -561,7 +561,6 @@ KeyIdArgsListPtr& KeyTable::GetChecked() {
   auto& ret = checked_key_ids_;
   for (int i = 0; i < buffered_keys_.size(); i++) {
     auto key_id = buffered_keys_[i].GetId();
-    SPDLOG_DEBUG("i: {} key_id: {}", i, key_id);
     if (key_list_->item(i, 0)->checkState() == Qt::Checked &&
         std::find(ret->begin(), ret->end(), key_id) == ret->end()) {
       ret->push_back(key_id);
@@ -592,7 +591,6 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
   int row_count = 0;
 
   while (it != keys->end()) {
-    SPDLOG_DEBUG("filtering key id: {}", it->GetId());
     // filter by search bar's keyword
     if (ability_ & KeyMenuAbility::SEARCH_BAR && !keyword_.empty()) {
       auto name = it->GetName();
@@ -621,7 +619,7 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
         continue;
       }
     }
-    SPDLOG_DEBUG("adding key id: {}", it->GetId());
+
     if (select_type_ == KeyListRow::ONLY_SECRET_KEY && !it->IsPrivateKey()) {
       it = keys->erase(it);
       continue;
@@ -703,9 +701,6 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
       tmp2->setFont(strike);
       tmp3->setFont(strike);
     }
-
-    SPDLOG_DEBUG("key id: {} added into key_list_: {}", it->GetId(),
-                 static_cast<void*>(this));
 
     // move to buffered keys
     buffered_keys_.emplace_back(std::move(*it));
