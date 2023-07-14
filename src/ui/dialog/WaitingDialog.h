@@ -30,6 +30,7 @@
 #define __UI_WAITING_DIALOG_H__
 
 #include "ui/GpgFrontendUI.h"
+#include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -37,7 +38,7 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class WaitingDialog : public QDialog {
+class WaitingDialog : public GeneralDialog {
   Q_OBJECT
  public:
   /**
