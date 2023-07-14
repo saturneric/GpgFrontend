@@ -78,12 +78,9 @@ GpgFrontend::KeyLinkListPtr GpgFrontend::GpgKeyGetter::FetchKey() {
   // get the lock
   std::lock_guard<std::mutex> lock(keys_cache_mutex_);
 
-  SPDLOG_DEBUG("channel id: {}", GetChannel());
-
   auto keys_list = std::make_unique<GpgKeyLinkList>();
 
   for (const auto& [key, value] : keys_cache_) {
-    SPDLOG_DEBUG("fetch key id: {}", value.GetId());
     keys_list->push_back(value.Copy());
   }
   return keys_list;
@@ -118,8 +115,6 @@ void GpgFrontend::GpgKeyGetter::FlushKeyCache() {
         gpg_key = GetKey(gpg_key.GetId(), false);
       }
 
-      SPDLOG_DEBUG("load key fpr: {} id: {}", gpg_key.GetFingerprint(),
-                   gpg_key.GetId());
       keys_cache_.insert({gpg_key.GetId(), std::move(gpg_key)});
     }
   }

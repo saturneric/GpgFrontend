@@ -103,7 +103,48 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::SetExpire(
  * @return the process doing this job
  */
 void GpgFrontend::GpgKeyOpera::GenerateRevokeCert(
-    const GpgKey& key, const std::string& output_file_name) {}
+    const GpgKey& key, const std::string& output_file_path) {
+  // get all components
+  GpgCommandExecutor::GetInstance().Execute(
+      ctx_.GetInfo().AppPath,
+      {"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o",
+       output_file_path, "--gen-revoke", key.GetFingerprint().c_str()},
+      [=](int exit_code, const std::string& p_out, const std::string& p_err) {
+        if (exit_code != 0) {
+          SPDLOG_ERROR(
+              "gnupg gen revoke execute error, process stderr: {}, process "
+              "stdout: {}",
+              p_err, p_out);
+        } else {
+          SPDLOG_DEBUG(
+              "gnupg gen revoke exit_code: {}, process stdout size: {}",
+              exit_code, p_out.size());
+        }
+      },
+      [](QProcess* proc) -> void {
+        // Code From Gpg4Win
+        while (proc->canReadLine()) {
+          const QString line = QString::fromUtf8(proc->readLine()).trimmed();
+          SPDLOG_DEBUG("line: {}", line.toStdString());
+          if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
+            proc->write("y\n");
+          } else if (line == QLatin1String("[GNUPG:] GET_LINE "
+                                           "ask_revocation_reason.code")) {
+            proc->write("0\n");
+          } else if (line == QLatin1String("[GNUPG:] GET_LINE "
+                                           "ask_revocation_reason.text")) {
+            proc->write("\n");
+          } else if (line == QLatin1String(
+                                 "[GNUPG:] GET_BOOL openfile.overwrite.okay")) {
+            // We asked before
+            proc->write("y\n");
+          } else if (line == QLatin1String("[GNUPG:] GET_BOOL "
+                                           "ask_revocation_reason.okay")) {
+            proc->write("y\n");
+          }
+        }
+      });
+}
 
 /**
  * Generate a new key pair
