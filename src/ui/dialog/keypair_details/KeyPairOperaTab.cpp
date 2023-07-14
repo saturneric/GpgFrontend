@@ -333,34 +333,10 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
 
   if (dialog.exec()) m_output_file_name = dialog.selectedFiles().front();
 
-  if (!m_output_file_name.isEmpty())
-    CommonUtils::GetInstance()->SlotExecuteGpgCommand(
-        {"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o",
-         m_output_file_name, "--gen-revoke", m_key_.GetFingerprint().c_str()},
-        [](QProcess* proc) -> void {
-          // Code From Gpg4Win
-          while (proc->canReadLine()) {
-            const QString line = QString::fromUtf8(proc->readLine()).trimmed();
-            SPDLOG_DEBUG("line: {}", line.toStdString());
-            if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
-              proc->write("y\n");
-            } else if (line == QLatin1String("[GNUPG:] GET_LINE "
-                                             "ask_revocation_reason.code")) {
-              proc->write("0\n");
-            } else if (line == QLatin1String("[GNUPG:] GET_LINE "
-                                             "ask_revocation_reason.text")) {
-              proc->write("\n");
-            } else if (line ==
-                       QLatin1String(
-                           "[GNUPG:] GET_BOOL openfile.overwrite.okay")) {
-              // We asked before
-              proc->write("y\n");
-            } else if (line == QLatin1String("[GNUPG:] GET_BOOL "
-                                             "ask_revocation_reason.okay")) {
-              proc->write("y\n");
-            }
-          }
-        });
+  if (!m_output_file_name.isEmpty()) {
+    GpgKeyOpera::GetInstance().GenerateRevokeCert(
+        m_key_, m_output_file_name.toStdString());
+  }
 }
 
 void KeyPairOperaTab::slot_modify_password() {
