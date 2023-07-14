@@ -60,10 +60,13 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
               general_windows_state.Check("window_size").Check("height", 0);
       SPDLOG_DEBUG("stored dialog size, width: {}, height: {}", width, height);
 
+      QRect target_rect_ = {pos.x(), pos.y(), width, height};
+      SPDLOG_DEBUG("dialog stored target rect, width: {}, height: {}", width,
+                   height);
+
       // check for valid
-      if (width > 0 && height > 0) {
-        this->resize(width, height);
-        this->move(pos);
+      if (width > 0 && height > 0 && screen_rect_.contains(target_rect_)) {
+        this->setGeometry(target_rect_);
         this->rect_restored_ = true;
       }
     }
@@ -101,17 +104,17 @@ void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
 }
 
 void GpgFrontend::UI::GeneralDialog::setPosCenterOfScreen() {
-  auto *screen = QGuiApplication::primaryScreen();
-  QRect geo = screen->availableGeometry();
-  int screen_width = geo.width();
-  int screen_height = geo.height();
+  update_rect_cache();
 
-  SPDLOG_DEBUG("primary screen available geometry", screen_width,
+  int screen_width = screen_rect_.width();
+  int screen_height = screen_rect_.height();
+  SPDLOG_DEBUG("dialog current screen available geometry", screen_width,
                screen_height);
 
   // update rect of current dialog
   rect_ = this->geometry();
-  this->move(geo.center() - rect_.center());
+  this->move(screen_rect_.center() -
+             QPoint(rect_.width() / 2, rect_.height() / 2));
 }
 
 /**
@@ -155,6 +158,9 @@ void GpgFrontend::UI::GeneralDialog::movePosition2CenterOfParent() {
 void GpgFrontend::UI::GeneralDialog::update_rect_cache() {
   // update size of current dialog
   rect_ = this->geometry();
+
+  auto *screen = this->window()->screen();
+  screen_rect_ = screen->availableGeometry();
 
   // read pos and size from parent
   if (this->parent() != nullptr) {
