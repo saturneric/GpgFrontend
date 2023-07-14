@@ -89,6 +89,7 @@ class GeneralDialog : public QDialog {
   std::string name_;  ///<
   QRect rect_;
   QRect parent_rect_;
+  QRect screen_rect_;
   bool rect_restored_ = false;
 };
 }  // namespace GpgFrontend::UI
