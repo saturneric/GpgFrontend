@@ -57,6 +57,18 @@ class GeneralDialog : public QDialog {
    */
   void movePosition2CenterOfParent();
 
+  /**
+   * @brief
+   *
+   */
+  [[nodiscard]] bool isRectRestored();
+
+  /**
+   * @brief
+   *
+   */
+  void showEvent(QShowEvent* event) override;
+
  private slots:
   /**
    *
@@ -69,11 +81,15 @@ class GeneralDialog : public QDialog {
   void slot_save_settings() noexcept;
 
  private:
+  /**
+   *
+   */
+  void update_rect_cache();
+
   std::string name_;  ///<
-  QPoint pos_;        ///<
-  QSize size_;        ///<
-  QPoint parent_pos_;
-  QSize parent_size_;
+  QRect rect_;
+  QRect parent_rect_;
+  bool rect_restored_ = false;
 };
 }  // namespace GpgFrontend::UI
 
