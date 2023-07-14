@@ -64,7 +64,6 @@ void GpgFrontend::CacheManager::SaveCache(std::string key,
 nlohmann::json GpgFrontend::CacheManager::LoadCache(std::string key) {
   auto data_object_key = get_data_object_key(key);
 
-  SPDLOG_DEBUG("load cache, data object key: {}", data_object_key);
   if (!cache_storage_.exists(key)) {
     cache_storage_.insert(key, load_cache_storage(key, {}));
   }

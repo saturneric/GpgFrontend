@@ -86,8 +86,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param key
    * @param output_file_name
    */
-  static void GenerateRevokeCert(const GpgKey& key,
-                                 const std::string& output_file_name);
+  void GenerateRevokeCert(const GpgKey& key,
+                          const std::string& output_file_name);
 
   /**
    * @brief
