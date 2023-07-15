@@ -35,11 +35,8 @@ GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
 | [>> Developer Document <<](https://doxygen.gpgfrontend.bktus.com/)
 | [>> Develop Code Repo <<](https://repo.stdv.de/?p=public/main/GpgFrontend.git;a=summary)
 
-<img src="https://github.com/saturneric/Blob/blob/master/screenshots/main-ubuntu.png?raw=true" alt="Ubuntu Main Screenshot"/>
-
 ## Table of Contents
 
-- [Usage](#usage)
 - [User Manual](#user-manual)
 - [System Requirement](#system-requirement)
 - [Developer Document](#developer-document)
@@ -47,28 +44,6 @@ GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
 - [Language Support](#language-support)
 - [Contract](#contract)
 - [Licenses](#licenses)
-
-## Usage
-
-Here are some typical use cases to provide you with a better understanding of
-GpgFrontend's functionalities. Please note that the interface showcased here may
-not exactly mirror the latest stable release.
-
-### Text Encryption & Decryption
-
-Encryption can be done in just a few clicks.
-
-![GIF](https://github.com/saturneric/Blob/blob/master/gif/encrypt-sign.gif?raw=true)
-
-Paste the text, and just click decryption.
-
-![GIF](https://github.com/saturneric/Blob/blob/master/gif/decrypt-verify.gif?raw=true)
-
-### File Encryption & Sign
-
-What about files?
-
-![GIF](https://github.com/saturneric/Blob/blob/master/gif/encr-sign-file.gif?raw=true)
 
 ## User Manual
 
