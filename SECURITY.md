@@ -2,12 +2,12 @@
 
 ## Supported Versions
 
-The application white check mark is still in support, without it means there
-version will no longer have an update including security fixture. That's because
-currently I have a job and a hard learning plain, which means I don't have too
-much time to dealing with this project now, sincerely, I am sorry for that.
-Maybe this situation will get better in the future. So it is recommended to use
-the latest version.
+Only versions with a white check mark are currently being supported. Versions
+without it will no longer receive updates, including security fixes. This is
+primarily due to my existing commitments to work and learning, leaving me with
+limited time to dedicate to this project. I sincerely apologize for any
+inconvenience this may cause. The situation may improve in the future. Hence,
+it's recommended to always use the latest version of the application.
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -17,37 +17,39 @@ the latest version.
 
 ## Platform & Library Support
 
-According to security concern and my limiting time to contributing, GpgFrontend
-will gradually drop the support of some old platforms. Furthermore, GpgFrontend
-will try to use newer libraries when it's more secure or taking another
-advantages.
+In light of security considerations and limited time available for contribution,
+GpgFrontend will gradually cease to support certain older platforms.
+Furthermore, GpgFrontend will aim to utilize newer and more secure libraries
+whenever possible.
 
-Starting from v1.0.0, x32 operating system was no longer support. Mainly because
-I have limit time and the fact that x32 machine is getting less and less in the
-pc market, so I plan to stop spending tons of time dealing with lots of complex
-problem which might made me crazy. x64 is just enough, or you can use gpg4usb.
+As of version v1.0.0, we no longer support x32 operating systems. This decision
+stems from time constraints and the dwindling usage of x32 machines in the PC
+market. Consequently, I plan to cease dealing with complex issues associated
+with this system. x64 should suffice for most users, or alternatively, gpg4usb
+can be used.
 
-Starting from v2.0.1, Ubuntu 16.04 was no longer support. Mainly because Ubuntu
-16.04 LTS's lifetime had come into an end at during that time. Keep using this
-version of Ubuntu is not safe anymore.
+As of version v2.0.1, we no longer support Ubuntu 16.04, as the LTS life cycle
+of this version had ended by then. Continuing to use this version of Ubuntu is
+therefore not safe.
 
-Starting from v2.1.0, macOS 10.15 was no longer support. Mainly because this OS
-will no longer support by GitHub Action in the near future. Also, I think this
-version is old enough to drop it out, and Apple might not longer to support it
-soon.
+From version v2.1.0 onwards, we no longer support macOS 10.15, due to its
+impending discontinuation by GitHub Action. Considering its age, and the
+likelihood of Apple discontinuing support soon, it seems prudent to drop it.
 
-Starting from v2.1.1, Ubuntu 18.04 is no longer support. Mainly because Ubuntu
-18.04 is not support by GitHub Action any more since April 3. So, all the build
-will move to Qt6, since Ubuntu 20.04 is supported by Qt6.
+As of version v2.1.1, we no longer support Ubuntu 18.04, as it isn't supported
+by GitHub Action since April 3rd. Thus, all builds will transition to Qt6, since
+Ubuntu 20.04 is compatible with Qt6.
 
-Starting from v2.1.2, Qt5 API will be removed from source, which means that the
-whole project will use Qt6 API and won't be able to compile under Qt5. I will
-consider removing deb package build.
+Starting from v2.1.2, the Qt5 API will be removed from the source code. This
+implies that the entire project will now utilize the Qt6 API and will no longer
+compile under Qt5. Consideration is being given to removing the deb package
+build as well.
 
 ## Reporting a Vulnerability
 
-If you want to report a vulnerability, it's not good to raise an issue in
-public. You should email eric@bktus.com to contract me. In the email, You can
-describe the vulnerability you have just discovered and request a hot-fix. Or
-you can just provide a git patch to fix it and send it to me using the email.
-This is a better way to solve the vulnerability as quick as possible.
+In case you wish to report a vulnerability, please avoid raising an issue
+publicly. Instead, contact me directly via email at eric@bktus.com. In your
+email, please describe the vulnerability you've discovered and request a hot-fix
+if necessary. Alternatively, you could create a git patch to resolve the issue
+and send it to me via email. This approach would expedite the resolution of any
+vulnerabilities.

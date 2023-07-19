@@ -263,8 +263,7 @@ link](https://gpgfrontend.bktus.com/#/translate-interface).
 
 GpgFrontend currently supports a wide array of languages including:
 
-- Chinese (Simplified): 'zh_CN'
-- Chinese (Traditional): 'zh_TW', 'zh_HK'
+- Chinese
 - Spanish: 'es_ES', 'es_MX'
 - French: 'fr_FR', 'fr_CA'
 - German: 'de_DE', 'de_AT', 'de_CH'
