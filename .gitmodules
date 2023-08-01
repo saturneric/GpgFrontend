@@ -1,24 +1,24 @@
 [submodule "third_party/gpgme"]
 	path = third_party/gpgme
-	url = https://git.bktus.com/GnuPG/gpgme.git
+	url = https://git.bktus.com/gnupg/gpgme.git
 [submodule "third_party/libassuan"]
 	path = third_party/libassuan
-	url = https://git.bktus.com/GnuPG/libassuan.git
+	url = https://git.bktus.com/gnupg/libassuan.git
 [submodule "third_party/libgpg-error"]
 	path = third_party/libgpg-error
-	url = https://git.bktus.com/GnuPG/libgpg-error.git
+	url = https://git.bktus.com/gnupg/libgpg-error.git
 [submodule "third_party/json"]
 	path = third_party/json
-	url = https://git.bktus.com/GpgFrontend/json.git
+	url = https://git.bktus.com/gpgfrontend/json.git
 [submodule "third_party/qt-aes"]
 	path = third_party/qt-aes
-	url = https://git.bktus.com/GpgFrontend/Qt-AES.git
+	url = https://git.bktus.com/gpgfrontend/Qt-AES.git
 [submodule "third_party/libarchive"]
 	path = third_party/libarchive
-	url = https://git.bktus.com/GpgFrontend/libarchive.git
+	url = https://git.bktus.com/gpgfrontend/libarchive.git
 [submodule "third_party/libconfig"]
 	path = third_party/libconfig
-	url = https://git.bktus.com/GpgFrontend/libconfig.git
+	url = https://git.bktus.com/gpgfrontend/libconfig.git
 [submodule "third_party/spdlog"]
 	path = third_party/spdlog
-	url = https://git.bktus.com/GpgFrontend/spdlog.git
+	url = https://git.bktus.com/gpgfrontend/spdlog.git
