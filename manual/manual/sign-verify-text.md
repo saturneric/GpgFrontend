@@ -14,7 +14,7 @@ By signing the text, you can show that you are the only and unchangeable
 certification with this text. You can just sign the text without encrypting the
 text like the following.
 
-![Peek 2022-01-12 06-50](_media/sign-verify-text/Peek-2022-01-12-06-50.gif)
+![Peek 2022-01-12 06-50](https://www.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-06-50.gif)
 
 To check whether the key can be used for signing, please check the usage column
 in the key toolbox on the right (letter S stands for signature).
@@ -32,22 +32,22 @@ not been tampered with and that it came from the sender whose identity is
 verified by the digital signature.
 
 ![Peek 2022-01-12
-06-54](_media/sign-verify-text/Peek-2022-01-12-06-54-16419417228411.gif)
+06-54](https://www.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-06-54-16419417228411.gif)
 
 ## Verify
 
 Once you have obtained a plaintext and its corresponding signature, you can
 verify the signature using the public key of the signer. However, please note
 that this form of signature is not suitable for use in emails as it can make the
-email less readable. 
+email less readable.
 
-![Peek 2022-01-12 06-56](_media/sign-verify-text/Peek-2022-01-12-06-56.gif)
+![Peek 2022-01-12 06-56](https://www.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-06-56.gif)
 
 To verify a signature with text, you need to have the corresponding public key
 for all included signatures. If a suitable public key for a signature is not
 found locally during verification, GpgFrontend will remind you to import it.
 
-![image-20220112070325556](_media/sign-verify-text/image-20220112070325556.png)
+![image-20220112070325556](https://www.bktus.com/wp-content/uploads/2023/08/image-20220112070325556.png)
 
 ## Verify With Decrypt
 
@@ -57,4 +57,4 @@ determine from the format of the ciphertext whether it has been signed or not.
 Therefore, it is a good habit to always use decryption operations with
 verification when possible.
 
-![Peek 2022-01-12 07-10](_media/sign-verify-text/Peek-2022-01-12-07-10.gif)
+![Peek 2022-01-12 07-10](https://www.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-07-10.gif)
