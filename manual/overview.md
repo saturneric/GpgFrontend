@@ -29,7 +29,7 @@ Note: For different operating system and system style settings, GpgFrontend may
 look different.Documentation can also vary widely from release to release.
 Please check the corresponding program release version for the document.
 
-![image-20220109192100901](_media/overview/image-20220109192100901.png)
+![image-20220109192100901](https://www.bktus.com/wp-content/uploads/2023/08/image-20220109192100901.png)
 
 ## System Requirement
 
@@ -116,9 +116,9 @@ assured that you will never be asked to pay a fee to use the software.
 
 ## Source Code
 
-The primary code repository for GpgFrontend resides on the BKTUS server.
-Every update gets committed here first. You can visit the original [code
-repository](https://repo.stdv.de/?p=public/main/GpgFrontend.git;a=summary) to
+The primary code repository for GpgFrontend resides on the BKTUS server. Every
+update gets committed here first. You can visit the original [code
+repository](https://git.bktus.com/gpgfrontend/GpgFrontend) to
 follow our development progress and stay updated on the latest changes.
 
 

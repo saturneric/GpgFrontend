@@ -23,19 +23,19 @@ updating when a subkey is added to the key pair.
 In the main page or in the key manager's Import key operation mode, there is a
 key server option. After selecting this option you can see such an interface.
 
-![import-keys-fomr-keyserver](_media/key-server-operations/import-keys-fomr-keyserver.png)
+![import-keys-fomr-keyserver](https://www.bktus.com/wp-content/uploads/2023/08/import-keys-fomr-keyserver.png)
 
 You can get a list of public keys associated with a key server by searching for
 Key ID, fingerprint or email address via the search box. If there is a suitable
 public key in the list, you can import it by double-clicking it.
 
-![import-keys-fomr-keyserver-1](_media/key-server-operations/import-keys-fomr-keyserver-1.png)
+![import-keys-fomr-keyserver-1](https://www.bktus.com/wp-content/uploads/2023/08/import-keys-fomr-keyserver-1.png)
 
 When the import is complete, you can check whether the public key is actually
 imported through the pop-up window (no need to import when the local public key
 is newer), and you can also check some brief information about the public key.
 
-![image-20220109191357259](_media/key-server-operations/image-20220109191357259.png)
+![image-20220109191357259](https://www.bktus.com/wp-content/uploads/2023/08/image-20220109191357259.png)
 
 It is important to note that the public key you import may have expired or been
 revoked. You can check the status of the key by navigating to the category tab
@@ -58,7 +58,7 @@ and the function being performed.
 You can find the entry of this operation through the operation tab of the key
 pair detail interface, as shown in the following figure.
 
-![image-20220109192532368](_media/key-server-operations/image-20220109192532368.png)
+![image-20220109192532368](https://www.bktus.com/wp-content/uploads/2023/08/image-20220109192532368.png)
 
 Perform the operation by clicking Upload key pair to key server. Note that the
 naming of operations here is a bit confusing, but this is where your public key
@@ -82,7 +82,7 @@ uploaded anywhere by the user.
 
 Refer to the last section of this document on how to set the default key server.
 
-![image-20220109192532368](_media/key-server-operations/image-20220109192532368.png)
+![image-20220109192532368](https://www.bktus.com/wp-content/uploads/2023/08/image-20220109192532368.png)
 
 The "Synchronize key pair with key server" function allows for automatic
 retrieval of public key information from the key server, which is then compared
@@ -112,7 +112,7 @@ by accessing the Settings interface and navigating to the Key Servers tab. Here,
 you will find options for managing your key server candidate list and
 determining which key server is set as the default.
 
-![image-20220109195518834](_media/key-server-operations/image-20220109195518834.png)
+![image-20220109195518834](https://www.bktus.com/wp-content/uploads/2023/08/image-20220109195518834.png)
 
 To add a candidate key server to the list, simply enter the http or https
 address of the key server you wish to add into the input box and click "Add". It

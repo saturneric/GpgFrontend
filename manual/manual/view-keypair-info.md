@@ -8,14 +8,14 @@ be relatively long.
 
 The screenshot below is my friend's public key that I got from the key server.
 
-![image-20220110185144734](_media/view-keypair-info/image-20220110185144734.png)
+![image-20220110185144734](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110185144734.png)
 
 Below is a private key I randomly generated. You can find that the biggest
 difference between him and the above is that the key pair with only the public
 key is only used for encryption, and if you have the private key, you can do
 more things (it also depends on your algorithm, DSA can only for signature).
 
-![image-20220110185215204](_media/view-keypair-info/image-20220110185215204.png)
+![image-20220110185215204](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110185215204.png)
 
 ## General Info
 
@@ -31,7 +31,7 @@ section and set it as the main UID to change it.
 According to the OpenPGP protocol, this part is divided into Name, Email, and
 Comment.
 
-![image-20220110185740491](_media/view-keypair-info/image-20220110185740491.png)
+![image-20220110185740491](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110185740491.png)
 
 ### Primary key
 
@@ -47,7 +47,7 @@ not exist, but neither the public key nor the private key exists. Please
 remember: Each subkey and primary key consists of a pair of public and private
 keys.
 
-![image-20220110185819775](_media/view-keypair-info/image-20220110185819775.png)
+![image-20220110185819775](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110185819775.png)
 
 #### Key ID
 
@@ -111,7 +111,7 @@ pairs.
 
 ### Fingerprint
 
-![image-20220110190639502](_media/view-keypair-info/image-20220110190639502.png)
+![image-20220110190639502](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110190639502.png)
 
 The fingerprint of the key pair is used for humans to quickly compare whether
 the key pair is the expected key pair. This field is unique for all keys in the
@@ -131,7 +131,7 @@ primary UID.
 
 The primary UID is always listed first in the interface.
 
-![image-20220110190943207](_media/view-keypair-info/image-20220110190943207.png)
+![image-20220110190943207](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110190943207.png)
 
 UID has three elements, Name, Email, Comment. The name must be greater than or
 equal to five characters, and the email must conform to the format. Comment
@@ -165,7 +165,7 @@ this concept, you may find it helpful to consult the below documentation.
 
 [Basic Concepts](../basic-concepts.md)
 
-![image-20220110192348006](_media/view-keypair-info/image-20220110192348006.png)
+![image-20220110192348006](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110192348006.png)
 
 To get a basic understanding of this concept, the following points can be
 considered:
@@ -201,10 +201,10 @@ public key or a key pair that includes a private key.
 
 Here's what you can do with a public key-only key pair.
 
-![image-20220110193420845](_media/view-keypair-info/image-20220110193420845.png)
+![image-20220110193420845](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110193420845.png)
 
 And the screenshot below lists what a key pair containing a private key can do.
 
-![image-20220110193555076](_media/view-keypair-info/image-20220110193555076.png)
+![image-20220110193555076](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110193555076.png)
 
 These operations will be scattered in the documentation to explain in detail.

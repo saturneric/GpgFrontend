@@ -1,6 +1,6 @@
 <!-- _navbar.md -->
 
-- [Source Code(Develop Repo)](https://repo.stdv.de/?p=public/main/GpgFrontend.git;a=summary)
+- [Source Code(Develop Repo)](https://git.bktus.com/gpgfrontend/GpgFrontend)
 - [Document](https://doxygen.gpgfrontend.bktus.com)
 - [Manual](overview.md)
 - [Downloads](downloads.md)
