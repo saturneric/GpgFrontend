@@ -1,167 +1,175 @@
-# Understand Interface
+# Interface Understanding
 
-As a novice, you only need to quickly grasp the meaning of a few important parts
-of the page. You will gradually discover other functions in the next
-exploration. The interface may not be the same for different versions.
+As a beginner, you're only required to swiftly comprehend a few crucial sections
+of the page. The exploration that follows will gradually unveil additional
+functionalities. Bear in mind that interfaces may vary across different
+versions.
 
 ![Interface](https://github.com/saturneric/Blob/blob/master/screenshots/interface-introduce.png?raw=true)
 
 ## Text Editor
 
-In the text editing area, you are free to type any text you want, or create a
-new tab using the "New" option in the file menu at the top. You can easily move
-or close tabs as needed.
+The text editing zone allows you the liberty to input any desired text or
+establish a new tab through the "New" choice in the file menu at the top. Moving
+or closing tabs can be done with ease as per your needs.
 
-You can perform various operations on your text using the options provided in
-the Operations Bar, or you can use common shortcuts like Ctrl+C/V/S to copy,
-paste, and save or even find operations.
+Numerous operations can be performed on your text using options available in the
+Operations Bar. Alternatively, you may utilize standard shortcuts like
+Ctrl+C/V/S for copy, paste, and save operations, or even searching within the
+text.
 
-The text you edit in the text box is encoded in UTF8 and has no formatting. This
-plain text format ensures that any redacted message is not confusing. Although
-we plan to add rich text editing in the future, the details are still under
-consideration.
+The edited text within the text box is encoded in UTF8 without any formatting.
+This plain text format ensures that no message alteration leads to confusion.
+While we have plans to introduce rich text editing in the future, the specifics
+are still being deliberated.
 
-### Large text file support
+### Large Text File Support
 
-GpgFrontend provides support for opening larger files without getting stuck.
-However, when opening a relatively large file, you will not be able to edit the
-tab until the entire file has been read. Even though editing the file is not
-possible during this time, you can still view it.
+GpgFrontend accommodates opening larger files without hindrance. However, when
+dealing with relatively large files, editing of the tab won't be feasible until
+the entire file is loaded. During this time, despite not being able to edit the
+file, you still have the capability to view it.
 
 ## Information Board
 
-GpgFrontend displays the result of your current tab page operation in the
-Information Board, indicating whether the operation was successful or not. The
-text in the Information Board also includes additional information to help you
-understand the specifics of your encryption, decryption, signature, and other
-operations. The output displayed in the dashboard may vary based on your
-language settings.
+GpgFrontend presents the outcome of the current tab page operation on the
+Information Board, signifying the success or failure of the operation.
+Additionally, the Information Board's text includes supplementary details to
+assist in understanding the particulars of your encryption, decryption,
+signature, and other operations. Depending on your language settings, the output
+displayed on the dashboard may differ.
 
-The Information Board was created to allow for the display of more information
-in the same space. However, in the future, GpgFrontend plans to introduce a
-graphical interface to enhance the user's understanding of this information.
+The Information Board was conceived to provide a comprehensive view of more
+information within the same space. However, GpgFrontend plans to incorporate a
+graphical interface in the future to augment the user's comprehension of this
+information.
 
-### Font Color
+### Color Coding
 
-- **Green**: When the operation succeeds and the results of the operation are
-  verified and no problems are found, the font color will be green.
-- **Yellow**: When the operation succeeds and there are some problems with the
-  result testing of the operation at that time, the font turns yellow, which is
-  a reminder to the user. At this time, the user needs to check the details of
-  the operation.
-- **Red**: When the operation is unsuccessful or there is a serious conflict
-  with the result of the operation, the font color will turn red, and the user
-  will need to carefully check the details of the operation to ensure security.
+- **Green**: Indicates a successful operation that has been thoroughly verified
+  and found devoid of any issues. The appearance of green font color signifies
+  an all-clear.
+- **Yellow**: Denotes a successful operation with some potential issues detected
+  during result testing. The yellow font color serves as a subtle alert for the
+  user, necessitating a detailed review of the operation.
+- **Red**: Symbolizes an unsuccessful operation or a significant discrepancy in
+  the operation's outcome. The red font color acts as a clear warning, demanding
+  the user to meticulously inspect the operation's specifics to ensure security.
 
-### Font Size
+### Customizable Font Size
 
-When you feel that the font of the information board is too small, you can set
-the font size in the Application column of the settings. The font size defaults
-to 10 and can be set to a range of between 9 and 18.
+Should you find the font size on the information board to be diminutive, you can
+easily adjust it under the 'Application' section in the settings. The default
+font size is 10, and it can be modified to any value ranging from 9 to 18.
 
-### Information Board Actions Menu
+### Dashboard Actions Menu
 
-The dashboard actions menu provides some commonly used actions for information
-board content. This enables users to quickly record large pieces of content in
-the Information Board for other uses.
+The dashboard actions menu facilitates quick and easy access to common
+functionalities related to the content of the information board. It empowers
+users to efficiently manage and process large chunks of content on the
+Information Board for various purposes.
 
 #### Copy
 
-This enables users to quickly record large pieces of content in the Information
-Board for other uses.
+This function allows users to swiftly capture significant portions of content
+from the Information Board for other applications.
 
 #### Save File
 
-The operation stores the contents of the information board in the file system in
-UTF-8 format. Although the output file does not have a suffix name, in fact this
-file is in plain text format.
+This operation archives the contents of the information board into the file
+system, utilizing the UTF-8 format. Although the resultant output file lacks a
+suffix, it is essentially in a plain text format.
 
 #### Clear
 
-This action immediately empties the information board. The empty operation
-includes the contents of the information board and all the statuses. The
-emptying operation occurs automatically when you make the next operation
-(encryption, etc.).
+This command promptly purges all content from the information board. The
+clearance includes both the contents and statuses of the information board. A
+new operation (such as encryption) will automatically trigger this clearing
+process.
 
 ### Optional Actions Menu
 
-There will also be a column of Optional Actions Menu below the Information
-Board. If there are other auxiliary operations that can be done after your
-operation is completed (display more detailed information, send encrypted text
-through email, etc.), the entry points for these auxiliary operations will be
-displayed here.
+In addition to the Information Board, an Optional Actions Menu will be presented
+below it. If any auxiliary operations can be performed post your main operation
+(such as displaying more detailed information, sending encrypted text via email,
+etc.), the access points for these supplementary tasks will be made available
+here.
 
 ## Key ToolBox
 
-Here is a list of key pairs stored on your machine that can be used for Gpg
-operations. The key lists in the Toolbox have multiple categories that
-correspond to different usage scenarios. The toolbox also provides some commonly
-used operations, all of which are in the Key List Menu.
+This feature presents a comprehensive list of key pairs stored on your device,
+intended for use with Gpg operations. The keys within the ToolBox are classified
+into multiple categories, each corresponding to a unique usage context.
+Additionally, the ToolBox provides access to a variety of common operations, all
+of which can be found in the Key List Menu.
 
 ### Usage
 
-Most operations related to Gpg need to specify a key pair (such as encryption,
-decryption, signature, etc.). You can select the check box in the first column
-of the table in the key toolbox to specify one or more keys for your operation.
-Classifications that contain only public keys are often used in cryptographic
-scenarios.
+Most Gpg-related operations require specifying a key pair (for tasks like
+encryption, decryption, signature, etc.). You can select the checkbox in the
+first column of the Key ToolBox's table to designate one or more keys for your
+operation. Categories that contain only public keys are frequently utilized in
+cryptographic scenarios.
 
 ### Classification
 
-The Toolbox provides a categorical display through tabs. All classifications do
-not include all expired or revoked keys. If you want to view expired or revoked
-keys, use the Key Manager. The default classification contains all private and
-public keys. The operation takes only the key from the currently selected
-classification as input.
+The ToolBox showcases categories via tabbed display. None of these categories
+include any expired or revoked keys. To view such keys, you should refer to the
+Key Manager. The default category comprises all private and public keys. During
+any operation, only the keys from the currently selected category will be
+considered for input.
 
 ### Columns
 
-It is important to understand this list. Now let me take you to understand it
-step by step.
+Understanding this list is crucial. Let's walk through its components step by
+step.
 
-- Select: Turn the checkbox in this column to let Gpg Frontend know that you
-  specify the key of this row for your next operation.
+- **Select**: Check the box in this column to notify Gpg Frontend that you wish
+  to use the key from this row for your subsequent operation.
 
-- Type: See this column to let you know the type of key and whether the primary
+- **Type**: This column informs you about the key type and whether the primary
   key exists in your key pair.
-  - `pub` means this is a public key, Can be used for encryption or
+  - `pub` signifies that it is a public key, which can be used for encryption or
     verification operations.
-  - `pub/sec` The key pair contains both public and private keys. It can be
-    used for almost all operations(Need to combine the usage column to
-    determine this).
-  - `pub/sec#` The key pair contains a public key and a private key, but the
-    primary key is not in the key pair. This shows that you will not be able
-    to do some special (add subkeys, sign other key pairs, etc.)
-  - `pub/sec^` A key pair has one or more keys (subkeys or master keys) in
-    the smart card.
-  - `pub/sec#^`The above two situations occur at the same time.
-- Name: The identity information of the key pair.
-- Email Address: The identity information of the key pair.
-- Usage: This determines which operations the key pair can use. Composed of four
-  capital letters, each capital letter represents a usage.
+  - `pub/sec` indicates that the key pair contains both public and private keys.
+    It can be employed for nearly all operations (consult the 'Usage' column to
+    confirm this).
+  - `pub/sec#` shows that the key pair has a public key and a private key, but
+    the primary key is absent from the key pair. This suggests you won't be able
+    to perform certain specific operations (like adding subkeys, signing other
+    key pairs, etc.)
+  - `pub/sec^` implies that one or more keys (subkeys or master keys) from the
+    key pair are in the smart card.
+  - `pub/sec#^` denotes a simultaneous occurrence of the previous two
+    situations.
 
-  - `C` Certificate. Generally, the key pair that contains the primary key
-    will have this usage
-  - `E` Encrypt. The key pair can be used for encryption operations.
-  - `S` Sign. The key pair can be used for sign operations.
-  - `A` Authenticate. The key pair can be used to perform operations like SSH
-    authentication.
+- **Name**: Represents the identity information of the key pair.
+- **Email Address**: Also denotes the identity information of the key pair.
+- **Usage**: Determines which operations the key pair can execute. Composed of
+  four uppercase letters, each letter signifies a specific use.
 
-- Validity: One of the concepts of Gpg, simply put it represents the degree of
-  trust in this key.
+  - `C` stands for Certificate. Key pairs containing the primary key generally
+    have this usage.
+  - `E` stands for Encrypt. The key pair can be used for encryption operations.
+  - `S` stands for Sign. The key pair can be used for signing operations.
+  - `A` stands for Authenticate. The key pair can be used to perform operations
+    like SSH authentication.
+
+- **Validity**: A Gpg concept that roughly represents the level of trust in this
+  key.
 
 ## Operations Bar
 
-Here, you can perform corresponding operations by clicking the buttons above.
-For example, after typing text in a text editor and setting the key you want to
-use in the key toolbox, you can click the encryption button to perform the
-operation.
+Here, you can execute corresponding operations by clicking on the buttons
+provided. For instance, after inputting text into a text editor and specifying
+the desired key in the key toolbox, you can click the encryption button to
+perform the operation.
 
-Some operations need to specify the key, and some are not used, which will be
-explained in other corresponding parts of the document.
+Some operations require key specification, while others do not, as will be
+detailed in the respective sections of this document.
 
-### Customize
+### Customization
 
-Some operations you may not use for a long time, at which point you can uncheck
-the relevant function group in the view of the top menu. Conversely, for some of
-the operations you use frequently, you can also add here.
+For operations that you may not use for a while, you have the option to uncheck
+the associated function group in the top menu view. Conversely, for the
+operations you frequently use, you have the ability to add them here.

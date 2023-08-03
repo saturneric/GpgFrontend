@@ -1,6 +1,7 @@
-# Symmetric Encrypt & Decrypt Text
+# Symmetric Encryption & Decryption of Text
 
-Symmetric encryption will be triggered when you click the Encrypt button and do
-not check any key in the Key Toolbox. For symmetric encryption, you need to set
-a password for your encryption process. When decrypting, you need to enter the
-same password as the encryption process.
+Symmetric encryption is initiated when you click the 'Encrypt' button without
+selecting any key in the Key Toolbox. For this type of encryption, a password
+must be established for the encryption process. Subsequently, to decrypt the
+data, you will need to provide the same password that was used during the
+encryption phase.

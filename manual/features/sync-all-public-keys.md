@@ -1,30 +1,30 @@
 # Public Key Sync
 
-Sometimes, you need to keep your local key consistent with the one on the key
-server. This is critical in cases where a key owner revokes its key, at which
-point you need to stop using the key immediately. This avoids potential
-man-in-the-middle attacks. Or, if the key owner creates a new subkey for
-signing, gpg will not be able to verify the validity of the ciphertext if the
-ciphertext he sends to you signs with the subkey and you do not have local
-information about the subkey.
+Maintaining the synchronization of your local key with the one on the key server
+is of paramount importance in certain situations. Such scenarios may include the
+revocation of a key by its owner, necessitating the immediate discontinuation of
+its use to prevent potential man-in-the-middle attacks. Alternatively, if the
+key owner generates a new signing subkey, gpg won't be able to authenticate the
+validity of the encrypted text if it's signed with the subkey and you lack the
+local information about the subkey.
 
 ## How to use
 
-It's very simple, after clicking the Sync Public Key button in the the Key
-Management interface, things will be done automatically.
+The utilization of this feature is straightforward. By clicking the Sync Public
+Key button in the Key Management interface, the process is automated.
 
 ![image-20220109194459557](https://www.bktus.com/wp-content/uploads/2023/08/image-20220109194459557.png)
 
-This feature will check all the public keys you now have (only the public key,
-not any private keys) and then search for it in the key server. If the
-corresponding public key is found in the key server, GpgFrontend will import the
-latest public key from the key server to the local.
+This functionality checks all the public keys you currently possess (only public
+keys, no private keys are involved). It then seeks it on the key server. If the
+corresponding public key is found on the server, GpgFrontend imports the updated
+public key from the server to the local machine.
 
-### Which Key Server Was Used
+### Key Server Utilized
 
-How do I know which key server GpgFrontend accessed? It's simple, GpgFrontend
-will exchange keys using the default key server you set up. If you need to
-change the key server you need to access, you just need to add your key server
-in the settings and set it as the default.
+How do you determine which key server GpgFrontend accessed? It's quite simple.
+GpgFrontend exchanges keys using the default key server that you've configured.
+If you need to modify the key server you wish to access, you merely need to add
+your key server in the settings and set it as the default.
 
 ![image-20220109194546570](https://www.bktus.com/wp-content/uploads/2023/08/image-20220109194546570.png)
