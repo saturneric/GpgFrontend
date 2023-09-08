@@ -366,7 +366,7 @@ if (APPLICATION_BUILD)
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             set_target_properties(${AppName} PROPERTIES
                     BUNDLE True
-                    MACOSX_BUNDLE_GUI_IDENTIFIER pub.gpgfrontend.gpgfrontend
+                    MACOSX_BUNDLE_GUI_IDENTIFIER com.bktus.gpgfrontend
                     MACOSX_BUNDLE_BUNDLE_NAME ${AppName}
                     MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
                     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
@@ -396,7 +396,7 @@ if (APPLICATION_BUILD)
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
             set_target_properties(${AppName} PROPERTIES
                     BUNDLE True
-                    MACOSX_BUNDLE_GUI_IDENTIFIER pub.gpgfrontend.gpgfrontend
+                    MACOSX_BUNDLE_GUI_IDENTIFIER com.bktus.gpgfrontend
                     MACOSX_BUNDLE_BUNDLE_NAME ${AppName}
                     MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
                     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
@@ -512,7 +512,7 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
                 FILES_MATCHING PATTERN "libgpg-error.so*")
         install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
                 DESTINATION /usr/local/share/${AppName}/)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/meta/pub.gpgfrontend.gpgfrontend.appdata.xml
+        install(FILES ${CMAKE_SOURCE_DIR}/resource/meta/com.bktus.gpgfrontend.appdata.xml
                 DESTINATION /usr/share/metainfo/)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/desktop/
                 DESTINATION /usr/share/applications/)

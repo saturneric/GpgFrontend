@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GpgFrontend 2.1.1\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
-"POT-Creation-Date: 2023-07-13 22:00+0800\n"
+"POT-Creation-Date: 2023-09-08 13:49+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -86,10 +86,10 @@ msgstr ""
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:289
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:85
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:444
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:420
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:174
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:321
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:106
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:113
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:321
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:41
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:43
@@ -103,7 +103,7 @@ msgid "Successfully connect to the target server through the proxy server."
 msgstr ""
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:294
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:441
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:417
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:821
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:43
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:45
@@ -232,7 +232,7 @@ msgid ""
 msgstr ""
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:160
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:432
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:408
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:200
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:307
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:409
@@ -881,8 +881,8 @@ msgstr ""
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:171
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:223
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:272
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:68
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:120
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:75
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:127
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:324
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:376
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:405
@@ -998,53 +998,53 @@ msgstr ""
 msgid "Revocation Certificates"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:369
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:399
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:345
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:375
 msgid "Not Successful"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:370
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:346
 msgid "Modify password not successfully."
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:376
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:386
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:352
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:362
 msgid "Policy Auto"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:376
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:388
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:352
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:364
 msgid "Policy Good"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:376
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:390
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:352
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:366
 msgid "Policy Bad"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:377
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:392
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:353
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:368
 msgid "Policy Ask"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:377
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:394
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:353
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:370
 msgid "Policy Unknown"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:381
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:357
 msgid "Modify TOFU Policy(Default is Auto)"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:382
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:358
 msgid "Policy for the Key Pair:"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:400
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:376
 msgid "Modify TOFU policy not successfully."
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:408
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:384
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:788
 #: /home/eric/develop/cpp/GpgFrontend/src/core/model/GpgKey.cpp:81
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:88
@@ -1052,69 +1052,69 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:408
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:426
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:384
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:402
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:788
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:806
 #: /home/eric/develop/cpp/GpgFrontend/src/core/model/GpgKey.cpp:83
 msgid "Undefined"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:408
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:424
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:384
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:400
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:788
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:804
 #: /home/eric/develop/cpp/GpgFrontend/src/core/model/GpgKey.cpp:85
 msgid "Never"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:408
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:422
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:384
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:398
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:788
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:802
 #: /home/eric/develop/cpp/GpgFrontend/src/core/model/GpgKey.cpp:87
 msgid "Marginal"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:409
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:420
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:385
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:396
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:789
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:800
 #: /home/eric/develop/cpp/GpgFrontend/src/core/model/GpgKey.cpp:89
 msgid "Full"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:409
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:418
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:385
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:394
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:789
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:798
 #: /home/eric/develop/cpp/GpgFrontend/src/core/model/GpgKey.cpp:91
 msgid "Ultimate"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:411
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:387
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:791
 msgid "Modify Owner Trust Level"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:412
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:388
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:792
 msgid "Trust for the Key Pair:"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:433
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:409
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:813
 msgid ""
 "Owner Trust Level cannot set to Unknown level, automately changing it into "
 "Undefined level."
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:442
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:418
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:822
 msgid "Modify Owner Trust Level failed."
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:445
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:421
 msgid "Set Owner Trust Level successful."
 msgstr ""
 
@@ -1779,92 +1779,92 @@ msgstr ""
 msgid "Key Package"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:61
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:65
 msgid "Export Key Package Passphrase"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:63
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:67
 msgid "Key File"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:69
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:76
 msgid "An error occurred while generating the passphrase file."
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:78
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:85
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:92
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:335
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:348
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:396
 msgid "Forbidden"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:79
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:86
 msgid "Please select an output path before exporting."
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:86
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:93
 msgid ""
 "Please generate a password to protect your key before exporting, it is very "
 "important. Don't forget to back up your password in a safe place."
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:115
 msgid ""
 "The Key Package has been successfully generated and has been protected by "
 "encryption algorithms(AES-256-ECB). You can safely transfer your Key Package."
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:119
 msgid ""
 "But the key file cannot be leaked under any circumstances. Please delete the "
 "Key Package and key file as soon as possible after completing the transfer "
 "operation."
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:121
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:128
 msgid "An error occurred while exporting the key package."
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:128
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:135
 msgid "Key Package Name"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:129
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:136
 msgid "Output Path"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:130
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:137
 msgid "Passphrase"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:132
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:139
 msgid ""
 "Tips: You can use Key Package to safely and conveniently transfer your "
 "public and private keys between devices."
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:134
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:141
 msgid "Generate and Save Passphrase"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:135
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:142
 msgid "Generate Key Package Name"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:136
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:143
 msgid "Select Output Path"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:139
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:146
 msgid "Include secret key (Think twice before acting)"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:141
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:148
 msgid "Exclude keys that do not have a private key"
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:144
+#: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:151
 msgid "Export As Key Package"
 msgstr ""
 
@@ -3510,7 +3510,7 @@ msgid ""
 "please report this problem if you can."
 msgstr ""
 
-#: /home/eric/develop/cpp/GpgFrontend/src/core/GpgContext.cpp:368
+#: /home/eric/develop/cpp/GpgFrontend/src/core/GpgContext.cpp:371
 msgid "Embedded In"
 msgstr ""
 

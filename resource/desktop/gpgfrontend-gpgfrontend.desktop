@@ -2,7 +2,7 @@
 Type=Application
 Name=GpgFrontend
 Exec=/usr/bin/GpgFrontend
-Icon=pub.gpgfrontend.gpgfrontend
+Icon=com.bktus.gpgfrontend
 Comment=An OpenPGP Crypto Tool
 Terminal=false
 Categories=Utility;

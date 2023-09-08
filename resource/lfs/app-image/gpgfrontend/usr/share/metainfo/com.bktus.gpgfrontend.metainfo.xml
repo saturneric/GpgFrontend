@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright 2013 First Lastname <your@email.com> -->
 <component type="desktop-application">
-  <id>pub.gpgfrontend.gpgfrontend</id>
+  <id>com.bktus.gpgfrontend</id>
   <metadata_license>FSFAP</metadata_license>
   <project_license>GPL-3.0+</project_license>
   <name>GpgFrontend</name>
@@ -9,12 +9,12 @@
 
   <description>
     <p>
-      GpgFrontend is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free OpenPGP Crypto Tool.
+      GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption.
     </p>
     <p>
-      By using GpgFrontend, you can quickly encrypt and decrypt text or files. 
-      Or at the same time as the above operations, you can add your own signature 
-      to let others know that this document or this paragraph of text was issued by you. 
+      By using GpgFrontend, users can quickly encrypt files or text, easily digitally sign them, and conveniently manage 
+      all GPG keys on their device. The tool also facilitates the secure and seamless transfer of GPG keys between devices. 
+      It is compatible with a range of operating systems, including Windows, macOS, Linux, and FreeBSD.
     </p>
     <p>For moew information visit https://gpgfrontend.bktus.com/</p>
 

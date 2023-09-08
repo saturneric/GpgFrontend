@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component>
-    <id>pub.gpgfrontend.gpgfrontend</id>
+    <id>com.bktus.gpgfrontend</id>
     <metadata_license>MIT</metadata_license>
     <name>gpgfrontend</name>
     <summary>An OpenPGP Crypto Tool</summary>
@@ -12,10 +12,8 @@
     <launchable type="desktop-id">gpgfrontend.gpgfrontend.desktop</launchable>
     <description>
         <p>
-            GpgFrontend is a Free, Open Source, Powerful, Easy-to-Use, Compact, Cross-Platform OpenPGP Crypto Tool.
-            By using GpgFrontend, you can quickly encrypt and decrypt text or files. Or at the same time as the above
-            operations, you can add your own signature to let others know that this document or this paragraph of text
-            was issued by you.
+            GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption. 
+            It stands out as an exceptional GUI frontend for the modern GnuPG (gpg).
         </p>
     </description>
     <screenshots>
