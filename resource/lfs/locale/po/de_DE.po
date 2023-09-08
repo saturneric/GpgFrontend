@@ -1,5 +1,4 @@
-﻿# German translations for GpgFrontend package
-# German translation for GpgFrontend.
+# Language German translations for GpgFrontend package.
 # Copyright (C) 2021 Saturneric
 # This file is distributed under the same license as the GpgFrontend package.
 # Automatically generated, 2021.
