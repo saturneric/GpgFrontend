@@ -33,7 +33,6 @@ GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
 [>> Download <<](https://github.com/saturneric/GpgFrontend/releases/latest)
 | [>> User Manual <<](https://www.gpgfrontend.bktus.com/#/overview)
 | [>> Developer Document <<](https://doxygen.gpgfrontend.bktus.com/)
-| [>> Develop Repo <<](https://git.bktus.com/gpgfrontend/GpgFrontend)
 
 ## Table of Contents
 
