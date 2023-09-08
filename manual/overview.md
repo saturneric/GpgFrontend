@@ -116,7 +116,7 @@ assured that you will never be asked to pay a fee to use the software.
 
 ## Source Code
 
-The primary code repository for GpgFrontend resides on the BKTUS server. Every
+The primary code repository for GpgFrontend resides on the GitHub server. Every
 update gets committed here first. You can visit the [code
 repository](https://github.com/saturneric/GpgFrontend) to
 follow our development progress and stay updated on the latest changes.
