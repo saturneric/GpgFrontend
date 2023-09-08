@@ -5,25 +5,6 @@ contributions to achieve this goal. Fortunately, translation work does not
 require an understanding of difficult technology. Volunteers only need to move
 their fingers to complete.
 
-## Work Online (Recommand)
-
-Now, there is a very simple way to make contributions to translation work
-online. You just need to follow the next steps:
-1. Click [HERE](https://translate.bktus.com/) and login with you GitHub account. 
-2. Find out the email address of your GitHub account that you need to provide in
-   the next step.
-3. [Email ME](mailto:eric@bktus.com) and ask me to invite you to the GpgFrontend
-   Translation Project with YOUR EMAIL.
-4. When you receive the reply email, you can see the project after you login
-   again.
-5. You can translate and review the translation online. You can also make
-   comments and create conversations.
-6. Your work will apply in the next release.
-
-If you can't find the language you want to work in at the onilne transaltion
-platform. [Email ME](mailto:eric@bktus.com), and I will import it to the
-platform.
-
 ## Work Offline
 
 Most of the translation work is carried out by Google Translate. In most cases,
@@ -41,7 +22,7 @@ GpgFrontned uses the tools provided by this library.
 
 1. Download or clone source code [HERE](https://github.com/saturneric/GpgFrontend)
 2. You will find some po files(.po) at path `resource/lfs/locale/po`
-2. You will find some template file(.pot) at path `resource/lfs/locale/template`
+3. You will find some template file(.pot) at path `resource/lfs/locale/template`
 
 ### Before starting your work
 

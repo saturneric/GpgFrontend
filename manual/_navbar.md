@@ -1,6 +1,6 @@
 <!-- _navbar.md -->
 
-- [Source Code(Develop)](https://git.bktus.com/gpgfrontend/GpgFrontend)
+- [Source Code](https://github.com/saturneric/GpgFrontend)
 - [Document](https://doxygen.gpgfrontend.bktus.com)
 - [Manual](overview.md)
 - [Downloads](downloads.md)
