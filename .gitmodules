@@ -1,12 +1,3 @@
-[submodule "third_party/gpgme"]
-	path = third_party/gpgme
-	url = https://github.com/gpg/gpgme.git
-[submodule "third_party/libassuan"]
-	path = third_party/libassuan
-	url = https://github.com/gpg/libassuan.git
-[submodule "third_party/libgpg-error"]
-	path = third_party/libgpg-error
-	url = https://github.com/gpg/libgpg-error.git
 [submodule "third_party/json"]
 	path = third_party/json
 	url = https://github.com/nlohmann/json.git
