@@ -35,8 +35,6 @@ endif()
 
 # Introduce GpgME
 find_package(Gpgme REQUIRED)
-message(STATUS "GpgME Path ${GPGME_LIBRARIES_DIR}")
-message(STATUS "GpgME Library Path ${GPGME_LIBRARIES}")
 
 # Introduce Config++
 find_package(Config++ REQUIRED)
