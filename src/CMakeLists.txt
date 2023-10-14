@@ -509,13 +509,16 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
                 ARCHIVE DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
         install(DIRECTORY ${PC_GPGME_LIBDIR}
                 DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
-                FILES_MATCHING PATTERN "libgpgme.so*")
+                FILES_MATCHING PATTERN "libgpgme.so*"
+                PATTERN "lib" EXCLUDE)
         install(DIRECTORY ${PC_GPGME_LIBDIR}
                 DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
-                FILES_MATCHING PATTERN "libassuan.so*")
+                FILES_MATCHING PATTERN "libassuan.so*"
+                PATTERN "lib" EXCLUDE)
         install(DIRECTORY ${PC_GPGME_LIBDIR}
                 DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
-                FILES_MATCHING PATTERN "libgpg-error.so*")
+                FILES_MATCHING PATTERN "libgpg-error.so*"
+                PATTERN "lib" EXCLUDE)
         install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/${AppName}/)
         install(FILES ${CMAKE_SOURCE_DIR}/resource/meta/com.bktus.gpgfrontend.appdata.xml

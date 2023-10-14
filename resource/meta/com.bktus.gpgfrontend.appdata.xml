@@ -4,12 +4,11 @@
     <metadata_license>MIT</metadata_license>
     <name>gpgfrontend</name>
     <summary>An OpenPGP Crypto Tool</summary>
-    <icon type="stock">gpgfrontend</icon>
     <categories>
         <category>Utility</category>
     </categories>
     <url type="homepage">https://gpgfrontend.bktus.com</url>
-    <launchable type="desktop-id">gpgfrontend.gpgfrontend.desktop</launchable>
+    <launchable type="desktop-id">com.bktus.gpgfrontend.desktop</launchable>
     <description>
         <p>
             GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption. 

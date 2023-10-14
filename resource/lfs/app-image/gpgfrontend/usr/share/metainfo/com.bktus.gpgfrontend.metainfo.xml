@@ -20,7 +20,7 @@
 
   </description>
 
-  <launchable type="desktop-id">gpgfrontend.desktop</launchable>
+  <launchable type="desktop-id">com.bktus.gpgfrontend.desktop</launchable>
 
   <screenshots>
     <screenshot type="default">
