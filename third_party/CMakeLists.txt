@@ -26,6 +26,7 @@
 
 # json
 set(JSON_BuildTests OFF CACHE INTERNAL "")
-add_subdirectory(json EXCLUDE_FROM_ALL)
 
+add_subdirectory(json EXCLUDE_FROM_ALL)
 add_subdirectory(spdlog EXCLUDE_FROM_ALL)
+add_subdirectory(libconfig EXCLUDE_FROM_ALL)

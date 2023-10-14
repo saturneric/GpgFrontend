@@ -115,3 +115,10 @@ target_wrapper.*
 
 # QtCreator
 *.autosave
+
+
+
+
+#Flatpak
+.flatpak-builder
+.flatpak-builder/

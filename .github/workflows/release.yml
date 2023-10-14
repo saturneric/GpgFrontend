@@ -2,13 +2,13 @@ name: Build & Package
 
 on:
   push:
-    branches: [ main, 'develop', 'dev/**' ]
+    branches: [ main, 'develop' ]
     paths-ignore:
       - 'resource/locale/template/**'
       - 'manual/**'
       - '**.md'
   pull_request:
-    branches: [ 'develop', 'dev/**' ]
+    branches: [ 'develop' ]
     paths-ignore:
       - 'resource/locale/template/**'
       - 'manual/**'

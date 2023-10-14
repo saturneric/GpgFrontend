@@ -33,6 +33,14 @@ else()
             PATHS ${BOOST_ROOT} NO_DEFAULT_PATH)
 endif()
 
+# Introduce GpgME
+find_package(Gpgme REQUIRED)
+message(STATUS "GpgME Path ${GPGME_LIBRARIES_DIR}")
+message(STATUS "GpgME Library Path ${GPGME_LIBRARIES}")
+
+# Introduce Config++
+find_package(Config++ REQUIRED)
+
 # Introduce OpenSSL
 if(APPLE)
     set(OPENSSL_ROOT_DIR /usr/local/opt/openssl@3)
@@ -494,32 +502,32 @@ target_compile_features(${AppName} PUBLIC cxx_std_17)
 
 # if building linux package
 if (LINUX AND LINUX_INSTALL_SOFTWARE)
+    include(GNUInstallDirs)
     if (INSTALL_GPGFRONTEND_APP)
         install(TARGETS ${AppName} gpgfrontend_core gpgfrontend_ui
                 EXPORT GpgFrontendTargets
-                RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                )
-        install(DIRECTORY /usr/local/lib/
-                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
+                LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
+                ARCHIVE DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
+        install(DIRECTORY ${PC_GPGME_LIBDIR}
+                DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
                 FILES_MATCHING PATTERN "libgpgme.so*")
-        install(DIRECTORY /usr/local/lib/
-                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        install(DIRECTORY ${PC_GPGME_LIBDIR}
+                DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
                 FILES_MATCHING PATTERN "libassuan.so*")
-        install(DIRECTORY /usr/local/lib/
-                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        install(DIRECTORY ${PC_GPGME_LIBDIR}
+                DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
                 FILES_MATCHING PATTERN "libgpg-error.so*")
         install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
-                DESTINATION /usr/local/share/${AppName}/)
+                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/${AppName}/)
         install(FILES ${CMAKE_SOURCE_DIR}/resource/meta/com.bktus.gpgfrontend.appdata.xml
-                DESTINATION /usr/share/metainfo/)
+                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/metainfo/)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/desktop/
-                DESTINATION /usr/share/applications/)
+                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/applications/)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/
-                DESTINATION /usr/share/pixmaps/)
+                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/pixmaps/)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/
-                DESTINATION /usr/share/icons/hicolor/)
+                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons/hicolor/)
     endif ()
     if (MULTI_LANG_SUPPORT)
         install(DIRECTORY ${LOCALE_OUTPUT_PATH}/
