@@ -28,6 +28,7 @@
 
 #include "KeyUploadDialog.h"
 
+#include <QtNetwork>
 #include <algorithm>
 
 #include "core/function/GlobalSettingStation.h"

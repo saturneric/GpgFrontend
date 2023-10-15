@@ -26,27 +26,37 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDUI_H
-#define GPGFRONTEND_GPGFRONTENDUI_H
+#include "Task.h"
+
+#include "core/thread/Task.h"
+
+namespace GpgFrontend::Plugin::SDK {
+/**
+ * @brief Construct a new Task object
+ *
+ */
+STask::STask(STaskName name) : Thread::Task(name) {}
 
 /**
- * Basic dependency
+ * @brief Construct a new Task object
+ *
+ * @param callback The callback function to be executed.
  */
-#include <QtWidgets>
+STask::STask(STaskName name, STaskRunnable runnable, SDataObjectPtr data_object)
+    : Thread::Task(runnable, name, data_object, true) {}
 
 /**
- * Project internal dependencies
+ * @brief Construct a new Task object
+ *
+ * @param runnable
  */
-#include "GpgFrontend.h"
-#include "core/GpgFrontendCore.h"
-#include "core/GpgModel.h"
-#include "core/thread/ThreadingModel.h"
-#include "ui/GpgFrontendUIExport.h"
+STask::STask(STaskName name, STaskRunnable runnable, SDataObjectPtr data_object,
+             STaskCallback callback)
+    : Thread::Task(runnable, name, data_object, callback, true) {}
 
-/**
- * 3rd party dependencies
- */
+void PostTask(Thread::TaskRunner *runner, STask *task) {
+  if (runner == nullptr || task == nullptr) return;
+  runner->PostTask(task);
+}
 
-#include <qt-aes/qaesencryption.h>
-
-#endif  // GPGFRONTEND_GPGFRONTENDUI_H
+}  // namespace GpgFrontend::Plugin::SDK

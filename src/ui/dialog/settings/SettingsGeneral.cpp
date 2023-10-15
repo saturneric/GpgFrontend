@@ -30,7 +30,7 @@
 
 #include "core/GpgContext.h"
 
-#ifdef MULTI_LANG_SUPPORT
+#ifdef SUPPORT_MULTI_LANG
 #include "SettingsDialog.h"
 #endif
 
@@ -73,7 +73,7 @@ GeneralTab::GeneralTab(QWidget* parent)
        GlobalSettingStation::GetInstance().GetDataObjectsFilesSize())
           .str()));
 
-#ifdef MULTI_LANG_SUPPORT
+#ifdef SUPPORT_MULTI_LANG
   lang_ = SettingsDialog::ListLanguages();
   for (const auto& l : lang_) {
     ui_->langSelectBox->addItem(l);
@@ -154,7 +154,7 @@ void GeneralTab::SetSettings() {
     SPDLOG_ERROR("setting operation error: longer_expiration_date");
   }
 
-#ifdef MULTI_LANG_SUPPORT
+#ifdef SUPPORT_MULTI_LANG
   try {
     std::string lang_key = settings.lookup("general.lang");
     QString lang_value = lang_.value(lang_key.c_str());
@@ -225,7 +225,7 @@ void GeneralTab::ApplySettings() {
         ui_->restoreTextEditorPageCheckBox->isChecked();
   }
 
-#ifdef MULTI_LANG_SUPPORT
+#ifdef SUPPORT_MULTI_LANG
   if (!general.exists("lang"))
     general.add("lang", libconfig::Setting::TypeBoolean) =
         lang_.key(ui_->langSelectBox->currentText()).toStdString();
@@ -244,7 +244,7 @@ void GeneralTab::ApplySettings() {
   }
 }
 
-#ifdef MULTI_LANG_SUPPORT
+#ifdef SUPPORT_MULTI_LANG
 void GeneralTab::slot_language_changed() { emit SignalRestartNeeded(true); }
 #endif
 

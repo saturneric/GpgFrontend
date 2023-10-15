@@ -29,27 +29,22 @@
 #ifndef GPGFRONTEND_VERSIONCHECKTHREAD_H
 #define GPGFRONTEND_VERSIONCHECKTHREAD_H
 
-#include <qnetworkreply.h>
+#include <GpgFrontendPluginSDK.h>
+#include <Task.h>
 
-#include <memory>
-#include <string>
+#include "SoftwareVersion.h"
 
-#include "core/thread/Task.h"
-#include "ui/GpgFrontendUI.h"
-#include "ui/struct/SoftwareVersion.h"
-
-class QNetworkAccessManager;
 class QNetworkReply;
+class QNetworkAccessManager;
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin {
 
 /**
  * @brief
  *
  */
-class VersionCheckTask : public Thread::Task {
+class VersionCheckTask : public SDK::STask {
   Q_OBJECT
-
  public:
   /**
    * @brief Construct a new Version Check Thread object
@@ -98,6 +93,7 @@ class VersionCheckTask : public Thread::Task {
   SoftwareVersion version_;
 };
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin
+   // GpgFrontend::Plugin::Custom::IntegradedPlugin::VersionCheckingPlugin
 
 #endif  // GPGFRONTEND_VERSIONCHECKTHREAD_H

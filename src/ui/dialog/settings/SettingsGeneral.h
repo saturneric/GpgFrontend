@@ -82,7 +82,7 @@ class GeneralTab : public QWidget {
  private:
   std::shared_ptr<Ui_GeneralSettings> ui_;  ///<
 
-#ifdef MULTI_LANG_SUPPORT
+#ifdef SUPPORT_MULTI_LANG
   QHash<QString, QString> lang_;  ///<
 #endif
 
@@ -92,7 +92,7 @@ class GeneralTab : public QWidget {
 
  private slots:
 
-#ifdef MULTI_LANG_SUPPORT
+#ifdef SUPPORT_MULTI_LANG
   /**
    * @brief
    *

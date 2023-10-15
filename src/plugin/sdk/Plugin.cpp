@@ -26,27 +26,37 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDUI_H
-#define GPGFRONTEND_GPGFRONTENDUI_H
+#include "Plugin.h"
 
-/**
- * Basic dependency
- */
-#include <QtWidgets>
+#include <core/plugin/PluginManager.h>
 
-/**
- * Project internal dependencies
- */
-#include "GpgFrontend.h"
-#include "core/GpgFrontendCore.h"
-#include "core/GpgModel.h"
-#include "core/thread/ThreadingModel.h"
-#include "ui/GpgFrontendUIExport.h"
+namespace GpgFrontend::Plugin::SDK {
 
-/**
- * 3rd party dependencies
- */
+SPlugin::SPlugin(SPluginIdentifier id, SPluginVersion version,
+                 SPluginMetaData meta_data)
+    : Plugin::Plugin(id, version, meta_data) {}
 
-#include <qt-aes/qaesencryption.h>
+bool SPlugin::Register() { return true; }
 
-#endif  // GPGFRONTEND_GPGFRONTENDUI_H
+bool SPlugin::Active() { return true; }
+
+int SPlugin::Exec(SEventRefrernce) { return 0; }
+
+bool SPlugin::Deactive() { return true; }
+
+SPluginIdentifier SPlugin::GetSPluginIdentifier() const {
+  return GetPluginIdentifier();
+}
+
+Thread::TaskRunner* GetPluginTaskRunner(SPlugin* plugin) {
+  if (plugin == nullptr) return nullptr;
+
+  auto opt = GpgFrontend::Plugin::PluginManager::GetInstance()->GetTaskRunner(
+      plugin->GetSPluginIdentifier());
+  if (!opt.has_value()) {
+    return nullptr;
+  }
+
+  return opt.value().get();
+}
+}  // namespace GpgFrontend::Plugin::SDK

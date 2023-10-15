@@ -27,11 +27,15 @@
 #ifndef GPGFRONTEND_PROXYCONNECTIONTESTTHREAD_H
 #define GPGFRONTEND_PROXYCONNECTIONTESTTHREAD_H
 
+#include <qnetworkreply.h>
 class ProxyConnectionTestThread {};
 
 #include <utility>
 
 #include "GpgFrontendUI.h"
+
+class QNetworkAccessManager;
+class QNetworkReply;
 
 namespace GpgFrontend::UI {
 

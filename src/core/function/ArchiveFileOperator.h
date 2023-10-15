@@ -34,14 +34,6 @@
 
 namespace GpgFrontend {
 
-struct ArchiveStruct {
-  struct archive *archive;
-  struct archive_entry *entry;
-  int fd;
-  bool is_open;
-  std::string name;
-};
-
 class GPGFRONTEND_CORE_EXPORT ArchiveFileOperator {
  public:
   static void ListArchive(const std::filesystem::path &archive_path);

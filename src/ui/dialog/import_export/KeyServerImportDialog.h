@@ -29,6 +29,7 @@
 #ifndef __KEY_SERVER_IMPORT_DIALOG_H__
 #define __KEY_SERVER_IMPORT_DIALOG_H__
 
+#include <QtNetwork>
 #include <string>
 
 #include "KeyImportDetailDialog.h"

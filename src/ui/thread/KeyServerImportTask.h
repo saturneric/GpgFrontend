@@ -27,6 +27,8 @@
 #ifndef GPGFRONTEND_KEYSERVERIMPORTTASK_H
 #define GPGFRONTEND_KEYSERVERIMPORTTASK_H
 
+#include <QtNetwork>
+
 #include "GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {

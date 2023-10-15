@@ -26,27 +26,29 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDUI_H
-#define GPGFRONTEND_GPGFRONTENDUI_H
+#ifndef GPGFRONTEND_PLUGIN_VERSIONCHECKINGPLUGIN_H
+#define GPGFRONTEND_PLUGIN_VERSIONCHECKINGPLUGIN_H
 
-/**
- * Basic dependency
- */
-#include <QtWidgets>
+#include <GpgFrontendPluginSDK.h>
+#include <Plugin.h>
 
-/**
- * Project internal dependencies
- */
-#include "GpgFrontend.h"
-#include "core/GpgFrontendCore.h"
-#include "core/GpgModel.h"
-#include "core/thread/ThreadingModel.h"
-#include "ui/GpgFrontendUIExport.h"
+#include "SoftwareVersion.h"
 
-/**
- * 3rd party dependencies
- */
+namespace GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin {
 
-#include <qt-aes/qaesencryption.h>
+class GPGFRONTEND_PLUGIN_SDK_EXPORT VersionCheckingPlugin
+    : public SDK::SPlugin {
+ public:
+  VersionCheckingPlugin();
 
-#endif  // GPGFRONTEND_GPGFRONTENDUI_H
+  virtual bool Register() override;
+
+  virtual bool Active() override;
+
+  virtual int Exec(SDK::SEventRefrernce) override;
+
+  virtual bool Deactive() override;
+};
+}  // namespace GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin
+
+#endif  // GPGFRONTEND_PLUGIN_VERSIONCHECKINGPLUGIN_H

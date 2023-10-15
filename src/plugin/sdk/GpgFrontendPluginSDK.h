@@ -26,27 +26,6 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDUI_H
-#define GPGFRONTEND_GPGFRONTENDUI_H
+#include <core/GpgFrontendCore.h>
 
-/**
- * Basic dependency
- */
-#include <QtWidgets>
-
-/**
- * Project internal dependencies
- */
-#include "GpgFrontend.h"
-#include "core/GpgFrontendCore.h"
-#include "core/GpgModel.h"
-#include "core/thread/ThreadingModel.h"
-#include "ui/GpgFrontendUIExport.h"
-
-/**
- * 3rd party dependencies
- */
-
-#include <qt-aes/qaesencryption.h>
-
-#endif  // GPGFRONTEND_GPGFRONTENDUI_H
+#include "GpgFrontendPluginSDKExport.h"

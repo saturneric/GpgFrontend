@@ -132,6 +132,9 @@ int main(int argc, char* argv[]) {
   int return_from_event_loop_code;
   int restart_count = 0;
 
+  // load integrated plugins
+  GpgFrontend::Plugin::LoadGpgFrontendIntegratedPlugins();
+
   do {
 #ifndef WINDOWS
     int r = sigsetjmp(recover_env, 1);

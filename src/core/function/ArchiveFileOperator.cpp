@@ -28,6 +28,17 @@
 
 #include "ArchiveFileOperator.h"
 
+#include <libarchive/libarchive/archive.h>
+#include <libarchive/libarchive/archive_entry.h>
+
+struct ArchiveStruct {
+  struct archive *archive;
+  struct archive_entry *entry;
+  int fd;
+  bool is_open;
+  std::string name;
+};
+
 int copy_data(struct archive *ar, struct archive *aw) {
   int r;
   const void *buff;

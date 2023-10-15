@@ -26,6 +26,7 @@
 
 #include "ListedKeyServerTestTask.h"
 
+#include <QtNetwork>
 #include <vector>
 
 GpgFrontend::UI::ListedKeyServerTestTask::ListedKeyServerTestTask(

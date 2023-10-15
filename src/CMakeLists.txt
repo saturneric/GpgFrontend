@@ -67,7 +67,7 @@ if (QT5_ENV_SUPPORT)
 endif ()
 
 # configure for output path and resources
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     aux_source_directory(. BASE_SOURCE)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
     set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
@@ -82,22 +82,22 @@ if (APPLICATION_BUILD)
 endif ()
 
 
-if (GPG_CORE)
-    message(STATUS "Build Core")
+if (BUILD_CORE_MODULE)
+    message("[*] Build Core Module")
     add_subdirectory(core)
 endif ()
 
-if (UI_CORE)
-    message(STATUS "Build UI")
+if (BUILD_UI_MODULE)
+    message("[*] Build UI Module")
     add_subdirectory(ui)
 endif ()
 
-if (UI_CORE)
-    message(STATUS "Build Plugin")
+if (BUILD_PLUGIN_MODULE)
+    message("[*] Build Plugin Module")
     add_subdirectory(plugin)
 endif ()
 
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     # Set Resource Output Path
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (APPLE)
@@ -119,7 +119,7 @@ endif ()
 file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
 # i18n
-if (MULTI_LANG_SUPPORT)
+if (SUPPORT_MULTI_LANG)
     message(STATUS "Build Multiply Languages Support")
     # Set Translation Files
     find_package(Gettext REQUIRED)
@@ -171,7 +171,7 @@ if (BASIC_ENV_CONFIG)
     endif ()
 endif ()
 
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     # Copy Resource Files
     file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
@@ -181,7 +181,7 @@ if (APPLICATION_BUILD)
     endif ()
 endif ()
 
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (APPLE)
             file(COPY ${CMAKE_SOURCE_DIR}/gpgfrontend.icns DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
@@ -193,7 +193,7 @@ if (APPLICATION_BUILD)
     endif ()
 endif ()
 
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     # Copy Utils Files
     if (MINGW)
         message(STATUS "Copying Dependent DLL For Windows Runtime Env")
@@ -342,15 +342,15 @@ if (APPLICATION_BUILD)
     endif ()
 endif ()
 
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     set(RESOURCE_FILES ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc ${APP_ICON_RESOURCE_WINDOWS} ${QON_QM_FILES})
     add_custom_target(resources ALL DEPENDS ${RESOURCE_FILES})
-    if (MULTI_LANG_SUPPORT)
+    if (SUPPORT_MULTI_LANG)
         add_dependencies(resources translations)
     endif ()
 endif ()
 
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (MINGW)
             add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
@@ -468,8 +468,8 @@ if (APPLICATION_BUILD)
 endif ()
 
 # link options for GpgFrontend
-if (APPLICATION_BUILD)
-    target_link_libraries(${AppName} gpgfrontend_ui)
+if (BUILD_APPLICATION)
+    target_link_libraries(${AppName} gpgfrontend_ui gpgfrontend_plugin)
     if (MINGW)
         message(STATUS "Link Application Library For MINGW")
         target_link_libraries(${AppName} crypto)
@@ -518,14 +518,14 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/${AppName}/)
         install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.appdata.xml
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/metainfo/)
-        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/desktop/
+        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/applications/)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/pixmaps/)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons/hicolor/)
     endif ()
-    if (MULTI_LANG_SUPPORT)
+    if (SUPPORT_MULTI_LANG)
         install(DIRECTORY ${LOCALE_OUTPUT_PATH}/
                 DESTINATION ${CMAKE_INSTALL_FULL_LOCALEDIR})
     endif ()

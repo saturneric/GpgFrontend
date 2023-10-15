@@ -24,20 +24,20 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-aux_source_directory(./function/result_analyse GPG_SOURCE)
-aux_source_directory(./function/gpg GPG_SOURCE)
-aux_source_directory(./function/aes GPG_SOURCE)
-aux_source_directory(./function GPG_SOURCE)
-aux_source_directory(./thread GPG_SOURCE)
-aux_source_directory(./model GPG_SOURCE)
-aux_source_directory(./common GPG_SOURCE)
-aux_source_directory(./plugin GPG_SOURCE)
-aux_source_directory(. GPG_SOURCE)
+aux_source_directory(./function/result_analyse CORE_SOURCE)
+aux_source_directory(./function/gpg CORE_SOURCE)
+aux_source_directory(./function/aes CORE_SOURCE)
+aux_source_directory(./function CORE_SOURCE)
+aux_source_directory(./thread CORE_SOURCE)
+aux_source_directory(./model CORE_SOURCE)
+aux_source_directory(./common CORE_SOURCE)
+aux_source_directory(./plugin CORE_SOURCE)
+aux_source_directory(. CORE_SOURCE)
 
 # define libgpgfrontend_core
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
-add_library(gpgfrontend_core SHARED ${GPG_SOURCE})
+add_library(gpgfrontend_core SHARED ${CORE_SOURCE})
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendCoreExport.h")
 generate_export_header(gpgfrontend_core EXPORT_FILE_NAME "${_export_file}")
 
@@ -62,12 +62,8 @@ if (APPLE)
     target_link_libraries(gpgfrontend_core PRIVATE icui18n icuuc icudata)
 else ()
     find_package(ICU REQUIRED COMPONENTS i18n uc data)
-    message("ICU version: ${ICU_VERSION}")
-    message("ICU includes: ${ICU_INCLUDE_DIRS}")
-    message("ICU libraries: ${ICU_LIBRARIES}")
     target_include_directories(gpgfrontend_core PRIVATE ${ICU_INCLUDE_DIRS})
     target_link_libraries(gpgfrontend_core PRIVATE ${ICU_LIBRARIES})
-    target_link_libraries(gpgfrontend_core PRIVATE /usr/lib/x86_64-linux-gnu/libicui18n.so;/usr/lib/x86_64-linux-gnu/libicuuc.so;/usr/lib/x86_64-linux-gnu/libicudata.so)
 endif ()
 
 # link gnupg libraries
@@ -90,6 +86,7 @@ target_link_libraries(gpgfrontend_core PRIVATE archive)
 # link json
 target_link_libraries(gpgfrontend_core
         PUBLIC nlohmann_json::nlohmann_json)
+        
 # link Qt core
 if(Qt6_DIR)
     target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core)

@@ -26,6 +26,8 @@
 
 #include "ProxyConnectionTestTask.h"
 
+#include <QtNetwork>
+
 GpgFrontend::UI::ProxyConnectionTestTask::ProxyConnectionTestTask(QString url,
                                                                   int timeout)
     : Task("proxy_connection_test_task"),

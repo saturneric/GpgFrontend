@@ -106,7 +106,7 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   auto* layout = new QVBoxLayout;
   layout->addWidget(topLabel);
   layout->addStretch();
-#ifdef MULTI_LANG_SUPPORT
+#ifdef SUPPORT_MULTI_LANG
   layout->addWidget(langLabel);
 #endif
 

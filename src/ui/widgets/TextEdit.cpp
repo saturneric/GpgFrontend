@@ -28,6 +28,7 @@
 
 #include "ui/widgets/TextEdit.h"
 
+#include <QtPrintSupport>
 #include <boost/format.hpp>
 #include <string>
 #include <tuple>

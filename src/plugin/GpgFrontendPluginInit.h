@@ -26,27 +26,31 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDUI_H
-#define GPGFRONTEND_GPGFRONTENDUI_H
+#ifndef GPGFRONTEND_GPGFRONTENDPLUGININIT_H
+#define GPGFRONTEND_GPGFRONTENDPLUGININIT_H
+
+#include "plugin/GpgFrontendPlugin.h"
+
+namespace GpgFrontend::Plugin {
 
 /**
- * Basic dependency
+ * @brief init the plugin library
+ *
  */
-#include <QtWidgets>
+void GPGFRONTEND_PLUGIN_EXPORT LoadGpgFrontendIntegratedPlugins();
 
 /**
- * Project internal dependencies
+ * @brief
+ *
  */
-#include "GpgFrontend.h"
-#include "core/GpgFrontendCore.h"
-#include "core/GpgModel.h"
-#include "core/thread/ThreadingModel.h"
-#include "ui/GpgFrontendUIExport.h"
+void GPGFRONTEND_PLUGIN_EXPORT InitPluginLoggingSystem();
 
 /**
- * 3rd party dependencies
+ * @brief
+ *
  */
+void GPGFRONTEND_PLUGIN_EXPORT ShutdownPluginLoggingSystem();
 
-#include <qt-aes/qaesencryption.h>
+};  // namespace GpgFrontend::Plugin
 
-#endif  // GPGFRONTEND_GPGFRONTENDUI_H
+#endif  // GPGFRONTEND_GPGFRONTENDPLUGININIT_H

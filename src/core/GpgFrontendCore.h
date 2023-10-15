@@ -58,18 +58,12 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
 
 // Qt includes
 #include <QtCore>
 
 // libconfig includes
 #include <libconfig.h++>
-
-// libarchive includes
-#include <libarchive/libarchive/archive.h>
-#include <libarchive/libarchive/archive_entry.h>
 
 // json includes
 #include <nlohmann/json.hpp>

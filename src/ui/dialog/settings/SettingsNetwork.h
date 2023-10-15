@@ -29,6 +29,8 @@
 #ifndef GPGFRONTEND_SETTINGSNETWORK_H
 #define GPGFRONTEND_SETTINGSNETWORK_H
 
+#include <QtNetwork>
+
 #include "ui/GpgFrontendUI.h"
 
 class Ui_NetworkSettings;

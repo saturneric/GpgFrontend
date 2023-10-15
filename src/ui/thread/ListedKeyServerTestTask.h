@@ -28,6 +28,10 @@
 #define GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
 
 #include "GpgFrontendUI.h"
+
+class QNetworkAccessManager;
+class QNetworkReply;
+
 namespace GpgFrontend::UI {
 
 /**

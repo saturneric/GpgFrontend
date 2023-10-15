@@ -24,55 +24,36 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYSERVERSEARCHTASK_H
-#define GPGFRONTEND_KEYSERVERSEARCHTASK_H
+#include "Event.h"
 
-#include <QtNetwork>
+namespace GpgFrontend::Plugin {
 
-#include "GpgFrontendUI.h"
+Event::Event(const std::string& event_dientifier,
+             std::initializer_list<ParameterInitializer> params_init_list)
+    : event_identifier_(event_dientifier) {
+  for (const auto& param : params_init_list) {
+    AddParameter(param);
+  }
+}
 
-namespace GpgFrontend::UI {
+bool Event::Event::operator==(const Event& other) const {
+  return event_identifier_ == other.event_identifier_;
+}
 
-class KeyServerSearchTask : public Thread::Task {
-  Q_OBJECT
- public:
-  /**
-   * @brief Construct a new Key Server Search Task object
-   *
-   * @param keyserver_url
-   * @param search_string
-   */
-  KeyServerSearchTask(std::string keyserver_url, std::string search_string);
+bool Event::Event::operator!=(const Event& other) const {
+  return !(*this == other);
+}
 
- signals:
+bool Event::Event::operator<(const Event& other) const {
+  return !(*this < other);
+}
 
-  /**
-   * @brief
-   *
-   * @param result
-   */
-  void SignalKeyServerSearchResult(QNetworkReply::NetworkError reply,
-                                   QByteArray buffer);
+bool Event::Event::operator<=(const Event& other) const {
+  return !(*this <= other);
+}
 
- protected:
-  /**
-   * @brief
-   *
-   */
-  void run() override;
+Event::Event::operator std::string() const { return event_identifier_; }
 
- private slots:
+EventIdentifier Event::Event::GetIdentifier() { return event_identifier_; }
 
-  void dealing_reply_from_server();
-
- private:
-  std::string keyserver_url_;  ///<
-  std::string search_string_;  ///<
-
-  QNetworkAccessManager *manager_;  ///<
-  QNetworkReply *reply_;            ///<
-};
-
-}  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYSERVERSEARCHTASK_H
+}  // namespace GpgFrontend::Plugin

@@ -28,6 +28,7 @@
 
 #include "UserInterfaceUtils.h"
 
+#include <QtNetwork>
 #include <string>
 #include <utility>
 #include <vector>
