@@ -67,7 +67,6 @@ else ()
     message("ICU libraries: ${ICU_LIBRARIES}")
     target_include_directories(gpgfrontend_core PRIVATE ${ICU_INCLUDE_DIRS})
     target_link_libraries(gpgfrontend_core PRIVATE ${ICU_LIBRARIES})
-    target_link_libraries(gpgfrontend_core PRIVATE /usr/lib/x86_64-linux-gnu/libicui18n.so;/usr/lib/x86_64-linux-gnu/libicuuc.so;/usr/lib/x86_64-linux-gnu/libicudata.so)
 endif ()
 
 # link gnupg libraries
