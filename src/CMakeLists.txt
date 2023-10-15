@@ -83,17 +83,17 @@ endif ()
 
 
 if (GPG_CORE)
-    message(STATUS "Build Core")
+    message(STATUS "Build Core Module")
     add_subdirectory(core)
 endif ()
 
 if (UI_CORE)
-    message(STATUS "Build UI")
+    message(STATUS "Build UI Module")
     add_subdirectory(ui)
 endif ()
 
-if (UI_CORE)
-    message(STATUS "Build Plugin")
+if (PLUGIN_CORE)
+    message(STATUS "Build Plugin Module")
     add_subdirectory(plugin)
 endif ()
 
@@ -518,7 +518,7 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/${AppName}/)
         install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.appdata.xml
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/metainfo/)
-        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/desktop/
+        install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/applications/)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/pixmaps/)
