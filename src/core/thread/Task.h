@@ -246,7 +246,7 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    *
    * @param finish_after_run
    */
-  void SetFinishAfterRun(bool finish_after_run);
+  void HoldOnLifeCycle(bool hold_on);
 
   /**
    * @brief

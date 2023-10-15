@@ -46,7 +46,7 @@ VersionCheckTask::VersionCheckTask()
 }
 
 void VersionCheckTask::Run() {
-  SetFinishAfterRun(false);
+  HoldOnLifeCycle(true);
 
   try {
     using namespace nlohmann;

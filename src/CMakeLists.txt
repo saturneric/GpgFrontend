@@ -83,25 +83,18 @@ endif ()
 
 
 if (GPG_CORE)
-    message(STATUS "Build Gpg Core")
+    message(STATUS "Build Core")
     add_subdirectory(core)
 endif ()
 
 if (UI_CORE)
-    message(STATUS "Build UI Core")
+    message(STATUS "Build UI")
     add_subdirectory(ui)
 endif ()
 
-if (SERVER_SUPPORT)
-    message(STATUS "Build Server Support")
-    add_compile_definitions(SERVER_SUPPORT)
-    add_subdirectory(server)
-endif ()
-
-if (ADVANCE_SUPPORT)
-    message(STATUS "Build Advance Support")
-    add_compile_definitions(ADVANCE_SUPPORT)
-    add_subdirectory(advance)
+if (UI_CORE)
+    message(STATUS "Build Plugin")
+    add_subdirectory(plugin)
 endif ()
 
 if (APPLICATION_BUILD)

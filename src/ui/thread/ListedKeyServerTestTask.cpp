@@ -40,7 +40,7 @@ GpgFrontend::UI::ListedKeyServerTestTask::ListedKeyServerTestTask(
 }
 
 void GpgFrontend::UI::ListedKeyServerTestTask::run() {
-  SetFinishAfterRun(false);
+  HoldOnLifeCycle(true);
 
   size_t index = 0;
   for (const auto& url : urls_) {

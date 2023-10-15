@@ -2,7 +2,7 @@ name: Doxygen Generation
 
 on:
   push:
-    branches: [ main, 'develop', 'dev/**' ]
+    branches: [ main, 'develop' ]
     paths-ignore:
       - 'resource/locale/template/**'
       - 'manual/**'

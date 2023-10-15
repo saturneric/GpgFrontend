@@ -39,6 +39,7 @@
 #include "core/GpgConstants.h"
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
+#include "plugin/GpgFrontendPluginInit.h"
 #include "spdlog/spdlog.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/GpgFrontendUIInit.h"
@@ -118,6 +119,9 @@ int main(int argc, char* argv[]) {
   // init the logging system for ui
   GpgFrontend::UI::InitUILoggingSystem();
 
+  // init the logging system for ui
+  GpgFrontend::Plugin::InitPluginLoggingSystem();
+
   // change path to search for related
   init_global_path_env();
 
@@ -159,6 +163,9 @@ int main(int argc, char* argv[]) {
     SPDLOG_DEBUG("restart loop refresh, event loop code: {}, restart count: {}",
                  return_from_event_loop_code, restart_count);
   } while (return_from_event_loop_code == RESTART_CODE && restart_count < 3);
+
+  // shutdown the logging system for core
+  GpgFrontend::Plugin::ShutdownPluginLoggingSystem();
 
   // shutdown the logging system for ui
   GpgFrontend::UI::ShutdownUILoggingSystem();

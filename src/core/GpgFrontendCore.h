@@ -42,6 +42,7 @@
 #include <memory>
 #include <mutex>
 #include <random>
+#include <set>
 #include <shared_mutex>
 #include <stdexcept>
 #include <string>
@@ -52,9 +53,13 @@
 // boost includes
 #include <boost/date_time.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
 
 // Qt includes
 #include <QtCore>

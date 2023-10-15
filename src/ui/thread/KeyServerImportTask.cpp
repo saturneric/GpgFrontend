@@ -36,7 +36,7 @@ GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
       manager_(new QNetworkAccessManager(this)) {}
 
 void GpgFrontend::UI::KeyServerImportTask::run() {
-  SetFinishAfterRun(false);
+  HoldOnLifeCycle(true);
 
   QUrl keyserver_url = QUrl(keyserver_url_.c_str());
   for (const auto& key_id : keyids_) {

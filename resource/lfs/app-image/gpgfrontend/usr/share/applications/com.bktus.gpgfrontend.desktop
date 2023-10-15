@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=GpgFrontend
-Exec=/usr/bin/GpgFrontend
+Exec=GpgFrontend
 Icon=com.bktus.gpgfrontend
 Comment=An OpenPGP Crypto Tool
 Terminal=false

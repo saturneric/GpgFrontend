@@ -31,6 +31,7 @@ aux_source_directory(./function GPG_SOURCE)
 aux_source_directory(./thread GPG_SOURCE)
 aux_source_directory(./model GPG_SOURCE)
 aux_source_directory(./common GPG_SOURCE)
+aux_source_directory(./plugin GPG_SOURCE)
 aux_source_directory(. GPG_SOURCE)
 
 # define libgpgfrontend_core
@@ -60,10 +61,13 @@ if (APPLE)
     target_link_directories(gpgfrontend_core PRIVATE /usr/local/opt/icu4c/lib)
     target_link_libraries(gpgfrontend_core PRIVATE icui18n icuuc icudata)
 else ()
-    find_package(ICU 60.0 REQUIRED COMPONENTS i18n uc data)
+    find_package(ICU REQUIRED COMPONENTS i18n uc data)
     message("ICU version: ${ICU_VERSION}")
+    message("ICU includes: ${ICU_INCLUDE_DIRS}")
     message("ICU libraries: ${ICU_LIBRARIES}")
+    target_include_directories(gpgfrontend_core PRIVATE ${ICU_INCLUDE_DIRS})
     target_link_libraries(gpgfrontend_core PRIVATE ${ICU_LIBRARIES})
+    target_link_libraries(gpgfrontend_core PRIVATE /usr/lib/x86_64-linux-gnu/libicui18n.so;/usr/lib/x86_64-linux-gnu/libicuuc.so;/usr/lib/x86_64-linux-gnu/libicudata.so)
 endif ()
 
 # link gnupg libraries

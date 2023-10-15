@@ -56,8 +56,7 @@ else()
 endif()
 
 # link gpgfrontend_core
-target_link_libraries(gpgfrontend_ui
-        gpgfrontend_core)
+target_link_libraries(gpgfrontend_ui gpgfrontend_core)
 
 # set up pch
 target_precompile_headers(gpgfrontend_ui PUBLIC GpgFrontendUI.h)

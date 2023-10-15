@@ -43,7 +43,7 @@ FileReadTask::FileReadTask(std::string path) : Task("file_read_task") {
 }
 
 void FileReadTask::Run() {
-  SetFinishAfterRun(false);
+  HoldOnLifeCycle(true);
 
   if (is_regular_file(read_file_path_)) {
     SPDLOG_DEBUG("read open file: {}", read_file_path_.u8string());

@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * by Saturneric<eric@bktus.com> starting on May 12, 2021.
  *
  */
 

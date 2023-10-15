@@ -90,10 +90,8 @@ std::string GpgFrontend::Thread::Task::GetUUID() const { return uuid_; }
 
 bool GpgFrontend::Thread::Task::GetSequency() const { return sequency_; }
 
-void GpgFrontend::Thread::Task::SetFinishAfterRun(
-    bool run_callback_after_runnable_finished) {
-  this->run_callback_after_runnable_finished_ =
-      run_callback_after_runnable_finished;
+void GpgFrontend::Thread::Task::HoldOnLifeCycle(bool hold_on) {
+  this->run_callback_after_runnable_finished_ = !hold_on;
 }
 
 void GpgFrontend::Thread::Task::SetRTN(int rtn) { this->rtn_ = rtn; }

@@ -36,7 +36,7 @@ GpgFrontend::UI::KeyServerSearchTask::KeyServerSearchTask(
       manager_(new QNetworkAccessManager(this)) {}
 
 void GpgFrontend::UI::KeyServerSearchTask::run() {
-  SetFinishAfterRun(false);
+  HoldOnLifeCycle(true);
 
   QUrl url_from_remote =
       QString::fromStdString(keyserver_url_) +
