@@ -104,6 +104,8 @@ if (APPLICATION_BUILD)
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
             file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/app-image/gpgfrontend DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+            file(COPY ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.metainfo.xml DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share/metainfo FOLLOW_SYMLINK_CHAIN)
+            file(COPY ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share/applications FOLLOW_SYMLINK_CHAIN)
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share)
         else ()
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
@@ -514,7 +516,7 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
                 PATTERN "lib" EXCLUDE)
         install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/${AppName}/)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/meta/com.bktus.gpgfrontend.appdata.xml
+        install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.appdata.xml
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/metainfo/)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/desktop/
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/applications/)
