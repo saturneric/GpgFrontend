@@ -31,7 +31,6 @@ aux_source_directory(./function CORE_SOURCE)
 aux_source_directory(./thread CORE_SOURCE)
 aux_source_directory(./model CORE_SOURCE)
 aux_source_directory(./common CORE_SOURCE)
-aux_source_directory(./plugin CORE_SOURCE)
 aux_source_directory(. CORE_SOURCE)
 
 # define libgpgfrontend_core

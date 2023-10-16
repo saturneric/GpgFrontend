@@ -26,36 +26,35 @@
  *
  */
 
-#include "Event.h"
+#include "VersionCheckingPlugin.h"
 
-namespace GpgFrontend::Plugin {
+#include "VersionCheckTask.h"
 
-Event::Event(const std::string& event_dientifier,
-             std::initializer_list<ParameterInitializer> params_init_list)
-    : event_identifier_(event_dientifier) {
-  for (const auto& param : params_init_list) {
-    AddParameter(param);
-  }
+namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin {
+
+VersionCheckingPlugin::VersionCheckingPlugin()
+    : Plugin("com.bktus.gpgfrontend.plugin.integrated.versionchecking", "1.0.0",
+             PluginMetaData{{"description", "try to check gpgfrontend version"},
+                            {"author", "saturneric"}}) {}
+
+bool VersionCheckingPlugin::Register() {
+  SPDLOG_INFO("version checking plugin registering");
+  return true;
 }
 
-bool Event::Event::operator==(const Event& other) const {
-  return event_identifier_ == other.event_identifier_;
+bool VersionCheckingPlugin::Active() {
+  SPDLOG_INFO("version checking plugin activating");
+
+  listenEvent("APPLICATION_STARTED");
+  return true;
 }
 
-bool Event::Event::operator!=(const Event& other) const {
-  return !(*this == other);
+int VersionCheckingPlugin::Exec(EventRefrernce event) {
+  SPDLOG_INFO("version checking plugin ececuting");
+
+  getTaskRunner()->PostTask(new VersionCheckTask());
+  return 0;
 }
 
-bool Event::Event::operator<(const Event& other) const {
-  return !(*this < other);
-}
-
-bool Event::Event::operator<=(const Event& other) const {
-  return !(*this <= other);
-}
-
-Event::Event::operator std::string() const { return event_identifier_; }
-
-EventIdentifier Event::Event::GetIdentifier() { return event_identifier_; }
-
-}  // namespace GpgFrontend::Plugin
+bool VersionCheckingPlugin::Deactive() { return true; }
+}  // namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin

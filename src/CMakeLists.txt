@@ -93,6 +93,7 @@ endif ()
 
 if (BUILD_PLUGIN_MODULE)
     message("[*] Build Plugin Module")
+    add_subdirectory(plugin)
 endif ()
 
 if (BUILD_APPLICATION)

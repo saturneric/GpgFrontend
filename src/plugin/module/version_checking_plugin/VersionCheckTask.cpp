@@ -34,10 +34,10 @@
 
 #include "GpgFrontendBuildInfo.h"
 
-namespace GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin {
+namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin {
 
 VersionCheckTask::VersionCheckTask()
-    : STask("version_check_task"),
+    : Task("version_check_task"),
       network_manager_(new QNetworkAccessManager(this)),
       current_version_(std::string("v") + std::to_string(VERSION_MAJOR) + "." +
                        std::to_string(VERSION_MINOR) + "." +
@@ -176,4 +176,4 @@ void VersionCheckTask::slot_parse_current_version_info() {
   emit SignalTaskRunnableEnd(0);
 }
 
-}  // namespace GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin
+}  // namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin

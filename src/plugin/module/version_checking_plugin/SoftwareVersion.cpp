@@ -28,9 +28,10 @@
 
 #include "SoftwareVersion.h"
 
-int GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin::
-    SoftwareVersion::version_compare(const std::string& a,
-                                     const std::string& b) {
+namespace GpgFrontend::Plugin::Module {
+
+int VersionCheckingPlugin::SoftwareVersion::version_compare(
+    const std::string& a, const std::string& b) {
   auto temp_a = a, temp_b = b;
 
   if (!temp_a.empty() && temp_a.front() == 'v') {
@@ -81,8 +82,7 @@ int GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin::
   return 0;
 }
 
-bool GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin::
-    SoftwareVersion::NeedUpgrade() const {
+bool VersionCheckingPlugin::SoftwareVersion::NeedUpgrade() const {
   SPDLOG_DEBUG("compair version current {} latest {}, result {}",
                current_version, latest_version,
                version_compare(current_version, latest_version));
@@ -93,13 +93,12 @@ bool GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin::
          version_compare(current_version, latest_version) < 0;
 }
 
-bool GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin::
-    SoftwareVersion::VersionWithDrawn() const {
+bool VersionCheckingPlugin::SoftwareVersion::VersionWithDrawn() const {
   return load_info_done && !current_version_found && current_prerelease &&
          !current_draft;
 }
 
-bool GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin::
-    SoftwareVersion::CurrentVersionReleased() const {
+bool VersionCheckingPlugin::SoftwareVersion::CurrentVersionReleased() const {
   return load_info_done && current_version_found;
 }
+}  // namespace GpgFrontend::Plugin::Module

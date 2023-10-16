@@ -26,37 +26,9 @@
  *
  */
 
-#include "Task.h"
+#pragma once
 
-#include "core/thread/Task.h"
-
-namespace GpgFrontend::Plugin::SDK {
-/**
- * @brief Construct a new Task object
- *
- */
-STask::STask(STaskName name) : Thread::Task(name) {}
-
-/**
- * @brief Construct a new Task object
- *
- * @param callback The callback function to be executed.
- */
-STask::STask(STaskName name, STaskRunnable runnable, SDataObjectPtr data_object)
-    : Thread::Task(runnable, name, data_object, true) {}
-
-/**
- * @brief Construct a new Task object
- *
- * @param runnable
- */
-STask::STask(STaskName name, STaskRunnable runnable, SDataObjectPtr data_object,
-             STaskCallback callback)
-    : Thread::Task(runnable, name, data_object, callback, true) {}
-
-void PostTask(Thread::TaskRunner *runner, STask *task) {
-  if (runner == nullptr || task == nullptr) return;
-  runner->PostTask(task);
-}
-
-}  // namespace GpgFrontend::Plugin::SDK
+#include <core/GpgFrontendCore.h>
+#include <plugin/system/Event.h>
+#include <plugin/system/Plugin.h>
+#include <plugin/system/PluginManager.h>

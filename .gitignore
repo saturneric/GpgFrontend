@@ -122,3 +122,10 @@ target_wrapper.*
 #Flatpak
 .flatpak-builder
 .flatpak-builder/
+
+
+
+
+
+#VSCode
+.vscode

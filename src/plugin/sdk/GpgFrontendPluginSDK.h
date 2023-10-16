@@ -26,6 +26,7 @@
  *
  */
 
-#include <core/GpgFrontendCore.h>
+#pragma once
 
-#include "GpgFrontendPluginSDKExport.h"
+#include <plugin/sdk/GpgFrontendPluginSDKExport.h>
+#include <plugin/system/GpgFrontendPluginSystem.h>

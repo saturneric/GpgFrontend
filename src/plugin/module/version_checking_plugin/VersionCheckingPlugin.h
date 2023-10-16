@@ -29,15 +29,13 @@
 #ifndef GPGFRONTEND_PLUGIN_VERSIONCHECKINGPLUGIN_H
 #define GPGFRONTEND_PLUGIN_VERSIONCHECKINGPLUGIN_H
 
-#include <GpgFrontendPluginSDK.h>
-#include <Plugin.h>
+#include <plugin/sdk/GpgFrontendPluginSDK.h>
 
 #include "SoftwareVersion.h"
 
-namespace GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin {
+namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin {
 
-class GPGFRONTEND_PLUGIN_SDK_EXPORT VersionCheckingPlugin
-    : public SDK::SPlugin {
+class GPGFRONTEND_PLUGIN_SDK_EXPORT VersionCheckingPlugin : public Plugin {
  public:
   VersionCheckingPlugin();
 
@@ -45,10 +43,10 @@ class GPGFRONTEND_PLUGIN_SDK_EXPORT VersionCheckingPlugin
 
   virtual bool Active() override;
 
-  virtual int Exec(SDK::SEventRefrernce) override;
+  virtual int Exec(EventRefrernce) override;
 
   virtual bool Deactive() override;
 };
-}  // namespace GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin
+}  // namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin
 
 #endif  // GPGFRONTEND_PLUGIN_VERSIONCHECKINGPLUGIN_H

@@ -29,38 +29,31 @@
 #ifndef GPGFRONTEND_GLOBALPLUGINCONTEXT_H
 #define GPGFRONTEND_GLOBALPLUGINCONTEXT_H
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
-#include <memory>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-
+#include "GpgFrontendPluginSystemExport.h"
 #include "core/GpgFrontendCore.h"
-#include "core/plugin/Event.h"
-#include "core/plugin/Plugin.h"
 #include "core/thread/TaskRunner.h"
+#include "plugin/system/Event.h"
 
 namespace GpgFrontend::Plugin {
 
+class GlobalPluginContext;
+
 class Plugin;
 class PluginManager;
-
+using PluginIdentifier = std::string;
+using PluginPtr = std::shared_ptr<Plugin>;
 using PluginList = std::list<std::string>;
 
-struct PluginRegisterInfo {
-  int channel;
-  TaskRunnerPtr task_runner;
-  PluginPtr plugin;
-  bool activate;
-};
+using GlobalPluginContextPtr = std::shared_ptr<GlobalPluginContext>;
 
-using PluginRegisterInfoPtr = std::shared_ptr<PluginRegisterInfo>;
+using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
 
-class GPGFRONTEND_CORE_EXPORT GlobalPluginContext : public QObject {
+class GPGFRONTEND_PLUGIN_SYSTEM_EXPORT GlobalPluginContext : public QObject {
   Q_OBJECT
  public:
   GlobalPluginContext(TaskRunnerPtr);
+
+  ~GlobalPluginContext();
 
   int GetChannel(PluginPtr);
 
@@ -83,21 +76,8 @@ class GPGFRONTEND_CORE_EXPORT GlobalPluginContext : public QObject {
   bool TriggerEvent(EventRefrernce);
 
  private:
-  std::unordered_map<PluginIdentifier, PluginRegisterInfoPtr>
-      plugin_register_table_;
-  std::map<EventIdentifier, std::unordered_set<PluginIdentifier>>
-      plugin_events_table_;
-
-  std::set<int> acquired_channel_;
-  boost::random::mt19937 random_gen_;
-  TaskRunnerPtr default_task_runner_;
-
-  int acquire_new_unique_channel();
-
-  std::optional<PluginRegisterInfoPtr> search_plugin_register_table(
-      PluginIdentifier);
-
-  std::list<PluginIdentifier> &search_plugin_events_table(PluginIdentifier);
+  class Impl;
+  std::unique_ptr<Impl> p_;
 };
 
 }  // namespace GpgFrontend::Plugin

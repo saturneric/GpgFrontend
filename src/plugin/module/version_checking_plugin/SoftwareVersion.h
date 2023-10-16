@@ -29,11 +29,9 @@
 #ifndef GPGFRONTEND_PLUGIN_SOFTWAREVERSION_H
 #define GPGFRONTEND_PLUGIN_SOFTWAREVERSION_H
 
-#include <GpgFrontendPluginSDK.h>
+#include <plugin/sdk/GpgFrontendPluginSDK.h>
 
-#include <boost/date_time.hpp>
-
-namespace GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin {
+namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin {
 /**
  * @brief
  *
@@ -85,6 +83,6 @@ struct SoftwareVersion {
  private:
   static int version_compare(const std::string& a, const std::string& b);
 };
-}  // namespace GpgFrontend::Plugin::IntegradedPlugin::VersionCheckingPlugin
+}  // namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin
 
 #endif  // GPGFRONTEND_PLUGIN_SOFTWAREVERSION_H

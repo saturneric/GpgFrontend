@@ -29,7 +29,11 @@
 #ifndef GPGFRONTEND_EVENT_H
 #define GPGFRONTEND_EVENT_H
 
+#include <memory>
+
+#include "GpgFrontendPluginSystemExport.h"
 #include "core/GpgFrontendCore.h"
+#include "nlohmann/json_fwd.hpp"
 
 namespace GpgFrontend::Plugin {
 
@@ -41,67 +45,37 @@ using Evnets = std::vector<Event>;
 
 class Event {
  public:
-  class ParameterBase {
-   public:
-    virtual ~ParameterBase() = default;
-  };
-
+  using ParameterValue = std::variant<int, float, std::string, nlohmann::json>;
+  using EventIdentifier = std::string;
   struct ParameterInitializer {
     std::string key;
-    std::shared_ptr<ParameterBase> value;
+    ParameterValue value;
   };
 
   Event(const std::string& event_dientifier,
         std::initializer_list<ParameterInitializer> params_init_list = {});
 
-  template <typename T>
-  std::optional<T> operator[](const std::string& key) const {
-    return GetParameter<T>(key);
-  }
+  ~Event();
+
+  std::optional<ParameterValue> operator[](const std::string& key) const;
 
   bool operator==(const Event& other) const;
+
   bool operator!=(const Event& other) const;
+
   bool operator<(const Event& other) const;
+
   bool operator<=(const Event& other) const;
+
   operator std::string() const;
 
   EventIdentifier GetIdentifier();
 
-  template <typename T>
-  void AddParameter(const std::string& key, const T& value) {
-    data_[key] = std::make_shared<ParameterValue<T>>(value);
-  }
-
-  void AddParameter(const ParameterInitializer& init) {
-    data_[init.key] = init.value;
-  }
-
-  template <typename T>
-  std::optional<T> GetParameter(const std::string& key) const {
-    if (data_.find(key) == data_.end()) {
-      throw std::nullopt;
-    }
-    auto value = std::dynamic_pointer_cast<ParameterValue<T>>(data_.at(key));
-    if (!value) {
-      throw std::nullopt;
-    }
-    return value->GetValue();
-  }
+  void AddParameter(const std::string& key, const ParameterValue& value);
 
  private:
-  template <typename T>
-  class ParameterValue : public ParameterBase {
-   public:
-    ParameterValue(const T& value) : value_(value) {}
-
-    T GetValue() const { return value_; }
-
-   private:
-    T value_;
-  };
-
-  EventIdentifier event_identifier_;
-  std::map<std::string, std::shared_ptr<ParameterBase>> data_;
+  class Impl;
+  std::unique_ptr<Impl> p_;
 };
 
 }  // namespace GpgFrontend::Plugin

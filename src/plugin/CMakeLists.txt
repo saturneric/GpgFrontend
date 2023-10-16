@@ -24,30 +24,41 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-# define libgpgfrontend_plugin_sdk
-aux_source_directory(sdk PLUGIN_SDK_SOURCE)
-add_library(gpgfrontend_plugin_sdk SHARED ${PLUGIN_SDK_SOURCE})
-set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/sdk/GpgFrontendPluginSDKExport.h")
-generate_export_header(gpgfrontend_plugin_sdk EXPORT_FILE_NAME "${_export_file}")
-target_include_directories(gpgfrontend_plugin_sdk PUBLIC sdk)
+# define libgpgfrontend_plugin_system
+aux_source_directory(system PLUGIN_SYSTEM_SOURCE)
+add_library(gpgfrontend_plugin_system SHARED ${PLUGIN_SYSTEM_SOURCE})
+set(_export_file_system "${CMAKE_CURRENT_SOURCE_DIR}/system/GpgFrontendPluginSystemExport.h")
+generate_export_header(gpgfrontend_plugin_system EXPORT_FILE_NAME "${_export_file_system}")
 
 # link json
-target_link_libraries(gpgfrontend_plugin_sdk
+target_link_libraries(gpgfrontend_plugin_system
         PUBLIC nlohmann_json::nlohmann_json)
 
 # spdlog
-target_link_libraries(gpgfrontend_plugin_sdk PUBLIC spdlog)
+target_link_libraries(gpgfrontend_plugin_system PUBLIC spdlog)
 
 # link Qt core
 if(Qt6_DIR)
-    target_link_libraries(gpgfrontend_plugin_sdk PUBLIC Qt6::Core)
+    target_link_libraries(gpgfrontend_plugin_system PUBLIC Qt6::Core)
 else()
-    target_link_libraries(gpgfrontend_plugin_sdk PUBLIC Qt5::Core)
+    target_link_libraries(gpgfrontend_plugin_system PUBLIC Qt5::Core)
 endif()
 
 # link core and ui module
-target_link_libraries(gpgfrontend_plugin_sdk PRIVATE
+target_link_libraries(gpgfrontend_plugin_system PUBLIC
         gpgfrontend_core gpgfrontend_ui)
+
+# define libgpgfrontend_plugin_sdk
+aux_source_directory(sdk PLUGIN_SDK_SOURCE)
+
+add_library(gpgfrontend_plugin_sdk SHARED ${PLUGIN_SDK_SOURCE})
+set(_export_file_sdk "${CMAKE_CURRENT_SOURCE_DIR}/sdk/GpgFrontendPluginSDKExport.h")
+generate_export_header(gpgfrontend_plugin_sdk EXPORT_FILE_NAME "${_export_file_sdk}")
+target_include_directories(gpgfrontend_plugin_sdk PUBLIC sdk)
+
+# link plugin system
+target_link_libraries(gpgfrontend_plugin_sdk
+        PRIVATE gpgfrontend_plugin_system)
 
 # tracking integrated plugins
 set(all_integrated_plugins_libraries "")

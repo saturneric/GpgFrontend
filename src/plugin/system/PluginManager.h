@@ -26,77 +26,60 @@
  *
  */
 
-#ifndef GPGFRONTEND_PLUGIN_H
-#define GPGFRONTEND_PLUGIN_H
+#ifndef GPGFRONTEND_PLUGINMANAGER_H
+#define GPGFRONTEND_PLUGINMANAGER_H
 
-#include "core/plugin/Event.h"
+#include <memory>
+#include <string>
+
+#include "GpgFrontendPluginSystemExport.h"
+#include "core/GpgFrontendCore.h"
 #include "core/thread/Task.h"
-#include "core/thread/TaskRunner.h"
+
+namespace GpgFrontend::Thread {
+class TaskRunner;
+}
 
 namespace GpgFrontend::Plugin {
 
 using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
 
+class Event;
 class Plugin;
 class GlobalPluginContext;
 class PluginManager;
 
+using EventRefrernce = std::shared_ptr<Event>;
 using PluginIdentifier = std::string;
-using PluginVersion = std::string;
-using PluginMetaData = std::map<std::string, std::string>;
 using PluginPtr = std::shared_ptr<Plugin>;
-
+using PluginMangerPtr = std::shared_ptr<PluginManager>;
 using GlobalPluginContextPtr = std::shared_ptr<GlobalPluginContext>;
 
-class GPGFRONTEND_CORE_EXPORT Plugin : public QObject {
+class GPGFRONTEND_PLUGIN_SYSTEM_EXPORT PluginManager : public QObject {
   Q_OBJECT
  public:
-  friend class PluginManager;
-  friend class GlobalPluginContext;
+  static PluginMangerPtr GetInstance();
 
-  Plugin(PluginIdentifier, PluginVersion, PluginMetaData);
+  void RegisterPlugin(PluginPtr);
 
-  virtual bool Register() = 0;
+  void TriggerEvent(EventRefrernce);
 
-  virtual bool Active() = 0;
+  void ActivePlugin(PluginIdentifier);
 
-  virtual int Exec(EventRefrernce) = 0;
+  void DeactivePlugin(PluginIdentifier);
 
-  virtual bool Deactive() = 0;
-
-  PluginIdentifier GetPluginIdentifier() const;
-
- protected:
-  int getChannel();
-
-  int getDefaultChannel();
-
-  std::optional<TaskRunnerPtr> getTaskRunner();
-
-  bool listenEvent(EventIdentifier);
+  std::optional<TaskRunnerPtr> GetTaskRunner(PluginIdentifier);
 
  private:
-  const GlobalPluginContextPtr global_plugin_context_;
-  const std::shared_ptr<Plugin> self_shared_ptr_;
-  const PluginIdentifier identifier_;
-  const PluginVersion version_;
-  const PluginMetaData meta_data_;
+  class Impl;
+  std::unique_ptr<Impl> p_;
+  static PluginMangerPtr g_;
 
-  void pm_set_global_plugin_cotext(GlobalPluginContextPtr);
+  PluginManager();
 
-  PluginIdentifier gpc_get_identifier();
-
-  bool gpc_register_plugin();
-
-  bool gpc_active_plugin();
-
-  bool gpc_deactive_plugin();
-
-  int gpc_exec_plugin();
-
-  const GlobalPluginContextPtr get_global_plugin_context();
+  ~PluginManager();
 };
 
 }  // namespace GpgFrontend::Plugin
 
-#endif  // GPGFRONTEND_PLUGIN_H
+#endif  // GPGFRONTEND_PLUGINMANAGER_H

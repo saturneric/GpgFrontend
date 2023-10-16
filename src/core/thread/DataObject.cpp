@@ -26,37 +26,4 @@
  *
  */
 
-#include "Plugin.h"
-
-#include <core/plugin/PluginManager.h>
-
-namespace GpgFrontend::Plugin::SDK {
-
-SPlugin::SPlugin(SPluginIdentifier id, SPluginVersion version,
-                 SPluginMetaData meta_data)
-    : Plugin::Plugin(id, version, meta_data) {}
-
-bool SPlugin::Register() { return true; }
-
-bool SPlugin::Active() { return true; }
-
-int SPlugin::Exec(SEventRefrernce) { return 0; }
-
-bool SPlugin::Deactive() { return true; }
-
-SPluginIdentifier SPlugin::GetSPluginIdentifier() const {
-  return GetPluginIdentifier();
-}
-
-Thread::TaskRunner* GetPluginTaskRunner(SPlugin* plugin) {
-  if (plugin == nullptr) return nullptr;
-
-  auto opt = GpgFrontend::Plugin::PluginManager::GetInstance()->GetTaskRunner(
-      plugin->GetSPluginIdentifier());
-  if (!opt.has_value()) {
-    return nullptr;
-  }
-
-  return opt.value().get();
-}
-}  // namespace GpgFrontend::Plugin::SDK
+#include "DataObject.h"
