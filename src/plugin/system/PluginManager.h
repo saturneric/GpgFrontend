@@ -58,6 +58,8 @@ using GlobalPluginContextPtr = std::shared_ptr<GlobalPluginContext>;
 class GPGFRONTEND_PLUGIN_SYSTEM_EXPORT PluginManager : public QObject {
   Q_OBJECT
  public:
+  ~PluginManager();
+
   static PluginMangerPtr GetInstance();
 
   void RegisterPlugin(PluginPtr);
@@ -76,8 +78,6 @@ class GPGFRONTEND_PLUGIN_SYSTEM_EXPORT PluginManager : public QObject {
   static PluginMangerPtr g_;
 
   PluginManager();
-
-  ~PluginManager();
 };
 
 }  // namespace GpgFrontend::Plugin

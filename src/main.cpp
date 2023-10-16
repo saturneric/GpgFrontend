@@ -39,7 +39,7 @@
 #include "core/GpgConstants.h"
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
-// #include "plugin/GpgFrontendPluginInit.h"
+#include "plugin/GpgFrontendPluginInit.h"
 #include "spdlog/spdlog.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/GpgFrontendUIInit.h"

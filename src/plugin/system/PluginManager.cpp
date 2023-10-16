@@ -45,7 +45,7 @@ class PluginManager::Impl {
 
   void RegisterPlugin(PluginPtr plugin) {
     task_runner_->PostTask(new Thread::Task(
-        std::move([=](GpgFrontend::Thread::Task::DataObjectPtr) -> int {
+        std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
           global_plugin_context_->RegisterPlugin(plugin);
           return 0;
         }),
@@ -54,7 +54,7 @@ class PluginManager::Impl {
 
   void TriggerEvent(EventRefrernce event) {
     task_runner_->PostTask(new Thread::Task(
-        std::move([=](GpgFrontend::Thread::Task::DataObjectPtr) -> int {
+        std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
           global_plugin_context_->TriggerEvent(event);
           return 0;
         }),
@@ -63,7 +63,7 @@ class PluginManager::Impl {
 
   void ActivePlugin(PluginIdentifier identifier) {
     task_runner_->PostTask(new Thread::Task(
-        std::move([=](GpgFrontend::Thread::Task::DataObjectPtr) -> int {
+        std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
           global_plugin_context_->ActivePlugin(identifier);
           return 0;
         }),

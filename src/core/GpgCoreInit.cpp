@@ -206,37 +206,36 @@ void init_gpgfrontend_core() {
   // async init no-ascii channel
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
-      ->PostTask(
-          new Thread::Task([=](Thread::Task::DataObjectPtr data_obj) -> int {
-            // init non-ascii channel
-            auto& ctx = GpgFrontend::GpgContext::CreateInstance(
-                GPGFRONTEND_NON_ASCII_CHANNEL,
-                [=]() -> std::unique_ptr<ChannelObject> {
-                  GpgFrontend::GpgContextInitArgs args;
-                  args.ascii = false;
+      ->PostTask(new Thread::Task([=](Thread::DataObjectPtr data_obj) -> int {
+        // init non-ascii channel
+        auto& ctx = GpgFrontend::GpgContext::CreateInstance(
+            GPGFRONTEND_NON_ASCII_CHANNEL,
+            [=]() -> std::unique_ptr<ChannelObject> {
+              GpgFrontend::GpgContextInitArgs args;
+              args.ascii = false;
 
-                  // set key database path
-                  if (use_custom_key_database_path &&
-                      !custom_key_database_path.empty()) {
-                    args.db_path = custom_key_database_path;
-                  }
+              // set key database path
+              if (use_custom_key_database_path &&
+                  !custom_key_database_path.empty()) {
+                args.db_path = custom_key_database_path;
+              }
 
-                  if (use_custom_gnupg_install_path) {
-                    args.custom_gpgconf = true;
-                    args.custom_gpgconf_path =
-                        custom_gnupg_install_fs_path.u8string();
-                  }
+              if (use_custom_gnupg_install_path) {
+                args.custom_gpgconf = true;
+                args.custom_gpgconf_path =
+                    custom_gnupg_install_fs_path.u8string();
+              }
 
-                  args.offline_mode = forbid_all_gnupg_connection;
-                  args.auto_import_missing_key = auto_import_missing_key;
-                  args.use_pinentry = use_pinentry_as_password_input_dialog;
+              args.offline_mode = forbid_all_gnupg_connection;
+              args.auto_import_missing_key = auto_import_missing_key;
+              args.use_pinentry = use_pinentry_as_password_input_dialog;
 
-                  return std::unique_ptr<ChannelObject>(new GpgContext(args));
-                });
+              return std::unique_ptr<ChannelObject>(new GpgContext(args));
+            });
 
-            if (!ctx.good()) SPDLOG_ERROR("no-ascii channel init error");
-            return ctx.good() ? 0 : -1;
-          }));
+        if (!ctx.good()) SPDLOG_ERROR("no-ascii channel init error");
+        return ctx.good() ? 0 : -1;
+      }));
 
   // try to restart all components
   GpgFrontend::GpgAdvancedOperator::GetInstance().RestartGpgComponents();

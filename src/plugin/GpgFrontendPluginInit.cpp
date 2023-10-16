@@ -36,18 +36,16 @@
 #include <memory>
 
 #include "core/function/GlobalSettingStation.h"
-#include "core/plugin/Plugin.h"
-#include "core/plugin/PluginManager.h"
+#include "plugin/system/PluginManager.h"
 
 // integrated plugins
-#include "integrated_plugins/version_checking_plugin/VersionCheckingPlugin.h"
+#include "module/version_checking_plugin/VersionCheckingPlugin.h"
 
 namespace GpgFrontend::Plugin {
 
 void LoadGpgFrontendIntegratedPlugins() {
   PluginManager::GetInstance()->RegisterPlugin(
-      std::make_shared<
-          IntegradedPlugin::VersionCheckingPlugin::VersionCheckingPlugin>());
+      std::make_shared<Module::VersionCheckingPlugin::VersionCheckingPlugin>());
 }
 
 void InitPluginLoggingSystem() {

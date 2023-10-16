@@ -83,6 +83,8 @@ Plugin::Plugin(PluginIdentifier id, PluginVersion version,
                PluginMetaData meta_data)
     : s_(this) {}
 
+Plugin::~Plugin() = default;
+
 int Plugin::getChannel() { return p_->GetChannel(); }
 
 int Plugin::getDefaultChannel() { return p_->GetDefaultChannel(); }

@@ -27,48 +27,56 @@
  */
 #include "GpgCommandExecutor.h"
 
+#include <memory>
+#include <string>
+
 #include "GpgFunctionObject.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "thread/DataObject.h"
 
 GpgFrontend::GpgCommandExecutor::GpgCommandExecutor(int channel)
     : SingletonFunctionObject<GpgCommandExecutor>(channel) {}
 
 void GpgFrontend::GpgCommandExecutor::Execute(
     std::string cmd, std::vector<std::string> arguments,
-    std::function<void(int, std::string, std::string)> callback,
-    std::function<void(QProcess *)> interact_func) {
+    GpgCommandExecutorCallback callback,
+    GpgCommandExecutorInteractor interact_func) {
   SPDLOG_DEBUG("called cmd {} arguments size: {}", cmd, arguments.size());
 
   Thread::Task::TaskCallback result_callback =
-      [](int rtn, Thread::Task::DataObjectPtr data_object) {
+      [](int rtn, Thread::DataObjectPtr data_object) {
         SPDLOG_DEBUG("data object use count: {}", data_object.use_count());
-        if (data_object->GetObjectSize() != 4)
+        if (!data_object->Check<int, std::string, std::string>())
           throw std::runtime_error("invalid data object size");
 
-        auto exit_code = data_object->PopObject<int>();
-        auto process_stdout = data_object->PopObject<std::string>();
-        auto process_stderr = data_object->PopObject<std::string>();
-        auto callback = data_object->PopObject<
-            std::function<void(int, std::string, std::string)>>();
+        auto exit_code = Thread::ExtractParams<int>(data_object, 0);
+        auto process_stdout =
+            Thread::ExtractParams<std::string>(data_object, 1);
+        auto process_stderr =
+            Thread::ExtractParams<std::string>(data_object, 2);
+        auto callback =
+            Thread::ExtractParams<GpgCommandExecutorCallback>(data_object, 3);
 
         // call callback
         callback(exit_code, process_stdout, process_stderr);
       };
 
   Thread::Task::TaskRunnable runner =
-      [](GpgFrontend::Thread::Task::DataObjectPtr data_object) -> int {
+      [](Thread::DataObjectPtr data_object) -> int {
     SPDLOG_DEBUG("process runner called, data object size: {}",
                  data_object->GetObjectSize());
 
-    if (data_object->GetObjectSize() != 4)
+    if (!data_object
+             ->Check<std::string, std::string, GpgCommandExecutorInteractor>())
       throw std::runtime_error("invalid data object size");
 
     // get arguments
-    auto cmd = data_object->PopObject<std::string>();
+    auto cmd = Thread::ExtractParams<std::string>(data_object, 0);
     SPDLOG_DEBUG("get cmd: {}", cmd);
-    auto arguments = data_object->PopObject<std::vector<std::string>>();
+    auto arguments =
+        Thread::ExtractParams<std::vector<std::string>>(data_object, 1);
     auto interact_func =
-        data_object->PopObject<std::function<void(QProcess *)>>();
+        Thread::ExtractParams<GpgCommandExecutorInteractor>(data_object, 2);
 
     auto *cmd_process = new QProcess();
     cmd_process->setProcessChannelMode(QProcess::MergedChannels);
@@ -120,27 +128,13 @@ void GpgFrontend::GpgCommandExecutor::Execute(
     cmd_process->close();
     cmd_process->deleteLater();
 
-    // transfer result
-    SPDLOG_DEBUG("runner append object");
-    data_object->AppendObject(std::move(process_stderr));
-    data_object->AppendObject(std::move(process_stdout));
-    data_object->AppendObject(std::move(exit_code));
-    SPDLOG_DEBUG("runner append object done");
-
+    data_object->Swap({exit_code, process_stdout, process_stderr});
     return 0;
   };
 
-  // data transfer into task
-  auto data_object = std::make_shared<Thread::Task::DataObject>();
-  SPDLOG_DEBUG("executor append object");
-  data_object->AppendObject(std::move(callback));
-  data_object->AppendObject(std::move(interact_func));
-  data_object->AppendObject(std::move(arguments));
-  data_object->AppendObject(std::move(std::string{cmd}));
-  SPDLOG_DEBUG("executor append object done");
-
   auto *process_task = new GpgFrontend::Thread::Task(
-      std::move(runner), fmt::format("Execute/{}", cmd), data_object,
+      std::move(runner), fmt::format("Execute/{}", cmd),
+      Thread::TransferParams(cmd, arguments, interact_func, callback),
       std::move(result_callback));
 
   QEventLoop looper;
@@ -158,40 +152,43 @@ void GpgFrontend::GpgCommandExecutor::Execute(
 
 void GpgFrontend::GpgCommandExecutor::ExecuteConcurrently(
     std::string cmd, std::vector<std::string> arguments,
-    std::function<void(int, std::string, std::string)> callback,
-    std::function<void(QProcess *)> interact_func) {
+    GpgCommandExecutorCallback callback,
+    GpgCommandExecutorInteractor interact_func) {
   SPDLOG_DEBUG("called cmd {} arguments size: {}", cmd, arguments.size());
 
   Thread::Task::TaskCallback result_callback =
-      [](int rtn, Thread::Task::DataObjectPtr data_object) {
-        if (data_object->GetObjectSize() != 4)
+      [](int rtn, Thread::DataObjectPtr data_object) {
+        if (!data_object->Check<int, std::string, std::string,
+                                GpgCommandExecutorCallback>())
           throw std::runtime_error("invalid data object size");
 
-        auto exit_code = data_object->PopObject<int>();
-        auto process_stdout = data_object->PopObject<std::string>();
-        auto process_stderr = data_object->PopObject<std::string>();
-        auto callback = data_object->PopObject<
-            std::function<void(int, std::string, std::string)>>();
+        auto exit_code = Thread::ExtractParams<int>(data_object, 0);
+        auto process_stdout =
+            Thread::ExtractParams<std::string>(data_object, 1);
+        auto process_stderr =
+            Thread::ExtractParams<std::string>(data_object, 2);
+        auto callback =
+            Thread::ExtractParams<GpgCommandExecutorCallback>(data_object, 3);
 
         // call callback
         callback(exit_code, process_stdout, process_stderr);
       };
 
   Thread::Task::TaskRunnable runner =
-      [](GpgFrontend::Thread::Task::DataObjectPtr data_object) -> int {
+      [](GpgFrontend::Thread::DataObjectPtr data_object) -> int {
     SPDLOG_DEBUG("process runner called, data object size: {}",
                  data_object->GetObjectSize());
 
-    if (data_object->GetObjectSize() != 4)
+    if (!data_object
+             ->Check<std::string, std::string, GpgCommandExecutorInteractor>())
       throw std::runtime_error("invalid data object size");
 
-    SPDLOG_DEBUG("runner pop object");
     // get arguments
-    auto cmd = data_object->PopObject<std::string>();
-    auto arguments = data_object->PopObject<std::vector<std::string>>();
+    auto cmd = Thread::ExtractParams<std::string>(data_object, 0);
+    auto arguments =
+        Thread::ExtractParams<std::vector<std::string>>(data_object, 1);
     auto interact_func =
-        data_object->PopObject<std::function<void(QProcess *)>>();
-    SPDLOG_DEBUG("runner pop object done");
+        Thread::ExtractParams<std::function<void(QProcess *)>>(data_object, 2);
 
     auto *cmd_process = new QProcess();
     cmd_process->setProcessChannelMode(QProcess::MergedChannels);
@@ -244,22 +241,13 @@ void GpgFrontend::GpgCommandExecutor::ExecuteConcurrently(
     cmd_process->close();
     cmd_process->deleteLater();
 
-    // transfer result
-    SPDLOG_DEBUG("runner append object");
-    data_object->AppendObject(std::move(process_stderr));
-    data_object->AppendObject(std::move(process_stdout));
-    data_object->AppendObject(std::move(exit_code));
-    SPDLOG_DEBUG("runner append object done");
-
+    data_object->Swap({exit_code, process_stdout, process_stderr});
     return 0;
   };
 
   // data transfer into task
-  auto data_object = std::make_shared<Thread::Task::DataObject>();
-  data_object->AppendObject(std::move(callback));
-  data_object->AppendObject(std::move(interact_func));
-  data_object->AppendObject(std::move(arguments));
-  data_object->AppendObject(std::move(std::string{cmd}));
+  auto data_object =
+      Thread::TransferParams(cmd, arguments, interact_func, callback);
 
   auto *process_task = new GpgFrontend::Thread::Task(
       std::move(runner), fmt::format("ExecuteConcurrently/{}", cmd),

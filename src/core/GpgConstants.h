@@ -29,6 +29,8 @@
 #ifndef GPG_CONSTANTS_H
 #define GPG_CONSTANTS_H
 
+#include <memory>
+
 #include "GpgFrontendCore.h"
 
 const int RESTART_CODE = 1000;       ///< only refresh ui
@@ -36,8 +38,8 @@ const int DEEP_RESTART_CODE = 1001;  // refresh core and ui
 
 namespace GpgFrontend {
 using ByteArray = std::string;                                    ///<
-using ByteArrayPtr = std::unique_ptr<ByteArray>;                  ///<
-using StdBypeArrayPtr = std::unique_ptr<ByteArray>;               ///<
+using ByteArrayPtr = std::shared_ptr<ByteArray>;                  ///<
+using StdBypeArrayPtr = std::shared_ptr<ByteArray>;               ///<
 using BypeArrayRef = ByteArray&;                                  ///<
 using BypeArrayConstRef = const ByteArray&;                       ///<
 using StringArgsPtr = std::unique_ptr<std::vector<std::string>>;  ///<

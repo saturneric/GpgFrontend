@@ -26,33 +26,26 @@
  *
  */
 
-#ifndef GPGFRONTEND_TASK_H
-#define GPGFRONTEND_TASK_H
-
-#include <functional>
-#include <memory>
-#include <stack>
-#include <string>
-#include <type_traits>
-#include <utility>
+#pragma once
 
 #include "core/GpgFrontendCore.h"
+#include "core/thread/DataObject.h"
 
 namespace GpgFrontend::Thread {
 
 class TaskRunner;
+extern const std::string DEFAULT_TASK_NAME;
+
+class DataObject;
+using DataObjectPtr = std::shared_ptr<DataObject>;  ///<
 
 class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
   Q_OBJECT
  public:
-  class DataObject;
-  using DataObjectPtr = std::shared_ptr<DataObject>;             ///<
+  friend class TaskRunner;
+
   using TaskRunnable = std::function<int(DataObjectPtr)>;        ///<
   using TaskCallback = std::function<void(int, DataObjectPtr)>;  ///<
-
-  static const std::string DEFAULT_TASK_NAME;
-
-  friend class TaskRunner;
 
   /**
    * @brief Construct a new Task object
@@ -148,44 +141,9 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
   void SetRTN(int rtn);
 
  private:
- class Impl;
- std::unique_ptr<Impl>;
-  const std::string uuid_;
-  const std::string name_;
-  const bool sequency_ = true;  ///< must run in the same thread
-  TaskCallback callback_;       ///<
-  TaskRunnable runnable_;       ///<
-  bool run_callback_after_runnable_finished_ = true;  ///<
-  int rtn_ = 0;                                       ///<
-  QThread *callback_thread_ = nullptr;                ///<
-  DataObjectPtr data_object_ = nullptr;               ///<
+  class Impl;
+  std::unique_ptr<Impl> p_;
 
-  /**
-   * @brief
-   *
-   */
-  void init();
-
-  /**
-   * @brief
-   *
-   */
   virtual void run() override;
-
-  /**
-   * @brief
-   *
-   * @return std::string
-   */
-  static std::string generate_uuid();
-
- private slots:
-  /**
-   * @brief
-   *
-   */
-  void slot_task_run_callback(int rtn);
 };
 }  // namespace GpgFrontend::Thread
-
-#endif  // GPGFRONTEND_TASK_H

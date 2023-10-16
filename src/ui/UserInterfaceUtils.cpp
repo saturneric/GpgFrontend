@@ -120,7 +120,7 @@ void process_result_analyse(TextEdit *edit, InfoBoardWidget *info_board,
 void process_operation(QWidget *parent, const std::string &waiting_title,
                        const Thread::Task::TaskRunnable func,
                        const Thread::Task::TaskCallback callback,
-                       Thread::Task::DataObjectPtr data_object) {
+                       Thread::DataObjectPtr data_object) {
   auto *dialog =
       new WaitingDialog(QString::fromStdString(waiting_title), parent);
 
@@ -435,7 +435,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
 
 void CommonUtils::slot_update_key_status() {
   auto refresh_task = new Thread::Task(
-      [](Thread::Task::DataObjectPtr) -> int {
+      [](Thread::DataObjectPtr) -> int {
         // flush key cache for all GpgKeyGetter Intances.
         for (const auto &channel_id : GpgKeyGetter::GetAllChannelId()) {
           GpgKeyGetter::GetInstance(channel_id).FlushKeyCache();

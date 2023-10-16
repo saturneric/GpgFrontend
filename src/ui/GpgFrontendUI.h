@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDUI_H
-#define GPGFRONTEND_GPGFRONTENDUI_H
+#pragma once
 
 /**
  * Basic dependency
@@ -48,5 +47,3 @@
  */
 
 #include <qt-aes/qaesencryption.h>
-
-#endif  // GPGFRONTEND_GPGFRONTENDUI_H

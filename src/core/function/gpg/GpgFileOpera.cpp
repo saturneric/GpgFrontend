@@ -55,7 +55,7 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
     throw std::runtime_error("read file error");
   }
 
-  std::unique_ptr<std::string> out_buffer = nullptr;
+  ByteArrayPtr out_buffer = nullptr;
 
   auto err = GpgBasicOperator::GetInstance(_channel).Encrypt(
       std::move(keys), in_buffer, out_buffer, result);
@@ -85,7 +85,7 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
   if (!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
     throw std::runtime_error("read file error");
   }
-  std::unique_ptr<std::string> out_buffer;
+  ByteArrayPtr out_buffer;
 
   auto err =
       GpgBasicOperator::GetInstance().Decrypt(in_buffer, out_buffer, result);
@@ -119,7 +119,7 @@ gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
   if (!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
     throw std::runtime_error("read file error");
   }
-  std::unique_ptr<std::string> out_buffer;
+  ByteArrayPtr out_buffer;
 
   auto err = GpgBasicOperator::GetInstance(_channel).Sign(
       std::move(keys), in_buffer, out_buffer, GPGME_SIG_MODE_DETACH, result);
@@ -149,7 +149,7 @@ gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(
   if (!FileOperator::ReadFileStd(data_path_std, in_buffer)) {
     throw std::runtime_error("read file error");
   }
-  std::unique_ptr<std::string> sign_buffer = nullptr;
+  ByteArrayPtr sign_buffer = nullptr;
   if (!sign_path.empty()) {
     std::string sign_buffer_str;
     if (!FileOperator::ReadFileStd(sign_path_std, sign_buffer_str)) {
@@ -180,7 +180,7 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
   if (!FileOperator::ReadFileStd(in_path_std, in_buffer)) {
     throw std::runtime_error("read file error");
   }
-  std::unique_ptr<std::string> out_buffer = nullptr;
+  ByteArrayPtr out_buffer = nullptr;
 
   auto err = GpgBasicOperator::GetInstance(_channel).EncryptSign(
       std::move(keys), std::move(signer_keys), in_buffer, out_buffer, encr_res,
@@ -212,7 +212,7 @@ gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
     throw std::runtime_error("read file error");
   }
 
-  std::unique_ptr<std::string> out_buffer = nullptr;
+  ByteArrayPtr out_buffer = nullptr;
   auto err = GpgBasicOperator::GetInstance().DecryptVerify(
       in_buffer, out_buffer, decr_res, verify_res);
 
@@ -241,7 +241,7 @@ unsigned int GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
     throw std::runtime_error("read file error");
   }
 
-  std::unique_ptr<std::string> out_buffer;
+  ByteArrayPtr out_buffer;
   auto err = GpgBasicOperator::GetInstance(_channel).EncryptSymmetric(
       in_buffer, out_buffer, result);
 

@@ -86,7 +86,7 @@ bool process_tarball_into_directory(QWidget* parent,
 
     bool if_error = false;
     process_operation(parent, _("Extracting Tarball"),
-                      [&](Thread::Task::DataObjectPtr) -> int {
+                      [&](Thread::DataObjectPtr) -> int {
                         try {
                           GpgFrontend::ArchiveFileOperator::ExtractArchive(
                               target_path, base_path);
@@ -131,7 +131,7 @@ bool process_directory_into_tarball(QWidget* parent, QString& path) {
 
     bool if_error = false;
     process_operation(parent, _("Making Tarball"),
-                      [&](Thread::Task::DataObjectPtr) -> int {
+                      [&](Thread::DataObjectPtr) -> int {
                         try {
                           GpgFrontend::ArchiveFileOperator::CreateArchive(
                               base_path, target_path, 0, {selected_dir_path});
@@ -223,8 +223,7 @@ void MainWindow::SlotFileEncrypt() {
     if (ret == QMessageBox::Cancel) return;
 
     process_operation(
-        this, _("Symmetrically Encrypting"),
-        [&](Thread::Task::DataObjectPtr) -> int {
+        this, _("Symmetrically Encrypting"), [&](Thread::DataObjectPtr) -> int {
           try {
             error = GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
                 path.toStdString(), out_path.toStdString(), result, _channel);
@@ -250,17 +249,16 @@ void MainWindow::SlotFileEncrypt() {
       }
     }
 
-    process_operation(this, _("Encrypting"),
-                      [&](Thread::Task::DataObjectPtr) -> int {
-                        try {
-                          error = GpgFileOpera::EncryptFile(
-                              std::move(p_keys), path.toStdString(),
-                              out_path.toStdString(), result, _channel);
-                        } catch (const std::runtime_error& e) {
-                          if_error = true;
-                        }
-                        return 0;
-                      });
+    process_operation(this, _("Encrypting"), [&](Thread::DataObjectPtr) -> int {
+      try {
+        error =
+            GpgFileOpera::EncryptFile(std::move(p_keys), path.toStdString(),
+                                      out_path.toStdString(), result, _channel);
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+      return 0;
+    });
   }
 
   // remove xxx.tar and only left xxx.tar.gpg
@@ -314,16 +312,15 @@ void MainWindow::SlotFileDecrypt() {
   GpgDecrResult result = nullptr;
   gpgme_error_t error;
   bool if_error = false;
-  process_operation(this, _("Decrypting"),
-                    [&](Thread::Task::DataObjectPtr) -> int {
-                      try {
-                        error = GpgFileOpera::DecryptFile(
-                            path.toStdString(), out_path.u8string(), result);
-                      } catch (const std::runtime_error& e) {
-                        if_error = true;
-                      }
-                      return 0;
-                    });
+  process_operation(this, _("Decrypting"), [&](Thread::DataObjectPtr) -> int {
+    try {
+      error = GpgFileOpera::DecryptFile(path.toStdString(), out_path.u8string(),
+                                        result);
+    } catch (const std::runtime_error& e) {
+      if_error = true;
+    }
+    return 0;
+  });
 
   if (!if_error) {
     auto resultAnalyse = GpgDecryptResultAnalyse(error, std::move(result));
@@ -419,17 +416,16 @@ void MainWindow::SlotFileSign() {
   gpgme_error_t error;
   bool if_error = false;
 
-  process_operation(
-      this, _("Signing"), [&](Thread::Task::DataObjectPtr) -> int {
-        try {
-          error = GpgFileOpera::SignFile(std::move(keys), in_path.u8string(),
-                                         sig_file_path.u8string(), result,
-                                         _channel);
-        } catch (const std::runtime_error& e) {
-          if_error = true;
-        }
-        return 0;
-      });
+  process_operation(this, _("Signing"), [&](Thread::DataObjectPtr) -> int {
+    try {
+      error =
+          GpgFileOpera::SignFile(std::move(keys), in_path.u8string(),
+                                 sig_file_path.u8string(), result, _channel);
+    } catch (const std::runtime_error& e) {
+      if_error = true;
+    }
+    return 0;
+  });
 
   if (!if_error) {
     auto resultAnalyse = GpgSignResultAnalyse(error, std::move(result));
@@ -504,17 +500,16 @@ void MainWindow::SlotFileVerify() {
   GpgVerifyResult result = nullptr;
   gpgme_error_t error;
   bool if_error = false;
-  process_operation(
-      this, _("Verifying"), [&](Thread::Task::DataObjectPtr) -> int {
-        try {
-          error = GpgFileOpera::VerifyFile(data_file_path.u8string(),
-                                           sign_file_path.u8string(), result,
-                                           _channel);
-        } catch (const std::runtime_error& e) {
-          if_error = true;
-        }
-        return 0;
-      });
+  process_operation(this, _("Verifying"), [&](Thread::DataObjectPtr) -> int {
+    try {
+      error =
+          GpgFileOpera::VerifyFile(data_file_path.u8string(),
+                                   sign_file_path.u8string(), result, _channel);
+    } catch (const std::runtime_error& e) {
+      if_error = true;
+    }
+    return 0;
+  });
 
   if (!if_error) {
     auto result_analyse = GpgVerifyResultAnalyse(error, result);
@@ -622,18 +617,17 @@ void MainWindow::SlotFileEncryptSign() {
   gpgme_error_t error;
   bool if_error = false;
 
-  process_operation(this, _("Encrypting and Signing"),
-                    [&](Thread::Task::DataObjectPtr) -> int {
-                      try {
-                        error = GpgFileOpera::EncryptSignFile(
-                            std::move(p_keys), std::move(p_signer_keys),
-                            path.toStdString(), out_path.toStdString(),
-                            encr_result, sign_result, _channel);
-                      } catch (const std::runtime_error& e) {
-                        if_error = true;
-                      }
-                      return 0;
-                    });
+  process_operation(
+      this, _("Encrypting and Signing"), [&](Thread::DataObjectPtr) -> int {
+        try {
+          error = GpgFileOpera::EncryptSignFile(
+              std::move(p_keys), std::move(p_signer_keys), path.toStdString(),
+              out_path.toStdString(), encr_result, sign_result, _channel);
+        } catch (const std::runtime_error& e) {
+          if_error = true;
+        }
+        return 0;
+      });
 
   if (!if_error) {
     auto encrypt_result =
@@ -696,17 +690,16 @@ void MainWindow::SlotFileDecryptVerify() {
   GpgVerifyResult v_result = nullptr;
   gpgme_error_t error;
   bool if_error = false;
-  process_operation(this, _("Decrypting and Verifying"),
-                    [&](Thread::Task::DataObjectPtr) -> int {
-                      try {
-                        error = GpgFileOpera::DecryptVerifyFile(
-                            path.toStdString(), out_path.u8string(), d_result,
-                            v_result);
-                      } catch (const std::runtime_error& e) {
-                        if_error = true;
-                      }
-                      return 0;
-                    });
+  process_operation(
+      this, _("Decrypting and Verifying"), [&](Thread::DataObjectPtr) -> int {
+        try {
+          error = GpgFileOpera::DecryptVerifyFile(
+              path.toStdString(), out_path.u8string(), d_result, v_result);
+        } catch (const std::runtime_error& e) {
+          if_error = true;
+        }
+        return 0;
+      });
 
   if (!if_error) {
     auto decrypt_res = GpgDecryptResultAnalyse(error, std::move(d_result));

@@ -28,200 +28,46 @@
 
 #include "core/thread/Task.h"
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <functional>
-#include <string>
-#include <utility>
+#include <memory>
 
-#include "core/thread/TaskRunner.h"
+#include "TaskImpl.hpp"
 
-const std::string GpgFrontend::Thread::Task::DEFAULT_TASK_NAME = "default-task";
+namespace GpgFrontend::Thread {
 
-GpgFrontend::Thread::Task::Task(std::string name)
-    : uuid_(generate_uuid()), name_(name) {
-  SPDLOG_TRACE("task {}/ created", GetFullID());
-  init();
-}
+const std::string DEFAULT_TASK_NAME = "unnamed-task";
 
-GpgFrontend::Thread::Task::Task(TaskRunnable runnable, std::string name,
-                                DataObjectPtr data_object, bool sequency)
-    : uuid_(generate_uuid()),
-      name_(name),
-      runnable_(std::move(runnable)),
-      callback_(std::move([](int, const std::shared_ptr<DataObject> &) {})),
-      callback_thread_(QThread::currentThread()),
-      data_object_(data_object),
-      sequency_(sequency) {
-  SPDLOG_TRACE("task {} created with runnable, callback_thread_: {}",
-               GetFullID(), static_cast<void *>(callback_thread_));
-  init();
-}
+Task::Task(std::string name) : p_(std::make_unique<Impl>(this, name)) {}
 
-GpgFrontend::Thread::Task::Task(TaskRunnable runnable, std::string name,
-                                DataObjectPtr data_object,
-                                TaskCallback callback, bool sequency)
-    : uuid_(generate_uuid()),
-      name_(name),
-      runnable_(std::move(runnable)),
-      callback_(std::move(callback)),
-      callback_thread_(QThread::currentThread()),
-      data_object_(data_object),
-      sequency_(sequency) {
-  init();
-  SPDLOG_TRACE(
-      "task {} created with runnable and callback, callback_thread_: {}",
-      GetFullID(), static_cast<void *>(callback_thread_));
-}
+Task::Task(TaskRunnable runnable, std::string name, DataObjectPtr data_object,
+           bool sequency)
+    : p_(std::make_unique<Impl>(this, runnable, name, data_object, sequency)) {}
 
-GpgFrontend::Thread::Task::~Task() {
-  SPDLOG_TRACE("task {} destroyed", GetFullID());
-}
+Task::Task(TaskRunnable runnable, std::string name, DataObjectPtr data_object,
+           TaskCallback callback, bool sequency)
+    : p_(std::make_unique<Impl>(this, runnable, name, data_object, callback,
+                                sequency)) {}
+
+Task::~Task() = default;
 
 /**
  * @brief
  *
  * @return std::string
  */
-std::string GpgFrontend::Thread::Task::GetFullID() const {
-  return uuid_ + "/" + name_;
-}
+std::string Task::GetFullID() const { return p_->GetFullID(); }
 
-std::string GpgFrontend::Thread::Task::GetUUID() const { return uuid_; }
+std::string Task::GetUUID() const { return p_->GetUUID(); }
 
-bool GpgFrontend::Thread::Task::GetSequency() const { return sequency_; }
+bool Task::GetSequency() const { return p_->GetSequency(); }
 
-void GpgFrontend::Thread::Task::HoldOnLifeCycle(bool hold_on) {
-  this->run_callback_after_runnable_finished_ = !hold_on;
-}
+void Task::HoldOnLifeCycle(bool hold_on) { p_->HoldOnLifeCycle(hold_on); }
 
-void GpgFrontend::Thread::Task::SetRTN(int rtn) { this->rtn_ = rtn; }
+void Task::SetRTN(int rtn) { p_->SetRTN(rtn); }
 
-void GpgFrontend::Thread::Task::init() {
-  // after runnable finished, running callback
-  connect(this, &Task::SignalTaskRunnableEnd, this,
-          &Task::slot_task_run_callback);
-}
+void Task::SlotRun() { p_->SlotRun(); }
 
-void GpgFrontend::Thread::Task::slot_task_run_callback(int rtn) {
-  SPDLOG_TRACE("task runnable {} finished, rtn: {}", GetFullID(), rtn);
-  // set return value
-  this->SetRTN(rtn);
+void Task::Run() { p_->Run(); }
 
-  try {
-    if (callback_) {
-      if (callback_thread_ == QThread::currentThread()) {
-        SPDLOG_DEBUG("callback thread is the same thread");
-        if (!QMetaObject::invokeMethod(callback_thread_,
-                                       [callback = callback_, rtn = rtn_,
-                                        data_object = data_object_, this]() {
-                                         callback(rtn, data_object);
-                                         // do cleaning work
-                                         emit SignalTaskEnd();
-                                       })) {
-          SPDLOG_ERROR("failed to invoke callback");
-        }
-        // just finished, let callack thread to raise SignalTaskEnd
-        return;
-      } else {
-        // waiting for callback to finish
-        if (!QMetaObject::invokeMethod(
-                callback_thread_,
-                [callback = callback_, rtn = rtn_,
-                 data_object = data_object_]() { callback(rtn, data_object); },
-                Qt::BlockingQueuedConnection)) {
-          SPDLOG_ERROR("failed to invoke callback");
-        }
-      }
-    }
-  } catch (std::exception &e) {
-    SPDLOG_ERROR("exception caught: {}", e.what());
-  } catch (...) {
-    SPDLOG_ERROR("unknown exception caught");
-  }
+void Task::run() { p_->RunnableInterfaceRun(); }
 
-  // raise signal, announcing this task come to an end
-  SPDLOG_DEBUG("task {}, starting calling signal SignalTaskEnd", GetFullID());
-  emit SignalTaskEnd();
-}
-
-void GpgFrontend::Thread::Task::run() {
-  SPDLOG_TRACE("task {} starting", GetFullID());
-
-  // build runnable package for running
-  auto runnable_package = [=, id = GetFullID()]() {
-    SPDLOG_DEBUG("task {} runnable start runing", id);
-    // Run() will set rtn by itself
-    Run();
-    // raise signal to anounce after runnable returned
-    if (run_callback_after_runnable_finished_) emit SignalTaskRunnableEnd(rtn_);
-  };
-
-  if (thread() != QThread::currentThread()) {
-    SPDLOG_DEBUG("task running thread is not object living thread");
-    // if running sequently
-    if (sequency_) {
-      // running in another thread, blocking until returned
-      if (!QMetaObject::invokeMethod(thread(), runnable_package,
-                                     Qt::BlockingQueuedConnection)) {
-        SPDLOG_ERROR("qt invoke method failed");
-      }
-    } else {
-      // running in another thread, non-blocking
-      if (!QMetaObject::invokeMethod(thread(), runnable_package)) {
-        SPDLOG_ERROR("qt invoke method failed");
-      }
-    }
-  } else {
-    if (!QMetaObject::invokeMethod(this, runnable_package)) {
-      SPDLOG_ERROR("qt invoke method failed");
-    }
-  }
-}
-
-void GpgFrontend::Thread::Task::SlotRun() { run(); }
-
-void GpgFrontend::Thread::Task::Run() {
-  if (runnable_) {
-    SetRTN(runnable_(data_object_));
-  } else {
-    SPDLOG_WARN("no runnable in task, do callback operation");
-  }
-}
-
-GpgFrontend::Thread::Task::DataObject::Destructor *
-GpgFrontend::Thread::Task::DataObject::get_heap_ptr(size_t bytes_size) {
-  Destructor *dstr_ptr = new Destructor();
-  dstr_ptr->p_obj = malloc(bytes_size);
-  return dstr_ptr;
-}
-
-GpgFrontend::Thread::Task::DataObject::~DataObject() {
-  if (!data_objects_.empty())
-    SPDLOG_WARN("data_objects_ is not empty",
-                "address:", static_cast<void *>(this));
-  while (!data_objects_.empty()) {
-    free_heap_ptr(data_objects_.top());
-    data_objects_.pop();
-  }
-}
-
-size_t GpgFrontend::Thread::Task::DataObject::GetObjectSize() {
-  return data_objects_.size();
-}
-
-void GpgFrontend::Thread::Task::DataObject::free_heap_ptr(Destructor *ptr) {
-  SPDLOG_TRACE("p_obj: {} data object: {}",
-               static_cast<const void *>(ptr->p_obj),
-               static_cast<void *>(this));
-  if (ptr->destroy != nullptr) {
-    ptr->destroy(ptr->p_obj);
-  }
-  free(const_cast<void *>(ptr->p_obj));
-  delete ptr;
-}
-
-std::string GpgFrontend::Thread::Task::generate_uuid() {
-  return boost::uuids::to_string(boost::uuids::random_generator()());
-}
+}  // namespace GpgFrontend::Thread

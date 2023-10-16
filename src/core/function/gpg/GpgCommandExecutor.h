@@ -39,6 +39,10 @@
 
 namespace GpgFrontend {
 
+using GpgCommandExecutorCallback =
+    std::function<void(int, std::string, std::string)>;
+using GpgCommandExecutorInteractor = std::function<void(QProcess *)>;
+
 /**
  * @brief Extra commands related to GPG
  *
@@ -62,14 +66,14 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
    */
   void Execute(
       std::string cmd, std::vector<std::string> arguments,
-      std::function<void(int, std::string, std::string)> callback =
-          [](int, std::string, std::string) {},
-      std::function<void(QProcess *)> interact_func = [](QProcess *) {});
+      GpgCommandExecutorCallback callback = [](int, std::string,
+                                               std::string) {},
+      GpgCommandExecutorInteractor interact_func = [](QProcess *) {});
 
   void ExecuteConcurrently(
       std::string cmd, std::vector<std::string> arguments,
-      std::function<void(int, std::string, std::string)> callback,
-      std::function<void(QProcess *)> interact_func = [](QProcess *) {});
+      GpgCommandExecutorCallback callback,
+      GpgCommandExecutorInteractor interact_func = [](QProcess *) {});
 
  private:
   GpgContext &ctx_ = GpgContext::GetInstance(

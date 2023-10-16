@@ -28,110 +28,66 @@
 
 #pragma once
 
-/**
-   * @brief DataObject to be passed to the callback function.
-   *
-   */
-  class GPGFRONTEND_CORE_EXPORT DataObject {
-   public:
-    struct Destructor {
-      const void *p_obj;
-      void (*destroy)(const void *);
-    };
+#include <stack>
 
-    /**
-     * @brief Get the Objects Size
-     *
-     * @return size_t
-     */
-    size_t GetObjectSize();
+#include "core/GpgFrontendCoreExport.h"
 
-    /**
-     * @brief
-     *
-     * @tparam T
-     * @param ptr
-     */
-    template <typename T>
-    void AppendObject(T &&obj) {
-      SPDLOG_TRACE("append object: {}", static_cast<void *>(this));
-      auto *obj_dstr = this->get_heap_ptr(sizeof(T));
-      new ((void *)obj_dstr->p_obj) T(std::forward<T>(obj));
+namespace GpgFrontend::Thread {
 
-      if (std::is_class_v<T>) {
-        auto destructor = [](const void *x) {
-          static_cast<const T *>(x)->~T();
-        };
-        obj_dstr->destroy = destructor;
-      } else {
-        obj_dstr->destroy = nullptr;
-      }
+class DataObject;
+using DataObjectPtr = std::shared_ptr<DataObject>;  ///<
 
-      data_objects_.push(obj_dstr);
+class GPGFRONTEND_CORE_EXPORT DataObject {
+ public:
+  DataObject();
+
+  DataObject(std::initializer_list<std::any>);
+
+  ~DataObject();
+
+  DataObject(GpgFrontend::Thread::DataObject&&) noexcept;
+
+  std::any operator[](size_t index) const;
+
+  void AppendObject(std::any);
+
+  std::any GetParameter(size_t index) const;
+
+  size_t GetObjectSize() const;
+
+  void Swap(DataObject& other) noexcept;
+
+  void Swap(DataObject&& other) noexcept;
+
+  template <typename... Args>
+  bool Check() {
+    if (sizeof...(Args) != GetObjectSize()) return false;
+
+    std::vector<std::type_info const*> type_list = {&typeid(Args)...};
+    for (size_t i = 0; i < type_list.size(); ++i) {
+      if (type_list[i] != &((*this)[i]).type()) return false;
     }
+    return true;
+  }
 
-    /**
-     * @brief
-     *
-     * @tparam T
-     * @param ptr
-     */
-    template <typename T>
-    void AppendObject(T *obj) {
-      SPDLOG_TRACE("called: {}", static_cast<void *>(this));
-      auto *obj_dstr = this->get_heap_ptr(sizeof(T));
-      auto *ptr_heap = new ((void *)obj_dstr->p_obj) T(std::move(*obj));
-      if (std::is_class_v<T>) {
-        SPDLOG_TRACE("is class");
-        auto destructor = [](const void *x) {
-          static_cast<const T *>(x)->~T();
-        };
-        obj_dstr->destroy = destructor;
-      } else {
-        obj_dstr->destroy = nullptr;
-      }
-      data_objects_.push(std::move(obj_dstr));
-    }
+ private:
+  class Impl;
+  std::unique_ptr<Impl> p_;
+};
 
-    /**
-     * @brief
-     *
-     * @tparam T
-     * @return std::shared_ptr<T>
-     */
-    template <typename T>
-    T PopObject() {
-      SPDLOG_TRACE("pop object: {}", static_cast<void *>(this));
-      if (data_objects_.empty()) throw std::runtime_error("No object to pop");
-      auto *obj_dstr = data_objects_.top();
-      auto *heap_ptr = (T *)obj_dstr->p_obj;
-      auto obj = std::move(*(T *)(heap_ptr));
-      this->free_heap_ptr(obj_dstr);
-      data_objects_.pop();
-      return obj;
-    }
+template <typename... Args>
+std::shared_ptr<DataObject> TransferParams(Args&&... args) {
+  return std::make_shared<DataObject>(DataObject{std::forward<Args>(args)...});
+}
 
-    /**
-     * @brief Destroy the Data Object object
-     *
-     */
-    ~DataObject();
+template <typename T>
+T ExtractParams(const std::shared_ptr<DataObject>& d_o, int index) {
+  if (!d_o) {
+    throw std::invalid_argument("nullptr provided for DataObjectPtr");
+  }
+  return std::any_cast<T>(d_o->GetParameter(index));
+}
 
-   private:
-    std::stack<Destructor *> data_objects_;  ///<
+void swap(DataObject& a, DataObject& b) noexcept;
 
-    /**
-     * @brief Get the heap ptr object
-     *
-     * @param bytes_size
-     * @return void*
-     */
-    Destructor *get_heap_ptr(size_t bytes_size);
-
-    /**
-     * @brief
-     *
-     * @param heap_ptr
-     */
-    void free_heap_ptr(Destructor *);
-  };
+}  // namespace GpgFrontend::Thread

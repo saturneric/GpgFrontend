@@ -191,7 +191,7 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
         ->PostTask(new Thread::Task(
-            [=](Thread::Task::DataObjectPtr) -> int {
+            [=](Thread::DataObjectPtr) -> int {
               post_init_ctx();
               return 0;
             },

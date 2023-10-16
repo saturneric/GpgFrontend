@@ -55,6 +55,8 @@ class GPGFRONTEND_PLUGIN_SYSTEM_EXPORT Plugin : public QObject {
  public:
   Plugin(PluginIdentifier, PluginVersion, PluginMetaData);
 
+  ~Plugin();
+
   virtual bool Register() = 0;
 
   virtual bool Active() = 0;

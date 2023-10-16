@@ -106,7 +106,7 @@ void process_operation(
     QWidget* parent, const std::string& waiting_title,
     GpgFrontend::Thread::Task::TaskRunnable func,
     GpgFrontend::Thread::Task::TaskCallback callback = nullptr,
-    Thread::Task::DataObjectPtr data_object = nullptr);
+    Thread::DataObjectPtr data_object = nullptr);
 
 /**
  * @brief
