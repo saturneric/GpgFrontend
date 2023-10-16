@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
