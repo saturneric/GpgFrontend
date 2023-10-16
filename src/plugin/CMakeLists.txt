@@ -58,15 +58,15 @@ target_include_directories(gpgfrontend_plugin_sdk PUBLIC sdk)
 
 # link plugin system
 target_link_libraries(gpgfrontend_plugin_sdk
-        PRIVATE gpgfrontend_plugin_system)
+        PUBLIC gpgfrontend_plugin_system)
 
 # tracking integrated plugins
-set(all_integrated_plugins_libraries "")
-file(GLOB children LIST_DIRECTORIES true "integrated_plugins/*")
+set(all_module_libraries "")
+file(GLOB children LIST_DIRECTORIES true "module/*")
 foreach(child ${children})
     if(IS_DIRECTORY ${child})
         get_filename_component(dirName ${child} NAME)
-        add_subdirectory("integrated_plugins/${dirName}")
+        add_subdirectory("module/${dirName}")
 
         string(REPLACE "_plugin" "" stripped_plugin ${dirName})
         set(integrated_lib_name "gpgfrontend_integrated_plugin_${stripped_plugin}")
@@ -94,12 +94,11 @@ target_link_libraries(gpgfrontend_plugin PRIVATE
         gpgfrontend_core gpgfrontend_ui)
 
 # link gpgfrontend_plugin_sdk
-target_link_libraries(gpgfrontend_plugin PRIVATE
-       gpgfrontend_plugin_sdk)
+target_link_libraries(gpgfrontend_plugin PRIVATE gpgfrontend_plugin_sdk)
 
 # link all integrated plugins
-message(STATUS "All Integrated Plugin Libraries: ${all_integrated_plugins_libraries}")
-target_link_libraries(gpgfrontend_plugin PRIVATE ${all_integrated_plugins_libraries})
+message(STATUS "All Module Libraries: ${all_module_libraries}")
+target_link_libraries(gpgfrontend_plugin PRIVATE ${all_module_libraries})
 
 # using std c++ 17
 target_compile_features(gpgfrontend_plugin PUBLIC cxx_std_17)

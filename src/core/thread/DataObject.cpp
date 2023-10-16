@@ -73,6 +73,8 @@ std::any DataObject::GetParameter(size_t index) const {
   return p_->GetParameter(index);
 }
 
+void DataObject::AppendObject(std::any obj) { return p_->AppendObject(obj); }
+
 size_t DataObject::GetObjectSize() const { return p_->GetObjectSize(); }
 
 void DataObject::Swap(DataObject& other) noexcept { std::swap(p_, other.p_); }

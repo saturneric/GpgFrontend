@@ -60,7 +60,7 @@ class Plugin::Impl {
 
   PluginIdentifier GetPluginIdentifier() const { return identifier_; }
 
-  PluginIdentifier SetGPC(GlobalPluginContextPtr gpc) { gpc_ = gpc; }
+  void SetGPC(GlobalPluginContextPtr gpc) { gpc_ = gpc; }
 
  private:
   GlobalPluginContextPtr gpc_;
@@ -101,5 +101,5 @@ PluginIdentifier Plugin::GetPluginIdentifier() const {
   return p_->GetPluginIdentifier();
 }
 
-PluginIdentifier Plugin::SetGPC(GlobalPluginContextPtr gpc) { p_->SetGPC(gpc); }
+void Plugin::SetGPC(GlobalPluginContextPtr gpc) { p_->SetGPC(gpc); }
 }  // namespace GpgFrontend::Plugin

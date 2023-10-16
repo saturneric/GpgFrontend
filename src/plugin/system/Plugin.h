@@ -67,7 +67,7 @@ class GPGFRONTEND_PLUGIN_SYSTEM_EXPORT Plugin : public QObject {
 
   PluginIdentifier GetPluginIdentifier() const;
 
-  PluginIdentifier SetGPC(GlobalPluginContextPtr);
+  void SetGPC(GlobalPluginContextPtr);
 
  protected:
   int getChannel();
