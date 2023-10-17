@@ -45,8 +45,9 @@ void GpgFrontend::GpgCommandExecutor::Execute(
 
   Thread::Task::TaskCallback result_callback =
       [](int rtn, Thread::DataObjectPtr data_object) {
-        SPDLOG_DEBUG("data object use count: {}", data_object.use_count());
-        if (!data_object->Check<int, std::string, std::string>())
+        SPDLOG_DEBUG("data object use count: {}", data_object->GetObjectSize());
+        if (!data_object->Check<int, std::string, std::string,
+                                GpgCommandExecutorCallback>())
           throw std::runtime_error("invalid data object size");
 
         auto exit_code = Thread::ExtractParams<int>(data_object, 0);
@@ -66,8 +67,9 @@ void GpgFrontend::GpgCommandExecutor::Execute(
     SPDLOG_DEBUG("process runner called, data object size: {}",
                  data_object->GetObjectSize());
 
-    if (!data_object
-             ->Check<std::string, std::string, GpgCommandExecutorInteractor>())
+    if (!data_object->Check<std::string, std::vector<std::string>,
+                            GpgCommandExecutorInteractor,
+                            GpgCommandExecutorCallback>())
       throw std::runtime_error("invalid data object size");
 
     // get arguments
@@ -77,6 +79,8 @@ void GpgFrontend::GpgCommandExecutor::Execute(
         Thread::ExtractParams<std::vector<std::string>>(data_object, 1);
     auto interact_func =
         Thread::ExtractParams<GpgCommandExecutorInteractor>(data_object, 2);
+    auto callback =
+        Thread::ExtractParams<GpgCommandExecutorCallback>(data_object, 3);
 
     auto *cmd_process = new QProcess();
     cmd_process->setProcessChannelMode(QProcess::MergedChannels);
@@ -128,7 +132,7 @@ void GpgFrontend::GpgCommandExecutor::Execute(
     cmd_process->close();
     cmd_process->deleteLater();
 
-    data_object->Swap({exit_code, process_stdout, process_stderr});
+    data_object->Swap({exit_code, process_stdout, process_stderr, callback});
     return 0;
   };
 
@@ -179,8 +183,9 @@ void GpgFrontend::GpgCommandExecutor::ExecuteConcurrently(
     SPDLOG_DEBUG("process runner called, data object size: {}",
                  data_object->GetObjectSize());
 
-    if (!data_object
-             ->Check<std::string, std::string, GpgCommandExecutorInteractor>())
+    if (!data_object->Check<std::string, std::vector<std::string>,
+                            GpgCommandExecutorInteractor,
+                            GpgCommandExecutorCallback>())
       throw std::runtime_error("invalid data object size");
 
     // get arguments
@@ -189,6 +194,8 @@ void GpgFrontend::GpgCommandExecutor::ExecuteConcurrently(
         Thread::ExtractParams<std::vector<std::string>>(data_object, 1);
     auto interact_func =
         Thread::ExtractParams<std::function<void(QProcess *)>>(data_object, 2);
+    auto callback =
+        Thread::ExtractParams<GpgCommandExecutorCallback>(data_object, 3);
 
     auto *cmd_process = new QProcess();
     cmd_process->setProcessChannelMode(QProcess::MergedChannels);
@@ -241,7 +248,7 @@ void GpgFrontend::GpgCommandExecutor::ExecuteConcurrently(
     cmd_process->close();
     cmd_process->deleteLater();
 
-    data_object->Swap({exit_code, process_stdout, process_stderr});
+    data_object->Swap({exit_code, process_stdout, process_stderr, callback});
     return 0;
   };
 
