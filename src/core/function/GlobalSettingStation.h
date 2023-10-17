@@ -29,11 +29,6 @@
 #ifndef GPGFRONTEND_GLOBALSETTINGSTATION_H
 #define GPGFRONTEND_GLOBALSETTINGSTATION_H
 
-#include <filesystem>
-#include <memory>
-
-#include "GpgFrontendBuildInstallInfo.h"
-#include "core/GpgFrontendCore.h"
 #include "core/GpgFunctionObject.h"
 
 namespace GpgFrontend {

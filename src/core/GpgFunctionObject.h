@@ -29,9 +29,7 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
 #define GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
 
-#include <mutex>
-
-#include "GpgConstants.h"
+#include "core/GpgFrontendCore.h"
 
 namespace GpgFrontend {
 

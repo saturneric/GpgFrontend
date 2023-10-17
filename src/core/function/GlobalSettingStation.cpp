@@ -28,8 +28,7 @@
 
 #include "GlobalSettingStation.h"
 
-#include <memory>
-
+#include "GpgFrontendBuildInstallInfo.h"
 #include "core/function/FileOperator.h"
 
 namespace GpgFrontend {
