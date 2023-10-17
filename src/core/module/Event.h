@@ -77,10 +77,10 @@ class GPGFRONTEND_CORE_EXPORT Event {
 };
 
 template <typename... Args>
-Event MakeEvent(const std::string& eventIdentifier, Args&&... args) {
+EventRefrernce MakeEvent(const EventIdentifier& event_id, Args&&... args) {
   std::initializer_list<Event::ParameterInitializer> params = {
       Event::ParameterInitializer{std::forward<Args>(args)}...};
-  return Event(eventIdentifier, params);
+  return std::make_shared<Event>(event_id, params);
 }
 
 }  // namespace GpgFrontend::Module

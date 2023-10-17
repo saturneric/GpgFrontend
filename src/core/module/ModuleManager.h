@@ -32,8 +32,7 @@
 #include <memory>
 #include <string>
 
-#include "core/GpgFrontendCore.h"
-#include "core/thread/Task.h"
+#include "core/module/Event.h"
 
 namespace GpgFrontend::Thread {
 class TaskRunner;
@@ -94,9 +93,9 @@ void RegisterAndActivateModule(Args&&... args) {
 }
 
 template <typename... Args>
-void TriggerEvent(const std::string& eventIdentifier, Args&&... args) {
-  ModuleManager::GetInstance()->TriggerEvent(std::make_shared<Event>(
-      std::move(MakeEvent(eventIdentifier, std::forward<Args>(args)...))));
+void TriggerEvent(const EventIdentifier& event_id, Args&&... args) {
+  ModuleManager::GetInstance()->TriggerEvent(
+      std::move(MakeEvent(event_id, std::forward<Args>(args)...)));
 }
 
 }  // namespace GpgFrontend::Module

@@ -28,6 +28,7 @@
 
 #include "GlobalModuleContext.h"
 
+#include <boost/format/format_fwd.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 #include <memory>
@@ -39,6 +40,8 @@
 #include "core/module/Event.h"
 #include "core/module/Module.h"
 #include "core/thread/Task.h"
+#include "spdlog/spdlog.h"
+#include "thread/DataObject.h"
 
 namespace GpgFrontend::Module {
 
@@ -55,7 +58,7 @@ class GlobalModuleContext::Impl {
     acquired_channel_.insert(GPGFRONTEND_NON_ASCII_CHANNEL);
   }
 
-  int GetChannel(ModulePtr module) {
+  int GetChannel(ModuleRawPtr module) {
     // Search for the module in the register table.
     auto module_info_opt =
         search_module_register_table(module->GetModuleIdentifier());
@@ -72,9 +75,9 @@ class GlobalModuleContext::Impl {
     return module_info->channel;
   }
 
-  int GetDefaultChannel(ModulePtr) { return GPGFRONTEND_DEFAULT_CHANNEL; }
+  int GetDefaultChannel(ModuleRawPtr) { return GPGFRONTEND_DEFAULT_CHANNEL; }
 
-  std::optional<TaskRunnerPtr> GetTaskRunner(ModulePtr module) {
+  std::optional<TaskRunnerPtr> GetTaskRunner(ModuleRawPtr module) {
     auto opt = search_module_register_table(module->GetModuleIdentifier());
     if (!opt.has_value()) {
       return std::nullopt;
@@ -116,6 +119,7 @@ class GlobalModuleContext::Impl {
     register_info.module = module;
     register_info.channel = acquire_new_unique_channel();
     register_info.task_runner = std::make_shared<Thread::TaskRunner>();
+    register_info.task_runner->start();
 
     // Register the module with its identifier.
     module_register_table_[module->GetModuleIdentifier()] =
@@ -138,7 +142,7 @@ class GlobalModuleContext::Impl {
 
     auto module_info = module_info_opt.value();
     // Activate the module if it is not already active.
-    if (module_info->activate && module_info->module->Active()) {
+    if (!module_info->activate && module_info->module->Active()) {
       module_info->activate = true;
     }
 
@@ -185,15 +189,16 @@ class GlobalModuleContext::Impl {
   }
 
   bool TriggerEvent(EventRefrernce event) {
-    SPDLOG_DEBUG("attempting to trigger event: {}", event->GetIdentifier());
+    auto event_id = event->GetIdentifier();
+    SPDLOG_DEBUG("attempting to trigger event: {}", event_id);
 
     // Find the set of listeners associated with the given event in the table
-    auto it = module_events_table_.find(event->GetIdentifier());
+    auto it = module_events_table_.find(event_id);
     if (it == module_events_table_.end()) {
       // Log a warning if the event is not registered and nobody is listening
       SPDLOG_WARN(
           "event {} is not listening by anyone and not registered as well",
-          event->GetIdentifier());
+          event_id);
       return false;
     }
 
@@ -225,15 +230,38 @@ class GlobalModuleContext::Impl {
 
       // Retrieve the module's information
       auto module_info = module_info_opt.value();
+      auto module = module_info->module;
+
+      SPDLOG_DEBUG(
+          "module {} is listening to event {}, activate state: {}, task runner "
+          "running state: {}",
+          module_info->module->GetModuleIdentifier(), event->GetIdentifier(),
+          module_info->activate, module_info->task_runner->isRunning());
 
       // Check if the module is activated
       if (!module_info->activate) continue;
 
-      // Execute the module and check if it fails
-      if (module_info->module->Exec(event)) {
-        // Log an error if the module execution fails
-        SPDLOG_ERROR("module {} executed failed", listener_module_id);
-      }
+      Thread::Task::TaskRunnable exec_runnerable =
+          [module, event](Thread::DataObjectPtr) -> int {
+        return module->Exec(event);
+      };
+
+      Thread::Task::TaskCallback exec_callback =
+          [listener_module_id, event_id](int code, Thread::DataObjectPtr) {
+            if (code < 0) {
+              // Log an error if the module execution fails
+              SPDLOG_ERROR(
+                  "module {} execution failed of event {}: exec return code {}",
+                  listener_module_id, event_id, code);
+            }
+          };
+
+      module_info->task_runner->PostTask(
+          new Thread::Task(exec_runnerable,
+                           (boost::format("event/%1%/module/exec/%2%") %
+                            event_id % listener_module_id)
+                               .str(),
+                           nullptr, exec_callback));
     }
 
     // Return true to indicate successful execution of all modules
@@ -294,7 +322,7 @@ GlobalModuleContext::~GlobalModuleContext() = default;
 
 // Function to get the task runner associated with a module.
 std::optional<TaskRunnerPtr> GlobalModuleContext::GetTaskRunner(
-    ModulePtr module) {
+    ModuleRawPtr module) {
   return p_->GetTaskRunner(module);
 }
 
@@ -330,11 +358,11 @@ bool GlobalModuleContext::TriggerEvent(EventRefrernce event) {
   return p_->TriggerEvent(event);
 }
 
-int GlobalModuleContext::GetChannel(ModulePtr module) {
+int GlobalModuleContext::GetChannel(ModuleRawPtr module) {
   return p_->GetChannel(module);
 }
 
-int GlobalModuleContext::GetDefaultChannel(ModulePtr _) {
+int GlobalModuleContext::GetDefaultChannel(ModuleRawPtr _) {
   return p_->GetDefaultChannel(_);
 }
 

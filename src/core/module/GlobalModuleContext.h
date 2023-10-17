@@ -41,6 +41,7 @@ class Module;
 class ModuleManager;
 using ModuleIdentifier = std::string;
 using ModulePtr = std::shared_ptr<Module>;
+using ModuleRawPtr = Module*;
 
 using GlobalModuleContextPtr = std::shared_ptr<GlobalModuleContext>;
 
@@ -53,11 +54,11 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
 
   ~GlobalModuleContext();
 
-  int GetChannel(ModulePtr);
+  int GetChannel(ModuleRawPtr);
 
-  int GetDefaultChannel(ModulePtr);
+  int GetDefaultChannel(ModuleRawPtr);
 
-  std::optional<TaskRunnerPtr> GetTaskRunner(ModulePtr);
+  std::optional<TaskRunnerPtr> GetTaskRunner(ModuleRawPtr);
 
   std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier);
 

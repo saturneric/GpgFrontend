@@ -38,26 +38,25 @@ class Module::Impl {
  public:
   friend class GlobalModuleContext;
 
-  Impl(ModuleIdentifier id, ModuleVersion version, ModuleMetaData meta_data)
-      : identifier_((boost::format("__module_%1%") % id).str()),
+  using ExecCallback = std::function<void(int)>; 
+
+  Impl(ModuleRawPtr m_ptr, ModuleIdentifier id, ModuleVersion version,
+       ModuleMetaData meta_data)
+      : m_ptr_(m_ptr),
+        identifier_((boost::format("__module_%1%") % id).str()),
         version_(version),
         meta_data_(meta_data) {}
 
-  int GetChannel() {
-    return get_global_module_context()->GetChannel(self_shared_ptr_);
-  }
+  int GetChannel() { return get_gpc()->GetChannel(m_ptr_); }
 
-  int GetDefaultChannel() {
-    return get_global_module_context()->GetDefaultChannel(self_shared_ptr_);
-  }
+  int GetDefaultChannel() { return get_gpc()->GetDefaultChannel(m_ptr_); }
 
   std::optional<TaskRunnerPtr> GetTaskRunner() {
-    return get_global_module_context()->GetTaskRunner(self_shared_ptr_);
+    return get_gpc()->GetTaskRunner(m_ptr_);
   }
 
   bool ListenEvent(EventIdentifier event) {
-    return get_global_module_context()->ListenEvent(gpc_get_identifier(),
-                                                    event);
+    return get_gpc()->ListenEvent(GetModuleIdentifier(), event);
   }
 
   ModuleIdentifier GetModuleIdentifier() const { return identifier_; }
@@ -66,14 +65,12 @@ class Module::Impl {
 
  private:
   GlobalModuleContextPtr gpc_;
-  const std::shared_ptr<Module> self_shared_ptr_;
+  Module* m_ptr_;
   const ModuleIdentifier identifier_;
   const ModuleVersion version_;
   const ModuleMetaData meta_data_;
 
-  ModuleIdentifier gpc_get_identifier() { return identifier_; }
-
-  const GlobalModuleContextPtr get_global_module_context() {
+  const GlobalModuleContextPtr get_gpc() {
     if (gpc_ == nullptr) {
       throw std::runtime_error("module is not registered by module manager");
     }
@@ -83,7 +80,7 @@ class Module::Impl {
 
 Module::Module(ModuleIdentifier id, ModuleVersion version,
                ModuleMetaData meta_data)
-    : p_(std::make_unique<Impl>(id, version, meta_data)) {}
+    : p_(std::make_unique<Impl>(this, id, version, meta_data)) {}
 
 Module::~Module() = default;
 
