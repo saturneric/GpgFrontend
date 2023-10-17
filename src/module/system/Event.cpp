@@ -30,7 +30,7 @@
 
 #include <memory>
 
-namespace GpgFrontend::Plugin {
+namespace GpgFrontend::Module {
 
 class Event::Impl {
  public:
@@ -105,4 +105,4 @@ void Event::AddParameter(const std::string& key, const ParameterValue& value) {
   p_->AddParameter(key, value);
 }
 
-}  // namespace GpgFrontend::Plugin
+}  // namespace GpgFrontend::Module

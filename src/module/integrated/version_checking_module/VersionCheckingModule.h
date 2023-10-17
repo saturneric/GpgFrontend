@@ -26,31 +26,27 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDPLUGININIT_H
-#define GPGFRONTEND_GPGFRONTENDPLUGININIT_H
+#ifndef GPGFRONTEND_MODULE_VERSIONCHECKINGPLUGIN_H
+#define GPGFRONTEND_MODULE_VERSIONCHECKINGPLUGIN_H
 
-#include "plugin/GpgFrontendPlugin.h"
+#include <module/sdk/GpgFrontendModuleSDK.h>
 
-namespace GpgFrontend::Plugin {
+#include "SoftwareVersion.h"
 
-/**
- * @brief init the plugin library
- *
- */
-void GPGFRONTEND_PLUGIN_EXPORT LoadGpgFrontendIntegratedPlugins();
+namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
-/**
- * @brief
- *
- */
-void GPGFRONTEND_PLUGIN_EXPORT InitPluginLoggingSystem();
+class GPGFRONTEND_MODULE_SDK_EXPORT VersionCheckingModule : public Module {
+ public:
+  VersionCheckingModule();
 
-/**
- * @brief
- *
- */
-void GPGFRONTEND_PLUGIN_EXPORT ShutdownPluginLoggingSystem();
+  virtual bool Register() override;
 
-};  // namespace GpgFrontend::Plugin
+  virtual bool Active() override;
 
-#endif  // GPGFRONTEND_GPGFRONTENDPLUGININIT_H
+  virtual int Exec(EventRefrernce) override;
+
+  virtual bool Deactive() override;
+};
+}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule
+
+#endif  // GPGFRONTEND_MODULE_VERSIONCHECKINGPLUGIN_H

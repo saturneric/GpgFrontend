@@ -26,17 +26,19 @@
  *
  */
 
-#include "Plugin.h"
+#include "Module.h"
 
-#include "plugin/system/GlobalPluginContext.h"
+#include <memory>
 
-namespace GpgFrontend::Plugin {
+#include "module/system/GlobalModuleContext.h"
 
-class Plugin::Impl {
+namespace GpgFrontend::Module {
+
+class Module::Impl {
  public:
-  friend class GlobalPluginContext;
+  friend class GlobalModuleContext;
 
-  Impl(PluginIdentifier id, PluginVersion version, PluginMetaData meta_data)
+  Impl(ModuleIdentifier id, ModuleVersion version, ModuleMetaData meta_data)
       : identifier_((boost::format("__plugin_%1%") % id).str()),
         version_(version),
         meta_data_(meta_data) {}
@@ -58,20 +60,20 @@ class Plugin::Impl {
                                                     event);
   }
 
-  PluginIdentifier GetPluginIdentifier() const { return identifier_; }
+  ModuleIdentifier GetPluginIdentifier() const { return identifier_; }
 
-  void SetGPC(GlobalPluginContextPtr gpc) { gpc_ = gpc; }
+  void SetGPC(GlobalModuleContextPtr gpc) { gpc_ = gpc; }
 
  private:
-  GlobalPluginContextPtr gpc_;
-  const std::shared_ptr<Plugin> self_shared_ptr_;
-  const PluginIdentifier identifier_;
-  const PluginVersion version_;
-  const PluginMetaData meta_data_;
+  GlobalModuleContextPtr gpc_;
+  const std::shared_ptr<Module> self_shared_ptr_;
+  const ModuleIdentifier identifier_;
+  const ModuleVersion version_;
+  const ModuleMetaData meta_data_;
 
-  PluginIdentifier gpc_get_identifier() { return identifier_; }
+  ModuleIdentifier gpc_get_identifier() { return identifier_; }
 
-  const GlobalPluginContextPtr get_global_plugin_context() {
+  const GlobalModuleContextPtr get_global_plugin_context() {
     if (gpc_ == nullptr) {
       throw std::runtime_error("plugin is not registered by plugin manager");
     }
@@ -79,27 +81,27 @@ class Plugin::Impl {
   }
 };
 
-Plugin::Plugin(PluginIdentifier id, PluginVersion version,
-               PluginMetaData meta_data)
-    : s_(this) {}
+Module::Module(ModuleIdentifier id, ModuleVersion version,
+               ModuleMetaData meta_data)
+    : p_(std::make_unique<Impl>(id, version, meta_data)) {}
 
-Plugin::~Plugin() = default;
+Module::~Module() = default;
 
-int Plugin::getChannel() { return p_->GetChannel(); }
+int Module::getChannel() { return p_->GetChannel(); }
 
-int Plugin::getDefaultChannel() { return p_->GetDefaultChannel(); }
+int Module::getDefaultChannel() { return p_->GetDefaultChannel(); }
 
-TaskRunnerPtr Plugin::getTaskRunner() {
+TaskRunnerPtr Module::getTaskRunner() {
   return p_->GetTaskRunner().value_or(nullptr);
 }
 
-bool Plugin::listenEvent(EventIdentifier event) {
+bool Module::listenEvent(EventIdentifier event) {
   return p_->ListenEvent(event);
 }
 
-PluginIdentifier Plugin::GetPluginIdentifier() const {
+ModuleIdentifier Module::GetPluginIdentifier() const {
   return p_->GetPluginIdentifier();
 }
 
-void Plugin::SetGPC(GlobalPluginContextPtr gpc) { p_->SetGPC(gpc); }
-}  // namespace GpgFrontend::Plugin
+void Module::SetGPC(GlobalModuleContextPtr gpc) { p_->SetGPC(gpc); }
+}  // namespace GpgFrontend::Module

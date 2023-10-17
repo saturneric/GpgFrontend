@@ -29,14 +29,14 @@
 #ifndef GPGFRONTEND_VERSIONCHECKTHREAD_H
 #define GPGFRONTEND_VERSIONCHECKTHREAD_H
 
-#include <plugin/sdk/GpgFrontendPluginSDK.h>
+#include <module/sdk/GpgFrontendModuleSDK.h>
 
 #include "SoftwareVersion.h"
 
 class QNetworkReply;
 class QNetworkAccessManager;
 
-namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin {
+namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
 /**
  * @brief
@@ -92,7 +92,7 @@ class VersionCheckTask : public Thread::Task {
   SoftwareVersion version_;
 };
 
-}  // namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin
-   // GpgFrontend::Plugin::Custom::IntegradedPlugin::VersionCheckingPlugin
+}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule
+   // GpgFrontend::Module::Custom::IntegradedPlugin::VersionCheckingModule
 
 #endif  // GPGFRONTEND_VERSIONCHECKTHREAD_H

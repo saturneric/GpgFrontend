@@ -39,7 +39,7 @@
 #include "core/GpgConstants.h"
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
-#include "plugin/GpgFrontendPluginInit.h"
+#include "module/GpgFrontendModuleInit.h"
 #include "spdlog/spdlog.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/GpgFrontendUIInit.h"
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
   GpgFrontend::UI::InitUILoggingSystem();
 
   // init the logging system for ui
-  // GpgFrontend::Plugin::InitPluginLoggingSystem();
+  GpgFrontend::Module::InitModuleLoggingSystem();
 
   // change path to search for related
   init_global_path_env();
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
   int restart_count = 0;
 
   // load integrated plugins
-  GpgFrontend::Plugin::LoadGpgFrontendIntegratedPlugins();
+  GpgFrontend::Module::LoadGpgFrontendIntegratedModules();
 
   do {
 #ifndef WINDOWS
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
   } while (return_from_event_loop_code == RESTART_CODE && restart_count < 3);
 
   // shutdown the logging system for core
-  // GpgFrontend::Plugin::ShutdownPluginLoggingSystem();
+  GpgFrontend::Module::ShutdownModuleLoggingSystem();
 
   // shutdown the logging system for ui
   GpgFrontend::UI::ShutdownUILoggingSystem();

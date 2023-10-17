@@ -31,11 +31,11 @@
 
 #include <memory>
 
-#include "GpgFrontendPluginSystemExport.h"
+#include "GpgFrontendModuleSystemExport.h"
 #include "core/GpgFrontendCore.h"
 #include "nlohmann/json_fwd.hpp"
 
-namespace GpgFrontend::Plugin {
+namespace GpgFrontend::Module {
 
 class Event;
 
@@ -78,6 +78,6 @@ class Event {
   std::unique_ptr<Impl> p_;
 };
 
-}  // namespace GpgFrontend::Plugin
+}  // namespace GpgFrontend::Module
 
 #endif  // GPGFRONTEND_EVENT_H

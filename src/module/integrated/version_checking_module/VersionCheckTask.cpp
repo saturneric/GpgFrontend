@@ -34,7 +34,7 @@
 
 #include "GpgFrontendBuildInfo.h"
 
-namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin {
+namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
 VersionCheckTask::VersionCheckTask()
     : Task("version_check_task"),
@@ -176,4 +176,4 @@ void VersionCheckTask::slot_parse_current_version_info() {
   emit SignalTaskRunnableEnd(0);
 }
 
-}  // namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin
+}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

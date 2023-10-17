@@ -24,23 +24,21 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-aux_source_directory(. INTEGRATED_PLUGIN_SOURCE)
+aux_source_directory(. INTEGRATED_MODULE_SOURCE)
 
 # define libgpgfrontend_plugin
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
-add_library(gpgfrontend_integrated_plugin_version_checking SHARED ${INTEGRATED_PLUGIN_SOURCE})
+add_library(gpgfrontend_integrated_module_version_checking SHARED ${INTEGRATED_MODULE_SOURCE})
 
 # link sdk
-target_link_libraries(gpgfrontend_integrated_plugin_version_checking PRIVATE
-        gpgfrontend_plugin_sdk)
+target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE
+        gpgfrontend_module_sdk)
 
 # link Qt
 if(Qt6_DIR)
-        target_link_libraries(gpgfrontend_integrated_plugin_version_checking PRIVATE Qt6::Network)
+        target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE Qt6::Network)
 else()
-        target_link_libraries(gpgfrontend_integrated_plugin_version_checking PRIVATE Qt5::Network)
+        target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE Qt5::Network)
 endif()
 
 # using std c++ 17
-target_compile_features(gpgfrontend_integrated_plugin_version_checking PRIVATE cxx_std_17)
+target_compile_features(gpgfrontend_integrated_module_version_checking PRIVATE cxx_std_17)

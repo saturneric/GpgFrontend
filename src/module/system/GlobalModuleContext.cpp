@@ -26,7 +26,7 @@
  *
  */
 
-#include "GlobalPluginContext.h"
+#include "GlobalModuleContext.h"
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
@@ -37,12 +37,12 @@
 #include <unordered_set>
 
 #include "core/thread/Task.h"
-#include "plugin/system/Event.h"
-#include "plugin/system/Plugin.h"
+#include "module/system/Event.h"
+#include "module/system/Module.h"
 
-namespace GpgFrontend::Plugin {
+namespace GpgFrontend::Module {
 
-class GlobalPluginContext::Impl {
+class GlobalModuleContext::Impl {
  public:
   Impl(TaskRunnerPtr task_runner)
       : default_task_runner_(task_runner),
@@ -55,7 +55,7 @@ class GlobalPluginContext::Impl {
     acquired_channel_.insert(GPGFRONTEND_NON_ASCII_CHANNEL);
   }
 
-  int GetChannel(PluginPtr plugin) {
+  int GetChannel(ModulePtr plugin) {
     // Search for the plugin in the register table.
     auto plugin_info_opt =
         search_plugin_register_table(plugin->GetPluginIdentifier());
@@ -72,9 +72,9 @@ class GlobalPluginContext::Impl {
     return plugin_info->channel;
   }
 
-  int GetDefaultChannel(PluginPtr) { return GPGFRONTEND_DEFAULT_CHANNEL; }
+  int GetDefaultChannel(ModulePtr) { return GPGFRONTEND_DEFAULT_CHANNEL; }
 
-  std::optional<TaskRunnerPtr> GetTaskRunner(PluginPtr plugin) {
+  std::optional<TaskRunnerPtr> GetTaskRunner(ModulePtr plugin) {
     auto opt = search_plugin_register_table(plugin->GetPluginIdentifier());
     if (!opt.has_value()) {
       return std::nullopt;
@@ -82,7 +82,7 @@ class GlobalPluginContext::Impl {
     return opt.value()->task_runner;
   }
 
-  std::optional<TaskRunnerPtr> GetTaskRunner(PluginIdentifier plugin_id) {
+  std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier plugin_id) {
     // Search for the plugin in the register table.
     auto plugin_info_opt = search_plugin_register_table(plugin_id);
     if (!plugin_info_opt.has_value()) {
@@ -96,7 +96,7 @@ class GlobalPluginContext::Impl {
     return default_task_runner_;
   }
 
-  bool RegisterPlugin(PluginPtr plugin) {
+  bool RegisterPlugin(ModulePtr plugin) {
     SPDLOG_DEBUG("attempting to register plugin: {}",
                  plugin->GetPluginIdentifier());
     // Check if the plugin is null or already registered.
@@ -104,6 +104,11 @@ class GlobalPluginContext::Impl {
         plugin_register_table_.find(plugin->GetPluginIdentifier()) !=
             plugin_register_table_.end()) {
       SPDLOG_ERROR("plugin is null or have already registered this plugin");
+      return false;
+    }
+
+    if (!plugin->Register()) {
+      SPDLOG_ERROR("register plugin {} failed", plugin->GetPluginIdentifier());
       return false;
     }
 
@@ -121,7 +126,7 @@ class GlobalPluginContext::Impl {
     return true;
   }
 
-  bool ActivePlugin(PluginIdentifier plugin_id) {
+  bool ActivePlugin(ModuleIdentifier plugin_id) {
     SPDLOG_DEBUG("attempting to activate plugin: {}", plugin_id);
 
     // Search for the plugin in the register table.
@@ -141,13 +146,13 @@ class GlobalPluginContext::Impl {
     return plugin_info->activate;
   }
 
-  bool ListenEvent(PluginIdentifier plugin_id, EventIdentifier event) {
+  bool ListenEvent(ModuleIdentifier plugin_id, EventIdentifier event) {
     SPDLOG_DEBUG("plugin: {} is attempting to listen to event {}", plugin_id,
                  event);
     // Check if the event exists, if not, create it.
     auto it = plugin_events_table_.find(event);
     if (it == plugin_events_table_.end()) {
-      plugin_events_table_[event] = std::unordered_set<PluginIdentifier>();
+      plugin_events_table_[event] = std::unordered_set<ModuleIdentifier>();
       it = plugin_events_table_.find(event);
       SPDLOG_INFO("new event {} of plugin system created", event);
     }
@@ -162,7 +167,7 @@ class GlobalPluginContext::Impl {
     return true;
   }
 
-  bool DeactivatePlugin(PluginIdentifier plugin_id) {
+  bool DeactivatePlugin(ModuleIdentifier plugin_id) {
     // Search for the plugin in the register table.
     auto plugin_info_opt = search_plugin_register_table(plugin_id);
     if (!plugin_info_opt.has_value()) {
@@ -239,15 +244,15 @@ class GlobalPluginContext::Impl {
   struct PluginRegisterInfo {
     int channel;
     TaskRunnerPtr task_runner;
-    PluginPtr plugin;
+    ModulePtr plugin;
     bool activate;
   };
 
   using PluginRegisterInfoPtr = std::shared_ptr<PluginRegisterInfo>;
 
-  std::unordered_map<PluginIdentifier, PluginRegisterInfoPtr>
+  std::unordered_map<ModuleIdentifier, PluginRegisterInfoPtr>
       plugin_register_table_;
-  std::map<EventIdentifier, std::unordered_set<PluginIdentifier>>
+  std::map<EventIdentifier, std::unordered_set<ModuleIdentifier>>
       plugin_events_table_;
 
   std::set<int> acquired_channel_;
@@ -270,7 +275,7 @@ class GlobalPluginContext::Impl {
 
   // Function to search for a plugin in the register table.
   std::optional<PluginRegisterInfoPtr> search_plugin_register_table(
-      PluginIdentifier identifier) {
+      ModuleIdentifier identifier) {
     auto it = plugin_register_table_.find(identifier);
     if (it == plugin_register_table_.end()) {
       return std::nullopt;
@@ -278,59 +283,59 @@ class GlobalPluginContext::Impl {
     return it->second;
   }
 
-  std::list<PluginIdentifier>& search_plugin_events_table(PluginIdentifier);
+  std::list<ModuleIdentifier>& search_plugin_events_table(ModuleIdentifier);
 };
 
 // Constructor for GlobalPluginContext, takes a TaskRunnerPtr as an argument.
-GlobalPluginContext::GlobalPluginContext(TaskRunnerPtr task_runner)
+GlobalModuleContext::GlobalModuleContext(TaskRunnerPtr task_runner)
     : p_(std::make_unique<Impl>(task_runner)) {}
 
-GlobalPluginContext::~GlobalPluginContext() = default;
+GlobalModuleContext::~GlobalModuleContext() = default;
 
 // Function to get the task runner associated with a plugin.
-std::optional<TaskRunnerPtr> GlobalPluginContext::GetTaskRunner(
-    PluginPtr plugin) {
+std::optional<TaskRunnerPtr> GlobalModuleContext::GetTaskRunner(
+    ModulePtr plugin) {
   return p_->GetTaskRunner(plugin);
 }
 
 // Function to get the task runner associated with a plugin.
-std::optional<TaskRunnerPtr> GlobalPluginContext::GetTaskRunner(
-    PluginIdentifier plugin_id) {
+std::optional<TaskRunnerPtr> GlobalModuleContext::GetTaskRunner(
+    ModuleIdentifier plugin_id) {
   return p_->GetTaskRunner(plugin_id);
 }
 
 // Function to get the global task runner.
-std::optional<TaskRunnerPtr> GlobalPluginContext::GetGlobalTaskRunner() {
+std::optional<TaskRunnerPtr> GlobalModuleContext::GetGlobalTaskRunner() {
   return p_->GetGlobalTaskRunner();
 }
 
-bool GlobalPluginContext::RegisterPlugin(PluginPtr plugin) {
+bool GlobalModuleContext::RegisterPlugin(ModulePtr plugin) {
   return p_->RegisterPlugin(plugin);
 }
 
-bool GlobalPluginContext::ActivePlugin(PluginIdentifier plugin_id) {
+bool GlobalModuleContext::ActivePlugin(ModuleIdentifier plugin_id) {
   return p_->ActivePlugin(plugin_id);
 }
 
-bool GlobalPluginContext::ListenEvent(PluginIdentifier plugin_id,
+bool GlobalModuleContext::ListenEvent(ModuleIdentifier plugin_id,
                                       EventIdentifier event) {
   return p_->ListenEvent(plugin_id, event);
 }
 
-bool GlobalPluginContext::DeactivatePlugin(PluginIdentifier plugin_id) {
+bool GlobalModuleContext::DeactivatePlugin(ModuleIdentifier plugin_id) {
   return p_->DeactivatePlugin(plugin_id);
 }
 
-bool GlobalPluginContext::TriggerEvent(EventRefrernce event) {
+bool GlobalModuleContext::TriggerEvent(EventRefrernce event) {
   return p_->TriggerEvent(event);
 }
 
-int GlobalPluginContext::GetChannel(PluginPtr plugin) {
+int GlobalModuleContext::GetChannel(ModulePtr plugin) {
   return p_->GetChannel(plugin);
 }
 
-int GlobalPluginContext::GetDefaultChannel(PluginPtr _) {
+int GlobalModuleContext::GetDefaultChannel(ModulePtr _) {
   return p_->GetDefaultChannel(_);
 }
 
-}  // namespace GpgFrontend::Plugin
+}  // namespace GpgFrontend::Module

@@ -26,12 +26,12 @@
  *
  */
 
-#ifndef GPGFRONTEND_PLUGIN_SOFTWAREVERSION_H
-#define GPGFRONTEND_PLUGIN_SOFTWAREVERSION_H
+#ifndef GPGFRONTEND_MODULE_SOFTWAREVERSION_H
+#define GPGFRONTEND_MODULE_SOFTWAREVERSION_H
 
-#include <plugin/sdk/GpgFrontendPluginSDK.h>
+#include <module/sdk/GpgFrontendModuleSDK.h>
 
-namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin {
+namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 /**
  * @brief
  *
@@ -83,6 +83,6 @@ struct SoftwareVersion {
  private:
   static int version_compare(const std::string& a, const std::string& b);
 };
-}  // namespace GpgFrontend::Plugin::Module::VersionCheckingPlugin
+}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule
 
-#endif  // GPGFRONTEND_PLUGIN_SOFTWAREVERSION_H
+#endif  // GPGFRONTEND_MODULE_SOFTWAREVERSION_H

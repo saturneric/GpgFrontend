@@ -26,13 +26,13 @@
  *
  */
 
-#ifndef GPGFRONTEND_PLUGINMANAGER_H
-#define GPGFRONTEND_PLUGINMANAGER_H
+#ifndef GPGFRONTEND_MODULEMANAGER_H
+#define GPGFRONTEND_MODULEMANAGER_H
 
 #include <memory>
 #include <string>
 
-#include "GpgFrontendPluginSystemExport.h"
+#include "GpgFrontendModuleSystemExport.h"
 #include "core/GpgFrontendCore.h"
 #include "core/thread/Task.h"
 
@@ -40,46 +40,46 @@ namespace GpgFrontend::Thread {
 class TaskRunner;
 }
 
-namespace GpgFrontend::Plugin {
+namespace GpgFrontend::Module {
 
 using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
 
 class Event;
-class Plugin;
-class GlobalPluginContext;
-class PluginManager;
+class Module;
+class GlobalModuleContext;
+class ModuleManager;
 
 using EventRefrernce = std::shared_ptr<Event>;
-using PluginIdentifier = std::string;
-using PluginPtr = std::shared_ptr<Plugin>;
-using PluginMangerPtr = std::shared_ptr<PluginManager>;
-using GlobalPluginContextPtr = std::shared_ptr<GlobalPluginContext>;
+using ModuleIdentifier = std::string;
+using ModulePtr = std::shared_ptr<Module>;
+using ModuleMangerPtr = std::shared_ptr<ModuleManager>;
+using GlobalModuleContextPtr = std::shared_ptr<GlobalModuleContext>;
 
-class GPGFRONTEND_PLUGIN_SYSTEM_EXPORT PluginManager : public QObject {
+class GPGFRONTEND_MODULE_SYSTEM_EXPORT ModuleManager : public QObject {
   Q_OBJECT
  public:
-  ~PluginManager();
+  ~ModuleManager();
 
-  static PluginMangerPtr GetInstance();
+  static ModuleMangerPtr GetInstance();
 
-  void RegisterPlugin(PluginPtr);
+  void RegisterPlugin(ModulePtr);
 
   void TriggerEvent(EventRefrernce);
 
-  void ActivePlugin(PluginIdentifier);
+  void ActivePlugin(ModuleIdentifier);
 
-  void DeactivePlugin(PluginIdentifier);
+  void DeactivePlugin(ModuleIdentifier);
 
-  std::optional<TaskRunnerPtr> GetTaskRunner(PluginIdentifier);
+  std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier);
 
  private:
   class Impl;
   std::unique_ptr<Impl> p_;
-  static PluginMangerPtr g_;
+  static ModuleMangerPtr g_;
 
-  PluginManager();
+  ModuleManager();
 };
 
-}  // namespace GpgFrontend::Plugin
+}  // namespace GpgFrontend::Module
 
-#endif  // GPGFRONTEND_PLUGINMANAGER_H
+#endif  // GPGFRONTEND_MODULEMANAGER_H

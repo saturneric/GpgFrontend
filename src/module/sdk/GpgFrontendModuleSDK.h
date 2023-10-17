@@ -28,7 +28,5 @@
 
 #pragma once
 
-#include <core/GpgFrontendCore.h>
-#include <plugin/system/Event.h>
-#include <plugin/system/Plugin.h>
-#include <plugin/system/PluginManager.h>
+#include <module/sdk/GpgFrontendModuleSDKExport.h>
+#include <module/system/GpgFrontendModuleSystem.h>

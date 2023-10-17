@@ -26,64 +26,59 @@
  *
  */
 
-#ifndef GPGFRONTEND_PLUGIN_H
-#define GPGFRONTEND_PLUGIN_H
+#ifndef GPGFRONTEND_GLOBALPLUGINCONTEXT_H
+#define GPGFRONTEND_GLOBALPLUGINCONTEXT_H
 
-#include <memory>
-
-#include "GpgFrontendPluginSystemExport.h"
-#include "core/thread/Task.h"
+#include "GpgFrontendModuleSystemExport.h"
+#include "core/GpgFrontendCore.h"
 #include "core/thread/TaskRunner.h"
-#include "plugin/system/Event.h"
+#include "module/system/Event.h"
 
-namespace GpgFrontend::Plugin {
+namespace GpgFrontend::Module {
 
-class Plugin;
-class GlobalPluginContext;
-class PluginManager;
+class GlobalModuleContext;
 
-using PluginIdentifier = std::string;
-using PluginVersion = std::string;
-using PluginMetaData = std::map<std::string, std::string>;
-using PluginPtr = std::shared_ptr<Plugin>;
-using GlobalPluginContextPtr = std::shared_ptr<GlobalPluginContext>;
+class Module;
+class ModuleManager;
+using ModuleIdentifier = std::string;
+using ModulePtr = std::shared_ptr<Module>;
+
+using GlobalModuleContextPtr = std::shared_ptr<GlobalModuleContext>;
 
 using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
 
-class GPGFRONTEND_PLUGIN_SYSTEM_EXPORT Plugin : public QObject {
+class GPGFRONTEND_MODULE_SYSTEM_EXPORT GlobalModuleContext : public QObject {
   Q_OBJECT
  public:
-  Plugin(PluginIdentifier, PluginVersion, PluginMetaData);
+  GlobalModuleContext(TaskRunnerPtr);
 
-  ~Plugin();
+  ~GlobalModuleContext();
 
-  virtual bool Register() = 0;
+  int GetChannel(ModulePtr);
 
-  virtual bool Active() = 0;
+  int GetDefaultChannel(ModulePtr);
 
-  virtual int Exec(EventRefrernce) = 0;
+  std::optional<TaskRunnerPtr> GetTaskRunner(ModulePtr);
 
-  virtual bool Deactive() = 0;
+  std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier plugin);
 
-  PluginIdentifier GetPluginIdentifier() const;
+  std::optional<TaskRunnerPtr> GetGlobalTaskRunner();
 
-  void SetGPC(GlobalPluginContextPtr);
+  bool RegisterPlugin(ModulePtr);
 
- protected:
-  int getChannel();
+  bool ActivePlugin(ModuleIdentifier);
 
-  int getDefaultChannel();
+  bool DeactivatePlugin(ModuleIdentifier);
 
-  TaskRunnerPtr getTaskRunner();
+  bool ListenEvent(ModuleIdentifier, EventIdentifier);
 
-  bool listenEvent(EventIdentifier);
+  bool TriggerEvent(EventRefrernce);
 
  private:
   class Impl;
   std::unique_ptr<Impl> p_;
-  const std::shared_ptr<Plugin> s_;
 };
 
-}  // namespace GpgFrontend::Plugin
+}  // namespace GpgFrontend::Module
 
-#endif  // GPGFRONTEND_PLUGIN_H
+#endif  // GPGFRONTEND_GLOBALPLUGINCONTEXT_H

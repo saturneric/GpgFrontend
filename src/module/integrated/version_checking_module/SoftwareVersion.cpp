@@ -28,9 +28,9 @@
 
 #include "SoftwareVersion.h"
 
-namespace GpgFrontend::Plugin::Module {
+namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
-int VersionCheckingPlugin::SoftwareVersion::version_compare(
+int VersionCheckingModule::SoftwareVersion::version_compare(
     const std::string& a, const std::string& b) {
   auto temp_a = a, temp_b = b;
 
@@ -82,7 +82,7 @@ int VersionCheckingPlugin::SoftwareVersion::version_compare(
   return 0;
 }
 
-bool VersionCheckingPlugin::SoftwareVersion::NeedUpgrade() const {
+bool VersionCheckingModule::SoftwareVersion::NeedUpgrade() const {
   SPDLOG_DEBUG("compair version current {} latest {}, result {}",
                current_version, latest_version,
                version_compare(current_version, latest_version));
@@ -93,12 +93,12 @@ bool VersionCheckingPlugin::SoftwareVersion::NeedUpgrade() const {
          version_compare(current_version, latest_version) < 0;
 }
 
-bool VersionCheckingPlugin::SoftwareVersion::VersionWithDrawn() const {
+bool VersionCheckingModule::SoftwareVersion::VersionWithDrawn() const {
   return load_info_done && !current_version_found && current_prerelease &&
          !current_draft;
 }
 
-bool VersionCheckingPlugin::SoftwareVersion::CurrentVersionReleased() const {
+bool VersionCheckingModule::SoftwareVersion::CurrentVersionReleased() const {
   return load_info_done && current_version_found;
 }
-}  // namespace GpgFrontend::Plugin::Module
+}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

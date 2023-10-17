@@ -26,7 +26,35 @@
  *
  */
 
-#pragma once
+#include "VersionCheckingModule.h"
 
-#include <plugin/sdk/GpgFrontendPluginSDKExport.h>
-#include <plugin/system/GpgFrontendPluginSystem.h>
+#include "VersionCheckTask.h"
+
+namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
+
+VersionCheckingModule::VersionCheckingModule()
+    : Module("com.bktus.gpgfrontend.plugin.integrated.versionchecking", "1.0.0",
+             ModuleMetaData{{"description", "try to check gpgfrontend version"},
+                            {"author", "saturneric"}}) {}
+
+bool VersionCheckingModule::Register() {
+  SPDLOG_INFO("version checking plugin registering");
+  return true;
+}
+
+bool VersionCheckingModule::Active() {
+  SPDLOG_INFO("version checking plugin activating");
+
+  listenEvent("APPLICATION_STARTED");
+  return true;
+}
+
+int VersionCheckingModule::Exec(EventRefrernce event) {
+  SPDLOG_INFO("version checking plugin ececuting");
+
+  getTaskRunner()->PostTask(new VersionCheckTask());
+  return 0;
+}
+
+bool VersionCheckingModule::Deactive() { return true; }
+}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

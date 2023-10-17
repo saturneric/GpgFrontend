@@ -33,7 +33,7 @@
  * Project internal dependencies
  */
 #include "GpgFrontend.h"
-#include "GpgFrontendPluginExport.h"
+#include "GpgFrontendModuleExport.h"
 #include "core/GpgFrontendCore.h"
 
 #endif  // GPGFRONTEND_GPGFRONTENDPLUGIN_H

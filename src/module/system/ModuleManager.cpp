@@ -26,24 +26,26 @@
  *
  */
 
-#include "PluginManager.h"
+#include "ModuleManager.h"
 
 #include "core/thread/TaskRunner.h"
-#include "plugin/system/GlobalPluginContext.h"
-#include "plugin/system/Plugin.h"
+#include "module/system/GlobalModuleContext.h"
+#include "module/system/Module.h"
 
-namespace GpgFrontend::Plugin {
+namespace GpgFrontend::Module {
 
-PluginMangerPtr PluginManager::g_ = nullptr;
+ModuleMangerPtr ModuleManager::g_ = nullptr;
 
-class PluginManager::Impl {
+class ModuleManager::Impl {
  public:
   Impl()
       : task_runner_(std::make_shared<Thread::TaskRunner>()),
         global_plugin_context_(
-            std::make_shared<GlobalPluginContext>(task_runner_)) {}
+            std::make_shared<GlobalModuleContext>(task_runner_)) {
+    task_runner_->start();
+  }
 
-  void RegisterPlugin(PluginPtr plugin) {
+  void RegisterPlugin(ModulePtr plugin) {
     task_runner_->PostTask(new Thread::Task(
         std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
           global_plugin_context_->RegisterPlugin(plugin);
@@ -61,7 +63,7 @@ class PluginManager::Impl {
         __func__, nullptr, true));
   }
 
-  void ActivePlugin(PluginIdentifier identifier) {
+  void ActivePlugin(ModuleIdentifier identifier) {
     task_runner_->PostTask(new Thread::Task(
         std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
           global_plugin_context_->ActivePlugin(identifier);
@@ -70,40 +72,40 @@ class PluginManager::Impl {
         __func__, nullptr, true));
   }
 
-  std::optional<TaskRunnerPtr> GetTaskRunner(PluginIdentifier plugin_id) {
+  std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier plugin_id) {
     return global_plugin_context_->GetTaskRunner(plugin_id);
   }
 
  private:
-  static PluginMangerPtr global_plugin_manager_;
+  static ModuleMangerPtr global_plugin_manager_;
   TaskRunnerPtr task_runner_;
-  GlobalPluginContextPtr global_plugin_context_;
+  GlobalModuleContextPtr global_plugin_context_;
 };
 
-PluginManager::PluginManager() : p_(std::make_unique<Impl>()) {}
+ModuleManager::ModuleManager() : p_(std::make_unique<Impl>()) {}
 
-PluginManager::~PluginManager() = default;
+ModuleManager::~ModuleManager() = default;
 
-PluginMangerPtr PluginManager::GetInstance() {
-  if (g_ == nullptr) g_ = std::shared_ptr<PluginManager>(new PluginManager());
+ModuleMangerPtr ModuleManager::GetInstance() {
+  if (g_ == nullptr) g_ = std::shared_ptr<ModuleManager>(new ModuleManager());
   return g_;
 }
 
-void PluginManager::RegisterPlugin(PluginPtr plugin) {
+void ModuleManager::RegisterPlugin(ModulePtr plugin) {
   return p_->RegisterPlugin(plugin);
 }
 
-void PluginManager::TriggerEvent(EventRefrernce event) {
+void ModuleManager::TriggerEvent(EventRefrernce event) {
   return p_->TriggerEvent(event);
 }
 
-void PluginManager::ActivePlugin(PluginIdentifier identifier) {
+void ModuleManager::ActivePlugin(ModuleIdentifier identifier) {
   return p_->ActivePlugin(identifier);
 }
 
-std::optional<TaskRunnerPtr> PluginManager::GetTaskRunner(
-    PluginIdentifier plugin_id) {
+std::optional<TaskRunnerPtr> ModuleManager::GetTaskRunner(
+    ModuleIdentifier plugin_id) {
   return p_->GetTaskRunner(plugin_id);
 }
 
-}  // namespace GpgFrontend::Plugin
+}  // namespace GpgFrontend::Module

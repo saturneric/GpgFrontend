@@ -26,7 +26,7 @@
  *
  */
 
-#include "GpgFrontendPluginInit.h"
+#include "GpgFrontendModuleInit.h"
 
 #include <spdlog/async.h>
 #include <spdlog/common.h>
@@ -36,25 +36,27 @@
 #include <memory>
 
 #include "core/function/GlobalSettingStation.h"
-#include "plugin/system/PluginManager.h"
+#include "module/system/PluginManager.h"
 
 // integrated plugins
-#include "module/version_checking_plugin/VersionCheckingPlugin.h"
+#include "integrated/version_checking_module/VersionCheckingModule.h"
 
-namespace GpgFrontend::Plugin {
+namespace GpgFrontend::Module {
 
-void LoadGpgFrontendIntegratedPlugins() {
-  PluginManager::GetInstance()->RegisterPlugin(
-      std::make_shared<Module::VersionCheckingPlugin::VersionCheckingPlugin>());
+void LoadGpgFrontendIntegratedModules() {
+  SPDLOG_INFO("loading integrated module...");
+  ModuleManager::GetInstance()->RegisterPlugin(
+      std::make_shared<
+          Integrated::VersionCheckingModule::VersionCheckingModule>());
 }
 
-void InitPluginLoggingSystem() {
+void InitModuleLoggingSystem() {
   using namespace boost::posix_time;
   using namespace boost::gregorian;
 
   // get the log directory
   auto logfile_path =
-      (GpgFrontend::GlobalSettingStation::GetInstance().GetLogDir() / "plugin");
+      (GpgFrontend::GlobalSettingStation::GetInstance().GetLogDir() / "module");
   logfile_path.replace_extension(".log");
 
   // sinks
@@ -67,26 +69,26 @@ void InitPluginLoggingSystem() {
   spdlog::init_thread_pool(1024, 2);
 
   // logger
-  auto plugin_logger = std::make_shared<spdlog::async_logger>(
-      "ui", begin(sinks), end(sinks), spdlog::thread_pool());
-  plugin_logger->set_pattern(
+  auto module_logger = std::make_shared<spdlog::async_logger>(
+      "plugin", begin(sinks), end(sinks), spdlog::thread_pool());
+  module_logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=4n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 
 #ifdef DEBUG
-  plugin_logger->set_level(spdlog::level::trace);
+  module_logger->set_level(spdlog::level::trace);
 #else
   ui_logger->set_level(spdlog::level::info);
 #endif
 
   // flush policy
-  plugin_logger->flush_on(spdlog::level::err);
+  module_logger->flush_on(spdlog::level::err);
   spdlog::flush_every(std::chrono::seconds(5));
 
   // register it as default logger
-  spdlog::set_default_logger(plugin_logger);
+  spdlog::set_default_logger(module_logger);
 }
 
-void ShutdownPluginLoggingSystem() {
+void ShutdownModuleLoggingSystem() {
 #ifdef WINDOWS
   // Under VisualStudio, this must be called before main finishes to workaround
   // a known VS issue
@@ -94,4 +96,4 @@ void ShutdownPluginLoggingSystem() {
   spdlog::shutdown();
 #endif
 }
-}  // namespace GpgFrontend::Plugin
+}  // namespace GpgFrontend::Module
