@@ -28,6 +28,7 @@
 
 #include "core/thread/Task.h"
 
+#include <boost/stacktrace.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -123,8 +124,17 @@ class Task::Impl : public QObject {
     // build runnable package for running
     auto runnable_package = [=, id = GetFullID()]() {
       SPDLOG_DEBUG("task {} runnable start runing", id);
-      // Run() will set rtn by itself
-      Run();
+
+      try {
+        // Run() will set rtn by itself
+        parent_->Run();
+      } catch (std::exception &e) {
+        SPDLOG_ERROR("exception caught at task: {}", e.what());
+        SPDLOG_ERROR(
+            "exception stacktrace: {}",
+            boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
+      }
+
       // raise signal to anounce after runnable returned
       if (run_callback_after_runnable_finished_)
         emit parent_->SignalTaskRunnableEnd(rtn_);
@@ -227,7 +237,10 @@ class Task::Impl : public QObject {
         }
       }
     } catch (std::exception &e) {
-      SPDLOG_ERROR("exception caught: {}", e.what());
+      SPDLOG_ERROR("exception caught at task callback: {}", e.what());
+      SPDLOG_ERROR(
+          "exception stacktrace: {}",
+          boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
     } catch (...) {
       SPDLOG_ERROR("unknown exception caught");
     }
