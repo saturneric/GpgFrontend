@@ -49,7 +49,7 @@ class VersionCheckTask : public Thread::Task {
    * @brief Construct a new Version Check Thread object
    *
    */
-  explicit VersionCheckTask();
+  VersionCheckTask();
 
  signals:
 

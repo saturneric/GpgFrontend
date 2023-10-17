@@ -39,7 +39,7 @@ VersionCheckingModule::VersionCheckingModule()
 
 bool VersionCheckingModule::Register() {
   SPDLOG_INFO("version checking module registering");
-  listenEvent("APPLICATION_STARTED");
+  listenEvent("APPLICATION_LOADED");
   return true;
 }
 

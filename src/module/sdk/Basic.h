@@ -27,3 +27,9 @@
  */
 
 #pragma once
+
+namespace GpgFrontend::Module::SDK {
+
+
+
+}
