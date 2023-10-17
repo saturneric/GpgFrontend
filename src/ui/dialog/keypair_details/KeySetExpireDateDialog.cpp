@@ -100,7 +100,7 @@ void KeySetExpireDateDialog::slot_confirm() {
 void KeySetExpireDateDialog::init() {
   ui_->setupUi(this);
 
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
 
   bool longer_expiration_date = false;
   try {

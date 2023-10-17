@@ -341,7 +341,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
   std::string target_keyserver;
 
   try {
-    auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
+    auto &settings = GlobalSettingStation::GetInstance().GetMainSettings();
     SettingsObject key_server_json("key_server");
 
     // get key servers from settings

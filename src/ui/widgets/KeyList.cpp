@@ -380,7 +380,7 @@ void KeyList::dropEvent(QDropEvent* event) {
     dialog->exec();
     if (dialog->result() == QDialog::Rejected) return;
 
-    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+    auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
 
     if (!settings.exists("general") ||
         settings.lookup("general").getType() != libconfig::Setting::TypeGroup)

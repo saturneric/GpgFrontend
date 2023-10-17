@@ -97,7 +97,7 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
 }
 
 void GpgFrontend::UI::NetworkTab::SetSettings() {
-  auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
+  auto &settings = GlobalSettingStation::GetInstance().GetMainSettings();
 
   try {
     std::string proxy_host = settings.lookup("proxy.proxy_host");
@@ -190,7 +190,7 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
 
 void GpgFrontend::UI::NetworkTab::ApplySettings() {
   auto &settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+      GpgFrontend::GlobalSettingStation::GetInstance().GetMainSettings();
 
   if (!settings.exists("proxy") ||
       settings.lookup("proxy").getType() != libconfig::Setting::TypeGroup)

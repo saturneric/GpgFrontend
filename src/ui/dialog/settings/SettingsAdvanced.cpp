@@ -68,7 +68,7 @@ void AdvancedTab::SetSettings() {
 
 void AdvancedTab::ApplySettings() {
   auto& settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+      GpgFrontend::GlobalSettingStation::GetInstance().GetMainSettings();
 
   if (!settings.exists("advanced") ||
       settings.lookup("advanced").getType() != libconfig::Setting::TypeGroup)

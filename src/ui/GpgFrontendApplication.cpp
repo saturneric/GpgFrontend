@@ -29,6 +29,7 @@
 #include "ui/GpgFrontendApplication.h"
 
 #include <QTextCodec>
+#include <boost/stacktrace.hpp>
 
 #include "GpgFrontendBuildInfo.h"
 
@@ -77,6 +78,8 @@ bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
     app_done = QApplication::notify(receiver, event);
   } catch (const std::exception &ex) {
     SPDLOG_ERROR("exception caught in notify: {}", ex.what());
+    SPDLOG_ERROR("exception stacktrace: {}",
+                 boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
     QMessageBox::information(nullptr, _("Standard Exception Thrown"),
                              _("Oops, an standard exception was thrown "
                                "during the running of the "

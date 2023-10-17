@@ -32,6 +32,7 @@
 #include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
+#include "core/module/ModuleManager.h"
 #include "main_window/GeneralMainWindow.h"
 #include "nlohmann/json_fwd.hpp"
 #include "spdlog/spdlog.h"
@@ -120,7 +121,7 @@ void MainWindow::Init() noexcept {
 
     edit_->CurTextPage()->setFocus();
 
-    auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
+    auto &settings = GlobalSettingStation::GetInstance().GetMainSettings();
 
     if (!settings.exists("wizard") ||
         settings.lookup("wizard").getType() != libconfig::Setting::TypeGroup)
@@ -144,17 +145,18 @@ void MainWindow::Init() noexcept {
     }
 
     emit SignalLoaded();
+    Module::TriggerEvent("APPLICATION_LOADED");
 
     // if not prohibit update checking
     if (!prohibit_update_checking_) {
-      auto *version_task = new VersionCheckTask();
+      // auto *version_task = new VersionCheckTask();
 
-      connect(version_task, &VersionCheckTask::SignalUpgradeVersion, this,
-              &MainWindow::slot_version_upgrade);
+      // connect(version_task, &VersionCheckTask::SignalUpgradeVersion, this,
+      //         &MainWindow::slot_version_upgrade);
 
-      Thread::TaskRunnerGetter::GetInstance()
-          .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
-          ->PostTask(version_task);
+      // Thread::TaskRunnerGetter::GetInstance()
+      //     .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+      //     ->PostTask(version_task);
     }
 
     // before application exit
@@ -198,7 +200,7 @@ void MainWindow::restore_settings() {
       key_server_json["default_server"] = 0;
     }
 
-    auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
+    auto &settings = GlobalSettingStation::GetInstance().GetMainSettings();
 
     if (!settings.exists("general") ||
         settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
@@ -303,7 +305,7 @@ void MainWindow::save_settings() {
     for (const auto &key_id : *key_ids_need_to_store)
       default_key_checked.push_back(key_id);
   } else {
-    auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
+    auto &settings = GlobalSettingStation::GetInstance().GetMainSettings();
     settings["general"].remove("save_key_checked");
   }
 

@@ -78,7 +78,7 @@ if (MINGW)
 endif ()
 
 # spdlog
-target_link_libraries(gpgfrontend_core PUBLIC spdlog)
+target_link_libraries(gpgfrontend_core PRIVATE spdlog)
 
 # link libarchive
 target_link_libraries(gpgfrontend_core PRIVATE archive)

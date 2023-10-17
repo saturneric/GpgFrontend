@@ -79,7 +79,7 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
   auto advance_h_box_layout = new QHBoxLayout();
 
   // get settings
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
   // read settings
   bool forbid_all_gnupg_connection = false;
   try {

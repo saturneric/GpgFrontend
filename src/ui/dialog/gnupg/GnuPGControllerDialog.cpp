@@ -101,7 +101,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
           return;
         }
 
-        auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+        auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
         auto& general = settings["general"];
 
         // update settings
@@ -138,7 +138,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
           return;
         }
 
-        auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+        auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
         auto& general = settings["general"];
 
         // update settings
@@ -268,7 +268,7 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
 }
 
 void GnuPGControllerDialog::set_settings() {
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
 
   try {
     bool non_ascii_when_export =
@@ -319,7 +319,7 @@ void GnuPGControllerDialog::set_settings() {
 
 void GnuPGControllerDialog::apply_settings() {
   auto& settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+      GpgFrontend::GlobalSettingStation::GetInstance().GetMainSettings();
 
   if (!settings.exists("general") ||
       settings.lookup("general").getType() != libconfig::Setting::TypeGroup)

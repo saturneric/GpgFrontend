@@ -252,7 +252,7 @@ void ShutdownUILoggingSystem() {
 void init_locale() {
   // get the instance of the GlobalSettingStation
   auto& settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+      GpgFrontend::GlobalSettingStation::GetInstance().GetMainSettings();
 
   // create general settings if not exist
   if (!settings.exists("general") ||

@@ -632,7 +632,7 @@ void TextEdit::slot_file_page_path_changed(const QString& path) const {
 void TextEdit::slot_save_status_to_cache_for_revovery() {
   if (this->text_page_data_modified_count_++ % 8 != 0) return;
 
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
   bool restore_text_editor_page = false;
   try {
     restore_text_editor_page =

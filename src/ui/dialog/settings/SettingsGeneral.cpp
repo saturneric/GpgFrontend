@@ -116,7 +116,7 @@ GeneralTab::GeneralTab(QWidget* parent)
  * appropriately
  **********************************/
 void GeneralTab::SetSettings() {
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
 
   try {
     bool save_key_checked = settings.lookup("general.save_key_checked");
@@ -186,7 +186,7 @@ void GeneralTab::SetSettings() {
  *************************************/
 void GeneralTab::ApplySettings() {
   auto& settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+      GpgFrontend::GlobalSettingStation::GetInstance().GetMainSettings();
 
   if (!settings.exists("general") ||
       settings.lookup("general").getType() != libconfig::Setting::TypeGroup)

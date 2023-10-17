@@ -57,7 +57,7 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
 void Wizard::slot_wizard_accepted() {
   // Don't show is mapped to show -> negation
   try {
-    auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+    auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
     if (!settings.exists("wizard")) {
       settings.add("wizard", libconfig::Setting::TypeGroup);
     }
