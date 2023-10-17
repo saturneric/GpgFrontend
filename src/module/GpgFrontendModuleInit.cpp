@@ -36,7 +36,7 @@
 #include <memory>
 
 #include "core/function/GlobalSettingStation.h"
-#include "module/system/ModuleManager.h"
+#include "core/module/ModuleManager.h"
 
 // integrated modules
 #include "integrated/version_checking_module/VersionCheckingModule.h"
@@ -45,9 +45,12 @@ namespace GpgFrontend::Module {
 
 void LoadGpgFrontendIntegratedModules() {
   SPDLOG_INFO("loading integrated module...");
-  ModuleManager::GetInstance()->RegisterModule(
-      std::make_shared<
-          Integrated::VersionCheckingModule::VersionCheckingModule>());
+
+  // VersionCheckingModule
+  RegisterAndActivateModule<
+      Integrated::VersionCheckingModule::VersionCheckingModule>();
+
+  SPDLOG_INFO("load integrated module done.");
 }
 
 void InitModuleLoggingSystem() {

@@ -28,5 +28,5 @@
 
 #pragma once
 
+#include <core/module/GpgFrontendModuleSystem.h>
 #include <module/sdk/GpgFrontendModuleSDKExport.h>
-#include <module/system/GpgFrontendModuleSystem.h>

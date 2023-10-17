@@ -29,10 +29,9 @@
 #ifndef GPGFRONTEND_GLOBALMODULECONTEXT_H
 #define GPGFRONTEND_GLOBALMODULECONTEXT_H
 
-#include "GpgFrontendModuleSystemExport.h"
 #include "core/GpgFrontendCore.h"
+#include "core/module/Event.h"
 #include "core/thread/TaskRunner.h"
-#include "module/system/Event.h"
 
 namespace GpgFrontend::Module {
 
@@ -47,7 +46,7 @@ using GlobalModuleContextPtr = std::shared_ptr<GlobalModuleContext>;
 
 using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
 
-class GPGFRONTEND_MODULE_SYSTEM_EXPORT GlobalModuleContext : public QObject {
+class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
   Q_OBJECT
  public:
   GlobalModuleContext(TaskRunnerPtr);

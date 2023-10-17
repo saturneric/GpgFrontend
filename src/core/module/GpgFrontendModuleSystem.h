@@ -29,6 +29,6 @@
 #pragma once
 
 #include <core/GpgFrontendCore.h>
-#include <module/system/Event.h>
-#include <module/system/Module.h>
-#include <module/system/ModuleManager.h>
+#include <core/module/Event.h>
+#include <core/module/Module.h>
+#include <core/module/ModuleManager.h>

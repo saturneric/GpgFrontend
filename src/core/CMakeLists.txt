@@ -31,6 +31,7 @@ aux_source_directory(./function CORE_SOURCE)
 aux_source_directory(./thread CORE_SOURCE)
 aux_source_directory(./model CORE_SOURCE)
 aux_source_directory(./common CORE_SOURCE)
+aux_source_directory(./module CORE_SOURCE)
 aux_source_directory(. CORE_SOURCE)
 
 # define libgpgfrontend_core
@@ -77,7 +78,7 @@ if (MINGW)
 endif ()
 
 # spdlog
-target_link_libraries(gpgfrontend_core PRIVATE spdlog)
+target_link_libraries(gpgfrontend_core PUBLIC spdlog)
 
 # link libarchive
 target_link_libraries(gpgfrontend_core PRIVATE archive)

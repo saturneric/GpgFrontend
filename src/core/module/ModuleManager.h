@@ -32,7 +32,6 @@
 #include <memory>
 #include <string>
 
-#include "GpgFrontendModuleSystemExport.h"
 #include "core/GpgFrontendCore.h"
 #include "core/thread/Task.h"
 
@@ -55,7 +54,7 @@ using ModulePtr = std::shared_ptr<Module>;
 using ModuleMangerPtr = std::shared_ptr<ModuleManager>;
 using GlobalModuleContextPtr = std::shared_ptr<GlobalModuleContext>;
 
-class GPGFRONTEND_MODULE_SYSTEM_EXPORT ModuleManager : public QObject {
+class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
   Q_OBJECT
  public:
   ~ModuleManager();
@@ -79,6 +78,26 @@ class GPGFRONTEND_MODULE_SYSTEM_EXPORT ModuleManager : public QObject {
 
   ModuleManager();
 };
+
+template <typename T, typename... Args>
+void RegisterModule(Args&&... args) {
+  ModuleManager::GetInstance()->RegisterModule(
+      std::make_shared<T>(std::forward<Args>(args)...));
+}
+
+template <typename T, typename... Args>
+void RegisterAndActivateModule(Args&&... args) {
+  auto manager = ModuleManager::GetInstance();
+  auto module = std::make_shared<T>(std::forward<Args>(args)...);
+  manager->RegisterModule(module);
+  manager->ActiveModule(module->GetModuleIdentifier());
+}
+
+template <typename... Args>
+void TriggerEvent(const std::string& eventIdentifier, Args&&... args) {
+  ModuleManager::GetInstance()->TriggerEvent(std::make_shared<Event>(
+      std::move(MakeEvent(eventIdentifier, std::forward<Args>(args)...))));
+}
 
 }  // namespace GpgFrontend::Module
 

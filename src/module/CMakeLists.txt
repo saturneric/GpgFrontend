@@ -26,30 +26,6 @@
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
-# define libgpgfrontend_module_system
-aux_source_directory(system MODULE_SYSTEM_SOURCE)
-add_library(gpgfrontend_module_system SHARED ${MODULE_SYSTEM_SOURCE})
-set(_export_file_system "${CMAKE_CURRENT_SOURCE_DIR}/system/GpgFrontendModuleSystemExport.h")
-generate_export_header(gpgfrontend_module_system EXPORT_FILE_NAME "${_export_file_system}")
-
-# link json
-target_link_libraries(gpgfrontend_module_system
-        PUBLIC nlohmann_json::nlohmann_json)
-
-# spdlog
-target_link_libraries(gpgfrontend_module_system PUBLIC spdlog)
-
-# link Qt core
-if(Qt6_DIR)
-    target_link_libraries(gpgfrontend_module_system PUBLIC Qt6::Core)
-else()
-    target_link_libraries(gpgfrontend_module_system PUBLIC Qt5::Core)
-endif()
-
-# link core and ui module
-target_link_libraries(gpgfrontend_module_system PUBLIC
-        gpgfrontend_core gpgfrontend_ui)
-
 # define libgpgfrontend_module_sdk
 aux_source_directory(sdk MODULE_SDK_SOURCE)
 
@@ -60,7 +36,7 @@ target_include_directories(gpgfrontend_module_sdk PUBLIC sdk)
 
 # link module system
 target_link_libraries(gpgfrontend_module_sdk
-        PUBLIC gpgfrontend_module_system)
+        PUBLIC gpgfrontend_core)
 
 # tracking integrated modules
 set(all_integrated_module_libraries "")

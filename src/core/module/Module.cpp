@@ -30,7 +30,7 @@
 
 #include <memory>
 
-#include "module/system/GlobalModuleContext.h"
+#include "core/module/GlobalModuleContext.h"
 
 namespace GpgFrontend::Module {
 

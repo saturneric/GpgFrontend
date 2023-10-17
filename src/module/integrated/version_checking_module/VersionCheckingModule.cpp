@@ -39,18 +39,18 @@ VersionCheckingModule::VersionCheckingModule()
 
 bool VersionCheckingModule::Register() {
   SPDLOG_INFO("version checking module registering");
+  listenEvent("APPLICATION_STARTED");
   return true;
 }
 
 bool VersionCheckingModule::Active() {
   SPDLOG_INFO("version checking module activating");
-
-  listenEvent("APPLICATION_STARTED");
   return true;
 }
 
 int VersionCheckingModule::Exec(EventRefrernce event) {
-  SPDLOG_INFO("version checking module ececuting");
+  SPDLOG_INFO("version checking module executing, event id: {}",
+              event->GetIdentifier());
 
   getTaskRunner()->PostTask(new VersionCheckTask());
   return 0;

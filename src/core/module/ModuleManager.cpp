@@ -28,9 +28,9 @@
 
 #include "ModuleManager.h"
 
+#include "core/module/GlobalModuleContext.h"
+#include "core/module/Module.h"
 #include "core/thread/TaskRunner.h"
-#include "module/system/GlobalModuleContext.h"
-#include "module/system/Module.h"
 
 namespace GpgFrontend::Module {
 
@@ -40,15 +40,15 @@ class ModuleManager::Impl {
  public:
   Impl()
       : task_runner_(std::make_shared<Thread::TaskRunner>()),
-        global_module_context_(
-            std::make_shared<GlobalModuleContext>(task_runner_)) {
+        gpc_(std::make_shared<GlobalModuleContext>(task_runner_)) {
     task_runner_->start();
   }
 
   void RegisterModule(ModulePtr module) {
     task_runner_->PostTask(new Thread::Task(
         std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
-          global_module_context_->RegisterModule(module);
+          module->SetGPC(gpc_);
+          gpc_->RegisterModule(module);
           return 0;
         }),
         __func__, nullptr, true));
@@ -57,7 +57,7 @@ class ModuleManager::Impl {
   void TriggerEvent(EventRefrernce event) {
     task_runner_->PostTask(new Thread::Task(
         std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
-          global_module_context_->TriggerEvent(event);
+          gpc_->TriggerEvent(event);
           return 0;
         }),
         __func__, nullptr, true));
@@ -66,20 +66,20 @@ class ModuleManager::Impl {
   void ActiveModule(ModuleIdentifier identifier) {
     task_runner_->PostTask(new Thread::Task(
         std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
-          global_module_context_->ActiveModule(identifier);
+          gpc_->ActiveModule(identifier);
           return 0;
         }),
         __func__, nullptr, true));
   }
 
   std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier module_id) {
-    return global_module_context_->GetTaskRunner(module_id);
+    return gpc_->GetTaskRunner(module_id);
   }
 
  private:
   static ModuleMangerPtr global_module_manager_;
   TaskRunnerPtr task_runner_;
-  GlobalModuleContextPtr global_module_context_;
+  GlobalModuleContextPtr gpc_;
 };
 
 ModuleManager::ModuleManager() : p_(std::make_unique<Impl>()) {}

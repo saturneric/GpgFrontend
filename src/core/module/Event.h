@@ -31,9 +31,7 @@
 
 #include <memory>
 
-#include "GpgFrontendModuleSystemExport.h"
-#include "core/GpgFrontendCore.h"
-#include "nlohmann/json_fwd.hpp"
+#include "core/GpgFrontendCoreExport.h"
 
 namespace GpgFrontend::Module {
 
@@ -43,9 +41,9 @@ using EventRefrernce = std::shared_ptr<Event>;
 using EventIdentifier = std::string;
 using Evnets = std::vector<Event>;
 
-class Event {
+class GPGFRONTEND_CORE_EXPORT Event {
  public:
-  using ParameterValue = std::variant<int, float, std::string, nlohmann::json>;
+  using ParameterValue = std::any;
   using EventIdentifier = std::string;
   struct ParameterInitializer {
     std::string key;
@@ -77,6 +75,13 @@ class Event {
   class Impl;
   std::unique_ptr<Impl> p_;
 };
+
+template <typename... Args>
+Event MakeEvent(const std::string& eventIdentifier, Args&&... args) {
+  std::initializer_list<Event::ParameterInitializer> params = {
+      Event::ParameterInitializer{std::forward<Args>(args)}...};
+  return Event(eventIdentifier, params);
+}
 
 }  // namespace GpgFrontend::Module
 
