@@ -36,16 +36,16 @@
 #include <memory>
 
 #include "core/function/GlobalSettingStation.h"
-#include "module/system/PluginManager.h"
+#include "module/system/ModuleManager.h"
 
-// integrated plugins
+// integrated modules
 #include "integrated/version_checking_module/VersionCheckingModule.h"
 
 namespace GpgFrontend::Module {
 
 void LoadGpgFrontendIntegratedModules() {
   SPDLOG_INFO("loading integrated module...");
-  ModuleManager::GetInstance()->RegisterPlugin(
+  ModuleManager::GetInstance()->RegisterModule(
       std::make_shared<
           Integrated::VersionCheckingModule::VersionCheckingModule>());
 }
@@ -70,7 +70,7 @@ void InitModuleLoggingSystem() {
 
   // logger
   auto module_logger = std::make_shared<spdlog::async_logger>(
-      "plugin", begin(sinks), end(sinks), spdlog::thread_pool());
+      "module", begin(sinks), end(sinks), spdlog::thread_pool());
   module_logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=4n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 

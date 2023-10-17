@@ -65,7 +65,7 @@ class GPGFRONTEND_MODULE_SYSTEM_EXPORT Module : public QObject {
 
   virtual bool Deactive() = 0;
 
-  ModuleIdentifier GetPluginIdentifier() const;
+  ModuleIdentifier GetModuleIdentifier() const;
 
   void SetGPC(GlobalModuleContextPtr);
 

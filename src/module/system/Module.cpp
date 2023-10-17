@@ -39,28 +39,28 @@ class Module::Impl {
   friend class GlobalModuleContext;
 
   Impl(ModuleIdentifier id, ModuleVersion version, ModuleMetaData meta_data)
-      : identifier_((boost::format("__plugin_%1%") % id).str()),
+      : identifier_((boost::format("__module_%1%") % id).str()),
         version_(version),
         meta_data_(meta_data) {}
 
   int GetChannel() {
-    return get_global_plugin_context()->GetChannel(self_shared_ptr_);
+    return get_global_module_context()->GetChannel(self_shared_ptr_);
   }
 
   int GetDefaultChannel() {
-    return get_global_plugin_context()->GetDefaultChannel(self_shared_ptr_);
+    return get_global_module_context()->GetDefaultChannel(self_shared_ptr_);
   }
 
   std::optional<TaskRunnerPtr> GetTaskRunner() {
-    return get_global_plugin_context()->GetTaskRunner(self_shared_ptr_);
+    return get_global_module_context()->GetTaskRunner(self_shared_ptr_);
   }
 
   bool ListenEvent(EventIdentifier event) {
-    return get_global_plugin_context()->ListenEvent(gpc_get_identifier(),
+    return get_global_module_context()->ListenEvent(gpc_get_identifier(),
                                                     event);
   }
 
-  ModuleIdentifier GetPluginIdentifier() const { return identifier_; }
+  ModuleIdentifier GetModuleIdentifier() const { return identifier_; }
 
   void SetGPC(GlobalModuleContextPtr gpc) { gpc_ = gpc; }
 
@@ -73,9 +73,9 @@ class Module::Impl {
 
   ModuleIdentifier gpc_get_identifier() { return identifier_; }
 
-  const GlobalModuleContextPtr get_global_plugin_context() {
+  const GlobalModuleContextPtr get_global_module_context() {
     if (gpc_ == nullptr) {
-      throw std::runtime_error("plugin is not registered by plugin manager");
+      throw std::runtime_error("module is not registered by module manager");
     }
     return gpc_;
   }
@@ -99,8 +99,8 @@ bool Module::listenEvent(EventIdentifier event) {
   return p_->ListenEvent(event);
 }
 
-ModuleIdentifier Module::GetPluginIdentifier() const {
-  return p_->GetPluginIdentifier();
+ModuleIdentifier Module::GetModuleIdentifier() const {
+  return p_->GetModuleIdentifier();
 }
 
 void Module::SetGPC(GlobalModuleContextPtr gpc) { p_->SetGPC(gpc); }

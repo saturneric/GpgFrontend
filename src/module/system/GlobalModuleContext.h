@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef GPGFRONTEND_GLOBALPLUGINCONTEXT_H
-#define GPGFRONTEND_GLOBALPLUGINCONTEXT_H
+#ifndef GPGFRONTEND_GLOBALMODULECONTEXT_H
+#define GPGFRONTEND_GLOBALMODULECONTEXT_H
 
 #include "GpgFrontendModuleSystemExport.h"
 #include "core/GpgFrontendCore.h"
@@ -60,15 +60,15 @@ class GPGFRONTEND_MODULE_SYSTEM_EXPORT GlobalModuleContext : public QObject {
 
   std::optional<TaskRunnerPtr> GetTaskRunner(ModulePtr);
 
-  std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier plugin);
+  std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier);
 
   std::optional<TaskRunnerPtr> GetGlobalTaskRunner();
 
-  bool RegisterPlugin(ModulePtr);
+  bool RegisterModule(ModulePtr);
 
-  bool ActivePlugin(ModuleIdentifier);
+  bool ActiveModule(ModuleIdentifier);
 
-  bool DeactivatePlugin(ModuleIdentifier);
+  bool DeactivateModule(ModuleIdentifier);
 
   bool ListenEvent(ModuleIdentifier, EventIdentifier);
 
@@ -81,4 +81,4 @@ class GPGFRONTEND_MODULE_SYSTEM_EXPORT GlobalModuleContext : public QObject {
 
 }  // namespace GpgFrontend::Module
 
-#endif  // GPGFRONTEND_GLOBALPLUGINCONTEXT_H
+#endif  // GPGFRONTEND_GLOBALMODULECONTEXT_H

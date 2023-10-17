@@ -26,15 +26,15 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDPLUGININIT_H
-#define GPGFRONTEND_GPGFRONTENDPLUGININIT_H
+#ifndef GPGFRONTEND_GPGFRONTENDMODULEINIT_H
+#define GPGFRONTEND_GPGFRONTENDMODULEINIT_H
 
 #include "module/GpgFrontendModule.h"
 
 namespace GpgFrontend::Module {
 
 /**
- * @brief init the plugin library
+ * @brief init the module library
  *
  */
 void GPGFRONTEND_MODULE_EXPORT LoadGpgFrontendIntegratedModules();
@@ -53,4 +53,4 @@ void GPGFRONTEND_MODULE_EXPORT ShutdownModuleLoggingSystem();
 
 };  // namespace GpgFrontend::Module
 
-#endif  // GPGFRONTEND_GPGFRONTENDPLUGININIT_H
+#endif  // GPGFRONTEND_GPGFRONTENDMODULEINIT_H

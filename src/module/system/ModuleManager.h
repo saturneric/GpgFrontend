@@ -62,13 +62,13 @@ class GPGFRONTEND_MODULE_SYSTEM_EXPORT ModuleManager : public QObject {
 
   static ModuleMangerPtr GetInstance();
 
-  void RegisterPlugin(ModulePtr);
+  void RegisterModule(ModulePtr);
 
   void TriggerEvent(EventRefrernce);
 
-  void ActivePlugin(ModuleIdentifier);
+  void ActiveModule(ModuleIdentifier);
 
-  void DeactivePlugin(ModuleIdentifier);
+  void DeactiveModule(ModuleIdentifier);
 
   std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier);
 

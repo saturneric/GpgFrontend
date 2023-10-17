@@ -26,7 +26,7 @@
 
 aux_source_directory(. INTEGRATED_MODULE_SOURCE)
 
-# define libgpgfrontend_plugin
+# define libgpgfrontend_module
 add_library(gpgfrontend_integrated_module_version_checking SHARED ${INTEGRATED_MODULE_SOURCE})
 
 # link sdk

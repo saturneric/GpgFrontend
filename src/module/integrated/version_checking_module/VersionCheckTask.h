@@ -93,6 +93,6 @@ class VersionCheckTask : public Thread::Task {
 };
 
 }  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule
-   // GpgFrontend::Module::Custom::IntegradedPlugin::VersionCheckingModule
+   // GpgFrontend::Module::Custom::IntegradedModule::VersionCheckingModule
 
 #endif  // GPGFRONTEND_VERSIONCHECKTHREAD_H

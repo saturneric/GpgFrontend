@@ -27,8 +27,8 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 # define libgpgfrontend_module_system
-aux_source_directory(system PLUGIN_SYSTEM_SOURCE)
-add_library(gpgfrontend_module_system SHARED ${PLUGIN_SYSTEM_SOURCE})
+aux_source_directory(system MODULE_SYSTEM_SOURCE)
+add_library(gpgfrontend_module_system SHARED ${MODULE_SYSTEM_SOURCE})
 set(_export_file_system "${CMAKE_CURRENT_SOURCE_DIR}/system/GpgFrontendModuleSystemExport.h")
 generate_export_header(gpgfrontend_module_system EXPORT_FILE_NAME "${_export_file_system}")
 

@@ -33,24 +33,24 @@
 namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
 VersionCheckingModule::VersionCheckingModule()
-    : Module("com.bktus.gpgfrontend.plugin.integrated.versionchecking", "1.0.0",
+    : Module("com.bktus.gpgfrontend.module.integrated.versionchecking", "1.0.0",
              ModuleMetaData{{"description", "try to check gpgfrontend version"},
                             {"author", "saturneric"}}) {}
 
 bool VersionCheckingModule::Register() {
-  SPDLOG_INFO("version checking plugin registering");
+  SPDLOG_INFO("version checking module registering");
   return true;
 }
 
 bool VersionCheckingModule::Active() {
-  SPDLOG_INFO("version checking plugin activating");
+  SPDLOG_INFO("version checking module activating");
 
   listenEvent("APPLICATION_STARTED");
   return true;
 }
 
 int VersionCheckingModule::Exec(EventRefrernce event) {
-  SPDLOG_INFO("version checking plugin ececuting");
+  SPDLOG_INFO("version checking module ececuting");
 
   getTaskRunner()->PostTask(new VersionCheckTask());
   return 0;

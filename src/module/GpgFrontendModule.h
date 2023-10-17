@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDPLUGIN_H
-#define GPGFRONTEND_GPGFRONTENDPLUGIN_H
+#ifndef GPGFRONTEND_GPGFRONTENDMODULE_H
+#define GPGFRONTEND_GPGFRONTENDMODULE_H
 
 /**
  * Project internal dependencies
@@ -36,4 +36,4 @@
 #include "GpgFrontendModuleExport.h"
 #include "core/GpgFrontendCore.h"
 
-#endif  // GPGFRONTEND_GPGFRONTENDPLUGIN_H
+#endif  // GPGFRONTEND_GPGFRONTENDMODULE_H

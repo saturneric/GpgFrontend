@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
   int return_from_event_loop_code;
   int restart_count = 0;
 
-  // load integrated plugins
+  // load integrated modules
   GpgFrontend::Module::LoadGpgFrontendIntegratedModules();
 
   do {
