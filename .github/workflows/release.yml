@@ -191,11 +191,11 @@ jobs:
           ditto -c -k --keepParent ${{github.workspace}}/build/package/GpgFrontend.app ${{github.workspace}}/build/GpgFrontend.app.zip
           hdiutil create ${{github.workspace}}/build/tmp.dmg -ov \
             -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/package/
-          mkdir ${{github.workspace}}/build/artifactOut
-          hdiutil convert ${{github.workspace}}/build/tmp.dmg -format UDZO -o ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
-          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg
-          mv ${{github.workspace}}/build/artifactOut/GpgFrontend.dmg \
-            ${{github.workspace}}/build/artifactOut/GpgFrontend-${{env.sha_short}}-x86_64.dmg
+          mkdir ${{github.workspace}}/build/final-artifact
+          hdiutil convert ${{github.workspace}}/build/tmp.dmg -format UDZO -o ${{github.workspace}}/build/final-artifact/GpgFrontend.dmg
+          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" ${{github.workspace}}/build/final-artifact/GpgFrontend.dmg
+          mv ${{github.workspace}}/build/final-artifact/GpgFrontend.dmg \
+            ${{github.workspace}}/build/final-artifact/GpgFrontend-${{env.sha_short}}-x86_64.dmg
           mv ${{github.workspace}}/build/GpgFrontend.app.zip \
             ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
@@ -211,11 +211,11 @@ jobs:
 
       - name: Package App Image (Linux)
         run: |
-          mkdir ${{github.workspace}}/build/artifactOut
-          cd ${{github.workspace}}/build/artifactOut
+          mkdir ${{github.workspace}}/build/final-artifact
+          cd ${{github.workspace}}/build/final-artifact
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
-          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/release/gpgfrontend/usr/share/applications/*.desktop -appimage
+          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/gpgfrontend/usr/share/applications/*.desktop -appimage
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Configure CMake & Build Binary(Windows)
@@ -232,19 +232,19 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
-          path: ${{github.workspace}}/build/artifactOut/GpgFrontend*.AppImage*
+          path: ${{github.workspace}}/build/final-artifact/GpgFrontend*.AppImage*
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Upload Artifact(macOS)
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
-          path: ${{github.workspace}}/build/artifactOut/*
+          path: ${{github.workspace}}/build/final-artifact/*
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Upload Artifact(Windows)
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
-          path: ${{github.workspace}}/build/release/*
+          path: ${{github.workspace}}/build/artifacts/*
         if: matrix.os == 'windows-2019'

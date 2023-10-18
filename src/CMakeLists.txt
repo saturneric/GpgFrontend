@@ -74,7 +74,7 @@ if (BUILD_APPLICATION)
 
     if (NOT XCODE_BUILD)
         # Set Binary Output Path
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
     else ()
         # Set Binary Output Path
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
