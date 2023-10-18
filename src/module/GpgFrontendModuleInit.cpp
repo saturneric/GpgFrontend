@@ -80,7 +80,7 @@ void InitModuleLoggingSystem() {
 #ifdef DEBUG
   module_logger->set_level(spdlog::level::trace);
 #else
-  ui_logger->set_level(spdlog::level::info);
+  module_logger->set_level(spdlog::level::info);
 #endif
 
   // flush policy
