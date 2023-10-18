@@ -101,25 +101,25 @@ elseif ( WIN32 )
       ${CMAKE_INSTALL_PREFIX}/include
     )
 
-    find_library( _gpgme_vanilla_library NAMES gpgme libgpgme gpgme-11 libgpgme-11
+    find_library( _gpgme_vanilla_lib NAMES gpgme libgpgme gpgme-11 libgpgme-11
       PATHS 
         ${CMAKE_LIBRARY_PATH}
         ${CMAKE_INSTALL_PREFIX}/lib
     )
 
-    find_library( _gpgme_glib_library    NAMES gpgme-glib libgpgme-glib gpgme-glib-11 libgpgme-glib-11
+    find_library( _gpgme_glib_lib    NAMES gpgme-glib libgpgme-glib gpgme-glib-11 libgpgme-glib-11
       PATHS 
         ${CMAKE_LIBRARY_PATH}
         ${CMAKE_INSTALL_PREFIX}/lib
     )
 
-    find_library( _gpgme_qt_library      NAMES gpgme-qt libgpgme-qt gpgme-qt-11 libgpgme-qt-11
+    find_library( _gpgme_qt_lib      NAMES gpgme-qt libgpgme-qt gpgme-qt-11 libgpgme-qt-11
       PATHS 
         ${CMAKE_LIBRARY_PATH}
         ${CMAKE_INSTALL_PREFIX}/lib
     )
 
-    find_library( _gpg_error_library     NAMES gpg-error libgpg-error gpg-error-0 libgpg-error-0
+    find_library( _gpg_error_lib    NAMES gpg-error libgpg-error gpg-error-0 libgpg-error-0
        PATHS
             ${CMAKE_LIBRARY_PATH}
             ${CMAKE_INSTALL_PREFIX}/lib
@@ -127,20 +127,20 @@ elseif ( WIN32 )
 
     set( GPGME_INCLUDES ${GPGME_INCLUDES} )
 
-    if ( _gpgme_vanilla_library AND _gpg_error_library )
-      set( GPGME_VANILLA_LIBRARIES ${_gpgme_vanilla_library} ${_gpg_error_library} )
+    if ( _gpgme_vanilla_lib AND _gpg_error_lib )
+      set( GPGME_VANILLA_LIBRARIES ${_gpgme_vanilla_lib} ${_gpg_error_lib} )
       set( GPGME_VANILLA_FOUND     true )
       set( GPGME_FOUND             true )
     endif()
 
-    if ( _gpgme_glib_library AND _gpg_error_library )
-      set( GPGME_GLIB_LIBRARIES    ${_gpgme_glib_library}    ${_gpg_error_library} )
+    if ( _gpgme_glib_lib AND _gpg_error_lib )
+      set( GPGME_GLIB_LIBRARIES    ${_gpgme_glib_lib}    ${_gpg_error_lib} )
       set( GPGME_GLIB_FOUND        true )
       set( GPGME_FOUND             true )
     endif()
 
-    if ( _gpgme_qt_library AND _gpg_error_library )
-      set( GPGME_QT_LIBRARIES      ${_gpgme_qt_library}      ${_gpg_error_library} )
+    if ( _gpgme_qt_lib AND _gpg_error_lib )
+      set( GPGME_QT_LIBRARIES      ${_gpgme_qt_library}      ${_gpg_error_lib} )
       set( GPGME_QT_FOUND          true )
       set( GPGME_FOUND             true )
     endif()
@@ -210,19 +210,19 @@ else() # not WIN32
         message( STATUS "Found gpgme v${GPGME_VERSION}, checking for flavors..." )
 
         exec_program( ${_GPGMECONFIG_EXECUTABLE} ARGS                  --libs OUTPUT_VARIABLE _gpgme_config_vanilla_libs RETURN_VALUE _ret )
-	if ( _ret )
-	  set( _gpgme_config_vanilla_libs )
-	endif()
+        if ( _ret )
+          set( _gpgme_config_vanilla_libs )
+        endif()
 
         exec_program( ${_GPGMECONFIG_EXECUTABLE} ARGS --thread=pthread --libs OUTPUT_VARIABLE _gpgme_config_pthread_libs RETURN_VALUE _ret )
-	if ( _ret )
-	  set( _gpgme_config_pthread_libs )
-	endif()
+        if ( _ret )
+          set( _gpgme_config_pthread_libs )
+        endif()
 
         exec_program( ${_GPGMECONFIG_EXECUTABLE} ARGS --thread=pth     --libs OUTPUT_VARIABLE _gpgme_config_pth_libs     RETURN_VALUE _ret )
-	if ( _ret )
-	  set( _gpgme_config_pth_libs )
-	endif()
+        if ( _ret )
+          set( _gpgme_config_pth_libs )
+        endif()
 
         # append -lgpg-error to the list of libraries, if necessary
         foreach ( _flavour vanilla pthread pth )
@@ -314,6 +314,70 @@ else() # not WIN32
 
       endif()
 
+    else()
+
+      # ensure that they are cached
+      # This comment above doesn't make sense, the four following lines seem to do nothing. Alex
+      set( GPGME_INCLUDES          ${GPGME_INCLUDES} )
+      set( GPGME_VANILLA_LIBRARIES ${GPGME_VANILLA_LIBRARIES} )
+      set( GPGME_PTHREAD_LIBRARIES ${GPGME_PTHREAD_LIBRARIES} )
+      set( GPGME_PTH_LIBRARIES     ${GPGME_PTH_LIBRARIES} )
+
+      find_path( GPGME_INCLUDES gpgme.h
+        ${CMAKE_INCLUDE_PATH}
+        ${CMAKE_INSTALL_PREFIX}/include
+      )
+
+      find_library( _gpgme_vanilla_lib NAMES gpgme libgpgme gpgme-11 libgpgme-11
+        PATHS 
+          ${CMAKE_LIBRARY_PATH}
+          ${CMAKE_INSTALL_PREFIX}/lib
+      )
+
+      find_library( _gpgme_glib_lib    NAMES gpgme-glib libgpgme-glib gpgme-glib-11 libgpgme-glib-11
+        PATHS 
+          ${CMAKE_LIBRARY_PATH}
+          ${CMAKE_INSTALL_PREFIX}/lib
+      )
+
+      find_library( _gpgme_qt_lib      NAMES gpgme-qt libgpgme-qt gpgme-qt-11 libgpgme-qt-11
+        PATHS 
+          ${CMAKE_LIBRARY_PATH}
+          ${CMAKE_INSTALL_PREFIX}/lib
+      )
+
+      find_library( _gpg_error_lib     NAMES gpg-error libgpg-error gpg-error-0 libgpg-error-0
+        PATHS
+              ${CMAKE_LIBRARY_PATH}
+              ${CMAKE_INSTALL_PREFIX}/lib
+      )
+
+      set( GPGME_INCLUDES ${GPGME_INCLUDES} )
+
+      if ( _gpgme_vanilla_lib AND _gpg_error_lib )
+        set( GPGME_VANILLA_LIBRARIES ${_gpgme_vanilla_lib} ${_gpg_error_lib} )
+        set( GPGME_VANILLA_FOUND     true )
+        set( GPGME_FOUND             true )
+      endif()
+
+      if ( _gpgme_glib_lib AND _gpg_error_lib )
+        set( GPGME_GLIB_LIBRARIES    ${_gpgme_vanilla_lib}    ${_gpg_error_lib} )
+        set( GPGME_GLIB_FOUND        true )
+        set( GPGME_FOUND             true )
+      endif()
+
+      if ( _gpgme_qt_lib AND _gpg_error_lib )
+        set( GPGME_QT_LIBRARIES      ${_gpgme_vanilla_lib}      ${_gpg_error_lib} )
+        set( GPGME_QT_FOUND          true )
+        set( GPGME_FOUND             true )
+      endif()
+
+      if ( GPGME_VANILLA_FOUND OR GPGME_PTHREAD_FOUND OR GPGME_PTH_FOUND )
+        set( GPGME_FOUND true )
+      else()
+        set( GPGME_FOUND false )
+      endif()
+
     endif()
 
   endif()
@@ -354,18 +418,20 @@ if ( GPGME_PTH_FOUND )
   set( _gpgme_flavours "${_gpgme_flavours} pth" )
 endif()
 
+set(GPGME_LIBRARIES "")
+
 # determine the library in one of the found flavors, can be reused e.g. by FindQgpgme.cmake, Alex
 foreach(_currentFlavour vanilla glib qt pth pthread)
    if(NOT GPGME_LIBRARY_DIR)
       get_filename_component(GPGME_LIBRARY_DIR "${_gpgme_${_currentFlavour}_lib}" PATH)
+      list(APPEND GPGME_LIBRARIES "${_gpgme_${_currentFlavour}_lib}")
    endif()
 endforeach()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Gpgme
                                   REQUIRED_VARS GPGME_LIBRARIES
-                                  VERSION_VAR GPGME_VERSION
-                                  )
+                                  VERSION_VAR GPGME_VERSION)
 
 if ( WIN32 )
   set( _gpgme_homepage "https://www.gpg4win.org" )
