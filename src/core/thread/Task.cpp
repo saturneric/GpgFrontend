@@ -41,7 +41,7 @@ class Task::Impl : public QObject {
 
  public:
   Impl(Task *parent, std::string name)
-      : parent_(parent), uuid_(generate_uuid()), name_(name) {
+      : QObject(parent), parent_(parent), uuid_(generate_uuid()), name_(name) {
     SPDLOG_TRACE("task {} created", GetFullID());
     init();
   }
@@ -118,11 +118,11 @@ class Task::Impl : public QObject {
    * @brief
    *
    */
-  void RunnableInterfaceRun() {
+  void DoRunning() {
     SPDLOG_TRACE("task {} starting", GetFullID());
 
     // build runnable package for running
-    auto runnable_package = [=, id = GetFullID()]() {
+    auto runnable_package = [this, id = GetFullID()]() {
       SPDLOG_DEBUG("task {} runnable start runing", id);
 
       try {
@@ -168,10 +168,10 @@ class Task::Impl : public QObject {
    * @brief
    *
    */
-  void SlotRun() { RunnableInterfaceRun(); }
+  void SlotRun() { DoRunning(); }
 
  private:
-  Task *parent_;
+  Task *const parent_;
   const std::string uuid_;
   const std::string name_;
   const bool sequency_ = true;  ///< must run in the same thread
@@ -285,7 +285,7 @@ void Task::SlotRun() { p_->SlotRun(); }
 
 void Task::Run() { p_->Run(); }
 
-void Task::run() { p_->RunnableInterfaceRun(); }
+void Task::run() { p_->DoRunning(); }
 
 }  // namespace GpgFrontend::Thread
 

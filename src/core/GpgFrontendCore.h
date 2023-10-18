@@ -35,6 +35,7 @@
 #include <gpgme.h>
 
 // std includes
+#include <any>
 #include <cassert>
 #include <filesystem>
 #include <functional>

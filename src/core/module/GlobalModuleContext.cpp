@@ -121,6 +121,9 @@ class GlobalModuleContext::Impl {
     register_info.task_runner = std::make_shared<Thread::TaskRunner>();
     register_info.task_runner->start();
 
+    // move module to its task runner' thread
+    register_info.module->moveToThread(register_info.task_runner.get());
+
     // Register the module with its identifier.
     module_register_table_[module->GetModuleIdentifier()] =
         std::make_shared<ModuleRegisterInfo>(std::move(register_info));

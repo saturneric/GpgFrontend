@@ -100,7 +100,7 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
   /**
    * @brief
    *
-   * @return std::string
+   * @return bool
    */
   bool GetSequency() const;
 

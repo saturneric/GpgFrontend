@@ -38,7 +38,7 @@ class Module::Impl {
  public:
   friend class GlobalModuleContext;
 
-  using ExecCallback = std::function<void(int)>; 
+  using ExecCallback = std::function<void(int)>;
 
   Impl(ModuleRawPtr m_ptr, ModuleIdentifier id, ModuleVersion version,
        ModuleMetaData meta_data)
