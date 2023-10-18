@@ -4,9 +4,6 @@
 [submodule "third_party/qt-aes"]
 	path = third_party/qt-aes
 	url = https://github.com/bricke/Qt-AES.git
-[submodule "third_party/libarchive"]
-	path = third_party/libarchive
-	url = https://github.com/libarchive/libarchive.git
 [submodule "third_party/spdlog"]
 	path = third_party/spdlog
 	url = https://github.com/gabime/spdlog.git

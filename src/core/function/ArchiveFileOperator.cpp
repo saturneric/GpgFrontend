@@ -28,8 +28,8 @@
 
 #include "ArchiveFileOperator.h"
 
-#include <libarchive/libarchive/archive.h>
-#include <libarchive/libarchive/archive_entry.h>
+#include <archive.h>
+#include <archive_entry.h>
 
 struct ArchiveStruct {
   struct archive *archive;
