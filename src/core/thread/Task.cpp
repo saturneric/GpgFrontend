@@ -109,9 +109,7 @@ class Task::Impl : public QObject {
    *
    * @param finish_after_run
    */
-  void HoldOnLifeCycle(bool hold_on) {
-    this->run_callback_after_runnable_finished_ = !hold_on;
-  }
+  void HoldOnLifeCycle(bool hold_on) { parent_->setAutoDelete(!hold_on); }
 
   /**
    * @brief
@@ -139,28 +137,29 @@ class Task::Impl : public QObject {
           boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
     }
     // raise signal to anounce after runnable returned
-    if (run_callback_after_runnable_finished_)
-      emit parent_->SignalTaskRunnableEnd(rtn_);
+    if (parent_->autoDelete()) slot_task_run_callback(rtn_);
   }
 
  private:
   Task *const parent_;
   const std::string uuid_;
   const std::string name_;
-  const bool sequency_ = true;  ///< must run in the same thread
-  TaskCallback callback_;       ///<
-  TaskRunnable runnable_;       ///<
-  bool run_callback_after_runnable_finished_ = true;  ///<
-  int rtn_ = 0;                                       ///<
-  QThread *callback_thread_ = nullptr;                ///<
-  DataObjectPtr data_object_ = nullptr;               ///<
+  const bool sequency_ = true;           ///< must run in the same thread
+  TaskCallback callback_;                ///<
+  TaskRunnable runnable_;                ///<
+  int rtn_ = 0;                          ///<
+  QThread *callback_thread_ = nullptr;   ///<
+  DataObjectPtr data_object_ = nullptr;  ///<
 
   void init() {
     connect(parent_, &Task::SignalRun, this, &Task::Impl::slot_run);
 
-    // after runnable finished, running callback
-    connect(parent_, &Task::SignalTaskRunnableEnd, this,
+    //
+    connect(parent_, &Task::SignalTaskShouldEnd, this,
             &Impl::slot_task_run_callback);
+
+    //
+    connect(parent_, &Task::SignalTaskShouldEnd, parent_, &Task::deleteLater);
   }
 
   /**
@@ -253,7 +252,7 @@ void Task::SlotRun() { emit SignalRun(); }
 
 void Task::Run() { p_->Run(); }
 
-void Task::run() { emit SignalRun(); }
+void Task::run() { this->SlotRun(); }
 
 }  // namespace GpgFrontend::Thread
 

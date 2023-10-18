@@ -104,6 +104,8 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    */
   bool GetSequency() const;
 
+  void HoldOnLifeCycle(bool hold_on);
+
  public slots:
 
   /**
@@ -117,25 +119,18 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
   void SignalRun();
 
   /**
-   * @brief announce runnable finished
+   * @brief task should finish
    *
    */
-  void SignalTaskRunnableEnd(int rtn);
+  void SignalTaskShouldEnd(int rtn);
 
   /**
-   * @brief runnable and callabck all finished
+   * @brief task is finished
    *
    */
   void SignalTaskEnd();
 
  protected:
-  /**
-   * @brief Set the Finish After Run object
-   *
-   * @param finish_after_run
-   */
-  void HoldOnLifeCycle(bool hold_on);
-
   /**
    * @brief
    *

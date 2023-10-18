@@ -42,13 +42,12 @@ VersionCheckTask::VersionCheckTask()
       current_version_(std::string("v") + std::to_string(VERSION_MAJOR) + "." +
                        std::to_string(VERSION_MINOR) + "." +
                        std::to_string(VERSION_PATCH)) {
+  HoldOnLifeCycle(true);
   qRegisterMetaType<SoftwareVersion>("SoftwareVersion");
   version_.current_version = current_version_;
 }
 
 void VersionCheckTask::Run() {
-  HoldOnLifeCycle(true);
-
   try {
     using namespace nlohmann;
     SPDLOG_DEBUG("current version: {}", current_version_);
@@ -66,7 +65,7 @@ void VersionCheckTask::Run() {
 
   } catch (...) {
     SPDLOG_ERROR("unknown error occurred");
-    emit SignalTaskRunnableEnd(-1);
+    emit SignalTaskShouldEnd(-1);
   }
 }
 
@@ -130,7 +129,7 @@ void VersionCheckTask::slot_parse_latest_version_info() {
             &VersionCheckTask::slot_parse_current_version_info);
   } catch (...) {
     SPDLOG_ERROR("current version request create error");
-    emit SignalTaskRunnableEnd(-1);
+    emit SignalTaskShouldEnd(-1);
   }
 }
 
@@ -173,7 +172,7 @@ void VersionCheckTask::slot_parse_current_version_info() {
   }
 
   emit SignalUpgradeVersion(version_);
-  emit SignalTaskRunnableEnd(0);
+  emit SignalTaskShouldEnd(0);
 }
 
 }  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

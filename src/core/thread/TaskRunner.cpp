@@ -30,6 +30,7 @@
 
 #include <qobjectdefs.h>
 #include <qthread.h>
+#include <qthreadpool.h>
 
 #include <memory>
 
@@ -47,27 +48,19 @@ class TaskRunner::Impl : public QThread {
     }
 
     task->setParent(nullptr);
-    connect(task, &Task::SignalTaskEnd, task, &Task::deleteLater);
 
     if (task->GetSequency()) {
       SPDLOG_TRACE("post task: {}, sequency mode: {}", task->GetFullID(),
                    task->GetSequency());
       task->moveToThread(this);
     } else {
-      // if it need to run concurrently, we should create a new thread to
-      // run it.
-      auto* concurrent_thread = new QThread(this);
-
-      connect(task, &Task::SignalTaskEnd, concurrent_thread, &QThread::quit);
-      // concurrent thread is responsible for deleting the task
-      connect(concurrent_thread, &QThread::finished, task, &Task::deleteLater);
-      // concurrent thread is responsible for self deleting
-      connect(concurrent_thread, &QThread::finished, concurrent_thread,
-              &QThread::deleteLater);
-
-      // start thread
-      concurrent_thread->start();
-      task->moveToThread(concurrent_thread);
+      if (pool_.tryStart(task)) {
+        SPDLOG_TRACE("runner's pool starts concurrent task {} immediately",
+                     task->GetFullID());
+      } else {
+        SPDLOG_TRACE("runner's pool will start concurrent task {} later",
+                     task->GetFullID());
+      }
     }
     emit task->SignalRun();
   }
@@ -76,6 +69,9 @@ class TaskRunner::Impl : public QThread {
     if (task == nullptr) return;
     // TODO
   }
+
+ private:
+  QThreadPool pool_;
 };
 
 GpgFrontend::Thread::TaskRunner::TaskRunner() : p_(std::make_unique<Impl>()) {}

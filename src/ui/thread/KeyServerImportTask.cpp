@@ -35,11 +35,11 @@ GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
     : Task("key_server_import_task"),
       keyserver_url_(std::move(keyserver_url)),
       keyids_(std::move(keyids)),
-      manager_(new QNetworkAccessManager(this)) {}
+      manager_(new QNetworkAccessManager(this)) {
+  HoldOnLifeCycle(true);
+}
 
 void GpgFrontend::UI::KeyServerImportTask::run() {
-  HoldOnLifeCycle(true);
-
   QUrl keyserver_url = QUrl(keyserver_url_.c_str());
   for (const auto& key_id : keyids_) {
     QUrl req_url(keyserver_url.scheme() + "://" + keyserver_url.host() +
@@ -62,6 +62,6 @@ void GpgFrontend::UI::KeyServerImportTask::dealing_reply_from_server() {
   emit SignalKeyServerImportResult(network_reply, buffer);
 
   if (result_count_++ == keyids_.size() - 1) {
-    emit SignalTaskRunnableEnd(0);
+    emit SignalTaskShouldEnd(0);
   }
 }

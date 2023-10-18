@@ -35,11 +35,11 @@ GpgFrontend::UI::KeyServerSearchTask::KeyServerSearchTask(
     : Task("key_server_search_task"),
       keyserver_url_(std::move(keyserver_url)),
       search_string_(std::move(search_string)),
-      manager_(new QNetworkAccessManager(this)) {}
+      manager_(new QNetworkAccessManager(this)) {
+  HoldOnLifeCycle(true);
+}
 
 void GpgFrontend::UI::KeyServerSearchTask::run() {
-  HoldOnLifeCycle(true);
-
   QUrl url_from_remote =
       QString::fromStdString(keyserver_url_) +
       "/pks/lookup?search=" + QString::fromStdString(search_string_) +
@@ -58,5 +58,5 @@ void GpgFrontend::UI::KeyServerSearchTask::dealing_reply_from_server() {
     buffer = reply_->readAll();
   }
   emit SignalKeyServerSearchResult(network_reply, buffer);
-  emit SignalTaskRunnableEnd(0);
+  emit SignalTaskShouldEnd(0);
 }

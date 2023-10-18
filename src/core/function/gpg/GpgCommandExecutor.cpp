@@ -259,6 +259,7 @@ void GpgFrontend::GpgCommandExecutor::ExecuteConcurrently(
   auto *process_task = new GpgFrontend::Thread::Task(
       std::move(runner), fmt::format("ExecuteConcurrently/{}", cmd),
       data_object, std::move(result_callback), false);
+  process_task->HoldOnLifeCycle(true);
 
   GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_External_Process)

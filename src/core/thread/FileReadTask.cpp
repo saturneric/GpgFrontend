@@ -31,6 +31,7 @@
 namespace GpgFrontend::UI {
 
 FileReadTask::FileReadTask(std::string path) : Task("file_read_task") {
+  HoldOnLifeCycle(true);
   connect(this, &FileReadTask::SignalFileBytesReadNext, this,
           &FileReadTask::read_bytes);
 
@@ -45,8 +46,6 @@ FileReadTask::FileReadTask(std::string path) : Task("file_read_task") {
 }
 
 void FileReadTask::Run() {
-  HoldOnLifeCycle(true);
-
   if (is_regular_file(read_file_path_)) {
     SPDLOG_DEBUG("read open file: {}", read_file_path_.u8string());
 
@@ -76,7 +75,7 @@ void FileReadTask::read_bytes() {
     SPDLOG_DEBUG("read bytes end");
     emit SignalFileBytesReadEnd();
     // announce finish task
-    emit SignalTaskRunnableEnd(0);
+    emit SignalTaskShouldEnd(0);
   }
 }
 

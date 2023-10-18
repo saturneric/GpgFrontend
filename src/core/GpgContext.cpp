@@ -353,7 +353,8 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
     // get all components
     GpgCommandExecutor::GetInstance().Execute(
         info_.GpgConfPath, {"--list-components"},
-        [=](int exit_code, const std::string &p_out, const std::string &p_err) {
+        [this](int exit_code, const std::string &p_out,
+               const std::string &p_err) {
           SPDLOG_DEBUG(
               "gpgconf components exit_code: {} process stdout size: {}",
               exit_code, p_out.size());
@@ -437,7 +438,8 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
     GpgCommandExecutor::GetInstance().ExecuteConcurrently(
         info_.GpgConfPath, {"--list-dirs"},
-        [=](int exit_code, const std::string &p_out, const std::string &p_err) {
+        [this](int exit_code, const std::string &p_out,
+               const std::string &p_err) {
           SPDLOG_DEBUG(
               "gpgconf configurations exit_code: {} process stdout size: {}",
               exit_code, p_out.size());
@@ -495,8 +497,8 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
       GpgCommandExecutor::GetInstance().ExecuteConcurrently(
           info_.GpgConfPath, {"--check-options", component.first},
-          [=](int exit_code, const std::string &p_out,
-              const std::string &p_err) {
+          [this, component](int exit_code, const std::string &p_out,
+                            const std::string &p_err) {
             SPDLOG_DEBUG(
                 "gpgconf {} options exit_code: {} process stdout "
                 "size: {} ",
@@ -552,8 +554,8 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
       GpgCommandExecutor::GetInstance().ExecuteConcurrently(
           info_.GpgConfPath, {"--list-options", component.first},
-          [=](int exit_code, const std::string &p_out,
-              const std::string &p_err) {
+          [this, component](int exit_code, const std::string &p_out,
+                            const std::string &p_err) {
             SPDLOG_DEBUG(
                 "gpgconf {} avaliable options exit_code: {} process stdout "
                 "size: {} ",

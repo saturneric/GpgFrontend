@@ -38,13 +38,12 @@ GpgFrontend::UI::ListedKeyServerTestTask::ListedKeyServerTestTask(
       timeout_(timeout),
       network_manager_(new QNetworkAccessManager(this)),
       result_(urls_.size(), kTestResultType_Error) {
+  HoldOnLifeCycle(true);
   qRegisterMetaType<std::vector<KeyServerTestResultType>>(
       "std::vector<KeyServerTestResultType>");
 }
 
 void GpgFrontend::UI::ListedKeyServerTestTask::run() {
-  HoldOnLifeCycle(true);
-
   size_t index = 0;
   for (const auto& url : urls_) {
     auto key_url = QUrl{url};
@@ -87,6 +86,6 @@ void GpgFrontend::UI::ListedKeyServerTestTask::slot_process_network_reply(
 
   if (++result_count_ == urls_.size()) {
     emit SignalKeyServerListTestResult(result_);
-    emit SignalTaskRunnableEnd(0);
+    emit SignalTaskShouldEnd(0);
   }
 }
