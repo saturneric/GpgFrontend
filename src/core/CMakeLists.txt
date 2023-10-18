@@ -81,6 +81,7 @@ endif ()
 target_link_libraries(gpgfrontend_core PRIVATE spdlog)
 
 # link libarchive
+find_package(LibArchive REQUIRED)
 target_link_libraries(gpgfrontend_core PRIVATE archive)
 
 # link json
