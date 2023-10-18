@@ -113,6 +113,9 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
   void SlotRun();
 
  signals:
+
+  void SignalRun();
+
   /**
    * @brief announce runnable finished
    *

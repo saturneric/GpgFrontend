@@ -119,10 +119,10 @@ class GlobalModuleContext::Impl {
     register_info.module = module;
     register_info.channel = acquire_new_unique_channel();
     register_info.task_runner = std::make_shared<Thread::TaskRunner>();
-    register_info.task_runner->start();
+    register_info.task_runner->Start();
 
     // move module to its task runner' thread
-    register_info.module->moveToThread(register_info.task_runner.get());
+    register_info.module->moveToThread(register_info.task_runner->GetThread());
 
     // Register the module with its identifier.
     module_register_table_[module->GetModuleIdentifier()] =
@@ -239,7 +239,7 @@ class GlobalModuleContext::Impl {
           "module {} is listening to event {}, activate state: {}, task runner "
           "running state: {}",
           module_info->module->GetModuleIdentifier(), event->GetIdentifier(),
-          module_info->activate, module_info->task_runner->isRunning());
+          module_info->activate, module_info->task_runner->IsRunning());
 
       // Check if the module is activated
       if (!module_info->activate) continue;

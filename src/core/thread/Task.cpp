@@ -34,6 +34,8 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <memory>
 
+#include "spdlog/spdlog.h"
+
 namespace GpgFrontend::Thread {
 
 class Task::Impl : public QObject {
@@ -48,7 +50,8 @@ class Task::Impl : public QObject {
 
   Impl(Task *parent, TaskRunnable runnable, std::string name,
        DataObjectPtr data_object, bool sequency)
-      : parent_(parent),
+      : QObject(parent),
+        parent_(parent),
         uuid_(generate_uuid()),
         name_(name),
         runnable_(std::move(runnable)),
@@ -63,7 +66,8 @@ class Task::Impl : public QObject {
 
   Impl(Task *parent, TaskRunnable runnable, std::string name,
        DataObjectPtr data_object, TaskCallback callback, bool sequency)
-      : parent_(parent),
+      : QObject(parent),
+        parent_(parent),
         uuid_(generate_uuid()),
         name_(name),
         runnable_(std::move(runnable)),
@@ -71,10 +75,10 @@ class Task::Impl : public QObject {
         callback_thread_(QThread::currentThread()),
         data_object_(data_object),
         sequency_(sequency) {
-    init();
     SPDLOG_TRACE(
         "task {} created with runnable and callback, callback_thread_: {}",
         GetFullID(), static_cast<void *>(callback_thread_));
+    init();
   }
 
   ~Impl() { SPDLOG_TRACE("task {} destroyed", GetFullID()); }
@@ -91,6 +95,8 @@ class Task::Impl : public QObject {
   bool GetSequency() const { return sequency_; }
 
   void Run() {
+    SPDLOG_DEBUG("task {} is using default runnable and callback mode",
+                 GetFullID());
     if (runnable_) {
       SetRTN(runnable_(data_object_));
     } else {
@@ -114,61 +120,28 @@ class Task::Impl : public QObject {
    */
   void SetRTN(int rtn) { this->rtn_ = rtn; }
 
+ private slots:
+
   /**
    * @brief
    *
    */
-  void DoRunning() {
-    SPDLOG_TRACE("task {} starting", GetFullID());
-
-    // build runnable package for running
-    auto runnable_package = [this, id = GetFullID()]() {
-      SPDLOG_DEBUG("task {} runnable start runing", id);
-
-      try {
-        // Run() will set rtn by itself
-        parent_->Run();
-      } catch (std::exception &e) {
-        SPDLOG_ERROR("exception caught at task: {}", e.what());
-        SPDLOG_ERROR(
-            "exception stacktrace: {}",
-            boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
-      }
-
-      // raise signal to anounce after runnable returned
-      if (run_callback_after_runnable_finished_)
-        emit parent_->SignalTaskRunnableEnd(rtn_);
-    };
-
-    if (thread() != QThread::currentThread()) {
-      SPDLOG_DEBUG("task running thread is not object living thread");
-      // if running sequently
-      if (sequency_) {
-        // running in another thread, blocking until returned
-        if (!QMetaObject::invokeMethod(thread(), runnable_package,
-                                       Qt::BlockingQueuedConnection)) {
-          SPDLOG_ERROR("qt invoke method failed");
-        }
-      } else {
-        // running in another thread, non-blocking
-        if (!QMetaObject::invokeMethod(thread(), runnable_package)) {
-          SPDLOG_ERROR("qt invoke method failed");
-        }
-      }
-    } else {
-      if (!QMetaObject::invokeMethod(this, runnable_package)) {
-        SPDLOG_ERROR("qt invoke method failed");
-      }
+  void slot_run() {
+    try {
+      SPDLOG_TRACE("task {} is starting...", GetFullID());
+      // Run() will set rtn by itself
+      parent_->Run();
+      SPDLOG_TRACE("task {} was end.", GetFullID());
+    } catch (std::exception &e) {
+      SPDLOG_ERROR("exception was caught at task: {}", e.what());
+      SPDLOG_ERROR(
+          "stacktrace of the exception: {}",
+          boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
     }
+    // raise signal to anounce after runnable returned
+    if (run_callback_after_runnable_finished_)
+      emit parent_->SignalTaskRunnableEnd(rtn_);
   }
-
- public slots:
-
-  /**
-   * @brief
-   *
-   */
-  void SlotRun() { DoRunning(); }
 
  private:
   Task *const parent_;
@@ -183,6 +156,8 @@ class Task::Impl : public QObject {
   DataObjectPtr data_object_ = nullptr;               ///<
 
   void init() {
+    connect(parent_, &Task::SignalRun, this, &Task::Impl::slot_run);
+
     // after runnable finished, running callback
     connect(parent_, &Task::SignalTaskRunnableEnd, this,
             &Impl::slot_task_run_callback);
@@ -211,42 +186,35 @@ class Task::Impl : public QObject {
     try {
       if (callback_) {
         if (callback_thread_ == QThread::currentThread()) {
-          SPDLOG_DEBUG("callback thread is the same thread");
+          SPDLOG_DEBUG("for task {}, the callback thread is the same thread",
+                       GetFullID(), callback_thread_->currentThreadId());
+          callback_(rtn, data_object_);
+        } else {
+          SPDLOG_DEBUG("for task {}, callback thread is a different thread: {}",
+                       GetFullID(), callback_thread_->currentThreadId());
           if (!QMetaObject::invokeMethod(callback_thread_,
                                          [callback = callback_, rtn = rtn_,
-                                          &data_object = data_object_, this]() {
+                                          data_object = data_object_]() {
                                            callback(rtn, data_object);
-                                           // do cleaning work
-                                           emit parent_->SignalTaskEnd();
                                          })) {
-            SPDLOG_ERROR("failed to invoke callback");
-          }
-          // just finished, let callack thread to raise SignalTaskEnd
-          return;
-        } else {
-          // waiting for callback to finish
-          if (!QMetaObject::invokeMethod(
-                  callback_thread_,
-                  [callback = callback_, rtn = rtn_,
-                   data_object = data_object_]() {
-                    callback(rtn, data_object);
-                  },
-                  Qt::BlockingQueuedConnection)) {
-            SPDLOG_ERROR("failed to invoke callback");
+            SPDLOG_ERROR("task {} had failed to invoke callback", GetFullID());
           }
         }
       }
     } catch (std::exception &e) {
-      SPDLOG_ERROR("exception caught at task callback: {}", e.what());
+      SPDLOG_ERROR("exception was caught at task callback: {}", e.what());
       SPDLOG_ERROR(
-          "exception stacktrace: {}",
+          "stacktrace of the exception: {}",
           boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
     } catch (...) {
-      SPDLOG_ERROR("unknown exception caught");
+      SPDLOG_ERROR("unknown exception was caught");
+      SPDLOG_ERROR(
+          "stacktrace of the exception: {}",
+          boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
     }
 
     // raise signal, announcing this task come to an end
-    SPDLOG_DEBUG("task {}, starting calling signal SignalTaskEnd", GetFullID());
+    SPDLOG_DEBUG("for task {}, its life comes to an end.", GetFullID());
     emit parent_->SignalTaskEnd();
   }
 };
@@ -281,11 +249,11 @@ void Task::HoldOnLifeCycle(bool hold_on) { p_->HoldOnLifeCycle(hold_on); }
 
 void Task::SetRTN(int rtn) { p_->SetRTN(rtn); }
 
-void Task::SlotRun() { p_->SlotRun(); }
+void Task::SlotRun() { emit SignalRun(); }
 
 void Task::Run() { p_->Run(); }
 
-void Task::run() { p_->DoRunning(); }
+void Task::run() { emit SignalRun(); }
 
 }  // namespace GpgFrontend::Thread
 

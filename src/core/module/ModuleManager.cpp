@@ -41,7 +41,7 @@ class ModuleManager::Impl {
   Impl()
       : task_runner_(std::make_shared<Thread::TaskRunner>()),
         gpc_(std::make_shared<GlobalModuleContext>(task_runner_)) {
-    task_runner_->start();
+    task_runner_->Start();
   }
 
   void RegisterModule(ModulePtr module) {

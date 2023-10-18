@@ -41,7 +41,7 @@ GpgFrontend::Thread::TaskRunnerGetter::GetTaskRunner(
     } else {
       auto runner = new TaskRunner();
       task_runners_[runner_type] = runner;
-      runner->start();
+      runner->Start();
       continue;
     }
   }
