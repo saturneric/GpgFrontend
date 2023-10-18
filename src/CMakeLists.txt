@@ -33,6 +33,10 @@ else()
             PATHS ${BOOST_ROOT} NO_DEFAULT_PATH)
 endif()
 
+if(APPLE)
+  add_compile_definitions("_GNU_SOURCE")
+endif()
+
 # Introduce GpgME
 find_package(Gpgme REQUIRED)
 

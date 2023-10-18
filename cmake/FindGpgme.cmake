@@ -418,15 +418,17 @@ if ( GPGME_PTH_FOUND )
   set( _gpgme_flavours "${_gpgme_flavours} pth" )
 endif()
 
-set(GPGME_LIBRARIES "")
+if(NOT GPGME_LIBRARIES)
+  # determine the library in one of the found flavors, can be reused e.g. by FindQgpgme.cmake, Alex
+  set(GPGME_LIBRARIES "")
+  foreach(_currentFlavour vanilla glib qt pth pthread)
+    if(NOT GPGME_LIBRARY_DIR)
+        get_filename_component(GPGME_LIBRARY_DIR "${_gpgme_${_currentFlavour}_lib}" PATH)
+        list(APPEND GPGME_LIBRARIES "${_gpgme_${_currentFlavour}_lib}")
+    endif()
+  endforeach()
 
-# determine the library in one of the found flavors, can be reused e.g. by FindQgpgme.cmake, Alex
-foreach(_currentFlavour vanilla glib qt pth pthread)
-   if(NOT GPGME_LIBRARY_DIR)
-      get_filename_component(GPGME_LIBRARY_DIR "${_gpgme_${_currentFlavour}_lib}" PATH)
-      list(APPEND GPGME_LIBRARIES "${_gpgme_${_currentFlavour}_lib}")
-   endif()
-endforeach()
+endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Gpgme
