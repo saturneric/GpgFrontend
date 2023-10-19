@@ -29,6 +29,8 @@
 #ifndef GPGFRONTEND_TASKRUNNER_H
 #define GPGFRONTEND_TASKRUNNER_H
 
+#include <vector>
+
 #include "core/GpgFrontendCore.h"
 
 namespace GpgFrontend::Thread {
@@ -64,6 +66,13 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
    * @param task
    */
   void PostTask(Task* task);
+
+  /**
+   * @brief
+   *
+   * @param task
+   */
+  void PostConcurrentTask(Task* task);
 
   /**
    * @brief

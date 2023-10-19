@@ -28,6 +28,8 @@
 
 #include "core/thread/Task.h"
 
+#include <qobjectdefs.h>
+
 #include <boost/stacktrace.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -49,7 +51,7 @@ class Task::Impl : public QObject {
   }
 
   Impl(Task *parent, TaskRunnable runnable, std::string name,
-       DataObjectPtr data_object, bool sequency)
+       DataObjectPtr data_object)
       : QObject(parent),
         parent_(parent),
         uuid_(generate_uuid()),
@@ -57,15 +59,14 @@ class Task::Impl : public QObject {
         runnable_(std::move(runnable)),
         callback_(std::move([](int, const DataObjectPtr &) {})),
         callback_thread_(QThread::currentThread()),
-        data_object_(data_object),
-        sequency_(sequency) {
+        data_object_(data_object) {
     SPDLOG_TRACE("task {} created with runnable, callback_thread_: {}",
                  GetFullID(), static_cast<void *>(callback_thread_));
     init();
   }
 
   Impl(Task *parent, TaskRunnable runnable, std::string name,
-       DataObjectPtr data_object, TaskCallback callback, bool sequency)
+       DataObjectPtr data_object, TaskCallback callback)
       : QObject(parent),
         parent_(parent),
         uuid_(generate_uuid()),
@@ -73,8 +74,7 @@ class Task::Impl : public QObject {
         runnable_(std::move(runnable)),
         callback_(std::move(callback)),
         callback_thread_(QThread::currentThread()),
-        data_object_(data_object),
-        sequency_(sequency) {
+        data_object_(data_object) {
     SPDLOG_TRACE(
         "task {} created with runnable and callback, callback_thread_: {}",
         GetFullID(), static_cast<void *>(callback_thread_));
@@ -91,8 +91,6 @@ class Task::Impl : public QObject {
   std::string GetFullID() const { return uuid_ + "/" + name_; }
 
   std::string GetUUID() const { return uuid_; }
-
-  bool GetSequency() const { return sequency_; }
 
   void Run() {
     SPDLOG_DEBUG("task {} is using default runnable and callback mode",
@@ -137,14 +135,13 @@ class Task::Impl : public QObject {
           boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
     }
     // raise signal to anounce after runnable returned
-    if (parent_->autoDelete()) slot_task_run_callback(rtn_);
+    if (parent_->autoDelete()) emit parent_->SignalTaskShouldEnd(rtn_);
   }
 
  private:
   Task *const parent_;
   const std::string uuid_;
   const std::string name_;
-  const bool sequency_ = true;           ///< must run in the same thread
   TaskCallback callback_;                ///<
   TaskRunnable runnable_;                ///<
   int rtn_ = 0;                          ///<
@@ -152,14 +149,18 @@ class Task::Impl : public QObject {
   DataObjectPtr data_object_ = nullptr;  ///<
 
   void init() {
+    //
+    HoldOnLifeCycle(false);
+
+    //
     connect(parent_, &Task::SignalRun, this, &Task::Impl::slot_run);
 
     //
     connect(parent_, &Task::SignalTaskShouldEnd, this,
-            &Impl::slot_task_run_callback);
+            &Impl::slot_task_should_end);
 
     //
-    connect(parent_, &Task::SignalTaskShouldEnd, parent_, &Task::deleteLater);
+    connect(parent_, &Task::SignalTaskEnd, parent_, &Task::deleteLater);
   }
 
   /**
@@ -177,7 +178,7 @@ class Task::Impl : public QObject {
    * @brief
    *
    */
-  void slot_task_run_callback(int rtn) {
+  void slot_task_should_end(int rtn) {
     SPDLOG_TRACE("task runnable {} finished, rtn: {}", GetFullID(), rtn);
     // set return value
     this->SetRTN(rtn);
@@ -218,18 +219,14 @@ class Task::Impl : public QObject {
   }
 };
 
-const std::string DEFAULT_TASK_NAME = "unnamed-task";
+Task::Task(std::string name) : p_(new Impl(this, name)) {}
 
-Task::Task(std::string name) : p_(std::make_unique<Impl>(this, name)) {}
-
-Task::Task(TaskRunnable runnable, std::string name, DataObjectPtr data_object,
-           bool sequency)
-    : p_(std::make_unique<Impl>(this, runnable, name, data_object, sequency)) {}
+Task::Task(TaskRunnable runnable, std::string name, DataObjectPtr data_object)
+    : p_(new Impl(this, runnable, name, data_object)) {}
 
 Task::Task(TaskRunnable runnable, std::string name, DataObjectPtr data_object,
-           TaskCallback callback, bool sequency)
-    : p_(std::make_unique<Impl>(this, runnable, name, data_object, callback,
-                                sequency)) {}
+           TaskCallback callback)
+    : p_(new Impl(this, runnable, name, data_object, callback)) {}
 
 Task::~Task() = default;
 
@@ -242,17 +239,19 @@ std::string Task::GetFullID() const { return p_->GetFullID(); }
 
 std::string Task::GetUUID() const { return p_->GetUUID(); }
 
-bool Task::GetSequency() const { return p_->GetSequency(); }
-
 void Task::HoldOnLifeCycle(bool hold_on) { p_->HoldOnLifeCycle(hold_on); }
 
 void Task::SetRTN(int rtn) { p_->SetRTN(rtn); }
 
-void Task::SlotRun() { emit SignalRun(); }
+void Task::SafelyRun() { emit SignalRun(); }
 
 void Task::Run() { p_->Run(); }
 
-void Task::run() { this->SlotRun(); }
+void Task::run() {
+  SPDLOG_DEBUG("interface run() of task {} was called by thread: {}",
+               GetFullID(), QThread::currentThread()->currentThreadId());
+  this->SafelyRun();
+}
 
 }  // namespace GpgFrontend::Thread
 

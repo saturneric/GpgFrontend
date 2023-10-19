@@ -36,6 +36,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <string>
+#include <vector>
 
 #include "core/GpgConstants.h"
 #include "core/common/CoreCommonUtil.h"
@@ -351,93 +352,98 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
     SPDLOG_DEBUG("start to load extra info");
 
     // get all components
-    GpgCommandExecutor::GetInstance().Execute(
-        info_.GpgConfPath, {"--list-components"},
-        [this](int exit_code, const std::string &p_out,
-               const std::string &p_err) {
-          SPDLOG_DEBUG(
-              "gpgconf components exit_code: {} process stdout size: {}",
-              exit_code, p_out.size());
+    GpgCommandExecutor::GetInstance().ExecuteSync(
+        {info_.GpgConfPath,
+         {"--list-components"},
+         [this](int exit_code, const std::string &p_out,
+                const std::string &p_err) {
+           SPDLOG_DEBUG(
+               "gpgconf components exit_code: {} process stdout size: {}",
+               exit_code, p_out.size());
 
-          if (exit_code != 0) {
-            SPDLOG_ERROR(
-                "gpgconf execute error, process stderr: {} ,process stdout: "
-                "{}",
-                p_err, p_out);
-            return;
-          }
+           if (exit_code != 0) {
+             SPDLOG_ERROR(
+                 "gpgconf execute error, process stderr: {} ,process stdout: "
+                 "{}",
+                 p_err, p_out);
+             return;
+           }
 
-          auto &components_info = info_.ComponentsInfo;
-          components_info["gpgme"] = {"GPG Made Easy", info_.GpgMEVersion,
-                                      _("Embedded In"), "/"};
+           auto &components_info = info_.ComponentsInfo;
+           components_info["gpgme"] = {"GPG Made Easy", info_.GpgMEVersion,
+                                       _("Embedded In"), "/"};
 
-          auto gpgconf_binary_checksum =
-              check_binary_chacksum(info_.GpgConfPath);
-          components_info["gpgconf"] = {"GPG Configure", "/", info_.GpgConfPath,
-                                        gpgconf_binary_checksum.has_value()
-                                            ? gpgconf_binary_checksum.value()
-                                            : "/"};
+           auto gpgconf_binary_checksum =
+               check_binary_chacksum(info_.GpgConfPath);
+           components_info["gpgconf"] = {"GPG Configure", "/",
+                                         info_.GpgConfPath,
+                                         gpgconf_binary_checksum.has_value()
+                                             ? gpgconf_binary_checksum.value()
+                                             : "/"};
 
-          std::vector<std::string> line_split_list;
-          boost::split(line_split_list, p_out, boost::is_any_of("\n"));
+           std::vector<std::string> line_split_list;
+           boost::split(line_split_list, p_out, boost::is_any_of("\n"));
 
-          for (const auto &line : line_split_list) {
-            std::vector<std::string> info_split_list;
-            boost::split(info_split_list, line, boost::is_any_of(":"));
+           for (const auto &line : line_split_list) {
+             std::vector<std::string> info_split_list;
+             boost::split(info_split_list, line, boost::is_any_of(":"));
 
-            if (info_split_list.size() != 3) continue;
+             if (info_split_list.size() != 3) continue;
 
-            auto component_name = info_split_list[0];
-            auto component_desc = info_split_list[1];
-            auto component_path = info_split_list[2];
+             auto component_name = info_split_list[0];
+             auto component_desc = info_split_list[1];
+             auto component_path = info_split_list[2];
 
-            boost::algorithm::trim(component_name);
-            boost::algorithm::trim(component_desc);
-            boost::algorithm::trim(component_path);
+             boost::algorithm::trim(component_name);
+             boost::algorithm::trim(component_desc);
+             boost::algorithm::trim(component_path);
 
 #ifdef WINDOWS
-            // replace some special substrings on windows platform
-            boost::replace_all(component_path, "%3a", ":");
+             // replace some special substrings on windows platform
+             boost::replace_all(component_path, "%3a", ":");
 #endif
 
-            auto binary_checksum = check_binary_chacksum(component_path);
+             auto binary_checksum = check_binary_chacksum(component_path);
 
-            SPDLOG_DEBUG(
-                "gnupg component name: {} desc: {} checksum: {} path: {} ",
-                component_name, component_desc,
-                binary_checksum.has_value() ? binary_checksum.value() : "/",
-                component_path);
+             SPDLOG_DEBUG(
+                 "gnupg component name: {} desc: {} checksum: {} path: {} ",
+                 component_name, component_desc,
+                 binary_checksum.has_value() ? binary_checksum.value() : "/",
+                 component_path);
 
-            std::string version = "/";
+             std::string version = "/";
 
-            if (component_name == "gpg") {
-              version = info_.GnupgVersion;
-            }
-            if (component_name == "gpg-agent") {
-              info_.GpgAgentPath = component_path;
-            }
-            if (component_name == "dirmngr") {
-              info_.DirmngrPath = component_path;
-            }
-            if (component_name == "keyboxd") {
-              info_.KeyboxdPath = component_path;
-            }
+             if (component_name == "gpg") {
+               version = info_.GnupgVersion;
+             }
+             if (component_name == "gpg-agent") {
+               info_.GpgAgentPath = component_path;
+             }
+             if (component_name == "dirmngr") {
+               info_.DirmngrPath = component_path;
+             }
+             if (component_name == "keyboxd") {
+               info_.KeyboxdPath = component_path;
+             }
 
-            {
-              // try lock
-              std::unique_lock lock(info_.Lock);
-              // add component info to list
-              components_info[component_name] = {
-                  component_desc, version, component_path,
-                  binary_checksum.has_value() ? binary_checksum.value() : "/"};
-            }
-          }
-        });
+             {
+               // try lock
+               std::unique_lock lock(info_.Lock);
+               // add component info to list
+               components_info[component_name] = {
+                   component_desc, version, component_path,
+                   binary_checksum.has_value() ? binary_checksum.value() : "/"};
+             }
+           }
+         }});
 
     SPDLOG_DEBUG("start to get dirs info");
 
-    GpgCommandExecutor::GetInstance().ExecuteConcurrently(
-        info_.GpgConfPath, {"--list-dirs"},
+    GpgCommandExecutor::ExecuteContexts exec_contexts;
+
+    exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
+        info_.GpgConfPath,
+        {"--list-dirs"},
         [this](int exit_code, const std::string &p_out,
                const std::string &p_err) {
           SPDLOG_DEBUG(
@@ -486,7 +492,7 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
               configurations_info[configuration_name] = {configuration_value};
             }
           }
-        });
+        }});
 
     SPDLOG_DEBUG("start to get components info");
 
@@ -495,8 +501,9 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
       if (component.first == "gpgme" || component.first == "gpgconf") continue;
 
-      GpgCommandExecutor::GetInstance().ExecuteConcurrently(
-          info_.GpgConfPath, {"--check-options", component.first},
+      exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
+          info_.GpgConfPath,
+          {"--check-options", component.first},
           [this, component](int exit_code, const std::string &p_out,
                             const std::string &p_err) {
             SPDLOG_DEBUG(
@@ -542,7 +549,7 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
                 boost::algorithm::trim(options_info[configuration_name][4]);
               }
             }
-          });
+          }});
     }
 
     SPDLOG_DEBUG("start to get avaliable component options info");
@@ -552,8 +559,9 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
 
       if (component.first == "gpgme" || component.first == "gpgconf") continue;
 
-      GpgCommandExecutor::GetInstance().ExecuteConcurrently(
-          info_.GpgConfPath, {"--list-options", component.first},
+      exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
+          info_.GpgConfPath,
+          {"--list-options", component.first},
           [this, component](int exit_code, const std::string &p_out,
                             const std::string &p_err) {
             SPDLOG_DEBUG(
@@ -614,8 +622,10 @@ const GpgInfo &GpgContext::GetInfo(bool refresh) {
                     available_options_info[configuration_name][8]);
               }
             }
-          });
+          }});
     }
+
+    GpgCommandExecutor::GetInstance().ExecuteConcurrentlySync(exec_contexts);
     extend_info_loaded_ = true;
   }
 

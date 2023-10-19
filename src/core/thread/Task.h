@@ -34,7 +34,6 @@
 namespace GpgFrontend::Thread {
 
 class TaskRunner;
-extern const std::string DEFAULT_TASK_NAME;
 
 class DataObject;
 using DataObjectPtr = std::shared_ptr<DataObject>;  ///<
@@ -51,96 +50,50 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    * @brief Construct a new Task object
    *
    */
-  Task(std::string name = DEFAULT_TASK_NAME);
+  Task(std::string name);
 
   /**
    * @brief Construct a new Task object
    *
    * @param callback The callback function to be executed.
    */
-  explicit Task(TaskRunnable runnable, std::string name = DEFAULT_TASK_NAME,
-                DataObjectPtr data_object = nullptr, bool sequency = true);
+  explicit Task(TaskRunnable runnable, std::string name,
+                DataObjectPtr data_object = nullptr);
 
   /**
    * @brief Construct a new Task object
    *
    * @param runnable
    */
-  explicit Task(
-      TaskRunnable runnable, std::string name, DataObjectPtr data,
-      TaskCallback callback = [](int, const std::shared_ptr<DataObject> &) {},
-      bool sequency = true);
+  explicit Task(TaskRunnable runnable, std::string name, DataObjectPtr data,
+                TaskCallback callback);
 
-  /**
-   * @brief Destroy the Task object
-   *
-   */
   virtual ~Task() override;
 
-  /**
-   * @brief Run - run the task
-   *
-   */
-  virtual void Run();
-
-  /**
-   * @brief
-   *
-   * @return std::string
-   */
   std::string GetUUID() const;
 
-  /**
-   * @brief
-   *
-   * @return std::string
-   */
   std::string GetFullID() const;
-
-  /**
-   * @brief
-   *
-   * @return bool
-   */
-  bool GetSequency() const;
 
   void HoldOnLifeCycle(bool hold_on);
 
- public slots:
+  virtual void Run();
 
-  /**
-   * @brief
-   *
-   */
-  void SlotRun();
+ public slots:
+  void SafelyRun();
 
  signals:
-
   void SignalRun();
 
-  /**
-   * @brief task should finish
-   *
-   */
   void SignalTaskShouldEnd(int rtn);
 
-  /**
-   * @brief task is finished
-   *
-   */
   void SignalTaskEnd();
 
  protected:
-  /**
-   * @brief
-   *
-   * @param rtn
-   */
   void SetRTN(int rtn);
 
  private:
   class Impl;
-  std::unique_ptr<Impl> p_;
+  Impl* p_;
 
   virtual void run() override;
 };

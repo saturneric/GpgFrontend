@@ -73,9 +73,8 @@ GpgFrontendApplication *GpgFrontendApplication::GetInstance(int argc,
 }
 
 bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
-  bool app_done = true;
   try {
-    app_done = QApplication::notify(receiver, event);
+    return QApplication::notify(receiver, event);
   } catch (const std::exception &ex) {
     SPDLOG_ERROR("exception was caught in notify: {}", ex.what());
     SPDLOG_ERROR("stacktrace of the exception: {}",
@@ -97,7 +96,7 @@ bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
           "serious problem, it may be the negligence of the programmer, "
           "please report this problem if you can."));
   }
-  return app_done;
+  return -1;
 }
 
 }  // namespace GpgFrontend::UI

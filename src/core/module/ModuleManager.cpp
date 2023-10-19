@@ -51,7 +51,7 @@ class ModuleManager::Impl {
           gpc_->RegisterModule(module);
           return 0;
         }),
-        __func__, nullptr, true));
+        __func__, nullptr));
   }
 
   void TriggerEvent(EventRefrernce event) {
@@ -60,7 +60,7 @@ class ModuleManager::Impl {
           gpc_->TriggerEvent(event);
           return 0;
         }),
-        __func__, nullptr, true));
+        __func__, nullptr));
   }
 
   void ActiveModule(ModuleIdentifier identifier) {
@@ -69,7 +69,7 @@ class ModuleManager::Impl {
           gpc_->ActiveModule(identifier);
           return 0;
         }),
-        __func__, nullptr, true));
+        __func__, nullptr));
   }
 
   std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier module_id) {

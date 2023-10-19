@@ -29,6 +29,7 @@
 #ifndef GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
 #define GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
 
+#include <initializer_list>
 #ifndef WINDOWS
 #include <boost/process.hpp>
 #endif
@@ -50,6 +51,25 @@ using GpgCommandExecutorInteractor = std::function<void(QProcess *)>;
 class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
     : public SingletonFunctionObject<GpgCommandExecutor> {
  public:
+  struct ExecuteContext {
+    const std::string cmd;
+    const std::vector<std::string> arguments;
+    const GpgCommandExecutorCallback callback;
+    const GpgCommandExecutorInteractor interact_func;
+
+    ExecuteContext(
+        std::string cmd, std::vector<std::string> arguments,
+        GpgCommandExecutorCallback callback = [](int, std::string,
+                                                 std::string) {},
+        GpgCommandExecutorInteractor interact_func = [](QProcess *) {})
+        : cmd(cmd),
+          arguments(arguments),
+          callback(callback),
+          interact_func(interact_func) {}
+  };
+
+  using ExecuteContexts = std::vector<ExecuteContext>;
+
   /**
    * @brief Construct a new Gpg Command Executor object
    *
@@ -64,20 +84,17 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
    * @param arguments Command parameters
    * @param interact_func Command answering function
    */
-  void Execute(
-      std::string cmd, std::vector<std::string> arguments,
-      GpgCommandExecutorCallback callback = [](int, std::string,
-                                               std::string) {},
-      GpgCommandExecutorInteractor interact_func = [](QProcess *) {});
+  void ExecuteSync(ExecuteContext);
 
-  void ExecuteConcurrently(
-      std::string cmd, std::vector<std::string> arguments,
-      GpgCommandExecutorCallback callback,
-      GpgCommandExecutorInteractor interact_func = [](QProcess *) {});
+  void ExecuteConcurrentlyAsync(ExecuteContexts);
+
+  void ExecuteConcurrentlySync(ExecuteContexts);
 
  private:
   GpgContext &ctx_ = GpgContext::GetInstance(
       SingletonFunctionObject::GetChannel());  ///< Corresponding context
+
+  Thread::Task *build_task(const ExecuteContext &);
 };
 
 }  // namespace GpgFrontend

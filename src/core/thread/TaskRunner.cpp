@@ -48,30 +48,36 @@ class TaskRunner::Impl : public QThread {
     }
 
     task->setParent(nullptr);
+    task->moveToThread(this);
 
-    if (task->GetSequency()) {
-      SPDLOG_TRACE("post task: {}, sequency mode: {}", task->GetFullID(),
-                   task->GetSequency());
-      task->moveToThread(this);
-    } else {
-      if (pool_.tryStart(task)) {
-        SPDLOG_TRACE("runner's pool starts concurrent task {} immediately",
-                     task->GetFullID());
-      } else {
-        SPDLOG_TRACE("runner's pool will start concurrent task {} later",
-                     task->GetFullID());
-      }
+    SPDLOG_TRACE("runner's pool starts task: {}", task->GetFullID());
+    task->SafelyRun();
+  }
+
+  void PostConcurrentTask(Task* task) {
+    if (task == nullptr) {
+      SPDLOG_ERROR("task posted is null");
+      return;
     }
-    emit task->SignalRun();
+
+    auto* concurrent_thread = new QThread(this);
+
+    task->setParent(nullptr);
+    task->moveToThread(concurrent_thread);
+
+    connect(task, &Task::SignalTaskEnd, concurrent_thread, &QThread::quit);
+    connect(concurrent_thread, &QThread::finished, concurrent_thread,
+            &QThread::deleteLater);
+
+    concurrent_thread->start();
+
+    task->SafelyRun();
   }
 
   void PostScheduleTask(Task* task, size_t seconds) {
     if (task == nullptr) return;
     // TODO
   }
-
- private:
-  QThreadPool pool_;
 };
 
 GpgFrontend::Thread::TaskRunner::TaskRunner() : p_(std::make_unique<Impl>()) {}
@@ -80,6 +86,10 @@ GpgFrontend::Thread::TaskRunner::~TaskRunner() = default;
 
 void GpgFrontend::Thread::TaskRunner::PostTask(Task* task) {
   p_->PostTask(task);
+}
+
+void GpgFrontend::Thread::TaskRunner::PostConcurrentTask(Task* task) {
+  p_->PostConcurrentTask(task);
 }
 
 void TaskRunner::PostScheduleTask(Task* task, size_t seconds) {
