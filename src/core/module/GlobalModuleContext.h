@@ -26,16 +26,16 @@
  *
  */
 
-#ifndef GPGFRONTEND_GLOBALMODULECONTEXT_H
-#define GPGFRONTEND_GLOBALMODULECONTEXT_H
+#pragma once
 
-#include "core/GpgFrontendCore.h"
 #include "core/module/Event.h"
 #include "core/thread/TaskRunner.h"
+#include "module/GlobalRegisterTable.h"
 
 namespace GpgFrontend::Module {
 
 class GlobalModuleContext;
+class GlobalRegisterTable;
 
 class Module;
 class ModuleManager;
@@ -43,7 +43,8 @@ using ModuleIdentifier = std::string;
 using ModulePtr = std::shared_ptr<Module>;
 using ModuleRawPtr = Module*;
 
-using GlobalModuleContextPtr = std::shared_ptr<GlobalModuleContext>;
+using GMCPtr = std::shared_ptr<GlobalModuleContext>;
+using GRTPtr = std::shared_ptr<GlobalRegisterTable>;
 
 using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
 
@@ -80,5 +81,3 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
 };
 
 }  // namespace GpgFrontend::Module
-
-#endif  // GPGFRONTEND_GLOBALMODULECONTEXT_H

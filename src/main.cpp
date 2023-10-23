@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
   GpgFrontend::UI::InitUILoggingSystem();
 
   // init the logging system for ui
-  GpgFrontend::Module::InitModuleLoggingSystem();
+  GpgFrontend::Module::LoadGpgFrontendModules();
 
   // change path to search for related
   init_global_path_env();
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
   int restart_count = 0;
 
   // load integrated modules
-  GpgFrontend::Module::LoadGpgFrontendIntegratedModules();
+  GpgFrontend::Module::LoadGpgFrontendModules();
 
   do {
 #ifndef WINDOWS
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
   } while (return_from_event_loop_code == RESTART_CODE && restart_count < 3);
 
   // shutdown the logging system for core
-  GpgFrontend::Module::ShutdownModuleLoggingSystem();
+  GpgFrontend::Module::ShutdownGpgFrontendModules();
 
   // shutdown the logging system for ui
   GpgFrontend::UI::ShutdownUILoggingSystem();

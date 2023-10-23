@@ -23,8 +23,9 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-
 cmake_minimum_required(VERSION 3.16)
+
+set(CMAKE_USER_MAKE_RULES_OVERRIDE "cmake/FlagsOverrides.cmake")
 
 # define project
 project(GpgFrontend VERSION 2.1.1 LANGUAGES CXX)
@@ -155,23 +156,29 @@ endif(CCACHE_FOUND)
 # detect compiler
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     # using clang
-    message(STATUS "Using Compiler clang")
-    message(STATUS "clang version ${CMAKE_CXX_COMPILER_VERSION}")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+        message(FATAL_ERROR "Clang version must be at least 9.0!")
+    endif()
+    message(STATUS "Build System Using Compiler CLANG, VERSION: ${CMAKE_CXX_COMPILER_VERSION}")
     set(USING_COMPILER_CLANG 1)
+
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using gcc
-    message(STATUS "Using Compiler gcc")
-    message(STATUS "gcc version ${CMAKE_CXX_COMPILER_VERSION}")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+        message(FATAL_ERROR "GCC version must be at least 8.0!")
+    endif()
+    message(STATUS "Build System Using Compiler GCC, VERSION: ${CMAKE_CXX_COMPILER_VERSION}")
     set(USING_COMPILER_GCC 1)
+
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     # using Intel C++
-    message(STATUS "Using Compiler Intel")
-    message(WARNING "Compilation with this compiler is untested, which may create some problems that need to be solved by the user.")
+    message(FATAL_ERROR "Intel C++ is not supported.")
+
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     # using Visual Studio C++
-    message(STATUS "Using Compiler MSVC")
-    message(WARNING "Compilation with this compiler is untested, which may create some problems that need to be solved by the user.")
+    message(FATAL_ERROR "MSVC is not supported.")
 endif ()
+
 
 # Using Standard C++-17 (Consider compatibility)
 set(CMAKE_CXX_STANDARD 17)
@@ -224,34 +231,6 @@ else ()
     set(AppName GpgFrontend)
 endif ()
 
-# Output Env Variables
-message(STATUS "Define CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
-
-if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-    set(BUILD_FLAG 0)
-    ADD_DEFINITIONS(-DRELEASE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-    # Release Version force to build using option STABLE_BUILD_APPLICATION
-    set(FULL_BUILD_APPLICATION 0)
-    set(STABLE_BUILD_APPLICATION 1)
-else ()
-    set(BUILD_FLAG 1)
-    ADD_DEFINITIONS(-DDEBUG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-    # Generate branch coverage information using gcc
-    if (TEST_COVERAGE_BUILD)
-        if (USING_COMPILER_GCC)
-            message(STATUS "Set branch coverage test parameters for Gcc")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
-        elseif (USING_COMPILER_CLANG)
-            message(STATUS "Set branch coverage test parameters for Clang")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate -fcoverage-mapping")
-        endif ()
-    endif ()
-endif ()
-
-message(STATUS "Build Flags " ${CMAKE_CXX_FLAGS})
-
 # Get Git Information
 
 set(GIT_COMMIT_HASH "")
@@ -277,6 +256,10 @@ endif ()
 set(BUILD_VERSION ${PROJECT_VERSION}_${CMAKE_SYSTEM}_${CMAKE_SYSTEM_PROCESSOR}_${CMAKE_BUILD_TYPE})
 set(GIT_VERSION ${GIT_BRANCH_NAME}_${GIT_COMMIT_HASH})
 string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S")
+
+# Convert BUILD_VERSION and GIT_VERSION to lowercase
+string(TOLOWER "${BUILD_VERSION}" BUILD_VERSION)
+string(TOLOWER "${GIT_VERSION}" GIT_VERSION)
 
 message(STATUS "GpgFrontend Build Timestamp ${BUILD_TIMESTAMP}")
 message(STATUS "GpgFrontend Build Version ${BUILD_VERSION}")
@@ -341,7 +324,7 @@ endif ()
 
 if (LINUX)
 
-    message(STATUS "GpgFrontend Configuration For OS Platform LINUX")
+    message(STATUS "GpgFrontend Configuration For OS Platform Linux")
 
     set(OS_PLATFORM 2)
     ADD_DEFINITIONS(-DLINUX)
@@ -355,12 +338,6 @@ if (LINUX)
         ADD_DEFINITIONS(-DFREEBSD)
         set(FREEBSD TRUE)
     endif()
-
-    message(STATUS "GCC Version ${CMAKE_CXX_COMPILER_VERSION}")
-    if (CMAKE_CXX_COMPILER_VERSION LESS 9)
-        message(STATUS "GCC CXX_FLAGS add filesystem support manually")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -lstdc++fs")
-    endif ()
 
     include_directories(
             ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -443,6 +420,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 if (SUPPORT_MULTI_LANG)
     add_compile_definitions(SUPPORT_MULTI_LANG)
 endif ()
+
+# Output Env Variables
+message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Build C Flags: ${CMAKE_C_FLAGS}")
+message(STATUS "Build C++ Flags: ${CMAKE_CXX_FLAGS}")
 
 # third_party
 add_subdirectory(third_party)

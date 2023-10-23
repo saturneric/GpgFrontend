@@ -28,22 +28,17 @@
 
 #include "GpgFrontendModuleInit.h"
 
-#include <spdlog/async.h>
-#include <spdlog/common.h>
-#include <spdlog/sinks/rotating_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-
-#include <memory>
-
-#include "core/function/GlobalSettingStation.h"
-#include "core/module/ModuleManager.h"
+#include <core/module/ModuleManager.h>
+#include <module/sdk/Log.h>
 
 // integrated modules
 #include "integrated/version_checking_module/VersionCheckingModule.h"
 
 namespace GpgFrontend::Module {
 
-void LoadGpgFrontendIntegratedModules() {
+void LoadGpgFrontendModules() {
+  InitModuleLoggingSystem();
+
   SPDLOG_INFO("loading integrated module...");
 
   // VersionCheckingModule
@@ -53,50 +48,6 @@ void LoadGpgFrontendIntegratedModules() {
   SPDLOG_INFO("load integrated module done.");
 }
 
-void InitModuleLoggingSystem() {
-  using namespace boost::posix_time;
-  using namespace boost::gregorian;
+void ShutdownGpgFrontendModules() { ShutdownModuleLoggingSystem(); }
 
-  // get the log directory
-  auto logfile_path =
-      (GpgFrontend::GlobalSettingStation::GetInstance().GetLogDir() / "module");
-  logfile_path.replace_extension(".log");
-
-  // sinks
-  std::vector<spdlog::sink_ptr> sinks;
-  sinks.push_back(std::make_shared<spdlog::sinks::stderr_color_sink_mt>());
-  sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-      logfile_path.u8string(), 1048576 * 32, 32));
-
-  // thread pool
-  spdlog::init_thread_pool(1024, 2);
-
-  // logger
-  auto module_logger = std::make_shared<spdlog::async_logger>(
-      "module", begin(sinks), end(sinks), spdlog::thread_pool());
-  module_logger->set_pattern(
-      "[%H:%M:%S.%e] [T:%t] [%=4n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
-
-#ifdef DEBUG
-  module_logger->set_level(spdlog::level::trace);
-#else
-  module_logger->set_level(spdlog::level::info);
-#endif
-
-  // flush policy
-  module_logger->flush_on(spdlog::level::err);
-  spdlog::flush_every(std::chrono::seconds(5));
-
-  // register it as default logger
-  spdlog::set_default_logger(module_logger);
-}
-
-void ShutdownModuleLoggingSystem() {
-#ifdef WINDOWS
-  // Under VisualStudio, this must be called before main finishes to workaround
-  // a known VS issue
-  spdlog::drop_all();
-  spdlog::shutdown();
-#endif
-}
 }  // namespace GpgFrontend::Module

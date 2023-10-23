@@ -26,10 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_MODULE_H
-#define GPGFRONTEND_MODULE_H
-
-#include <memory>
+#pragma once
 
 #include "core/module/Event.h"
 #include "core/thread/Task.h"
@@ -45,7 +42,7 @@ using ModuleIdentifier = std::string;
 using ModuleVersion = std::string;
 using ModuleMetaData = std::map<std::string, std::string>;
 using ModulePtr = std::shared_ptr<Module>;
-using GlobalModuleContextPtr = std::shared_ptr<GlobalModuleContext>;
+using GMCPtr = std::shared_ptr<GlobalModuleContext>;
 
 using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
 
@@ -66,7 +63,7 @@ class GPGFRONTEND_CORE_EXPORT Module : public QObject {
 
   ModuleIdentifier GetModuleIdentifier() const;
 
-  void SetGPC(GlobalModuleContextPtr);
+  void SetGPC(GMCPtr);
 
  protected:
   int getChannel();
@@ -83,5 +80,3 @@ class GPGFRONTEND_CORE_EXPORT Module : public QObject {
 };
 
 }  // namespace GpgFrontend::Module
-
-#endif  // GPGFRONTEND_MODULE_H

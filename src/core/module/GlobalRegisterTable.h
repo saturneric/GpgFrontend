@@ -32,52 +32,22 @@
 
 namespace GpgFrontend::Module {
 
-class Event;
+using Namespace = std::string;
+using Key = std::string;
 
-using EventRefrernce = std::shared_ptr<Event>;
-using EventIdentifier = std::string;
-using Evnets = std::vector<Event>;
-
-class GPGFRONTEND_CORE_EXPORT Event {
+class GlobalRegisterTable {
  public:
-  using ParameterValue = std::any;
-  using EventIdentifier = std::string;
-  struct ParameterInitializer {
-    std::string key;
-    ParameterValue value;
-  };
+  GlobalRegisterTable();
 
-  Event(const std::string& event_dientifier,
-        std::initializer_list<ParameterInitializer> params_init_list = {});
+  ~GlobalRegisterTable();
 
-  ~Event();
+  bool PublishKV(Namespace, Key, std::any);
 
-  std::optional<ParameterValue> operator[](const std::string& key) const;
-
-  bool operator==(const Event& other) const;
-
-  bool operator!=(const Event& other) const;
-
-  bool operator<(const Event& other) const;
-
-  bool operator<=(const Event& other) const;
-
-  operator std::string() const;
-
-  EventIdentifier GetIdentifier();
-
-  void AddParameter(const std::string& key, const ParameterValue& value);
+  std::optional<std::any> LookupKV(Namespace, Key);
 
  private:
   class Impl;
   std::unique_ptr<Impl> p_;
 };
-
-template <typename... Args>
-EventRefrernce MakeEvent(const EventIdentifier& event_id, Args&&... args) {
-  std::initializer_list<Event::ParameterInitializer> params = {
-      Event::ParameterInitializer{std::forward<Args>(args)}...};
-  return std::make_shared<Event>(event_id, params);
-}
 
 }  // namespace GpgFrontend::Module

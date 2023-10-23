@@ -26,11 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_MODULEMANAGER_H
-#define GPGFRONTEND_MODULEMANAGER_H
-
-#include <memory>
-#include <string>
+#pragma once
 
 #include "core/module/Event.h"
 
@@ -51,7 +47,9 @@ using EventRefrernce = std::shared_ptr<Event>;
 using ModuleIdentifier = std::string;
 using ModulePtr = std::shared_ptr<Module>;
 using ModuleMangerPtr = std::shared_ptr<ModuleManager>;
-using GlobalModuleContextPtr = std::shared_ptr<GlobalModuleContext>;
+using GMCPtr = std::shared_ptr<GlobalModuleContext>;
+using Namespace = std::string;
+using Key = std::string;
 
 class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
   Q_OBJECT
@@ -69,6 +67,10 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
   void DeactiveModule(ModuleIdentifier);
 
   std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier);
+
+  bool UpsertRTValue(Namespace, Key, std::any);
+
+  std::optional<std::any> RetrieveRTValue(Namespace, Key);
 
  private:
   class Impl;
@@ -99,5 +101,3 @@ void TriggerEvent(const EventIdentifier& event_id, Args&&... args) {
 }
 
 }  // namespace GpgFrontend::Module
-
-#endif  // GPGFRONTEND_MODULEMANAGER_H

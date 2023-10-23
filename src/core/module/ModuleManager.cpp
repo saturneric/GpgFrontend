@@ -28,7 +28,10 @@
 
 #include "ModuleManager.h"
 
+#include <memory>
+
 #include "core/module/GlobalModuleContext.h"
+#include "core/module/GlobalRegisterTable.h"
 #include "core/module/Module.h"
 #include "core/thread/TaskRunner.h"
 
@@ -40,15 +43,16 @@ class ModuleManager::Impl {
  public:
   Impl()
       : task_runner_(std::make_shared<Thread::TaskRunner>()),
-        gpc_(std::make_shared<GlobalModuleContext>(task_runner_)) {
+        gmc_(std::make_shared<GlobalModuleContext>(task_runner_)),
+        grt_(std::make_shared<GlobalRegisterTable>()) {
     task_runner_->Start();
   }
 
   void RegisterModule(ModulePtr module) {
     task_runner_->PostTask(new Thread::Task(
         std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
-          module->SetGPC(gpc_);
-          gpc_->RegisterModule(module);
+          module->SetGPC(gmc_);
+          gmc_->RegisterModule(module);
           return 0;
         }),
         __func__, nullptr));
@@ -57,7 +61,7 @@ class ModuleManager::Impl {
   void TriggerEvent(EventRefrernce event) {
     task_runner_->PostTask(new Thread::Task(
         std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
-          gpc_->TriggerEvent(event);
+          gmc_->TriggerEvent(event);
           return 0;
         }),
         __func__, nullptr));
@@ -66,20 +70,29 @@ class ModuleManager::Impl {
   void ActiveModule(ModuleIdentifier identifier) {
     task_runner_->PostTask(new Thread::Task(
         std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
-          gpc_->ActiveModule(identifier);
+          gmc_->ActiveModule(identifier);
           return 0;
         }),
         __func__, nullptr));
   }
 
   std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier module_id) {
-    return gpc_->GetTaskRunner(module_id);
+    return gmc_->GetTaskRunner(module_id);
+  }
+
+  bool UpsertRTValue(Namespace n, Key k, std::any v) {
+    return grt_->PublishKV(n, k, v);
+  }
+
+  std::optional<std::any> RetrieveRTValue(Namespace n, Key k) {
+    return grt_->LookupKV(n, k);
   }
 
  private:
   static ModuleMangerPtr global_module_manager_;
   TaskRunnerPtr task_runner_;
-  GlobalModuleContextPtr gpc_;
+  GMCPtr gmc_;
+  GRTPtr grt_;
 };
 
 ModuleManager::ModuleManager() : p_(std::make_unique<Impl>()) {}
@@ -106,6 +119,14 @@ void ModuleManager::ActiveModule(ModuleIdentifier identifier) {
 std::optional<TaskRunnerPtr> ModuleManager::GetTaskRunner(
     ModuleIdentifier module_id) {
   return p_->GetTaskRunner(module_id);
+}
+
+bool ModuleManager::UpsertRTValue(Namespace n, Key k, std::any v) {
+  return p_->UpsertRTValue(n, k, v);
+}
+
+std::optional<std::any> ModuleManager::RetrieveRTValue(Namespace n, Key k) {
+  return p_->RetrieveRTValue(n, k);
 }
 
 }  // namespace GpgFrontend::Module

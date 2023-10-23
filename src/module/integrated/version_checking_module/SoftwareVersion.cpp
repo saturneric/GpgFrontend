@@ -32,53 +32,42 @@ namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
 int VersionCheckingModule::SoftwareVersion::version_compare(
     const std::string& a, const std::string& b) {
-  auto temp_a = a, temp_b = b;
+  auto remove_prefix = [](const std::string& version) {
+    return version.front() == 'v' ? version.substr(1) : version;
+  };
 
-  if (!temp_a.empty() && temp_a.front() == 'v') {
-    temp_a = temp_a.erase(0, 1);
-    SPDLOG_DEBUG("real version a: {}", temp_a);
-  }
+  std::string real_version_a = remove_prefix(a);
+  std::string real_version_b = remove_prefix(b);
 
-  if (!temp_b.empty() && temp_b.front() == 'v') {
-    temp_b.erase(0, 1);
-    SPDLOG_DEBUG("real version b: {}", temp_b);
-  }
+  SPDLOG_DEBUG("real version a: {}", real_version_a);
+  SPDLOG_DEBUG("real version b: {}", real_version_b);
 
-  // First, split the string.
-  std::vector<std::string> va, vb;
-  boost::split(va, temp_a, boost::is_any_of("."));
-  boost::split(vb, temp_b, boost::is_any_of("."));
+  std::vector<std::string> split_a, split_b;
+  boost::split(split_a, real_version_a, boost::is_any_of("."));
+  boost::split(split_b, real_version_b, boost::is_any_of("."));
 
-  // Compare the numbers step by step, but only as deep as the version
-  // with the least elements allows.
-  const int depth =
-      std::min(static_cast<int>(va.size()), static_cast<int>(vb.size()));
-  int ia = 0, ib = 0;
-  for (int i = 0; i < depth; ++i) {
+  const int min_depth = std::min(split_a.size(), split_b.size());
+
+  for (int i = 0; i < min_depth; ++i) {
+    int num_a = 0, num_b = 0;
+
     try {
-      ia = boost::lexical_cast<int>(va[i]);
-      ib = boost::lexical_cast<int>(vb[i]);
-    } catch (boost::bad_lexical_cast& ignored) {
-      break;
+      num_a = boost::lexical_cast<int>(split_a[i]);
+      num_b = boost::lexical_cast<int>(split_b[i]);
+    } catch (boost::bad_lexical_cast&) {
+      // Handle exception if needed
+      return 0;
     }
-    if (ia != ib) break;
+
+    if (num_a != num_b) {
+      return (num_a > num_b) ? 1 : -1;
+    }
   }
 
-  // Return the required number.
-  if (ia > ib)
-    return 1;
-  else if (ia < ib)
-    return -1;
-  else {
-    // In case of equal versions, assumes that the version
-    // with the most elements is the highest version.
-    if (va.size() > vb.size())
-      return 1;
-    else if (va.size() < vb.size())
-      return -1;
+  if (split_a.size() != split_b.size()) {
+    return (split_a.size() > split_b.size()) ? 1 : -1;
   }
 
-  // Everything is equal, return 0.
   return 0;
 }
 

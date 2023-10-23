@@ -37,19 +37,13 @@ namespace GpgFrontend::Module {
  * @brief init the module library
  *
  */
-void GPGFRONTEND_MODULE_EXPORT LoadGpgFrontendIntegratedModules();
+void GPGFRONTEND_MODULE_EXPORT LoadGpgFrontendModules();
 
 /**
- * @brief
+ * @brief shutdown the module library
  *
  */
-void GPGFRONTEND_MODULE_EXPORT InitModuleLoggingSystem();
-
-/**
- * @brief
- *
- */
-void GPGFRONTEND_MODULE_EXPORT ShutdownModuleLoggingSystem();
+void GPGFRONTEND_MODULE_EXPORT ShutdownGpgFrontendModules();
 
 };  // namespace GpgFrontend::Module
 

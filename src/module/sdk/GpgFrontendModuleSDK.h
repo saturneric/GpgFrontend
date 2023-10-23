@@ -30,3 +30,4 @@
 
 #include <core/module/GpgFrontendModuleSystem.h>
 #include <module/sdk/GpgFrontendModuleSDKExport.h>
+#include <module/sdk/Log.h>

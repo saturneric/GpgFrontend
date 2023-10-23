@@ -61,16 +61,16 @@ class Module::Impl {
 
   ModuleIdentifier GetModuleIdentifier() const { return identifier_; }
 
-  void SetGPC(GlobalModuleContextPtr gpc) { gpc_ = gpc; }
+  void SetGPC(GMCPtr gpc) { gpc_ = gpc; }
 
  private:
-  GlobalModuleContextPtr gpc_;
+  GMCPtr gpc_;
   Module* m_ptr_;
   const ModuleIdentifier identifier_;
   const ModuleVersion version_;
   const ModuleMetaData meta_data_;
 
-  const GlobalModuleContextPtr get_gpc() {
+  const GMCPtr get_gpc() {
     if (gpc_ == nullptr) {
       throw std::runtime_error("module is not registered by module manager");
     }
@@ -100,5 +100,5 @@ ModuleIdentifier Module::GetModuleIdentifier() const {
   return p_->GetModuleIdentifier();
 }
 
-void Module::SetGPC(GlobalModuleContextPtr gpc) { p_->SetGPC(gpc); }
+void Module::SetGPC(GMCPtr gpc) { p_->SetGPC(gpc); }
 }  // namespace GpgFrontend::Module
