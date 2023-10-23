@@ -42,8 +42,8 @@ int VersionCheckingModule::SoftwareVersion::version_compare(
   std::string real_version_a = remove_prefix(a);
   std::string real_version_b = remove_prefix(b);
 
-  SPDLOG_DEBUG("real version a: {}", real_version_a);
-  SPDLOG_DEBUG("real version b: {}", real_version_b);
+  MODULE_LOG_DEBUG("real version a: {}", real_version_a);
+  MODULE_LOG_DEBUG("real version b: {}", real_version_b);
 
   std::vector<std::string> split_a, split_b;
   boost::split(split_a, real_version_a, boost::is_any_of("."));
@@ -75,12 +75,12 @@ int VersionCheckingModule::SoftwareVersion::version_compare(
 }
 
 bool VersionCheckingModule::SoftwareVersion::NeedUpgrade() const {
-  SPDLOG_DEBUG("compair version current {} latest {}, result {}",
-               current_version, latest_version,
-               version_compare(current_version, latest_version));
+  MODULE_LOG_DEBUG("compair version current {} latest {}, result {}",
+                   current_version, latest_version,
+                   version_compare(current_version, latest_version));
 
-  SPDLOG_DEBUG("load done: {}, pre-release: {}, draft: {}", load_info_done,
-               latest_prerelease, latest_draft);
+  MODULE_LOG_DEBUG("load done: {}, pre-release: {}, draft: {}", load_info_done,
+                   latest_prerelease, latest_draft);
   return load_info_done && !latest_prerelease && !latest_draft &&
          version_compare(current_version, latest_version) < 0;
 }

@@ -38,19 +38,19 @@ VersionCheckingModule::VersionCheckingModule()
                             {"author", "saturneric"}}) {}
 
 bool VersionCheckingModule::Register() {
-  SPDLOG_INFO("version checking module registering");
+  MODULE_LOG_INFO("version checking module registering");
   listenEvent("APPLICATION_LOADED");
   return true;
 }
 
 bool VersionCheckingModule::Active() {
-  SPDLOG_INFO("version checking module activating");
+  MODULE_LOG_INFO("version checking module activating");
   return true;
 }
 
 int VersionCheckingModule::Exec(EventRefrernce event) {
-  SPDLOG_INFO("version checking module executing, event id: {}",
-              event->GetIdentifier());
+  MODULE_LOG_INFO("version checking module executing, event id: {}",
+                  event->GetIdentifier());
 
   getTaskRunner()->PostTask(new VersionCheckTask());
   return 0;

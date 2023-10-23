@@ -86,17 +86,17 @@ if (BUILD_APPLICATION)
 endif ()
 
 if (BUILD_CORE)
-    message("[*] Build Core")
+    message("[+] Build Core")
     add_subdirectory(core)
 endif ()
 
 if (BUILD_UI)
-    message("[*] Build UI")
+    message("[+] Build UI")
     add_subdirectory(ui)
 endif ()
 
 if (BUILD_MODULE)
-    message("[*] Build Module")
+    message("[+] Build Module")
     add_subdirectory(module)
 endif ()
 

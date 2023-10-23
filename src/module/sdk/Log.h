@@ -28,37 +28,42 @@
 
 #pragma once
 
-#include "module/GpgFrontendModule.h"
+#include "module/sdk/GpgFrontendModuleSDK.h"
+
+#define MODULE_LOG_TRACE(...) \
+  SPDLOG_LOGGER_TRACE(GpgFrontend::Module::SDK::GetModuleLogger(), __VA_ARGS__)
+#define MODULE_LOG_DEBUG(...) \
+  SPDLOG_LOGGER_DEBUG(GpgFrontend::Module::SDK::GetModuleLogger(), __VA_ARGS__)
+#define MODULE_LOG_INFO(...) \
+  SPDLOG_LOGGER_INFO(GpgFrontend::Module::SDK::GetModuleLogger(), __VA_ARGS__)
+#define MODULE_LOG_WARN(...) \
+  SPDLOG_LOGGER_WARN(GpgFrontend::Module::SDK::GetModuleLogger(), __VA_ARGS__)
+#define MODULE_LOG_ERROR(...) \
+  SPDLOG_LOGGER_ERROR(GpgFrontend::Module::SDK::GetModuleLogger(), __VA_ARGS__)
 
 namespace spdlog {
 class logger;
 }
 
-using Logger = std::shared_ptr<spdlog::logger>;
+namespace GpgFrontend::Module::SDK {
 
 /**
  * @brief
  *
  */
-void GPGFRONTEND_MODULE_EXPORT InitModuleLoggingSystem();
+void GPGFRONTEND_MODULE_SDK_EXPORT InitModuleLoggingSystem();
 
 /**
  * @brief
  *
  */
-void GPGFRONTEND_MODULE_EXPORT ShutdownModuleLoggingSystem();
+void GPGFRONTEND_MODULE_SDK_EXPORT ShutdownModuleLoggingSystem();
 
 /**
  * @brief
  *
  */
-Logger GetModuleLogger();
-
-#define MODULE_LOG_TRACE(...) SPDLOG_LOGGER_TRACE(GetModuleLogger, ...)
-#define MODULE_LOG_DEBUG(...) SPDLOG_LOGGER_DEBUG(GetModuleLogger, ...)
-#define MODULE_LOG_INFO(...) SPDLOG_LOGGER_INFO(GetModuleLogger, ...)
-#define MODULE_LOG_WARN(...) SPDLOG_LOGGER_WARN(GetModuleLogger, ...)
-#define MODULE_LOG_ERROR(...) SPDLOG_LOGGER_ERROR(GetModuleLogger, ...)
+std::shared_ptr<spdlog::logger> GPGFRONTEND_MODULE_SDK_EXPORT GetModuleLogger();
 
 template <typename... Args>
 void ModuleLogTrace(const char* fmt, const Args&... args) {
@@ -84,3 +89,5 @@ template <typename... Args>
 void ModuleLogError(const char* fmt, const Args&... args) {
   SPDLOG_LOGGER_ERROR(GetModuleLogger(), fmt, args...);
 }
+
+}  // namespace GpgFrontend::Module::SDK

@@ -120,6 +120,7 @@ class GlobalModuleContext::Impl {
     register_info.task_runner->Start();
 
     // move module to its task runner' thread
+    register_info.module->setParent(nullptr);
     register_info.module->moveToThread(register_info.task_runner->GetThread());
 
     // Register the module with its identifier.

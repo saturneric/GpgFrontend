@@ -27,12 +27,11 @@
  */
 #include "GpgCommandExecutor.h"
 
-#include <memory>
-#include <string>
+#include <boost/format.hpp>
 
 #include "GpgFunctionObject.h"
+#include "core/thread/DataObject.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "thread/DataObject.h"
 
 namespace GpgFrontend {
 
@@ -196,8 +195,15 @@ Thread::Task *GpgCommandExecutor::build_task(const ExecuteContext &context) {
     return 0;
   };
 
+  const std::string joined_argument = std::accumulate(
+      std::begin(arguments), std::end(arguments), std::string(),
+      [](const std::string &a, const std::string &b) -> std::string {
+        return a + (a.length() > 0 ? " " : "") + b;
+      });
+
   return new Thread::Task(
-      std::move(runner), fmt::format("Execute/{}", cmd),
+      std::move(runner),
+      (boost::format("Execute(%1%){%2%}") % cmd % joined_argument).str(),
       Thread::TransferParams(cmd, arguments, interact_function, callback),
       std::move(result_callback));
 }

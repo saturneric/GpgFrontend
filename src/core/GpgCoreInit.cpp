@@ -70,7 +70,7 @@ void InitCoreLoggingSystem() {
   auto core_logger = std::make_shared<spdlog::async_logger>(
       "core", begin(sinks), end(sinks), spdlog::thread_pool());
   core_logger->set_pattern(
-      "[%H:%M:%S.%e] [T:%t] [%=4n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
+      "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 
 #ifdef DEBUG
   core_logger->set_level(spdlog::level::trace);

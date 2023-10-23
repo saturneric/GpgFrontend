@@ -28,6 +28,7 @@
 
 #include "core/thread/TaskRunner.h"
 
+#include <qobject.h>
 #include <qobjectdefs.h>
 #include <qthread.h>
 #include <qthreadpool.h>
@@ -41,6 +42,11 @@ namespace GpgFrontend::Thread {
 
 class TaskRunner::Impl : public QThread {
  public:
+  Impl() {
+    SPDLOG_TRACE("task runner created, thread id: {}",
+                 QThread::currentThread()->currentThreadId());
+  }
+
   void PostTask(Task* task) {
     if (task == nullptr) {
       SPDLOG_ERROR("task posted is null");

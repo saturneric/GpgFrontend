@@ -196,6 +196,13 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif ()
 
+if (CMAKE_BUILD_TYPE EQUAL "Release")
+    add_compile_definitions(RELEASE)
+else()
+    add_compile_definitions(DEBUG)
+endif()
+
+
 # Specify different compilation modes
 if (GPGFRONTEND_BUILD_CONFIG)
     # Test Build
@@ -354,11 +361,6 @@ if (LINUX)
 
 endif ()
 
-if (GPG_STANDALONE_MODE)
-    add_compile_definitions(GPG_STANDALONE_MODE)
-endif ()
-
-
 if (LINUX_INSTALL_SOFTWARE)
     message(STATUS "Linux Install Traget ${CMAKE_INSTALL_PREFIX}")
     include(GNUInstallDirs)
@@ -368,7 +370,6 @@ if (LINUX_INSTALL_SOFTWARE)
     set(Boost_USE_STATIC_LIBS ON)
 else ()
     set(APP_INSTALL_FLAG BUNDLE)
-    add_compile_definitions(BUNDLE_BUILD)
 endif ()
 
 # Basic ENV Configure
@@ -376,7 +377,7 @@ set(BASIC_ENV_CONFIG 1)
 set(QT_MOC_CONFIG 1)
 
 if (FULL_BUILD_APPLICATION)
-    message("[-] Build Full Application")
+    message("[+] Build Full Application")
     set(QT5_ENV_SUPPORT 1)
     set(BUILD_CORE 1)
     set(BUILD_UI 1)
@@ -385,7 +386,7 @@ if (FULL_BUILD_APPLICATION)
     set(BASIC_ENV_CONFIG 1)
     set(SUPPORT_MULTI_LANG 1)
 elseif (MINIMUM_BUILD_APPLICATION)
-    message("[-] Build Minimum Application")
+    message("[+] Build Minimum Application")
     set(QT5_ENV_SUPPORT 1)
     set(BUILD_CORE 1)
     set(BUILD_UI 1)
@@ -393,7 +394,7 @@ elseif (MINIMUM_BUILD_APPLICATION)
     set(BUILD_APPLICATION 1)
     set(BASIC_ENV_CONFIG 1)
 elseif (STABLE_BUILD_APPLICATION)
-    message("[-] Build Stable Application")
+    message("[+] Build Stable Application")
     set(QT5_ENV_SUPPORT 1)
     set(BUILD_CORE 1)
     set(BUILD_UI 1)

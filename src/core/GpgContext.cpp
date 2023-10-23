@@ -234,7 +234,7 @@ void GpgContext::post_init_ctx() {
   // preload info
   auto &info = GetInfo();
 
-  // use custom qt dialog to replace pinentry
+  // // use custom qt dialog to replace pinentry
   if (!args_.use_pinentry) {
     SetPassphraseCb(custom_passphrase_cb);
   }

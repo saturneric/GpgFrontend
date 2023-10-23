@@ -37,17 +37,17 @@
 namespace GpgFrontend::Module {
 
 void LoadGpgFrontendModules() {
-  InitModuleLoggingSystem();
+  SDK::InitModuleLoggingSystem();
 
-  SPDLOG_INFO("loading integrated module...");
+  MODULE_LOG_INFO("loading integrated module...");
 
   // VersionCheckingModule
   RegisterAndActivateModule<
       Integrated::VersionCheckingModule::VersionCheckingModule>();
 
-  SPDLOG_INFO("load integrated module done.");
+  MODULE_LOG_INFO("load integrated module done.");
 }
 
-void ShutdownGpgFrontendModules() { ShutdownModuleLoggingSystem(); }
+void ShutdownGpgFrontendModules() { SDK::ShutdownModuleLoggingSystem(); }
 
 }  // namespace GpgFrontend::Module

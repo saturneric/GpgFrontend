@@ -33,9 +33,9 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-#include <memory>
-
 #include "core/function/GlobalSettingStation.h"
+
+namespace GpgFrontend::Module::SDK {
 
 void InitModuleLoggingSystem() {
   // get the log directory
@@ -56,7 +56,7 @@ void InitModuleLoggingSystem() {
   auto module_logger = std::make_shared<spdlog::async_logger>(
       "module", begin(sinks), end(sinks), spdlog::thread_pool());
   module_logger->set_pattern(
-      "[%H:%M:%S.%e] [T:%t] [%=4n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
+      "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 
 #ifdef DEBUG
   module_logger->set_level(spdlog::level::trace);
@@ -68,7 +68,6 @@ void InitModuleLoggingSystem() {
   module_logger->flush_on(spdlog::level::err);
   spdlog::flush_every(std::chrono::seconds(5));
 
-  spdlog::register_logger(module_logger);
   // register it as default logger
   spdlog::set_default_logger(module_logger);
 }
@@ -82,9 +81,8 @@ void ShutdownModuleLoggingSystem() {
 #endif
 }
 
-Logger GetModuleLogger() {
-  static bool log_system_inited = false;
-  if (!log_system_inited) log_system_inited = true;
-
+std::shared_ptr<spdlog::logger> GetModuleLogger() {
   return spdlog::get("module");
 }
+
+}  // namespace GpgFrontend::Module::SDK

@@ -149,6 +149,9 @@ class Task::Impl : public QObject {
   DataObjectPtr data_object_ = nullptr;  ///<
 
   void init() {
+    SPDLOG_TRACE("task {} created, parent: {}, impl: {}", name_,
+                 (void *)parent_, (void *)this);
+
     //
     HoldOnLifeCycle(false);
 

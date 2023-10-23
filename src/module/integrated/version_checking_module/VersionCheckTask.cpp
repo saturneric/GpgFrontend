@@ -51,7 +51,7 @@ VersionCheckTask::VersionCheckTask()
 void VersionCheckTask::Run() {
   try {
     using namespace nlohmann;
-    SPDLOG_DEBUG("current version: {}", current_version_);
+    MODULE_LOG_DEBUG("current version: {}", current_version_);
     std::string latest_version_url =
         "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
 
@@ -65,7 +65,7 @@ void VersionCheckTask::Run() {
     version_.load_info_done = true;
 
   } catch (...) {
-    SPDLOG_ERROR("unknown error occurred");
+    MODULE_LOG_ERROR("unknown error occurred");
     emit SignalTaskShouldEnd(-1);
   }
 }
@@ -76,7 +76,7 @@ void VersionCheckTask::slot_parse_latest_version_info() {
   try {
     if (latest_reply_ == nullptr ||
         latest_reply_->error() != QNetworkReply::NoError) {
-      SPDLOG_ERROR("latest version request error");
+      MODULE_LOG_ERROR("latest version request error");
       version_.latest_version = current_version_;
     } else {
       latest_reply_bytes_ = latest_reply_->readAll();
@@ -86,13 +86,13 @@ void VersionCheckTask::slot_parse_latest_version_info() {
 
       std::string latest_version = latest_reply_json["tag_name"];
 
-      SPDLOG_INFO("latest version from Github: {}", latest_version);
+      MODULE_LOG_INFO("latest version from Github: {}", latest_version);
 
       QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
       auto version_match = re.match(latest_version.c_str());
       if (version_match.hasMatch()) {
         latest_version = version_match.captured(0).toStdString();
-        SPDLOG_DEBUG("latest version matched: {}", latest_version);
+        MODULE_LOG_DEBUG("latest version matched: {}", latest_version);
       } else {
         latest_version = current_version_;
         SPDLOG_WARN("latest version unknown");
@@ -109,7 +109,7 @@ void VersionCheckTask::slot_parse_latest_version_info() {
       version_.release_note = release_note;
     }
   } catch (...) {
-    SPDLOG_ERROR("unknown error occurred");
+    MODULE_LOG_ERROR("unknown error occurred");
     version_.load_info_done = false;
   }
 
@@ -129,7 +129,7 @@ void VersionCheckTask::slot_parse_latest_version_info() {
     connect(current_reply_, &QNetworkReply::finished, this,
             &VersionCheckTask::slot_parse_current_version_info);
   } catch (...) {
-    SPDLOG_ERROR("current version request create error");
+    MODULE_LOG_ERROR("current version request create error");
     emit SignalTaskShouldEnd(-1);
   }
 }
@@ -139,10 +139,10 @@ void VersionCheckTask::slot_parse_current_version_info() {
     if (current_reply_ == nullptr ||
         current_reply_->error() != QNetworkReply::NoError) {
       if (current_reply_ != nullptr) {
-        SPDLOG_ERROR("current version request network error: {}",
-                     current_reply_->errorString().toStdString());
+        MODULE_LOG_ERROR("current version request network error: {}",
+                         current_reply_->errorString().toStdString());
       } else {
-        SPDLOG_ERROR(
+        MODULE_LOG_ERROR(
             "current version request network error, null reply object");
       }
 
@@ -151,7 +151,7 @@ void VersionCheckTask::slot_parse_current_version_info() {
     } else {
       version_.current_version_found = true;
       current_reply_bytes_ = current_reply_->readAll();
-      SPDLOG_DEBUG("current version: {}", current_reply_bytes_.size());
+      MODULE_LOG_DEBUG("current version: {}", current_reply_bytes_.size());
       auto current_reply_json =
           nlohmann::json::parse(current_reply_bytes_.toStdString());
       bool current_prerelease = current_reply_json["prerelease"],
@@ -161,12 +161,12 @@ void VersionCheckTask::slot_parse_current_version_info() {
       version_.load_info_done = true;
     }
   } catch (...) {
-    SPDLOG_ERROR("unknown error occurred");
+    MODULE_LOG_ERROR("unknown error occurred");
     version_.load_info_done = false;
   }
 
-  SPDLOG_DEBUG("current version parse done: {}",
-               version_.current_version_found);
+  MODULE_LOG_DEBUG("current version parse done: {}",
+                   version_.current_version_found);
 
   if (current_reply_ != nullptr) {
     current_reply_->deleteLater();
