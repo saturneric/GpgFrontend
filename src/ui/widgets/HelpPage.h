@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef HELPPAGE_H
-#define HELPPAGE_H
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 
@@ -70,5 +69,3 @@ class HelpPage : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // HELPPAGE_H

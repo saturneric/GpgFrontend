@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __SETTINGSDIALOG_H__
-#define __SETTINGSDIALOG_H__
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
@@ -108,5 +107,3 @@ class SettingsDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __SETTINGSDIALOG_H__

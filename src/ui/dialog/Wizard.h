@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef WIZARD_H
-#define WIZARD_H
+#pragma once
 
 #include "core/GpgConstants.h"
 #include "main_window/KeyMgmt.h"
@@ -185,5 +184,3 @@ class ConclusionPage : public QWizardPage {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif

@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GENERALMAINWINDOW_H
-#define GPGFRONTEND_GENERALMAINWINDOW_H
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 
@@ -77,5 +76,3 @@ class GeneralMainWindow : public QMainWindow {
   QSize size_;        ///<
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_GENERALMAINWINDOW_H

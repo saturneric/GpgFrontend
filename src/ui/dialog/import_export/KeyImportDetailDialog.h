@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __KEYIMPORTDETAILSDIALOG_H__
-#define __KEYIMPORTDETAILSDIALOG_H__
+#pragma once
 
 #include "core/GpgContext.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
@@ -88,5 +87,3 @@ class KeyImportDetailDialog : public GeneralDialog {
   GpgImportInformation m_result_;   ///<
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // __KEYIMPORTDETAILSDIALOG_H__

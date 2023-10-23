@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __TEXTEDIT_H__
-#define __TEXTEDIT_H__
+#pragma once
 
 #include "ui/dialog/QuitDialog.h"
 #include "ui/widgets/FilePage.h"
@@ -293,5 +292,3 @@ class TextEdit : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __TEXTEDIT_H__

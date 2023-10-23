@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_TOFUINFOPAGE_H
-#define GPGFRONTEND_TOFUINFOPAGE_H
+#pragma once
 
 #include "core/GpgModel.h"
 #include "ui/GpgFrontendUI.h"
@@ -51,5 +50,3 @@ class TOFUInfoPage : public QWidget {
                         QWidget *parent = nullptr);
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_TOFUINFOPAGE_H

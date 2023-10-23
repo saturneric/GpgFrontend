@@ -30,8 +30,7 @@
 // Created by eric on 2022/7/23.
 //
 
-#ifndef GPGFRONTEND_GNUPGTAB_H
-#define GPGFRONTEND_GNUPGTAB_H
+#pragma once
 
 #include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
@@ -54,5 +53,3 @@ class GnupgTab : public QWidget {
   void process_software_info();
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_GNUPGTAB_H

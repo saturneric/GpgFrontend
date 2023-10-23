@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_UIDOPERATOR_H
-#define GPGFRONTEND_ZH_CN_TS_UIDOPERATOR_H
+#pragma once
 
 #include "core/GpgContext.h"
 #include "core/GpgModel.h"
@@ -89,5 +88,3 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ZH_CN_TS_UIDOPERATOR_H

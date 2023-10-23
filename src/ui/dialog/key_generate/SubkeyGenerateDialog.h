@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_SUBKEYGENERATEDIALOG_H
-#define GPGFRONTEND_SUBKEYGENERATEDIALOG_H
+#pragma once
 
 #include "core/GpgContext.h"
 #include "core/GpgGenKeyInfo.h"
@@ -153,5 +152,3 @@ class SubkeyGenerateDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_SUBKEYGENERATEDIALOG_H

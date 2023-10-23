@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_SETTINGSOBJECT_H
-#define GPGFRONTEND_SETTINGSOBJECT_H
+#pragma once
 
 #include <utility>
 
@@ -84,5 +83,3 @@ class SettingsObject : public nlohmann::json {
   std::string settings_name_;  ///<
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_SETTINGSOBJECT_H

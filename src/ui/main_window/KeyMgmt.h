@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __KEYMGMT_H__
-#define __KEYMGMT_H__
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
@@ -174,5 +173,3 @@ class KeyMgmt : public GeneralMainWindow {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __KEYMGMT_H__

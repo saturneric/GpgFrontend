@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGVERIFYRESULTANALYSE_H
-#define GPGFRONTEND_GPGVERIFYRESULTANALYSE_H
+#pragma once
 
 #include "GpgResultAnalyse.h"
 #include "core/model/GpgKeySignature.h"
@@ -84,5 +83,3 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGVERIFYRESULTANALYSE_H

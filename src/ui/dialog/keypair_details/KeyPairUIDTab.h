@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYPAIRUIDTAB_H
-#define GPGFRONTEND_KEYPAIRUIDTAB_H
+#pragma once
 
 #include "KeyNewUIDDialog.h"
 #include "KeyUIDSignDialog.h"
@@ -203,5 +202,3 @@ class KeyPairUIDTab : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYPAIRUIDTAB_H

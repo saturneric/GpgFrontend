@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGKEYSIGNATURE_H
-#define GPGFRONTEND_GPGKEYSIGNATURE_H
+#pragma once
 
 #include <boost/date_time.hpp>
 #include <string>
@@ -195,5 +194,3 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGKEYSIGNATURE_H

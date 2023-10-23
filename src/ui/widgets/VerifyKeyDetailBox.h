@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __VERIFYKEYDETAILBOX_H__
-#define __VERIFYKEYDETAILBOX_H__
+#pragma once
 
 #include "ui/dialog/import_export/KeyServerImportDialog.h"
 #include "ui/widgets/KeyList.h"
@@ -69,5 +68,3 @@ class VerifyKeyDetailBox : public QGroupBox {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __VERIFYKEYDETAILBOX_H__

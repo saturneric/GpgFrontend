@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGKEYMANAGER_H
-#define GPGFRONTEND_ZH_CN_TS_GPGKEYMANAGER_H
+#pragma once
 
 #include <functional>
 #include <string>
@@ -149,5 +148,3 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGKEYMANAGER_H

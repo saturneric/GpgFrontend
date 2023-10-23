@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/module/Event.h"
 #include "core/thread/TaskRunner.h"
 #include "module/GlobalRegisterTable.h"

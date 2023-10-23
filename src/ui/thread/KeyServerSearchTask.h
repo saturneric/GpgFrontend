@@ -26,15 +26,15 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYSERVERSEARCHTASK_H
-#define GPGFRONTEND_KEYSERVERSEARCHTASK_H
+#pragma once
 
-#include <QtNetwork>
+#include <qnetworkaccessmanager.h>
+#include <qnetworkreply.h>
 
 #include "GpgFrontendUI.h"
+#include "core/thread/ThreadingModel.h"
 
 namespace GpgFrontend::UI {
-
 class KeyServerSearchTask : public Thread::Task {
   Q_OBJECT
  public:
@@ -76,5 +76,3 @@ class KeyServerSearchTask : public Thread::Task {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYSERVERSEARCHTASK_H

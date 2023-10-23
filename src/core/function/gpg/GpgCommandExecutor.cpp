@@ -57,10 +57,6 @@ void GpgCommandExecutor::ExecuteSync(ExecuteContext context) {
 void GpgCommandExecutor::ExecuteConcurrentlyAsync(ExecuteContexts contexts) {
   for (auto &context : contexts) {
     auto &cmd = context.cmd;
-    auto &arguments = context.arguments;
-    auto &interact_func = context.interact_func;
-    auto &callback = context.callback;
-
     SPDLOG_INFO("gpg concurrently called cmd {}", cmd);
 
     Thread::Task *task = build_task(context);
@@ -78,10 +74,6 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(
 
   for (auto &context : contexts) {
     auto &cmd = context.cmd;
-    auto &arguments = context.arguments;
-    auto &interact_func = context.interact_func;
-    auto &callback = context.callback;
-
     SPDLOG_INFO("gpg concurrently called cmd {}", cmd);
 
     Thread::Task *task = build_task(context);

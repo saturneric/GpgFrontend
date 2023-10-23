@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_CHARSETDETECTOR_H
-#define GPGFRONTEND_CHARSETDETECTOR_H
+#pragma once
 
 #include "core/GpgFrontendCore.h"
 
@@ -43,5 +42,3 @@ class GPGFRONTEND_CORE_EXPORT CharsetOperator {
                            std::string from_charset_name);
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_CHARSETDETECTOR_H

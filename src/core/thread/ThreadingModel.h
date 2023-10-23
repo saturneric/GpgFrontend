@@ -26,11 +26,8 @@
  *
  */
 
-#ifndef GPGFRONTEND_THREADINGMODEL_H
-#define GPGFRONTEND_THREADINGMODEL_H
+#pragma once
 
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
-
-#endif  // GPGFRONTEND_THREADINGMODEL_H

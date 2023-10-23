@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFILEOPERA_H
-#define GPGFRONTEND_GPGFILEOPERA_H
+#pragma once
 
 #include "core/GpgConstants.h"
 #include "core/GpgContext.h"
@@ -149,5 +148,3 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGFILEOPERA_H

@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_MODULE_VERSIONCHECKINGMODULE_H
-#define GPGFRONTEND_MODULE_VERSIONCHECKINGMODULE_H
+#pragma once
 
 #include <module/sdk/GpgFrontendModuleSDK.h>
 
@@ -48,5 +47,3 @@ class GPGFRONTEND_MODULE_SDK_EXPORT VersionCheckingModule : public Module {
   virtual bool Deactive() override;
 };
 }  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule
-
-#endif  // GPGFRONTEND_MODULE_VERSIONCHECKINGMODULE_H

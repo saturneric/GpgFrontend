@@ -31,6 +31,7 @@
 #include <QMetaType>
 #include <QtNetwork>
 #include <memory>
+#include <nlohmann/json.hpp>
 
 #include "GpgFrontendBuildInfo.h"
 

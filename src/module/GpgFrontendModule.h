@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDMODULE_H
-#define GPGFRONTEND_GPGFRONTENDMODULE_H
+#pragma once
 
 /**
  * Project internal dependencies
@@ -35,5 +34,3 @@
 #include "GpgFrontend.h"
 #include "GpgFrontendModuleExport.h"
 #include "core/GpgFrontendCore.h"
-
-#endif  // GPGFRONTEND_GPGFRONTENDMODULE_H

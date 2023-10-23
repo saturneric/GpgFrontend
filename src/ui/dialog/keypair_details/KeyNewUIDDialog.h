@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYNEWUIDDIALOG_H
-#define GPGFRONTEND_KEYNEWUIDDIALOG_H
+#pragma once
 
 #include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
@@ -86,5 +85,3 @@ class KeyNewUIDDialog : public GeneralDialog {
   bool check_email_address(const QString& str);
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYNEWUIDDIALOG_H

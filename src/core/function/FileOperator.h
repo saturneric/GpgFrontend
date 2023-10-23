@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_FILEOPERATOR_H
-#define GPGFRONTEND_FILEOPERATOR_H
+#pragma once
 
 #include "core/GpgFrontendCore.h"
 
@@ -88,5 +87,3 @@ class GPGFRONTEND_CORE_EXPORT FileOperator {
   static std::string CalculateHash(const std::filesystem::path &file_path);
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_FILEOPERATOR_H

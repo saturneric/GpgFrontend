@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_SETTINGSNETWORK_H
-#define GPGFRONTEND_SETTINGSNETWORK_H
+#pragma once
 
 #include <QtNetwork>
 
@@ -92,5 +91,3 @@ class NetworkTab : public QWidget {
   void switch_ui_proxy_type(const QString& type_text);
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_SETTINGSNETWORK_H

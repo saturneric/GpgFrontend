@@ -28,7 +28,7 @@
 
 #include "SignalStation.h"
 
-#include "UserInterfaceUtils.h"
+#include "ui/UserInterfaceUtils.h"
 
 namespace GpgFrontend::UI {
 

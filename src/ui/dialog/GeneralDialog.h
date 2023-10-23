@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GENERALDIALOG_H
-#define GPGFRONTEND_GENERALDIALOG_H
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 
@@ -94,5 +93,3 @@ class GeneralDialog : public QDialog {
   bool rect_restored_ = false;
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_GENERALDIALOG_H

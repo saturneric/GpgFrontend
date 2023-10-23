@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __EDITORPAGE_H__
-#define __EDITORPAGE_H__
+#pragma once
 
 #include <string>
 
@@ -124,13 +123,13 @@ class PlainTextEditorPage : public QWidget {
   std::shared_ptr<Ui_PlainTextEditor> ui_;  ///<
   QString full_file_path_;  ///< The path to the file handled in the tab
   bool sign_marked_{};  ///< true, if the signed header is marked, false if not
-  bool read_done_ = false;      ///<
-  bool binary_mode_ = false;    ///<
-  size_t read_bytes_ = 0;       ///<
-  std::string charset_name_;    ///<
-  std::string language_name_;   ///<
+  bool read_done_ = false;        ///<
+  bool binary_mode_ = false;      ///<
+  size_t read_bytes_ = 0;         ///<
+  std::string charset_name_;      ///<
+  std::string language_name_;     ///<
   int32_t charset_confidence_{};  ///<
-  bool is_crlf_ = false;        ///<
+  bool is_crlf_ = false;          ///<
 
   /**
    * @brief
@@ -162,5 +161,3 @@ class PlainTextEditorPage : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __EDITORPAGE_H__

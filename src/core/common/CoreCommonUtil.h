@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_CORECOMMONUTIL_H
-#define GPGFRONTEND_CORECOMMONUTIL_H
+#pragma once
 
 #include <string>
 
@@ -85,5 +84,3 @@ class GPGFRONTEND_CORE_EXPORT CoreCommonUtil : public QObject {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_CORECOMMONUTIL_H

@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_TASKRUNNERGETTER_H
-#define GPGFRONTEND_TASKRUNNERGETTER_H
+#pragma once
 
 #include "core/GpgFrontendCore.h"
 #include "core/GpgFunctionObject.h"
@@ -56,5 +55,3 @@ class GPGFRONTEND_CORE_EXPORT TaskRunnerGetter
 };
 
 }  // namespace GpgFrontend::Thread
-
-#endif  // GPGFRONTEND_TASKRUNNERGETTER_H

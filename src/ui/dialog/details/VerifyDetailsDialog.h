@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __VERIFYDETAILSDIALOG_H__
-#define __VERIFYDETAILSDIALOG_H__
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/PlainTextEditorPage.h"
@@ -70,5 +69,3 @@ class VerifyDetailsDialog : public QDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __VERIFYDETAILSDIALOG_H__

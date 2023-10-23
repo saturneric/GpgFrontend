@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_FILEPAGE_H
-#define GPGFRONTEND_FILEPAGE_H
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/InfoBoardWidget.h"
@@ -189,5 +188,3 @@ class FilePage : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_FILEPAGE_H

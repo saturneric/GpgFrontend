@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef FINDWIDGET_H
-#define FINDWIDGET_H
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/PlainTextEditorPage.h"
@@ -95,5 +94,3 @@ class FindWidget : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // FINDWIDGET_H

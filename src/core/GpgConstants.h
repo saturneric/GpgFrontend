@@ -26,10 +26,9 @@
  *
  */
 
-#ifndef GPG_CONSTANTS_H
-#define GPG_CONSTANTS_H
+#pragma once
 
-#include <memory>
+#include <gpgme.h>
 
 #include "GpgFrontendCore.h"
 
@@ -217,5 +216,3 @@ class GPGFRONTEND_CORE_EXPORT GpgConstants {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPG_CONSTANTS_H

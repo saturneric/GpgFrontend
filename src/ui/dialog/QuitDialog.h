@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __QUITDIALOG_H__
-#define __QUITDIALOG_H__
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
@@ -79,5 +78,3 @@ class QuitDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __QUITDIALOG_H__

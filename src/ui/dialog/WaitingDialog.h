@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __UI_WAITING_DIALOG_H__
-#define __UI_WAITING_DIALOG_H__
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
@@ -51,5 +50,3 @@ class WaitingDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __UI_WAITING_DIALOG_H__

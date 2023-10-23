@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_SETTINGSGENERAL_H
-#define GPGFRONTEND_SETTINGSGENERAL_H
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 
@@ -101,5 +100,3 @@ class GeneralTab : public QWidget {
 #endif
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_SETTINGSGENERAL_H

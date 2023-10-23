@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGUID_H
-#define GPGFRONTEND_GPGUID_H
+#pragma once
 
 #include "GpgKeySignature.h"
 #include "GpgTOFUInfo.h"
@@ -148,5 +147,3 @@ class GPGFRONTEND_CORE_EXPORT GpgUID {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGUID_H

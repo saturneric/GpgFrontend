@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYPACKAGEOPERATOR_H
-#define GPGFRONTEND_KEYPACKAGEOPERATOR_H
+#pragma once
 
 #include "core/GpgFrontendCore.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
@@ -93,15 +92,6 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    *
    * @return std::string key package name
    */
-  static std::string generate_key_package_name() {
-    std::random_device rd_;          ///< Random device
-    auto mt_ = std::mt19937(rd_());  ///< Mersenne twister
-
-    std::uniform_int_distribution<int> dist(999, 99999);
-    auto file_string = boost::format("KeyPackage_%1%") % dist(mt_);
-    return file_string.str();
-  }
+  static std::string generate_key_package_name();
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_KEYPACKAGEOPERATOR_H

@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_EXPORTKEYPACKAGEDIALOG_H
-#define GPGFRONTEND_EXPORTKEYPACKAGEDIALOG_H
+#pragma once
 
 #include "GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
@@ -58,5 +57,3 @@ class ExportKeyPackageDialog : public GeneralDialog {
   std::string passphrase_;                         ///<
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_EXPORTKEYPACKAGEDIALOG_H

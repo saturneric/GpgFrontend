@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
-#define GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
+#pragma once
 
 #include "core/GpgContext.h"
 #include "core/model/GpgKey.h"
@@ -95,5 +94,3 @@ class KeySetExpireDateDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H

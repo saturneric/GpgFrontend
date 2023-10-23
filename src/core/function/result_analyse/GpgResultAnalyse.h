@@ -25,8 +25,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
-#ifndef GPGFRONTEND_GPGRESULTANALYSE_H
-#define GPGFRONTEND_GPGRESULTANALYSE_H
+#pragma once
 
 #include <sstream>
 #include <string>
@@ -82,5 +81,3 @@ class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGRESULTANALYSE_H

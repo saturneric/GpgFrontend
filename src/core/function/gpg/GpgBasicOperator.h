@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_BASICOPERATOR_H
-#define GPGFRONTEND_ZH_CN_TS_BASICOPERATOR_H
+#pragma once
 
 #include "core/GpgConstants.h"
 #include "core/GpgContext.h"
@@ -175,5 +174,3 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
       SingletonFunctionObject::GetChannel());  ///< Corresponding context
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ZH_CN_TS_BASICOPERATOR_H

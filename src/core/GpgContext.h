@@ -26,11 +26,11 @@
  *
  */
 
-#ifndef __SGPGMEPP_CONTEXT_H__
-#define __SGPGMEPP_CONTEXT_H__
+#pragma once
 
+#include <mutex>
 #include <optional>
-#include <string>
+#include <shared_mutex>
 
 #include "GpgFunctionObject.h"
 #include "GpgInfo.h"
@@ -206,5 +206,3 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
   void SetPassphraseCb(gpgme_passphrase_cb_t func) const;
 };
 }  // namespace GpgFrontend
-
-#endif  // __SGPGMEPP_CONTEXT_H__

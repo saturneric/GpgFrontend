@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGKEY_H
-#define GPGFRONTEND_GPGKEY_H
+#pragma once
 
 #include <mutex>
 
@@ -367,5 +366,3 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGKEY_H

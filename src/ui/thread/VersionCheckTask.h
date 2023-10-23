@@ -26,9 +26,9 @@
  *
  */
 
-#ifndef GPGFRONTEND_VERSIONCHECKTHREAD_H
-#define GPGFRONTEND_VERSIONCHECKTHREAD_H
+#pragma once
 
+#include <qnetworkaccessmanager.h>
 #include <qnetworkreply.h>
 
 #include <memory>
@@ -37,9 +37,6 @@
 #include "core/thread/Task.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/struct/SoftwareVersion.h"
-
-class QNetworkAccessManager;
-class QNetworkReply;
 
 namespace GpgFrontend::UI {
 
@@ -99,5 +96,3 @@ class VersionCheckTask : public Thread::Task {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_VERSIONCHECKTHREAD_H

@@ -27,3 +27,25 @@
  */
 
 #include "PassphraseGenerator.h"
+
+#include <boost/format.hpp>
+
+namespace GpgFrontend {
+
+std::string PassphraseGenerator::Generate(int len) {
+  std::uniform_int_distribution<int> dist(999, 99999);
+
+  auto file_string = boost::format("KeyPackage_%1%") % dist(mt_);
+  static const char alphanum[] =
+      "0123456789"
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "abcdefghijklmnopqrstuvwxyz";
+  std::string tmp_str;
+  tmp_str.reserve(len);
+
+  for (int i = 0; i < len; ++i) {
+    tmp_str += alphanum[dist(mt_) % (sizeof(alphanum) - 1)];
+  }
+  return tmp_str;
+}
+}  // namespace GpgFrontend

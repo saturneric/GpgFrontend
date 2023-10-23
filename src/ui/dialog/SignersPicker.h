@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
-#define GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
+#pragma once
 
 #include "GpgFrontendUI.h"
 #include "ui/dialog//GeneralDialog.h"
@@ -70,5 +69,3 @@ class SignersPicker : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H

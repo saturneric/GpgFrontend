@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __KEYGENDIALOG_H__
-#define __KEYGENDIALOG_H__
+#pragma once
 
 #include "core/GpgContext.h"
 #include "core/GpgGenKeyInfo.h"
@@ -184,5 +183,3 @@ class KeyGenDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __KEYGENDIALOG_H__

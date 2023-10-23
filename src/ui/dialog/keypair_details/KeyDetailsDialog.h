@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __KEYDETAILSDIALOG_H__
-#define __KEYDETAILSDIALOG_H__
+#pragma once
 
 #include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
@@ -45,5 +44,3 @@ class KeyDetailsDialog : public GeneralDialog {
   QTabWidget* tab_widget_{};
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // __KEYDETAILSDIALOG_H__

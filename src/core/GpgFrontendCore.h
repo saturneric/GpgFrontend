@@ -26,50 +26,23 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDCORE_H
-#define GPGFRONTEND_GPGFRONTENDCORE_H
+#pragma once
 
-#include "GpgFrontend.h"
-
-// gnupg
-#include <gpgme.h>
-
-// std includes
-#include <any>
-#include <cassert>
+// std
 #include <filesystem>
-#include <functional>
-#include <map>
 #include <memory>
-#include <mutex>
-#include <random>
-#include <set>
-#include <shared_mutex>
-#include <stdexcept>
 #include <string>
-#include <typeinfo>
-#include <utility>
 #include <vector>
 
-// boost includes
-#include <boost/date_time.hpp>
-#include <boost/date_time/posix_time/conversion.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/format.hpp>
-
-// Qt includes
+// Qt
 #include <QtCore>
 
-// libconfig includes
-#include <libconfig.h++>
+// spdlog library configuration
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#include <spdlog/spdlog.h>
 
-// json includes
-#include <nlohmann/json.hpp>
+// logbal includes or macroes
+#include "GpgFrontend.h"
 
-// dll export macro
+// dll export macroes
 #include "GpgFrontendCoreExport.h"
-
-#endif  // GPGFRONTEND_GPGFRONTENDCORE_H

@@ -26,10 +26,10 @@
  *
  */
 
-#ifndef GPGFRONTEND_GNUPGCONTROLLERDIALOGLOG_H
-#define GPGFRONTEND_GNUPGCONTROLLERDIALOGLOG_H
+#pragma once
 
 #include <string>
+
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
@@ -105,5 +105,3 @@ class GnuPGControllerDialog : public GeneralDialog {
   bool check_custom_gnupg_key_database_path(std::string);
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_GNUPGCONTROLLERDIALOGLOG_H

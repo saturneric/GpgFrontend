@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYPAIROPERATAB_H
-#define GPGFRONTEND_KEYPAIROPERATAB_H
+#pragma once
 
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "ui/GpgFrontendUI.h"
@@ -124,5 +123,3 @@ class KeyPairOperaTab : public QWidget {
   QMenu* secret_key_export_opera_menu_{};  ///<
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYPAIROPERATAB_H

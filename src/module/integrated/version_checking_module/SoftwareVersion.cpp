@@ -28,6 +28,9 @@
 
 #include "SoftwareVersion.h"
 
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+
 namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
 int VersionCheckingModule::SoftwareVersion::version_compare(

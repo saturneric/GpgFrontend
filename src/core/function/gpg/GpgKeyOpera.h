@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef _GPGKEYOPERA_H
-#define _GPGKEYOPERA_H
+#pragma once
 
 #include "core/GpgConstants.h"
 #include "core/GpgContext.h"
@@ -131,5 +130,3 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
 };
 }  // namespace GpgFrontend
-
-#endif  // _GPGKEYOPERA_H

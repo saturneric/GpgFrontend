@@ -26,10 +26,10 @@
  *
  */
 
-#ifndef GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
-#define GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
+#pragma once
 
 #include "GpgFrontendUI.h"
+#include "core/thread/ThreadingModel.h"
 
 class QNetworkAccessManager;
 class QNetworkReply;
@@ -87,5 +87,3 @@ class ListedKeyServerTestTask : public Thread::Task {
 }  // namespace GpgFrontend::UI
 
 class TestListedKeyServerThread {};
-
-#endif  // GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H

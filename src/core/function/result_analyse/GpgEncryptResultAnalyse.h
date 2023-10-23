@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGENCRYPTRESULTANALYSE_H
-#define GPGFRONTEND_GPGENCRYPTRESULTANALYSE_H
+#pragma once
 
 #include "GpgResultAnalyse.h"
 #include "core/GpgConstants.h"
@@ -60,5 +59,3 @@ class GPGFRONTEND_CORE_EXPORT GpgEncryptResultAnalyse
   GpgEncrResult result_;  ///<
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGENCRYPTRESULTANALYSE_H

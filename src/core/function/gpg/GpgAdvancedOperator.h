@@ -30,8 +30,7 @@
 // Created by eric on 07.01.2023.
 //
 
-#ifndef GPGFRONTEND_GPGADVANCEDOPERATOR_H
-#define GPGFRONTEND_GPGADVANCEDOPERATOR_H
+#pragma once
 
 #include "core/GpgConstants.h"
 #include "core/GpgContext.h"
@@ -112,5 +111,3 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGADVANCEDOPERATOR_H

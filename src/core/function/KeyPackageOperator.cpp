@@ -28,11 +28,15 @@
 
 #include "KeyPackageOperator.h"
 
-#include "FileOperator.h"
-#include "function/PassphraseGenerator.h"
-#include "function/gpg/GpgKeyGetter.h"
-#include "function/gpg/GpgKeyImportExporter.h"
-#include "qt-aes/qaesencryption.h"
+#include <qt-aes/qaesencryption.h>
+
+#include <boost/format.hpp>
+
+#include "core/function/FileOperator.h"
+#include "core/function/KeyPackageOperator.h"
+#include "core/function/PassphraseGenerator.h"
+#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
 
 namespace GpgFrontend {
 
@@ -114,6 +118,20 @@ bool KeyPackageOperator::ImportKeyPackage(
 
 std::string KeyPackageOperator::GenerateKeyPackageName() {
   return generate_key_package_name();
+}
+
+/**
+ * @brief generate key package name
+ *
+ * @return std::string key package name
+ */
+std::string KeyPackageOperator::generate_key_package_name() {
+  std::random_device rd_;          ///< Random device
+  auto mt_ = std::mt19937(rd_());  ///< Mersenne twister
+
+  std::uniform_int_distribution<int> dist(999, 99999);
+  auto file_string = boost::format("KeyPackage_%1%") % dist(mt_);
+  return file_string.str();
 }
 
 }  // namespace GpgFrontend

@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_SOFTWAREVERSION_H
-#define GPGFRONTEND_SOFTWAREVERSION_H
+#pragma once
 
 #include <boost/date_time.hpp>
 
@@ -84,5 +83,3 @@ struct SoftwareVersion {
   static int version_compare(const std::string& a, const std::string& b);
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_SOFTWAREVERSION_H

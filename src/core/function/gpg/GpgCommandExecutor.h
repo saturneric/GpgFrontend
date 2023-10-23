@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
-#define GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
+#pragma once
 
 #include <initializer_list>
 #ifndef WINDOWS
@@ -98,5 +97,3 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H

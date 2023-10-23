@@ -26,26 +26,18 @@
  *
  */
 
-#ifndef GPGFRONTEND_H_IN
-#define GPGFRONTEND_H_IN
-
-// standard headers
-#include <cstdint>
-#include <optional>
-#include <filesystem>
+#pragma once
 
 #ifdef WINDOWS
-#include <winsock2.h>
 #include <windows.h>
+#include <winsock2.h>
 #endif
-
 
 // i18n support
 #include <libintl.h>
-#define _(String) gettext (String)
+#define _(String) gettext(String)
 #define gettext_noop(String) String
-#define N_(String) gettext_noop (String)
-
+#define N_(String) gettext_noop(String)
 
 // fix macro bugs in mingw
 #ifdef WINDOWS
@@ -55,16 +47,10 @@
 #undef snprintf
 #endif
 
-
-// logging system
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
-#include <spdlog/spdlog.h>
-
 // build info
 #define PROJECT_NAME "@CMAKE_PROJECT_NAME@"
-#define OS_PLATFORM @OS_PLATFORM@
+#define OS_PLATFORM @OS_PLATFORM @
 #define LOCALE_DIR "@LOCALE_DIR@"
-
 
 // macros to find resource files
 #if defined(MACOS) && defined(RELEASE)
@@ -77,5 +63,3 @@
 #define RESOURCE_DIR(appDir) (appDir)
 #define RESOURCE_DIR_BOOST_PATH(appDir) (appDir)
 #endif
-
-#endif // GPGFRONTEND_H_IN

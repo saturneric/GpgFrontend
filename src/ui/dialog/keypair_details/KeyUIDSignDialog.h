@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYUIDSIGNDIALOG_H
-#define GPGFRONTEND_KEYUIDSIGNDIALOG_H
+#pragma once
 
 #include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
@@ -76,5 +75,3 @@ class KeyUIDSignDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYUIDSIGNDIALOG_H

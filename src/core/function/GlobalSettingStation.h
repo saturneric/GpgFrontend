@@ -26,8 +26,9 @@
  *
  */
 
-#ifndef GPGFRONTEND_GLOBALSETTINGSTATION_H
-#define GPGFRONTEND_GLOBALSETTINGSTATION_H
+#pragma once
+
+#include <libconfig.h++>
 
 #include "core/GpgFunctionObject.h"
 
@@ -156,5 +157,3 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
   std::unique_ptr<Impl> p_;
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GLOBALSETTINGSTATION_H

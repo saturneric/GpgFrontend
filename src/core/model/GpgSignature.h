@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGSIGNATURE_H
-#define GPGFRONTEND_GPGSIGNATURE_H
+#pragma once
 
 #include <boost/date_time/gregorian/greg_date.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
@@ -151,5 +150,3 @@ class GPGFRONTEND_CORE_EXPORT GpgSignature {
   KeySignatrueRefHandler signature_ref_ = nullptr;  ///<
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGSIGNATURE_H

@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_SETTINGSKEYSERVER_H
-#define GPGFRONTEND_SETTINGSKEYSERVER_H
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 
@@ -107,5 +106,3 @@ class KeyserverTab : public QWidget {
   void contextMenuEvent(QContextMenuEvent* event) override;
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_SETTINGSKEYSERVER_H

@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_VERSIONCHECKTHREAD_H
-#define GPGFRONTEND_VERSIONCHECKTHREAD_H
+#pragma once
 
 #include <module/sdk/GpgFrontendModuleSDK.h>
 
@@ -94,5 +93,3 @@ class VersionCheckTask : public Thread::Task {
 
 }  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule
    // GpgFrontend::Module::Custom::IntegradedModule::VersionCheckingModule
-
-#endif  // GPGFRONTEND_VERSIONCHECKTHREAD_H

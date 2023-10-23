@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __KEY_SERVER_IMPORT_DIALOG_H__
-#define __KEY_SERVER_IMPORT_DIALOG_H__
+#pragma once
 
 #include <QtNetwork>
 #include <string>
@@ -179,5 +178,3 @@ class KeyServerImportDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __KEY_SERVER_IMPORT_DIALOG_H__

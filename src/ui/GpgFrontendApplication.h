@@ -28,8 +28,7 @@
 
 #include "ui/GpgFrontendUI.h"
 
-#ifndef GPGFRONTEND_GPGFRONTENDAPPLICATION_H
-#define GPGFRONTEND_GPGFRONTENDAPPLICATION_H
+#pragma once
 
 namespace GpgFrontend::UI {
 
@@ -70,5 +69,3 @@ class GPGFRONTEND_UI_EXPORT GpgFrontendApplication : public QApplication {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_GPGFRONTENDAPPLICATION_H

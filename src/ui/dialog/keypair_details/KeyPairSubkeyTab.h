@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYPAIRSUBKEYTAB_H
-#define GPGFRONTEND_KEYPAIRSUBKEYTAB_H
+#pragma once
 
 #include "KeySetExpireDateDialog.h"
 #include "core/GpgContext.h"
@@ -135,5 +134,3 @@ class KeyPairSubkeyTab : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYPAIRSUBKEYTAB_H

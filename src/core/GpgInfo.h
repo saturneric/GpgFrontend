@@ -26,11 +26,9 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGINFO_H
-#define GPGFRONTEND_ZH_CN_TS_GPGINFO_H
+#pragma once
 
-#include <mutex>
-#include <string>
+#include <shared_mutex>
 
 namespace GpgFrontend {
 /**
@@ -61,5 +59,3 @@ class GpgInfo {
   std::shared_mutex Lock;
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGINFO_H

@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_PASSPHRASEGENERATOR_H
-#define GPGFRONTEND_PASSPHRASEGENERATOR_H
+#pragma once
 
 #include "core/GpgFrontendCore.h"
 #include "core/GpgFunctionObject.h"
@@ -57,27 +56,10 @@ class GPGFRONTEND_CORE_EXPORT PassphraseGenerator
    * @param len length of the passphrase
    * @return std::string passphrase
    */
-  std::string Generate(int len) {
-    std::uniform_int_distribution<int> dist(999, 99999);
-
-    auto file_string = boost::format("KeyPackage_%1%") % dist(mt_);
-    static const char alphanum[] =
-        "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
-    std::string tmp_str;
-    tmp_str.reserve(len);
-
-    for (int i = 0; i < len; ++i) {
-      tmp_str += alphanum[dist(mt_) % (sizeof(alphanum) - 1)];
-    }
-    return tmp_str;
-  }
+  std::string Generate(int len);
 
   std::random_device rd_;                  ///< Random device
   std::mt19937 mt_ = std::mt19937(rd_());  ///< Mersenne twister
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_PASSPHRASEGENERATOR_H

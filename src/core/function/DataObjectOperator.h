@@ -26,8 +26,11 @@
  *
  */
 
-#ifndef GPGFRONTEND_DATAOBJECTOPERATOR_H
-#define GPGFRONTEND_DATAOBJECTOPERATOR_H
+#pragma once
+
+#include <boost/format.hpp>
+#include <nlohmann/json.hpp>
+#include <optional>
 
 #include "core/GpgFunctionObject.h"
 #include "core/function/GlobalSettingStation.h"
@@ -76,5 +79,3 @@ class GPGFRONTEND_CORE_EXPORT DataObjectOperator
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_DATAOBJECTOPERATOR_H

@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __VERIFYNOTIFICATION_H__
-#define __VERIFYNOTIFICATION_H__
+#pragma once
 
 #include "PlainTextEditorPage.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
@@ -144,5 +143,3 @@ class InfoBoardWidget : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __VERIFYNOTIFICATION_H__

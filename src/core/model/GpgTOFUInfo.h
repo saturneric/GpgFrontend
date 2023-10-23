@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGTOFU_H
-#define GPGFRONTEND_GPGTOFU_H
+#pragma once
 
 #include "core/GpgConstants.h"
 
@@ -143,5 +142,3 @@ class GPGFRONTEND_CORE_EXPORT GpgTOFUInfo {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGTOFU_H

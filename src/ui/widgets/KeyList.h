@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __KEYLIST_H__
-#define __KEYLIST_H__
+#pragma once
 
 #include <string>
 #include <utility>
@@ -414,5 +413,3 @@ class KeyList : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __KEYLIST_H__

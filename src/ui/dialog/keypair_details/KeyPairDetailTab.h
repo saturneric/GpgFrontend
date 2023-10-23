@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYPAIRDETAILTAB_H
-#define GPGFRONTEND_KEYPAIRDETAILTAB_H
+#pragma once
 
 #include "KeySetExpireDateDialog.h"
 #include "core/GpgContext.h"
@@ -98,5 +97,3 @@ class KeyPairDetailTab : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYPAIRDETAILTAB_H

@@ -34,6 +34,8 @@
 #include "SettingsDialog.h"
 #endif
 
+#include <boost/format.hpp>
+
 #include "core/function/GlobalSettingStation.h"
 #include "ui_GeneralSettings.h"
 

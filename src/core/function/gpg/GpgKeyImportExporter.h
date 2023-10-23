@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef _GPGKEYIMPORTEXPORTOR_H
-#define _GPGKEYIMPORTEXPORTOR_H
+#pragma once
 
 #include <string>
 
@@ -188,5 +187,3 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
 };
 
 }  // namespace GpgFrontend
-
-#endif  // _GPGKEYIMPORTEXPORTOR_H

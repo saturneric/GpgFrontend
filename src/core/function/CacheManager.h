@@ -26,9 +26,11 @@
  *
  */
 
-#ifndef GPGFRONTEND_CACHEMANAGER_H
-#define GPGFRONTEND_CACHEMANAGER_H
+#pragma once
 
+#include <nlohmann/json.hpp>
+#include <optional>
+#include <shared_mutex>
 #include <string>
 
 #include "core/GpgFunctionObject.h"
@@ -109,5 +111,3 @@ class GPGFRONTEND_CORE_EXPORT CacheManager
 };
 
 }  // namespace GpgFrontend
-
-#endif

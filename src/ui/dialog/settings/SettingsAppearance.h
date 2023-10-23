@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_SETTINGSAPPEARANCE_H
-#define GPGFRONTEND_SETTINGSAPPEARANCE_H
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 
@@ -61,7 +60,7 @@ class AppearanceTab : public QWidget {
  private:
   std::shared_ptr<Ui_AppearanceSettings> ui_;  ///<
 
-  QButtonGroup* icon_style_group_;       ///<
+  QButtonGroup* icon_style_group_;  ///<
   QButtonGroup* icon_size_group_;
 
  signals:
@@ -75,5 +74,3 @@ class AppearanceTab : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_SETTINGSAPPEARANCE_H

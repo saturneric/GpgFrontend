@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef __GPGWIN_H__
-#define __GPGWIN_H__
+#pragma once
 
 #include "KeyMgmt.h"
 #include "core/GpgConstants.h"
@@ -490,5 +489,3 @@ class MainWindow : public GeneralMainWindow {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __GPGWIN_H__

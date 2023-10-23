@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_SIGNALSTATION_H
-#define GPGFRONTEND_SIGNALSTATION_H
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/InfoBoardWidget.h"
@@ -106,5 +105,3 @@ class SignalStation : public QObject {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_SIGNALSTATION_H

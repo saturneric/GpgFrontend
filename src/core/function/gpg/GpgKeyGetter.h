@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGKEYGETTER_H
-#define GPGFRONTEND_ZH_CN_TS_GPGKEYGETTER_H
+#pragma once
 
 #include <mutex>
 #include <vector>
@@ -141,5 +140,3 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
   GpgKey get_key_in_cache(const std::string& id);
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGKEYGETTER_H

@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_TASKRUNNER_H
-#define GPGFRONTEND_TASKRUNNER_H
+#pragma once
 
 #include <vector>
 
@@ -87,5 +86,3 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
   std::unique_ptr<Impl> p_;
 };
 }  // namespace GpgFrontend::Thread
-
-#endif  // GPGFRONTEND_TASKRUNNER_H

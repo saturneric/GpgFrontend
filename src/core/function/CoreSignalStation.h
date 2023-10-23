@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_CORESIGNALSTATION_H
-#define GPGFRONTEND_CORESIGNALSTATION_H
+#pragma once
 
 #include "core/GpgFrontendCore.h"
 
@@ -65,5 +64,3 @@ class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_CORESIGNALSTATION_H

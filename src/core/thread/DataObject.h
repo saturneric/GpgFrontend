@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include <stack>
+#include <any>
 
 #include "core/GpgFrontendCoreExport.h"
 

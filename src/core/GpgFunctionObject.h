@@ -26,8 +26,9 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
-#define GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H
+#pragma once
+
+#include <shared_mutex>
 
 #include "core/GpgFrontendCore.h"
 
@@ -305,5 +306,3 @@ class SingletonFunctionObject : public ChannelObject {
   virtual ~SingletonFunctionObject() = default;
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ZH_CN_TS_FUNCTIONOBJECT_H

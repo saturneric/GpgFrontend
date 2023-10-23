@@ -28,6 +28,9 @@
 
 #pragma once
 
+#include <any>
+#include <optional>
+
 #include "core/GpgFrontendCore.h"
 
 namespace GpgFrontend::Module {

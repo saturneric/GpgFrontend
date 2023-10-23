@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYUPLOADWIDGET_H
-#define GPGFRONTEND_KEYUPLOADWIDGET_H
+#pragma once
 
 #include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
@@ -79,5 +78,3 @@ class KeyUploadDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYUPLOADWIDGET_H

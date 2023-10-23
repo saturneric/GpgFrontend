@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDUIINIT_H
-#define GPGFRONTEND_GPGFRONTENDUIINIT_H
+#pragma once
 
 #include "GpgFrontendUI.h"
 
@@ -40,14 +39,14 @@ namespace GpgFrontend::UI {
 void GPGFRONTEND_UI_EXPORT InitGpgFrontendUI(QApplication *);
 
 /**
- * @brief 
- * 
+ * @brief
+ *
  */
 void GPGFRONTEND_UI_EXPORT InitUILoggingSystem();
 
 /**
- * @brief 
- * 
+ * @brief
+ *
  */
 void GPGFRONTEND_UI_EXPORT ShutdownUILoggingSystem();
 
@@ -57,5 +56,3 @@ void GPGFRONTEND_UI_EXPORT ShutdownUILoggingSystem();
 int GPGFRONTEND_UI_EXPORT RunGpgFrontendUI(QApplication *);
 
 };  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_GPGFRONTENDUIINIT_H

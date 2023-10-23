@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGSUBKEY_H
-#define GPGFRONTEND_GPGSUBKEY_H
+#pragma once
 
 #include <boost/date_time.hpp>
 #include <string>
@@ -223,5 +222,3 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGSUBKEY_H

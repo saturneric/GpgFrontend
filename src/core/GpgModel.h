@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
-#define GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
+#pragma once
 
 #include "core/GpgConstants.h"
 #include "core/model/GpgData.h"
@@ -53,5 +52,3 @@ using KeyPtr = std::unique_ptr<GpgKey>;                                   ///<
 using KeyPtrArgsList = const std::initializer_list<KeyPtr>;               ///<
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGMODEL_H

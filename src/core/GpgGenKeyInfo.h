@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGGENKEYINFO_H
-#define GPGFRONTEND_GPGGENKEYINFO_H
+#pragma once
 
 #include <boost/date_time.hpp>
 #include <boost/date_time/gregorian/greg_duration_types.hpp>
@@ -433,5 +432,3 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGGENKEYINFO_H

@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_SETTINGSADVANCED_H
-#define GPGFRONTEND_SETTINGSADVANCED_H
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 
@@ -51,5 +50,3 @@ class AdvancedTab : public QWidget {
   void SignalRestartNeeded(bool needed);
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_SETTINGSADVANCED_H

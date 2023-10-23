@@ -26,12 +26,12 @@
  *
  */
 
-#ifndef GPGFRONTEND_USER_INTERFACE_UTILS_H
-#define GPGFRONTEND_USER_INTERFACE_UTILS_H
+#pragma once
 
 #include "core/GpgModel.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgKey.h"
+#include "core/thread/ThreadingModel.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend {
@@ -292,5 +292,3 @@ class CommonUtils : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_USER_INTERFACE_UTILS_H

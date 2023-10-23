@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_CTXCHECKTRHEAD_H
-#define GPGFRONTEND_CTXCHECKTRHEAD_H
+#pragma once
 
 #include "core/GpgFrontendCore.h"
 #include "core/thread/Task.h"
@@ -61,5 +60,3 @@ class GPGFRONTEND_CORE_EXPORT CtxCheckTask : public Task {
   void Run() override;
 };
 }  // namespace GpgFrontend::Thread
-
-#endif  // GPGFRONTEND_CTXCHECKTRHEAD_H

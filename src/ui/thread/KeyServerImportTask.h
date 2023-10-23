@@ -26,12 +26,13 @@
  *
  */
 
-#ifndef GPGFRONTEND_KEYSERVERIMPORTTASK_H
-#define GPGFRONTEND_KEYSERVERIMPORTTASK_H
+#pragma once
 
-#include <QtNetwork>
+#include <qnetworkaccessmanager.h>
+#include <qnetworkreply.h>
 
 #include "GpgFrontendUI.h"
+#include "core/thread/ThreadingModel.h"
 
 namespace GpgFrontend::UI {
 class KeyServerImportTask : public Thread::Task {
@@ -80,5 +81,3 @@ class KeyServerImportTask : public Thread::Task {
   QNetworkReply *reply_;            ///<
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYSERVERIMPORTTASK_H

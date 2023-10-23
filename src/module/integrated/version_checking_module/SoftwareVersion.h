@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_MODULE_SOFTWAREVERSION_H
-#define GPGFRONTEND_MODULE_SOFTWAREVERSION_H
+#pragma once
 
 #include <module/sdk/GpgFrontendModuleSDK.h>
 
@@ -84,5 +83,3 @@ struct SoftwareVersion {
   static int version_compare(const std::string& a, const std::string& b);
 };
 }  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule
-
-#endif  // GPGFRONTEND_MODULE_SOFTWAREVERSION_H

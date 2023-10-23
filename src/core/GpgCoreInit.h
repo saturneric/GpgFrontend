@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGCOREINIT_H
-#define GPGFRONTEND_GPGCOREINIT_H
+#pragma once
 
 #include "GpgConstants.h"
 
@@ -72,5 +71,3 @@ void new_default_settings_channel(
     int channel = GpgFrontend::GPGFRONTEND_DEFAULT_CHANNEL);
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGCOREINIT_H

@@ -28,7 +28,7 @@
 
 #include "Module.h"
 
-#include <memory>
+#include <boost/format.hpp>
 
 #include "core/module/GlobalModuleContext.h"
 

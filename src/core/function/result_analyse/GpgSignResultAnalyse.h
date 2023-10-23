@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGSIGNRESULTANALYSE_H
-#define GPGFRONTEND_GPGSIGNRESULTANALYSE_H
+#pragma once
 
 #include "GpgResultAnalyse.h"
 
@@ -61,5 +60,3 @@ class GPGFRONTEND_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGSIGNRESULTANALYSE_H

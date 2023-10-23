@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_FILEREADTHREAD_H
-#define GPGFRONTEND_FILEREADTHREAD_H
+#pragma once
 
 #include "core/GpgFrontendCore.h"
 #include "core/thread/Task.h"
@@ -63,5 +62,3 @@ class GPGFRONTEND_CORE_EXPORT FileReadTask : public GpgFrontend::Thread::Task {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_FILEREADTHREAD_H

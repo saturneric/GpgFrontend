@@ -28,12 +28,10 @@
 
 #include "GlobalModuleContext.h"
 
-#include <boost/format/format_fwd.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
-#include <memory>
-#include <optional>
-#include <string>
+#include <boost/date_time.hpp>
+#include <boost/format.hpp>
+#include <boost/random.hpp>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -48,11 +46,11 @@ namespace GpgFrontend::Module {
 class GlobalModuleContext::Impl {
  public:
   Impl(TaskRunnerPtr task_runner)
-      : default_task_runner_(task_runner),
-        random_gen_(
+      : random_gen_(
             (boost::posix_time::microsec_clock::universal_time() -
              boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1)))
-                .total_milliseconds()) {
+                .total_milliseconds()),
+        default_task_runner_(task_runner) {
     // Initialize acquired channels with default values.
     acquired_channel_.insert(GPGFRONTEND_DEFAULT_CHANNEL);
     acquired_channel_.insert(GPGFRONTEND_NON_ASCII_CHANNEL);

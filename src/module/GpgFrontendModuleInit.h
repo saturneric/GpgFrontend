@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDMODULEINIT_H
-#define GPGFRONTEND_GPGFRONTENDMODULEINIT_H
+#pragma once
 
 #include "module/GpgFrontendModule.h"
 
@@ -46,5 +45,3 @@ void GPGFRONTEND_MODULE_EXPORT LoadGpgFrontendModules();
 void GPGFRONTEND_MODULE_EXPORT ShutdownGpgFrontendModules();
 
 };  // namespace GpgFrontend::Module
-
-#endif  // GPGFRONTEND_GPGFRONTENDMODULEINIT_H

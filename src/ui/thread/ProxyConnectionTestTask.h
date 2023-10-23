@@ -26,15 +26,10 @@
  *
  */
 
-#ifndef GPGFRONTEND_PROXYCONNECTIONTESTTHREAD_H
-#define GPGFRONTEND_PROXYCONNECTIONTESTTHREAD_H
-
-#include <qnetworkreply.h>
-class ProxyConnectionTestThread {};
-
-#include <utility>
+#pragma once
 
 #include "GpgFrontendUI.h"
+#include "core/thread/ThreadingModel.h"
 
 class QNetworkAccessManager;
 class QNetworkReply;
@@ -83,5 +78,3 @@ class ProxyConnectionTestTask : public Thread::Task {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_PROXYCONNECTIONTESTTHREAD_H

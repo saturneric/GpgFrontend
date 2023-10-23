@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef _GPGDATA_H
-#define _GPGDATA_H
+#pragma once
 
 #include "core/GpgConstants.h"
 
@@ -83,5 +82,3 @@ class GpgData {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // _GPGDATA_H

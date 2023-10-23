@@ -26,8 +26,7 @@
  *
  */
 
-#ifndef GPGFRONTEND_ARCHIVEFILEOPERATOR_H
-#define GPGFRONTEND_ARCHIVEFILEOPERATOR_H
+#pragma once
 
 #include "core/GpgFrontendCore.h"
 #include "core/function/FileOperator.h"
@@ -47,5 +46,3 @@ class GPGFRONTEND_CORE_EXPORT ArchiveFileOperator {
                              const std::filesystem::path &base_path);
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ARCHIVEFILEOPERATOR_H
