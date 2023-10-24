@@ -40,6 +40,7 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyManager.h"
+#include "core/module/ModuleManager.h"
 #include "core/thread/DataObject.h"
 #include "dialog/SignersPicker.h"
 #include "spdlog/spdlog.h"
@@ -815,22 +816,47 @@ void MainWindow::upload_key_to_server() {
 
 void MainWindow::SlotOpenFile(QString& path) { edit_->SlotOpenFile(path); }
 
-void MainWindow::slot_version_upgrade(const SoftwareVersion& version) {
-  if (!version.InfoValid()) {
-    SPDLOG_ERROR("invalid version info");
+void MainWindow::slot_version_upgrade() {
+  auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::GetRealModuleIdentifier(
+          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "version.loading_done", false);
+
+  if (!is_loading_done) {
+    SPDLOG_ERROR("invalid version info from rt");
     return;
   }
+
+  auto is_need_upgrade = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::GetRealModuleIdentifier(
+          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "version.need_upgrade", false);
+
+  auto is_current_a_withdrawn_version = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::GetRealModuleIdentifier(
+          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "version.current_a_withdrawn_version", false);
+
+  auto is_current_version_released = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::GetRealModuleIdentifier(
+          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "version.current_version_released", false);
+
+  auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::GetRealModuleIdentifier(
+          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "version.latest_version", std::string{});
 
   SPDLOG_DEBUG(
       "version info, need upgrade: {}, with drawn: {}, current version "
       "released: {}",
-      version.NeedUpgrade(), version.VersionWithDrawn(),
-      version.CurrentVersionReleased());
+      is_need_upgrade, is_current_a_withdrawn_version,
+      is_current_version_released);
 
-  if (version.NeedUpgrade()) {
+  if (is_need_upgrade) {
     statusBar()->showMessage(
         QString(_("GpgFrontend Upgradeable (New Version: %1)."))
-            .arg(version.latest_version.c_str()),
+            .arg(latest_version.c_str()),
         30000);
     auto update_button = new QPushButton("Update GpgFrontend", this);
     connect(update_button, &QPushButton::clicked, [=]() {
@@ -838,23 +864,23 @@ void MainWindow::slot_version_upgrade(const SoftwareVersion& version) {
       about_dialog->show();
     });
     statusBar()->addPermanentWidget(update_button, 0);
-  } else if (version.VersionWithDrawn()) {
+  } else if (is_current_a_withdrawn_version) {
     QMessageBox::warning(
         this, _("Withdrawn Version"),
         QString(
             _("This version(%1) may have been withdrawn by the developer due "
               "to serious problems. Please stop using this version "
               "immediately and use the latest stable version."))
-                .arg(version.current_version.c_str()) +
+                .arg(latest_version.c_str()) +
             "<br/>" +
             QString(_("You can download the latest stable version(%1) on "
                       "Github Releases "
                       "Page.<br/>"))
-                .arg(version.latest_version.c_str()));
-  } else if (!version.CurrentVersionReleased()) {
+                .arg(latest_version.c_str()));
+  } else if (!is_current_version_released) {
     statusBar()->showMessage(
         QString(_("This maybe a BETA Version (Latest Stable Version: %1)."))
-            .arg(version.latest_version.c_str()),
+            .arg(latest_version.c_str()),
         30000);
   }
 }

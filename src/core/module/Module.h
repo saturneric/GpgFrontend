@@ -29,7 +29,6 @@
 #pragma once
 
 #include "core/module/Event.h"
-#include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
 
 namespace GpgFrontend::Module {

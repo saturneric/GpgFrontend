@@ -29,16 +29,17 @@
 #pragma once
 
 #include <any>
+#include <functional>
 #include <optional>
-
-#include "core/GpgFrontendCore.h"
 
 namespace GpgFrontend::Module {
 
 using Namespace = std::string;
 using Key = std::string;
+using LPCallback = std::function<void(Namespace, Key, int)>;
 
-class GlobalRegisterTable {
+class GlobalRegisterTable : public QObject {
+  Q_OBJECT
  public:
   GlobalRegisterTable();
 
@@ -47,6 +48,11 @@ class GlobalRegisterTable {
   bool PublishKV(Namespace, Key, std::any);
 
   std::optional<std::any> LookupKV(Namespace, Key);
+
+  bool ListenPublish(QObject *, Namespace, Key, LPCallback);
+
+ signals:
+  void SignalPublish(Namespace, Key, int);
 
  private:
   class Impl;

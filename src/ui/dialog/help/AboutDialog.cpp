@@ -30,15 +30,14 @@
 
 #include <openssl/opensslv.h>
 
+#include <any>
 #include <string>
 
 #include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/Module.h"
 #include "core/module/ModuleManager.h"
-#include "core/thread/TaskRunnerGetter.h"
-#include "spdlog/spdlog.h"
 #include "ui/dialog/help/GnupgTab.h"
-#include "ui/thread/VersionCheckTask.h"
 
 namespace GpgFrontend::UI {
 
@@ -204,44 +203,57 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
   setLayout(layout);
 }
 
-void UpdateTab::slot_show_version_status() {
-  this->pb_->setHidden(true);
-  SPDLOG_DEBUG("loading version info from rt");
+void UpdateTab::showEvent(QShowEvent* event) {
+  QWidget::showEvent(event);
+  SPDLOG_DEBUG("loading version loading info from rt");
 
-  auto is_loading_done =
-      std::any_cast<bool>(Module::ModuleManager::GetInstance()->RetrieveRTValue(
-          "__module_com.bktus.gpgfrontend.module.integrated."
-          "versionchecking",
-          "version.loading_done"));
+  auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::GetRealModuleIdentifier(
+          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "version.loading_done", false);
 
   if (!is_loading_done) {
-    SPDLOG_DEBUG("version info loading havn't been done yet");
+    Module::TriggerEvent("CHECK_APPLICATION_VERSION");
+  } else {
+    slot_show_version_status();
+  }
+}
+
+void UpdateTab::slot_show_version_status() {
+  SPDLOG_DEBUG("loading version info from rt");
+
+  auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::GetRealModuleIdentifier(
+          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "version.loading_done", false);
+
+  if (!is_loading_done) {
+    SPDLOG_DEBUG("version info loading havn't been done yet.");
     this->pb_->setHidden(false);
+    return;
+  } else {
+    this->pb_->setHidden(true);
   }
 
-  auto is_need_upgrade =
-      std::any_cast<bool>(Module::ModuleManager::GetInstance()->RetrieveRTValue(
-          "__module_com.bktus.gpgfrontend.module.integrated."
-          "versionchecking",
-          "version.need_upgrade"));
+  auto is_need_upgrade = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::GetRealModuleIdentifier(
+          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "version.need_upgrade", false);
 
-  auto is_current_a_withdrawn_version =
-      std::any_cast<bool>(Module::ModuleManager::GetInstance()->RetrieveRTValue(
-          "__module_com.bktus.gpgfrontend.module.integrated."
-          "versionchecking",
-          "version.current_a_withdrawn_version"));
+  auto is_current_a_withdrawn_version = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::GetRealModuleIdentifier(
+          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "version.current_a_withdrawn_version", false);
 
-  auto is_current_version_released =
-      std::any_cast<bool>(Module::ModuleManager::GetInstance()->RetrieveRTValue(
-          "__module_com.bktus.gpgfrontend.module.integrated."
-          "versionchecking",
-          "version.current_version_released"));
+  auto is_current_version_released = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::GetRealModuleIdentifier(
+          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "version.current_version_released", false);
 
-  auto latest_version = std::any_cast<std::string>(
-      Module::ModuleManager::GetInstance()->RetrieveRTValue(
-          "__module_com.bktus.gpgfrontend.module.integrated."
-          "versionchecking",
-          "version.latest_version"));
+  auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::GetRealModuleIdentifier(
+          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "version.latest_version", std::string{});
 
   latest_version_label_->setText(
       "<center><b>" + QString(_("Latest Version From Github")) + ": " +

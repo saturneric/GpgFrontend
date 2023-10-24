@@ -270,6 +270,10 @@ class GlobalModuleContext::Impl {
     return true;
   }
 
+  bool IsModuleExists(ModuleIdentifier id) const {
+    return search_module_register_table(id).has_value();
+  }
+
  private:
   struct ModuleRegisterInfo {
     int channel;
@@ -305,15 +309,13 @@ class GlobalModuleContext::Impl {
 
   // Function to search for a module in the register table.
   std::optional<ModuleRegisterInfoPtr> search_module_register_table(
-      ModuleIdentifier identifier) {
+      ModuleIdentifier identifier) const {
     auto it = module_register_table_.find(identifier);
     if (it == module_register_table_.end()) {
       return std::nullopt;
     }
     return it->second;
   }
-
-  std::list<ModuleIdentifier>& search_module_events_table(ModuleIdentifier);
 };
 
 // Constructor for GlobalModuleContext, takes a TaskRunnerPtr as an argument.
@@ -366,6 +368,10 @@ int GlobalModuleContext::GetChannel(ModuleRawPtr module) {
 
 int GlobalModuleContext::GetDefaultChannel(ModuleRawPtr _) {
   return p_->GetDefaultChannel(_);
+}
+
+bool GlobalModuleContext::IsModuleExists(ModuleIdentifier id) {
+  return p_->IsModuleExists(id);
 }
 
 }  // namespace GpgFrontend::Module

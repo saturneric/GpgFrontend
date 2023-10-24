@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include <core/thread/Task.h>
 #include <module/sdk/GpgFrontendModuleSDK.h>
 
 #include "SoftwareVersion.h"

@@ -77,6 +77,8 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
 
   bool TriggerEvent(EventRefrernce);
 
+  bool IsModuleExists(ModuleIdentifier);
+
  private:
   class Impl;
   std::unique_ptr<Impl> p_;

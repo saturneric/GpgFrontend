@@ -38,7 +38,6 @@
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/struct/SettingsObject.h"
-#include "ui/thread/VersionCheckTask.h"
 #include "widgets/KeyList.h"
 
 namespace GpgFrontend::UI {

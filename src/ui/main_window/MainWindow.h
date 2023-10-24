@@ -314,7 +314,7 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details called when need to upgrade.
    */
-  void slot_version_upgrade(const SoftwareVersion& version);
+  void slot_version_upgrade();
 
   /**
    * @details

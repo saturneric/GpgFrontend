@@ -28,11 +28,12 @@
 
 #include "ModuleManager.h"
 
-#include <memory>
+#include <boost/format.hpp>
 
 #include "core/module/GlobalModuleContext.h"
 #include "core/module/GlobalRegisterTable.h"
 #include "core/module/Module.h"
+#include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
 
 namespace GpgFrontend::Module {
@@ -88,12 +89,22 @@ class ModuleManager::Impl {
     return grt_->LookupKV(n, k);
   }
 
+  bool ListenPublish(QObject* o, Namespace n, Key k, LPCallback c) {
+    return grt_->ListenPublish(o, n, k, c);
+  }
+
  private:
   static ModuleMangerPtr global_module_manager_;
   TaskRunnerPtr task_runner_;
   GMCPtr gmc_;
   GRTPtr grt_;
 };
+
+bool UpsertRTValueTyped(const std::string& namespace_, const std::string& key,
+                        const std::any& value) {
+  return ModuleManager::GetInstance()->UpsertRTValue(namespace_, key,
+                                                     std::any(value));
+}
 
 ModuleManager::ModuleManager() : p_(std::make_unique<Impl>()) {}
 
@@ -127,6 +138,17 @@ bool ModuleManager::UpsertRTValue(Namespace n, Key k, std::any v) {
 
 std::optional<std::any> ModuleManager::RetrieveRTValue(Namespace n, Key k) {
   return p_->RetrieveRTValue(n, k);
+}
+
+bool ModuleManager::ListenPublish(QObject* o, Namespace n, Key k,
+                                  LPCallback c) {
+  return p_->ListenPublish(o, n, k, c);
+}
+
+ModuleIdentifier GetRealModuleIdentifier(const ModuleIdentifier& id) {
+  // WARNING: when YOU need to CHANGE this line, YOU SHOULD change the same code
+  // in Module.cpp as well.
+  return (boost::format("__module_%1%") % id).str();
 }
 
 }  // namespace GpgFrontend::Module

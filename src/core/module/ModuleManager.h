@@ -50,6 +50,10 @@ using ModuleMangerPtr = std::shared_ptr<ModuleManager>;
 using GMCPtr = std::shared_ptr<GlobalModuleContext>;
 using Namespace = std::string;
 using Key = std::string;
+using LPCallback = std::function<void(Namespace, Key, int)>;
+
+ModuleIdentifier GPGFRONTEND_CORE_EXPORT
+GetRealModuleIdentifier(const ModuleIdentifier& id);
 
 class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
   Q_OBJECT
@@ -71,6 +75,8 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
   bool UpsertRTValue(Namespace, Key, std::any);
 
   std::optional<std::any> RetrieveRTValue(Namespace, Key);
+
+  bool ListenPublish(QObject*, Namespace, Key, LPCallback);
 
  private:
   class Impl;
@@ -98,6 +104,32 @@ template <typename... Args>
 void TriggerEvent(const EventIdentifier& event_id, Args&&... args) {
   ModuleManager::GetInstance()->TriggerEvent(
       std::move(MakeEvent(event_id, std::forward<Args>(args)...)));
+}
+
+bool GPGFRONTEND_CORE_EXPORT UpsertRTValueTyped(const std::string& namespace_,
+                                                const std::string& key,
+                                                const std::any& value);
+
+template <typename T>
+std::optional<T> RetrieveRTValueTyped(const std::string& namespace_,
+                                      const std::string& key) {
+  auto any_value =
+      ModuleManager::GetInstance()->RetrieveRTValue(namespace_, key);
+  if (any_value && any_value->type() == typeid(T)) {
+    return std::any_cast<T>(*any_value);
+  }
+  return std::nullopt;
+}
+
+template <typename T>
+T RetrieveRTValueTypedOrDefault(const std::string& namespace_,
+                                const std::string& key, const T& defaultValue) {
+  auto any_value =
+      ModuleManager::GetInstance()->RetrieveRTValue(namespace_, key);
+  if (any_value && any_value->type() == typeid(T)) {
+    return std::any_cast<T>(*any_value);
+  }
+  return defaultValue;
 }
 
 }  // namespace GpgFrontend::Module

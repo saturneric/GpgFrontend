@@ -28,10 +28,8 @@
 
 #pragma once
 
-#include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
-#include "ui/struct/SoftwareVersion.h"
 
 namespace GpgFrontend::UI {
 
@@ -87,6 +85,9 @@ class UpdateTab : public QWidget {
    * @param parent
    */
   explicit UpdateTab(QWidget* parent = nullptr);
+
+ protected:
+  void showEvent(QShowEvent* event) override;
 
  private slots:
   /**
