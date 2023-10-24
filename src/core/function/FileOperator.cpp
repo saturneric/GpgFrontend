@@ -28,6 +28,8 @@
 
 #include "FileOperator.h"
 
+#include <sstream>
+
 bool GpgFrontend::FileOperator::ReadFile(const QString& file_name,
                                          QByteArray& data) {
   QFile file(file_name);

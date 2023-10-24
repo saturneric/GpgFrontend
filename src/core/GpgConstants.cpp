@@ -29,8 +29,9 @@
 #include "core/GpgConstants.h"
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <sstream>
 
-#include "function/FileOperator.h"
+#include "core/function/FileOperator.h"
 
 const char* GpgFrontend::GpgConstants::PGP_CRYPT_BEGIN =
     "-----BEGIN PGP MESSAGE-----";  ///<
