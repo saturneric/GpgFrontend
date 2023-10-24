@@ -30,13 +30,18 @@
 
 #include <module/sdk/GpgFrontendModuleSDK.h>
 
+#include <memory>
+
 #include "SoftwareVersion.h"
 
 namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
 class GPGFRONTEND_MODULE_SDK_EXPORT VersionCheckingModule : public Module {
+  Q_OBJECT
  public:
   VersionCheckingModule();
+
+  ~VersionCheckingModule();
 
   virtual bool Register() override;
 
@@ -45,5 +50,13 @@ class GPGFRONTEND_MODULE_SDK_EXPORT VersionCheckingModule : public Module {
   virtual int Exec(EventRefrernce) override;
 
   virtual bool Deactive() override;
+
+ signals:
+
+  void SignalVersionCheckDone(SoftwareVersion);
+
+ public slots:
+
+  void SlotVersionCheckDone(SoftwareVersion);
 };
 }  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

@@ -36,16 +36,16 @@ namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
  *
  */
 struct SoftwareVersion {
-  std::string latest_version;          ///<
-  std::string current_version;         ///<
-  bool latest_prerelease = false;      ///<
-  bool latest_draft = false;           ///<
-  bool current_prerelease = false;     ///<
-  bool current_draft = false;          ///<
-  bool load_info_done = false;         ///<
-  bool current_version_found = false;  ///<
-  std::string publish_date;            ///<
-  std::string release_note;            ///<
+  std::string latest_version;                          ///<
+  std::string current_version;                         ///<
+  bool latest_prerelease_version_from_remote = false;  ///<
+  bool latest_draft_from_remote = false;               ///<
+  bool current_version_is_a_prerelease = false;        ///<
+  bool current_version_is_drafted = false;             ///<
+  bool loading_done = false;                           ///<
+  bool current_version_publish_in_remote = false;      ///<
+  std::string publish_date;                            ///<
+  std::string release_note;                            ///<
 
   /**
    * @brief
@@ -53,7 +53,7 @@ struct SoftwareVersion {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool InfoValid() const { return load_info_done; }
+  [[nodiscard]] bool InfoValid() const { return loading_done; }
 
   /**
    * @brief
@@ -69,7 +69,7 @@ struct SoftwareVersion {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool VersionWithDrawn() const;
+  [[nodiscard]] bool VersionWithdrawn() const;
 
   /**
    * @brief

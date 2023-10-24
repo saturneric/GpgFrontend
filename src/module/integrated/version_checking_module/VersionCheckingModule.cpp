@@ -28,14 +28,25 @@
 
 #include "VersionCheckingModule.h"
 
+#include <qobject.h>
+
+#include "Log.h"
+#include "SoftwareVersion.h"
 #include "VersionCheckTask.h"
+#include "core/module/Module.h"
+#include "core/module/ModuleManager.h"
 
 namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
 VersionCheckingModule::VersionCheckingModule()
     : Module("com.bktus.gpgfrontend.module.integrated.versionchecking", "1.0.0",
              ModuleMetaData{{"description", "try to check gpgfrontend version"},
-                            {"author", "saturneric"}}) {}
+                            {"author", "saturneric"}}) {
+  connect(this, &VersionCheckingModule::SignalVersionCheckDone, this,
+          &VersionCheckingModule::SlotVersionCheckDone);
+}
+
+VersionCheckingModule::~VersionCheckingModule() = default;
 
 bool VersionCheckingModule::Register() {
   MODULE_LOG_INFO("version checking module registering");
@@ -52,9 +63,44 @@ int VersionCheckingModule::Exec(EventRefrernce event) {
   MODULE_LOG_INFO("version checking module executing, event id: {}",
                   event->GetIdentifier());
 
-  getTaskRunner()->PostTask(new VersionCheckTask());
+  auto* task = new VersionCheckTask();
+  connect(task, &VersionCheckTask::SignalUpgradeVersion, this,
+          &VersionCheckingModule::SignalVersionCheckDone);
+  getTaskRunner()->PostTask(task);
   return 0;
 }
 
 bool VersionCheckingModule::Deactive() { return true; }
+
+void VersionCheckingModule::SlotVersionCheckDone(SoftwareVersion version) {
+  MODULE_LOG_DEBUG("registering software information info to rt");
+  ModuleManager::GetInstance()->UpsertRTValue(GetModuleIdentifier(),
+                                              "version.current_version",
+                                              version.current_version);
+  ModuleManager::GetInstance()->UpsertRTValue(
+      GetModuleIdentifier(), "version.loading_done", version.loading_done);
+  ModuleManager::GetInstance()->UpsertRTValue(
+      GetModuleIdentifier(), "version.latest_version", version.latest_version);
+  ModuleManager::GetInstance()->UpsertRTValue(
+      GetModuleIdentifier(), "version.current_version_is_drafted",
+      version.current_version_is_drafted);
+  ModuleManager::GetInstance()->UpsertRTValue(
+      GetModuleIdentifier(), "version.current_version_is_a_prerelease",
+      version.current_version_is_a_prerelease);
+  ModuleManager::GetInstance()->UpsertRTValue(
+      GetModuleIdentifier(), "version.current_version_publish_in_remote",
+      version.current_version_publish_in_remote);
+  ModuleManager::GetInstance()->UpsertRTValue(
+      GetModuleIdentifier(), "version.latest_prerelease_version_from_remote",
+      version.latest_prerelease_version_from_remote);
+  ModuleManager::GetInstance()->UpsertRTValue(
+      GetModuleIdentifier(), "version.need_upgrade", version.NeedUpgrade());
+  ModuleManager::GetInstance()->UpsertRTValue(
+      GetModuleIdentifier(), "version.current_version_released",
+      version.CurrentVersionReleased());
+  ModuleManager::GetInstance()->UpsertRTValue(
+      GetModuleIdentifier(), "version.current_a_withdrawn_version",
+      version.VersionWithdrawn());
+  MODULE_LOG_DEBUG("register software information to rt done");
+}
 }  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

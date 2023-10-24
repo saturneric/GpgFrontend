@@ -62,7 +62,7 @@ void VersionCheckTask::Run() {
             &VersionCheckTask::slot_parse_latest_version_info);
 
     // loading done
-    version_.load_info_done = true;
+    version_.loading_done = true;
 
   } catch (...) {
     MODULE_LOG_ERROR("unknown error occurred");
@@ -103,14 +103,14 @@ void VersionCheckTask::slot_parse_latest_version_info() {
       std::string publish_date = latest_reply_json["published_at"];
       std::string release_note = latest_reply_json["body"];
       version_.latest_version = latest_version;
-      version_.latest_prerelease = prerelease;
-      version_.latest_draft = draft;
+      version_.latest_prerelease_version_from_remote = prerelease;
+      version_.latest_draft_from_remote = draft;
       version_.publish_date = publish_date;
       version_.release_note = release_note;
     }
   } catch (...) {
     MODULE_LOG_ERROR("unknown error occurred");
-    version_.load_info_done = false;
+    version_.loading_done = false;
   }
 
   if (latest_reply_ != nullptr) {
@@ -145,28 +145,27 @@ void VersionCheckTask::slot_parse_current_version_info() {
         MODULE_LOG_ERROR(
             "current version request network error, null reply object");
       }
-
-      version_.current_version_found = false;
-      version_.load_info_done = false;
+      version_.current_version_publish_in_remote = false;
+      version_.loading_done = false;
     } else {
-      version_.current_version_found = true;
+      version_.current_version_publish_in_remote = true;
       current_reply_bytes_ = current_reply_->readAll();
       MODULE_LOG_DEBUG("current version: {}", current_reply_bytes_.size());
       auto current_reply_json =
           nlohmann::json::parse(current_reply_bytes_.toStdString());
       bool current_prerelease = current_reply_json["prerelease"],
            current_draft = current_reply_json["draft"];
-      version_.latest_prerelease = current_prerelease;
-      version_.latest_draft = current_draft;
-      version_.load_info_done = true;
+      version_.latest_prerelease_version_from_remote = current_prerelease;
+      version_.latest_draft_from_remote = current_draft;
+      version_.loading_done = true;
     }
   } catch (...) {
     MODULE_LOG_ERROR("unknown error occurred");
-    version_.load_info_done = false;
+    version_.loading_done = false;
   }
 
   MODULE_LOG_DEBUG("current version parse done: {}",
-                   version_.current_version_found);
+                   version_.current_version_publish_in_remote);
 
   if (current_reply_ != nullptr) {
     current_reply_->deleteLater();

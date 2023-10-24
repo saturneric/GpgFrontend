@@ -79,18 +79,20 @@ bool VersionCheckingModule::SoftwareVersion::NeedUpgrade() const {
                    current_version, latest_version,
                    version_compare(current_version, latest_version));
 
-  MODULE_LOG_DEBUG("load done: {}, pre-release: {}, draft: {}", load_info_done,
-                   latest_prerelease, latest_draft);
-  return load_info_done && !latest_prerelease && !latest_draft &&
+  MODULE_LOG_DEBUG("load done: {}, pre-release: {}, draft: {}", loading_done,
+                   latest_prerelease_version_from_remote,
+                   latest_draft_from_remote);
+  return loading_done && !latest_prerelease_version_from_remote &&
+         !latest_draft_from_remote &&
          version_compare(current_version, latest_version) < 0;
 }
 
-bool VersionCheckingModule::SoftwareVersion::VersionWithDrawn() const {
-  return load_info_done && !current_version_found && current_prerelease &&
-         !current_draft;
+bool VersionCheckingModule::SoftwareVersion::VersionWithdrawn() const {
+  return loading_done && !current_version_publish_in_remote &&
+         current_version_is_a_prerelease && !current_version_is_drafted;
 }
 
 bool VersionCheckingModule::SoftwareVersion::CurrentVersionReleased() const {
-  return load_info_done && current_version_found;
+  return loading_done && current_version_publish_in_remote;
 }
 }  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

@@ -88,19 +88,13 @@ class UpdateTab : public QWidget {
    */
   explicit UpdateTab(QWidget* parent = nullptr);
 
-  /**
-   * @brief Get the Latest Version object
-   *
-   */
-  void getLatestVersion();
-
  private slots:
   /**
    * @brief
    *
    * @param version
    */
-  void slot_show_version_status(const SoftwareVersion& version);
+  void slot_show_version_status();
 
  signals:
   /**

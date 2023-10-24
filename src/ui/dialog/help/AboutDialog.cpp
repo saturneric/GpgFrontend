@@ -30,9 +30,13 @@
 
 #include <openssl/opensslv.h>
 
+#include <string>
+
 #include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "spdlog/spdlog.h"
 #include "ui/dialog/help/GnupgTab.h"
 #include "ui/thread/VersionCheckTask.h"
 
@@ -73,10 +77,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
   this->show();
 }
 
-void AboutDialog::showEvent(QShowEvent* ev) {
-  QDialog::showEvent(ev);
-  update_tab_->getLatestVersion();
-}
+void AboutDialog::showEvent(QShowEvent* ev) { QDialog::showEvent(ev); }
 
 InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   auto* pixmap = new QPixmap(":gpgfrontend-logo.png");
@@ -203,28 +204,50 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
   setLayout(layout);
 }
 
-void UpdateTab::getLatestVersion() {
-  this->pb_->setHidden(false);
-
-  SPDLOG_DEBUG("try to get latest version");
-
-  auto* version_task = new VersionCheckTask();
-
-  connect(version_task, &VersionCheckTask::SignalUpgradeVersion, this,
-          &UpdateTab::slot_show_version_status);
-
-  Thread::TaskRunnerGetter::GetInstance()
-      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
-      ->PostTask(version_task);
-}
-
-void UpdateTab::slot_show_version_status(const SoftwareVersion& version) {
+void UpdateTab::slot_show_version_status() {
   this->pb_->setHidden(true);
+  SPDLOG_DEBUG("loading version info from rt");
+
+  auto is_loading_done =
+      std::any_cast<bool>(Module::ModuleManager::GetInstance()->RetrieveRTValue(
+          "__module_com.bktus.gpgfrontend.module.integrated."
+          "versionchecking",
+          "version.loading_done"));
+
+  if (!is_loading_done) {
+    SPDLOG_DEBUG("version info loading havn't been done yet");
+    this->pb_->setHidden(false);
+  }
+
+  auto is_need_upgrade =
+      std::any_cast<bool>(Module::ModuleManager::GetInstance()->RetrieveRTValue(
+          "__module_com.bktus.gpgfrontend.module.integrated."
+          "versionchecking",
+          "version.need_upgrade"));
+
+  auto is_current_a_withdrawn_version =
+      std::any_cast<bool>(Module::ModuleManager::GetInstance()->RetrieveRTValue(
+          "__module_com.bktus.gpgfrontend.module.integrated."
+          "versionchecking",
+          "version.current_a_withdrawn_version"));
+
+  auto is_current_version_released =
+      std::any_cast<bool>(Module::ModuleManager::GetInstance()->RetrieveRTValue(
+          "__module_com.bktus.gpgfrontend.module.integrated."
+          "versionchecking",
+          "version.current_version_released"));
+
+  auto latest_version = std::any_cast<std::string>(
+      Module::ModuleManager::GetInstance()->RetrieveRTValue(
+          "__module_com.bktus.gpgfrontend.module.integrated."
+          "versionchecking",
+          "version.latest_version"));
+
   latest_version_label_->setText(
       "<center><b>" + QString(_("Latest Version From Github")) + ": " +
-      version.latest_version.c_str() + "</b></center>");
+      latest_version.c_str() + "</b></center>");
 
-  if (version.NeedUpgrade()) {
+  if (is_need_upgrade) {
     upgrade_label_->setText(
         "<center>" +
         QString(_("The current version is less than the latest version on "
@@ -235,7 +258,7 @@ void UpdateTab::slot_show_version_status(const SoftwareVersion& version) {
         _("Here") + "</a> " + _("to download the latest stable version.") +
         "</center>");
     upgrade_label_->show();
-  } else if (version.VersionWithDrawn()) {
+  } else if (is_current_a_withdrawn_version) {
     upgrade_label_->setText(
         "<center>" +
         QString(_("This version has serious problems and has been withdrawn. "
@@ -246,7 +269,7 @@ void UpdateTab::slot_show_version_status(const SoftwareVersion& version) {
         _("Here") + "</a> " + _("to download the latest stable version.") +
         "</center>");
     upgrade_label_->show();
-  } else if (!version.CurrentVersionReleased()) {
+  } else if (!is_current_version_released) {
     upgrade_label_->setText(
         "<center>" +
         QString(_("This version has not been released yet, it may be a beta "
