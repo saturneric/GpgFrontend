@@ -52,42 +52,51 @@ class GlobalRegisterTable::Impl {
       : parent_(parent), global_register_table_() {}
 
   bool PublishKV(Namespace n, Key k, std::any v) {
-    std::unique_lock lock(lock_);
     SPDLOG_DEBUG("publishing kv to rt, n: {}, k: {}, v type: {}", n, k,
                  v.type().name());
 
-    auto& sub_table =
-        global_register_table_.emplace(n, SubTable{}).first->second;
+    int version = 0;
 
-    auto sub_it = sub_table.find(k);
-    if (sub_it == sub_table.end()) {
-      sub_it = sub_table.emplace(k, std::make_unique<Value>(Value{v})).first;
-      SPDLOG_DEBUG("new kv in rt, created n: {}, k: {}, v type: {}", n, k,
-                   v.type().name());
-    } else {
-      if (sub_it->second->type != v.type()) {
-        return false;
+    {
+      std::unique_lock lock(lock_);
+      auto& sub_table =
+          global_register_table_.emplace(n, SubTable{}).first->second;
+
+      auto sub_it = sub_table.find(k);
+      if (sub_it == sub_table.end()) {
+        sub_it = sub_table.emplace(k, std::make_unique<Value>(Value{v})).first;
+        SPDLOG_DEBUG("new kv in rt, created n: {}, k: {}, v type: {}", n, k,
+                     v.type().name());
+      } else {
+        if (sub_it->second->type != v.type()) {
+          return false;
+        }
+        sub_it->second->value = v;
       }
-      sub_it->second->value = v;
+      version = ++sub_it->second->version;
     }
 
-    sub_it->second->version++;
-    emit parent_->SignalPublish(n, k, sub_it->second->version);
+    emit parent_->SignalPublish(n, k, version);
+    SPDLOG_DEBUG("published kv to rt, n: {}, k: {}", n, k);
     return true;
   }
 
   std::optional<std::any> LookupKV(Namespace n, Key k) {
-    std::shared_lock lock(lock_);
     SPDLOG_DEBUG("looking up kv in rt, n: {}, k: {}", n, k);
+    std::optional<std::any> rtn = std::nullopt;
+    {
+      std::shared_lock lock(lock_);
+      auto it = global_register_table_.find(n);
+      if (it == global_register_table_.end()) return std::nullopt;
 
-    auto it = global_register_table_.find(n);
-    if (it == global_register_table_.end()) return std::nullopt;
-
-    auto& sub_table = it->second;
-    auto sub_it = sub_table.find(k);
-    return (sub_it != sub_table.end())
-               ? std::optional<std::any>{sub_it->second->value}
-               : std::nullopt;
+      auto& sub_table = it->second;
+      auto sub_it = sub_table.find(k);
+      rtn = (sub_it != sub_table.end())
+                ? std::optional<std::any>{sub_it->second->value}
+                : std::nullopt;
+    }
+    SPDLOG_DEBUG("looking up kv in rt done, n: {}, k: {}", n, k);
+    return rtn;
   }
 
   bool ListenPublish(QObject* o, Namespace n, Key k, LPCallback c) {

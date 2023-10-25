@@ -35,9 +35,9 @@ GpgFrontend::UI::ListedKeyServerTestTask::ListedKeyServerTestTask(
     const QStringList& urls, int timeout, QWidget* parent)
     : Task("listed_key_server_test_task"),
       urls_(urls),
-      timeout_(timeout),
+      result_(urls_.size(), kTestResultType_Error),
       network_manager_(new QNetworkAccessManager(this)),
-      result_(urls_.size(), kTestResultType_Error) {
+      timeout_(timeout) {
   HoldOnLifeCycle(true);
   qRegisterMetaType<std::vector<KeyServerTestResultType>>(
       "std::vector<KeyServerTestResultType>");

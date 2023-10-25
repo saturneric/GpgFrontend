@@ -28,19 +28,7 @@
 
 #pragma once
 
-#include "KeyMgmt.h"
-#include "core/GpgConstants.h"
-#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
-#include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
-#include "core/function/result_analyse/GpgSignResultAnalyse.h"
-#include "ui/GpgFrontendUI.h"
-#include "ui/dialog/WaitingDialog.h"
-#include "ui/dialog/Wizard.h"
-#include "ui/dialog/help/AboutDialog.h"
-#include "ui/dialog/import_export/KeyUploadDialog.h"
-#include "ui/dialog/settings/SettingsDialog.h"
 #include "ui/main_window/GeneralMainWindow.h"
-#include "ui/widgets/FindWidget.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/TextEdit.h"
 
@@ -314,7 +302,7 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details called when need to upgrade.
    */
-  void slot_version_upgrade();
+  void slot_version_upgrade_nofity();
 
   /**
    * @details

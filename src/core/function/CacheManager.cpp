@@ -36,8 +36,8 @@
 #include "spdlog/spdlog.h"
 
 GpgFrontend::CacheManager::CacheManager(int channel)
-    : m_timer_(new QTimer(this)),
-      SingletonFunctionObject<CacheManager>(channel) {
+    : SingletonFunctionObject<CacheManager>(channel),
+      m_timer_(new QTimer(this)) {
   connect(m_timer_, &QTimer::timeout, this, &CacheManager::flush_cache_storage);
   m_timer_->start(15000);
 

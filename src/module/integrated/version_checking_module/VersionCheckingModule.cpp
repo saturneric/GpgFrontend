@@ -75,31 +75,29 @@ bool VersionCheckingModule::Deactive() { return true; }
 
 void VersionCheckingModule::SlotVersionCheckDone(SoftwareVersion version) {
   MODULE_LOG_DEBUG("registering software information info to rt");
-  UpsertRTValueTyped(GetModuleIdentifier(), "version.current_version",
-                     version.current_version);
-  UpsertRTValueTyped(GetModuleIdentifier(), "version.loading_done",
-                     version.loading_done);
-  UpsertRTValueTyped(GetModuleIdentifier(), "version.latest_version",
-                     version.latest_version);
-  UpsertRTValueTyped(GetModuleIdentifier(),
-                     "version.current_version_is_drafted",
-                     version.current_version_is_drafted);
-  UpsertRTValueTyped(GetModuleIdentifier(),
-                     "version.current_version_is_a_prerelease",
-                     version.current_version_is_a_prerelease);
-  UpsertRTValueTyped(GetModuleIdentifier(),
-                     "version.current_version_publish_in_remote",
-                     version.current_version_publish_in_remote);
-  UpsertRTValueTyped(GetModuleIdentifier(),
-                     "version.latest_prerelease_version_from_remote",
-                     version.latest_prerelease_version_from_remote);
-  UpsertRTValueTyped(GetModuleIdentifier(), "version.need_upgrade",
-                     version.NeedUpgrade());
-  UpsertRTValueTyped(GetModuleIdentifier(), "version.current_version_released",
-                     version.CurrentVersionReleased());
-  UpsertRTValueTyped(GetModuleIdentifier(),
-                     "version.current_a_withdrawn_version",
-                     version.VersionWithdrawn());
+  UpsertRTValue(GetModuleIdentifier(), "version.current_version",
+                version.current_version);
+  UpsertRTValue(GetModuleIdentifier(), "version.latest_version",
+                version.latest_version);
+  UpsertRTValue(GetModuleIdentifier(), "version.current_version_is_drafted",
+                version.current_version_is_drafted);
+  UpsertRTValue(GetModuleIdentifier(),
+                "version.current_version_is_a_prerelease",
+                version.current_version_is_a_prerelease);
+  UpsertRTValue(GetModuleIdentifier(),
+                "version.current_version_publish_in_remote",
+                version.current_version_publish_in_remote);
+  UpsertRTValue(GetModuleIdentifier(),
+                "version.latest_prerelease_version_from_remote",
+                version.latest_prerelease_version_from_remote);
+  UpsertRTValue(GetModuleIdentifier(), "version.need_upgrade",
+                version.NeedUpgrade());
+  UpsertRTValue(GetModuleIdentifier(), "version.current_version_released",
+                version.CurrentVersionReleased());
+  UpsertRTValue(GetModuleIdentifier(), "version.current_a_withdrawn_version",
+                version.VersionWithdrawn());
+  UpsertRTValue(GetModuleIdentifier(), "version.loading_done",
+                version.loading_done);
   MODULE_LOG_DEBUG("register software information to rt done");
 }
 }  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

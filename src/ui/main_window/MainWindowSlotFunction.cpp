@@ -28,24 +28,26 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/posix_time_io.hpp>
-#include <memory>
-#include <string>
-#include <utility>
 
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
-#include "core/GpgContext.h"
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyManager.h"
+#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
+#include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
+#include "core/function/result_analyse/GpgSignResultAnalyse.h"
+#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/DataObject.h"
-#include "dialog/SignersPicker.h"
-#include "spdlog/spdlog.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/SignersPicker.h"
 #include "ui/dialog/help/AboutDialog.h"
+#include "ui/dialog/import_export/KeyUploadDialog.h"
+#include "ui/dialog/keypair_details/KeyDetailsDialog.h"
+#include "ui/widgets/FindWidget.h"
 
 namespace GpgFrontend::UI {
 /**
@@ -60,8 +62,8 @@ void MainWindow::slot_encrypt() {
   auto key_ids = m_key_list_->GetChecked();
 
   // data to transfer into task
-  auto data_object = Thread::TransferParams(std::move(
-      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString()));
+  auto data_object = Thread::TransferParams(
+      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
 
   // the callback function
   auto result_callback = [this](int rtn, Thread::DataObjectPtr data_object) {
@@ -121,7 +123,6 @@ void MainWindow::slot_encrypt() {
     };
 
   } else {
-    auto& key_getter = GpgFrontend::GpgKeyGetter::GetInstance();
     auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
     for (const auto& key : *keys) {
       if (!key.IsHasActualEncryptionCapability()) {
@@ -435,8 +436,7 @@ void MainWindow::slot_encrypt_sign() {
   // data to transfer into task
   auto data_object = Thread::TransferParams(
       std::move(signer_keys), std::move(keys),
-      std::move(
-          edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString()));
+      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
 
   auto encrypt_sign_runner = [](Thread::DataObjectPtr data_object) -> int {
     // check the size of the data object
@@ -506,8 +506,8 @@ void MainWindow::slot_decrypt_verify() {
   }
 
   // data to transfer into task
-  auto data_object = Thread::TransferParams(std::move(
-      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString()));
+  auto data_object = Thread::TransferParams(
+      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
 
   auto decrypt_verify_runner = [](Thread::DataObjectPtr data_object) -> int {
     // check the size of the data object
@@ -816,14 +816,18 @@ void MainWindow::upload_key_to_server() {
 
 void MainWindow::SlotOpenFile(QString& path) { edit_->SlotOpenFile(path); }
 
-void MainWindow::slot_version_upgrade() {
+void MainWindow::slot_version_upgrade_nofity() {
+  SPDLOG_DEBUG(
+      "slot version upgrade notify called, checking version info from rt...");
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
       Module::GetRealModuleIdentifier(
           "com.bktus.gpgfrontend.module.integrated.versionchecking"),
       "version.loading_done", false);
 
+  SPDLOG_DEBUG("checking version info from rt, is loading done state: {}",
+               is_loading_done);
   if (!is_loading_done) {
-    SPDLOG_ERROR("invalid version info from rt");
+    SPDLOG_ERROR("invalid version info from rt, loading hasn't done yet");
     return;
   }
 
@@ -848,7 +852,8 @@ void MainWindow::slot_version_upgrade() {
       "version.latest_version", std::string{});
 
   SPDLOG_DEBUG(
-      "version info, need upgrade: {}, with drawn: {}, current version "
+      "got version info from rt, need upgrade: {}, with drawn: {}, current "
+      "version "
       "released: {}",
       is_need_upgrade, is_current_a_withdrawn_version,
       is_current_version_released);

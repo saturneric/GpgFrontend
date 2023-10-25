@@ -225,7 +225,7 @@ class SingletonFunctionObject : public ChannelObject {
 
     if (_p_pbj == nullptr) {
       return *(
-          T*)(p_storage->SetObjectInChannel(channel, std::move(factory())));
+          T*)(p_storage->SetObjectInChannel(channel, factory()));
     } else
       return *_p_pbj;
   }

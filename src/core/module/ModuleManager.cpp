@@ -100,10 +100,15 @@ class ModuleManager::Impl {
   GRTPtr grt_;
 };
 
-bool UpsertRTValueTyped(const std::string& namespace_, const std::string& key,
-                        const std::any& value) {
+bool UpsertRTValue(const std::string& namespace_, const std::string& key,
+                   const std::any& value) {
   return ModuleManager::GetInstance()->UpsertRTValue(namespace_, key,
                                                      std::any(value));
+}
+
+bool GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject* o, Namespace n,
+                                                  Key k, LPCallback c) {
+  return ModuleManager::GetInstance()->ListenRTPublish(o, n, k, c);
 }
 
 ModuleManager::ModuleManager() : p_(std::make_unique<Impl>()) {}
@@ -140,8 +145,8 @@ std::optional<std::any> ModuleManager::RetrieveRTValue(Namespace n, Key k) {
   return p_->RetrieveRTValue(n, k);
 }
 
-bool ModuleManager::ListenPublish(QObject* o, Namespace n, Key k,
-                                  LPCallback c) {
+bool ModuleManager::ListenRTPublish(QObject* o, Namespace n, Key k,
+                                    LPCallback c) {
   return p_->ListenPublish(o, n, k, c);
 }
 

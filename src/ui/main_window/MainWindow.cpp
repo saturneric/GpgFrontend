@@ -28,17 +28,14 @@
 
 #include "MainWindow.h"
 
-#include "core/GpgConstants.h"
 #include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleManager.h"
-#include "main_window/GeneralMainWindow.h"
-#include "spdlog/spdlog.h"
 #include "ui/SignalStation.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/SettingsObject.h"
-#include "widgets/KeyList.h"
+#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
@@ -119,6 +116,40 @@ void MainWindow::Init() noexcept {
 
     edit_->CurTextPage()->setFocus();
 
+    // before application exit
+    connect(qApp, &QCoreApplication::aboutToQuit, this, []() {
+      SPDLOG_DEBUG("about to quit process started");
+
+      if (GlobalSettingStation::GetInstance().LookupSettings(
+              "general.clear_gpg_password_cache", false)) {
+        if (GpgFrontend::GpgAdvancedOperator::GetInstance()
+                .ClearGpgPasswordCache()) {
+          SPDLOG_DEBUG("clear gpg password cache done");
+        } else {
+          SPDLOG_ERROR("clear gpg password cache error");
+        }
+      }
+    });
+
+    Module::ListenRTPublishEvent(
+        this,
+        Module::GetRealModuleIdentifier(
+            "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+        "version.loading_done", [=](Module::Namespace, Module::Key, int) {
+          SPDLOG_DEBUG(
+              "versionchecking version.loading_done changed, calling slot "
+              "version upgrade");
+          this->slot_version_upgrade_nofity();
+        });
+
+    // loading process is done
+    emit SignalLoaded();
+    Module::TriggerEvent("APPLICATION_LOADED");
+
+    // recover unsaved page from cache if it exists
+    recover_editor_unsaved_pages_from_cache();
+
+    // check if need to open wizard window
     auto &settings = GlobalSettingStation::GetInstance().GetMainSettings();
 
     if (!settings.exists("wizard") ||
@@ -141,39 +172,6 @@ void MainWindow::Init() noexcept {
     if (show_wizard) {
       slot_start_wizard();
     }
-
-    emit SignalLoaded();
-    Module::TriggerEvent("APPLICATION_LOADED");
-
-    // if not prohibit update checking
-    if (!prohibit_update_checking_) {
-      // auto *version_task = new VersionCheckTask();
-
-      // connect(version_task, &VersionCheckTask::SignalUpgradeVersion, this,
-      //         &MainWindow::slot_version_upgrade);
-
-      // Thread::TaskRunnerGetter::GetInstance()
-      //     .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
-      //     ->PostTask(version_task);
-    }
-
-    // before application exit
-    connect(qApp, &QCoreApplication::aboutToQuit, this, []() {
-      SPDLOG_DEBUG("about to quit process started");
-
-      if (GlobalSettingStation::GetInstance().LookupSettings(
-              "general.clear_gpg_password_cache", false)) {
-        if (GpgFrontend::GpgAdvancedOperator::GetInstance()
-                .ClearGpgPasswordCache()) {
-          SPDLOG_DEBUG("clear gpg password cache done");
-        } else {
-          SPDLOG_ERROR("clear gpg password cache error");
-        }
-      }
-    });
-
-    // recover unsaved page from cache if it exists
-    recover_editor_unsaved_pages_from_cache();
 
   } catch (...) {
     SPDLOG_ERROR(_("Critical error occur while loading GpgFrontend."));

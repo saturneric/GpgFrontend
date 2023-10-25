@@ -34,7 +34,7 @@
 
 GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(std::string name,
                                                       QWidget *parent)
-    : name_(std::move(name)), QMainWindow(parent) {
+    : QMainWindow(parent), name_(std::move(name)) {
   slot_restore_settings();
 }
 
