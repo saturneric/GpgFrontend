@@ -26,9 +26,12 @@
  *
  */
 
+#include <any>
+
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
+#include "core/module/ModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/gnupg/GnuPGControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
@@ -313,16 +316,21 @@ void MainWindow::create_actions() {
   restart_components_act_->setIcon(QIcon(":configure.png"));
   restart_components_act_->setToolTip(_("Restart All GnuPG's Components"));
   connect(restart_components_act_, &QAction::triggered, this, [=]() {
-    if (GpgFrontend::GpgAdvancedOperator::GetInstance()
-            .RestartGpgComponents()) {
-      QMessageBox::information(
-          this, _("Successful Operation"),
-          _("Restart all the GnuPG's components successfully"));
-    } else {
-      QMessageBox::critical(
-          this, _("Failed Operation"),
-          _("Failed to restart all or one of the GnuPG's component(s)"));
-    }
+    GpgFrontend::GpgAdvancedOperator::GetInstance().RestartGpgComponents();
+    Module::ListenRTPublishEvent(
+        this, "core", "gpg_advanced_operator.restart_gpg_components",
+        [=](Module::Namespace, Module::Key, int, std::any value) {
+          bool success_state = std::any_cast<bool>(value);
+          if (success_state) {
+            QMessageBox::information(
+                this, _("Successful Operation"),
+                _("Restart all the GnuPG's components successfully"));
+          } else {
+            QMessageBox::critical(
+                this, _("Failed Operation"),
+                _("Failed to restart all or one of the GnuPG's component(s)"));
+          }
+        });
   });
 
   gnupg_controller_open_act_ = new QAction(_("Open GnuPG Controller"), this);

@@ -30,25 +30,13 @@
 
 #include <shared_mutex>
 
-namespace GpgFrontend {
+namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {
 /**
  * @brief  Use to record some info about gnupg
  *
  */
 class GpgInfo {
  public:
-  std::string GnupgVersion;  ///< version of gnupg
-  std::string GpgMEVersion;  ///<
-
-  std::string AppPath;       ///< executable binary path of gnupg
-  std::string DatabasePath;  ///< key database path
-  std::string GpgConfPath;   ///< executable binary path of gpgconf
-  std::string AssuanPath;    ///< executable binary path of assuan
-  std::string CMSPath;       ///< executable binary path of cms
-  std::string GpgAgentPath;  ///< executable binary path of gpg-agent
-  std::string DirmngrPath;   ///< executable binary path of dirmgr
-  std::string KeyboxdPath;   ///< executable binary path of keyboxd
-
   std::string GnuPGHomePath;  ///< value of ---homedir
 
   std::map<std::string, std::vector<std::string>> ComponentsInfo;        ///<
@@ -58,4 +46,4 @@ class GpgInfo {
 
   std::shared_mutex Lock;
 };
-}  // namespace GpgFrontend
+}  // namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule

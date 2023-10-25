@@ -28,63 +28,21 @@
 
 #include "SoftwareVersion.h"
 
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
+#include "core/GpgConstants.h"
 
 namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
-
-int VersionCheckingModule::SoftwareVersion::version_compare(
-    const std::string& a, const std::string& b) {
-  auto remove_prefix = [](const std::string& version) {
-    return version.front() == 'v' ? version.substr(1) : version;
-  };
-
-  std::string real_version_a = remove_prefix(a);
-  std::string real_version_b = remove_prefix(b);
-
-  MODULE_LOG_DEBUG("real version a: {}", real_version_a);
-  MODULE_LOG_DEBUG("real version b: {}", real_version_b);
-
-  std::vector<std::string> split_a, split_b;
-  boost::split(split_a, real_version_a, boost::is_any_of("."));
-  boost::split(split_b, real_version_b, boost::is_any_of("."));
-
-  const int min_depth = std::min(split_a.size(), split_b.size());
-
-  for (int i = 0; i < min_depth; ++i) {
-    int num_a = 0, num_b = 0;
-
-    try {
-      num_a = boost::lexical_cast<int>(split_a[i]);
-      num_b = boost::lexical_cast<int>(split_b[i]);
-    } catch (boost::bad_lexical_cast&) {
-      // Handle exception if needed
-      return 0;
-    }
-
-    if (num_a != num_b) {
-      return (num_a > num_b) ? 1 : -1;
-    }
-  }
-
-  if (split_a.size() != split_b.size()) {
-    return (split_a.size() > split_b.size()) ? 1 : -1;
-  }
-
-  return 0;
-}
 
 bool VersionCheckingModule::SoftwareVersion::NeedUpgrade() const {
   MODULE_LOG_DEBUG("compair version current {} latest {}, result {}",
                    current_version, latest_version,
-                   version_compare(current_version, latest_version));
+                   software_version_compare(current_version, latest_version));
 
   MODULE_LOG_DEBUG("load done: {}, pre-release: {}, draft: {}", loading_done,
                    latest_prerelease_version_from_remote,
                    latest_draft_from_remote);
   return loading_done && !latest_prerelease_version_from_remote &&
          !latest_draft_from_remote &&
-         version_compare(current_version, latest_version) < 0;
+         software_version_compare(current_version, latest_version) < 0;
 }
 
 bool VersionCheckingModule::SoftwareVersion::VersionWithdrawn() const {

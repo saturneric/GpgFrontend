@@ -89,8 +89,8 @@ class ModuleManager::Impl {
     return grt_->LookupKV(n, k);
   }
 
-  bool ListenPublish(QObject* o, Namespace n, Key k, LPCallback c) {
-    return grt_->ListenPublish(o, n, k, c);
+  bool ListenPublish(QObject* o, Namespace n, Key k, LPCallback c, bool c_o) {
+    return grt_->ListenPublish(o, n, k, c, c_o);
   }
 
  private:
@@ -107,8 +107,9 @@ bool UpsertRTValue(const std::string& namespace_, const std::string& key,
 }
 
 bool GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject* o, Namespace n,
-                                                  Key k, LPCallback c) {
-  return ModuleManager::GetInstance()->ListenRTPublish(o, n, k, c);
+                                                  Key k, LPCallback c,
+                                                  bool c_o) {
+  return ModuleManager::GetInstance()->ListenRTPublish(o, n, k, c, c_o);
 }
 
 ModuleManager::ModuleManager() : p_(std::make_unique<Impl>()) {}
@@ -146,8 +147,8 @@ std::optional<std::any> ModuleManager::RetrieveRTValue(Namespace n, Key k) {
 }
 
 bool ModuleManager::ListenRTPublish(QObject* o, Namespace n, Key k,
-                                    LPCallback c) {
-  return p_->ListenPublish(o, n, k, c);
+                                    LPCallback c, bool c_o) {
+  return p_->ListenPublish(o, n, k, c, c_o);
 }
 
 ModuleIdentifier GetRealModuleIdentifier(const ModuleIdentifier& id) {

@@ -34,15 +34,15 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "thread/Task.h"
 
-GpgFrontend::Thread::CtxCheckTask::CtxCheckTask() : Task("ctx_check_task") {
-  connect(this, &CtxCheckTask::SignalGnupgNotInstall,
+GpgFrontend::Thread::CoreInitTask::CoreInitTask() : Task("ctx_check_task") {
+  connect(this, &CoreInitTask::SignalGnupgNotInstall,
           CoreCommonUtil::GetInstance(),
           &CoreCommonUtil::SignalGnupgNotInstall);
 }
 
-void GpgFrontend::Thread::CtxCheckTask::Run() {
+void GpgFrontend::Thread::CoreInitTask::Run() {
   // Init GpgFrontend Core
-  init_gpgfrontend_core();
+  InitGpgFrontendCore();
 
   // Create & Check Gnupg Context Status
   if (!GpgContext::GetInstance().good()) {

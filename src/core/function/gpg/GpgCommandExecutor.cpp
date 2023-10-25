@@ -99,12 +99,19 @@ Thread::Task *GpgCommandExecutor::build_task(const ExecuteContext &context) {
   auto &interact_function = context.interact_func;
   auto &callback = context.callback;
 
+  const std::string joined_argument = std::accumulate(
+      std::begin(arguments), std::end(arguments), std::string(),
+      [](const std::string &a, const std::string &b) -> std::string {
+        return a + (a.length() > 0 ? " " : "") + b;
+      });
+
   SPDLOG_DEBUG("building task: called cmd {} arguments size: {}", cmd,
                arguments.size());
 
   Thread::Task::TaskCallback result_callback =
       [](int rtn, Thread::DataObjectPtr data_object) {
-        SPDLOG_DEBUG("data object use count: {}", data_object->GetObjectSize());
+        SPDLOG_DEBUG("data object args count: {}",
+                     data_object->GetObjectSize());
         if (!data_object->Check<int, std::string, std::string,
                                 GpgCommandExecutorCallback>())
           throw std::runtime_error("invalid data object size");
@@ -117,12 +124,13 @@ Thread::Task *GpgCommandExecutor::build_task(const ExecuteContext &context) {
         auto callback =
             Thread::ExtractParams<GpgCommandExecutorCallback>(data_object, 3);
 
+        SPDLOG_DEBUG("data object args got, exit_code: {}", exit_code);
         // call callback
         callback(exit_code, process_stdout, process_stderr);
       };
 
   Thread::Task::TaskRunnable runner =
-      [](Thread::DataObjectPtr data_object) -> int {
+      [joined_argument](Thread::DataObjectPtr data_object) -> int {
     SPDLOG_DEBUG("process runner called, data object size: {}",
                  data_object->GetObjectSize());
 
@@ -133,7 +141,6 @@ Thread::Task *GpgCommandExecutor::build_task(const ExecuteContext &context) {
 
     // get arguments
     auto cmd = Thread::ExtractParams<std::string>(data_object, 0);
-    SPDLOG_DEBUG("get cmd: {}", cmd);
     auto arguments =
         Thread::ExtractParams<std::vector<std::string>>(data_object, 1);
     auto interact_func =
@@ -142,6 +149,7 @@ Thread::Task *GpgCommandExecutor::build_task(const ExecuteContext &context) {
         Thread::ExtractParams<GpgCommandExecutorCallback>(data_object, 3);
 
     auto *cmd_process = new QProcess();
+    cmd_process->moveToThread(QThread::currentThread());
     cmd_process->setProcessChannelMode(QProcess::MergedChannels);
 
     QObject::connect(cmd_process, &QProcess::started,
@@ -157,16 +165,27 @@ Thread::Task *GpgCommandExecutor::build_task(const ExecuteContext &context) {
     QObject::connect(
         cmd_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
         [=](int, QProcess::ExitStatus status) {
+          int exit_code = cmd_process->exitCode();
           if (status == QProcess::NormalExit)
             SPDLOG_DEBUG(
-                "proceess finished, succeed in executing command: {}, exit "
-                "status: {}",
-                cmd, status);
+                "proceess finished, succeed in executing command: {} {}, exit "
+                "code: {}",
+                cmd, joined_argument, exit_code);
           else
             SPDLOG_ERROR(
-                "proceess finished, error in executing command: {}, exit "
-                "status: {}",
-                cmd, status);
+                "proceess finished, error in executing command: {} {}, exit "
+                "code: {}",
+                cmd, joined_argument, exit_code);
+          std::string process_stdout =
+                          cmd_process->readAllStandardOutput().toStdString(),
+                      process_stderr =
+                          cmd_process->readAllStandardError().toStdString();
+
+          cmd_process->close();
+          cmd_process->deleteLater();
+
+          data_object->Swap(
+              {exit_code, process_stdout, process_stderr, callback});
         });
 
     cmd_process->setProgram(QString::fromStdString(cmd));
@@ -194,12 +213,6 @@ Thread::Task *GpgCommandExecutor::build_task(const ExecuteContext &context) {
     data_object->Swap({exit_code, process_stdout, process_stderr, callback});
     return 0;
   };
-
-  const std::string joined_argument = std::accumulate(
-      std::begin(arguments), std::end(arguments), std::string(),
-      [](const std::string &a, const std::string &b) -> std::string {
-        return a + (a.length() > 0 ? " " : "") + b;
-      });
 
   return new Thread::Task(
       std::move(runner),

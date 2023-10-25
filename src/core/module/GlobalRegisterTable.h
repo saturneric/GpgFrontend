@@ -36,7 +36,7 @@ namespace GpgFrontend::Module {
 
 using Namespace = std::string;
 using Key = std::string;
-using LPCallback = std::function<void(Namespace, Key, int)>;
+using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
 
 class GlobalRegisterTable : public QObject {
   Q_OBJECT
@@ -49,10 +49,10 @@ class GlobalRegisterTable : public QObject {
 
   std::optional<std::any> LookupKV(Namespace, Key);
 
-  bool ListenPublish(QObject *, Namespace, Key, LPCallback);
+  bool ListenPublish(QObject *, Namespace, Key, LPCallback, bool);
 
  signals:
-  void SignalPublish(Namespace, Key, int);
+  void SignalPublish(Namespace, Key, int, std::any);
 
  private:
   class Impl;

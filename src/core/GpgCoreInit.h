@@ -54,7 +54,7 @@ void GPGFRONTEND_CORE_EXPORT ResetGpgFrontendCore();
  * @brief
  *
  */
-void init_gpgfrontend_core();
+void GPGFRONTEND_CORE_EXPORT InitGpgFrontendCore();
 
 /**
  * @brief

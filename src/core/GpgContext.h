@@ -28,12 +28,7 @@
 
 #pragma once
 
-#include <mutex>
-#include <optional>
-#include <shared_mutex>
-
 #include "GpgFunctionObject.h"
-#include "GpgInfo.h"
 
 namespace GpgFrontend {
 
@@ -100,13 +95,6 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
   [[nodiscard]] bool good() const;
 
   /**
-   * @brief Get the Info object
-   *
-   * @return const GpgInfo&
-   */
-  [[nodiscard]] const GpgInfo& GetInfo(bool refresh = false);
-
-  /**
    * @brief
    *
    * @return gpgme_ctx_t
@@ -114,10 +102,7 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
   operator gpgme_ctx_t() const { return _ctx_ref.get(); }
 
  private:
-  GpgInfo info_{};             ///<
   GpgContextInitArgs args_{};  ///<
-  bool extend_info_loaded_ = false;
-  std::shared_mutex preload_lock_{};
 
   /**
    * @brief
@@ -131,12 +116,6 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
    * @return std::string
    */
   std::string need_user_input_passphrase();
-
-  /**
-   * @brief Construct a new std::check component existence object
-   *
-   */
-  std::optional<std::string> check_binary_chacksum(std::filesystem::path);
 
   /**
    * @brief

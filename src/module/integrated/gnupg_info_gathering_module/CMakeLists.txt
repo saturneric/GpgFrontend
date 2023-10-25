@@ -23,23 +23,16 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# com.bktus.gpgfrontend.module.integrated.versionchecking
+# com.bktus.gpgfrontend.module.integrated.gnupginfogathering
 
 aux_source_directory(. INTEGRATED_MODULE_SOURCE)
 
 # define libgpgfrontend_module
-add_library(gpgfrontend_integrated_module_version_checking SHARED ${INTEGRATED_MODULE_SOURCE})
+add_library(gpgfrontend_integrated_module_gnupg_info_gathering SHARED ${INTEGRATED_MODULE_SOURCE})
 
 # link sdk
-target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE
+target_link_libraries(gpgfrontend_integrated_module_gnupg_info_gathering PRIVATE
         gpgfrontend_module_sdk)
 
-# link Qt
-if(Qt6_DIR)
-        target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE Qt6::Network)
-else()
-        target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE Qt5::Network)
-endif()
-
 # using std c++ 17
-target_compile_features(gpgfrontend_integrated_module_version_checking PRIVATE cxx_std_17)
+target_compile_features(gpgfrontend_integrated_module_gnupg_info_gathering PRIVATE cxx_std_17)

@@ -26,4 +26,32 @@
  *
  */
 
-#include "core/GpgInfo.h"
+#pragma once
+
+#include <module/sdk/GpgFrontendModuleSDK.h>
+
+#include <memory>
+
+#include "GpgInfo.h"
+
+namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {
+
+class GPGFRONTEND_MODULE_SDK_EXPORT GnuPGInfoGatheringModule : public Module {
+  Q_OBJECT
+ public:
+  GnuPGInfoGatheringModule();
+
+  ~GnuPGInfoGatheringModule();
+
+  virtual bool Register() override;
+
+  virtual bool Active() override;
+
+  virtual int Exec(EventRefrernce) override;
+
+  virtual bool Deactive() override;
+
+ private:
+  GpgInfo info_;
+};
+}  // namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule

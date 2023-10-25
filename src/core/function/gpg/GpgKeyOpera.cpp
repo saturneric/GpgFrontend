@@ -28,28 +28,28 @@
 
 #include "GpgKeyOpera.h"
 
+#include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
 #include <boost/format.hpp>
 #include <boost/process/async_pipe.hpp>
-#include <memory>
-#include <string>
-#include <vector>
 
 #include "GpgCommandExecutor.h"
 #include "GpgKeyGetter.h"
 #include "core/GpgConstants.h"
 #include "core/GpgGenKeyInfo.h"
+#include "core/module/ModuleManager.h"
 
-GpgFrontend::GpgKeyOpera::GpgKeyOpera(int channel)
+namespace GpgFrontend {
+
+GpgKeyOpera::GpgKeyOpera(int channel)
     : SingletonFunctionObject<GpgKeyOpera>(channel) {}
 
 /**
  * Delete keys
  * @param uidList key ids
  */
-void GpgFrontend::GpgKeyOpera::DeleteKeys(
-    GpgFrontend::KeyIdArgsListPtr key_ids) {
+void GpgKeyOpera::DeleteKeys(GpgFrontend::KeyIdArgsListPtr key_ids) {
   GpgError err;
   for (const auto& tmp : *key_ids) {
     auto key = GpgKeyGetter::GetInstance().GetKey(tmp);
@@ -72,7 +72,7 @@ void GpgFrontend::GpgKeyOpera::DeleteKeys(
  * @param expires date and time
  * @return if successful
  */
-GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::SetExpire(
+GpgError GpgKeyOpera::SetExpire(
     const GpgKey& key, const SubkeyId& subkey_fpr,
     std::unique_ptr<boost::posix_time::ptime>& expires) {
   unsigned long expires_time = 0;
@@ -102,11 +102,13 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::SetExpire(
  * @param outputFileName out file name(path)
  * @return the process doing this job
  */
-void GpgFrontend::GpgKeyOpera::GenerateRevokeCert(
-    const GpgKey& key, const std::string& output_file_path) {
+void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
+                                     const std::string& output_file_path) {
+  const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.app_path", std::string{});
   // get all components
   GpgCommandExecutor::GetInstance().ExecuteSync(
-      {ctx_.GetInfo().AppPath,
+      {app_path,
        {"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o",
         output_file_path, "--gen-revoke", key.GetFingerprint().c_str()},
        [=](int exit_code, const std::string& p_out, const std::string& p_err) {
@@ -152,8 +154,8 @@ void GpgFrontend::GpgKeyOpera::GenerateRevokeCert(
  * @param params key generation args
  * @return error information
  */
-GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
-    const std::unique_ptr<GenKeyInfo>& params, GpgGenKeyResult& result) {
+GpgError GpgKeyOpera::GenerateKey(const std::unique_ptr<GenKeyInfo>& params,
+                                  GpgGenKeyResult& result) {
   auto userid_utf8 = params->GetUserid();
   const char* userid = userid_utf8.c_str();
   auto algo_utf8 = params->GetAlgo() + params->GetKeySizeStr();
@@ -171,9 +173,11 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
 
   GpgError err;
 
-  SPDLOG_DEBUG("ctx version, {}", ctx_.GetInfo(false).GnupgVersion);
+  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
+  SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
-  if (ctx_.GetInfo(false).GnupgVersion >= "2.1.0") {
+  if (software_version_compare(gnupg_version, "2.1.0") >= 0) {
     unsigned int flags = 0;
 
     if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
@@ -231,7 +235,7 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateKey(
  * @param params opera args
  * @return error info
  */
-GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateSubkey(
+GpgError GpgKeyOpera::GenerateSubkey(
     const GpgKey& key, const std::unique_ptr<GenKeyInfo>& params) {
   if (!params->IsSubKey()) return GPG_ERR_CANCELED;
 
@@ -263,27 +267,37 @@ GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::GenerateSubkey(
   return check_gpg_error(err);
 }
 
-GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyPassword(
-    const GpgFrontend::GpgKey& key) {
-  if (ctx_.GetInfo(false).GnupgVersion < "2.0.15") {
+GpgError GpgKeyOpera::ModifyPassword(const GpgKey& key) {
+  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
+  SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
+
+  if (software_version_compare(gnupg_version, "2.0.15") < 0) {
     SPDLOG_ERROR("operator not support");
     return GPG_ERR_NOT_SUPPORTED;
   }
   auto err = gpgme_op_passwd(ctx_, gpgme_key_t(key), 0);
   return check_gpg_error(err);
 }
-GpgFrontend::GpgError GpgFrontend::GpgKeyOpera::ModifyTOFUPolicy(
-    const GpgFrontend::GpgKey& key, gpgme_tofu_policy_t tofu_policy) {
-  if (ctx_.GetInfo(false).GnupgVersion < "2.1.10") {
+
+GpgError GpgKeyOpera::ModifyTOFUPolicy(const GpgKey& key,
+                                       gpgme_tofu_policy_t tofu_policy) {
+  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
+  SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
+
+  if (software_version_compare(gnupg_version, "2.1.10") < 0) {
     SPDLOG_ERROR("operator not support");
     return GPG_ERR_NOT_SUPPORTED;
   }
+
   auto err = gpgme_op_tofu_policy(ctx_, gpgme_key_t(key), tofu_policy);
   return check_gpg_error(err);
 }
 
-void GpgFrontend::GpgKeyOpera::DeleteKey(const GpgFrontend::KeyId& key_id) {
+void GpgKeyOpera::DeleteKey(const GpgFrontend::KeyId& key_id) {
   auto keys = std::make_unique<KeyIdArgsList>();
   keys->push_back(key_id);
   DeleteKeys(std::move(keys));
 }
+}  // namespace GpgFrontend

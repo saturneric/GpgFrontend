@@ -168,6 +168,9 @@ std::string read_all_data_in_file(const std::string& path);
 GPGFRONTEND_CORE_EXPORT bool write_buffer_to_file(
     const std::string& path, const std::string& out_buffer);
 
+int GPGFRONTEND_CORE_EXPORT software_version_compare(const std::string& a,
+                                                     const std::string& b);
+
 /**
  * @brief Get the file extension object
  *

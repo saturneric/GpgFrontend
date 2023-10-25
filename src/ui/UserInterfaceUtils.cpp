@@ -40,12 +40,13 @@
 #include "core/function/FileOperator.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "dialog/gnupg/GnuPGControllerDialog.h"
 #include "ui/SignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
+#include "ui/dialog/gnupg/GnuPGControllerDialog.h"
 #include "ui/struct/SettingsObject.h"
 #include "ui/widgets/TextEdit.h"
 
@@ -325,8 +326,11 @@ void CommonUtils::SlotExecuteGpgCommand(
                                        _("Finished executing command."));
           });
 
-  gpg_process->setProgram(
-      GpgContext::GetInstance().GetInfo(false).AppPath.c_str());
+  const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.app_path", std::string{});
+  SPDLOG_DEBUG("got gnupg app path from rt: {}", app_path);
+
+  gpg_process->setProgram(app_path.c_str());
   gpg_process->setArguments(arguments);
   gpg_process->start();
   looper.exec();

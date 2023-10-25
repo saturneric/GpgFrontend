@@ -50,7 +50,7 @@ using ModuleMangerPtr = std::shared_ptr<ModuleManager>;
 using GMCPtr = std::shared_ptr<GlobalModuleContext>;
 using Namespace = std::string;
 using Key = std::string;
-using LPCallback = std::function<void(Namespace, Key, int)>;
+using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
 
 ModuleIdentifier GPGFRONTEND_CORE_EXPORT
 GetRealModuleIdentifier(const ModuleIdentifier& id);
@@ -76,7 +76,7 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
 
   std::optional<std::any> RetrieveRTValue(Namespace, Key);
 
-  bool ListenRTPublish(QObject*, Namespace, Key, LPCallback);
+  bool ListenRTPublish(QObject*, Namespace, Key, LPCallback, bool);
 
  private:
   class Impl;
@@ -111,7 +111,8 @@ bool GPGFRONTEND_CORE_EXPORT UpsertRTValue(const std::string& namespace_,
                                            const std::any& value);
 
 bool GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject*, Namespace, Key,
-                                                  LPCallback);
+                                                  LPCallback,
+                                                  bool callback_once = true);
 
 template <typename T>
 std::optional<T> RetrieveRTValueTyped(const std::string& namespace_,

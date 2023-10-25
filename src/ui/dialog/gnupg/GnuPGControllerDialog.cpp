@@ -30,6 +30,8 @@
 
 #include "SignalStation.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/ModuleManager.h"
+#include "spdlog/spdlog.h"
 #include "ui/dialog/GeneralDialog.h"
 #include "ui_GnuPGControllerDialog.h"
 
@@ -204,9 +206,13 @@ void GnuPGControllerDialog::slot_update_custom_key_database_path_label(
   // announce the restart
   this->slot_set_restart_needed(DEEP_RESTART_CODE);
 
+  const auto database_path = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.database_path", std::string{});
+  SPDLOG_DEBUG("got gpgme.ctx.database_path from rt: {}", database_path);
+
   if (state != Qt::CheckState::Checked) {
-    ui_->currentKeyDatabasePathLabel->setText(QString::fromStdString(
-        GpgContext::GetInstance().GetInfo(false).DatabasePath));
+    ui_->currentKeyDatabasePathLabel->setText(
+        QString::fromStdString(database_path));
 
     // hide label (not necessary to show the default path)
     this->ui_->currentKeyDatabasePathLabel->setHidden(true);
@@ -238,9 +244,15 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
   // announce the restart
   this->slot_set_restart_needed(DEEP_RESTART_CODE);
 
+  const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
+      Module::GetRealModuleIdentifier(
+          "com.bktus.gpgfrontend.module.integrated.gnupginfogathering"),
+      "gnupg.home_path", std::string{});
+  SPDLOG_DEBUG("got gnupg home path from rt: {}", home_path);
+
   if (state != Qt::CheckState::Checked) {
-    ui_->currentCustomGnuPGInstallPathLabel->setText(QString::fromStdString(
-        GpgContext::GetInstance().GetInfo(false).GnuPGHomePath));
+    ui_->currentCustomGnuPGInstallPathLabel->setText(
+        QString::fromStdString(home_path));
 
     // hide label (not necessary to show the default path)
     this->ui_->currentCustomGnuPGInstallPathLabel->setHidden(true);

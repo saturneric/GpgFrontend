@@ -30,21 +30,16 @@
 
 #include <gpg-error.h>
 #include <gpgme.h>
-#include <spdlog/spdlog.h>
 #include <unistd.h>
-
-#include <mutex>
-#include <shared_mutex>
-#include <string>
-#include <vector>
 
 #include "core/GpgConstants.h"
 #include "core/common/CoreCommonUtil.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
+#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "function/gpg/GpgKeyGetter.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -63,19 +58,12 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
   gpgme_ctx_t _p_ctx;
 
   // get gpgme library version
-  info_.GpgMEVersion = gpgme_check_version(nullptr);
+  Module::UpsertRTValue("core", "gpgme.version",
+                        std::string(gpgme_check_version(nullptr)));
 
   // create a new context
   check_gpg_error(gpgme_new(&_p_ctx));
   _ctx_ref = CtxRefHandler(_p_ctx);
-
-  if (args.gpg_alone) {
-    info_.AppPath = args.gpg_path;
-    auto err = gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_OpenPGP,
-                                         info_.AppPath.c_str(),
-                                         info_.DatabasePath.c_str());
-    assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
-  }
 
   if (args.custom_gpgconf && !args.custom_gpgconf_path.empty()) {
     SPDLOG_DEBUG("set custom gpgconf path: {}", args.custom_gpgconf_path);
@@ -119,22 +107,30 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
     switch (engine_info->protocol) {
       case GPGME_PROTOCOL_OpenPGP:
         find_openpgp = true;
-        info_.AppPath = engine_info->file_name;
-        info_.GnupgVersion = engine_info->version;
-        info_.DatabasePath = std::string(engine_info->home_dir == nullptr
-                                             ? "default"
-                                             : engine_info->home_dir);
+
+        Module::UpsertRTValue("core", "gpgme.ctx.app_path",
+                              std::string(engine_info->file_name));
+        Module::UpsertRTValue("core", "gpgme.ctx.gnupg_version",
+                              std::string(engine_info->version));
+        Module::UpsertRTValue("core", "gpgme.ctx.database_path",
+                              std::string(engine_info->home_dir == nullptr
+                                              ? "default"
+                                              : engine_info->home_dir));
         break;
       case GPGME_PROTOCOL_CMS:
         find_cms = true;
-        info_.CMSPath = engine_info->file_name;
+        Module::UpsertRTValue("core", "gpgme.ctx.cms_path",
+                              std::string(engine_info->file_name));
+
         break;
       case GPGME_PROTOCOL_GPGCONF:
         find_gpgconf = true;
-        info_.GpgConfPath = engine_info->file_name;
+        Module::UpsertRTValue("core", "gpgme.ctx.gpgconf_path",
+                              std::string(engine_info->file_name));
         break;
       case GPGME_PROTOCOL_ASSUAN:
-        info_.AssuanPath = engine_info->file_name;
+        Module::UpsertRTValue("core", "gpgme.ctx.assuan_path",
+                              std::string(engine_info->file_name));
         break;
       case GPGME_PROTOCOL_G13:
         break;
@@ -152,18 +148,28 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
 
   // set custom key db path
   if (!args.db_path.empty()) {
-    info_.DatabasePath = args.db_path;
-    auto err = gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_OpenPGP,
-                                         info_.AppPath.c_str(),
-                                         info_.DatabasePath.c_str());
-    SPDLOG_DEBUG("ctx set custom key db path: {}", info_.DatabasePath);
+    Module::UpsertRTValue("core", "gpgme.ctx.database_path",
+                          std::string(args.db_path));
+
+    const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.ctx.app_path", std::string{});
+    const auto database_path = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.ctx.database_path", std::string{});
+
+    auto err =
+        gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_OpenPGP,
+                                  app_path.c_str(), database_path.c_str());
+    SPDLOG_DEBUG("ctx set custom key db path: {}", database_path);
     assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
   }
 
-  // conditional check
-  if ((info_.GnupgVersion >= "2.0.0" && find_gpgconf && find_openpgp &&
-       find_cms) ||
-      (info_.GnupgVersion > "1.0.0" && find_gpgconf))
+  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gnupg_version", std::string{"0.0.0"});
+  SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
+
+  // conditional check: only support gpg 2.x now
+  if ((software_version_compare(gnupg_version, "2.0.0") >= 0 && find_gpgconf &&
+       find_openpgp && find_cms))
     check_passed = true;
 
   if (!check_passed) {
@@ -175,7 +181,7 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
     gpgme_set_offline(*this, 1);
 
     // set keylist mode
-    if (info_.GnupgVersion >= "2.0.0") {
+    if (gnupg_version >= "2.0.0") {
       check_gpg_error(gpgme_set_keylist_mode(
           *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
                      GPGME_KEYLIST_MODE_SIGS |
@@ -203,16 +209,26 @@ GpgContext::GpgContext(const GpgContextInitArgs &args) : args_(args) {
 }
 
 void GpgContext::post_init_ctx() {
+  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
+
   // Set Independent Database
-  if (info_.GnupgVersion <= "2.0.0" && args_.independent_database) {
-    info_.DatabasePath = args_.db_path;
-    SPDLOG_DEBUG("custom key db path {}", info_.DatabasePath);
-    auto err = gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_OpenPGP,
-                                         info_.AppPath.c_str(),
-                                         info_.DatabasePath.c_str());
+  if (software_version_compare(gnupg_version, "2.0.0") >= 0 &&
+      args_.independent_database) {
+    const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.ctx.app_path", std::string{});
+
+    Module::UpsertRTValue("core", "gpgme.ctx.database_path",
+                          std::string(args_.db_path));
+    SPDLOG_DEBUG("set custom key db path to: {}", args_.db_path);
+
+    auto err =
+        gpgme_ctx_set_engine_info(_ctx_ref.get(), GPGME_PROTOCOL_OpenPGP,
+                                  app_path.c_str(), args_.db_path.c_str());
     assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
   } else {
-    info_.DatabasePath = "default";
+    Module::UpsertRTValue("core", "gpgme.ctx.database_path",
+                          std::string("default"));
   }
 
   if (args_.ascii) {
@@ -227,12 +243,10 @@ void GpgContext::post_init_ctx() {
 
   // for unit test
   if (args_.test_mode) {
-    if (info_.GnupgVersion >= "2.1.0") SetPassphraseCb(test_passphrase_cb);
+    if (software_version_compare(gnupg_version, "2.1.0") >= 0)
+      SetPassphraseCb(test_passphrase_cb);
     gpgme_set_status_cb(*this, test_status_cb, nullptr);
   }
-
-  // preload info
-  auto &info = GetInfo();
 
   // // use custom qt dialog to replace pinentry
   if (!args_.use_pinentry) {
@@ -247,13 +261,16 @@ void GpgContext::post_init_ctx() {
 bool GpgContext::good() const { return good_; }
 
 void GpgContext::SetPassphraseCb(gpgme_passphrase_cb_t cb) const {
-  if (info_.GnupgVersion >= "2.1.0") {
+  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
+
+  if (software_version_compare(gnupg_version, "2.1.0") >= 0) {
     if (gpgme_get_pinentry_mode(*this) != GPGME_PINENTRY_MODE_LOOPBACK) {
       gpgme_set_pinentry_mode(*this, GPGME_PINENTRY_MODE_LOOPBACK);
     }
     gpgme_set_passphrase_cb(*this, cb, nullptr);
   } else {
-    SPDLOG_ERROR("not supported for gnupg version: {}", info_.GnupgVersion);
+    SPDLOG_ERROR("not supported for gnupg version: {}", gnupg_version);
   }
 }
 
@@ -339,330 +356,6 @@ std::string GpgContext::need_user_input_passphrase() {
 
   SPDLOG_DEBUG("lopper end");
   return final_passphrase;
-}
-
-const GpgInfo &GpgContext::GetInfo(bool refresh) {
-  if (!extend_info_loaded_ || refresh) {
-    // try lock
-    std::unique_lock lock(preload_lock_);
-
-    // check twice
-    if (extend_info_loaded_ && !refresh) return info_;
-
-    SPDLOG_DEBUG("start to load extra info");
-
-    // get all components
-    GpgCommandExecutor::GetInstance().ExecuteSync(
-        {info_.GpgConfPath,
-         {"--list-components"},
-         [this](int exit_code, const std::string &p_out,
-                const std::string &p_err) {
-           SPDLOG_DEBUG(
-               "gpgconf components exit_code: {} process stdout size: {}",
-               exit_code, p_out.size());
-
-           if (exit_code != 0) {
-             SPDLOG_ERROR(
-                 "gpgconf execute error, process stderr: {} ,process stdout: "
-                 "{}",
-                 p_err, p_out);
-             return;
-           }
-
-           auto &components_info = info_.ComponentsInfo;
-           components_info["gpgme"] = {"GPG Made Easy", info_.GpgMEVersion,
-                                       _("Embedded In"), "/"};
-
-           auto gpgconf_binary_checksum =
-               check_binary_chacksum(info_.GpgConfPath);
-           components_info["gpgconf"] = {"GPG Configure", "/",
-                                         info_.GpgConfPath,
-                                         gpgconf_binary_checksum.has_value()
-                                             ? gpgconf_binary_checksum.value()
-                                             : "/"};
-
-           std::vector<std::string> line_split_list;
-           boost::split(line_split_list, p_out, boost::is_any_of("\n"));
-
-           for (const auto &line : line_split_list) {
-             std::vector<std::string> info_split_list;
-             boost::split(info_split_list, line, boost::is_any_of(":"));
-
-             if (info_split_list.size() != 3) continue;
-
-             auto component_name = info_split_list[0];
-             auto component_desc = info_split_list[1];
-             auto component_path = info_split_list[2];
-
-             boost::algorithm::trim(component_name);
-             boost::algorithm::trim(component_desc);
-             boost::algorithm::trim(component_path);
-
-#ifdef WINDOWS
-             // replace some special substrings on windows platform
-             boost::replace_all(component_path, "%3a", ":");
-#endif
-
-             auto binary_checksum = check_binary_chacksum(component_path);
-
-             SPDLOG_DEBUG(
-                 "gnupg component name: {} desc: {} checksum: {} path: {} ",
-                 component_name, component_desc,
-                 binary_checksum.has_value() ? binary_checksum.value() : "/",
-                 component_path);
-
-             std::string version = "/";
-
-             if (component_name == "gpg") {
-               version = info_.GnupgVersion;
-             }
-             if (component_name == "gpg-agent") {
-               info_.GpgAgentPath = component_path;
-             }
-             if (component_name == "dirmngr") {
-               info_.DirmngrPath = component_path;
-             }
-             if (component_name == "keyboxd") {
-               info_.KeyboxdPath = component_path;
-             }
-
-             {
-               // try lock
-               std::unique_lock lock(info_.Lock);
-               // add component info to list
-               components_info[component_name] = {
-                   component_desc, version, component_path,
-                   binary_checksum.has_value() ? binary_checksum.value() : "/"};
-             }
-           }
-         }});
-
-    SPDLOG_DEBUG("start to get dirs info");
-
-    GpgCommandExecutor::ExecuteContexts exec_contexts;
-
-    exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
-        info_.GpgConfPath,
-        {"--list-dirs"},
-        [this](int exit_code, const std::string &p_out,
-               const std::string &p_err) {
-          SPDLOG_DEBUG(
-              "gpgconf configurations exit_code: {} process stdout size: {}",
-              exit_code, p_out.size());
-
-          if (exit_code != 0) {
-            SPDLOG_ERROR(
-                "gpgconf execute error, process stderr: {} process stdout: "
-                "{}",
-                p_err, p_out);
-            return;
-          }
-
-          auto &configurations_info = info_.ConfigurationsInfo;
-
-          std::vector<std::string> line_split_list;
-          boost::split(line_split_list, p_out, boost::is_any_of("\n"));
-
-          for (const auto &line : line_split_list) {
-            std::vector<std::string> info_split_list;
-            boost::split(info_split_list, line, boost::is_any_of(":"));
-            SPDLOG_DEBUG("gpgconf info line: {} info size: {}", line,
-                         info_split_list.size());
-
-            if (info_split_list.size() != 2) continue;
-
-            auto configuration_name = info_split_list[0];
-            auto configuration_value = info_split_list[1];
-            boost::algorithm::trim(configuration_name);
-            boost::algorithm::trim(configuration_value);
-
-#ifdef WINDOWS
-            // replace some special substrings on windows platform
-            boost::replace_all(configuration_value, "%3a", ":");
-#endif
-
-            // record gnupg home path
-            if (configuration_name == "homedir") {
-              info_.GnuPGHomePath = info_split_list[1];
-            }
-
-            {
-              // try lock
-              std::unique_lock lock(info_.Lock);
-              configurations_info[configuration_name] = {configuration_value};
-            }
-          }
-        }});
-
-    SPDLOG_DEBUG("start to get components info");
-
-    for (const auto &component : info_.ComponentsInfo) {
-      SPDLOG_DEBUG("gpgconf check options ready", "component", component.first);
-
-      if (component.first == "gpgme" || component.first == "gpgconf") continue;
-
-      exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
-          info_.GpgConfPath,
-          {"--check-options", component.first},
-          [this, component](int exit_code, const std::string &p_out,
-                            const std::string &p_err) {
-            SPDLOG_DEBUG(
-                "gpgconf {} options exit_code: {} process stdout "
-                "size: {} ",
-                component.first, exit_code, p_out.size());
-
-            if (exit_code != 0) {
-              SPDLOG_ERROR(
-                  "gpgconf {} options execute error, process "
-                  "stderr: {} , process stdout:",
-                  component.first, p_err, p_out);
-              return;
-            }
-
-            auto &options_info = info_.OptionsInfo;
-
-            std::vector<std::string> line_split_list;
-            boost::split(line_split_list, p_out, boost::is_any_of("\n"));
-
-            for (const auto &line : line_split_list) {
-              std::vector<std::string> info_split_list;
-              boost::split(info_split_list, line, boost::is_any_of(":"));
-
-              SPDLOG_DEBUG("component {} options line: {} info size: {}",
-                           component.first, line, info_split_list.size());
-
-              if (info_split_list.size() != 6) continue;
-
-              auto configuration_name = info_split_list[0];
-              boost::algorithm::trim(configuration_name);
-              {
-                // try lock
-                std::unique_lock lock(info_.Lock);
-                options_info[configuration_name] = {
-                    info_split_list[1], info_split_list[2], info_split_list[3],
-                    info_split_list[4], info_split_list[5]};
-
-                boost::algorithm::trim(options_info[configuration_name][0]);
-                boost::algorithm::trim(options_info[configuration_name][1]);
-                boost::algorithm::trim(options_info[configuration_name][2]);
-                boost::algorithm::trim(options_info[configuration_name][3]);
-                boost::algorithm::trim(options_info[configuration_name][4]);
-              }
-            }
-          }});
-    }
-
-    SPDLOG_DEBUG("start to get avaliable component options info");
-
-    for (const auto &component : info_.ComponentsInfo) {
-      SPDLOG_DEBUG("gpgconf list options ready", "component", component.first);
-
-      if (component.first == "gpgme" || component.first == "gpgconf") continue;
-
-      exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
-          info_.GpgConfPath,
-          {"--list-options", component.first},
-          [this, component](int exit_code, const std::string &p_out,
-                            const std::string &p_err) {
-            SPDLOG_DEBUG(
-                "gpgconf {} avaliable options exit_code: {} process stdout "
-                "size: {} ",
-                component.first, exit_code, p_out.size());
-
-            if (exit_code != 0) {
-              SPDLOG_ERROR(
-                  "gpgconf {} avaliable options execute error, process stderr: "
-                  "{} , process stdout:",
-                  component.first, p_err, p_out);
-              return;
-            }
-
-            auto &available_options_info = info_.AvailableOptionsInfo;
-
-            std::vector<std::string> line_split_list;
-            boost::split(line_split_list, p_out, boost::is_any_of("\n"));
-
-            for (const auto &line : line_split_list) {
-              std::vector<std::string> info_split_list;
-              boost::split(info_split_list, line, boost::is_any_of(":"));
-
-              SPDLOG_DEBUG(
-                  "component {} avaliable options line: {} info size: {}",
-                  component.first, line, info_split_list.size());
-
-              if (info_split_list.size() != 10) continue;
-
-              auto configuration_name = info_split_list[0];
-              boost::algorithm::trim(configuration_name);
-              {
-                // try lock
-                std::unique_lock lock(info_.Lock);
-                available_options_info[configuration_name] = {
-                    info_split_list[1], info_split_list[2], info_split_list[3],
-                    info_split_list[4], info_split_list[5], info_split_list[6],
-                    info_split_list[7], info_split_list[8], info_split_list[9]};
-
-                boost::algorithm::trim(
-                    available_options_info[configuration_name][0]);
-                boost::algorithm::trim(
-                    available_options_info[configuration_name][1]);
-                boost::algorithm::trim(
-                    available_options_info[configuration_name][2]);
-                boost::algorithm::trim(
-                    available_options_info[configuration_name][3]);
-                boost::algorithm::trim(
-                    available_options_info[configuration_name][4]);
-                boost::algorithm::trim(
-                    available_options_info[configuration_name][5]);
-                boost::algorithm::trim(
-                    available_options_info[configuration_name][6]);
-                boost::algorithm::trim(
-                    available_options_info[configuration_name][7]);
-                boost::algorithm::trim(
-                    available_options_info[configuration_name][8]);
-              }
-            }
-          }});
-    }
-
-    GpgCommandExecutor::GetInstance().ExecuteConcurrentlySync(exec_contexts);
-    extend_info_loaded_ = true;
-  }
-
-  // ensure nothing is changing now
-  std::shared_lock lock(preload_lock_);
-  return info_;
-}
-
-std::optional<std::string> GpgContext::check_binary_chacksum(
-    std::filesystem::path path) {
-  // check file info and access rights
-  QFileInfo info(QString::fromStdString(path.u8string()));
-  if (!info.exists() || !info.isFile() || !info.isReadable()) {
-    SPDLOG_ERROR("get info for file {} error, exists: {}",
-                 info.filePath().toStdString(), info.exists());
-    return {};
-  }
-
-  // open and read file
-  QFile f(info.filePath());
-  if (!f.open(QIODevice::ReadOnly)) {
-    SPDLOG_ERROR("open {} to calculate check sum error: {}", path.u8string(),
-                 f.errorString().toStdString());
-    return {};
-  }
-
-  // read all data from file
-  auto buffer = f.readAll();
-  f.close();
-
-  auto hash_sha = QCryptographicHash(QCryptographicHash::Sha256);
-  // md5
-  hash_sha.addData(buffer);
-  auto sha = hash_sha.result().toHex().toStdString();
-  SPDLOG_DEBUG("checksum for file {} is {}", path.u8string(), sha);
-
-  return sha.substr(0, 6);
 }
 
 void GpgContext::_ctx_ref_deleter::operator()(gpgme_ctx_t _ctx) {

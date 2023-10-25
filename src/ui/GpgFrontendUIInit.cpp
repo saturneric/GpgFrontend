@@ -134,7 +134,7 @@ void InitGpgFrontendUI(QApplication* app) {
   }
 
   // create the thread to load the gpg context
-  auto* init_ctx_task = new Thread::CtxCheckTask();
+  auto* init_ctx_task = new Thread::CoreInitTask();
 
   // create and show loading window before starting the main window
   auto* waiting_dialog = new QProgressDialog();
@@ -149,7 +149,7 @@ void InitGpgFrontendUI(QApplication* app) {
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
-  app->connect(init_ctx_task, &Thread::CtxCheckTask::SignalTaskEnd,
+  app->connect(init_ctx_task, &Thread::CoreInitTask::SignalTaskEnd,
                waiting_dialog, [=]() {
                  SPDLOG_DEBUG("gpg context loaded");
                  waiting_dialog->finished(0);
@@ -169,7 +169,7 @@ void InitGpgFrontendUI(QApplication* app) {
 
   // new local event looper
   QEventLoop looper;
-  app->connect(init_ctx_task, &Thread::CtxCheckTask::SignalTaskEnd, &looper,
+  app->connect(init_ctx_task, &Thread::CoreInitTask::SignalTaskEnd, &looper,
                &QEventLoop::quit);
 
   // start the thread to load the gpg context

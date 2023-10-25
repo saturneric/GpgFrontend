@@ -136,7 +136,8 @@ void MainWindow::Init() noexcept {
         this,
         Module::GetRealModuleIdentifier(
             "com.bktus.gpgfrontend.module.integrated.versionchecking"),
-        "version.loading_done", [=](Module::Namespace, Module::Key, int) {
+        "version.loading_done",
+        [=](Module::Namespace, Module::Key, int, std::any) {
           SPDLOG_DEBUG(
               "versionchecking version.loading_done changed, calling slot "
               "version upgrade");

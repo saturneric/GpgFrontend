@@ -28,7 +28,6 @@
 
 #include "core/function/CharsetOperator.h"
 
-#include <spdlog/spdlog.h>
 #include <unicode/ucnv.h>
 #include <unicode/ucsdet.h>
 #include <unicode/ustring.h>

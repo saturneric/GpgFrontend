@@ -32,6 +32,7 @@
 #include <module/sdk/Log.h>
 
 // integrated modules
+#include "integrated/gnupg_info_gathering_module/GnuPGInfoGatheringModule.h"
 #include "integrated/version_checking_module/VersionCheckingModule.h"
 
 namespace GpgFrontend::Module {
@@ -44,6 +45,10 @@ void LoadGpgFrontendModules() {
   // VersionCheckingModule
   RegisterAndActivateModule<
       Integrated::VersionCheckingModule::VersionCheckingModule>();
+
+  // VersionCheckingModule
+  RegisterAndActivateModule<
+      Integrated::GnuPGInfoGatheringModule::GnuPGInfoGatheringModule>();
 
   MODULE_LOG_INFO("load integrated module done.");
 }

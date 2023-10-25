@@ -80,6 +80,10 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
 void AboutDialog::showEvent(QShowEvent* ev) { QDialog::showEvent(ev); }
 
 InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
+  const auto gpgme_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.version", std::string{"2.0.0"});
+  SPDLOG_DEBUG("got gpgme version from rt: {}", gpgme_version);
+
   auto* pixmap = new QPixmap(":gpgfrontend-logo.png");
   auto* text = new QString(
       "<center><h2>" + qApp->applicationName() + "</h2></center>" +
@@ -98,11 +102,8 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       _("or send a mail to my mailing list at") + " <a " +
       "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
       _("Built with Qt") + " " + qVersion() + ", " + OPENSSL_VERSION_TEXT +
-      " " + _("and") + " " + "GPGME" + " " +
-      GpgFrontend::GpgContext::GetInstance()
-          .GetInfo(false)
-          .GpgMEVersion.c_str() +
-      "<br>" + _("Built at") + " " + BUILD_TIMESTAMP + "</center>");
+      " " + _("and") + " " + "GPGME" + " " + gpgme_version.c_str() + "<br>" +
+      _("Built at") + " " + BUILD_TIMESTAMP + "</center>");
 
   auto* layout = new QGridLayout();
   auto* pixmapLabel = new QLabel();
@@ -214,6 +215,17 @@ void UpdateTab::showEvent(QShowEvent* event) {
       "version.loading_done", false);
 
   if (!is_loading_done) {
+    Module::ListenRTPublishEvent(
+        this,
+        Module::GetRealModuleIdentifier(
+            "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+        "version.loading_done",
+        [=](Module::Namespace, Module::Key, int, std::any) {
+          SPDLOG_DEBUG(
+              "versionchecking version.loading_done changed, calling slot "
+              "version upgrade");
+          this->slot_show_version_status();
+        });
     Module::TriggerEvent("CHECK_APPLICATION_VERSION");
   } else {
     slot_show_version_status();
@@ -222,6 +234,7 @@ void UpdateTab::showEvent(QShowEvent* event) {
 
 void UpdateTab::slot_show_version_status() {
   SPDLOG_DEBUG("loading version info from rt");
+  this->pb_->setHidden(true);
 
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
       Module::GetRealModuleIdentifier(
@@ -230,10 +243,7 @@ void UpdateTab::slot_show_version_status() {
 
   if (!is_loading_done) {
     SPDLOG_DEBUG("version info loading havn't been done yet.");
-    this->pb_->setHidden(false);
     return;
-  } else {
-    this->pb_->setHidden(true);
   }
 
   auto is_need_upgrade = Module::RetrieveRTValueTypedOrDefault<>(

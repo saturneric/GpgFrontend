@@ -28,7 +28,9 @@
 
 #include "core/GpgConstants.h"
 
+#include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/lexical_cast.hpp>
 #include <sstream>
 
 #include "core/function/FileOperator.h"
@@ -202,4 +204,42 @@ GpgFrontend::GpgGenKeyResult GpgFrontend::_new_result(
 void GpgFrontend::_result_ref_deletor::operator()(void* _result) {
   SPDLOG_TRACE("gpgme unref {}", _result);
   if (_result != nullptr) gpgme_result_unref(_result);
+}
+
+int GpgFrontend::software_version_compare(const std::string& a,
+                                          const std::string& b) {
+  auto remove_prefix = [](const std::string& version) {
+    return version.front() == 'v' ? version.substr(1) : version;
+  };
+
+  std::string real_version_a = remove_prefix(a);
+  std::string real_version_b = remove_prefix(b);
+
+  std::vector<std::string> split_a, split_b;
+  boost::split(split_a, real_version_a, boost::is_any_of("."));
+  boost::split(split_b, real_version_b, boost::is_any_of("."));
+
+  const int min_depth = std::min(split_a.size(), split_b.size());
+
+  for (int i = 0; i < min_depth; ++i) {
+    int num_a = 0, num_b = 0;
+
+    try {
+      num_a = boost::lexical_cast<int>(split_a[i]);
+      num_b = boost::lexical_cast<int>(split_b[i]);
+    } catch (boost::bad_lexical_cast&) {
+      // Handle exception if needed
+      return 0;
+    }
+
+    if (num_a != num_b) {
+      return (num_a > num_b) ? 1 : -1;
+    }
+  }
+
+  if (split_a.size() != split_b.size()) {
+    return (split_a.size() > split_b.size()) ? 1 : -1;
+  }
+
+  return 0;
 }

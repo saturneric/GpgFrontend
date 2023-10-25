@@ -65,8 +65,6 @@ class GlobalRegisterTable::Impl {
       auto sub_it = sub_table.find(k);
       if (sub_it == sub_table.end()) {
         sub_it = sub_table.emplace(k, std::make_unique<Value>(Value{v})).first;
-        SPDLOG_DEBUG("new kv in rt, created n: {}, k: {}, v type: {}", n, k,
-                     v.type().name());
       } else {
         if (sub_it->second->type != v.type()) {
           return false;
@@ -76,8 +74,7 @@ class GlobalRegisterTable::Impl {
       version = ++sub_it->second->version;
     }
 
-    emit parent_->SignalPublish(n, k, version);
-    SPDLOG_DEBUG("published kv to rt, n: {}, k: {}", n, k);
+    emit parent_->SignalPublish(n, k, version, v);
     return true;
   }
 
@@ -95,18 +92,18 @@ class GlobalRegisterTable::Impl {
                 ? std::optional<std::any>{sub_it->second->value}
                 : std::nullopt;
     }
-    SPDLOG_DEBUG("looking up kv in rt done, n: {}, k: {}", n, k);
     return rtn;
   }
 
-  bool ListenPublish(QObject* o, Namespace n, Key k, LPCallback c) {
+  bool ListenPublish(QObject* o, Namespace n, Key k, LPCallback c, bool c_o) {
     if (o == nullptr) return false;
-    return QObject::connect(parent_, &GlobalRegisterTable::SignalPublish, o,
-                            [n, k, c](Namespace pn, Key pk, int v) {
-                              if (pn == n && pk == k) {
-                                c(pn, pk, v);
-                              }
-                            }) == nullptr;
+    return QObject::connect(
+               parent_, &GlobalRegisterTable::SignalPublish, o,
+               [n, k, c](Namespace pn, Key pk, int ver, std::any value) {
+                 if (pn == n && pk == k) {
+                   c(pn, pk, ver, value);
+                 }
+               }) == nullptr;
   }
 
  private:
@@ -131,8 +128,8 @@ std::optional<std::any> GlobalRegisterTable::LookupKV(Namespace n, Key v) {
 }
 
 bool GlobalRegisterTable::ListenPublish(QObject* o, Namespace n, Key k,
-                                        LPCallback c) {
-  return p_->ListenPublish(o, n, k, c);
+                                        LPCallback c, bool c_o) {
+  return p_->ListenPublish(o, n, k, c, c_o);
 }
 
 }  // namespace GpgFrontend::Module

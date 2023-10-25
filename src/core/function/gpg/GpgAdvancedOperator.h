@@ -71,7 +71,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  bool RestartGpgComponents();
+  void RestartGpgComponents();
 
   /**
    * @brief

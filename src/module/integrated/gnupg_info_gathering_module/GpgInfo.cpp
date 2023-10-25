@@ -26,37 +26,6 @@
  *
  */
 
-#pragma once
+#include "module/integrated/gnupg_info_gathering_module/GpgInfo.h"
 
-#include "core/GpgFrontendCore.h"
-#include "core/thread/Task.h"
-
-namespace GpgFrontend::Thread {
-/**
- * @brief
- *
- */
-class GPGFRONTEND_CORE_EXPORT CoreInitTask : public Task {
-  Q_OBJECT
- public:
-  /**
-   * @brief Construct a new Ctx Check Thread object
-   *
-   */
-  CoreInitTask();
-
- signals:
-  /**
-   * @brief
-   *
-   */
-  void SignalGnupgNotInstall();
-
- protected:
-  /**
-   * @brief
-   *
-   */
-  void Run() override;
-};
-}  // namespace GpgFrontend::Thread
+namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {}

@@ -38,6 +38,7 @@
 #include "core/GpgContext.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
+#include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -101,7 +102,7 @@ void ShutdownCoreLoggingSystem() {
 
 void ResetGpgFrontendCore() { reset_gpgfrontend_core(); }
 
-void init_gpgfrontend_core() {
+void InitGpgFrontendCore() {
   /* Initialize the locale environment. */
   SPDLOG_DEBUG("locale: {}", setlocale(LC_CTYPE, nullptr));
   // init gpgme subsystem
@@ -241,8 +242,19 @@ void init_gpgfrontend_core() {
           },
           "default_channel_ctx_init"));
 
-  // try to restart all components
-  GpgFrontend::GpgAdvancedOperator::GetInstance().RestartGpgComponents();
+  Module::ListenRTPublishEvent(
+      &default_ctx,
+      Module::GetRealModuleIdentifier(
+          "com.bktus.gpgfrontend.module.integrated.gnupginfogathering"),
+      "gnupg.gathering_done",
+      [=](Module::Namespace, Module::Key, int, std::any) {
+        SPDLOG_DEBUG(
+            "gnupginfogathering gnupg.gathering_done changed, restarting gpg "
+            "components");
+        // try to restart all components
+        GpgFrontend::GpgAdvancedOperator::GetInstance().RestartGpgComponents();
+      });
+  Module::TriggerEvent("GPGFRONTEND_CORE_INITLIZED");
 }
 
 void reset_gpgfrontend_core() { SingletonStorageCollection::GetInstance(true); }
