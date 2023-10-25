@@ -38,7 +38,6 @@
 #include "core/module/Event.h"
 #include "core/module/Module.h"
 #include "core/thread/Task.h"
-#include "spdlog/spdlog.h"
 #include "thread/DataObject.h"
 
 namespace GpgFrontend::Module {

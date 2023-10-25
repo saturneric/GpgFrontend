@@ -29,8 +29,9 @@
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
-#include "dialog/gnupg/GnuPGControllerDialog.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/gnupg/GnuPGControllerDialog.h"
+#include "ui/dialog/help/AboutDialog.h"
 
 namespace GpgFrontend::UI {
 

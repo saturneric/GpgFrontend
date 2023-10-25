@@ -40,7 +40,6 @@
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "module/GpgFrontendModuleInit.h"
-#include "spdlog/spdlog.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/GpgFrontendUIInit.h"
 

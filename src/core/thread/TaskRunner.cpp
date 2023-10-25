@@ -36,7 +36,6 @@
 #include <memory>
 
 #include "core/thread/Task.h"
-#include "spdlog/spdlog.h"
 
 namespace GpgFrontend::Thread {
 

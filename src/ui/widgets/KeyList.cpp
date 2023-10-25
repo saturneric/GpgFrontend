@@ -29,13 +29,13 @@
 #include "ui/widgets/KeyList.h"
 
 #include <boost/format.hpp>
+#include <cstddef>
 #include <mutex>
 #include <utility>
 
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "spdlog/spdlog.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui_KeyList.h"
@@ -559,7 +559,7 @@ KeyIdArgsListPtr& KeyTable::GetChecked() {
   if (checked_key_ids_ == nullptr)
     checked_key_ids_ = std::make_unique<KeyIdArgsList>();
   auto& ret = checked_key_ids_;
-  for (int i = 0; i < buffered_keys_.size(); i++) {
+  for (size_t i = 0; i < buffered_keys_.size(); i++) {
     auto key_id = buffered_keys_[i].GetId();
     if (key_list_->item(i, 0)->checkState() == Qt::Checked &&
         std::find(ret->begin(), ret->end(), key_id) == ret->end()) {

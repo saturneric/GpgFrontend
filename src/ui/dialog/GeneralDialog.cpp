@@ -31,7 +31,7 @@
 #include "ui/struct/SettingsObject.h"
 
 GpgFrontend::UI::GeneralDialog::GeneralDialog(std::string name, QWidget *parent)
-    : name_(std::move(name)), QDialog(parent) {
+    : QDialog(parent), name_(std::move(name)) {
   slot_restore_settings();
   connect(this, &QDialog::finished, this, &GeneralDialog::slot_save_settings);
 }

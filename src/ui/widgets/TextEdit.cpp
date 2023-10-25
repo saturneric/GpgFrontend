@@ -36,7 +36,6 @@
 
 #include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
-#include "spdlog/spdlog.h"
 
 namespace GpgFrontend::UI {
 

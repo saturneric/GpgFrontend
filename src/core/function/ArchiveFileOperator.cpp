@@ -82,8 +82,6 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
 
   struct archive *a;
   struct archive_entry *entry;
-  ssize_t len;
-  int fd;
 
   SPDLOG_DEBUG("compress: {}", compress);
 

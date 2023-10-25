@@ -44,7 +44,6 @@
 #include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "dialog/gnupg/GnuPGControllerDialog.h"
-#include "spdlog/spdlog.h"
 #include "ui/SignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/struct/SettingsObject.h"
@@ -341,7 +340,6 @@ void CommonUtils::SlotImportKeyFromKeyServer(
   std::string target_keyserver;
 
   try {
-    auto &settings = GlobalSettingStation::GetInstance().GetMainSettings();
     SettingsObject key_server_json("key_server");
 
     // get key servers from settings
@@ -351,7 +349,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
       throw std::runtime_error("No key server configured");
     }
 
-    const int target_key_server_index =
+    const size_t target_key_server_index =
         key_server_json.Check("default_server", 0);
     if (target_key_server_index >= key_server_list.size()) {
       throw std::runtime_error("default_server index out of range");

@@ -36,8 +36,6 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <memory>
 
-#include "spdlog/spdlog.h"
-
 namespace GpgFrontend::Thread {
 
 class Task::Impl : public QObject {
@@ -56,8 +54,8 @@ class Task::Impl : public QObject {
         parent_(parent),
         uuid_(generate_uuid()),
         name_(name),
-        runnable_(std::move(runnable)),
-        callback_(std::move([](int, const DataObjectPtr &) {})),
+        runnable_(runnable),
+        callback_([](int, const DataObjectPtr &) {}),
         callback_thread_(QThread::currentThread()),
         data_object_(data_object) {
     SPDLOG_TRACE("task {} created with runnable, callback_thread_: {}",
@@ -71,8 +69,8 @@ class Task::Impl : public QObject {
         parent_(parent),
         uuid_(generate_uuid()),
         name_(name),
-        runnable_(std::move(runnable)),
-        callback_(std::move(callback)),
+        runnable_(runnable),
+        callback_(callback),
         callback_thread_(QThread::currentThread()),
         data_object_(data_object) {
     SPDLOG_TRACE(
@@ -142,8 +140,8 @@ class Task::Impl : public QObject {
   Task *const parent_;
   const std::string uuid_;
   const std::string name_;
-  TaskCallback callback_;                ///<
   TaskRunnable runnable_;                ///<
+  TaskCallback callback_;                ///<
   int rtn_ = 0;                          ///<
   QThread *callback_thread_ = nullptr;   ///<
   DataObjectPtr data_object_ = nullptr;  ///<

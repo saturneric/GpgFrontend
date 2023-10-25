@@ -275,7 +275,8 @@ void KeyGenDialog::slot_activated_key_type(int index) {
   SPDLOG_DEBUG("key type index changed: {}", index);
 
   // check
-  assert(gen_key_info_->GetSupportedKeyAlgo().size() > index);
+  assert(gen_key_info_->GetSupportedKeyAlgo().size() >
+         static_cast<size_t>(index));
   gen_key_info_->SetAlgo(gen_key_info_->GetSupportedKeyAlgo()[index]);
   refresh_widgets_state();
 }

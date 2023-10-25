@@ -32,6 +32,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleManager.h"
+#include "main_window/GeneralMainWindow.h"
 #include "ui/SignalStation.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/SettingsObject.h"

@@ -29,6 +29,7 @@
 #include "SubkeyGenerateDialog.h"
 
 #include <cassert>
+#include <cstddef>
 
 #include "core/common/CoreCommonUtil.h"
 #include "core/function/GlobalSettingStation.h"
@@ -381,7 +382,8 @@ void SubkeyGenerateDialog::slot_activated_key_type(int index) {
   SPDLOG_DEBUG("key type index changed: {}", index);
 
   // check
-  assert(gen_key_info_->GetSupportedSubkeyAlgo().size() > index);
+  assert(gen_key_info_->GetSupportedSubkeyAlgo().size() >
+         static_cast<size_t>(index));
   gen_key_info_->SetAlgo(gen_key_info_->GetSupportedSubkeyAlgo()[index]);
   refresh_widgets_state();
 }

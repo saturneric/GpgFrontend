@@ -26,14 +26,20 @@
  *
  */
 
+#include <boost/format.hpp>
+
 #include "MainWindow.h"
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgFileOpera.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
+#include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
+#include "core/function/result_analyse/GpgSignResultAnalyse.h"
+#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/thread/Task.h"
-#include "dialog/SignersPicker.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/SignersPicker.h"
 
 namespace GpgFrontend::UI {
 

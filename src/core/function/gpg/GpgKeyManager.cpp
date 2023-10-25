@@ -35,7 +35,6 @@
 
 #include "GpgBasicOperator.h"
 #include "GpgKeyGetter.h"
-#include "spdlog/spdlog.h"
 
 GpgFrontend::GpgKeyManager::GpgKeyManager(int channel)
     : SingletonFunctionObject<GpgKeyManager>(channel) {}

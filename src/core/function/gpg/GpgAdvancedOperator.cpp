@@ -33,7 +33,6 @@
 #include "GpgAdvancedOperator.h"
 
 #include "core/function/gpg/GpgCommandExecutor.h"
-#include "spdlog/spdlog.h"
 
 GpgFrontend::GpgAdvancedOperator::GpgAdvancedOperator(int channel)
     : SingletonFunctionObject(channel) {}

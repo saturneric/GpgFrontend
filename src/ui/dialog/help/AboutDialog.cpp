@@ -37,6 +37,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleManager.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "ui/dialog/help/GnupgTab.h"
 
 namespace GpgFrontend::UI {

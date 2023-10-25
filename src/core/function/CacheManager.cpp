@@ -33,7 +33,6 @@
 #include <string>
 
 #include "function/DataObjectOperator.h"
-#include "spdlog/spdlog.h"
 
 GpgFrontend::CacheManager::CacheManager(int channel)
     : SingletonFunctionObject<CacheManager>(channel),

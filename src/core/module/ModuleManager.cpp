@@ -51,29 +51,29 @@ class ModuleManager::Impl {
 
   void RegisterModule(ModulePtr module) {
     task_runner_->PostTask(new Thread::Task(
-        std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
+        [=](GpgFrontend::Thread::DataObjectPtr) -> int {
           module->SetGPC(gmc_);
           gmc_->RegisterModule(module);
           return 0;
-        }),
+        },
         __func__, nullptr));
   }
 
   void TriggerEvent(EventRefrernce event) {
     task_runner_->PostTask(new Thread::Task(
-        std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
+        [=](GpgFrontend::Thread::DataObjectPtr) -> int {
           gmc_->TriggerEvent(event);
           return 0;
-        }),
+        },
         __func__, nullptr));
   }
 
   void ActiveModule(ModuleIdentifier identifier) {
     task_runner_->PostTask(new Thread::Task(
-        std::move([=](GpgFrontend::Thread::DataObjectPtr) -> int {
+        [=](GpgFrontend::Thread::DataObjectPtr) -> int {
           gmc_->ActiveModule(identifier);
           return 0;
-        }),
+        },
         __func__, nullptr));
   }
 

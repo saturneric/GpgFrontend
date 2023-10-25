@@ -79,7 +79,8 @@ void KeyUploadDialog::slot_upload_key_to_server(
     const auto key_server_list =
         key_server_json.Check("server_list", nlohmann::json::array());
 
-    int default_key_server_index = key_server_json.Check("default_server", 0);
+    size_t default_key_server_index =
+        key_server_json.Check("default_server", 0);
     if (default_key_server_index >= key_server_list.size()) {
       throw std::runtime_error("default_server index out of range");
     }

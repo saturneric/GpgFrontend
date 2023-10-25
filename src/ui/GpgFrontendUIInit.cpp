@@ -40,7 +40,6 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/CtxCheckTask.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "spdlog/spdlog.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/main_window/MainWindow.h"

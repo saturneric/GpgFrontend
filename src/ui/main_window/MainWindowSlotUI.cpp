@@ -30,6 +30,8 @@
 #include "core/GpgConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/Wizard.h"
+#include "ui/main_window/KeyMgmt.h"
 #include "ui/struct/SettingsObject.h"
 
 namespace GpgFrontend::UI {

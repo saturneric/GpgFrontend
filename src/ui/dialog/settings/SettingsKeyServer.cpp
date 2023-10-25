@@ -28,6 +28,8 @@
 
 #include "SettingsKeyServer.h"
 
+#include <cstddef>
+
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -126,7 +128,8 @@ void KeyserverTab::SetSettings() {
       this->key_server_str_list_.append(key_server_str.c_str());
     }
 
-    int default_key_server_index = key_server_json.Check("default_server", 0);
+    size_t default_key_server_index =
+        key_server_json.Check("default_server", 0);
     if (default_key_server_index >= key_server_list.size()) {
       throw std::runtime_error("default_server index out of range");
     }
@@ -243,10 +246,10 @@ void KeyserverTab::slot_test_listed_key_server() {
       this,
       [=](std::vector<ListedKeyServerTestTask::KeyServerTestResultType>
               result) {
-        const auto row_size = ui_->keyServerListTable->rowCount();
+        const size_t row_size = ui_->keyServerListTable->rowCount();
         if (result.size() != row_size) return;
         ui_->keyServerListTable->blockSignals(true);
-        for (int i = 0; i < row_size; i++) {
+        for (size_t i = 0; i < row_size; i++) {
           const auto status = result[i];
           auto status_iem = ui_->keyServerListTable->item(i, 3);
           if (status == ListedKeyServerTestTask::kTestResultType_Success) {

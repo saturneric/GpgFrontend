@@ -79,7 +79,11 @@ void InitCoreLoggingSystem() {
 #endif
 
   // flush policy
+#ifdef DEBUG
+  core_logger->flush_on(spdlog::level::debug);
+#else
   core_logger->flush_on(spdlog::level::err);
+#endif
   spdlog::flush_every(std::chrono::seconds(5));
 
   // register it as default logger
