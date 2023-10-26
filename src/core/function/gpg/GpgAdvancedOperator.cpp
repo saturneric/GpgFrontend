@@ -46,6 +46,11 @@ bool GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache() {
       "core", "gpgme.ctx.gpgconf_path", std::string{});
   SPDLOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
 
+  if (gpgconf_path.empty()) {
+    SPDLOG_ERROR("cannot get valid gpgconf path from rt, abort.");
+    return false;
+  }
+
   GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
       {gpgconf_path,
        {"--reload", "gpg-agent"},
@@ -64,6 +69,11 @@ bool GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents() {
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", std::string{});
   SPDLOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
+
+  if (gpgconf_path.empty()) {
+    SPDLOG_ERROR("cannot get valid gpgconf path from rt, abort.");
+    return false;
+  }
 
   GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
       {gpgconf_path,
@@ -85,6 +95,11 @@ void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", std::string{});
   SPDLOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
+
+  if (gpgconf_path.empty()) {
+    SPDLOG_ERROR("cannot get valid gpgconf path from rt, abort.");
+    return;
+  }
 
   GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
       {gpgconf_path,
@@ -138,6 +153,11 @@ bool GpgFrontend::GpgAdvancedOperator::ResetConfigures() {
       "core", "gpgme.ctx.gpgconf_path", std::string{});
   SPDLOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
 
+  if (gpgconf_path.empty()) {
+    SPDLOG_ERROR("cannot get valid gpgconf path from rt, abort.");
+    return false;
+  }
+
   GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
       {gpgconf_path,
        {"--apply-defaults"},
@@ -169,6 +189,11 @@ bool GpgFrontend::GpgAdvancedOperator::StartGpgAgent() {
           "com.bktus.gpgfrontend.module.integrated.gnupginfogathering"),
       "gnupg.home_path", std::string{});
   SPDLOG_DEBUG("got gnupg home path from rt: {}", home_path);
+
+  if (gpg_agent_path.empty()) {
+    SPDLOG_ERROR("cannot get valid gpg agent path from rt, abort.");
+    return false;
+  }
 
   GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
       {gpg_agent_path,
@@ -207,6 +232,11 @@ bool GpgFrontend::GpgAdvancedOperator::StartDirmngr() {
       "gnupg.home_path", std::string{});
   SPDLOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
+  if (dirmngr_path.empty()) {
+    SPDLOG_ERROR("cannot get valid dirmngr path from rt, abort.");
+    return false;
+  }
+
   GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
       {dirmngr_path,
        {"--homedir", home_path, "--daemon"},
@@ -242,6 +272,11 @@ bool GpgFrontend::GpgAdvancedOperator::StartKeyBoxd() {
           "com.bktus.gpgfrontend.module.integrated.gnupginfogathering"),
       "gnupg.home_path", std::string{});
   SPDLOG_DEBUG("got gnupg home path from rt: {}", home_path);
+
+  if (keyboxd_path.empty()) {
+    SPDLOG_ERROR("cannot get valid keyboxd path from rt, abort.");
+    return false;
+  }
 
   GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
       {keyboxd_path,

@@ -38,16 +38,16 @@ std::optional<std::string> check_binary_chacksum(std::filesystem::path path) {
   // check file info and access rights
   QFileInfo info(QString::fromStdString(path.u8string()));
   if (!info.exists() || !info.isFile() || !info.isReadable()) {
-    SPDLOG_ERROR("get info for file {} error, exists: {}",
-                 info.filePath().toStdString(), info.exists());
+    MODULE_LOG_ERROR("get info for file {} error, exists: {}",
+                     info.filePath().toStdString(), info.exists());
     return {};
   }
 
   // open and read file
   QFile f(info.filePath());
   if (!f.open(QIODevice::ReadOnly)) {
-    SPDLOG_ERROR("open {} to calculate check sum error: {}", path.u8string(),
-                 f.errorString().toStdString());
+    MODULE_LOG_ERROR("open {} to calculate check sum error: {}",
+                     path.u8string(), f.errorString().toStdString());
     return {};
   }
 
@@ -59,7 +59,7 @@ std::optional<std::string> check_binary_chacksum(std::filesystem::path path) {
   // md5
   hash_sha.addData(buffer);
   auto sha = hash_sha.result().toHex().toStdString();
-  SPDLOG_DEBUG("checksum for file {} is {}", path.u8string(), sha);
+  MODULE_LOG_DEBUG("checksum for file {} is {}", path.u8string(), sha);
 
   return sha.substr(0, 6);
 }
@@ -89,13 +89,13 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
 
   const auto gpgme_version = RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.version", std::string{"2.0.0"});
-  SPDLOG_DEBUG("got gpgme version from rt: {}", gpgme_version);
+  MODULE_LOG_DEBUG("got gpgme version from rt: {}", gpgme_version);
 
   const auto gpgconf_path = RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", std::string{});
-  SPDLOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
+  MODULE_LOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
 
-  SPDLOG_DEBUG("start to load extra info...");
+  MODULE_LOG_DEBUG("start to load extra info at module gnupginfogathering...");
 
   // get all components
   GpgCommandExecutor::GetInstance().ExecuteSync(
@@ -103,12 +103,12 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
        {"--list-components"},
        [this, gpgme_version, gpgconf_path](
            int exit_code, const std::string &p_out, const std::string &p_err) {
-         SPDLOG_DEBUG(
+         MODULE_LOG_DEBUG(
              "gpgconf components exit_code: {} process stdout size: {}",
              exit_code, p_out.size());
 
          if (exit_code != 0) {
-           SPDLOG_ERROR(
+           MODULE_LOG_ERROR(
                "gpgconf execute error, process stderr: {} ,process stdout: "
                "{}",
                p_err, p_out);
@@ -149,7 +149,7 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
 
            auto binary_checksum = check_binary_chacksum(component_path);
 
-           SPDLOG_DEBUG(
+           MODULE_LOG_DEBUG(
                "gnupg component name: {} desc: {} checksum: {} path: {} ",
                component_name, component_desc,
                binary_checksum.has_value() ? binary_checksum.value() : "/",
@@ -175,17 +175,18 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
            }
 
            {
-             // try lock
-             std::unique_lock lock(info_.Lock);
              // add component info to list
              components_info[component_name] = {
                  component_desc, version, component_path,
                  binary_checksum.has_value() ? binary_checksum.value() : "/"};
            }
+
+           MODULE_LOG_DEBUG(
+               "gathering module have loaded extra info from gpgconf.");
          }
        }});
 
-  SPDLOG_DEBUG("start to get dirs info");
+  MODULE_LOG_DEBUG("start to get dirs info");
 
   GpgCommandExecutor::ExecuteContexts exec_contexts;
 
@@ -194,12 +195,12 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
       {"--list-dirs"},
       [this](int exit_code, const std::string &p_out,
              const std::string &p_err) {
-        SPDLOG_DEBUG(
+        MODULE_LOG_DEBUG(
             "gpgconf configurations exit_code: {} process stdout size: {}",
             exit_code, p_out.size());
 
         if (exit_code != 0) {
-          SPDLOG_ERROR(
+          MODULE_LOG_ERROR(
               "gpgconf execute error, process stderr: {} process stdout: "
               "{}",
               p_err, p_out);
@@ -214,8 +215,8 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
         for (const auto &line : line_split_list) {
           std::vector<std::string> info_split_list;
           boost::split(info_split_list, line, boost::is_any_of(":"));
-          SPDLOG_DEBUG("gpgconf info line: {} info size: {}", line,
-                       info_split_list.size());
+          MODULE_LOG_DEBUG("gpgconf info line: {} info size: {}", line,
+                           info_split_list.size());
 
           if (info_split_list.size() != 2) continue;
 
@@ -242,10 +243,11 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
         }
       }});
 
-  SPDLOG_DEBUG("start to get components info");
+  MODULE_LOG_DEBUG("start to get components info");
 
   for (const auto &component : info_.ComponentsInfo) {
-    SPDLOG_DEBUG("gpgconf check options ready", "component", component.first);
+    MODULE_LOG_DEBUG("gpgconf check options ready", "component",
+                     component.first);
 
     if (component.first == "gpgme" || component.first == "gpgconf") continue;
 
@@ -254,13 +256,13 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
         {"--check-options", component.first},
         [this, component](int exit_code, const std::string &p_out,
                           const std::string &p_err) {
-          SPDLOG_DEBUG(
+          MODULE_LOG_DEBUG(
               "gpgconf {} options exit_code: {} process stdout "
               "size: {} ",
               component.first, exit_code, p_out.size());
 
           if (exit_code != 0) {
-            SPDLOG_ERROR(
+            MODULE_LOG_ERROR(
                 "gpgconf {} options execute error, process "
                 "stderr: {} , process stdout:",
                 component.first, p_err, p_out);
@@ -276,8 +278,8 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
             std::vector<std::string> info_split_list;
             boost::split(info_split_list, line, boost::is_any_of(":"));
 
-            SPDLOG_DEBUG("component {} options line: {} info size: {}",
-                         component.first, line, info_split_list.size());
+            MODULE_LOG_DEBUG("component {} options line: {} info size: {}",
+                             component.first, line, info_split_list.size());
 
             if (info_split_list.size() != 6) continue;
 
@@ -300,10 +302,11 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
         }});
   }
 
-  SPDLOG_DEBUG("start to get avaliable component options info");
+  MODULE_LOG_DEBUG("start to get avaliable component options info");
 
   for (const auto &component : info_.ComponentsInfo) {
-    SPDLOG_DEBUG("gpgconf list options ready", "component", component.first);
+    MODULE_LOG_DEBUG("gpgconf list options ready", "component",
+                     component.first);
 
     if (component.first == "gpgme" || component.first == "gpgconf") continue;
 
@@ -312,13 +315,13 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
         {"--list-options", component.first},
         [this, component](int exit_code, const std::string &p_out,
                           const std::string &p_err) {
-          SPDLOG_DEBUG(
+          MODULE_LOG_DEBUG(
               "gpgconf {} avaliable options exit_code: {} process stdout "
               "size: {} ",
               component.first, exit_code, p_out.size());
 
           if (exit_code != 0) {
-            SPDLOG_ERROR(
+            MODULE_LOG_ERROR(
                 "gpgconf {} avaliable options execute error, process stderr: "
                 "{} , process stdout:",
                 component.first, p_err, p_out);
@@ -334,7 +337,7 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
             std::vector<std::string> info_split_list;
             boost::split(info_split_list, line, boost::is_any_of(":"));
 
-            SPDLOG_DEBUG(
+            MODULE_LOG_DEBUG(
                 "component {} avaliable options line: {} info size: {}",
                 component.first, line, info_split_list.size());
 

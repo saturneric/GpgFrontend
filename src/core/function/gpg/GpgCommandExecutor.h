@@ -53,18 +53,14 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
   struct ExecuteContext {
     const std::string cmd;
     const std::vector<std::string> arguments;
-    const GpgCommandExecutorCallback callback;
-    const GpgCommandExecutorInteractor interact_func;
+    const GpgCommandExecutorCallback cb_func;
+    const GpgCommandExecutorInteractor int_func;
 
     ExecuteContext(
         std::string cmd, std::vector<std::string> arguments,
         GpgCommandExecutorCallback callback = [](int, std::string,
                                                  std::string) {},
-        GpgCommandExecutorInteractor interact_func = [](QProcess *) {})
-        : cmd(cmd),
-          arguments(arguments),
-          callback(callback),
-          interact_func(interact_func) {}
+        GpgCommandExecutorInteractor int_func = [](QProcess *) {});
   };
 
   using ExecuteContexts = std::vector<ExecuteContext>;
@@ -93,7 +89,7 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
   GpgContext &ctx_ = GpgContext::GetInstance(
       SingletonFunctionObject::GetChannel());  ///< Corresponding context
 
-  Thread::Task *build_task(const ExecuteContext &);
+  Thread::Task *build_task_from_exec_ctx(const ExecuteContext &);
 };
 
 }  // namespace GpgFrontend

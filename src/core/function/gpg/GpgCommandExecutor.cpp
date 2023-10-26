@@ -28,18 +28,26 @@
 #include "GpgCommandExecutor.h"
 
 #include <boost/format.hpp>
+#include <string>
 
 #include "GpgFunctionObject.h"
 #include "core/thread/DataObject.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "spdlog/spdlog.h"
 
 namespace GpgFrontend {
+
+GpgCommandExecutor::ExecuteContext::ExecuteContext(
+    std::string cmd, std::vector<std::string> arguments,
+    GpgCommandExecutorCallback callback, GpgCommandExecutorInteractor int_func)
+    : cmd(cmd), arguments(arguments), cb_func(callback), int_func(int_func) {}
 
 GpgCommandExecutor::GpgCommandExecutor(int channel)
     : SingletonFunctionObject<GpgCommandExecutor>(channel) {}
 
 void GpgCommandExecutor::ExecuteSync(ExecuteContext context) {
-  Thread::Task *task = build_task(context);
+  Thread::Task *task = build_task_from_exec_ctx(context);
+
   QEventLoop looper;
   QObject::connect(task, &Thread::Task::SignalTaskEnd, &looper,
                    &QEventLoop::quit);
@@ -58,7 +66,7 @@ void GpgCommandExecutor::ExecuteConcurrentlyAsync(ExecuteContexts contexts) {
     auto &cmd = context.cmd;
     SPDLOG_INFO("gpg concurrently called cmd {}", cmd);
 
-    Thread::Task *task = build_task(context);
+    Thread::Task *task = build_task_from_exec_ctx(context);
     GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(
             Thread::TaskRunnerGetter::kTaskRunnerType_External_Process)
@@ -75,7 +83,7 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(
     auto &cmd = context.cmd;
     SPDLOG_INFO("gpg concurrently called cmd {}", cmd);
 
-    Thread::Task *task = build_task(context);
+    Thread::Task *task = build_task_from_exec_ctx(context);
 
     QObject::connect(task, &Thread::Task::SignalTaskEnd, [&]() {
       --remainingTasks;
@@ -93,11 +101,12 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(
   looper.exec();
 }
 
-Thread::Task *GpgCommandExecutor::build_task(const ExecuteContext &context) {
+Thread::Task *GpgCommandExecutor::build_task_from_exec_ctx(
+    const ExecuteContext &context) {
   auto &cmd = context.cmd;
   auto &arguments = context.arguments;
-  auto &interact_function = context.interact_func;
-  auto &callback = context.callback;
+  auto &interact_function = context.int_func;
+  auto &cmd_executor_callback = context.cb_func;
 
   const std::string joined_argument = std::accumulate(
       std::begin(arguments), std::end(arguments), std::string(),
@@ -109,9 +118,10 @@ Thread::Task *GpgCommandExecutor::build_task(const ExecuteContext &context) {
                arguments.size());
 
   Thread::Task::TaskCallback result_callback =
-      [](int rtn, Thread::DataObjectPtr data_object) {
-        SPDLOG_DEBUG("data object args count: {}",
-                     data_object->GetObjectSize());
+      [cmd, joined_argument](int rtn, Thread::DataObjectPtr data_object) {
+        SPDLOG_DEBUG(
+            "data object args count of cmd executor result callback: {}",
+            data_object->GetObjectSize());
         if (!data_object->Check<int, std::string, std::string,
                                 GpgCommandExecutorCallback>())
           throw std::runtime_error("invalid data object size");
@@ -124,8 +134,11 @@ Thread::Task *GpgCommandExecutor::build_task(const ExecuteContext &context) {
         auto callback =
             Thread::ExtractParams<GpgCommandExecutorCallback>(data_object, 3);
 
-        SPDLOG_DEBUG("data object args got, exit_code: {}", exit_code);
         // call callback
+        SPDLOG_DEBUG(
+            "calling custom callback from caller of cmd {} {}, "
+            "exit_code: {}",
+            cmd, joined_argument, exit_code);
         callback(exit_code, process_stdout, process_stderr);
       };
 
@@ -151,52 +164,33 @@ Thread::Task *GpgCommandExecutor::build_task(const ExecuteContext &context) {
     auto *cmd_process = new QProcess();
     cmd_process->moveToThread(QThread::currentThread());
     cmd_process->setProcessChannelMode(QProcess::MergedChannels);
-
-    QObject::connect(cmd_process, &QProcess::started,
-                     []() -> void { SPDLOG_DEBUG("process started"); });
-    QObject::connect(
-        cmd_process, &QProcess::readyReadStandardOutput,
-        [interact_func, cmd_process]() { interact_func(cmd_process); });
-    QObject::connect(cmd_process, &QProcess::errorOccurred,
-                     [=](QProcess::ProcessError error) {
-                       SPDLOG_ERROR("error in executing command: {} error: {}",
-                                    cmd, error);
-                     });
-    QObject::connect(
-        cmd_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
-        [=](int, QProcess::ExitStatus status) {
-          int exit_code = cmd_process->exitCode();
-          if (status == QProcess::NormalExit)
-            SPDLOG_DEBUG(
-                "proceess finished, succeed in executing command: {} {}, exit "
-                "code: {}",
-                cmd, joined_argument, exit_code);
-          else
-            SPDLOG_ERROR(
-                "proceess finished, error in executing command: {} {}, exit "
-                "code: {}",
-                cmd, joined_argument, exit_code);
-          std::string process_stdout =
-                          cmd_process->readAllStandardOutput().toStdString(),
-                      process_stderr =
-                          cmd_process->readAllStandardError().toStdString();
-
-          cmd_process->close();
-          cmd_process->deleteLater();
-
-          data_object->Swap(
-              {exit_code, process_stdout, process_stderr, callback});
-        });
-
     cmd_process->setProgram(QString::fromStdString(cmd));
-
     QStringList q_arguments;
     for (const auto &argument : arguments)
       q_arguments.append(QString::fromStdString(argument));
     cmd_process->setArguments(q_arguments);
 
-    SPDLOG_DEBUG("process execute ready, cmd: {} {}", cmd,
-                 q_arguments.join(" ").toStdString());
+    QObject::connect(
+        cmd_process, &QProcess::started, [cmd, joined_argument]() -> void {
+          SPDLOG_DEBUG(
+              "\n== Process Execute Started ==\nCommand: {}\nArguments: "
+              "{}\n========================",
+              cmd, joined_argument);
+        });
+    QObject::connect(
+        cmd_process, &QProcess::readyReadStandardOutput,
+        [interact_func, cmd_process]() { interact_func(cmd_process); });
+    QObject::connect(
+        cmd_process, &QProcess::errorOccurred,
+        [=](QProcess::ProcessError error) {
+          SPDLOG_ERROR("caught error while executing command: {} {}, error: {}",
+                       cmd, joined_argument, error);
+        });
+
+    SPDLOG_DEBUG(
+        "\n== Process Execute Ready ==\nCommand: {}\nArguments: "
+        "{}\n========================",
+        cmd, joined_argument);
 
     cmd_process->start();
     cmd_process->waitForFinished();
@@ -207,6 +201,18 @@ Thread::Task *GpgCommandExecutor::build_task(const ExecuteContext &context) {
                     cmd_process->readAllStandardError().toStdString();
     int exit_code = cmd_process->exitCode();
 
+    SPDLOG_DEBUG(
+        "\n==== Process Execution Summary ====\n"
+        "Command: {}\n"
+        "Arguments: {}\n"
+        "Exit Code: {}\n"
+        "---- Standard Output ----\n"
+        "{}\n"
+        "---- Standard Error ----\n"
+        "{}\n"
+        "===============================",
+        cmd, joined_argument, exit_code, process_stdout, process_stderr);
+
     cmd_process->close();
     cmd_process->deleteLater();
 
@@ -216,8 +222,10 @@ Thread::Task *GpgCommandExecutor::build_task(const ExecuteContext &context) {
 
   return new Thread::Task(
       std::move(runner),
-      (boost::format("Execute(%1%){%2%}") % cmd % joined_argument).str(),
-      Thread::TransferParams(cmd, arguments, interact_function, callback),
+      (boost::format("GpgCommamdExecutor(%1%){%2%}") % cmd % joined_argument)
+          .str(),
+      Thread::TransferParams(cmd, arguments, interact_function,
+                             cmd_executor_callback),
       std::move(result_callback));
 }
 
