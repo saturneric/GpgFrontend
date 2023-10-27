@@ -340,6 +340,10 @@ if (LINUX)
     exec_program(uname OUTPUT_VARIABLE SYSTEM_NAME)
     set(SYSTEM_NAME "${SYSTEM_NAME}" CACHE INTERNAL "")
 
+    if(USING_COMPILER_CLANG)
+        add_compile_options(-stdlib=libstdc++)
+    endif()
+
     if(SYSTEM_NAME STREQUAL "FreeBSD")
         message(STATUS "FreeBSD BOX")
         ADD_DEFINITIONS(-DFREEBSD)
