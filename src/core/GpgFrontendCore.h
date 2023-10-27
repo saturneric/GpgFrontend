@@ -28,14 +28,14 @@
 
 #pragma once
 
+// Qt
+#include <QtCore>
+
 // std
 #include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
-
-// Qt
-#include <QtCore>
 
 // spdlog library configuration
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
