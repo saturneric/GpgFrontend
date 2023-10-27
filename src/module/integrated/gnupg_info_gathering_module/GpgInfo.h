@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include <shared_mutex>
+#include <nlohmann/json.hpp>
 
 namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {
 /**
@@ -43,7 +43,21 @@ class GpgInfo {
   std::map<std::string, std::vector<std::string>> ConfigurationsInfo;    ///<
   std::map<std::string, std::vector<std::string>> OptionsInfo;           ///<
   std::map<std::string, std::vector<std::string>> AvailableOptionsInfo;  ///<
-
-  std::shared_mutex Lock;
 };
+
+/**
+ * @brief  Use to record some info about gnupg components
+ *
+ */
+struct GpgComponentInfo {
+  std::string name;
+  std::string desc;
+  std::string version;
+  std::string path;
+  std::string binary_checksum;
+};
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(GpgComponentInfo, name, desc, version, path,
+                                   binary_checksum);
+
 }  // namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule

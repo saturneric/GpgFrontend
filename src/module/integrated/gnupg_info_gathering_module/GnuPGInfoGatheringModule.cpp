@@ -29,8 +29,16 @@
 #include "GnuPGInfoGatheringModule.h"
 
 #include <boost/algorithm/string.hpp>
+#include <boost/format.hpp>
+#include <boost/format/format_fwd.hpp>
+#include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
 
+#include "GpgInfo.h"
+#include "Log.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
+#include "core/module/ModuleManager.h"
 
 namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {
 
@@ -115,15 +123,31 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
            return;
          }
 
-         auto &components_info = info_.ComponentsInfo;
-         components_info["gpgme"] = {"GPG Made Easy", gpgme_version,
-                                     _("Embedded In"), "/"};
+         std::vector<GpgComponentInfo> component_infos;
+         GpgComponentInfo c_i_gpgme;
+         c_i_gpgme.name = "gpgme";
+         c_i_gpgme.desc = "GPG Made Easy";
+         c_i_gpgme.version = "gpgme_version";
+         c_i_gpgme.path = _("Embedded In");
+         c_i_gpgme.binary_checksum = "/";
 
+         GpgComponentInfo c_i_gpgconf;
+         c_i_gpgconf.name = "gpgconf";
+         c_i_gpgconf.desc = "GPG Configure";
+         c_i_gpgconf.version = "/";
+         c_i_gpgconf.path = gpgconf_path;
          auto gpgconf_binary_checksum = check_binary_chacksum(gpgconf_path);
-         components_info["gpgconf"] = {"GPG Configure", "/", gpgconf_path,
-                                       gpgconf_binary_checksum.has_value()
+         c_i_gpgconf.binary_checksum = gpgconf_binary_checksum.has_value()
                                            ? gpgconf_binary_checksum.value()
-                                           : "/"};
+                                           : "/";
+
+         component_infos.push_back(c_i_gpgme);
+         component_infos.push_back(c_i_gpgconf);
+
+         UpsertRTValue(GetModuleIdentifier(), "gnupg.components.gpgme",
+                       std::string(nlohmann::json{c_i_gpgme}.dump()));
+         UpsertRTValue(GetModuleIdentifier(), "gnupg.components.gpgconf",
+                       std::string(nlohmann::json{c_i_gpgconf}.dump()));
 
          std::vector<std::string> line_split_list;
          boost::split(line_split_list, p_out, boost::is_any_of("\n"));
@@ -175,15 +199,28 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
            }
 
            {
-             // add component info to list
-             components_info[component_name] = {
-                 component_desc, version, component_path,
-                 binary_checksum.has_value() ? binary_checksum.value() : "/"};
+             GpgComponentInfo c_i;
+             c_i.name = component_name;
+             c_i.desc = component_desc;
+             c_i.version = version;
+             c_i.path = component_path;
+             c_i.binary_checksum =
+                 binary_checksum.has_value() ? binary_checksum.value() : "/";
+             UpsertRTValue(
+                 GetModuleIdentifier(),
+                 (boost::format("gnupg.components.%1%") % component_name).str(),
+                 std::string(nlohmann::json{c_i}.dump()));
            }
-
-           MODULE_LOG_DEBUG(
-               "gathering module have loaded extra info from gpgconf.");
          }
+
+         nlohmann::json jsonlized_components_info;
+         for (auto &component_info : component_infos) {
+           jsonlized_components_info.emplace_back(
+               nlohmann::json{component_info});
+         }
+
+         UpsertRTValue(GetModuleIdentifier(), "gnupg.components_info",
+                       std::string(jsonlized_components_info.dump()));
        }});
 
   MODULE_LOG_DEBUG("start to get dirs info");
@@ -206,8 +243,6 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
               p_err, p_out);
           return;
         }
-
-        auto &configurations_info = info_.ConfigurationsInfo;
 
         std::vector<std::string> line_split_list;
         boost::split(line_split_list, p_out, boost::is_any_of("\n"));
@@ -232,44 +267,62 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
 
           // record gnupg home path
           if (configuration_name == "homedir") {
-            info_.GnuPGHomePath = info_split_list[1];
+            UpsertRTValue(GetModuleIdentifier(), "gnupg.home_path",
+                          configuration_value);
           }
 
-          {
-            // try lock
-            std::unique_lock lock(info_.Lock);
-            configurations_info[configuration_name] = {configuration_value};
-          }
+          UpsertRTValue(
+              GetModuleIdentifier(),
+              (boost::format("gnupg.dirs.%1%") % configuration_name).str(),
+              configuration_value);
         }
       }});
 
   MODULE_LOG_DEBUG("start to get components info");
 
-  for (const auto &component : info_.ComponentsInfo) {
-    MODULE_LOG_DEBUG("gpgconf check options ready", "component",
-                     component.first);
+  const std::string components_info_json = RetrieveRTValueTypedOrDefault(
+      GetModuleIdentifier(), "gnupg.components_info", std::string{});
+  if (components_info_json.empty()) {
+    MODULE_LOG_ERROR("cannot get components inforamtion of gnupg from rt");
+    return -1;
+  }
 
-    if (component.first == "gpgme" || component.first == "gpgconf") continue;
+  nlohmann::json jsonlized_components_info =
+      nlohmann::json{components_info_json};
+  if (!jsonlized_components_info.is_array()) {
+    MODULE_LOG_ERROR("cannot parse components inforamtion of gnupg from rt");
+    return -1;
+  }
+
+  for (const auto &jsonlized_component_info : jsonlized_components_info) {
+    GpgComponentInfo component_info =
+        jsonlized_component_info.get<GpgComponentInfo>();
+
+    MODULE_LOG_DEBUG("gpgconf check options ready, component: {}",
+                     component_info.name);
+
+    if (component_info.name == "gpgme" || component_info.name == "gpgconf")
+      continue;
 
     exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
         gpgconf_path,
-        {"--check-options", component.first},
-        [this, component](int exit_code, const std::string &p_out,
-                          const std::string &p_err) {
+        {"--check-options", component_info.name},
+        [component_info](int exit_code, const std::string &p_out,
+                         const std::string &p_err) {
           MODULE_LOG_DEBUG(
               "gpgconf {} options exit_code: {} process stdout "
               "size: {} ",
-              component.first, exit_code, p_out.size());
+              component_info.name, exit_code, p_out.size());
 
           if (exit_code != 0) {
             MODULE_LOG_ERROR(
                 "gpgconf {} options execute error, process "
                 "stderr: {} , process stdout:",
-                component.first, p_err, p_out);
+                component_info.name, p_err, p_out);
             return;
           }
 
-          auto &options_info = info_.OptionsInfo;
+          // auto &options_info = info_.OptionsInfo;
 
           std::vector<std::string> line_split_list;
           boost::split(line_split_list, p_out, boost::is_any_of("\n"));
@@ -279,24 +332,22 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
             boost::split(info_split_list, line, boost::is_any_of(":"));
 
             MODULE_LOG_DEBUG("component {} options line: {} info size: {}",
-                             component.first, line, info_split_list.size());
+                             component_info.name, line, info_split_list.size());
 
             if (info_split_list.size() != 6) continue;
 
             auto configuration_name = info_split_list[0];
             boost::algorithm::trim(configuration_name);
             {
-              // try lock
-              std::unique_lock lock(info_.Lock);
-              options_info[configuration_name] = {
-                  info_split_list[1], info_split_list[2], info_split_list[3],
-                  info_split_list[4], info_split_list[5]};
+              // options_info[configuration_name] = {
+              //     info_split_list[1], info_split_list[2], info_split_list[3],
+              //     info_split_list[4], info_split_list[5]};
 
-              boost::algorithm::trim(options_info[configuration_name][0]);
-              boost::algorithm::trim(options_info[configuration_name][1]);
-              boost::algorithm::trim(options_info[configuration_name][2]);
-              boost::algorithm::trim(options_info[configuration_name][3]);
-              boost::algorithm::trim(options_info[configuration_name][4]);
+              // boost::algorithm::trim(options_info[configuration_name][0]);
+              // boost::algorithm::trim(options_info[configuration_name][1]);
+              // boost::algorithm::trim(options_info[configuration_name][2]);
+              // boost::algorithm::trim(options_info[configuration_name][3]);
+              // boost::algorithm::trim(options_info[configuration_name][4]);
             }
           }
         }});
@@ -304,31 +355,34 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
 
   MODULE_LOG_DEBUG("start to get avaliable component options info");
 
-  for (const auto &component : info_.ComponentsInfo) {
-    MODULE_LOG_DEBUG("gpgconf list options ready", "component",
-                     component.first);
+  for (const auto &jsonlized_component_info : jsonlized_components_info) {
+    GpgComponentInfo component_info =
+        jsonlized_component_info.get<GpgComponentInfo>();
+    MODULE_LOG_DEBUG("gpgconf check options ready, component: {}",
+                     component_info.name);
 
-    if (component.first == "gpgme" || component.first == "gpgconf") continue;
+    if (component_info.name == "gpgme" || component_info.name == "gpgconf")
+      continue;
 
     exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
         gpgconf_path,
-        {"--list-options", component.first},
-        [this, component](int exit_code, const std::string &p_out,
-                          const std::string &p_err) {
+        {"--list-options", component_info.name},
+        [component_info](int exit_code, const std::string &p_out,
+                         const std::string &p_err) {
           MODULE_LOG_DEBUG(
               "gpgconf {} avaliable options exit_code: {} process stdout "
               "size: {} ",
-              component.first, exit_code, p_out.size());
+              component_info.name, exit_code, p_out.size());
 
           if (exit_code != 0) {
             MODULE_LOG_ERROR(
                 "gpgconf {} avaliable options execute error, process stderr: "
                 "{} , process stdout:",
-                component.first, p_err, p_out);
+                component_info.name, p_err, p_out);
             return;
           }
 
-          auto &available_options_info = info_.AvailableOptionsInfo;
+          // auto &available_options_info = info_.AvailableOptionsInfo;
 
           std::vector<std::string> line_split_list;
           boost::split(line_split_list, p_out, boost::is_any_of("\n"));
@@ -339,38 +393,37 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
 
             MODULE_LOG_DEBUG(
                 "component {} avaliable options line: {} info size: {}",
-                component.first, line, info_split_list.size());
+                component_info.name, line, info_split_list.size());
 
             if (info_split_list.size() != 10) continue;
 
             auto configuration_name = info_split_list[0];
             boost::algorithm::trim(configuration_name);
             {
-              // try lock
-              std::unique_lock lock(info_.Lock);
-              available_options_info[configuration_name] = {
-                  info_split_list[1], info_split_list[2], info_split_list[3],
-                  info_split_list[4], info_split_list[5], info_split_list[6],
-                  info_split_list[7], info_split_list[8], info_split_list[9]};
+              // available_options_info[configuration_name] = {
+              //     info_split_list[1], info_split_list[2], info_split_list[3],
+              //     info_split_list[4], info_split_list[5], info_split_list[6],
+              //     info_split_list[7], info_split_list[8],
+              //     info_split_list[9]};
 
-              boost::algorithm::trim(
-                  available_options_info[configuration_name][0]);
-              boost::algorithm::trim(
-                  available_options_info[configuration_name][1]);
-              boost::algorithm::trim(
-                  available_options_info[configuration_name][2]);
-              boost::algorithm::trim(
-                  available_options_info[configuration_name][3]);
-              boost::algorithm::trim(
-                  available_options_info[configuration_name][4]);
-              boost::algorithm::trim(
-                  available_options_info[configuration_name][5]);
-              boost::algorithm::trim(
-                  available_options_info[configuration_name][6]);
-              boost::algorithm::trim(
-                  available_options_info[configuration_name][7]);
-              boost::algorithm::trim(
-                  available_options_info[configuration_name][8]);
+              // boost::algorithm::trim(
+              //     available_options_info[configuration_name][0]);
+              // boost::algorithm::trim(
+              //     available_options_info[configuration_name][1]);
+              // boost::algorithm::trim(
+              //     available_options_info[configuration_name][2]);
+              // boost::algorithm::trim(
+              //     available_options_info[configuration_name][3]);
+              // boost::algorithm::trim(
+              //     available_options_info[configuration_name][4]);
+              // boost::algorithm::trim(
+              //     available_options_info[configuration_name][5]);
+              // boost::algorithm::trim(
+              //     available_options_info[configuration_name][6]);
+              // boost::algorithm::trim(
+              //     available_options_info[configuration_name][7]);
+              // boost::algorithm::trim(
+              //     available_options_info[configuration_name][8]);
             }
           }
         }});

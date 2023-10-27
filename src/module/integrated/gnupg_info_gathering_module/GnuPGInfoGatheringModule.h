@@ -30,12 +30,12 @@
 
 #include <module/sdk/GpgFrontendModuleSDK.h>
 
-#include <memory>
-
-#include "GpgInfo.h"
-
 namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {
 
+/**
+ * @brief  Use to record some info about gnupg
+ *
+ */
 class GPGFRONTEND_MODULE_SDK_EXPORT GnuPGInfoGatheringModule : public Module {
   Q_OBJECT
  public:
@@ -50,8 +50,5 @@ class GPGFRONTEND_MODULE_SDK_EXPORT GnuPGInfoGatheringModule : public Module {
   virtual int Exec(EventRefrernce) override;
 
   virtual bool Deactive() override;
-
- private:
-  GpgInfo info_;
 };
 }  // namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule
