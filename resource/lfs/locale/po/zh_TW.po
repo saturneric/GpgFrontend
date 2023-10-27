@@ -8,49 +8,50 @@ msgstr ""
 "Project-Id-Version: GpgFrontend 2.1.1\n"
 "Report-Msgid-Bugs-To: eric@bktus.com\n"
 "POT-Creation-Date: 2023-07-13 22:00+0800\n"
-"PO-Revision-Date: 2023-07-13 23:47-0800\n"
-"Last-Translator: Google Translation <eric@bktus.com>\n"
+"PO-Revision-Date: 2023-10-26 02:31+0800\n"
+"Last-Translator: James Pan <jp@jamespan.org>\n"
 "Language-Team: Google Translation <eric@bktus.com>\n"
 "Language: zh\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4\n"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:70
 msgid "Proxy"
-msgstr "代理人"
+msgstr "代理伺服器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:71
 msgid "Network Ability"
-msgstr "網絡能力"
+msgstr "網路適性"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:72
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:52
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:46
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:548
 msgid "Operations"
-msgstr "操作"
+msgstr "運作中"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:74
 msgid "Enable Proxy"
-msgstr "啟用代理"
+msgstr "啟用代理伺服器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:75
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:78
 msgid "Port"
-msgstr "港口"
+msgstr "連接埠"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:77
 msgid "Host Address"
-msgstr "主機地址"
+msgstr "主機位址"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:79
 msgid "Proxy Type"
-msgstr "代理類型"
+msgstr "代理伺服器類型"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:80
 msgid "Username"
-msgstr "用戶名"
+msgstr "使用者名稱"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:81
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:410
@@ -60,28 +61,27 @@ msgstr "密碼"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:84
 msgid "Apply Proxy Settings and Check Proxy Connection"
-msgstr "應用代理設置並檢查代理連接"
+msgstr "套用代理伺服器設定值並檢查代理伺服器連線"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:87
 msgid "Forbid all GnuPG network connection."
-msgstr "禁止所有 GnuPG 網絡連接。"
+msgstr "禁止所有 GnuPG 網路連線"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:89
 msgid "Prohibit checking for version updates when the program starts."
-msgstr "禁止在程序啟動時檢查版本更新。"
+msgstr "禁止程式啟動時進行檢查版本更新"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:91
 msgid "Automatically import a missing key for signature verification."
-msgstr "自動導入丟失的密鑰以進行簽名驗證。"
+msgstr "自動匯入缺少的金鑰以利簽署驗證"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:93
-msgid ""
-"Tips: These Option Changes take effect only after the application restart."
-msgstr "提示：這些選項更改僅在應用程序重新啟動後生效。"
+msgid "Tips: These Option Changes take effect only after the application restart."
+msgstr "提示: 選項變更僅在應用程式重新啟動後才會生效。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:279
 msgid "Test Server Url Accessibility"
-msgstr "測試服務器 URL 可訪問性"
+msgstr "測試伺服器 Url 存取可用性"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:289
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:85
@@ -99,7 +99,7 @@ msgstr "成功"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:290
 msgid "Successfully connect to the target server through the proxy server."
-msgstr "通過代理服務器成功連接到目標服務器。"
+msgstr "成功連線經由代理伺服器至目標伺服器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:294
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:441
@@ -109,53 +109,55 @@ msgstr "通過代理服務器成功連接到目標服務器。"
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp:43
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:49
 msgid "Failed"
-msgstr "失敗的"
+msgstr "失敗"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:295
 msgid ""
-"Unable to connect to the target server through the proxy server. Proxy "
-"settings may be invalid."
-msgstr "無法通過代理服務器連接到目標服務器。代理設置可能無效。"
+"Unable to connect to the target server through the proxy server. Proxy settings "
+"may be invalid."
+msgstr "無法連線經由代理伺服器至目標伺服器。代理伺服器設定值可能為無效的。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:305
 msgid "Test Proxy Server Connection..."
-msgstr "測試代理服務器連接..."
+msgstr "測試代理伺服器連線..."
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsNetwork.cpp:306
 msgid ""
-"Is using your proxy settings to access the url. Note that this test "
-"operation will apply your proxy settings to the entire software."
-msgstr "正在使用您的代理設置訪問 url。請注意，此測試操作會將您的代理設置應用於整個軟件。"
+"Is using your proxy settings to access the url. Note that this test operation "
+"will apply your proxy settings to the entire software."
+msgstr ""
+"正在使用您的代理伺服器設定值存取 url。請注意，此測試操作會將您的代理伺服器設定值應"
+"用於整個軟件。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:36
 msgid "Show Steganography Options"
-msgstr "顯示隱寫術選項"
+msgstr "顯示圖像隱碼術選項"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:38
 msgid "Show Steganography Options."
-msgstr "顯示隱寫術選項。"
+msgstr "顯示圖像隱碼術選項"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:42
 msgid "Pubkey Exchange"
-msgstr "公鑰交換"
+msgstr "公開金鑰交換"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAdvanced.cpp:45
 msgid "Auto Pubkey Exchange"
-msgstr "自動公鑰交換"
+msgstr "自動公開金鑰交換"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:54
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:43
 msgid "General"
-msgstr "一般的"
+msgstr "一般設定"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:55
 msgid "Appearance"
-msgstr "外貌"
+msgstr "外觀"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:56
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:81
 msgid "Key Server"
-msgstr "密鑰服務器"
+msgstr "金鑰伺服器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:57
 msgid "Network"
@@ -164,28 +166,28 @@ msgstr "網絡"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:68
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:166
 msgid "Settings"
-msgstr "設置"
+msgstr "設定值"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:72
 msgid "Preference"
-msgstr "偏愛"
+msgstr "喜好設定"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsDialog.cpp:131
 msgid "System Default"
-msgstr "系統默認"
+msgstr "系統預設值"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:51
 msgid "Keyserver List"
-msgstr "密鑰服務器列表"
+msgstr "金鑰伺服器列表"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:54
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:615
 msgid "Default"
-msgstr "默認"
+msgstr "預設"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:56
 msgid "Keyserver Address"
-msgstr "密鑰服務器地址"
+msgstr "金鑰伺服器位址"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:57
 msgid "Security"
@@ -197,11 +199,11 @@ msgstr "可用的"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:60
 msgid "Add"
-msgstr "添加"
+msgstr "加入"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:61
 msgid "Test Listed Keyserver"
-msgstr "測試列出的密鑰服務器"
+msgstr "測試列出的金鑰伺服器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:64
 msgid "Tips: Please Double-click table item to edit it."
@@ -213,22 +215,23 @@ msgstr "刪除所選"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:67
 msgid "Delete Selected Key Server"
-msgstr "刪除選定的密鑰服務器"
+msgstr "刪除選定的金鑰伺服器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:68
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:69
 msgid "Set As Default"
-msgstr "設為默認"
+msgstr "設為預設"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:151
 msgid "Insecure keyserver address"
-msgstr "不安全的密鑰服務器地址"
+msgstr "非安全保護的金鑰伺服器位址"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:152
 msgid ""
 "For security reasons, using HTTP as the communication protocol with the key "
 "server is not recommended. It is recommended to use HTTPS."
-msgstr "出於安全原因，不建議使用 HTTP 作為與密鑰服務器的通信協議。建議使用HTTPS。"
+msgstr ""
+"基於安全性理由，不建議使用 HTTP 作為與金鑰伺服器的通信協定。建議使用 HTTPS。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:160
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:432
@@ -248,12 +251,12 @@ msgstr "警告"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:161
 msgid ""
-"You may not use HTTPS or HTTP as the protocol for communicating with the key"
-" server, which may not be wrong. But please check the address you entered "
-"again to make sure it is correct. Are you sure that want to add it into the "
-"keyserver list?"
+"You may not use HTTPS or HTTP as the protocol for communicating with the key "
+"server, which may not be wrong. But please check the address you entered again to "
+"make sure it is correct. Are you sure that want to add it into the keyserver list?"
 msgstr ""
-"您可能不會使用HTTPS或HTTP作為與密鑰服務器通信的協議，這可能沒有錯。但請再次檢查您輸入的地址以確保其正確無誤。您確定要將其添加到密鑰服務器列表中嗎？"
+"您最好別使用 HTTPS 或 HTTP 作為與金鑰伺服器間通訊協定，儘管如此的設定看似無誤。但"
+"請再次檢查您輸入的位址以確保其正確無誤。您確定要將其加入到金鑰伺服器列表中嗎？"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:208
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp:60
@@ -270,7 +273,7 @@ msgstr "未知"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:228
 msgid "Set TCP Timeout"
-msgstr "設置 TCP 超時"
+msgstr "設定 TCP 暫停時間"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:253
 msgid "Reachable"
@@ -282,13 +285,14 @@ msgstr "不能達到"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:268
 msgid "Test Key Server Connection..."
-msgstr "測試密鑰服務器連接..."
+msgstr "測試金鑰伺服器連線..."
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsKeyServer.cpp:269
 msgid ""
-"This test only tests the network connectivity of the key server. Passing the"
-" test does not mean that the key server is functionally available."
-msgstr "本測試僅測試密鑰服務器的網絡連通性。通過測試並不意味著密鑰服務器在功能上可用。"
+"This test only tests the network connectivity of the key server. Passing the test "
+"does not mean that the key server is functionally available."
+msgstr ""
+"本測試僅測試金鑰伺服器的網絡連通性。通過測試並不意味著金鑰伺服器在功能上可用。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:46
 msgid "Cache"
@@ -303,8 +307,7 @@ msgid "Clear gpg password cache when closing GpgFrontend."
 msgstr "關閉 GpgFrontend 時清除 gpg 密碼緩存。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:52
-msgid ""
-"Automatically restore unsaved Text Editor pages after an application crash."
+msgid "Automatically restore unsaved Text Editor pages after an application crash."
 msgstr "應用程序崩潰後自動恢復未保存的文本編輯器頁面。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:55
@@ -313,11 +316,11 @@ msgstr "手術"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:57
 msgid "Enable to use longer key expiration date."
-msgstr "啟用以使用更長的密鑰到期日期。"
+msgstr "啟用以使用更長的金鑰到期日期。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:59
 msgid "Import files dropped on the Key List without confirmation."
-msgstr "未經確認，導入放在密鑰列表中的文件。"
+msgstr "未經確認，導入放在金鑰列表中的文件。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:61
 msgid "Language"
@@ -337,7 +340,7 @@ msgstr "筆記"
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:107
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:115
 msgid ": "
-msgstr "："
+msgstr ": "
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsGeneral.cpp:64
 msgid "GpgFrontend will restart automatically if you change the language!"
@@ -368,7 +371,8 @@ msgstr "確認"
 msgid ""
 "Are you sure you want to clear all data objects?\n"
 "This will result in loss of all cached form positions, statuses, key servers, etc."
-msgstr "您確定要清除所有數據對象嗎？這將導致所有緩存的表單位置、狀態、密鑰服務器等丟失。"
+msgstr ""
+"您確定要清除所有數據對象嗎？這將導致所有緩存的表單位置、狀態、金鑰伺服器等丟失。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/settings/SettingsAppearance.cpp:41
 msgid "Icon Size"
@@ -429,7 +433,7 @@ msgstr "信息板中的字體大小"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:86
 msgid "The expire date of the key pair has been updated."
-msgstr "密鑰對的到期日期已更新。"
+msgstr "金鑰對的到期日期已更新。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:95
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:184
@@ -440,7 +444,7 @@ msgstr "失敗"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:96
 msgid "Failed to update the expire date of the key pair."
-msgstr "無法更新密鑰對的過期日期。"
+msgstr "無法更新金鑰對的過期日期。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:143
 msgid "Modified Expiration Date (Local Time)"
@@ -448,9 +452,11 @@ msgstr "修改到期日期（當地時間）"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:145
 msgid ""
-"Tips: For the sake of security, the key is valid for up to two years. If you"
-" are an expert user, please unlock it for a longer time in the settings."
-msgstr "溫馨提示：為安全起見，密鑰有效期最長為兩年。如果您是專家用戶，請在設置中解鎖更長的時間。"
+"Tips: For the sake of security, the key is valid for up to two years. If you are "
+"an expert user, please unlock it for a longer time in the settings."
+msgstr ""
+"溫馨提示：為安全起見，金鑰有效期最長為兩年。如果您是專家用戶，請在設定值中解鎖更長"
+"的時間。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp:148
 msgid "No Expiration"
@@ -501,7 +507,7 @@ msgstr "姓名"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:403
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:167
 msgid "Email Address"
-msgstr "電子郵件地址"
+msgstr "電子郵件位址"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:73
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:137
@@ -529,7 +535,7 @@ msgstr "算法"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:36
 msgid "Key Size"
-msgstr "密鑰大小"
+msgstr "金鑰大小"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairDetailTab.cpp:81
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:37
@@ -631,7 +637,7 @@ msgstr "警告：主鍵已被撤銷。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:41
 msgid "KeyPair"
-msgstr "密鑰對"
+msgstr "金鑰對"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyDetailsDialog.cpp:42
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:67
@@ -731,7 +737,7 @@ msgstr "成功運作"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:364
 msgid "Successfully added a new UID."
-msgstr "成功添加了新的 UID。"
+msgstr "成功加入了新的 UID。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:366
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:401
@@ -770,11 +776,11 @@ msgstr "刪除 %1 操作期間出錯。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:426
 msgid "Set Primary UID"
-msgstr "設置主 UID"
+msgstr "設定主要的 UID"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:428
 msgid "Are you sure that you want to set the Primary UID to?"
-msgstr "您確定要將主 UID 設置為嗎？"
+msgstr "您確定要將主要的 UID 設定為嗎？"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:468
 msgid "Set As Primary"
@@ -803,21 +809,21 @@ msgstr "您確定要刪除以下 uid 嗎？"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:543
 msgid "Delete(Revoke) Key Signature"
-msgstr "刪除（撤銷）密鑰簽名"
+msgstr "刪除（撤銷）金鑰簽名"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:554
 msgid "Please select one Key Signature before doing this operation."
-msgstr "請在執行此操作前選擇一個密鑰簽名。"
+msgstr "請在執行此操作前選擇一個金鑰簽名。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:563
 msgid ""
-"To delete the signature, you need to have its corresponding public key in "
-"the local database."
+"To delete the signature, you need to have its corresponding public key in the "
+"local database."
 msgstr "要刪除簽名，您需要在本地數據庫中有其對應的公鑰。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:574
 msgid "Deleting Key Signature"
-msgstr "刪除密鑰簽名"
+msgstr "刪除金鑰簽名"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairUIDTab.cpp:576
 msgid "Are you sure that you want to delete the following signature?"
@@ -845,7 +851,7 @@ msgstr "修改密碼"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:91
 msgid "Key Server Operation (Pubkey)"
-msgstr "密鑰服務器操作（公鑰）"
+msgstr "金鑰伺服器操作（公鑰）"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:99
 msgid "Generate Revoke Certificate"
@@ -859,23 +865,23 @@ msgstr "修改豆腐政策"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:436
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:437
 msgid "Set Owner Trust Level"
-msgstr "設置所有者信任級別"
+msgstr "設定所有者信任級別"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:133
 msgid "Upload Key Pair to Key Server"
-msgstr "上傳密鑰對到密鑰服務器"
+msgstr "上傳金鑰對到金鑰伺服器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:139
 msgid "Sync Key Pair From Key Server"
-msgstr "從密鑰服務器同步密鑰對"
+msgstr "從金鑰伺服器同步金鑰對"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:153
 msgid "Export Full Secret Key"
-msgstr "導出完整密鑰"
+msgstr "導出完整金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:159
 msgid "Export Shortest Secret Key"
-msgstr "導出最短密鑰"
+msgstr "導出最短金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:171
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:223
@@ -935,7 +941,7 @@ msgstr "導出操作期間發生錯誤。"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:240
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:289
 msgid "Export Key To File"
-msgstr "將密鑰導出到文件"
+msgstr "將金鑰導出到文件"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:189
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:241
@@ -968,7 +974,7 @@ msgstr "您即將導出您的"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:207
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:260
 msgid " PRIVATE KEY "
-msgstr " 私鑰"
+msgstr " 私密金鑰 "
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:208
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:261
@@ -981,9 +987,8 @@ msgstr "您真的想以最小尺寸導出您的私鑰嗎？"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:212
 msgid ""
-"For OpenPGP keys it removes all signatures except for the latest self-"
-"signatures."
-msgstr "對於 OpenPGP 密鑰，它會刪除除最新的自簽名之外的所有簽名。"
+"For OpenPGP keys it removes all signatures except for the latest self-signatures."
+msgstr "對於 OpenPGP 金鑰，它會刪除除最新的自簽名之外的所有簽名。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:258
 msgid "Exporting private Key"
@@ -1033,11 +1038,11 @@ msgstr "政策未知"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:381
 msgid "Modify TOFU Policy(Default is Auto)"
-msgstr "修改豆腐策略（默認為自動）"
+msgstr "修改TOFU 政策（預設為自動）"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:382
 msgid "Policy for the Key Pair:"
-msgstr "密鑰對策略："
+msgstr "金鑰對策略："
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:400
 msgid "Modify TOFU policy not successfully."
@@ -1099,23 +1104,23 @@ msgstr "修改所有者信任級別"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:412
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:792
 msgid "Trust for the Key Pair:"
-msgstr "對密鑰對的信任："
+msgstr "對金鑰對的信任："
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:433
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:813
 msgid ""
 "Owner Trust Level cannot set to Unknown level, automately changing it into "
 "Undefined level."
-msgstr "所有者信任級別無法設置為未知級別，會自動將其更改為未定義級別。"
+msgstr "所有者信任級別無法設定為不明級別，會自動將其更改為未定義級別。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:442
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:822
 msgid "Modify Owner Trust Level failed."
-msgstr "修改所有者信任級別失敗。"
+msgstr "修改擁有人信任級別失敗。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairOperaTab.cpp:445
 msgid "Set Owner Trust Level successful."
-msgstr "設置所有者信任級別成功。"
+msgstr "設定擁有人信任級別成功。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:44
 msgid "Subkey List"
@@ -1127,7 +1132,7 @@ msgstr "所選子鍵的詳細信息"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:49
 msgid "Generate A New Subkey"
-msgstr "生成新的子密鑰"
+msgstr "生成新的子金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:71
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:168
@@ -1148,7 +1153,7 @@ msgstr "輸入智能卡"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
 msgid "Subkey ID"
-msgstr "子密鑰 ID"
+msgstr "子金鑰 ID"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:160
 msgid "Algo"
@@ -1168,11 +1173,11 @@ msgstr "不"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp:320
 msgid "Edit Expire Date"
-msgstr "編輯到期日期"
+msgstr "編輯到期日"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:57
 msgid "Notice: The New UID Created will be set as Primary."
-msgstr "注意：創建的新 UID 將設置為主要。"
+msgstr "注意：創建的新 UID 將設定為主要。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:65
 msgid "Create New UID"
@@ -1186,7 +1191,7 @@ msgstr "名稱必須至少包含五個字符。"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp:85
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:103
 msgid "Please give a email address."
-msgstr "請提供一個電子郵件地址。"
+msgstr "請提供一個電子郵件位址。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:43
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:47
@@ -1199,7 +1204,7 @@ msgstr "到期日期"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:96
 msgid "Sign For Key's UID(s)"
-msgstr "為密鑰的 UID 簽名"
+msgstr "為金鑰的 UID 簽名"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/keypair_details/KeyUIDSignDialog.cpp:127
 msgid "Unsuccessful Operation"
@@ -1256,15 +1261,14 @@ msgstr "請選擇您用於簽名的一個或多個私鑰。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:61
 msgid "If no key is selected, the default key will be used for signing."
-msgstr "如果未選擇密鑰，則將使用默認密鑰進行簽名。"
+msgstr "如果未選擇金鑰，則將使用預設金鑰進行簽名。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:37
 msgid "Unsaved Files"
 msgstr "未保存的文件"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:86
-msgid ""
-"%1% files contain unsaved information.<br/>Save the changes before closing?"
+msgid "%1% files contain unsaved information.<br/>Save the changes before closing?"
 msgstr "%1% 個文件包含未保存的信息。<br/>要在關閉前保存更改嗎？"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:100
@@ -1284,7 +1288,7 @@ msgstr "如果您不保存這些文件，所有更改都將丟失。"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:130
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:235
 msgid "Generate Key"
-msgstr "生成密鑰"
+msgstr "生成金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:111
 msgid "Expiration time too long."
@@ -1302,16 +1306,16 @@ msgstr "生成"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:175
 msgid "The new key pair has been generated."
-msgstr "新的密鑰對已經生成。"
+msgstr "新的金鑰對已經生成。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:184
 msgid "Key generation failed."
-msgstr "密鑰生成失敗。"
+msgstr "金鑰生成失敗。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:213
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:95
 msgid "Key Usage"
-msgstr "密鑰使用"
+msgstr "金鑰使用"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:215
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:97
@@ -1343,7 +1347,7 @@ msgstr "截止日期"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:407
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:155
 msgid "KeySize (in Bit)"
-msgstr "密鑰大小（以位為單位）"
+msgstr "金鑰大小（以位為單位）"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/KeygenDialog.cpp:408
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:154
@@ -1362,13 +1366,13 @@ msgstr "基本信息"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:67
 msgid ""
-"Tipps: if the key pair has a passphrase, the subkey's passphrase must be "
-"equal to it."
-msgstr "提示：如果密鑰對有密碼，則子密鑰的密碼必須與其相等。"
+"Tipps: if the key pair has a passphrase, the subkey's passphrase must be equal to "
+"it."
+msgstr "提示：如果金鑰對有密碼，則子金鑰的密碼必須與其相等。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:79
 msgid "Generate New Subkey"
-msgstr "生成新子密鑰"
+msgstr "生成新子金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:267
 msgid "Expiration time no more than 2 years."
@@ -1376,11 +1380,11 @@ msgstr "有效期不超過2年。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:322
 msgid "The new subkey has been generated."
-msgstr "新的子密鑰已生成。"
+msgstr "新的子金鑰已生成。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp:329
 msgid "Failed to generate key."
-msgstr "無法生成密鑰。"
+msgstr "無法生成金鑰。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/GnupgTab.cpp:44
 msgid "Description"
@@ -1442,12 +1446,12 @@ msgstr "更新"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:87
 msgid ""
-"GpgFrontend is an easy-to-use, compact, cross-platform, and installation-"
-"free GnuPG Frontend.It visualizes most of the common operations of "
-"GnuPG.GpgFrontend is licensed under the GPLv3"
+"GpgFrontend is an easy-to-use, compact, cross-platform, and installation-free "
+"GnuPG Frontend.It visualizes most of the common operations of GnuPG.GpgFrontend "
+"is licensed under the GPLv3"
 msgstr ""
-"GpgFrontend 是一個易於使用、緊湊、跨平台、免安裝的 GnuPG 前端。它將 GnuPG 的大部分常用操作可視化。GpgFrontend 是在"
-" GPLv3 下授權的"
+"GpgFrontend 是一個易於使用、緊湊、跨平台、免安裝的 GnuPG 前端。它將 GnuPG 的大部分"
+"常用操作可視化。GpgFrontend 是在 GPLv3 下授權的"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:93
 msgid "Developer:"
@@ -1475,21 +1479,23 @@ msgstr "建於"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:143
 msgid ""
-"If you think there are any problems with the translation, why not "
-"participate in the translation work? If you want to participate, please read"
-" the document or contact me via email."
-msgstr "如果覺得翻譯有問題，何不參與翻譯工作呢？如果您想參加，請閱讀文檔或通過電子郵件與我聯繫。"
+"If you think there are any problems with the translation, why not participate in "
+"the translation work? If you want to participate, please read the document or "
+"contact me via email."
+msgstr ""
+"如果覺得翻譯有問題，何不參與翻譯工作呢？如果您想參加，請閱讀文檔或通過電子郵件與我"
+"聯繫。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:168
 msgid ""
-"It is recommended that you always check the version of GpgFrontend and "
-"upgrade to the latest version."
+"It is recommended that you always check the version of GpgFrontend and upgrade to "
+"the latest version."
 msgstr "建議您經常檢查 GpgFrontend 的版本併升級到最新版本。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:171
 msgid ""
-"New versions not only represent new features, but also often represent "
-"functional and security fixes."
+"New versions not only represent new features, but also often represent functional "
+"and security fixes."
 msgstr "新版本不僅代表新功能，而且通常代表功能和安全修復。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:177
@@ -1524,20 +1530,21 @@ msgstr "下載最新的穩定版本。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:241
 msgid ""
-"This version has serious problems and has been withdrawn. Please stop using "
-"it immediately."
+"This version has serious problems and has been withdrawn. Please stop using it "
+"immediately."
 msgstr "此版本存在嚴重問題，已撤回。請立即停止使用。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/help/AboutDialog.cpp:252
 msgid ""
-"This version has not been released yet, it may be a beta version. If you are"
-" not a tester and care about version stability, please do not use this "
-"version."
-msgstr "此版本尚未發布，可能是測試版。如果您不是測試人員並且關心版本穩定性，請不要使用此版本。"
+"This version has not been released yet, it may be a beta version. If you are not "
+"a tester and care about version stability, please do not use this version."
+msgstr ""
+"此版本尚未發布，可能是測試版。如果您不是測試人員並且關心版本穩定性，請不要使用此版"
+"本。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:44
 msgid "Key Database"
-msgstr "密鑰數據庫"
+msgstr "金鑰數據庫"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:45
 msgid "Advanced"
@@ -1561,11 +1568,11 @@ msgstr "選擇 GnuPG 路徑"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:53
 msgid "Use Custom GnuPG Key Database Path"
-msgstr "使用自定義 GnuPG 密鑰數據庫路徑"
+msgstr "使用自定義 GnuPG 金鑰數據庫路徑"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:55
 msgid "Select Key Database Path"
-msgstr "選擇密鑰數據庫路徑"
+msgstr "選擇金鑰數據庫路徑"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:59
 msgid "Tips: please select a directroy where \"gpgconf\" is located in."
@@ -1573,9 +1580,8 @@ msgstr "提示：請選擇“gpgconf”所在目錄。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:61
 msgid ""
-"Tips: notice that modify any of these settings will cause an Application "
-"restart."
-msgstr "提示：請注意，修改任何這些設置都會導致應用程序重新啟動。"
+"Tips: notice that modify any of these settings will cause an Application restart."
+msgstr "提示：請注意，修改任何這些設定值都會導致應用程序重新啟動。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:93
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:129
@@ -1612,15 +1618,15 @@ msgstr "目標 GnuPG 路徑不包含“gpgconf”可執行文件。"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:417
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:424
 msgid "Illegal GnuPG Key Database Path"
-msgstr "非法的 GnuPG 密鑰數據庫路徑"
+msgstr "非法的 GnuPG 金鑰數據庫路徑"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:418
 msgid "Target GnuPG Key Database Path is empty."
-msgstr "目標 GnuPG 密鑰數據庫路徑為空。"
+msgstr "目標 GnuPG 金鑰數據庫路徑為空。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/gnupg/GnuPGControllerDialog.cpp:425
 msgid "Target GnuPG Key Database Path is not an exists readable directory."
-msgstr "目標 GnuPG 密鑰數據庫路徑不是現有的可讀目錄。"
+msgstr "目標 GnuPG 金鑰數據庫路徑不是現有的可讀目錄。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:41
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:61
@@ -1634,11 +1640,11 @@ msgstr "沒有找到鑰匙"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:44
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:63
 msgid "Key Import Details"
-msgstr "密鑰導入詳細信息"
+msgstr "金鑰導入詳細信息"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:45
 msgid "No keys found to import"
-msgstr "找不到要導入的密鑰"
+msgstr "找不到要導入的金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:79
 msgid "General key info"
@@ -1662,15 +1668,15 @@ msgstr "未進口"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:110
 msgid "Private Read"
-msgstr "私人閱讀"
+msgstr "私用閱讀"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:117
 msgid "Private Imported"
-msgstr "私人進口"
+msgstr "私用進口"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:124
 msgid "Private Unchanged"
-msgstr "私人不變"
+msgstr "私用不變"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:139
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:58
@@ -1681,11 +1687,11 @@ msgstr "私人不變"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:134
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:149
 msgid "Status"
-msgstr "地位"
+msgstr "狀態"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:168
 msgid "Private"
-msgstr "私人的"
+msgstr "私用"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:171
 msgid "Public"
@@ -1697,47 +1703,47 @@ msgstr "不變"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:177
 msgid "New Key"
-msgstr "新鑰匙"
+msgstr "新增鑰匙"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:180
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:148
 msgid "New Subkey"
-msgstr "新建子項"
+msgstr "新增子系金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyImportDetailDialog.cpp:184
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgSignResultAnalyse.cpp:57
 msgid "New Signature"
-msgstr "新簽名"
+msgstr "新增簽署檔"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:56
 msgid "Uploading Public Key"
-msgstr "上傳公鑰"
+msgstr "上傳公開金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:93
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:364
 msgid "Cannot read default_keyserver From Settings"
-msgstr "無法從設置讀取 default_keyserver"
+msgstr "無法從設定值讀取 default_keyserver"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:94
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:464
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:365
 msgid "Default Keyserver Not Found"
-msgstr "未找到默認密鑰服務器"
+msgstr "未找到預設金鑰伺服器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:95
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:465
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:366
 msgid ""
-"Cannot read default keyserver from your settings, please set a default "
-"keyserver first"
-msgstr "無法從您的設置中讀取默認密鑰服務器，請先設置默認密鑰服務器"
+"Cannot read default keyserver from your settings, please set a default keyserver "
+"first"
+msgstr "無法從您的設定值中讀取預設金鑰伺服器，請先設定值預設金鑰伺服器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:148
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:496
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:510
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:402
 msgid "Key Not Found"
-msgstr "未找到密鑰"
+msgstr "未找到金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:151
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:285
@@ -1752,7 +1758,7 @@ msgstr "暫停"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:502
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:408
 msgid "Key Server Not Found"
-msgstr "未找到密鑰服務器"
+msgstr "未找到金鑰伺服器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:157
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:291
@@ -1760,7 +1766,7 @@ msgstr "未找到密鑰服務器"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:521
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:411
 msgid "Connection Error"
-msgstr "連接錯誤"
+msgstr "連線錯誤"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyUploadDialog.cpp:162
 msgid "Upload Success"
@@ -1772,7 +1778,7 @@ msgstr "上傳公鑰成功"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:54
 msgid "Export Key Package"
-msgstr "導出密鑰包"
+msgstr "導出金鑰包"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:55
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:184
@@ -1782,11 +1788,11 @@ msgstr "鑰匙包"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:61
 msgid "Export Key Package Passphrase"
-msgstr "導出密鑰包密碼"
+msgstr "導出金鑰包密碼"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:63
 msgid "Key File"
-msgstr "密鑰文件"
+msgstr "金鑰文件"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:69
 msgid "An error occurred while generating the passphrase file."
@@ -1808,29 +1814,30 @@ msgstr "導出前請選擇輸出路徑。"
 msgid ""
 "Please generate a password to protect your key before exporting, it is very "
 "important. Don't forget to back up your password in a safe place."
-msgstr "請在導出前生成密碼以保護您的密鑰，這非常重要。不要忘記在安全的地方備份您的密碼。"
+msgstr ""
+"請在導出前生成密碼以保護您的金鑰，這非常重要。不要忘記在安全的地方備份您的密碼。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:108
 msgid ""
 "The Key Package has been successfully generated and has been protected by "
-"encryption algorithms(AES-256-ECB). You can safely transfer your Key "
-"Package."
-msgstr "密鑰包已成功生成並受到加密算法（AES-256-ECB）的保護。您可以安全地轉移您的密鑰包。"
+"encryption algorithms(AES-256-ECB). You can safely transfer your Key Package."
+msgstr ""
+"金鑰包已成功生成並受到加密算法（AES-256-ECB）的保護。您可以安全地轉移您的金鑰包。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:112
 msgid ""
-"But the key file cannot be leaked under any circumstances. Please delete the"
-" Key Package and key file as soon as possible after completing the transfer "
-"operation."
-msgstr "但密鑰文件在任何情況下都不能洩露。請在完成傳輸操作後儘快刪除密鑰包和密鑰文件。"
+"But the key file cannot be leaked under any circumstances. Please delete the Key "
+"Package and key file as soon as possible after completing the transfer operation."
+msgstr ""
+"但金鑰文件在任何情況下都不能洩露。請在完成傳輸操作後儘快刪除金鑰包和金鑰文件。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:121
 msgid "An error occurred while exporting the key package."
-msgstr "導出密鑰包時出錯。"
+msgstr "導出金鑰包時出錯。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:128
 msgid "Key Package Name"
-msgstr "密鑰包名稱"
+msgstr "金鑰包名稱"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:129
 msgid "Output Path"
@@ -1842,9 +1849,9 @@ msgstr "密碼"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:132
 msgid ""
-"Tips: You can use Key Package to safely and conveniently transfer your "
-"public and private keys between devices."
-msgstr "提示：您可以使用密鑰包在設備之間安全方便地傳輸您的公鑰和私鑰。"
+"Tips: You can use Key Package to safely and conveniently transfer your public and "
+"private keys between devices."
+msgstr "提示：您可以使用金鑰包在設備之間安全方便地傳輸您的公鑰和私鑰。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:134
 msgid "Generate and Save Passphrase"
@@ -1852,7 +1859,7 @@ msgstr "生成並保存密碼"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:135
 msgid "Generate Key Package Name"
-msgstr "生成密鑰包名"
+msgstr "生成金鑰包名"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:136
 msgid "Select Output Path"
@@ -1864,11 +1871,11 @@ msgstr "包括秘鑰（行動前請三思）"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:141
 msgid "Exclude keys that do not have a private key"
-msgstr "排除沒有私鑰的密鑰"
+msgstr "排除沒有私鑰的金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/ExportKeyPackageDialog.cpp:144
 msgid "Export As Key Package"
-msgstr "導出為密鑰包"
+msgstr "導出為金鑰包"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:65
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:135
@@ -1892,11 +1899,11 @@ msgstr "搜索字符串"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:127
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:162
 msgid "Update Keys from Keyserver"
-msgstr "從密鑰服務器更新密鑰"
+msgstr "從金鑰伺服器更新金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:129
 msgid "Import Keys from Keyserver"
-msgstr "從密鑰服務器導入密鑰"
+msgstr "從金鑰伺服器導入金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:209
 msgid "UID"
@@ -1908,7 +1915,7 @@ msgstr "創立日期"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:209
 msgid "KeyID"
-msgstr "密鑰 ID"
+msgstr "金鑰 ID"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:209
 msgid "Tag"
@@ -1920,11 +1927,11 @@ msgstr "文字為空。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:282
 msgid "Not Key Found"
-msgstr "未找到密鑰"
+msgstr "未找到金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:301
 msgid "Too many responses from keyserver!"
-msgstr "來自密鑰服務器的響應太多！"
+msgstr "來自金鑰伺服器的響應太多！"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:311
 msgid "No keys found, input may be kexId, retrying search with 0x."
@@ -1948,11 +1955,11 @@ msgstr "殘疾"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:417
 msgid "%1 keys found. Double click a key to import it."
-msgstr "找到 %1 個密鑰。雙擊一個鍵來導入它。"
+msgstr "找到 %1 個金鑰。雙擊一個鍵來導入它。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:511
 msgid "key not found in the Keyserver"
-msgstr "在密鑰服務器中找不到密鑰"
+msgstr "在金鑰伺服器中找不到金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:517
 msgid "Host Not Found"
@@ -1960,7 +1967,7 @@ msgstr "主機未找到"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:522
 msgid "General Connection Error"
-msgstr "一般連接錯誤"
+msgstr "一般連線錯誤"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/import_export/KeyServerImportDialog.cpp:536
 msgid "Key Imported"
@@ -2002,9 +2009,9 @@ msgstr "單擊鏈接，頁面將在網絡瀏覽器中打開"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:101
 msgid ""
-"If it supports the language currently being used in your system, GpgFrontend"
-" will automatically set it."
-msgstr "如果它支持您系統中當前使用的語言，GpgFrontend 將自動設置它。"
+"If it supports the language currently being used in your system, GpgFrontend will "
+"automatically set it."
+msgstr "如果它支持您系統中當前使用的語言，GpgFrontend 將自動設定它。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:119
 msgid "Choose your action..."
@@ -2016,15 +2023,14 @@ msgstr "...通過點擊相應的鏈接。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:124
 msgid ""
-"If you have never used GpgFrontend before and also don't own a gpg key yet "
-"you may possibly want to read how to"
-msgstr "如果您以前從未使用過 GpgFrontend 並且也沒有 gpg 密鑰，您可能想閱讀如何"
+"If you have never used GpgFrontend before and also don't own a gpg key yet you "
+"may possibly want to read how to"
+msgstr "如果您以前從未使用過 GpgFrontend 並且也沒有 gpg 金鑰，您可能想閱讀如何"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:138
 msgid ""
-"If you want to learn how to encrypt, decrypt, sign and verify text, you can "
-"read "
-msgstr "如果你想學習如何加密、解密、簽名和驗證文本，你可以閱讀"
+"If you want to learn how to encrypt, decrypt, sign and verify text, you can read "
+msgstr "若您想多學習如何加密、解密、簽署以及驗證原文，可詳讀 "
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:143
 msgid "Encrypt & Decrypt Text"
@@ -2041,7 +2047,7 @@ msgstr "簽名和驗證文本"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:155
 msgid "If you want to operate file, you can read "
-msgstr "如果要操作文件，可以閱讀"
+msgstr "如您想開始運行操作檔案，可詳讀 "
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:159
 msgid "Encrypt & Sign File"
@@ -2053,7 +2059,7 @@ msgstr "簽署並驗證文件"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:189
 msgid "Create a keypair..."
-msgstr "創建密鑰對..."
+msgstr "創建金鑰對..."
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:190
 msgid "...for decrypting and signing messages"
@@ -2061,13 +2067,15 @@ msgstr "...用於解密和簽署消息"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:192
 msgid ""
-"You should create a new keypair.The pair consists of a public and a private "
-"key.<br>Other users can use the public key to encrypt messages for you and "
-"verify messages signed by you.You can use the private key to decrypt and "
-"sign messages.<br>For more information have a look at the offline tutorial "
-"(which then is shown in the main window):"
+"You should create a new keypair.The pair consists of a public and a private key."
+"<br>Other users can use the public key to encrypt messages for you and verify "
+"messages signed by you.You can use the private key to decrypt and sign messages."
+"<br>For more information have a look at the offline tutorial (which then is shown "
+"in the main window):"
 msgstr ""
-"您應該創建一個新的密鑰對。該對由一個公鑰和一個私鑰組成。<br>其他用戶可以使用公鑰為您加密消息並驗證您簽署的消息。您可以使用私鑰解密和簽名消息。<br>有關更多信息，請查看離線教程（然後顯示在主窗口中）："
+"您應該創建一個新的金鑰對。該對由一個公鑰和一個私鑰組成。<br>其他用戶可以使用公鑰為"
+"您加密消息並驗證您簽署的消息。您可以使用私鑰解密和簽名消息。<br>有關更多信息，請查"
+"看離線教程（然後顯示在主窗口中）："
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:204
 msgid "Offline tutorial"
@@ -2075,7 +2083,7 @@ msgstr "離線教程"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:208
 msgid "Create New Key"
-msgstr "創建新密鑰"
+msgstr "創建新金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:229
 msgid "Ready."
@@ -2095,8 +2103,8 @@ msgstr "在線文檔"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:238
 msgid ""
-" will get you started with GpgFrontend. Anytime you encounter problems, "
-"please try to find help from the documentation"
+" will get you started with GpgFrontend. Anytime you encounter problems, please "
+"try to find help from the documentation"
 msgstr " 會讓你開始使用 GpgFrontend。任何時候遇到問題，請嘗試從文檔中尋求幫助"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/Wizard.cpp:247
@@ -2137,7 +2145,7 @@ msgstr "已到期"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:113
 msgid "KeyPair Management"
-msgstr "密鑰對管理"
+msgstr "金鑰對管理"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:129
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:225
@@ -2150,7 +2158,7 @@ msgstr "Ctrl+O"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:131
 msgid "Open Key File"
-msgstr "打開密鑰文件"
+msgstr "打開金鑰文件"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:136
 msgid "Ctrl+Q"
@@ -2158,7 +2166,7 @@ msgstr "Ctrl+Q"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:141
 msgid "New Keypair"
-msgstr "新密鑰對"
+msgstr "新金鑰對"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:142
 msgid "Ctrl+N"
@@ -2166,7 +2174,7 @@ msgstr "Ctrl+N"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:144
 msgid "Generate KeyPair"
-msgstr "生成密鑰對"
+msgstr "生成金鑰對"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:149
 msgid "Ctrl+Shift+N"
@@ -2174,7 +2182,7 @@ msgstr "Ctrl+Shift+N"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:151
 msgid "Generate Subkey For Selected KeyPair"
-msgstr "為選定的密鑰對生成子密鑰"
+msgstr "為選定的金鑰對生成子金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:155
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:230
@@ -2188,7 +2196,7 @@ msgstr "文件"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:157
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:243
 msgid "Import New Key From File"
-msgstr "從文件導入新密鑰"
+msgstr "從文件導入新金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:161
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:247
@@ -2198,21 +2206,21 @@ msgstr "剪貼板"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:165
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:251
 msgid "Import New Key From Clipboard"
-msgstr "從剪貼板導入新密鑰"
+msgstr "從剪貼板導入新金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:174
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:260
 msgid "Keyserver"
-msgstr "密鑰服務器"
+msgstr "金鑰伺服器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:178
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:264
 msgid "Import New Key From Keyserver"
-msgstr "從密鑰服務器導入新密鑰"
+msgstr "從金鑰伺服器導入新金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:187
 msgid "Import Key(s) From a Key Package"
-msgstr "從密鑰包導入密鑰"
+msgstr "從金鑰包導入金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:191
 msgid "Export To Clipboard"
@@ -2224,11 +2232,11 @@ msgstr "將選定的鍵導出到剪貼板"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:198
 msgid "Export To Key Package"
-msgstr "導出到密鑰包"
+msgstr "導出到金鑰包"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:201
 msgid "Export Checked Key(s) To a Key Package"
-msgstr "將檢查的密鑰導出到密鑰包"
+msgstr "將檢查的金鑰導出到金鑰包"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:205
 msgid "Export As OpenSSH"
@@ -2236,7 +2244,7 @@ msgstr "導出為 OpenSSH"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:208
 msgid "Export Selected Key(s) As OpenSSH Format to File"
-msgstr "將選定的密鑰以 OpenSSH 格式導出到文件"
+msgstr "將選定的金鑰以 OpenSSH 格式導出到文件"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:212
 msgid "Delete Selected Key(s)"
@@ -2248,7 +2256,7 @@ msgstr "刪除選定的鍵"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:217
 msgid "Delete Checked Key(s)"
-msgstr "刪除選中的密鑰"
+msgstr "刪除選中的金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:218
 msgid "Delete the Checked keys"
@@ -2268,16 +2276,16 @@ msgstr "顯示此鍵的詳細信息"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:265
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:508
 msgid "Import Key"
-msgstr "導入密鑰"
+msgstr "導入金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:264
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:584
 msgid "Import key"
-msgstr "導入密鑰"
+msgstr "導入金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:303
 msgid "Deleting Keys"
-msgstr "刪除密鑰"
+msgstr "刪除金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:306
 msgid "Are you sure that you want to delete the following keys?"
@@ -2294,7 +2302,7 @@ msgstr "您確定要刪除以下鍵嗎？"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:732
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:747
 msgid "Key Not Found."
-msgstr "未找到密鑰。"
+msgstr "未找到金鑰。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:336
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:349
@@ -2304,7 +2312,7 @@ msgstr "請在執行此操作之前檢查一些鍵。"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:341
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:431
 msgid "key(s) exported"
-msgstr "導出的密鑰"
+msgstr "導出的金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:371
 msgid "Please select one KeyPair before doing this operation."
@@ -2312,15 +2320,15 @@ msgstr "請在執行此操作前選擇一個 KeyPair。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:381
 msgid ""
-"If a key pair does not have a private key then it will not be able to "
-"generate sub-keys."
-msgstr "如果密鑰對沒有私鑰，那麼它將無法生成子密鑰。"
+"If a key pair does not have a private key then it will not be able to generate "
+"sub-keys."
+msgstr "如果金鑰對沒有私鑰，那麼它將無法生成子金鑰。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:397
 msgid ""
-"Please select a key before performing this operation. If you select multiple"
-" keys, only the first key will be exported."
-msgstr "請在執行此操作前選擇一個鍵。如果您選擇多個密鑰，則只會導出第一個密鑰。"
+"Please select a key before performing this operation. If you select multiple "
+"keys, only the first key will be exported."
+msgstr "請在執行此操作前選擇一個鍵。如果您選擇多個金鑰，則只會導出第一個金鑰。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:405
 msgid "An error occur in exporting."
@@ -2328,13 +2336,13 @@ msgstr "導出時發生錯誤。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:412
 msgid ""
-"This key may not be able to export as OpenSSH format. Please check the key-"
-"size of the subkey(s) used to sign."
-msgstr "此密鑰可能無法導出為 OpenSSH 格式。請檢查用於簽名的子密鑰的密鑰大小。"
+"This key may not be able to export as OpenSSH format. Please check the key-size "
+"of the subkey(s) used to sign."
+msgstr "此金鑰可能無法導出為 OpenSSH 格式。請檢查用於簽名的子金鑰的金鑰大小。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:426
 msgid "Export OpenSSH Key To File"
-msgstr "將 OpenSSH 密鑰導出到文件"
+msgstr "將 OpenSSH 金鑰導出到文件"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:427
 msgid "OpenSSH Public Key Files"
@@ -2342,23 +2350,23 @@ msgstr "OpenSSH 公鑰文件"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:439
 msgid "Import Key Package"
-msgstr "導入密鑰包"
+msgstr "導入金鑰包"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:443
 msgid "Import Key Package Passphrase File"
-msgstr "導入密鑰包密碼文件"
+msgstr "導入金鑰包密碼文件"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:444
 msgid "Key Package Passphrase File"
-msgstr "密鑰包密碼文件"
+msgstr "金鑰包密碼文件"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:454
 msgid "key(s) imported"
-msgstr "導入的密鑰"
+msgstr "導入的金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/KeyMgmt.cpp:461
 msgid "An error occur in importing key package."
-msgstr "導入密鑰包出錯。"
+msgstr "導入金鑰包出錯。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:45
 msgid "The path %1 does not exist."
@@ -2402,7 +2410,7 @@ msgstr "對稱加密"
 msgid ""
 "No Key Selected. Do you want to encrypt with a symmetric cipher using a "
 "passphrase?"
-msgstr "未選擇密鑰。您想使用密碼使用對稱密碼進行加密嗎？"
+msgstr "未選擇金鑰。您想使用密碼使用對稱密碼進行加密嗎？"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:226
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:106
@@ -2413,13 +2421,13 @@ msgstr "對稱加密"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:561
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:418
 msgid "Invalid KeyPair"
-msgstr "無效的密鑰對"
+msgstr "無效的金鑰對"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:246
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:562
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:419
 msgid "The selected keypair cannot be used for encryption."
-msgstr "所選的密鑰對不能用於加密。"
+msgstr "所選的金鑰對不能用於加密。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:247
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:563
@@ -2486,7 +2494,7 @@ msgstr "提取 tarball 失敗。"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:184
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:406
 msgid "No Key Checked"
-msgstr "未檢查密鑰"
+msgstr "未檢查金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:372
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:551
@@ -2495,9 +2503,8 @@ msgid "Please check the key in the key toolbox on the right."
 msgstr "請檢查右側鑰匙工具箱中的鑰匙。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:380
-msgid ""
-"The selected key contains a key that does not actually have a sign usage."
-msgstr "所選密鑰包含一個實際上沒有符號用法的密鑰。"
+msgid "The selected key contains a key that does not actually have a sign usage."
+msgstr "所選金鑰包含一個實際上沒有符號用法的金鑰。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:382
 msgid "for example the Following Key:"
@@ -2517,8 +2524,8 @@ msgstr "文件路徑"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:496
 msgid ""
-"Please select the appropriate origin file or signature file. Ensure that "
-"both are in this directory."
+"Please select the appropriate origin file or signature file. Ensure that both are "
+"in this directory."
 msgstr "請選擇合適的源文件或簽名文件。確保兩者都在此目錄中。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:508
@@ -2681,7 +2688,7 @@ msgstr "刪除雙換行符，例如在來自 Web Mailer 的粘貼文本中"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:167
 msgid "Open settings dialog"
-msgstr "打開設置對話框"
+msgstr "打開設定值對話框"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:181
 msgid "Encrypt Message"
@@ -2729,15 +2736,15 @@ msgstr "編輯"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:272
 msgid "Import New Key From Editor"
-msgstr "從編輯器導入新密鑰"
+msgstr "從編輯器導入新金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:276
 msgid "Manage Keys"
-msgstr "管理密鑰"
+msgstr "管理金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:278
 msgid "Open Key Management"
-msgstr "開放式密鑰管理"
+msgstr "開放式金鑰管理"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:282
 msgid "Clear Password Cache"
@@ -2839,7 +2846,7 @@ msgstr "將公鑰附加到編輯器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:372
 msgid "Append selected Keypair's Public Key to Editor"
-msgstr "將選定的密鑰對的公鑰附加到編輯器"
+msgstr "將選定的金鑰對的公鑰附加到編輯器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:377
 msgid "Append Create DateTime to Editor"
@@ -2847,7 +2854,7 @@ msgstr "將創建日期時間附加到編輯器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:379
 msgid "Append selected Key's creation date and time to Editor"
-msgstr "將所選密鑰的創建日期和時間附加到編輯器"
+msgstr "將所選金鑰的創建日期和時間附加到編輯器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:384
 msgid "Append Expire DateTime to Editor"
@@ -2855,7 +2862,7 @@ msgstr "將過期日期時間附加到編輯器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:386
 msgid "Append selected Key's expiration date and time to Editor"
-msgstr "將所選密鑰的到期日期和時間附加到編輯器"
+msgstr "將所選金鑰的到期日期和時間附加到編輯器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:391
 msgid "Append Fingerprint to Editor"
@@ -2863,7 +2870,7 @@ msgstr "將指紋附加到編輯器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:393
 msgid "Append selected Key's Fingerprint to Editor"
-msgstr "將所選密鑰的指紋附加到編輯器"
+msgstr "將所選金鑰的指紋附加到編輯器"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:397
 msgid "Copy Email"
@@ -2871,31 +2878,31 @@ msgstr "複製電子郵件"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:399
 msgid "Copy selected Keypair's to clipboard"
-msgstr "將選定的密鑰對複製到剪貼板"
+msgstr "將選定的金鑰對複製到剪貼板"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:404
 msgid "Copy Default UID"
-msgstr "複製默認 UID"
+msgstr "複製預設 UID"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:406
 msgid "Copy selected Keypair's default UID to clipboard"
-msgstr "將所選密鑰對的默認 UID 複製到剪貼板"
+msgstr "將所選金鑰對的預設 UID 複製到剪貼板"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:410
 msgid "Copy Key ID"
-msgstr "複製密鑰 ID"
+msgstr "複製金鑰 ID"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:412
 msgid "Copy selected Keypair's ID to clipboard"
-msgstr "將所選密鑰對的 ID 複製到剪貼板"
+msgstr "將所選金鑰對的 ID 複製到剪貼板"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:421
 msgid "Add To Favourite"
-msgstr "添加到收藏夾"
+msgstr "加入到收藏夾"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:422
 msgid "Add this key to Favourite Table"
-msgstr "將此鍵添加到收藏夾表"
+msgstr "將此鍵加入到收藏夾表"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:428
 msgid "Remove From Favourite"
@@ -2911,7 +2918,7 @@ msgstr "刪除 PGP 標頭"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:460
 msgid "Add PGP Header"
-msgstr "添加 PGP 標頭"
+msgstr "加入 PGP 標頭"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:479
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:563
@@ -2944,7 +2951,7 @@ msgstr "特別編輯"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:583
 msgid "Import key from..."
-msgstr "從...導入密鑰"
+msgstr "匯入金鑰位置..."
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowUI.cpp:600
 msgid "Ready"
@@ -2960,20 +2967,17 @@ msgstr "最喜歡的"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:100
 msgid ""
-"No Key Checked. Do you want to encrypt with a symmetric cipher using a "
-"passphrase?"
-msgstr "未檢查密鑰。您想使用密碼短語使用對稱密碼進行加密嗎？"
+"No Key Checked. Do you want to encrypt with a symmetric cipher using a passphrase?"
+msgstr "未檢查金鑰。您想使用密碼短語使用對稱密碼進行加密嗎？"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:134
-msgid ""
-"The selected key contains a key that does not actually have a encrypt usage."
-msgstr "所選密鑰包含一個實際上沒有加密用途的密鑰。"
+msgid "The selected key contains a key that does not actually have a encrypt usage."
+msgstr "所選金鑰包含一個實際上沒有加密用途的金鑰。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:195
 msgid ""
-"The selected key contains a key that does not actually have a signature "
-"usage."
-msgstr "所選密鑰包含一個實際上沒有簽名用法的密鑰。"
+"The selected key contains a key that does not actually have a signature usage."
+msgstr "所選金鑰包含一個實際上沒有簽名用法的金鑰。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:270
 msgid "Notice"
@@ -2989,7 +2993,7 @@ msgstr "請檢查右側鑰匙工具箱中的一些鑰匙。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:624
 msgid "Key Export Operation Failed."
-msgstr "密鑰導出操作失敗。"
+msgstr "金鑰導出操作失敗。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:853
 msgid "GpgFrontend Upgradeable (New Version: %1)."
@@ -3002,13 +3006,14 @@ msgstr "撤回版"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:866
 msgid ""
 "This version(%1) may have been withdrawn by the developer due to serious "
-"problems. Please stop using this version immediately and use the latest "
-"stable version."
-msgstr "由於嚴重問題，此版本(%1) 可能已被開發人員撤回。請立即停止使用此版本並使用最新的穩定版本。"
+"problems. Please stop using this version immediately and use the latest stable "
+"version."
+msgstr ""
+"由於嚴重問題，此版本(%1) 可能已被開發人員撤回。請立即停止使用此版本並使用最新的穩"
+"定版本。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:871
-msgid ""
-"You can download the latest stable version(%1) on Github Releases Page.<br/>"
+msgid "You can download the latest stable version(%1) on Github Releases Page.<br/>"
 msgstr "您可以在 Github Releases Page 上下載最新的穩定版本 (%1)。<br/>"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowSlotFunction.cpp:877
@@ -3030,10 +3035,12 @@ msgstr "正在加載 Gnupg 信息..."
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:145
 msgid ""
-"If this process is too slow, please set the key server address appropriately"
-" in the gnupg configuration file (depending on the network situation in your"
-" country or region)."
-msgstr "如果此過程太慢，請在 gnupg 配置文件中適當設置密鑰服務器地址（取決於您所在國家或地區的網絡情況）。"
+"If this process is too slow, please set the key server address appropriately in "
+"the gnupg configuration file (depending on the network situation in your country "
+"or region)."
+msgstr ""
+"如果此過程太慢，請在 gnupg 組態檔案中適當設定金鑰伺服器位址（取決於您所在國家或地"
+"區的網絡情況）。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendUIInit.cpp:274
 msgid "could not read properly from configure file"
@@ -3041,11 +3048,11 @@ msgstr "無法從配置文件中正確讀取"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:49
 msgid "Import from keyserver"
-msgstr "從密鑰服務器導入"
+msgstr "從金鑰伺服器導入"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:54
 msgid "Key not present with id 0x"
-msgstr "不存在 ID 為 0x 的密鑰"
+msgstr "不存在 ID 為 0x 的金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:58
 msgid ":"
@@ -3053,7 +3060,7 @@ msgstr "："
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:60
 msgid "Key not present in key list"
-msgstr "密鑰不在密鑰列表中"
+msgstr "金鑰不在金鑰列表中"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:68
 msgid "A Signature"
@@ -3079,7 +3086,7 @@ msgstr "簽名過期"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:116
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:118
 msgid "Key Expired"
-msgstr "密鑰過期"
+msgstr "金鑰過期"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:134
 msgid "General Error"
@@ -3087,7 +3094,7 @@ msgstr "一般錯誤"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:149
 msgid "Unknown Error "
-msgstr "未知錯誤"
+msgstr "異常錯誤 "
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:179
 msgid "Signer Name"
@@ -3133,11 +3140,11 @@ msgstr "缺少鑰匙"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:210
 msgid "Revoked Key"
-msgstr "撤銷密鑰"
+msgstr "撤銷金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:213
 msgid "Expired Key"
-msgstr "過期密鑰"
+msgstr "過期金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/VerifyKeyDetailBox.cpp:216
 msgid "Missing CRL"
@@ -3154,7 +3161,7 @@ msgstr "保存信息板的內容"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/InfoBoardWidget.cpp:174
 msgid "The file path is not exists, unprivileged or unreachable."
-msgstr "文件路徑不存在、無特權或無法訪問。"
+msgstr "文件路徑不存在、無特權或無法存取。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TOFUInfoPage.cpp:39
 msgid "Expires on"
@@ -3174,7 +3181,7 @@ msgstr "刷新"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:101
 msgid "Refresh the key list to synchronize changes."
-msgstr "刷新密鑰列表以同步更改。"
+msgstr "刷新金鑰列表以同步更改。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:102
 msgid "Sync Public Key"
@@ -3182,7 +3189,7 @@ msgstr "同步公鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:104
 msgid "Sync public key with your default keyserver."
-msgstr "將公鑰與您的默認密鑰服務器同步。"
+msgstr "將公鑰與您的預設金鑰伺服器同步。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:105
 msgid "Uncheck ALL"
@@ -3218,11 +3225,11 @@ msgstr "指紋"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:183
 msgid "Refreshing Key List..."
-msgstr "正在刷新密鑰列表..."
+msgstr "正在刷新金鑰列表..."
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:351
 msgid "Import Keys"
-msgstr "導入密鑰"
+msgstr "導入金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:354
 msgid "You've dropped something on the table."
@@ -3230,7 +3237,7 @@ msgstr "你把東西掉在桌子上了。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:355
 msgid "GpgFrontend will now try to import key(s)."
-msgstr "GpgFrontend 現在將嘗試導入密鑰。"
+msgstr "GpgFrontend 現在將嘗試導入金鑰。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:360
 msgid "Always import without bothering."
@@ -3238,11 +3245,11 @@ msgstr "始終導入而無需打擾。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:474
 msgid "Key List Refreshed."
-msgstr "密鑰列表已刷新。"
+msgstr "金鑰列表已刷新。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:494
 msgid "Syncing Key List..."
-msgstr "正在同步密鑰列表..."
+msgstr "正在同步金鑰列表..."
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:502
 msgid "Sync [%1%/%2%] %3% %4%"
@@ -3250,7 +3257,7 @@ msgstr "同步 [%1%/%2%] %3% %4%"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:510
 msgid "Key List Sync Done."
-msgstr "密鑰列表同步完成。"
+msgstr "金鑰列表同步完成。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:61
 msgid "0 character"
@@ -3263,7 +3270,7 @@ msgstr "如果"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:63
 msgid "utf-8"
-msgstr "UTF-8"
+msgstr "utf-8"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:70
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:257
@@ -3311,9 +3318,11 @@ msgstr "保存"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:188
 msgid ""
-"After saving, the encoding of the current file will be converted to UTF-8 "
-"and the line endings will be changed to LF. "
-msgstr "保存後，當前文件的編碼將轉換為UTF-8，行尾將更改為LF。"
+"After saving, the encoding of the current file will be converted to UTF-8 and the "
+"line endings will be changed to LF. "
+msgstr ""
+"經儲存後，現有檔案的編碼將轉換成 UTF-8，並已文件的編碼將轉換為UTF-8，換行字元編碼"
+"改變為 LF。 "
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:192
 msgid "If this is not the result you expect, please use \"save as\"."
@@ -3337,7 +3346,7 @@ msgstr "筆記："
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:217
 msgid "The path is not exists, unprivileged or unreachable."
-msgstr "該路徑不存在、沒有特權或無法訪問。"
+msgstr "該路徑不存在、沒有特權或無法存取。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:228
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:380
@@ -3362,7 +3371,7 @@ msgstr "壓縮..."
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:253
 msgid "Open with Default System Application"
-msgstr "使用默認系統應用程序打開"
+msgstr "使用預設系統應用程序打開"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:276
 msgid "Show Hidden File"
@@ -3374,11 +3383,11 @@ msgstr "顯示系統文件"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:345
 msgid "The directory is unprivileged or unreachable."
-msgstr "該目錄沒有特權或無法訪問。"
+msgstr "該目錄沒有特權或無法存取。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:356
 msgid "The file is unprivileged or unreachable."
-msgstr "該文件沒有特權或無法訪問。"
+msgstr "該文件沒有特權或無法存取。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/FilePage.cpp:380
 msgid "New Filename"
@@ -3426,10 +3435,12 @@ msgstr "本地未找到公鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:71
 msgid ""
-"There is no target public key content in local for GpgFrontend to gather "
-"enough information about this Signature. Do you want to import the public "
-"key from Keyserver now?"
-msgstr "本地沒有目標公鑰內容供 GpgFrontend 收集有關此簽名的足夠信息。現在要從 Keyserver 導入公鑰嗎？"
+"There is no target public key content in local for GpgFrontend to gather enough "
+"information about this Signature. Do you want to import the public key from "
+"Keyserver now?"
+msgstr ""
+"本地沒有目標公鑰內容供 GpgFrontend 收集有關此簽名的足夠信息。現在要從 Keyserver 導"
+"入公鑰嗎？"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:190
 msgid "GnuPG Context Loading Failed"
@@ -3437,16 +3448,16 @@ msgstr "GnuPG 上下文加載失敗"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:192
 msgid ""
-"Gnupg(gpg) is not installed correctly, please follow <a "
-"href='https://www.gpgfrontend.bktus.com/#/faq?id=how-to-deal-with-39env-"
-"loading-failed39'>this notes</a> in FAQ to install Gnupg and then open "
-"GpgFrontend. Or, you can open GnuPG Controller to set a custom GnuPG which "
-"GpgFrontend should use. Then, GpgFrontend will restart."
+"Gnupg(gpg) is not installed correctly, please follow <a href='https://www."
+"gpgfrontend.bktus.com/#/faq?id=how-to-deal-with-39env-loading-failed39'>this "
+"notes</a> in FAQ to install Gnupg and then open GpgFrontend. Or, you can open "
+"GnuPG Controller to set a custom GnuPG which GpgFrontend should use. Then, "
+"GpgFrontend will restart."
 msgstr ""
-"Gnupg(gpg) 未正確安裝，請按照常見問題解答中的<a "
-"href='https://www.gpgfrontend.bktus.com/#/faq?id=how-to-deal-with-39env-"
-"loading-failed39'>說明</a>安裝 Gnupg，然後打開 GpgFrontend。或者，您可以打開 GnuPG 控制器來設置 "
-"GpgFrontend 應使用的自定義 GnuPG。然後，GpgFrontend 將重新啟動。"
+"Gnupg(gpg) 未正確安裝，請按照常見問題解答中的<a href='https://www.gpgfrontend."
+"bktus.com/#/faq?id=how-to-deal-with-39env-loading-failed39'>說明</a>安裝 Gnupg，然"
+"後打開 GpgFrontend。或者，您可以打開 GnuPG 控制器來設定 GpgFrontend 應使用的自定"
+"義 GnuPG。然後，GpgFrontend 將重新啟動。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:233
 msgid "Open Key"
@@ -3462,7 +3473,7 @@ msgstr "文件打開失敗"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:240
 msgid "Failed to open file: "
-msgstr "打開文件失敗："
+msgstr "開啟檔案失敗原因 : "
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:294
 msgid "Processing"
@@ -3482,11 +3493,11 @@ msgstr "命令執行完畢。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:423
 msgid "The key has been updated"
-msgstr "密鑰已更新"
+msgstr "金鑰已更新"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:425
 msgid "No need to update the key"
-msgstr "無需更新密鑰"
+msgstr "無需更新金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/UserInterfaceUtils.cpp:457
 msgid "Password Input Dialog"
@@ -3502,10 +3513,12 @@ msgstr "拋出標準異常"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendApplication.cpp:79
 msgid ""
-"Oops, an standard exception was thrown during the running of the program. "
-"This is not a serious problem, it may be the negligence of the programmer, "
-"please report this problem if you can."
-msgstr "糟糕，在程序運行期間拋出了一個標準異常。這不是一個嚴重的問題，可能是程序員的疏忽，如果可以的話，請報告這個問題。"
+"Oops, an standard exception was thrown during the running of the program. This is "
+"not a serious problem, it may be the negligence of the programmer, please report "
+"this problem if you can."
+msgstr ""
+"糟糕，在程序運行期間拋出了一個標準異常。這不是一個嚴重的問題，可能是程序員的疏忽，"
+"如果可以的話，請報告這個問題。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendApplication.cpp:87
 msgid "Unhandled Exception Thrown"
@@ -3513,10 +3526,12 @@ msgstr "未處理的異常拋出"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/GpgFrontendApplication.cpp:88
 msgid ""
-"Oops, an unhandled exception was thrown during the running of the program. "
-"This is not a serious problem, it may be the negligence of the programmer, "
-"please report this problem if you can."
-msgstr "糟糕，在程序運行期間引發了未處理的異常。這不是一個嚴重的問題，可能是程序員的疏忽，如果可以的話，請報告這個問題。"
+"Oops, an unhandled exception was thrown during the running of the program. This "
+"is not a serious problem, it may be the negligence of the programmer, please "
+"report this problem if you can."
+msgstr ""
+"糟糕，在程序運行期間引發了未處理的異常。這不是一個嚴重的問題，可能是程序員的疏忽，"
+"如果可以的話，請報告這個問題。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/core/GpgContext.cpp:368
 msgid "Embedded In"
@@ -3645,7 +3660,7 @@ msgstr "撤銷的鑰匙"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:97
 msgid "Expired Key's"
-msgstr "過期的密鑰"
+msgstr "過期的金鑰"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:100
 msgid "Missing CRL's"
@@ -3661,30 +3676,28 @@ msgstr "簽名不完全有效。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:107
 msgid "(May used a subkey to sign)"
-msgstr "（可以使用子密鑰簽名）"
+msgstr "（可以使用子金鑰簽名）"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:113
 msgid "Key is NOT present with ID 0x"
-msgstr "密鑰不存在，ID 為 0x"
+msgstr "金鑰不存在，ID 為 0x"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:121
 msgid "A signature could NOT be verified due to a Missing Key"
-msgstr "由於缺少密鑰，無法驗證簽名"
+msgstr "由於缺少金鑰，無法驗證簽名"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:126
 msgid ""
-"A signature is valid but the key used to verify the signature has been "
-"revoked"
-msgstr "簽名有效，但用於驗證簽名的密鑰已被撤銷"
+"A signature is valid but the key used to verify the signature has been revoked"
+msgstr "簽名有效，但用於驗證簽名的金鑰已被撤銷"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:135
 msgid "A signature is valid but expired"
 msgstr "簽名有效但已過期"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:142
-msgid ""
-"A signature is valid but the key used to verify the signature has expired."
-msgstr "簽名有效，但用於驗證簽名的密鑰已過期。"
+msgid "A signature is valid but the key used to verify the signature has expired."
+msgstr "簽名有效，但用於驗證簽名的金鑰已過期。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:150
 msgid "There was some other error which prevented the signature verification."
@@ -3717,7 +3730,7 @@ msgstr "文件大小（字節）"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/FileOperator.cpp:120
 msgid "Error in Calculating File Hash "
-msgstr "計算文件哈希時出錯"
+msgstr "計算檔案雜湊中有錯誤 "
 
 #: /home/eric/develop/cpp/GpgFrontend/src/main.cpp:147
 msgid "A serious error has occurred"
@@ -3725,10 +3738,12 @@ msgstr "發生了嚴重錯誤"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/main.cpp:148
 msgid ""
-"Oh no! GpgFrontend caught a serious error in the software, so it needs to be"
-" restarted. If the problem recurs, please manually terminate the program and"
-" report the problem to the developer."
-msgstr "不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需要重新啟動。如果問題再次出現，請手動終止程序並將問題報告給開發人員。"
+"Oh no! GpgFrontend caught a serious error in the software, so it needs to be "
+"restarted. If the problem recurs, please manually terminate the program and "
+"report the problem to the developer."
+msgstr ""
+"不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需要重新啟動。如果問題再次出現，"
+"請手動終止程序並將問題報告給開發人員。"
 
 #~ msgid "Validity"
 #~ msgstr "有效性"
@@ -4009,13 +4024,12 @@ msgstr "不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需�
 #~ msgstr "作為郵件的發件人，一般使用私鑰。"
 
 #~ msgid ""
-#~ " The private key is generally used as a signature for the content of the "
-#~ "mail."
+#~ " The private key is generally used as a signature for the content of the mail."
 #~ msgstr " 私鑰通常用作郵件內容的簽名。"
 
 #~ msgid ""
-#~ "The SMTP address is empty, please go to the setting interface to complete "
-#~ "the configuration."
+#~ "The SMTP address is empty, please go to the setting interface to complete the "
+#~ "configuration."
 #~ msgstr "SMTP 地址為空，請進入設置界面完成配置。"
 
 #~ msgid "CC"
@@ -4028,8 +4042,8 @@ msgstr "不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需�
 #~ msgstr "郵件主題"
 
 #~ msgid ""
-#~ "Tips: You can fill in multiple email addresses, please separate them with "
-#~ "\";\"."
+#~ "Tips: You can fill in multiple email addresses, please separate them with \";"
+#~ "\"."
 #~ msgstr "溫馨提示：您可以填寫多個郵箱，請用“;”隔開。"
 
 #~ msgid "Send Message"
@@ -4094,28 +4108,34 @@ msgstr "不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需�
 
 #~ msgid ""
 #~ "You have checked the encrypted email content, but you have not selected the "
-#~ "recipient's GPG key. This is dangerous and the mail will not be encrypted. "
-#~ "So the send operation is forbidden"
-#~ msgstr "您已檢查加密的電子郵件內容，但尚未選擇收件人的 GPG 密鑰。這是危險的，郵件不會被加密。所以禁止發送操作"
+#~ "recipient's GPG key. This is dangerous and the mail will not be encrypted. So "
+#~ "the send operation is forbidden"
+#~ msgstr ""
+#~ "您已檢查加密的電子郵件內容，但尚未選擇收件人的 GPG 密鑰。這是危險的，郵件不會被"
+#~ "加密。所以禁止發送操作"
 
 #~ msgid ""
-#~ "You checked the option to attach signature to the email, but did not specify"
-#~ " the sender's GPG Key. This will cause the content of the email to be "
+#~ "You checked the option to attach signature to the email, but did not specify "
+#~ "the sender's GPG Key. This will cause the content of the email to be "
 #~ "inconsistent with your expectations, so the operation is prohibited."
-#~ msgstr "您選中了將簽名附加到電子郵件的選項，但沒有指定發件人的 GPG 密鑰。這會導致郵件內容與您的預期不一致，因此禁止操作。"
+#~ msgstr ""
+#~ "您選中了將簽名附加到電子郵件的選項，但沒有指定發件人的 GPG 密鑰。這會導致郵件內"
+#~ "容與您的預期不一致，因此禁止操作。"
 
 #~ msgid ""
 #~ "You checked the option to attach your public key to the email, but did not "
-#~ "specify the sender's GPG Key. This will cause the content of the email to be"
-#~ " inconsistent with your expectations, so the operation is prohibited."
-#~ msgstr "您選中了將您的公鑰附加到電子郵件的選項，但沒有指定發件人的 GPG 密鑰。這會導致郵件內容與您的預期不一致，因此禁止操作。"
+#~ "specify the sender's GPG Key. This will cause the content of the email to be "
+#~ "inconsistent with your expectations, so the operation is prohibited."
+#~ msgstr ""
+#~ "您選中了將您的公鑰附加到電子郵件的選項，但沒有指定發件人的 GPG 密鑰。這會導致郵"
+#~ "件內容與您的預期不一致，因此禁止操作。"
 
 #~ msgid "Sending Email..."
 #~ msgstr "正在發送電子郵件..."
 
 #~ msgid ""
-#~ "If the process does not end for a long time, please check again whether your"
-#~ " SMTP server configuration is correct."
+#~ "If the process does not end for a long time, please check again whether your "
+#~ "SMTP server configuration is correct."
 #~ msgstr "如果該過程長時間沒有結束，請再次檢查您的 SMTP 服務器配置是否正確。"
 
 #~ msgid "identity_enable"
@@ -4154,7 +4174,8 @@ msgstr "不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需�
 #~ msgid ""
 #~ "An error occurred while encrypting the content of the email. This may be "
 #~ "because you did not complete some operations during Gnupg encryption."
-#~ msgstr "加密電子郵件內容時出錯。這可能是因為您在 Gnupg 加密過程中沒有完成某些操作。"
+#~ msgstr ""
+#~ "加密電子郵件內容時出錯。這可能是因為您在 Gnupg 加密過程中沒有完成某些操作。"
 
 #~ msgid "Unknown error."
 #~ msgstr "未知錯誤。"
@@ -4180,8 +4201,7 @@ msgstr "不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需�
 #~ msgid "Service Token Empty"
 #~ msgstr "服務令牌為空"
 
-#~ msgid ""
-#~ "Please go to the settings interface to set Own Key and get Service Token."
+#~ msgid "Please go to the settings interface to set Own Key and get Service Token."
 #~ msgstr "請到設置界面設置Own Key並獲取Service Token。"
 
 #~ msgid "Message Inbox"
@@ -4236,10 +4256,12 @@ msgstr "不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需�
 #~ msgstr "默認發件人 GPG 密鑰 ID"
 
 #~ msgid ""
-#~ "Tips: It is recommended that you build your own mail server or use a trusted"
-#~ " mail server. If you don't know the detailed configuration information, you "
-#~ "can get it from the mail service provider."
-#~ msgstr "溫馨提示：建議您自建郵件服務器或使用可信賴的郵件服務器。如果您不知道詳細的配置信息，可以從郵件服務提供商處獲取。"
+#~ "Tips: It is recommended that you build your own mail server or use a trusted "
+#~ "mail server. If you don't know the detailed configuration information, you can "
+#~ "get it from the mail service provider."
+#~ msgstr ""
+#~ "溫馨提示：建議您自建郵件服務器或使用可信賴的郵件服務器。如果您不知道詳細的配置"
+#~ "信息，可以從郵件服務提供商處獲取。"
 
 #~ msgid "apply settings failed"
 #~ msgstr "應用設置失敗"
@@ -4256,7 +4278,9 @@ msgstr "不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需�
 #~ msgid ""
 #~ "Hello, this is a test email from GpgFrontend. If you receive this email, it "
 #~ "means that you have configured the correct SMTP server parameters."
-#~ msgstr "你好，這是一封來自 GpgFrontend 的測試郵件。如果您收到此電子郵件，則表示您已配置正確的 SMTP 服務器參數。"
+#~ msgstr ""
+#~ "你好，這是一封來自 GpgFrontend 的測試郵件。如果您收到此電子郵件，則表示您已配置"
+#~ "正確的 SMTP 服務器參數。"
 
 #~ msgid "Succeed in sending a test email to the SMTP Server"
 #~ msgstr "成功向 SMTP 服務器發送測試郵件"
@@ -4282,8 +4306,7 @@ msgstr "不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需�
 #~ msgid "Unknown Reply Format"
 #~ msgstr "未知回复格式"
 
-#~ msgid ""
-#~ "The communication content with the server does not meet the requirements"
+#~ msgid "The communication content with the server does not meet the requirements"
 #~ msgstr "與服務器的通訊內容不符合要求"
 
 #~ msgid "(.gpg .asc)"
@@ -4302,9 +4325,11 @@ msgstr "不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需�
 #~ msgstr "無效的自己的密鑰"
 
 #~ msgid ""
-#~ "Own Key can not be use to do any operation. Please go to the setting "
-#~ "interface to select an OwnKey and get a ServiceToken."
-#~ msgstr "不能使用自己的密鑰進行任何操作。請到設置界面選擇一個OwnKey並獲取一個ServiceToken。"
+#~ "Own Key can not be use to do any operation. Please go to the setting interface "
+#~ "to select an OwnKey and get a ServiceToken."
+#~ msgstr ""
+#~ "不能使用自己的密鑰進行任何操作。請到設置界面選擇一個OwnKey並獲取一個"
+#~ "ServiceToken。"
 
 #~ msgid "Please obtain a Service Token from the server in the settings."
 #~ msgstr "請在設置中從服務器獲取服務令牌。"
@@ -4327,8 +4352,7 @@ msgstr "不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需�
 #~ msgid "Getting Scpt From Server"
 #~ msgstr "從服務器獲取 Scpt"
 
-#~ msgid ""
-#~ "Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
+#~ msgid "Notice: Use Decrypt & Verify operation to decrypt this short crypto text."
 #~ msgstr "注意：使用解密和驗證操作來解密這個簡短的加密文本。"
 
 #~ msgid "There is a problem with the communication with the server"
@@ -4404,8 +4428,8 @@ msgstr "不好了！ GpgFrontend 在軟件中發現了嚴重錯誤，因此需�
 #~ msgstr "未發布版本"
 
 #~ msgid ""
-#~ "This version(%1) has not been officially released and is not recommended for"
-#~ " use in a production environment. <br/>"
+#~ "This version(%1) has not been officially released and is not recommended for "
+#~ "use in a production environment. <br/>"
 #~ msgstr "此版本（%1）尚未正式發布，不建議在生產環境中使用。 <br/>"
 
 #~ msgid "Fail to Login into SMTP Server"
