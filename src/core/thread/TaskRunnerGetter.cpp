@@ -28,21 +28,27 @@
 
 #include "core/thread/TaskRunnerGetter.h"
 
-GpgFrontend::Thread::TaskRunnerGetter::TaskRunnerGetter(int channel)
+#include <memory>
+
+#include "thread/TaskRunner.h"
+
+namespace GpgFrontend::Thread {
+
+TaskRunnerGetter::TaskRunnerGetter(int channel)
     : SingletonFunctionObject<TaskRunnerGetter>(channel) {}
 
-GpgFrontend::Thread::TaskRunner*
-GpgFrontend::Thread::TaskRunnerGetter::GetTaskRunner(
+TaskRunnerPtr GpgFrontend::Thread::TaskRunnerGetter::GetTaskRunner(
     TaskRunnerType runner_type) {
   while (true) {
     auto it = task_runners_.find(runner_type);
     if (it != task_runners_.end()) {
       return it->second;
     } else {
-      auto runner = new TaskRunner();
+      auto runner = std::make_shared<TaskRunner>();
       task_runners_[runner_type] = runner;
       runner->Start();
       continue;
     }
   }
 }
+}  // namespace GpgFrontend::Thread

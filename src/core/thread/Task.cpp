@@ -29,12 +29,15 @@
 #include "core/thread/Task.h"
 
 #include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 #include <boost/stacktrace.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <memory>
+
+#include "spdlog/spdlog.h"
 
 namespace GpgFrontend::Thread {
 
@@ -186,37 +189,81 @@ class Task::Impl : public QObject {
 
     try {
       if (callback_) {
+        SPDLOG_DEBUG("task {} has a callback function", GetFullID());
         if (callback_thread_ == QThread::currentThread()) {
           SPDLOG_DEBUG("for task {}, the callback thread is the same thread",
                        GetFullID(), callback_thread_->currentThreadId());
+
           callback_(rtn, data_object_);
+
+          // raise signal, announcing this task comes to an end
+          SPDLOG_DEBUG(
+              "for task {}, its life comes to an end in the same thread after "
+              "its callback executed.",
+              parent_->GetFullID());
+          emit parent_->SignalTaskEnd();
         } else {
           SPDLOG_DEBUG("for task {}, callback thread is a different thread: {}",
                        GetFullID(), callback_thread_->currentThreadId());
-          if (!QMetaObject::invokeMethod(callback_thread_,
-                                         [callback = callback_, rtn = rtn_,
-                                          data_object = data_object_]() {
-                                           callback(rtn, data_object);
-                                         })) {
-            SPDLOG_ERROR("task {} had failed to invoke callback", GetFullID());
+          if (!QMetaObject::invokeMethod(
+                  callback_thread_,
+                  [callback = callback_, rtn = rtn_, data_object = data_object_,
+                   parent_ = this->parent_]() {
+                    SPDLOG_DEBUG("calling callback of task {}",
+                                 parent_->GetFullID());
+                    try {
+                      callback(rtn, data_object);
+                    } catch (...) {
+                      SPDLOG_ERROR(
+                          "unknown exception was caught when execute "
+                          "callback of task {}",
+                          parent_->GetFullID());
+                    }
+                    // raise signal, announcing this task comes to an end
+                    SPDLOG_DEBUG(
+                        "for task {}, its life comes to an end whether its "
+                        "callback function fails or not.",
+                        parent_->GetFullID());
+                    emit parent_->SignalTaskEnd();
+                  })) {
+            SPDLOG_ERROR(
+                "task {} had failed to invoke the callback function to target "
+                "thread",
+                GetFullID());
+            SPDLOG_DEBUG(
+                "for task {}, its life must come to an end now, although it "
+                "has something not done yet.",
+                GetFullID());
+            emit parent_->SignalTaskEnd();
           }
         }
+      } else {
+        // raise signal, announcing this task comes to an end
+        SPDLOG_DEBUG(
+            "for task {}, its life comes to an end without callback "
+            "peacefully.",
+            GetFullID());
+        emit parent_->SignalTaskEnd();
       }
     } catch (std::exception &e) {
       SPDLOG_ERROR("exception was caught at task callback: {}", e.what());
       SPDLOG_ERROR(
           "stacktrace of the exception: {}",
           boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
+      // raise signal, announcing this task comes to an end
+      SPDLOG_DEBUG("for task {}, its life comes to an end at chaos.",
+                   GetFullID());
+      emit parent_->SignalTaskEnd();
     } catch (...) {
       SPDLOG_ERROR("unknown exception was caught");
       SPDLOG_ERROR(
           "stacktrace of the exception: {}",
           boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
+      // raise signal, announcing this task comes to an end
+      SPDLOG_DEBUG("for task {}, its life comes to an end at unknown chaos.",
+                   GetFullID());
+      emit parent_->SignalTaskEnd();
     }
-
-    // raise signal, announcing this task come to an end
-    SPDLOG_DEBUG("for task {}, its life comes to an end.", GetFullID());
-    emit parent_->SignalTaskEnd();
   }
 };
 

@@ -29,6 +29,9 @@
 #pragma once
 
 #include <initializer_list>
+
+#include "core/module/Module.h"
+#include "core/thread/TaskRunner.h"
 #ifndef WINDOWS
 #include <boost/process.hpp>
 #endif
@@ -55,11 +58,13 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
     const std::vector<std::string> arguments;
     const GpgCommandExecutorCallback cb_func;
     const GpgCommandExecutorInteractor int_func;
+    Module::TaskRunnerPtr task_runner = nullptr;
 
     ExecuteContext(
         std::string cmd, std::vector<std::string> arguments,
         GpgCommandExecutorCallback callback = [](int, std::string,
                                                  std::string) {},
+        Module::TaskRunnerPtr task_runner = nullptr,
         GpgCommandExecutorInteractor int_func = [](QProcess *) {});
   };
 

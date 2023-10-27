@@ -123,6 +123,7 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
                exit_code, p_out.size());
          }
        },
+       nullptr,
        [](QProcess* proc) -> void {
          // Code From Gpg4Win
          while (proc->canReadLine()) {

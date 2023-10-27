@@ -60,4 +60,25 @@ struct GpgComponentInfo {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(GpgComponentInfo, name, desc, version, path,
                                    binary_checksum);
 
+/**
+ * The format of each line is:
+ * name:flags:level:description:type:alt-type:argname:default:argdef:value
+ */
+struct GpgOptionsInfo {
+  std::string name;
+  std::string flags;
+  std::string level;
+  std::string description;
+  std::string type;
+  std::string alt_type;
+  std::string argname;
+  std::string default_value;
+  std::string argdef;
+  std::string value;
+};
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(GpgOptionsInfo, name, flags, level,
+                                   description, type, alt_type, argname,
+                                   default_value, argdef, value);
+
 }  // namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule

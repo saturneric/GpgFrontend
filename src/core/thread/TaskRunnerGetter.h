@@ -34,6 +34,8 @@
 
 namespace GpgFrontend::Thread {
 
+using TaskRunnerPtr = std::shared_ptr<TaskRunner>;
+
 class GPGFRONTEND_CORE_EXPORT TaskRunnerGetter
     : public GpgFrontend::SingletonFunctionObject<TaskRunnerGetter> {
  public:
@@ -47,11 +49,11 @@ class GPGFRONTEND_CORE_EXPORT TaskRunnerGetter
 
   TaskRunnerGetter(int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  TaskRunner *GetTaskRunner(
+  TaskRunnerPtr GetTaskRunner(
       TaskRunnerType runner_type = kTaskRunnerType_Default);
 
  private:
-  std::map<TaskRunnerType, TaskRunner *> task_runners_;
+  std::map<TaskRunnerType, TaskRunnerPtr> task_runners_;
 };
 
 }  // namespace GpgFrontend::Thread

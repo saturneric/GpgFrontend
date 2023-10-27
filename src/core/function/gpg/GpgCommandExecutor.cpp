@@ -33,14 +33,21 @@
 #include "GpgFunctionObject.h"
 #include "core/thread/DataObject.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "module/Module.h"
 #include "spdlog/spdlog.h"
+#include "thread/Task.h"
 
 namespace GpgFrontend {
 
 GpgCommandExecutor::ExecuteContext::ExecuteContext(
     std::string cmd, std::vector<std::string> arguments,
-    GpgCommandExecutorCallback callback, GpgCommandExecutorInteractor int_func)
-    : cmd(cmd), arguments(arguments), cb_func(callback), int_func(int_func) {}
+    GpgCommandExecutorCallback callback, Module::TaskRunnerPtr task_runner,
+    GpgCommandExecutorInteractor int_func)
+    : cmd(cmd),
+      arguments(arguments),
+      cb_func(callback),
+      int_func(int_func),
+      task_runner(task_runner) {}
 
 GpgCommandExecutor::GpgCommandExecutor(int channel)
     : SingletonFunctionObject<GpgCommandExecutor>(channel) {}
@@ -52,13 +59,26 @@ void GpgCommandExecutor::ExecuteSync(ExecuteContext context) {
   QObject::connect(task, &Thread::Task::SignalTaskEnd, &looper,
                    &QEventLoop::quit);
 
-  GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
-      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_External_Process)
-      ->PostTask(task);
+  Thread::TaskRunnerPtr target_task_runner = nullptr;
 
-  // block until task finished
-  // this is to keep reference vaild until task finished
-  looper.exec();
+  if (context.task_runner != nullptr) {
+    target_task_runner = context.task_runner;
+  } else {
+    target_task_runner =
+        GpgFrontend::Thread::TaskRunnerGetter::GetInstance().GetTaskRunner(
+            Thread::TaskRunnerGetter::kTaskRunnerType_External_Process);
+  }
+
+  target_task_runner->PostTask(task);
+
+  // to arvoid dead lock issue we need to check if current thread is the same as
+  // target thread. if it is, we can't call exec() because it will block the
+  // current thread.
+  if (QThread::currentThread() != target_task_runner->GetThread()) {
+    // block until task finished
+    // this is to keep reference vaild until task finished
+    looper.exec();
+  }
 }
 
 void GpgCommandExecutor::ExecuteConcurrentlyAsync(ExecuteContexts contexts) {
@@ -67,10 +87,14 @@ void GpgCommandExecutor::ExecuteConcurrentlyAsync(ExecuteContexts contexts) {
     SPDLOG_INFO("gpg concurrently called cmd {}", cmd);
 
     Thread::Task *task = build_task_from_exec_ctx(context);
-    GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(
-            Thread::TaskRunnerGetter::kTaskRunnerType_External_Process)
-        ->PostTask(task);
+
+    if (context.task_runner != nullptr)
+      context.task_runner->PostTask(task);
+    else
+      GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
+          .GetTaskRunner(
+              Thread::TaskRunnerGetter::kTaskRunnerType_External_Process)
+          ->PostTask(task);
   }
 }
 
@@ -92,10 +116,13 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(
       }
     });
 
-    GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(
-            Thread::TaskRunnerGetter::kTaskRunnerType_External_Process)
-        ->PostConcurrentTask(task);
+    if (context.task_runner != nullptr)
+      context.task_runner->PostTask(task);
+    else
+      GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
+          .GetTaskRunner(
+              Thread::TaskRunnerGetter::kTaskRunnerType_External_Process)
+          ->PostTask(task);
   }
 
   looper.exec();

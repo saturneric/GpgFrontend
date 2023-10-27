@@ -175,7 +175,7 @@ void PlainTextEditorPage::ReadFile() {
 
   const auto target_path = this->full_file_path_.toStdString();
 
-  auto *task_runner =
+  auto task_runner =
       GpgFrontend::Thread::TaskRunnerGetter::GetInstance().GetTaskRunner();
 
   auto *read_task = new FileReadTask(target_path);

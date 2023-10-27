@@ -40,12 +40,11 @@ namespace GpgFrontend::Module {
 
 class GlobalRegisterTable::Impl {
  public:
-  struct Value {
-    std::any value;
+  struct RTNode {
+    std::optional<std::any> value = std::nullopt;
+    std::unordered_map<std::string, std::unique_ptr<RTNode>> children;
     int version = 0;
-    const std::type_info& type;
-
-    Value(std::any v) : value(v), type(v.type()) {}
+    const std::type_info* type = nullptr;  // 保存类型信息
   };
 
   Impl(GlobalRegisterTable* parent)
@@ -55,23 +54,26 @@ class GlobalRegisterTable::Impl {
     SPDLOG_DEBUG("publishing kv to rt, n: {}, k: {}, v type: {}", n, k,
                  v.type().name());
 
+    std::istringstream iss(k);
+    std::string segment;
+
     int version = 0;
 
     {
       std::unique_lock lock(lock_);
-      auto& sub_table =
-          global_register_table_.emplace(n, SubTable{}).first->second;
+      auto& root_rt_node =
+          global_register_table_.emplace(n, std::make_unique<RTNode>())
+              .first->second;
 
-      auto sub_it = sub_table.find(k);
-      if (sub_it == sub_table.end()) {
-        sub_it = sub_table.emplace(k, std::make_unique<Value>(Value{v})).first;
-      } else {
-        if (sub_it->second->type != v.type()) {
-          return false;
-        }
-        sub_it->second->value = v;
+      RTNode* current = root_rt_node.get();
+      while (std::getline(iss, segment, '.')) {
+        current = current->children.emplace(segment, std::make_unique<RTNode>())
+                      .first->second.get();
       }
-      version = ++sub_it->second->version;
+
+      current->value = v;
+      current->type = &v.type();
+      current->version++;
     }
 
     emit parent_->SignalPublish(n, k, version, v);
@@ -80,17 +82,23 @@ class GlobalRegisterTable::Impl {
 
   std::optional<std::any> LookupKV(Namespace n, Key k) {
     SPDLOG_DEBUG("looking up kv in rt, n: {}, k: {}", n, k);
+
+    std::istringstream iss(k);
+    std::string segment;
+
     std::optional<std::any> rtn = std::nullopt;
     {
       std::shared_lock lock(lock_);
       auto it = global_register_table_.find(n);
       if (it == global_register_table_.end()) return std::nullopt;
 
-      auto& sub_table = it->second;
-      auto sub_it = sub_table.find(k);
-      rtn = (sub_it != sub_table.end())
-                ? std::optional<std::any>{sub_it->second->value}
-                : std::nullopt;
+      RTNode* current = it->second.get();
+      while (std::getline(iss, segment, '.')) {
+        auto it = current->children.find(segment);
+        if (it == current->children.end()) return std::nullopt;
+        current = it->second.get();
+      }
+      rtn = current->value;
     }
     return rtn;
   }
@@ -107,8 +115,7 @@ class GlobalRegisterTable::Impl {
   }
 
  private:
-  using SubTable = std::unordered_map<Key, std::unique_ptr<Value>>;
-  using Table = std::map<Namespace, SubTable>;
+  using Table = std::map<Namespace, std::unique_ptr<RTNode>>;
   std::shared_mutex lock_;
   GlobalRegisterTable* parent_;
 
