@@ -24,11 +24,14 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 cmake_minimum_required(VERSION 3.16)
-
 set(CMAKE_USER_MAKE_RULES_OVERRIDE "cmake/FlagsOverrides.cmake")
 
 # define project
-project(GpgFrontend VERSION 2.1.1 LANGUAGES CXX)
+project(GpgFrontend 
+    VERSION 2.1.1 
+    DESCRIPTION "GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption."
+    HOMEPAGE_URL "https://gpgfrontend.bktus.com"
+    LANGUAGES CXX)
 
 # show cmake version
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
@@ -334,11 +337,13 @@ if (LINUX)
     message(STATUS "GpgFrontend Configuration For OS Platform Linux")
 
     set(OS_PLATFORM 2)
-    ADD_DEFINITIONS(-DLINUX)
+    add_compile_definitions(LINUX)
 
     # Get Env Info
-    exec_program(uname OUTPUT_VARIABLE SYSTEM_NAME)
-    set(SYSTEM_NAME "${SYSTEM_NAME}" CACHE INTERNAL "")
+    find_program(UNAME_PROGRAM uname)
+    if(UNAME_PROGRAM)
+        execute_process(COMMAND ${UNAME_PROGRAM} OUTPUT_VARIABLE SYSTEM_NAME OUTPUT_STRIP_TRAILING_WHITESPACE)
+    endif()
 
     if(USING_COMPILER_CLANG)
         add_compile_options(-stdlib=libstdc++)
@@ -346,7 +351,7 @@ if (LINUX)
 
     if(SYSTEM_NAME STREQUAL "FreeBSD")
         message(STATUS "FreeBSD BOX")
-        ADD_DEFINITIONS(-DFREEBSD)
+        add_compile_definitions(FREEBSD)
         set(FREEBSD TRUE)
     endif()
 
