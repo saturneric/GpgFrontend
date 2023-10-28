@@ -28,7 +28,6 @@
 #pragma once
 
 #include <sstream>
-#include <string>
 
 #include "core/GpgConstants.h"
 namespace GpgFrontend {

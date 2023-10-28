@@ -34,8 +34,6 @@
 #include <unicode/utypes.h>
 
 #include <cstddef>
-#include <memory>
-#include <string>
 
 GpgFrontend::CharsetOperator::CharsetInfo GpgFrontend::CharsetOperator::Detect(
     const std::string &buffer) {

@@ -27,19 +27,15 @@
  */
 #include "GpgFileOpera.h"
 
-#include <memory>
-#include <string>
+#include "core/GpgConstants.h"
+#include "core/function/FileOperator.h"
+#include "core/function/gpg/GpgBasicOperator.h"
 
-#include "GpgBasicOperator.h"
-#include "GpgConstants.h"
-#include "function/FileOperator.h"
-
-GpgFrontend::GpgFileOpera::GpgFileOpera(int channel)
-    : SingletonFunctionObject<GpgFileOpera>(channel) {}
-
-GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
-    KeyListPtr keys, const std::string& in_path, const std::string& out_path,
-    GpgEncrResult& result, int _channel) {
+auto GpgFrontend::GpgFileOpera::EncryptFile(KeyListPtr keys,
+                                            const std::string& in_path,
+                                            const std::string& out_path,
+                                            GpgEncrResult& result, int _channel)
+    -> GpgFrontend::GpgError {
 #ifdef WINDOWS
   auto in_path_std =
       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
@@ -68,9 +64,10 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::EncryptFile(
   return err;
 }
 
-GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
-    const std::string& in_path, const std::string& out_path,
-    GpgDecrResult& result) {
+auto GpgFrontend::GpgFileOpera::DecryptFile(const std::string& in_path,
+                                            const std::string& out_path,
+                                            GpgDecrResult& result)
+    -> GpgFrontend::GpgError {
 #ifdef WINDOWS
   auto in_path_std =
       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
@@ -100,11 +97,11 @@ GpgFrontend::GpgError GpgFrontend::GpgFileOpera::DecryptFile(
   return err;
 }
 
-gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
-                                                  const std::string& in_path,
-                                                  const std::string& out_path,
-                                                  GpgSignResult& result,
-                                                  int _channel) {
+auto GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
+                                         const std::string& in_path,
+                                         const std::string& out_path,
+                                         GpgSignResult& result, int _channel)
+    -> gpgme_error_t {
 #ifdef WINDOWS
   auto in_path_std =
       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
@@ -132,9 +129,10 @@ gpgme_error_t GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
   return err;
 }
 
-gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(
-    const std::string& data_path, const std::string& sign_path,
-    GpgVerifyResult& result, int _channel) {
+auto GpgFrontend::GpgFileOpera::VerifyFile(const std::string& data_path,
+                                           const std::string& sign_path,
+                                           GpgVerifyResult& result,
+                                           int _channel) -> gpgme_error_t {
 #ifdef WINDOWS
   auto data_path_std =
       std::filesystem::path(QString::fromStdString(data_path).toStdU16String());
@@ -162,10 +160,10 @@ gpgme_error_t GpgFrontend::GpgFileOpera::VerifyFile(
   return err;
 }
 
-gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
+auto GpgFrontend::GpgFileOpera::EncryptSignFile(
     KeyListPtr keys, KeyListPtr signer_keys, const std::string& in_path,
     const std::string& out_path, GpgEncrResult& encr_res,
-    GpgSignResult& sign_res, int _channel) {
+    GpgSignResult& sign_res, int _channel) -> gpg_error_t {
 #ifdef WINDOWS
   auto in_path_std =
       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
@@ -194,9 +192,11 @@ gpg_error_t GpgFrontend::GpgFileOpera::EncryptSignFile(
   return err;
 }
 
-gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
-    const std::string& in_path, const std::string& out_path,
-    GpgDecrResult& decr_res, GpgVerifyResult& verify_res) {
+auto GpgFrontend::GpgFileOpera::DecryptVerifyFile(const std::string& in_path,
+                                                  const std::string& out_path,
+                                                  GpgDecrResult& decr_res,
+                                                  GpgVerifyResult& verify_res)
+    -> gpg_error_t {
 #ifdef WINDOWS
   auto in_path_std =
       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
@@ -223,9 +223,9 @@ gpg_error_t GpgFrontend::GpgFileOpera::DecryptVerifyFile(
 
   return err;
 }
-unsigned int GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
+auto GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
     const std::string& in_path, const std::string& out_path,
-    GpgFrontend::GpgEncrResult& result, int _channel) {
+    GpgFrontend::GpgEncrResult& result, int _channel) -> unsigned int {
 #ifdef WINDOWS
   auto in_path_std =
       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());

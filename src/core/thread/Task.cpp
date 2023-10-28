@@ -28,16 +28,11 @@
 
 #include "core/thread/Task.h"
 
-#include <qobjectdefs.h>
-#include <qtmetamacros.h>
-
 #include <boost/stacktrace.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <memory>
-
-#include "spdlog/spdlog.h"
+#include <utility>
 
 namespace GpgFrontend::Thread {
 
@@ -56,11 +51,11 @@ class Task::Impl : public QObject {
       : QObject(parent),
         parent_(parent),
         uuid_(generate_uuid()),
-        name_(name),
-        runnable_(runnable),
+        name_(std::move(name)),
+        runnable_(std::move(runnable)),
         callback_([](int, const DataObjectPtr &) {}),
         callback_thread_(QThread::currentThread()),
-        data_object_(data_object) {
+        data_object_(std::move(data_object)) {
     SPDLOG_TRACE("task {} created with runnable, callback_thread_: {}",
                  GetFullID(), static_cast<void *>(callback_thread_));
     init();
@@ -71,11 +66,11 @@ class Task::Impl : public QObject {
       : QObject(parent),
         parent_(parent),
         uuid_(generate_uuid()),
-        name_(name),
-        runnable_(runnable),
-        callback_(callback),
+        name_(std::move(name)),
+        runnable_(std::move(runnable)),
+        callback_(std::move(callback)),
         callback_thread_(QThread::currentThread()),
-        data_object_(data_object) {
+        data_object_(std::move(data_object)) {
     SPDLOG_TRACE(
         "task {} created with runnable and callback, callback_thread_: {}",
         GetFullID(), static_cast<void *>(callback_thread_));

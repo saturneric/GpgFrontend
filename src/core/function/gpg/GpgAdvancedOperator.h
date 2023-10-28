@@ -32,22 +32,17 @@
 
 #pragma once
 
-#include "core/GpgConstants.h"
-#include "core/GpgContext.h"
-#include "core/GpgFunctionObject.h"
-
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
-    : public SingletonFunctionObject<GpgAdvancedOperator> {
+class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator {
  public:
   /**
-   * @brief Construct a new Basic Operator object
+   * @brief
    *
-   * @param channel Channel corresponding to the context
+   * @return true
+   * @return false
    */
-  explicit GpgAdvancedOperator(
-      int channel = SingletonFunctionObject::GetDefaultChannel());
+  static auto ClearGpgPasswordCache() -> bool;
 
   /**
    * @brief
@@ -55,7 +50,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  bool ClearGpgPasswordCache();
+  static auto ReloadGpgComponents() -> bool;
 
   /**
    * @brief
@@ -63,7 +58,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  bool ReloadGpgComponents();
+  static void RestartGpgComponents();
 
   /**
    * @brief
@@ -71,7 +66,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  void RestartGpgComponents();
+  static auto ResetConfigures() -> bool;
 
   /**
    * @brief
@@ -79,7 +74,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  bool ResetConfigures();
+  static auto StartGpgAgent() -> bool;
 
   /**
    * @brief
@@ -87,7 +82,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  bool StartGpgAgent();
+  static auto StartDirmngr() -> bool;
 
   /**
    * @brief
@@ -95,19 +90,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  bool StartDirmngr();
-
-  /**
-   * @brief
-   *
-   * @return true
-   * @return false
-   */
-  bool StartKeyBoxd();
-
- private:
-  GpgContext& ctx_ = GpgContext::GetInstance(
-      SingletonFunctionObject::GetChannel());  ///< Corresponding context
+  static auto StartKeyBoxd() -> bool;
 };
 
 }  // namespace GpgFrontend

@@ -33,8 +33,6 @@
 #include <boost/date_time/gregorian/greg_duration.hpp>
 #include <boost/date_time/gregorian/gregorian_types.hpp>
 #include <cassert>
-#include <string>
-#include <vector>
 
 void GpgFrontend::GenKeyInfo::SetAlgo(
     const GpgFrontend::GenKeyInfo::KeyGenAlgo &m_algo) {
@@ -237,8 +235,8 @@ GpgFrontend::GenKeyInfo::GenKeyInfo(bool m_is_sub_key, bool m_standalone)
   SetAlgo(GetSupportedKeyAlgo()[0]);
 }
 
-const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
-    &GpgFrontend::GenKeyInfo::GetSupportedKeyAlgo() {
+const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo> &
+GpgFrontend::GenKeyInfo::GetSupportedKeyAlgo() {
   static const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
       support_key_algo = {
           {"RSA", "RSA"},
@@ -248,8 +246,8 @@ const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
   return support_key_algo;
 }
 
-const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
-    &GpgFrontend::GenKeyInfo::GetSupportedSubkeyAlgo() {
+const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo> &
+GpgFrontend::GenKeyInfo::GetSupportedSubkeyAlgo() {
   static const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
       support_subkey_algo = {
           {"RSA", "RSA"},
@@ -263,8 +261,8 @@ const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
   return support_subkey_algo;
 }
 
-const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
-    &GpgFrontend::GenKeyInfo::GetSupportedKeyAlgoStandalone() {
+const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo> &
+GpgFrontend::GenKeyInfo::GetSupportedKeyAlgoStandalone() {
   static const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
       support_subkey_algo_standalone = {
           {"RSA", "RSA"},
@@ -273,8 +271,8 @@ const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
   return support_subkey_algo_standalone;
 }
 
-const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
-    &GpgFrontend::GenKeyInfo::GetSupportedSubkeyAlgoStandalone() {
+const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo> &
+GpgFrontend::GenKeyInfo::GetSupportedSubkeyAlgoStandalone() {
   static const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
       support_subkey_algo_standalone = {
           {"RSA", "RSA"},

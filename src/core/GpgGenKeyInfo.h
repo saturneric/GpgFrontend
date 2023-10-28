@@ -31,8 +31,6 @@
 #include <boost/date_time.hpp>
 #include <boost/date_time/gregorian/greg_duration_types.hpp>
 #include <boost/format.hpp>
-#include <string>
-#include <vector>
 
 #include "GpgFrontend.h"
 

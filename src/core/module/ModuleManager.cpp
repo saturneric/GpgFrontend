@@ -51,7 +51,7 @@ class ModuleManager::Impl {
 
   void RegisterModule(ModulePtr module) {
     task_runner_->PostTask(new Thread::Task(
-        [=](GpgFrontend::Thread::DataObjectPtr) -> int {
+        [=](GpgFrontend::DataObjectPtr) -> int {
           module->SetGPC(gmc_);
           gmc_->RegisterModule(module);
           return 0;
@@ -61,7 +61,7 @@ class ModuleManager::Impl {
 
   void TriggerEvent(EventRefrernce event) {
     task_runner_->PostTask(new Thread::Task(
-        [=](GpgFrontend::Thread::DataObjectPtr) -> int {
+        [=](GpgFrontend::DataObjectPtr) -> int {
           gmc_->TriggerEvent(event);
           return 0;
         },
@@ -70,7 +70,7 @@ class ModuleManager::Impl {
 
   void ActiveModule(ModuleIdentifier identifier) {
     task_runner_->PostTask(new Thread::Task(
-        [=](GpgFrontend::Thread::DataObjectPtr) -> int {
+        [=](GpgFrontend::DataObjectPtr) -> int {
           gmc_->ActiveModule(identifier);
           return 0;
         },
@@ -89,8 +89,8 @@ class ModuleManager::Impl {
     return grt_->LookupKV(n, k);
   }
 
-  bool ListenPublish(QObject* o, Namespace n, Key k, LPCallback c, bool c_o) {
-    return grt_->ListenPublish(o, n, k, c, c_o);
+  bool ListenPublish(QObject* o, Namespace n, Key k, LPCallback c) {
+    return grt_->ListenPublish(o, n, k, c);
   }
 
  private:
@@ -107,9 +107,8 @@ bool UpsertRTValue(const std::string& namespace_, const std::string& key,
 }
 
 bool GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject* o, Namespace n,
-                                                  Key k, LPCallback c,
-                                                  bool c_o) {
-  return ModuleManager::GetInstance()->ListenRTPublish(o, n, k, c, c_o);
+                                                  Key k, LPCallback c) {
+  return ModuleManager::GetInstance()->ListenRTPublish(o, n, k, c);
 }
 
 ModuleManager::ModuleManager() : p_(std::make_unique<Impl>()) {}
@@ -147,8 +146,8 @@ std::optional<std::any> ModuleManager::RetrieveRTValue(Namespace n, Key k) {
 }
 
 bool ModuleManager::ListenRTPublish(QObject* o, Namespace n, Key k,
-                                    LPCallback c, bool c_o) {
-  return p_->ListenPublish(o, n, k, c, c_o);
+                                    LPCallback c) {
+  return p_->ListenPublish(o, n, k, c);
 }
 
 ModuleIdentifier GetRealModuleIdentifier(const ModuleIdentifier& id) {

@@ -34,12 +34,8 @@
 
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/module/ModuleManager.h"
-#include "spdlog/spdlog.h"
 
-GpgFrontend::GpgAdvancedOperator::GpgAdvancedOperator(int channel)
-    : SingletonFunctionObject(channel) {}
-
-bool GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache() {
+auto GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache() -> bool {
   bool success = false;
 
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
@@ -51,10 +47,11 @@ bool GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache() {
     return false;
   }
 
-  GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
+  GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpgconf_path,
        {"--reload", "gpg-agent"},
-       [&](int exit_code, const std::string &p_out, const std::string &p_err) {
+       [&](int exit_code, const std::string & /*p_out*/,
+           const std::string & /*p_err*/) {
          if (exit_code == 0) {
            SPDLOG_DEBUG("gpgconf reload exit code: {}", exit_code);
            success = true;
@@ -63,7 +60,7 @@ bool GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache() {
   return success;
 }
 
-bool GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents() {
+auto GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents() -> bool {
   bool success = false;
 
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
@@ -75,7 +72,7 @@ bool GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents() {
     return false;
   }
 
-  GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
+  GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpgconf_path,
        {"--reload"},
        [&](int exit_code, const std::string &p_out, const std::string &p_err) {
@@ -101,7 +98,7 @@ void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
     return;
   }
 
-  GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
+  GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpgconf_path,
        {"--verbose", "--kill", "all"},
        [&](int exit_code, const std::string &p_out, const std::string &p_err) {
@@ -146,7 +143,7 @@ void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
        }});
 }
 
-bool GpgFrontend::GpgAdvancedOperator::ResetConfigures() {
+auto GpgFrontend::GpgAdvancedOperator::ResetConfigures() -> bool {
   bool success = false;
 
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
@@ -158,7 +155,7 @@ bool GpgFrontend::GpgAdvancedOperator::ResetConfigures() {
     return false;
   }
 
-  GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
+  GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpgconf_path,
        {"--apply-defaults"},
        [&](int exit_code, const std::string &p_out, const std::string &p_err) {
@@ -175,7 +172,7 @@ bool GpgFrontend::GpgAdvancedOperator::ResetConfigures() {
   return success;
 }
 
-bool GpgFrontend::GpgAdvancedOperator::StartGpgAgent() {
+auto GpgFrontend::GpgAdvancedOperator::StartGpgAgent() -> bool {
   bool success = false;
 
   const auto gpg_agent_path = Module::RetrieveRTValueTypedOrDefault<>(
@@ -195,7 +192,7 @@ bool GpgFrontend::GpgAdvancedOperator::StartGpgAgent() {
     return false;
   }
 
-  GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
+  GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpg_agent_path,
        {"--homedir", home_path, "--daemon"},
        [&](int exit_code, const std::string &p_out, const std::string &p_err) {
@@ -217,7 +214,7 @@ bool GpgFrontend::GpgAdvancedOperator::StartGpgAgent() {
   return success;
 }
 
-bool GpgFrontend::GpgAdvancedOperator::StartDirmngr() {
+auto GpgFrontend::GpgAdvancedOperator::StartDirmngr() -> bool {
   bool success = false;
 
   const auto dirmngr_path = Module::RetrieveRTValueTypedOrDefault<>(
@@ -237,7 +234,7 @@ bool GpgFrontend::GpgAdvancedOperator::StartDirmngr() {
     return false;
   }
 
-  GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
+  GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {dirmngr_path,
        {"--homedir", home_path, "--daemon"},
        [&](int exit_code, const std::string &p_out, const std::string &p_err) {
@@ -258,7 +255,7 @@ bool GpgFrontend::GpgAdvancedOperator::StartDirmngr() {
   return success;
 }
 
-bool GpgFrontend::GpgAdvancedOperator::StartKeyBoxd() {
+auto GpgFrontend::GpgAdvancedOperator::StartKeyBoxd() -> bool {
   bool success = false;
 
   const auto keyboxd_path = Module::RetrieveRTValueTypedOrDefault<>(
@@ -278,7 +275,7 @@ bool GpgFrontend::GpgAdvancedOperator::StartKeyBoxd() {
     return false;
   }
 
-  GpgFrontend::GpgCommandExecutor::GetInstance().ExecuteSync(
+  GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {keyboxd_path,
        {"--homedir", home_path, "--daemon"},
        [&](int exit_code, const std::string &p_out, const std::string &p_err) {

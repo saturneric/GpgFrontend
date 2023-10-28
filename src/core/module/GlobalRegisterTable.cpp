@@ -29,12 +29,9 @@
 #include "GlobalRegisterTable.h"
 
 #include <any>
-#include <memory>
 #include <optional>
 #include <shared_mutex>
 #include <unordered_map>
-
-#include "spdlog/spdlog.h"
 
 namespace GpgFrontend::Module {
 
@@ -44,7 +41,7 @@ class GlobalRegisterTable::Impl {
     std::optional<std::any> value = std::nullopt;
     std::unordered_map<std::string, std::unique_ptr<RTNode>> children;
     int version = 0;
-    const std::type_info* type = nullptr;  // 保存类型信息
+    const std::type_info* type = nullptr;
   };
 
   Impl(GlobalRegisterTable* parent)
@@ -103,7 +100,7 @@ class GlobalRegisterTable::Impl {
     return rtn;
   }
 
-  bool ListenPublish(QObject* o, Namespace n, Key k, LPCallback c, bool c_o) {
+  bool ListenPublish(QObject* o, Namespace n, Key k, LPCallback c) {
     if (o == nullptr) return false;
     return QObject::connect(
                parent_, &GlobalRegisterTable::SignalPublish, o,
@@ -135,8 +132,8 @@ std::optional<std::any> GlobalRegisterTable::LookupKV(Namespace n, Key v) {
 }
 
 bool GlobalRegisterTable::ListenPublish(QObject* o, Namespace n, Key k,
-                                        LPCallback c, bool c_o) {
-  return p_->ListenPublish(o, n, k, c, c_o);
+                                        LPCallback c) {
+  return p_->ListenPublish(o, n, k, c);
 }
 
 }  // namespace GpgFrontend::Module

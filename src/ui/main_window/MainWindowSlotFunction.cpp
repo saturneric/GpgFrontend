@@ -40,8 +40,8 @@
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
+#include "core/model/DataObject.h"
 #include "core/module/ModuleManager.h"
-#include "core/thread/DataObject.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
 #include "ui/dialog/help/AboutDialog.h"
@@ -62,17 +62,17 @@ void MainWindow::slot_encrypt() {
   auto key_ids = m_key_list_->GetChecked();
 
   // data to transfer into task
-  auto data_object = Thread::TransferParams(
+  auto data_object = TransferParams(
       edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
 
   // the callback function
-  auto result_callback = [this](int rtn, Thread::DataObjectPtr data_object) {
-    if (!rtn) {
+  auto result_callback = [this](int rtn, const DataObjectPtr& data_object) {
+    if (rtn == 0) {
       if (!data_object->Check<GpgError, GpgEncrResult, ByteArrayPtr>())
         throw std::runtime_error("data object doesn't pass checking");
-      auto error = Thread::ExtractParams<GpgError>(data_object, 0);
-      auto result = Thread::ExtractParams<GpgEncrResult>(data_object, 1);
-      auto tmp = Thread::ExtractParams<ByteArrayPtr>(data_object, 2);
+      auto error = ExtractParams<GpgError>(data_object, 0);
+      auto result = ExtractParams<GpgEncrResult>(data_object, 1);
+      auto tmp = ExtractParams<ByteArrayPtr>(data_object, 2);
 
       auto resultAnalyse = GpgEncryptResultAnalyse(error, std::move(result));
       resultAnalyse.Analyse();
@@ -90,7 +90,7 @@ void MainWindow::slot_encrypt() {
 
   Thread::Task::TaskRunnable encrypt_runner = nullptr;
 
-  std::string encrypt_type = "";
+  std::string encrypt_type;
 
   if (key_ids->empty()) {
     // Symmetric Encrypt
@@ -103,10 +103,10 @@ void MainWindow::slot_encrypt() {
     if (ret == QMessageBox::Cancel) return;
 
     encrypt_type = _("Symmetrically Encrypting");
-    encrypt_runner = [](Thread::DataObjectPtr data_object) -> int {
+    encrypt_runner = [](const DataObjectPtr& data_object) -> int {
       if (data_object == nullptr || !data_object->Check<std::string>())
         throw std::runtime_error("data object doesn't pass checking");
-      auto buffer = Thread::ExtractParams<std::string>(data_object, 0);
+      auto buffer = ExtractParams<std::string>(data_object, 0);
       try {
         GpgEncrResult result = nullptr;
         auto tmp = std::make_shared<ByteArray>();
@@ -114,8 +114,7 @@ void MainWindow::slot_encrypt() {
             GpgFrontend::GpgBasicOperator::GetInstance().EncryptSymmetric(
                 buffer, tmp, result);
 
-        data_object->Swap(Thread::DataObject{
-            std::move(error), std::move(result), std::move(tmp)});
+        data_object->Swap(DataObject{error, std::move(result), std::move(tmp)});
       } catch (const std::runtime_error& e) {
         return -1;
       }
@@ -142,14 +141,14 @@ void MainWindow::slot_encrypt() {
 
     // Asymmetric Encrypt
     encrypt_type = _("Encrypting");
-    encrypt_runner = [](Thread::DataObjectPtr data_object) -> int {
+    encrypt_runner = [](DataObjectPtr data_object) -> int {
       // check the size of the data object
       if (data_object == nullptr ||
           !data_object->Check<std::string, KeyListPtr>())
         throw std::runtime_error("data object doesn't pass checking");
 
-      auto buffer = Thread::ExtractParams<std::string>(data_object, 0);
-      auto keys = Thread::ExtractParams<KeyListPtr>(data_object, 1);
+      auto buffer = ExtractParams<std::string>(data_object, 0);
+      auto keys = ExtractParams<KeyListPtr>(data_object, 1);
       try {
         GpgEncrResult result = nullptr;
         auto tmp = std::make_shared<ByteArray>();
@@ -198,7 +197,7 @@ void MainWindow::slot_sign() {
   }
 
   // data to transfer into task
-  auto data_object = Thread::TransferParams();
+  auto data_object = TransferParams();
 
   // set input buffer
   auto buffer =
@@ -208,13 +207,13 @@ void MainWindow::slot_sign() {
   // push the keys into data object
   data_object->AppendObject(std::move(keys));
 
-  auto sign_ruunner = [](Thread::DataObjectPtr data_object) -> int {
+  auto sign_ruunner = [](DataObjectPtr data_object) -> int {
     // check the size of the data object
     if (data_object == nullptr || data_object->GetObjectSize() != 2)
       throw std::runtime_error("data object doesn't pass checking");
 
-    auto buffer = Thread::ExtractParams<std::string>(data_object, 0);
-    auto keys = Thread::ExtractParams<KeyListPtr>(data_object, 1);
+    auto buffer = ExtractParams<std::string>(data_object, 0);
+    auto keys = ExtractParams<KeyListPtr>(data_object, 1);
 
     try {
       GpgSignResult result = nullptr;
@@ -229,13 +228,13 @@ void MainWindow::slot_sign() {
     return 0;
   };
 
-  auto result_callback = [this](int rtn, Thread::DataObjectPtr data_object) {
+  auto result_callback = [this](int rtn, DataObjectPtr data_object) {
     if (!rtn) {
       if (data_object == nullptr || data_object->GetObjectSize() != 3)
         throw std::runtime_error("data object doesn't pass checking");
-      auto error = Thread::ExtractParams<GpgError>(data_object, 0);
-      auto result = Thread::ExtractParams<GpgSignResult>(data_object, 1);
-      auto tmp = Thread::ExtractParams<ByteArrayPtr>(data_object, 2);
+      auto error = ExtractParams<GpgError>(data_object, 0);
+      auto result = ExtractParams<GpgSignResult>(data_object, 1);
+      auto tmp = ExtractParams<ByteArrayPtr>(data_object, 2);
       auto resultAnalyse = GpgSignResultAnalyse(error, std::move(result));
       resultAnalyse.Analyse();
       process_result_analyse(edit_, info_board_, resultAnalyse);
@@ -269,15 +268,15 @@ void MainWindow::slot_decrypt() {
   }
 
   // data to transfer into task
-  auto data_object = Thread::TransferParams(
+  auto data_object = TransferParams(
       edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
 
-  auto decrypt_runner = [](Thread::DataObjectPtr data_object) -> int {
+  auto decrypt_runner = [](DataObjectPtr data_object) -> int {
     // check the size of the data object
     if (data_object == nullptr || data_object->GetObjectSize() != 1)
       throw std::runtime_error("data object doesn't pass checking");
 
-    auto buffer = Thread::ExtractParams<std::string>(data_object, 0);
+    auto buffer = ExtractParams<std::string>(data_object, 0);
     try {
       GpgDecrResult result = nullptr;
       auto decrypted = std::make_shared<ByteArray>();
@@ -291,14 +290,14 @@ void MainWindow::slot_decrypt() {
     return 0;
   };
 
-  auto result_callback = [this](int rtn, Thread::DataObjectPtr data_object) {
+  auto result_callback = [this](int rtn, DataObjectPtr data_object) {
     if (!rtn) {
       if (data_object == nullptr ||
           !data_object->Check<GpgError, GpgDecrResult, ByteArrayPtr>())
         throw std::runtime_error("data object doesn't pass checking");
-      auto error = Thread::ExtractParams<GpgError>(data_object, 0);
-      auto result = Thread::ExtractParams<GpgDecrResult>(data_object, 1);
-      auto decrypted = Thread::ExtractParams<ByteArrayPtr>(data_object, 2);
+      auto error = ExtractParams<GpgError>(data_object, 0);
+      auto result = ExtractParams<GpgDecrResult>(data_object, 1);
+      auto decrypted = ExtractParams<ByteArrayPtr>(data_object, 2);
       auto resultAnalyse = GpgDecryptResultAnalyse(error, std::move(result));
       resultAnalyse.Analyse();
       process_result_analyse(edit_, info_board_, resultAnalyse);
@@ -323,19 +322,19 @@ void MainWindow::slot_verify() {
   }
 
   // data to transfer into task
-  auto data_object = Thread::TransferParams();
+  auto data_object = TransferParams();
 
   // set input buffer
   auto buffer =
       edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString();
   data_object->AppendObject(std::move(buffer));
 
-  auto verify_runner = [](Thread::DataObjectPtr data_object) -> int {
+  auto verify_runner = [](DataObjectPtr data_object) -> int {
     // check the size of the data object
     if (data_object == nullptr || !data_object->Check<std::string>())
       throw std::runtime_error("data object doesn't pass checking");
 
-    auto buffer = Thread::ExtractParams<std::string>(data_object, 0);
+    auto buffer = ExtractParams<std::string>(data_object, 0);
 
     SPDLOG_DEBUG("verify buffer size: {}", buffer.size());
 
@@ -352,14 +351,13 @@ void MainWindow::slot_verify() {
     return 0;
   };
 
-  auto result_callback = [this](int rtn, Thread::DataObjectPtr data_object) {
+  auto result_callback = [this](int rtn, DataObjectPtr data_object) {
     if (!rtn) {
       if (data_object == nullptr ||
           !data_object->Check<GpgError, GpgVerifyResult>())
         throw std::runtime_error("data object doesn't pass checking");
-      auto error = Thread::ExtractParams<GpgError>(data_object, 0);
-      auto verify_result =
-          Thread::ExtractParams<GpgVerifyResult>(data_object, 1);
+      auto error = ExtractParams<GpgError>(data_object, 0);
+      auto verify_result = ExtractParams<GpgVerifyResult>(data_object, 1);
 
       auto result_analyse = GpgVerifyResultAnalyse(error, verify_result);
       result_analyse.Analyse();
@@ -434,19 +432,19 @@ void MainWindow::slot_encrypt_sign() {
   }
 
   // data to transfer into task
-  auto data_object = Thread::TransferParams(
+  auto data_object = TransferParams(
       std::move(signer_keys), std::move(keys),
       edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
 
-  auto encrypt_sign_runner = [](Thread::DataObjectPtr data_object) -> int {
+  auto encrypt_sign_runner = [](DataObjectPtr data_object) -> int {
     // check the size of the data object
     if (data_object == nullptr ||
         !data_object->Check<KeyListPtr, KeyListPtr, std::string>())
       throw std::runtime_error("data object doesn't pass checking");
 
-    auto signer_keys = Thread::ExtractParams<KeyListPtr>(data_object, 0);
-    auto keys = Thread::ExtractParams<KeyListPtr>(data_object, 1);
-    auto buffer = Thread::ExtractParams<std::string>(data_object, 2);
+    auto signer_keys = ExtractParams<KeyListPtr>(data_object, 0);
+    auto keys = ExtractParams<KeyListPtr>(data_object, 1);
+    auto buffer = ExtractParams<std::string>(data_object, 2);
     try {
       GpgEncrResult encr_result = nullptr;
       GpgSignResult sign_result = nullptr;
@@ -463,17 +461,16 @@ void MainWindow::slot_encrypt_sign() {
     return 0;
   };
 
-  auto result_callback = [this](int rtn, Thread::DataObjectPtr data_object) {
+  auto result_callback = [this](int rtn, DataObjectPtr data_object) {
     if (!rtn) {
       if (data_object == nullptr ||
           !data_object
                ->Check<GpgError, GpgEncrResult, GpgSignResult, ByteArrayPtr>())
         throw std::runtime_error("data object doesn't pass checking");
-      auto error = Thread::ExtractParams<GpgError>(data_object, 0);
-      auto encrypt_result =
-          Thread::ExtractParams<GpgEncrResult>(data_object, 1);
-      auto sign_result = Thread::ExtractParams<GpgSignResult>(data_object, 2);
-      auto tmp = Thread::ExtractParams<ByteArrayPtr>(data_object, 3);
+      auto error = ExtractParams<GpgError>(data_object, 0);
+      auto encrypt_result = ExtractParams<GpgEncrResult>(data_object, 1);
+      auto sign_result = ExtractParams<GpgSignResult>(data_object, 2);
+      auto tmp = ExtractParams<ByteArrayPtr>(data_object, 3);
 
       auto encrypt_result_analyse =
           GpgEncryptResultAnalyse(error, std::move(encrypt_result));
@@ -506,15 +503,15 @@ void MainWindow::slot_decrypt_verify() {
   }
 
   // data to transfer into task
-  auto data_object = Thread::TransferParams(
+  auto data_object = TransferParams(
       edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
 
-  auto decrypt_verify_runner = [](Thread::DataObjectPtr data_object) -> int {
+  auto decrypt_verify_runner = [](DataObjectPtr data_object) -> int {
     // check the size of the data object
     if (data_object == nullptr || !data_object->Check<std::string>())
       throw std::runtime_error("data object doesn't pass checking");
 
-    auto buffer = Thread::ExtractParams<std::string>(data_object, 0);
+    auto buffer = ExtractParams<std::string>(data_object, 0);
     try {
       GpgDecrResult decrypt_result = nullptr;
       GpgVerifyResult verify_result = nullptr;
@@ -531,19 +528,17 @@ void MainWindow::slot_decrypt_verify() {
     return 0;
   };
 
-  auto result_callback = [this](int rtn, Thread::DataObjectPtr data_object) {
+  auto result_callback = [this](int rtn, DataObjectPtr data_object) {
     if (!rtn) {
       if (data_object == nullptr ||
           !data_object->Check<GpgError, GpgDecrResult, GpgVerifyResult,
                               ByteArrayPtr>())
         throw std::runtime_error("data object doesn't pass checking");
 
-      auto error = Thread::ExtractParams<GpgError>(data_object, 0);
-      auto decrypt_result =
-          Thread::ExtractParams<GpgDecrResult>(data_object, 1);
-      auto verify_result =
-          Thread::ExtractParams<GpgVerifyResult>(data_object, 2);
-      auto decrypted = Thread::ExtractParams<ByteArrayPtr>(data_object, 3);
+      auto error = ExtractParams<GpgError>(data_object, 0);
+      auto decrypt_result = ExtractParams<GpgDecrResult>(data_object, 1);
+      auto verify_result = ExtractParams<GpgVerifyResult>(data_object, 2);
+      auto decrypted = ExtractParams<ByteArrayPtr>(data_object, 3);
 
       auto decrypt_result_analyse =
           GpgDecryptResultAnalyse(error, std::move(decrypt_result));

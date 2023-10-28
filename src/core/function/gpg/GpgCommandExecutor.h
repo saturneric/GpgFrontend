@@ -28,17 +28,7 @@
 
 #pragma once
 
-#include <initializer_list>
-
 #include "core/module/Module.h"
-#include "core/thread/TaskRunner.h"
-#ifndef WINDOWS
-#include <boost/process.hpp>
-#endif
-
-#include "core/GpgContext.h"
-#include "core/GpgFunctionObject.h"
-#include "core/thread/Task.h"
 
 namespace GpgFrontend {
 
@@ -50,8 +40,7 @@ using GpgCommandExecutorInteractor = std::function<void(QProcess *)>;
  * @brief Extra commands related to GPG
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
-    : public SingletonFunctionObject<GpgCommandExecutor> {
+class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor {
  public:
   struct ExecuteContext {
     const std::string cmd;
@@ -71,30 +60,16 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
   using ExecuteContexts = std::vector<ExecuteContext>;
 
   /**
-   * @brief Construct a new Gpg Command Executor object
-   *
-   * @param channel Corresponding context
-   */
-  explicit GpgCommandExecutor(
-      int channel = SingletonFunctionObject::GetDefaultChannel());
-
-  /**
    * @brief Excuting a command
    *
    * @param arguments Command parameters
    * @param interact_func Command answering function
    */
-  void ExecuteSync(ExecuteContext);
+  static void ExecuteSync(ExecuteContext);
 
-  void ExecuteConcurrentlyAsync(ExecuteContexts);
+  static void ExecuteConcurrentlyAsync(ExecuteContexts);
 
-  void ExecuteConcurrentlySync(ExecuteContexts);
-
- private:
-  GpgContext &ctx_ = GpgContext::GetInstance(
-      SingletonFunctionObject::GetChannel());  ///< Corresponding context
-
-  Thread::Task *build_task_from_exec_ctx(const ExecuteContext &);
+  static void ExecuteConcurrentlySync(ExecuteContexts);
 };
 
 }  // namespace GpgFrontend

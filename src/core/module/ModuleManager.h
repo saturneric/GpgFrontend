@@ -76,7 +76,7 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
 
   std::optional<std::any> RetrieveRTValue(Namespace, Key);
 
-  bool ListenRTPublish(QObject*, Namespace, Key, LPCallback, bool);
+  bool ListenRTPublish(QObject*, Namespace, Key, LPCallback);
 
  private:
   class Impl;
@@ -111,8 +111,7 @@ bool GPGFRONTEND_CORE_EXPORT UpsertRTValue(const std::string& namespace_,
                                            const std::any& value);
 
 bool GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject*, Namespace, Key,
-                                                  LPCallback,
-                                                  bool callback_once = true);
+                                                  LPCallback);
 
 template <typename T>
 std::optional<T> RetrieveRTValueTyped(const std::string& namespace_,

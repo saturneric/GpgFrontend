@@ -49,7 +49,7 @@
 
 // build info
 #define PROJECT_NAME "@CMAKE_PROJECT_NAME@"
-#define OS_PLATFORM @OS_PLATFORM @
+#define OS_PLATFORM "@OS_PLATFORM@"
 #define LOCALE_DIR "@LOCALE_DIR@"
 
 // macros to find resource files

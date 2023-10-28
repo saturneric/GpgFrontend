@@ -49,7 +49,7 @@ class GlobalRegisterTable : public QObject {
 
   std::optional<std::any> LookupKV(Namespace, Key);
 
-  bool ListenPublish(QObject *, Namespace, Key, LPCallback, bool);
+  bool ListenPublish(QObject *, Namespace, Key, LPCallback);
 
  signals:
   void SignalPublish(Namespace, Key, int, std::any);

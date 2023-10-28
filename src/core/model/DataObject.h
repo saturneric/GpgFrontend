@@ -32,7 +32,7 @@
 
 #include "core/GpgFrontendCoreExport.h"
 
-namespace GpgFrontend::Thread {
+namespace GpgFrontend {
 
 class DataObject;
 using DataObjectPtr = std::shared_ptr<DataObject>;  ///<
@@ -45,7 +45,7 @@ class GPGFRONTEND_CORE_EXPORT DataObject {
 
   ~DataObject();
 
-  DataObject(GpgFrontend::Thread::DataObject&&) noexcept;
+  DataObject(DataObject&&) noexcept;
 
   std::any operator[](size_t index) const;
 
@@ -90,4 +90,4 @@ T ExtractParams(const std::shared_ptr<DataObject>& d_o, int index) {
 
 void swap(DataObject& a, DataObject& b) noexcept;
 
-}  // namespace GpgFrontend::Thread
+}  // namespace GpgFrontend

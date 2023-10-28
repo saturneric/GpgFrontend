@@ -53,31 +53,31 @@ using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
 class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
   Q_OBJECT
  public:
-  GlobalModuleContext(TaskRunnerPtr);
+  explicit GlobalModuleContext(TaskRunnerPtr);
 
-  ~GlobalModuleContext();
+  ~GlobalModuleContext() override;
 
-  int GetChannel(ModuleRawPtr);
+  auto GetChannel(ModuleRawPtr) -> int;
 
-  int GetDefaultChannel(ModuleRawPtr);
+  static auto GetDefaultChannel(ModuleRawPtr) -> int;
 
-  std::optional<TaskRunnerPtr> GetTaskRunner(ModuleRawPtr);
+  auto GetTaskRunner(ModuleRawPtr) -> std::optional<TaskRunnerPtr>;
 
-  std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier);
+  auto GetTaskRunner(ModuleIdentifier) -> std::optional<TaskRunnerPtr>;
 
-  std::optional<TaskRunnerPtr> GetGlobalTaskRunner();
+  auto GetGlobalTaskRunner() -> std::optional<TaskRunnerPtr>;
 
-  bool RegisterModule(ModulePtr);
+  auto RegisterModule(ModulePtr) -> bool;
 
-  bool ActiveModule(ModuleIdentifier);
+  auto ActiveModule(ModuleIdentifier) -> bool;
 
-  bool DeactivateModule(ModuleIdentifier);
+  auto DeactivateModule(ModuleIdentifier) -> bool;
 
-  bool ListenEvent(ModuleIdentifier, EventIdentifier);
+  auto ListenEvent(ModuleIdentifier, EventIdentifier) -> bool;
 
-  bool TriggerEvent(EventRefrernce);
+  auto TriggerEvent(EventRefrernce) -> bool;
 
-  bool IsModuleExists(ModuleIdentifier);
+  auto IsModuleExists(ModuleIdentifier) -> bool;
 
  private:
   class Impl;

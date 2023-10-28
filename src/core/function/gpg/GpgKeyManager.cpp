@@ -30,8 +30,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
-#include <memory>
-#include <string>
 
 #include "GpgBasicOperator.h"
 #include "GpgKeyGetter.h"

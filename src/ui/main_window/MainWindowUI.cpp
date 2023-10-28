@@ -287,8 +287,7 @@ void MainWindow::create_actions() {
   clean_gpg_password_cache_act_->setIcon(QIcon(":configure.png"));
   clean_gpg_password_cache_act_->setToolTip(_("Clear Password Cache of GnuPG"));
   connect(clean_gpg_password_cache_act_, &QAction::triggered, this, [=]() {
-    if (GpgFrontend::GpgAdvancedOperator::GetInstance()
-            .ClearGpgPasswordCache()) {
+    if (GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache()) {
       QMessageBox::information(this, _("Successful Operation"),
                                _("Clear password cache successfully"));
     } else {
@@ -301,7 +300,7 @@ void MainWindow::create_actions() {
   reload_components_act_->setIcon(QIcon(":configure.png"));
   reload_components_act_->setToolTip(_("Reload All GnuPG's Components"));
   connect(reload_components_act_, &QAction::triggered, this, [=]() {
-    if (GpgFrontend::GpgAdvancedOperator::GetInstance().ReloadGpgComponents()) {
+    if (GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents()) {
       QMessageBox::information(
           this, _("Successful Operation"),
           _("Reload all the GnuPG's components successfully"));
@@ -316,7 +315,7 @@ void MainWindow::create_actions() {
   restart_components_act_->setIcon(QIcon(":configure.png"));
   restart_components_act_->setToolTip(_("Restart All GnuPG's Components"));
   connect(restart_components_act_, &QAction::triggered, this, [=]() {
-    GpgFrontend::GpgAdvancedOperator::GetInstance().RestartGpgComponents();
+    GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
     Module::ListenRTPublishEvent(
         this, "core", "gpg_advanced_operator.restart_gpg_components",
         [=](Module::Namespace, Module::Key, int, std::any value) {

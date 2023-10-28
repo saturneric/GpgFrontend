@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <string>
-
 #include "core/GpgFrontendCore.h"
 
 namespace GpgFrontend {

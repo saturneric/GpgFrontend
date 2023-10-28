@@ -123,8 +123,7 @@ void MainWindow::Init() noexcept {
 
       if (GlobalSettingStation::GetInstance().LookupSettings(
               "general.clear_gpg_password_cache", false)) {
-        if (GpgFrontend::GpgAdvancedOperator::GetInstance()
-                .ClearGpgPasswordCache()) {
+        if (GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache()) {
           SPDLOG_DEBUG("clear gpg password cache done");
         } else {
           SPDLOG_ERROR("clear gpg password cache error");

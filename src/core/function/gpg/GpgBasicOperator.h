@@ -62,8 +62,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  gpg_error_t Encrypt(KeyListPtr keys, BypeArrayRef in_buffer,
-                      ByteArrayPtr& out_buffer, GpgEncrResult& result);
+  auto Encrypt(KeyListPtr keys, BypeArrayRef in_buffer,
+               ByteArrayPtr& out_buffer, GpgEncrResult& result) -> gpg_error_t;
 
   /**
    * @brief Call the interface provided by GPGME to symmetrical encryption
@@ -73,8 +73,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result Encrypted results
    * @return gpg_error_t
    */
-  gpg_error_t EncryptSymmetric(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-                               GpgEncrResult& result);
+  auto EncryptSymmetric(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
+                        GpgEncrResult& result) -> gpg_error_t;
 
   /**
    *
@@ -89,10 +89,9 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param sign_result Signature result
    * @return
    */
-  gpgme_error_t EncryptSign(KeyListPtr keys, KeyListPtr signers,
-                            BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-                            GpgEncrResult& encr_result,
-                            GpgSignResult& sign_result);
+  auto EncryptSign(KeyListPtr keys, KeyListPtr signers, BypeArrayRef in_buffer,
+                   ByteArrayPtr& out_buffer, GpgEncrResult& encr_result,
+                   GpgSignResult& sign_result) -> gpgme_error_t;
 
   /**
    * @brief Call the interface provided by gpgme for decryption operation
@@ -102,8 +101,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  gpgme_error_t Decrypt(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-                        GpgDecrResult& result);
+  auto Decrypt(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
+               GpgDecrResult& result) -> gpgme_error_t;
 
   /**
    * @brief  Call the interface provided by gpgme to perform decryption and
@@ -115,9 +114,9 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param verify_result the result of the verifying operation
    * @return error code
    */
-  gpgme_error_t DecryptVerify(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-                              GpgDecrResult& decrypt_result,
-                              GpgVerifyResult& verify_result);
+  auto DecryptVerify(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
+                     GpgDecrResult& decrypt_result,
+                     GpgVerifyResult& verify_result) -> gpgme_error_t;
 
   /**
    * @brief Call the interface provided by gpgme for verification operation
@@ -127,8 +126,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  gpgme_error_t Verify(BypeArrayRef in_buffer, ByteArrayPtr& sig_buffer,
-                       GpgVerifyResult& result) const;
+  auto Verify(BypeArrayRef in_buffer, ByteArrayPtr& sig_buffer,
+              GpgVerifyResult& result) const -> gpgme_error_t;
 
   /**
    * @brief  Call the interface provided by gpgme for signing operation
@@ -150,9 +149,9 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  gpg_error_t Sign(KeyListPtr signers, BypeArrayRef in_buffer,
-                   ByteArrayPtr& out_buffer, gpgme_sig_mode_t mode,
-                   GpgSignResult& result);
+  auto Sign(KeyListPtr signers, BypeArrayRef in_buffer,
+            ByteArrayPtr& out_buffer, gpgme_sig_mode_t mode,
+            GpgSignResult& result) -> gpg_error_t;
 
   /**
    * @brief  Set the private key for signatures, this operation is a global
@@ -167,7 +166,7 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    *
    * @return Intelligent pointer pointing to the private key list
    */
-  std::unique_ptr<KeyArgsList> GetSigners();
+  auto GetSigners() -> std::unique_ptr<KeyArgsList>;
 
  private:
   GpgContext& ctx_ = GpgContext::GetInstance(

@@ -29,7 +29,6 @@
 #pragma once
 
 #include <boost/date_time.hpp>
-#include <string>
 
 #include "core/GpgConstants.h"
 

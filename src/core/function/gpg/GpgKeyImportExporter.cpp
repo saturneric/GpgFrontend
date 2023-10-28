@@ -28,8 +28,6 @@
 
 #include "GpgKeyImportExporter.h"
 
-#include <memory>
-
 #include "GpgConstants.h"
 #include "GpgKeyGetter.h"
 

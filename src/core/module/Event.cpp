@@ -28,70 +28,75 @@
 
 #include "Event.h"
 
-#include <memory>
+#include <utility>
 
 namespace GpgFrontend::Module {
 
 class Event::Impl {
  public:
-  Impl(const std::string& event_dientifier,
-       std::initializer_list<ParameterInitializer> params_init_list = {})
-      : event_identifier_(event_dientifier) {
-    for (const auto& param : params_init_list) {
+  Impl(std::string event_id, std::initializer_list<ParameterInitializer> params,
+       EventCallback callback)
+      : event_identifier_(std::move(event_id)), callback_(std::move(callback)) {
+    for (const auto& param : params) {
       AddParameter(param);
     }
   }
 
-  std::optional<ParameterValue> operator[](const std::string& key) const {
-    auto it = data_.find(key);
-    if (it != data_.end()) {
-      return it->second;
+  auto operator[](const std::string& key) const
+      -> std::optional<ParameterValue> {
+    auto it_data = data_.find(key);
+    if (it_data != data_.end()) {
+      return it_data->second;
     }
     return std::nullopt;
   }
 
-  bool operator==(const Event& other) const {
+  auto operator==(const Event& other) const -> bool {
     return event_identifier_ == other.p_->event_identifier_;
   }
 
-  bool operator!=(const Event& other) const { return !(*this == other); }
+  auto operator!=(const Event& other) const -> bool {
+    return !(*this == other);
+  }
 
-  bool operator<(const Event& other) const {
+  auto operator<(const Event& other) const -> bool {
     return this->event_identifier_ < other.p_->event_identifier_;
   }
 
-  operator std::string() const { return event_identifier_; }
+  explicit operator std::string() const { return event_identifier_; }
 
-  EventIdentifier GetIdentifier() { return event_identifier_; }
+  auto GetIdentifier() -> EventIdentifier { return event_identifier_; }
 
   void AddParameter(const std::string& key, const ParameterValue& value) {
     data_[key] = value;
   }
 
-  void AddParameter(ParameterInitializer param) {
+  void AddParameter(const ParameterInitializer& param) {
     AddParameter(param.key, param.value);
   }
 
  private:
   EventIdentifier event_identifier_;
   std::map<std::string, ParameterValue> data_;
+  EventCallback callback_;
 };
 
-Event::Event(const std::string& event_dientifier,
-             std::initializer_list<ParameterInitializer> params_init_list)
-    : p_(std::make_unique<Impl>(event_dientifier, params_init_list)) {}
+Event::Event(const std::string& event_id,
+             std::initializer_list<ParameterInitializer> params,
+             EventCallback callback)
+    : p_(std::make_unique<Impl>(event_id, params, std::move(callback))) {}
 
 Event::~Event() = default;
 
-bool Event::Event::operator==(const Event& other) const {
+auto Event::Event::operator==(const Event& other) const -> bool {
   return this->p_ == other.p_;
 }
 
-bool Event::Event::operator!=(const Event& other) const {
+auto Event::Event::operator!=(const Event& other) const -> bool {
   return this->p_ != other.p_;
 }
 
-bool Event::Event::operator<(const Event& other) const {
+auto Event::Event::operator<(const Event& other) const -> bool {
   return this->p_ < other.p_;
 }
 
@@ -99,7 +104,9 @@ Event::Event::operator std::string() const {
   return static_cast<std::string>(*p_);
 }
 
-EventIdentifier Event::Event::GetIdentifier() { return p_->GetIdentifier(); }
+auto Event::Event::GetIdentifier() -> EventIdentifier {
+  return p_->GetIdentifier();
+}
 
 void Event::AddParameter(const std::string& key, const ParameterValue& value) {
   p_->AddParameter(key, value);

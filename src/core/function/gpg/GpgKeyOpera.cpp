@@ -107,7 +107,7 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
   const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.app_path", std::string{});
   // get all components
-  GpgCommandExecutor::GetInstance().ExecuteSync(
+  GpgCommandExecutor::ExecuteSync(
       {app_path,
        {"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o",
         output_file_path, "--gen-revoke", key.GetFingerprint().c_str()},

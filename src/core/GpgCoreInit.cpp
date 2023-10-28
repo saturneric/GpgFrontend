@@ -210,7 +210,7 @@ void InitGpgFrontendCore() {
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
       ->PostTask(new Thread::Task(
-          [=](Thread::DataObjectPtr data_obj) -> int {
+          [=](DataObjectPtr data_obj) -> int {
             // init non-ascii channel
             auto& ctx = GpgFrontend::GpgContext::CreateInstance(
                 GPGFRONTEND_NON_ASCII_CHANNEL,
@@ -252,7 +252,7 @@ void InitGpgFrontendCore() {
             "gnupginfogathering gnupg.gathering_done changed, restarting gpg "
             "components");
         // try to restart all components
-        GpgFrontend::GpgAdvancedOperator::GetInstance().RestartGpgComponents();
+        GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
       });
   Module::TriggerEvent("GPGFRONTEND_CORE_INITLIZED");
 }

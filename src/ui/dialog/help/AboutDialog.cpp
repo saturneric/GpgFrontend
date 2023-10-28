@@ -160,9 +160,8 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
   pixmap_label->setPixmap(*pixmap);
   layout->addWidget(pixmap_label, 0, 0, 1, -1, Qt::AlignCenter);
 
-  current_version_ = "v" + QString::number(VERSION_MAJOR) + "." +
-                     QString::number(VERSION_MINOR) + "." +
-                     QString::number(VERSION_PATCH);
+  current_version_ =
+      QString("v") + VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_PATCH;
 
   auto tips_label = new QLabel();
   tips_label->setText(

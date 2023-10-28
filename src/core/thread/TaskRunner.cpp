@@ -33,8 +33,6 @@
 #include <qthread.h>
 #include <qthreadpool.h>
 
-#include <memory>
-
 #include "core/thread/Task.h"
 
 namespace GpgFrontend::Thread {

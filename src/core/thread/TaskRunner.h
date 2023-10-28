@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <vector>
-
 #include "core/GpgFrontendCore.h"
 
 namespace GpgFrontend::Thread {

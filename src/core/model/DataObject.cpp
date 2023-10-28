@@ -28,12 +28,9 @@
 
 #include "DataObject.h"
 
-#include <memory>
 #include <stack>
 
-#include "function/DataObjectOperator.h"
-
-namespace GpgFrontend::Thread {
+namespace GpgFrontend {
 
 class DataObject::Impl {
  public:
@@ -63,7 +60,7 @@ DataObject::DataObject(std::initializer_list<std::any> i)
 
 DataObject::~DataObject() = default;
 
-DataObject::DataObject(GpgFrontend::Thread::DataObject&&) noexcept = default;
+DataObject::DataObject(DataObject&&) noexcept = default;
 
 std::any DataObject::operator[](size_t index) const {
   return p_->GetParameter(index);
@@ -83,4 +80,4 @@ void DataObject::Swap(DataObject&& other) noexcept { p_ = std::move(other.p_); }
 
 void swap(DataObject& a, DataObject& b) noexcept { a.Swap(b); }
 
-}  // namespace GpgFrontend::Thread
+}  // namespace GpgFrontend

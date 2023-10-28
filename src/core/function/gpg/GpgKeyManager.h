@@ -29,7 +29,6 @@
 #pragma once
 
 #include <functional>
-#include <string>
 
 #include "core/GpgContext.h"
 #include "core/GpgFunctionObject.h"

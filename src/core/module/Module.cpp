@@ -29,7 +29,6 @@
 #include "Module.h"
 
 #include <boost/format.hpp>
-#include <string>
 
 #include "core/module/GlobalModuleContext.h"
 

@@ -28,8 +28,6 @@
 
 #include "core/thread/TaskRunnerGetter.h"
 
-#include <memory>
-
 #include "thread/TaskRunner.h"
 
 namespace GpgFrontend::Thread {

@@ -29,9 +29,11 @@
 #pragma once
 
 #include <any>
+#include <functional>
 #include <optional>
 
 #include "core/GpgFrontendCore.h"
+#include "core/model/DataObject.h"
 
 namespace GpgFrontend::Module {
 
@@ -45,29 +47,34 @@ class GPGFRONTEND_CORE_EXPORT Event {
  public:
   using ParameterValue = std::any;
   using EventIdentifier = std::string;
+  using ListenerIdentifier = std::string;
+  using EventCallback =
+      std::function<void(EventIdentifier, ListenerIdentifier, DataObject)>;
   struct ParameterInitializer {
     std::string key;
     ParameterValue value;
   };
 
-  Event(const std::string& event_dientifier,
-        std::initializer_list<ParameterInitializer> params_init_list = {});
+  explicit Event(const std::string&,
+                 std::initializer_list<ParameterInitializer> = {},
+                 EventCallback = nullptr);
 
   ~Event();
 
-  std::optional<ParameterValue> operator[](const std::string& key) const;
+  auto operator[](const std::string& key) const
+      -> std::optional<ParameterValue>;
 
-  bool operator==(const Event& other) const;
+  auto operator==(const Event& other) const -> bool;
 
-  bool operator!=(const Event& other) const;
+  auto operator!=(const Event& other) const -> bool;
 
-  bool operator<(const Event& other) const;
+  auto operator<(const Event& other) const -> bool;
 
-  bool operator<=(const Event& other) const;
+  auto operator<=(const Event& other) const -> bool;
 
-  operator std::string() const;
+  explicit operator std::string() const;
 
-  EventIdentifier GetIdentifier();
+  auto GetIdentifier() -> EventIdentifier;
 
   void AddParameter(const std::string& key, const ParameterValue& value);
 
@@ -77,7 +84,8 @@ class GPGFRONTEND_CORE_EXPORT Event {
 };
 
 template <typename... Args>
-EventRefrernce MakeEvent(const EventIdentifier& event_id, Args&&... args) {
+auto MakeEvent(const EventIdentifier& event_id, Args&&... args)
+    -> EventRefrernce {
   std::initializer_list<Event::ParameterInitializer> params = {
       Event::ParameterInitializer{std::forward<Args>(args)}...};
   return std::make_shared<Event>(event_id, params);

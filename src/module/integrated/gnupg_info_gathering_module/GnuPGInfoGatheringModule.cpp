@@ -106,7 +106,7 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
   MODULE_LOG_DEBUG("start to load extra info at module gnupginfogathering...");
 
   // get all components
-  GpgCommandExecutor::GetInstance().ExecuteSync(
+  GpgCommandExecutor::ExecuteSync(
       {gpgconf_path,
        {"--list-components"},
        [this, gpgme_version, gpgconf_path](
@@ -411,7 +411,7 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
         getTaskRunner()});
   }
 
-  GpgCommandExecutor::GetInstance().ExecuteConcurrentlySync(exec_contexts);
+  GpgCommandExecutor::ExecuteConcurrentlySync(exec_contexts);
   UpsertRTValue(GetModuleIdentifier(), "gnupg.gathering_done", true);
 
   return 0;

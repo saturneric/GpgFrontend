@@ -28,8 +28,6 @@
 
 #include "CoreCommonUtil.h"
 
-#include <string>
-
 namespace GpgFrontend {
 
 std::unique_ptr<CoreCommonUtil> CoreCommonUtil::instance_ = nullptr;  ///<

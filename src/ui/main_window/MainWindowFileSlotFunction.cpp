@@ -92,7 +92,7 @@ bool process_tarball_into_directory(QWidget* parent,
 
     bool if_error = false;
     process_operation(parent, _("Extracting Tarball"),
-                      [&](Thread::DataObjectPtr) -> int {
+                      [&](DataObjectPtr) -> int {
                         try {
                           GpgFrontend::ArchiveFileOperator::ExtractArchive(
                               target_path, base_path);
@@ -136,16 +136,15 @@ bool process_directory_into_tarball(QWidget* parent, QString& path) {
                  selected_dir_path.u8string());
 
     bool if_error = false;
-    process_operation(parent, _("Making Tarball"),
-                      [&](Thread::DataObjectPtr) -> int {
-                        try {
-                          GpgFrontend::ArchiveFileOperator::CreateArchive(
-                              base_path, target_path, 0, {selected_dir_path});
-                        } catch (const std::runtime_error& e) {
-                          if_error = true;
-                        }
-                        return 0;
-                      });
+    process_operation(parent, _("Making Tarball"), [&](DataObjectPtr) -> int {
+      try {
+        GpgFrontend::ArchiveFileOperator::CreateArchive(base_path, target_path,
+                                                        0, {selected_dir_path});
+      } catch (const std::runtime_error& e) {
+        if_error = true;
+      }
+      return 0;
+    });
 
     if (if_error || !exists(target_path)) {
       throw std::runtime_error("Compress Failed");
@@ -229,7 +228,7 @@ void MainWindow::SlotFileEncrypt() {
     if (ret == QMessageBox::Cancel) return;
 
     process_operation(
-        this, _("Symmetrically Encrypting"), [&](Thread::DataObjectPtr) -> int {
+        this, _("Symmetrically Encrypting"), [&](DataObjectPtr) -> int {
           try {
             error = GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
                 path.toStdString(), out_path.toStdString(), result, _channel);
@@ -255,7 +254,7 @@ void MainWindow::SlotFileEncrypt() {
       }
     }
 
-    process_operation(this, _("Encrypting"), [&](Thread::DataObjectPtr) -> int {
+    process_operation(this, _("Encrypting"), [&](DataObjectPtr) -> int {
       try {
         error =
             GpgFileOpera::EncryptFile(std::move(p_keys), path.toStdString(),
@@ -318,7 +317,7 @@ void MainWindow::SlotFileDecrypt() {
   GpgDecrResult result = nullptr;
   gpgme_error_t error;
   bool if_error = false;
-  process_operation(this, _("Decrypting"), [&](Thread::DataObjectPtr) -> int {
+  process_operation(this, _("Decrypting"), [&](DataObjectPtr) -> int {
     try {
       error = GpgFileOpera::DecryptFile(path.toStdString(), out_path.u8string(),
                                         result);
@@ -422,7 +421,7 @@ void MainWindow::SlotFileSign() {
   gpgme_error_t error;
   bool if_error = false;
 
-  process_operation(this, _("Signing"), [&](Thread::DataObjectPtr) -> int {
+  process_operation(this, _("Signing"), [&](DataObjectPtr) -> int {
     try {
       error =
           GpgFileOpera::SignFile(std::move(keys), in_path.u8string(),
@@ -506,7 +505,7 @@ void MainWindow::SlotFileVerify() {
   GpgVerifyResult result = nullptr;
   gpgme_error_t error;
   bool if_error = false;
-  process_operation(this, _("Verifying"), [&](Thread::DataObjectPtr) -> int {
+  process_operation(this, _("Verifying"), [&](DataObjectPtr) -> int {
     try {
       error =
           GpgFileOpera::VerifyFile(data_file_path.u8string(),
@@ -522,11 +521,13 @@ void MainWindow::SlotFileVerify() {
     result_analyse.Analyse();
     process_result_analyse(edit_, info_board_, result_analyse);
 
-    if (result_analyse.GetStatus() == -2)
+    if (result_analyse.GetStatus() == -2) {
       import_unknown_key_from_keyserver(this, result_analyse);
+    }
 
-    if (result_analyse.GetStatus() >= 0)
+    if (result_analyse.GetStatus() >= 0) {
       show_verify_details(this, info_board_, error, result);
+    }
 
     fileTreeView->update();
   } else {
@@ -537,8 +538,8 @@ void MainWindow::SlotFileVerify() {
 }
 
 void MainWindow::SlotFileEncryptSign() {
-  auto fileTreeView = edit_->SlotCurPageFileTreeView();
-  auto path = fileTreeView->GetSelected();
+  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+  auto path = file_tree_view->GetSelected();
 
   if (!path_pre_check(this, path)) return;
 
@@ -578,14 +579,14 @@ void MainWindow::SlotFileEncryptSign() {
     path = path + (file_info.isDir() ? ".tar" : "");
   }
 
-  auto _channel = GPGFRONTEND_DEFAULT_CHANNEL;
-  auto _extension = ".asc";
+  auto channel = GPGFRONTEND_DEFAULT_CHANNEL;
+  const auto* extension = ".asc";
   if (non_ascii_when_export || file_info.isDir()) {
-    _channel = GPGFRONTEND_NON_ASCII_CHANNEL;
-    _extension = ".gpg";
+    channel = GPGFRONTEND_NON_ASCII_CHANNEL;
+    extension = ".gpg";
   }
 
-  auto out_path = path + _extension;
+  auto out_path = path + extension;
 
   if (QFile::exists(out_path)) {
     auto ret = QMessageBox::warning(
@@ -596,15 +597,15 @@ void MainWindow::SlotFileEncryptSign() {
     if (ret == QMessageBox::Cancel) return;
   }
 
-  auto signersPicker = new SignersPicker(this);
+  auto* signers_picker = new SignersPicker(this);
   QEventLoop loop;
-  connect(signersPicker, &SignersPicker::finished, &loop, &QEventLoop::quit);
+  connect(signers_picker, &SignersPicker::finished, &loop, &QEventLoop::quit);
   loop.exec();
 
   // return when canceled
-  if (!signersPicker->GetStatus()) return;
+  if (!signers_picker->GetStatus()) return;
 
-  auto signer_key_ids = signersPicker->GetCheckedSigners();
+  auto signer_key_ids = signers_picker->GetCheckedSigners();
   auto p_signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
 
   // convert directory into tarball
@@ -624,11 +625,11 @@ void MainWindow::SlotFileEncryptSign() {
   bool if_error = false;
 
   process_operation(
-      this, _("Encrypting and Signing"), [&](Thread::DataObjectPtr) -> int {
+      this, _("Encrypting and Signing"), [&](DataObjectPtr) -> int {
         try {
           error = GpgFileOpera::EncryptSignFile(
               std::move(p_keys), std::move(p_signer_keys), path.toStdString(),
-              out_path.toStdString(), encr_result, sign_result, _channel);
+              out_path.toStdString(), encr_result, sign_result, channel);
         } catch (const std::runtime_error& e) {
           if_error = true;
         }
@@ -643,7 +644,7 @@ void MainWindow::SlotFileEncryptSign() {
     sign_res.Analyse();
     process_result_analyse(edit_, info_board_, encrypt_result, sign_res);
 
-    fileTreeView->update();
+    file_tree_view->update();
 
   } else {
     QMessageBox::critical(this, _("Error"),
@@ -662,8 +663,8 @@ void MainWindow::SlotFileEncryptSign() {
 }
 
 void MainWindow::SlotFileDecryptVerify() {
-  auto fileTreeView = edit_->SlotCurPageFileTreeView();
-  auto path = fileTreeView->GetSelected();
+  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+  auto path = file_tree_view->GetSelected();
 
   if (!path_pre_check(this, path)) return;
 
@@ -697,7 +698,7 @@ void MainWindow::SlotFileDecryptVerify() {
   gpgme_error_t error;
   bool if_error = false;
   process_operation(
-      this, _("Decrypting and Verifying"), [&](Thread::DataObjectPtr) -> int {
+      this, _("Decrypting and Verifying"), [&](DataObjectPtr) -> int {
         try {
           error = GpgFileOpera::DecryptVerifyFile(
               path.toStdString(), out_path.u8string(), d_result, v_result);
@@ -714,13 +715,15 @@ void MainWindow::SlotFileDecryptVerify() {
     verify_res.Analyse();
     process_result_analyse(edit_, info_board_, decrypt_res, verify_res);
 
-    if (verify_res.GetStatus() == -2)
+    if (verify_res.GetStatus() == -2) {
       import_unknown_key_from_keyserver(this, verify_res);
+    }
 
-    if (verify_res.GetStatus() >= 0)
+    if (verify_res.GetStatus() >= 0) {
       show_verify_details(this, info_board_, error, v_result);
+    }
 
-    fileTreeView->update();
+    file_tree_view->update();
   } else {
     QMessageBox::critical(this, _("Error"),
                           _("An error occurred during operation."));
@@ -729,10 +732,11 @@ void MainWindow::SlotFileDecryptVerify() {
 
   // extract the tarball
   if (out_path.extension() == ".tar" && exists(out_path)) {
-    bool ret = QMessageBox::information(
-        this, _("Decrypting"),
-        _("Do you want to extract and delete the decrypted tarball?"),
-        QMessageBox::Ok | QMessageBox::Cancel);
+    bool ret =
+        QMessageBox::information(
+            this, _("Decrypting"),
+            _("Do you want to extract and delete the decrypted tarball?"),
+            QMessageBox::Ok | QMessageBox::Cancel) != 0;
     if (ret) {
       if (process_tarball_into_directory(this, out_path)) {
         QMessageBox::information(this, _("Decrypting"),

@@ -34,28 +34,29 @@
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 #include "core/module/Event.h"
 #include "core/module/Module.h"
 #include "core/thread/Task.h"
-#include "thread/DataObject.h"
+#include "model/DataObject.h"
 
 namespace GpgFrontend::Module {
 
 class GlobalModuleContext::Impl {
  public:
-  Impl(TaskRunnerPtr task_runner)
+  explicit Impl(TaskRunnerPtr task_runner)
       : random_gen_(
             (boost::posix_time::microsec_clock::universal_time() -
              boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1)))
                 .total_milliseconds()),
-        default_task_runner_(task_runner) {
+        default_task_runner_(std::move(task_runner)) {
     // Initialize acquired channels with default values.
     acquired_channel_.insert(GPGFRONTEND_DEFAULT_CHANNEL);
     acquired_channel_.insert(GPGFRONTEND_NON_ASCII_CHANNEL);
   }
 
-  int GetChannel(ModuleRawPtr module) {
+  auto GetChannel(ModuleRawPtr module) -> int {
     // Search for the module in the register table.
     auto module_info_opt =
         search_module_register_table(module->GetModuleIdentifier());
@@ -72,9 +73,11 @@ class GlobalModuleContext::Impl {
     return module_info->channel;
   }
 
-  int GetDefaultChannel(ModuleRawPtr) { return GPGFRONTEND_DEFAULT_CHANNEL; }
+  static auto GetDefaultChannel(ModuleRawPtr) -> int {
+    return GPGFRONTEND_DEFAULT_CHANNEL;
+  }
 
-  std::optional<TaskRunnerPtr> GetTaskRunner(ModuleRawPtr module) {
+  auto GetTaskRunner(ModuleRawPtr module) -> std::optional<TaskRunnerPtr> {
     auto opt = search_module_register_table(module->GetModuleIdentifier());
     if (!opt.has_value()) {
       return std::nullopt;
@@ -82,7 +85,8 @@ class GlobalModuleContext::Impl {
     return opt.value()->task_runner;
   }
 
-  std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier module_id) {
+  auto GetTaskRunner(ModuleIdentifier module_id)
+      -> std::optional<TaskRunnerPtr> {
     // Search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
@@ -92,11 +96,11 @@ class GlobalModuleContext::Impl {
     return module_info_opt.value()->task_runner;
   }
 
-  std::optional<TaskRunnerPtr> GetGlobalTaskRunner() {
+  auto GetGlobalTaskRunner() -> std::optional<TaskRunnerPtr> {
     return default_task_runner_;
   }
 
-  bool RegisterModule(ModulePtr module) {
+  auto RegisterModule(const ModulePtr& module) -> bool {
     SPDLOG_DEBUG("attempting to register module: {}",
                  module->GetModuleIdentifier());
     // Check if the module is null or already registered.
@@ -131,7 +135,7 @@ class GlobalModuleContext::Impl {
     return true;
   }
 
-  bool ActiveModule(ModuleIdentifier module_id) {
+  auto ActiveModule(ModuleIdentifier module_id) -> bool {
     SPDLOG_DEBUG("attempting to activate module: {}", module_id);
 
     // Search for the module in the register table.
@@ -151,28 +155,27 @@ class GlobalModuleContext::Impl {
     return module_info->activate;
   }
 
-  bool ListenEvent(ModuleIdentifier module_id, EventIdentifier event) {
+  auto ListenEvent(ModuleIdentifier module_id, EventIdentifier event) -> bool {
     SPDLOG_DEBUG("module: {} is attempting to listen to event {}", module_id,
                  event);
     // Check if the event exists, if not, create it.
-    auto it = module_events_table_.find(event);
-    if (it == module_events_table_.end()) {
+    auto met_it = module_events_table_.find(event);
+    if (met_it == module_events_table_.end()) {
       module_events_table_[event] = std::unordered_set<ModuleIdentifier>();
-      it = module_events_table_.find(event);
+      met_it = module_events_table_.find(event);
       SPDLOG_INFO("new event {} of module system created", event);
     }
 
-    auto& listeners_set = it->second;
+    auto& listeners_set = met_it->second;
     // Add the listener (module) to the event.
-    auto listener_it =
-        std::find(listeners_set.begin(), listeners_set.end(), module_id);
+    auto listener_it = listeners_set.find(module_id);
     if (listener_it == listeners_set.end()) {
       listeners_set.insert(module_id);
     }
     return true;
   }
 
-  bool DeactivateModule(ModuleIdentifier module_id) {
+  auto DeactivateModule(ModuleIdentifier module_id) -> bool {
     // Search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
@@ -189,13 +192,13 @@ class GlobalModuleContext::Impl {
     return !module_info->activate;
   }
 
-  bool TriggerEvent(EventRefrernce event) {
+  auto TriggerEvent(const EventRefrernce& event) -> bool {
     auto event_id = event->GetIdentifier();
     SPDLOG_DEBUG("attempting to trigger event: {}", event_id);
 
     // Find the set of listeners associated with the given event in the table
-    auto it = module_events_table_.find(event_id);
-    if (it == module_events_table_.end()) {
+    auto met_it = module_events_table_.find(event_id);
+    if (met_it == module_events_table_.end()) {
       // Log a warning if the event is not registered and nobody is listening
       SPDLOG_WARN(
           "event {} is not listening by anyone and not registered as well",
@@ -204,7 +207,7 @@ class GlobalModuleContext::Impl {
     }
 
     // Retrieve the set of listeners for this event
-    auto& listeners_set = it->second;
+    auto& listeners_set = met_it->second;
 
     // Check if the set of listeners is empty
     if (listeners_set.empty()) {
@@ -219,7 +222,7 @@ class GlobalModuleContext::Impl {
                  event->GetIdentifier(), listeners_set.size());
 
     // Iterate through each listener and execute the corresponding module
-    for (auto& listener_module_id : listeners_set) {
+    for (const auto& listener_module_id : listeners_set) {
       // Search for the module's information in the registration table
       auto module_info_opt = search_module_register_table(listener_module_id);
 
@@ -227,6 +230,7 @@ class GlobalModuleContext::Impl {
       if (!module_info_opt.has_value()) {
         SPDLOG_ERROR("cannot find module id {} at register table",
                      listener_module_id);
+        continue;
       }
 
       // Retrieve the module's information
@@ -243,19 +247,17 @@ class GlobalModuleContext::Impl {
       if (!module_info->activate) continue;
 
       Thread::Task::TaskRunnable exec_runnerable =
-          [module, event](Thread::DataObjectPtr) -> int {
-        return module->Exec(event);
-      };
+          [module, event](DataObjectPtr) -> int { return module->Exec(event); };
 
-      Thread::Task::TaskCallback exec_callback =
-          [listener_module_id, event_id](int code, Thread::DataObjectPtr) {
-            if (code < 0) {
-              // Log an error if the module execution fails
-              SPDLOG_ERROR(
-                  "module {} execution failed of event {}: exec return code {}",
-                  listener_module_id, event_id, code);
-            }
-          };
+      Thread::Task::TaskCallback exec_callback = [listener_module_id, event_id](
+                                                     int code, DataObjectPtr) {
+        if (code < 0) {
+          // Log an error if the module execution fails
+          SPDLOG_ERROR(
+              "module {} execution failed of event {}: exec return code {}",
+              listener_module_id, event_id, code);
+        }
+      };
 
       module_info->task_runner->PostTask(
           new Thread::Task(exec_runnerable,
@@ -269,8 +271,8 @@ class GlobalModuleContext::Impl {
     return true;
   }
 
-  bool IsModuleExists(ModuleIdentifier id) const {
-    return search_module_register_table(id).has_value();
+  auto IsModuleExists(const ModuleIdentifier& m_id) const -> bool {
+    return search_module_register_table(m_id).has_value();
   }
 
  private:
@@ -292,7 +294,7 @@ class GlobalModuleContext::Impl {
   boost::random::mt19937 random_gen_;
   TaskRunnerPtr default_task_runner_;
 
-  int acquire_new_unique_channel() {
+  auto acquire_new_unique_channel() -> int {
     boost::random::uniform_int_distribution<> dist(1, 65535);
 
     int random_channel = dist(random_gen_);
@@ -307,70 +309,71 @@ class GlobalModuleContext::Impl {
   }
 
   // Function to search for a module in the register table.
-  std::optional<ModuleRegisterInfoPtr> search_module_register_table(
-      ModuleIdentifier identifier) const {
-    auto it = module_register_table_.find(identifier);
-    if (it == module_register_table_.end()) {
+  auto search_module_register_table(const ModuleIdentifier& identifier) const
+      -> std::optional<ModuleRegisterInfoPtr> {
+    auto mrt_it = module_register_table_.find(identifier);
+    if (mrt_it == module_register_table_.end()) {
       return std::nullopt;
     }
-    return it->second;
+    return mrt_it->second;
   }
 };
 
 // Constructor for GlobalModuleContext, takes a TaskRunnerPtr as an argument.
 GlobalModuleContext::GlobalModuleContext(TaskRunnerPtr task_runner)
-    : p_(std::make_unique<Impl>(task_runner)) {}
+    : p_(std::make_unique<Impl>(std::move(task_runner))) {}
 
 GlobalModuleContext::~GlobalModuleContext() = default;
 
 // Function to get the task runner associated with a module.
-std::optional<TaskRunnerPtr> GlobalModuleContext::GetTaskRunner(
-    ModuleRawPtr module) {
+auto GlobalModuleContext::GetTaskRunner(ModuleRawPtr module)
+    -> std::optional<TaskRunnerPtr> {
   return p_->GetTaskRunner(module);
 }
 
 // Function to get the task runner associated with a module.
-std::optional<TaskRunnerPtr> GlobalModuleContext::GetTaskRunner(
-    ModuleIdentifier module_id) {
-  return p_->GetTaskRunner(module_id);
+auto GlobalModuleContext::GetTaskRunner(ModuleIdentifier module_id)
+    -> std::optional<TaskRunnerPtr> {
+  return p_->GetTaskRunner(std::move(module_id));
 }
 
 // Function to get the global task runner.
-std::optional<TaskRunnerPtr> GlobalModuleContext::GetGlobalTaskRunner() {
+auto GlobalModuleContext::GetGlobalTaskRunner()
+    -> std::optional<TaskRunnerPtr> {
   return p_->GetGlobalTaskRunner();
 }
 
-bool GlobalModuleContext::RegisterModule(ModulePtr module) {
-  return p_->RegisterModule(module);
+auto GlobalModuleContext::RegisterModule(ModulePtr module) -> bool {
+  return p_->RegisterModule(std::move(module));
 }
 
-bool GlobalModuleContext::ActiveModule(ModuleIdentifier module_id) {
-  return p_->ActiveModule(module_id);
+auto GlobalModuleContext::ActiveModule(ModuleIdentifier module_id) -> bool {
+  return p_->ActiveModule(std::move(module_id));
 }
 
-bool GlobalModuleContext::ListenEvent(ModuleIdentifier module_id,
-                                      EventIdentifier event) {
-  return p_->ListenEvent(module_id, event);
+auto GlobalModuleContext::ListenEvent(ModuleIdentifier module_id,
+                                      EventIdentifier event) -> bool {
+  return p_->ListenEvent(std::move(module_id), std::move(event));
 }
 
-bool GlobalModuleContext::DeactivateModule(ModuleIdentifier module_id) {
-  return p_->DeactivateModule(module_id);
+auto GlobalModuleContext::DeactivateModule(ModuleIdentifier module_id) -> bool {
+  return p_->DeactivateModule(std::move(module_id));
 }
 
-bool GlobalModuleContext::TriggerEvent(EventRefrernce event) {
-  return p_->TriggerEvent(event);
+auto GlobalModuleContext::TriggerEvent(EventRefrernce event) -> bool {
+  return p_->TriggerEvent(std::move(event));
 }
 
-int GlobalModuleContext::GetChannel(ModuleRawPtr module) {
+auto GlobalModuleContext::GetChannel(ModuleRawPtr module) -> int {
   return p_->GetChannel(module);
 }
 
-int GlobalModuleContext::GetDefaultChannel(ModuleRawPtr _) {
-  return p_->GetDefaultChannel(_);
+auto GlobalModuleContext::GetDefaultChannel(ModuleRawPtr channel) -> int {
+  return GlobalModuleContext::Impl::GetDefaultChannel(channel);
 }
 
-bool GlobalModuleContext::IsModuleExists(ModuleIdentifier id) {
-  return p_->IsModuleExists(id);
+auto GlobalModuleContext::IsModuleExists(ModuleIdentifier m_id) -> bool {
+  return p_->IsModuleExists(std::move(m_id));
 }
 
 }  // namespace GpgFrontend::Module

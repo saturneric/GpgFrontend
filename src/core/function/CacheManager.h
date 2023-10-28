@@ -31,7 +31,6 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <shared_mutex>
-#include <string>
 
 #include "core/GpgFunctionObject.h"
 

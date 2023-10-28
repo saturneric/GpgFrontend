@@ -28,10 +28,6 @@
 
 #pragma once
 
-#include <mutex>
-#include <vector>
-
-#include "core/GpgContext.h"
 #include "core/GpgFunctionObject.h"
 #include "core/GpgModel.h"
 
@@ -49,8 +45,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    *
    * @param channel
    */
-  explicit GpgKeyGetter(
-      int channel = SingletonFunctionObject::GetDefaultChannel());
+  explicit GpgKeyGetter(int channel = kGpgFrontendDefaultChannel);
 
   /**
    * @brief Get the Key object
@@ -58,7 +53,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param fpr
    * @return GpgKey
    */
-  GpgKey GetKey(const std::string& id, bool use_cache = true);
+  auto GetKey(const std::string& key_id, bool use_cache = true) -> GpgKey;
 
   /**
    * @brief Get the Keys object
@@ -66,7 +61,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param ids
    * @return KeyListPtr
    */
-  KeyListPtr GetKeys(const KeyIdArgsListPtr& ids);
+  auto GetKeys(const KeyIdArgsListPtr& key_ids) -> KeyListPtr;
 
   /**
    * @brief Get the Pubkey object
@@ -74,14 +69,14 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param fpr
    * @return GpgKey
    */
-  GpgKey GetPubkey(const std::string& id, bool use_cache = true);
+  auto GetPubkey(const std::string& key_id, bool use_cache = true) -> GpgKey;
 
   /**
    * @brief Get all the keys by receiving a linked list
    *
    * @return KeyLinkListPtr
    */
-  KeyLinkListPtr FetchKey();
+  auto FetchKey() -> KeyLinkListPtr;
 
   /**
    * @brief flush the keys in the cache
@@ -95,7 +90,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param keys
    * @return KeyListPtr
    */
-  KeyListPtr GetKeysCopy(const KeyListPtr& keys);
+  auto GetKeysCopy(const KeyListPtr& keys) -> KeyListPtr;
 
   /**
    * @brief Get the Keys Copy object
@@ -103,40 +98,10 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param keys
    * @return KeyLinkListPtr
    */
-  KeyLinkListPtr GetKeysCopy(const KeyLinkListPtr& keys);
+  auto GetKeysCopy(const KeyLinkListPtr& keys) -> KeyLinkListPtr;
 
  private:
-  /**
-   * @brief Get the gpgme context object
-   *
-   */
-  GpgContext& ctx_ =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
-
-  /**
-   * @brief shared mutex for the keys cache
-   *
-   */
-  mutable std::mutex ctx_mutex_;
-
-  /**
-   * @brief cache the keys with key id
-   *
-   */
-  std::map<std::string, GpgKey> keys_cache_;
-
-  /**
-   * @brief shared mutex for the keys cache
-   *
-   */
-  mutable std::mutex keys_cache_mutex_;
-
-  /**
-   * @brief Get the Key object
-   *
-   * @param id
-   * @return GpgKey
-   */
-  GpgKey get_key_in_cache(const std::string& id);
+  class Impl;
+  std::unique_ptr<Impl> p_;
 };
 }  // namespace GpgFrontend

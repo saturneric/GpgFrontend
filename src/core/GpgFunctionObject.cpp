@@ -30,7 +30,6 @@
 
 #include <cassert>
 #include <functional>
-#include <memory>
 #include <mutex>
 #include <shared_mutex>
 
@@ -38,44 +37,47 @@ void GpgFrontend::ChannelObject::SetChannel(int channel) {
   this->channel_ = channel;
 }
 
-int GpgFrontend::ChannelObject::GetChannel() const { return channel_; }
+auto GpgFrontend::ChannelObject::GetChannel() const -> int { return channel_; }
 
-int GpgFrontend::ChannelObject::GetDefaultChannel() { return _default_channel; }
+auto GpgFrontend::ChannelObject::GetDefaultChannel() -> int {
+  return kGpgFrontendDefaultChannel;
+}
 
 void GpgFrontend::SingletonStorage::ReleaseChannel(int channel) {
-  decltype(instances_map_.end()) _it;
+  decltype(instances_map_.end()) ins_it;
   {
     std::shared_lock<std::shared_mutex> lock(instances_mutex_);
-    _it = instances_map_.find(channel);
+    ins_it = instances_map_.find(channel);
   }
-  if (_it != instances_map_.end()) instances_map_.erase(_it);
+  if (ins_it != instances_map_.end()) instances_map_.erase(ins_it);
 }
 
-GpgFrontend::ChannelObject* GpgFrontend::SingletonStorage::FindObjectInChannel(
-    int channel) {
+auto GpgFrontend::SingletonStorage::FindObjectInChannel(int channel)
+    -> GpgFrontend::ChannelObject* {
   // read instances_map_
-  decltype(instances_map_.end()) _it;
+  decltype(instances_map_.end()) ins_it;
   {
     std::shared_lock<std::shared_mutex> lock(instances_mutex_);
-    _it = instances_map_.find(channel);
-    if (_it == instances_map_.end()) {
+    ins_it = instances_map_.find(channel);
+    if (ins_it == instances_map_.end()) {
       return nullptr;
-    } else {
-      return _it->second.get();
     }
+    return ins_it->second.get();
   }
 }
 
-std::vector<int> GpgFrontend::SingletonStorage::GetAllChannelId() {
-  std::vector<int> _channels;
+auto GpgFrontend::SingletonStorage::GetAllChannelId() -> std::vector<int> {
+  std::vector<int> channels;
+  channels.reserve(instances_map_.size());
   for (const auto& [key, value] : instances_map_) {
-    _channels.push_back(key);
+    channels.push_back(key);
   }
-  return _channels;
+  return channels;
 }
 
-GpgFrontend::ChannelObject* GpgFrontend::SingletonStorage::SetObjectInChannel(
-    int channel, std::unique_ptr<ChannelObject> p_obj) {
+auto GpgFrontend::SingletonStorage::SetObjectInChannel(
+    int channel, std::unique_ptr<ChannelObject> p_obj)
+    -> GpgFrontend::ChannelObject* {
   {
     SPDLOG_TRACE("set channel: {} instance address: {}", channel,
                  static_cast<void*>(&instances_map_));
@@ -83,7 +85,7 @@ GpgFrontend::ChannelObject* GpgFrontend::SingletonStorage::SetObjectInChannel(
     assert(p_obj != nullptr);
     if (p_obj == nullptr) return nullptr;
 
-    auto raw_obj = p_obj.get();
+    auto* raw_obj = p_obj.get();
     p_obj->SetChannel(channel);
     {
       std::unique_lock<std::shared_mutex> lock(instances_mutex_);
@@ -93,18 +95,17 @@ GpgFrontend::ChannelObject* GpgFrontend::SingletonStorage::SetObjectInChannel(
   }
 }
 
-GpgFrontend::SingletonStorage*
-GpgFrontend::SingletonStorageCollection::GetSingletonStorage(
-    const std::type_info& type_id) {
+auto GpgFrontend::SingletonStorageCollection::GetSingletonStorage(
+    const std::type_info& type_id) -> GpgFrontend::SingletonStorage* {
   const auto hash = type_id.hash_code();
 
   while (true) {
-    decltype(storages_map_.end()) _it;
+    decltype(storages_map_.end()) ins_it;
     {
       std::shared_lock<std::shared_mutex> lock(storages_mutex_);
-      _it = storages_map_.find(hash);
+      ins_it = storages_map_.find(hash);
     }
-    if (_it == storages_map_.end()) {
+    if (ins_it == storages_map_.end()) {
       {
         std::unique_lock<std::shared_mutex> lock(storages_mutex_);
         storages_map_.insert({hash, std::make_unique<SingletonStorage>()});
@@ -112,15 +113,13 @@ GpgFrontend::SingletonStorageCollection::GetSingletonStorage(
       SPDLOG_TRACE("hash: {} created, storage address: {} type_name: {}", hash,
                    static_cast<void*>(&storages_map_), type_id.name());
       continue;
-    } else {
-      return _it->second.get();
     }
+    return ins_it->second.get();
   }
 }
 
-GpgFrontend::SingletonStorageCollection*
-GpgFrontend::SingletonStorageCollection::GetInstance(
-    bool force_refresh = false) {
+auto GpgFrontend::SingletonStorageCollection::GetInstance(
+    bool force_refresh = false) -> GpgFrontend::SingletonStorageCollection* {
   static SingletonStorageCollection* instance = nullptr;
 
   if (force_refresh || instance == nullptr) {

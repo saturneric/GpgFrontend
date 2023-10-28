@@ -40,9 +40,8 @@ namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 VersionCheckTask::VersionCheckTask()
     : Task("version_check_task"),
       network_manager_(new QNetworkAccessManager(this)),
-      current_version_(std::string("v") + std::to_string(VERSION_MAJOR) + "." +
-                       std::to_string(VERSION_MINOR) + "." +
-                       std::to_string(VERSION_PATCH)) {
+      current_version_(std::string("v") + VERSION_MAJOR + "." + VERSION_MINOR +
+                       "." + VERSION_PATCH) {
   HoldOnLifeCycle(true);
   qRegisterMetaType<SoftwareVersion>("SoftwareVersion");
   version_.current_version = current_version_;

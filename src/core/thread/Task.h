@@ -29,14 +29,11 @@
 #pragma once
 
 #include "core/GpgFrontendCore.h"
-#include "core/thread/DataObject.h"
+#include "core/model/DataObject.h"
 
 namespace GpgFrontend::Thread {
 
 class TaskRunner;
-
-class DataObject;
-using DataObjectPtr = std::shared_ptr<DataObject>;  ///<
 
 class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
   Q_OBJECT
@@ -50,7 +47,7 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    * @brief Construct a new Task object
    *
    */
-  Task(std::string name);
+  explicit Task(std::string name);
 
   /**
    * @brief Construct a new Task object
@@ -68,11 +65,11 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
   explicit Task(TaskRunnable runnable, std::string name, DataObjectPtr data,
                 TaskCallback callback);
 
-  virtual ~Task() override;
+  ~Task() override;
 
-  std::string GetUUID() const;
+  [[nodiscard]] auto GetUUID() const -> std::string;
 
-  std::string GetFullID() const;
+  [[nodiscard]] auto GetFullID() const -> std::string;
 
   void HoldOnLifeCycle(bool hold_on);
 
@@ -95,6 +92,6 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
   class Impl;
   Impl* p_;
 
-  virtual void run() override;
+  void run() override;
 };
 }  // namespace GpgFrontend::Thread

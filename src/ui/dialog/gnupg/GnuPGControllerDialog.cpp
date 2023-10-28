@@ -31,7 +31,6 @@
 #include "SignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
-#include "spdlog/spdlog.h"
 #include "ui/dialog/GeneralDialog.h"
 #include "ui_GnuPGControllerDialog.h"
 

@@ -30,7 +30,6 @@
 
 #include <algorithm>
 #include <boost/format.hpp>
-#include <string>
 
 #include "function/DataObjectOperator.h"
 
